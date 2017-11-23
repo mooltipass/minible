@@ -135,6 +135,9 @@ typedef struct
 #define VOLED_3V3_EN_GROUP      PIN_GROUP_1
 #define VOLED_3V3_EN_PINID      23
 #define VOLED_3V3_EN_MASK       (1UL << VOLED_3V3_EN_PINID)
+#define MCU_AUX_RST_EN_GROUP    PIN_GROUP_0
+#define MCU_AUX_RST_EN_PINID    15
+#define MCU_AUX_RST_EN_MASK     (1UL << MCU_AUX_RST_EN_PINID)
 /* OLED */
 #define OLED_MOSI_GROUP         PIN_GROUP_0
 #define OLED_MOSI_PINID         4

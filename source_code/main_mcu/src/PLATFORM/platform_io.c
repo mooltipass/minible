@@ -11,6 +11,22 @@
 #include "platform_io.h"
 
 
+/*! \fn     platform_io_release_aux_reset(void)
+*   \brief  Release aux MCU reset
+*/
+void platform_io_release_aux_reset(void)
+{
+     PORT->Group[MCU_AUX_RST_EN_GROUP].OUTCLR.reg = MCU_AUX_RST_EN_MASK;
+}
+
+/*! \fn     platform_io_enable_ble(void)
+*   \brief  Enable BLE module
+*/
+void platform_io_enable_ble(void)
+{
+    PORT->Group[BLE_EN_GROUP].OUTSET.reg = BLE_EN_MASK;
+}
+
 /*! \fn     platform_io_init_flash_ports(void)
 *   \brief  Initialize the platform flash IO ports
 */
@@ -96,4 +112,14 @@ void platform_io_init_ports(void)
     
     /* External Flash */
     platform_io_init_flash_ports();
+
+    /* AUX MCU, reset by default */
+    PORT->Group[MCU_AUX_RST_EN_GROUP].DIRSET.reg = MCU_AUX_RST_EN_MASK;
+    PORT->Group[MCU_AUX_RST_EN_GROUP].OUTSET.reg = MCU_AUX_RST_EN_MASK;
+    platform_io_release_aux_reset();
+
+    /* BLE enable, disabled by default */
+    PORT->Group[BLE_EN_GROUP].DIRSET.reg = BLE_EN_MASK;
+    PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
+    platform_io_enable_ble();
 }
