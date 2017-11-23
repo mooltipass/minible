@@ -13,6 +13,7 @@
 #define TRUE    (!FALSE)
 
 /* Enums */
+typedef enum    {RETURN_REL = 0, RETURN_DET, RETURN_JDETECT, RETURN_JRELEASED} det_ret_type_te;
 typedef enum    {RETURN_NOK = -1, RETURN_OK = 0} ret_type_te;
 
 /* Typedefs */

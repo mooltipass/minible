@@ -297,10 +297,10 @@ typedef struct
 #define SMC_RST_PINID          14
 #define SMC_RST_MASK           (1UL << SMC_RST_PINID)
 #define SMC_PGM_GROUP          PIN_GROUP_0
-#define SMC_PGM_PINID          20
+#define SMC_PGM_PINID          31
 #define SMC_PGM_MASK           (1UL << SMC_PGM_PINID)
 #define SMC_DET_GROUP          PIN_GROUP_0
-#define SMC_DET_PINID          31
+#define SMC_DET_PINID          12
 #define SMC_DET_MASK           (1UL << SMC_DET_PINID)
 
 /* Display defines */

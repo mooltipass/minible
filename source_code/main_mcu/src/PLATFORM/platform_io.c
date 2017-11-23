@@ -27,6 +27,33 @@ void platform_io_enable_ble(void)
     PORT->Group[BLE_EN_GROUP].OUTSET.reg = BLE_EN_MASK;
 }
 
+/*! \fn     platform_io_init_smc_ports(void)
+*   \brief  Basic initialization of SMC ports at boot
+*/
+void platform_io_init_smc_ports(void)
+{
+    PORT->Group[SMC_DET_GROUP].DIRCLR.reg = SMC_DET_MASK;               // Setup card detection input with pull-up
+    PORT->Group[SMC_DET_GROUP].OUTSET.reg = SMC_DET_MASK;               // Setup card detection input with pull-up    
+    PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 1;    // Setup card detection input with pull-up
+    PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.INEN = 1;      // Setup card detection input with pull-up
+    PORT->Group[SMC_POW_NEN_GROUP].DIRSET.reg = SMC_POW_NEN_MASK;       // Setup power enable, disabled by default
+    PORT->Group[SMC_POW_NEN_GROUP].OUTSET.reg = SMC_POW_NEN_MASK;       // Setup power enable, disabled by default    
+}
+
+/*! \fn     platform_io_smc_remove_function(void)
+*   \brief  Function called when smartcard is removed
+*/
+void platform_io_smc_remove_function(void)
+{
+    PORT->Group[SMC_POW_NEN_GROUP].OUTSET.reg = SMC_POW_NEN_MASK;       // Deactivate power to the smart card
+    PORT->Group[SMC_PGM_GROUP].DIRCLR.reg = SMC_PGM_MASK;               // Setup all output pins as tri-state
+    PORT->Group[SMC_RST_GROUP].DIRCLR.reg = SMC_RST_MASK;               // Setup all output pins as tri-state
+    PORT->Group[SMC_SCK_GROUP].PINCFG[SMC_SCK_PINID].bit.PMUXEN = 0;    // Disable SPI functionality
+    PORT->Group[SMC_MOSI_GROUP].PINCFG[SMC_MOSI_PINID].bit.PMUXEN = 0;  // Disable SPI functionality
+    PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.PMUXEN = 0;  // Disable SPI functionality    
+    //card_powered = FALSE;
+}
+
 /*! \fn     platform_io_init_flash_ports(void)
 *   \brief  Initialize the platform flash IO ports
 */
@@ -122,4 +149,7 @@ void platform_io_init_ports(void)
     PORT->Group[BLE_EN_GROUP].DIRSET.reg = BLE_EN_MASK;
     PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
     platform_io_enable_ble();
+
+    /* Smartcards port */
+    platform_io_init_smc_ports();
 }

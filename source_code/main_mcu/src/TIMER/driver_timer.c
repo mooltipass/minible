@@ -5,6 +5,7 @@
  *  Author: stephan
  */ 
 #include <asf.h>
+#include "smartcard_lowlevel.h"
 #include "platform_defines.h"
 #include "driver_clocks.h"
 #include "driver_timer.h"
@@ -28,6 +29,9 @@ void TCC0_Handler(void)
         
             /* Timer ms tick */
             timer_ms_tick();
+
+            /* Smartcard detect */
+            smartcard_lowlevel_detect();
         
             /* Debug ms tick */
             //debug_led_anim_tick();
