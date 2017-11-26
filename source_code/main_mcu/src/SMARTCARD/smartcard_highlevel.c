@@ -97,35 +97,46 @@ void readMooltipassWebsitePassword(uint8_t* buffer)
 }
 #endif 
 
-/*! \fn     readFabricationZone(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_read_fab_zone(uint8_t* buffer)
 *   \brief  Read the fabrication zone (security mode 1&2)
 *   \param  buffer  Pointer to a buffer (2 bytes required)
 *   \return The provided pointer
 */
-uint8_t* readFabricationZone(uint8_t* buffer)
+uint8_t* smartcard_highlevel_read_fab_zone(uint8_t* buffer)
 {
     smartcard_lowlevel_read_smc(2, 0, buffer);
     return buffer;
 }
 
-/*! \fn     readMemoryTestZone(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_read_mem_test_zone(uint8_t* buffer)
 *   \brief  Read the Test zone (security mode 1&2)
 *   \param  buffer  Pointer to a buffer (2 bytes required)
 *   \return The provided pointer
 */
-uint8_t* readMemoryTestZone(uint8_t* buffer)
+uint8_t* smartcard_highlevel_read_mem_test_zone(uint8_t* buffer)
 {
     smartcard_lowlevel_read_smc(178, 176, buffer);
     return buffer;
 }
 
-/*! \fn     writeMemoryTestZone(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_write_mem_test_zone(uint8_t* buffer)
 *   \brief  Write in the Test zone (security mode 1&2)
 *   \param  buffer  Pointer to a buffer (2 bytes required)
 */
-void writeMemoryTestZone(uint8_t* buffer)
+void smartcard_highlevel_write_mem_test_zone(uint8_t* buffer)
 {
     smartcard_lowlevel_write_smc(1408, 16, buffer);
+}
+
+/*! \fn     readSecurityCodeAttemptsCounters(uint8_t* buffer)
+*   \brief  Read the number of code attempts left (security mode 1&2)
+*   \param  buffer  Pointer to a buffer (2 bytes required)
+*   \return The provided pointer
+*/
+uint8_t* readSecurityCodeAttemptsCounters(uint8_t* buffer)
+{
+    smartcard_lowlevel_read_smc(14, 12, buffer);
+    return buffer;
 }
 
 #ifdef dtc
@@ -147,17 +158,6 @@ uint8_t* readIssuerZone(uint8_t* buffer)
 void writeIssuerZone(uint8_t* buffer)
 {
     writeSMC(16, 64, buffer);
-}
-
-/*! \fn     readSecurityCodeAttemptsCounters(uint8_t* buffer)
-*   \brief  Read the number of code attempts left (security mode 1&2)
-*   \param  buffer  Pointer to a buffer (2 bytes required)
-*   \return The provided pointer
-*/
-uint8_t* readSecurityCodeAttemptsCounters(uint8_t* buffer)
-{
-    readSMC(14, 12, buffer);
-    return buffer;
 }
 
 /*! \fn     readCodeProtectedZone(uint8_t* buffer)
@@ -335,11 +335,11 @@ RET_TYPE mooltipassDetectedRoutine(volatile uint16_t* pin_code)
     else                                                                // Unlock failed
     {
         #ifdef DEBUG_SMC_USB_PRINT
-            usbPrintf_P(PSTR("%d tries left, wrong pin\r\n"), getNumberOfSecurityCodeTriesLeft());
+            usbPrintf_P(PSTR("%d tries left, wrong pin\r\n"), smartcard_highlevel_get_nb_sec_tries_left());
         #endif
         
         // The enum allows us to do so
-        return RETURN_MOOLTIPASS_0_TRIES_LEFT + getNumberOfSecurityCodeTriesLeft();
+        return RETURN_MOOLTIPASS_0_TRIES_LEFT + smartcard_highlevel_get_nb_sec_tries_left();
     }
 }
 
@@ -411,7 +411,7 @@ RET_TYPE cardDetectedRoutine(void)
                 else                                                            // Card unlock failed. Show number of tries left
                 {
                     #ifdef DEBUG_SMC_USB_PRINT
-                        usbPrintf_P(PSTR("%d tries left, wrong pin\r\n"),getNumberOfSecurityCodeTriesLeft());
+                        usbPrintf_P(PSTR("%d tries left, wrong pin\r\n"),smartcard_highlevel_get_nb_sec_tries_left());
                     #endif
                     return RETURN_MOOLTIPASS_PB;
                 }
@@ -723,7 +723,7 @@ void printSMCDebugInfoToUSB(void)
 
     /* Read FZ, SC, and SCAC */
     oledSetXY(0,0);
-    usbPrintf_P(PSTR("FZ: %04X SC: %04X SCAC: %04X\n"), swap16(*(uint16_t *)readFabricationZone(data_buffer)), readSecurityCode(), swap16(*(uint16_t*)readSecurityCodeAttemptsCounters(data_buffer)));
+    usbPrintf_P(PSTR("FZ: %04X SC: %04X SCAC: %04X\n"), swap16(*(uint16_t *)smartcard_highlevel_read_fab_zone(data_buffer)), readSecurityCode(), swap16(*(uint16_t*)readSecurityCodeAttemptsCounters(data_buffer)));
 
     /* Read IZ */
     readIssuerZone(data_buffer);
@@ -763,7 +763,7 @@ void printSMCDebugInfoToUSB(void)
 
     /* Read MTZ and MFZ */
     usbPrintf_P(PSTR("MTZ: %04X MFZ: %04X\n"),
-            swap16(*(uint16_t*)readMemoryTestZone(data_buffer)),
+            swap16(*(uint16_t*)smartcard_highlevel_read_mem_test_zone(data_buffer)),
             swap16(*(uint16_t*)readManufacturerZone(data_buffer)));
 
     /* Show first 8 bytes of AZ1 and AZ2 */
@@ -785,28 +785,6 @@ void printSMCDebugInfoToUSB(void)
         
     /* Show EC2 counter */
     usbPrintf_P(PSTR("EC2: %02X\n"), getNumberOfAZ2WritesLeft());
-}
-
-/*! \fn     getNumberOfSecurityCodeTriesLeft(void)
-*   \brief  Get the number of security code tries left
-*   \return Number of tries left
-*/
-uint8_t getNumberOfSecurityCodeTriesLeft(void)
-{
-    uint8_t temp_buffer[2];
-    uint8_t return_val = 0;
-    uint8_t i;
-
-    readSecurityCodeAttemptsCounters(temp_buffer);
-    for(i = 0; i < 4; i++)
-    {
-        if ((temp_buffer[0] >> (4+i)) & 0x01)
-        {
-            return_val++;
-        }
-    }
-
-    return return_val;
 }
 
 /*! \fn     getNumberOfAZ2WritesLeft(void)
@@ -831,3 +809,25 @@ uint8_t getNumberOfAZ2WritesLeft(void)
     return return_val;  
 }
 #endif
+
+/*! \fn     smartcard_highlevel_get_nb_sec_tries_left(void)
+*   \brief  Get the number of security code tries left
+*   \return Number of tries left
+*/
+uint8_t smartcard_highlevel_get_nb_sec_tries_left(void)
+{
+    uint8_t temp_buffer[2];
+    uint8_t return_val = 0;
+    uint8_t i;
+
+    readSecurityCodeAttemptsCounters(temp_buffer);
+    for(i = 0; i < 4; i++)
+    {
+        if ((temp_buffer[0] >> (4+i)) & 0x01)
+        {
+            return_val++;
+        }
+    }
+
+    return return_val;
+}

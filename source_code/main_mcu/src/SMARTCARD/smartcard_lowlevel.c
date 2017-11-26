@@ -50,7 +50,6 @@ volatile uint8_t card_powered = FALSE;
 void smartcard_lowlevel_hpulse_delay(void)
 {
     DELAYUS(2);
-    DELAYUS(2);
 }
 
 /*! \fn     smartcard_lowlevel_tchp_delay(void)
@@ -58,7 +57,6 @@ void smartcard_lowlevel_hpulse_delay(void)
 */
 static inline void smartcard_lowlevel_tchp_delay(void)
 {
-    timer_delay_ms(4);
     timer_delay_ms(4);
 }
 
@@ -124,40 +122,6 @@ void smartcard_lowlevel_write_nerase(uint8_t is_write)
 
 #ifdef dtc
 
-/*! \fn     setSPIModeSMC(void)
-*   \brief  Activate SPI controller for the SMC
-*/
-void setSPIModeSMC(void)
-{
-    #if SPI_SMARTCARD == SPI_NATIVE
-        /* Enable SPI in master mode at 125kbits/s */
-        SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR1) | (1 << SPR0);
-    #else
-        #error "SPI not supported"
-    #endif
-}
-
-/*! \fn     setBBModeAndPgmRstSMC(void)
-*   \brief  Switch to big banging, and clear pgm/rst signal for normal operation
-*/
-void setBBModeAndPgmRstSMC(void)
-{
-    #if SPI_SMARTCARD == SPI_NATIVE
-        /* Deactivate SPI port */
-        SPCR = 0;
-
-        /* Clock & data low */
-        PORT_SPI_NATIVE &= ~(1 << SCK_SPI_NATIVE);
-        PORT_SPI_NATIVE &= ~(1 << MOSI_SPI_NATIVE);
-        smartcardHPulseDelay();
-
-        /* Clear PGM and RST signals */
-        clearPgmRstSignals();
-    #else
-        #error "SPI not supported"
-    #endif
-}
-
 /*! \fn     blowFuse(uint8_t fuse_name)
 *   \brief  Blow the manufacturer or issuer fuse
 *   \param  fuse_name    Which fuse to blow
@@ -185,7 +149,9 @@ void blowFuse(uint8_t fuse_name)
     }
 
     /* Switch to bit banging */
-    setBBModeAndPgmRstSMC();
+    platform_io_smc_switch_to_bb();
+    smartcard_lowlevel_hpulse_delay();
+    smartcard_lowlevel_clear_pgmrst_signals();
 
     /* Get to the good index */
     while(i--)clockPulseSMC();
@@ -291,34 +257,24 @@ card_detect_return_te smartcard_lowlevel_first_detect_function(void)
     timer_delay_ms(300);
 
     /* Check smart card FZ */
-    readFabricationZone((uint8_t*)&data_buffer);
+    smartcard_highlevel_read_fab_zone((uint8_t*)&data_buffer);
     if ((swap16(data_buffer)) != SMARTCARD_FABRICATION_ZONE)
     {
         return RETURN_CARD_NDET;
     }
 
     /* Perform test write on MTZ */
-    readMemoryTestZone((uint8_t*)&temp_uint);
+    smartcard_highlevel_read_mem_test_zone((uint8_t*)&temp_uint);
     temp_uint = temp_uint + 5;
-    writeMemoryTestZone((uint8_t*)&temp_uint);
-    readMemoryTestZone((uint8_t*)&data_buffer);
-
-    if (data_buffer == 0x149)
-    {
-        PORT->Group[OLED_CD_GROUP].OUTCLR.reg = OLED_CD_MASK;
-    }
-
+    smartcard_highlevel_write_mem_test_zone((uint8_t*)&temp_uint);
+    smartcard_highlevel_read_mem_test_zone((uint8_t*)&data_buffer);
     if (data_buffer != temp_uint)
     {
         return RETURN_CARD_TEST_PB;
     }
-    
-    PORT->Group[OLED_CD_GROUP].OUTCLR.reg = OLED_CD_MASK;
-    return RETURN_CARD_0_TRIES_LEFT;
-    #ifdef blabla
 
     /* Read security code attempts counter */
-    switch(getNumberOfSecurityCodeTriesLeft())
+    switch(smartcard_highlevel_get_nb_sec_tries_left())
     {
         case 4: return RETURN_CARD_4_TRIES_LEFT;
         case 3: return RETURN_CARD_3_TRIES_LEFT;
@@ -327,7 +283,6 @@ card_detect_return_te smartcard_lowlevel_first_detect_function(void)
         case 0: return RETURN_CARD_0_TRIES_LEFT;
         default: return RETURN_CARD_0_TRIES_LEFT;
     }
-    #endif
 }
 
 #ifdef dtc
@@ -354,7 +309,9 @@ void eraseApplicationZone1NZone2SMC(uint8_t zone1_nzone2)
 
     #if SPI_SMARTCARD == SPI_NATIVE
         /* Switch to bit banging */
-        setBBModeAndPgmRstSMC();
+        platform_io_smc_switch_to_bb();
+        smartcard_lowlevel_hpulse_delay();
+        smartcard_lowlevel_clear_pgmrst_signals();
 
         /* Get to the good EZx */
         while(i--) smartcard_lowlevel_inverted_clock_pulse();
@@ -444,7 +401,9 @@ RET_TYPE securityValidationSMC(volatile uint16_t* code)
 
     #if SPI_SMARTCARD == SPI_NATIVE
         /* Switch to bit banging */
-        setBBModeAndPgmRstSMC();
+        platform_io_smc_switch_to_bb();
+        smartcard_lowlevel_hpulse_delay();
+        smartcard_lowlevel_clear_pgmrst_signals();
 
         /* Get to the SC */
         for(i = 0; i < 80; i++)
@@ -566,6 +525,8 @@ void smartcard_lowlevel_write_smc(uint16_t start_index_bit, uint16_t nb_bits, ui
 
     /* Switch to bit banging */
     platform_io_smc_switch_to_bb();
+    smartcard_lowlevel_hpulse_delay();
+    smartcard_lowlevel_clear_pgmrst_signals();
 
     /* Try to not erase AZ1 if EZ1 is 0xFFFFFFF... and we're writing the first bit of the AZ2 */
     if (start_index_bit >= SMARTCARD_AZ2_BIT_START)

@@ -35,7 +35,10 @@ int main (void)
     {
         if (smartcard_lowlevel_is_card_plugged() == RETURN_JDETECT)
         {
-            smartcard_lowlevel_first_detect_function();
+            if(smartcard_lowlevel_first_detect_function() == RETURN_CARD_4_TRIES_LEFT)
+            {
+                PORT->Group[OLED_CD_GROUP].OUTCLR.reg = OLED_CD_MASK;
+            }
         }
     }
 }
