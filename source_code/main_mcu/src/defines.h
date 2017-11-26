@@ -9,8 +9,10 @@
 #include <stdio.h>
 
 /* Standard defines */
-#define FALSE   0
-#define TRUE    (!FALSE)
+#define AES_KEY_LENGTH          256
+#define AES_BLOCK_SIZE          128
+#define FALSE                   0
+#define TRUE                    (!FALSE)
 
 /* Enums */
 typedef enum    {RETURN_MOOLTIPASS_INVALID = 0, RETURN_MOOLTIPASS_PB = 1, RETURN_MOOLTIPASS_BLOCKED = 2, RETURN_MOOLTIPASS_BLANK = 3, RETURN_MOOLTIPASS_USER = 4, RETURN_MOOLTIPASS_0_TRIES_LEFT = 5, RETURN_MOOLTIPASS_1_TRIES_LEFT = 6, RETURN_MOOLTIPASS_2_TRIES_LEFT = 7, RETURN_MOOLTIPASS_3_TRIES_LEFT = 8, RETURN_MOOLTIPASS_4_TRIES_LEFT = 9} mooltipass_card_detect_return_te;

@@ -120,13 +120,11 @@ void smartcard_lowlevel_write_nerase(uint8_t is_write)
     smartcard_lowlevel_hpulse_delay();
 }
 
-#ifdef dtc
-
-/*! \fn     blowFuse(uint8_t fuse_name)
+/*! \fn     smartcard_lowlevel_blow_fuse(uint8_t fuse_name)
 *   \brief  Blow the manufacturer or issuer fuse
 *   \param  fuse_name    Which fuse to blow
 */
-void blowFuse(uint8_t fuse_name)
+void smartcard_lowlevel_blow_fuse(uint8_t fuse_name)
 {
     uint16_t i;
 
@@ -154,21 +152,20 @@ void blowFuse(uint8_t fuse_name)
     smartcard_lowlevel_clear_pgmrst_signals();
 
     /* Get to the good index */
-    while(i--)clockPulseSMC();
+    while(i--)smartcard_lowlevel_clock_pulse();
 
     /* Set RST signal */
-    PORT_SC_RST |= (1 << PORTID_SC_RST);
+    PORT->Group[SMC_RST_GROUP].OUTSET.reg = SMC_RST_MASK;
 
     /* Perform a write */
     smartcard_lowlevel_write_nerase(TRUE);
 
     /* Set PGM / RST signals to standby mode */
-    setPgmRstSignals();
+    smartcard_lowlevel_set_pgmrst_signals();
 
     /* Switch to SPI mode */
-    setSPIModeSMC();
+    platform_io_smc_switch_to_spi();
 }
-#endif
 
 /*! \fn     smartcard_lowlevel_is_card_plugged(void)
 *   \brief  Know if a card is plugged

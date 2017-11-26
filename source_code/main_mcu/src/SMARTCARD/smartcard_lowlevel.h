@@ -47,7 +47,7 @@ void smartcard_lowlevel_detect(void);
 
 // old prototypes
 void eraseApplicationZone1NZone2SMC(uint8_t zone1_nzone2);
-void blowFuse(uint8_t fuse_name);
+void smartcard_lowlevel_blow_fuse(uint8_t fuse_name);
 
 // Macros
 /*! \fn     isSmartCardAbsent(void)

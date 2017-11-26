@@ -45,7 +45,7 @@ RET_TYPE setAuthenticatedReadWriteAccessToZone1(void);
 RET_TYPE setAuthenticatedReadWriteAccessToZone2(void);
 void setAuthenticatedReadWriteAccessToZone1and2(void);
 void writeSecurityCode(volatile uint16_t* code);
-RET_TYPE transformBlankCardIntoMooltipass(void);
+RET_TYPE smartcard_high_level_transform_blank_card_into_mooltipass(void);
 uint8_t smartcard_highlevel_get_nb_sec_tries_left(void);
 RET_TYPE writeAES256BitsKey(uint8_t* buffer);
 uint8_t getNumberOfAZ2WritesLeft(void);
