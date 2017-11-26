@@ -32,10 +32,19 @@
 #define ISSUER_FUSE 0x02
 
 // Prototypes
+uint8_t* smartcard_lowlevel_read_smc(uint16_t nb_bytes_total_read, uint16_t start_record_index, uint8_t* data_to_receive);
+void smartcard_lowlevel_write_smc(uint16_t start_index_bit, uint16_t nb_bits, uint8_t* data_to_write);
+card_detect_return_te smartcard_lowlevel_first_detect_function(void);
+det_ret_type_te smartcard_lowlevel_is_card_plugged(void);
+void smartcard_lowlevel_write_nerase(uint8_t is_write);
+void smartcard_lowlevel_inverted_clock_pulse(void);
+void smartcard_lowlevel_clear_pgmrst_signals(void);
+void smartcard_lowlevel_set_pgmrst_signals(void);
+void smartcard_lowlevel_hpulse_delay(void);
+void smartcard_lowlevel_clock_pulse(void);
 void smartcard_lowlevel_detect(void);
 
 // old prototypes
-uint8_t* readSMC(uint8_t nb_bytes_total_read, uint8_t start_record_index, uint8_t* data_to_receive);
 void writeSMC(uint16_t start_index_bit, uint16_t nb_bits, uint8_t* data_to_write);
 void eraseApplicationZone1NZone2SMC(uint8_t zone1_nzone2);
 RET_TYPE securityValidationSMC(volatile uint16_t* code);

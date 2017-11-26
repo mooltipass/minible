@@ -32,12 +32,15 @@ void platform_io_enable_ble(void)
 */
 void platform_io_init_smc_ports(void)
 {
-    PORT->Group[SMC_DET_GROUP].DIRCLR.reg = SMC_DET_MASK;               // Setup card detection input with pull-up
-    PORT->Group[SMC_DET_GROUP].OUTSET.reg = SMC_DET_MASK;               // Setup card detection input with pull-up    
-    PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 1;    // Setup card detection input with pull-up
-    PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.INEN = 1;      // Setup card detection input with pull-up
-    PORT->Group[SMC_POW_NEN_GROUP].DIRSET.reg = SMC_POW_NEN_MASK;       // Setup power enable, disabled by default
-    PORT->Group[SMC_POW_NEN_GROUP].OUTSET.reg = SMC_POW_NEN_MASK;       // Setup power enable, disabled by default    
+    PORT->Group[SMC_DET_GROUP].DIRCLR.reg = SMC_DET_MASK;                           // Setup card detection input with pull-up
+    PORT->Group[SMC_DET_GROUP].OUTSET.reg = SMC_DET_MASK;                           // Setup card detection input with pull-up    
+    PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 1;                // Setup card detection input with pull-up
+    PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.INEN = 1;                  // Setup card detection input with pull-up
+    PORT->Group[SMC_POW_NEN_GROUP].DIRSET.reg = SMC_POW_NEN_MASK;                   // Setup power enable, disabled by default
+    PORT->Group[SMC_POW_NEN_GROUP].OUTSET.reg = SMC_POW_NEN_MASK;                   // Setup power enable, disabled by default
+    PM->APBCMASK.bit.SMARTCARD_APB_SERCOM_BIT = 1;                                  // APB Clock Enable
+    clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, SMARTCARD_GCLK_SERCOM_ID);     // Map 48MHz to SERCOM unit
+    sercom_spi_init(SMARTCARD_SERCOM, SMARTCARD_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, SMARTCARD_MISO_PAD, SMARTCARD_MOSI_SCK_PADS, TRUE); 
 }
 
 /*! \fn     platform_io_smc_remove_function(void)
@@ -50,8 +53,51 @@ void platform_io_smc_remove_function(void)
     PORT->Group[SMC_RST_GROUP].DIRCLR.reg = SMC_RST_MASK;               // Setup all output pins as tri-state
     PORT->Group[SMC_SCK_GROUP].PINCFG[SMC_SCK_PINID].bit.PMUXEN = 0;    // Disable SPI functionality
     PORT->Group[SMC_MOSI_GROUP].PINCFG[SMC_MOSI_PINID].bit.PMUXEN = 0;  // Disable SPI functionality
-    PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.PMUXEN = 0;  // Disable SPI functionality    
-    //card_powered = FALSE;
+    PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.PMUXEN = 0;  // Disable SPI functionality
+    PORT->Group[SMC_MOSI_GROUP].DIRCLR.reg = SMC_MOSI_MASK;             // Disable SPI functionality
+    PORT->Group[SMC_SCK_GROUP].DIRCLR.reg = SMC_SCK_MASK;               // Disable SPI functionality
+}
+
+/*! \fn     platform_io_smc_inserted_function(void)
+*   \brief  Function called when smartcard is inserted
+*/
+void platform_io_smc_inserted_function(void)
+{
+    PORT->Group[SMC_POW_NEN_GROUP].OUTCLR.reg = SMC_POW_NEN_MASK;       // Enable power to the smart card
+    PORT->Group[SMC_PGM_GROUP].DIRSET.reg = SMC_PGM_MASK;               // PGM to 0
+    PORT->Group[SMC_PGM_GROUP].OUTCLR.reg = SMC_PGM_MASK;               // PGM to 0
+    PORT->Group[SMC_RST_GROUP].DIRSET.reg = SMC_RST_MASK;               // RST to 1
+    PORT->Group[SMC_RST_GROUP].OUTSET.reg = SMC_RST_MASK;               // RST to 1
+    PORT->Group[SMC_SCK_GROUP].DIRSET.reg = SMC_SCK_MASK;               // Enable SPI functionality
+    PORT->Group[SMC_SCK_GROUP].OUTCLR.reg = SMC_SCK_MASK;               // Enable SPI functionality
+    PORT->Group[SMC_SCK_GROUP].PINCFG[SMC_SCK_PINID].bit.PMUXEN = 1;    // Enable SPI functionality
+    PORT->Group[SMC_SCK_GROUP].PMUX[SMC_SCK_PINID/2].bit.SMC_SCK_PMUXREGID = SMC_SCK_PMUX_ID;
+    PORT->Group[SMC_MOSI_GROUP].DIRSET.reg = SMC_MOSI_MASK;             // Enable SPI functionality
+    PORT->Group[SMC_MOSI_GROUP].OUTCLR.reg = SMC_MOSI_MASK;             // Enable SPI functionality
+    PORT->Group[SMC_MOSI_GROUP].PINCFG[SMC_MOSI_PINID].bit.PMUXEN = 1;  // Enable SPI functionality
+    PORT->Group[SMC_MOSI_GROUP].PMUX[SMC_MOSI_PINID/2].bit.SMC_MOSI_PMUXREGID = SMC_MOSI_PMUX_ID;
+    PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.PMUXEN = 1;  // Enable SPI functionality
+    PORT->Group[SMC_MISO_GROUP].PMUX[SMC_MISO_PINID/2].bit.SMC_MISO_PMUXREGID = SMC_MISO_PMUX_ID;
+}
+
+/*! \fn     platform_io_smc_switch_to_bb(void)
+*   \brief  Switch to bit banging mode for SPI
+*/
+void platform_io_smc_switch_to_bb(void)
+{
+    PORT->Group[SMC_SCK_GROUP].PINCFG[SMC_SCK_PINID].bit.PMUXEN = 0;    // Disable SPI functionality
+    PORT->Group[SMC_MOSI_GROUP].PINCFG[SMC_MOSI_PINID].bit.PMUXEN = 0;  // Disable SPI functionality
+    PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.PMUXEN = 0;  // Disable SPI functionality
+}
+
+/*! \fn     platform_io_smc_switch_to_spi(void)
+*   \brief  Switch to bit banging mode for SPI
+*/
+void platform_io_smc_switch_to_spi(void)
+{
+    PORT->Group[SMC_SCK_GROUP].PINCFG[SMC_SCK_PINID].bit.PMUXEN = 1;    // Enable SPI functionality
+    PORT->Group[SMC_MOSI_GROUP].PINCFG[SMC_MOSI_PINID].bit.PMUXEN = 1;  // Enable SPI functionality
+    PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.PMUXEN = 1;  // Enable SPI functionality
 }
 
 /*! \fn     platform_io_init_flash_ports(void)

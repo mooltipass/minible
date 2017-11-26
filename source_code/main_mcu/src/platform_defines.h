@@ -95,8 +95,10 @@ typedef struct
 #define OLED_DMA_SERCOM_TX_TRIG         0x0A
 
 /* Speed defines */
+#define CPU_SPEED_HF                48000000UL
 /* SMARTCARD SPI SCK =  48M / (2*(119+1)) = 200kHz (Supposed Max is 300kHz) */
-#define SMARTCARD_BAUD_DIVIDER      119
+//#define SMARTCARD_BAUD_DIVIDER      119
+#define SMARTCARD_BAUD_DIVIDER      239
 /* OLED SPI SCK = 48M / 2*(5+1)) = 4MHz (Max) */
 #define OLED_BAUD_DIVIDER           5
 /* ACC SPI SCK = 48M / 2*(5+1)) = 4MHz (Max is 10MHz) */

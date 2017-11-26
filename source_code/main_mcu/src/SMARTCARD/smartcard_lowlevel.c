@@ -28,8 +28,11 @@
 //#include <avr/interrupt.h>
 //#include "timer_manager.h"
 //#include <util/atomic.h>
+#include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
 #include "platform_defines.h"
+#include "driver_sercom.h"
+#include "driver_timer.h"
 #include "platform_io.h"
 #include "defines.h"
 
@@ -41,115 +44,85 @@ volatile det_ret_type_te button_return;
 volatile uint8_t card_powered = FALSE;
 
 
-#ifdef dtc
-/*! \fn     smartcardHPulseDelay(void)
+/*! \fn     smartcard_lowlevel_hpulse_delay(void)
 *   \brief  2us half pulse delay, specified by datasheet (min 3.3us/2)
 */
-void smartcardHPulseDelay(void)
+void smartcard_lowlevel_hpulse_delay(void)
 {
-    // CPU clock of MAX 16MHz, 3 clock cycles per loop => 1/16M * 3 * 11 = 2.0625us
-    _delay_loop_1(11);
+    DELAYUS(2);
+    DELAYUS(2);
 }
 
-/*! \fn     smartcardTchpDelay(void)
+/*! \fn     smartcard_lowlevel_tchp_delay(void)
 *   \brief  Tchp delay (3.0ms min)
 */
-static inline void smartcardTchpDelay(void)
+static inline void smartcard_lowlevel_tchp_delay(void)
 {
-    timerBasedDelayMs(4);
+    timer_delay_ms(4);
+    timer_delay_ms(4);
 }
 
-/*! \fn     clockPulseSMC(void)
+/*! \fn     smartcard_lowlevel_clock_pulse(void)
 *   \brief  Send a 4us H->L clock pulse (datasheet: min 3.3us)
 */
-void clockPulseSMC(void)
+void smartcard_lowlevel_clock_pulse(void)
 {
-    #if SPI_SMARTCARD == SPI_NATIVE
-        PORT_SPI_NATIVE |= (1 << SCK_SPI_NATIVE);
-        smartcardHPulseDelay();
-        PORT_SPI_NATIVE &= ~(1 << SCK_SPI_NATIVE);
-        smartcardHPulseDelay();
-    #else
-        #error "SPI not supported"
-    #endif
+    PORT->Group[SMC_SCK_GROUP].OUTSET.reg = SMC_SCK_MASK;
+    smartcard_lowlevel_hpulse_delay();
+    PORT->Group[SMC_SCK_GROUP].OUTCLR.reg = SMC_SCK_MASK;
+    smartcard_lowlevel_hpulse_delay();
 }
 
-/*! \fn     invertedClockPulseSMC(void)
+/*! \fn     smartcard_lowlevel_inverted_clock_pulse(void)
 *   \brief  Send a 4us L->H clock pulse (datasheet: min 3.3us)
 */
-void invertedClockPulseSMC(void)
+void smartcard_lowlevel_inverted_clock_pulse(void)
 {
-    #if SPI_SMARTCARD == SPI_NATIVE
-        PORT_SPI_NATIVE &= ~(1 << SCK_SPI_NATIVE);
-        smartcardHPulseDelay();
-        PORT_SPI_NATIVE |= (1 << SCK_SPI_NATIVE);
-        smartcardHPulseDelay();
-    #else
-        #error "SPI not supported"
-    #endif
+    PORT->Group[SMC_SCK_GROUP].OUTCLR.reg = SMC_SCK_MASK;
+    smartcard_lowlevel_hpulse_delay();
+    PORT->Group[SMC_SCK_GROUP].OUTSET.reg = SMC_SCK_MASK;
+    smartcard_lowlevel_hpulse_delay();
 }
 
-/*! \fn     clearPgmRstSignals(void)
-*   \brief  Clear PGM / RST signal for normal operation mode
-*/
-void clearPgmRstSignals(void)
-{
-    PORT_SC_PGM &= ~(1 << PORTID_SC_PGM);
-    PORT_SC_RST &= ~(1 << PORTID_SC_RST);
-    smartcardHPulseDelay();smartcardHPulseDelay();
-}
-
-/*! \fn     setPgmRstSignals(void)
-*   \brief  Set PGM / RST signal for standby mode
-*/
-void setPgmRstSignals(void)
-{
-    PORT_SC_RST |= (1 << PORTID_SC_RST);
-    PORT_SC_PGM &= ~(1 << PORTID_SC_PGM);
-    smartcardHPulseDelay();
-}
-
-/*! \fn     performLowLevelWriteNErase(uint8_t is_write)
+/*! \fn     smartcard_lowlevel_write_nerase(uint8_t is_write)
 *   \brief  Perform a write or erase operation on the smart card
 *   \param  is_write    Boolean to indicate if it is a write
 */
-void performLowLevelWriteNErase(uint8_t is_write)
+void smartcard_lowlevel_write_nerase(uint8_t is_write)
 {
-    #if SPI_SMARTCARD == SPI_NATIVE
-        /* Set programming control signal */
-        PORT_SC_PGM |= (1 << PORTID_SC_PGM);
-        smartcardHPulseDelay();
+    /* Set programming control signal */
+    PORT->Group[SMC_PGM_GROUP].OUTSET.reg = SMC_PGM_MASK;
+    smartcard_lowlevel_hpulse_delay();
 
-        /* Set data according to write / erase */
-        if (is_write != FALSE)
-        {
-            PORT_SPI_NATIVE |= (1 << MOSI_SPI_NATIVE);
-        }
-        else
-        {
-            PORT_SPI_NATIVE &= ~(1 << MOSI_SPI_NATIVE);
-        }
-        smartcardHPulseDelay();
+    /* Set data according to write / erase */
+    if (is_write != FALSE)
+    {
+        PORT->Group[SMC_MOSI_GROUP].OUTSET.reg = SMC_MOSI_MASK;
+    }
+    else
+    {
+        PORT->Group[SMC_MOSI_GROUP].OUTCLR.reg = SMC_MOSI_MASK;
+    }
+    smartcard_lowlevel_hpulse_delay();
 
-        /* Set clock */
-        PORT_SPI_NATIVE |= (1 << SCK_SPI_NATIVE);
-        smartcardHPulseDelay();
+    /* Set clock */
+    PORT->Group[SMC_SCK_GROUP].OUTSET.reg = SMC_SCK_MASK;
+    smartcard_lowlevel_hpulse_delay();
 
-        /* Release program signal and data, wait for tchp */
-        PORT_SC_PGM &= ~(1 << PORTID_SC_PGM);
-        smartcardTchpDelay();
+    /* Release program signal and data, wait for tchp */
+    PORT->Group[SMC_PGM_GROUP].OUTCLR.reg = SMC_PGM_MASK;
+    smartcard_lowlevel_tchp_delay();
 
-        /* Release clock */
-        PORT_SPI_NATIVE &= ~(1 << SCK_SPI_NATIVE);
-        smartcardHPulseDelay();
+    /* Release clock */
+    PORT->Group[SMC_SCK_GROUP].OUTCLR.reg = SMC_SCK_MASK;
+    smartcard_lowlevel_hpulse_delay();
 
-        /* Release data */
-        PORT_SPI_NATIVE &= ~(1 << MOSI_SPI_NATIVE);
-        smartcardHPulseDelay();
-    #else
-        #error "SPI not supported"
-    #endif
+    /* Release data */
+    PORT->Group[SMC_MOSI_GROUP].OUTCLR.reg = SMC_MOSI_MASK;
+    smartcard_lowlevel_hpulse_delay();
 }
+
+#ifdef dtc
 
 /*! \fn     setSPIModeSMC(void)
 *   \brief  Activate SPI controller for the SMC
@@ -221,7 +194,7 @@ void blowFuse(uint8_t fuse_name)
     PORT_SC_RST |= (1 << PORTID_SC_RST);
 
     /* Perform a write */
-    performLowLevelWriteNErase(TRUE);
+    smartcard_lowlevel_write_nerase(TRUE);
 
     /* Set PGM / RST signals to standby mode */
     setPgmRstSignals();
@@ -229,41 +202,42 @@ void blowFuse(uint8_t fuse_name)
     /* Switch to SPI mode */
     setSPIModeSMC();
 }
+#endif
 
-/*! \fn     isCardPlugged(void)
+/*! \fn     smartcard_lowlevel_is_card_plugged(void)
 *   \brief  Know if a card is plugged
 *   \return just released/pressed, (non)detected
 */
-RET_TYPE isCardPlugged(void)
+det_ret_type_te smartcard_lowlevel_is_card_plugged(void)
 {
     // This copy is an atomic operation
-    volatile RET_TYPE return_val = button_return;
+    volatile det_ret_type_te return_val = button_return;
 
     if ((return_val != RETURN_DET) && (return_val != RETURN_REL))
     {
-        ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+        cpu_irq_enter_critical();
+
+        if (button_return == RETURN_JDETECT)
         {
-            if (button_return == RETURN_JDETECT)
-            {
-                button_return = RETURN_DET;
-            }
-            else if (button_return == RETURN_JRELEASED)
-            {
-                button_return = RETURN_REL;
-            }
+            button_return = RETURN_DET;
         }
+        else if (button_return == RETURN_JRELEASED)
+        {
+            button_return = RETURN_REL;
+        }
+        
+        cpu_irq_leave_critical();
     }
 
     return return_val;
 }
-#endif
 
 /*! \fn     smartcard_lowlevel_detect(void)
 *   \brief  Card detect debounce called by 1ms interrupt
 */
 void smartcard_lowlevel_detect(void)
 {
-     if ((PORT->Group[SMC_DET_GROUP].IN.reg & SMC_DET_MASK) == 0)
+    if ((PORT->Group[SMC_DET_GROUP].IN.reg & SMC_DET_MASK) == 0)
     {
         if (card_detect_counter == 250)
         {
@@ -285,6 +259,7 @@ void smartcard_lowlevel_detect(void)
         if ((card_detect_counter != 0) && (card_powered != FALSE))
         {
             platform_io_smc_remove_function();
+            card_powered = FALSE;
             //clearSmartCardInsertedUnlocked();
         }
         if (button_return == RETURN_DET)
@@ -297,6 +272,62 @@ void smartcard_lowlevel_detect(void)
         }
         card_detect_counter = 0;
     }
+}
+
+/*! \fn     smartcard_lowlevel_first_detect_function(void)
+*   \brief  functions performed once the smart card is detected
+*   \return The detection result (see card_detect_return_t)
+*/
+card_detect_return_te smartcard_lowlevel_first_detect_function(void)
+{
+    uint16_t data_buffer;
+    uint16_t temp_uint;   
+
+    /* Initialize IOs */
+    platform_io_smc_inserted_function();
+    card_powered = TRUE;
+
+    /* Let the card come online */
+    timer_delay_ms(300);
+
+    /* Check smart card FZ */
+    readFabricationZone((uint8_t*)&data_buffer);
+    if ((swap16(data_buffer)) != SMARTCARD_FABRICATION_ZONE)
+    {
+        return RETURN_CARD_NDET;
+    }
+
+    /* Perform test write on MTZ */
+    readMemoryTestZone((uint8_t*)&temp_uint);
+    temp_uint = temp_uint + 5;
+    writeMemoryTestZone((uint8_t*)&temp_uint);
+    readMemoryTestZone((uint8_t*)&data_buffer);
+
+    if (data_buffer == 0x149)
+    {
+        PORT->Group[OLED_CD_GROUP].OUTCLR.reg = OLED_CD_MASK;
+    }
+
+    if (data_buffer != temp_uint)
+    {
+        return RETURN_CARD_TEST_PB;
+    }
+    
+    PORT->Group[OLED_CD_GROUP].OUTCLR.reg = OLED_CD_MASK;
+    return RETURN_CARD_0_TRIES_LEFT;
+    #ifdef blabla
+
+    /* Read security code attempts counter */
+    switch(getNumberOfSecurityCodeTriesLeft())
+    {
+        case 4: return RETURN_CARD_4_TRIES_LEFT;
+        case 3: return RETURN_CARD_3_TRIES_LEFT;
+        case 2: return RETURN_CARD_2_TRIES_LEFT;
+        case 1: return RETURN_CARD_1_TRIES_LEFT;
+        case 0: return RETURN_CARD_0_TRIES_LEFT;
+        default: return RETURN_CARD_0_TRIES_LEFT;
+    }
+    #endif
 }
 
 #ifdef dtc
@@ -326,7 +357,7 @@ void eraseApplicationZone1NZone2SMC(uint8_t zone1_nzone2)
         setBBModeAndPgmRstSMC();
 
         /* Get to the good EZx */
-        while(i--) invertedClockPulseSMC();
+        while(i--) smartcard_lowlevel_inverted_clock_pulse();
 
         /* How many bits to compare */
         if (zone1_nzone2 == FALSE)
@@ -347,7 +378,7 @@ void eraseApplicationZone1NZone2SMC(uint8_t zone1_nzone2)
             smartcardHPulseDelay();
 
             /* Inverted clock pulse */
-            invertedClockPulseSMC();
+            smartcard_lowlevel_inverted_clock_pulse();
         }
 
         /* Bring clock and data low */
@@ -369,7 +400,7 @@ void eraseApplicationZone1NZone2SMC(uint8_t zone1_nzone2)
                     if (PINB & (1 << MISO_SPI_NATIVE))
                     {
                         /* Set write command */
-                        performLowLevelWriteNErase(TRUE);
+                        smartcard_lowlevel_write_nerase(TRUE);
 
                         /* Wait for the smart card to output a 0 */
                         while(PINB & (1 << MISO_SPI_NATIVE));
@@ -380,7 +411,7 @@ void eraseApplicationZone1NZone2SMC(uint8_t zone1_nzone2)
                     else
                     {
                         /* Clock pulse */
-                        clockPulseSMC();
+                        smartcard_lowlevel_clock_pulse();
                         i++;
                     }
                 }
@@ -388,7 +419,7 @@ void eraseApplicationZone1NZone2SMC(uint8_t zone1_nzone2)
         #endif
 
         /* Erase AZ1/AZ2 */
-        performLowLevelWriteNErase(FALSE);
+        smartcard_lowlevel_write_nerase(FALSE);
 
         /* Set PGM / RST signals to standby mode */
         setPgmRstSignals();
@@ -417,7 +448,7 @@ RET_TYPE securityValidationSMC(volatile uint16_t* code)
 
         /* Get to the SC */
         for(i = 0; i < 80; i++)
-            invertedClockPulseSMC();
+            smartcard_lowlevel_inverted_clock_pulse();
 
         /* Clock is at high level now, as input must be switched during this time */
         /* Enter the SC */
@@ -435,7 +466,7 @@ RET_TYPE securityValidationSMC(volatile uint16_t* code)
            smartcardHPulseDelay();
 
             /* Inverted clock pulse */
-            invertedClockPulseSMC();
+            smartcard_lowlevel_inverted_clock_pulse();
         }
 
         /* Bring clock and data low */
@@ -453,13 +484,13 @@ RET_TYPE securityValidationSMC(volatile uint16_t* code)
             if (PINB & (1 << MISO_SPI_NATIVE))
             {
                 /* Set write command */
-                performLowLevelWriteNErase(TRUE);
+                smartcard_lowlevel_write_nerase(TRUE);
 
                 /* Wait for the smart card to output a 0 */
                 while(PINB & (1 << MISO_SPI_NATIVE));
 
                 /* Now, erase SCAC */
-                performLowLevelWriteNErase(FALSE);
+                smartcard_lowlevel_write_nerase(FALSE);
 
                 /* Were we successful? */
                 if (PINB & (1 << MISO_SPI_NATIVE))
@@ -489,7 +520,7 @@ RET_TYPE securityValidationSMC(volatile uint16_t* code)
                 }
 
                 /* Clock pulse */
-                clockPulseSMC();
+                smartcard_lowlevel_clock_pulse();
 
                 /* Exit loop */
                 temp_bool = FALSE;
@@ -497,7 +528,7 @@ RET_TYPE securityValidationSMC(volatile uint16_t* code)
             else
             {
                 /* Clock pulse */
-                clockPulseSMC();
+                smartcard_lowlevel_clock_pulse();
                 i++;
             }
         }
@@ -519,176 +550,128 @@ RET_TYPE securityValidationSMC(volatile uint16_t* code)
 
     return return_val;
 }
+#endif
 
-/*! \fn     writeSMC(uint16_t start_index_bit, uint16_t nb_bits, uint8_t* data_to_write)
+/*! \fn     smartcard_lowlevel_write_smc(uint16_t start_index_bit, uint16_t nb_bits, uint8_t* data_to_write)
 *   \brief  Write bits to the smart card
 *   \param  start_index_bit         Where to start writing bits
 *   \param  nb_bits                 Number of bits to write
 *   \param  data_to_write           Pointer to the buffer
 */
-void writeSMC(uint16_t start_index_bit, uint16_t nb_bits, uint8_t* data_to_write)
+void smartcard_lowlevel_write_smc(uint16_t start_index_bit, uint16_t nb_bits, uint8_t* data_to_write)
 {
     uint16_t current_written_bit = 0;
-    uint8_t masked_bit_to_write = 0;
+    uint16_t masked_bit_to_write = 0;
     uint16_t i;
 
-    #if SPI_SMARTCARD == SPI_NATIVE
-        /* Switch to bit banging */
-        setBBModeAndPgmRstSMC();
+    /* Switch to bit banging */
+    platform_io_smc_switch_to_bb();
 
-        /* Try to not erase AZ1 if EZ1 is 0xFFFFFFF... and we're writing the first bit of the AZ2 */
-        if (start_index_bit >= SMARTCARD_AZ2_BIT_START)
+    /* Try to not erase AZ1 if EZ1 is 0xFFFFFFF... and we're writing the first bit of the AZ2 */
+    if (start_index_bit >= SMARTCARD_AZ2_BIT_START)
+    {
+        /* Clock pulses until AZ2 start - 1 */
+        for(i = 0; i < SMARTCARD_AZ2_BIT_START - 1; i++)
         {
-            /* Clock pulses until AZ2 start - 1 */
-            for(i = 0; i < SMARTCARD_AZ2_BIT_START - 1; i++)
-            {
-                clockPulseSMC();            
-            }                
-            PORT_SPI_NATIVE |= (1 << MOSI_SPI_NATIVE);
-            clockPulseSMC();
-            PORT_SPI_NATIVE &= ~(1 << MOSI_SPI_NATIVE);
-            /* Clock for the rest */
-            for(i = 0; i < (start_index_bit - SMARTCARD_AZ2_BIT_START); i++)
-            {
-                clockPulseSMC();            
-            }                
+            smartcard_lowlevel_clock_pulse();            
         }
-        else
+        PORT->Group[SMC_MOSI_GROUP].OUTSET.reg = SMC_MOSI_MASK;
+        smartcard_lowlevel_clock_pulse();
+        PORT->Group[SMC_MOSI_GROUP].OUTCLR.reg = SMC_MOSI_MASK;
+        /* Clock for the rest */
+        for(i = 0; i < (start_index_bit - SMARTCARD_AZ2_BIT_START); i++)
         {
-            /* Get to the good index, clock pulses */
-            for(i = 0; i < start_index_bit; i++)
-            {
-                clockPulseSMC();
-            }                
-        }
-
-        /* Start writing */
-        for(current_written_bit = 0; current_written_bit < nb_bits; current_written_bit++)
+            smartcard_lowlevel_clock_pulse();            
+        }                
+    }
+    else
+    {
+        /* Get to the good index, clock pulses */
+        for(i = 0; i < start_index_bit; i++)
         {
-            /* If we are at the start of a 16bits word or writing our first bit, erase the word */
-            if ((((start_index_bit+current_written_bit) & 0x000F) == 0) || (current_written_bit == 0))
-            {
-                performLowLevelWriteNErase(FALSE);
-            }
+            smartcard_lowlevel_clock_pulse();
+        }                
+    }
 
-            /* Get good bit to write */
-            masked_bit_to_write = (data_to_write[(current_written_bit>>3)] >> (7 - (current_written_bit & 0x0007))) & 0x01;
-
-            /* Write only if the data is a 0 */
-            if (masked_bit_to_write == 0x00)
-            {
-                performLowLevelWriteNErase(TRUE);
-            }
-
-            /* Go to next address */
-            clockPulseSMC();
+    /* Start writing */
+    for(current_written_bit = 0; current_written_bit < nb_bits; current_written_bit++)
+    {
+        /* If we are at the start of a 16bits word or writing our first bit, erase the word */
+        if ((((start_index_bit+current_written_bit) & 0x000F) == 0) || (current_written_bit == 0))
+        {
+            smartcard_lowlevel_write_nerase(FALSE);
         }
 
-        /* Set PGM / RST signals to standby mode */
-        setPgmRstSignals();
+        /* Get good bit to write */
+        masked_bit_to_write = (data_to_write[(current_written_bit>>3)] >> (7 - (current_written_bit & 0x0007))) & 0x01;
 
-        /* Switch to SPI mode */
-        setSPIModeSMC();
-    #else
-        #error "SPI not supported"
-    #endif
+        /* Write only if the data is a 0 */
+        if (masked_bit_to_write == 0x00)
+        {
+            smartcard_lowlevel_write_nerase(TRUE);
+        }
+
+        /* Go to next address */
+        smartcard_lowlevel_clock_pulse();
+    }
+
+    /* Set PGM / RST signals to standby mode */
+    smartcard_lowlevel_set_pgmrst_signals();
+
+    /* Switch to SPI mode */
+    platform_io_smc_switch_to_spi();
 }
 
-/*! \fn     readSMC(uint8_t nb_bytes_total_read, uint8_t start_record_index, uint8_t* data_to_receive)
+/*! \fn     smartcard_lowlevel_clear_pgmrst_signals(void)
+*   \brief  Clear PGM / RST signal for normal operation mode
+*/
+void smartcard_lowlevel_clear_pgmrst_signals(void)
+{
+    PORT->Group[SMC_PGM_GROUP].OUTCLR.reg = SMC_PGM_MASK;
+    PORT->Group[SMC_RST_GROUP].OUTCLR.reg = SMC_RST_MASK;
+    smartcard_lowlevel_hpulse_delay();
+    smartcard_lowlevel_hpulse_delay();
+}
+
+/*! \fn     smartcard_lowlevel_set_pgmrst_signals(void)
+*   \brief  Set PGM / RST signal for standby mode
+*/
+void smartcard_lowlevel_set_pgmrst_signals(void)
+{
+    PORT->Group[SMC_RST_GROUP].OUTSET.reg = SMC_RST_MASK;
+    PORT->Group[SMC_PGM_GROUP].OUTCLR.reg = SMC_PGM_MASK;
+    smartcard_lowlevel_hpulse_delay();
+}
+
+/*! \fn     smartcard_lowlevel_read_smc(uint16_t nb_bytes_total_read, uint16_t start_record_index, uint8_t* data_to_receive)
 *   \brief  Read bytes from the smart card
 *   \param  nb_bytes_total_read     The number of bytes to be read
 *   \param  start_record_index      The index at which we start recording the answer
 *   \param  data_to_receive        Pointer to the buffer
 *   \return The buffer
 */
-uint8_t* readSMC(uint8_t nb_bytes_total_read, uint8_t start_record_index, uint8_t* data_to_receive)
+uint8_t* smartcard_lowlevel_read_smc(uint16_t nb_bytes_total_read, uint16_t start_record_index, uint8_t* data_to_receive)
 {
     uint8_t* return_val = data_to_receive;
     uint8_t i;
 
     /* Set PGM / RST signals for operation */
-    clearPgmRstSignals();
+    smartcard_lowlevel_clear_pgmrst_signals();
 
     for(i = 0; i < nb_bytes_total_read; i++)
     {
         /* Start transmission */
-        SPDR = 0x00;
-        /* Wait for transmission complete */
-        while((!(SPSR & (1<<SPIF))) && (isSmartCardAbsent() == RETURN_NOK));
+        uint8_t data_byte = sercom_spi_send_single_byte(SMARTCARD_SERCOM, 0x00);
+
         /* Store data in buffer or discard it*/
         if (i >= start_record_index)
         {
-            *(data_to_receive++) = SPDR;
-        }
-        else
-        {
-            SPDR;
+            *(data_to_receive++) = data_byte;
         }
     }
 
     /* Set PGM / RST signals to standby mode */
-    setPgmRstSignals();
+    smartcard_lowlevel_set_pgmrst_signals();
 
     return return_val;
 }
-
-/*! \fn     firstDetectFunctionSMC(void)
-*   \brief  functions performed once the smart card is detected
-*   \return The detection result (see card_detect_return_t)
-*/
-RET_TYPE firstDetectFunctionSMC(void)
-{
-    uint8_t data_buffer[2];
-    uint16_t *data_buf16 = (uint16_t*)data_buffer;
-    uint16_t temp_uint;
-
-    /* Enable power to the card */
-    PORT_SC_POW &= ~(1 << PORTID_SC_POW);
-    card_powered = TRUE;
-
-    /* Default state: PGM to 0 and RST to 1 */
-    PORT_SC_PGM &= ~(1 << PORTID_SC_PGM);
-    DDR_SC_PGM |= (1 << PORTID_SC_PGM);
-    PORT_SC_RST |= (1 << PORTID_SC_RST);
-    DDR_SC_RST |= (1 << PORTID_SC_RST);
-
-    /* Activate SPI port */
-    #if SPI_SMARTCARD == SPI_NATIVE
-        PORT_SPI_NATIVE &= ~((1 << SCK_SPI_NATIVE) | (1 << MOSI_SPI_NATIVE));
-        DDR_SPI_NATIVE |= (1 << SCK_SPI_NATIVE) | (1 << MOSI_SPI_NATIVE);
-        setSPIModeSMC();
-    #else
-        #error "SPI not supported"
-    #endif
-
-    /* Let the card come online */
-    timerBased130MsDelay();timerBased130MsDelay();
-
-    /* Check smart card FZ */
-    readFabricationZone(data_buffer);
-    if ((swap16(*data_buf16)) != SMARTCARD_FABRICATION_ZONE)
-    {
-        return RETURN_CARD_NDET;
-    }
-
-    /* Perform test write on MTZ */
-    readMemoryTestZone((uint8_t*)&temp_uint);
-    temp_uint = temp_uint + 5;
-    writeMemoryTestZone((uint8_t*)&temp_uint);
-    if (*(uint16_t*)readMemoryTestZone(data_buffer) != temp_uint)
-    {
-        return RETURN_CARD_TEST_PB;
-    }
-
-    /* Read security code attempts counter */
-    switch(getNumberOfSecurityCodeTriesLeft())
-    {
-        case 4: return RETURN_CARD_4_TRIES_LEFT;
-        case 3: return RETURN_CARD_3_TRIES_LEFT;
-        case 2: return RETURN_CARD_2_TRIES_LEFT;
-        case 1: return RETURN_CARD_1_TRIES_LEFT;
-        case 0: return RETURN_CARD_0_TRIES_LEFT;
-        default: return RETURN_CARD_0_TRIES_LEFT;
-    }
-}
-#endif

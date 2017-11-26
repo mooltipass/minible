@@ -1,4 +1,5 @@
 #include <asf.h>
+#include "smartcard_lowlevel.h"
 #include "platform_defines.h"
 #include "driver_clocks.h"
 #include "driver_timer.h"
@@ -30,5 +31,11 @@ int main (void)
     }
     custom_fs_init(&dataflash_descriptor);
 	
-	while(1);
+	while(1)
+    {
+        if (smartcard_lowlevel_is_card_plugged() == RETURN_JDETECT)
+        {
+            smartcard_lowlevel_first_detect_function();
+        }
+    }
 }
