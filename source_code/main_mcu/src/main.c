@@ -1,4 +1,5 @@
 #include <asf.h>
+#include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
 #include "platform_defines.h"
 #include "driver_clocks.h"
@@ -35,10 +36,77 @@ int main (void)
     {
         if (smartcard_lowlevel_is_card_plugged() == RETURN_JDETECT)
         {
-            if(smartcard_lowlevel_first_detect_function() == RETURN_CARD_4_TRIES_LEFT)
+            mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();
+            
+            if ((detection_result == RETURN_MOOLTIPASS_PB) || (detection_result == RETURN_MOOLTIPASS_INVALID))
+            {
+                // Either it is not a card or our Manufacturer Test Zone write/read test failed
+                //guiDisplayInformationOnScreenAndWait(ID_STRING_PB_CARD);
+                //printSmartCardInfo();
+                //removeFunctionSMC();
+            }
+            else if (detection_result == RETURN_MOOLTIPASS_BLANK)
+            {/*
+                // This is a user free card, we can ask the user to create a new user inside the Mooltipass
+                if (guiAskForConfirmation(1, (confirmationText_t*)readStoredStringToBuffer(ID_STRING_NEWMP_USER)) == RETURN_OK)
+                {
+                    volatile uint16_t pin_code;
+                    
+                    // Create a new user with his new smart card
+                    if ((guiAskForNewPin(&pin_code, ID_STRING_PIN_NEW_CARD) == RETURN_NEW_PIN_OK) && (addNewUserAndNewSmartCard(&pin_code) == RETURN_OK))
+                    {
+                        guiDisplayInformationOnScreenAndWait(ID_STRING_USER_ADDED);
+                        next_screen = SCREEN_DEFAULT_INSERTED_NLCK;
+                        setSmartCardInsertedUnlocked();
+                        return_value = RETURN_OK;
+                    }
+                    else
+                    {
+                        // Something went wrong, user wasn't added
+                        guiDisplayInformationOnScreenAndWait(ID_STRING_USER_NADDED);
+                    }
+                    pin_code = 0x0000;
+                }
+                else
+                {
+                    guiSetCurrentScreen(next_screen);
+                    guiGetBackToCurrentScreen();
+                    return return_value;
+                }
+                printSmartCardInfo();*/
+            }
+            else if (detection_result == RETURN_MOOLTIPASS_USER)
+            {/*
+                // Call valid card detection function
+                uint8_t temp_return = validCardDetectedFunction(0, TRUE);
+                
+                // This a valid user smart card, we call a dedicated function for the user to unlock the card
+                if (temp_return == RETURN_VCARD_OK)
+                {
+                    unlockFeatureCheck();
+                    next_screen = SCREEN_DEFAULT_INSERTED_NLCK;
+                    return_value = RETURN_OK;
+                }
+                else if (temp_return == RETURN_VCARD_UNKNOWN)
+                {
+                    // Unknown card, go to dedicated screen
+                    guiSetCurrentScreen(SCREEN_DEFAULT_INSERTED_UNKNOWN);
+                    guiGetBackToCurrentScreen();
+                    return return_value;
+                }
+                else
+                {
+                    guiSetCurrentScreen(SCREEN_DEFAULT_INSERTED_LCK);
+                    guiGetBackToCurrentScreen();
+                    return return_value;
+                }
+                printSmartCardInfo();*/
+            }
+
+            /*if(smartcard_lowlevel_first_detect_function() == RETURN_CARD_4_TRIES_LEFT)
             {
                 PORT->Group[OLED_CD_GROUP].OUTCLR.reg = OLED_CD_MASK;
-            }
+            }*/
         }
     }
 }
