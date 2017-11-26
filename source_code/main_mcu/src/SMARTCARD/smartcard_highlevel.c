@@ -288,17 +288,15 @@ RET_TYPE checkSecurityMode2(void)
     }
 }
 
-/*! \fn     mooltipassDetectedRoutine(volatile uint16_t* pin_code)
+/*! \fn     smartcard_high_level_mooltipass_card_detected_routine(volatile uint16_t* pin_code)
 *   \brief  Function called when a Mooltipass is inserted into the smart card slot
 *   \param  pin_code    Mooltipass pin code
 *   \return If we managed to unlock it / if there is other problem (see mooltipass_detect_return_t)
 */
-RET_TYPE mooltipassDetectedRoutine(volatile uint16_t* pin_code)
-{
-    RET_TYPE temp_rettype;
-
+mooltipass_card_detect_return_te smartcard_high_level_mooltipass_card_detected_routine(volatile uint16_t* pin_code)
+{ 
     // Try unlocking card with provided code
-    temp_rettype = smartcard_lowlevel_validate_code(pin_code);
+    pin_check_return_te temp_rettype = smartcard_lowlevel_validate_code(pin_code);
 
     if (temp_rettype == RETURN_PIN_OK)                                   // Unlock successful
     {
@@ -306,9 +304,6 @@ RET_TYPE mooltipassDetectedRoutine(volatile uint16_t* pin_code)
         if (checkSecurityMode2() == RETURN_NOK)
         {
             // Card is in mode 1... how could this happen?
-            #ifdef DEBUG_SMC_USB_PRINT
-                usbPutstr_P(PSTR("Card in mode 1!\r\n"));
-            #endif
             return RETURN_MOOLTIPASS_PB;
         }
         else                                                            // Everything is in order - proceed
@@ -316,26 +311,16 @@ RET_TYPE mooltipassDetectedRoutine(volatile uint16_t* pin_code)
             // Check that read / write accesses are correctly configured
             if (checkAuthenticatedReadWriteAccessToZone1And2() == RETURN_NOK)
             {
-                #ifdef DEBUG_SMC_USB_PRINT
-                    usbPutstr_P(PSTR("Bad access settings!\r\n"));
-                #endif
                 return RETURN_MOOLTIPASS_PB;
             }
             else
             {
-                #ifdef DEBUG_SMC_USB_PRINT
-                    usbPutstr_P(PSTR("PIN code checked!\r\n"));
-                #endif
                 return RETURN_MOOLTIPASS_4_TRIES_LEFT;
             }
         }
     }
     else                                                                // Unlock failed
     {
-        #ifdef DEBUG_SMC_USB_PRINT
-            usbPrintf_P(PSTR("%d tries left, wrong pin\r\n"), smartcard_highlevel_get_nb_sec_tries_left());
-        #endif
-        
         // The enum allows us to do so
         return RETURN_MOOLTIPASS_0_TRIES_LEFT + smartcard_highlevel_get_nb_sec_tries_left();
     }
@@ -758,9 +743,9 @@ mooltipass_card_detect_return_te smartcard_highlevel_card_detected_routine(void)
         if (manufacturer_zone == 0xFFFF)
         {
             /* Card is new - transform it into a Mooltipass card */
+            uint16_t factory_pin = SMARTCARD_FACTORY_PIN;
 
             /* Try to authenticate with factory pin */
-            uint16_t factory_pin = SMARTCARD_FACTORY_PIN;
             pin_check_return_te pin_try_return = smartcard_lowlevel_validate_code(&factory_pin);
 
             if (pin_try_return == RETURN_PIN_OK)
@@ -775,34 +760,29 @@ mooltipass_card_detect_return_te smartcard_highlevel_card_detected_routine(void)
                     return RETURN_MOOLTIPASS_PB;
                 }
             }
-            else                                                            // Card unlock failed. Show number of tries left
+            else
             {
+                /* Card unlock failed */
                 return RETURN_MOOLTIPASS_PB;
             }
         }
-        else                                                                // Card is already converted into a mooltipass
+        else
         {
-            #ifdef bla
-            // Check that the user setup his mooltipass card by checking that the CPZ is different from FFFF....
-            readCodeProtectedZone(temp_buffer);            
+            /* Card is already converted into a mooltipass card */
+            readCodeProtectedZone(temp_buffer);
+
+            /* Check that the user setup his mooltipass card by checking that the CPZ is different from FFFF.... */
             if (memcmp(temp_buffer, "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", SMARTCARD_CPZ_LENGTH) != 0)
             {
-                #ifdef DEBUG_SMC_USB_PRINT
-                    usbPutstr_P(PSTR("Mooltipass card detected\r\n"));
-                #endif
                 return RETURN_MOOLTIPASS_USER;                
             }
 
-            #ifdef DEBUG_SMC_USB_PRINT
-                usbPutstr_P(PSTR("Unconfigured Mooltipass\r\n"));
-            #endif
-
-            // If we're here it means the user hasn't configured his blank mooltipass card, so try to unlock it using the default pin
+            /* If we're here it means the user hasn't configured his blank mooltipass card, so try to unlock it using the default pin */
             uint16_t default_pin = SMARTCARD_DEFAULT_PIN;
-            temp_rettype = mooltipassDetectedRoutine(&default_pin);
+            mooltipass_card_detect_return_te card_return = smartcard_high_level_mooltipass_card_detected_routine(&default_pin);
 
-            // If we unlocked it, it means we can personalize it
-            if (temp_rettype != RETURN_MOOLTIPASS_4_TRIES_LEFT)
+            /* If we unlocked it, it means we can personalize it */
+            if (card_return != RETURN_MOOLTIPASS_4_TRIES_LEFT)
             {
                 return RETURN_MOOLTIPASS_PB;
             }
@@ -810,7 +790,6 @@ mooltipass_card_detect_return_te smartcard_highlevel_card_detected_routine(void)
             {
                 return RETURN_MOOLTIPASS_BLANK;
             }
-            #endif
         }
     }
 }

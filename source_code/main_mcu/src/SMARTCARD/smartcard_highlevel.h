@@ -35,7 +35,8 @@
 
 /************ PROTOTYPES ************/
 RET_TYPE writeToApplicationZoneAndCheck(uint16_t addr, uint16_t nb_bits, uint8_t* buffer, uint8_t* temp_buffer);
-RET_TYPE mooltipassDetectedRoutine(volatile uint16_t* pin_code);
+mooltipass_card_detect_return_te smartcard_high_level_mooltipass_card_detected_routine(volatile uint16_t* pin_code);
+RET_TYPE checkSecurityMode2(void);
 RET_TYPE checkAuthenticatedReadWriteAccessToZone1And2(void);
 RET_TYPE writeMooltipassWebsitePassword(uint8_t* buffer);
 RET_TYPE checkAuthenticatedReadWriteAccessToZone1(void);
