@@ -1,33 +1,8 @@
-/* CDDL HEADER START
- *
- * The contents of this file are subject to the terms of the
- * Common Development and Distribution License (the "License").
- * You may not use this file except in compliance with the License.
- *
- * You can obtain a copy of the license at src/license_cddl-1.0.txt
- * or http://www.opensolaris.org/os/licensing.
- * See the License for the specific language governing permissions
- * and limitations under the License.
- *
- * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at src/license_cddl-1.0.txt
- * If applicable, add the following below this CDDL HEADER, with the
- * fields enclosed by brackets "[]" replaced with your own identifying
- * information: Portions Copyright [yyyy] [name of copyright owner]
- *
- * CDDL HEADER END
- */
-/*! \file   smartcard.c
-*   \brief  Smart Card low level functions
-*   Copyright [2014] [Mathieu Stephan]
+/*!  \file     smartcard_lowlevel.c
+*    \brief    Low level driver for AT88SC102 smartcard
+*    Created:  28/11/2017
+*    Author:   Mathieu Stephan
 */
-//#include "smart_card_higher_level_functions.h"
-//#include "logic_aes_and_comms.h"
-//#include <util/delay_basic.h>
-//#include "logic_smartcard.h"
-//#include <avr/interrupt.h>
-//#include "timer_manager.h"
-//#include <util/atomic.h>
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
 #include "platform_defines.h"
@@ -36,11 +11,11 @@
 #include "platform_io.h"
 #include "defines.h"
 
-/** Counter for successive card detects **/
+/* Counter for successive card detects */
 volatile uint16_t card_detect_counter = 0;
-/** Current detection state, see detect_return_t */
-volatile det_ret_type_te button_return;
-/** Smartcard power state **/
+/** Current detection state, see enum */
+volatile det_ret_type_te card_return;
+/* Smartcard powered state */
 volatile uint8_t card_powered = FALSE;
 
 
@@ -82,11 +57,11 @@ void smartcard_lowlevel_inverted_clock_pulse(void)
     smartcard_lowlevel_hpulse_delay();
 }
 
-/*! \fn     smartcard_lowlevel_write_nerase(uint8_t is_write)
+/*! \fn     smartcard_lowlevel_write_nerase(BOOL is_write)
 *   \brief  Perform a write or erase operation on the smart card
 *   \param  is_write    Boolean to indicate if it is a write
 */
-void smartcard_lowlevel_write_nerase(uint8_t is_write)
+void smartcard_lowlevel_write_nerase(BOOL is_write)
 {
     /* Set programming control signal */
     PORT->Group[SMC_PGM_GROUP].OUTSET.reg = SMC_PGM_MASK;
@@ -120,11 +95,11 @@ void smartcard_lowlevel_write_nerase(uint8_t is_write)
     smartcard_lowlevel_hpulse_delay();
 }
 
-/*! \fn     smartcard_lowlevel_blow_fuse(uint8_t fuse_name)
+/*! \fn     smartcard_lowlevel_blow_fuse(card_fuse_type_te fuse_name)
 *   \brief  Blow the manufacturer or issuer fuse
 *   \param  fuse_name    Which fuse to blow
 */
-void smartcard_lowlevel_blow_fuse(uint8_t fuse_name)
+void smartcard_lowlevel_blow_fuse(card_fuse_type_te fuse_name)
 {
     uint16_t i;
 
@@ -174,19 +149,19 @@ void smartcard_lowlevel_blow_fuse(uint8_t fuse_name)
 det_ret_type_te smartcard_lowlevel_is_card_plugged(void)
 {
     // This copy is an atomic operation
-    volatile det_ret_type_te return_val = button_return;
+    volatile det_ret_type_te return_val = card_return;
 
     if ((return_val != RETURN_DET) && (return_val != RETURN_REL))
     {
         cpu_irq_enter_critical();
 
-        if (button_return == RETURN_JDETECT)
+        if (card_return == RETURN_JDETECT)
         {
-            button_return = RETURN_DET;
+            card_return = RETURN_DET;
         }
-        else if (button_return == RETURN_JRELEASED)
+        else if (card_return == RETURN_JRELEASED)
         {
-            button_return = RETURN_REL;
+            card_return = RETURN_REL;
         }
         
         cpu_irq_leave_critical();
@@ -205,9 +180,9 @@ void smartcard_lowlevel_detect(void)
         if (card_detect_counter == 250)
         {
             // We must make sure the user detected that the smartcard was removed before setting it as detected!
-            if (button_return != RETURN_JRELEASED)
+            if (card_return != RETURN_JRELEASED)
             {
-                button_return = RETURN_JDETECT;
+                card_return = RETURN_JDETECT;
                 card_detect_counter++;
             }
         }
@@ -225,13 +200,13 @@ void smartcard_lowlevel_detect(void)
             card_powered = FALSE;
             //clearSmartCardInsertedUnlocked();
         }
-        if (button_return == RETURN_DET)
+        if (card_return == RETURN_DET)
         {
-            button_return = RETURN_JRELEASED;
+            card_return = RETURN_JRELEASED;
         }
-        else if (button_return != RETURN_JRELEASED)
+        else if (card_return != RETURN_JRELEASED)
         {
-            button_return = RETURN_REL;
+            card_return = RETURN_REL;
         }
         card_detect_counter = 0;
     }
