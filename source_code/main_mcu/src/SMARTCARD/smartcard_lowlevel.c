@@ -11,12 +11,12 @@
 #include "platform_io.h"
 #include "defines.h"
 
+/** Current detection state, see enum, released by default */
+volatile det_ret_type_te card_return = RETURN_REL;
 /* Counter for successive card detects */
 volatile uint16_t card_detect_counter = 0;
-/** Current detection state, see enum */
-volatile det_ret_type_te card_return;
 /* Smartcard powered state */
-volatile uint8_t card_powered = FALSE;
+volatile BOOL card_powered = FALSE;
 
 
 /*! \fn     smartcard_lowlevel_hpulse_delay(void)
