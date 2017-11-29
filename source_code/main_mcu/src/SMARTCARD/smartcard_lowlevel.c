@@ -295,11 +295,11 @@ void smartcard_lowlevel_erase_application_zone1_nzone2(BOOL zone1_nzone2)
 
     /* Clock is at high level now, as input must be switched during this time */
     /* Enter the erase key */
-    smartcardHPulseDelay();
+    smartcard_lowlevel_hpulse_delay();
     while(i--)
     {
         // The code is always FFFF...
-        smartcardHPulseDelay();
+        smartcard_lowlevel_hpulse_delay();
 
         /* Inverted clock pulse */
         smartcard_lowlevel_inverted_clock_pulse();
@@ -307,9 +307,9 @@ void smartcard_lowlevel_erase_application_zone1_nzone2(BOOL zone1_nzone2)
 
     /* Bring clock and data low */
     PORT->Group[SMC_SCK_GROUP].OUTCLR.reg = SMC_SCK_MASK;
-    smartcardHPulseDelay();smartcardHPulseDelay();
+    smartcard_lowlevel_hpulse_delay();smartcard_lowlevel_hpulse_delay();
     PORT->Group[SMC_MOSI_GROUP].OUTCLR.reg = SMC_MOSI_MASK;
-    smartcardHPulseDelay();smartcardHPulseDelay();
+    smartcard_lowlevel_hpulse_delay();smartcard_lowlevel_hpulse_delay();
 
     /* Erase AZ1/AZ2 */
     smartcard_lowlevel_write_nerase(FALSE);

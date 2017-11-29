@@ -1,96 +1,74 @@
-/* CDDL HEADER START
- *
- * The contents of this file are subject to the terms of the
- * Common Development and Distribution License (the "License").
- * You may not use this file except in compliance with the License.
- *
- * You can obtain a copy of the license at src/license_cddl-1.0.txt
- * or http://www.opensolaris.org/os/licensing.
- * See the License for the specific language governing permissions
- * and limitations under the License.
- *
- * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at src/license_cddl-1.0.txt
- * If applicable, add the following below this CDDL HEADER, with the
- * fields enclosed by brackets "[]" replaced with your own identifying
- * information: Portions Copyright [yyyy] [name of copyright owner]
- *
- * CDDL HEADER END
- */
-/*! \file   smart_card_higher_level_functions.c
- *  \brief  Smart Card high level functions
- *  Copyright [2014] [Mathieu Stephan]
- */
+/*!  \file     smartcard_highlevel.c
+*    \brief    High level driver for AT88SC102 smartcard
+*    Created:  29/11/2017
+*    Author:   Mathieu Stephan
+*/
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
-//#include "oled_wrapper.h"
-//#include "smartcard.h"
 #include "defines.h"
-//#include "utils.h"
-//#include "usb.h"
 #include <string.h>
 
 
-/*! \fn     readAES256BitsKey(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_read_aes_key(uint8_t* buffer)
 *   \brief  Read the AES 256 bits key from the card. Note that it is up to the code calling this function to check that we're authenticated, otherwise 0s will be read
 *   \param  buffer  Buffer to store the AES key
 */
-void readAES256BitsKey(uint8_t* buffer)
+void smartcard_highlevel_read_aes_key(uint8_t* buffer)
 {
     smartcard_lowlevel_read_smc((SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED + AES_KEY_LENGTH)/8, (SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED)/8, buffer);
 }
 
-/*! \fn     readApplicationZone1(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_read_application_zone1(uint8_t* buffer)
 *   \brief  Read Application Zone 1 data
 *   \param  buffer  Buffer to store the data
 */
-void readApplicationZone1(uint8_t* buffer)
+void smartcard_highlevel_read_application_zone1(uint8_t* buffer)
 {
     smartcard_lowlevel_read_smc((SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ_BIT_LENGTH)/8, (SMARTCARD_AZ1_BIT_START)/8, buffer);
 }
 
-/*! \fn     writeApplicationZone1(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_write_application_zone1(uint8_t* buffer)
 *   \brief  Write Application Zone 1 data
 *   \param  buffer  Data to be written
 */
-void writeApplicationZone1(uint8_t* buffer)
+void smartcard_highlevel_write_application_zone1(uint8_t* buffer)
 {
     smartcard_lowlevel_write_smc(SMARTCARD_AZ1_BIT_START, SMARTCARD_AZ_BIT_LENGTH, buffer);
 }
 
-/*! \fn     readApplicationZone2(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_read_application_zone2(uint8_t* buffer)
 *   \brief  Read Application Zone 2 data
 *   \param  buffer  Buffer to store the data
 */
-void readApplicationZone2(uint8_t* buffer)
+void smartcard_highlevel_read_application_zone2(uint8_t* buffer)
 {
     smartcard_lowlevel_read_smc((SMARTCARD_AZ2_BIT_START + SMARTCARD_AZ_BIT_LENGTH)/8, (SMARTCARD_AZ2_BIT_START)/8, buffer);
 }
 
-/*! \fn     writeApplicationZone2(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_write_application_zone2(uint8_t* buffer)
 *   \brief  Write Application Zone 2 data
 *   \param  buffer  Data to be written
 */
-void writeApplicationZone2(uint8_t* buffer)
+void smartcard_highlevel_write_application_zone2(uint8_t* buffer)
 {
     smartcard_lowlevel_write_smc(SMARTCARD_AZ2_BIT_START, SMARTCARD_AZ_BIT_LENGTH, buffer);
 }
 
-/*! \fn     readMooltipassWebsiteLogin(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_read_card_login(uint8_t* buffer)
 *   \brief  Read the Mooltipass website login from the card. Note that it is up to the code calling this function to check that we're authenticated, otherwise 0s will be read
 *   \param  buffer  Buffer to store the login
 */
-void readMooltipassWebsiteLogin(uint8_t* buffer)
+void smartcard_highlevel_read_card_login(uint8_t* buffer)
 {
     // We take the space left in AZ2 -> 62 bytes (512 - 16 = 62 bytes)
     smartcard_lowlevel_read_smc((SMARTCARD_AZ2_BIT_START + SMARTCARD_AZ2_BIT_RESERVED + SMARTCARD_MTP_LOGIN_LENGTH)/8, (SMARTCARD_AZ2_BIT_START + SMARTCARD_AZ2_BIT_RESERVED)/8, buffer);
 }
 
-/*! \fn     readMooltipassWebsitePassword(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_read_card_password(uint8_t* buffer)
 *   \brief  Read the Mooltipass website password from the card. Note that it is up to the code calling this function to check that we're authenticated, otherwise 0s will be read
 *   \param  buffer  Buffer to store the password
 */
-void readMooltipassWebsitePassword(uint8_t* buffer)
+void smartcard_highlevel_read_card_password(uint8_t* buffer)
 {
     // We take the space left in AZ1 -> 30 bytes (512 - 256 - 16 = 30 bytes)
     smartcard_lowlevel_read_smc((SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED + AES_KEY_LENGTH + SMARTCARD_MTP_PASS_LENGTH)/8, (SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED + AES_KEY_LENGTH)/8, buffer);
@@ -138,135 +116,135 @@ uint8_t* smartcard_highlevel_read_manufacturer_zone(uint8_t* buffer)
     return buffer;
 }
 
-/*! \fn     readSecurityCodeAttemptsCounters(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_read_code_attempts_counter(uint8_t* buffer)
 *   \brief  Read the number of code attempts left (security mode 1&2)
 *   \param  buffer  Pointer to a buffer (2 bytes required)
 *   \return The provided pointer
 */
-uint8_t* readSecurityCodeAttemptsCounters(uint8_t* buffer)
+uint8_t* smartcard_highlevel_read_code_attempts_counter(uint8_t* buffer)
 {
     smartcard_lowlevel_read_smc(14, 12, buffer);
     return buffer;
 }
 
-/*! \fn     readIssuerZone(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_read_issuer_zone(uint8_t* buffer)
 *   \brief  Read the issuer zone (security mode 1&2)
 *   \param  buffer  Pointer to a buffer (8 bytes required)
 *   \return The provided pointer
 */
-uint8_t* readIssuerZone(uint8_t* buffer)
+uint8_t* smartcard_highlevel_read_issuer_zone(uint8_t* buffer)
 {
     smartcard_lowlevel_read_smc(10, 2, buffer);
     return buffer;
 }
 
-/*! \fn     writeIssuerZone(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_write_issuer_zone(uint8_t* buffer)
 *   \brief  Write in the issuer zone (security mode 1 - Authenticated!)
 *   \param  buffer  Pointer to a buffer (8 bytes required)
 */
-void writeIssuerZone(uint8_t* buffer)
+void smartcard_highlevel_write_issuer_zone(uint8_t* buffer)
 {
     smartcard_lowlevel_write_smc(16, 64, buffer);
 }
 
-/*! \fn     readCodeProtectedZone(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_read_code_protected_zone(uint8_t* buffer)
 *   \brief  Read the code protected zone (security mode 1&2 - Authenticated!)
 *   \param  buffer  Pointer to a buffer (8 bytes required)
 *   \return The provided pointer
 */
-uint8_t* readCodeProtectedZone(uint8_t* buffer)
+uint8_t* smartcard_highlevel_read_code_protected_zone(uint8_t* buffer)
 {
     smartcard_lowlevel_read_smc(22, 14, buffer);
     return buffer;
 }
 
-/*! \fn     writeCodeProtectedZone(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_write_protected_zone(uint8_t* buffer)
 *   \brief  Write in the code protected zone (security mode 1&2 - Authenticated!)
 *   \param  buffer  Pointer to a buffer (8 bytes required)
 */
-void writeCodeProtectedZone(uint8_t* buffer)
+void smartcard_highlevel_write_protected_zone(uint8_t* buffer)
 {
     smartcard_lowlevel_write_smc(112, 64, buffer);
 }
 
-/*! \fn     readApplicationZone1EraseKey(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_read_appzone1_erase_key(uint8_t* buffer)
 *   \brief  Read the application zone1 erase key (security mode 1 - Authenticated!)
 *   \param  buffer  Pointer to a buffer (6 bytes required)
 *   \return The provided pointer
 */
-uint8_t* readApplicationZone1EraseKey(uint8_t* buffer)
+uint8_t* smartcard_highlevel_read_appzone1_erase_key(uint8_t* buffer)
 {
     smartcard_lowlevel_read_smc(92, 86, buffer);
     return buffer;
 }
 
-/*! \fn     writeApplicationZone1EraseKey(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_write_appzone1_erase_key(uint8_t* buffer)
 *   \brief  Write the application zone1 erase key (security mode 1 - Authenticated!)
 *   \param  buffer  Pointer to a buffer (6 bytes required)
 */
-void writeApplicationZone1EraseKey(uint8_t* buffer)
+void smartcard_highlevel_write_appzone1_erase_key(uint8_t* buffer)
 {
     smartcard_lowlevel_write_smc(688, 48, buffer);
 }
 
-/*! \fn     readApplicationZone2EraseKey(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_read_appzone2_erase_key(uint8_t* buffer)
 *   \brief  Read the application zone2 erase key (security mode 1 - Authenticated!)
 *   \param  buffer  Pointer to a buffer (4 bytes required)
 *   \return The provided pointer
 */
-uint8_t* readApplicationZone2EraseKey(uint8_t* buffer)
+uint8_t* smartcard_highlevel_read_appzone2_erase_key(uint8_t* buffer)
 {
     smartcard_lowlevel_read_smc(160, 156, buffer);
     return buffer;
 }
 
-/*! \fn     writeApplicationZone2EraseKey(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_write_appzone2_erase_key(uint8_t* buffer)
 *   \brief  Write the application zone2 erase key (security mode 1 - Authenticated!)
 *   \param  buffer  Pointer to a buffer (4 bytes required)
 */
-void writeApplicationZone2EraseKey(uint8_t* buffer)
+void smartcard_highlevel_write_appzone2_erase_key(uint8_t* buffer)
 {
     smartcard_lowlevel_write_smc(1248, 32, buffer);
 }
 
-/*! \fn     writeManufacturerZone(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_write_manufacturer_zone(uint8_t* buffer)
 *   \brief  Write in the manufacturer zone (security mode 1 - Authenticated!)
 *   \param  buffer  Pointer to a buffer (2 bytes required)
 */
-void writeManufacturerZone(uint8_t* buffer)
+void smartcard_highlevel_write_manufacturer_zone(uint8_t* buffer)
 {
     smartcard_lowlevel_write_smc(1424, 16, buffer);
 }
 
-/*! \fn     writeManufacturerFuse(void)
+/*! \fn     smartcard_highlevel_write_manufacturer_fuse(void)
 *   \brief  Write manufacturer fuse, controlling access to the MFZ
 */
-void writeManufacturerFuse(void)
+void smartcard_highlevel_write_manufacturer_fuse(void)
 {
     smartcard_lowlevel_blow_fuse(MAN_FUSE);
 }
 
-/*! \fn     write_issuers_fuse(void)
+/*! \fn     smartcard_highlevel_write_issuer_fuse(void)
 *   \brief  Write issuers fuse, setting the AT88SC102 into Security Mode 2, we need to be authenticated here
 */
-void write_issuers_fuse(void)
+void smartcard_highlevel_write_issuer_fuse(void)
 {
     smartcard_lowlevel_blow_fuse(ISSUER_FUSE);
 }
 
-/*! \fn     write_ec2en_fuse(void)
+/*! \fn     smartcard_highlevel_write_ec2en_fuse(void)
 *   \brief  Write ec2en fuse, to be done before blowing issuer fuse
 */
-void write_ec2en_fuse(void)
+void smartcard_highlevel_write_ec2en_fuse(void)
 {
     smartcard_lowlevel_blow_fuse(EC2EN_FUSE);
 }
 
-/*! \fn     checkSecurityMode2(void)
+/*! \fn     smartcard_highlevel_check_security_mode2(void)
 *   \brief  Check that the smartcard is in mode two by trying to write his manufacturer zone
 *   \return Success status
 */
-RET_TYPE checkSecurityMode2(void)
+RET_TYPE smartcard_highlevel_check_security_mode2(void)
 {
     uint16_t manZoneRead, temp_uint;
     
@@ -275,7 +253,7 @@ RET_TYPE checkSecurityMode2(void)
     temp_uint = ~manZoneRead;
     
     // Perform test write
-    writeManufacturerZone((uint8_t*)&temp_uint);
+    smartcard_highlevel_write_manufacturer_zone((uint8_t*)&temp_uint);
     smartcard_highlevel_read_manufacturer_zone((uint8_t*)&manZoneRead);
     
     if (temp_uint != manZoneRead)
@@ -301,7 +279,7 @@ mooltipass_card_detect_return_te smartcard_high_level_mooltipass_card_detected_r
     if (temp_rettype == RETURN_PIN_OK)                                   // Unlock successful
     {
         // Check that the card is in security mode 2
-        if (checkSecurityMode2() == RETURN_NOK)
+        if (smartcard_highlevel_check_security_mode2() == RETURN_NOK)
         {
             // Card is in mode 1... how could this happen?
             return RETURN_MOOLTIPASS_PB;
@@ -309,7 +287,7 @@ mooltipass_card_detect_return_te smartcard_high_level_mooltipass_card_detected_r
         else                                                            // Everything is in order - proceed
         {
             // Check that read / write accesses are correctly configured
-            if (checkAuthenticatedReadWriteAccessToZone1And2() == RETURN_NOK)
+            if (smartcard_highlevel_check_authenticated_readwrite_to_zone12() == RETURN_NOK)
             {
                 return RETURN_MOOLTIPASS_PB;
             }
@@ -336,64 +314,64 @@ RET_TYPE smartcard_high_level_transform_blank_card_into_mooltipass(void)
     uint16_t default_pin = SMARTCARD_DEFAULT_PIN;
 
     /* Check that we are in security mode 1 */
-    if (checkSecurityMode2() == RETURN_OK)
+    if (smartcard_highlevel_check_security_mode2() == RETURN_OK)
     {
         return RETURN_NOK;
     }
 
     /* Perform block erase, resetting the entire memory excluding FZ/MTZ/MFZ to FFFF... */
-    resetBlankCard();
+    smartcard_highlevel_reset_blank_card();
 
     /* Set new security password, keep zone 1 and zone 2 security key to FFFF... */
-    writeSecurityCode(&default_pin);
+    smartcard_highlevel_write_security_code(&default_pin);
 
     /* Write "limpkin" to issuer zone */
     strcpy((char*)temp_buffer, "limpkin");
-    writeIssuerZone(temp_buffer);
+    smartcard_highlevel_write_issuer_zone(temp_buffer);
 
     /* Write 2017 to the manufacturer zone */
     uint16_t new_man_zone = swap16(2017);
-    writeManufacturerZone((uint8_t*)&new_man_zone);
+    smartcard_highlevel_write_manufacturer_zone((uint8_t*)&new_man_zone);
 
     /* Set application zone 1 and zone 2 permissions: read/write when authenticated only */
-    setAuthenticatedReadWriteAccessToZone1and2();
+    smartcard_highlevel_set_authenticated_readwrite_to_zone1and2();
 
     /* Burn manufacturer fuse */
-    writeManufacturerFuse();
+    smartcard_highlevel_write_manufacturer_fuse();
     
     /* Burn EC2EN fuse */
-    write_ec2en_fuse();
+    smartcard_highlevel_write_ec2en_fuse();
 
     /* Burn issuer fuse */
-    write_issuers_fuse();
+    smartcard_highlevel_write_issuer_fuse();
 
     return RETURN_OK;
 }
 
-/*! \fn     eraseSmartCard(void)
+/*! \fn     smartcard_highlevel_erase_smartcard(void)
 *   \brief  Completely erase mooltipass card (Security mode 2 - Authenticated!)
 */
-void eraseSmartCard(void)
+void smartcard_highlevel_erase_smartcard(void)
 {
     uint8_t temp_buffer[SMARTCARD_CPZ_LENGTH];
     uint16_t default_pin = SMARTCARD_DEFAULT_PIN;
     
     // Write 0xFF in CPZ
     memset(temp_buffer, 0xFF, SMARTCARD_CPZ_LENGTH);
-    writeCodeProtectedZone(temp_buffer);
+    smartcard_highlevel_write_protected_zone(temp_buffer);
     
     // Erase AZ1 & AZ2
-    eraseApplicationZone1NZone2SMC(FALSE);
-    eraseApplicationZone1NZone2SMC(TRUE);
+    smartcard_lowlevel_erase_application_zone1_nzone2(FALSE);
+    smartcard_lowlevel_erase_application_zone1_nzone2(TRUE);
 
     /* Set application zone 1 and zone 2 permissions: read/write when authenticated only */
-    setAuthenticatedReadWriteAccessToZone1and2();
+    smartcard_highlevel_set_authenticated_readwrite_to_zone1and2();
     
     // Reset default pin code
-    writeSecurityCode(&default_pin);
+    smartcard_highlevel_write_security_code(&default_pin);
 }
 
-/*! \fn     writeToApplicationZoneAndCheck(uint16_t addr, uint16_t nb_bits, uint8_t* buffer, uint8_t* temp_buffer)
+/*! \fn     smartcard_highlevel_write_to_appzone_and_check(uint16_t addr, uint16_t nb_bits, uint8_t* buffer, uint8_t* temp_buffer)
 *   \brief  Write to one application zone and check what we wrote
 *   \param  addr    Address in bits of the place to write
 *   \param  nb_bits Number of bits to write
@@ -401,7 +379,7 @@ void eraseSmartCard(void)
 *   \param  temp_buffer A temporary buffer having the same size as buffer
 *   \return If we succeeded
 */
-RET_TYPE writeToApplicationZoneAndCheck(uint16_t addr, uint16_t nb_bits, uint8_t* buffer, uint8_t* temp_buffer)
+RET_TYPE smartcard_highlevel_write_to_appzone_and_check(uint16_t addr, uint16_t nb_bits, uint8_t* buffer, uint8_t* temp_buffer)
 {    
     smartcard_lowlevel_write_smc(addr, nb_bits, buffer);
     smartcard_lowlevel_read_smc((addr + nb_bits) >> 3, (addr >> 3), temp_buffer);
@@ -416,91 +394,91 @@ RET_TYPE writeToApplicationZoneAndCheck(uint16_t addr, uint16_t nb_bits, uint8_t
     }    
 }
 
-/*! \fn     writeAES256BitsKey(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_write_aes_key(uint8_t* buffer)
 *   \brief  Write the AES 256 bits key to the card
 *   \param  buffer  Buffer containing the AES key
 *   \return Operation success
 */
-RET_TYPE writeAES256BitsKey(uint8_t* buffer)
+RET_TYPE smartcard_highlevel_write_aes_key(uint8_t* buffer)
 {
     uint8_t temp_buffer[AES_KEY_LENGTH/8];
-    return writeToApplicationZoneAndCheck(SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED, AES_KEY_LENGTH, buffer, temp_buffer);
+    return smartcard_highlevel_write_to_appzone_and_check(SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED, AES_KEY_LENGTH, buffer, temp_buffer);
 }
 
-/*! \fn     writeMooltipassWebsitePassword(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_write_card_password(uint8_t* buffer)
 *   \brief  Write the Mooltipass website password to the card
 *   \param  buffer  Buffer containing the password
 *   \return Operation success
 */
-RET_TYPE writeMooltipassWebsitePassword(uint8_t* buffer)
+RET_TYPE smartcard_highlevel_write_card_password(uint8_t* buffer)
 {
     uint8_t temp_buffer[SMARTCARD_MTP_PASS_LENGTH/8];
-    return writeToApplicationZoneAndCheck(SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED + AES_KEY_LENGTH, SMARTCARD_MTP_PASS_LENGTH, buffer, temp_buffer);
+    return smartcard_highlevel_write_to_appzone_and_check(SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED + AES_KEY_LENGTH, SMARTCARD_MTP_PASS_LENGTH, buffer, temp_buffer);
 }
 
-/*! \fn     writeMooltipassWebsiteLogin(uint8_t* buffer)
+/*! \fn     smartcard_highlevel_write_card_login(uint8_t* buffer)
 *   \brief  Write the Mooltipass website login to the card
 *   \param  buffer  Buffer containing the login
 *   \return Operation success
 */
-RET_TYPE writeMooltipassWebsiteLogin(uint8_t* buffer)
+RET_TYPE smartcard_highlevel_write_card_login(uint8_t* buffer)
 {
     uint8_t temp_buffer[SMARTCARD_MTP_LOGIN_LENGTH/8];
-    return writeToApplicationZoneAndCheck(SMARTCARD_AZ2_BIT_START + SMARTCARD_AZ2_BIT_RESERVED, SMARTCARD_MTP_LOGIN_LENGTH, buffer, temp_buffer);
+    return smartcard_highlevel_write_to_appzone_and_check(SMARTCARD_AZ2_BIT_START + SMARTCARD_AZ2_BIT_RESERVED, SMARTCARD_MTP_LOGIN_LENGTH, buffer, temp_buffer);
 }
 
-/*! \fn     resetBlankCard(void)
+/*! \fn     smartcard_highlevel_reset_blank_card(void)
 *   \brief  Reinitialize the card to its default settings & default pin (Security mode 1 - Authenticated!)
 */
-void resetBlankCard(void)
+void smartcard_highlevel_reset_blank_card(void)
 {
     uint16_t default_pin = SMARTCARD_FACTORY_PIN;
     uint8_t data_buffer[2] = {0xFF, 0xFF};
     
     smartcard_lowlevel_write_smc(1441, 1, data_buffer);
-    writeSecurityCode(&default_pin);
+    smartcard_highlevel_write_security_code(&default_pin);
 }
 
-/*! \fn     readSecurityCode(void)
+/*! \fn     smartcard_highlevel_read_security_code(void)
 *   \brief  Read the security code (security mode 1 - Authenticated!)
 *   \return The security code
 */
-uint16_t readSecurityCode(void)
+uint16_t smartcard_highlevel_read_security_code(void)
 {
     uint16_t temp_uint;
     smartcard_lowlevel_read_smc(12, 10, (uint8_t*)&temp_uint);
     return swap16(temp_uint);
 }
 
-/*! \fn     writeSecurityCode(uint16_t* code)
+/*! \fn     smartcard_highlevel_write_security_code(uint16_t* code)
 *   \brief  Write a new security code (security mode 1&2 - Authenticated!)
 *   \param  code  The pin code
 */
-void writeSecurityCode(volatile uint16_t* code)
+void smartcard_highlevel_write_security_code(volatile uint16_t* code)
 {
     *code = swap16(*code);
     smartcard_lowlevel_write_smc(80, 16, (uint8_t*)code);
     *code = swap16(*code);
 }
 
-/*! \fn     setAuthenticatedReadWriteAccessToZone1(void)
+/*! \fn     smartcard_highlevel_set_authenticated_readwrite_to_zone1(void)
 *   \brief  Function called to only allow reads and writes to the application zone 1 when authenticated
 *   \return Operation success
 */
-RET_TYPE setAuthenticatedReadWriteAccessToZone1(void)
+RET_TYPE smartcard_highlevel_set_authenticated_readwrite_to_zone1(void)
 {
     // Set P1 to 1 to allow write, remove R1 to prevent non authenticated reads
     uint8_t temp_buffer[2] = {0x80, 0x00};
     smartcard_lowlevel_write_smc(176, 16, temp_buffer);
     
-    return checkAuthenticatedReadWriteAccessToZone1();
+    return smartcard_highlevel_check_authenticated_readwrite_to_zone1();
 }
 
-/*! \fn     checkAuthenticatedReadWriteAccessToZone1(void)
+/*! \fn     smartcard_highlevel_check_authenticated_readwrite_to_zone1(void)
 *   \brief  Function called to check that only reads and writes are allowed to the application zone 1 when authenticated
 *   \return OK or NOK
 */
-RET_TYPE checkAuthenticatedReadWriteAccessToZone1(void)
+RET_TYPE smartcard_highlevel_check_authenticated_readwrite_to_zone1(void)
 {
     uint8_t temp_buffer[2];
 
@@ -516,23 +494,23 @@ RET_TYPE checkAuthenticatedReadWriteAccessToZone1(void)
     }
 }
 
-/*! \fn     setAuthenticatedReadWriteAccessToZone2(void)
+/*! \fn     smartcard_highlevel_set_authenticated_readwrite_to_zone2(void)
 *   \brief  Function called to only allow reads and writes to the application zone 2 when authenticated
 *   \return Operation success
 */
-RET_TYPE setAuthenticatedReadWriteAccessToZone2(void)
+RET_TYPE smartcard_highlevel_set_authenticated_readwrite_to_zone2(void)
 {
     // Set P2 to 1 to allow write, remove R2 to prevent non authenticated reads
     uint8_t temp_buffer[2] = {0x80, 0x00};
     smartcard_lowlevel_write_smc(736, 16, temp_buffer);
     
-    return checkAuthenticatedReadWriteAccessToZone2();
+    return smartcard_highlevel_check_authenticated_readwrite_to_zone2();
 }
 
-/*! \fn     setAuthenticatedReadWriteAccessToZone1and2(void)
+/*! \fn     smartcard_highlevel_set_authenticated_readwrite_to_zone1and2(void)
 *   \brief  Function called to only allow reads and writes to the application zone 1 & 2 when authenticated
 */
-void setAuthenticatedReadWriteAccessToZone1and2(void)
+void smartcard_highlevel_set_authenticated_readwrite_to_zone1and2(void)
 {
     uint8_t temp_buffer[2] = {0x80, 0x00};
     // Set P1 to 1 to allow write, remove R1 to prevent non authenticated reads
@@ -541,11 +519,11 @@ void setAuthenticatedReadWriteAccessToZone1and2(void)
     smartcard_lowlevel_write_smc(736, 16, temp_buffer);
 }
 
-/*! \fn     checkAuthenticatedReadWriteAccessToZone2(void)
+/*! \fn     smartcard_highlevel_check_authenticated_readwrite_to_zone2(void)
 *   \brief  Function called to check that only reads and writes are allowed to the application zone 2 when authenticated
 *   \return OK or NOK
 */
-RET_TYPE checkAuthenticatedReadWriteAccessToZone2(void)
+RET_TYPE smartcard_highlevel_check_authenticated_readwrite_to_zone2(void)
 {
     uint8_t temp_buffer[2];
 
@@ -561,11 +539,11 @@ RET_TYPE checkAuthenticatedReadWriteAccessToZone2(void)
     }
 }
 
-/*! \fn     checkAuthenticatedReadWriteAccessToZone1And2(void)
+/*! \fn     smartcard_highlevel_check_authenticated_readwrite_to_zone12(void)
 *   \brief  Function called to check that only reads and writes are allowed to the application zone 1 when authenticated
 *   \return OK or NOK
 */
-RET_TYPE checkAuthenticatedReadWriteAccessToZone1And2(void)
+RET_TYPE smartcard_highlevel_check_authenticated_readwrite_to_zone12(void)
 {
     uint8_t temp_buffer[2];
     uint8_t temp_buffer2[2];
@@ -593,14 +571,14 @@ void printSMCDebugInfoToUSB(void)
     uint8_t i;
 
     /* Extrapolate security mode */
-    usbPrintf_P(PSTR("Security mode %c\n"), (checkSecurityMode2() == RETURN_OK) ? '2' : '1');
+    usbPrintf_P(PSTR("Security mode %c\n"), (smartcard_highlevel_check_security_mode2() == RETURN_OK) ? '2' : '1');
 
     /* Read FZ, SC, and SCAC */
     oledSetXY(0,0);
-    usbPrintf_P(PSTR("FZ: %04X SC: %04X SCAC: %04X\n"), swap16(*(uint16_t *)smartcard_highlevel_read_fab_zone(data_buffer)), readSecurityCode(), swap16(*(uint16_t*)readSecurityCodeAttemptsCounters(data_buffer)));
+    usbPrintf_P(PSTR("FZ: %04X SC: %04X SCAC: %04X\n"), swap16(*(uint16_t *)smartcard_highlevel_read_fab_zone(data_buffer)), smartcard_highlevel_read_security_code(), swap16(*(uint16_t*)smartcard_highlevel_read_code_attempts_counter(data_buffer)));
 
     /* Read IZ */
-    readIssuerZone(data_buffer);
+    smartcard_highlevel_read_issuer_zone(data_buffer);
     usbPrintf_P(PSTR("IZ:  "));
     for (i = 0; i < 4; i++)
     {
@@ -609,7 +587,7 @@ void printSMCDebugInfoToUSB(void)
     usbPrintf_P(PSTR("\n"));
 
     /* Recompose CPZ */
-    readCodeProtectedZone(data_buffer);
+    smartcard_highlevel_read_code_protected_zone(data_buffer);
     usbPrintf_P(PSTR("CPZ: "));
     for (i = 0; i < 4; i++)
     {
@@ -618,7 +596,7 @@ void printSMCDebugInfoToUSB(void)
     usbPrintf_P(PSTR("\n"));
 
     /* Read EZ1 */
-    readApplicationZone1EraseKey(data_buffer);
+    smartcard_highlevel_read_appzone1_erase_key(data_buffer);
     usbPrintf_P(PSTR("EZ1: "));
     for (i = 0; i < 3; i++)
     {
@@ -627,7 +605,7 @@ void printSMCDebugInfoToUSB(void)
     usbPrintf_P(PSTR("\n"));
 
     /* Read EZ2 */
-    readApplicationZone2EraseKey(data_buffer);
+    smartcard_highlevel_read_appzone2_erase_key(data_buffer);
     usbPrintf_P(PSTR("EZ2: "));
     for (i = 0; i < 2; i++)
     {
@@ -658,15 +636,15 @@ void printSMCDebugInfoToUSB(void)
     usbPrintf_P(PSTR("\n"));
         
     /* Show EC2 counter */
-    usbPrintf_P(PSTR("EC2: %02X\n"), getNumberOfAZ2WritesLeft());
+    usbPrintf_P(PSTR("EC2: %02X\n"), smartcard_highlevel_get_nb_az2_writes_left());
 #endif
 }
 
-/*! \fn     getNumberOfAZ2WritesLeft(void)
+/*! \fn     smartcard_highlevel_get_nb_az2_writes_left(void)
 *   \brief  Get the number of AZ2 writes left in case EC2 is not blown
 *   \return Number of tries left
 */
-uint8_t getNumberOfAZ2WritesLeft(void)
+uint8_t smartcard_highlevel_get_nb_az2_writes_left(void)
 {
     uint8_t temp_buffer[16];
     uint8_t return_val = 0;
@@ -694,7 +672,7 @@ uint8_t smartcard_highlevel_get_nb_sec_tries_left(void)
     uint8_t return_val = 0;
     uint8_t i;
 
-    readSecurityCodeAttemptsCounters(temp_buffer);
+    smartcard_highlevel_read_code_attempts_counter(temp_buffer);
     for(i = 0; i < 4; i++)
     {
         if ((temp_buffer[0] >> (4+i)) & 0x01)
@@ -769,7 +747,7 @@ mooltipass_card_detect_return_te smartcard_highlevel_card_detected_routine(void)
         else
         {
             /* Card is already converted into a mooltipass card */
-            readCodeProtectedZone(temp_buffer);
+            smartcard_highlevel_read_code_protected_zone(temp_buffer);
 
             /* Check that the user setup his mooltipass card by checking that the CPZ is different from FFFF.... */
             if (memcmp(temp_buffer, "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", SMARTCARD_CPZ_LENGTH) != 0)

@@ -1,24 +1,8 @@
-/* CDDL HEADER START
- *
- * The contents of this file are subject to the terms of the
- * Common Development and Distribution License (the "License").
- * You may not use this file except in compliance with the License.
- *
- * You can obtain a copy of the license at src/license_cddl-1.0.txt
- * or http://www.opensolaris.org/os/licensing.
- * See the License for the specific language governing permissions
- * and limitations under the License.
- *
- * When distributing Covered Code, include this CDDL HEADER in each
- * file and include the License file at src/license_cddl-1.0.txt
- * If applicable, add the following below this CDDL HEADER, with the
- * fields enclosed by brackets "[]" replaced with your own identifying
- * information: Portions Copyright [yyyy] [name of copyright owner]
- *
- * CDDL HEADER END
- */
-
-
+/*!  \file     smartcard_highlevel.h
+*    \brief    High level driver for AT88SC102 smartcard
+*    Created:  29/11/2017
+*    Author:   Mathieu Stephan
+*/
 #ifndef SMART_CARD_HIGHER_LEVEL_FUNCTIONS_H_
 #define SMART_CARD_HIGHER_LEVEL_FUNCTIONS_H_
 
@@ -34,51 +18,51 @@
 
 
 /************ PROTOTYPES ************/
-RET_TYPE writeToApplicationZoneAndCheck(uint16_t addr, uint16_t nb_bits, uint8_t* buffer, uint8_t* temp_buffer);
+RET_TYPE smartcard_highlevel_write_to_appzone_and_check(uint16_t addr, uint16_t nb_bits, uint8_t* buffer, uint8_t* temp_buffer);
 mooltipass_card_detect_return_te smartcard_high_level_mooltipass_card_detected_routine(volatile uint16_t* pin_code);
-RET_TYPE checkSecurityMode2(void);
-RET_TYPE checkAuthenticatedReadWriteAccessToZone1And2(void);
-RET_TYPE writeMooltipassWebsitePassword(uint8_t* buffer);
-RET_TYPE checkAuthenticatedReadWriteAccessToZone1(void);
-RET_TYPE checkAuthenticatedReadWriteAccessToZone2(void);
-RET_TYPE writeMooltipassWebsiteLogin(uint8_t* buffer);
-RET_TYPE setAuthenticatedReadWriteAccessToZone1(void);
-RET_TYPE setAuthenticatedReadWriteAccessToZone2(void);
-void setAuthenticatedReadWriteAccessToZone1and2(void);
-void writeSecurityCode(volatile uint16_t* code);
+RET_TYPE smartcard_highlevel_check_security_mode2(void);
+RET_TYPE smartcard_highlevel_check_authenticated_readwrite_to_zone12(void);
+RET_TYPE smartcard_highlevel_write_card_password(uint8_t* buffer);
+RET_TYPE smartcard_highlevel_check_authenticated_readwrite_to_zone1(void);
+RET_TYPE smartcard_highlevel_check_authenticated_readwrite_to_zone2(void);
+RET_TYPE smartcard_highlevel_write_card_login(uint8_t* buffer);
+RET_TYPE smartcard_highlevel_set_authenticated_readwrite_to_zone1(void);
+RET_TYPE smartcard_highlevel_set_authenticated_readwrite_to_zone2(void);
+void smartcard_highlevel_set_authenticated_readwrite_to_zone1and2(void);
+void smartcard_highlevel_write_security_code(volatile uint16_t* code);
 RET_TYPE smartcard_high_level_transform_blank_card_into_mooltipass(void);
 uint8_t smartcard_highlevel_get_nb_sec_tries_left(void);
-RET_TYPE writeAES256BitsKey(uint8_t* buffer);
-uint8_t getNumberOfAZ2WritesLeft(void);
+RET_TYPE smartcard_highlevel_write_aes_key(uint8_t* buffer);
+uint8_t smartcard_highlevel_get_nb_az2_writes_left(void);
 mooltipass_card_detect_return_te smartcard_highlevel_card_detected_routine(void);
 void printSMCDebugInfoToUSB(void);
-uint16_t readSecurityCode(void);
-void eraseSmartCard(void);
-void resetBlankCard(void);
-void readAES256BitsKey(uint8_t* buffer);
-void readApplicationZone1(uint8_t* buffer);
-void writeApplicationZone1(uint8_t* buffer);
-void readApplicationZone2(uint8_t* buffer);
-void writeApplicationZone2(uint8_t* buffer);
-void readMooltipassWebsiteLogin(uint8_t* buffer);
-void readMooltipassWebsitePassword(uint8_t* buffer);
+uint16_t smartcard_highlevel_read_security_code(void);
+void smartcard_highlevel_erase_smartcard(void);
+void smartcard_highlevel_reset_blank_card(void);
+void smartcard_highlevel_read_aes_key(uint8_t* buffer);
+void smartcard_highlevel_read_application_zone1(uint8_t* buffer);
+void smartcard_highlevel_write_application_zone1(uint8_t* buffer);
+void smartcard_highlevel_read_application_zone2(uint8_t* buffer);
+void smartcard_highlevel_write_application_zone2(uint8_t* buffer);
+void smartcard_highlevel_read_card_login(uint8_t* buffer);
+void smartcard_highlevel_read_card_password(uint8_t* buffer);
 uint8_t* smartcard_highlevel_read_fab_zone(uint8_t* buffer);
-uint8_t* readIssuerZone(uint8_t* buffer);
-void writeIssuerZone(uint8_t* buffer);
-uint8_t* readSecurityCodeAttemptsCounters(uint8_t* buffer);
-uint8_t* readCodeProtectedZone(uint8_t* buffer);
-void writeCodeProtectedZone(uint8_t* buffer);
-uint8_t* readApplicationZone1EraseKey(uint8_t* buffer);
-void writeApplicationZone1EraseKey(uint8_t* buffer);
-uint8_t* readApplicationZone2EraseKey(uint8_t* buffer);
-void writeApplicationZone2EraseKey(uint8_t* buffer);
+uint8_t* smartcard_highlevel_read_issuer_zone(uint8_t* buffer);
+void smartcard_highlevel_write_issuer_zone(uint8_t* buffer);
+uint8_t* smartcard_highlevel_read_code_attempts_counter(uint8_t* buffer);
+uint8_t* smartcard_highlevel_read_code_protected_zone(uint8_t* buffer);
+void smartcard_highlevel_write_protected_zone(uint8_t* buffer);
+uint8_t* smartcard_highlevel_read_appzone1_erase_key(uint8_t* buffer);
+void smartcard_highlevel_write_appzone1_erase_key(uint8_t* buffer);
+uint8_t* smartcard_highlevel_read_appzone2_erase_key(uint8_t* buffer);
+void smartcard_highlevel_write_appzone2_erase_key(uint8_t* buffer);
 uint8_t* smartcard_highlevel_read_mem_test_zone(uint8_t* buffer);
 void smartcard_highlevel_write_mem_test_zone(uint8_t* buffer);
 uint8_t* smartcard_highlevel_read_manufacturer_zone(uint8_t* buffer);
-void writeManufacturerZone(uint8_t* buffer);
-void writeManufacturerFuse(void);
-void write_issuers_fuse(void);
-void write_ec2en_fuse(void);
+void smartcard_highlevel_write_manufacturer_zone(uint8_t* buffer);
+void smartcard_highlevel_write_manufacturer_fuse(void);
+void smartcard_highlevel_write_issuer_fuse(void);
+void smartcard_highlevel_write_ec2en_fuse(void);
 
 /*
                 SMART CARD MEMORY MAP
