@@ -310,7 +310,7 @@ mooltipass_card_detect_return_te smartcard_high_level_mooltipass_card_detected_r
 */
 RET_TYPE smartcard_high_level_transform_blank_card_into_mooltipass(void)
 {
-    uint8_t temp_buffer[20];
+    uint8_t temp_buffer[SMARTCARD_ISSUER_ZONE_LGTH];
     uint16_t default_pin = SMARTCARD_DEFAULT_PIN;
 
     /* Check that we are in security mode 1 */
@@ -691,8 +691,8 @@ uint8_t smartcard_highlevel_get_nb_sec_tries_left(void)
 mooltipass_card_detect_return_te smartcard_highlevel_card_detected_routine(void)
 {
     card_detect_return_te card_detection_result;
+    uint8_t temp_buffer[SMARTCARD_CPZ_LENGTH];
     uint16_t manufacturer_zone;
-    uint8_t temp_buffer[8];
 
     /* Get a first card detection result */
     card_detection_result = smartcard_lowlevel_first_detect_function();

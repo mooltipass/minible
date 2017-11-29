@@ -77,7 +77,21 @@ int main (void)
                 printSmartCardInfo();*/
             }
             else if (detection_result == RETURN_MOOLTIPASS_USER)
-            {/*
+            {
+                 /* Card is new - transform it into a Mooltipass card */
+                 uint16_t factory_pin = SMARTCARD_FACTORY_PIN;
+
+                 /* Try to authenticate with factory pin */
+                 pin_check_return_te pin_try_return = smartcard_lowlevel_validate_code(&factory_pin);
+
+                 if (pin_try_return == RETURN_PIN_OK)
+                 {
+                     smartcard_highlevel_erase_smartcard();
+                     PORT->Group[OLED_CD_GROUP].OUTCLR.reg = OLED_CD_MASK;
+                     //PORT->Group[OLED_CD_GROUP].OUTCLR.reg = OLED_CD_MASK;
+                 }
+            
+            /*
                 // Call valid card detection function
                 uint8_t temp_return = validCardDetectedFunction(0, TRUE);
                 
