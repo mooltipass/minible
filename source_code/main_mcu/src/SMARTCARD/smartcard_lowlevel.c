@@ -275,50 +275,50 @@ void smartcard_lowlevel_erase_application_zone1_nzone2(BOOL zone1_nzone2)
         i = 688;
     }
 
-	/* Switch to bit banging */
-	platform_io_smc_switch_to_bb();
-	smartcard_lowlevel_hpulse_delay();
-	smartcard_lowlevel_clear_pgmrst_signals();
+    /* Switch to bit banging */
+    platform_io_smc_switch_to_bb();
+    smartcard_lowlevel_hpulse_delay();
+    smartcard_lowlevel_clear_pgmrst_signals();
 
-	/* Get to the good EZx */
-	while(i--) smartcard_lowlevel_inverted_clock_pulse();
+    /* Get to the good EZx */
+    while(i--) smartcard_lowlevel_inverted_clock_pulse();
 
-	/* How many bits to compare */
-	if (zone1_nzone2 == FALSE)
-	{
-		i = 32;
-	}
-	else
-	{
-		i = 48;
-	}
+    /* How many bits to compare */
+    if (zone1_nzone2 == FALSE)
+    {
+        i = 32;
+    }
+    else
+    {
+        i = 48;
+    }
 
-	/* Clock is at high level now, as input must be switched during this time */
-	/* Enter the erase key */
-	smartcardHPulseDelay();
-	while(i--)
-	{
-		// The code is always FFFF...
-		smartcardHPulseDelay();
+    /* Clock is at high level now, as input must be switched during this time */
+    /* Enter the erase key */
+    smartcardHPulseDelay();
+    while(i--)
+    {
+        // The code is always FFFF...
+        smartcardHPulseDelay();
 
-		/* Inverted clock pulse */
-		smartcard_lowlevel_inverted_clock_pulse();
-	}
+        /* Inverted clock pulse */
+        smartcard_lowlevel_inverted_clock_pulse();
+    }
 
-	/* Bring clock and data low */
+    /* Bring clock and data low */
     PORT->Group[SMC_SCK_GROUP].OUTCLR.reg = SMC_SCK_MASK;
-	smartcardHPulseDelay();smartcardHPulseDelay();
-	PORT->Group[SMC_MOSI_GROUP].OUTCLR.reg = SMC_MOSI_MASK;
-	smartcardHPulseDelay();smartcardHPulseDelay();
+    smartcardHPulseDelay();smartcardHPulseDelay();
+    PORT->Group[SMC_MOSI_GROUP].OUTCLR.reg = SMC_MOSI_MASK;
+    smartcardHPulseDelay();smartcardHPulseDelay();
 
-	/* Erase AZ1/AZ2 */
-	smartcard_lowlevel_write_nerase(FALSE);
+    /* Erase AZ1/AZ2 */
+    smartcard_lowlevel_write_nerase(FALSE);
 
-	/* Set PGM / RST signals to standby mode */
-	smartcard_lowlevel_set_pgmrst_signals();
+    /* Set PGM / RST signals to standby mode */
+    smartcard_lowlevel_set_pgmrst_signals();
 
-	/* Switch to SPI mode */
-	platform_io_smc_switch_to_spi();
+    /* Switch to SPI mode */
+    platform_io_smc_switch_to_spi();
 }
 
 /*! \fn     smartcard_lowlevel_validate_code(volatile uint16_t* code)
