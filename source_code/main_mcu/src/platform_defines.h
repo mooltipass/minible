@@ -96,6 +96,7 @@ typedef struct
 
 /* Speed defines */
 #define CPU_SPEED_HF                48000000UL
+#define CPU_SPEED_MF                8000000UL
 /* SMARTCARD SPI SCK =  48M / (2*(119+1)) = 200kHz (Supposed Max is 300kHz) */
 //#define SMARTCARD_BAUD_DIVIDER      119
 #define SMARTCARD_BAUD_DIVIDER      239

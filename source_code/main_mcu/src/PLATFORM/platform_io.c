@@ -11,6 +11,15 @@
 #include "platform_io.h"
 
 
+/*! \fn     platform_io_enable_switch(void)
+*   \brief  Enable switch (and 3v3 stepup)
+*/
+void platform_io_enable_switch(void)
+{
+    PORT->Group[SWDET_EN_GROUP].DIRSET.reg = SWDET_EN_MASK;
+    PORT->Group[SWDET_EN_GROUP].OUTSET.reg = SWDET_EN_MASK;
+}
+
 /*! \fn     platform_io_release_aux_reset(void)
 *   \brief  Release aux MCU reset
 */

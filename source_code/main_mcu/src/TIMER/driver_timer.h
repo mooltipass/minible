@@ -28,9 +28,11 @@ typedef enum {TIMER_EXPIRED = 0, TIMER_RUNNING = 1} timer_flag_te;
     
 /* Macros */
 #define CYCLES_IN_DLYTICKS_FUNC     8
-#define US_TO_DLYTICKS(us)          (uint32_t)(CPU_SPEED_HF / 1000000 * us / CYCLES_IN_DLYTICKS_FUNC)
-#define DELAYTICKS(ticks)           {volatile uint32_t n=ticks; while(n--);}//takes 8 cycles
-#define DELAYUS(us)                 DELAYTICKS(US_TO_DLYTICKS(us))//uses 20bytes
+#define US_TO_DLYTICKS(us)          (uint32_t)((CPU_SPEED_HF / 1000000UL) * us / CYCLES_IN_DLYTICKS_FUNC)
+#define DELAYTICKS(ticks)           {volatile uint32_t n=ticks; while(n--);}                    //takes 8 cycles
+#define DELAYUS(us)                 DELAYTICKS(US_TO_DLYTICKS(us))                              //uses 20bytes
+#define US_TO_DLYTICKS_8M(us)       (uint32_t)((CPU_SPEED_MF / 1000000UL) * us / CYCLES_IN_DLYTICKS_FUNC)
+#define DELAYMS_8M(ms)              DELAYTICKS(US_TO_DLYTICKS_8M(ms*1000))                      //uses 20bytes
 
 /* Prototypes */
 timer_flag_te timer_has_timer_expired(timer_id_te uid, BOOL clear);

@@ -18,7 +18,9 @@ spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pi
 
 int main (void)
 {
-	custom_fs_settings_init();                                          // Initialize our settings system
+    platform_io_enable_switch();                                        // Enable switch and 3v3 stepup
+    DELAYMS_8M(100);                                                    // Leave 100ms for stepup powerup
+    custom_fs_settings_init();                                          // Initialize our settings system
     clocks_start_48MDFLL();                                             // Switch to 48M main clock
     dma_init();                                                         // Initialize the DMA controller
     timer_initialize_timebase();                                        // Initialize the platform time base
