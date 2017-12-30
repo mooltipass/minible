@@ -1,4 +1,5 @@
 #include <asf.h>
+#include "mooltipass_graphics_bundle.h"
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
 #include "platform_defines.h"
@@ -9,8 +10,10 @@
 #include "dataflash.h"
 #include "dbflash.h"
 #include "defines.h"
+#include "sh1122.h"
 #include "dma.h"
-/* Our dataflash & dbflash descriptors */
+/* Our oled & dataflash & dbflash descriptors */
+sh1122_descriptor_t oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigger_id = OLED_DMA_SERCOM_TX_TRIG, .sh1122_cs_pin_group = OLED_nCS_GROUP, .sh1122_cs_pin_mask = OLED_nCS_MASK, .sh1122_cd_pin_group = OLED_CD_GROUP, .sh1122_cd_pin_mask = OLED_CD_MASK};
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 
@@ -31,9 +34,29 @@ int main (void)
     }
     if (dbflash_check_presence(&dbflash_descriptor) == RETURN_NOK)      // Check for db flash
     {
-        while(1);
+        //while(1);
     }
-    custom_fs_init(&dataflash_descriptor);
+    custom_fs_init(&dataflash_descriptor);                              // Initialize our custom file system stored in data flash
+    
+    // Test code: burn internal graphics data into external flash
+    //dataflash_bulk_erase_with_wait(&dataflash_descriptor);
+    //dataflash_write_array_to_memory(&dataflash_descriptor, 0, mooltipass_bundle, (uint32_t)sizeof(mooltipass_bundle));
+    
+    /* Initialize OLED screen */
+    platform_io_power_up_oled(TRUE);
+    sh1122_init_display(&oled_descriptor);
+    
+    while(1)
+    {
+        for (uint32_t i = 0; i < 10; i++)
+        {
+            PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK; 
+            sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
+            PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
+            sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
+        }
+    }
+    
 	
 	while(1)
     {

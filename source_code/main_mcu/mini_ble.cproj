@@ -276,6 +276,7 @@
       <Value>../src/TIMER</Value>
       <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
       <Value>../src/SMARTCARD</Value>
+      <Value>../src/OLED</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
@@ -409,6 +410,7 @@
       <Value>../src/TIMER</Value>
       <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
       <Value>../src/SMARTCARD</Value>
+      <Value>../src/OLED</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
@@ -530,6 +532,18 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\FLASH\dbflash.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\OLED\mooltipass_graphics_bundle.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\OLED\mooltipass_graphics_bundle.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\OLED\sh1122.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\OLED\sh1122.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\PLATFORM\platform_io.c">
@@ -1106,6 +1120,7 @@
     <Folder Include="src\FLASH" />
     <Folder Include="src\FILESYSTEM" />
     <Folder Include="src\DMA" />
+    <Folder Include="src\OLED" />
     <Folder Include="src\SMARTCARD" />
     <Folder Include="src\TIMER" />
     <Folder Include="src\SERCOM" />

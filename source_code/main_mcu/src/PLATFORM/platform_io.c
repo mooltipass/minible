@@ -20,6 +20,14 @@ void platform_io_enable_switch(void)
     PORT->Group[SWDET_EN_GROUP].OUTSET.reg = SWDET_EN_MASK;
 }
 
+/*! \fn     platform_io_disable_switch_and_die(void)
+*   \brief  Disable switch and 3v3 (die)
+*/
+void platform_io_disable_switch_and_die(void)
+{
+    PORT->Group[SWDET_EN_GROUP].OUTCLR.reg = SWDET_EN_MASK;
+}
+
 /*! \fn     platform_io_release_aux_reset(void)
 *   \brief  Release aux MCU reset
 */
@@ -34,6 +42,14 @@ void platform_io_release_aux_reset(void)
 void platform_io_enable_ble(void)
 {
     PORT->Group[BLE_EN_GROUP].OUTSET.reg = BLE_EN_MASK;
+}
+
+/*! \fn     platform_io_disable_ble(void)
+*   \brief  Enable BLE module
+*/
+void platform_io_disable_ble(void)
+{
+    PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
 }
 
 /*! \fn     platform_io_init_smc_ports(void)
@@ -153,8 +169,10 @@ void platform_io_init_flash_ports(void)
 */
 void platform_io_init_oled_ports(void)
 {
-    PORT->Group[OLED_HV_EN_GROUP].DIRSET.reg = OLED_HV_EN_MASK;                                         // OLED HV enable, OUTPUT low by default
-    PORT->Group[OLED_HV_EN_GROUP].OUTCLR.reg = OLED_HV_EN_MASK;                                         // OLED HV enable, OUTPUT low by default
+    PORT->Group[VOLED_1V2_EN_GROUP].DIRSET.reg = VOLED_1V2_EN_MASK;                                     // OLED HV enable from 1V2, OUTPUT low by default
+    PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;                                     // OLED HV enable from 1V2, OUTPUT low by default
+    PORT->Group[VOLED_3V3_EN_GROUP].DIRSET.reg = VOLED_3V3_EN_MASK;                                     // OLED HV enable from 3V3, OUTPUT low by default
+    PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;                                     // OLED HV enable from 3V3, OUTPUT low by default
     PORT->Group[OLED_nRESET_GROUP].DIRSET.reg = OLED_nRESET_MASK;                                       // OLED nRESET, OUTPUT
     PORT->Group[OLED_nRESET_GROUP].OUTCLR.reg = OLED_nRESET_MASK;                                       // OLED nRESET, asserted
     PORT->Group[OLED_nCS_GROUP].DIRSET.reg = OLED_nCS_MASK;                                             // OLED nCS, OUTPUT high by default
@@ -170,8 +188,42 @@ void platform_io_init_oled_ports(void)
     PM->APBCMASK.bit.OLED_APB_SERCOM_BIT = 1;                                                           // Enable SERCOM APB Clock Enable
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, OLED_GCLK_SERCOM_ID);                              // Map 48MHz to SERCOM unit
     sercom_spi_init(OLED_SERCOM, OLED_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, OLED_MISO_PAD, OLED_MOSI_SCK_PADS, FALSE);
-    timer_delay_ms(10);                                                                                 // OLED reset pulse
-    PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK;                                       // OLED nRESET, released    
+}
+
+/*! \fn     platform_io_power_up_oled(BOOL power_1v2)
+*   \brief  OLED powerup routine (3V3, 12V, reset release)
+*   \param  power_1v2   TRUE to use 1V2 as source for 12V stepup
+*/
+void platform_io_power_up_oled(BOOL power_1v2)
+{
+    /* 3V3 is already there when arriving here, just enable the 12V */
+    if (power_1v2 != FALSE)
+    {
+        PORT->Group[VOLED_1V2_EN_GROUP].OUTSET.reg = VOLED_1V2_EN_MASK; 
+    }
+    else
+    {
+        PORT->Group[VOLED_3V3_EN_GROUP].OUTSET.reg = VOLED_3V3_EN_MASK;
+    }
+    
+    /* Depending on battery voltage, it may take a while for the 12v to rise */
+    timer_delay_ms(20);
+    
+    /* Release reset */
+    PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK;
+    
+    /* Datasheet mentions a 2us reset time */
+    timer_delay_ms(1);
+}
+
+/*! \fn     platform_io_power_down_oled(void)
+*   \brief  OLED power down routine (12v off, reset on)
+*/
+void platform_io_power_down_oled(void)
+{
+    PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;
+    PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;
+    PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK; 
 }
 
 /*! \fn     platform_io_init_power_ports(void)

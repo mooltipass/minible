@@ -8,6 +8,19 @@
 
 #include <asf.h>
 
+/**************** SETUP DEFINES ****************/
+/*  This project should be built differently
+ *  depending on the Mooltipass version.
+ *  Simply define one of these:
+ *
+ *  PLAT_V1_SETUP
+ *  => only 2 boards were made, one shipped to Miguel, one to Mathieu. No silkscreen marking
+ *
+ *  PLAT_V2_SETUP
+ *  => board with the new LT1613 stepup, "beta v2 (new DC/DC)" silkscreen. SMC_POW_nEN pin change.
+ */
+ #define PLAT_V2_SETUP
+
 /* Enums */
 typedef enum {PIN_GROUP_0 = 0, PIN_GROUP_1 = 1} pin_group_te;
 typedef uint32_t PIN_MASK_T;
@@ -43,9 +56,9 @@ typedef struct
 /* Functionality defines */
 /*************************/
 /* specify that the flash is alone on the spi bus */
-//#define FLASH_ALONE_ON_SPI_BUS
+#define FLASH_ALONE_ON_SPI_BUS
 /* Use DMA transfers to read from external flash */
-//#define FLASH_DMA_FETCHES
+#define FLASH_DMA_FETCHES
 /* Use DMA transfers to send data to OLED screen */
 #define OLED_DMA_TRANSFER
 /* allow printf for the screen */
@@ -86,13 +99,13 @@ typedef struct
 #define ACC_SERCOM                  SERCOM1
 
 /* SERCOM trigger for flash data transfers */
-#define DATAFLASH_DMA_SERCOM_RXTRIG     0x03
-#define DATAFLASH_DMA_SERCOM_TXTRIG     0x04
-#define DBFLASH_DMA_SERCOM_RXTRIG       0x05
-#define DBFLASH_DMA_SERCOM_TXTRIG       0x06
+#define DATAFLASH_DMA_SERCOM_RXTRIG     0x05
+#define DATAFLASH_DMA_SERCOM_TXTRIG     0x06
+#define DBFLASH_DMA_SERCOM_RXTRIG       0x03
+#define DBFLASH_DMA_SERCOM_TXTRIG       0x04
 
 /* SERCOM trigger for OLED data transfers */
-#define OLED_DMA_SERCOM_TX_TRIG         0x0A
+#define OLED_DMA_SERCOM_TX_TRIG         0x02
 
 /* Speed defines */
 #define CPU_SPEED_HF                48000000UL
@@ -100,7 +113,8 @@ typedef struct
 /* SMARTCARD SPI SCK =  48M / (2*(119+1)) = 200kHz (Supposed Max is 300kHz) */
 //#define SMARTCARD_BAUD_DIVIDER      119
 #define SMARTCARD_BAUD_DIVIDER      239
-/* OLED SPI SCK = 48M / 2*(5+1)) = 4MHz (Max) */
+/* OLED SPI SCK = 48M / 2*(5+1)) = 4MHz (Max from datasheet) */
+/* Note: Has successfully been tested at 24MHz, but without speed improvements */
 #define OLED_BAUD_DIVIDER           5
 /* ACC SPI SCK = 48M / 2*(5+1)) = 4MHz (Max is 10MHz) */
 #define ACC_BAUD_DIVIDER            5
@@ -123,9 +137,15 @@ typedef struct
 #define SWDET_EN_GROUP          PIN_GROUP_0
 #define SWDET_EN_PINID          2
 #define SWDET_EN_MASK           (1UL << SWDET_EN_PINID)
-#define SMC_POW_NEN_GROUP       PIN_GROUP_0
-#define SMC_POW_NEN_PINID       3
-#define SMC_POW_NEN_MASK        (1UL << SMC_POW_NEN_PINID)
+#if defined(PLAT_V1_SETUP)
+    #define SMC_POW_NEN_GROUP   PIN_GROUP_0
+    #define SMC_POW_NEN_PINID   3
+    #define SMC_POW_NEN_MASK    (1UL << SMC_POW_NEN_PINID)
+#elif defined(PLAT_V2_SETUP)
+    #define SMC_POW_NEN_GROUP   PIN_GROUP_0
+    #define SMC_POW_NEN_PINID   30
+    #define SMC_POW_NEN_MASK    (1UL << SMC_POW_NEN_PINID)
+#endif
 #define BLE_EN_GROUP            PIN_GROUP_0
 #define BLE_EN_PINID            13
 #define BLE_EN_MASK             (1UL << BLE_EN_PINID)
@@ -169,9 +189,6 @@ typedef struct
 #define OLED_nRESET_GROUP       PIN_GROUP_0
 #define OLED_nRESET_PINID       7
 #define OLED_nRESET_MASK        (1UL << OLED_nRESET_PINID)
-#define OLED_HV_EN_GROUP        PIN_GROUP_0
-#define OLED_HV_EN_PINID        30
-#define OLED_HV_EN_MASK         (1UL << OLED_HV_EN_PINID)
 /* DATAFLASH FLASH */
 #define DATAFLASH_MOSI_GROUP         PIN_GROUP_0
 #define DATAFLASH_MOSI_PINID         8

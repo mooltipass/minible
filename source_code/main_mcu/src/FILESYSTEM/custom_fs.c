@@ -6,7 +6,7 @@
  */
 #include <string.h>
 #include <asf.h>
-//#include "mooltipass_graphics_bundle.h"
+#include "mooltipass_graphics_bundle.h"
 #include "platform_defines.h"
 #include "driver_sercom.h"
 #include "custom_fs.h"
@@ -38,7 +38,7 @@ spi_flash_descriptor_t* dataflash_desc = 0;
 */
 RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
 {
-    //dataflash_read_data_array((dataflash_descriptor_t*)platform_flash_descriptor, address, datap, size);
+    dataflash_read_data_array(dataflash_desc, address, datap, size);
     //memcpy(datap, &mooltipass_bundle[address], size);
     return RETURN_OK;
 }
