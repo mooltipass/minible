@@ -11,6 +11,6 @@
 
 #include "platform_defines.h"
 #include "defines.h"
-extern const uint8_t mooltipass_bundle[130520];
+extern const uint8_t mooltipass_bundle[135710];
 
 #endif /* MOOLTIPASS_GRAPHICS_BUNDLE_H_ */
