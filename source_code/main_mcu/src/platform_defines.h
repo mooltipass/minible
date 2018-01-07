@@ -60,7 +60,7 @@ typedef struct
 /* Use DMA transfers to read from external flash */
 #define FLASH_DMA_FETCHES
 /* Use DMA transfers to send data to OLED screen */
-#define OLED_DMA_TRANSFER
+//#define OLED_DMA_TRANSFER
 /* allow printf for the screen */
 #define OLED_PRINTF_ENABLED
 

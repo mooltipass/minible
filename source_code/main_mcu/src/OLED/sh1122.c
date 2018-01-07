@@ -13,27 +13,27 @@
 #include "sh1122.h"
 #include "dma.h"
 
-/* SSD1322 initialization sequence */
+/* SH1122 initialization sequence */
 static const uint8_t sh1122_init_sequence[] = 
 {
     // Interesting theoretical litterature: https://www.osram-os.com/Graphics/XPic2/00032223_0.pdf/4-Bit%20Driver%20Basic%20Register%20Setup.pdf
     // How these values were tweaked: 
     // 1) contrast current set by displaying mooltipass mini picture and matching the 100% intensity with the standard mini display
-    // 2) precharge voltage set by displaying greyscale picture and getting nice gamma >> moved to min (might want to change back if there's a problem in the future)
+    // 2) precharge voltage set by displaying greyscale picture and getting nice gamma >> moved to 0 (might want to change back if there's a problem in the future)
     // 3) readjusted contrast current using 1)
     // 4) changing vcomh values doesn't lead to noticeable improvements
-    // 5) VSL set by displaying greyscale picture and getting nice gamma >> moved to min (might want to change back if there's a problem in the future)
+    // 5) VSL set by displaying greyscale picture and getting nice gamma >> moved to 1 (might want to change back if there's a problem in the future)
     // 6) readjusted contrast current using 1)
     SH1122_CMD_SET_DISPLAY_OFF,                 0,                      // Set Display Off
     SH1122_CMD_SET_ROW_ADDR,                    1, 0x00,                // Row Address Mode Setting
     SH1122_CMD_SET_HIGH_COLUMN_ADDR,            0,                      // Set Higher Column Address
     SH1122_CMD_SET_LOW_COLUMN_ADDR,             0,                      // Set Lower Column Address
-    SH1122_CMD_SET_CLOCK_DIVIDER,               1, 0x50,                // Set Display Clock Divide Ratio / Oscillator Frequency: default fosc (512khz) and divide ratio of 1 > fframe = 512 / 64 / 64 / 1 = 125Hz
+    SH1122_CMD_SET_CLOCK_DIVIDER,               1, 0x50,                // Set Display Clock Divide Ratio / Oscillator Frequency: default fosc (512khz) and divide ratio of 1 > Fframe = 512 / 64 / 64 / 1 = 125Hz
     SS1122_CMD_SET_DISCHARGE_PRECHARGE_PERIOD,  1, 0x22,                // Set Discharge/Precharge Period: 2DCLK & 2DCLK (default)
-    SH1122_CMD_SET_DISPLAY_START_LINE | 0x00,   0,                      // Set Display Start Line To 0
-    SH1122_CMD_SET_CONTRAST_CURRENT,            1, 0x40,                // Contrast Control Mode Set (up to 0xFF)
-    SH1122_CMD_SET_SEGMENT_REMAP | 0x00,        0,                      // Set Segment Re-map to Normal Direction
-    SH1122_CMD_SET_SCAN_DIRECTION | 0x00,       0,                      // Scam from COM0 to COM[N-1]
+    SH1122_CMD_SET_DISPLAY_START_LINE | 32,     0,                      // Set Display Start Line To 32 (not sure why, but it's the right value when flipping the display...)
+    SH1122_CMD_SET_CONTRAST_CURRENT,            1, 0x80,                // Contrast Control Mode Set (up to 0xFF)
+    SH1122_CMD_SET_SEGMENT_REMAP | 0x01,        0,                      // Set Segment Re-map to Reverse Direction
+    SH1122_CMD_SET_SCAN_DIRECTION | 0x08,       0,                      // Scam from COM0 to COM[N-1]
     SH1122_CMD_SET_DISPLAY_OFF_ON | 0x00,       0,                      // Normal Display Status, Not Forced to ON
     SH1122_CMD_SET_NORMAL_DISPLAY,              0,                      // Display Bits Normally Interpreted
     SH1122_CMD_SET_MULTIPLEX_RATIO,             1, 0x3F,                // Mutiplex Ratio To 64
@@ -42,7 +42,7 @@ static const uint8_t sh1122_init_sequence[] =
     SH1122_CMD_SET_DISPLAY_OFFSET,              1, 0x00,                // No Display Offset
     SH1122_CMD_SET_VCOM_DESELECT_LEVEL,         1, 0x30,                // VCOMH = (0.430+ A[7:0] X 0.006415) X VREF
     SH1122_CMD_SET_VSEGM_LEVEL,                 1, 0x00,                // VSEGM = (0.430+ A[7:0] X 0.006415) X VREF
-    SH1122_CMD_SET_DISCHARGE_VSL_LEVEL | 0x00,  0                       // VSL = 0V
+    SH1122_CMD_SET_DISCHARGE_VSL_LEVEL | 0x01,  0                       // VSL = 0.1*Vref
 };
 
 
@@ -224,7 +224,7 @@ void sh1122_flip_buffers(sh1122_descriptor_t* oled_descriptor, oled_scroll_te sc
 */
 void sh1122_fill_screen(sh1122_descriptor_t* oled_descriptor, uint16_t color)
 {
-    uint8_t fill_color = (color & 0x000F) | (color << 4);
+    uint8_t fill_color = (uint8_t)((color & 0x000F) | (color << 4));
     uint32_t i;
     
     /* Select a square that fits the complete screen */
@@ -331,14 +331,12 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor)
     timer_delay_ms(100);
 }
 
-/*! \fn     sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream)
-*   \brief  Draw a 4 pixels-aligned picture from a bitstream
+/*! \fn     sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream)
+*   \brief  Draw a full screen picture from a bitstream
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
-*   \param  x                   Starting x
-*   \param  y                   Starting y
 *   \param  bitstream           Pointer to the bistream
 */
-void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream)
+void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream)
 {
     /*  So, here's a quick overview if you were to wonder what has been done to improve display speeds:
     /   Note: the FPS count mentioned here highly depends on the picture itself due to RLE compression
@@ -349,11 +347,9 @@ void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descript
     /   1) FLASH_ALONE_ON_SPI_BUS: when defined, reads from the flash are done in a continuous manner, rather than doing multiple reads for different chunks of data: 20fps
     /   2) FLASH_DMA_FETCHES: when defined, reads from the flash are done using the DMA controller: 26fps
     /   3) OLED_DMA_TRANSFER: when defined, writes to the oled are done using the DMA controller: 40fps
-    /   Note: more or less no peerformance improvements have been found by overclocking oled spi clk
+    /   Note: more or less no performance improvements have been found by overclocking oled spi clk
+    /   TODO: compare sh1122_draw_full_screen_image_from_bitstream performance with sh1122_draw_aligned_image_from_bitstream
     */
-    uint16_t height = bitstream->height;
-    uint16_t width = bitstream->width;
-    uint32_t pixel_counter = height*width;
 
     /* Set pixel write window */
     sh1122_set_row_address(oled_descriptor, 0);
@@ -364,35 +360,15 @@ void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descript
     
     /* Depending if we use DMA transfers */
     #ifdef OLED_DMA_TRANSFER        
-        uint32_t nb_bytes_to_transfer = 0;
         uint8_t pixel_buffer[2][32];
         uint32_t buffer_sel = 0;
         
-        /* Trigger first buffer fill: if we asked more data, the bitstream will return 0s */
+        /* Get things going: start first transfer then enter the for(), as we need to wait for OLED DMA after inside the loop */
         bitstream_bitmap_array_read(bitstream, pixel_buffer[buffer_sel], sizeof(pixel_buffer[0])*2);
+        dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)pixel_buffer[buffer_sel], sizeof(pixel_buffer[0]), oled_descriptor->dma_trigger_id);
         
-        /* Update pixel counter */
-        if (pixel_counter <= sizeof(pixel_buffer[0])*2)
-        {
-            /* We won't get into the loop, so just send the data we received */
-            dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)pixel_buffer[buffer_sel], pixel_counter/2, oled_descriptor->dma_trigger_id);    
-            pixel_counter = 0;
-        }
-        else
-        {
-            dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)pixel_buffer[buffer_sel], sizeof(pixel_buffer[0]), oled_descriptor->dma_trigger_id);
-            pixel_counter -= sizeof(pixel_buffer[0])*2;
-        }
-        
-        while (pixel_counter != 0)
-        {
-            /* Compute number of bytes to transfer */
-            nb_bytes_to_transfer = pixel_counter/2;
-            if (nb_bytes_to_transfer > sizeof(pixel_buffer[0]))
-            {
-                nb_bytes_to_transfer = sizeof(pixel_buffer[0]);
-            }
-            
+        for (uint32_t i = 0; i < (SH1122_OLED_WIDTH*SH1122_OLED_HEIGHT) - sizeof(pixel_buffer[0]); i+=sizeof(pixel_buffer[0])*2)
+        {            
             /* Read from bitstream in the next buffer */
             bitstream_bitmap_array_read(bitstream, pixel_buffer[(buffer_sel+1)&0x01], sizeof(pixel_buffer[0])*2);
             
@@ -401,10 +377,7 @@ void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descript
             
             /* Init DMA transfer */
             buffer_sel = (buffer_sel+1) & 0x01;
-            dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)pixel_buffer[buffer_sel], nb_bytes_to_transfer, oled_descriptor->dma_trigger_id);
-            
-            /* Update pixel count */
-            pixel_counter -= nb_bytes_to_transfer*2;
+            dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)pixel_buffer[buffer_sel], sizeof(pixel_buffer[0]), oled_descriptor->dma_trigger_id);
         }
         
         /* Wait for data to be transferred */
@@ -413,32 +386,123 @@ void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descript
         uint8_t pixel_buffer[16];
         
         /* Send all pixels */
-        while (pixel_counter != 0)
+        for (uint32_t i = 0; i < (SH1122_OLED_WIDTH*SH1122_OLED_HEIGHT); i+=sizeof(pixel_buffer)*2)
         {
             /* Read from bitstream */
             bitstream_bitmap_array_read(bitstream, pixel_buffer, sizeof(pixel_buffer)*2);
             
             /* Send pixels */
-            for (uint32_t i = 0; (i < sizeof(pixel_buffer)) && (pixel_counter != 0); i++)
+            for (uint32_t j = 0; j < sizeof(pixel_buffer); j++)
             {
-                pixel_counter -= 2;
-                sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, pixel_buffer[i]);
+                sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, pixel_buffer[j]);
             }
         }
     #endif
     
     /* Wait for spi buffer to be sent */
     sercom_spi_wait_for_transmit_complete(oled_descriptor->sercom_pt);
-        
-    /* Close bitstream */
-    bitstream_bitmap_close(bitstream);
     
     /* Stop sending data */
     sh1122_stop_data_sending(oled_descriptor);
+    
+    /* Close bitstream */
+    bitstream_bitmap_close(bitstream);
+}
+
+/*! \fn     sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream)
+*   \brief  Draw a 2 pixels-aligned picture from a bitstream
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  x                   Starting x
+*   \param  y                   Starting y
+*   \param  bitstream           Pointer to the bistream
+*/
+void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream)
+{
+    uint16_t height = bitstream->height;
+    uint16_t width = bitstream->width;
+    
+    /* Depending if we use DMA transfers */
+    #ifdef OLED_DMA_TRANSFER        
+        /* Buffer large enough to contain a display line in order to trig one DMA transfer */
+        uint8_t pixel_buffer[2][SH1122_OLED_WIDTH/2];
+        uint32_t buffer_sel = 0;
+        
+        /* Trigger first buffer fill: if we asked more data, the bitstream will return 0s */
+        bitstream_bitmap_array_read(bitstream, pixel_buffer[buffer_sel], width);
+        
+        /* Scan Y */
+        for (uint16_t j = 0; j < height; j++)
+        {
+            /* Set pixel write window */
+            sh1122_set_row_address(oled_descriptor, y+j);
+            sh1122_set_column_address(oled_descriptor, x/2);
+            
+            /* Start filling the SSD1322 RAM */
+            sh1122_start_data_sending(oled_descriptor);
+            
+            /* Trigger DMA transfer for the complete width */
+            dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)pixel_buffer[buffer_sel], width/2, oled_descriptor->dma_trigger_id);  
+            
+            /* Flip buffer, start fetching next line while the transfer is happening */   
+            if (j != height-1)
+            {                
+                buffer_sel = (buffer_sel+1) & 0x01;
+                bitstream_bitmap_array_read(bitstream, pixel_buffer[buffer_sel], width);
+            }
+            
+            /* Wait for transfer done */
+            while(dma_oled_check_and_clear_dma_transfer_flag() == FALSE);
+            
+            /* Wait for spi buffer to be sent */
+            sercom_spi_wait_for_transmit_complete(oled_descriptor->sercom_pt);
+            
+            /* Stop sending data */
+            sh1122_stop_data_sending(oled_descriptor);
+        }
+    #else        
+        uint8_t pixel_buffer[16];
+        uint32_t pixel_ind = 0;
+        
+        /* Read from bitstream */
+        bitstream_bitmap_array_read(bitstream, pixel_buffer, sizeof(pixel_buffer)*2);
+        
+        /* Scan Y */
+        for (uint16_t j = 0; j < height; j++)
+        {
+            /* Set pixel write window */
+            sh1122_set_row_address(oled_descriptor, y+j);
+            sh1122_set_column_address(oled_descriptor, x/2);
+            
+            /* Start filling the SSD1322 RAM */
+            sh1122_start_data_sending(oled_descriptor);
+            
+            /* Scan X */
+            for (uint16_t i = 0; i < width; i+=2)
+            {
+                sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, pixel_buffer[pixel_ind++]);     
+                
+                /* Check for empty buffer */
+                if (pixel_ind == sizeof(pixel_buffer))
+                {
+                    bitstream_bitmap_array_read(bitstream, pixel_buffer, sizeof(pixel_buffer)*2);
+                    pixel_ind = 0;
+                }
+            }
+            
+            /* Wait for spi buffer to be sent */
+            sercom_spi_wait_for_transmit_complete(oled_descriptor->sercom_pt);
+            
+            /* Stop sending data */
+            sh1122_stop_data_sending(oled_descriptor);
+        }
+    #endif    
+        
+    /* Close bitstream */
+    bitstream_bitmap_close(bitstream);    
 }   
 
 /*! \fn     sh1122_draw_non_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream)
-*   \brief  Draw a 4 pixels-aligned picture from a bitstream
+*   \brief  Draw a 2 pixels non aligned picture from a bitstream
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
 *   \param  y                   Starting y
@@ -448,76 +512,71 @@ void sh1122_draw_non_aligned_image_from_bitstream(sh1122_descriptor_t* oled_desc
 {
     uint16_t height = bitstream->height;
     uint16_t width = bitstream->width;
-    uint16_t xoff = x - (x / 4) * 4;
-
-    /* Set pixel write window */
-    //sh1122_set_write_window(oled_descriptor, x, y, x+bitstream->width-1, y+height-1);
-    
-    /* Start filling the SSD1322 RAM */
-    sh1122_start_data_sending(oled_descriptor);
+    uint16_t xoff = x - (x / 2) * 2;
 
     for (uint16_t yind=0; yind < height; yind++)
     {
         uint16_t xind = 0;
         uint16_t pixels = 0;
+        
+        /* Set pixel write window */
+        sh1122_set_row_address(oled_descriptor, y+yind);
+        sh1122_set_column_address(oled_descriptor, x/2);
+        
+        /* Start filling the SSD1322 RAM */
+        sh1122_start_data_sending(oled_descriptor);
 
-        /* Start x not a multiple of 4 */
+        /* Start x not a multiple of 2 */
         if (xoff != 0)
         {
-            // fill the rest of the 4-pixel word from the bitmap
-            xind = 4 - xoff;
-            if (xind > width)
-            {
-                pixels = bitstream_bitmap_read(bitstream, width);
-                pixels <<= 4*(xind - width);
-            } 
-            else
-            {
-                pixels = bitstream_bitmap_read(bitstream, xind);
-            }
+            /* Set xind to 1 as we're writing a pixel */
+            xind = 1;
+            
+            /* Fetch one pixel */
+            pixels = bitstream_bitmap_read(bitstream, 1);
 
-            // Fill existing pixels if available
-            if ((x/4) == oled_descriptor->gddram_pixel[y+yind].xaddr)
+            /* Fill existing pixels if available */
+            if ((x/2) == oled_descriptor->gddram_pixel[y+yind].xaddr)
             {
                 pixels |= oled_descriptor->gddram_pixel[y+yind].pixels;
             }
 
-            // Send 4 pixels to the display
-            sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, (uint8_t)(pixels >> 8));
+            /* Send the 2 pixels to the display */
             sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, (uint8_t)(pixels & 0x00FF));
         }
         
-        /* Start x multiple of 4, start filling */
-        for (; xind < width; xind+=4)
+        /* Start x multiple of 2, start filling */
+        for (; xind < width; xind+=2)
         {
-            if ((xind+4) < width)
+            if ((xind+2) <= width)
             {
-                pixels = bitstream_bitmap_read(bitstream,4);
+                pixels = bitstream_bitmap_read(bitstream, 2);
             }
             else
             {
-                pixels = bitstream_bitmap_read(bitstream,width-xind) << 4*(4-(width-xind));
+                pixels = bitstream_bitmap_read(bitstream, 1) << 4;
             }
             
-            // Send 4 pixels to the display
-            sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, (uint8_t)(pixels >> 8));
+            // Send 2 pixels to the display
             sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, (uint8_t)(pixels & 0x00FF));
         }
         
         /* Store pixel data in our gddram buffer for later merging */
         if (pixels != 0)
         {
-            oled_descriptor->gddram_pixel[y+yind].pixels = pixels;
-            oled_descriptor->gddram_pixel[y+yind].xaddr = (x+width-1)/4;
+            oled_descriptor->gddram_pixel[y+yind].pixels = (uint8_t)pixels;
+            oled_descriptor->gddram_pixel[y+yind].xaddr = (x+width-1)/2;
         }
+            
+        /* Wait for spi buffer to be sent */
+        sercom_spi_wait_for_transmit_complete(oled_descriptor->sercom_pt);
+            
+        /* Stop sending data */
+        sh1122_stop_data_sending(oled_descriptor);
     }
     
     /* Close bitstream */
     bitstream_bitmap_close(bitstream);
-    
-    /* Stop sending data */
-    sercom_spi_wait_for_transmit_complete(oled_descriptor->sercom_pt);
-    sh1122_stop_data_sending(oled_descriptor);
 }    
 
 /*! \fn     sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_t* bs)
@@ -529,9 +588,15 @@ void sh1122_draw_non_aligned_image_from_bitstream(sh1122_descriptor_t* oled_desc
 */
 void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream)
 {
-    /* If we're 4 pixels aligned, call a dedicated function for fast processing */
-    if ((bitstream->width % 4 == 0) && (x % 4 == 0))
+    if ((x == 0) && (y == 0) && (bitstream->width == SH1122_OLED_WIDTH) && (bitstream->height == SH1122_OLED_HEIGHT))
     {
+        /* Dedicated code to allow faster update */
+        //sh1122_draw_aligned_image_from_bitstream(oled_descriptor, x, y, bitstream);
+        sh1122_draw_full_screen_image_from_bitstream(oled_descriptor, bitstream);        
+    }
+    else if ((bitstream->width % 2 == 0) && (x % 2 == 0))
+    {
+        /* If we're 2 pixels aligned, call a dedicated function for fast processing */
         sh1122_draw_aligned_image_from_bitstream(oled_descriptor, x, y, bitstream);
     } 
     else

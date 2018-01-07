@@ -59,7 +59,7 @@
 typedef struct
 {
     int16_t xaddr;
-    uint16_t pixels;
+    uint8_t pixels;
 } gddram_px_t;
 
 typedef struct
@@ -70,7 +70,7 @@ typedef struct
     PIN_MASK_T sh1122_cs_pin_mask;
     pin_group_te sh1122_cd_pin_group;
     PIN_MASK_T sh1122_cd_pin_mask;
-    gddram_px_t gddram_pixel[SH1122_OLED_HEIGHT*2];    // Buffer to merge adjascent pixels
+    gddram_px_t gddram_pixel[SH1122_OLED_HEIGHT];       // Buffer to merge adjascent pixels
     custom_fs_address_t currentFontAddress;             // Current font address
     font_header_t current_font_header;                  // Current font header
     BOOL carriage_return_allowed;                       // If we are allowing \r
@@ -92,6 +92,7 @@ uint16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, u
 void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream);
 void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream);
 RET_TYPE sh1122_display_bitmap_from_flash(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint32_t file_id);
+void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream);
 void sh1122_flip_buffers(sh1122_descriptor_t* oled_descriptor, oled_scroll_te scroll_mode, uint32_t delay);
 uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, cust_char_t ch);
 uint16_t sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str);

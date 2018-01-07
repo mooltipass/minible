@@ -38,22 +38,27 @@ int main (void)
     }
     custom_fs_init(&dataflash_descriptor);                              // Initialize our custom file system stored in data flash
     
-    // Test code: burn internal graphics data into external flash. If you do that, you'll need to restart again :)
+    // Test code: burn internal graphics data into external flash.
     //dataflash_bulk_erase_with_wait(&dataflash_descriptor);
     //dataflash_write_array_to_memory(&dataflash_descriptor, 0, mooltipass_bundle, (uint32_t)sizeof(mooltipass_bundle));
+    //custom_fs_init(&dataflash_descriptor);
     
     /* Initialize OLED screen */
-    //platform_io_power_up_oled(TRUE);
-    PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK;
-    timer_delay_ms(1);
+    platform_io_power_up_oled(FALSE);
+    //while(1);
+    //PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK;
+    //timer_delay_ms(1);
     sh1122_init_display(&oled_descriptor);
     
-    while (1)
+    sh1122_printf_xy(&oled_descriptor, 0, 0, OLED_ALIGN_CENTER, "FPS: %u", 32);
+    sh1122_put_string_xy(&oled_descriptor, 1, 10, OLED_ALIGN_LEFT, u"F");
+    sh1122_put_string_xy(&oled_descriptor, 0, 20, OLED_ALIGN_LEFT, u"supermarmotte!");
+    while (1);
     {
-        sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, 11);
-        timer_delay_ms(10000);//while(1);
+        sh1122_display_bitmap_from_flash(&oled_descriptor, 1, 0, 12);
+        timer_delay_ms(3000);while(1);
         sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, 10);
-        timer_delay_ms(5000);//while(1);
+        timer_delay_ms(3000);//while(1);
         for (uint32_t j = 0; j < 40; j++)
         for (uint32_t i = 0; i < 10; i++)
             sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
