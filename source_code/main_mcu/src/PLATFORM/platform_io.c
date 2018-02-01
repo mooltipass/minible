@@ -131,6 +131,8 @@ void platform_io_smc_switch_to_spi(void)
 */
 void platform_io_init_accelerometer(void)
 {
+    PORT->Group[ACC_INT_GROUP].DIRCLR.reg = ACC_INT_MASK;                                                                   // Interrupt input, high Z
+    PORT->Group[ACC_INT_GROUP].PINCFG[ACC_INT_PINID].bit.INEN = 1;                                                          // Interrupt input, high Z    
     PORT->Group[ACC_nCS_GROUP].DIRSET.reg = ACC_nCS_MASK;                                                                   // nCS, OUTPUT high by default
     PORT->Group[ACC_nCS_GROUP].OUTSET.reg = ACC_nCS_MASK;                                                                   // nCS, OUTPUT high by default
     PORT->Group[ACC_SCK_GROUP].DIRSET.reg = ACC_SCK_MASK;                                                                   // SCK, OUTPUT
