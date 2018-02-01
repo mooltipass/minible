@@ -8,12 +8,14 @@
 #include "platform_io.h"
 #include "custom_fs.h"
 #include "dataflash.h"
+#include "lis2hh12.h"
 #include "dbflash.h"
 #include "defines.h"
 #include "sh1122.h"
 #include "dma.h"
 /* Our oled & dataflash & dbflash descriptors */
 sh1122_descriptor_t oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigger_id = OLED_DMA_SERCOM_TX_TRIG, .sh1122_cs_pin_group = OLED_nCS_GROUP, .sh1122_cs_pin_mask = OLED_nCS_MASK, .sh1122_cd_pin_group = OLED_CD_GROUP, .sh1122_cd_pin_mask = OLED_CD_MASK};
+accelerometer_descriptor_t  acc_descriptor = {.sercom_pt = ACC_SERCOM, .cs_pin_group = ACC_nCS_GROUP, .cs_pin_mask = ACC_nCS_MASK, .int_pin_group = ACC_INT_GROUP, .int_pin_mask = ACC_INT_MASK};
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 
@@ -34,7 +36,11 @@ int main (void)
     }
     if (dbflash_check_presence(&dbflash_descriptor) == RETURN_NOK)      // Check for db flash
     {
-        //while(1);
+        while(1);
+    }
+    if (lis2hh12_check_presence(&acc_descriptor) == RETURN_NOK)         // Check for acc
+    {
+        while(1);
     }
     custom_fs_init(&dataflash_descriptor);                              // Initialize our custom file system stored in data flash
     
@@ -50,7 +56,7 @@ int main (void)
     //timer_delay_ms(1);
     sh1122_init_display(&oled_descriptor);
     
-    sh1122_printf_xy(&oled_descriptor, 0, 0, OLED_ALIGN_CENTER, "FPS: %u", 32);
+    /*sh1122_printf_xy(&oled_descriptor, 0, 0, OLED_ALIGN_CENTER, "FPS: %u", 32);
     sh1122_put_string_xy(&oled_descriptor, 1, 10, OLED_ALIGN_LEFT, u"F");
     sh1122_put_string_xy(&oled_descriptor, 0, 20, OLED_ALIGN_LEFT, u"supermarmotte!");
     while (1);
@@ -63,15 +69,15 @@ int main (void)
         for (uint32_t i = 0; i < 10; i++)
             sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
         
-    }
+    }*/
     while(1)
     {
         for (uint32_t i = 0; i < 10; i++)
         {
             PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK; 
             sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
-            PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
-            sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
+            //PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
+            //sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
         }
     }
     

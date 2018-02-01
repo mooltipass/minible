@@ -34,6 +34,15 @@ typedef struct
     PIN_MASK_T cs_pin_mask;
 } spi_flash_descriptor_t;
 
+typedef struct
+{
+    Sercom* sercom_pt;
+    pin_group_te cs_pin_group;
+    PIN_MASK_T cs_pin_mask;
+    pin_group_te int_pin_group;
+    PIN_MASK_T int_pin_mask;
+} accelerometer_descriptor_t;
+
 /*********************************************/
 /*  Bootloader and memory related defines    */
 /*********************************************/

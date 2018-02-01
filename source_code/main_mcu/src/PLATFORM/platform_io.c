@@ -126,6 +126,27 @@ void platform_io_smc_switch_to_spi(void)
     PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.PMUXEN = 1;  // Enable SPI functionality
 }
 
+/*! \fn     platform_io_init_accelerometer(void)
+*   \brief  Initialize the platform accelerometer IO ports
+*/
+void platform_io_init_accelerometer(void)
+{
+    PORT->Group[ACC_nCS_GROUP].DIRSET.reg = ACC_nCS_MASK;                                                                   // nCS, OUTPUT high by default
+    PORT->Group[ACC_nCS_GROUP].OUTSET.reg = ACC_nCS_MASK;                                                                   // nCS, OUTPUT high by default
+    PORT->Group[ACC_SCK_GROUP].DIRSET.reg = ACC_SCK_MASK;                                                                   // SCK, OUTPUT
+    PORT->Group[ACC_SCK_GROUP].PINCFG[ACC_SCK_PINID].bit.PMUXEN = 1;                                                        // Enable peripheral multiplexer
+    PORT->Group[ACC_SCK_GROUP].PMUX[ACC_SCK_PINID/2].bit.ACC_SCK_PMUXREGID = ACC_SCK_PMUX_ID;                               // SCK, OUTPUT
+    PORT->Group[ACC_MOSI_GROUP].DIRSET.reg = DBFLASH_MOSI_MASK;                                                             // MOSI, OUTPUT
+    PORT->Group[ACC_MOSI_GROUP].PINCFG[ACC_MOSI_PINID].bit.PMUXEN = 1;                                                      // Enable peripheral multiplexer
+    PORT->Group[ACC_MOSI_GROUP].PMUX[ACC_MOSI_PINID/2].bit.ACC_MOSI_PMUXREGID = ACC_MOSI_PMUX_ID;                           // MOSI, OUTPUT
+    PORT->Group[ACC_MISO_GROUP].DIRCLR.reg = ACC_MISO_MASK;                                                                 // MISO, INPUT
+    PORT->Group[ACC_MISO_GROUP].PINCFG[ACC_MISO_PINID].bit.PMUXEN = 1;                                                      // Enable peripheral multiplexer
+    PORT->Group[ACC_MISO_GROUP].PMUX[ACC_MISO_PINID/2].bit.ACC_MISO_PMUXREGID = ACC_MISO_PMUX_ID;                           // MOSI, OUTPUT
+    PM->APBCMASK.bit.ACC_APB_SERCOM_BIT = 1;                                                                                // APB Clock Enable
+    clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, ACC_GCLK_SERCOM_ID);                                                   // Map 48MHz to SERCOM unit
+    sercom_spi_init(ACC_SERCOM, ACC_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, ACC_MISO_PAD, ACC_MOSI_SCK_PADS, TRUE);    
+}
+
 /*! \fn     platform_io_init_flash_ports(void)
 *   \brief  Initialize the platform flash IO ports
 */
@@ -247,6 +268,9 @@ void platform_io_init_ports(void)
     
     /* External Flash */
     platform_io_init_flash_ports();
+    
+    /* Accelerometer */
+    platform_io_init_accelerometer();
 
     /* AUX MCU, reset by default */
     PORT->Group[MCU_AUX_RST_EN_GROUP].DIRSET.reg = MCU_AUX_RST_EN_MASK;

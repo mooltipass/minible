@@ -234,129 +234,27 @@
   <armgcc.common.outputfiles.eep>True</armgcc.common.outputfiles.eep>
   <armgcc.common.outputfiles.bin>True</armgcc.common.outputfiles.bin>
   <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
-  <armgcc.compiler.symbols.DefSymbols>
-    <ListValues>
-      <Value>BOARD=USER_BOARD</Value>
-      <Value>ARM_MATH_CM0PLUS=true</Value>
-      <Value>__CORTEX_SC=0</Value>
-      <Value>NDEBUG</Value>
-    </ListValues>
-  </armgcc.compiler.symbols.DefSymbols>
-  <armgcc.compiler.directories.IncludePaths>
-    <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>../src/PLATFORM</Value>
-      <Value>../src/CLOCKS</Value>
-      <Value>../src/SERCOM</Value>
-      <Value>../src/FLASH</Value>
-      <Value>../src/FILESYSTEM</Value>
-      <Value>../src/DMA</Value>
-      <Value>../src/TIMER</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-      <Value>../src/SMARTCARD</Value>
-      <Value>../src/OLED</Value>
-    </ListValues>
-  </armgcc.compiler.directories.IncludePaths>
-  <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
+  <armgcc.compiler.symbols.DefSymbols><ListValues>
+  <Value>BOARD=USER_BOARD</Value>
+  <Value>ARM_MATH_CM0PLUS=true</Value>
+  <Value>__CORTEX_SC=0</Value>
+  <Value>NDEBUG</Value>
+</ListValues></armgcc.compiler.symbols.DefSymbols>
+  <armgcc.compiler.directories.IncludePaths><ListValues><Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value><Value>../src/ASF/common/boards</Value><Value>../src/ASF/sam0/utils</Value><Value>../src/ASF/sam0/utils/header_files</Value><Value>../src/ASF/sam0/utils/preprocessor</Value><Value>../src/ASF/thirdparty/CMSIS/Include</Value><Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value><Value>../src/ASF/common/utils</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value><Value>../src/ASF/sam0/drivers/system</Value><Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value><Value>../src/ASF/sam0/drivers/system/clock</Value><Value>../src/ASF/sam0/drivers/system/interrupt</Value><Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value><Value>../src/ASF/sam0/drivers/system/pinmux</Value><Value>../src/ASF/sam0/drivers/system/power</Value><Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value><Value>../src/ASF/sam0/drivers/system/reset</Value><Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value><Value>../src/ASF/common2/boards/user_board</Value><Value>../src</Value><Value>../src/config</Value><Value>../src/PLATFORM</Value><Value>../src/CLOCKS</Value><Value>../src/SERCOM</Value><Value>../src/FLASH</Value><Value>../src/FILESYSTEM</Value><Value>../src/DMA</Value><Value>../src/TIMER</Value><Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value><Value>../src/SMARTCARD</Value><Value>../src/OLED</Value><Value>../src/ACCELEROMETER</Value></ListValues></armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.OtherFlags>-fdata-sections</armgcc.compiler.optimization.OtherFlags>
   <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
   <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
   <armgcc.compiler.miscellaneous.OtherFlags>-pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500</armgcc.compiler.miscellaneous.OtherFlags>
   <armgcc.linker.general.UseNewlibNano>True</armgcc.linker.general.UseNewlibNano>
-  <armgcc.linker.libraries.Libraries>
-    <ListValues>
-      <Value>libarm_cortexM0l_math</Value>
-      <Value>libm</Value>
-    </ListValues>
-  </armgcc.linker.libraries.Libraries>
-  <armgcc.linker.libraries.LibrarySearchPaths>
-    <ListValues>
-      <Value>..\src\ASF\thirdparty\CMSIS\Lib\GCC</Value>
-      <Value>%24(ProjectDir)\Device_Startup</Value>
-    </ListValues>
-  </armgcc.linker.libraries.LibrarySearchPaths>
+  <armgcc.linker.libraries.Libraries><ListValues><Value>libarm_cortexM0l_math</Value><Value>libm</Value></ListValues></armgcc.linker.libraries.Libraries>
+  <armgcc.linker.libraries.LibrarySearchPaths><ListValues><Value>..\src\ASF\thirdparty\CMSIS\Lib\GCC</Value><Value>%24(ProjectDir)\Device_Startup</Value></ListValues></armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
   <armgcc.linker.memorysettings.ExternalRAM>False</armgcc.linker.memorysettings.ExternalRAM>
   <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
-  <armgcc.assembler.general.IncludePaths>
-    <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-    </ListValues>
-  </armgcc.assembler.general.IncludePaths>
+  <armgcc.assembler.general.IncludePaths><ListValues><Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value><Value>../src/ASF/common/boards</Value><Value>../src/ASF/sam0/utils</Value><Value>../src/ASF/sam0/utils/header_files</Value><Value>../src/ASF/sam0/utils/preprocessor</Value><Value>../src/ASF/thirdparty/CMSIS/Include</Value><Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value><Value>../src/ASF/common/utils</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value><Value>../src/ASF/sam0/drivers/system</Value><Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value><Value>../src/ASF/sam0/drivers/system/clock</Value><Value>../src/ASF/sam0/drivers/system/interrupt</Value><Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value><Value>../src/ASF/sam0/drivers/system/pinmux</Value><Value>../src/ASF/sam0/drivers/system/power</Value><Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value><Value>../src/ASF/sam0/drivers/system/reset</Value><Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value><Value>../src/ASF/common2/boards/user_board</Value><Value>../src</Value><Value>../src/config</Value><Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value></ListValues></armgcc.assembler.general.IncludePaths>
   <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD</armgcc.preprocessingassembler.general.AssemblerFlags>
-  <armgcc.preprocessingassembler.general.IncludePaths>
-    <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-    </ListValues>
-  </armgcc.preprocessingassembler.general.IncludePaths>
+  <armgcc.preprocessingassembler.general.IncludePaths><ListValues><Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value><Value>../src/ASF/common/boards</Value><Value>../src/ASF/sam0/utils</Value><Value>../src/ASF/sam0/utils/header_files</Value><Value>../src/ASF/sam0/utils/preprocessor</Value><Value>../src/ASF/thirdparty/CMSIS/Include</Value><Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value><Value>../src/ASF/common/utils</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value><Value>../src/ASF/sam0/drivers/system</Value><Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value><Value>../src/ASF/sam0/drivers/system/clock</Value><Value>../src/ASF/sam0/drivers/system/interrupt</Value><Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value><Value>../src/ASF/sam0/drivers/system/pinmux</Value><Value>../src/ASF/sam0/drivers/system/power</Value><Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value><Value>../src/ASF/sam0/drivers/system/reset</Value><Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value><Value>../src/ASF/common2/boards/user_board</Value><Value>../src</Value><Value>../src/config</Value><Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value></ListValues></armgcc.preprocessingassembler.general.IncludePaths>
+  <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
 </ArmGcc>
     </ToolchainSettings>
   </PropertyGroup>
@@ -368,136 +266,40 @@
   <armgcc.common.outputfiles.eep>True</armgcc.common.outputfiles.eep>
   <armgcc.common.outputfiles.bin>True</armgcc.common.outputfiles.bin>
   <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
-  <armgcc.compiler.symbols.DefSymbols>
-    <ListValues>
-      <Value>BOARD=USER_BOARD</Value>
-      <Value>ARM_MATH_CM0PLUS=true</Value>
-      <Value>__CORTEX_SC=0</Value>
-      <Value>DEBUG</Value>
-    </ListValues>
-  </armgcc.compiler.symbols.DefSymbols>
-  <armgcc.compiler.directories.IncludePaths>
-    <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>../src/PLATFORM</Value>
-      <Value>../src/CLOCKS</Value>
-      <Value>../src/SERCOM</Value>
-      <Value>../src/FLASH</Value>
-      <Value>../src/FILESYSTEM</Value>
-      <Value>../src/DMA</Value>
-      <Value>../src/TIMER</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-      <Value>../src/SMARTCARD</Value>
-      <Value>../src/OLED</Value>
-    </ListValues>
-  </armgcc.compiler.directories.IncludePaths>
-  <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
+  <armgcc.compiler.symbols.DefSymbols><ListValues>
+  <Value>BOARD=USER_BOARD</Value>
+  <Value>ARM_MATH_CM0PLUS=true</Value>
+  <Value>__CORTEX_SC=0</Value>
+  <Value>DEBUG</Value>
+</ListValues></armgcc.compiler.symbols.DefSymbols>
+  <armgcc.compiler.directories.IncludePaths><ListValues><Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value><Value>../src/ASF/common/boards</Value><Value>../src/ASF/sam0/utils</Value><Value>../src/ASF/sam0/utils/header_files</Value><Value>../src/ASF/sam0/utils/preprocessor</Value><Value>../src/ASF/thirdparty/CMSIS/Include</Value><Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value><Value>../src/ASF/common/utils</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value><Value>../src/ASF/sam0/drivers/system</Value><Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value><Value>../src/ASF/sam0/drivers/system/clock</Value><Value>../src/ASF/sam0/drivers/system/interrupt</Value><Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value><Value>../src/ASF/sam0/drivers/system/pinmux</Value><Value>../src/ASF/sam0/drivers/system/power</Value><Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value><Value>../src/ASF/sam0/drivers/system/reset</Value><Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value><Value>../src/ASF/common2/boards/user_board</Value><Value>../src</Value><Value>../src/config</Value><Value>../src/PLATFORM</Value><Value>../src/CLOCKS</Value><Value>../src/SERCOM</Value><Value>../src/FLASH</Value><Value>../src/FILESYSTEM</Value><Value>../src/DMA</Value><Value>../src/TIMER</Value><Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value><Value>../src/SMARTCARD</Value><Value>../src/OLED</Value><Value>../src/ACCELEROMETER</Value></ListValues></armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.OtherFlags>-fdata-sections</armgcc.compiler.optimization.OtherFlags>
   <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
-  <armgcc.compiler.optimization.DebugLevel>Maximum (-g3)</armgcc.compiler.optimization.DebugLevel>
   <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
   <armgcc.compiler.miscellaneous.OtherFlags>-pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500</armgcc.compiler.miscellaneous.OtherFlags>
   <armgcc.linker.general.UseNewlibNano>True</armgcc.linker.general.UseNewlibNano>
-  <armgcc.linker.libraries.Libraries>
-    <ListValues>
-      <Value>libarm_cortexM0l_math</Value>
-      <Value>libm</Value>
-    </ListValues>
-  </armgcc.linker.libraries.Libraries>
-  <armgcc.linker.libraries.LibrarySearchPaths>
-    <ListValues>
-      <Value>..\src\ASF\thirdparty\CMSIS\Lib\GCC</Value>
-      <Value>%24(ProjectDir)\Device_Startup</Value>
-    </ListValues>
-  </armgcc.linker.libraries.LibrarySearchPaths>
+  <armgcc.linker.libraries.Libraries><ListValues><Value>libarm_cortexM0l_math</Value><Value>libm</Value></ListValues></armgcc.linker.libraries.Libraries>
+  <armgcc.linker.libraries.LibrarySearchPaths><ListValues><Value>..\src\ASF\thirdparty\CMSIS\Lib\GCC</Value><Value>%24(ProjectDir)\Device_Startup</Value></ListValues></armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
-  <armgcc.linker.memorysettings.ExternalRAM />
+  <armgcc.linker.memorysettings.ExternalRAM></armgcc.linker.memorysettings.ExternalRAM>
   <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
-  <armgcc.assembler.general.IncludePaths>
-    <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-    </ListValues>
-  </armgcc.assembler.general.IncludePaths>
-  <armgcc.assembler.debugging.DebugLevel>Default (-g)</armgcc.assembler.debugging.DebugLevel>
+  <armgcc.assembler.general.IncludePaths><ListValues><Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value><Value>../src/ASF/common/boards</Value><Value>../src/ASF/sam0/utils</Value><Value>../src/ASF/sam0/utils/header_files</Value><Value>../src/ASF/sam0/utils/preprocessor</Value><Value>../src/ASF/thirdparty/CMSIS/Include</Value><Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value><Value>../src/ASF/common/utils</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value><Value>../src/ASF/sam0/drivers/system</Value><Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value><Value>../src/ASF/sam0/drivers/system/clock</Value><Value>../src/ASF/sam0/drivers/system/interrupt</Value><Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value><Value>../src/ASF/sam0/drivers/system/pinmux</Value><Value>../src/ASF/sam0/drivers/system/power</Value><Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value><Value>../src/ASF/sam0/drivers/system/reset</Value><Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value><Value>../src/ASF/common2/boards/user_board</Value><Value>../src</Value><Value>../src/config</Value><Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value></ListValues></armgcc.assembler.general.IncludePaths>
   <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD</armgcc.preprocessingassembler.general.AssemblerFlags>
-  <armgcc.preprocessingassembler.general.IncludePaths>
-    <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-    </ListValues>
-  </armgcc.preprocessingassembler.general.IncludePaths>
+  <armgcc.preprocessingassembler.general.IncludePaths><ListValues><Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value><Value>../src/ASF/common/boards</Value><Value>../src/ASF/sam0/utils</Value><Value>../src/ASF/sam0/utils/header_files</Value><Value>../src/ASF/sam0/utils/preprocessor</Value><Value>../src/ASF/thirdparty/CMSIS/Include</Value><Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value><Value>../src/ASF/common/utils</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value><Value>../src/ASF/sam0/drivers/system</Value><Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value><Value>../src/ASF/sam0/drivers/system/clock</Value><Value>../src/ASF/sam0/drivers/system/interrupt</Value><Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value><Value>../src/ASF/sam0/drivers/system/pinmux</Value><Value>../src/ASF/sam0/drivers/system/power</Value><Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value><Value>../src/ASF/sam0/drivers/system/reset</Value><Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value><Value>../src/ASF/common2/boards/user_board</Value><Value>../src</Value><Value>../src/config</Value><Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value></ListValues></armgcc.preprocessingassembler.general.IncludePaths>
+  <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
+  <armgcc.compiler.optimization.DebugLevel>Maximum (-g3)</armgcc.compiler.optimization.DebugLevel>
+  <armgcc.assembler.debugging.DebugLevel>Default (-g)</armgcc.assembler.debugging.DebugLevel>
   <armgcc.preprocessingassembler.debugging.DebugLevel>Default (-Wa,-g)</armgcc.preprocessingassembler.debugging.DebugLevel>
 </ArmGcc>
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="src\ACCELEROMETER\lis2hh12.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ACCELEROMETER\lis2hh12.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\CLOCKS\driver_clocks.c">
       <SubType>compile</SubType>
     </Compile>
@@ -1120,6 +922,7 @@
     <Folder Include="src\FLASH" />
     <Folder Include="src\FILESYSTEM" />
     <Folder Include="src\DMA" />
+    <Folder Include="src\ACCELEROMETER" />
     <Folder Include="src\OLED" />
     <Folder Include="src\SMARTCARD" />
     <Folder Include="src\TIMER" />

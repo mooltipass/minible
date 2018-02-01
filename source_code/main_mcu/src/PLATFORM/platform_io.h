@@ -12,6 +12,7 @@ void platform_io_power_up_oled(BOOL power_1v2);
 void platform_io_disable_switch_and_die(void);
 void platform_io_smc_inserted_function(void);
 void platform_io_smc_remove_function(void);
+void platform_io_init_accelerometer(void);
 void platform_io_release_aux_reset(void);
 void platform_io_smc_switch_to_spi(void);
 void platform_io_smc_switch_to_bb(void);
