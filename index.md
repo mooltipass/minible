@@ -4,7 +4,7 @@ This website aims to provide contributors and Moooltipass enthusiasts with all r
 
 ## [](#header-2)Contributors
 Interested in joining our team? For this new project, we are using <a href="https://colony.io/">colony</a> to equally share Mooltipass revenue and keep track of the overall project progress.  
-The following tasks are available:
+You'll find below the available tasks, grouped by category.
 ### [](#header-3)Firmware:
 Do not forget to review our [contributors guidelines and coding rules](coding_rules).
 * [New Database Model Implementation](task_db)
