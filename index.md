@@ -4,12 +4,12 @@ This website aims to provide contributors and Moooltipass enthusiasts with all r
 
 ## [](#header-2)Contributors
 Interested in joining our team? The following tasks are available:
-##### [](#header-5)Firmware
-Do not forget to review our contribution guidelines.
+### [](#header-3)Firmware:
+Do not forget to review our contributors guidelines and coding rules.
 * [New Database Model Implementation](task_db)
-* Unicode Plane 0 Support Implementation (Fonts)
-* Unicode Plane 0 support implementation (HID)
-* Secure Bootloader Implementation
-* User Interface Design
-* U2F Implementation
+* [Unicode Plane 0 Support Implementation (Fonts)](task_unicode_font)
+* [Unicode Plane 0 support implementation (HID)](task_unicode_hid)
+* [Secure Bootloader Implementation](task_bootloader)
+* [User Interface Design](task_ui_design)
+* [U2F Implementation](task_u2f)
 * OTP Implementation
