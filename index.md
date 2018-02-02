@@ -12,11 +12,13 @@ Do not forget to review our [contributors guidelines and coding rules](coding_ru
 * [Unicode Plane 0 support implementation (HID)](task_unicode_hid)
 * [Secure Bootloader Implementation](task_bootloader)
 * [User Interface Design](task_ui_design)
+* [Smartcard Emulation](task_smc_emul)
+* [RNG Implementation] (task_rng)
 * [U2F Implementation](task_u2f)
 * OTP Implementation
 
 ## [](#header-2)Keeping in Touch
 - <a href="https://groups.google.com/forum/#!forum/mooltipass">Mooltipass General Google Group</a> for general discussions
 - <a href="https://groups.google.com/forum/#!forum/mooltipass-mini-ble-developpers">Developers Google Group</a> for technical discussions
-- <a href="https://colony.io">Colony Kanban Board</a> for Developers ongoing tasks
+- <a href="https://colony.io">Colony Kanban Board</a> for developers ongoing tasks
 - **Mooltipass IRC channel** for direct communications: **#mooltipass** on **irc.freenode.net**
