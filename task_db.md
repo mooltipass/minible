@@ -1,7 +1,5 @@
 Time estimated: very long  
-  
-Skills: C 
- 
+Skills: C  
 Description:  
 The new Mini will implement an updated database model, including (among others) the following improvements:  
 - categories for credentials 
