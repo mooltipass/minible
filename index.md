@@ -14,3 +14,9 @@ Do not forget to review our [contributors guidelines and coding rules](coding_ru
 * [User Interface Design](task_ui_design)
 * [U2F Implementation](task_u2f)
 * OTP Implementation
+
+## [](#header-2)Keeping in Touch
+- <a href="https://groups.google.com/forum/#!forum/mooltipass">Mooltipass General Google Group</a> for general discussions
+- <a href="https://groups.google.com/forum/#!forum/mooltipass-mini-ble-developpers">Developers Google Group</a> for technical discussions
+- <a href="https://colony.io">Colony Kanban Board</a> for Developers ongoing tasks
+- **Mooltipass IRC channel** for direct communications: #mooltipass on freenode.net (contact limpkin to get a bouncer)
