@@ -636,6 +636,81 @@ RET_TYPE sh1122_display_bitmap_from_flash(sh1122_descriptor_t* oled_descriptor, 
     return RETURN_OK;  
 } 
 
+/*! \fn     sh1122_draw_rectangle(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, int16_t width, int16_t height, uint16_t color)
+*   \brief  Draw a rectangle on the screen
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  x                   Starting x
+*   \param  y                   Starting y
+*   \param  width               Width
+*   \param  height              Height
+*   \param  color               4 bits color
+*/
+void sh1122_draw_rectangle(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, int16_t width, int16_t height, uint16_t color)
+{
+    uint16_t xoff = x - (x / 2) * 2;
+
+    for (uint16_t yind=0; yind < height; yind++)
+    {
+        uint16_t xind = 0;
+        uint16_t pixels = 0;
+        
+        /* Set pixel write window */
+        sh1122_set_row_address(oled_descriptor, y+yind);
+        sh1122_set_column_address(oled_descriptor, x/2);
+        
+        /* Start filling the SSD1322 RAM */
+        sh1122_start_data_sending(oled_descriptor);
+
+        /* Start x not a multiple of 2 */
+        if (xoff != 0)
+        {
+            /* Set xind to 1 as we're writing a pixel */
+            xind = 1;
+            
+            /* one pixel */
+            pixels = color;
+
+            /* Fill existing pixels if available */
+            if ((x/2) == oled_descriptor->gddram_pixel[y+yind].xaddr)
+            {
+                pixels |= oled_descriptor->gddram_pixel[y+yind].pixels;
+            }
+
+            /* Send the 2 pixels to the display */
+            sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, (uint8_t)(pixels & 0x00FF));
+        }
+        
+        /* Start x multiple of 2, start filling */
+        for (; xind < width; xind+=2)
+        {
+            if ((xind+2) <= width)
+            {
+                pixels = color | (color << 4);
+            }
+            else
+            {
+                pixels = color << 4;
+            }
+            
+            // Send 2 pixels to the display
+            sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, (uint8_t)(pixels & 0x00FF));
+        }
+        
+        /* Store pixel data in our gddram buffer for later merging */
+        if (pixels != 0)
+        {
+            oled_descriptor->gddram_pixel[y+yind].pixels = (uint8_t)pixels;
+            oled_descriptor->gddram_pixel[y+yind].xaddr = (x+width-1)/2;
+        }
+        
+        /* Wait for spi buffer to be sent */
+        sercom_spi_wait_for_transmit_complete(oled_descriptor->sercom_pt);
+        
+        /* Stop sending data */
+        sh1122_stop_data_sending(oled_descriptor);
+    }
+}
+
 /*! \fn     sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const char* str)
 *   \brief  Return the pixel width of the string.
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct

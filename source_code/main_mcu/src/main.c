@@ -56,7 +56,23 @@ int main (void)
     //timer_delay_ms(1);
     sh1122_init_display(&oled_descriptor);
     
-    /*sh1122_printf_xy(&oled_descriptor, 0, 0, OLED_ALIGN_CENTER, "FPS: %u", 32);
+    acc_data temp_acc_data;
+    uint32_t cnt = 0;
+    while(1)
+    {
+        lis2hh12_manual_acc_data_read(&acc_descriptor, &temp_acc_data);
+        sh1122_draw_rectangle(&oled_descriptor, 15, 0, 35, 45, 0);
+        sh1122_printf_xy(&oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "X: %i", temp_acc_data.acc_x);
+        sh1122_printf_xy(&oled_descriptor, 0, 15, OLED_ALIGN_LEFT, "Y: %i", temp_acc_data.acc_y);
+        sh1122_printf_xy(&oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Z: %i", temp_acc_data.acc_z);
+        sh1122_printf_xy(&oled_descriptor, 0, 45, OLED_ALIGN_LEFT, "cnt: %i", cnt++);
+        timer_delay_ms(10);
+    }
+    
+    sh1122_printf_xy(&oled_descriptor, 0, 0, OLED_ALIGN_CENTER, "FPS: %u", 32);
+    while(1);
+    
+    /*
     sh1122_put_string_xy(&oled_descriptor, 1, 10, OLED_ALIGN_LEFT, u"F");
     sh1122_put_string_xy(&oled_descriptor, 0, 20, OLED_ALIGN_LEFT, u"supermarmotte!");
     while (1);

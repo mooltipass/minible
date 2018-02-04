@@ -8,6 +8,7 @@
 #include "driver_timer.h"
 #include "lis2hh12.h"
 #include "defines.h"
+#include <string.h>
 
 
 /*! \fn     lis2hh12_send_command(spi_flash_descriptor_t* descriptor_pt, uint8_t* data, uint32_t length)
@@ -80,4 +81,16 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     }
     
     return RETURN_OK;
+}
+
+/*! \fn     lis2hh12_manual_acc_data_read(accelerometer_descriptor_t* descriptor_pt, acc_data* data_pt)
+*   \brief  Manual read of acceleration date
+*   \param  descriptor_pt   Pointer to lis2hh12 descriptor
+*   \param  data_pt         Pointer to where to store the acceleration data
+*/
+void lis2hh12_manual_acc_data_read(accelerometer_descriptor_t* descriptor_pt, acc_data* data_pt)
+{
+    uint8_t readAccData[9] = {0xA8};
+    lis2hh12_send_command(descriptor_pt, readAccData, sizeof(readAccData));
+    memcpy((void*)data_pt, (void*)(&readAccData[1]), 8);
 }
