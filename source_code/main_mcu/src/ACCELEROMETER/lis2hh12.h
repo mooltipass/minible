@@ -12,6 +12,7 @@
 /* Structs */
 typedef struct
 {
+    /* Each data actually is 16 bits long */
     int16_t acc_x;
     int16_t acc_y;
     int16_t acc_z;    

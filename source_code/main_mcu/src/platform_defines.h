@@ -125,8 +125,8 @@ typedef struct
 /* OLED SPI SCK = 48M / 2*(5+1)) = 4MHz (Max from datasheet) */
 /* Note: Has successfully been tested at 24MHz, but without speed improvements */
 #define OLED_BAUD_DIVIDER           5
-/* ACC SPI SCK = 48M / 2*(5+1)) = 4MHz (Max is 10MHz) */
-#define ACC_BAUD_DIVIDER            5
+/* ACC SPI SCK = 48M / 2*(2+1)) = 8MHz (Max is 10MHz) */
+#define ACC_BAUD_DIVIDER            2
 /* DATA & DB FLASH SPI SCK = 48M / 2*(0+1)) = 24MHz */
 #define DATAFLASH_BAUD_DIVIDER      0
 #define DBFLASH_BAUD_DIVIDER        0

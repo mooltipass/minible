@@ -63,8 +63,12 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     uint8_t setDataRateCommand[] = {0x20, 0x5F};
     lis2hh12_send_command(descriptor_pt, setDataRateCommand, sizeof(setDataRateCommand));
     
-    /* Set data ready signal on INT1 */
-    uint8_t setDataReadyOnINT1[] = {0x22, 0x01};
+    /* FIFO in stream mode */
+    uint8_t fifoStreamModeCommand[] = {0x2E, 0x40};
+    lis2hh12_send_command(descriptor_pt, fifoStreamModeCommand, sizeof(fifoStreamModeCommand));
+    
+    /* Set fifo overrun signal on INT1, enable fifo */
+    uint8_t setDataReadyOnINT1[] = {0x22, 0x84};
     lis2hh12_send_command(descriptor_pt, setDataReadyOnINT1, sizeof(setDataReadyOnINT1));
     
     /* Send command to disable accelerometer I2C block and keep address inc */
