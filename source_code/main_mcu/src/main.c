@@ -38,7 +38,7 @@ int main (void)
     {
         while(1);
     }
-    if (lis2hh12_check_presence(&acc_descriptor) == RETURN_NOK)         // Check for acc
+    if (lis2hh12_check_presence_and_configure(&acc_descriptor) == RETURN_NOK)
     {
         while(1);
     }

@@ -9,6 +9,6 @@
 
 /* Prototypes */
 void lis2hh12_send_command(accelerometer_descriptor_t* descriptor_pt, uint8_t* data, uint32_t length);
-RET_TYPE lis2hh12_check_presence(accelerometer_descriptor_t* descriptor_pt);
+RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descriptor_pt);
 
 #endif /* LIS2HH12_H_ */
