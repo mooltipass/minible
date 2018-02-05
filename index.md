@@ -1,6 +1,9 @@
 ## [](#header-1)Welcome to our GitHub pages!
-This website aims to provide contributors and Moooltipass enthusiasts with all relevant info about our latest device, the Mooltipass Mini Bluetooth. 
+This website aims to provide contributors and Moooltipass enthusiasts with all relevant info about our latest device, the Mooltipass Mini Bluetooth.  
 
+## [](#header-2)Device Technical Details
+You'll find below different pages detailing our selected architecture.
+* [High level device overview](highlevel_overview)
 
 ## [](#header-2)Contributors
 Interested in joining our team? For this new project, we are using <a href="https://colony.io/">colony</a> to equally share Mooltipass revenue and keep track of the overall project progress.  
