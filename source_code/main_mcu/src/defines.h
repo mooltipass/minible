@@ -8,6 +8,10 @@
 
 #include <stdio.h>
 
+/* Macros */
+#define XSTR(x) STR(x)
+#define STR(x) #x
+
 /* Standard defines */
 #define AES_KEY_LENGTH          256
 #define AES_BLOCK_SIZE          128

@@ -5,9 +5,11 @@
 */
 #include "platform_defines.h"
 #include "driver_sercom.h"
+#include "driver_clocks.h"
 #include "driver_timer.h"
 #include "lis2hh12.h"
 #include "defines.h"
+#include "dma.h"
 #include <string.h>
 
 
@@ -43,18 +45,34 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     uint8_t disableINT1[] = {0x22, 0x00};
     lis2hh12_send_command(descriptor_pt, disableINT1, sizeof(disableINT1));
     
+    /* Enable Event system clock, used to generate event from external interrupt */
+    PM->APBCMASK.bit.EVSYS_ = 1;
+    
+    /* Map global clock to user event channel clock */
+    clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, GCLK_CLKCTRL_ID_EVSYS_0_Val + descriptor_pt->evgen_channel);    
+    
+    /* Map user event channel to event DMA channel */
+    EVSYS_USER_Type temp_evsys_usert;
+    temp_evsys_usert.reg = 0;
+    temp_evsys_usert.bit.CHANNEL = descriptor_pt->evgen_channel + 1;
+    temp_evsys_usert.bit.USER = descriptor_pt->dma_channel;
+    EVSYS->USER = temp_evsys_usert;
+    
+    /* Configure event channel to use external interrupt as input */
+    EVSYS_CHANNEL_Type temp_evsys_channel_reg;
+    temp_evsys_channel_reg.reg = 0;
+    temp_evsys_channel_reg.bit.PATH = EVSYS_CHANNEL_PATH_RESYNCHRONIZED_Val;      // Use resynchronized path (dma requirement)
+    temp_evsys_channel_reg.bit.EDGSEL = EVSYS_CHANNEL_EDGSEL_RISING_EDGE_Val;     // Detect rising edge
+    temp_evsys_channel_reg.bit.EVGEN = descriptor_pt->evgen_sel;                  // Select correct EIC output
+    temp_evsys_channel_reg.bit.CHANNEL = descriptor_pt->evgen_channel;            // Map to selected channel
+    EVSYS->CHANNEL = temp_evsys_channel_reg;                                      // Write register
+    
     /* Query Who Am I */
     uint8_t query_command[] = {0x8F, 0x00};
     lis2hh12_send_command(descriptor_pt, query_command, sizeof(query_command));
     
     /* Check correct lis2hh12 ID */
     if(query_command[1] != 0x41)
-    {
-        return RETURN_NOK;
-    }
-    
-    /* Check for absence of interrupt as we haven't enabled the ACC yet */
-    if (!((PORT->Group[descriptor_pt->int_pin_group].IN.reg & descriptor_pt->int_pin_mask) == 0))
     {
         return RETURN_NOK;
     }
@@ -75,11 +93,21 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     uint8_t disableI2cBlockCommand[] = {0x23, 0x06};
     lis2hh12_send_command(descriptor_pt, disableI2cBlockCommand, sizeof(disableI2cBlockCommand));
     
-    /* Wait for data ready signal to appear */
-    timer_delay_ms(10);
+    /* Enable DMA transfer */
+    dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)descriptor_pt->data_rcv_buffer, sizeof(descriptor_pt->data_rcv_buffer));
+    
+    /* Check for transfer done flag: shouldn't be set before at least 32 (lis2hh12 fifo depth) / Fsample = 80ms at 400Hz). Max read time is 32*3*2/F(SPI) =  24us */
+    timer_delay_ms(1);
+    if (dma_acc_check_and_clear_dma_transfer_flag() != FALSE)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Give enough time and check for transfer done flag */
+    timer_delay_ms(100);
     
     /* Check for interrupt */
-    if ((PORT->Group[descriptor_pt->int_pin_group].IN.reg & descriptor_pt->int_pin_mask) == 0)
+    if (dma_acc_check_and_clear_dma_transfer_flag() == FALSE)
     {
         return RETURN_NOK;
     }

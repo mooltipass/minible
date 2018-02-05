@@ -14,8 +14,8 @@
 #include "sh1122.h"
 #include "dma.h"
 /* Our oled & dataflash & dbflash descriptors */
+accelerometer_descriptor_t  acc_descriptor = {.sercom_pt = ACC_SERCOM, .cs_pin_group = ACC_nCS_GROUP, .cs_pin_mask = ACC_nCS_MASK, .int_pin_group = ACC_INT_GROUP, .int_pin_mask = ACC_INT_MASK, .evgen_sel = ACC_EV_GEN_SEL, .evgen_channel = ACC_EV_GEN_CHANNEL, .dma_channel = 3};
 sh1122_descriptor_t oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigger_id = OLED_DMA_SERCOM_TX_TRIG, .sh1122_cs_pin_group = OLED_nCS_GROUP, .sh1122_cs_pin_mask = OLED_nCS_MASK, .sh1122_cd_pin_group = OLED_CD_GROUP, .sh1122_cd_pin_mask = OLED_CD_MASK};
-accelerometer_descriptor_t  acc_descriptor = {.sercom_pt = ACC_SERCOM, .cs_pin_group = ACC_nCS_GROUP, .cs_pin_mask = ACC_nCS_MASK, .int_pin_group = ACC_INT_GROUP, .int_pin_mask = ACC_INT_MASK};
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 
@@ -60,7 +60,7 @@ int main (void)
     uint32_t cnt = 0;
     while(1)
     {
-        lis2hh12_manual_acc_data_read(&acc_descriptor, &temp_acc_data);
+        //lis2hh12_manual_acc_data_read(&acc_descriptor, &temp_acc_data);
         sh1122_draw_rectangle(&oled_descriptor, 15, 0, 35, 45, 0);
         sh1122_printf_xy(&oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "X: %i", temp_acc_data.acc_x);
         sh1122_printf_xy(&oled_descriptor, 0, 15, OLED_ALIGN_LEFT, "Y: %i", temp_acc_data.acc_y);

@@ -7,6 +7,7 @@
 #define PLATFORM_DEFINES_H_
 
 #include <asf.h>
+#include "defines.h"
 
 /**************** SETUP DEFINES ****************/
 /*  This project should be built differently
@@ -41,6 +42,10 @@ typedef struct
     PIN_MASK_T cs_pin_mask;
     pin_group_te int_pin_group;
     PIN_MASK_T int_pin_mask;
+    uint16_t evgen_sel;
+    uint16_t evgen_channel;
+    uint16_t dma_channel;
+    uint8_t data_rcv_buffer[32*3*2];
 } accelerometer_descriptor_t;
 
 /*********************************************/
@@ -107,11 +112,21 @@ typedef struct
 #define ACC_APB_SERCOM_BIT          SERCOM1_
 #define ACC_SERCOM                  SERCOM1
 
+/* External interrupts numbers */
+#define ACC_EXTINT_NUM              4
+#define ACC_EIC_SENSE_REG           SENSE4
+
+/* User event channels mapping */
+#define ACC_EV_GEN_CHANNEL          0
+#define ACC_EV_GEN_SEL              (0x0C + ACC_EXTINT_NUM)
+
 /* SERCOM trigger for flash data transfers */
 #define DATAFLASH_DMA_SERCOM_RXTRIG     0x05
 #define DATAFLASH_DMA_SERCOM_TXTRIG     0x06
-#define DBFLASH_DMA_SERCOM_RXTRIG       0x03
-#define DBFLASH_DMA_SERCOM_TXTRIG       0x04
+#define DBFLASH_DMA_SERCOM_RXTRIG       0x07
+#define DBFLASH_DMA_SERCOM_TXTRIG       0x08
+#define ACC_DMA_SERCOM_RXTRIG           0x03
+#define ACC_DMA_SERCOM_TXTRIG           0x04
 
 /* SERCOM trigger for OLED data transfers */
 #define OLED_DMA_SERCOM_TX_TRIG         0x02
@@ -294,6 +309,11 @@ typedef struct
 #define ACC_INT_GROUP          PIN_GROUP_0
 #define ACC_INT_PINID          20
 #define ACC_INT_MASK           (1UL << ACC_INT_PINID)
+#if (ACC_INT_PINID % 2) == 1
+    #define ACC_INT_PMUXREGID  PMUXO
+#else
+    #define ACC_INT_PMUXREGID  PMUXE
+#endif
 /* SMARTCARD */
 #define SMC_MOSI_GROUP         PIN_GROUP_1
 #define SMC_MOSI_PINID         2
