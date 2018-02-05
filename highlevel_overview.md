@@ -1,6 +1,6 @@
 ## [](#header-2)The New Mooltipass Device
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_highlevel.png?raw=true)
-Contrary to all our previous Mooltipass devices, our new platform uses 2 main microcontrollers: a secure a non-secure one.  
+Contrary to all our previous Mooltipass devices, our new platform uses 2 main microcontrollers: a MCU considered as "secured" and a standard one. In practice, they are MCUs from the same family.    
 This design decision was made for several reasons:  
 - reduce the attack surface by only having a serial link exposed to the outside word
 - the selected cheap Bluetooth transceiver requires proprietary libraries
