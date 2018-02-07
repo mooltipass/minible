@@ -20,6 +20,9 @@ spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .c
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 
 // REMINDER FOR LATER: if power consumption too high, check default state for miso on smc...
+volatile uint16_t nbrx_int = 0;
+volatile uint16_t nbtx_int = 0;
+volatile uint16_t nbevent_int = 0;
 
 int main (void)
 {
@@ -56,17 +59,17 @@ int main (void)
     //timer_delay_ms(1);
     sh1122_init_display(&oled_descriptor);
     
-    acc_data temp_acc_data;
     uint32_t cnt = 0;
     while(1)
     {
-        //lis2hh12_manual_acc_data_read(&acc_descriptor, &temp_acc_data);
-        sh1122_draw_rectangle(&oled_descriptor, 15, 0, 35, 45, 0);
-        sh1122_printf_xy(&oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "X: %i", temp_acc_data.acc_x);
-        sh1122_printf_xy(&oled_descriptor, 0, 15, OLED_ALIGN_LEFT, "Y: %i", temp_acc_data.acc_y);
-        sh1122_printf_xy(&oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Z: %i", temp_acc_data.acc_z);
-        sh1122_printf_xy(&oled_descriptor, 0, 45, OLED_ALIGN_LEFT, "cnt: %i", cnt++);
-        timer_delay_ms(10);
+        if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) != FALSE)
+        {
+            sh1122_draw_rectangle(&oled_descriptor, 15, 0, 35, 45, 0);
+            sh1122_printf_xy(&oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "X: %i", acc_descriptor.fifo_read.acc_data_array[0].acc_x);
+            sh1122_printf_xy(&oled_descriptor, 0, 15, OLED_ALIGN_LEFT, "Y: %i", acc_descriptor.fifo_read.acc_data_array[0].acc_y);
+            sh1122_printf_xy(&oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Z: %i", acc_descriptor.fifo_read.acc_data_array[0].acc_z);
+            sh1122_printf_xy(&oled_descriptor, 0, 45, OLED_ALIGN_LEFT, "cnt: %i", cnt++);            
+        }
     }
     
     sh1122_printf_xy(&oled_descriptor, 0, 0, OLED_ALIGN_CENTER, "FPS: %u", 32);

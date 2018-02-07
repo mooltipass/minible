@@ -14,9 +14,9 @@
 
 /* Prototypes */
 void dma_oled_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint16_t dma_trigger);
+void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t* read_cmd);
 uint32_t dma_bootloader_compute_crc32_from_spi(void* spi_data_p, uint32_t size);
 void dma_custom_fs_init_transfer(void* spi_data_p, void* datap, uint16_t size);
-void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size);
 BOOL dma_custom_fs_check_and_clear_dma_transfer_flag(void);
 BOOL dma_oled_check_and_clear_dma_transfer_flag(void);
 BOOL dma_acc_check_and_clear_dma_transfer_flag(void);

@@ -132,7 +132,7 @@ void platform_io_smc_switch_to_spi(void)
 void platform_io_init_accelerometer(void)
 {
     EIC->EVCTRL.reg |= (1 << ACC_EXTINT_NUM);                                                                               // Enable events from extint pin
-    EIC->CONFIG[ACC_EXTINT_NUM/8].bit.ACC_EIC_SENSE_REG = EIC_CONFIG_SENSE0_RISE_Val;                                       // Detect rising edge
+    EIC->CONFIG[ACC_EXTINT_NUM/8].bit.ACC_EIC_SENSE_REG = EIC_CONFIG_SENSE0_HIGH_Val;                                       // Detect high state
     PORT->Group[ACC_INT_GROUP].DIRCLR.reg = ACC_INT_MASK;                                                                   // Interrupt input, high Z
     PORT->Group[ACC_INT_GROUP].PINCFG[ACC_INT_PINID].bit.PMUXEN = 1;                                                        // Enable peripheral multiplexer
     PORT->Group[ACC_INT_GROUP].PMUX[ACC_INT_PINID/2].bit.ACC_INT_PMUXREGID = PORT_PMUX_PMUXO_A_Val;                         // Pin mux to EIC
@@ -265,12 +265,10 @@ void platform_io_init_power_ports(void)
 */
 void platform_io_init_ports(void)
 {    
-    /* Enable External Interrupt Controller */
+    /* When an external interrupt is configured for level detection GCLK_EIC is not required */
     while ((EIC->STATUS.reg & EIC_STATUS_SYNCBUSY) != 0);
+    /* Enable External Interrupt Controller */
     EIC->CTRL.reg = EIC_CTRL_ENABLE;
-    
-    /* Give him a clock */
-    clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, GCLK_CLKCTRL_ID_EIC_Val);
     
     /* Power */
     platform_io_init_power_ports();

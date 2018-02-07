@@ -127,7 +127,7 @@ void dma_init(void)
     dma_descriptors[3].BTCTRL.reg = DMAC_BTCTRL_VALID;                                      // Valid descriptor
     dma_descriptors[3].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;                   // 1 byte address increment
     dma_descriptors[3].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_SRC_Val;                    // Step selection for source
-    dma_descriptors[3].BTCTRL.bit.SRCINC = 1;                                               // Destination Address Increment is enabled.
+    dma_descriptors[3].BTCTRL.bit.SRCINC = 0;                                               // Destination Address Increment is disabled.
     dma_descriptors[3].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;                 // Byte data transfer
     dma_descriptors[3].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val;                // Once data block is transferred, do nothing
     dma_descriptors[3].DESCADDR.reg = 0;                                                    // No next descriptor address
@@ -406,9 +406,10 @@ void dma_oled_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint16
 *   \param  spi_data_p  Pointer to the SPI data register
 *   \param  datap       Pointer to where to store the data
 *   \param  size        Number of bytes to transfer
+*   \param  read_cmd    Pointer to where the read data command is stored
 */
-void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size)
-{
+void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t* read_cmd)
+{    
     cpu_irq_enter_critical();
     
     /* SPI RX DMA TRANSFER */
@@ -428,7 +429,7 @@ void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size)
     /* Source address: DATA register from SPI */
     dma_descriptors[3].DSTADDR.reg = (uint32_t)spi_data_p;
     /* Destination address: given value */
-    dma_descriptors[3].SRCADDR.reg = (uint32_t)datap + size;
+    dma_descriptors[3].SRCADDR.reg = (uint32_t)read_cmd;
     /* Resume DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(3);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;

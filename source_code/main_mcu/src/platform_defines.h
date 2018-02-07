@@ -35,19 +35,6 @@ typedef struct
     PIN_MASK_T cs_pin_mask;
 } spi_flash_descriptor_t;
 
-typedef struct
-{
-    Sercom* sercom_pt;
-    pin_group_te cs_pin_group;
-    PIN_MASK_T cs_pin_mask;
-    pin_group_te int_pin_group;
-    PIN_MASK_T int_pin_mask;
-    uint16_t evgen_sel;
-    uint16_t evgen_channel;
-    uint16_t dma_channel;
-    uint8_t data_rcv_buffer[32*3*2];
-} accelerometer_descriptor_t;
-
 /*********************************************/
 /*  Bootloader and memory related defines    */
 /*********************************************/

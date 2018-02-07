@@ -40,10 +40,28 @@ void lis2hh12_send_command(accelerometer_descriptor_t* descriptor_pt, uint8_t* d
 *   \return RETURN_OK or RETURN_NOK
 */
 RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descriptor_pt)
-{    
-    /* In case of device reboot, as we check INT1 later, disable INT1 output */
-    uint8_t disableINT1[] = {0x22, 0x00};
-    lis2hh12_send_command(descriptor_pt, disableINT1, sizeof(disableINT1));
+{
+    /* Query Who Am I */
+    uint8_t query_command[] = {0x8F, 0x00};
+    lis2hh12_send_command(descriptor_pt, query_command, sizeof(query_command));
+    
+    /* Check correct lis2hh12 ID */
+    if(query_command[1] != 0x41)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* If we are debugging, a reprogram may happen at any time. We therefore need to reset the lis2hh12 */
+    uint8_t softResetCommand[] = {0x24, 0x40};
+    lis2hh12_send_command(descriptor_pt, softResetCommand, sizeof(softResetCommand));
+    
+    /* Wait for end of reset */
+    uint8_t getResetStatusCommand[] = {0xA4, 0xFF};
+    while ((getResetStatusCommand[1] & 0x40) != 0x00)
+    {
+        lis2hh12_send_command(descriptor_pt, getResetStatusCommand, sizeof(getResetStatusCommand));   
+        getResetStatusCommand[0] = 0xA4;     
+    }
     
     /* Enable Event system clock, used to generate event from external interrupt */
     PM->APBCMASK.bit.EVSYS_ = 1;
@@ -67,16 +85,6 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     temp_evsys_channel_reg.bit.CHANNEL = descriptor_pt->evgen_channel;            // Map to selected channel
     EVSYS->CHANNEL = temp_evsys_channel_reg;                                      // Write register
     
-    /* Query Who Am I */
-    uint8_t query_command[] = {0x8F, 0x00};
-    lis2hh12_send_command(descriptor_pt, query_command, sizeof(query_command));
-    
-    /* Check correct lis2hh12 ID */
-    if(query_command[1] != 0x41)
-    {
-        return RETURN_NOK;
-    }
-    
     /* 400Hz output data rate, output registers not updated until MSB and LSB read, all axis enabled */
     uint8_t setDataRateCommand[] = {0x20, 0x5F};
     lis2hh12_send_command(descriptor_pt, setDataRateCommand, sizeof(setDataRateCommand));
@@ -93,26 +101,67 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     uint8_t disableI2cBlockCommand[] = {0x23, 0x06};
     lis2hh12_send_command(descriptor_pt, disableI2cBlockCommand, sizeof(disableI2cBlockCommand));
     
-    /* Enable DMA transfer */
-    dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)descriptor_pt->data_rcv_buffer, sizeof(descriptor_pt->data_rcv_buffer));
+    /* Store read command in descriptor */
+    descriptor_pt->read_cmd = 0xA8;
     
-    /* Check for transfer done flag: shouldn't be set before at least 32 (lis2hh12 fifo depth) / Fsample = 80ms at 400Hz). Max read time is 32*3*2/F(SPI) =  24us */
+    /* Enable DMA transfer and clear nCS */
+    dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read), &(descriptor_pt->read_cmd));
+    PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;
+    
+    /* Check for transfer done flag: shouldn't be set before at least 32 (lis2hh12 fifo depth) / Fsample = 80ms at 400Hz). Max read time is 32*3*2*8/F(SPI) =  192us */
     timer_delay_ms(1);
     if (dma_acc_check_and_clear_dma_transfer_flag() != FALSE)
     {
         return RETURN_NOK;
     }
     
-    /* Give enough time and check for transfer done flag */
-    timer_delay_ms(100);
+    /* Arm timer */
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 100);
     
-    /* Check for interrupt */
-    if (dma_acc_check_and_clear_dma_transfer_flag() == FALSE)
+    /* Loop until timer is running */
+    while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING)
     {
-        return RETURN_NOK;
+        /* Check for data received */
+        if (lis2hh12_check_data_received_flag_and_arm_other_transfer(descriptor_pt) != FALSE)
+        {
+            return RETURN_OK;
+        }
+        
+        timer_delay_ms(1);
     }
     
-    return RETURN_OK;
+    /* Timeout */    
+    return RETURN_NOK;
+}
+
+/*! \fn     lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_descriptor_t* descriptor_pt)
+*   \brief  Check if received accelerometer data, and if so arm next transfer
+*   \param  descriptor_pt   Pointer to lis2hh12 descriptor
+*   \return TRUE if we received new data
+*/
+BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_descriptor_t* descriptor_pt)
+{
+    if (dma_acc_check_and_clear_dma_transfer_flag() != FALSE)
+    {
+        /* Deasset nCS */
+        PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
+        
+        /* Arm next DMA transfer */
+        dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read), &(descriptor_pt->read_cmd));
+        
+        /* Make sure the accelerometer sees the nCS going up */
+        asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");
+        
+        /* Assert nCS */
+        PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;
+        
+        /* Report there's data to be read */
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
 }
 
 /*! \fn     lis2hh12_manual_acc_data_read(accelerometer_descriptor_t* descriptor_pt, acc_data* data_pt)
@@ -120,7 +169,7 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
 *   \param  descriptor_pt   Pointer to lis2hh12 descriptor
 *   \param  data_pt         Pointer to where to store the acceleration data
 */
-void lis2hh12_manual_acc_data_read(accelerometer_descriptor_t* descriptor_pt, acc_data* data_pt)
+void lis2hh12_manual_acc_data_read(accelerometer_descriptor_t* descriptor_pt, acc_data_t* data_pt)
 {
     uint8_t readAccData[9] = {0xA8};
     lis2hh12_send_command(descriptor_pt, readAccData, sizeof(readAccData));
