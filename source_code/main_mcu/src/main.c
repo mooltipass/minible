@@ -59,7 +59,7 @@ int main (void)
     //timer_delay_ms(1);
     sh1122_init_display(&oled_descriptor);
     
-    uint32_t cnt = 0;
+    /*uint32_t cnt = 0;
     while(1)
     {
         if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) != FALSE)
@@ -70,9 +70,24 @@ int main (void)
             sh1122_printf_xy(&oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Z: %i", acc_descriptor.fifo_read.acc_data_array[0].acc_z);
             sh1122_printf_xy(&oled_descriptor, 0, 45, OLED_ALIGN_LEFT, "cnt: %i", cnt++);            
         }
+    }*/
+    
+    /* Language feature test */
+    while(1)
+    {
+        cust_char_t* lapin;
+        for (uint16_t i = 0; i < custom_fs_get_number_of_languages(); i++)
+        {
+            custom_fs_set_current_language(i);
+            sh1122_refresh_used_font(&oled_descriptor);
+            custom_fs_get_string_from_file(0, &lapin);
+            sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, 13);
+            sh1122_put_string_xy(&oled_descriptor, 0, 0, OLED_ALIGN_CENTER, custom_fs_get_current_language_text_desc());
+            sh1122_put_string_xy(&oled_descriptor, 0, 45, OLED_ALIGN_CENTER, lapin);
+            timer_delay_ms(1000);
+        }        
     }
     
-    sh1122_printf_xy(&oled_descriptor, 0, 0, OLED_ALIGN_CENTER, "FPS: %u", 32);
     while(1);
     
     /*

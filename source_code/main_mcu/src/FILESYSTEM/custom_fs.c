@@ -13,6 +13,8 @@
 #include "dataflash.h"
 #include "dma.h"
 
+/* Current selected language entry */
+language_map_entry_t custom_fs_cur_language_entry = {.starting_bitmap = 0, .starting_font = 0, .string_file_index = 0};
 /* Flash header */
 custom_file_flash_header_t custom_fs_flash_header;
 /* Bool to specify if the SPI bus is left opened */
@@ -20,7 +22,6 @@ BOOL custom_fs_data_bus_opened = FALSE;
 /* Temp values to speed up lookup */
 custom_fs_string_count_t custom_fs_current_text_file_string_count = 0;
 custom_fs_address_t custom_fs_current_text_file_addr = 0;
-uint32_t custom_fs_current_text_file_uid = 0;
 /* Temp string buffers for string reading */
 uint16_t custom_fs_temp_string1[128];
 /* Our platform settings array, in internal NVM */
@@ -38,8 +39,8 @@ spi_flash_descriptor_t* dataflash_desc = 0;
 */
 RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
 {
-    dataflash_read_data_array(dataflash_desc, address, datap, size);
-    //memcpy(datap, &mooltipass_bundle[address], size);
+    //dataflash_read_data_array(dataflash_desc, address, datap, size);
+    memcpy(datap, &mooltipass_bundle[address], size);
     return RETURN_OK;
 }
 
@@ -123,6 +124,53 @@ void custom_fs_settings_init(void)
     }    
 }
 
+/*! \fn     custom_fs_get_number_of_languages(void)
+*   \brief  Get number of languages currently supported
+*   \return I'll let you guess...
+*/
+uint32_t custom_fs_get_number_of_languages(void)
+{
+    return custom_fs_flash_header.language_map_item_count;
+}
+
+/*! \fn     custom_fs_get_current_language_text_desc(void)
+*   \brief  Get current language string description
+*   \return Max 18 chars long string
+*/
+cust_char_t* custom_fs_get_current_language_text_desc(void)
+{
+    return custom_fs_cur_language_entry.language_descr;
+}
+
+/*! \fn     custom_fs_set_current_language(uint16_t language_id)
+*   \brief  Set current language
+*   \param  language_id     Language ID
+*   \return RETURN_(N)OK
+*/
+ret_type_te custom_fs_set_current_language(uint16_t language_id)
+{
+    /* Check for valid language id */
+    if (language_id >= custom_fs_flash_header.language_map_item_count)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Load address to language map table */
+    custom_fs_address_t language_map_table_addr;
+    custom_fs_read_from_flash((uint8_t*)&language_map_table_addr, CUSTOM_FS_FILES_ADDR_OFFSET + custom_fs_flash_header.language_map_offset, sizeof(language_map_table_addr));
+    
+    /* Load language map entry */
+    custom_fs_read_from_flash((uint8_t*)&custom_fs_cur_language_entry, CUSTOM_FS_FILES_ADDR_OFFSET + language_map_table_addr + (language_id*sizeof(custom_fs_cur_language_entry)), sizeof(custom_fs_cur_language_entry));
+    
+    /* Try to read address and file count of text file for this language */
+    if (custom_fs_get_file_address(custom_fs_cur_language_entry.string_file_index, &custom_fs_current_text_file_addr, CUSTOM_FS_STRING_TYPE) != RETURN_NOK)
+    {
+        custom_fs_read_from_flash((uint8_t*)&custom_fs_current_text_file_string_count, custom_fs_current_text_file_addr, sizeof(custom_fs_current_text_file_string_count));
+    }
+    
+    return RETURN_OK;
+}
+
 /*! \fn     custom_fs_init(void)
 *   \brief  Initialize our custom file system... system
 *   \param  desc    Pointer to the SPI flash port descriptor
@@ -135,37 +183,20 @@ void custom_fs_init(spi_flash_descriptor_t* desc)
     /* Read flash header */
     custom_fs_read_from_flash((uint8_t*)&custom_fs_flash_header, CUSTOM_FS_FILES_ADDR_OFFSET, sizeof(custom_fs_flash_header));
     
-    /* Try to read address and file count of text file #0 */
-    if (custom_fs_get_file_address(0, &custom_fs_current_text_file_addr, CUSTOM_FS_STRING_TYPE) != RETURN_NOK)
-    {
-        custom_fs_read_from_flash((uint8_t*)&custom_fs_current_text_file_string_count, custom_fs_current_text_file_addr, sizeof(custom_fs_current_text_file_string_count));
-    } 
+    /* Set default language */
+    custom_fs_set_current_language(0);
 }
 
 /*! \fn     custom_fs_get_string_from_file(uint32_t text_file_id, uint32_t string_id, char* string_pt)
 *   \brief  Read a string from a string file
-*   \param  file_id     File ID
 *   \param  string_id   String ID
 *   \param  string_pt   Pointer to the returned string
 *   \return success status
 */
-RET_TYPE custom_fs_get_string_from_file(uint32_t text_file_id, uint32_t string_id, cust_char_t** string_pt)
+RET_TYPE custom_fs_get_string_from_file(uint32_t string_id, cust_char_t** string_pt)
 {
     custom_fs_string_offset_t string_offset;
     custom_fs_string_length_t string_length;
-    
-    /* Check if the file that wants to be read is not the one we previously read */
-    if (custom_fs_current_text_file_uid != text_file_id)
-    {
-        /* Try to read address of text file */
-        if (custom_fs_get_file_address(text_file_id, &custom_fs_current_text_file_addr, CUSTOM_FS_STRING_TYPE) == RETURN_NOK)
-        {
-            return RETURN_NOK;
-        }
-        
-        /* Read string count of text file */        
-        custom_fs_read_from_flash((uint8_t*)&custom_fs_current_text_file_string_count, custom_fs_current_text_file_addr, sizeof(custom_fs_current_text_file_string_count));
-    }
     
     /* Check that file #0 was requested and that file doesn't actually exist */
     if (custom_fs_current_text_file_addr == 0)
@@ -200,9 +231,6 @@ RET_TYPE custom_fs_get_string_from_file(uint32_t text_file_id, uint32_t string_i
     /* Store pointer to string */
     *string_pt = custom_fs_temp_string1;
     
-    /* Store current text file id */
-    custom_fs_current_text_file_uid = text_file_id;
-    
     return RETURN_OK;
 }
 
@@ -216,6 +244,7 @@ RET_TYPE custom_fs_get_string_from_file(uint32_t text_file_id, uint32_t string_i
 RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* address, custom_fs_file_type_te file_type)
 {
     custom_fs_address_t file_table_address;
+    uint32_t language_offset = 0;
 
     // Check for invalid file index or flash not formatted
     if (file_type == CUSTOM_FS_STRING_TYPE)
@@ -230,8 +259,11 @@ RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* addre
         }
     }
     else if (file_type == CUSTOM_FS_FONTS_TYPE)
-    {
-        if ((file_id >= custom_fs_flash_header.fonts_file_count) || (custom_fs_flash_header.fonts_file_count == CUSTOM_FS_MAX_FILE_COUNT))
+    {        
+        /* Take into account possible offset due to different font for current language */
+        language_offset = custom_fs_cur_language_entry.starting_font;
+        
+        if (((file_id + language_offset) >= custom_fs_flash_header.fonts_file_count) || (custom_fs_flash_header.fonts_file_count == CUSTOM_FS_MAX_FILE_COUNT))
         {
             return RETURN_NOK;
         }
@@ -241,8 +273,14 @@ RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* addre
         }
     }
     else if (file_type == CUSTOM_FS_BITMAP_TYPE)
-    {
-        if ((file_id >= custom_fs_flash_header.bitmap_file_count) || (custom_fs_flash_header.bitmap_file_count == CUSTOM_FS_MAX_FILE_COUNT))
+    {        
+        /* Take into account possible offset due to different font for current language */
+        if (file_id >= custom_fs_flash_header.language_bitmap_starting_id)
+        {
+            language_offset = custom_fs_cur_language_entry.starting_bitmap;
+        }
+        
+        if (((file_id + language_offset) >= custom_fs_flash_header.bitmap_file_count) || (custom_fs_flash_header.bitmap_file_count == CUSTOM_FS_MAX_FILE_COUNT))
         {
             return RETURN_NOK;
         }
@@ -279,7 +317,7 @@ RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* addre
     }
 
     /* Read the file address : <filecount> <fileid0><address0> <fileid1><address1> ... */
-    custom_fs_read_from_flash((uint8_t*)address, CUSTOM_FS_FILES_ADDR_OFFSET + file_table_address + file_id * sizeof(*address), sizeof(*address));
+    custom_fs_read_from_flash((uint8_t*)address, CUSTOM_FS_FILES_ADDR_OFFSET + file_table_address + (file_id + language_offset) * sizeof(*address), sizeof(*address));
     
     /* Add the file address offset */
     *address += CUSTOM_FS_FILES_ADDR_OFFSET;

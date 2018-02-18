@@ -40,6 +40,9 @@ typedef enum {CUSTOM_FS_STRING_TYPE = 0, CUSTOM_FS_FONTS_TYPE = 1, CUSTOM_FS_BIT
 // string file count: number of string files
 // string file offset: starting address at which to find the address of each string file
 // same for fonts, bitmaps, binary imgs...
+// language map items : number of language map items
+// language map offset: starting adress at which to find the address of the language map
+// language specific start id : starting ID at which a language specific bitmap is needed
 typedef struct
 {
     uint32_t magic_header;
@@ -56,7 +59,9 @@ typedef struct
     custom_fs_address_t bitmap_file_offset;
     custom_fs_file_count_t binary_img_file_count;
     custom_fs_address_t binary_img_file_offset;
-    uint8_t reserved[12];
+    custom_fs_file_count_t language_map_item_count;
+    custom_fs_address_t language_map_offset;
+    uint32_t language_bitmap_starting_id;
 } custom_file_flash_header_t;
 
 // Platform settings
@@ -96,20 +101,33 @@ typedef struct
     custom_fs_address_t glyph;      // offset to glyph data
 } font_glyph_t;
 
+// Language map entry
+typedef struct
+{
+    cust_char_t language_descr[18]; // Language description in unicode
+    uint16_t string_file_index;     // String file for that language
+    uint16_t starting_font;         // Starting font for that language
+    uint16_t starting_bitmap;       // Starting bitmap for that language
+    uint16_t keyboard_layout_id;    // Recommended keyboard layout ID
+} language_map_entry_t;
+
 /* Prototypes */
 RET_TYPE custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size, BOOL use_dma);
 RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* address, custom_fs_file_type_te file_type);
-RET_TYPE custom_fs_get_string_from_file(uint32_t text_file_id, uint32_t string_id, cust_char_t** string_pt);
 RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size);
 void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
 void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
+RET_TYPE custom_fs_get_string_from_file(uint32_t string_id, cust_char_t** string_pt);
 uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id);
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void);
+ret_type_te custom_fs_set_current_language(uint16_t language_id);
+cust_char_t* custom_fs_get_current_language_text_desc(void);
 void custom_fs_stop_continuous_read_from_flash(void);
 BOOL custom_fs_settings_check_fw_upgrade_flag(void);
 void custom_fs_settings_clear_fw_upgrade_flag(void);
 void custom_fs_settings_set_fw_upgrade_flag(void);
 void custom_fs_init(spi_flash_descriptor_t* desc);
+uint32_t custom_fs_get_number_of_languages(void);
 void custom_fs_settings_init(void);
 
 #endif /* CUSTOM_FS_H_ */

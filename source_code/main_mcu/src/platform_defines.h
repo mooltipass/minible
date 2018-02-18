@@ -57,9 +57,9 @@ typedef struct
 /* Functionality defines */
 /*************************/
 /* specify that the flash is alone on the spi bus */
-#define FLASH_ALONE_ON_SPI_BUS
+//#define FLASH_ALONE_ON_SPI_BUS
 /* Use DMA transfers to read from external flash */
-#define FLASH_DMA_FETCHES
+//#define FLASH_DMA_FETCHES
 /* Use DMA transfers to send data to OLED screen */
 //#define OLED_DMA_TRANSFER
 /* allow printf for the screen */

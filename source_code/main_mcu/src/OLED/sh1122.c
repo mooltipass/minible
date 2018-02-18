@@ -272,6 +272,23 @@ void sh1122_oled_off(sh1122_descriptor_t* oled_descriptor)
     oled_descriptor->oled_on = FALSE;
 }
 
+/*! \fn     sh1122_refresh_used_font(void)
+*   \brief  Refreshed used font (in case of init or language change)
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*/
+void sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor)
+{
+    if (custom_fs_get_file_address(DEFAULT_FONT_ID, &oled_descriptor->currentFontAddress, CUSTOM_FS_FONTS_TYPE) == RETURN_NOK)
+    {
+        oled_descriptor->currentFontAddress = 0;
+    }
+    else
+    {
+        /* Read font header */
+        custom_fs_read_from_flash((uint8_t*)&oled_descriptor->current_font_header, oled_descriptor->currentFontAddress, sizeof(oled_descriptor->current_font_header));
+    }    
+}
+
 /*! \fn     sh1122_init_display(sh1122_descriptor_t oled_descriptor)
 *   \brief  Initialize a SSD1322 display
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
@@ -317,15 +334,7 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor)
     oled_descriptor->oled_on = TRUE;
     
     /* Try to set default font */
-    if (custom_fs_get_file_address(DEFAULT_FONT_ID, &oled_descriptor->currentFontAddress, CUSTOM_FS_FONTS_TYPE) == RETURN_NOK)
-    {
-        oled_descriptor->currentFontAddress = 0;
-    }
-    else
-    {
-        /* Read font header */
-        custom_fs_read_from_flash((uint8_t*)&oled_descriptor->current_font_header, oled_descriptor->currentFontAddress, sizeof(oled_descriptor->current_font_header));
-    }
+    sh1122_refresh_used_font(oled_descriptor);
     
     /* From datasheet : wait 100ms */
     timer_delay_ms(100);
