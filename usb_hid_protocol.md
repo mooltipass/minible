@@ -7,9 +7,9 @@ To accomodate its new features, the new Mooltipass Mini implements a new protoco
 | message flip bit, ack flag and packet payload length | packet ID for given message | payload   |
   
     
-| byte 0       | byte 1            | bytes 2-63 |
-|:-------------|:------------------|:-----------|
-| ok           | good swedish fish | nice       |
+| byte 0       | byte 1                      | bytes 2-63 |
+|:-------------|:----------------------------|:-----------|
+| ok           | packet ID for given message | nice       |
    
 ### [](#header-3) Byte 1 Description
 | bits 7 to 4                 | bits 3 to 0                 |
