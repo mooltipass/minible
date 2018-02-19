@@ -1,5 +1,5 @@
 ## [](#header-1) USB HID Protocol
-To accomodate its new features, the new Mooltipass Mini implements a new protocol implemented on top of 64 bytes HID packets. It is **not** compatible with previous protocoles.   
+To accomodate its new features, the new Mooltipass Mini implements a new protocol implemented on top of 64 bytes HID packets. It is **not** compatible with previous protocols.   
    
 ### [](#header-3) High Level HID Packet Structure Overview
 
@@ -27,8 +27,8 @@ If the computer wants to send a 240 bytes long message to the mini, it will send
 | message flip bit | final acknowledge flag | current packet payload length - 1 |
   
 The message flip bit's main purpose is to explicitely mention that a new **message** (not packet) is being sent. This also allows the computer to discard a half-sent message by sending a new one with this bit flipped.  
-Therefore, **this bit should be flipped every time a new message is sent**.  
-At the end of a message transmission, **regardless of the message contents expected answer**, the device will answer with a **single 64B packet** with the same byte0 and byte1 and the final acknowledge flag set.  
+Therefore, this bit should be flipped every time a new message is sent.  
+At the end of a message transmission, regardless of the message contents' expected answer, the device will answer with a single 64B packet with the same byte0 and byte1 and the final acknowledge flag set.  
 This allows the computer to make sure his message was received.  
   
 **Example:**  
