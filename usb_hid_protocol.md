@@ -2,9 +2,9 @@
 To accomodate its new features, the new Mooltipass Mini implements a new protocol implemented on top of 64 bytes HID packets. It is **not** compatible with previous protocoles.   
    
 ### [](#header-3) High Level HID Packet Structure Overview
-| byte 0                                                | byte 1                        | bytes 2 to 63  | 
-|:------------------------------------------------------|:------------------------------|:---------------| 
-| message flip bit, ack flag and packet payload length  | packet ID for given message   | payload        | 
+| byte 0                                               | byte 1                      | bytes 2-63 | 
+|:-----------------------------------------------------|:----------------------------|:-----------| 
+| message flip bit, ack flag and packet payload length | packet ID for given message | payload    | 
   
     
 | head1        | head two          | three |
@@ -15,9 +15,9 @@ To accomodate its new features, the new Mooltipass Mini implements a new protoco
 | ok           | good `zoute` drop | yumm  |
    
 ### [](#header-3) Byte 1 Description
-| bits 7 to 4                   | bits 3 to 0                   | 
-|:------------------------------|:------------------------------| 
-| packet ID for given message   | total number of packets - 1   | 
+| bits 7 to 4                 | bits 3 to 0                 | 
+|:----------------------------|:----------------------------| 
+| packet ID for given message | total number of packets - 1 | 
   
 **Example:**  
 If the computer wants to send a 240 bytes long message to the mini, it will send **4** raw HID packets whose bytes 1 are:  
@@ -27,9 +27,9 @@ If the computer wants to send a 240 bytes long message to the mini, it will send
 - computer packet #3: 0x33  
    
 ### [](#header-3) Byte 0 Description
-| bit 7             | bit 6                   | bits 5 to 0                         | 
-|:------------------|:------------------------|:------------------------------------| 
-| message flip bit  | final acknowledge flag  | current packet payload length - 1   | 
+| bit 7            | bit 6                  | bits 5 to 0                       | 
+|:-----------------|:-----------------------|:----------------------------------| 
+| message flip bit | final acknowledge flag | current packet payload length - 1 | 
   
 The message flip bit's main purpose is to explicitely mention that a new **message** (not packet) is being sent. This also allows the computer to discard a half-sent message by sending a new one with this bit flipped.  
 Therefore, **this bit should be flipped every time a new message is sent**.  
