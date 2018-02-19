@@ -3,7 +3,7 @@ This website aims to provide contributors and Moooltipass enthusiasts with all r
 
 ## [](#header-2)Device Technical Details
 You'll find below different pages detailing our selected architecture.
-* [High level device overview](highlevel_overview)
+* [High Level Device Overview](highlevel_overview)
 * [USB Raw HID Protocol](usb_hid_protocol)
 
 ## [](#header-2)Contributors
@@ -13,7 +13,7 @@ You'll find below the available tasks, grouped by category.
 Do not forget to review our [contributors guidelines and coding rules](coding_rules).
 * [New Database Model Implementation](task_db)
 * [Unicode Plane 0 Support Implementation (Fonts)](task_unicode_font)
-* [Unicode Plane 0 support implementation (HID)](task_unicode_hid)
+* [Unicode Plane 0 Support Implementation (HID)](task_unicode_hid)
 * [Secure Bootloader Implementation](task_bootloader)
 * [User Interface Design](task_ui_design)
 * [Smartcard Emulation](task_smc_emul)
