@@ -3,9 +3,9 @@ To accomodate its new features, the new Mooltipass Mini implements a new protoco
    
 ### [](#header-3) High Level HID Packet Structure Overview
 
-| byte 0                                               | byte 1                      | bytes 2-63 |
-|:-----------------------------------------------------|:----------------------------|:-----------|
-| message flip bit, ack flag and packet payload length | packet ID for given message | payload    |
+| byte 0                                            | byte 1                      | bytes 2-63 |
+|:--------------------------------------------------|:----------------------------|:-----------|
+| message flip bit, ack flag, packet payload length | packet ID for given message | payload    |
    
 ### [](#header-3) Byte 1 Description
 
