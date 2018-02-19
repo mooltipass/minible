@@ -2,9 +2,9 @@
 To accomodate its new features, the new Mooltipass Mini implements a new protocol implemented on top of 64 bytes HID packets. It is **not** compatible with previous protocoles.   
    
 ### [](#header-3) High Level HID Packet Structure Overview
-| byte 0                                               | byte 1                      | bytes 2-63 |
-|:-----------------------------------------------------|:----------------------------|:-----------|
-| message flip bit, ack flag and packet payload length | packet ID for given message | payload    |
+| byte0                                                | byte1                       | bytes2-63 |
+|:-----------------------------------------------------|:----------------------------|:----------|
+| message flip bit, ack flag and packet payload length | packet ID for given message | payload   |
   
     
 | head1        | head two          | three |
