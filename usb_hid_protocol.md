@@ -9,7 +9,7 @@ To accomodate its new features, the new Mooltipass Mini implements a new protoco
     
 | byte 0       | byte 1                      | bytes 2-63 |
 |:-------------|:----------------------------|:-----------|
-| ok           | packet ID for given message | nice       |
+| ok           | packet ID for given message | payload    |
    
 ### [](#header-3) Byte 1 Description
 | bits 7 to 4                 | bits 3 to 0                 |
