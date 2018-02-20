@@ -1,5 +1,5 @@
 ## [](#header-1) USB HID Protocol
-To accomodate its new features, the new Mooltipass Mini implements a new protocol implemented on top of 64 bytes HID packets. It is **not** compatible with previous protocols.   
+To accomodate its new features, the new Mooltipass Mini uses a new protocol implemented on top of 64 bytes HID packets. It is **not** compatible with previous protocols.   
    
 ### [](#header-3) High Level HID Packet Structure Overview
 
