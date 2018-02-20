@@ -10,6 +10,7 @@
 #include "driver_clocks.h"
 #include "driver_timer.h"
 #include "defines.h"
+#include "inputs.h"
 /* Timer array */
 volatile timerEntry_t context_timers[TOTAL_NUMBER_OF_TIMERS];
 /* System tick */
@@ -37,7 +38,7 @@ void TCC0_Handler(void)
             //debug_led_anim_tick();
         
             /* Scan buttons */
-            //button_scan();
+            inputs_scan();
         }
     #endif
 }

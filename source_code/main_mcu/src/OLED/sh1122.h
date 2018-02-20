@@ -1,4 +1,4 @@
-/*!  \file     sh1122.c
+/*!  \file     sh1122.h
 *    \brief    SH1122 OLED driver
 *    Created:  30/12/2017
 *    Author:   Mathieu Stephan

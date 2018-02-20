@@ -8,6 +8,7 @@
 #define PLATFORM_IO_H_
 
 /* Prototypes */
+void platform_io_init_scroll_wheel_ports(void);
 void platform_io_power_up_oled(BOOL power_1v2);
 void platform_io_disable_switch_and_die(void);
 void platform_io_smc_inserted_function(void);
