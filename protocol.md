@@ -7,8 +7,8 @@ This page explains the new Mooltipass messaging protocol and the different comma
 |:-------------------|:---------------|:----------|
 | Command Identifier | Payload Length | Payload   |
    
-As with our previous devices, every message sent by the computer will receive an answer.  
-In all command descriptions below, hmstrlen() is a custom strlen function treating a characters as a uint16_t (Unicode BMP). Therefore hmstrlen("a") = 2.  
+As with our previous devices, every non-debug / non-test message sent by the computer will receive an answer.  
+In all command descriptions below, hmstrlen() is a custom strlen function treating a character as a uint16_t (Unicode BMP). Therefore, hmstrlen("a") = 2.  
   
 ## [](#header-2) Mooltipass Commands
 
