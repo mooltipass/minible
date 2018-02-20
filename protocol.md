@@ -18,4 +18,5 @@ In all command descriptions below, hmstrlen() is a custom strlen function treati
 | byte 0 | byte 1-2                    | bytes 3-X     |
 |:-------|:----------------------------|:--------------|
 | 0x00   | hmstrlen(debug_message) + 1 | Debug Message |
+
 Can be sent from both the device or the computer. **Does not require an answer.** 
