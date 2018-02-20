@@ -9,7 +9,7 @@ This page explains the new Mooltipass messaging protocol and the different comma
    
 As with our previous devices, every message sent by the computer will receive an answer.  
   
-### [](#header-3) Mooltipass Commands
+## [](#header-2) Mooltipass Commands
 
 0x00: Debug Message
 -------------------
