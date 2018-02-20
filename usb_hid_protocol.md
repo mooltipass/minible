@@ -22,9 +22,9 @@ If the computer wants to send a 240 bytes long message to the mini, it will send
    
 ### [](#header-3) Byte 0 Description
 
-| bit 7            | bit 6                  | bits 5 to 0                       |
-|:-----------------|:-----------------------|:----------------------------------|
-| message flip bit | final acknowledge flag | current packet payload length - 1 |
+| bit 7            | bit 6                  | bits 5 to 0                   |
+|:-----------------|:-----------------------|:------------------------------|
+| message flip bit | final acknowledge flag | current packet payload length |
   
 The message flip bit's main purpose is to explicitely mention that a new **message** (not packet) is being sent. This also allows the computer to discard a half-sent message by sending a new one with this bit flipped.  
 Therefore, this bit should be flipped every time a new message is sent.  
