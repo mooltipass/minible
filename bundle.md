@@ -45,6 +45,7 @@ This page explains in details the graphics bundle data structure.
 | 0-5 | Font header |
 | 6-(6+last_chr_val*2) | Uint16_t array of glyph indexes (set to an index when we support char - 0x20, 0xFFFF otherwise) |
 | (6+last_chr_val*2)-(6+last_chr_val*2+chr_count*8) | Glyph array |
+| (6+last_chr_val*2+chr_count*8)-... | Pixel data for glyphs |
   
   
 ## [](#header-2) Font Header
@@ -57,7 +58,7 @@ This page explains in details the graphics bundle data structure.
 | 4-5 | chr_count | Number of characters in this font |
   
   
-  ## [](#header-2) Font Glyph
+## [](#header-2) Font Glyph
 
 | bytes             | name       | description |
 |:-------------------|:---------------|:----------|
@@ -68,7 +69,7 @@ This page explains in details the graphics bundle data structure.
 | 4-7 | glyph_data_offset | offset from beginning of pixel data for this glyph data |
   
     
-  ## [](#header-2) Text File
+## [](#header-2) Text File
 
 | bytes             | description |
 |:-------------------|:----------|
