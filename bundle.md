@@ -43,7 +43,8 @@ This page explains in details the graphics bundle data structure.
 | bytes             | description |
 |:-------------------|:----------|
 | 0-5 | Font header |
-| 6-(6+last_chr_val*2) | Font header |
+| 6-(6+last_chr_val*2) | Uint16_t array of glyph indexes (set to an index when we support char - 0x20, 0xFFFF otherwise) |
+| (6+last_chr_val*2)-(6+last_chr_val*2+chr_count*8) | Glyph array |
   
   
 ## [](#header-2) Font Header
