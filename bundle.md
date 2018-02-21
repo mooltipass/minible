@@ -5,7 +5,7 @@ This page explains in details the graphics bundle data structure.
 
 | bytes             | name       | description |
 |:-------------------|:---------------|:----------|
-| 0-3   | magic_header | 0x12345678 |
+| 0->3   | magic_header | 0x12345678 |
 | 4-7   | total_size | Bundle total size |
 | 8-11  | crc32 | Bundle CRC32 starting from byte 12 |
 | 12-75 | signed_hash | TBD |
