@@ -3,11 +3,11 @@ This page explains in details the graphics bundle data structure.
    
 ## [](#header-2) Bundle Header
 
-| bytes             | name       | explanation |
+| bytes             | name       | description |
 |:-------------------|:---------------|:----------|
 | 0-3   | magic_header | 0x12345678 |
 | 4-7   | total_size | Bundle total size |
-| 8-11  | crc32 | Bundle CRC32 starting from byte 16 |
+| 8-11  | crc32 | Bundle CRC32 starting from byte 12 |
 | 12-75 | signed_hash | TBD |
 | 76-79 | update_file_count | Number of update files |
 | 80-83 | update_file_offset | Start address to find update file addresses |
@@ -19,16 +19,42 @@ This page explains in details the graphics bundle data structure.
 | 104-107 | bitmap_file_offset | Start address to find bitmap file addresses |
 | 108-111 | binary_img_file_count | Number of binary files (keyboard LUTs) |
 | 112-115 | binary_img_file_offset | Start address to find binary file addresses |
-| 108-111 | language_map_item_count | Number of language map items |
-| 112-115 | language_map_offset | Start address to find language map items |
+| 116-119 | language_map_item_count | Number of language map items |
+| 120-123 | language_map_offset | Start address to find language map items |
+| 124-127 | language_bitmap_starting_id | Starting index for language bitmaps |
    
-## [](#header-2) Mooltipass Commands
+   
+## [](#header-2) Bitmap File
 
-0x00: Debug Message
--------------------
+| bytes             | name       | description |
+|:-------------------|:---------------|:----------|
+| 0-1 | width | Bitmap width |
+| 2 | height | Bitmap height |
+| 3 | xpos | Recommended X display position |
+| 4 | ypos | Recommended Y display position |
+| 5 | depth | Number of bits per pixel |
+| 6-7 | flags | Flags defining data format |
+| 8-9 | dataSize | Payload datasize |
+| 10-... | data | Bitmap data |
+  
+  
+## [](#header-2) Font Header
 
-| byte 0 | byte 1-2                    | bytes 3-X                          |
-|:-------|:----------------------------|:-----------------------------------|
-| 0x00   | hmstrlen(debug_message) + 2 | Debug Message + terminating 0x0000 |
+| bytes             | name       | description |
+|:-------------------|:---------------|:----------|
+| 0 | height | Font height |
+| 1 | depth | Number of bits per pixel |
+| 2-3 | last_chr_val | Unicode value of last character |
+| 4-5 | chr_count | Recommended Y display positionNumber of characters in this font |
+  
+  
+  ## [](#header-2) Font Glyph
 
-Can be sent from both the device or the computer. **Does not require an answer.** 
+| bytes             | name       | description |
+|:-------------------|:---------------|:----------|
+| 0 | xrect | x width of rectangle |
+| 1 | yrect | y height of rectangle |
+| 2 | xoffset | x offset of glyph in rectangle |
+| 3 | yoffset | y offset of glyph in rectangle |
+| 4-7 | glyph_data_offset | offset from beginning of pixel data for this glyph data |
+
