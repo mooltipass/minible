@@ -39,7 +39,7 @@ void inputs_scan(void)
     uint16_t wheel_state, wheel_sm = 0;
     
     // Wheel encoder    
-    wheel_state = ((PORT->Group[WHEEL_A_GROUP].IN.reg & WHEEL_A_MASK) >> WHEEL_A_PINID) | ((PORT->Group[WHEEL_B_GROUP].IN.reg & WHEEL_B_MASK) >> WHEEL_B_PINID-1);
+    wheel_state = ((PORT->Group[WHEEL_A_GROUP].IN.reg & WHEEL_A_MASK) >> WHEEL_A_PINID) | ((PORT->Group[WHEEL_B_GROUP].IN.reg & WHEEL_B_MASK) >> (WHEEL_B_PINID-1));
 
     // Find the state matching the wheel state
     for (uint16_t i = 0; i < sizeof(wheel_sm_states)/sizeof(wheel_sm_states[0]); i++)

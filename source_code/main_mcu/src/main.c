@@ -94,12 +94,14 @@ int main (void)
     /* Animation test */
     while(1)
     {
-        for (uint32_t i = 0; i < 73; i++)
+        for (uint32_t i = 0; i < 90; i++)
         {
+            timer_start_timer(TIMER_TIMEOUT_FUNCTS, 25);
             PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK; 
-            sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&oled_descriptor, i);
             //PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
             //sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
+            while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING);
         }
     }
     

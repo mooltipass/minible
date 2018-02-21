@@ -76,6 +76,8 @@ typedef struct
 {
     uint16_t width;     //*< width of image in pixels
     uint8_t height;     //*< height of image in pixels
+    uint8_t xpos;       //*< recommended X position
+    uint8_t ypos;       //*< recommended Y position
     uint8_t depth;      //*< Number of bits per pixel
     uint16_t flags;     //*< Flags defining data format
     uint16_t dataSize;  //*< number of words in data
@@ -94,11 +96,11 @@ typedef struct
 // Glyph struct
 typedef struct
 {
-    uint8_t xrect;                  // x width of rectangle
-    uint8_t yrect;                  // y height of rectangle
-    int8_t xoffset;                 // x offset of glyph in rectangle
-    int8_t yoffset;                 // y offset of glyph in rectangle
-    custom_fs_address_t glyph;      // offset to glyph data
+    uint8_t xrect;                          // x width of rectangle
+    uint8_t yrect;                          // y height of rectangle
+    int8_t xoffset;                         // x offset of glyph in rectangle
+    int8_t yoffset;                         // y offset of glyph in rectangle
+    custom_fs_address_t glyph_data_offset;  // offset to glyph data
 } font_glyph_t;
 
 // Language map entry

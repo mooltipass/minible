@@ -614,12 +614,45 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
     }    
 }
 
+
+
+/*! \fn     sh1122_display_bitmap_from_flash_at_recommended_position(sh1122_descriptor_t* oled_descriptor, uint32_t file_id)
+*   \brief  Display a bitmap stored in the external flash, at its recommended position
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  file_id             Bitmap file ID
+*   \return success status
+*/
+RET_TYPE sh1122_display_bitmap_from_flash_at_recommended_position(sh1122_descriptor_t* oled_descriptor, uint32_t file_id)
+{
+    custom_fs_address_t file_adress;
+    bitstream_bitmap_t bitstream;
+    bitmap_t bitmap;
+
+    /* Fetch file address */
+    if (custom_fs_get_file_address(file_id, &file_adress, CUSTOM_FS_BITMAP_TYPE) != RETURN_OK)
+    {
+        return RETURN_NOK;
+    }
+
+    /* Read bitmap info data */
+    custom_fs_read_from_flash((uint8_t *)&bitmap, file_adress, sizeof(bitmap));
+    
+    /* Init bitstream */
+    bitstream_bitmap_init(&bitstream, &bitmap, file_adress + sizeof(bitmap), TRUE);
+    
+    /* Draw bitmap */
+    sh1122_draw_image_from_bitstream(oled_descriptor, bitmap.xpos, bitmap.ypos, &bitstream);
+    
+    return RETURN_OK;    
+}
+
 /*! \fn     sh1122_display_bitmap_from_flash(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint32_t file_id)
 *   \brief  Display a bitmap stored in the external flash
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
 *   \param  y                   Starting y
 *   \param  file_id             Bitmap file ID
+*   \return success status
 */
 RET_TYPE sh1122_display_bitmap_from_flash(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint32_t file_id)
 {
@@ -798,7 +831,7 @@ uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_
         // Read the beginning of the glyph
         custom_fs_read_from_flash((uint8_t*)&glyph, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + (oled_descriptor->current_font_header.last_chr_val+1)*sizeof(gind) + gind*sizeof(glyph), sizeof(glyph));
 
-        if (glyph.glyph == 0xFFFFFFFF)
+        if (glyph.glyph_data_offset == 0xFFFFFFFF)
         {
             // If there's no glyph data, it is the space!
             return (glyph.xrect >> 1); // space character is always too large...
@@ -881,7 +914,7 @@ uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int1
     /* Read glyph data */
     custom_fs_read_from_flash((uint8_t*)&glyph, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + (oled_descriptor->current_font_header.last_chr_val+1)*sizeof(gind) + gind*sizeof(glyph), sizeof(glyph));
 
-    if (glyph.glyph == 0xFFFFFFFF)
+    if (glyph.glyph_data_offset == 0xFFFFFFFF)
     {
         /* Space character, just fill in the gddram buffer and output background pixels */
         glyph_width = glyph.xrect >> 1; // space character is always too large...
@@ -894,7 +927,7 @@ uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int1
         y += glyph.yoffset;
         
         /* Compute glyph data address */
-        custom_fs_address_t gaddr = oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + (oled_descriptor->current_font_header.last_chr_val+1)*sizeof(gind) + (oled_descriptor->current_font_header.chr_count) * sizeof(glyph) + glyph.glyph;
+        custom_fs_address_t gaddr = oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + (oled_descriptor->current_font_header.last_chr_val+1)*sizeof(gind) + (oled_descriptor->current_font_header.chr_count) * sizeof(glyph) + glyph.glyph_data_offset;
         
         // Initialize bitstream & draw the character
         bitstream_glyph_bitmap_init(&bs, &oled_descriptor->current_font_header, &glyph, gaddr, TRUE);
