@@ -66,4 +66,15 @@ This page explains in details the graphics bundle data structure.
 | 2 | xoffset | x offset of glyph in rectangle |
 | 3 | yoffset | y offset of glyph in rectangle |
 | 4-7 | glyph_data_offset | offset from beginning of pixel data for this glyph data |
+  
+    
+  ## [](#header-2) Text File
 
+| bytes             | description |
+|:-------------------|:----------|
+| 0-1 | Number of strings in text file (nb_strings) |
+| 2-2+2*nb_strings | Array of offset addresses for the nb_strings (addra, addrb, addrc...) |
+| addra-addra+1 | Length of string #0 (length0), including final 0 |
+| addra+2-addra+2+length0 | String #0 |
+| addrb-addrb+1 | Length of string #1 (length1), including final 0 |
+| addrb+2-addrb+2+length1 | String #1 |
