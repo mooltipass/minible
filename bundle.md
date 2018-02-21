@@ -38,6 +38,14 @@ This page explains in details the graphics bundle data structure.
 | 10-... | data | Bitmap data |
   
   
+## [](#header-2) Font File
+
+| bytes             | description |
+|:-------------------|:----------|
+| 0-5 | Font header |
+| 6-(6+last_chr_val*2) | Font header |
+  
+  
 ## [](#header-2) Font Header
 
 | bytes             | name       | description |
@@ -45,7 +53,7 @@ This page explains in details the graphics bundle data structure.
 | 0 | height | Font height |
 | 1 | depth | Number of bits per pixel |
 | 2-3 | last_chr_val | Unicode value of last character |
-| 4-5 | chr_count | Recommended Y display positionNumber of characters in this font |
+| 4-5 | chr_count | Number of characters in this font |
   
   
   ## [](#header-2) Font Glyph
