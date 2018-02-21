@@ -74,7 +74,7 @@ int main (void)
     }*/
     
     /* inputs tests */
-    wheel_action_ret_te input_action;
+    /*wheel_action_ret_te input_action;
     while(1)
     {
          input_action = inputs_get_wheel_action(FALSE, FALSE);
@@ -89,17 +89,17 @@ int main (void)
              case WHEEL_ACTION_CLICK_DOWN: sh1122_put_string_xy(&oled_descriptor, 0, 0, OLED_ALIGN_LEFT, u"downc"); break;
              default: break;
          }
-    }
+    }*/
     
     /* Animation test */
     while(1)
     {
-        for (uint32_t i = 0; i < 21; i++)
+        for (uint32_t i = 0; i < 73; i++)
         {
             PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK; 
             sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
-            PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
-            sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
+            //PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
+            //sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
         }
     }
     
