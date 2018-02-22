@@ -1,51 +1,66 @@
-## [](#header-1) Mooltipass Graphics Bundle Composition
+# [](#header-1) Mooltipass Graphics Bundle Composition
 This page explains in details the graphics bundle data structure.
+  
+  
+## [](#header-2) Bundle Composition
+
+| Contents |
+|:---------|
+| Bundle Header |
+| File addresses |
+| Update file(s) |
+| String file(s) |
+| Font file(s) |
+| Bitmap file(s) |
+| Binary file(s) |
+| Language map(s) |
+
    
 ## [](#header-2) Bundle Header
 
 | bytes             | name       | description |
 |:-------------------|:---------------|:----------|
 | 0->3   | magic_header | 0x12345678 |
-| 4-7   | total_size | Bundle total size |
-| 8-11  | crc32 | Bundle CRC32 starting from byte 12 |
-| 12-75 | signed_hash | TBD |
-| 76-79 | update_file_count | Number of update files |
-| 80-83 | update_file_offset | Start address to find update file addresses |
-| 84-87 | string_file_count | Number of string files |
-| 88-91 | string_file_offset | Start address to find string file addresses |
-| 92-95 | fonts_file_count | Number of font files |
-| 96-99 | fonts_file_offset | Start address to find font file addresses |
-| 100-103 | bitmap_file_count | Number of bitmap files |
-| 104-107 | bitmap_file_offset | Start address to find bitmap file addresses |
-| 108-111 | binary_img_file_count | Number of binary files (keyboard LUTs) |
-| 112-115 | binary_img_file_offset | Start address to find binary file addresses |
-| 116-119 | language_map_item_count | Number of language map items |
-| 120-123 | language_map_offset | Start address to find language map items |
-| 124-127 | language_bitmap_starting_id | Starting index for language bitmaps |
+| 4->7   | total_size | Bundle total size |
+| 8->11  | crc32 | Bundle CRC32 starting from byte 12 |
+| 12->75 | signed_hash | TBD |
+| 76->79 | update_file_count | Number of update files |
+| 80->83 | update_file_offset | Start address to find update file addresses |
+| 84->87 | string_file_count | Number of string files |
+| 88->91 | string_file_offset | Start address to find string file addresses |
+| 92->95 | fonts_file_count | Number of font files |
+| 96->99 | fonts_file_offset | Start address to find font file addresses |
+| 100->103 | bitmap_file_count | Number of bitmap files |
+| 104->107 | bitmap_file_offset | Start address to find bitmap file addresses |
+| 108->111 | binary_img_file_count | Number of binary files (keyboard LUTs) |
+| 112->115 | binary_img_file_offset | Start address to find binary file addresses |
+| 116->119 | language_map_item_count | Number of language map items |
+| 120->123 | language_map_offset | Start address to find language map items |
+| 124->127 | language_bitmap_starting_id | Starting index for language bitmaps |
    
    
 ## [](#header-2) Bitmap File
 
 | bytes             | name       | description |
 |:-------------------|:---------------|:----------|
-| 0-1 | width | Bitmap width |
+| 0->1 | width | Bitmap width |
 | 2 | height | Bitmap height |
 | 3 | xpos | Recommended X display position |
 | 4 | ypos | Recommended Y display position |
 | 5 | depth | Number of bits per pixel |
-| 6-7 | flags | Flags defining data format |
-| 8-9 | dataSize | Payload datasize |
-| 10-... | data | Bitmap data |
+| 6->7 | flags | Flags defining data format |
+| 8->9 | dataSize | Payload datasize |
+| 10->... | data | Bitmap data |
   
   
 ## [](#header-2) Font File
 
 | bytes             | description |
 |:-------------------|:----------|
-| 0-5 | Font header |
-| 6-(6+last_chr_val*2) | Uint16_t array of glyph indexes (set to an index when we support char - 0x20, 0xFFFF otherwise) |
-| (6+last_chr_val*2)-(6+last_chr_val*2+chr_count*8) | Glyph array |
-| (6+last_chr_val*2+chr_count*8)-... | Pixel data for glyphs |
+| 0->5 | Font header |
+| 6->(6+last_chr_val\times2) | Uint16_t array of glyph indexes (set to an index when we support (char - 0x20), 0xFFFF otherwise) |
+| (6+last_chr_val*2)->(6+last_chr_val*2+chr_count*8) | Glyph array |
+| (6+last_chr_val*2+chr_count*8)->... | Pixel data for glyphs |
   
   
 ## [](#header-2) Font Header
