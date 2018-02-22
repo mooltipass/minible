@@ -1,0 +1,9 @@
+# Compiled source #
+###################
+*.o
+
+# Eclipse Files #
+#################
+.settings
+.cproject
+.project
