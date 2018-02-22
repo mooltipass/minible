@@ -1,4 +1,4 @@
-## [](#header-1)Welcome to our GitHub pages!
+# [](#header-1)Welcome to our GitHub pages!
 This website aims to provide contributors and Moooltipass enthusiasts with all relevant info about our latest device, the Mooltipass Mini Bluetooth.  
 
 ## [](#header-2)Device Technical Details
