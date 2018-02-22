@@ -58,9 +58,9 @@ This page explains in details the graphics bundle data structure.
 | bytes             | description |
 |:-------------------|:----------|
 | 0->5 | Font header |
-| 6->(6+last_chr_val \times 2) | Uint16_t array of glyph indexes (set to an index when we support (char - 0x20), 0xFFFF otherwise) |
-| (6+last_chr_val*2)->(6+last_chr_val*2+chr_count*8) | Glyph array |
-| (6+last_chr_val*2+chr_count*8)->... | Pixel data for glyphs |
+| 6->(6+last_chr_valx2) | Uint16_t array of glyph indexes (set to an index when we support (char - 0x20), 0xFFFF otherwise) |
+| (6+last_chr_valx2)->(6+last_chr_valx2+chr_countx8) | Glyph array |
+| (6+last_chr_valx2+chr_countx8)->... | Pixel data for glyphs |
   
   
 ## [](#header-2) Font Header
@@ -69,8 +69,8 @@ This page explains in details the graphics bundle data structure.
 |:-------------------|:---------------|:----------|
 | 0 | height | Font height |
 | 1 | depth | Number of bits per pixel |
-| 2-3 | last_chr_val | Unicode value of last character |
-| 4-5 | chr_count | Number of characters in this font |
+| 2->3 | last_chr_val | Unicode value of last character |
+| 4->5 | chr_count | Number of characters in this font |
   
   
 ## [](#header-2) Font Glyph
@@ -81,16 +81,28 @@ This page explains in details the graphics bundle data structure.
 | 1 | yrect | y height of rectangle |
 | 2 | xoffset | x offset of glyph in rectangle |
 | 3 | yoffset | y offset of glyph in rectangle |
-| 4-7 | glyph_data_offset | offset from beginning of pixel data for this glyph data |
+| 4->7 | glyph_data_offset | offset from beginning of pixel data for this glyph data |
   
     
 ## [](#header-2) Text File
 
 | bytes             | description |
 |:-------------------|:----------|
-| 0-1 | Number of strings in text file (nb_strings) |
-| 2-2+2*nb_strings | Array of offset addresses for the nb_strings (addra, addrb, addrc...) |
-| addra-addra+1 | Length of string #0 (length0), including final 0 |
-| addra+2-addra+2+length0 | String #0 |
-| addrb-addrb+1 | Length of string #1 (length1), including final 0 |
-| addrb+2-addrb+2+length1 | String #1 |
+| 0->1 | Number of strings in text file (nb_strings) |
+| 2->2+2xnb_strings | Array of offset addresses for the nb_strings (addra, addrb, addrc...) |
+| addra->addra+1 | Length of string #0 (length0), including final 0 |
+| addra+2->addra+2+length0 | String #0 |
+| addrb->addrb+1 | Length of string #1 (length1), including final 0 |
+| addrb+2->addrb+2+length1 | String #1 |
+  
+  
+## [](#header-2) Language Map Entry
+
+| bytes             | description |
+|:-------------------|:----------|
+| 0->35 | Unicode string of language description, with terminating 0x0000 |
+| 36->37 | String file ID for that language |
+| 38->39 | Starting font ID for that language |
+| 40->41 | String file ID for that language |
+| 42->43 | Starting bitmap ID for that language |
+| 44->45 | Recommended keyboard layout ID |
