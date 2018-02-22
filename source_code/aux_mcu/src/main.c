@@ -1,37 +1,181 @@
 /**
  * \file
  *
- * \brief Empty user application template
+ * \brief Main functions for USB composite example
  *
- */
-
-/**
- * \mainpage User Application template doxygen documentation
+ * Copyright (c) 2009-2015 Atmel Corporation. All rights reserved.
  *
- * \par Empty user application template
+ * \asf_license_start
  *
- * Bare minimum empty user application template
+ * \page License
  *
- * \par Content
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
  *
- * -# Include the ASF header files (through asf.h)
- * -# Minimal main function that starts with a call to system_init()
- * -# "Insert application code here" comment
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- */
-
-/*
- * Include header files for all drivers that have been imported from
- * Atmel Software Framework (ASF).
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * 3. The name of Atmel may not be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * 4. This software may only be redistributed and used in connection with an
+ *    Atmel microcontroller product.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+ * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * \asf_license_stop
+ *
  */
 /*
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 #include <asf.h>
+#include "conf_usb.h"
+#include "ui.h"
 
-int main (void)
-{
-	system_init();
+static volatile bool main_b_keyboard_enable = false;
+static volatile bool main_b_generic_enable = false;
 
-	/* Insert application code here, after the board has been initialized. */
+#define LED_PIN_NUMBER      PIN_PA27
+
+/*! \brief Main function. Execution starts here.
+ */
+int main(void) {
+    irq_initialize_vectors();
+    cpu_irq_enable();
+
+    // Initialize the sleep manager
+    sleepmgr_init();
+#if !SAM0
+    sysclk_init();
+    board_init();
+#else
+    system_init();
+#endif
+    ui_init();
+    ui_powerdown();
+
+    // Start USB stack to authorize VBus monitoring
+    udc_start();
+
+    // The main loop manages only the power mode
+    // because the USB management is done by interrupt
+    while (true) {
+        //sleepmgr_enter_sleep();
+    }
 }
+
+void main_suspend_action(void) {
+    ui_powerdown();
+}
+
+void main_resume_action(void) {
+    ui_wakeup();
+}
+
+void main_sof_action(void) {
+    if ((!main_b_keyboard_enable))
+        return;
+    ui_process(udd_get_frame_number());
+}
+
+void main_remotewakeup_enable(void) {
+    ui_wakeup_enable();
+}
+
+void main_remotewakeup_disable(void) {
+    ui_wakeup_disable();
+}
+
+bool main_keyboard_enable(void) {
+    main_b_keyboard_enable = true;
+    return true;
+}
+
+void main_keyboard_disable(void) {
+    main_b_keyboard_enable = false;
+}
+
+void main_vbus_event(uint8_t b_vbus_high) {
+    (void) b_vbus_high;
+    return;
+}
+
+bool main_generic_enable(void) {
+    main_b_generic_enable = true;
+    return true;
+}
+
+void main_generic_disable(void) {
+    main_b_generic_enable = false;
+}
+
+void main_hid_set_feature(uint8_t* report) {
+    if (report[0] == 0xAA && report[1] == 0x55 && report[2] == 0xAA
+            && report[3] == 0x55) {
+        // Disconnect USB Device
+        //udc_stop();
+        //ui_powerdown();
+    }
+}
+
+/**
+ * \mainpage ASF USB Composite Device Example HID mouse and MSC
+ *
+ * \section intro Introduction
+ * This example shows how to implement a USB Composite Device with HID mouse and
+ * Mass Storage interfaces on Atmel MCU with USB module.
+ *
+ * \section startup Startup
+ * The example uses all memories available on the board and connects these to
+ * USB Device Mass Storage stack.
+ * Also, the example uses the buttons or sensors available on the board
+ * to simulate a standard mouse.
+ * After loading firmware, connect the board (EVKxx,Xplain,...) to the USB Host.
+ * When connected to a USB host system this application allows to display
+ * all available memories as a removable disks and provides a mouse in
+ * the Unix/Mac/Windows operating systems.
+ * \note
+ * This example uses the native MSC and HID drivers on Unix/Mac/Windows OS, except for Win98.
+ *
+ * \copydoc UI
+ *
+ * \section example About example
+ *
+ * The example uses the following module groups:
+ * - Basic modules:
+ *   Startup, board, clock, interrupt, power management
+ * - USB Device stack and HID & MSC modules:
+ *   <br>services/usb/
+ *   <br>services/usb/udc/
+ *   <br>services/usb/class/msc/
+ *   <br>services/usb/class/hid/
+ *   <br>services/usb/class/hid/mouse/
+ * - Specific implementation:
+ *    - main.c,
+ *      <br>initializes clock
+ *      <br>initializes interrupt
+ *      <br>manages UI
+ *    - udi_composite_desc.c,udi_composite_conf.h,
+ *      <br>USB Composite Device definition
+ *    - specific implementation for each target "./examples/product_board/":
+ *       - conf_foo.h   configuration of each module
+ *       - ui.c         implement of user's interface (buttons, leds)
+ *
+ * <SUP>1</SUP> The memory data transfers are done outside USB interrupt routine.
+ * This is done in the MSC process ("udi_msc_process_trans()") called by main loop.
+ */

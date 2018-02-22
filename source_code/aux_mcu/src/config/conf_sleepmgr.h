@@ -1,7 +1,7 @@
 /**
  * \file
  *
- * \brief Chip-specific sleep manager configuration
+ * \brief Sleep manager configuration
  *
  * Copyright (c) 2014-2015 Atmel Corporation. All rights reserved.
  *
@@ -43,10 +43,10 @@
 /*
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
-#ifndef CONF_SLEEPMGR_INCLUDED
-#define CONF_SLEEPMGR_INCLUDED
 
-// Sleep manager options
+#ifndef CONF_SLEEPMGR_H_INCLUDED
+#define CONF_SLEEPMGR_H_INCLUDED
+
 #define CONFIG_SLEEPMGR_ENABLE
 
-#endif /* CONF_SLEEPMGR_INCLUDED */
+#endif /* CONF_SLEEPMGR_H_INCLUDED */
