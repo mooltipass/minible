@@ -11,6 +11,18 @@ Debug and test commands have identifiers above 0x8000.
 As with our previous devices, every non-debug / non-test message sent by the computer will receive an answer.  
 In all command descriptions below, hmstrlen() is a custom strlen function treating a character as a uint16_t (Unicode BMP). Therefore, hmstrlen("a") = 2.  
   
+## [](#header-2) Mooltipass Commands
+
+0x0001: Ping
+------------
+
+| byte 0-1 | byte 1-2         | bytes 3-X         |
+|:---------|:-----------------|:------------------|
+| 0x0001   | up to the sender | Arbitrary payload |
+
+The device will send back the very same message.
+
+  
 ## [](#header-2) Mooltipass Debug and Test Commands
 
 0x8000: Debug Message
