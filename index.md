@@ -4,9 +4,9 @@ This website aims to provide contributors and Moooltipass enthusiasts with all r
 ## [](#header-2)Device Technical Details
 You'll find below different pages detailing our selected architecture.
 * [High Level Device Overview](highlevel_overview)
-* [Graphics Bundle Composition](bundle)
+* [WIP - Graphics Bundle Composition](bundle)
 * [USB Raw HID Protocol](usb_hid_protocol)
-* [Message Protocol](protocol)
+* [WIP - Message Protocol](protocol)
 
 ## [](#header-2)Contributors
 Interested in joining our team? For this new project, we are using <a href="https://colony.io/">colony</a> to equally share Mooltipass revenue and keep track of the overall project progress.  
