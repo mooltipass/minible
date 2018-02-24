@@ -1,5 +1,6 @@
 ## [](#header-1) Mooltipass Database Model
-This page details the database model for the new Mooltipass Mini
+This page details the database model for the new Mooltipass Mini.  
+All strings use uint16_t as a character length.  
    
 ## [](#header-2) 2 Bytes Long Flags
 
@@ -35,3 +36,28 @@ This page details the database model for the new Mooltipass Mini
 | 12->8 | user ID MSB (5b) | userID |
 | 7->4 | user ID LSB (4b) | payload length MSB (4b) |
 | 3->0 | data category UID | payload length LSB (4b) |
+
+## [](#header-2) Nodes
+
+**Parent Node**
+
+| bytes | description | on the previous mini DB model |
+|:------|:------------|-------------------------------|
+| 0->1 | flags | same |
+| 2->3 | previous parent address | same |
+| 4->5 | next parent address | same |
+| 6->7 | first child address | same |
+| 8->259 | service name | 8->128 service, 129->131 ctr |
+| 260->260 | reserved | out of bounds |
+| 261->263 | CTR value for data child | out of bounds |
+
+
+**Data Node**
+
+| bytes | description | on the previous mini DB model |
+|:------|:------------|-------------------------------|
+| 0->1 | flags | same |
+| 2->3 | next data address | same |
+| 4->515 | 512B of encrypted data | 4->131 encrypted data |
+| 516->519 | encrypted data length | out of bounds |
+| 520->527 | reserved | out of bounds |
