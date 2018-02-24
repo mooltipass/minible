@@ -51,7 +51,6 @@ All strings use uint16_t as a character length.
 | 260->260 | reserved | out of bounds |
 | 261->263 | CTR value for data child | out of bounds |
 
-
 **Data Node**
 
 | bytes | description | on the previous mini DB model |
