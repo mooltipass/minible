@@ -23,8 +23,8 @@ This page details the database model for the new Mooltipass Mini
 | 7->4 | user ID LSB (4b) | not used |
 | 3->0 | credential category UID | not used |
 
-Backward compatibility: specify a 0b1111 category for a password imported from an old mini DB (ascii flag).  
-Forward compatibility: use a bit in the 7->0 field to set unicode flag.  
+**Backward compatibility**: specify a 0b1111 category for a password imported from an old mini DB (ascii flag).  
+**Forward compatibility**: use a bit in the 7->0 field to set unicode flag.  
 
 **Data Node**
 
