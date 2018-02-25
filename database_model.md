@@ -70,7 +70,7 @@ All strings use uint16_t as a character length.
 | 4->5 | next child address (2B) |
 | 6->7 | pointed to child address (0 when not a pointer) (2B) |
 | 8->135 | plain text login (128B) |
-| 135->199 | plain text description (64B) |
+| 136->199 | plain text description (64B) |
 | 200->201 | last modified date #1 (2B) |
 | 202->203 | last used date #1 (2B) |
 | 204->206 | CTR value #1 (3B) |
