@@ -60,3 +60,26 @@ All strings use uint16_t as a character length.
 | 4->515 | 512B of encrypted data | 4->131 encrypted data |
 | 516->519 | encrypted data length | out of bounds |
 | 520->527 | reserved | out of bounds |
+
+**Child Node**
+
+| bytes | description |
+|:------|:------------|
+| 0->1 | flags (2B) |
+| 2->3 | previous child address (2B) |
+| 4->5 | next child address (2B) |
+| 6->7 | pointed to child address (2B) |
+| 8->135 | plain text login (128B) |
+| 135->199 | plain text description (64B) |
+| 200->201 | last modified date #1 (2B) |
+| 202->203 | last used date #1 (2B) |
+| 204->206 | CTR value #1 (3B) |
+| 207->334 | encrypted password #1 (128B) |
+| 335->336 | last modified date #2 (2B) |
+| 337->338 | last used date #2 (2B) |
+| 339->341 | CTR value #2 (3B) |
+| 342->469 | encrypted password #2 (128B) |
+| 470->519 | arbitrary third field (50B) |
+| 520->521 | key pressed after login typing (2B) |
+| 522->523 | key press after password typing (2B) |
+| 524->527 | reserved (4B) |
