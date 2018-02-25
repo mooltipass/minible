@@ -39,36 +39,36 @@ All strings use uint16_t as a character length.
 
 ## [](#header-2) Nodes
 
-**Parent Node**
+**Parent Node (264B)**
 
 | bytes | description | on the previous mini DB model |
 |:------|:------------|-------------------------------|
-| 0->1 | flags | same |
-| 2->3 | previous parent address | same |
-| 4->5 | next parent address | same |
-| 6->7 | first child address | same |
-| 8->259 | service name | 8->128 service, 129->131 ctr |
-| 260->260 | reserved | out of bounds |
-| 261->263 | CTR value for data child | out of bounds |
+| 0->1 | flags (2B) | same |
+| 2->3 | previous parent address (2B) | same |
+| 4->5 | next parent address (2B) | same |
+| 6->7 | first child address (2B) | same |
+| 8->259 | service name (252B) | 8->128 service, 129->131 ctr |
+| 260->260 | reserved (1B) | out of bounds |
+| 261->263 | CTR value for data child (3B) | out of bounds |
 
-**Data Node**
+**Data Node (528B)**
 
 | bytes | description | on the previous mini DB model |
 |:------|:------------|-------------------------------|
-| 0->1 | flags | same |
-| 2->3 | next data address | same |
+| 0->1 | flags (2B) | same |
+| 2->3 | next data address (2B) | same |
 | 4->515 | 512B of encrypted data | 4->131 encrypted data |
-| 516->519 | encrypted data length | out of bounds |
-| 520->527 | reserved | out of bounds |
+| 516->519 | encrypted data length (4B) | out of bounds |
+| 520->527 | reserved (8B) | out of bounds |
 
-**Child Node**
+**Child Node (528B)**
 
 | bytes | description |
 |:------|:------------|
 | 0->1 | flags (2B) |
 | 2->3 | previous child address (2B) |
 | 4->5 | next child address (2B) |
-| 6->7 | pointed to child address (2B) |
+| 6->7 | pointed to child address (0 when not a pointer) (2B) |
 | 8->135 | plain text login (128B) |
 | 135->199 | plain text description (64B) |
 | 200->201 | last modified date #1 (2B) |
@@ -82,4 +82,19 @@ All strings use uint16_t as a character length.
 | 470->519 | arbitrary third field (50B) |
 | 520->521 | key pressed after login typing (2B) |
 | 522->523 | key press after password typing (2B) |
+| 524->527 | reserved (4B) |
+
+**For Information: Previous DB Child Node (132B)**
+
+| bytes | description |
+|:------|:------------|
+| 0->1 | flags (2B) |
+| 2->3 | previous child address (2B) |
+| 4->5 | next child address (2B) |
+| 6->29 | plain text description (24B) |
+| 30->31 | last modified date (2B) |
+| 32->33 | last used date (2B) |
+| 34->36 | CTR value (3B) |
+| 37->99 | plain text login (63B) |
+| 100->131 | encrypted password (32B) |
 | 524->527 | reserved (4B) |
