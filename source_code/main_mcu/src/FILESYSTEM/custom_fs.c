@@ -15,19 +15,19 @@
 
 /* Current selected language entry */
 language_map_entry_t custom_fs_cur_language_entry = {.starting_bitmap = 0, .starting_font = 0, .string_file_index = 0};
+/* Temp values to speed up string files reading */
+custom_fs_string_count_t custom_fs_current_text_file_string_count = 0;
+custom_fs_address_t custom_fs_current_text_file_addr = 0;
+/* Our platform settings array, in internal NVM */
+custom_platform_settings_t* custom_fs_platform_settings_p = 0;
+/* dataflash port descriptor */
+spi_flash_descriptor_t* custom_fs_dataflash_desc = 0;
 /* Flash header */
 custom_file_flash_header_t custom_fs_flash_header;
 /* Bool to specify if the SPI bus is left opened */
 BOOL custom_fs_data_bus_opened = FALSE;
-/* Temp values to speed up lookup */
-custom_fs_string_count_t custom_fs_current_text_file_string_count = 0;
-custom_fs_address_t custom_fs_current_text_file_addr = 0;
 /* Temp string buffers for string reading */
 uint16_t custom_fs_temp_string1[128];
-/* Our platform settings array, in internal NVM */
-custom_platform_settings_t* platform_settings_p = 0;
-/* dataflash port descriptor */
-spi_flash_descriptor_t* dataflash_desc = 0;
 
 
 /*! \fn     custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
@@ -39,7 +39,7 @@ spi_flash_descriptor_t* dataflash_desc = 0;
 */
 RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
 {
-    //dataflash_read_data_array(dataflash_desc, address, datap, size);
+    //dataflash_read_data_array(custom_fs_dataflash_desc, address, datap, size);
     memcpy(datap, &mooltipass_bundle[address], size);
     return RETURN_OK;
 }
@@ -57,7 +57,7 @@ RET_TYPE custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_
     /* Check if we have opened the SPI bus */
     if (custom_fs_data_bus_opened == FALSE)
     {
-        dataflash_read_data_array_start(dataflash_desc, address);
+        dataflash_read_data_array_start(custom_fs_dataflash_desc, address);
         custom_fs_data_bus_opened = TRUE;
     } 
     
@@ -65,12 +65,12 @@ RET_TYPE custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_
     if (use_dma != FALSE)
     {
         /* Arm DMA transfer */        
-        dma_custom_fs_init_transfer((void*)&dataflash_desc->sercom_pt->SPI.DATA.reg, (void*)datap, size);
+        dma_custom_fs_init_transfer((void*)&custom_fs_dataflash_desc->sercom_pt->SPI.DATA.reg, (void*)datap, size);
     } 
     else
     {
         /* Read data */
-        dataflash_read_bytes_from_opened_transfer(dataflash_desc, datap, size);
+        dataflash_read_bytes_from_opened_transfer(custom_fs_dataflash_desc, datap, size);
     }
     
     return RETURN_OK;
@@ -83,13 +83,13 @@ RET_TYPE custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void)
 {
     /* Start a read on external flash */
-    dataflash_read_data_array_start(dataflash_desc, CUSTOM_FS_FILES_ADDR_OFFSET + sizeof(custom_fs_flash_header.magic_header) + sizeof(custom_fs_flash_header.total_size) + sizeof(custom_fs_flash_header.crc32));
+    dataflash_read_data_array_start(custom_fs_dataflash_desc, CUSTOM_FS_FILES_ADDR_OFFSET + sizeof(custom_fs_flash_header.magic_header) + sizeof(custom_fs_flash_header.total_size) + sizeof(custom_fs_flash_header.crc32));
     
     /* Use the DMA controller to compute the crc32 */
-    uint32_t crc32 = dma_bootloader_compute_crc32_from_spi((void*)&dataflash_desc->sercom_pt->SPI.DATA.reg, custom_fs_flash_header.total_size - sizeof(custom_fs_flash_header.magic_header) - sizeof(custom_fs_flash_header.total_size) - sizeof(custom_fs_flash_header.crc32));
+    uint32_t crc32 = dma_bootloader_compute_crc32_from_spi((void*)&custom_fs_dataflash_desc->sercom_pt->SPI.DATA.reg, custom_fs_flash_header.total_size - sizeof(custom_fs_flash_header.magic_header) - sizeof(custom_fs_flash_header.total_size) - sizeof(custom_fs_flash_header.crc32));
     
     /* Stop transfer */
-    dataflash_stop_ongoing_transfer(dataflash_desc);
+    dataflash_stop_ongoing_transfer(custom_fs_dataflash_desc);
     
     /* Do the final check */
     if (custom_fs_flash_header.crc32 == crc32)
@@ -107,7 +107,7 @@ RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void)
 */
 void custom_fs_stop_continuous_read_from_flash(void)
 {
-    dataflash_stop_ongoing_transfer(dataflash_desc);
+    dataflash_stop_ongoing_transfer(custom_fs_dataflash_desc);
     custom_fs_data_bus_opened = FALSE;
 }
 
@@ -120,7 +120,7 @@ void custom_fs_settings_init(void)
     uint32_t flash_addr = custom_fs_get_custom_storage_slot_addr(SETTINGS_STORAGE_SLOT);
     if (flash_addr != 0)
     {
-        platform_settings_p = (custom_platform_settings_t*)flash_addr;
+        custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_addr;
     }    
 }
 
@@ -178,7 +178,7 @@ ret_type_te custom_fs_set_current_language(uint16_t language_id)
 void custom_fs_init(spi_flash_descriptor_t* desc)
 {
     /* Locally copy the flash descriptor */
-    dataflash_desc = desc;
+    custom_fs_dataflash_desc = desc;
     
     /* Read flash header */
     custom_fs_read_from_flash((uint8_t*)&custom_fs_flash_header, CUSTOM_FS_FILES_ADDR_OFFSET, sizeof(custom_fs_flash_header));
@@ -461,7 +461,7 @@ void custom_fs_settings_clear_fw_upgrade_flag(void)
 */
 BOOL custom_fs_settings_check_fw_upgrade_flag(void)
 {
-    if ((platform_settings_p != 0) && (platform_settings_p->start_upgrade_flag == FIRMWARE_UPGRADE_FLAG))
+    if ((custom_fs_platform_settings_p != 0) && (custom_fs_platform_settings_p->start_upgrade_flag == FIRMWARE_UPGRADE_FLAG))
     {
         return TRUE;
     }

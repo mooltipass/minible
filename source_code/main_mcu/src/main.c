@@ -94,7 +94,7 @@ int main (void)
     /* Animation test */
     while(1)
     {
-        for (uint32_t i = 0; i < 90; i++)
+        for (uint32_t i = 0; i < 120; i++)
         {
             timer_start_timer(TIMER_TIMEOUT_FUNCTS, 25);
             PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK; 

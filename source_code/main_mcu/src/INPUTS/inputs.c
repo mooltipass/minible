@@ -8,27 +8,27 @@
 #include "defines.h"
 #include "inputs.h"
 
+// Wheel machine states
+uint16_t inputs_wheel_sm_states[] = {0b011, 0b001, 0b000, 0b010};
 // Wheel pressed duration counter
-volatile uint16_t wheel_click_duration_counter;
+volatile uint16_t inputs_wheel_click_duration_counter;
+// Current wheel click return
+volatile det_ret_type_te inputs_wheel_click_return;
 // Wheel click counter
-volatile uint16_t wheel_click_counter;
-// Wheel click return
-volatile det_ret_type_te wheel_click_return;
-// State machine state
-uint16_t wheel_sm_states[] = {0b011, 0b001, 0b000, 0b010};
+volatile uint16_t inputs_wheel_click_counter;
 // Boot to know if we allow next increment
-volatile BOOL wheel_increment_armed_up = FALSE;
-volatile BOOL wheel_increment_armed_down = FALSE;
+volatile BOOL inputs_wheel_increment_armed_up = FALSE;
+volatile BOOL inputs_wheel_increment_armed_down = FALSE;
 // Wheel current increment for caller
-volatile int16_t wheel_cur_increment;
+volatile int16_t inputs_wheel_cur_increment;
 // Last wheel state machine index
-volatile uint16_t last_wheel_sm;
+volatile uint16_t inputs_last_wheel_sm;
 // To get wheel action, discard release event
-BOOL discard_release_event = FALSE;
+BOOL inputs_discard_release_event = FALSE;
 // Wheel direction reverse bool
-BOOL wheel_reverse_bool = FALSE;
+BOOL inputs_wheel_reverse_bool = FALSE;
 // Last detection type returned (cleared when calling cleardetections)
-wheel_action_ret_te last_detection_type_ret = WHEEL_ACTION_NONE;
+wheel_action_ret_te inputs_last_detection_type_ret = WHEEL_ACTION_NONE;
 
 
 /*! \fn     inputs_scan(void)
@@ -42,84 +42,84 @@ void inputs_scan(void)
     wheel_state = ((PORT->Group[WHEEL_A_GROUP].IN.reg & WHEEL_A_MASK) >> WHEEL_A_PINID) | ((PORT->Group[WHEEL_B_GROUP].IN.reg & WHEEL_B_MASK) >> (WHEEL_B_PINID-1));
 
     // Find the state matching the wheel state
-    for (uint16_t i = 0; i < sizeof(wheel_sm_states)/sizeof(wheel_sm_states[0]); i++)
+    for (uint16_t i = 0; i < sizeof(inputs_wheel_sm_states)/sizeof(inputs_wheel_sm_states[0]); i++)
     {
-        if (wheel_state == wheel_sm_states[i])
+        if (wheel_state == inputs_wheel_sm_states[i])
         {
             wheel_sm = i;
         }
     }
-    if (wheel_sm == ((last_wheel_sm+1)&0x03))
+    if (wheel_sm == ((inputs_last_wheel_sm+1)&0x03))
     {
         if (wheel_state == 0)
         {
-            wheel_increment_armed_up = TRUE;
+            inputs_wheel_increment_armed_up = TRUE;
         }
-        else if ((wheel_state == 0x03) && (wheel_increment_armed_up == TRUE))
+        else if ((wheel_state == 0x03) && (inputs_wheel_increment_armed_up == TRUE))
         {
-            if (wheel_reverse_bool != FALSE)
+            if (inputs_wheel_reverse_bool != FALSE)
             {
-                wheel_cur_increment++;
+                inputs_wheel_cur_increment++;
             } 
             else
             {
-                wheel_cur_increment--;
+                inputs_wheel_cur_increment--;
             }
-            wheel_increment_armed_up = FALSE;
-            wheel_increment_armed_down = FALSE;
+            inputs_wheel_increment_armed_up = FALSE;
+            inputs_wheel_increment_armed_down = FALSE;
         }
-        last_wheel_sm = wheel_sm;
+        inputs_last_wheel_sm = wheel_sm;
     }
-    else if (wheel_sm == ((last_wheel_sm-1)&0x03))
+    else if (wheel_sm == ((inputs_last_wheel_sm-1)&0x03))
     {
         if (wheel_state == 0)
         {
-            wheel_increment_armed_down = TRUE;
+            inputs_wheel_increment_armed_down = TRUE;
         }
-        else if ((wheel_state == 0x03) && (wheel_increment_armed_down == TRUE))
+        else if ((wheel_state == 0x03) && (inputs_wheel_increment_armed_down == TRUE))
         {
-            if (wheel_reverse_bool != FALSE)
+            if (inputs_wheel_reverse_bool != FALSE)
             {
-                wheel_cur_increment--;
+                inputs_wheel_cur_increment--;
             }
             else
             {
-                wheel_cur_increment++;
+                inputs_wheel_cur_increment++;
             }
-            wheel_increment_armed_up = FALSE;
-            wheel_increment_armed_down = FALSE;
+            inputs_wheel_increment_armed_up = FALSE;
+            inputs_wheel_increment_armed_down = FALSE;
         }
-        last_wheel_sm = wheel_sm;
+        inputs_last_wheel_sm = wheel_sm;
     }
     
     // Wheel click
     if ((PORT->Group[WHEEL_SW_GROUP].IN.reg & WHEEL_SW_MASK) == 0)
     {
-        if ((wheel_click_counter == 50) && (wheel_click_return != RETURN_JRELEASED))
+        if ((inputs_wheel_click_counter == 50) && (inputs_wheel_click_return != RETURN_JRELEASED))
         {
-            wheel_click_return = RETURN_JDETECT;
+            inputs_wheel_click_return = RETURN_JDETECT;
         }
-        if (wheel_click_counter != 0xFF)
+        if (inputs_wheel_click_counter != 0xFF)
         {
-            wheel_click_counter++;
+            inputs_wheel_click_counter++;
         }
-        if ((wheel_click_return == RETURN_DET) || (wheel_click_return == RETURN_JDETECT))
+        if ((inputs_wheel_click_return == RETURN_DET) || (inputs_wheel_click_return == RETURN_JDETECT))
         {
-            wheel_click_duration_counter++;
+            inputs_wheel_click_duration_counter++;
         }
     }
     else
     {
-        if (wheel_click_return == RETURN_DET)
+        if (inputs_wheel_click_return == RETURN_DET)
         {
-            wheel_click_return = RETURN_JRELEASED;
+            inputs_wheel_click_return = RETURN_JRELEASED;
         }
-        else if (wheel_click_return != RETURN_JRELEASED)
+        else if (inputs_wheel_click_return != RETURN_JRELEASED)
         {
-            wheel_click_duration_counter = 0;
-            wheel_click_return = RETURN_REL;
+            inputs_wheel_click_duration_counter = 0;
+            inputs_wheel_click_return = RETURN_REL;
         }
-        wheel_click_counter = 0;
+        inputs_wheel_click_counter = 0;
     }
 }
 
@@ -131,12 +131,12 @@ int16_t inputs_get_wheel_increment(void)
 {
     int16_t return_val = 0;
     
-    if (wheel_cur_increment != 0)
+    if (inputs_wheel_cur_increment != 0)
     {
         //activityDetectedRoutine();
         cpu_irq_enter_critical();        
-        return_val = wheel_cur_increment;
-        wheel_cur_increment = 0;
+        return_val = inputs_wheel_cur_increment;
+        inputs_wheel_cur_increment = 0;
         cpu_irq_leave_critical();        
     }
     
@@ -150,19 +150,19 @@ int16_t inputs_get_wheel_increment(void)
 det_ret_type_te inputs_is_wheel_clicked(void)
 {
     // This copy is an atomic operation
-    volatile det_ret_type_te return_val = wheel_click_return;
+    volatile det_ret_type_te return_val = inputs_wheel_click_return;
 
     if ((return_val != RETURN_DET) && (return_val != RETURN_REL))
     {
         //activityDetectedRoutine();
         cpu_irq_enter_critical();
-        if (wheel_click_return == RETURN_JDETECT)
+        if (inputs_wheel_click_return == RETURN_JDETECT)
         {
-            wheel_click_return = RETURN_DET;
+            inputs_wheel_click_return = RETURN_DET;
         }
-        else if (wheel_click_return == RETURN_JRELEASED)
+        else if (inputs_wheel_click_return == RETURN_JRELEASED)
         {
-            wheel_click_return = RETURN_REL;
+            inputs_wheel_click_return = RETURN_REL;
         }
         cpu_irq_leave_critical();
     }
@@ -176,12 +176,12 @@ det_ret_type_te inputs_is_wheel_clicked(void)
 void inputs_clear_detections(void)
 {
     cpu_irq_enter_critical();
-    last_detection_type_ret = WHEEL_ACTION_NONE;
-    wheel_increment_armed_down = FALSE;
-    wheel_increment_armed_up = FALSE;
-    wheel_click_duration_counter = 0;
-    wheel_click_return = RETURN_REL;
-    wheel_cur_increment = 0;
+    inputs_last_detection_type_ret = WHEEL_ACTION_NONE;
+    inputs_wheel_increment_armed_down = FALSE;
+    inputs_wheel_increment_armed_up = FALSE;
+    inputs_wheel_click_duration_counter = 0;
+    inputs_wheel_click_return = RETURN_REL;
+    inputs_wheel_cur_increment = 0;
     cpu_irq_leave_critical();
 }
 
@@ -191,7 +191,7 @@ void inputs_clear_detections(void)
 */
 RET_TYPE inputs_get_last_returned_action(void)
 {
-    return last_detection_type_ret;
+    return inputs_last_detection_type_ret;
 }
 
 /*! \fn     inputs_get_wheel_action(void)
@@ -203,37 +203,37 @@ RET_TYPE inputs_get_last_returned_action(void)
 wheel_action_ret_te inputs_get_wheel_action(BOOL wait_for_action, BOOL ignore_incdec)
 {
     wheel_action_ret_te return_val = WHEEL_ACTION_NONE;
-    int16_t wheel_cur_increment_copy = 0;
+    int16_t inputs_wheel_cur_increment_copy = 0;
 
     do
     {
         // If we want to take into account wheel scrolling
         if (ignore_incdec == FALSE)
         {
-            wheel_cur_increment_copy = wheel_cur_increment;
+            inputs_wheel_cur_increment_copy = inputs_wheel_cur_increment;
         }
 
-        if (wheel_click_return == RETURN_JDETECT)
+        if (inputs_wheel_click_return == RETURN_JDETECT)
         {
             // When checking for actions we clear the just detected state
             cpu_irq_enter_critical();
-            wheel_click_return = RETURN_DET;
+            inputs_wheel_click_return = RETURN_DET;
             cpu_irq_leave_critical();
         }
-        if ((wheel_click_return == RETURN_JRELEASED) || (wheel_cur_increment_copy != 0) || (wheel_click_duration_counter > LONG_PRESS_MS))
+        if ((inputs_wheel_click_return == RETURN_JRELEASED) || (inputs_wheel_cur_increment_copy != 0) || (inputs_wheel_click_duration_counter > LONG_PRESS_MS))
         {
             cpu_irq_enter_critical();
-            if ((wheel_click_duration_counter > LONG_PRESS_MS) && (discard_release_event == FALSE))
+            if ((inputs_wheel_click_duration_counter > LONG_PRESS_MS) && (inputs_discard_release_event == FALSE))
             {
                 return_val = WHEEL_ACTION_LONG_CLICK;
             }
-            else if (wheel_click_return == RETURN_JRELEASED)
+            else if (inputs_wheel_click_return == RETURN_JRELEASED)
             {                    
-                if (wheel_cur_increment_copy == 0)
+                if (inputs_wheel_cur_increment_copy == 0)
                 {
-                    if (discard_release_event != FALSE)
+                    if (inputs_discard_release_event != FALSE)
                     {
-                        discard_release_event = FALSE;
+                        inputs_discard_release_event = FALSE;
                         return_val = WHEEL_ACTION_DISCARDED;
                     } 
                     else
@@ -242,34 +242,34 @@ wheel_action_ret_te inputs_get_wheel_action(BOOL wait_for_action, BOOL ignore_in
                     }
                 }
             }
-            else if (wheel_click_return == RETURN_DET)
+            else if (inputs_wheel_click_return == RETURN_DET)
             {
-                if (wheel_cur_increment_copy > 0)
+                if (inputs_wheel_cur_increment_copy > 0)
                 {
                     return_val = WHEEL_ACTION_CLICK_DOWN;
                 }
-                else if (wheel_cur_increment_copy < 0)
+                else if (inputs_wheel_cur_increment_copy < 0)
                 {
                     return_val = WHEEL_ACTION_CLICK_UP;
                 }
             }
             else
             {
-                if (wheel_cur_increment_copy > 0)
+                if (inputs_wheel_cur_increment_copy > 0)
                 {
                     return_val = WHEEL_ACTION_DOWN;
                 }
-                else if (wheel_cur_increment_copy < 0)
+                else if (inputs_wheel_cur_increment_copy < 0)
                 {
                     return_val = WHEEL_ACTION_UP;
                 }
             }
 
             // Clear detections
-            wheel_click_duration_counter = 0;
+            inputs_wheel_click_duration_counter = 0;
             if ((return_val == WHEEL_ACTION_CLICK_DOWN) || (return_val == WHEEL_ACTION_CLICK_UP))
             {
-                discard_release_event = TRUE;
+                inputs_discard_release_event = TRUE;
             }
             else if(return_val == WHEEL_ACTION_NONE)
             {
@@ -277,11 +277,11 @@ wheel_action_ret_te inputs_get_wheel_action(BOOL wait_for_action, BOOL ignore_in
             }
             else
             {
-                wheel_click_return = RETURN_REL;
+                inputs_wheel_click_return = RETURN_REL;
             }
             if (ignore_incdec == FALSE)
             {
-                wheel_cur_increment = 0;
+                inputs_wheel_cur_increment = 0;
             }                
             cpu_irq_leave_critical();
         }
@@ -294,6 +294,6 @@ wheel_action_ret_te inputs_get_wheel_action(BOOL wait_for_action, BOOL ignore_in
         //activityDetectedRoutine();
     }
     
-    last_detection_type_ret = return_val;
+    inputs_last_detection_type_ret = return_val;
     return return_val;
 }
