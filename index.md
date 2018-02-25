@@ -7,6 +7,7 @@ You'll find below different pages detailing our selected architecture.
 * [WIP - Graphics Bundle Composition](bundle)
 * [WIP - Message Protocol](protocol)
 * [WIP - Database Model](database_model)
+* [WIP - RAM Consumers](ram_consumers)
 * [USB Raw HID Protocol](usb_hid_protocol)
 
 ## [](#header-2)Contributors
