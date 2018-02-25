@@ -34,9 +34,6 @@ void TCC0_Handler(void)
             /* Smartcard detect */
             smartcard_lowlevel_detect();
         
-            /* Debug ms tick */
-            //debug_led_anim_tick();
-        
             /* Scan buttons */
             inputs_scan();
         }
