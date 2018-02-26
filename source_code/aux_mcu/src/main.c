@@ -46,12 +46,9 @@
 #include <asf.h>
 #include "conf_usb.h"
 #include "usbhid.h"
-#include "ui.h"
 
 static volatile bool main_b_keyboard_enable = false;
 static volatile bool main_b_generic_enable = false;
-
-#define LED_PIN_NUMBER      PIN_PA27
 
 /*! \brief Main function. Execution starts here.
  */
@@ -61,16 +58,11 @@ int main(void) {
 
     // Initialize the sleep manager
     sleepmgr_init();
-#if !SAM0
-    sysclk_init();
-    board_init();
-#else
-    system_init();
-#endif
-    ui_init();
-    ui_powerdown();
 
-    /* Initialize USBHID */
+    // System init
+    system_init();
+
+    // Initialize USBHID
     USBHID_init();
 
     // Start USB stack to authorize VBus monitoring
@@ -79,30 +71,29 @@ int main(void) {
     // The main loop manages only the power mode
     // because the USB management is done by interrupt
     while (true) {
-        //sleepmgr_enter_sleep();
+        // sleepmgr_enter_sleep();
     }
 }
 
 void main_suspend_action(void) {
-    ui_powerdown();
 }
 
 void main_resume_action(void) {
-    ui_wakeup();
+
 }
 
 void main_sof_action(void) {
     if ((!main_b_keyboard_enable))
         return;
-    ui_process(udd_get_frame_number());
+    //ui_process(udd_get_frame_number());
 }
 
 void main_remotewakeup_enable(void) {
-    ui_wakeup_enable();
+
 }
 
 void main_remotewakeup_disable(void) {
-    ui_wakeup_disable();
+
 }
 
 bool main_keyboard_enable(void) {
@@ -115,7 +106,7 @@ void main_keyboard_disable(void) {
 }
 
 void main_vbus_event(uint8_t b_vbus_high) {
-    (void) b_vbus_high;
+    (void)b_vbus_high;
     return;
 }
 
@@ -129,57 +120,5 @@ void main_generic_disable(void) {
 }
 
 void main_hid_set_feature(uint8_t* report) {
-    if (report[0] == 0xAA && report[1] == 0x55 && report[2] == 0xAA
-            && report[3] == 0x55) {
-        // Disconnect USB Device
-        //udc_stop();
-        //ui_powerdown();
-    }
+    (void)report;
 }
-
-/**
- * \mainpage ASF USB Composite Device Example HID mouse and MSC
- *
- * \section intro Introduction
- * This example shows how to implement a USB Composite Device with HID mouse and
- * Mass Storage interfaces on Atmel MCU with USB module.
- *
- * \section startup Startup
- * The example uses all memories available on the board and connects these to
- * USB Device Mass Storage stack.
- * Also, the example uses the buttons or sensors available on the board
- * to simulate a standard mouse.
- * After loading firmware, connect the board (EVKxx,Xplain,...) to the USB Host.
- * When connected to a USB host system this application allows to display
- * all available memories as a removable disks and provides a mouse in
- * the Unix/Mac/Windows operating systems.
- * \note
- * This example uses the native MSC and HID drivers on Unix/Mac/Windows OS, except for Win98.
- *
- * \copydoc UI
- *
- * \section example About example
- *
- * The example uses the following module groups:
- * - Basic modules:
- *   Startup, board, clock, interrupt, power management
- * - USB Device stack and HID & MSC modules:
- *   <br>services/usb/
- *   <br>services/usb/udc/
- *   <br>services/usb/class/msc/
- *   <br>services/usb/class/hid/
- *   <br>services/usb/class/hid/mouse/
- * - Specific implementation:
- *    - main.c,
- *      <br>initializes clock
- *      <br>initializes interrupt
- *      <br>manages UI
- *    - udi_composite_desc.c,udi_composite_conf.h,
- *      <br>USB Composite Device definition
- *    - specific implementation for each target "./examples/product_board/":
- *       - conf_foo.h   configuration of each module
- *       - ui.c         implement of user's interface (buttons, leds)
- *
- * <SUP>1</SUP> The memory data transfers are done outside USB interrupt routine.
- * This is done in the MSC process ("udi_msc_process_trans()") called by main loop.
- */

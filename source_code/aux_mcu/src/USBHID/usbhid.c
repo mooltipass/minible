@@ -10,7 +10,7 @@
 #include <string.h>
 
 /* USBHID Commands */
-#define USBHID_CMD_PING     (0x0001)
+#define USBHID_CMD_PING         (0x0001)
 
 
 /** USBHID Constants **/

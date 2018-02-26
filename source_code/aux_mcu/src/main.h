@@ -47,27 +47,27 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
-/*! \brief Called by MSC interface
- * Callback running when USB Host enable MSC interface
+/*! \brief Called by HID RAW interface
+ * Callback running when USB Host enable HID RAW interface
  *
- * \retval true if MSC startup is ok
+ * \retval true if HID RAW startup is ok
  */
 bool main_generic_enable(void);
 
-/*! \brief Called by MSC interface
- * Callback running when USB Host disable MSC interface
+/*! \brief Called by HID RAW interface
+ * Callback running when USB Host disable HID RAW interface
  */
 void main_generic_disable(void);
 
 /*! \brief Called by HID interface
- * Callback running when USB Host enable mouse interface
+ * Callback running when USB Host enable keyboard interface
  *
- * \retval true if mouse startup is ok
+ * \retval true if keyboard startup is ok
  */
 bool main_keyboard_enable(void);
 
 /*! \brief Called by HID interface
- * Callback running when USB Host disable mouse interface
+ * Callback running when USB Host disable keyboard interface
  */
 void main_keyboard_disable(void);
 

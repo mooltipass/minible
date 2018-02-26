@@ -251,7 +251,6 @@
 //! The includes of classes and other headers must be done at the end of this file to avoid compile error
 #include "udi_hid_kbd.h"
 #include "udi_hid_generic.h"
-#include "ui.h"
 #include "usbhid.h"
 #include "main.h"
 
