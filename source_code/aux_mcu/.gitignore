@@ -1,0 +1,18 @@
+# Compiled source #
+###################
+*.o
+
+# Eclipse Files #
+#################
+.settings
+.cproject
+.project
+
+# Eclipse File
+#################
+*.bin
+*.hex
+*.elf
+*.lss
+*.map
+
