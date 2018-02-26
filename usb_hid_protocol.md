@@ -1,5 +1,6 @@
 ## [](#header-1) USB HID Protocol
 To accomodate its new features, the new Mooltipass Mini uses a new protocol implemented on top of 64 bytes HID packets. It is **not** compatible with previous protocols.   
+All communications are initiated by the computer.  
    
 ### [](#header-3) High Level HID Packet Structure Overview
 
@@ -22,26 +23,26 @@ If the computer wants to send a 240 bytes long message to the mini, it will send
    
 ### [](#header-3) Byte 0 Description
 
-| bit 7            | bit 6                  | bits 5 to 0                   |
-|:-----------------|:-----------------------|:------------------------------|
-| message flip bit | final acknowledge flag | current packet payload length |
+| bit 7            | bit 6                             | bits 5 to 0                   |
+|:-----------------|:----------------------------------|:------------------------------|
+| message flip bit | final acknowledge flag or request | current packet payload length |
   
 The message flip bit's main purpose is to explicitely mention that a new **message** (not packet) is being sent. This also allows the computer to discard a half-sent message by sending a new one with this bit flipped.  
 Therefore, this bit should be flipped every time a new message is sent.  
-At the end of a message transmission, regardless of the message contents' expected answer, the device will answer with a single 64B packet with the same byte0 and byte1 and the final acknowledge flag set.  
+At the end of a message transmission, if the computer set the final acknowledge request flag (bit6), regardless of the message contents' expected answer, the device will answer with a single 64B packet with the same byte0 and byte1 and the final acknowledge flag set.  
 This allows the computer to make sure his message was received.  
   
 **Example:**  
 If the computer wants to send **2** 240 bytes long messages to the mini, it can send **8** raw HID packets whose first two bytes are:  
-- computer packet #0: 62 (base 10) 0x03    
-- computer packet #1: 62 (base 10) 0x13     
-- computer packet #2: 62 (base 10) 0x23      
-- computer packet #3: 54 (base 10) 0x33   
+- computer packet #0: 0x40 + 62 (base 10) 0x03    
+- computer packet #1: 0x40 + 62 (base 10) 0x13     
+- computer packet #2: 0x40 + 62 (base 10) 0x23      
+- computer packet #3: 0x40 + 54 (base 10) 0x33   
 - device packet #0: 0x40 + 54 (base 10) 0x33 
-- packet #4: 0x80 + 62 (base 10) 0x03    
-- packet #5: 0x80 + 62 (base 10) 0x13     
-- packet #6: 0x80 + 62 (base 10) 0x23      
-- packet #7: 0x80 + 54 (base 10) 0x33    
+- packet #4: 0x80 + 0x40 + 62 (base 10) 0x03    
+- packet #5: 0x80 + 0x40 + 62 (base 10) 0x13     
+- packet #6: 0x80 + 0x40 + 62 (base 10) 0x23      
+- packet #7: 0x80 + 0x40 + 54 (base 10) 0x33    
 - device packet #1: 0xC0 + 54 (base 10) 0x33
   
 ### [](#header-3) Protocol Limitations
