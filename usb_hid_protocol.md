@@ -57,4 +57,4 @@ In our previous protocol, all byte1 include numbers **above 0xA0**. For this new
 - check for sequential packet numbers  
 - check that the current packet number isn't above the total number of expected packets  
 - check for message bit flip between 2 successive **messages**  
-- once a message is received, reply with a **single 64B packet** with the same byte0 and byte1 and final acknowledge flag set  
+- once a message is received, if the final acknowledge request flag is set, reply with a **single 64B packet** with the same byte0 and byte1 and final acknowledge flag set  
