@@ -246,21 +246,21 @@ static bool udi_hid_generic_setreport(void)
 //--------------------------------------------
 //------ Interface for application
 
-bool udi_hid_generic_send_report_in(uint8_t *data)
+bool udi_hid_generic_send_report_in(uint8_t *data, uint8_t size)
 {
 	if (!udi_hid_generic_b_report_in_free)
 		return false;
 	irqflags_t flags = cpu_irq_save();
 	// Fill report
 	memset(&udi_hid_generic_report_in, 0,
-			sizeof(udi_hid_generic_report_in));
+			size);
 	memcpy(&udi_hid_generic_report_in, data,
-	      		sizeof(udi_hid_generic_report_in));
+	      		size);
 	udi_hid_generic_b_report_in_free =
 			!udd_ep_run(UDI_HID_GENERIC_EP_IN,
 							false,
 							(uint8_t *) & udi_hid_generic_report_in,
-							sizeof(udi_hid_generic_report_in),
+							size,
 							udi_hid_generic_report_in_sent);
 	cpu_irq_restore(flags);
 	return !udi_hid_generic_b_report_in_free;

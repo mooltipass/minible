@@ -146,7 +146,7 @@ typedef struct {
  * 
  * \return \c 1 if function was successfully done, otherwise \c 0.
  */
-bool udi_hid_generic_send_report_in(uint8_t *data);
+bool udi_hid_generic_send_report_in(uint8_t *data, uint8_t size);
 
 //@}
 

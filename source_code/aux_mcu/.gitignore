@@ -7,3 +7,12 @@
 .settings
 .cproject
 .project
+
+# Eclipse File
+#################
+*.bin
+*.hex
+*.elf
+*.lss
+*.map
+

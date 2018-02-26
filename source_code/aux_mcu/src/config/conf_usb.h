@@ -181,16 +181,16 @@
 //! Interface callback definition
 #define  UDI_HID_GENERIC_ENABLE_EXT()        main_generic_enable()
 #define  UDI_HID_GENERIC_DISABLE_EXT()       main_generic_disable()
-#define  UDI_HID_GENERIC_REPORT_OUT(ptr)     ui_hid_raw(ptr)
+#define  UDI_HID_GENERIC_REPORT_OUT(ptr)     USBHID_usb_callback(ptr)
 #define  UDI_HID_GENERIC_SET_FEATURE(report) main_hid_set_feature(report)
 
 //! Sizes of I/O reports
-#define  UDI_HID_REPORT_IN_SIZE             8
-#define  UDI_HID_REPORT_OUT_SIZE            8
+#define  UDI_HID_REPORT_IN_SIZE             64
+#define  UDI_HID_REPORT_OUT_SIZE            64
 #define  UDI_HID_REPORT_FEATURE_SIZE        4
 
 //! Sizes of I/O endpoints
-#define  UDI_HID_GENERIC_EP_SIZE            8
+#define  UDI_HID_GENERIC_EP_SIZE            64
 
 //@}
 //@}
@@ -252,6 +252,7 @@
 #include "udi_hid_kbd.h"
 #include "udi_hid_generic.h"
 #include "ui.h"
+#include "usbhid.h"
 #include "main.h"
 
 

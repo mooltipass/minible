@@ -121,14 +121,11 @@ void ui_kbd_led(uint8_t value)
 }
 
 static void ui_hid_raw_echo( uint8_t *report ){
-    memcpy(ui_hid_report, report, sizeof(ui_hid_report));
-    udi_hid_generic_send_report_in(ui_hid_report);
+
 }
 
 static void ui_hid_raw_mooltipass_status(void){
-    memset(ui_hid_report, 0, sizeof(ui_hid_report));
-    ui_hid_report[3] = 0; // No card in Mooltipass
-    udi_hid_generic_send_report_in(ui_hid_report);
+
 }
 
 static void udi_hid_kbd_unpress_key (udd_ep_status_t status,

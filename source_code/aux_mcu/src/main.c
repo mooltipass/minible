@@ -45,6 +45,7 @@
  */
 #include <asf.h>
 #include "conf_usb.h"
+#include "usbhid.h"
 #include "ui.h"
 
 static volatile bool main_b_keyboard_enable = false;
@@ -68,6 +69,9 @@ int main(void) {
 #endif
     ui_init();
     ui_powerdown();
+
+    /* Initialize USBHID */
+    USBHID_init();
 
     // Start USB stack to authorize VBus monitoring
     udc_start();
