@@ -8,6 +8,9 @@
 #define PLATFORM_IO_H_
 
 /* Prototypes */
+uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void);
+BOOL platform_io_is_voledin_conversion_result_ready(void);
+void platform_io_init_bat_adc_measurements(void);
 void platform_io_init_scroll_wheel_ports(void);
 void platform_io_power_up_oled(BOOL power_1v2);
 void platform_io_disable_switch_and_die(void);

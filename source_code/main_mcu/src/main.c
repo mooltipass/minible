@@ -34,6 +34,7 @@ int main (void)
     dma_init();                                                         // Initialize the DMA controller
     timer_initialize_timebase();                                        // Initialize the platform time base
     platform_io_init_ports();                                           // Initialize platform IO ports
+    platform_io_init_bat_adc_measurements();                            // Initialize ADC for battery measurements
     if (dataflash_check_presence(&dataflash_descriptor) == RETURN_NOK)  // Check for data flash
     {
         while(1);
@@ -91,6 +92,20 @@ int main (void)
          }
     }*/
     
+    platform_io_get_voledin_conversion_result_and_trigger_conversion();
+    while (platform_io_is_voledin_conversion_result_ready() == FALSE);
+    platform_io_get_voledin_conversion_result_and_trigger_conversion();
+    uint16_t result = 0;
+    while (TRUE)
+    {
+        volatile uint32_t ts_start = timer_get_systick();
+        while (platform_io_is_voledin_conversion_result_ready() == FALSE);
+        volatile uint32_t ts_end = timer_get_systick();
+        sh1122_printf_xy(&oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "%u", ts_end-ts_start);
+        sh1122_printf_xy(&oled_descriptor, 0, 20, OLED_ALIGN_LEFT, "%u", result);
+        result = platform_io_get_voledin_conversion_result_and_trigger_conversion();        
+    }
+    
     /* Animation test */
     while(1)
     {
@@ -102,6 +117,8 @@ int main (void)
             //PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
             //sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
             while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING);
+            if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+                while (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_NONE);
         }
     }
     

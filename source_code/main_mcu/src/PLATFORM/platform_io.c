@@ -9,6 +9,8 @@
 #include "driver_clocks.h"
 #include "driver_timer.h"
 #include "platform_io.h"
+/* Set when a conversion result is ready */
+volatile BOOL platform_io_voledin_conv_ready = FALSE;
 
 
 /*! \fn     platform_io_enable_switch(void)
@@ -50,6 +52,71 @@ void platform_io_enable_ble(void)
 void platform_io_disable_ble(void)
 {
     PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
+}
+
+/*! \fn     ADC_Handler(void)
+*   \brief  Called once a conversion result is ready
+*/
+void ADC_Handler(void)
+{
+    /* Set conv ready bool and clear interrupt */
+    platform_io_voledin_conv_ready = TRUE;
+    ADC->INTFLAG.reg = ADC_INTFLAG_RESRDY;
+}
+
+/*! \fn     platform_io_is_voledin_conversion_result_ready(void)
+*   \brief  Ask if a voledin conversion result is ready
+*   \return the bool
+*/
+BOOL platform_io_is_voledin_conversion_result_ready(void)
+{
+    return platform_io_voledin_conv_ready;
+}
+
+/*! \fn     platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
+*   \brief  Fetch voled conversion result and trigger new conversion
+*   \return conversion result
+*/
+uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
+{
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+    platform_io_voledin_conv_ready = FALSE;
+    uint16_t return_val = ADC->RESULT.reg;
+    ADC->SWTRIG.reg = ADC_SWTRIG_START;
+    return return_val;
+}
+
+/*! \fn     platform_io_init_bat_adc_measurements(void)
+*   \brief  Initialize ADC to later perform battery voltage measurements
+*/
+void platform_io_init_bat_adc_measurements(void)
+{
+    /* Configure analog input */
+#if defined(PLAT_V2_SETUP)
+
+    PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
+    PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 1;
+    PORT->Group[VOLED_VIN_GROUP].PMUX[VOLED_VIN_PINID/2].bit.VOLED_VIN_PMUXREGID = VOLED_VIN_PMUX_ID;
+#endif
+    PM->APBCMASK.bit.ADC_ = 1;                                                                  // Enable ADC bus clock
+    clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, GCLK_CLKCTRL_ID_ADC_Val);                  // Map 48MHz to ADC unit
+    ADC->REFCTRL.reg = ADC_REFCTRL_REFSEL(ADC_REFCTRL_REFSEL_INTVCC1_Val);                      // Set VCC/2 as a reference
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                       // Wait for sync
+    ADC_CTRLB_Type temp_adc_ctrb_reg;                                                           // Temp register
+    temp_adc_ctrb_reg.reg = 0;                                                                  // Set to 0
+    temp_adc_ctrb_reg.bit.RESSEL = ADC_CTRLB_RESSEL_16BIT_Val;                                  // Set to 16bit result to allow averaging mode
+    temp_adc_ctrb_reg.bit.PRESCALER = ADC_CTRLB_PRESCALER_DIV128_Val;                           // Set fclk_adc to 48M / 128 = 375kHz
+    ADC->CTRLB = temp_adc_ctrb_reg;                                                             // Write ctrlb
+    ADC->AVGCTRL.reg = ADC_AVGCTRL_ADJRES(4) | ADC_AVGCTRL_SAMPLENUM_1024;                      // Average on 1024 samples. Expected time for avg: 375k/(12-1)/1024 = 33.3Hz = 30ms. Single conversion mode, single ended, 12bit
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                       // Wait for sync
+    ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(VBAT_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND;  // 1x gain, one channel set to voled in
+    ADC->INTENSET.reg = ADC_INTENSET_RESRDY;                                                    // Enable in result ready interrupt
+    NVIC_EnableIRQ(ADC_IRQn);                                                                   // Enable int
+    uint16_t calib_val = ((*((uint32_t *)ADC_FUSES_LINEARITY_1_ADDR)) & 0x3F) << 5;             // Fetch calibration value
+    calib_val |=  ((*((uint32_t *)ADC_FUSES_LINEARITY_0_ADDR)) & ADC_FUSES_LINEARITY_0_Msk) >> ADC_FUSES_LINEARITY_0_Pos;
+    ADC->CALIB.reg = calib_val;                                                                 // Store calibration value
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                       // Wait for sync
+    ADC->CTRLA.reg = ADC_CTRLA_ENABLE;                                                          // And enable ADC
 }
 
 /*! \fn     platform_io_init_scroll_wheel_ports(void)

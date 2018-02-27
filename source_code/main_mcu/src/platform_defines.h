@@ -67,7 +67,10 @@ typedef struct
 
 /* GCLK ID defines */
 #define GCLK_ID_48M             GCLK_CLKCTRL_GEN_GCLK0_Val
-#define GCLK_ID_32K             GCLK_CLKCTRL_GEN_GCLK2_Val
+#define GCLK_ID_32K             GCLK_CLKCTRL_GEN_GCLK3_Val
+
+/* ADC defines */
+#define VBAT_ADC_PIN_MUXPOS     ADC_INPUTCTRL_MUXPOS_PIN1_Val
 
 /* SERCOM defines */
 #define SMARTCARD_GCLK_SERCOM_ID    GCLK_CLKCTRL_ID_SERCOM5_CORE_Val
@@ -156,6 +159,17 @@ typedef struct
     #define SMC_POW_NEN_GROUP   PIN_GROUP_0
     #define SMC_POW_NEN_PINID   30
     #define SMC_POW_NEN_MASK    (1UL << SMC_POW_NEN_PINID)
+#endif
+#if defined(PLAT_V2_SETUP)
+    #define VOLED_VIN_GROUP     PIN_GROUP_0
+    #define VOLED_VIN_PINID     3
+    #define VOLED_VIN_MASK      (1UL << VOLED_VIN_PINID)
+    #define VOLED_VIN_PMUX_ID   PORT_PMUX_PMUXE_B_Val
+    #if (VOLED_VIN_PINID % 2) == 1
+        #define VOLED_VIN_PMUXREGID PMUXO
+    #else
+        #define VOLED_VIN_PMUXREGID PMUXE
+    #endif
 #endif
 #define BLE_EN_GROUP            PIN_GROUP_0
 #define BLE_EN_PINID            13
