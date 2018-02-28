@@ -92,7 +92,7 @@ int main (void)
          }
     }*/
     
-    platform_io_get_voledin_conversion_result_and_trigger_conversion();
+    /*platform_io_get_voledin_conversion_result_and_trigger_conversion();
     while (platform_io_is_voledin_conversion_result_ready() == FALSE);
     platform_io_get_voledin_conversion_result_and_trigger_conversion();
     uint16_t result = 0;
@@ -104,7 +104,7 @@ int main (void)
         sh1122_printf_xy(&oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "%u", ts_end-ts_start);
         sh1122_printf_xy(&oled_descriptor, 0, 20, OLED_ALIGN_LEFT, "%u", result);
         result = platform_io_get_voledin_conversion_result_and_trigger_conversion();        
-    }
+    }*/
     
     /* Animation test */
     while(1)

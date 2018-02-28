@@ -91,13 +91,6 @@ uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
 */
 void platform_io_init_bat_adc_measurements(void)
 {
-    /* Configure analog input */
-#if defined(PLAT_V2_SETUP)
-
-    PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
-    PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 1;
-    PORT->Group[VOLED_VIN_GROUP].PMUX[VOLED_VIN_PINID/2].bit.VOLED_VIN_PMUXREGID = VOLED_VIN_PMUX_ID;
-#endif
     PM->APBCMASK.bit.ADC_ = 1;                                                                  // Enable ADC bus clock
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, GCLK_CLKCTRL_ID_ADC_Val);                  // Map 48MHz to ADC unit
     ADC->REFCTRL.reg = ADC_REFCTRL_REFSEL(ADC_REFCTRL_REFSEL_INTVCC1_Val);                      // Set VCC/2 as a reference
@@ -215,7 +208,7 @@ void platform_io_smc_switch_to_spi(void)
 /*! \fn     platform_io_init_accelerometer(void)
 *   \brief  Initialize the platform accelerometer IO ports
 */
-void platform_io_init_accelerometer(void)
+void platform_io_init_accelerometer_ports(void)
 {
     EIC->EVCTRL.reg |= (1 << ACC_EXTINT_NUM);                                                                               // Enable events from extint pin
     EIC->CONFIG[ACC_EXTINT_NUM/8].bit.ACC_EIC_SENSE_REG = EIC_CONFIG_SENSE0_HIGH_Val;                                       // Detect high state
@@ -343,7 +336,50 @@ void platform_io_power_down_oled(void)
 */
 void platform_io_init_power_ports(void)
 {
-    //
+    /* Configure analog input */
+#if defined(PLAT_V2_SETUP)
+    PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
+    PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 1;
+    PORT->Group[VOLED_VIN_GROUP].PMUX[VOLED_VIN_PINID/2].bit.VOLED_VIN_PMUXREGID = VOLED_VIN_PMUX_ID;
+#endif
+}
+
+/*! \fn     platform_io_init_aux_comms_ports(void)
+*   \brief  Initialize the ports used for communication with aux MCU
+*/
+void platform_io_init_aux_comms(void)
+{
+    /* Port init */
+    PORT->Group[AUX_MCU_RX_GROUP].DIRSET.reg = AUX_MCU_RX_MASK;                                             // AUX MCU RX, MAIN MCU TX
+    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 1;                                  // Enable peripheral multiplexer
+    PORT->Group[AUX_MCU_RX_GROUP].PMUX[AUX_MCU_RX_PINID/2].bit.AUX_MCU_RX_PMUXREGID = AUX_MCU_RX_PMUX_ID;   // AUX MCU RX, MAIN MCU TX
+    PORT->Group[AUX_MCU_TX_GROUP].DIRCLR.reg = AUX_MCU_TX_MASK;                                             // AUX MCU TX, MAIN MCU RX
+    PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 1;                                  // Enable peripheral multiplexer
+    PORT->Group[AUX_MCU_TX_GROUP].PMUX[AUX_MCU_TX_PINID/2].bit.AUX_MCU_TX_PMUXREGID = AUX_MCU_TX_PMUX_ID;   // AUX MCU TX, MAIN MCU RX
+    PM->APBCMASK.bit.AUXMCU_APB_SERCOM_BIT = 1;                                                             // Enable SERCOM APB Clock Enable
+    clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, AUXMCU_GCLK_SERCOM_ID);                                // Map 48MHz to SERCOM unit
+    
+    /* Sercom init */
+    /* MSB first, USART frame, async, 16x oversampling, internal clock */
+    SERCOM_USART_CTRLA_Type temp_ctrla_reg;
+    temp_ctrla_reg.reg = 0;
+    temp_ctrla_reg.bit.RXPO = AUXMCU_TX_PAD;
+    temp_ctrla_reg.bit.TXPO = AUXMCU_RX_TXPO;
+    temp_ctrla_reg.bit.MODE = SERCOM_USART_CTRLA_MODE_USART_INT_CLK_Val;
+    AUXMCU_SERCOM->USART.CTRLA = temp_ctrla_reg;
+    /* TX & RX en, 8bits */
+    SERCOM_USART_CTRLB_Type temp_ctrlb_reg;
+    temp_ctrlb_reg.reg = 0;
+    temp_ctrlb_reg.bit.RXEN = 1;
+    temp_ctrlb_reg.bit.TXEN = 1;   
+    while ((AUXMCU_SERCOM->USART.SYNCBUSY.reg & SERCOM_USART_SYNCBUSY_CTRLB) != 0);
+    AUXMCU_SERCOM->USART.CTRLB = temp_ctrlb_reg;
+    /* Set max bit rate of 3MHz */
+    AUXMCU_SERCOM->USART.BAUD.reg = 0;
+    /* Enable sercom */
+    temp_ctrla_reg.reg |= SERCOM_USART_CTRLA_ENABLE;
+    while ((AUXMCU_SERCOM->USART.SYNCBUSY.reg & SERCOM_USART_SYNCBUSY_ENABLE) != 0);
+    AUXMCU_SERCOM->USART.CTRLA = temp_ctrla_reg;    
 }
 
 /*! \fn     platform_io_init_ports(void)
@@ -369,12 +405,15 @@ void platform_io_init_ports(void)
     platform_io_init_flash_ports();
     
     /* Accelerometer */
-    platform_io_init_accelerometer();
+    platform_io_init_accelerometer_ports();
 
     /* AUX MCU, reset by default */
     PORT->Group[MCU_AUX_RST_EN_GROUP].DIRSET.reg = MCU_AUX_RST_EN_MASK;
     PORT->Group[MCU_AUX_RST_EN_GROUP].OUTSET.reg = MCU_AUX_RST_EN_MASK;
     platform_io_release_aux_reset();
+    
+    /* Aux comms */
+    platform_io_init_aux_comms();
 
     /* BLE enable, disabled by default */
     PORT->Group[BLE_EN_GROUP].DIRSET.reg = BLE_EN_MASK;

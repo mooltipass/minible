@@ -91,6 +91,8 @@ typedef struct
 #define AUXMCU_GCLK_SERCOM_ID       GCLK_CLKCTRL_ID_SERCOM4_CORE_Val
 #define AUXMCU_APB_SERCOM_BIT       SERCOM4_
 #define AUXMCU_SERCOM               SERCOM4
+#define AUXMCU_RX_TXPO              1
+#define AUXMCU_TX_PAD               3
 #define OLED_GCLK_SERCOM_ID         GCLK_CLKCTRL_ID_SERCOM0_CORE_Val
 #define OLED_MOSI_SCK_PADS          MOSI_P0_SCK_P1_SS_P2
 #define OLED_MISO_PAD               MISO_PAD3
@@ -352,6 +354,25 @@ typedef struct
 #define SMC_DET_GROUP          PIN_GROUP_0
 #define SMC_DET_PINID          12
 #define SMC_DET_MASK           (1UL << SMC_DET_PINID)
+/* AUX MCU COMMS */
+#define AUX_MCU_TX_GROUP       PIN_GROUP_1
+#define AUX_MCU_TX_PINID       11
+#define AUX_MCU_TX_MASK        (1UL << AUX_MCU_TX_PINID)
+#define AUX_MCU_TX_PMUX_ID     PORT_PMUX_PMUXO_D_Val
+#if (AUX_MCU_TX_PINID % 2) == 1
+    #define AUX_MCU_TX_PMUXREGID  PMUXO
+#else
+    #define AUX_MCU_TX_PMUXREGID  PMUXE
+#endif
+#define AUX_MCU_RX_GROUP       PIN_GROUP_1
+#define AUX_MCU_RX_PINID       10
+#define AUX_MCU_RX_MASK        (1UL << AUX_MCU_RX_PINID)
+#define AUX_MCU_RX_PMUX_ID     PORT_PMUX_PMUXO_D_Val
+#if (AUX_MCU_RX_PINID % 2) == 1
+    #define AUX_MCU_RX_PMUXREGID  PMUXO
+#else
+    #define AUX_MCU_RX_PMUXREGID  PMUXE
+#endif
 
 /* Display defines */
 #define DEFAULT_FONT_ID         1
