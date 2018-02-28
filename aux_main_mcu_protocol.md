@@ -21,4 +21,4 @@ The message payload, which may contain up to 532 bytes. This maximum size was de
   
 **Serial Link Specs**  
 Ideally, we'd like to start answering any message within 1ms (minimum HID send window). On a purely link layer, this means sending 536x2 bytes in less than one ms (1.07Mbit/s).  
-As MCUs are running at 48MHz and given we use integer clock dividers, the current serial clock is set to 6MHz.
+As MCUs are running at 48MHz and given we use integer clock dividers, the current serial clock is set to 3MHz (max value for 16x oversampling).
