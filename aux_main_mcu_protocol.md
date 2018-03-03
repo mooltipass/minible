@@ -5,9 +5,9 @@ While the main role of the auxiliary MCU is to receive/send data packets from/to
 ## [](#header-2) Message Structure and Serial Link Specs 
 The message structure is defined as follows:  
 
-| byte 0 - 1   | byte 2 - 3       | byte 4 - up to 535  |
-|:-------------|:-----------------|---------------------|
-| Message Type | Payload Length   | Payload             |
+| byte 0 - 1   | byte 2 - 3       | byte 4 - 535  |
+|:-------------|:-----------------|---------------|
+| Message Type | Payload Length   | Payload       |
 
 **Message Type**  
 - 0x0000: Message to/from USB  
