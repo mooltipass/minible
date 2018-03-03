@@ -4,6 +4,7 @@
 #include "smartcard_lowlevel.h"
 #include "platform_defines.h"
 #include "driver_clocks.h"
+#include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "platform_io.h"
 #include "custom_fs.h"
@@ -35,6 +36,7 @@ int main (void)
     timer_initialize_timebase();                                        // Initialize the platform time base
     platform_io_init_ports();                                           // Initialize platform IO ports
     platform_io_init_bat_adc_measurements();                            // Initialize ADC for battery measurements
+    comms_aux_init();                                                   // Initialize communication handling with aux MCU
     if (dataflash_check_presence(&dataflash_descriptor) == RETURN_NOK)  // Check for data flash
     {
         while(1);
@@ -111,6 +113,7 @@ int main (void)
     {
         for (uint32_t i = 0; i < 120; i++)
         {
+            comms_aux_mcu_routine();
             timer_start_timer(TIMER_TIMEOUT_FUNCTS, 25);
             PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK; 
             sh1122_display_bitmap_from_flash_at_recommended_position(&oled_descriptor, i);
