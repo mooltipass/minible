@@ -64,6 +64,8 @@ typedef struct
 //#define OLED_DMA_TRANSFER
 /* allow printf for the screen */
 #define OLED_PRINTF_ENABLED
+/* Allow debug USB commands */
+#define DEBUG_USB_COMMANDS_ENABLED
 
 /* GCLK ID defines */
 #define GCLK_ID_48M             GCLK_CLKCTRL_GEN_GCLK0_Val
