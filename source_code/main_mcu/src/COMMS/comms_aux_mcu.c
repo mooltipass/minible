@@ -4,6 +4,7 @@
 *    Author:   Mathieu Stephan
 */
 #include <asf.h>
+#include "comms_hid_msgs.h"
 #include "comms_aux_mcu.h"
 #include "defines.h"
 #include "dma.h"
@@ -18,10 +19,6 @@ BOOL aux_mcu_msg_rcv_on_buffer1 = TRUE;
 void comms_aux_init(void)
 {
     dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_message_buffer1, sizeof(aux_mcu_message_buffer1));
-    
-    /* For test */
-    aux_mcu_message_buffer2.message_type = 0xABCD;
-    dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_message_buffer2, sizeof(aux_mcu_message_buffer1));
 }
 
 /*! \fn     comms_aux_mcu_routine(void)
@@ -29,9 +26,21 @@ void comms_aux_init(void)
 */
 void comms_aux_mcu_routine(void)
 {
+	/* Pointer to the currently received message and possible packet to fill as an answer */
+	aux_mcu_message_t* rcv_msg_pointer = &aux_mcu_message_buffer2;
+    aux_mcu_message_t* tosend_msg_pointer = &aux_mcu_message_buffer1;
+	if (aux_mcu_msg_rcv_on_buffer1 != FALSE)
+	{
+		rcv_msg_pointer = &aux_mcu_message_buffer1;
+        tosend_msg_pointer = &aux_mcu_message_buffer2;
+	}
+	
     /* Did we receive a message? */
     if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
     {
-        asm("Nop");
+        if ((rcv_msg_pointer->message_type == AUX_MCU_MSG_TYPE_USB) || (rcv_msg_pointer->message_type == AUX_MCU_MSG_TYPE_BLE))
+        {
+            comms_hid_msgs_parse(rcv_msg_pointer->payload, rcv_msg_pointer->payload_length, tosend_msg_pointer->payload);
+        }
     }
 }
