@@ -26,14 +26,14 @@ void comms_aux_init(void)
 */
 void comms_aux_mcu_routine(void)
 {
-	/* Pointer to the currently received message and possible packet to fill as an answer */
-	aux_mcu_message_t* rcv_msg_pointer = &aux_mcu_message_buffer2;
+    /* Pointer to the currently received message and possible packet to fill as an answer */
+    aux_mcu_message_t* rcv_msg_pointer = &aux_mcu_message_buffer2;
     aux_mcu_message_t* tosend_msg_pointer = &aux_mcu_message_buffer1;
-	if (aux_mcu_msg_rcv_on_buffer1 != FALSE)
-	{
-		rcv_msg_pointer = &aux_mcu_message_buffer1;
+    if (aux_mcu_msg_rcv_on_buffer1 != FALSE)
+    {
+        rcv_msg_pointer = &aux_mcu_message_buffer1;
         tosend_msg_pointer = &aux_mcu_message_buffer2;
-	}
+    }
 	
     /* Did we receive a message? */
     if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
