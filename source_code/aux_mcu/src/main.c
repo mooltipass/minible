@@ -46,6 +46,8 @@
 #include <asf.h>
 #include "conf_usb.h"
 #include "usbhid.h"
+#include "driver_sercom.h"
+#include "power_manager.h"
 
 static volatile bool main_b_keyboard_enable = false;
 static volatile bool main_b_generic_enable = false;
@@ -57,10 +59,13 @@ int main(void) {
     cpu_irq_enable();
 
     // Initialize the sleep manager
-    sleepmgr_init();
+    //sleepmgr_init();
 
     // System init
     system_init();
+
+    // Power Manager init
+    power_manager_init();
 
     // Initialize USBHID
     USBHID_init();
@@ -68,10 +73,31 @@ int main(void) {
     // Start USB stack to authorize VBus monitoring
     udc_start();
 
+    // Initialize Serial
+    /* Set up the USB DP/DN pins */
+    struct system_pinmux_config pin_config;
+    struct system_gclk_chan_config gclk_chan_config;
+    system_pinmux_get_config_defaults(&pin_config);
+    pin_config.mux_position = MUX_PA16C_SERCOM1_PAD0;
+    system_pinmux_pin_set_config(PIN_PA16C_SERCOM1_PAD0, &pin_config);
+    pin_config.mux_position = MUX_PA17C_SERCOM1_PAD1;
+    system_pinmux_pin_set_config(PIN_PA17C_SERCOM1_PAD1, &pin_config);
+
+    /* Setup clock for module */
+    system_gclk_chan_get_config_defaults(&gclk_chan_config);
+    gclk_chan_config.source_generator = GCLK_GENERATOR_1;
+    system_gclk_chan_set_config(SERCOM1_GCLK_ID_CORE, &gclk_chan_config);
+    system_gclk_chan_enable(SERCOM1_GCLK_ID_CORE);
+
+// 52 is  115200 at 48Mhz clock
+    sercom_usart_init(SERCOM1, 1, USART_RX_PAD1, USART_TX_P0_XCK_P1);
+
+
     // The main loop manages only the power mode
     // because the USB management is done by interrupt
     while (true) {
         // sleepmgr_enter_sleep();
+        sercom_send_single_byte(SERCOM1, 0x05);
     }
 }
 

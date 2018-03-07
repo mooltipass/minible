@@ -79,6 +79,8 @@ LDFLAGS= -Wl,-Map=$(OUTPUT_FILE_NAME).map,--start-group $(addprefix -L , $(LIB_P
 INCLUDE_PATHS+= .
 INCLUDE_PATHS+= config
 INCLUDE_PATHS+= USBHID
+INCLUDE_PATHS+= SERCOM
+INCLUDE_PATHS+= PM
 INCLUDE_PATHS+= ASF/common/utils/interrupt
 INCLUDE_PATHS+= ASF/thirdparty/CMSIS/Include
 INCLUDE_PATHS+= ASF/sam0/utils/cmsis/samd21/include
@@ -158,6 +160,8 @@ IDIR = $(addprefix -I, $(INCLUDE_PATHS))
 SRCS += ASF/sam0/utils/cmsis/samd21/source/gcc/startup_samd21.c
 SRCS += main.c 
 SRCS += USBHID/usbhid.c
+SRCS += SERCOM/driver_sercom.c
+SRCS += PM/power_manager.c
 
 # DRIVERS
 SRCS += $(_DRIVERS_SYSTEM_PATH)/system.c
