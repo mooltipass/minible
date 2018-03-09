@@ -112,13 +112,13 @@ const T_pin_cfg pin_ble_rts_uart0 = {
 T_pin_cfg pin_aux_tx = {
     .pinid = PIN_PA16,
     .pincfg = PINCFG_PERIPHERAL,
-    .iocfg = IO_INPUT_PULLUP,
+    .iocfg = IO_OUTPUT_DEFAULT_HIGH,
     .muxcfg = MUX_PA16C_SERCOM1_PAD0,
 };
 T_pin_cfg pin_aux_rx = {
     .pinid = PIN_PA17,
     .pincfg = PINCFG_PERIPHERAL,
-    .iocfg = IO_INPUT_PULLUP,
+    .iocfg = IO_INPUT_DEFAULT,
     .muxcfg = MUX_PA17C_SERCOM1_PAD1,
 };
 
@@ -160,7 +160,7 @@ static void port_manager_config(T_pin_cfg* pin){
     }
 
     // Clear Dir before configuring
-    //PORT->Group[groupid].DIRCLR.reg = pinmask;
+    PORT->Group[groupid].DIRCLR.reg = pinmask;
 
 
     /* Write Configuration to update PMUX */
@@ -185,4 +185,5 @@ static void port_manager_config(T_pin_cfg* pin){
 
 void port_manager_init(void){
     port_manager_config(&pin_aux_tx);
+    port_manager_config(&pin_aux_rx);
 }

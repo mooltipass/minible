@@ -53,16 +53,6 @@
 static volatile bool main_b_keyboard_enable = false;
 static volatile bool main_b_generic_enable = false;
 
-static inline void pin_set_peripheral_function(uint32_t pinmux)
-{
-    uint8_t port = (uint8_t)((pinmux >> 16)/32);
-    PORT->Group[port].PINCFG[((pinmux >> 16) - (port*32))].bit.PMUXEN = 1;
-    PORT->Group[port].PMUX[((pinmux >> 16) - (port*32))/2].reg &= ~(0xF << (4 * ((pinmux >>
-    16) & 0x01u)));
-    PORT->Group[port].PMUX[((pinmux >> 16) - (port*32))/2].reg |= (uint8_t)((pinmux &
-    0x0000FFFF) << (4 * ((pinmux >> 16) & 0x01u)));
-}
-
 /*! \brief Main function. Execution starts here.
  */
 int main(void) {
@@ -75,6 +65,9 @@ int main(void) {
     // System init
     system_init();
 
+	// Port init
+	port_manager_init();
+
     // Power Manager init
     power_manager_init();
 
@@ -83,13 +76,6 @@ int main(void) {
 
     // Start USB stack to authorize VBus monitoring
     udc_start();
-
-    // Initialize Serial
-    pin_set_peripheral_function(PINMUX_PA16C_SERCOM1_PAD0);
-    pin_set_peripheral_function(PINMUX_PA17C_SERCOM1_PAD1);
-
-    // Port init
-    //port_manager_init();
 
     /* Setup clock for module */
     struct system_gclk_chan_config gclk_chan_config;
@@ -106,6 +92,7 @@ int main(void) {
     // because the USB management is done by interrupt
     while (true) {
         // sleepmgr_enter_sleep();
+		//sercom_send_single_byte(SERCOM1, 0x55);
     }
 }
 
