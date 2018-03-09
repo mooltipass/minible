@@ -428,7 +428,6 @@
       <Value>../src/ASF/common/services/usb/class/composite/device</Value>
       <Value>../src/ASF/common/services/usb/udc</Value>
       <Value>../src/ASF/common/services/usb</Value>
-      <Value>../src/USBHID</Value>
       <Value>../src/ASF/sam0/drivers/port</Value>
       <Value>../src/ASF/common/services/sleepmgr</Value>
       <Value>../src/ASF/sam0/drivers/extint</Value>
@@ -436,6 +435,10 @@
       <Value>../src/ASF/sam0/drivers/usb</Value>
       <Value>../src/ASF/sam0/drivers/usb/usb_sam_d_r</Value>
       <Value>../src/ASF/sam0/drivers/usb/stack_interface</Value>
+      <Value>../src/USBHID</Value>
+      <Value>../src/SERCOM</Value>
+      <Value>../src/PORT</Value>
+      <Value>../src/PM</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
@@ -608,6 +611,9 @@
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
     <Folder Include="src\config\" />
+    <Folder Include="src\PM\" />
+    <Folder Include="src\PORT\" />
+    <Folder Include="src\SERCOM\" />
     <Folder Include="src\USBHID\" />
   </ItemGroup>
   <ItemGroup>
@@ -675,6 +681,24 @@
       <SubType>compile</SubType>
     </None>
     <None Include="src\main.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\PM\power_manager.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\PM\power_manager.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\PORT\port_manager.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\PORT\port_manager.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\SERCOM\driver_sercom.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\SERCOM\driver_sercom.h">
       <SubType>compile</SubType>
     </None>
     <Compile Include="src\USBHID\usbhid.c">
