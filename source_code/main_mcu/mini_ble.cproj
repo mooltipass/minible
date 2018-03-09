@@ -278,6 +278,8 @@
       <Value>../src/SMARTCARD</Value>
       <Value>../src/OLED</Value>
       <Value>../src/ACCELEROMETER</Value>
+      <Value>../src/INPUTS</Value>
+      <Value>../src/COMMS</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
@@ -413,6 +415,8 @@
       <Value>../src/SMARTCARD</Value>
       <Value>../src/OLED</Value>
       <Value>../src/ACCELEROMETER</Value>
+      <Value>../src/INPUTS</Value>
+      <Value>../src/COMMS</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
@@ -512,6 +516,24 @@
     <Compile Include="src\CLOCKS\driver_clocks.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\COMMS\comms_aux_mcu.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMMS\comms_aux_mcu.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMMS\comms_hid_msgs.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMMS\comms_hid_msgs.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMMS\comms_hid_msgs_debug.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMMS\comms_hid_msgs_debug.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\DMA\dma.c">
       <SubType>compile</SubType>
     </Compile>
@@ -540,6 +562,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\FLASH\dbflash.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\INPUTS\inputs.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\INPUTS\inputs.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\OLED\mooltipass_graphics_bundle.c">
@@ -1129,6 +1157,8 @@
     <Folder Include="src\FILESYSTEM" />
     <Folder Include="src\DMA" />
     <Folder Include="src\ACCELEROMETER" />
+    <Folder Include="src\INPUTS" />
+    <Folder Include="src\COMMS" />
     <Folder Include="src\OLED" />
     <Folder Include="src\SMARTCARD" />
     <Folder Include="src\TIMER" />

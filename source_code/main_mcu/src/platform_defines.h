@@ -64,10 +64,15 @@ typedef struct
 //#define OLED_DMA_TRANSFER
 /* allow printf for the screen */
 #define OLED_PRINTF_ENABLED
+/* Allow debug USB commands */
+#define DEBUG_USB_COMMANDS_ENABLED
 
 /* GCLK ID defines */
 #define GCLK_ID_48M             GCLK_CLKCTRL_GEN_GCLK0_Val
-#define GCLK_ID_32K             GCLK_CLKCTRL_GEN_GCLK2_Val
+#define GCLK_ID_32K             GCLK_CLKCTRL_GEN_GCLK3_Val
+
+/* ADC defines */
+#define VBAT_ADC_PIN_MUXPOS     ADC_INPUTCTRL_MUXPOS_PIN1_Val
 
 /* SERCOM defines */
 #define SMARTCARD_GCLK_SERCOM_ID    GCLK_CLKCTRL_ID_SERCOM5_CORE_Val
@@ -88,6 +93,8 @@ typedef struct
 #define AUXMCU_GCLK_SERCOM_ID       GCLK_CLKCTRL_ID_SERCOM4_CORE_Val
 #define AUXMCU_APB_SERCOM_BIT       SERCOM4_
 #define AUXMCU_SERCOM               SERCOM4
+#define AUXMCU_RX_TXPO              1
+#define AUXMCU_TX_PAD               3
 #define OLED_GCLK_SERCOM_ID         GCLK_CLKCTRL_ID_SERCOM0_CORE_Val
 #define OLED_MOSI_SCK_PADS          MOSI_P0_SCK_P1_SS_P2
 #define OLED_MISO_PAD               MISO_PAD3
@@ -114,6 +121,8 @@ typedef struct
 #define DBFLASH_DMA_SERCOM_TXTRIG       0x08
 #define ACC_DMA_SERCOM_RXTRIG           0x03
 #define ACC_DMA_SERCOM_TXTRIG           0x04
+#define AUX_MCU_SERCOM_RXTRIG           0x09
+#define AUX_MCU_SERCOM_TXTRIG           0x0A
 
 /* SERCOM trigger for OLED data transfers */
 #define OLED_DMA_SERCOM_TX_TRIG         0x02
@@ -156,6 +165,17 @@ typedef struct
     #define SMC_POW_NEN_GROUP   PIN_GROUP_0
     #define SMC_POW_NEN_PINID   30
     #define SMC_POW_NEN_MASK    (1UL << SMC_POW_NEN_PINID)
+#endif
+#if defined(PLAT_V2_SETUP)
+    #define VOLED_VIN_GROUP     PIN_GROUP_0
+    #define VOLED_VIN_PINID     3
+    #define VOLED_VIN_MASK      (1UL << VOLED_VIN_PINID)
+    #define VOLED_VIN_PMUX_ID   PORT_PMUX_PMUXE_B_Val
+    #if (VOLED_VIN_PINID % 2) == 1
+        #define VOLED_VIN_PMUXREGID PMUXO
+    #else
+        #define VOLED_VIN_PMUXREGID PMUXE
+    #endif
 #endif
 #define BLE_EN_GROUP            PIN_GROUP_0
 #define BLE_EN_PINID            13
@@ -338,6 +358,25 @@ typedef struct
 #define SMC_DET_GROUP          PIN_GROUP_0
 #define SMC_DET_PINID          12
 #define SMC_DET_MASK           (1UL << SMC_DET_PINID)
+/* AUX MCU COMMS */
+#define AUX_MCU_TX_GROUP       PIN_GROUP_1
+#define AUX_MCU_TX_PINID       11
+#define AUX_MCU_TX_MASK        (1UL << AUX_MCU_TX_PINID)
+#define AUX_MCU_TX_PMUX_ID     PORT_PMUX_PMUXO_D_Val
+#if (AUX_MCU_TX_PINID % 2) == 1
+    #define AUX_MCU_TX_PMUXREGID  PMUXO
+#else
+    #define AUX_MCU_TX_PMUXREGID  PMUXE
+#endif
+#define AUX_MCU_RX_GROUP       PIN_GROUP_1
+#define AUX_MCU_RX_PINID       10
+#define AUX_MCU_RX_MASK        (1UL << AUX_MCU_RX_PINID)
+#define AUX_MCU_RX_PMUX_ID     PORT_PMUX_PMUXO_D_Val
+#if (AUX_MCU_RX_PINID % 2) == 1
+    #define AUX_MCU_RX_PMUXREGID  PMUXO
+#else
+    #define AUX_MCU_RX_PMUXREGID  PMUXE
+#endif
 
 /* Display defines */
 #define DEFAULT_FONT_ID         1

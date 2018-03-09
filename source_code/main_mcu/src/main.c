@@ -4,6 +4,7 @@
 #include "smartcard_lowlevel.h"
 #include "platform_defines.h"
 #include "driver_clocks.h"
+#include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "platform_io.h"
 #include "custom_fs.h"
@@ -12,6 +13,7 @@
 #include "dbflash.h"
 #include "defines.h"
 #include "sh1122.h"
+#include "inputs.h"
 #include "dma.h"
 /* Our oled & dataflash & dbflash descriptors */
 accelerometer_descriptor_t  acc_descriptor = {.sercom_pt = ACC_SERCOM, .cs_pin_group = ACC_nCS_GROUP, .cs_pin_mask = ACC_nCS_MASK, .int_pin_group = ACC_INT_GROUP, .int_pin_mask = ACC_INT_MASK, .evgen_sel = ACC_EV_GEN_SEL, .evgen_channel = ACC_EV_GEN_CHANNEL, .dma_channel = 3};
@@ -33,6 +35,8 @@ int main (void)
     dma_init();                                                         // Initialize the DMA controller
     timer_initialize_timebase();                                        // Initialize the platform time base
     platform_io_init_ports();                                           // Initialize platform IO ports
+    platform_io_init_bat_adc_measurements();                            // Initialize ADC for battery measurements
+    comms_aux_init();                                                   // Initialize communication handling with aux MCU
     if (dataflash_check_presence(&dataflash_descriptor) == RETURN_NOK)  // Check for data flash
     {
         while(1);
@@ -72,6 +76,55 @@ int main (void)
         }
     }*/
     
+    /* inputs tests */
+    /*wheel_action_ret_te input_action;
+    while(1)
+    {
+         input_action = inputs_get_wheel_action(FALSE, FALSE);
+         
+         switch (input_action)
+         {
+             case WHEEL_ACTION_SHORT_CLICK: sh1122_put_string_xy(&oled_descriptor, 0, 0, OLED_ALIGN_LEFT, u"click"); break;
+             case WHEEL_ACTION_LONG_CLICK: sh1122_put_string_xy(&oled_descriptor, 0, 0, OLED_ALIGN_LEFT, u"long"); break;
+             case WHEEL_ACTION_UP: sh1122_put_string_xy(&oled_descriptor, 0, 0, OLED_ALIGN_LEFT, u"up  "); break;
+             case WHEEL_ACTION_DOWN: sh1122_put_string_xy(&oled_descriptor, 0, 0, OLED_ALIGN_LEFT, u"down"); break;
+             case WHEEL_ACTION_CLICK_UP: sh1122_put_string_xy(&oled_descriptor, 0, 0, OLED_ALIGN_LEFT, u"upc "); break;
+             case WHEEL_ACTION_CLICK_DOWN: sh1122_put_string_xy(&oled_descriptor, 0, 0, OLED_ALIGN_LEFT, u"downc"); break;
+             default: break;
+         }
+    }*/
+    
+    /*platform_io_get_voledin_conversion_result_and_trigger_conversion();
+    while (platform_io_is_voledin_conversion_result_ready() == FALSE);
+    platform_io_get_voledin_conversion_result_and_trigger_conversion();
+    uint16_t result = 0;
+    while (TRUE)
+    {
+        volatile uint32_t ts_start = timer_get_systick();
+        while (platform_io_is_voledin_conversion_result_ready() == FALSE);
+        volatile uint32_t ts_end = timer_get_systick();
+        sh1122_printf_xy(&oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "%u", ts_end-ts_start);
+        sh1122_printf_xy(&oled_descriptor, 0, 20, OLED_ALIGN_LEFT, "%u", result);
+        result = platform_io_get_voledin_conversion_result_and_trigger_conversion();        
+    }*/
+    
+    /* Animation test */
+    while(1)
+    {
+        for (uint32_t i = 0; i < 120; i++)
+        {
+            comms_aux_mcu_routine();
+            timer_start_timer(TIMER_TIMEOUT_FUNCTS, 25);
+            PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK; 
+            sh1122_display_bitmap_from_flash_at_recommended_position(&oled_descriptor, i);
+            //PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
+            //sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
+            while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING);
+            if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+                while (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_NONE);
+        }
+    }
+    
     /* Language feature test */
     while(1)
     {
@@ -81,14 +134,12 @@ int main (void)
             custom_fs_set_current_language(i);
             sh1122_refresh_used_font(&oled_descriptor);
             custom_fs_get_string_from_file(0, &lapin);
-            sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, 13);
+            sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, 24);
             sh1122_put_string_xy(&oled_descriptor, 0, 0, OLED_ALIGN_CENTER, custom_fs_get_current_language_text_desc());
             sh1122_put_string_xy(&oled_descriptor, 0, 45, OLED_ALIGN_CENTER, lapin);
             timer_delay_ms(1000);
         }        
     }
-    
-    while(1);
     
     /*
     sh1122_put_string_xy(&oled_descriptor, 1, 10, OLED_ALIGN_LEFT, u"F");
@@ -104,16 +155,6 @@ int main (void)
             sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
         
     }*/
-    while(1)
-    {
-        for (uint32_t i = 0; i < 10; i++)
-        {
-            PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK; 
-            sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
-            //PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
-            //sh1122_display_bitmap_from_flash(&oled_descriptor, 0, 0, i);
-        }
-    }
     
 	
 	while(1)
