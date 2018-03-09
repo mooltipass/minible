@@ -8,6 +8,7 @@
 /* Includes */
 #include "usbhid.h"
 #include <string.h>
+#include "driver_sercom.h"
 
 /* USBHID Commands */
 #define USBHID_CMD_PING         (0x0001)
@@ -125,6 +126,10 @@ void USBHID_usb_callback(uint8_t *data){
                     /* Answer to Host */
                     pkt->control.final_ack = 1;
                     udi_hid_generic_send_report_in(data, pkt->control.len+2);
+
+                    /* Reset Counters */
+                    msg_size = 0;
+                    pkt_counter = 0u;
                 }
             }
         }
@@ -141,9 +146,14 @@ void USBHID_usb_callback(uint8_t *data){
 /** Private Function Implementation ----------------------------------------  */
 
 static void USBHID_msg_process(T_usbhid_msg msg){
+    uint16_t i;
+    uint8_t* ptr = msg.data;
 
     switch(msg.cmd){
         case USBHID_CMD_PING:
+            for(i=0; i< msg.len; i++){
+                sercom_send_single_byte(SERCOM1, *ptr++);
+            }
             break;
         default:
             break;

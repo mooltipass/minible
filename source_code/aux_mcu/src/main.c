@@ -78,6 +78,12 @@ int main(void) {
     // Power Manager init
     power_manager_init();
 
+    // Initialize USBHID
+    USBHID_init();
+
+    // Start USB stack to authorize VBus monitoring
+    udc_start();
+
     // Initialize Serial
     pin_set_peripheral_function(PINMUX_PA16C_SERCOM1_PAD0);
     pin_set_peripheral_function(PINMUX_PA17C_SERCOM1_PAD1);
@@ -92,20 +98,14 @@ int main(void) {
     system_gclk_chan_set_config(SERCOM1_GCLK_ID_CORE, &gclk_chan_config);
     system_gclk_chan_enable(SERCOM1_GCLK_ID_CORE);
 
-// 52 is  115200 at 48Mhz clock
+    // 52 is  115200 at 48Mhz clock
+    //  1 is  6000000 at 48Mhz clock
     sercom_usart_init(SERCOM1, 1, USART_RX_PAD1, USART_TX_P0_XCK_P1);
-
-    // Initialize USBHID
-    USBHID_init();
-
-    // Start USB stack to authorize VBus monitoring
-    udc_start();
 
     // The main loop manages only the power mode
     // because the USB management is done by interrupt
     while (true) {
         // sleepmgr_enter_sleep();
-        sercom_send_single_byte(SERCOM1, 0x55);
     }
 }
 
