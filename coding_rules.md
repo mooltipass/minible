@@ -33,4 +33,5 @@ RET_TYPE security_code_validation(uint16_t code)
 - 80 chars limit is *not* needed (we're not in 1980 anymore!)
 - a given function should not be more than 100 lines long (exceptions may happen)
 - **comment your code**
+- no magic numbers
 - no mallocs
