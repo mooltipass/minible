@@ -44,8 +44,11 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 #include <asf.h>
-#include "conf_usb.h"
 #include "usbhid.h"
+#include "conf_usb.h"
+#include "port_manager.h"
+#include "driver_sercom.h"
+#include "power_manager.h"
 
 static volatile bool main_b_keyboard_enable = false;
 static volatile bool main_b_generic_enable = false;
@@ -57,10 +60,16 @@ int main(void) {
     cpu_irq_enable();
 
     // Initialize the sleep manager
-    sleepmgr_init();
+    //sleepmgr_init();
 
     // System init
     system_init();
+
+	// Port init
+	port_manager_init();
+
+    // Power Manager init
+    power_manager_init();
 
     // Initialize USBHID
     USBHID_init();
@@ -68,10 +77,22 @@ int main(void) {
     // Start USB stack to authorize VBus monitoring
     udc_start();
 
+    /* Setup clock for module */
+    struct system_gclk_chan_config gclk_chan_config;
+    system_gclk_chan_get_config_defaults(&gclk_chan_config);
+    gclk_chan_config.source_generator = GCLK_GENERATOR_1;
+    system_gclk_chan_set_config(SERCOM1_GCLK_ID_CORE, &gclk_chan_config);
+    system_gclk_chan_enable(SERCOM1_GCLK_ID_CORE);
+
+    // 52 is  115200 at 48Mhz clock
+    //  1 is  6000000 at 48Mhz clock
+    sercom_usart_init(SERCOM1, 1, USART_RX_PAD1, USART_TX_P0_XCK_P1);
+
     // The main loop manages only the power mode
     // because the USB management is done by interrupt
     while (true) {
         // sleepmgr_enter_sleep();
+		//sercom_send_single_byte(SERCOM1, 0x55);
     }
 }
 
