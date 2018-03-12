@@ -49,6 +49,7 @@
 #include "port_manager.h"
 #include "driver_sercom.h"
 #include "power_manager.h"
+#include "dma.h"
 
 static volatile bool main_b_keyboard_enable = false;
 static volatile bool main_b_generic_enable = false;
@@ -70,6 +71,9 @@ int main(void) {
 
     // Power Manager init
     power_manager_init();
+
+    // DMA init
+    dma_init();
 
     // Initialize USBHID
     USBHID_init();

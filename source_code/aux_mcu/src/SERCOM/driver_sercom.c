@@ -10,7 +10,7 @@
 *   \brief  Initialize a SERCOM in USART mode
 *   \param  sercom_pt       Pointer to a sercom module
 *   \param  sercom_baud_div value for baud generation: fbaud = sercomclk / (2 * (baud+1))
-*   \param  mode            SPI mode (see enum)
+*   \param  mode            USART mode (see enum)
 *   \param  hss             Hardware SS disable/enable (see enum)
 *   \param  miso_pad        MISO pad (see enum)
 *   \param  mosi_sck_ss_pad MOSI/SCK/PAD (see enum)
@@ -72,9 +72,9 @@ uint8_t sercom_send_single_byte(Sercom* sercom_pt, uint8_t data)
 */
 void sercom_send_single_byte_without_receive_wait(Sercom* sercom_pt, uint8_t data)
 {
-    while ((sercom_pt->SPI.INTFLAG.reg & SERCOM_USART_INTFLAG_DRE) == 0);     // Wait for empty buffer
-    sercom_pt->SPI.INTFLAG.reg = SERCOM_USART_INTFLAG_TXC;                    // Clear transmit complete flag
-    sercom_pt->SPI.DATA.reg = data;                                         // Write data byte to transmit    
+    while ((sercom_pt->USART.INTFLAG.reg & SERCOM_USART_INTFLAG_DRE) == 0);     // Wait for empty buffer
+    sercom_pt->USART.INTFLAG.reg = SERCOM_USART_INTFLAG_TXC;                    // Clear transmit complete flag
+    sercom_pt->USART.DATA.reg = data;                                         // Write data byte to transmit
 }
 
 /*! \fn     sercom_wait_for_transmit_complete(Sercom* sercom_pt)
@@ -83,5 +83,5 @@ void sercom_send_single_byte_without_receive_wait(Sercom* sercom_pt, uint8_t dat
 */
 void sercom_wait_for_transmit_complete(Sercom* sercom_pt)
 {
-    while ((sercom_pt->SPI.INTFLAG.reg & SERCOM_USART_INTFLAG_TXC) == 0);
+    while ((sercom_pt->USART.INTFLAG.reg & SERCOM_USART_INTFLAG_TXC) == 0);
 }

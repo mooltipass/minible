@@ -82,6 +82,7 @@ INCLUDE_PATHS+= USBHID
 INCLUDE_PATHS+= SERCOM
 INCLUDE_PATHS+= PM
 INCLUDE_PATHS+= PORT
+INCLUDE_PATHS+= DMA
 INCLUDE_PATHS+= ASF/common/utils/interrupt
 INCLUDE_PATHS+= ASF/thirdparty/CMSIS/Include
 INCLUDE_PATHS+= ASF/sam0/utils/cmsis/samd21/include
@@ -164,6 +165,7 @@ SRCS += USBHID/usbhid.c
 SRCS += SERCOM/driver_sercom.c
 SRCS += PM/power_manager.c
 SRCS += PORT/port_manager.c
+SRCS += DMA/dma.c
 
 # DRIVERS
 SRCS += $(_DRIVERS_SYSTEM_PATH)/system.c
