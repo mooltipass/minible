@@ -70,7 +70,7 @@ void dma_init(void)
     dma_chctrlb_reg.bit.TRIGSRC = DMA_TRIGSRC_SERCOM1_TX;                                    // Select TX trigger
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
 
-    /* Setup transfer descriptor for accelerometer RX */
+    /* Setup transfer descriptor for USART RX */
     dma_descriptors[DMA_UART_RX_CH].BTCTRL.reg = DMAC_BTCTRL_VALID;                         // Valid descriptor
     dma_descriptors[DMA_UART_RX_CH].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;      // 1 byte address increment
     dma_descriptors[DMA_UART_RX_CH].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_DST_Val;       // Step selection for destination

@@ -9,22 +9,16 @@
 #define USBHID_H_
 
 #include "conf_usb.h"
-/**
- * \fn      USBHID_init
- * \brief   Initialize USBHID internal variables
- */
-void USBHID_init(void);
 
-/**
- * \fn          USBHID_usb_callback
- * \brief       Callback function which receives raw hid packet to be processed
- *              following minible USB HID Protocol. The callback is called from
- *              udi_hid_generic_report_out_received function and configured in
- *              conf_usb.h file.
- *
- * \param data  Pointer to raw hid packet received from USB
- */
-void USBHID_usb_callback(uint8_t *data);
+/** USBHID Constants **/
+#define USBHID_MAX_TOTAL_PKTS   (16U)
+#define USBHID_MAX_PAYLOAD      (62U)
+#define USBHID_MAX_MSG_SIZE     (USBHID_MAX_PAYLOAD*USBHID_MAX_TOTAL_PKTS)
+#define USBHID_MSG_HEADER_SIZE  (4U)
+#define USBHID_PKT_HEADER_SIZE  (2U)
 
+void usbhid_init(void);
+void usbhid_usb_callback(uint8_t *data);
+void usbhid_send_to_usb(uint8_t* buff, uint16_t buff_len);
 
 #endif /* USBHID_H_ */

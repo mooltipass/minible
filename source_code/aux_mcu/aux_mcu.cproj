@@ -455,6 +455,9 @@
       <Value>../src/SERCOM</Value>
       <Value>../src/PORT</Value>
       <Value>../src/PM</Value>
+      <Value>../src/DMA</Value>
+      <Value>../src/CLOCK</Value>
+      <Value>../src/COMM</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
@@ -627,6 +630,9 @@
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
     <Folder Include="src\config\" />
+    <Folder Include="src\DMA\" />
+    <Folder Include="src\CLOCK" />
+    <Folder Include="src\COMM" />
     <Folder Include="src\PM\" />
     <Folder Include="src\PORT\" />
     <Folder Include="src\SERCOM\" />
@@ -697,6 +703,24 @@
       <SubType>compile</SubType>
     </None>
     <None Include="src\main.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\CLOCK\clock_manager.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\CLOCK\clock_manager.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMM\comm.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMM\comm.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\DMA\dma.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\DMA\dma.h">
       <SubType>compile</SubType>
     </None>
     <Compile Include="src\PM\power_manager.c">
