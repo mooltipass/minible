@@ -158,7 +158,7 @@ static bool usbhid_msg_process(uint8_t* buff, uint16_t buff_len){
 		err = true;
 	}
 	/* Consistency check between msg_size and msg.len */
-	else if( (buff_len-USBHID_MSG_HEADER_SIZE) == msg.len){
+	else if( (buff_len-USBHID_MSG_HEADER_SIZE) != msg.len){
 		err = true;
 	}
 	
@@ -180,8 +180,7 @@ void usbhid_send_to_usb(uint8_t* buff, uint16_t buff_len){
 	T_usbhid_pkt pkt;
 	
 	/* Message Flip */
-	tx_msg_flip = !tx_msg_flip;
-	
+	tx_msg_flip = !tx_msg_flip;	
 	
 	/* Compute packet fragmentation */
 	pkt_number = buff_len / USBHID_MAX_MSG_SIZE;
