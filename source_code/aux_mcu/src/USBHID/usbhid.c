@@ -67,7 +67,7 @@ static bool usbhid_msg_process(uint8_t* buff, uint16_t buff_len);
 /** Message Buffer allocation */
 static uint8_t usbhid_rx_buffer[USBHID_MAX_MSG_SIZE];
 /** Stores the current message flip */
-static bool rx_msg_flip, tx_msg_flip;
+static bool rx_msg_flip;
 /** Counts the number of packets to be received */
 static uint8_t rx_pkt_counter;
 /** Total message length */
@@ -82,7 +82,6 @@ static uint16_t rx_msg_size;
  */
 void usbhid_init(void){
     rx_msg_flip = false;
-    tx_msg_flip = false;
     rx_pkt_counter = 0u;
     rx_msg_size = 0u;
 }
@@ -178,9 +177,7 @@ void usbhid_send_to_usb(uint8_t* buff, uint16_t buff_len){
 	uint16_t pkt_number;
 	uint8_t pkt_id;
 	T_usbhid_pkt pkt;
-	
-	/* Message Flip */
-	tx_msg_flip = !tx_msg_flip;	
+	uint16_t buff_idx = 0;
 	
 	/* Compute packet fragmentation */
 	pkt_number = buff_len / USBHID_MAX_MSG_SIZE;
@@ -192,11 +189,15 @@ void usbhid_send_to_usb(uint8_t* buff, uint16_t buff_len){
 	
 	for(pkt_id = 0; pkt_id <= pkt_number; pkt_id++){
 		/* Compute Header */
-		pkt.control.len = ((pkt_id*USBHID_MAX_PAYLOAD) > buff_len) ? (buff_len%USBHID_MAX_PAYLOAD) : (USBHID_MAX_PAYLOAD);
-		pkt.control.msg_flip = tx_msg_flip;
+		pkt.control.len = ((uint16_t)(buff_len - buff_idx) >= USBHID_MAX_PAYLOAD) ? (USBHID_MAX_PAYLOAD) : (uint8_t)(buff_len - buff_idx);
+		pkt.control.msg_flip = rx_msg_flip;
 		pkt.control.pkt_id = pkt_id;
 		pkt.control.total_pkts = pkt_number;
 		pkt.control.final_ack = false;
+		
+		/* copy data to pkt.payload */
+		memcpy(pkt.payload, &buff[buff_idx], pkt.control.len);
+		buff_idx += pkt.control.len;
 			
 		/* 
 		 * After this call we can use the buffer again, as it copies to an internal 
