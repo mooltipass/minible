@@ -39,6 +39,8 @@ void comm_task(void){
         uint16_t buff_len = (comm_rx_buffer[3] << 8) + comm_rx_buffer[2];
         /* Process message and send it to destination */
         comm_process_out_msg(type, &comm_rx_buffer[COMM_HEADER_SIZE], buff_len );
+        /* comm_rx_buffer free at this time */
+        dma_aux_mcu_init_rx_transfer(comm_rx_buffer, COMM_MAX_MSG_SIZE);
     }
 }
 
