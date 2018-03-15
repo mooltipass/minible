@@ -1,10 +1,9 @@
-/*
- * port_manager.c
- *
- *  Created on: 8 mar. 2018
- *      Author: mborregotrujillo
+/**
+ * \file    port_manager.c
+ * \author  MBorregoTrujillo
+ * \date    08-March-2018
+ * \brief   Configures the pins of the MCU
  */
-
 #include "port_manager.h"
 
 /**
@@ -57,6 +56,9 @@ typedef struct pin_cfg {
     uint32_t iocfg  : 4;    /* I/O configuration */
     uint32_t muxcfg : 4;    /* MUX peripheral configuration */
 } T_pin_cfg;
+
+/** Prototype declaration */
+static void port_manager_config(T_pin_cfg* pin);
 
 /* BLE UART 1 -- SERCOM0 */
 const T_pin_cfg pin_ble_rx_uart1 = {
@@ -123,14 +125,20 @@ T_pin_cfg pin_aux_rx = {
 };
 
 /**
- * \fn      port_manager_config
- * \brief   Configures an specific mcu pin based on pin configuration parameter
- *
- * \param   [in] pin - T_pin_cfg pin configuration
+ * \fn      port_manager_init
+ * \brief   Initializes MCU Port configuration
  */
-static void port_manager_config(T_pin_cfg* pin);
+void port_manager_init(void){
+    port_manager_config(&pin_aux_tx);
+    port_manager_config(&pin_aux_rx);
+}
 
-
+/**
+ * \fn      port_manager_config
+ * \brief   Configures an specific mcu pin based on pin
+ *          configuration parameter
+ * \param   pin     Pointer to pin configuration
+ */
 static void port_manager_config(T_pin_cfg* pin){
     PORT_WRCONFIG_Type wrconfig_tmp;
     uint32_t pinmask;
@@ -142,6 +150,7 @@ static void port_manager_config(T_pin_cfg* pin){
     pinid = pin->pinid % 32;
     pinmask = (1UL << pinid);
 
+    /* use WRCONFIG to configure PMUX and PINCFG */
     wrconfig_tmp.bit.DRVSTR = 0;
     wrconfig_tmp.bit.PMUXEN = pin->pincfg;
     wrconfig_tmp.bit.PULLEN = SELECT_BIT(pin->iocfg, 1);
@@ -159,13 +168,11 @@ static void port_manager_config(T_pin_cfg* pin){
         wrconfig_tmp.bit.HWSEL = 1;
     }
 
-    // Clear Dir before configuring
+    /* Clear Dir before configuring */
     PORT->Group[groupid].DIRCLR.reg = pinmask;
 
-
-    /* Write Configuration to update PMUX */
+    /* Write Configuration to update PMUX and PINCFG */
     PORT->Group[groupid].WRCONFIG.reg = wrconfig_tmp.reg;
-
 
     /* DIR */
     if(SELECT_BIT(pin->iocfg, 3)){
@@ -180,10 +187,4 @@ static void port_manager_config(T_pin_cfg* pin){
         PORT->Group[groupid].OUTCLR.reg = pinmask;
     }
 
-}
-
-
-void port_manager_init(void){
-    port_manager_config(&pin_aux_tx);
-    port_manager_config(&pin_aux_rx);
 }

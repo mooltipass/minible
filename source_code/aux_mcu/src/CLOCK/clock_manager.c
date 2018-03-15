@@ -1,11 +1,9 @@
-/*
- * clock_manager.c
- *
- * Created: 3/13/2018 7:23:06 PM
- *  Author: Borrego
+/**
+ * \file    clock_manager.c
+ * \author  MBorregoTrujillo
+ * \date    13-March-2018
+ * \brief   Selects and enable the clock source of the peripherals
  */
-
-#include <asf.h>
 #include "clock_manager.h"
 
 typedef struct clock_cfg {
@@ -23,8 +21,7 @@ const T_clock_cfg clock_sercom1 = {
  * \fn      clock_manager_config
  * \brief   Configures the clock of the peripheral defined 
  *          in clock configuration parameter
- *
- * \param   [in] clock - T_clock_cfg clock configuration
+ * \param   clock   Pointer to clock configuration
  */
 static void clock_manager_config(const T_clock_cfg* clock){
 	cpu_irq_enter_critical();

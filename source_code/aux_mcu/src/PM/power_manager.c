@@ -1,11 +1,9 @@
-/*
+/**
  * \file    pm.c
  * \author  MBorregoTrujillo
  * \date    07-March-2018
  * \brief   Power Manager
  */
-
-/* Includes */
 #include "power_manager.h"
 
 /* Only configure apbcmask right now */
@@ -36,6 +34,10 @@ const PM_APBCMASK_Type power_manager_apbcmask_cfg = {
     }
 };
 
+/**
+ * \fn      Power_manager_init
+ * \brief   Enable / Disable peripheral clocks based on configuration
+ */
 void power_manager_init(void){
     /* APBCMASK */
     PM->APBCMASK = power_manager_apbcmask_cfg;

@@ -68,14 +68,14 @@ int main(void) {
     // System init
     system_init();
 
-	// Port init
-	port_manager_init();
+    // Port init
+    port_manager_init();
 
     // Power Manager init
     power_manager_init();
-	
-	// Clock Manager init
-	clock_manager_init();
+    
+    // Clock Manager init
+    clock_manager_init();
 
     // DMA init
     dma_init();
@@ -83,18 +83,18 @@ int main(void) {
     // Initialize USBHID
     usbhid_init();
 
-	// Init Serial communications
-	comm_init();
-	
-	// Start USB stack to authorize VBus monitoring
-	udc_start();
-	// The main loop manages only the power mode
-	// because the USB management is done by interrupt
+    // Init Serial communications
+    comm_init();
+    
+    // Start USB stack to authorize VBus monitoring
+    udc_start();
+    // The main loop manages only the power mode
+    // because the USB management is done by interrupt
     while (true) {
         // sleepmgr_enter_sleep();
-		//sercom_send_single_byte(SERCOM1, 0x55);
-		comm_task();
-	}
+        //sercom_send_single_byte(SERCOM1, 0x55);
+        comm_task();
+    }
 }
 
 void main_suspend_action(void) {

@@ -1,10 +1,9 @@
-/*
+/**
  * \file    usbhid.h
  * \author  MBorregoTrujillo
  * \date    22-February-2018
  * \brief   USB HID Protocol
  */
-
 #ifndef USBHID_H_
 #define USBHID_H_
 

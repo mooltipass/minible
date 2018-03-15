@@ -1,13 +1,13 @@
-/*
- * dma.h
- *
- * Created: 29/05/2017 09:18:00
- *  Author: stephan
- */ 
-
-
+/**
+ * \file    dma.h
+ * \author  MBorregoTrujillo
+ * \date    08-March-2018
+ * \brief   Direct Memory Access driver and util functions
+ */
 #ifndef DMA_H_
 #define DMA_H_
+
+#include <asf.h>
 
 /* Prototypes */
 void dma_init(void);

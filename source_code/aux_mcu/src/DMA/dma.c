@@ -1,13 +1,20 @@
-#include <asf.h>
+/**
+ * \file    dma.c
+ * \author  MBorregoTrujillo
+ * \date    08-March-2018
+ * \brief   Direct Memory Access driver and util functions
+ */
 #include "dma.h"
 
 /* Dma Trigger sources */
 #define DMA_TRIGSRC_SERCOM1_RX  (0x03)
 #define DMA_TRIGSRC_SERCOM1_TX  (0x04)
 
-/* DMA Descriptors for our transfers */
-// Channel 0: UART TX
-// Channel 1: UART RX
+/**
+ * DMA Descriptors
+ * Channel 0: UART TX
+ * Channel 1: UART RX
+ */
 enum {
     DMA_UART_TX_CH = 0,
     DMA_UART_RX_CH = 1,
@@ -20,7 +27,7 @@ DmacDescriptor dma_descriptors[DMA_NUM_OF_CH] __attribute__ ((aligned (16)));
 volatile bool dma_aux_mcu_packet_received = false;
 
 
-/*! \fn     DMAC_Handler(void)
+/*! \fn     DMAC_Handler
 *   \brief  Function called by interrupt when RX is done
 */
 void DMAC_Handler(void)
@@ -35,9 +42,9 @@ void DMAC_Handler(void)
     }
 }
 
-/*! \fn     dma_init(void)
-*   \brief  Initialize DMA controller that will be used later
-*/
+/*! \fn     dma_init
+ *  \brief  Initialize DMA controller that will be used later
+ */
 void dma_init(void)
 {
     DMAC_CHCTRLB_Type dma_chctrlb_reg;                                                      // Temp register
@@ -91,11 +98,11 @@ void dma_init(void)
     NVIC_EnableIRQ(DMAC_IRQn);
 }
 
-/*! \fn     dma_aux_mcu_check_and_clear_dma_transfer_flag(void)
-*   \brief  Check if a DMA transfer from aux MCU comms has been done
-*   \note   If the flag is true, flag will be cleared to false
-*   \return true or false
-*/
+/*! \fn     dma_aux_mcu_check_and_clear_dma_transfer_flag
+ *  \brief  Check if a DMA transfer from main MCU comms has been done
+ *  \note   If the flag is true, flag will be cleared to false
+ *  \return true or false
+ */
 bool dma_aux_mcu_check_and_clear_dma_transfer_flag(void)
 {
     /* flag can't be set twice, code is safe */
@@ -107,12 +114,11 @@ bool dma_aux_mcu_check_and_clear_dma_transfer_flag(void)
     return false;
 }
 
-/*! \fn     dma_aux_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
-*   \brief  Initialize a DMA transfer to the AUX MCU
-*   \param  spi_data_p  Pointer to the SPI data register
-*   \param  datap       Pointer to the data
-*   \param  size        Number of bytes to transfer
-*/
+/*! \fn     dma_aux_mcu_init_tx_transfer
+ *  \brief  Initialize a DMA transfer to the AUX MCU
+ *  \param  datap   Pointer to the data
+ *  \param  size    Number of bytes to transfer
+ */
 void dma_aux_mcu_init_tx_transfer(void* datap, uint16_t size)
 {
     cpu_irq_enter_critical();
@@ -130,12 +136,11 @@ void dma_aux_mcu_init_tx_transfer(void* datap, uint16_t size)
     cpu_irq_leave_critical();
 }
 
-/*! \fn     dma_aux_mcu_init_rx_transfer(void* spi_data_p, void* datap, uint16_t size)
-*   \brief  Initialize a DMA transfer from the AUX MCU
-*   \param  spi_data_p  Pointer to the SPI data register
-*   \param  datap       Pointer to where to store the data
-*   \param  size        Number of bytes to transfer
-*/
+/*! \fn     dma_aux_mcu_init_rx_transfer
+ *  \brief  Initialize a DMA transfer from the AUX MCU
+ *  \param  datap   Pointer to where to store the data
+ *  \param  size    Number of bytes to transfer
+ */
 void dma_aux_mcu_init_rx_transfer(void* datap, uint16_t size)
 {
     cpu_irq_enter_critical();
