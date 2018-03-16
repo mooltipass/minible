@@ -108,6 +108,11 @@ int main (void)
         result = platform_io_get_voledin_conversion_result_and_trigger_conversion();        
     }*/
     
+    while(1)
+    {
+        comms_aux_mcu_routine();
+    }             
+    
     /* Animation test */
     while(1)
     {

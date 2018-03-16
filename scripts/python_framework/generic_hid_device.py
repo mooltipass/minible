@@ -278,12 +278,15 @@ class generic_hid_device:
 		if self.connected == False:
 			print "Not connected to device"
 			return
+		
+		# Generate our hid message from our ping message (cheating: we're only doing one HID packet)
+		hid_packet = self.get_packets_from_message(ping_packet)[0]
 
 		# start ping ponging
 		current_second = datetime.now().second
 		data_counter = 0
 		while True:
-			self.sendHidPacket(ping_packet)
+			self.sendHidPacket(hid_packet)
 			self.receiveHidPacket()
 			data_counter += 64
 			
