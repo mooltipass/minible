@@ -32,14 +32,18 @@ void comms_aux_init(void)
 */
 void comms_aux_mcu_routine(void)
 {
-    /* Pointer to the currently received message and possible packet to fill as an answer */
-    aux_mcu_message_t* rcv_msg_pointer = &aux_mcu_message_buffer2;
-    aux_mcu_message_t* tosend_msg_pointer = &aux_mcu_message_buffer1;
+    /* Pointer to the currently received message and already arm next RX transfer */
+    aux_mcu_message_t* rcv_msg_pointer;
     if (aux_mcu_msg_rcv_on_buffer1 != FALSE)
     {
         rcv_msg_pointer = &aux_mcu_message_buffer1;
-        tosend_msg_pointer = &aux_mcu_message_buffer2;
+        dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_message_buffer2, sizeof(aux_mcu_message_buffer2));
     }
+    else
+    {
+        rcv_msg_pointer = &aux_mcu_message_buffer2;
+        dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_message_buffer1, sizeof(aux_mcu_message_buffer1));
+    }        
 	
     /* Did we receive a message? */
     if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
@@ -50,33 +54,29 @@ void comms_aux_mcu_routine(void)
             /* Cast payloads into correct type */
             int16_t hid_reply_payload_length = -1;
             hid_message_t* hid_message_pt = (hid_message_t*)rcv_msg_pointer->payload_as_uint32;
-            hid_message_t* hid_reply_message_pt = (hid_message_t*)tosend_msg_pointer->payload_as_uint32;
             
             /* Parse message */
             #ifndef DEBUG_USB_COMMANDS_ENABLED
-                hid_reply_payload_length = comms_hid_msgs_parse(hid_message_pt, rcv_msg_pointer->payload_length - sizeof(hid_message_pt->message_type) - sizeof(hid_message_pt->payload_length), hid_reply_message_pt);
+                hid_reply_payload_length = comms_hid_msgs_parse(hid_message_pt, rcv_msg_pointer->payload_length - sizeof(hid_message_pt->message_type) - sizeof(hid_message_pt->payload_length)t);
             #else
                 if (hid_message_pt->message_type >= HID_MESSAGE_START_CMD_ID_DBG)
                 {
-                    hid_reply_payload_length = comms_hid_msgs_parse_debug(hid_message_pt, rcv_msg_pointer->payload_length - sizeof(hid_message_pt->message_type) - sizeof(hid_message_pt->payload_length), hid_reply_message_pt);
+                    hid_reply_payload_length = comms_hid_msgs_parse_debug(hid_message_pt, rcv_msg_pointer->payload_length - sizeof(hid_message_pt->message_type) - sizeof(hid_message_pt->payload_length));
                 } 
                 else
                 {
-                    hid_reply_payload_length = comms_hid_msgs_parse(hid_message_pt, rcv_msg_pointer->payload_length - sizeof(hid_message_pt->message_type) - sizeof(hid_message_pt->payload_length), hid_reply_message_pt);
+                    hid_reply_payload_length = comms_hid_msgs_parse(hid_message_pt, rcv_msg_pointer->payload_length - sizeof(hid_message_pt->message_type) - sizeof(hid_message_pt->payload_length));
                 }
             #endif
             
             /* Send reply if needed */
             if (hid_reply_payload_length >= 0)
-            {
-                /* Reply with same message type */
-                tosend_msg_pointer->message_type = rcv_msg_pointer->message_type;
-                
+            {                
                 /* Compute payload size */
-                tosend_msg_pointer->payload_length = hid_reply_payload_length + sizeof(hid_message_pt->message_type) + sizeof(hid_message_pt->payload_length);
+                rcv_msg_pointer->payload_length = hid_reply_payload_length + sizeof(hid_message_pt->message_type) + sizeof(hid_message_pt->payload_length);
                 
                 /* Send message */                
-                dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)tosend_msg_pointer, sizeof(aux_mcu_message_buffer1));
+                dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)rcv_msg_pointer, sizeof(aux_mcu_message_buffer1));
             }
         }
         

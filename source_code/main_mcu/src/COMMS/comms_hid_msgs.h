@@ -20,7 +20,7 @@ typedef struct
 } hid_message_t;
 
 /* Prototypes */
-int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* possible_reply);
+int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length);
 
 
 #endif /* COMMS_HID_MSGS_H_ */
