@@ -1,36 +1,29 @@
-/*
+/**
  * \file    usbhid.c
  * \author  MBorregoTrujillo
  * \date    22-February-2018
  * \brief   USB HID Protocol
  */
-
-/* Includes */
-#include "usbhid.h"
 #include <string.h>
+#include "usbhid.h"
+#include "dma.h"
+#include "comm.h"
 #include "driver_sercom.h"
 
 /* USBHID Commands */
 #define USBHID_CMD_PING         (0x0001)
 
-
-/** USBHID Constants **/
-#define USBHID_MAX_TOTAL_PKTS   (16U)
-#define USBHID_MAX_PAYLOAD      (62U)
-#define USBHID_MAX_MSG_SIZE     (USBHID_MAX_PAYLOAD*USBHID_MAX_TOTAL_PKTS)
-#define USBHID_MSG_HEADER_SIZE  (4U)
-
 /** Function like macros */
-#define USBHID_new_msg_received(flip)   (flip != current_msg_flip)
-#define USBHID_check_pkt_counter(cnt)   ((cnt != pkt_counter) || \
-                                         (pkt_counter >= USBHID_MAX_TOTAL_PKTS))
+#define USBHID_new_msg_received(flip)   (flip != rx_msg_flip)
+#define USBHID_check_pkt_counter(cnt)   ((cnt != rx_pkt_counter) || \
+                                         (rx_pkt_counter >= USBHID_MAX_TOTAL_PKTS))
 
 /** USBHID specific types  -------------------------------------------------  */
 
 /** Typedef of the first two bytes of the HID packet structure */
 typedef struct {
     /* Byte 0, LSB first */
-    uint8_t len : 6;
+    uint8_t len :6;
     uint8_t final_ack :1;
     uint8_t msg_flip  :1;
     /* Byte 1, LSB first */
@@ -54,109 +47,161 @@ typedef struct{
     uint8_t* data;
 } T_usbhid_msg;
 
-/** Private function Declaration -------------------------------------------  */
 
-/**
- * \fn          USBHID_msg_process
- * \brief       process the message received from HID and executes the command
- *              specified in the message
- *
- * \param msg   message to be processed, it contains the command, the length
- *              and pointer to data
- */
-static void USBHID_msg_process(T_usbhid_msg msg);
+/** Private function Declaration -------------------------------------------  */
+static bool usbhid_msg_process(uint8_t* buff, uint16_t buff_len);
 
 
 /** Private data Declaration -----------------------------------------------  */
 
 /** Message Buffer allocation */
-static uint8_t buffer[USBHID_MAX_MSG_SIZE];
+static uint8_t usbhid_rx_buffer[USBHID_MAX_MSG_SIZE];
 /** Stores the current message flip */
-static uint8_t current_msg_flip;
+static bool rx_msg_flip;
 /** Counts the number of packets to be received */
-static uint8_t pkt_counter;
+static uint8_t rx_pkt_counter;
 /** Total message length */
-static uint16_t msg_size;
+static uint16_t rx_msg_size;
 
-
-
-/** Public Function Implementation -----------------------------------------  */
-
-void USBHID_init(void){
-    current_msg_flip = 0u;
-    pkt_counter = 0u;
-    msg_size = 0u;
+/**
+ * \fn      usbhid_init
+ * \brief   Initialize USBHID internal variables
+ */
+void usbhid_init(void){
+    rx_msg_flip = false;
+    rx_pkt_counter = 0u;
+    rx_msg_size = 0u;
 }
 
-void USBHID_usb_callback(uint8_t *data){
+/**
+ * \fn          usbhid_usb_callback
+ * \brief       Callback function which receives raw hid packet to be processed
+ *              following minible USB HID Protocol. The callback is called from
+ *              udi_hid_generic_report_out_received function and configured in
+ *              conf_usb.h file
+ * \param data  Pointer to raw hid packet received from USB
+ */
+void usbhid_usb_callback(uint8_t *data){
     T_usbhid_pkt *pkt = (T_usbhid_pkt*)data;
-    bool err = 0;
-    T_usbhid_msg msg;
+    bool err = false;
 
     /* Check new message flip bit  */
     if(USBHID_new_msg_received(pkt->control.msg_flip)){
-        msg_size = 0;
-        pkt_counter = 0u;
-        current_msg_flip = pkt->control.msg_flip;
+        rx_msg_size = 0u;
+        rx_pkt_counter = 0u;
+        rx_msg_flip = pkt->control.msg_flip;
     }
 
     /* Analyze packet counter */
     if(USBHID_check_pkt_counter(pkt->control.pkt_id)){
-        pkt_counter = 0u;
-        err = 1;
+        err = true;
     }
 
     /* Process incoming packet if no error has been detected */
     if( !err ){
         /* Copy from incoming pkt to buffer */
-        memcpy(&buffer[msg_size], pkt->payload, pkt->control.len );
-        msg_size+= pkt->control.len;
+        memcpy(&usbhid_rx_buffer[rx_msg_size], pkt->payload, pkt->control.len );
+        rx_msg_size+= pkt->control.len;
 
         /* Check if the end of packet has arrived */
         if((pkt->control.pkt_id == pkt->control.total_pkts)){
             /* Process Command */
-            if( msg_size >= USBHID_MSG_HEADER_SIZE ){
-                msg.cmd = (buffer[1] << 8) + buffer[0];
-                msg.len = (buffer[3] << 8) + buffer[2];
-                msg.data = &buffer[4];
-                /* Consistency check between msg_size and msg.len */
-                if( (msg_size-USBHID_MSG_HEADER_SIZE) == msg.len){
-                    USBHID_msg_process(msg);
-
-                    /* Answer to Host */
-                    pkt->control.final_ack = 1;
-                    udi_hid_generic_send_report_in(data, pkt->control.len+2);
-
-                    /* Reset Counters */
-                    msg_size = 0;
-                    pkt_counter = 0u;
-                }
+            err = usbhid_msg_process(usbhid_rx_buffer, rx_msg_size);
+            /* Consistency check */
+            if(!err){
+                /* Answer to Host */
+                pkt->control.final_ack = true;
+                udi_hid_generic_send_report_in(data, pkt->control.len+USBHID_PKT_HEADER_SIZE);
             }
+            /* Reset Counters */
+            rx_msg_size = 0u;
+            rx_pkt_counter = 0u;
         }
     } else{
         /* Protocol Error detected, reinitialize counters */
-        msg_size = 0;
-        pkt_counter = 0u;
+        rx_msg_size = 0u;
+        rx_pkt_counter = 0u;
         /* Send Error message ? */
     }
 
 }
 
+/**
+ * \fn              usbhid_send_to_usb
+ * \brief           Function to be called to send message to USB, the message follow
+ *                  USBHID specification and do packet fragmentation if the size is
+ *                  greater than 62
+ * \param buff      Pointer to data
+ * \param buff_len  Data length
+ */
+void usbhid_send_to_usb(uint8_t* buff, uint16_t buff_len){
+    uint16_t pkt_number;
+    uint8_t pkt_id;
+    T_usbhid_pkt pkt;
+    uint16_t buff_idx = 0;
 
-/** Private Function Implementation ----------------------------------------  */
+    /* Compute packet fragmentation */
+    pkt_number = buff_len / USBHID_MAX_MSG_SIZE;
 
-static void USBHID_msg_process(T_usbhid_msg msg){
-    uint16_t i;
-    uint8_t* ptr = msg.data;
+    if( ((buff_len%USBHID_MAX_MSG_SIZE) == 0) &&
+        (buff_len != 0) ){
+        pkt_number--;
+    }
 
-    switch(msg.cmd){
-        case USBHID_CMD_PING:
-            for(i=0; i< msg.len; i++){
-                sercom_send_single_byte(SERCOM1, *ptr++);
-            }
-            break;
-        default:
-            break;
+    for(pkt_id = 0; pkt_id <= pkt_number; pkt_id++){
+        /* Compute Header */
+        pkt.control.len = ((uint16_t)(buff_len - buff_idx) >= USBHID_MAX_PAYLOAD) ? (USBHID_MAX_PAYLOAD) : (uint8_t)(buff_len - buff_idx);
+        pkt.control.msg_flip = rx_msg_flip;
+        pkt.control.pkt_id = pkt_id;
+        pkt.control.total_pkts = pkt_number;
+        pkt.control.final_ack = false;
+
+        /* copy data to pkt.payload */
+        memcpy(pkt.payload, &buff[buff_idx], pkt.control.len);
+        buff_idx += pkt.control.len;
+
+        /*
+         * After this call we can use the buffer again, as it copies to an internal
+         * buffer to send the data through USB
+         */
+        while(udi_hid_generic_send_report_in((uint8_t*)&pkt, pkt.control.len+USBHID_PKT_HEADER_SIZE));
     }
 }
 
+
+/**
+ * \fn              usbhid_msg_process
+ * \brief           Processes the msg received from USB and forward the msg to
+ *                  COMM component indicating the message is coming from USB
+ * \param buff      Pointer to msg
+ * \param buff_len  Msg length
+ */
+static bool usbhid_msg_process(uint8_t* buff, uint16_t buff_len){
+    bool err = false;
+    T_usbhid_msg msg;
+    
+    msg.cmd = (buff[1] << 8) + buff[0];
+    msg.len = (buff[3] << 8) + buff[2];
+    
+    msg.data = &buff[USBHID_MSG_HEADER_SIZE];
+    
+    /* Buffer Length shall be greater than Message header */
+    if( buff_len < USBHID_MSG_HEADER_SIZE ){
+        err = true;
+    }
+    /* Consistency check between msg_size and msg.len */
+    else if( (buff_len-USBHID_MSG_HEADER_SIZE) != msg.len){
+        err = true;
+    }
+    
+    if(!err){
+        switch(msg.cmd){
+            case USBHID_CMD_PING:
+            default:
+                comm_process_in_msg(COMM_MSG_FROM_USB, buff, buff_len);
+                break;
+        }
+    }
+    
+    return err;
+}

@@ -181,7 +181,7 @@
 //! Interface callback definition
 #define  UDI_HID_GENERIC_ENABLE_EXT()        main_generic_enable()
 #define  UDI_HID_GENERIC_DISABLE_EXT()       main_generic_disable()
-#define  UDI_HID_GENERIC_REPORT_OUT(ptr)     USBHID_usb_callback(ptr)
+#define  UDI_HID_GENERIC_REPORT_OUT(ptr)     usbhid_usb_callback(ptr)
 #define  UDI_HID_GENERIC_SET_FEATURE(report) main_hid_set_feature(report)
 
 //! Sizes of I/O reports

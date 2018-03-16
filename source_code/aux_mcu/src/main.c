@@ -49,6 +49,9 @@
 #include "port_manager.h"
 #include "driver_sercom.h"
 #include "power_manager.h"
+#include "clock_manager.h"
+#include "dma.h"
+#include "comm.h"
 
 static volatile bool main_b_keyboard_enable = false;
 static volatile bool main_b_generic_enable = false;
@@ -65,34 +68,32 @@ int main(void) {
     // System init
     system_init();
 
-	// Port init
-	port_manager_init();
+    // Port init
+    port_manager_init();
 
     // Power Manager init
     power_manager_init();
+    
+    // Clock Manager init
+    clock_manager_init();
+
+    // DMA init
+    dma_init();
 
     // Initialize USBHID
-    USBHID_init();
+    usbhid_init();
 
+    // Init Serial communications
+    comm_init();
+    
     // Start USB stack to authorize VBus monitoring
     udc_start();
-
-    /* Setup clock for module */
-    struct system_gclk_chan_config gclk_chan_config;
-    system_gclk_chan_get_config_defaults(&gclk_chan_config);
-    gclk_chan_config.source_generator = GCLK_GENERATOR_1;
-    system_gclk_chan_set_config(SERCOM1_GCLK_ID_CORE, &gclk_chan_config);
-    system_gclk_chan_enable(SERCOM1_GCLK_ID_CORE);
-
-    // 52 is  115200 at 48Mhz clock
-    //  1 is  6000000 at 48Mhz clock
-    sercom_usart_init(SERCOM1, 1, USART_RX_PAD1, USART_TX_P0_XCK_P1);
-
     // The main loop manages only the power mode
     // because the USB management is done by interrupt
     while (true) {
         // sleepmgr_enter_sleep();
-		//sercom_send_single_byte(SERCOM1, 0x55);
+        //sercom_send_single_byte(SERCOM1, 0x55);
+        comm_task();
     }
 }
 
