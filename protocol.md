@@ -33,3 +33,35 @@ The device will send back the very same message.
 | 0x8000   | hmstrlen(debug_message) + 2 | Debug Message + terminating 0x0000 |
 
 Can be sent from both the device or the computer. **Does not require an answer.** 
+
+
+0x8001: Open Display Buffer
+---------------------------
+
+| byte 0-1 | byte 1-2                    | bytes 3-X                          |
+|:---------|:----------------------------|:-----------------------------------|
+| 0x8001   | 0 | Nothing |
+
+Open the oled display buffer for writing.
+
+
+
+0x8002: Send Pixel Data to Display Buffer
+---------------------------
+
+| byte 0-1 | byte 1-2                    | bytes 3-X                          |
+|:---------|:----------------------------|:-----------------------------------|
+| 0x8002   | Payload size = number of pixels / 2 | Pixel data |
+
+Send raw display data to opened display buffer.
+
+
+
+0x8003: Close Display Buffer
+---------------------------
+
+| byte 0-1 | byte 1-2                    | bytes 3-X                          |
+|:---------|:----------------------------|:-----------------------------------|
+| 0x8003   | 0 | Nothing |
+
+Stop ongoing display buffer data writing.
