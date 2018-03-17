@@ -51,7 +51,7 @@ Open the oled display buffer for writing.
 
 | byte 0-1 | byte 1-2                    | bytes 3-X                          |
 |:---------|:----------------------------|:-----------------------------------|
-| 0x8002   | Payload size = number of pixels / 2 | Pixel data |
+| 0x8002   | Payload size = number of pixels x 2 | Pixel data |
 
 Send raw display data to opened display buffer.
 
