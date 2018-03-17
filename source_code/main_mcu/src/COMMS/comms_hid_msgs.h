@@ -9,6 +9,9 @@
 #define COMMS_HID_MSGS_H_
 
 /* Defines */
+#define HID_1BYTE_ACK       0x01
+
+/* Command defines */
 #define HID_CMD_ID_PING     0x0001
 
 /* Typedefs */

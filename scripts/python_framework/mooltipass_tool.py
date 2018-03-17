@@ -26,7 +26,7 @@ def main():
 			sys.exit(0)
 			
 		print "Connected to device"
-		mooltipass_device.getInternalDevice().benchmarkPingPongSpeed(mooltipass_device.createPingPacket())
+		#mooltipass_device.getInternalDevice().benchmarkPingPongSpeed(mooltipass_device.createPingPacket())
 			
 		# Get Mooltipass Version
 		#version_data = mooltipass_device.getMooltipassVersionAndVariant()
@@ -38,7 +38,15 @@ def main():
 	
 	# See if args were passed
 	if len(sys.argv) > 1:
-		if sys.argv[1] == "uploadBundle":
+		if sys.argv[1] == "sendMonitorFrame":
+			# mooltipass_tool.py sendMonitorFrame filename
+			if len(sys.argv) > 2:
+				bitdepth = 4
+				mooltipass_device.sendAndMonitorFrame(sys.argv[2], bitdepth)
+			else:
+				print "Please specify picture filename"
+		
+		elif sys.argv[1] == "uploadBundle":
 			# extract args
 			if len(sys.argv) > 2:
 				filename = sys.argv[2]

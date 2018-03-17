@@ -1,10 +1,13 @@
 #!/usr/bin/env python2
+from os.path import isfile, join, isdir
 from mooltipass_defines import *
 from generic_hid_device import *
 from array import array
+from PIL import Image
 from struct import *
 import random
 import glob
+import math
 import os
 
 # Custom HID device class
@@ -68,6 +71,79 @@ class mooltipass_hid_device:
 	# Create a ping packet to be sent to the device
 	def createPingPacket(self):	
 		return self.getPacketForCommand(CMD_PING, [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)])
+		
+	# Send full frame picture to display
+	def sendAndMonitorFrame(self, filename, bitdepth):	
+		# Check for file
+		if not isfile(filename):
+			print "File \"" + filename + "\" does not exist"
+			return	
+			
+		# monitor modified time
+		modified_time = 0	
+			
+		while True:
+			# modified time change
+			if modified_time != os.stat(filename).st_mtime:
+				# Store modified time
+				time.sleep(0.1)
+				modified_time = os.stat(filename).st_mtime
+			
+				# Open image
+				image = Image.open(filename)
+				image = image.convert(mode="RGB", colors=256) 
+				
+				# Get image specs
+				img_format = image.format
+				img_size = image.size
+				img_mode = image.mode
+				#print "Format:", img_format, "size:", img_size, "mode:", img_mode
+				
+				# Check size
+				if img_size[0] != 256 or img_size[1] != 64:
+					print "Picture isn't 256x64"
+					return
+				
+				# Initialize vars
+				packet_payload = []
+				packet_pixel_goal = 100
+				
+				# Send open buffer to usb
+				start_time = time.time()
+				print "Sending picture to display..."
+				self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_OPEN_DISP_BUFFER, None))
+				
+				# Loop through the pixels
+				for y in range(0, image.size[1]):
+					for x in range(0, image.size[0]/2):
+						if False:
+							pix1 = int(((255 - image.getpixel((x*2, y))[0] + 0) / math.pow(2, 8-bitdepth))*math.pow(2, 4-bitdepth))
+						else:
+							pix1 = int(((image.getpixel((x*2, y))[0] + 0) / math.pow(2, 8-bitdepth))*math.pow(2, 4-bitdepth))
+						if False:
+							pix2 = int(((255 - image.getpixel((x*2+1, y))[0] + 0) / math.pow(2, 8-bitdepth))*math.pow(2, 4-bitdepth))
+						else:
+							pix2 = int(((image.getpixel((x*2+1, y))[0] + 0) / math.pow(2, 8-bitdepth))*math.pow(2, 4-bitdepth))
+						
+						# Append to current payload
+						packet_payload.append((pix1 << 4) | pix2)
+						
+						# Do we need to send buffer?
+						if len(packet_payload) == packet_pixel_goal:
+							self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_SEND_TO_DISP_BUFFER, packet_payload))
+							packet_payload = []
+								
+				
+				# Data sent, close buffer
+				self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_CLOSE_DISP_BUFFER, None))		
+				end_time = time.time()
+				print "Picture sent in " + str(int((end_time-start_time)*1000)) + "ms"
+				
+			else:
+				# No modifications, sleep
+				time.sleep(0.2)
+		
+	### BELOW ARE PICTURE TO RE-IMPLEMENT	
 			
 	# Ping device
 	def pingMooltipass(self):

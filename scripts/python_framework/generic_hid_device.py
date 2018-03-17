@@ -104,6 +104,28 @@ class generic_hid_device:
 
 		# send data
 		self.epout.write(data, 10000)
+		
+	# Send message to device
+	def sendHidMessage(self, message):
+		# Get packets for message
+		packets = self.get_packets_from_message(message)
+		
+		# Send all packets
+		for packet in packets:
+			sendHidPacket(packet)
+		
+	# Send message to device
+	def sendHidMessageWaitForAck(self, message):
+		# Get packets for message
+		packets = self.get_packets_from_message(message)
+		
+		# Send all packets
+		for packet in packets:
+			self.sendHidPacket(packet)
+			
+		# Wait for aux MCU ack and main ack
+		self.receiveHidPacket()
+		self.receiveHidPacket()
 	
 	# Receive HID packet, crash when nothing is sent
 	def receiveHidPacket(self):
@@ -230,7 +252,7 @@ class generic_hid_device:
 						if print_debug:
 							print "Incorrect Aux MCU ACK..."
 							print "Cleaning remaining input packets"
-							continue
+						continue
 					# try to receive answer
 					data = self.epin.read(self.epin.wMaxPacketSize, timeout=200)
 					if HID_DEVICE_DEBUG:
@@ -239,12 +261,12 @@ class generic_hid_device:
 					if hid_packet == data[0:len(hid_packet)]:
 						if print_debug:
 							print "Received main MCU ACK"
-							temp_bool = False
+						temp_bool = False
 					else:
 						if print_debug:
 							print "Incorrect main MCU ping answer..."
 							print "Cleaning remaining input packets"
-							continue
+						continue
 					time.sleep(.5)
 				except usb.core.USBError as e:
 					self.hid_device.reset()

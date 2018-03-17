@@ -570,6 +570,9 @@
     <Compile Include="src\INPUTS\inputs.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\main.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\OLED\mooltipass_graphics_bundle.c">
       <SubType>compile</SubType>
     </Compile>

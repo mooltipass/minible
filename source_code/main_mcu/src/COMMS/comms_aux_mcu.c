@@ -8,6 +8,7 @@
 #include "platform_defines.h"
 #include "comms_hid_msgs.h"
 #include "comms_aux_mcu.h"
+#include "driver_timer.h"
 #include "defines.h"
 #include "dma.h"
 aux_mcu_message_t aux_mcu_message_buffer1;
@@ -31,23 +32,27 @@ void comms_aux_init(void)
 *   \brief  Routine dealing with aux mcu comms
 */
 void comms_aux_mcu_routine(void)
-{
-    /* Pointer to the currently received message and already arm next RX transfer */
-    aux_mcu_message_t* rcv_msg_pointer;
-    if (aux_mcu_msg_rcv_on_buffer1 != FALSE)
-    {
-        rcv_msg_pointer = &aux_mcu_message_buffer1;
-        dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_message_buffer2, sizeof(aux_mcu_message_buffer2));
-    }
-    else
-    {
-        rcv_msg_pointer = &aux_mcu_message_buffer2;
-        dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_message_buffer1, sizeof(aux_mcu_message_buffer1));
-    }        
-	
+{	
     /* Did we receive a message? */
     if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
     {
+        PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK;
+        asm("Nop");asm("Nop");asm("Nop");asm("Nop");asm("Nop");
+        PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
+        
+        /* Pointer to the currently received message and already arm next RX transfer */
+        aux_mcu_message_t* rcv_msg_pointer;
+        if (aux_mcu_msg_rcv_on_buffer1 != FALSE)
+        {
+            rcv_msg_pointer = &aux_mcu_message_buffer1;
+            dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_message_buffer2, sizeof(aux_mcu_message_buffer2));
+        }
+        else
+        {
+            rcv_msg_pointer = &aux_mcu_message_buffer2;
+            dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_message_buffer1, sizeof(aux_mcu_message_buffer1));
+        }  
+    
         /* USB / BLE Messages */
         if ((rcv_msg_pointer->message_type == AUX_MCU_MSG_TYPE_USB) || (rcv_msg_pointer->message_type == AUX_MCU_MSG_TYPE_BLE))
         {
@@ -75,7 +80,8 @@ void comms_aux_mcu_routine(void)
                 /* Compute payload size */
                 rcv_msg_pointer->payload_length = hid_reply_payload_length + sizeof(hid_message_pt->message_type) + sizeof(hid_message_pt->payload_length);
                 
-                /* Send message */                
+                /* Send message */
+                timer_delay_ms(2);            
                 dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)rcv_msg_pointer, sizeof(aux_mcu_message_buffer1));
             }
         }
