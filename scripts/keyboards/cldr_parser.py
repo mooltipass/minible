@@ -11,6 +11,8 @@ import re
 from lxml import objectify
 from lxml import etree
 
+import statistics
+
 CLDR_KEYBOARDS_BASE_PATH = "cldr-keyboards-32.0.1/keyboards"
 PLATFORM_FILENAME = "_platform.xml"
 keys_map = {'ctrlL': 	1 << 0,
@@ -58,7 +60,9 @@ class CLDR():
 
 						maps = obj.find('keyMap')
 						for m in maps:
-							mf = self.get_modifier_keys(m.attrib.get('modifiers'))
+							caps, mf = self.get_modifier_keys(m.attrib.get('modifiers'))
+							if not caps:
+								continue
 
 							for c in m.getchildren():
 								# todo: figure out why every other node seems blank
@@ -79,10 +83,10 @@ class CLDR():
 									
 
 
-	# Returns Hex value of modifier HID byte
+	# Returns if caps is required and the Hex value of modifier HID byte
 	def get_modifier_keys(self, mds):
 		if mds is None:
-			return str(hex(0))
+			return False, str(hex(0))
 		options = mds.split(" ")
 		opt = options[0]
 		keys = opt.split("+")
@@ -94,7 +98,10 @@ class CLDR():
 				if modcode:
 					final += modcode
 				final_keys += key + "+"
-		return hex(final)
+		if 'caps' in keys:
+			return True, hex(final)
+		else:
+			return False, hex(final)
 
 	def describe(self, glyphs):
 		glyphs, points = parse_to_attrib(glyphs)
@@ -179,6 +186,19 @@ class CLDR():
 			print("{0: <5} {1: >15} {2: >20} {3: >10}".format(*row))
 
 
+	def show_stats(self):
+		layouts = []
+		for platname, plat_dict in self.layouts.iteritems():
+			for layoutname, layout_dict in plat_dict.iteritems():
+				layouts.append(layout_dict)
+
+		print "Showing stats for %s layouts." % len(layouts)
+		print "Maximum number of characters in a layout: %s" % max([len(ldict) for ldict in layouts])
+		print "Mean number of characters in a layout: %s" % statistics.mean([len(ldict) for ldict in layouts])
+		print "Median number of characters in a layout: %s" % statistics.median([len(ldict) for ldict in layouts])
+		print "Now... assuming 2 byte for unicode, 2 bytes for hid (modifier+keycode):"
+		print "All maps add up to %s Bytes" % sum([len(ldict) * 4  for ldict in layouts])
+		print "Average map size is %s Bytes" % (statistics.mean([len(ldict) for ldict in layouts]) * 4)
 
 cldr = CLDR()
 cldr.parse_cldr_xml()
@@ -187,4 +207,6 @@ cldr.show_platforms()
 cldr.show_layouts(1) # osx
 
 cldr.show_lut(1, 30) # German
+
+cldr.show_stats()
 
