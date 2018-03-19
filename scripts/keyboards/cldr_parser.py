@@ -200,6 +200,13 @@ class CLDR():
 		print "All maps add up to %s Bytes" % sum([len(ldict) * 4  for ldict in layouts])
 		print "Average map size is %s Bytes" % (statistics.mean([len(ldict) for ldict in layouts]) * 4)
 
+		points = set()
+		for l in layouts:
+			for k,v in l.iteritems():
+				points = points.union(set([k]))
+
+		print "Unique unicode characters is %s" % len(points)
+
 cldr = CLDR()
 cldr.parse_cldr_xml()
 
