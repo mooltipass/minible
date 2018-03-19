@@ -201,7 +201,7 @@
         <documentation help="http://asf.atmel.com/docs/3.34.1/common.applications.user_application.sam0_system.user_board.atsamd21g18a/html/index.html" />
         <offline-documentation help="" />
         <dependencies>
-          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.34.1" />
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.28.1" />
         </dependencies>
         <project id="common.applications.user_application.sam0_system.user_board.atsamd21g18a" value="Add" config="" content-id="Atmel.ASF" />
         <board id="board.user_board.samd21g" value="Add" config="" content-id="Atmel.ASF" />
@@ -279,6 +279,7 @@
       <Value>../src/OLED</Value>
       <Value>../src/ACCELEROMETER</Value>
       <Value>../src/INPUTS</Value>
+      <Value>../src/COMMS</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
@@ -415,6 +416,7 @@
       <Value>../src/OLED</Value>
       <Value>../src/ACCELEROMETER</Value>
       <Value>../src/INPUTS</Value>
+      <Value>../src/COMMS</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
@@ -514,6 +516,24 @@
     <Compile Include="src\CLOCKS\driver_clocks.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\COMMS\comms_aux_mcu.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMMS\comms_aux_mcu.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMMS\comms_hid_msgs.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMMS\comms_hid_msgs.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMMS\comms_hid_msgs_debug.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMMS\comms_hid_msgs_debug.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\DMA\dma.c">
       <SubType>compile</SubType>
     </Compile>
@@ -548,6 +568,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\INPUTS\inputs.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\main.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\OLED\mooltipass_graphics_bundle.c">
@@ -1138,6 +1161,7 @@
     <Folder Include="src\DMA" />
     <Folder Include="src\ACCELEROMETER" />
     <Folder Include="src\INPUTS" />
+    <Folder Include="src\COMMS" />
     <Folder Include="src\OLED" />
     <Folder Include="src\SMARTCARD" />
     <Folder Include="src\TIMER" />

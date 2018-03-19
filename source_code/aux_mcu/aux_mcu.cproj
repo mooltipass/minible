@@ -20,10 +20,10 @@
     <OverrideVtor>false</OverrideVtor>
     <CacheFlash>true</CacheFlash>
     <ProgFlashFromRam>true</ProgFlashFromRam>
-    <RamSnippetAddress />
+    <RamSnippetAddress>0x20000000</RamSnippetAddress>
     <UncachedRange />
     <preserveEEPROM>true</preserveEEPROM>
-    <OverrideVtorValue />
+    <OverrideVtorValue>exception_table</OverrideVtorValue>
     <BootSegment>2</BootSegment>
     <eraseonlaunchrule>0</eraseonlaunchrule>
     <AsfFrameworkConfig>
@@ -218,6 +218,24 @@
         <board id="board.user_board.samd21e" value="Add" config="" content-id="Atmel.ASF" />
       </framework-data>
     </AsfFrameworkConfig>
+    <avrtool>com.atmel.avrdbg.tool.atmelice</avrtool>
+    <avrtoolserialnumber>J41800080444</avrtoolserialnumber>
+    <avrdeviceexpectedsignature>0x1001030B</avrdeviceexpectedsignature>
+    <avrtoolinterface>SWD</avrtoolinterface>
+    <com_atmel_avrdbg_tool_atmelice>
+      <ToolOptions>
+        <InterfaceProperties>
+          <SwdClock>2000000</SwdClock>
+        </InterfaceProperties>
+        <InterfaceName>SWD</InterfaceName>
+      </ToolOptions>
+      <ToolType>com.atmel.avrdbg.tool.atmelice</ToolType>
+      <ToolNumber>J41800080444</ToolNumber>
+      <ToolName>Atmel-ICE</ToolName>
+    </com_atmel_avrdbg_tool_atmelice>
+    <avrtoolinterfaceclock>2000000</avrtoolinterfaceclock>
+    <ResetRule>0</ResetRule>
+    <EraseKey />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
@@ -428,7 +446,6 @@
       <Value>../src/ASF/common/services/usb/class/composite/device</Value>
       <Value>../src/ASF/common/services/usb/udc</Value>
       <Value>../src/ASF/common/services/usb</Value>
-      <Value>../src/USBHID</Value>
       <Value>../src/ASF/sam0/drivers/port</Value>
       <Value>../src/ASF/common/services/sleepmgr</Value>
       <Value>../src/ASF/sam0/drivers/extint</Value>
@@ -436,6 +453,13 @@
       <Value>../src/ASF/sam0/drivers/usb</Value>
       <Value>../src/ASF/sam0/drivers/usb/usb_sam_d_r</Value>
       <Value>../src/ASF/sam0/drivers/usb/stack_interface</Value>
+      <Value>../src/USBHID</Value>
+      <Value>../src/SERCOM</Value>
+      <Value>../src/PORT</Value>
+      <Value>../src/PM</Value>
+      <Value>../src/DMA</Value>
+      <Value>../src/CLOCK</Value>
+      <Value>../src/COMM</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
@@ -608,6 +632,12 @@
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
     <Folder Include="src\config\" />
+    <Folder Include="src\DMA\" />
+    <Folder Include="src\CLOCK" />
+    <Folder Include="src\COMM" />
+    <Folder Include="src\PM\" />
+    <Folder Include="src\PORT\" />
+    <Folder Include="src\SERCOM\" />
     <Folder Include="src\USBHID\" />
   </ItemGroup>
   <ItemGroup>
@@ -675,6 +705,42 @@
       <SubType>compile</SubType>
     </None>
     <None Include="src\main.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\CLOCK\clock_manager.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\CLOCK\clock_manager.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMM\comm.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMM\comm.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\DMA\dma.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\DMA\dma.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\PM\power_manager.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\PM\power_manager.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\PORT\port_manager.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\PORT\port_manager.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\SERCOM\driver_sercom.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\SERCOM\driver_sercom.h">
       <SubType>compile</SubType>
     </None>
     <Compile Include="src\USBHID\usbhid.c">

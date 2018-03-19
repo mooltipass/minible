@@ -44,8 +44,14 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 #include <asf.h>
-#include "conf_usb.h"
 #include "usbhid.h"
+#include "conf_usb.h"
+#include "port_manager.h"
+#include "driver_sercom.h"
+#include "power_manager.h"
+#include "clock_manager.h"
+#include "dma.h"
+#include "comm.h"
 
 static volatile bool main_b_keyboard_enable = false;
 static volatile bool main_b_generic_enable = false;
@@ -57,21 +63,37 @@ int main(void) {
     cpu_irq_enable();
 
     // Initialize the sleep manager
-    sleepmgr_init();
+    //sleepmgr_init();
 
     // System init
     system_init();
 
-    // Initialize USBHID
-    USBHID_init();
+    // Port init
+    port_manager_init();
 
+    // Power Manager init
+    power_manager_init();
+    
+    // Clock Manager init
+    clock_manager_init();
+
+    // DMA init
+    dma_init();
+
+    // Initialize USBHID
+    usbhid_init();
+
+    // Init Serial communications
+    comm_init();
+    
     // Start USB stack to authorize VBus monitoring
     udc_start();
-
     // The main loop manages only the power mode
     // because the USB management is done by interrupt
     while (true) {
         // sleepmgr_enter_sleep();
+        //sercom_send_single_byte(SERCOM1, 0x55);
+        comm_task();
     }
 }
 
