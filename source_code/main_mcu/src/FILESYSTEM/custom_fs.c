@@ -39,8 +39,8 @@ uint16_t custom_fs_temp_string1[128];
 */
 RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
 {
-    //dataflash_read_data_array(custom_fs_dataflash_desc, address, datap, size);
-    memcpy(datap, &mooltipass_bundle[address], size);
+    dataflash_read_data_array(custom_fs_dataflash_desc, address, datap, size);
+    //memcpy(datap, &mooltipass_bundle[address], size);
     return RETURN_OK;
 }
 

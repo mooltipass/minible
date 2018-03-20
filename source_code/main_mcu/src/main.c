@@ -111,16 +111,18 @@ int main (void)
     while(1)
     {
         comms_aux_mcu_routine();
-    }          
+         if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+            break;
+    }   
+    custom_fs_init(&dataflash_descriptor);     
     
     /* Animation test */
     while(1)
     {
         for (uint32_t i = 0; i < 120; i++)
         {
-            comms_aux_mcu_routine();
             timer_start_timer(TIMER_TIMEOUT_FUNCTS, 25);
-            PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK; 
+            //PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK; 
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i);
             //PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
             //sh1122_display_bitmap_from_flash(&plat_oled_descriptor, 0, 0, i);

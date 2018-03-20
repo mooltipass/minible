@@ -4,7 +4,7 @@ from mooltipass_defines import *
 from generic_hid_device import *
 from array import array
 from PIL import Image
-from struct import *
+import struct
 import random
 import glob
 import math
@@ -54,13 +54,13 @@ class mooltipass_hid_device:
 		packet["data"] = array('B')
 			
 		# command
-		packet["cmd"].fromstring(pack('H', cmd))
+		packet["cmd"].fromstring(struct.pack('H', cmd))
 		
 		# data length
 		if data is not None:
-			packet["len"].fromstring(pack('H', len(data)))
+			packet["len"].fromstring(struct.pack('H', len(data)))
 		else:
-			packet["len"].fromstring(pack('H', 0))
+			packet["len"].fromstring(struct.pack('H', 0))
 
 		# data
 		if data is not None:
@@ -142,6 +142,73 @@ class mooltipass_hid_device:
 			else:
 				# No modifications, sleep
 				time.sleep(0.2)
+				
+
+	# Send bundle to display
+	def uploadDebugBundle(self, filename):	
+		# Check for file
+		if not isfile(filename):
+			print "File \"" + filename + "\" does not exist"
+			return	
+			
+		# Open file
+		bundlefile = open(filename, 'rb')
+				
+		# Send erase dataflash command to usb
+		start_time = time.time()
+		print "Sending erase dataflash command.."
+		self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_ERASE_DATA_FLASH, None))
+		
+		# Wait for erase done
+		print "Waiting for erase done..."
+		while True:
+			time.sleep(.1)
+			if self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_IS_DATA_FLASH_READY, None))["data"][0] == CMD_HID_ACK:
+				break;
+		print "Erase done in " + str(int((time.time()-start_time)*1000)) + "ms"		
+		
+		# First 4 bytes: address for writing, start reading bytes
+		byte = bundlefile.read(1)
+		current_address = 0
+		bytecounter = 4
+		
+		# Prepare first packet to send
+		packet_to_send = self.getPacketForCommand(CMD_DBG_DATAFLASH_WRITE_256B, None)
+		packet_to_send["data"].fromstring(struct.pack('I', current_address))
+		
+		# While we haven't finished looping through the bytes
+		while byte != '':
+			# Add byte to current packet
+			packet_to_send["data"].append(struct.unpack('B', byte)[0])
+			# Increment byte counter
+			bytecounter = bytecounter + 1
+			# Read new byte
+			byte = bundlefile.read(1)
+			# If packet full, send it
+			if bytecounter == 256+4:
+				# Set correct payload size and send packet
+				packet_to_send["len"] = array('B')
+				packet_to_send["len"].fromstring(struct.pack('H', bytecounter))
+				self.device.sendHidMessageWaitForAck(packet_to_send)
+				# Reset byte counter, increment address
+				current_address += 256
+				bytecounter = 4
+				# Prepare new packet to send
+				packet_to_send = self.getPacketForCommand(CMD_DBG_DATAFLASH_WRITE_256B, None)
+				packet_to_send["data"].fromstring(struct.pack('I', current_address))
+					
+		# Send the remaining bytes
+		packet_to_send["len"] = array('B')
+		packet_to_send["len"].fromstring(struct.pack('H', bytecounter))
+		self.device.sendHidMessageWaitForAck(packet_to_send)
+		
+		# Close file
+		bundlefile.close()
+		
+		
+		
+		
+		
 		
 	### BELOW ARE PICTURE TO RE-IMPLEMENT	
 			

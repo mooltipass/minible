@@ -7,6 +7,7 @@
 #include "comms_hid_msgs_debug.h"
 #include "comms_hid_msgs.h"
 #include "driver_sercom.h"
+#include "dataflash.h"
 #include "sh1122.h"
 #include "main.h"
 
@@ -66,6 +67,44 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             rcv_msg->payload[0] = HID_1BYTE_ACK;
             return 1;
         }          
+        case HID_CMD_ID_ERASE_DATA_FLASH:
+        {
+            /* Erase data flash */
+            dataflash_bulk_erase_without_wait(&dataflash_descriptor);
+            
+            /* Set ack, leave same command id */
+            rcv_msg->payload[0] = HID_1BYTE_ACK;
+            rcv_msg->payload_length = 1;
+            return 1;            
+        }
+        case HID_CMD_ID_IS_DATA_FLASH_READY:
+        {
+            if (dataflash_is_busy(&dataflash_descriptor) != FALSE)
+            {
+                /* Set nack, leave same command id */
+                rcv_msg->payload[0] = HID_1BYTE_NACK;
+                rcv_msg->payload_length = 1;
+                return 1;                
+            }
+            else
+            {
+                /* Set ack, leave same command id */
+                rcv_msg->payload[0] = HID_1BYTE_ACK;
+                rcv_msg->payload_length = 1;
+                return 1;                
+            }
+        }
+        case HID_CMD_ID_DATAFLASH_WRITE_256B:
+        {
+            /* First 4 bytes is the write address, remaining 256 bytes is the payload */
+            uint32_t* write_address = (uint32_t*)&rcv_msg->payload_as_uint32[0];
+            dataflash_write_array_to_memory(&dataflash_descriptor, *write_address, &rcv_msg->payload[4], 256);
+            
+            /* Set ack, leave same command id */
+            rcv_msg->payload[0] = HID_1BYTE_ACK;
+            rcv_msg->payload_length = 1;
+            return 1;
+        }
         default: break;
     }
     

@@ -260,6 +260,16 @@ void dataflash_bulk_erase_with_wait(spi_flash_descriptor_t* descriptor_pt)
     dataflash_wait_for_not_busy(descriptor_pt);
 }
 
+/*! \fn     dataflash_bulk_erase_without_wait(spi_flash_descriptor_t* descriptor_pt)
+*   \brief  Erase the complete flash (will take a long while)
+*   \param  descriptor_pt   Pointer to dataflash descriptor
+*/
+void dataflash_bulk_erase_without_wait(spi_flash_descriptor_t* descriptor_pt)
+{
+    dataflash_send_write_enable(descriptor_pt);
+    dataflash_send_single_byte_command(descriptor_pt, 0xC7);
+}
+
 /*! \fn     dataflash_check_presence(spi_flash_descriptor_t* descriptor_pt)
 *   \brief  Check the dataflash presence by reading the ID register
 *   \param  descriptor_pt   Pointer to dataflash descriptor

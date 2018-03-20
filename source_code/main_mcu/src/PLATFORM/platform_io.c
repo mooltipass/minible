@@ -375,7 +375,7 @@ void platform_io_init_aux_comms(void)
     temp_ctrlb_reg.bit.TXEN = 1;   
     while ((AUXMCU_SERCOM->USART.SYNCBUSY.reg & SERCOM_USART_SYNCBUSY_CTRLB) != 0);
     AUXMCU_SERCOM->USART.CTRLB = temp_ctrlb_reg;
-    /* Set max bit rate of 3MHz */
+    /* Set max bit rate */
     AUXMCU_SERCOM->USART.BAUD.reg = 0;
     /* Enable sercom */
     temp_ctrla_reg.reg |= SERCOM_USART_CTRLA_ENABLE;
