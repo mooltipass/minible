@@ -221,11 +221,22 @@ class CLDR():
 			print("{0: <5} {1: >15} {2: >20} {3: >10}".format(*row))
 
 
-	def show_stats(self):
+	def raw_layouts(self):
 		layouts = []
 		for platname, plat_dict in self.layouts.iteritems():
 			for layoutname, layout_dict in plat_dict.iteritems():
 				layouts.append(layout_dict)
+
+		points = set()
+		for l in layouts:
+			for k,v in l.iteritems():
+				points = points.union(set([k]))
+
+		return layouts, points
+
+
+	def show_stats(self):
+		layouts, points = self.raw_layouts()
 
 		print "Showing stats for %s layouts." % len(layouts)
 		print "Maximum number of characters in a layout: %s" % max([len(ldict) for ldict in layouts])
@@ -234,13 +245,18 @@ class CLDR():
 		print "Now... assuming 2 byte for unicode, 2 bytes for hid (modifier+keycode):"
 		print "All maps add up to %s Bytes" % sum([len(ldict) * 4  for ldict in layouts])
 		print "Average map size is %s Bytes" % (statistics.mean([len(ldict) for ldict in layouts]) * 4)
+		print "\nUnique unicode characters is %s" % len(points)
 
-		points = set()
-		for l in layouts:
-			for k,v in l.iteritems():
-				points = points.union(set([k]))
+		npoints = set()
+		for p in points:
+			npoints = npoints.union(set(unicodedata.normalize('NFKD', unichr(p))))
 
-		print "Unique unicode characters is %s" % len(points)
+		print "\nNormalizing those unique unicode characters via "
+		print "the normal form KD (NFKD) will apply the compatibility "
+		print " decomposition.  The code points can be represented with "
+		print " %s unique glyph images." % len(npoints)
+
+
 
 
 # example usage below.

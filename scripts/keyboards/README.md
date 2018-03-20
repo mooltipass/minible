@@ -85,4 +85,9 @@ Now... assuming 2 byte for unicode, 2 bytes for hid (modifier+keycode):
 All maps add up to 124724 Bytes
 Average map size is 387 Bytes
 The number of unique unicode characters used is 1603
+
+Normalizing those unique unicode characters via
+the normal form KD (NFKD) will apply the compatibility
+ decomposition.  The code points can be represented with
+ 1387 unique glyph images.
 ```
