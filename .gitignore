@@ -4,3 +4,4 @@ source_code/main_mcu/Debug/
 source_code/main_mcu/Release/
 *Thumbs.db
 *~
+*.pyc
