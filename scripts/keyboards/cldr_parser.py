@@ -13,8 +13,13 @@ from lxml import etree
 
 import statistics
 
+# Set the directory that you extract the cldr keyboards zip file here
 CLDR_KEYBOARDS_BASE_PATH = "cldr-keyboards-32.0.1/keyboards"
+# the platform filename in the cldr
 PLATFORM_FILENAME = "_platform.xml"
+
+# These are the HID modifier keys.  We create a single byte value
+# with the combination of the modifier keys pressed.
 keys_map = {'ctrlL': 	1 << 0,
 			'shiftL':	1 << 1,
 			'shift':	1 << 1,
@@ -27,19 +32,39 @@ keys_map = {'ctrlL': 	1 << 0,
 			'cmdR':		1 << 7
 			}
 
+# This class contains a simple parser for the cldr keyboard files. 
+# The main data structure that we get as a result is 'layouts'
 class CLDR():
 	def __init__(self):
 		
+		# The format of the layouts.
+		#     A dictonary:
+		#		Key: Name of the platform
+		#		Value: Layout dictionary
+		#	  Layout Dictonary:
+		#	 	Key: Name of the layout
+		#		Value: Unicode to hid dictonary
+		#	  Unicode to hid dictonary:
+		#		Key: unicode point (integer)
+		#		Value: hid modfier byte and hid keycode byte (tuple of strings (hex of byte value))
+		#
 		# platform name -> {layout -> {unicode point -> HID Bytes (modifier(s), keycode)}
+		#
 		self.layouts = {}
-		# platform name -> hardware map ()
+
+		# The hardware map are ISO codes mapped to HID keycodes
+		#
+		# platform name -> {iso code string -> hid key code integer as string}
+		#
 		self.hardware_maps = {}
 		
 	def parse_cldr_xml(self):
 
 		for directory, dirnames, filenames in os.walk(CLDR_KEYBOARDS_BASE_PATH):
+			# for platforms that have no hid map, we can't use them
 			if PLATFORM_FILENAME not in filenames:
 				continue
+
 			platfile = os.path.join(directory, PLATFORM_FILENAME)
 			pobj = objectify.fromstring(open(platfile, "r").read())
 			map = pobj.find('hardwareMap')
@@ -52,6 +77,7 @@ class CLDR():
 				if platform_name not in self.layouts.keys():
 					self.layouts[platform_name] = {}
 
+				# process each layout file
 				for f in filenames:
 					if f != PLATFORM_FILENAME:
 						keyb_file = os.path.join(directory, f)
@@ -61,19 +87,24 @@ class CLDR():
 						maps = obj.find('keyMap')
 						for m in maps:
 							caps, mf = self.get_modifier_keys(m.attrib.get('modifiers'))
+							
+							# we don't support characters that require caps lock
+							# if some other combination can also yield this key, caps will be false.
 							if not caps:
 								continue
 
 							for c in m.getchildren():
-								# todo: figure out why every other node seems blank
+								# todo: figure out why every other node seems blank, xml parser thing?
 								if len(c.attrib) == 0:
 									continue
 
 								keycode = iso_to_keycode.get(c.attrib.get('iso'))
+
 								# If no keycode can be found, we can't type it, so it gets skipped.
 								# Only known case for this in CLDR 32, is chromeos iso code C12.
 								if keycode is None:
 									continue
+
 								glyphs, points = self.parse_to_attrib(c.attrib.get('to'))
 								
 								if len(points) == 1:
@@ -117,6 +148,10 @@ class CLDR():
 
 	def parse_to_attrib(self, glyph):
 		''' 
+		this just handles the odd formatting in the 'to' attribute on the xml.
+		They mix xmlencoded and actual unicode, and also the code point
+		encoded with a \u{...} notation.
+
 		Returns: list of glyps, list of code point ints
 		'''
 		# find all the \u{...} notation characters
@@ -207,8 +242,13 @@ class CLDR():
 
 		print "Unique unicode characters is %s" % len(points)
 
+
+# example usage below.
+
 cldr = CLDR()
 cldr.parse_cldr_xml()
+
+# now you can just access cldr.layouts directly if you want..
 
 cldr.show_platforms()
 cldr.show_layouts(1) # osx
