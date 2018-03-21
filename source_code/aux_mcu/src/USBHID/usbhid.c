@@ -102,6 +102,7 @@ void usbhid_usb_callback(uint8_t *data){
         /* Copy from incoming pkt to buffer */
         memcpy(&usbhid_rx_buffer[rx_msg_size], pkt->payload, pkt->control.len );
         rx_msg_size+= pkt->control.len;
+        rx_pkt_counter++;
 
         /* Check if the end of packet has arrived */
         if((pkt->control.pkt_id == pkt->control.total_pkts)){
@@ -164,7 +165,7 @@ void usbhid_send_to_usb(uint8_t* buff, uint16_t buff_len){
          * After this call we can use the buffer again, as it copies to an internal
          * buffer to send the data through USB
          */
-        while(udi_hid_generic_send_report_in((uint8_t*)&pkt, pkt.control.len+USBHID_PKT_HEADER_SIZE));
+        while(!udi_hid_generic_send_report_in((uint8_t*)&pkt, pkt.control.len+USBHID_PKT_HEADER_SIZE));
     }
 }
 
@@ -179,12 +180,12 @@ void usbhid_send_to_usb(uint8_t* buff, uint16_t buff_len){
 static bool usbhid_msg_process(uint8_t* buff, uint16_t buff_len){
     bool err = false;
     T_usbhid_msg msg;
-    
+
     msg.cmd = (buff[1] << 8) + buff[0];
     msg.len = (buff[3] << 8) + buff[2];
-    
+
     msg.data = &buff[USBHID_MSG_HEADER_SIZE];
-    
+
     /* Buffer Length shall be greater than Message header */
     if( buff_len < USBHID_MSG_HEADER_SIZE ){
         err = true;
@@ -193,7 +194,7 @@ static bool usbhid_msg_process(uint8_t* buff, uint16_t buff_len){
     else if( (buff_len-USBHID_MSG_HEADER_SIZE) != msg.len){
         err = true;
     }
-    
+
     if(!err){
         switch(msg.cmd){
             case USBHID_CMD_PING:
@@ -202,6 +203,6 @@ static bool usbhid_msg_process(uint8_t* buff, uint16_t buff_len){
                 break;
         }
     }
-    
+
     return err;
 }
