@@ -7,6 +7,7 @@
 #include <string.h>
 #include <asf.h>
 #include "mooltipass_graphics_bundle.h"
+#include "custom_fs_emergency_font.h"
 #include "platform_defines.h"
 #include "driver_sercom.h"
 #include "custom_fs.h"
@@ -28,9 +29,6 @@ custom_file_flash_header_t custom_fs_flash_header;
 BOOL custom_fs_data_bus_opened = FALSE;
 /* Temp string buffers for string reading */
 uint16_t custom_fs_temp_string1[128];
-
-// to be moved to a separate folder: emergency font file
-uint8_t custom_fs_emergency_font_file[100];
 
 
 /*! \fn     custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
@@ -175,7 +173,7 @@ cust_char_t* custom_fs_get_current_language_text_desc(void)
 ret_type_te custom_fs_set_current_language(uint16_t language_id)
 {
     /* Check for valid language id */
-    if (language_id >= custom_fs_flash_header.language_map_item_count)
+    if ((language_id >= custom_fs_flash_header.language_map_item_count) || (custom_fs_flash_header.language_map_item_count == CUSTOM_FS_MAX_FILE_COUNT))
     {
         return RETURN_NOK;
     }
@@ -199,8 +197,9 @@ ret_type_te custom_fs_set_current_language(uint16_t language_id)
 /*! \fn     custom_fs_init(void)
 *   \brief  Initialize our custom file system... system
 *   \param  desc    Pointer to the SPI flash port descriptor
+*   \return RETURN_(N)OK
 */
-void custom_fs_init(spi_flash_descriptor_t* desc)
+ret_type_te custom_fs_init(spi_flash_descriptor_t* desc)
 {
     /* Locally copy the flash descriptor */
     custom_fs_dataflash_desc = desc;
@@ -208,8 +207,14 @@ void custom_fs_init(spi_flash_descriptor_t* desc)
     /* Read flash header */
     custom_fs_read_from_flash((uint8_t*)&custom_fs_flash_header, CUSTOM_FS_FILES_ADDR_OFFSET, sizeof(custom_fs_flash_header));
     
+    /* Check correct header */
+    if (custom_fs_flash_header.magic_header != CUSTOM_FS_MAGIC_HEADER)
+    {
+        return RETURN_NOK;
+    }
+    
     /* Set default language */
-    custom_fs_set_current_language(0);
+    return custom_fs_set_current_language(0);
 }
 
 /*! \fn     custom_fs_get_string_from_file(uint32_t text_file_id, uint32_t string_id, char* string_pt)

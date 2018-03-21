@@ -37,31 +37,55 @@ int main (void)
     platform_io_init_ports();                                           // Initialize platform IO ports
     platform_io_init_bat_adc_measurements();                            // Initialize ADC for battery measurements
     comms_aux_init();                                                   // Initialize communication handling with aux MCU
-    if (dataflash_check_presence(&dataflash_descriptor) == RETURN_NOK)  // Check for data flash
+        
+    /* Initialize OLED screen */
+    platform_io_power_up_oled(FALSE);
+    sh1122_init_display(&plat_oled_descriptor);
+    
+    /* Check for data flash */
+    if (dataflash_check_presence(&dataflash_descriptor) == RETURN_NOK)
     {
+        sh1122_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"No Dataflash");
         while(1);
     }
-    if (dbflash_check_presence(&dbflash_descriptor) == RETURN_NOK)      // Check for db flash
+    
+    /* Check for DB flash */
+    if (dbflash_check_presence(&dbflash_descriptor) == RETURN_NOK)
     {
+        sh1122_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"No DB Flash");
         while(1);
     }
+    
+    /* Check for accelerometer presence */
     if (lis2hh12_check_presence_and_configure(&acc_descriptor) == RETURN_NOK)
     {
+        sh1122_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"No Accelerometer");
         while(1);
     }
-    custom_fs_init(&dataflash_descriptor);                              // Initialize our custom file system stored in data flash
+    
+    /* Initialize our custom file system stored in data flash */
+    if (custom_fs_init(&dataflash_descriptor) == RETURN_NOK)
+    {
+        sh1122_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"No Bundle");      
+        
+        /* Wait to load bundle from USB */
+        while(1)
+        {
+            comms_aux_mcu_routine();
+        }
+    }
+    
+    /* Now that our custom filesystem is loaded, load the default font from flash */
+    sh1122_refresh_used_font(&plat_oled_descriptor);
     
     // Test code: burn internal graphics data into external flash.
     //dataflash_bulk_erase_with_wait(&dataflash_descriptor);
     //dataflash_write_array_to_memory(&dataflash_descriptor, 0, mooltipass_bundle, (uint32_t)sizeof(mooltipass_bundle));
     //custom_fs_init(&dataflash_descriptor);
     
-    /* Initialize OLED screen */
-    platform_io_power_up_oled(FALSE);
     //while(1);
     //PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK;
     //timer_delay_ms(1);
-    sh1122_init_display(&plat_oled_descriptor);
     
     /*uint32_t cnt = 0;
     while(1)
@@ -108,17 +132,21 @@ int main (void)
         result = platform_io_get_voledin_conversion_result_and_trigger_conversion();        
     }*/
     
-    while(1)
+    /*while(1)
     {
         comms_aux_mcu_routine();
          if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
             break;
     }   
-    custom_fs_init(&dataflash_descriptor);     
+    custom_fs_init(&dataflash_descriptor);     */
+    
     
     /* Animation test */
+    uint32_t start_time;
+    uint32_t end_time;
     while(1)
     {
+        start_time = timer_get_systick();
         for (uint32_t i = 0; i < 120; i++)
         {
             timer_start_timer(TIMER_TIMEOUT_FUNCTS, 25);
@@ -126,10 +154,13 @@ int main (void)
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i);
             //PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
             //sh1122_display_bitmap_from_flash(&plat_oled_descriptor, 0, 0, i);
-            while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING);
-            if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
-                while (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_NONE);
+            //while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING);
+            //if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+            //    while (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_NONE);
         }
+        end_time = timer_get_systick();
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, "Nb ms: %u", end_time-start_time);
+        timer_delay_ms(3000);
     }
     
     /* Language feature test */

@@ -196,6 +196,8 @@ class mooltipass_hid_device:
 				# Prepare new packet to send
 				packet_to_send = self.getPacketForCommand(CMD_DBG_DATAFLASH_WRITE_256B, None)
 				packet_to_send["data"].fromstring(struct.pack('I', current_address))
+				# Leave enough time for flash to burn bytes
+				time.sleep(0.002)
 					
 		# Send the remaining bytes
 		packet_to_send["len"] = array('B')

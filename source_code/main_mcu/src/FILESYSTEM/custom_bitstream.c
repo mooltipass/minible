@@ -4,9 +4,10 @@
  * Created: 16/05/2017 15:42:53
  *  Author: stephan
  */
- #include "custom_bitstream.h"
- #include "custom_fs.h"
- #include "dma.h"
+#include "platform_defines.h"
+#include "custom_bitstream.h"
+#include "custom_fs.h"
+#include "dma.h"
 
 
 /*! \fn     bitstream_bitmap_init(bitstream_bitmap_t* bs, bitmap_t* bitmap, custom_fs_address_t address, BOOL exclusive)

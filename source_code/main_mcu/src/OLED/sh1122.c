@@ -272,6 +272,16 @@ void sh1122_oled_off(sh1122_descriptor_t* oled_descriptor)
     oled_descriptor->oled_on = FALSE;
 }
 
+/*! \fn     sh1122_set_emergency_font(void)
+*   \brief  Use the flash-stored emergency font (ascii only)
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*/
+void sh1122_set_emergency_font(sh1122_descriptor_t* oled_descriptor)
+{
+    oled_descriptor->currentFontAddress = CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR;
+    custom_fs_read_from_flash((uint8_t*)&oled_descriptor->current_font_header, oled_descriptor->currentFontAddress, sizeof(oled_descriptor->current_font_header));
+}
+
 /*! \fn     sh1122_refresh_used_font(void)
 *   \brief  Refreshed used font (in case of init or language change)
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
@@ -333,8 +343,8 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor)
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_ON);
     oled_descriptor->oled_on = TRUE;
     
-    /* Try to set default font */
-    sh1122_refresh_used_font(oled_descriptor);
+    /* Set emergency font by default */
+    sh1122_set_emergency_font(oled_descriptor);
     
     /* From datasheet : wait 100ms */
     timer_delay_ms(100);
