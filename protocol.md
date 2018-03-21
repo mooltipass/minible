@@ -16,7 +16,7 @@ In all command descriptions below, hmstrlen() is a custom strlen function treati
 0x0001: Ping
 ------------
 
-| byte 0-1 | byte 1-2         | bytes 3-X         |
+| byte 0-1 | byte 2-3         | bytes 4-X         |
 |:---------|:-----------------|:------------------|
 | 0x0001   | up to the sender | Arbitrary payload |
 
@@ -28,7 +28,7 @@ The device will send back the very same message.
 0x8000: Debug Message
 -------------------
 
-| byte 0-1 | byte 1-2                    | bytes 3-X                          |
+| byte 0-1 | byte 2-3                    | bytes 4-X                          |
 |:---------|:----------------------------|:-----------------------------------|
 | 0x8000   | hmstrlen(debug_message) + 2 | Debug Message + terminating 0x0000 |
 
@@ -38,30 +38,50 @@ Can be sent from both the device or the computer. **Does not require an answer.*
 0x8001: Open Display Buffer
 ---------------------------
 
-| byte 0-1 | byte 1-2                    | bytes 3-X                          |
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | bytes 4-X                          |
 |:---------|:----------------------------|:-----------------------------------|
 | 0x8001   | 0 | Nothing |
 
 Open the oled display buffer for writing.
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x8001   | 1 | 0x01 (indicates command success) |
 
 
 
 0x8002: Send Pixel Data to Display Buffer
 ---------------------------
 
-| byte 0-1 | byte 1-2                    | bytes 3-X                          |
+| byte 0-1 | byte 2-3                    | bytes 4-X                          |
 |:---------|:----------------------------|:-----------------------------------|
 | 0x8002   | Payload size = number of pixels x 2 | Pixel data |
 
-Send raw display data to opened display buffer.
+Send raw display data to opened display buffer. 
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x8001   | 1 | 0x01 (indicates command success) |
 
 
 
 0x8003: Close Display Buffer
 ---------------------------
 
-| byte 0-1 | byte 1-2                    | bytes 3-X                          |
+| byte 0-1 | byte 2-3                    | bytes 4-X                          |
 |:---------|:----------------------------|:-----------------------------------|
 | 0x8003   | 0 | Nothing |
 
 Stop ongoing display buffer data writing.
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x8001   | 1 | 0x01 (indicates command success) |
