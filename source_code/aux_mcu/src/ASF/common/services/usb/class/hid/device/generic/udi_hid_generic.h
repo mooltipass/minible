@@ -118,13 +118,13 @@ typedef struct {
    .ep_in.bEndpointAddress    = UDI_HID_GENERIC_EP_IN,\
    .ep_in.bmAttributes        = USB_EP_TYPE_INTERRUPT,\
    .ep_in.wMaxPacketSize      = LE16(UDI_HID_GENERIC_EP_SIZE),\
-   .ep_in.bInterval           = 4,\
+   .ep_in.bInterval           = 1,\
    .ep_out.bLength            = sizeof(usb_ep_desc_t),\
    .ep_out.bDescriptorType    = USB_DT_ENDPOINT,\
    .ep_out.bEndpointAddress   = UDI_HID_GENERIC_EP_OUT,\
    .ep_out.bmAttributes       = USB_EP_TYPE_INTERRUPT,\
    .ep_out.wMaxPacketSize     = LE16(UDI_HID_GENERIC_EP_SIZE),\
-   .ep_out.bInterval          = 4,\
+   .ep_out.bInterval          = 1,\
    }
 //@}
 
@@ -143,7 +143,7 @@ typedef struct {
  * \brief Routine used to send a report to USB Host
  *
  * \param data     Pointer on the report to send (size = UDI_HID_REPORT_IN_SIZE)
- * 
+ *
  * \return \c 1 if function was successfully done, otherwise \c 0.
  */
 bool udi_hid_generic_send_report_in(uint8_t *data, uint8_t size);
@@ -159,14 +159,14 @@ bool udi_hid_generic_send_report_in(uint8_t *data, uint8_t size);
 /**
  * \page udi_hid_generic_quickstart Quick start guide for USB device generic module (UDI generic)
  *
- * This is the quick start guide for the \ref udi_hid_generic_group 
- * "USB device generic module (UDI generic)" with step-by-step instructions on 
+ * This is the quick start guide for the \ref udi_hid_generic_group
+ * "USB device generic module (UDI generic)" with step-by-step instructions on
  * how to configure and use the modules in a selection of use cases.
  *
  * The use cases contain several code fragments. The code fragments in the
  * steps for setup can be copied into a custom initialization function, while
  * the steps for usage can be copied into, e.g., the main application function.
- * 
+ *
  * Also, you can refer to application note
  * <A href="http://www.atmel.com/dyn/resources/prod_documents/doc8499.pdf">
  * AVR4905: ASF - USB Device HID Generic Application</A>.
@@ -251,7 +251,7 @@ bool udi_hid_generic_send_report_in(uint8_t *data, uint8_t size);
  *   - \code #define UDI_HID_GENERIC_ENABLE_EXT() my_callback_generic_enable()
 	 extern bool my_callback_generic_enable(void); \endcode
  *     \note After the device enumeration (detecting and identifying USB devices),
- *     the USB host starts the device configuration. When the USB generic interface 
+ *     the USB host starts the device configuration. When the USB generic interface
  *     from the device is accepted by the host, the USB host enables this interface and the
  *     UDI_HID_GENERIC_ENABLE_EXT() callback function is called and return true.
  *     Thus, it is recommended to enable sensors used by the generic in this function.
@@ -295,7 +295,7 @@ bool udi_hid_generic_send_report_in(uint8_t *data, uint8_t size);
  * In this use case, the "USB HID Generic (Composite Device)" module is used to
  * create a USB composite device. Thus, this USB module can be associated with
  * another "Composite Device" module, like "USB MSC (Composite Device)".
- * 
+ *
  * Also, you can refer to application note
  * <A href="http://www.atmel.com/dyn/resources/prod_documents/doc8445.pdf">
  * AVR4902 ASF - USB Composite Device</A>.
