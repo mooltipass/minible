@@ -29,6 +29,9 @@ BOOL custom_fs_data_bus_opened = FALSE;
 /* Temp string buffers for string reading */
 uint16_t custom_fs_temp_string1[128];
 
+// to be moved to a separate folder: emergency font file
+uint8_t custom_fs_emergency_font_file[100];
+
 
 /*! \fn     custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
 *   \brief  Read data from the external flash
@@ -39,8 +42,16 @@ uint16_t custom_fs_temp_string1[128];
 */
 RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
 {
-    dataflash_read_data_array(custom_fs_dataflash_desc, address, datap, size);
-    //memcpy(datap, &mooltipass_bundle[address], size);
+    /* Check for emergency font file exception */
+    if ((address >= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR) && (address+size <= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR + sizeof(custom_fs_emergency_font_file)))
+    {
+        memcpy(datap, &custom_fs_emergency_font_file[address-CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR], size);
+    } 
+    else
+    {
+        dataflash_read_data_array(custom_fs_dataflash_desc, address, datap, size);
+        //memcpy(datap, &mooltipass_bundle[address], size);
+    }
     return RETURN_OK;
 }
 
@@ -54,23 +65,37 @@ RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, 
 */
 RET_TYPE custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size, BOOL use_dma)
 {
-    /* Check if we have opened the SPI bus */
-    if (custom_fs_data_bus_opened == FALSE)
+    /* Check for emergency font file exception */
+    if ((address >= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR) && (address+size <= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR + sizeof(custom_fs_emergency_font_file)))
     {
-        dataflash_read_data_array_start(custom_fs_dataflash_desc, address);
-        custom_fs_data_bus_opened = TRUE;
-    } 
-    
-    /* If we are using DMA */
-    if (use_dma != FALSE)
-    {
-        /* Arm DMA transfer */        
-        dma_custom_fs_init_transfer((void*)&custom_fs_dataflash_desc->sercom_pt->SPI.DATA.reg, (void*)datap, size);
-    } 
+        memcpy(datap, &custom_fs_emergency_font_file[address-CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR], size);
+        
+        /* If we are using DMA, set the flag indicating transfer done */
+        if (use_dma != FALSE)
+        {
+            dma_set_custom_fs_flag_done();
+        }
+    }
     else
     {
-        /* Read data */
-        dataflash_read_bytes_from_opened_transfer(custom_fs_dataflash_desc, datap, size);
+        /* Check if we have opened the SPI bus */
+        if (custom_fs_data_bus_opened == FALSE)
+        {
+            dataflash_read_data_array_start(custom_fs_dataflash_desc, address);
+            custom_fs_data_bus_opened = TRUE;
+        }
+        
+        /* If we are using DMA */
+        if (use_dma != FALSE)
+        {
+            /* Arm DMA transfer */
+            dma_custom_fs_init_transfer((void*)&custom_fs_dataflash_desc->sercom_pt->SPI.DATA.reg, (void*)datap, size);
+        }
+        else
+        {
+            /* Read data */
+            dataflash_read_bytes_from_opened_transfer(custom_fs_dataflash_desc, datap, size);
+        }        
     }
     
     return RETURN_OK;
