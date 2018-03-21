@@ -13,8 +13,12 @@
 #include "defines.h"
 
 /* Defines */
-#define CUSTOM_FS_MAX_FILE_COUNT    0xFFFFFFFFUL
-#define CUSTOM_FS_FILES_ADDR_OFFSET 0x0000
+// Value indicating that there are no files within a descriptor
+#define CUSTOM_FS_MAX_FILE_COUNT            0xFFFFFFFFUL
+// Offset in the external memory for the bundle
+#define CUSTOM_FS_FILES_ADDR_OFFSET         0x0000
+// Magic address for the emergency font file
+#define CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR  0x80000000UL
 // Custom file flags
 #define CUSTOM_FS_BITMAP_RLE_FLAG   0x01
 
