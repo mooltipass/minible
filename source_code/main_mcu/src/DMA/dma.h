@@ -23,6 +23,7 @@ BOOL dma_custom_fs_check_and_clear_dma_transfer_flag(void);
 BOOL dma_aux_mcu_check_and_clear_dma_transfer_flag(void);
 BOOL dma_oled_check_and_clear_dma_transfer_flag(void);
 BOOL dma_acc_check_and_clear_dma_transfer_flag(void);
+void dma_set_custom_fs_flag_done(void);
 void dma_init(void);
 
 

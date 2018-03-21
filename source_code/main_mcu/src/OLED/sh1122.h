@@ -97,8 +97,9 @@ RET_TYPE sh1122_display_bitmap_from_flash(sh1122_descriptor_t* oled_descriptor, 
 void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream);
 void sh1122_flip_buffers(sh1122_descriptor_t* oled_descriptor, oled_scroll_te scroll_mode, uint32_t delay);
 uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, cust_char_t ch);
-uint16_t sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str);
+uint16_t sh1122_put_error_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string);
 void sh1122_set_contrast_current(sh1122_descriptor_t* oled_descriptor, uint8_t contrast_current);
+uint16_t sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str);
 void sh1122_set_master_current(sh1122_descriptor_t* oled_descriptor, uint8_t master_current);
 void sh1122_move_display_start_line(sh1122_descriptor_t* oled_descriptor, int16_t offset);
 uint16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str);
@@ -115,6 +116,7 @@ void sh1122_set_max_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x);
 void sh1122_set_min_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x);
 void sh1122_flip_displayed_buffer(sh1122_descriptor_t* oled_descriptor);
 void sh1122_clear_current_screen(sh1122_descriptor_t* oled_descriptor);
+void sh1122_set_emergency_font(sh1122_descriptor_t* oled_descriptor);
 void sh1122_start_data_sending(sh1122_descriptor_t* oled_descriptor);
 void sh1122_stop_data_sending(sh1122_descriptor_t* oled_descriptor);
 void sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor);

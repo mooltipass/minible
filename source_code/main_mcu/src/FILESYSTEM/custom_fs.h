@@ -13,8 +13,14 @@
 #include "defines.h"
 
 /* Defines */
-#define CUSTOM_FS_MAX_FILE_COUNT    0xFFFFFFFFUL
-#define CUSTOM_FS_FILES_ADDR_OFFSET 0x0000
+// Value indicating that there are no files within a descriptor
+#define CUSTOM_FS_MAX_FILE_COUNT            0xFFFFFFFFUL
+// Offset in the external memory for the bundle
+#define CUSTOM_FS_FILES_ADDR_OFFSET         0x0000
+// Magic address for the emergency font file
+#define CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR  0x80000000UL
+// Magic number at the beginning of the flash header
+#define CUSTOM_FS_MAGIC_HEADER              0x12345678UL
 // Custom file flags
 #define CUSTOM_FS_BITMAP_RLE_FLAG   0x01
 
@@ -124,11 +130,11 @@ uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id);
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void);
 ret_type_te custom_fs_set_current_language(uint16_t language_id);
 cust_char_t* custom_fs_get_current_language_text_desc(void);
+ret_type_te custom_fs_init(spi_flash_descriptor_t* desc);
 void custom_fs_stop_continuous_read_from_flash(void);
 BOOL custom_fs_settings_check_fw_upgrade_flag(void);
 void custom_fs_settings_clear_fw_upgrade_flag(void);
 void custom_fs_settings_set_fw_upgrade_flag(void);
-void custom_fs_init(spi_flash_descriptor_t* desc);
 uint32_t custom_fs_get_number_of_languages(void);
 void custom_fs_settings_init(void);
 

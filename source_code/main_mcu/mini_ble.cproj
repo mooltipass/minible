@@ -552,6 +552,12 @@
     <Compile Include="src\FILESYSTEM\custom_fs.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\FILESYSTEM\custom_fs_emergency_font.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\FILESYSTEM\custom_fs_emergency_font.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\FLASH\dataflash.c">
       <SubType>compile</SubType>
     </Compile>

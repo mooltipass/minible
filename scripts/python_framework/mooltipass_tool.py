@@ -46,18 +46,13 @@ def main():
 			else:
 				print "Please specify picture filename"
 		
-		elif sys.argv[1] == "uploadBundle":
-			# extract args
+		elif sys.argv[1] == "uploadDebugBundle":
+			# mooltipass_tool.py uploadDebugBundle filename
 			if len(sys.argv) > 2:
 				filename = sys.argv[2]
+				mooltipass_device.uploadDebugBundle(filename)
 			else:
-				filename = None
-			if len(sys.argv) > 3:
-				password = sys.argv[3]
-			else:
-				password = None
-			# start upload
-			#mooltipass_device.uploadBundle(password, filename, True)
+				print "Please specify bundle filename"
 		
 	#if not skipConnection:
 	#	mooltipass_device.disconnect()

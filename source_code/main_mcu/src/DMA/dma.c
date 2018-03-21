@@ -70,6 +70,14 @@ void DMAC_Handler(void)
     }
 }
 
+/*! \fn     dma_set_custom_fs_flag_done(void)
+*   \brief  Manually set the custom fs done flag (used to simulate DMA transfers)
+*/
+void dma_set_custom_fs_flag_done(void)
+{
+    dma_custom_fs_transfer_done = TRUE;
+}
+
 /*! \fn     dma_init(void)
 *   \brief  Initialize DMA controller that will be used later
 */

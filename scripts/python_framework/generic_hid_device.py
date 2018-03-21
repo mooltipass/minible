@@ -125,7 +125,7 @@ class generic_hid_device:
 			
 		# Wait for aux MCU ack and main ack
 		self.receiveHidPacket()
-		self.receiveHidPacket()
+		return self.receiveHidMessage()
 	
 	# Receive HID packet, crash when nothing is sent
 	def receiveHidPacket(self):
@@ -144,6 +144,45 @@ class generic_hid_device:
 			if HID_DEVICE_DEBUG:
 				print e
 			sys.exit("Device didn't send a packet")
+			
+	# Receive Message
+	def receiveHidMessage(self):
+		# For double checks
+		nb_payload_bytes_received = 0
+		
+		# Create packet object
+		packet = {}
+		packet["cmd"] = -1
+		packet["len"] = -1
+		packet["data"] = array('B')
+		
+		# Loop until we receive everything
+		while True:
+			answer = self.receiveHidPacket()
+			payload_length = answer[0] & 0x3F
+			current_packet = (answer[1] & 0xF0) >> 4
+			total_packets = (answer[1] & 0x0F)
+			nb_payload_bytes_received += payload_length
+			
+			# First packet?
+			if packet["cmd"] == -1:
+				packet["cmd"] = answer[2] + answer[3] * 256
+				packet["len"] = answer[4] + answer[5] * 256
+				packet["data"].extend(answer[6:2+payload_length])
+			else:
+				packet["data"].extend(answer[2:2+payload_length])		
+				
+			# Check for completion
+			if current_packet == total_packets:
+				# Check for payload length match
+				if len(packet["data"]) != packet["len"] or len(packet["data"]) != nb_payload_bytes_received - 4:
+					print "Message receive: error in payload size!"
+					print "len(packet) = " + str(len(packet["data"]))
+					print "packet[\"len\"] = " + str(packet["len"])
+					print "nb payload bytes received - 4 = " + str(nb_payload_bytes_received - 4)
+					return None
+				else:
+					return packet
 		
 	# Receive HID packet, return None when nothing is sent	
 	def receiveHidPacketWithTimeout(self):
@@ -241,7 +280,7 @@ class generic_hid_device:
 			while temp_bool:
 				try :
 					# try to receive aux MCU answer
-					data = self.epin.read(self.epin.wMaxPacketSize, timeout=200)
+					data = self.epin.read(self.epin.wMaxPacketSize, timeout=500)
 					if HID_DEVICE_DEBUG:
 						print "RX DBG data:", ' '.join(hex(x) for x in data)
 					# check that the received data is correct (cheating as we know we should receive one packet)
@@ -254,7 +293,7 @@ class generic_hid_device:
 							print "Cleaning remaining input packets"
 						continue
 					# try to receive answer
-					data = self.epin.read(self.epin.wMaxPacketSize, timeout=200)
+					data = self.epin.read(self.epin.wMaxPacketSize, timeout=500)
 					if HID_DEVICE_DEBUG:
 						print "RX2 DBG data:", ' '.join(hex(x) for x in data)
 					# check that the received data is correct (cheating as we know we should receive one packet)

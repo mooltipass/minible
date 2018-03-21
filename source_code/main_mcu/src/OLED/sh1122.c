@@ -272,6 +272,16 @@ void sh1122_oled_off(sh1122_descriptor_t* oled_descriptor)
     oled_descriptor->oled_on = FALSE;
 }
 
+/*! \fn     sh1122_set_emergency_font(void)
+*   \brief  Use the flash-stored emergency font (ascii only)
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*/
+void sh1122_set_emergency_font(sh1122_descriptor_t* oled_descriptor)
+{
+    oled_descriptor->currentFontAddress = CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR;
+    custom_fs_read_from_flash((uint8_t*)&oled_descriptor->current_font_header, oled_descriptor->currentFontAddress, sizeof(oled_descriptor->current_font_header));
+}
+
 /*! \fn     sh1122_refresh_used_font(void)
 *   \brief  Refreshed used font (in case of init or language change)
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
@@ -333,8 +343,8 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor)
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_ON);
     oled_descriptor->oled_on = TRUE;
     
-    /* Try to set default font */
-    sh1122_refresh_used_font(oled_descriptor);
+    /* Set emergency font by default */
+    sh1122_set_emergency_font(oled_descriptor);
     
     /* From datasheet : wait 100ms */
     timer_delay_ms(100);
@@ -1017,13 +1027,24 @@ uint16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char
     return nb_printed_chars;
 }
 
+/*! \fn     sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, const char* string)
+*   \brief  Display an error string on the screen (X0Y0, centered)
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  string              Null terminated string
+*   \return How many characters were printed
+*/
+uint16_t sh1122_put_error_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string)
+{
+    return sh1122_put_string_xy(oled_descriptor, 0, 0, OLED_ALIGN_CENTER, string);
+}
+
 /*! \fn     sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, const char* string) 
 *   \brief  Display a string on the screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
 *   \param  y                   Starting y
 *   \param  justify             String justify (see enum)
-*   \param  string              Null terminated culotte
+*   \param  string              Null terminated string
 *   \return How many characters were printed
 */
 uint16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, const cust_char_t* string) 
