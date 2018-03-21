@@ -67,7 +67,7 @@ Device Answer:
 
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
-| 0x8001   | 1 | 0x01 (indicates command success) |
+| 0x8002   | 1 | 0x01 (indicates command success) |
 
 
 
@@ -84,4 +84,53 @@ Device Answer:
 
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
-| 0x8001   | 1 | 0x01 (indicates command success) |
+| 0x8003   | 1 | 0x01 (indicates command success) |
+
+
+
+0x8004: Erase Data Flash
+------------------------
+
+| byte 0-1 | byte 2-3                    | bytes 4-X                          |
+|:---------|:----------------------------|:-----------------------------------|
+| 0x8004   | 0 | Nothing |
+
+Fully erase data flash. Returns before the flash is erased.
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x8004   | 1 | 0x01 (indicates command success) |
+
+
+
+0x8005: Query Dataflash Ready Status
+------------------------------------
+
+| byte 0-1 | byte 2-3                    | bytes 4-X                          |
+|:---------|:----------------------------|:-----------------------------------|
+| 0x8005   | 0 | Nothing |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x8005   | 1 | 0x00 (dataflash busy) or 0x01 (dataflash ready) |
+
+
+
+0x8006: Write 256 Bytes to Dataflash
+------------------------------------
+
+| byte 0-1 | byte 2-3                    | bytes 4-7                          | bytes 8-263                        |
+|:---------|:----------------------------|:-----------------------------------|:-----------------------------------|
+| 0x8006   | 260 | Write address | 256 bytes payload |
+
+As it is a debug command, no boundary checks are performed. The place at which these 256 bytes are written should be previously erased.
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x8006   | 1 | 0x01 (indicates command success) |
