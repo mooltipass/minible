@@ -280,7 +280,7 @@ class generic_hid_device:
 			while temp_bool:
 				try :
 					# try to receive aux MCU answer
-					data = self.epin.read(self.epin.wMaxPacketSize, timeout=200)
+					data = self.epin.read(self.epin.wMaxPacketSize, timeout=500)
 					if HID_DEVICE_DEBUG:
 						print "RX DBG data:", ' '.join(hex(x) for x in data)
 					# check that the received data is correct (cheating as we know we should receive one packet)
@@ -293,7 +293,7 @@ class generic_hid_device:
 							print "Cleaning remaining input packets"
 						continue
 					# try to receive answer
-					data = self.epin.read(self.epin.wMaxPacketSize, timeout=200)
+					data = self.epin.read(self.epin.wMaxPacketSize, timeout=500)
 					if HID_DEVICE_DEBUG:
 						print "RX2 DBG data:", ' '.join(hex(x) for x in data)
 					# check that the received data is correct (cheating as we know we should receive one packet)

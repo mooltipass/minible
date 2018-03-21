@@ -45,28 +45,28 @@ int main (void)
     /* Check for data flash */
     if (dataflash_check_presence(&dataflash_descriptor) == RETURN_NOK)
     {
-        sh1122_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"No Dataflash");
+        sh1122_put_error_string(&plat_oled_descriptor, u"No Dataflash");
         while(1);
     }
     
     /* Check for DB flash */
     if (dbflash_check_presence(&dbflash_descriptor) == RETURN_NOK)
     {
-        sh1122_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"No DB Flash");
+        sh1122_put_error_string(&plat_oled_descriptor, u"No DB Flash");
         while(1);
     }
     
     /* Check for accelerometer presence */
     if (lis2hh12_check_presence_and_configure(&acc_descriptor) == RETURN_NOK)
     {
-        sh1122_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"No Accelerometer");
+        sh1122_put_error_string(&plat_oled_descriptor, u"No Accelerometer");
         while(1);
     }
     
     /* Initialize our custom file system stored in data flash */
     if (custom_fs_init(&dataflash_descriptor) == RETURN_NOK)
     {
-        sh1122_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"No Bundle");      
+        sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");      
         
         /* Wait to load bundle from USB */
         while(1)
@@ -149,18 +149,29 @@ int main (void)
         start_time = timer_get_systick();
         for (uint32_t i = 0; i < 120; i++)
         {
+            comms_aux_mcu_routine();
             timer_start_timer(TIMER_TIMEOUT_FUNCTS, 25);
             //PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK; 
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i);
             //PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
             //sh1122_display_bitmap_from_flash(&plat_oled_descriptor, 0, 0, i);
             //while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING);
-            //if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
-            //    while (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_NONE);
+            if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+            {
+                while (TRUE)
+                {
+                    comms_aux_mcu_routine();
+                    if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+                    {
+                        custom_fs_init(&dataflash_descriptor);
+                        break;
+                    }                        
+                }
+            }                
         }
         end_time = timer_get_systick();
         sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, "Nb ms: %u", end_time-start_time);
-        timer_delay_ms(3000);
+        timer_delay_ms(300);
     }
     
     /* Language feature test */

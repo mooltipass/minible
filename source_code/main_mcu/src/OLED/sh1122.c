@@ -1027,13 +1027,24 @@ uint16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char
     return nb_printed_chars;
 }
 
+/*! \fn     sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, const char* string)
+*   \brief  Display an error string on the screen (X0Y0, centered)
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  string              Null terminated string
+*   \return How many characters were printed
+*/
+uint16_t sh1122_put_error_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string)
+{
+    return sh1122_put_string_xy(oled_descriptor, 0, 0, OLED_ALIGN_CENTER, string);
+}
+
 /*! \fn     sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, const char* string) 
 *   \brief  Display a string on the screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
 *   \param  y                   Starting y
 *   \param  justify             String justify (see enum)
-*   \param  string              Null terminated culotte
+*   \param  string              Null terminated string
 *   \return How many characters were printed
 */
 uint16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, const cust_char_t* string) 
