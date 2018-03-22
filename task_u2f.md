@@ -10,6 +10,6 @@ We would like to implement the new web authentication standard inside the new mo
 - implement the low level code required for webauthn
    
 **Relevant Links**:  
-- Spec: https://www.w3.org/TR/webauthn/
-- Blog post: https://hacks.mozilla.org/2018/01/using-hardware-token-based-2fa-with-the-webauthn-api/
-- Mozilla API: https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API
+- Spec: <a href="https://www.w3.org/TR/webauthn/">https://www.w3.org/TR/webauthn/</a>
+- Blog post: <a href="https://hacks.mozilla.org/2018/01/using-hardware-token-based-2fa-with-the-webauthn-api/">https://hacks.mozilla.org/2018/01/using-hardware-token-based-2fa-with-the-webauthn-api/</a>
+- Mozilla API: <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API">https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API</a>
