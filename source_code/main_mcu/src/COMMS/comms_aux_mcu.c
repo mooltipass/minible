@@ -80,8 +80,7 @@ void comms_aux_mcu_routine(void)
                 /* Compute payload size */
                 rcv_msg_pointer->payload_length = hid_reply_payload_length + sizeof(hid_message_pt->message_type) + sizeof(hid_message_pt->payload_length);
                 
-                /* Send message */
-                timer_delay_ms(2);            
+                /* Send message */       
                 dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)rcv_msg_pointer, sizeof(aux_mcu_message_buffer1));
             }
         }

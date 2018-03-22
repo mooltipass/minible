@@ -41,6 +41,7 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             
             /* Set ack, leave same command id */
             rcv_msg->payload[0] = HID_1BYTE_ACK;
+            rcv_msg->payload_length = 1;
             return 1;
         }    
         case HID_CMD_ID_SEND_TO_DISP_BUFFER:
@@ -53,6 +54,7 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             
             /* Set ack, leave same command id */
             rcv_msg->payload[0] = HID_1BYTE_ACK;
+            rcv_msg->payload_length = 1;
             return 1;
         }  
         case HID_CMD_ID_CLOSE_DISP_BUFFER:
@@ -65,6 +67,7 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             
             /* Set ack, leave same command id */
             rcv_msg->payload[0] = HID_1BYTE_ACK;
+            rcv_msg->payload_length = 1;
             return 1;
         }          
         case HID_CMD_ID_ERASE_DATA_FLASH:
