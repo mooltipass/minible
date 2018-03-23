@@ -19,7 +19,7 @@ Total payload length.
 **Payload**   
 The message payload, which may contain up to 534 bytes. This maximum size was decided in order to accomodate a single "write data node" command (command identifier: 2 bytes, message payload size field: 2 bytes, data node address: 2 bytes, data node size: 528 bytes).
   
-**Payload valid flag**
+**Payload valid flag**  
 If different than 0, this byte lets the message recipient know that the message is valid. As a given Mooltipass message sent through USB can be split over multiple 64 bytes packets, this byte allows the aux MCU to signal that this message is invalid if for some reason or another the sequence of 64bytes long HID packets sending is interrupted.
   
 **Serial Link Specs**  
