@@ -96,8 +96,9 @@ int main (void)
             sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "X: %i", acc_descriptor.fifo_read.acc_data_array[0].acc_x);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 15, OLED_ALIGN_LEFT, "Y: %i", acc_descriptor.fifo_read.acc_data_array[0].acc_y);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Z: %i", acc_descriptor.fifo_read.acc_data_array[0].acc_z);
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 45, OLED_ALIGN_LEFT, "cnt: %i", cnt++);            
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 45, OLED_ALIGN_LEFT, "cnt: %i", cnt++);
         }
+        timer_delay_ms(333);
     }*/
     
     /* inputs tests */
@@ -150,12 +151,14 @@ int main (void)
         for (uint32_t i = 0; i < 120; i++)
         {
             comms_aux_mcu_routine();
-            timer_start_timer(TIMER_TIMEOUT_FUNCTS, 25);
+            
+            //timer_start_timer(TIMER_TIMEOUT_FUNCTS, 25);
             //PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK; 
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i);
             //PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
             //sh1122_display_bitmap_from_flash(&plat_oled_descriptor, 0, 0, i);
             //while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING);
+            
             if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
             {
                 while (TRUE)
@@ -169,9 +172,14 @@ int main (void)
                 }
             }                
         }
-        end_time = timer_get_systick();
+        /*end_time = timer_get_systick();
         sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, "Nb ms: %u", end_time-start_time);
-        timer_delay_ms(300);
+        
+        if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) != FALSE)
+        {
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_CENTER, "X: %i, Y: %i, Z: %i", acc_descriptor.fifo_read.acc_data_array[0].acc_x, acc_descriptor.fifo_read.acc_data_array[0].acc_y, acc_descriptor.fifo_read.acc_data_array[0].acc_z);
+        }            
+        timer_delay_ms(1000);*/
     }
     
     /* Language feature test */

@@ -66,7 +66,7 @@ class generic_hid_device:
 				payload_length = remaining_bytes
 			
 			# payload length & flip bit
-			packet.append(self.flipbit | payload_length)
+			packet.append(self.flipbit | 0x40 | payload_length)
 			
 			## packet id
 			packet.append((cur_packet_id << 4) | nb_packets)

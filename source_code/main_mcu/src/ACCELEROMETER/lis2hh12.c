@@ -151,6 +151,7 @@ BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_desc
         
         /* Make sure the accelerometer sees the nCS going up */
         asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");
+        asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");
         
         /* Assert nCS */
         PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;

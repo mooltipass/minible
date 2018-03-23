@@ -93,7 +93,7 @@ void dma_init(void)
     dmac_ctrl_reg.bit.LVLEN2 = 1;                                                           // Enable priority level 2
     dmac_ctrl_reg.bit.LVLEN3 = 1;                                                           // Enable priority level 3
     DMAC->CTRL = dmac_ctrl_reg;                                                             // Write DMA control register
-    DMAC->DBGCTRL.bit.DBGRUN = 1;                                                         // Normal operation during debugging
+    //DMAC->DBGCTRL.bit.DBGRUN = 1;                                                         // Normal operation during debugging
 
     /* SPI RX routine, cf user manual 26.5.4 */
     /* Using the SERCOM DMA requests, requires the DMA controller to be configured first. */
