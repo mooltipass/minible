@@ -3,7 +3,7 @@ The auxiliary and main microcontrollers can communicate with each other using a 
 While the main role of the auxiliary MCU is to receive/send data packets from/to USB or Bluetooth, other types of messages (firmware update, keyboard HID presses) are also needed.  
   
 ## [](#header-2) Message Structure and Serial Link Specs 
-The message structure is defined as follows:  
+The fixed length **539 bytes long** message structure is defined as follows:  
 
 | byte 0 - 1   | byte 2 - 535  | byte 536 - 537   | byte 538            |
 |:-------------|---------------|:-----------------|---------------------|
