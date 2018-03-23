@@ -360,10 +360,10 @@ void platform_io_init_aux_comms(void)
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, AUXMCU_GCLK_SERCOM_ID);                                // Map 48MHz to SERCOM unit
     
     /* Sercom init */
-    /* MSB first, USART frame, async, 8x oversampling, internal clock */
+    /* MSB first, USART frame, async, 16x oversampling, internal clock */
     SERCOM_USART_CTRLA_Type temp_ctrla_reg;
     temp_ctrla_reg.reg = 0;
-    temp_ctrla_reg.bit.SAMPR = 2;
+    temp_ctrla_reg.bit.SAMPR = 0;
     temp_ctrla_reg.bit.RXPO = AUXMCU_TX_PAD;
     temp_ctrla_reg.bit.TXPO = AUXMCU_RX_TXPO;
     temp_ctrla_reg.bit.MODE = SERCOM_USART_CTRLA_MODE_USART_INT_CLK_Val;
@@ -375,8 +375,8 @@ void platform_io_init_aux_comms(void)
     temp_ctrlb_reg.bit.TXEN = 1;   
     while ((AUXMCU_SERCOM->USART.SYNCBUSY.reg & SERCOM_USART_SYNCBUSY_CTRLB) != 0);
     AUXMCU_SERCOM->USART.CTRLB = temp_ctrlb_reg;
-    /* Set max bit rate */
-    AUXMCU_SERCOM->USART.BAUD.reg = 0;
+    /* Set 1MHz baud rate */
+    AUXMCU_SERCOM->USART.BAUD.reg = 43691;
     /* Enable sercom */
     temp_ctrla_reg.reg |= SERCOM_USART_CTRLA_ENABLE;
     while ((AUXMCU_SERCOM->USART.SYNCBUSY.reg & SERCOM_USART_SYNCBUSY_ENABLE) != 0);

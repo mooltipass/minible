@@ -17,12 +17,14 @@
 typedef struct
 {
     uint16_t message_type;
-    uint16_t payload_length;
+    uint16_t reserved;
     union
     {
-        uint8_t payload[532];
-        uint32_t payload_as_uint32[532 * sizeof(uint8_t) / sizeof(uint32_t)];        
+        uint8_t payload[536];
+        uint32_t payload_as_uint32[536/4];        
     };
+    uint16_t payload_length;
+    uint16_t payload_valid_flag;
 } aux_mcu_message_t;
 
 /* Prototypes */

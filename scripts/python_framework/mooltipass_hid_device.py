@@ -166,6 +166,7 @@ class mooltipass_hid_device:
 			if self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_IS_DATA_FLASH_READY, None))["data"][0] == CMD_HID_ACK:
 				break;
 		print "Erase done in " + str(int((time.time()-start_time)*1000)) + "ms"		
+		print "Sending bundle data..."
 		
 		# First 4 bytes: address for writing, start reading bytes
 		byte = bundlefile.read(1)
@@ -206,6 +207,7 @@ class mooltipass_hid_device:
 		
 		# Close file
 		bundlefile.close()
+		print "Sending done!"
 		
 		
 		

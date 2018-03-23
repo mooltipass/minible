@@ -10,7 +10,7 @@ import time
 import sys
 
 # Set to true to get advanced debugging information
-HID_DEVICE_DEBUG = False
+HID_DEVICE_DEBUG = True
 
 # Packet max payload
 HID_PACKET_DATA_PAYLOAD	= 62
@@ -349,10 +349,12 @@ class generic_hid_device:
 		while True:
 			self.sendHidPacket(hid_packet)
 			self.receiveHidPacket()
+			self.receiveHidPacket()
 			data_counter += 64
 			
 			# Print out performance
 			if current_second != datetime.now().second:
 				current_second = datetime.now().second
 				print "Ping pong transfer speed (unidirectional):", data_counter , "B/s"
+				print "Ping pong transfer speed (bidirectional cumulated):", data_counter*3 , "B/s"
 				data_counter = 0
