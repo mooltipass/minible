@@ -48,10 +48,6 @@ typedef struct{
 } T_usbhid_msg;
 
 
-/** Private function Declaration -------------------------------------------  */
-static bool usbhid_msg_process(uint8_t* buff, uint16_t buff_len);
-
-
 /** Private data Declaration -----------------------------------------------  */
 
 /** Message Buffer allocation */
@@ -83,6 +79,7 @@ void usbhid_init(void){
  */
 void usbhid_usb_callback(uint8_t *data){
     T_usbhid_pkt *pkt = (T_usbhid_pkt*)data;
+    T_comm_pkt_status pkt_status;
     bool err = false;
 
     /* Check new message flip bit  */
@@ -104,14 +101,17 @@ void usbhid_usb_callback(uint8_t *data){
         rx_msg_size+= pkt->control.len;
         rx_pkt_counter++;
 
+        /* Pkt status */
+        pkt_status.msg_start = (pkt->control.pkt_id == 0);
+        pkt_status.msg_end = (pkt->control.pkt_id == pkt->control.total_pkts);
+
+        /* Send pkt to MAIN MCU by means of USART */
+        comm_usb_process_in_pkt(pkt_status,pkt->payload, pkt->control.len);
+
         /* Check if the end of packet has arrived */
-        if((pkt->control.pkt_id == pkt->control.total_pkts)){
-            /* Process Command */
-            err = usbhid_msg_process(usbhid_rx_buffer, rx_msg_size);
-            /* Consistency check */
-            if(!err){
-                /* Answer to Host */
-                pkt->control.final_ack = true;
+        if(pkt_status.msg_end){
+            /* Answer to Host */
+            if(pkt->control.final_ack){
                 udi_hid_generic_send_report_in(data, pkt->control.len+USBHID_PKT_HEADER_SIZE);
             }
             /* Reset Counters */
@@ -167,42 +167,4 @@ void usbhid_send_to_usb(uint8_t* buff, uint16_t buff_len){
          */
         while(!udi_hid_generic_send_report_in((uint8_t*)&pkt, pkt.control.len+USBHID_PKT_HEADER_SIZE));
     }
-}
-
-
-/**
- * \fn              usbhid_msg_process
- * \brief           Processes the msg received from USB and forward the msg to
- *                  COMM component indicating the message is coming from USB
- * \param buff      Pointer to msg
- * \param buff_len  Msg length
- */
-static bool usbhid_msg_process(uint8_t* buff, uint16_t buff_len){
-    bool err = false;
-    T_usbhid_msg msg;
-
-    msg.cmd = (buff[1] << 8) + buff[0];
-    msg.len = (buff[3] << 8) + buff[2];
-
-    msg.data = &buff[USBHID_MSG_HEADER_SIZE];
-
-    /* Buffer Length shall be greater than Message header */
-    if( buff_len < USBHID_MSG_HEADER_SIZE ){
-        err = true;
-    }
-    /* Consistency check between msg_size and msg.len */
-    else if( (buff_len-USBHID_MSG_HEADER_SIZE) != msg.len){
-        err = true;
-    }
-
-    if(!err){
-        switch(msg.cmd){
-            case USBHID_CMD_PING:
-            default:
-                comm_process_in_msg(COMM_MSG_FROM_USB, buff, buff_len);
-                break;
-        }
-    }
-
-    return err;
 }
