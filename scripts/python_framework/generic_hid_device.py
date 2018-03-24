@@ -28,6 +28,8 @@ class generic_hid_device:
 		signal.signal(signal.SIGINT, self.signal_handler)
 		self.connected = False
 		self.flipbit = 0x00
+		# Set to true to enable ack flag request
+		self.ack_flag_in_comms = False
 		
 	# Catch CTRL-C interrupt
 	def signal_handler(self, signal, frame):
@@ -66,7 +68,10 @@ class generic_hid_device:
 				payload_length = remaining_bytes
 			
 			# payload length & flip bit
-			packet.append(self.flipbit | 0x40 | payload_length)
+			if self.ack_flag_in_comms:
+				packet.append(self.flipbit | LAST_MESSAGE_ACK_FLAG | payload_length)
+			else:
+				packet.append(self.flipbit | payload_length)
 			
 			## packet id
 			packet.append((cur_packet_id << 4) | nb_packets)
@@ -124,7 +129,8 @@ class generic_hid_device:
 			self.sendHidPacket(packet)
 			
 		# Wait for aux MCU ack and main ack
-		self.receiveHidPacket()
+		if self.ack_flag_in_comms:
+			self.receiveHidPacket()
 		return self.receiveHidMessage()
 	
 	# Receive HID packet, crash when nothing is sent
@@ -208,9 +214,8 @@ class generic_hid_device:
 		# Generate our hid message from our ping message (cheating: we're only doing one HID packet)
 		hid_packet = self.get_packets_from_message(ping_packet)[0]
 		
-		# From this packet, make the one we should expect from the aux MCU
-		expected_ack_hid_packet = hid_packet[:]
-		expected_ack_hid_packet[0] = expected_ack_hid_packet[0] | LAST_MESSAGE_ACK_FLAG
+		# Force aux MCU ACK request
+		hid_packet[0] |= LAST_MESSAGE_ACK_FLAG
 
 		# Was it found?
 		if self.hid_device is None:
@@ -284,7 +289,7 @@ class generic_hid_device:
 					if HID_DEVICE_DEBUG:
 						print "RX DBG data:", ' '.join(hex(x) for x in data)
 					# check that the received data is correct (cheating as we know we should receive one packet)
-					if expected_ack_hid_packet == data[0:len(hid_packet)]:
+					if hid_packet == data[0:len(hid_packet)]:
 						if print_debug:
 							print "Received aux MCU ACK"
 					else:
@@ -350,7 +355,8 @@ class generic_hid_device:
 		data_counter = 0
 		while True:
 			self.sendHidPacket(hid_packet)
-			self.receiveHidPacket()
+			if self.ack_flag_in_comms:
+				self.receiveHidPacket()
 			self.receiveHidPacket()
 			data_counter += 64
 			
@@ -358,5 +364,8 @@ class generic_hid_device:
 			if current_second != datetime.now().second:
 				current_second = datetime.now().second
 				print "Ping pong transfer speed (unidirectional):", data_counter , "B/s"
-				print "Ping pong transfer speed (bidirectional cumulated):", data_counter*3 , "B/s"
+				if self.ack_flag_in_comms:
+					print "Ping pong transfer speed (bidirectional cumulated):", data_counter*3 , "B/s"
+				else:
+					print "Ping pong transfer speed (bidirectional cumulated):", data_counter*2 , "B/s"
 				data_counter = 0
