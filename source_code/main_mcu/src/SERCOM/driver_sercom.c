@@ -57,6 +57,7 @@ void sercom_spi_init(Sercom* sercom_pt, uint32_t sercom_baud_div, spi_mode_te mo
     spi_ctrla_reg.bit.DIPO = miso_pad;                                      // Select MISO pad
     spi_ctrla_reg.bit.DOPO = mosi_sck_ss_pad;                               // MOSI SCK SS pads
     spi_ctrla_reg.bit.RUNSTDBY = 0;                                         // Do not run during standby
+    spi_ctrla_reg.bit.IBON = 1;                                             // Immediate buffer overflow notification
     spi_ctrla_reg.bit.MODE = SERCOM_SPI_CTRLA_MODE_SPI_MASTER_Val;          // SPI Master
     while ((sercom_pt->SPI.SYNCBUSY.reg & SERCOM_SPI_SYNCBUSY_ENABLE) != 0);// Wait for sync
     sercom_pt->SPI.CTRLA = spi_ctrla_reg;                                   // Write register

@@ -228,7 +228,7 @@ void platform_io_init_accelerometer_ports(void)
     PORT->Group[ACC_MISO_GROUP].PMUX[ACC_MISO_PINID/2].bit.ACC_MISO_PMUXREGID = ACC_MISO_PMUX_ID;                           // MOSI, OUTPUT
     PM->APBCMASK.bit.ACC_APB_SERCOM_BIT = 1;                                                                                // APB Clock Enable
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, ACC_GCLK_SERCOM_ID);                                                   // Map 48MHz to SERCOM unit
-    sercom_spi_init(ACC_SERCOM, ACC_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, ACC_MISO_PAD, ACC_MOSI_SCK_PADS, TRUE);    
+    sercom_spi_init(ACC_SERCOM, ACC_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, ACC_MISO_PAD, ACC_MOSI_SCK_PADS, TRUE);
 }
 
 /*! \fn     platform_io_init_flash_ports(void)
@@ -360,10 +360,10 @@ void platform_io_init_aux_comms(void)
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, AUXMCU_GCLK_SERCOM_ID);                                // Map 48MHz to SERCOM unit
     
     /* Sercom init */
-    /* MSB first, USART frame, async, 16x oversampling, internal clock */
+    /* MSB first, USART frame, async, 8x oversampling, internal clock */
     SERCOM_USART_CTRLA_Type temp_ctrla_reg;
     temp_ctrla_reg.reg = 0;
-    temp_ctrla_reg.bit.SAMPR = 0;
+    temp_ctrla_reg.bit.SAMPR = 2;
     temp_ctrla_reg.bit.RXPO = AUXMCU_TX_PAD;
     temp_ctrla_reg.bit.TXPO = AUXMCU_RX_TXPO;
     temp_ctrla_reg.bit.MODE = SERCOM_USART_CTRLA_MODE_USART_INT_CLK_Val;
@@ -375,8 +375,8 @@ void platform_io_init_aux_comms(void)
     temp_ctrlb_reg.bit.TXEN = 1;   
     while ((AUXMCU_SERCOM->USART.SYNCBUSY.reg & SERCOM_USART_SYNCBUSY_CTRLB) != 0);
     AUXMCU_SERCOM->USART.CTRLB = temp_ctrlb_reg;
-    /* Set 1MHz baud rate */
-    AUXMCU_SERCOM->USART.BAUD.reg = 43691;
+    /* Set max baud rate */
+    AUXMCU_SERCOM->USART.BAUD.reg = 0;
     /* Enable sercom */
     temp_ctrla_reg.reg |= SERCOM_USART_CTRLA_ENABLE;
     while ((AUXMCU_SERCOM->USART.SYNCBUSY.reg & SERCOM_USART_SYNCBUSY_ENABLE) != 0);

@@ -98,7 +98,7 @@ int main (void)
             sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Z: %i", acc_descriptor.fifo_read.acc_data_array[0].acc_z);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 45, OLED_ALIGN_LEFT, "cnt: %i", cnt++);
         }
-        timer_delay_ms(333);
+        //timer_delay_ms(333);
     }*/
     
     /* inputs tests */
@@ -143,20 +143,32 @@ int main (void)
     
     
     /* Animation test */
+    uint32_t total_time=0;
     uint32_t start_time;
     uint32_t end_time;
+    uint32_t cntt=0;
     while(1)
     {
         start_time = timer_get_systick();
         for (uint32_t i = 0; i < 120; i++)
         {
             comms_aux_mcu_routine();
+            if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) != FALSE)
+            {
+                cntt++;
+            }
+            
+            if (SERCOM1->SPI.STATUS.bit.BUFOVF != 0)
+            {
+                sh1122_put_error_string(&plat_oled_descriptor, u"ACC Overflow");      
+            }
+            if (SERCOM4->SPI.STATUS.bit.BUFOVF != 0)
+            {
+                sh1122_put_error_string(&plat_oled_descriptor, u"AUX COM Overflow");      
+            }
             
             //timer_start_timer(TIMER_TIMEOUT_FUNCTS, 25);
-            //PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK; 
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i);
-            //PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
-            //sh1122_display_bitmap_from_flash(&plat_oled_descriptor, 0, 0, i);
             //while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING);
             
             if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
@@ -170,16 +182,12 @@ int main (void)
                         break;
                     }                        
                 }
-            }                
+            }   
         }
-        /*end_time = timer_get_systick();
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, "Nb ms: %u", end_time-start_time);
-        
-        if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) != FALSE)
-        {
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_CENTER, "X: %i, Y: %i, Z: %i", acc_descriptor.fifo_read.acc_data_array[0].acc_x, acc_descriptor.fifo_read.acc_data_array[0].acc_y, acc_descriptor.fifo_read.acc_data_array[0].acc_z);
-        }            
-        timer_delay_ms(1000);*/
+        end_time = timer_get_systick();
+        total_time = end_time - start_time;
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_CENTER, "%u Nb ms: %u", cntt, total_time);      
+        //timer_delay_ms(1000);
     }
     
     /* Language feature test */

@@ -8,14 +8,14 @@
 #include "platform_defines.h"
 #include "defines.h"
 #include "dma.h"
-/* DMA Descriptors for our transfers and their DMA priority levels (lower number is higher priority */
-// Channel 0: SPI RX routine for custom fs transfers  (3)
-// Channel 1: SPI TX routine for custom fs transfers (3)
-// Channel 2: SPI TX routine for transfer to a display  (3)
+/* DMA Descriptors for our transfers and their DMA priority levels (highest number is higher priority, contrary to what is written in datasheet) */
+// Channel 0: SPI RX routine for custom fs transfers  (0)
+// Channel 1: SPI TX routine for custom fs transfers (0)
+// Channel 2: SPI TX routine for transfer to a display  (1)
 // Channel 3: SPI TX routine for transfer to accelerometer (1)
-// Channel 4: SPI RX routine for transfer from accelerometer (1)
-// Channel 5: USART TX routine for transfer to aux MCU (2)
-// Channel 6: USART RX routine for transfer from aux MCU (0)
+// Channel 4: SPI RX routine for transfer from accelerometer (2)
+// Channel 5: USART TX routine for transfer to aux MCU (1)
+// Channel 6: USART RX routine for transfer from aux MCU (3)
 DmacDescriptor dma_writeback_descriptors[7] __attribute__ ((aligned (16)));
 DmacDescriptor dma_descriptors[7] __attribute__ ((aligned (16)));
 /* Boolean to specify if the last DMA transfer for the custom_fs is done */
@@ -111,7 +111,7 @@ void dma_init(void)
     DMAC->CHID.reg = DMAC_CHID_ID(0);                                                       // Use channel 0
     DMAC_CHCTRLB_Type dma_chctrlb_reg;                                                      // Temp register
     dma_chctrlb_reg.reg = 0;                                                                // Clear it
-    dma_chctrlb_reg.bit.LVL = 3;                                                            // Priority level
+    dma_chctrlb_reg.bit.LVL = 0;                                                            // Priority level
     dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
     dma_chctrlb_reg.bit.TRIGSRC = DATAFLASH_DMA_SERCOM_RXTRIG;                              // Select RX trigger
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
@@ -132,7 +132,7 @@ void dma_init(void)
     /* Setup DMA channel */
     DMAC->CHID.reg = DMAC_CHID_ID(1);                                                       // Use channel 1
     dma_chctrlb_reg.reg = 0;                                                                // Clear it
-    dma_chctrlb_reg.bit.LVL = 3;                                                            // Priority level
+    dma_chctrlb_reg.bit.LVL = 0;                                                            // Priority level
     dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
     dma_chctrlb_reg.bit.TRIGSRC = DATAFLASH_DMA_SERCOM_TXTRIG;                              // Select RX trigger
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
@@ -177,7 +177,7 @@ void dma_init(void)
     /* Setup DMA channel */
     DMAC->CHID.reg = DMAC_CHID_ID(4);                                                       // Use channel 4
     dma_chctrlb_reg.reg = 0;                                                                // Clear temp register
-    dma_chctrlb_reg.bit.LVL = 1;                                                            // Priority level
+    dma_chctrlb_reg.bit.LVL = 2;                                                            // Priority level
     dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
     dma_chctrlb_reg.bit.TRIGSRC = ACC_DMA_SERCOM_RXTRIG;                                    // Select RX trigger
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
@@ -195,7 +195,7 @@ void dma_init(void)
     /* Setup DMA channel */
     DMAC->CHID.reg = DMAC_CHID_ID(5);                                                       // Use channel 5
     dma_chctrlb_reg.reg = 0;                                                                // Clear temp register
-    dma_chctrlb_reg.bit.LVL = 2;                                                            // Priority level
+    dma_chctrlb_reg.bit.LVL = 1;                                                            // Priority level
     dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
     dma_chctrlb_reg.bit.TRIGSRC = AUX_MCU_SERCOM_TXTRIG;                                    // Select TX trigger
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
@@ -212,7 +212,7 @@ void dma_init(void)
     /* Setup DMA channel */
     DMAC->CHID.reg = DMAC_CHID_ID(6);                                                       // Use channel 6
     dma_chctrlb_reg.reg = 0;                                                                // Clear temp register
-    dma_chctrlb_reg.bit.LVL = 0;                                                            // Priority level
+    dma_chctrlb_reg.bit.LVL = 3;                                                            // Priority level
     dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
     dma_chctrlb_reg.bit.TRIGSRC = AUX_MCU_SERCOM_RXTRIG;                                    // Select RX trigger
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
@@ -467,7 +467,7 @@ void dma_oled_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint16
     DMAC->CHID.reg = DMAC_CHID_ID(2);                                                       // Use channel 2
     DMAC_CHCTRLB_Type dma_chctrlb_reg;                                                      // Temp register
     dma_chctrlb_reg.reg = 0;                                                                // Clear it
-    dma_chctrlb_reg.bit.LVL = 3;                                                            // Priority level
+    dma_chctrlb_reg.bit.LVL = 1;                                                            // Priority level
     dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
     dma_chctrlb_reg.bit.TRIGSRC = dma_trigger;                                              // Select trigger
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
