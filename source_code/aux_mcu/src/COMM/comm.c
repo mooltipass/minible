@@ -14,8 +14,8 @@
 T_comm_msg comm_rx;
 T_comm_msg comm_tx;
 
-/* counter for USB received messages */
-uint16_t comm_dma_index;
+/* counter of the number of bytes transfered through DMA */
+uint16_t comm_tx_dma_index;
 
 /**
  * \fn      comm_init
@@ -45,7 +45,6 @@ void comm_task(void){
             /* Process message and send it to destination */
             comm_process_out_msg((T_comm_msg_type)comm_rx.msg_type, comm_rx.payload, comm_rx.payload_len );
         }
-
         /* Reconfigure RX DMA, comm_rx is free at this point */
         dma_aux_mcu_init_rx_transfer(&comm_rx, sizeof(comm_rx));
     }
@@ -93,13 +92,11 @@ void comm_usb_process_in_pkt(T_comm_pkt_status pkt_status, uint8_t* data, uint16
     /* Actions to do if start of pkt */
     if( pkt_status.msg_start ){
         /* Reset vars */
-        comm_dma_index = 0u;
+        comm_tx_dma_index = 0u;
         comm_tx.payload_len = 0u;
-
         /* Write Header */
         comm_tx.msg_type = COMM_MSG_FROM_USB;
         comm_tx.reserved = 0u;
-
         /* Increment the number bytes to be sent */
         dma_bytes += sizeof(comm_tx.msg_type);
         dma_bytes += sizeof(comm_tx.reserved);
@@ -120,17 +117,13 @@ void comm_usb_process_in_pkt(T_comm_pkt_status pkt_status, uint8_t* data, uint16
         dma_bytes += (COMM_PAYLOAD_SIZE - comm_tx.payload_len);
         dma_bytes += sizeof(comm_tx.payload_len);
         dma_bytes += sizeof(comm_tx.payload_valid);
-
         /* valid message */
         comm_tx.payload_valid = COMM_PAYLOAD_VALID;
     }
 
     /* Data transfer through DMA if no error */
     if(!err){
-        dma_aux_mcu_init_tx_transfer( ((uint8_t*)&comm_tx)+comm_dma_index, dma_bytes);
-        comm_dma_index += dma_bytes;
+        dma_aux_mcu_init_tx_transfer( ((uint8_t*)&comm_tx)+comm_tx_dma_index, dma_bytes);
+        comm_tx_dma_index += dma_bytes;
     }
-
-
-
 }
