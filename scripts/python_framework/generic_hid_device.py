@@ -10,7 +10,7 @@ import time
 import sys
 
 # Set to true to get advanced debugging information
-HID_DEVICE_DEBUG = True
+HID_DEVICE_DEBUG = False
 
 # Packet max payload
 HID_PACKET_DATA_PAYLOAD	= 62
@@ -297,6 +297,8 @@ class generic_hid_device:
 					if HID_DEVICE_DEBUG:
 						print "RX2 DBG data:", ' '.join(hex(x) for x in data)
 					# check that the received data is correct (cheating as we know we should receive one packet)
+					# remove useless ACK
+					hid_packet[0] = hid_packet[0] & ~LAST_MESSAGE_ACK_FLAG
 					if hid_packet == data[0:len(hid_packet)]:
 						if print_debug:
 							print "Received main MCU ACK"
