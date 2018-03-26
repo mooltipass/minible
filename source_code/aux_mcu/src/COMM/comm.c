@@ -26,7 +26,7 @@ void comm_init(void){
     // 52 is  115200 at 48Mhz clock
     //  6 is  1000000 at 48Mhz clock
     //  1 is  6000000 at 48Mhz clock
-    sercom_usart_init(SERCOM1, 1, USART_RX_PAD1, USART_TX_P0_XCK_P1);
+    sercom_usart_init(SERCOM1, 2, USART_RX_PAD1, USART_TX_P0_XCK_P1);
 
     // init reception DMA
     dma_aux_mcu_init_rx_transfer(&comm_rx, sizeof(comm_rx));
