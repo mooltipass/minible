@@ -44,5 +44,6 @@ Doing so involves the following techniques:
 - DMA descriptor chaining on main MCU: 2 + 2 + 64 = 68B and 544 - 68 = 476B  
 - after first DMA descriptor interrupt, DB flash data fetch  
 - same DMA descriptor chaining on aux MCU  
+  
 This leads to a theoretical transfer rate of 68x2=136B per ms (**1.36MHz** baud rate due to start & stop bits). As we however do prefer only using 2 chained DMA descriptors, this involves transferring a total of 68+544B within 2ms, leading to a USART baud rate requirement of (68+544)x500x10x8/8 = **3.06MHz**. Hence the selected 6MHz baud rate clock.  
 Please note that this thinking also applies to a requirement of being able to send pings every 2ms.  
