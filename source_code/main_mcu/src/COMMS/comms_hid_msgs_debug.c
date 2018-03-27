@@ -12,13 +12,14 @@
 #include "main.h"
 
 
-/*! \fn     comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* possible_reply)
+/*! \fn     comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg)
 *   \brief  Parse an incoming message from USB or BLE
 *   \param  rcv_msg         Received message
 *   \param  msg_length      Supposed payload length
+*   \param  send_msg        Where to write a possible reply
 *   \return something >= 0 if an answer needs to be sent, otherwise -1
 */
-int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length)
+int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg)
 {    
     /* Check correct payload length */
     if ((supposed_payload_length != rcv_msg->payload_length) || (supposed_payload_length > sizeof(rcv_msg->payload)))
@@ -26,6 +27,9 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
         /* Silent error */
         return -1;
     }
+    
+    /* By default: copy the same CMD identifier for TX message */
+    send_msg->message_type = rcv_msg->message_type;
     
     /* Switch on command id */
     switch (rcv_msg->message_type)
@@ -40,8 +44,8 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             sh1122_start_data_sending(&plat_oled_descriptor);
             
             /* Set ack, leave same command id */
-            rcv_msg->payload[0] = HID_1BYTE_ACK;
-            rcv_msg->payload_length = 1;
+            send_msg->payload[0] = HID_1BYTE_ACK;
+            send_msg->payload_length = 1;
             return 1;
         }    
         case HID_CMD_ID_SEND_TO_DISP_BUFFER:
@@ -53,8 +57,8 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             }
             
             /* Set ack, leave same command id */
-            rcv_msg->payload[0] = HID_1BYTE_ACK;
-            rcv_msg->payload_length = 1;
+            send_msg->payload[0] = HID_1BYTE_ACK;
+            send_msg->payload_length = 1;
             return 1;
         }  
         case HID_CMD_ID_CLOSE_DISP_BUFFER:
@@ -66,8 +70,8 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             sh1122_stop_data_sending(&plat_oled_descriptor);            
             
             /* Set ack, leave same command id */
-            rcv_msg->payload[0] = HID_1BYTE_ACK;
-            rcv_msg->payload_length = 1;
+            send_msg->payload[0] = HID_1BYTE_ACK;
+            send_msg->payload_length = 1;
             return 1;
         }          
         case HID_CMD_ID_ERASE_DATA_FLASH:
@@ -76,8 +80,8 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             dataflash_bulk_erase_without_wait(&dataflash_descriptor);
             
             /* Set ack, leave same command id */
-            rcv_msg->payload[0] = HID_1BYTE_ACK;
-            rcv_msg->payload_length = 1;
+            send_msg->payload[0] = HID_1BYTE_ACK;
+            send_msg->payload_length = 1;
             return 1;            
         }
         case HID_CMD_ID_IS_DATA_FLASH_READY:
@@ -85,15 +89,15 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             if (dataflash_is_busy(&dataflash_descriptor) != FALSE)
             {
                 /* Set nack, leave same command id */
-                rcv_msg->payload[0] = HID_1BYTE_NACK;
-                rcv_msg->payload_length = 1;
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
                 return 1;                
             }
             else
             {
                 /* Set ack, leave same command id */
-                rcv_msg->payload[0] = HID_1BYTE_ACK;
-                rcv_msg->payload_length = 1;
+                send_msg->payload[0] = HID_1BYTE_ACK;
+                send_msg->payload_length = 1;
                 return 1;                
             }
         }
@@ -104,8 +108,8 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             dataflash_write_array_to_memory(&dataflash_descriptor, *write_address, &rcv_msg->payload[4], 256);
             
             /* Set ack, leave same command id */
-            rcv_msg->payload[0] = HID_1BYTE_ACK;
-            rcv_msg->payload_length = 1;
+            send_msg->payload[0] = HID_1BYTE_ACK;
+            send_msg->payload_length = 1;
             return 1;
         }
         default: break;

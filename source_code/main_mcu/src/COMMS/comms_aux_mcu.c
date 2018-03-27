@@ -63,7 +63,7 @@ void comms_aux_mcu_routine(void)
                 #else
                 if (hid_message_pt->message_type >= HID_MESSAGE_START_CMD_ID_DBG)
                 {
-                    //hid_reply_payload_length = comms_hid_msgs_parse_debug(hid_message_pt, payload_length - sizeof(hid_message_pt->message_type) - sizeof(hid_message_pt->payload_length), send_hid_message_pt);
+                    hid_reply_payload_length = comms_hid_msgs_parse_debug(hid_message_pt, payload_length - sizeof(hid_message_pt->message_type) - sizeof(hid_message_pt->payload_length), send_hid_message_pt);
                 }
                 else
                 {
