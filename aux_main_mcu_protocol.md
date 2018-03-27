@@ -34,8 +34,15 @@ Message from aux MCU: if payload length #0 is 0, total payload length. Otherwise
 The message payload, which may contain up to 536 bytes. This maximum size was decided in order to accomodate a single "write data node" command (command identifier: 2 bytes, message payload size field: 2 bytes, data node address: 2 bytes, data node size: 528 bytes).
   
 **Payload valid flag**  
+This field should only be taken into account if **payload length #1 is 0**.  
 If different than 0, this byte lets the message recipient know that the message is valid. As a given Mooltipass message sent through USB can be split over multiple 64 bytes packets, this byte allows the aux MCU to signal that this message is invalid if for some reason or another the sequence of 64bytes long HID packets sending is interrupted.
   
 **Serial Link Specs**  
-Ideally, we'd like to start answering any message within 1ms (minimum HID send window). As the aux MCU can start streaming data the moment it receives it (through USB or Bluetooth), this means that at least 128 bytes (64bytes back and forth) needs to be sent within 1ms. Taking into account the USART start & stop bits, our required baud rates becomes 128x8x8/10/0.001 = 820kHz.  
-We therefore decided to use **1MHz**.
+The current USART baud rate clock is set to **6MHz**.  
+They key performance metric we want to hit is being able to scan the external DB flash memory as fast as possible (used when entering credentials management mode). That means the AUX MCU should have the first 64 bytes to send to the computer within 1ms after receiving the read node command (which itself is less than 64B long).   
+Doing so involves the following techniques:  
+- DMA descriptor chaining on main MCU: 2 + 2 + 64 = 68B and 544 - 68 = 476B  
+- after first DMA descriptor interrupt, DB flash data fetch  
+- same DMA descriptor chaining on aux MCU  
+This leads to a theoretical transfer rate of 68x2=136B per ms (**1.36MHz** baud rate due to start & stop bits). As we however do prefer only using 2 chained DMA descriptors, this involves transferring a total of 68+544B within 2ms, leading to a USART baud rate requirement of (68+544)x500x10x8/8 = **3.06MHz**. Hence the selected 6MHz baud rate clock.  
+Please note that this thinking also applies to a requirement of being able to send pings every 2ms.  
