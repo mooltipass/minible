@@ -21,7 +21,7 @@
 int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length)
 {    
     /* Check correct payload length */
-    if (supposed_payload_length != rcv_msg->payload_length)
+    if ((supposed_payload_length != rcv_msg->payload_length) || (supposed_payload_length > sizeof(rcv_msg->payload)))
     {
         /* Silent error */
         return -1;
