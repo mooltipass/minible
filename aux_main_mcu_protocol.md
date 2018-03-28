@@ -15,7 +15,7 @@ from main MCU:
     
 | byte 0 - 1   | byte 2 - 3        | byte 4 - 539  | byte 540 - 541    | byte 542 - 543      |
 |:-------------|:------------------|:--------------|:------------------|---------------------|
-| Message Type | Payload Length    | Payload       | Reserved          | Payload valid flag  |
+| Message Type | Payload Length    | Payload       | Reserved          | Reserved            |
   
 **Message Type**  
 - 0x0000: Message to/from USB  
