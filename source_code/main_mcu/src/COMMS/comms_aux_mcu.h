@@ -11,6 +11,8 @@
 /* Defines */
 // AUX MCU Message payload length
 #define AUX_MCU_MSG_PAYLOAD_LENGTH  536
+// HID payload size
+#define HID_PAYLOAD_SIZE            64
 // Aux MCU Message Type
 #define AUX_MCU_MSG_TYPE_USB        0x0000
 #define AUX_MCU_MSG_TYPE_BLE        0x0001

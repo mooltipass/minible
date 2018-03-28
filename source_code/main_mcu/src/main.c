@@ -16,7 +16,7 @@
 #include "inputs.h"
 #include "dma.h"
 /* Our oled & dataflash & dbflash descriptors */
-accelerometer_descriptor_t  acc_descriptor = {.sercom_pt = ACC_SERCOM, .cs_pin_group = ACC_nCS_GROUP, .cs_pin_mask = ACC_nCS_MASK, .int_pin_group = ACC_INT_GROUP, .int_pin_mask = ACC_INT_MASK, .evgen_sel = ACC_EV_GEN_SEL, .evgen_channel = ACC_EV_GEN_CHANNEL, .dma_channel = 3};
+accelerometer_descriptor_t acc_descriptor = {.sercom_pt = ACC_SERCOM, .cs_pin_group = ACC_nCS_GROUP, .cs_pin_mask = ACC_nCS_MASK, .int_pin_group = ACC_INT_GROUP, .int_pin_mask = ACC_INT_MASK, .evgen_sel = ACC_EV_GEN_SEL, .evgen_channel = ACC_EV_GEN_CHANNEL, .dma_channel = 3};
 sh1122_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigger_id = OLED_DMA_SERCOM_TX_TRIG, .sh1122_cs_pin_group = OLED_nCS_GROUP, .sh1122_cs_pin_mask = OLED_nCS_MASK, .sh1122_cd_pin_group = OLED_CD_GROUP, .sh1122_cd_pin_mask = OLED_CD_MASK};
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
@@ -37,6 +37,7 @@ int main (void)
     platform_io_init_ports();                                           // Initialize platform IO ports
     platform_io_init_bat_adc_measurements();                            // Initialize ADC for battery measurements
     comms_aux_init();                                                   // Initialize communication handling with aux MCU
+    custom_fs_set_dataflash_descriptor(&dataflash_descriptor);          // Store the dataflash descriptor for our custom fs library
         
     /* Initialize OLED screen */
     platform_io_power_up_oled(FALSE);
@@ -64,7 +65,7 @@ int main (void)
     }
     
     /* Initialize our custom file system stored in data flash */
-    if (custom_fs_init(&dataflash_descriptor) == RETURN_NOK)
+    if (custom_fs_init() == RETURN_NOK)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");      
         
@@ -178,7 +179,7 @@ int main (void)
                     comms_aux_mcu_routine();
                     if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
                     {
-                        custom_fs_init(&dataflash_descriptor);
+                        custom_fs_init();
                         break;
                     }                        
                 }

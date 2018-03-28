@@ -194,16 +194,22 @@ ret_type_te custom_fs_set_current_language(uint16_t language_id)
     return RETURN_OK;
 }
 
-/*! \fn     custom_fs_init(void)
-*   \brief  Initialize our custom file system... system
+/*! \fn     custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc)
+*   \brief  Store the flash descriptor used by our customfs library
 *   \param  desc    Pointer to the SPI flash port descriptor
-*   \return RETURN_(N)OK
 */
-ret_type_te custom_fs_init(spi_flash_descriptor_t* desc)
+void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc)
 {
     /* Locally copy the flash descriptor */
-    custom_fs_dataflash_desc = desc;
-    
+    custom_fs_dataflash_desc = desc;    
+}
+
+/*! \fn     custom_fs_init(void)
+*   \brief  Initialize our custom file system... system
+*   \return RETURN_(N)OK
+*/
+ret_type_te custom_fs_init(void)
+{    
     /* Read flash header */
     custom_fs_read_from_flash((uint8_t*)&custom_fs_flash_header, CUSTOM_FS_FILES_ADDR_OFFSET, sizeof(custom_fs_flash_header));
     
