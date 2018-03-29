@@ -47,3 +47,6 @@ Doing so involves the following techniques:
   
 This leads to a theoretical transfer rate of 68x2=136B per ms (**1.36MHz** baud rate due to start & stop bits). As we however do prefer only using 2 chained DMA descriptors, this involves transferring a total of 68+544B within 2ms, leading to a USART baud rate requirement of (68+544)x500x10x8/8 = **3.06MHz**. Hence the selected 6MHz baud rate clock.  
 Please note that this thinking also applies to a requirement of being able to send pings every 2ms.  
+  
+**Linked Descriptors on ATSAMD21**  
+In reality, it is not possible to use linked DMA descriptors because of errata 15683. As a mitigation technique, in our main while loop we check the ongoing receive transfer DMA transferred byte count.
