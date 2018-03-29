@@ -1,16 +1,15 @@
-/*
- * dma.c
- *
- * Created: 29/05/2017 09:17:51
- *  Author: stephan
- */ 
+/*!  \file     dma.c
+*    \brief    DMA transfers
+*    Created:  03/03/2018
+*    Author:   Mathieu Stephan
+*/
 #include <asf.h>
 #include "platform_defines.h"
 #include "comms_aux_mcu.h"
 #include "defines.h"
 #include "dma.h"
-/* DMA Descriptors for our transfers and their DMA priority levels (highest number is higher priority, contrary to what is written in datasheet) */
-/* Beware of errata 15683! */
+/* DMA Descriptors for our transfers and their DMA priority levels (highest number is higher priority, contrary to what is written in some datasheets) */
+/* Beware of errata 15683 if you do want to implement linked descriptors! */
 // Channel 0: USART RX routine for transfer from aux MCU (3)
 // Channel 1: SPI RX routine for custom fs transfers  (0)
 // Channel 2: SPI TX routine for custom fs transfers (0)
@@ -20,27 +19,31 @@
 // Channel 6: USART TX routine for transfer to aux MCU (1)
 DmacDescriptor dma_writeback_descriptors[7] __attribute__ ((aligned (16)));
 DmacDescriptor dma_descriptors[7] __attribute__ ((aligned (16)));
-DmacDescriptor dma_aux_mcu_spart_descriptor __attribute__ ((aligned (16)));
 /* Boolean to specify if the last DMA transfer for the custom_fs is done */
 volatile BOOL dma_custom_fs_transfer_done = FALSE;
 /* Boolean to specify if the last DMA transfer for the oled display is done */
 volatile BOOL dma_oled_transfer_done = FALSE;
 /* Boolean to specify if the last DMA transfer for the accelerometer is done */
 volatile BOOL dma_acc_transfer_done = FALSE;
-/* Boolean to specify if we're expecting the first part interrupt for aux MCU comms */
-volatile BOOL dma_aux_mcu_expecting_first_part_interrupt = FALSE;
-/* Boolean to specify if we received the first part of a packet from aux MCU */
-volatile BOOL dma_aux_mcu_packet_fpart_received = FALSE;
-/* Boolean to specify if we received the second part of a packet from aux MCU */
-volatile BOOL dma_aux_mcu_packet_spart_received = FALSE;
+/* Boolean to specify if we received a packet from aux MCU */
+volatile BOOL dma_aux_mcu_packet_received = FALSE;
 
 
 /*! \fn     DMAC_Handler(void)
 *   \brief  Function called by interrupt when RX is done
 */
 void DMAC_Handler(void)
-{
-    /* Test channel 1: RX routine */
+{    
+    /* Test channel 0: aux MCU RX routine */
+    DMAC->CHID.reg = DMAC_CHID_ID(0);
+    if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
+    {
+        /* Set transfer done boolean, clear interrupt */
+        dma_aux_mcu_packet_received = TRUE;
+        DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
+    }
+    
+    /* Test channel 1: RX routine for custom fs */
     DMAC->CHID.reg = DMAC_CHID_ID(1);
     if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
     {
@@ -64,27 +67,6 @@ void DMAC_Handler(void)
     {
         /* Set transfer done boolean, clear interrupt */
         dma_acc_transfer_done = TRUE;
-        DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
-    }
-    
-    /* Test channel 0: aux MCU RX routine */
-    DMAC->CHID.reg = DMAC_CHID_ID(0);
-    if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
-    {
-        /* Set transfer done boolean, clear interrupt */
-        if (dma_aux_mcu_expecting_first_part_interrupt != FALSE)
-        {
-            dma_aux_mcu_packet_fpart_received = TRUE;
-        } 
-        else
-        {
-            dma_aux_mcu_packet_spart_received = TRUE;
-        }
-        
-        /* Flip flag */
-        dma_aux_mcu_expecting_first_part_interrupt = !dma_aux_mcu_expecting_first_part_interrupt;
-        
-        /* Clear interrupt */
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
     }
 }
@@ -226,15 +208,7 @@ void dma_init(void)
     dma_descriptors[0].BTCTRL.bit.DSTINC = 1;                                               // Destination Address Increment is enabled.
     dma_descriptors[0].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;                 // Byte data transfer
     dma_descriptors[0].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_INT_Val;                  // Once data block is transferred, generate interrupt
-    dma_descriptors[0].DESCADDR.reg = (uint32_t)&dma_aux_mcu_spart_descriptor;              // Next descriptor: second part descriptor
-    
-    dma_aux_mcu_spart_descriptor.BTCTRL.reg = DMAC_BTCTRL_VALID;                            // Valid descriptor
-    dma_aux_mcu_spart_descriptor.BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;         // 1 byte address increment
-    dma_aux_mcu_spart_descriptor.BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_DST_Val;          // Step selection for destination
-    dma_aux_mcu_spart_descriptor.BTCTRL.bit.DSTINC = 1;                                     // Destination Address Increment is enabled.
-    dma_aux_mcu_spart_descriptor.BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;       // Byte data transfer
-    dma_aux_mcu_spart_descriptor.BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_INT_Val;        // Once data block is transferred, generate interrupt
-    dma_aux_mcu_spart_descriptor.DESCADDR.reg = 0;                                          // No next descriptor
+    dma_descriptors[0].DESCADDR.reg = 0;                                                    // No next descriptor
     
     /* Setup DMA channel */
     DMAC->CHID.reg = DMAC_CHID_ID(0);                                                       // Use channel 0
@@ -257,7 +231,7 @@ void dma_init(void)
     NVIC_EnableIRQ(DMAC_IRQn);
 }
 
-/*! \fn     custom_fs_check_and_clear_dma_transfer_flag(void)
+/*! \fn     dma_custom_fs_check_and_clear_dma_transfer_flag(void)
 *   \brief  Check if a DMA transfer that we requested for flash file transfer is done
 *   \note   If the flag is true, flag will be cleared to false
 *   \return TRUE or FALSE
@@ -305,33 +279,26 @@ BOOL dma_acc_check_and_clear_dma_transfer_flag(void)
     return FALSE;
 }
 
-/*! \fn     dma_aux_mcu_check_and_clear_fpart_dma_transfer_flag(void)
-*   \brief  Check if a DMA transfer from aux MCU comms has been done for first part of the aux packet
-*   \note   If the flag is true, flag will be cleared to false
-*   \return TRUE or FALSE
+/*! \fn     dma_aux_mcu_get_remaining_bytes_for_rx_transfer(void)
+*   \brief  Check how many bytes are remaining to be transfered for aux MCU RX message
+*   \return The number of remaining bytes
 */
-BOOL dma_aux_mcu_check_and_clear_fpart_dma_transfer_flag(void)
+uint16_t dma_aux_mcu_get_remaining_bytes_for_rx_transfer(void)
 {
-    /* flag can't be set twice, code is safe */
-    if (dma_aux_mcu_packet_fpart_received != FALSE)
-    {
-        dma_aux_mcu_packet_fpart_received = FALSE;
-        return TRUE;
-    }
-    return FALSE;
+    return dma_writeback_descriptors[0].BTCNT.reg;
 }
 
-/*! \fn     dma_aux_mcu_check_and_clear_spart_dma_transfer_flag(void)
-*   \brief  Check if a DMA transfer from aux MCU comms has been done for second part of the aux packet
+/*! \fn     dma_aux_mcu_check_and_clear_dma_transfer_flag(void)
+*   \brief  Check if a DMA transfer from aux MCU comms has been done
 *   \note   If the flag is true, flag will be cleared to false
 *   \return TRUE or FALSE
 */
-BOOL dma_aux_mcu_check_and_clear_spart_dma_transfer_flag(void)
+BOOL dma_aux_mcu_check_and_clear_dma_transfer_flag(void)
 {
     /* flag can't be set twice, code is safe */
-    if (dma_aux_mcu_packet_spart_received != FALSE)
+    if (dma_aux_mcu_packet_received != FALSE)
     {
-        dma_aux_mcu_packet_spart_received = FALSE;
+        dma_aux_mcu_packet_received = FALSE;
         return TRUE;
     }
     return FALSE;
@@ -354,6 +321,7 @@ void dma_custom_fs_init_transfer(void* spi_data_p, void* datap, uint16_t size)
     dma_descriptors[1].SRCADDR.reg = (uint32_t)spi_data_p;
     /* Destination address: given value */
     dma_descriptors[1].DSTADDR.reg = (uint32_t)datap + size;
+    
     /* Resume DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(1);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
@@ -365,6 +333,7 @@ void dma_custom_fs_init_transfer(void* spi_data_p, void* datap, uint16_t size)
     dma_descriptors[2].DSTADDR.reg = (uint32_t)spi_data_p;
     /* Destination address: given value */
     dma_descriptors[2].SRCADDR.reg = (uint32_t)datap + size;
+    
     /* Resume DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(2);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
@@ -523,6 +492,7 @@ void dma_oled_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint16
     dma_descriptors[4].DSTADDR.reg = (uint32_t)spi_data_p;
     /* Destination address: given value */
     dma_descriptors[4].SRCADDR.reg = (uint32_t)datap + size;
+    
     /* Resume DMA channel operation */
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
     
@@ -547,6 +517,7 @@ void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t
     dma_descriptors[5].SRCADDR.reg = (uint32_t)spi_data_p;
     /* Destination address: given value */
     dma_descriptors[5].DSTADDR.reg = (uint32_t)datap + size;
+    
     /* Resume DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(5);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
@@ -558,6 +529,7 @@ void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t
     dma_descriptors[3].DSTADDR.reg = (uint32_t)spi_data_p;
     /* Destination address: given value */
     dma_descriptors[3].SRCADDR.reg = (uint32_t)read_cmd;
+    
     /* Resume DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(3);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
@@ -581,6 +553,7 @@ void dma_aux_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
     dma_descriptors[6].DSTADDR.reg = (uint32_t)spi_data_p;
     /* Destination address: given value */
     dma_descriptors[6].SRCADDR.reg = (uint32_t)datap + size;
+    
     /* Resume DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(6);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
@@ -588,33 +561,22 @@ void dma_aux_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
     cpu_irq_leave_critical();
 }
 
-/*! \fn     dma_aux_mcu_init_rx_transfer(void* spi_data_p, void* datap, uint16_t fpart_size, uint16_t spart_size)
+/*! \fn     void dma_aux_mcu_init_rx_transfer(void* spi_data_p, void* datap, uint16_t size)
 *   \brief  Initialize a DMA transfer from the AUX MCU
 *   \param  spi_data_p  Pointer to the SPI data register
 *   \param  datap       Pointer to where to store the data
-*   \param  fpart_size  Number of bytes for first part of transfer
-*   \param  spart_size  Number of bytes for second part of transfer
+*   \param  size        Number of bytes for transfer
 */
-void dma_aux_mcu_init_rx_transfer(void* spi_data_p, void* datap, uint16_t fpart_size, uint16_t spart_size)
+void dma_aux_mcu_init_rx_transfer(void* spi_data_p, void* datap, uint16_t size)
 {
     cpu_irq_enter_critical();
     
-    /* Flag saying we're expecting the first part interrupt */
-    dma_aux_mcu_expecting_first_part_interrupt = TRUE;
-    
     /* Setup transfer size */
-    dma_descriptors[0].BTCNT.bit.BTCNT = (uint16_t)fpart_size;
+    dma_descriptors[0].BTCNT.bit.BTCNT = (uint16_t)size;
     /* Source address: DATA register from SPI */
-    dma_descriptors[0].DSTADDR.reg = (uint32_t)datap + fpart_size;
+    dma_descriptors[0].DSTADDR.reg = (uint32_t)datap + size;
     /* Destination address: given value */
     dma_descriptors[0].SRCADDR.reg = (uint32_t)spi_data_p;
-    
-    /* Setup transfer size */
-    dma_aux_mcu_spart_descriptor.BTCNT.bit.BTCNT = (uint16_t)spart_size;
-    /* Source address: DATA register from SPI */
-    dma_aux_mcu_spart_descriptor.DSTADDR.reg = (uint32_t)datap + fpart_size + spart_size;
-    /* Destination address: given value */
-    dma_aux_mcu_spart_descriptor.SRCADDR.reg = (uint32_t)spi_data_p;
     
     /* Resume DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(0);

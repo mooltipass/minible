@@ -142,12 +142,12 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
 BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_descriptor_t* descriptor_pt)
 {
     if (dma_acc_check_and_clear_dma_transfer_flag() != FALSE)
-    {
-        /* Deasset nCS */
-        PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
-        
+    {       
         /* Arm next DMA transfer */
         dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read), &(descriptor_pt->read_cmd));
+        
+        /* Deasset nCS */
+        PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
         
         /* Make sure the accelerometer sees the nCS going up */
         asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");

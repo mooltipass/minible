@@ -188,7 +188,7 @@ int main (void)
         end_time = timer_get_systick();
         total_time = end_time - start_time;
         sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_CENTER, "%u Nb ms: %u", cntt, total_time);      
-        //timer_delay_ms(1000);
+        //timer_delay_ms(100);
     }
     
     /* Language feature test */

@@ -24,7 +24,7 @@ BOOL aux_mcu_message_answered_using_first_bytes = FALSE;
 */
 void comms_aux_init(void)
 {
-    dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message.message_type) + sizeof(aux_mcu_receive_message.payload_length1) + HID_PAYLOAD_SIZE, sizeof(aux_mcu_receive_message) - sizeof(aux_mcu_receive_message.message_type) - sizeof(aux_mcu_receive_message.payload_length1) - HID_PAYLOAD_SIZE);
+    dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
     
     /* For test */
     //aux_mcu_message_buffer2.message_type = 0x5555;
@@ -36,16 +36,23 @@ void comms_aux_init(void)
 */
 void comms_aux_mcu_routine(void)
 {	
+    /* Ongoing RX transfer received bytes */
+    uint16_t nb_received_bytes_for_ongoing_transfer = sizeof(aux_mcu_receive_message) - dma_aux_mcu_get_remaining_bytes_for_rx_transfer();
+    
     /* Bool to treat packet */
     BOOL should_deal_with_packet = FALSE;
+    
+    /* Bool to specify if we should rearm RX DMA transfer */
     BOOL arm_rx_transfer = FALSE;
+    
+    /* Received message payload length */
     uint16_t payload_length;
     
     /* First part of message */
-    if (dma_aux_mcu_check_and_clear_fpart_dma_transfer_flag() != FALSE)
+    if ((nb_received_bytes_for_ongoing_transfer >= sizeof(aux_mcu_receive_message.message_type) + sizeof(aux_mcu_receive_message.payload_length1)) && (aux_mcu_message_answered_using_first_bytes == FALSE))
     {
-        /* Check if we were too slow to catch it before complete packet transfer */
-        if (dma_aux_mcu_check_and_clear_spart_dma_transfer_flag() != FALSE)
+        /* Check if we were too slow to deal with the message before complete packet transfer */
+        if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
         {
             /* Complete packet receive, treat packet if valid flag is set or payload length #1 != 0 */
             aux_mcu_message_answered_using_first_bytes = FALSE;            
@@ -65,25 +72,18 @@ void comms_aux_mcu_routine(void)
             else
             {
                 /* Arm next RX DMA transfer */
-                dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message.message_type) + sizeof(aux_mcu_receive_message.payload_length1) + HID_PAYLOAD_SIZE, sizeof(aux_mcu_receive_message) - sizeof(aux_mcu_receive_message.message_type) - sizeof(aux_mcu_receive_message.payload_length1) - HID_PAYLOAD_SIZE);              
+                dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
             }
         } 
-        else
+        else if ((aux_mcu_receive_message.payload_length1 != 0) && (nb_received_bytes_for_ongoing_transfer >= sizeof(aux_mcu_receive_message.message_type) + sizeof(aux_mcu_receive_message.payload_length1) + aux_mcu_receive_message.payload_length1))
         {
-            /* First part receive, check if payload is small enough so we can answer */
-            if ((aux_mcu_receive_message.payload_length1 != 0) && (aux_mcu_receive_message.payload_length1 <= HID_PAYLOAD_SIZE))
-            {
-                should_deal_with_packet = TRUE;
-                aux_mcu_message_answered_using_first_bytes = TRUE;
-                payload_length = aux_mcu_receive_message.payload_length1;
-            } 
-            else
-            {
-                aux_mcu_message_answered_using_first_bytes = FALSE;
-            }
-        }
+            /* First part receive, payload is small enough so we can answer */
+            should_deal_with_packet = TRUE;
+            aux_mcu_message_answered_using_first_bytes = TRUE;
+            payload_length = aux_mcu_receive_message.payload_length1;
+        } 
     }
-    else if (dma_aux_mcu_check_and_clear_spart_dma_transfer_flag() != FALSE)
+    else if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
     {
         /* Second part transfer, check if we have already dealt with this packet and if it is valid */
         if ((aux_mcu_message_answered_using_first_bytes == FALSE) && (aux_mcu_receive_message.payload_valid_flag != 0))
@@ -96,8 +96,11 @@ void comms_aux_mcu_routine(void)
         else
         {
             /* Arm next RX DMA transfer */
-            dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message.message_type) + sizeof(aux_mcu_receive_message.payload_length1) + HID_PAYLOAD_SIZE, sizeof(aux_mcu_receive_message) - sizeof(aux_mcu_receive_message.message_type) - sizeof(aux_mcu_receive_message.payload_length1) - HID_PAYLOAD_SIZE);       
+            dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
         }
+        
+        /* Reset bool */
+        aux_mcu_message_answered_using_first_bytes = FALSE;
     }
     
     /* Return if we shouldn't deal with packet, or if payload has the incorrect size */
@@ -153,6 +156,6 @@ void comms_aux_mcu_routine(void)
     /* If we need to rearm RX */
     if (arm_rx_transfer != FALSE)
     {
-        dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message.message_type) + sizeof(aux_mcu_receive_message.payload_length1) + HID_PAYLOAD_SIZE, sizeof(aux_mcu_receive_message) - sizeof(aux_mcu_receive_message.message_type) - sizeof(aux_mcu_receive_message.payload_length1) - HID_PAYLOAD_SIZE);
+        dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
     }          
 }
