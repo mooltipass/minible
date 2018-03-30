@@ -106,7 +106,7 @@ class mooltipass_hid_device:
 				
 				# Initialize vars
 				packet_payload = []
-				packet_pixel_goal = 100
+				packet_pixel_goal = 530
 				
 				# Send open buffer to usb
 				start_time = time.time()
@@ -132,7 +132,10 @@ class mooltipass_hid_device:
 						if len(packet_payload) == packet_pixel_goal:
 							self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_SEND_TO_DISP_BUFFER, packet_payload))
 							packet_payload = []
-								
+
+				# Send remaining pixels
+				if len(packet_payload) != 0:
+					self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_SEND_TO_DISP_BUFFER, packet_payload))
 				
 				# Data sent, close buffer
 				self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_CLOSE_DISP_BUFFER, None))		
