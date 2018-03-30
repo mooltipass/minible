@@ -13,7 +13,7 @@
 // Channel 0: USART RX routine for transfer from aux MCU (3)
 // Channel 1: SPI RX routine for custom fs transfers  (0)
 // Channel 2: SPI TX routine for custom fs transfers (0)
-// Channel 3: SPI TX routine for transfer to accelerometer (1)
+// Channel 3: SPI TX routine for transfer to accelerometer (2)
 // Channel 4: SPI TX routine for transfer to a display  (1)
 // Channel 5: SPI RX routine for transfer from accelerometer (2)
 // Channel 6: USART TX routine for transfer to aux MCU (1)
@@ -95,6 +95,15 @@ void dma_init(void)
     dmac_ctrl_reg.bit.LVLEN3 = 1;                                                           // Enable priority level 3
     DMAC->CTRL = dmac_ctrl_reg;                                                             // Write DMA control register
     //DMAC->DBGCTRL.bit.DBGRUN = 1;                                                         // Normal operation during debugging
+    
+    /* Enable round robin for all levels */
+    DMAC_PRICTRL0_Type dmac_prictrl_reg;
+    dmac_prictrl_reg.reg = 0;
+    dmac_prictrl_reg.bit.LVLPRI0 = 1;
+    dmac_prictrl_reg.bit.LVLPRI1 = 1;
+    dmac_prictrl_reg.bit.LVLPRI2 = 1;
+    dmac_prictrl_reg.bit.LVLPRI3 = 1;
+    DMAC->PRICTRL0 = dmac_prictrl_reg;
 
     /* SPI RX routine, cf user manual 26.5.4 */
     /* Using the SERCOM DMA requests, requires the DMA controller to be configured first. */
@@ -159,7 +168,7 @@ void dma_init(void)
     /* Setup DMA channel */
     DMAC->CHID.reg = DMAC_CHID_ID(3);                                                       // Use channel 3
     dma_chctrlb_reg.reg = 0;                                                                // Clear temp register
-    dma_chctrlb_reg.bit.LVL = 1;                                                            // Priority level
+    dma_chctrlb_reg.bit.LVL = 2;                                                            // Priority level
     dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
     dma_chctrlb_reg.bit.TRIGSRC = ACC_DMA_SERCOM_TXTRIG;                                    // Select TX trigger
     dma_chctrlb_reg.bit.EVIE = 1;                                                           // Enable event input action
