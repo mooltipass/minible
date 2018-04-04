@@ -138,9 +138,9 @@ typedef struct
 #define OLED_BAUD_DIVIDER           5
 /* ACC SPI SCK = 48M / 2*(2+1)) = 8MHz (Max is 10MHz) */
 #define ACC_BAUD_DIVIDER            2
-/* DATA & DB FLASH SPI SCK = 48M / 2*(0+1)) = 24MHz */
-#define DATAFLASH_BAUD_DIVIDER      0
-#define DBFLASH_BAUD_DIVIDER        0
+/* DATA & DB FLASH SPI SCK = 48M / 2*(1+1)) = 12MHz (24MHz may not work on some boards when querying JEDEC ID) */
+#define DATAFLASH_BAUD_DIVIDER      1
+#define DBFLASH_BAUD_DIVIDER        1
 
 /* PORT defines */
 /* WHEEL ENCODER */

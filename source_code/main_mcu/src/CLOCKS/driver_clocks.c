@@ -44,7 +44,7 @@ void clocks_start_48MDFLL(void)
     SYSCTRL_OSC8M_Type osc8m_register = SYSCTRL->OSC8M;         // load current osc8m register val
     osc8m_register.bit.FRANGE = SYSCTRL_OSC8M_FRANGE_2_Val;     // select 8mhz oscillation range
     osc8m_register.bit.PRESC = SYSCTRL_OSC8M_PRESC_0_Val;       // set 1 prescaler
-    osc8m_register.bit.RUNSTDBY = 1;                            // oscillator running during standby
+    osc8m_register.bit.RUNSTDBY = 0;                            // oscillator not running during standby
     //osc8m_register.bit.ENABLE = 1;                              // enable oscillator (not needed as already enabled)
     SYSCTRL->OSC8M = osc8m_register;                            // write register
     
@@ -72,7 +72,7 @@ void clocks_start_48MDFLL(void)
     dfll_ctrl.bit.QLDIS = 0;                                    // Enable quick lock
     dfll_ctrl.bit.CCDIS = 0;                                    // Enable chill cycle
     dfll_ctrl.bit.ONDEMAND = 0;                                 // Oscillator always on
-    dfll_ctrl.bit.RUNSTDBY = 1;                                 // Run in standby
+    dfll_ctrl.bit.RUNSTDBY = 0;                                 // Do not run in standby
     dfll_ctrl.bit.USBCRM = 0;                                   // No USB recovery mode
     dfll_ctrl.bit.STABLE = 0;                                   // FINE calibration tracks changes
     dfll_ctrl.bit.MODE = 0;                                     // Open loop operation

@@ -508,6 +508,33 @@ void dma_oled_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint16
     cpu_irq_leave_critical();
 }
 
+/*! \fn     dma_acc_disable_transfer(void)
+*   \brief  Disable the DMA transfer for the accelerometer
+*/
+void dma_acc_disable_transfer(void)
+{
+    cpu_irq_enter_critical();
+    
+    /* Stop DMA channel operation */
+    DMAC->CHID.reg= DMAC_CHID_ID(5);
+    DMAC->CHCTRLA.reg = 0;
+    
+    /* Wait for bit clear */
+    while(DMAC->CHCTRLA.reg != 0);
+    
+    /* Stop DMA channel operation */
+    DMAC->CHID.reg= DMAC_CHID_ID(3);
+    DMAC->CHCTRLA.reg = 0;
+    
+    /* Wait for bit clear */
+    while(DMAC->CHCTRLA.reg != 0);
+    
+    /* Reset bool */
+    dma_acc_transfer_done = FALSE;
+    
+    cpu_irq_leave_critical();    
+}
+
 /*! \fn     dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size)
 *   \brief  Initialize a DMA transfer from the accelerometer bus to the array
 *   \param  spi_data_p  Pointer to the SPI data register

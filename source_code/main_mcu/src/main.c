@@ -22,11 +22,11 @@ spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .c
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 
 // REMINDER FOR LATER: if power consumption too high, check default state for miso on smc...
-volatile uint16_t nbrx_int = 0;
-volatile uint16_t nbtx_int = 0;
-volatile uint16_t nbevent_int = 0;
 
-int main (void)
+/*! \fn     main(void)
+*   \brief  Program Main
+*/
+int main(void)
 {
     platform_io_enable_switch();                                        // Enable switch and 3v3 stepup
     DELAYMS_8M(100);                                                    // Leave 100ms for stepup powerup
@@ -39,9 +39,13 @@ int main (void)
     comms_aux_init();                                                   // Initialize communication handling with aux MCU
     custom_fs_set_dataflash_descriptor(&dataflash_descriptor);          // Store the dataflash descriptor for our custom fs library
         
-    /* Initialize OLED screen */
-    platform_io_power_up_oled(FALSE);
+    /* Initialize OLED screen */    
+    platform_io_power_up_oled(platform_io_is_usb_3v3_present());
     sh1122_init_display(&plat_oled_descriptor);
+    
+    /* Release aux MCU reset and enable bluetooth */
+    platform_io_release_aux_reset();
+    platform_io_enable_ble();
     
     /* Check for data flash */
     if (dataflash_check_presence(&dataflash_descriptor) == RETURN_NOK)
@@ -170,11 +174,31 @@ int main (void)
             
             //timer_start_timer(TIMER_TIMEOUT_FUNCTS, 25);
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i);
+            sh1122_printf_xy(&plat_oled_descriptor, 80, 0, OLED_ALIGN_LEFT, "%i %i %i", acc_descriptor.fifo_read.acc_data_array[0].acc_x, acc_descriptor.fifo_read.acc_data_array[0].acc_y, acc_descriptor.fifo_read.acc_data_array[0].acc_z);
             //while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING);
             
             if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
             {
-                while (TRUE)
+                /* Disable BLE */
+                platform_io_disable_ble();
+                
+                /* Disable accelerometer DMA transfer and put it to sleep */
+                dma_acc_disable_transfer();
+                lis2hh12_stop_ongoing_dma_transfer_and_go_to_sleep(&acc_descriptor);
+                
+                /* DB & Dataflash power down */
+                dbflash_enter_ultra_deep_power_down(&dbflash_descriptor);
+                //dataflash_power_down(&dataflash_descriptor);                
+                
+                /* Switch off OLED */
+                sh1122_oled_off(&plat_oled_descriptor);
+                platform_io_power_down_oled();
+                
+                /* Enter deep sleep */
+                SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+                __WFI();
+                
+                /*while (TRUE)
                 {
                     comms_aux_mcu_routine();
                     if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
@@ -182,7 +206,7 @@ int main (void)
                         custom_fs_init();
                         break;
                     }                        
-                }
+                }*/
             }   
         }
         end_time = timer_get_systick();

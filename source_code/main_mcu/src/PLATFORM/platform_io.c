@@ -295,14 +295,14 @@ void platform_io_init_oled_ports(void)
     sercom_spi_init(OLED_SERCOM, OLED_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, OLED_MISO_PAD, OLED_MOSI_SCK_PADS, FALSE);
 }
 
-/*! \fn     platform_io_power_up_oled(BOOL power_1v2)
+/*! \fn     platform_io_power_up_oled(BOOL power_3v3)
 *   \brief  OLED powerup routine (3V3, 12V, reset release)
-*   \param  power_1v2   TRUE to use 1V2 as source for 12V stepup
+*   \param  power_3v3   TRUE to use USB 3V3 as source for 12V stepup
 */
-void platform_io_power_up_oled(BOOL power_1v2)
+void platform_io_power_up_oled(BOOL power_3v3)
 {
     /* 3V3 is already there when arriving here, just enable the 12V */
-    if (power_1v2 != FALSE)
+    if (power_3v3 == FALSE)
     {
         PORT->Group[VOLED_1V2_EN_GROUP].OUTSET.reg = VOLED_1V2_EN_MASK; 
     }
@@ -331,6 +331,23 @@ void platform_io_power_down_oled(void)
     PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK; 
 }
 
+/*! \fn     platform_io_is_usb_3v3_present(void)
+*   \brief  Check if the USB 3V3 is present
+*   \return TRUE or FALSE
+*   \note   No low pass filter has been implemented as the oled DC/DC can work at 1V2
+*/
+BOOL platform_io_is_usb_3v3_present(void)
+{
+    if ((PORT->Group[USB_3V3_GROUP].IN.reg & USB_3V3_MASK) == 0)
+    {
+        return FALSE;
+    }
+    else
+    {
+        return TRUE;
+    }
+}
+
 /*! \fn     platform_io_init_power_ports(void)
 *   \brief  Initialize the platform power ports
 */
@@ -342,6 +359,12 @@ void platform_io_init_power_ports(void)
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 1;
     PORT->Group[VOLED_VIN_GROUP].PMUX[VOLED_VIN_PINID/2].bit.VOLED_VIN_PMUXREGID = VOLED_VIN_PMUX_ID;
 #endif
+
+    /* USB 3V3 presence */
+    PORT->Group[USB_3V3_GROUP].DIRCLR.reg = USB_3V3_MASK;                           // Setup USB 3V3 detection input with pull-down
+    PORT->Group[USB_3V3_GROUP].OUTCLR.reg = USB_3V3_MASK;                           // Setup USB 3V3 detection input with pull-down
+    PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.PULLEN = 1;                // Setup USB 3V3 detection input with pull-down
+    PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.INEN = 1;                  // Setup USB 3V3 detection input with pull-down
 }
 
 /*! \fn     platform_io_init_aux_comms_ports(void)
@@ -411,7 +434,6 @@ void platform_io_init_ports(void)
     /* AUX MCU, reset by default */
     PORT->Group[MCU_AUX_RST_EN_GROUP].DIRSET.reg = MCU_AUX_RST_EN_MASK;
     PORT->Group[MCU_AUX_RST_EN_GROUP].OUTSET.reg = MCU_AUX_RST_EN_MASK;
-    platform_io_release_aux_reset();
     
     /* Aux comms */
     platform_io_init_aux_comms();
@@ -419,7 +441,6 @@ void platform_io_init_ports(void)
     /* BLE enable, disabled by default */
     PORT->Group[BLE_EN_GROUP].DIRSET.reg = BLE_EN_MASK;
     PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
-    platform_io_enable_ble();
 
     /* Smartcards port */
     platform_io_init_smc_ports();

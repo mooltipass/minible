@@ -25,6 +25,7 @@ void dbflash_sector_zero_erase(spi_flash_descriptor_t* descriptor_pt, uint8_t se
 void dbflash_sector_erase(spi_flash_descriptor_t* descriptor_pt, uint8_t sectorNumber);
 void dbflash_block_erase(spi_flash_descriptor_t* descriptor_pt, uint16_t blockNumber);
 void dbflash_page_erase(spi_flash_descriptor_t* descriptor_pt, uint16_t pageNumber);
+void dbflash_enter_ultra_deep_power_down(spi_flash_descriptor_t* descriptor_pt);
 RET_TYPE dbflash_check_presence(spi_flash_descriptor_t* descriptor_pt);
 void dbflash_wait_for_not_busy(spi_flash_descriptor_t* descriptor_pt);
 void dbflash_format_flash(spi_flash_descriptor_t* descriptor_pt);
@@ -241,21 +242,22 @@ void dbflash_memory_boundary_error_callblack(void);
 #endif
 
 // Common for all flash chips
-#define DBFLASH_MANUF_ID                0x1F
-#define DBFLASH_OPCODE_SECTOR_ERASE     0x7C  // Opcode to perform a sector erase
-#define DBFLASH_OPCODE_BLOCK_ERASE      0x50  // Opcode to perform a block erase
-#define DBFLASH_OPCODE_PAGE_ERASE       0x81  // Opcode to perform a page erase
-#define DBFLASH_OPCODE_READ_STAT_REG    0xD7  // Opcode to perform a read of the status register
-#define DBFLASH_OPCODE_MAINP_TO_BUF     0x53  // Opcode to perform a Main Memory Page to Buffer Transfer
-#define DBFLASH_OPCODE_MMP_PROG_TBUF    0x82  // Opcode to perform a Main Memory Page Program Through Buffer
-#define DBFLASH_OPCODE_LOWF_READ        0x03  // Opcode to perform a Continuous Array Read (Low Frequency)
-#define DBFLASH_OPCODE_BUF_WRITE        0x84  // Opcode to write into buffer
-#define DBFLASH_OPCODE_BUF_TO_PAGE      0x83  // Opcode to write buffer to given page
-#define DBFLASH_OPCODE_READ_DEV_INFO    0x9F  // Opcode to perform a Manufacturer and Device ID Read
-#define DBFLASH_READY_BITMASK           0x80  // Bitmask used to determine if the chip is ready (poll status register). Used with DBFLASH_OPCODE_READ_STAT_REG.
-#define DBFLASH_SECTOR_ZER0_A_PAGES     8
-#define DBFLASH_SECTOR_ZERO_A_CODE      0
-#define DBFLASH_SECTOR_ZERO_B_CODE      1
+#define DBFLASH_MANUF_ID                    0x1F
+#define DBFLASH_OPCODE_SECTOR_ERASE         0x7C  // Opcode to perform a sector erase
+#define DBFLASH_OPCODE_BLOCK_ERASE          0x50  // Opcode to perform a block erase
+#define DBFLASH_OPCODE_PAGE_ERASE           0x81  // Opcode to perform a page erase
+#define DBFLASH_OPCODE_READ_STAT_REG        0xD7  // Opcode to perform a read of the status register
+#define DBFLASH_OPCODE_MAINP_TO_BUF         0x53  // Opcode to perform a Main Memory Page to Buffer Transfer
+#define DBFLASH_OPCODE_MMP_PROG_TBUF        0x82  // Opcode to perform a Main Memory Page Program Through Buffer
+#define DBFLASH_OPCODE_LOWF_READ            0x03  // Opcode to perform a Continuous Array Read (Low Frequency)
+#define DBFLASH_OPCODE_BUF_WRITE            0x84  // Opcode to write into buffer
+#define DBFLASH_OPCODE_BUF_TO_PAGE          0x83  // Opcode to write buffer to given page
+#define DBFLASH_OPCODE_READ_DEV_INFO        0x9F  // Opcode to perform a Manufacturer and Device ID Read
+#define DBFLASH_OPCODE_UDEEP_PDOWN_ENTER    0x79  // Opcode to enter ultra deep powerdown
+#define DBFLASH_READY_BITMASK               0x80  // Bitmask used to determine if the chip is ready (poll status register). Used with DBFLASH_OPCODE_READ_STAT_REG.
+#define DBFLASH_SECTOR_ZER0_A_PAGES         8
+#define DBFLASH_SECTOR_ZERO_A_CODE          0
+#define DBFLASH_SECTOR_ZERO_B_CODE          1
 
 // Flash Page Mappings
 #define DBFLASH_PAGE_MAPPING_NODE_META_DATA  0  // Reserving two (2) pages for node management meta data

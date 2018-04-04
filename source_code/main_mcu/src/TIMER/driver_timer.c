@@ -59,7 +59,7 @@ void timer_initialize_timebase(void)
     genctrl.bit.GENEN = 1;                                              // Enable generator
     genctrl.bit.DIVSEL = 0;                                             // Divide clock by gendiv.div
     genctrl.bit.OE = 1;                                                 // Do not output clock
-    genctrl.bit.RUNSTDBY = 1;                                           // Run in standby
+    genctrl.bit.RUNSTDBY = 0;                                           // Do not run in standby
     while ((GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) != 0);             // Wait for sync
     GCLK->GENCTRL = genctrl;                                            // Write register
     
@@ -103,7 +103,7 @@ void timer_initialize_timebase(void)
     TCC0->PER.reg = TCC_PER_PER(48000-1);                               // Set period to be 48M/48000 = 1k
     TCC_CTRLA_Type tcc_ctrl_reg;                                        // tcc ctrl reg
     tcc_ctrl_reg.reg = TCC_CTRLA_ENABLE;                                // Enable tcc0
-    tcc_ctrl_reg.bit.RUNSTDBY = 1;                                      // Run during standby
+    tcc_ctrl_reg.bit.RUNSTDBY = 0;                                      // Do not run during standby
     tcc_ctrl_reg.bit.PRESCALER = TCC_CTRLA_PRESCALER_DIV1_Val;          // No prescaling
     while(TCC0->SYNCBUSY.reg & TCC_SYNCBUSY_ENABLE);                    // Wait for sync
     TCC0->CTRLA = tcc_ctrl_reg;                                         // Write register
