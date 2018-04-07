@@ -13,6 +13,10 @@
 #include "sh1122.h"
 
 
+/* Prototypes */
+void main_platform_init(void);
+void main_standby_sleep(void);
+
 /* Global vars for debug */
 #if defined(DEBUG_USB_COMMANDS_ENABLED)
     extern sh1122_descriptor_t plat_oled_descriptor;

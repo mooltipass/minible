@@ -597,6 +597,33 @@ void dma_aux_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
     cpu_irq_leave_critical();
 }
 
+/*! \fn     dma_aux_mcu_disable_transfer(void)
+*   \brief  Disable the DMA transfer for the aux MCU comms
+*/
+void dma_aux_mcu_disable_transfer(void)
+{
+    cpu_irq_enter_critical();
+    
+    /* Stop DMA channel operation */
+    DMAC->CHID.reg= DMAC_CHID_ID(6);
+    DMAC->CHCTRLA.reg = 0;
+    
+    /* Wait for bit clear */
+    while(DMAC->CHCTRLA.reg != 0);
+    
+    /* Stop DMA channel operation */
+    DMAC->CHID.reg= DMAC_CHID_ID(0);
+    DMAC->CHCTRLA.reg = 0;
+    
+    /* Wait for bit clear */
+    while(DMAC->CHCTRLA.reg != 0);
+    
+    /* Reset bool */
+    dma_aux_mcu_packet_received = FALSE;
+    
+    cpu_irq_leave_critical();    
+}
+
 /*! \fn     void dma_aux_mcu_init_rx_transfer(void* spi_data_p, void* datap, uint16_t size)
 *   \brief  Initialize a DMA transfer from the AUX MCU
 *   \param  spi_data_p  Pointer to the SPI data register

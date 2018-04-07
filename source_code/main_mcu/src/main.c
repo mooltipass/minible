@@ -14,6 +14,7 @@
 #include "defines.h"
 #include "sh1122.h"
 #include "inputs.h"
+#include "main.h"
 #include "dma.h"
 /* Our oled & dataflash & dbflash descriptors */
 accelerometer_descriptor_t acc_descriptor = {.sercom_pt = ACC_SERCOM, .cs_pin_group = ACC_nCS_GROUP, .cs_pin_mask = ACC_nCS_MASK, .int_pin_group = ACC_INT_GROUP, .int_pin_mask = ACC_INT_MASK, .evgen_sel = ACC_EV_GEN_SEL, .evgen_channel = ACC_EV_GEN_CHANNEL, .dma_channel = 3};
@@ -21,12 +22,8 @@ sh1122_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigg
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 
-// REMINDER FOR LATER: if power consumption too high, check default state for miso on smc...
 
-/*! \fn     main(void)
-*   \brief  Program Main
-*/
-int main(void)
+void main_platform_init(void)
 {
     platform_io_enable_switch();                                        // Enable switch and 3v3 stepup
     DELAYMS_8M(100);                                                    // Leave 100ms for stepup powerup
@@ -38,8 +35,8 @@ int main(void)
     platform_io_init_bat_adc_measurements();                            // Initialize ADC for battery measurements
     comms_aux_init();                                                   // Initialize communication handling with aux MCU
     custom_fs_set_dataflash_descriptor(&dataflash_descriptor);          // Store the dataflash descriptor for our custom fs library
-        
-    /* Initialize OLED screen */    
+    
+    /* Initialize OLED screen */
     platform_io_power_up_oled(platform_io_is_usb_3v3_present());
     sh1122_init_display(&plat_oled_descriptor);
     
@@ -71,7 +68,7 @@ int main(void)
     /* Initialize our custom file system stored in data flash */
     if (custom_fs_init() == RETURN_NOK)
     {
-        sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");      
+        sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
         
         /* Wait to load bundle from USB */
         while(1)
@@ -81,48 +78,51 @@ int main(void)
     }
     
     /* Now that our custom filesystem is loaded, load the default font from flash */
-    sh1122_refresh_used_font(&plat_oled_descriptor);
+    sh1122_refresh_used_font(&plat_oled_descriptor);    
+}
+
+void main_standby_sleep(void)
+{
+    /* Disable BLE */
+    platform_io_disable_ble();
+    
+    /* Disable aux MCU dma transfers */
+    dma_aux_mcu_disable_transfer();
+    //platform_io_disable_aux_comms();
+    
+    /* Wait for accelerometer DMA transfer end and put it to sleep */
+    //while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
+    lis2hh12_deassert_ncs_and_go_to_sleep(&acc_descriptor);
+    platform_io_prepare_acc_ports_for_sleep();
+    
+    /* DB & Dataflash power down */
+    dbflash_enter_ultra_deep_power_down(&dbflash_descriptor);
+    dataflash_power_down(&dataflash_descriptor);
+    
+    /* Switch off OLED */
+    sh1122_oled_off(&plat_oled_descriptor);
+    platform_io_power_down_oled();
+    
+    /* Disable scroll wheel */
+    platform_io_disable_scroll_wheel_ports();
+    
+    /* Enter deep sleep */
+    SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+    __WFI();
+}
+
+/*! \fn     main(void)
+*   \brief  Program Main
+*/
+int main(void)
+{
+    /* Initialize our platform */
+    main_platform_init();
     
     // Test code: burn internal graphics data into external flash.
     //dataflash_bulk_erase_with_wait(&dataflash_descriptor);
     //dataflash_write_array_to_memory(&dataflash_descriptor, 0, mooltipass_bundle, (uint32_t)sizeof(mooltipass_bundle));
     //custom_fs_init(&dataflash_descriptor);
-    
-    //while(1);
-    //PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK;
-    //timer_delay_ms(1);
-    
-    /*uint32_t cnt = 0;
-    while(1)
-    {
-        if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) != FALSE)
-        {
-            sh1122_draw_rectangle(&plat_oled_descriptor, 15, 0, 35, 45, 0);
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "X: %i", acc_descriptor.fifo_read.acc_data_array[0].acc_x);
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 15, OLED_ALIGN_LEFT, "Y: %i", acc_descriptor.fifo_read.acc_data_array[0].acc_y);
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Z: %i", acc_descriptor.fifo_read.acc_data_array[0].acc_z);
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 45, OLED_ALIGN_LEFT, "cnt: %i", cnt++);
-        }
-        //timer_delay_ms(333);
-    }*/
-    
-    /* inputs tests */
-    /*wheel_action_ret_te input_action;
-    while(1)
-    {
-         input_action = inputs_get_wheel_action(FALSE, FALSE);
-         
-         switch (input_action)
-         {
-             case WHEEL_ACTION_SHORT_CLICK: sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, u"click"); break;
-             case WHEEL_ACTION_LONG_CLICK: sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, u"long"); break;
-             case WHEEL_ACTION_UP: sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, u"up  "); break;
-             case WHEEL_ACTION_DOWN: sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, u"down"); break;
-             case WHEEL_ACTION_CLICK_UP: sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, u"upc "); break;
-             case WHEEL_ACTION_CLICK_DOWN: sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, u"downc"); break;
-             default: break;
-         }
-    }*/
     
     /*platform_io_get_voledin_conversion_result_and_trigger_conversion();
     while (platform_io_is_voledin_conversion_result_ready() == FALSE);
@@ -152,11 +152,13 @@ int main(void)
     uint32_t start_time;
     uint32_t end_time;
     uint32_t cntt=0;
+    uint32_t abc = 0;
     while(1)
     {
         start_time = timer_get_systick();
         for (uint32_t i = 0; i < 120; i++)
         {
+            abc++;
             comms_aux_mcu_routine();
             if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) != FALSE)
             {
@@ -179,25 +181,7 @@ int main(void)
             
             if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
             {
-                /* Disable BLE */
-                platform_io_disable_ble();
-                
-                /* Disable accelerometer DMA transfer and put it to sleep */
-                dma_acc_disable_transfer();
-                lis2hh12_stop_ongoing_dma_transfer_and_go_to_sleep(&acc_descriptor);
-                
-                /* DB & Dataflash power down */
-                dbflash_enter_ultra_deep_power_down(&dbflash_descriptor);
-                //dataflash_power_down(&dataflash_descriptor);                
-                
-                /* Switch off OLED */
-                sh1122_oled_off(&plat_oled_descriptor);
-                platform_io_power_down_oled();
-                
-                /* Enter deep sleep */
-                SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
-                __WFI();
-                
+                main_standby_sleep();
                 /*while (TRUE)
                 {
                     comms_aux_mcu_routine();
@@ -208,10 +192,12 @@ int main(void)
                     }                        
                 }*/
             }   
+            //timer_delay_ms(100);
         }
         end_time = timer_get_systick();
         total_time = end_time - start_time;
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_CENTER, "%u Nb ms: %u", cntt, total_time);      
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_CENTER, "%u Nb ms: %u", cntt, total_time);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_CENTER, "%u", abc);
         //timer_delay_ms(100);
     }
     

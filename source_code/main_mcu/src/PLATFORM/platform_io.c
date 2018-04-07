@@ -112,6 +112,19 @@ void platform_io_init_bat_adc_measurements(void)
     ADC->CTRLA.reg = ADC_CTRLA_ENABLE;                                                          // And enable ADC
 }
 
+/*! \fn     platform_io_disable_scroll_wheel_ports(void)
+*   \brief  Disable scroll wheel ports (but not the click!)
+*/
+void platform_io_disable_scroll_wheel_ports(void)
+{
+    PORT->Group[WHEEL_A_GROUP].PINCFG[WHEEL_A_PINID].bit.PULLEN = 0;
+    PORT->Group[WHEEL_A_GROUP].PINCFG[WHEEL_A_PINID].bit.INEN = 0;
+    PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PULLEN = 0;
+    PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.INEN = 0;
+    PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.PULLEN = 0;
+    PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.INEN = 0;
+}
+
 /*! \fn     platform_io_init_scroll_wheel_ports(void)
 *   \brief  Basic initialization of scroll wheels at boot
 */
@@ -142,6 +155,8 @@ void platform_io_init_smc_ports(void)
     PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.INEN = 1;                  // Setup card detection input with pull-up
     PORT->Group[SMC_POW_NEN_GROUP].DIRSET.reg = SMC_POW_NEN_MASK;                   // Setup power enable, disabled by default
     PORT->Group[SMC_POW_NEN_GROUP].OUTSET.reg = SMC_POW_NEN_MASK;                   // Setup power enable, disabled by default
+    PORT->Group[SMC_MOSI_GROUP].DIRSET.reg = SMC_MOSI_MASK;                         // MOSI Ouput Low By Default
+    PORT->Group[SMC_MOSI_GROUP].OUTCLR.reg = SMC_MOSI_MASK;                         // MOSI Ouput Low By Default
     PM->APBCMASK.bit.SMARTCARD_APB_SERCOM_BIT = 1;                                  // APB Clock Enable
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, SMARTCARD_GCLK_SERCOM_ID);     // Map 48MHz to SERCOM unit
     sercom_spi_init(SMARTCARD_SERCOM, SMARTCARD_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, SMARTCARD_MISO_PAD, SMARTCARD_MOSI_SCK_PADS, TRUE); 
@@ -158,7 +173,8 @@ void platform_io_smc_remove_function(void)
     PORT->Group[SMC_SCK_GROUP].PINCFG[SMC_SCK_PINID].bit.PMUXEN = 0;                // Disable SPI functionality
     PORT->Group[SMC_MOSI_GROUP].PINCFG[SMC_MOSI_PINID].bit.PMUXEN = 0;              // Disable SPI functionality
     PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.PMUXEN = 0;              // Disable SPI functionality
-    PORT->Group[SMC_MOSI_GROUP].DIRCLR.reg = SMC_MOSI_MASK;                         // Disable SPI functionality
+    PORT->Group[SMC_MOSI_GROUP].DIRSET.reg = SMC_MOSI_MASK;                         // MOSI Ouput Low By Default
+    PORT->Group[SMC_MOSI_GROUP].OUTCLR.reg = SMC_MOSI_MASK;                         // MOSI Ouput Low By Default
     PORT->Group[SMC_SCK_GROUP].DIRCLR.reg = SMC_SCK_MASK;                           // Disable SPI functionality
 }
 
@@ -229,6 +245,18 @@ void platform_io_init_accelerometer_ports(void)
     PM->APBCMASK.bit.ACC_APB_SERCOM_BIT = 1;                                                                                // APB Clock Enable
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, ACC_GCLK_SERCOM_ID);                                                   // Map 48MHz to SERCOM unit
     sercom_spi_init(ACC_SERCOM, ACC_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, ACC_MISO_PAD, ACC_MOSI_SCK_PADS, TRUE);
+}
+
+/*! \fn     platform_io_prepare_acc_ports_for_sleep(void)
+*   \brief  Prepare the accelerometer ports for sleep entering
+*/
+void platform_io_prepare_acc_ports_for_sleep(void)
+{
+    /* Sigh... don't ask me why we need to do that... it just allows us to save lots of sleep current... spent 12 hours for these 4 lines :/ */
+    PORT->Group[ACC_MISO_GROUP].PINCFG[ACC_MISO_PINID].bit.PMUXEN = 0;
+    PORT->Group[ACC_MISO_GROUP].PINCFG[ACC_MISO_PINID].bit.PULLEN = 1;
+    PORT->Group[ACC_MISO_GROUP].DIRCLR.reg = ACC_MISO_PINID;
+    PORT->Group[ACC_MISO_GROUP].OUTCLR.reg = ACC_MISO_PINID;    
 }
 
 /*! \fn     platform_io_init_flash_ports(void)
@@ -328,7 +356,6 @@ void platform_io_power_down_oled(void)
 {
     PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;
     PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;
-    PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK; 
 }
 
 /*! \fn     platform_io_is_usb_3v3_present(void)
@@ -365,6 +392,16 @@ void platform_io_init_power_ports(void)
     PORT->Group[USB_3V3_GROUP].OUTCLR.reg = USB_3V3_MASK;                           // Setup USB 3V3 detection input with pull-down
     PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.PULLEN = 1;                // Setup USB 3V3 detection input with pull-down
     PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.INEN = 1;                  // Setup USB 3V3 detection input with pull-down
+}
+
+/*! \fn     platform_io_disable_aux_comms(void)
+*   \brief  Disable ports dedicated to aux comms
+*/
+void platform_io_disable_aux_comms(void)
+{
+    PORT->Group[AUX_MCU_RX_GROUP].DIRCLR.reg = AUX_MCU_RX_MASK;                                             // AUX MCU RX, MAIN MCU TX
+    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 0;                                  // Disable peripheral multiplexer
+    PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 0;                                  // AUX MCU TX, MAIN MCU RX: Disable peripheral multiplexer    
 }
 
 /*! \fn     platform_io_init_aux_comms_ports(void)

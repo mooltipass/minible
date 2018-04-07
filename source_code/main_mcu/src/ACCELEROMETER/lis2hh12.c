@@ -58,7 +58,7 @@ void lis2hh12_reset(accelerometer_descriptor_t* descriptor_pt)
 *   \return RETURN_OK or RETURN_NOK
 */
 RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descriptor_pt)
-{
+{    
     /* Query Who Am I */
     uint8_t query_command[] = {0x8F, 0x00};
     lis2hh12_send_command(descriptor_pt, query_command, sizeof(query_command));
@@ -143,20 +143,17 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     return RETURN_NOK;
 }
 
-/*! \fn     lis2hh12_stop_ongoing_dma_transfer_and_go_to_sleep(accelerometer_descriptor_t* descriptor_pt)
+/*! \fn     lis2hh12_deassert_ncs_and_go_to_sleep(accelerometer_descriptor_t* descriptor_pt)
 *   \brief  Stop any ongoing DMA transfer and go to sleep
 */
-void lis2hh12_stop_ongoing_dma_transfer_and_go_to_sleep(accelerometer_descriptor_t* descriptor_pt)
+void lis2hh12_deassert_ncs_and_go_to_sleep(accelerometer_descriptor_t* descriptor_pt)
 {
     /* Deasset nCS */
     PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
     timer_delay_ms(1);
     
-    /* Do we actually want to reset the lis2hh12? */
-    //lis2hh12_reset(descriptor_pt);
-    
     /* Send power down command */
-    uint8_t powerDownCommand[] = {0x20, 0};
+    uint8_t powerDownCommand[] = {0x20, 0x07};
     lis2hh12_send_command(descriptor_pt, powerDownCommand, sizeof(powerDownCommand));    
 }
 

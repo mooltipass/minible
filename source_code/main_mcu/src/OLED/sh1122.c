@@ -347,7 +347,7 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor)
     sh1122_set_emergency_font(oled_descriptor);
     
     /* From datasheet : wait 100ms */
-    timer_delay_ms(100);
+    //timer_delay_ms(100);
 }
 
 /*! \fn     sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream)
