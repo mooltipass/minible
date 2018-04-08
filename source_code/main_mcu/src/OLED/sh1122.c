@@ -272,6 +272,17 @@ void sh1122_oled_off(sh1122_descriptor_t* oled_descriptor)
     oled_descriptor->oled_on = FALSE;
 }
 
+/*! \fn     sh1122_oled_on(sh1122_descriptor_t* oled_descriptor)
+*   \brief  Switch on the screen
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*/
+void sh1122_oled_on(sh1122_descriptor_t* oled_descriptor)
+{
+    sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_ON);
+    oled_descriptor->oled_on = TRUE;
+    timer_delay_ms(100);
+}
+
 /*! \fn     sh1122_set_emergency_font(void)
 *   \brief  Use the flash-stored emergency font (ascii only)
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
@@ -347,7 +358,7 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor)
     sh1122_set_emergency_font(oled_descriptor);
     
     /* From datasheet : wait 100ms */
-    //timer_delay_ms(100);
+    timer_delay_ms(100);
 }
 
 /*! \fn     sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream)

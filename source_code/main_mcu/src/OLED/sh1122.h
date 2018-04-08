@@ -123,6 +123,7 @@ void sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor);
 void sh1122_reset_max_text_x(sh1122_descriptor_t* oled_descriptor);
 void sh1122_init_display(sh1122_descriptor_t* oled_descriptor);
 void sh1122_oled_off(sh1122_descriptor_t* oled_descriptor);
+void sh1122_oled_on(sh1122_descriptor_t* oled_descriptor);
 
 /* ifdef prototypes */
 #ifdef OLED_PRINTF_ENABLED

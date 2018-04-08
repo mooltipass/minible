@@ -110,6 +110,25 @@ void main_standby_sleep(void)
     /* Enter deep sleep */
     SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
     __WFI();
+    
+    /* We're awake! */
+    sh1122_oled_on(&plat_oled_descriptor);
+    
+    /* Prepare ports for sleep exit */
+    platform_io_prepare_ports_for_sleep_exit();
+    
+    /* Switch on OLED */    
+    platform_io_power_up_oled(platform_io_is_usb_3v3_present());
+    sh1122_oled_on(&plat_oled_descriptor);
+    
+    /* Dataflash power up */
+    dataflash_exit_power_down(&dataflash_descriptor);
+    
+    /* Resume accelerometer processing */
+    //lis2hh12_sleep_exit_and_dma_arm(&acc_descriptor);
+    
+    /* Re-enable AUX comms */
+    comms_aux_init();    
 }
 
 /*! \fn     main(void)
@@ -199,7 +218,7 @@ int main(void)
             }   
             //timer_delay_ms(100);
         }
-        if (abc > 222)
+        if (abc == 240)
         {
             main_standby_sleep();
         }

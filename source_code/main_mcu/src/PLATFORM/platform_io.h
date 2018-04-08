@@ -9,9 +9,11 @@
 
 /* Prototypes */
 uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void);
+void platform_io_disable_scroll_wheel_wakeup_interrupts(void);
 void platform_io_enable_scroll_wheel_wakeup_interrupts(void);
 BOOL platform_io_is_voledin_conversion_result_ready(void);
-void platform_io_prepare_acc_ports_for_sleep(void);
+void platform_io_prepare_acc_ports_for_sleep_exit(void);
+void platform_io_prepare_ports_for_sleep_exit(void);
 void platform_io_disable_scroll_wheel_ports(void);
 void platform_io_init_bat_adc_measurements(void);
 void platform_io_init_accelerometer_ports(void);
@@ -25,6 +27,7 @@ BOOL platform_io_is_usb_3v3_present(void);
 void platform_io_release_aux_reset(void);
 void platform_io_smc_switch_to_spi(void);
 void platform_io_disable_aux_comms(void);
+void platform_io_enable_aux_comms(void);
 void platform_io_smc_switch_to_bb(void);
 void platform_io_init_flash_ports(void);
 void platform_io_init_power_ports(void);

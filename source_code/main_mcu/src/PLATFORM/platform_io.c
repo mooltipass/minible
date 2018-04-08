@@ -13,6 +13,18 @@
 volatile BOOL platform_io_voledin_conv_ready = FALSE;
 
 
+/*! \fn     EIC_Handler(void)
+*   \brief  Routine called for an extint
+*/
+void EIC_Handler(void)
+{
+    /* Wheel tick interrupt */
+    if ((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0)
+    {
+        EIC->INTFLAG.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
+    }
+}
+
 /*! \fn     platform_io_enable_switch(void)
 *   \brief  Enable switch (and 3v3 stepup)
 */
@@ -114,14 +126,26 @@ void platform_io_init_bat_adc_measurements(void)
 
 /*! \fn     platform_io_enable_scroll_wheel_wakeup_interrupts(void)
 *   \brief  Enable scroll wheel external interrupt to wake up platform
-*   \note   Due to our click to power on technique, it is not possible to click to wake
 */
 void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
 {
+    /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
+    EIC->INTENSET.reg |= (1 << WHEEL_TICKB_EXTINT_NUM);                                                 // Enable interrupt from ext pin
     EIC->WAKEUP.reg |= (1 << WHEEL_TICKB_EXTINT_NUM);                                                   // Enable wakeup from ext pin
     PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PMUXEN = 1;                                    // Enable peripheral multiplexer
     EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_TICKB_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;    // Detect low state
     PORT->Group[WHEEL_B_GROUP].PMUX[WHEEL_B_PINID/2].bit.WHEEL_B_PMUXREGID = PORT_PMUX_PMUXO_A_Val;     // Pin mux to EIC  
+}
+
+/*! \fn     platform_io_disable_scroll_wheel_wakeup_interrupts(void)
+*   \brief  Disable scroll wheel external interrupt to wake up platform
+*/
+void platform_io_disable_scroll_wheel_wakeup_interrupts(void)
+{
+    EIC->WAKEUP.reg &= ~(1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Disable wakeup from ext pin
+    EIC->INTENCLR.reg |= (1 << WHEEL_TICKB_EXTINT_NUM);                                                 // Disable interrupt from ext pin
+    PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PMUXEN = 0;                                    // Disable peripheral multiplexer
+    EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_TICKB_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;   // No detection
 }
 
 /*! \fn     platform_io_disable_scroll_wheel_ports(void)
@@ -236,6 +260,11 @@ void platform_io_smc_switch_to_spi(void)
 */
 void platform_io_init_accelerometer_ports(void)
 {
+    /* Pull-down on MISO: trick found after 12h spent trying to understand why the LIS2HH12 was consuming more than expected */
+    PORT->Group[ACC_MISO_GROUP].PINCFG[ACC_MISO_PINID].bit.PULLEN = 1;
+    PORT->Group[ACC_MISO_GROUP].DIRCLR.reg = ACC_MISO_PINID;
+    PORT->Group[ACC_MISO_GROUP].OUTCLR.reg = ACC_MISO_PINID;
+    
     EIC->EVCTRL.reg |= (1 << ACC_EXTINT_NUM);                                                                               // Enable events from extint pin
     EIC->CONFIG[ACC_EXTINT_NUM/8].bit.ACC_EIC_SENSE_REG = EIC_CONFIG_SENSE0_HIGH_Val;                                       // Detect high state
     PORT->Group[ACC_INT_GROUP].DIRCLR.reg = ACC_INT_MASK;                                                                   // Interrupt input, high Z
@@ -255,18 +284,6 @@ void platform_io_init_accelerometer_ports(void)
     PM->APBCMASK.bit.ACC_APB_SERCOM_BIT = 1;                                                                                // APB Clock Enable
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, ACC_GCLK_SERCOM_ID);                                                   // Map 48MHz to SERCOM unit
     sercom_spi_init(ACC_SERCOM, ACC_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, ACC_MISO_PAD, ACC_MOSI_SCK_PADS, TRUE);
-}
-
-/*! \fn     platform_io_prepare_acc_ports_for_sleep(void)
-*   \brief  Prepare the accelerometer ports for sleep entering
-*/
-void platform_io_prepare_acc_ports_for_sleep(void)
-{
-    /* Sigh... don't ask me why we need to do that... it just allows us to save lots of sleep current... spent 12 hours for these 4 lines :/ */
-    PORT->Group[ACC_MISO_GROUP].PINCFG[ACC_MISO_PINID].bit.PMUXEN = 0;
-    PORT->Group[ACC_MISO_GROUP].PINCFG[ACC_MISO_PINID].bit.PULLEN = 1;
-    PORT->Group[ACC_MISO_GROUP].DIRCLR.reg = ACC_MISO_PINID;
-    PORT->Group[ACC_MISO_GROUP].OUTCLR.reg = ACC_MISO_PINID;    
 }
 
 /*! \fn     platform_io_init_flash_ports(void)
@@ -415,6 +432,16 @@ void platform_io_disable_aux_comms(void)
     PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PULLEN = 1;                                  // AUX MCU RX, MAIN MCU TX: Pull down
 }
 
+/*! \fn     platform_io_enable_aux_comms(void)
+*   \brief  Enable ports dedicated to aux comms
+*/
+void platform_io_enable_aux_comms(void)
+{
+    PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 1;                                  // AUX MCU TX, MAIN MCU RX: Enable peripheral multiplexer
+    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 1;                                  // AUX MCU RX, MAIN MCU TX: Enable peripheral multiplexer
+    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PULLEN = 0;                                  // AUX MCU RX, MAIN MCU TX: Pull down disable
+}
+
 /*! \fn     platform_io_init_aux_comms_ports(void)
 *   \brief  Initialize the ports used for communication with aux MCU
 */
@@ -461,6 +488,8 @@ void platform_io_init_ports(void)
     while ((EIC->STATUS.reg & EIC_STATUS_SYNCBUSY) != 0);
     /* Enable External Interrupt Controller */
     EIC->CTRL.reg = EIC_CTRL_ENABLE;
+    /* Enable its interrupts */
+    NVIC_EnableIRQ(EIC_IRQn);
     
     /* Power */
     platform_io_init_power_ports();
@@ -503,12 +532,18 @@ void platform_io_prepare_ports_for_sleep(void)
     /* Disable AUX comms ports */    
     platform_io_disable_aux_comms();
     
-    /* LIS2HH12 sleep trick */    
-    platform_io_prepare_acc_ports_for_sleep();
-    
-    /* Disable scroll wheel: not really needed as default state doesn't pull down the resistors */
-    //platform_io_disable_scroll_wheel_ports();
-    
-    /* Enable wheel turn interrupt */
+    /* Enable wheel interrupt */
     platform_io_enable_scroll_wheel_wakeup_interrupts();
 }
+
+/*! \fn     platform_io_prepare_ports_for_sleep_exit(void)
+*   \brief  Prepare the platform ports for sleep exit
+*/
+void platform_io_prepare_ports_for_sleep_exit(void)
+{
+    /* Disable wheel interrupt */
+    platform_io_disable_scroll_wheel_wakeup_interrupts();
+    
+    /* Enable AUX comms ports */
+    platform_io_enable_aux_comms();
+}    

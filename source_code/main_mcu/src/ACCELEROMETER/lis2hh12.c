@@ -143,6 +143,21 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     return RETURN_NOK;
 }
 
+/*! \fn     lis2hh12_sleep_exit_and_dma_arm(accelerometer_descriptor_t* descriptor_pt)
+*   \brief  Sleep exit and DMA arming, resume operations
+*/
+void lis2hh12_sleep_exit_and_dma_arm(accelerometer_descriptor_t* descriptor_pt)
+{
+    /* 400Hz output data rate, output registers not updated until MSB and LSB read, all axis enabled */
+    uint8_t setDataRateCommand[] = {0x20, 0x5F};
+    lis2hh12_send_command(descriptor_pt, setDataRateCommand, sizeof(setDataRateCommand));
+    timer_delay_ms(1);
+    
+    /* Enable DMA transfer and clear nCS */
+    dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read), &(descriptor_pt->read_cmd));
+    PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;    
+}
+
 /*! \fn     lis2hh12_deassert_ncs_and_go_to_sleep(accelerometer_descriptor_t* descriptor_pt)
 *   \brief  Stop any ongoing DMA transfer and go to sleep
 */
