@@ -112,6 +112,18 @@ void platform_io_init_bat_adc_measurements(void)
     ADC->CTRLA.reg = ADC_CTRLA_ENABLE;                                                          // And enable ADC
 }
 
+/*! \fn     platform_io_enable_scroll_wheel_wakeup_interrupts(void)
+*   \brief  Enable scroll wheel external interrupt to wake up platform
+*   \note   Due to our click to power on technique, it is not possible to click to wake
+*/
+void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
+{
+    EIC->WAKEUP.reg |= (1 << WHEEL_TICKB_EXTINT_NUM);                                                   // Enable wakeup from ext pin
+    PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PMUXEN = 1;                                    // Enable peripheral multiplexer
+    EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_TICKB_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;    // Detect low state
+    PORT->Group[WHEEL_B_GROUP].PMUX[WHEEL_B_PINID/2].bit.WHEEL_B_PMUXREGID = PORT_PMUX_PMUXO_A_Val;     // Pin mux to EIC  
+}
+
 /*! \fn     platform_io_disable_scroll_wheel_ports(void)
 *   \brief  Disable scroll wheel ports (but not the click!)
 */
@@ -494,6 +506,9 @@ void platform_io_prepare_ports_for_sleep(void)
     /* LIS2HH12 sleep trick */    
     platform_io_prepare_acc_ports_for_sleep();
     
-    /* Disable scroll wheel */
-    platform_io_disable_scroll_wheel_ports();
+    /* Disable scroll wheel: not really needed as default state doesn't pull down the resistors */
+    //platform_io_disable_scroll_wheel_ports();
+    
+    /* Enable wheel turn interrupt */
+    platform_io_enable_scroll_wheel_wakeup_interrupts();
 }

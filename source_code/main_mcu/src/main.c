@@ -23,6 +23,9 @@ spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .c
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 
 
+/*! \fn     main_platform_init(void)
+*   \brief  Initialize our platform
+*/
 void main_platform_init(void)
 {
     platform_io_enable_switch();                                        // Enable switch and 3v3 stepup
@@ -81,6 +84,9 @@ void main_platform_init(void)
     sh1122_refresh_used_font(&plat_oled_descriptor);    
 }
 
+/*! \fn     main_standby_sleep(void)
+*   \brief  Go to sleep
+*/
 void main_standby_sleep(void)
 {    
     /* Disable aux MCU dma transfers */
@@ -143,6 +149,7 @@ int main(void)
     
     
     /* Animation test */
+    calendar_t temp_calendar;
     uint32_t total_time=0;
     uint32_t start_time;
     uint32_t end_time;
@@ -171,11 +178,14 @@ int main(void)
             
             //timer_start_timer(TIMER_TIMEOUT_FUNCTS, 25);
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i);
-            sh1122_printf_xy(&plat_oled_descriptor, 80, 0, OLED_ALIGN_LEFT, "%i %i %i", acc_descriptor.fifo_read.acc_data_array[0].acc_x, acc_descriptor.fifo_read.acc_data_array[0].acc_y, acc_descriptor.fifo_read.acc_data_array[0].acc_z);
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, "%i %i %i", acc_descriptor.fifo_read.acc_data_array[0].acc_x, acc_descriptor.fifo_read.acc_data_array[0].acc_y, acc_descriptor.fifo_read.acc_data_array[0].acc_z);
+            timer_get_calendar(&temp_calendar);
+            sh1122_printf_xy(&plat_oled_descriptor, 160, 50, OLED_ALIGN_LEFT, "%u:%u:%u", temp_calendar.bit.HOUR, temp_calendar.bit.MINUTE, temp_calendar.bit.SECOND);
             //while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING);
             
-            if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+            if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_UP)
             {
+                timer_delay_ms(1000);
                 main_standby_sleep();
                 /*while (TRUE)
                 {

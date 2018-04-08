@@ -9,6 +9,7 @@
 
 /* Prototypes */
 uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void);
+void platform_io_enable_scroll_wheel_wakeup_interrupts(void);
 BOOL platform_io_is_voledin_conversion_result_ready(void);
 void platform_io_prepare_acc_ports_for_sleep(void);
 void platform_io_disable_scroll_wheel_ports(void);

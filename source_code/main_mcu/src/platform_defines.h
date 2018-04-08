@@ -109,6 +109,12 @@ typedef struct
 /* External interrupts numbers */
 #define ACC_EXTINT_NUM              4
 #define ACC_EIC_SENSE_REG           SENSE4
+#define WHEEL_CLICK_EXTINT_NUM      8
+#define WHEEL_CLICK_EIC_SENSE_REG   SENSE8
+#define WHEEL_TICKA_EXTINT_NUM      0
+#define WHEEL_TICKA_EIC_SENSE_REG   SENSE0
+#define WHEEL_TICKB_EXTINT_NUM      1
+#define WHEEL_TICKB_EIC_SENSE_REG   SENSE1
 
 /* User event channels mapping */
 #define ACC_EV_GEN_CHANNEL          0
@@ -147,12 +153,27 @@ typedef struct
 #define WHEEL_A_GROUP           PIN_GROUP_0
 #define WHEEL_A_PINID           0
 #define WHEEL_A_MASK            (1UL << WHEEL_A_PINID)
+#if (WHEEL_A_PINID % 2) == 1
+    #define WHEEL_A_PMUXREGID   PMUXO
+#else
+    #define WHEEL_A_PMUXREGID   PMUXE
+#endif
 #define WHEEL_B_GROUP           PIN_GROUP_0
 #define WHEEL_B_PINID           1
 #define WHEEL_B_MASK            (1UL << WHEEL_B_PINID)
+#if (WHEEL_B_PINID % 2) == 1
+    #define WHEEL_B_PMUXREGID   PMUXO
+#else
+    #define WHEEL_B_PMUXREGID   PMUXE
+#endif
 #define WHEEL_SW_GROUP          PIN_GROUP_0
 #define WHEEL_SW_PINID          28
 #define WHEEL_SW_MASK           (1UL << WHEEL_SW_PINID)
+#if (WHEEL_SW_PINID % 2) == 1
+    #define WHEEL_SW_PMUXREGID  PMUXO
+#else
+    #define WHEEL_SW_PMUXREGID  PMUXE
+#endif
 /* POWER & BLE SYSTEM */
 #define SWDET_EN_GROUP          PIN_GROUP_0
 #define SWDET_EN_PINID          2

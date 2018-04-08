@@ -59,7 +59,7 @@ void timer_initialize_timebase(void)
     genctrl.bit.GENEN = 1;                                              // Enable generator
     genctrl.bit.DIVSEL = 0;                                             // Divide clock by gendiv.div
     genctrl.bit.OE = 1;                                                 // Do not output clock
-    genctrl.bit.RUNSTDBY = 0;                                           // Do not run in standby
+    genctrl.bit.RUNSTDBY = 1;                                           // Run in standby
     while ((GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) != 0);             // Wait for sync
     GCLK->GENCTRL = genctrl;                                            // Write register
     
@@ -89,7 +89,6 @@ void timer_initialize_timebase(void)
     rtc_ctrl_reg.bit.CLKREP = 0;                                        // 24 hour mode
     rtc_ctrl_reg.bit.MODE = RTC_MODE2_CTRL_MODE_CLOCK_Val;              // Calendar mode
     rtc_ctrl_reg.bit.PRESCALER = RTC_MODE2_CTRL_PRESCALER_DIV1024_Val;  // Divide 1.024kHz signal by 1024
-    //rtc_ctrl_reg.bit.ENABLE = 1;                                      // Enable module
     while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
     RTC->MODE2.CTRL = rtc_ctrl_reg;                                     // Write register
     //RTC->MODE2.DBGCTRL.bit.DBGRUN = 1;                                  // Allow normal operation during debug mode
