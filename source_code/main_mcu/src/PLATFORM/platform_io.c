@@ -121,8 +121,6 @@ void platform_io_disable_scroll_wheel_ports(void)
     PORT->Group[WHEEL_A_GROUP].PINCFG[WHEEL_A_PINID].bit.INEN = 0;
     PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PULLEN = 0;
     PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.INEN = 0;
-    PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.PULLEN = 0;
-    PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.INEN = 0;
 }
 
 /*! \fn     platform_io_init_scroll_wheel_ports(void)
@@ -399,9 +397,10 @@ void platform_io_init_power_ports(void)
 */
 void platform_io_disable_aux_comms(void)
 {
-    PORT->Group[AUX_MCU_RX_GROUP].DIRCLR.reg = AUX_MCU_RX_MASK;                                             // AUX MCU RX, MAIN MCU TX
-    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 0;                                  // Disable peripheral multiplexer
-    PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 0;                                  // AUX MCU TX, MAIN MCU RX: Disable peripheral multiplexer    
+    /* Reduces standby current by 40uA */
+    PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 0;                                  // AUX MCU TX, MAIN MCU RX: Disable peripheral multiplexer
+    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 0;                                  // AUX MCU RX, MAIN MCU TX: Disable peripheral multiplexer
+    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PULLEN = 1;                                  // AUX MCU RX, MAIN MCU TX: Pull down
 }
 
 /*! \fn     platform_io_init_aux_comms_ports(void)
@@ -410,10 +409,8 @@ void platform_io_disable_aux_comms(void)
 void platform_io_init_aux_comms(void)
 {
     /* Port init */
-    PORT->Group[AUX_MCU_RX_GROUP].DIRSET.reg = AUX_MCU_RX_MASK;                                             // AUX MCU RX, MAIN MCU TX
     PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 1;                                  // Enable peripheral multiplexer
     PORT->Group[AUX_MCU_RX_GROUP].PMUX[AUX_MCU_RX_PINID/2].bit.AUX_MCU_RX_PMUXREGID = AUX_MCU_RX_PMUX_ID;   // AUX MCU RX, MAIN MCU TX
-    PORT->Group[AUX_MCU_TX_GROUP].DIRCLR.reg = AUX_MCU_TX_MASK;                                             // AUX MCU TX, MAIN MCU RX
     PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 1;                                  // Enable peripheral multiplexer
     PORT->Group[AUX_MCU_TX_GROUP].PMUX[AUX_MCU_TX_PINID/2].bit.AUX_MCU_TX_PMUXREGID = AUX_MCU_TX_PMUX_ID;   // AUX MCU TX, MAIN MCU RX
     PM->APBCMASK.bit.AUXMCU_APB_SERCOM_BIT = 1;                                                             // Enable SERCOM APB Clock Enable
@@ -481,4 +478,22 @@ void platform_io_init_ports(void)
 
     /* Smartcards port */
     platform_io_init_smc_ports();
+}
+
+/*! \fn     platform_io_prepare_ports_for_sleep(void)
+*   \brief  Prepare the platform ports for sleep
+*/
+void platform_io_prepare_ports_for_sleep(void)
+{    
+    /* Disable BLE */
+    platform_io_disable_ble();
+    
+    /* Disable AUX comms ports */    
+    platform_io_disable_aux_comms();
+    
+    /* LIS2HH12 sleep trick */    
+    platform_io_prepare_acc_ports_for_sleep();
+    
+    /* Disable scroll wheel */
+    platform_io_disable_scroll_wheel_ports();
 }

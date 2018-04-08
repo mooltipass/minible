@@ -82,18 +82,13 @@ void main_platform_init(void)
 }
 
 void main_standby_sleep(void)
-{
-    /* Disable BLE */
-    platform_io_disable_ble();
-    
+{    
     /* Disable aux MCU dma transfers */
     dma_aux_mcu_disable_transfer();
-    //platform_io_disable_aux_comms();
     
     /* Wait for accelerometer DMA transfer end and put it to sleep */
-    //while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
+    while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
     lis2hh12_deassert_ncs_and_go_to_sleep(&acc_descriptor);
-    platform_io_prepare_acc_ports_for_sleep();
     
     /* DB & Dataflash power down */
     dbflash_enter_ultra_deep_power_down(&dbflash_descriptor);
@@ -103,8 +98,8 @@ void main_standby_sleep(void)
     sh1122_oled_off(&plat_oled_descriptor);
     platform_io_power_down_oled();
     
-    /* Disable scroll wheel */
-    platform_io_disable_scroll_wheel_ports();
+    /* Prepare the ports for sleep */
+    platform_io_prepare_ports_for_sleep();
     
     /* Enter deep sleep */
     SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
@@ -193,6 +188,10 @@ int main(void)
                 }*/
             }   
             //timer_delay_ms(100);
+        }
+        if (abc > 222)
+        {
+            main_standby_sleep();
         }
         end_time = timer_get_systick();
         total_time = end_time - start_time;

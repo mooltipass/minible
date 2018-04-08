@@ -5,6 +5,7 @@
 */
 #include <asf.h>
 #include "driver_sercom.h"
+#include "driver_timer.h"
 #include "dataflash.h"
 #include "defines.h"
 
@@ -277,9 +278,11 @@ void dataflash_bulk_erase_without_wait(spi_flash_descriptor_t* descriptor_pt)
 */
 RET_TYPE dataflash_check_presence(spi_flash_descriptor_t* descriptor_pt)
 {
-    uint8_t jedec_query_command[] = {0x9F, 0x00, 0x00, 0x00};
+    /* May be removed later: exit power down */
+    dataflash_exit_power_down(descriptor_pt);    
     
     /* Query JEDEC ID */
+    uint8_t jedec_query_command[] = {0x9F, 0x00, 0x00, 0x00};
     dataflash_send_command(descriptor_pt, jedec_query_command, sizeof(jedec_query_command));
     
     /* Check correct dataflash ID */
@@ -293,7 +296,19 @@ RET_TYPE dataflash_check_presence(spi_flash_descriptor_t* descriptor_pt)
     }
 }
 
-/*! \fn     dataflash_check_presence(spi_flash_descriptor_t* descriptor_pt)
+/*! \fn     dataflash_exit_power_down(spi_flash_descriptor_t* descriptor_pt)
+*   \brief  Exit power down
+*   \param  descriptor_pt   Pointer to dataflash descriptor
+*/
+void dataflash_exit_power_down(spi_flash_descriptor_t* descriptor_pt)
+{
+    /* Send command and wait for tres1 */
+    uint8_t exit_power_down[] = {0xAB};
+    dataflash_send_command(descriptor_pt, exit_power_down, sizeof(exit_power_down));    
+    DELAYUS(3);
+}
+
+/*! \fn     dataflash_power_down(spi_flash_descriptor_t* descriptor_pt)
 *   \brief  Enter power down
 *   \param  descriptor_pt   Pointer to dataflash descriptor
 */

@@ -14,6 +14,7 @@ void platform_io_prepare_acc_ports_for_sleep(void);
 void platform_io_disable_scroll_wheel_ports(void);
 void platform_io_init_bat_adc_measurements(void);
 void platform_io_init_accelerometer_ports(void);
+void platform_io_prepare_ports_for_sleep(void);
 void platform_io_init_scroll_wheel_ports(void);
 void platform_io_power_up_oled(BOOL power_3v3);
 void platform_io_disable_switch_and_die(void);
