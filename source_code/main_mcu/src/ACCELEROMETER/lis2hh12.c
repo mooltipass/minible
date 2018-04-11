@@ -114,7 +114,7 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     descriptor_pt->read_cmd = 0xA8;
     
     /* Enable DMA transfer and clear nCS */
-    dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read), &(descriptor_pt->read_cmd));
+    dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd), FALSE);
     PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;
     
     /* Check for transfer done flag: shouldn't be set before at least 32 (lis2hh12 fifo depth) / Fsample = 80ms at 400Hz). Max read time is 32*3*2*8/F(SPI) =  192us */
@@ -154,7 +154,7 @@ void lis2hh12_sleep_exit_and_dma_arm(accelerometer_descriptor_t* descriptor_pt)
     timer_delay_ms(1);
     
     /* Enable DMA transfer and clear nCS */
-    dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read), &(descriptor_pt->read_cmd));
+    dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.bug_fix_wasted_byte_for_read_cmd) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd), TRUE);
     PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;    
 }
 
@@ -168,7 +168,7 @@ void lis2hh12_deassert_ncs_and_go_to_sleep(accelerometer_descriptor_t* descripto
     timer_delay_ms(1);
     
     /* Send power down command */
-    uint8_t powerDownCommand[] = {0x20, 0x07};
+    uint8_t powerDownCommand[] = {0x20, 0x00};
     lis2hh12_send_command(descriptor_pt, powerDownCommand, sizeof(powerDownCommand));    
 }
 
@@ -180,16 +180,21 @@ void lis2hh12_deassert_ncs_and_go_to_sleep(accelerometer_descriptor_t* descripto
 BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_descriptor_t* descriptor_pt)
 {
     if (dma_acc_check_and_clear_dma_transfer_flag() != FALSE)
-    {       
-        /* Arm next DMA transfer */
-        dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read), &(descriptor_pt->read_cmd));
-        
+    {        
         /* Deasset nCS */
         PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
         
         /* Make sure the accelerometer sees the nCS going up */
-        asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");
-        asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");
+        /*asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");
+        asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");*/
+        
+        /* Arm next DMA transfer */
+        //sercom_spi_init(ACC_SERCOM, ACC_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, ACC_MISO_PAD, ACC_MOSI_SCK_PADS, TRUE);
+        dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.bug_fix_wasted_byte_for_read_cmd) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd), TRUE);
+
+        /* possible dirty trick: receive one additional byte */
+        /* todo: adjust fifo read structure */
+        //timer_delay_ms(1);
         
         /* Assert nCS */
         PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;

@@ -13,8 +13,8 @@
 #include "defines.h"
 
 /* Prototypes */
+void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t* read_cmd,  BOOL bug_fix);
 void dma_oled_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint16_t dma_trigger);
-void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t* read_cmd);
 uint32_t dma_bootloader_compute_crc32_from_spi(void* spi_data_p, uint32_t size);
 void dma_aux_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size);
 void dma_aux_mcu_init_rx_transfer(void* spi_data_p, void* datap, uint16_t size);

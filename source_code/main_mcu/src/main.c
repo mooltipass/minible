@@ -23,6 +23,8 @@ spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .c
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 
 
+uint32_t cntt=0;
+
 /*! \fn     main_platform_init(void)
 *   \brief  Initialize our platform
 */
@@ -112,7 +114,6 @@ void main_standby_sleep(void)
     __WFI();
     
     /* We're awake! */
-    sh1122_oled_on(&plat_oled_descriptor);
     
     /* Prepare ports for sleep exit */
     platform_io_prepare_ports_for_sleep_exit();
@@ -124,11 +125,13 @@ void main_standby_sleep(void)
     /* Dataflash power up */
     dataflash_exit_power_down(&dataflash_descriptor);
     
-    /* Resume accelerometer processing */
-    //lis2hh12_sleep_exit_and_dma_arm(&acc_descriptor);
-    
     /* Re-enable AUX comms */
-    comms_aux_init();    
+    comms_aux_init();
+    
+    /* Resume accelerometer processing */
+    lis2hh12_sleep_exit_and_dma_arm(&acc_descriptor);
+    
+    cntt = 0;   
 }
 
 /*! \fn     main(void)
@@ -172,7 +175,6 @@ int main(void)
     uint32_t total_time=0;
     uint32_t start_time;
     uint32_t end_time;
-    uint32_t cntt=0;
     uint32_t abc = 0;
     while(1)
     {
@@ -184,6 +186,10 @@ int main(void)
             if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) != FALSE)
             {
                 cntt++;
+                if (abc > 400)
+                {
+                    asm("Nop");
+                }
             }
             
             if (SERCOM1->SPI.STATUS.bit.BUFOVF != 0)
@@ -204,7 +210,7 @@ int main(void)
             
             if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_UP)
             {
-                timer_delay_ms(1000);
+                timer_delay_ms(2000);
                 main_standby_sleep();
                 /*while (TRUE)
                 {

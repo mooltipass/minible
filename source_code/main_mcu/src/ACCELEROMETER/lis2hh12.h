@@ -21,9 +21,9 @@ typedef struct
 
 typedef struct
 {
-    uint8_t wasted_byte;
+    uint8_t bug_fix_wasted_byte_for_read_cmd;
+    uint8_t wasted_byte_for_read_cmd;
     acc_data_t acc_data_array[32];
-    uint8_t mysterious_bytes[4];
 } acc_single_fifo_read_t;    
 
 typedef struct

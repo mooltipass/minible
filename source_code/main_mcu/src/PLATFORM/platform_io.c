@@ -259,12 +259,7 @@ void platform_io_smc_switch_to_spi(void)
 *   \brief  Initialize the platform accelerometer IO ports
 */
 void platform_io_init_accelerometer_ports(void)
-{
-    /* Pull-down on MISO: trick found after 12h spent trying to understand why the LIS2HH12 was consuming more than expected */
-    PORT->Group[ACC_MISO_GROUP].PINCFG[ACC_MISO_PINID].bit.PULLEN = 1;
-    PORT->Group[ACC_MISO_GROUP].DIRCLR.reg = ACC_MISO_PINID;
-    PORT->Group[ACC_MISO_GROUP].OUTCLR.reg = ACC_MISO_PINID;
-    
+{    
     EIC->EVCTRL.reg |= (1 << ACC_EXTINT_NUM);                                                                               // Enable events from extint pin
     EIC->CONFIG[ACC_EXTINT_NUM/8].bit.ACC_EIC_SENSE_REG = EIC_CONFIG_SENSE0_HIGH_Val;                                       // Detect high state
     PORT->Group[ACC_INT_GROUP].DIRCLR.reg = ACC_INT_MASK;                                                                   // Interrupt input, high Z

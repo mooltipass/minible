@@ -535,15 +535,19 @@ void dma_acc_disable_transfer(void)
     cpu_irq_leave_critical();    
 }
 
-/*! \fn     dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size)
+/*! \fn     dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t* read_cmd, BOOL bug_fix)
 *   \brief  Initialize a DMA transfer from the accelerometer bus to the array
 *   \param  spi_data_p  Pointer to the SPI data register
 *   \param  datap       Pointer to where to store the data
 *   \param  size        Number of bytes to transfer
 *   \param  read_cmd    Pointer to where the read data command is stored
+*   \param  bug_fix     Set to TRUE to implement DMA bug fix
 */
-void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t* read_cmd)
+void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t* read_cmd, BOOL bug_fix)
 {    
+    /* First, make sure we don't have an ongoing transfer */
+    //dma_acc_disable_transfer();
+    
     cpu_irq_enter_critical();
     
     /* SPI RX DMA TRANSFER */
@@ -569,6 +573,15 @@ void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t
     /* Resume DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(3);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
+    
+    /* Implement DMAC bug fix if required */
+    if (bug_fix != FALSE)
+    {
+        /* wait for channel to get busy */
+        while ((DMAC->BUSYCH.reg & (1 << 5)) == 0);
+        /* then wait for busy to be over */
+        while ((DMAC->BUSYCH.reg & (1 << 5)) != 0);
+    }
     
     cpu_irq_leave_critical();
 }
