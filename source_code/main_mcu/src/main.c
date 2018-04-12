@@ -224,7 +224,7 @@ int main(void)
             }   
             //timer_delay_ms(100);
         }
-        if (abc == 240)
+        if ((abc == 240) || (abc == 480))
         {
             main_standby_sleep();
         }

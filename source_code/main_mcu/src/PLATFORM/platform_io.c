@@ -18,10 +18,18 @@ volatile BOOL platform_io_voledin_conv_ready = FALSE;
 */
 void EIC_Handler(void)
 {
-    /* Wheel tick interrupt */
+    /* Wheel tick interrupt: ACK and disable interrupt */
     if ((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0)
     {
         EIC->INTFLAG.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
+        EIC->INTENCLR.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
+    }
+    
+    /* Wheel click interrupt: ACK and disable interrupt */
+    if ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0)
+    {
+        EIC->INTFLAG.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
+        EIC->INTENCLR.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
     }
 }
 
@@ -130,11 +138,17 @@ void platform_io_init_bat_adc_measurements(void)
 void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
 {
     /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
-    EIC->INTENSET.reg |= (1 << WHEEL_TICKB_EXTINT_NUM);                                                 // Enable interrupt from ext pin
+    EIC->INTENSET.reg = (1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Enable interrupt from ext pin
     EIC->WAKEUP.reg |= (1 << WHEEL_TICKB_EXTINT_NUM);                                                   // Enable wakeup from ext pin
     PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PMUXEN = 1;                                    // Enable peripheral multiplexer
     EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_TICKB_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;    // Detect low state
     PORT->Group[WHEEL_B_GROUP].PMUX[WHEEL_B_PINID/2].bit.WHEEL_B_PMUXREGID = PORT_PMUX_PMUXO_A_Val;     // Pin mux to EIC  
+    
+    EIC->INTENSET.reg = (1 << WHEEL_CLICK_EXTINT_NUM);                                                  // Enable interrupt from ext pin
+    EIC->WAKEUP.reg |= (1 << WHEEL_CLICK_EXTINT_NUM);                                                   // Enable wakeup from ext pin
+    PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.PMUXEN = 1;                                  // Enable peripheral multiplexer
+    EIC->CONFIG[WHEEL_CLICK_EXTINT_NUM/8].bit.WHEEL_CLICK_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;    // Detect low state
+    PORT->Group[WHEEL_SW_GROUP].PMUX[WHEEL_SW_PINID/2].bit.WHEEL_B_PMUXREGID = PORT_PMUX_PMUXO_A_Val;   // Pin mux to EIC
 }
 
 /*! \fn     platform_io_disable_scroll_wheel_wakeup_interrupts(void)
@@ -143,9 +157,14 @@ void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
 void platform_io_disable_scroll_wheel_wakeup_interrupts(void)
 {
     EIC->WAKEUP.reg &= ~(1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Disable wakeup from ext pin
-    EIC->INTENCLR.reg |= (1 << WHEEL_TICKB_EXTINT_NUM);                                                 // Disable interrupt from ext pin
+    EIC->INTENCLR.reg = (1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Disable interrupt from ext pin
     PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PMUXEN = 0;                                    // Disable peripheral multiplexer
     EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_TICKB_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;   // No detection
+    
+    EIC->WAKEUP.reg &= ~(1 << WHEEL_CLICK_EXTINT_NUM);                                                  // Disable wakeup from ext pin
+    EIC->INTENCLR.reg = (1 << WHEEL_CLICK_EXTINT_NUM);                                                  // Disable interrupt from ext pin
+    PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.PMUXEN = 0;                                  // Disable peripheral multiplexer
+    EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_CLICK_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;   // No detection
 }
 
 /*! \fn     platform_io_disable_scroll_wheel_ports(void)
@@ -538,6 +557,9 @@ void platform_io_prepare_ports_for_sleep_exit(void)
 {
     /* Disable wheel interrupt */
     platform_io_disable_scroll_wheel_wakeup_interrupts();
+    
+    /* Reconfigure wheel port */
+    platform_io_init_scroll_wheel_ports();
     
     /* Enable AUX comms ports */
     platform_io_enable_aux_comms();

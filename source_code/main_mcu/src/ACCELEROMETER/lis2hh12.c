@@ -184,17 +184,8 @@ BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_desc
         /* Deasset nCS */
         PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
         
-        /* Make sure the accelerometer sees the nCS going up */
-        /*asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");
-        asm("NOP");asm("NOP");asm("NOP");asm("NOP");asm("NOP");*/
-        
         /* Arm next DMA transfer */
-        //sercom_spi_init(ACC_SERCOM, ACC_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, ACC_MISO_PAD, ACC_MOSI_SCK_PADS, TRUE);
         dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.bug_fix_wasted_byte_for_read_cmd) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd), TRUE);
-
-        /* possible dirty trick: receive one additional byte */
-        /* todo: adjust fifo read structure */
-        //timer_delay_ms(1);
         
         /* Assert nCS */
         PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;

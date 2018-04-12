@@ -110,7 +110,7 @@ typedef struct
 #define ACC_EXTINT_NUM              4
 #define ACC_EIC_SENSE_REG           SENSE4
 #define WHEEL_CLICK_EXTINT_NUM      8
-#define WHEEL_CLICK_EIC_SENSE_REG   SENSE8
+#define WHEEL_CLICK_EIC_SENSE_REG   SENSE0
 #define WHEEL_TICKA_EXTINT_NUM      0
 #define WHEEL_TICKA_EIC_SENSE_REG   SENSE0
 #define WHEEL_TICKB_EXTINT_NUM      1
