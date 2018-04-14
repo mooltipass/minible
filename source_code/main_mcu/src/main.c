@@ -106,17 +106,22 @@ void main_standby_sleep(void)
     sh1122_oled_off(&plat_oled_descriptor);
     platform_io_power_down_oled();
     
+    /* Errata 10416: disable interrupt routines */
+    cpu_irq_enter_critical();
+        
     /* Prepare the ports for sleep */
     platform_io_prepare_ports_for_sleep();
     
     /* Enter deep sleep */
-    SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+    SCB->SCR = SCB_SCR_SLEEPDEEP_Msk;
+    __DSB();
     __WFI();
-    
-    /* We're awake! */
     
     /* Prepare ports for sleep exit */
     platform_io_prepare_ports_for_sleep_exit();
+    
+    /* Damn errata... enable interrupts */
+    cpu_irq_leave_critical();    
     
     /* Switch on OLED */    
     platform_io_power_up_oled(platform_io_is_usb_3v3_present());

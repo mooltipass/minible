@@ -161,7 +161,7 @@ void platform_io_disable_scroll_wheel_wakeup_interrupts(void)
     EIC->INTENCLR.reg = (1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Disable interrupt from ext pin
     EIC->WAKEUP.reg &= ~(1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Disable wakeup from ext pin
     
-    EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_CLICK_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;   // No detection
+    EIC->CONFIG[WHEEL_CLICK_EXTINT_NUM/8].bit.WHEEL_CLICK_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;   // No detection
     PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.PMUXEN = 0;                                  // Disable peripheral multiplexer
     EIC->INTENCLR.reg = (1 << WHEEL_CLICK_EXTINT_NUM);                                                  // Disable interrupt from ext pin
     EIC->WAKEUP.reg &= ~(1 << WHEEL_CLICK_EXTINT_NUM);                                                  // Disable wakeup from ext pin
