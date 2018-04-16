@@ -52,9 +52,11 @@
 #include "clock_manager.h"
 #include "dma.h"
 #include "comm.h"
+#include "ble/ble.h"
 
 static volatile bool main_b_keyboard_enable = false;
 static volatile bool main_b_generic_enable = false;
+static volatile uint8_t main_b_vbus_status = 0;
 
 /*! \brief Main function. Execution starts here.
  */
@@ -73,7 +75,7 @@ int main(void) {
 
     // Power Manager init
     power_manager_init();
-    
+
     // Clock Manager init
     clock_manager_init();
 
@@ -85,15 +87,16 @@ int main(void) {
 
     // Init Serial communications
     comm_init();
-    
+
     // Start USB stack to authorize VBus monitoring
     udc_start();
     // The main loop manages only the power mode
     // because the USB management is done by interrupt
     while (true) {
-        // sleepmgr_enter_sleep();
+        //sleepmgr_enter_sleep();
         //sercom_send_single_byte(SERCOM1, 0x55);
-        comm_task();
+        //comm_task();
+        ble_main();
     }
 }
 
@@ -105,17 +108,12 @@ void main_resume_action(void) {
 }
 
 void main_sof_action(void) {
-    if ((!main_b_keyboard_enable))
-        return;
-    //ui_process(udd_get_frame_number());
 }
 
 void main_remotewakeup_enable(void) {
-
 }
 
 void main_remotewakeup_disable(void) {
-
 }
 
 bool main_keyboard_enable(void) {
@@ -128,7 +126,7 @@ void main_keyboard_disable(void) {
 }
 
 void main_vbus_event(uint8_t b_vbus_high) {
-    (void)b_vbus_high;
+    main_b_vbus_status = b_vbus_high;
     return;
 }
 

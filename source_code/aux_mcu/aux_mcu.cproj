@@ -219,7 +219,7 @@
       </framework-data>
     </AsfFrameworkConfig>
     <avrtool>com.atmel.avrdbg.tool.atmelice</avrtool>
-    <avrtoolserialnumber>J41800080444</avrtoolserialnumber>
+    <avrtoolserialnumber>J41800076626</avrtoolserialnumber>
     <avrdeviceexpectedsignature>0x1001030B</avrdeviceexpectedsignature>
     <avrtoolinterface>SWD</avrtoolinterface>
     <com_atmel_avrdbg_tool_atmelice>
@@ -230,7 +230,7 @@
         <InterfaceName>SWD</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.atmelice</ToolType>
-      <ToolNumber>J41800080444</ToolNumber>
+      <ToolNumber>J41800076626</ToolNumber>
       <ToolName>Atmel-ICE</ToolName>
     </com_atmel_avrdbg_tool_atmelice>
     <avrtoolinterfaceclock>2000000</avrtoolinterfaceclock>
@@ -304,11 +304,13 @@
     <ListValues>
       <Value>libarm_cortexM0l_math</Value>
       <Value>libm</Value>
+      <Value>libble_sdk.a</Value>
     </ListValues>
   </armgcc.linker.libraries.Libraries>
   <armgcc.linker.libraries.LibrarySearchPaths>
     <ListValues>
       <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
+      <Value>C:\Users\Borrego\minible\source_code\aux_mcu\src\ASF\thirdparty\wireless\ble_sdk\lib\cm0p\gcc</Value>
     </ListValues>
   </armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
@@ -413,6 +415,13 @@
       <Value>EXTINT_CALLBACK_MODE=true</Value>
       <Value>ACCESS_USB_ENABLED</Value>
       <Value>UDD_NO_SLEEP_MGR</Value>
+      <Value>ENABLE_POWER_SAVE</Value>
+      <Value>ATT_DB_MEMORY=1</Value>
+      <Value>SYSTICK_MODE</Value>
+      <Value>TC_ASYNC=true</Value>
+      <Value>UART_FLOWCONTROL_4WIRE_MODE=false</Value>
+      <Value>UART_FLOWCONTROL_6WIRE_MODE=true</Value>
+      <Value>USART_CALLBACK_MODE=true</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
   <armgcc.compiler.directories.IncludePaths>
@@ -460,6 +469,18 @@
       <Value>../src/DMA</Value>
       <Value>../src/CLOCK</Value>
       <Value>../src/COMM</Value>
+      <Value>../src/ASF/thirdparty/wireless/ble_sdk/inc</Value>
+      <Value>../src/ASF/thirdparty/wireless/ble_sdk/services/serial/uart</Value>
+      <Value>../src/ASF/thirdparty/wireless/ble_sdk/services/serial_fifo</Value>
+      <Value>../src/ASF/common2/services/delay</Value>
+      <Value>../src/ASF/thirdparty/wireless/ble_sdk/utils</Value>
+      <Value>../src/ASF/sam0/drivers/sercom</Value>
+      <Value>../src/ASF/sam0/drivers/tc</Value>
+      <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
+      <Value>../src/ASF/common/services/serial</Value>
+      <Value>../src/ASF/common/services/serial/sam0_usart</Value>
+      <Value>../src/ASF/thirdparty/wireless/ble_sdk/services/timer</Value>
+      <Value>../src/ASF/thirdparty/wireless/ble_sdk/services/timer/sam0</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
@@ -473,11 +494,13 @@
     <ListValues>
       <Value>libarm_cortexM0l_math</Value>
       <Value>libm</Value>
+      <Value>libble_sdk.a</Value>
     </ListValues>
   </armgcc.linker.libraries.Libraries>
   <armgcc.linker.libraries.LibrarySearchPaths>
     <ListValues>
       <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
+      <Value>C:\Users\Borrego\minible\source_code\aux_mcu\src\ASF\thirdparty\wireless\ble_sdk\lib\cm0p\gcc</Value>
     </ListValues>
   </armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
@@ -573,9 +596,14 @@
     <Folder Include="src\ASF\common2\" />
     <Folder Include="src\ASF\common2\boards\" />
     <Folder Include="src\ASF\common2\boards\user_board\" />
+    <Folder Include="src\ASF\common2\services\" />
+    <Folder Include="src\ASF\common2\services\delay\" />
+    <Folder Include="src\ASF\common2\services\delay\sam0\" />
     <Folder Include="src\ASF\common\" />
     <Folder Include="src\ASF\common\boards\" />
     <Folder Include="src\ASF\common\services\" />
+    <Folder Include="src\ASF\common\services\serial\" />
+    <Folder Include="src\ASF\common\services\serial\sam0_usart\" />
     <Folder Include="src\ASF\common\services\sleepmgr\" />
     <Folder Include="src\ASF\common\services\sleepmgr\samd\" />
     <Folder Include="src\ASF\common\services\usb\" />
@@ -595,6 +623,11 @@
     <Folder Include="src\ASF\sam0\drivers\extint\extint_sam_d_r\" />
     <Folder Include="src\ASF\sam0\drivers\port\" />
     <Folder Include="src\ASF\sam0\drivers\port\quick_start\" />
+    <Folder Include="src\ASF\sam0\drivers\sercom\" />
+    <Folder Include="src\ASF\sam0\drivers\sercom\" />
+    <Folder Include="src\ASF\sam0\drivers\sercom\usart\" />
+    <Folder Include="src\ASF\sam0\drivers\sercom\usart\" />
+    <Folder Include="src\ASF\sam0\drivers\sercom\usart\quick_start\" />
     <Folder Include="src\ASF\sam0\drivers\system\" />
     <Folder Include="src\ASF\sam0\drivers\system\clock\" />
     <Folder Include="src\ASF\sam0\drivers\system\clock\clock_samd21_r21_da\" />
@@ -606,6 +639,8 @@
     <Folder Include="src\ASF\sam0\drivers\system\power\power_sam_d_r\" />
     <Folder Include="src\ASF\sam0\drivers\system\reset\" />
     <Folder Include="src\ASF\sam0\drivers\system\reset\reset_sam_d_r\" />
+    <Folder Include="src\ASF\sam0\drivers\tc\" />
+    <Folder Include="src\ASF\sam0\drivers\tc\tc_sam_d_r\" />
     <Folder Include="src\ASF\sam0\drivers\usb\" />
     <Folder Include="src\ASF\sam0\drivers\usb\stack_interface\" />
     <Folder Include="src\ASF\sam0\drivers\usb\usb_sam_d_r\" />
@@ -631,16 +666,47 @@
     <Folder Include="src\ASF\thirdparty\CMSIS\Include\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
+    <Folder Include="src\ASF\thirdparty\wireless\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\inc\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\lib\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\lib\cm0p\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\lib\cm0p\gcc\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\services\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\services\serial\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\services\serial\uart\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\services\serial\uart\sam0\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\services\serial_fifo\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\services\timer\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\services\timer\sam0\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\src\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\utils\" />
     <Folder Include="src\config\" />
     <Folder Include="src\DMA\" />
     <Folder Include="src\CLOCK" />
     <Folder Include="src\COMM" />
+    <Folder Include="src\BLE" />
     <Folder Include="src\PM\" />
     <Folder Include="src\PORT\" />
     <Folder Include="src\SERCOM\" />
     <Folder Include="src\USBHID\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="src\ASF\common2\services\delay\delay.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\common2\services\delay\sam0\systick_counter.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\common2\services\delay\sam0\systick_counter.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\common\services\serial\sam0_usart\usart_serial.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ASF\common\services\serial\serial.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\ASF\common\services\sleepmgr\samd\sleepmgr.c">
       <SubType>compile</SubType>
     </Compile>
@@ -704,9 +770,96 @@
     <None Include="src\ASF\common\services\usb\usb_protocol.h">
       <SubType>compile</SubType>
     </None>
+    <None Include="src\ASF\thirdparty\wireless\ble_sdk\lib\cm0p\gcc\libble_sdk.a">
+      <SubType>compile</SubType>
+    </None>
     <None Include="src\main.h">
       <SubType>compile</SubType>
     </None>
+    <Compile Include="src\ASF\sam0\drivers\sercom\sercom.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\sam0\drivers\sercom\sercom.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\sam0\drivers\sercom\sercom_interrupt.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\sam0\drivers\sercom\sercom_interrupt.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\sercom\sercom_pinout.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\sam0\drivers\sercom\usart\usart.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\sam0\drivers\sercom\usart\usart.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\sam0\drivers\sercom\usart\usart_interrupt.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\sam0\drivers\sercom\usart\usart_interrupt.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\tc\tc.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\sam0\drivers\tc\tc_interrupt.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ASF\sam0\drivers\tc\tc_interrupt.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ASF\sam0\drivers\tc\tc_sam_d_r\tc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\thirdparty\wireless\ble_sdk\inc\at_ble_api.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\thirdparty\wireless\ble_sdk\inc\at_ble_errno.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\thirdparty\wireless\ble_sdk\inc\at_ble_trace.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\thirdparty\wireless\ble_sdk\inc\platform.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\thirdparty\wireless\ble_sdk\inc\profiles.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\thirdparty\wireless\ble_sdk\services\serial\uart\sam0\serial_drv.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\thirdparty\wireless\ble_sdk\services\serial\uart\serial_drv.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\thirdparty\wireless\ble_sdk\services\serial_fifo\serial_fifo.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\thirdparty\wireless\ble_sdk\services\serial_fifo\serial_fifo.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\thirdparty\wireless\ble_sdk\services\timer\sam0\timer_hw.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\thirdparty\wireless\ble_sdk\services\timer\timer_hw.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\thirdparty\wireless\ble_sdk\src\platform.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\thirdparty\wireless\ble_sdk\utils\ble_utils.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\BLE\ble.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BLE\ble.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\CLOCK\clock_manager.c">
       <SubType>compile</SubType>
     </Compile>
@@ -719,6 +872,15 @@
     <Compile Include="src\COMM\comm.h">
       <SubType>compile</SubType>
     </Compile>
+    <None Include="src\config\conf_power_manager.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\config\conf_serialdrv.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\config\conf_timer.h">
+      <SubType>compile</SubType>
+    </None>
     <Compile Include="src\DMA\dma.c">
       <SubType>compile</SubType>
     </Compile>

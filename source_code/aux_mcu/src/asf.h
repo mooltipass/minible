@@ -56,6 +56,9 @@
 #include <compiler.h>
 #include <status_codes.h>
 
+// From module: Delay routines
+#include <delay.h>
+
 // From module: Common build items for user board support templates
 #include <user_board.h>
 
@@ -74,6 +77,14 @@
 
 // From module: Part identification macros
 #include <parts.h>
+
+// From module: SERCOM Callback API
+#include <sercom.h>
+#include <sercom_interrupt.h>
+
+// From module: SERCOM USART - Serial Communications (Callback APIs)
+#include <usart.h>
+#include <usart_interrupt.h>
 
 // From module: SAM D21/R21/D11/L21/DA1/L22 USB Dual role interface
 #include <usb_dual.h>
@@ -116,5 +127,12 @@
 
 // From module: USB HID Library (Device)
 #include <udi_hid.h>
+
+// From module: TC - Timer Counter (Callback APIs)
+#include <tc.h>
+#include <tc_interrupt.h>
+
+// From module: USART - Serial interface- SAM implementation for devices with only USART
+#include <serial.h>
 
 #endif // ASF_H

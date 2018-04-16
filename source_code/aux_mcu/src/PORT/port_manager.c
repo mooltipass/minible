@@ -131,6 +131,16 @@ T_pin_cfg pin_aux_rx = {
 void port_manager_init(void){
     port_manager_config(&pin_aux_tx);
     port_manager_config(&pin_aux_rx);
+    // SERCOM2 ble primary uart
+    port_manager_config(&pin_ble_rx_uart0);
+    port_manager_config(&pin_ble_tx_uart0);
+    port_manager_config(&pin_ble_rts_uart0);
+    port_manager_config(&pin_ble_cts_uart0);
+    // SERCOM0 ble secondary uart
+    port_manager_config(&pin_ble_rx_uart1);
+    port_manager_config(&pin_ble_tx_uart1);
+    port_manager_config(&pin_ble_rts_uart1);
+    port_manager_config(&pin_ble_cts_uart1);
 }
 
 /**
