@@ -12,9 +12,9 @@
     <OutputFileName>$(MSBuildProjectName)</OutputFileName>
     <OutputFileExtension>.elf</OutputFileExtension>
     <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
-    <AssemblyName>mini_ble</AssemblyName>
-    <Name>mini_ble</Name>
-    <RootNamespace>mini_ble</RootNamespace>
+    <AssemblyName>bootloader</AssemblyName>
+    <Name>bootloader</Name>
+    <RootNamespace>bootloader</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
@@ -301,21 +301,8 @@
     </ListValues>
   </armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
-  <armgcc.linker.memorysettings.Flash>
-    <ListValues>
-      <Value>.start_app_function_addr=0x200</Value>
-      <Value>.flash_start_addr=0x0</Value>
-      <Value>.text=0x1000</Value>
-    </ListValues>
-  </armgcc.linker.memorysettings.Flash>
   <armgcc.linker.memorysettings.ExternalRAM>False</armgcc.linker.memorysettings.ExternalRAM>
   <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
-  <armgcc.linker.miscellaneous.OtherOptions>
-    <ListValues>
-      <Value>--undefined=jump_to_application_function_addr</Value>
-      <Value>--undefined=jump_to_application_function</Value>
-    </ListValues>
-  </armgcc.linker.miscellaneous.OtherOptions>
   <armgcc.assembler.general.IncludePaths>
     <ListValues>
       <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
@@ -452,21 +439,8 @@
     </ListValues>
   </armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
-  <armgcc.linker.memorysettings.Flash>
-    <ListValues>
-      <Value>.start_app_function_addr=0x200</Value>
-      <Value>.flash_start_addr=0x0</Value>
-      <Value>.text=0x1000</Value>
-    </ListValues>
-  </armgcc.linker.memorysettings.Flash>
   <armgcc.linker.memorysettings.ExternalRAM />
   <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
-  <armgcc.linker.miscellaneous.OtherOptions>
-    <ListValues>
-      <Value>--undefined=jump_to_application_function_addr</Value>
-      <Value>--undefined=jump_to_application_function</Value>
-    </ListValues>
-  </armgcc.linker.miscellaneous.OtherOptions>
   <armgcc.assembler.general.IncludePaths>
     <ListValues>
       <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
@@ -534,6 +508,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ACCELEROMETER\lis2hh12.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\bootloader.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\CLOCKS\driver_clocks.c">
@@ -1134,9 +1111,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\defines.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\main.c">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>
