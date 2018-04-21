@@ -93,6 +93,8 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     temp_evsys_channel_reg.bit.EVGEN = descriptor_pt->evgen_sel;                  // Select correct EIC output
     temp_evsys_channel_reg.bit.CHANNEL = descriptor_pt->evgen_channel;            // Map to selected channel
     EVSYS->CHANNEL = temp_evsys_channel_reg;                                      // Write register
+    /* Clear intflag */
+    EVSYS->INTFLAG.reg = ((1 << descriptor_pt->evgen_sel) << 8) << (16*((descriptor_pt->evgen_sel)/8));
     
     /* 400Hz output data rate, output registers not updated until MSB and LSB read, all axis enabled */
     uint8_t setDataRateCommand[] = {0x20, 0x5F};
@@ -181,8 +183,8 @@ BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_desc
 {
     if (dma_acc_check_and_clear_dma_transfer_flag() != FALSE)
     {        
-        /* Deasset nCS */
-        PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
+        /* Deasset nCS : done through the DMA interrupt */
+        //PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
         
         /* Arm next DMA transfer */
         dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.bug_fix_wasted_byte_for_read_cmd) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd), TRUE);

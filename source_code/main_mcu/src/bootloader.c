@@ -75,6 +75,7 @@ int main(void)
 {
     /* Initialize our platform */
     main_platform_init();
-	sh1122_put_error_string(&plat_oled_descriptor, u"Bootloader here!");
+    sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Bootloader here!");
+    sh1122_put_string_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_CENTER, u"Bootloader here!");
 	while(1);
 }

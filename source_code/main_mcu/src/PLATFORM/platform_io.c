@@ -95,7 +95,7 @@ BOOL platform_io_is_voledin_conversion_result_ready(void)
 
 /*! \fn     platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
 *   \brief  Fetch voled conversion result and trigger new conversion
-*   \return conversion result
+*   \return 12 bit conversion result
 */
 uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
 {

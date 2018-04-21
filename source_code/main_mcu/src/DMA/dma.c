@@ -64,7 +64,13 @@ void DMAC_Handler(void)
     /* Test channel 5: acc RX routine */
     DMAC->CHID.reg = DMAC_CHID_ID(5);
     if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
-    {
+    {        
+        /* Set nCS high to allow accelerometer to store data again */
+        PORT->Group[ACC_nCS_GROUP].OUTSET.reg = ACC_nCS_MASK;
+        
+        /* Clear event system event detected flag */
+        EVSYS->INTFLAG.reg = ((1 << ACC_EV_GEN_CHANNEL) << 8) << (16*(ACC_EV_GEN_CHANNEL/8));
+        
         /* Set transfer done boolean, clear interrupt */
         dma_acc_transfer_done = TRUE;
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
@@ -573,6 +579,12 @@ void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t
     /* Resume DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(3);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
+    
+    /* Check event channel for missed interrupt, which would have prevent a future transfer */
+    if ((EVSYS->INTFLAG.reg & ((1 << ACC_EV_GEN_CHANNEL) << 8) << (16*(ACC_EV_GEN_CHANNEL/8))) != 0)
+    {
+        asm("Nop");
+    }
     
     /* Implement DMAC bug fix if required */
     if (bug_fix != FALSE)

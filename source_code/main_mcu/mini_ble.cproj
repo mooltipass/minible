@@ -560,6 +560,12 @@
     <Compile Include="src\COMMS\comms_hid_msgs_debug.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\debug.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\debug.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\DMA\dma.c">
       <SubType>compile</SubType>
     </Compile>

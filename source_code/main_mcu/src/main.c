@@ -14,6 +14,7 @@
 #include "defines.h"
 #include "sh1122.h"
 #include "inputs.h"
+#include "debug.h"
 #include "main.h"
 #include "dma.h"
 
@@ -46,23 +47,23 @@ const uint32_t jump_to_application_function_addr[2] __attribute__((used,section 
 void jump_to_application_function(void) __attribute__((used,section (".start_app_function_addr")));
 void jump_to_application_function(void)
 {
-	/* Overwriting the default value of the NVMCTRL.CTRLB.MANW bit (errata reference 13134) */
-	NVMCTRL->CTRLB.bit.MANW = 1;
-	
-	/* Pointer to the Application Section */
-	void (*application_code_entry)(void);
-	
-	/* Rebase the Stack Pointer */
-	__set_MSP(*(uint32_t*)APP_START_ADDR);
-	
-	/* Rebase the vector table base address */
-	SCB->VTOR = ((uint32_t)APP_START_ADDR & SCB_VTOR_TBLOFF_Msk);
-	
-	/* Load the Reset Handler address of the application */
-	application_code_entry = (void (*)(void))(unsigned *)(*(unsigned *)(APP_START_ADDR + 4));
-	
-	/* Jump to user Reset Handler in the application */
-	application_code_entry();
+    /* Overwriting the default value of the NVMCTRL.CTRLB.MANW bit (errata reference 13134) */
+    NVMCTRL->CTRLB.bit.MANW = 1;
+    
+    /* Pointer to the Application Section */
+    void (*application_code_entry)(void);
+    
+    /* Rebase the Stack Pointer */
+    __set_MSP(*(uint32_t*)APP_START_ADDR);
+    
+    /* Rebase the vector table base address */
+    SCB->VTOR = ((uint32_t)APP_START_ADDR & SCB_VTOR_TBLOFF_Msk);
+    
+    /* Load the Reset Handler address of the application */
+    application_code_entry = (void (*)(void))(unsigned *)(*(unsigned *)(APP_START_ADDR + 4));
+    
+    /* Jump to user Reset Handler in the application */
+    application_code_entry();
 }
 
 /*! \fn     main_platform_init(void)
@@ -184,6 +185,7 @@ int main(void)
 {
     /* Initialize our platform */
     main_platform_init();
+    debug_debug_screen();
     
     // Test code: burn internal graphics data into external flash.
     //dataflash_bulk_erase_with_wait(&dataflash_descriptor);
@@ -219,7 +221,7 @@ int main(void)
     uint32_t start_time;
     uint32_t end_time;
     uint32_t abc = 0;
-	uint32_t cntt = 0;
+    uint32_t cntt = 0;
     while(1)
     {
         start_time = timer_get_systick();
@@ -310,8 +312,8 @@ int main(void)
         
     }*/
     
-	
-	while(1)
+    
+    while(1)
     {
         if (smartcard_lowlevel_is_card_plugged() == RETURN_JDETECT)
         {
