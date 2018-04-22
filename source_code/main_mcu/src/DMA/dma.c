@@ -10,13 +10,13 @@
 #include "dma.h"
 /* DMA Descriptors for our transfers and their DMA priority levels (highest number is higher priority, contrary to what is written in some datasheets) */
 /* Beware of errata 15683 if you do want to implement linked descriptors! */
-// Channel 0: USART RX routine for transfer from aux MCU (3)
-// Channel 1: SPI RX routine for custom fs transfers  (0)
-// Channel 2: SPI TX routine for custom fs transfers (0)
-// Channel 3: SPI TX routine for transfer to accelerometer (2)
-// Channel 4: SPI TX routine for transfer to a display  (1)
-// Channel 5: SPI RX routine for transfer from accelerometer (2)
-// Channel 6: USART TX routine for transfer to aux MCU (1)
+// USART RX routine for transfer from aux MCU: level 3
+// USART TX routine for transfer to aux MCU: level 1
+// SPI RX routine for custom fs transfers: level 0
+// SPI TX routine for custom fs transfers: level 0
+// SPI RX routine for transfer from accelerometer: level 2
+// SPI TX routine for transfer to accelerometer: level 2
+// SPI TX routine for transfer to a display: level 1
 DmacDescriptor dma_writeback_descriptors[7] __attribute__ ((aligned (16)));
 DmacDescriptor dma_descriptors[7] __attribute__ ((aligned (16)));
 /* Boolean to specify if the last DMA transfer for the custom_fs is done */
@@ -34,8 +34,8 @@ volatile BOOL dma_aux_mcu_packet_received = FALSE;
 */
 void DMAC_Handler(void)
 {    
-    /* Test channel 0: aux MCU RX routine */
-    DMAC->CHID.reg = DMAC_CHID_ID(0);
+    /* AUX MCU RX routine */
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_COMMS);
     if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
     {
         /* Set transfer done boolean, clear interrupt */
@@ -43,8 +43,8 @@ void DMAC_Handler(void)
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
     }
     
-    /* Test channel 1: RX routine for custom fs */
-    DMAC->CHID.reg = DMAC_CHID_ID(1);
+    /* RX routine for custom fs */
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_FS);
     if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
     {
         /* Set transfer done boolean, clear interrupt */
@@ -52,8 +52,8 @@ void DMAC_Handler(void)
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
     }
     
-    /* Test channel 4: oled TX routine */
-    DMAC->CHID.reg = DMAC_CHID_ID(4);
+    /* OLED TX routine */
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_TX_OLED);
     if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
     {
         /* Set transfer done boolean, clear interrupt */
@@ -61,8 +61,8 @@ void DMAC_Handler(void)
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
     }
     
-    /* Test channel 5: acc RX routine */
-    DMAC->CHID.reg = DMAC_CHID_ID(5);
+    /* Accelerometer RX routine */
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_ACC);
     if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
     {        
         /* Set nCS high to allow accelerometer to store data again */
@@ -102,29 +102,34 @@ void dma_init(void)
     DMAC->CTRL = dmac_ctrl_reg;                                                             // Write DMA control register
     //DMAC->DBGCTRL.bit.DBGRUN = 1;                                                         // Normal operation during debugging
     
+    /* DMA QOS: elevate to medium priority */
+    DMAC_QOSCTRL_Type dma_qos_ctrl_reg;                                                     // Temporary register
+    dma_qos_ctrl_reg.reg = 0;                                                               // Clear temp register
+    dma_qos_ctrl_reg.bit.DQOS = DMAC_QOSCTRL_WRBQOS_MEDIUM_Val;                             // Medium QOS for writeback
+    dma_qos_ctrl_reg.bit.FQOS = DMAC_QOSCTRL_WRBQOS_MEDIUM_Val;                             // Medium QOS for fetch
+    dma_qos_ctrl_reg.bit.WRBQOS = DMAC_QOSCTRL_WRBQOS_MEDIUM_Val;                           // Medium QOS for data
+    DMAC->QOSCTRL = dma_qos_ctrl_reg;                                                       // Write register
+    
     /* Enable round robin for all levels */
-    DMAC_PRICTRL0_Type dmac_prictrl_reg;
-    dmac_prictrl_reg.reg = 0;
-    dmac_prictrl_reg.bit.LVLPRI0 = 1;
-    dmac_prictrl_reg.bit.LVLPRI1 = 1;
-    dmac_prictrl_reg.bit.LVLPRI2 = 1;
-    dmac_prictrl_reg.bit.LVLPRI3 = 1;
-    DMAC->PRICTRL0 = dmac_prictrl_reg;
-
-    /* SPI RX routine, cf user manual 26.5.4 */
-    /* Using the SERCOM DMA requests, requires the DMA controller to be configured first. */
+    DMAC_PRICTRL0_Type dmac_prictrl_reg;                                                    // Temporary register
+    dmac_prictrl_reg.reg = 0;                                                               // Clear temp register
+    dmac_prictrl_reg.bit.LVLPRI0 = 1;                                                       // Enable round robin for level 0
+    dmac_prictrl_reg.bit.LVLPRI1 = 1;                                                       // Enable round robin for level 1
+    dmac_prictrl_reg.bit.LVLPRI2 = 1;                                                       // Enable round robin for level 2
+    dmac_prictrl_reg.bit.LVLPRI3 = 1;                                                       // Enable round robin for level 3
+    DMAC->PRICTRL0 = dmac_prictrl_reg;                                                      // Write register
 
     /* Setup transfer descriptor for custom fs RX */
-    dma_descriptors[1].BTCTRL.reg = DMAC_BTCTRL_VALID;                                      // Valid descriptor
-    dma_descriptors[1].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;                   // 1 byte address increment
-    dma_descriptors[1].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_DST_Val;                    // Step selection for destination
-    dma_descriptors[1].BTCTRL.bit.DSTINC = 1;                                               // Destination Address Increment is enabled.
-    dma_descriptors[1].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;                 // Byte data transfer
-    dma_descriptors[1].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_INT_Val;                  // Once data block is transferred, generate interrupt
-    dma_descriptors[1].DESCADDR.reg = 0;                                                    // No next descriptor address
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.reg = DMAC_BTCTRL_VALID;                       // Valid descriptor
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;    // 1 byte address increment
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_DST_Val;     // Step selection for destination
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.DSTINC = 1;                                // Destination Address Increment is enabled.
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;  // Byte data transfer
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_INT_Val;   // Once data block is transferred, generate interrupt
+    dma_descriptors[DMA_DESCID_RX_FS].DESCADDR.reg = 0;                                     // No next descriptor address
     
     /* Setup DMA channel */
-    DMAC->CHID.reg = DMAC_CHID_ID(1);                                                       // Use channel 1
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_FS);                                        // Select channel
     DMAC_CHCTRLB_Type dma_chctrlb_reg;                                                      // Temp register
     dma_chctrlb_reg.reg = 0;                                                                // Clear it
     dma_chctrlb_reg.bit.LVL = 0;                                                            // Priority level
@@ -133,20 +138,17 @@ void dma_init(void)
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
     DMAC->CHINTENSET.reg = DMAC_CHINTENSET_TCMPL;                                           // Enable channel transfer complete interrupt
 
-    /* SPI TX routines, cf user manual 26.5.4 */
-    /* Using the SERCOM DMA requests, requires the DMA controller to be configured first. */
-
     /* Setup transfer descriptor for custom fs TX */
-    dma_descriptors[2].BTCTRL.reg = DMAC_BTCTRL_VALID;                                      // Valid descriptor
-    dma_descriptors[2].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;                   // 1 byte address increment
-    dma_descriptors[2].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_SRC_Val;                    // Step selection for source
-    dma_descriptors[2].BTCTRL.bit.SRCINC = 1;                                               // Destination Address Increment is enabled.
-    dma_descriptors[2].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;                 // Byte data transfer
-    dma_descriptors[2].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val;                // Once data block is transferred, do nothing
-    dma_descriptors[2].DESCADDR.reg = 0;                                                    // No next descriptor address
+    dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.reg = DMAC_BTCTRL_VALID;                       // Valid descriptor
+    dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;    // 1 byte address increment
+    dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_SRC_Val;     // Step selection for source
+    dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.bit.SRCINC = 1;                                // Destination Address Increment is enabled.
+    dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;  // Byte data transfer
+    dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val; // Once data block is transferred, do nothing
+    dma_descriptors[DMA_DESCID_TX_FS].DESCADDR.reg = 0;                                     // No next descriptor address
     
     /* Setup DMA channel */
-    DMAC->CHID.reg = DMAC_CHID_ID(2);                                                       // Use channel 2
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_TX_FS);                                        // Select channel
     dma_chctrlb_reg.reg = 0;                                                                // Clear it
     dma_chctrlb_reg.bit.LVL = 0;                                                            // Priority level
     dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
@@ -154,44 +156,45 @@ void dma_init(void)
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
 
     /* Setup transfer descriptor for oled TX */
-    dma_descriptors[4].BTCTRL.reg = DMAC_BTCTRL_VALID;                                      // Valid descriptor
-    dma_descriptors[4].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;                   // 1 byte address increment
-    dma_descriptors[4].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_SRC_Val;                    // Step selection for source
-    dma_descriptors[4].BTCTRL.bit.SRCINC = 1;                                               // Destination Address Increment is enabled.
-    dma_descriptors[4].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;                 // Byte data transfer
-    dma_descriptors[4].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_INT_Val;                  // Once data block is transferred, generate interrupt
-    dma_descriptors[4].DESCADDR.reg = 0;                                                    // No next descriptor address
+    dma_descriptors[DMA_DESCID_TX_OLED].BTCTRL.reg = DMAC_BTCTRL_VALID;                     // Valid descriptor
+    dma_descriptors[DMA_DESCID_TX_OLED].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;  // 1 byte address increment
+    dma_descriptors[DMA_DESCID_TX_OLED].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_SRC_Val;   // Step selection for source
+    dma_descriptors[DMA_DESCID_TX_OLED].BTCTRL.bit.SRCINC = 1;                              // Destination Address Increment is enabled.
+    dma_descriptors[DMA_DESCID_TX_OLED].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;// Byte data transfer
+    dma_descriptors[DMA_DESCID_TX_OLED].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_INT_Val; // Once data block is transferred, generate interrupt
+    dma_descriptors[DMA_DESCID_TX_OLED].DESCADDR.reg = 0;                                   // No next descriptor address
+    
+    /* Setup DMA channel */
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_TX_OLED);                                      // Select channel
+    dma_chctrlb_reg.reg = 0;                                                                // Clear it
+    dma_chctrlb_reg.bit.LVL = 1;                                                            // Priority level
+    dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
+    dma_chctrlb_reg.bit.TRIGSRC = OLED_DMA_SERCOM_TX_TRIG;                                  // Select trigger
+    DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
+    DMAC->CHINTENSET.reg = DMAC_CHINTENSET_TCMPL;                                           // Enable channel transfer complete interrupt
 
     /* Setup transfer descriptor for accelerometer TX */
-    dma_descriptors[3].BTCTRL.reg = DMAC_BTCTRL_VALID;                                      // Valid descriptor
-    dma_descriptors[3].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;                   // 1 byte address increment
-    dma_descriptors[3].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_SRC_Val;                    // Step selection for source
-    dma_descriptors[3].BTCTRL.bit.SRCINC = 0;                                               // Destination Address Increment is disabled.
-    dma_descriptors[3].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;                 // Byte data transfer
-    dma_descriptors[3].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val;                // Once data block is transferred, do nothing
-    dma_descriptors[3].DESCADDR.reg = 0;                                                    // No next descriptor address
+    dma_descriptors[DMA_DESCID_TX_ACC].BTCTRL.reg = DMAC_BTCTRL_VALID;                      // Valid descriptor
+    dma_descriptors[DMA_DESCID_TX_ACC].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;   // 1 byte address increment
+    dma_descriptors[DMA_DESCID_TX_ACC].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_SRC_Val;    // Step selection for source
+    dma_descriptors[DMA_DESCID_TX_ACC].BTCTRL.bit.SRCINC = 0;                               // Destination Address Increment is disabled.
+    dma_descriptors[DMA_DESCID_TX_ACC].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val; // Byte data transfer
+    dma_descriptors[DMA_DESCID_TX_ACC].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val;// Once data block is transferred, do nothing
+    dma_descriptors[DMA_DESCID_TX_ACC].DESCADDR.reg = 0;                                    // No next descriptor address
     
-    /* Setup DMA channel */
-    DMAC->CHID.reg = DMAC_CHID_ID(3);                                                       // Use channel 3
-    dma_chctrlb_reg.reg = 0;                                                                // Clear temp register
-    dma_chctrlb_reg.bit.LVL = 2;                                                            // Priority level
-    dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
-    dma_chctrlb_reg.bit.TRIGSRC = ACC_DMA_SERCOM_TXTRIG;                                    // Select TX trigger
-    dma_chctrlb_reg.bit.EVIE = 1;                                                           // Enable event input action
-    dma_chctrlb_reg.bit.EVACT = DMAC_CHCTRLB_EVACT_CBLOCK;                                  // Conditional block transfer
-    DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
+    /* DMA channel for TX done in the dma arm routine, because of silicon bug */
 
     /* Setup transfer descriptor for accelerometer RX */
-    dma_descriptors[5].BTCTRL.reg = DMAC_BTCTRL_VALID;                                      // Valid descriptor
-    dma_descriptors[5].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;                   // 1 byte address increment
-    dma_descriptors[5].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_DST_Val;                    // Step selection for destination
-    dma_descriptors[5].BTCTRL.bit.DSTINC = 1;                                               // Destination Address Increment is enabled.
-    dma_descriptors[5].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;                 // Byte data transfer
-    dma_descriptors[5].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_INT_Val;                  // Once data block is transferred, generate interrupt
-    dma_descriptors[5].DESCADDR.reg = 0;                                                    // No next descriptor address
+    dma_descriptors[DMA_DESCID_RX_ACC].BTCTRL.reg = DMAC_BTCTRL_VALID;                      // Valid descriptor
+    dma_descriptors[DMA_DESCID_RX_ACC].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;   // 1 byte address increment
+    dma_descriptors[DMA_DESCID_RX_ACC].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_DST_Val;    // Step selection for destination
+    dma_descriptors[DMA_DESCID_RX_ACC].BTCTRL.bit.DSTINC = 1;                               // Destination Address Increment is enabled.
+    dma_descriptors[DMA_DESCID_RX_ACC].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val; // Byte data transfer
+    dma_descriptors[DMA_DESCID_RX_ACC].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_INT_Val;  // Once data block is transferred, generate interrupt
+    dma_descriptors[DMA_DESCID_RX_ACC].DESCADDR.reg = 0;                                    // No next descriptor address
     
     /* Setup DMA channel */
-    DMAC->CHID.reg = DMAC_CHID_ID(5);                                                       // Use channel 5
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_ACC);                                       // Select channel
     dma_chctrlb_reg.reg = 0;                                                                // Clear temp register
     dma_chctrlb_reg.bit.LVL = 2;                                                            // Priority level
     dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
@@ -200,16 +203,16 @@ void dma_init(void)
     DMAC->CHINTENSET.reg = DMAC_CHINTENSET_TCMPL;                                           // Enable channel transfer complete interrupt
 
     /* Setup transfer descriptor for aux comms TX */
-    dma_descriptors[6].BTCTRL.reg = DMAC_BTCTRL_VALID;                                      // Valid descriptor
-    dma_descriptors[6].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;                   // 1 byte address increment
-    dma_descriptors[6].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_SRC_Val;                    // Step selection for source
-    dma_descriptors[6].BTCTRL.bit.SRCINC = 1;                                               // Source Address Increment is enabled.
-    dma_descriptors[6].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;                 // Byte data transfer
-    dma_descriptors[6].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val;                // Once data block is transferred, do nothing
-    dma_descriptors[6].DESCADDR.reg = 0;                                                    // No next descriptor address
+    dma_descriptors[DMA_DESCID_TX_COMMS].BTCTRL.reg = DMAC_BTCTRL_VALID;                      // Valid descriptor
+    dma_descriptors[DMA_DESCID_TX_COMMS].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;   // 1 byte address increment
+    dma_descriptors[DMA_DESCID_TX_COMMS].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_SRC_Val;    // Step selection for source
+    dma_descriptors[DMA_DESCID_TX_COMMS].BTCTRL.bit.SRCINC = 1;                               // Source Address Increment is enabled.
+    dma_descriptors[DMA_DESCID_TX_COMMS].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val; // Byte data transfer
+    dma_descriptors[DMA_DESCID_TX_COMMS].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val;// Once data block is transferred, do nothing
+    dma_descriptors[DMA_DESCID_TX_COMMS].DESCADDR.reg = 0;                                    // No next descriptor address
     
     /* Setup DMA channel */
-    DMAC->CHID.reg = DMAC_CHID_ID(6);                                                       // Use channel 6
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_TX_COMMS);                                     // Select channel
     dma_chctrlb_reg.reg = 0;                                                                // Clear temp register
     dma_chctrlb_reg.bit.LVL = 1;                                                            // Priority level
     dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
@@ -217,30 +220,22 @@ void dma_init(void)
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
 
     /* Setup transfer descriptor for aux MCU comms RX */
-    dma_descriptors[0].BTCTRL.reg = DMAC_BTCTRL_VALID;                                      // Valid descriptor
-    dma_descriptors[0].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;                   // 1 byte address increment
-    dma_descriptors[0].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_DST_Val;                    // Step selection for destination
-    dma_descriptors[0].BTCTRL.bit.DSTINC = 1;                                               // Destination Address Increment is enabled.
-    dma_descriptors[0].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;                 // Byte data transfer
-    dma_descriptors[0].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_INT_Val;                  // Once data block is transferred, generate interrupt
-    dma_descriptors[0].DESCADDR.reg = 0;                                                    // No next descriptor
+    dma_descriptors[DMA_DESCID_RX_COMMS].BTCTRL.reg = DMAC_BTCTRL_VALID;                     // Valid descriptor
+    dma_descriptors[DMA_DESCID_RX_COMMS].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;  // 1 byte address increment
+    dma_descriptors[DMA_DESCID_RX_COMMS].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_DST_Val;   // Step selection for destination
+    dma_descriptors[DMA_DESCID_RX_COMMS].BTCTRL.bit.DSTINC = 1;                              // Destination Address Increment is enabled.
+    dma_descriptors[DMA_DESCID_RX_COMMS].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;// Byte data transfer
+    dma_descriptors[DMA_DESCID_RX_COMMS].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_INT_Val; // Once data block is transferred, generate interrupt
+    dma_descriptors[DMA_DESCID_RX_COMMS].DESCADDR.reg = 0;                                   // No next descriptor
     
     /* Setup DMA channel */
-    DMAC->CHID.reg = DMAC_CHID_ID(0);                                                       // Use channel 0
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_COMMS);                                     // Select channel
     dma_chctrlb_reg.reg = 0;                                                                // Clear temp register
     dma_chctrlb_reg.bit.LVL = 3;                                                            // Priority level
     dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
     dma_chctrlb_reg.bit.TRIGSRC = AUX_MCU_SERCOM_RXTRIG;                                    // Select RX trigger
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
     DMAC->CHINTENSET.reg = DMAC_CHINTENSET_TCMPL;                                           // Enable channel transfer complete interrupt
-    
-    /* DMA QOS: elevate to medium priority */
-    DMAC_QOSCTRL_Type dma_qos_ctrl_reg;
-    dma_qos_ctrl_reg.reg = 0;
-    dma_qos_ctrl_reg.bit.DQOS = DMAC_QOSCTRL_WRBQOS_MEDIUM_Val;
-    dma_qos_ctrl_reg.bit.FQOS = DMAC_QOSCTRL_WRBQOS_MEDIUM_Val;
-    dma_qos_ctrl_reg.bit.WRBQOS = DMAC_QOSCTRL_WRBQOS_MEDIUM_Val;
-    DMAC->QOSCTRL = dma_qos_ctrl_reg;
 
     /* Enable IRQ */
     NVIC_EnableIRQ(DMAC_IRQn);
@@ -300,7 +295,7 @@ BOOL dma_acc_check_and_clear_dma_transfer_flag(void)
 */
 uint16_t dma_aux_mcu_get_remaining_bytes_for_rx_transfer(void)
 {
-    return dma_writeback_descriptors[0].BTCNT.reg;
+    return dma_writeback_descriptors[DMA_DESCID_RX_COMMS].BTCNT.reg;
 }
 
 /*! \fn     dma_aux_mcu_check_and_clear_dma_transfer_flag(void)
@@ -331,26 +326,26 @@ void dma_custom_fs_init_transfer(void* spi_data_p, void* datap, uint16_t size)
     
     /* SPI RX DMA TRANSFER */
     /* Setup transfer size */
-    dma_descriptors[1].BTCNT.bit.BTCNT = (uint16_t)size;
+    dma_descriptors[DMA_DESCID_RX_FS].BTCNT.bit.BTCNT = (uint16_t)size;
     /* Source address: DATA register from SPI */
-    dma_descriptors[1].SRCADDR.reg = (uint32_t)spi_data_p;
+    dma_descriptors[DMA_DESCID_RX_FS].SRCADDR.reg = (uint32_t)spi_data_p;
     /* Destination address: given value */
-    dma_descriptors[1].DSTADDR.reg = (uint32_t)datap + size;
+    dma_descriptors[DMA_DESCID_RX_FS].DSTADDR.reg = (uint32_t)datap + size;
     
     /* Resume DMA channel operation */
-    DMAC->CHID.reg= DMAC_CHID_ID(1);
+    DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_RX_FS);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
 
     /* SPI TX DMA TRANSFER */
     /* Setup transfer size */
-    dma_descriptors[2].BTCNT.bit.BTCNT = (uint16_t)size;
+    dma_descriptors[DMA_DESCID_TX_FS].BTCNT.bit.BTCNT = (uint16_t)size;
     /* Source address: DATA register from SPI */
-    dma_descriptors[2].DSTADDR.reg = (uint32_t)spi_data_p;
+    dma_descriptors[DMA_DESCID_TX_FS].DSTADDR.reg = (uint32_t)spi_data_p;
     /* Destination address: given value */
-    dma_descriptors[2].SRCADDR.reg = (uint32_t)datap + size;
+    dma_descriptors[DMA_DESCID_TX_FS].SRCADDR.reg = (uint32_t)datap + size;
     
     /* Resume DMA channel operation */
-    DMAC->CHID.reg= DMAC_CHID_ID(2);
+    DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_TX_FS);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
     
     cpu_irq_leave_critical();
@@ -490,25 +485,16 @@ void dma_oled_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint16
 {
     cpu_irq_enter_critical();
     
-    /* Setup DMA channel */
-    DMAC->CHID.reg = DMAC_CHID_ID(4);                                                       // Use channel 3
-    DMAC_CHCTRLB_Type dma_chctrlb_reg;                                                      // Temp register
-    dma_chctrlb_reg.reg = 0;                                                                // Clear it
-    dma_chctrlb_reg.bit.LVL = 1;                                                            // Priority level
-    dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
-    dma_chctrlb_reg.bit.TRIGSRC = dma_trigger;                                              // Select trigger
-    DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
-    DMAC->CHINTENSET.reg = DMAC_CHINTENSET_TCMPL;                                           // Enable channel transfer complete interrupt
-    
     /* SPI TX DMA TRANSFER */
     /* Setup transfer size */
-    dma_descriptors[4].BTCNT.bit.BTCNT = (uint16_t)size;
+    dma_descriptors[DMA_DESCID_TX_OLED].BTCNT.bit.BTCNT = (uint16_t)size;
     /* Source address: DATA register from SPI */
-    dma_descriptors[4].DSTADDR.reg = (uint32_t)spi_data_p;
+    dma_descriptors[DMA_DESCID_TX_OLED].DSTADDR.reg = (uint32_t)spi_data_p;
     /* Destination address: given value */
-    dma_descriptors[4].SRCADDR.reg = (uint32_t)datap + size;
+    dma_descriptors[DMA_DESCID_TX_OLED].SRCADDR.reg = (uint32_t)datap + size;
     
     /* Resume DMA channel operation */
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_TX_OLED);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
     
     cpu_irq_leave_critical();
@@ -522,14 +508,14 @@ void dma_acc_disable_transfer(void)
     cpu_irq_enter_critical();
     
     /* Stop DMA channel operation */
-    DMAC->CHID.reg= DMAC_CHID_ID(5);
+    DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_RX_ACC);
     DMAC->CHCTRLA.reg = 0;
     
     /* Wait for bit clear */
     while(DMAC->CHCTRLA.reg != 0);
     
     /* Stop DMA channel operation */
-    DMAC->CHID.reg= DMAC_CHID_ID(3);
+    DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_TX_ACC);
     DMAC->CHCTRLA.reg = 0;
     
     /* Wait for bit clear */
@@ -541,15 +527,14 @@ void dma_acc_disable_transfer(void)
     cpu_irq_leave_critical();    
 }
 
-/*! \fn     dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t* read_cmd, BOOL bug_fix)
+/*! \fn     dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t* read_cmd)
 *   \brief  Initialize a DMA transfer from the accelerometer bus to the array
 *   \param  spi_data_p  Pointer to the SPI data register
 *   \param  datap       Pointer to where to store the data
 *   \param  size        Number of bytes to transfer
 *   \param  read_cmd    Pointer to where the read data command is stored
-*   \param  bug_fix     Set to TRUE to implement DMA bug fix
 */
-void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t* read_cmd, BOOL bug_fix)
+void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t* read_cmd)
 {    
     /* First, make sure we don't have an ongoing transfer */
     //dma_acc_disable_transfer();
@@ -558,42 +543,37 @@ void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t
     
     /* SPI RX DMA TRANSFER */
     /* Setup transfer size */
-    dma_descriptors[5].BTCNT.bit.BTCNT = (uint16_t)size;
+    dma_descriptors[DMA_DESCID_RX_ACC].BTCNT.bit.BTCNT = (uint16_t)size;
     /* Source address: DATA register from SPI */
-    dma_descriptors[5].SRCADDR.reg = (uint32_t)spi_data_p;
+    dma_descriptors[DMA_DESCID_RX_ACC].SRCADDR.reg = (uint32_t)spi_data_p;
     /* Destination address: given value */
-    dma_descriptors[5].DSTADDR.reg = (uint32_t)datap + size;
+    dma_descriptors[DMA_DESCID_RX_ACC].DSTADDR.reg = (uint32_t)datap + size;
     
     /* Resume DMA channel operation */
-    DMAC->CHID.reg= DMAC_CHID_ID(5);
+    DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_RX_ACC);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
 
     /* SPI TX DMA TRANSFER */
     /* Setup transfer size */
-    dma_descriptors[3].BTCNT.bit.BTCNT = (uint16_t)size;
+    dma_descriptors[DMA_DESCID_TX_ACC].BTCNT.bit.BTCNT = (uint16_t)size;
     /* Source address: DATA register from SPI */
-    dma_descriptors[3].DSTADDR.reg = (uint32_t)spi_data_p;
+    dma_descriptors[DMA_DESCID_TX_ACC].DSTADDR.reg = (uint32_t)spi_data_p;
     /* Destination address: given value */
-    dma_descriptors[3].SRCADDR.reg = (uint32_t)read_cmd;
+    dma_descriptors[DMA_DESCID_TX_ACC].SRCADDR.reg = (uint32_t)read_cmd;
     
-    /* Resume DMA channel operation */
-    DMAC->CHID.reg= DMAC_CHID_ID(3);
-    DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
-    
-    /* Check event channel for missed interrupt, which would have prevent a future transfer */
-    if ((EVSYS->INTFLAG.reg & ((1 << ACC_EV_GEN_CHANNEL) << 8) << (16*(ACC_EV_GEN_CHANNEL/8))) != 0)
-    {
-        asm("Nop");
-    }
-    
-    /* Implement DMAC bug fix if required */
-    if (bug_fix != FALSE)
-    {
-        /* wait for channel to get busy */
-        while ((DMAC->BUSYCH.reg & (1 << 5)) == 0);
-        /* then wait for busy to be over */
-        while ((DMAC->BUSYCH.reg & (1 << 5)) != 0);
-    }
+    /* Setup DMA channel again, due to silicon bug */
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_TX_ACC);                                       // Select channel
+    DMAC->CHCTRLA.reg = DMAC_CHCTRLA_SWRST;                                                 // Reset channel (damn errata!)
+    while (DMAC->CHCTRLA.bit.SWRST);                                                        // Wait for reset done
+    DMAC_CHCTRLB_Type dma_chctrlb_reg;                                                      // Temp register
+    dma_chctrlb_reg.reg = 0;                                                                // Clear temp register
+    dma_chctrlb_reg.bit.LVL = 2;                                                            // Priority level
+    dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
+    dma_chctrlb_reg.bit.TRIGSRC = ACC_DMA_SERCOM_TXTRIG;                                    // Select TX trigger
+    dma_chctrlb_reg.bit.EVIE = 1;                                                           // Enable event input action
+    dma_chctrlb_reg.bit.EVACT = DMAC_CHCTRLB_EVACT_CBLOCK;                                  // Conditional block transfer
+    DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register    
+    DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;                                                // Enable channel
     
     cpu_irq_leave_critical();
 }
@@ -609,14 +589,14 @@ void dma_aux_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
     cpu_irq_enter_critical();
     
     /* Setup transfer size */
-    dma_descriptors[6].BTCNT.bit.BTCNT = (uint16_t)size;
+    dma_descriptors[DMA_DESCID_TX_COMMS].BTCNT.bit.BTCNT = (uint16_t)size;
     /* Source address: DATA register from SPI */
-    dma_descriptors[6].DSTADDR.reg = (uint32_t)spi_data_p;
+    dma_descriptors[DMA_DESCID_TX_COMMS].DSTADDR.reg = (uint32_t)spi_data_p;
     /* Destination address: given value */
-    dma_descriptors[6].SRCADDR.reg = (uint32_t)datap + size;
+    dma_descriptors[DMA_DESCID_TX_COMMS].SRCADDR.reg = (uint32_t)datap + size;
     
     /* Resume DMA channel operation */
-    DMAC->CHID.reg= DMAC_CHID_ID(6);
+    DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_TX_COMMS);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
     
     cpu_irq_leave_critical();
@@ -630,14 +610,14 @@ void dma_aux_mcu_disable_transfer(void)
     cpu_irq_enter_critical();
     
     /* Stop DMA channel operation */
-    DMAC->CHID.reg= DMAC_CHID_ID(6);
+    DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_TX_COMMS);
     DMAC->CHCTRLA.reg = 0;
     
     /* Wait for bit clear */
     while(DMAC->CHCTRLA.reg != 0);
     
     /* Stop DMA channel operation */
-    DMAC->CHID.reg= DMAC_CHID_ID(0);
+    DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_RX_COMMS);
     DMAC->CHCTRLA.reg = 0;
     
     /* Wait for bit clear */
@@ -660,14 +640,14 @@ void dma_aux_mcu_init_rx_transfer(void* spi_data_p, void* datap, uint16_t size)
     cpu_irq_enter_critical();
     
     /* Setup transfer size */
-    dma_descriptors[0].BTCNT.bit.BTCNT = (uint16_t)size;
+    dma_descriptors[DMA_DESCID_RX_COMMS].BTCNT.bit.BTCNT = (uint16_t)size;
     /* Source address: DATA register from SPI */
-    dma_descriptors[0].DSTADDR.reg = (uint32_t)datap + size;
+    dma_descriptors[DMA_DESCID_RX_COMMS].DSTADDR.reg = (uint32_t)datap + size;
     /* Destination address: given value */
-    dma_descriptors[0].SRCADDR.reg = (uint32_t)spi_data_p;
+    dma_descriptors[DMA_DESCID_RX_COMMS].SRCADDR.reg = (uint32_t)spi_data_p;
     
     /* Resume DMA channel operation */
-    DMAC->CHID.reg= DMAC_CHID_ID(0);
+    DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_RX_COMMS);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
     
     cpu_irq_leave_critical();

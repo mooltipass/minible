@@ -106,6 +106,15 @@ typedef struct
 #define ACC_APB_SERCOM_BIT          SERCOM1_
 #define ACC_SERCOM                  SERCOM1
 
+/* DMA channel descriptors */
+#define DMA_DESCID_RX_COMMS         0
+#define DMA_DESCID_RX_FS            1
+#define DMA_DESCID_TX_FS            2
+#define DMA_DESCID_TX_ACC           3
+#define DMA_DESCID_TX_OLED          4
+#define DMA_DESCID_RX_ACC           5
+#define DMA_DESCID_TX_COMMS         6
+
 /* External interrupts numbers */
 #define ACC_EXTINT_NUM              4
 #define ACC_EIC_SENSE_REG           SENSE4

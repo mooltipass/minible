@@ -19,9 +19,8 @@ typedef struct
     int16_t acc_z;
 } acc_data_t;
 
-typedef struct
+typedef struct __attribute__((packed))
 {
-    uint8_t bug_fix_wasted_byte_for_read_cmd;
     uint8_t wasted_byte_for_read_cmd;
     acc_data_t acc_data_array[32];
 } acc_single_fifo_read_t;    

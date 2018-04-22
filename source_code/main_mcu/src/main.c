@@ -136,6 +136,7 @@ void main_standby_sleep(void)
     dma_aux_mcu_disable_transfer();
     
     /* Wait for accelerometer DMA transfer end and put it to sleep */
+    lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor);
     while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
     lis2hh12_deassert_ncs_and_go_to_sleep(&acc_descriptor);
     

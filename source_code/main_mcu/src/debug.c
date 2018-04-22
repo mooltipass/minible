@@ -104,6 +104,6 @@ void debug_debug_screen(void)
         }   
         
         /* Delay for display */
-        //timer_delay_ms(123);
+        //timer_delay_ms(10);
     }
 }

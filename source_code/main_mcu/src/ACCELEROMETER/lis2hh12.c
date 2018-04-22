@@ -116,7 +116,7 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     descriptor_pt->read_cmd = 0xA8;
     
     /* Enable DMA transfer and clear nCS */
-    dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd), FALSE);
+    dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd));
     PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;
     
     /* Check for transfer done flag: shouldn't be set before at least 32 (lis2hh12 fifo depth) / Fsample = 80ms at 400Hz). Max read time is 32*3*2*8/F(SPI) =  192us */
@@ -156,7 +156,7 @@ void lis2hh12_sleep_exit_and_dma_arm(accelerometer_descriptor_t* descriptor_pt)
     timer_delay_ms(1);
     
     /* Enable DMA transfer and clear nCS */
-    dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.bug_fix_wasted_byte_for_read_cmd) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd), TRUE);
+    dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd));
     PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;    
 }
 
@@ -180,17 +180,37 @@ void lis2hh12_deassert_ncs_and_go_to_sleep(accelerometer_descriptor_t* descripto
 *   \return TRUE if we received new data
 */
 BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_descriptor_t* descriptor_pt)
-{
+{    
     if (dma_acc_check_and_clear_dma_transfer_flag() != FALSE)
     {        
         /* Deasset nCS : done through the DMA interrupt */
         //PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
         
         /* Arm next DMA transfer */
-        dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.bug_fix_wasted_byte_for_read_cmd) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd), TRUE);
+        dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd));
         
         /* Assert nCS */
         PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;
+        
+        /* Check if we were not quick enough to deal rearm RX DMA: check event channel interrupt flag, cleared by our DMA RX routine: if the flag is set it means another acc INT happened */
+        /* In case we have a false positive (interrupt happening just after we re-arm) this is not a problem as the DMA will simply discard the trigger */
+        if ((EVSYS->INTFLAG.reg & ((1 << descriptor_pt->evgen_channel) << 8) << (16*(descriptor_pt->evgen_channel/8))) != 0)
+        {
+            /* Clear int and overrun flags */
+            EVSYS->INTFLAG.reg = ((1 << descriptor_pt->evgen_channel) << 8) << (16*((descriptor_pt->evgen_channel)/8));
+            EVSYS->INTFLAG.reg = ((1 << descriptor_pt->evgen_channel) << 0) << (16*((descriptor_pt->evgen_channel)/8));
+            
+            /* Artificially resend event */
+            EVSYS_CHANNEL_Type temp_evsys_channel_reg;
+            temp_evsys_channel_reg.reg = 0;
+            temp_evsys_channel_reg.bit.PATH = EVSYS_CHANNEL_PATH_RESYNCHRONIZED_Val;      // Use resynchronized path (dma requirement)
+            temp_evsys_channel_reg.bit.EDGSEL = EVSYS_CHANNEL_EDGSEL_RISING_EDGE_Val;     // Detect rising edge
+            temp_evsys_channel_reg.bit.EVGEN = 0;                                         // No selected event generator
+            temp_evsys_channel_reg.bit.CHANNEL = descriptor_pt->evgen_channel;            // Map to selected channel
+            EVSYS->CHANNEL = temp_evsys_channel_reg;                                      // Write register
+            temp_evsys_channel_reg.bit.EVGEN = descriptor_pt->evgen_sel;                  // Select correct EIC output
+            EVSYS->CHANNEL = temp_evsys_channel_reg;                                      // Write register*/
+        }
         
         /* Report there's data to be read */
         return TRUE;
