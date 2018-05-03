@@ -1,7 +1,7 @@
 /**
  * \file
  *
- * \brief This file controls the software Serial FIFO management.
+ * \brief HID Keyboard Device Profile Application declarations
  *
  * Copyright (c) 2017 Atmel Corporation. All rights reserved.
  *
@@ -40,36 +40,53 @@
  * \asf_license_stop
  *
  */
+
 /*
- * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
+ * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel
+ * Support</a>
  */
 
-#include "serial_fifo.h"
+#ifndef __HID_DEVICE_APP_H__
+#define __HID_DEVICE_APP_H__
+#include "stdio.h"
 
-int ser_fifo_init(ser_fifo_desc_t *fifo_desc, void *buffer, uint16_t size)
-{
-	// Check the size parameter. It must be not null...
-	Assert (size);
+/****************************************************************************************
+*							        Macros	                                     							*
+****************************************************************************************/
+/** @brief Key pad debounce time */
+#define KEY_PAD_DEBOUNCE_TIME	(200)
 
-	// ... must be a 2-power ...
-	Assert (!(size & (size - 1)));
+/** @brief Maximum text length */
+#define MAX_TEXT_LEN			(11)
 
-	// ... and must fit in a uint16_t. Since the read and write indexes are using a
-	// double-index range implementation, the max FIFO size is thus 32768 items.
-	Assert (size <= 32768);
+/** @brief Represent zero position */
+#define POSITION_ZERO			(0)
 
-	// Serial Fifo starts empty.
-	fifo_desc->read_index  = 0;
-	fifo_desc->write_index = 0;
+/** @brief Represent six position */
+#define POSITION_SIX			(6)
 
-	// Save the size parameter.
-	fifo_desc->size = size;
+/** @brief Enable caps */
+#define CAPS_ON					(2)
 
-	// Create a mask to speed up the FIFO management (index swapping).
-	fifo_desc->mask = (2 * (uint16_t)size) - 1;
+/** @brief Disable caps */
+#define CAPS_OFF				(0)
 
-	// Save the buffer pointer.
-	fifo_desc->buffer.u8ptr = buffer;
+/** @brief Button event ID */
+#define APP_BUTTON_EVENT_ID		(1)
 
-	return SER_FIFO_OK;
-}
+/****************************************************************************************
+*							        Function                                     		*
+****************************************************************************************/
+
+/** @brief Callback call during custom event */
+static at_ble_status_t hid_custom_event(void *param);
+
+/** @brief Callback call during connect event */
+static at_ble_status_t hid_connect_cb(void *params);
+
+/** @brief Callback call during disconnect event */
+static at_ble_status_t hid_disconnect_cb(void *params);
+
+/** @brief Callback call during notification confirmation */
+static at_ble_status_t hid_notification_confirmed_cb(void *params);
+#endif /*__HID_DEVICE_APP_H__*/

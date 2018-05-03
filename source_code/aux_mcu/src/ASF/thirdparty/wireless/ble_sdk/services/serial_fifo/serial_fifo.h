@@ -3,7 +3,7 @@
  *
  * \brief This file controls the software Serial FIFO management.
  *
- * Copyright (c) 2016 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2017 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *

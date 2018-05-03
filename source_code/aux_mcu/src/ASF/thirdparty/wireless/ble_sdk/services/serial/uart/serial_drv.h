@@ -3,7 +3,7 @@
  *
  * \brief Handles Serial driver functionalities
  *
- * Copyright (c) 2016 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2017 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -53,6 +53,22 @@
 #include "compiler.h"
 #include "status_codes.h"
 
+#if (SAMG55 || SAM4S)
+
+#define platform_start_rx()
+
+#else
+void platform_start_rx(void);
+#endif
+
+#if (SLEEP_WALKING_ENABLED && (SAMD21 || SAML21))
+	#warning "Sleepwalking feature is not implemented in BluSDK SAM L21/D21"
+#endif
+
+#if (SLEEP_WALKING_ENABLED && (SAM4S))
+	#error "Sleepwalking feature is not supported in SAM 4S"
+#endif	
+
 /* === PROTOTYPES ============================================================
 **/
 
@@ -61,7 +77,7 @@
  * \return STATUS_OK for successful initialization and FAILURE incase the IO is
  * not initialized
  */
-uint8_t configure_serial_drv(void);
+uint8_t configure_serial_drv(uint32_t);
 
 /**
  * \brief Transmits data via UART
@@ -83,11 +99,17 @@ uint16_t serial_drv_send(uint8_t* data, uint16_t len);
 uint8_t serial_read_data(uint8_t* data, uint16_t max_len);
 
 uint8_t serial_read_byte(uint16_t* data);
-void configure_usart_after_patch(void);
+//void configure_usart_after_patch(void);
+void configure_usart_after_patch(uint32_t );
 uint32_t platform_serial_drv_tx_status(void);
 
 void platform_leave_critical_section(void);
 void platform_enter_critical_section(void);
 
-void platfrom_start_rx(void);
+void platform_set_ble_rts_high(void);
+void platform_set_ble_rts_low(void);
+void platform_set_hostsleep(void);
+void platform_restore_from_sleep(void);
+void platform_configure_sleep_manager(void);
+uint16_t serial_drive_rx_data_count(void);
 #endif /* SIO2HOST_H */

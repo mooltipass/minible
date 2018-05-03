@@ -422,6 +422,21 @@
       <Value>UART_FLOWCONTROL_4WIRE_MODE=false</Value>
       <Value>UART_FLOWCONTROL_6WIRE_MODE=true</Value>
       <Value>USART_CALLBACK_MODE=true</Value>
+      <Value>HOST_SLEEP_ENABLE=true</Value>
+      <Value>SLEEP_WALKING_ENABLED=false</Value>
+      <Value>BLE_MODULE=BTLC1000_MR</Value>
+      <Value>HOST_DEEP_SLEEP_ENABLED</Value>
+      <Value>ANP_SIG_CLIENT</Value>
+      <Value>ANP_SIG_GATT_CLIENT</Value>
+      <Value>ANS_CLIENT_SERVICE</Value>
+      <Value>BLE_DEVICE_ROLE=BLE_ROLE_PERIPHERAL</Value>
+      <Value>BLE_ATT_DB_MEMORY_SIZE=1024</Value>
+      <Value>DEVICE_INFORMATION_SERVICE</Value>
+      <Value>HID_DEVICE</Value>
+      <Value>HID_GATT_SERVER</Value>
+      <Value>HID_KEYBOARD_DEVICE</Value>
+      <Value>HID_SERVICE</Value>
+      <Value>NEW_EVT_HANDLER</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
   <armgcc.compiler.directories.IncludePaths>
@@ -481,9 +496,13 @@
       <Value>../src/ASF/common/services/serial/sam0_usart</Value>
       <Value>../src/ASF/thirdparty/wireless/ble_sdk/services/timer</Value>
       <Value>../src/ASF/thirdparty/wireless/ble_sdk/services/timer/sam0</Value>
+      <Value>../src/BLE</Value>
+      <Value>../src/BLE/ble_mgr</Value>
+      <Value>../src/BLE/device_infomation</Value>
+      <Value>../src/BLE/hid</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
-  <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
+  <armgcc.compiler.optimization.level>Optimize most (-O3)</armgcc.compiler.optimization.level>
   <armgcc.compiler.optimization.OtherFlags>-fdata-sections</armgcc.compiler.optimization.OtherFlags>
   <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
   <armgcc.compiler.optimization.DebugLevel>Maximum (-g3)</armgcc.compiler.optimization.DebugLevel>
@@ -506,6 +525,11 @@
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
   <armgcc.linker.memorysettings.ExternalRAM />
   <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21e17a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
+  <armgcc.linker.miscellaneous.OtherOptions>
+    <ListValues>
+      <Value>--defsym=__stack_size__=0x800</Value>
+    </ListValues>
+  </armgcc.linker.miscellaneous.OtherOptions>
   <armgcc.assembler.general.IncludePaths>
     <ListValues>
       <Value>../src/ASF/common/boards</Value>
@@ -681,6 +705,9 @@
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\services\timer\sam0\" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\src\" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\utils\" />
+    <Folder Include="src\BLE\ble_mgr\" />
+    <Folder Include="src\BLE\device_infomation\" />
+    <Folder Include="src\BLE\hid\" />
     <Folder Include="src\config\" />
     <Folder Include="src\DMA\" />
     <Folder Include="src\CLOCK" />
@@ -854,12 +881,39 @@
     <None Include="src\ASF\thirdparty\wireless\ble_sdk\utils\ble_utils.h">
       <SubType>compile</SubType>
     </None>
-    <Compile Include="src\BLE\ble.c">
+    <None Include="src\BLE\ble.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\BLE\ble_mgr\ble_manager.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\BLE\ble.h">
+    <None Include="src\BLE\ble_mgr\ble_manager.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\BLE\device_infomation\device_info.c">
       <SubType>compile</SubType>
     </Compile>
+    <None Include="src\BLE\device_infomation\device_info.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\BLE\hid\hid.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\BLE\hid\hid.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\BLE\hid\hid_device.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\BLE\hid\hid_device.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\BLE\hid\hid_keyboard_app.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\BLE\hid\hid_keyboard_app.h">
+      <SubType>compile</SubType>
+    </None>
     <Compile Include="src\CLOCK\clock_manager.c">
       <SubType>compile</SubType>
     </Compile>

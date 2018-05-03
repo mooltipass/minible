@@ -3,7 +3,7 @@
  *
  * \brief Platform Abstraction layer for BLE applications
  *
- * Copyright (c) 2016 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2017 Atmel Corporation. All rights reserved.
  *
  * \asf_license_start
  *
@@ -53,15 +53,23 @@
 #include <string.h>
 #include "at_ble_api.h"
 
+#define MAX_PLATFORM_OS_SIGNAL (3)
+
+typedef struct os_signal
+{
+  volatile uint32_t signal_value;
+  uint32_t          signal_usage;
+} os_signal_t;
+
  /**@ingroup platform_group_functions
   * @brief implements platform-specific initialization
   *
   * @param[in] bus_type bus type can be UART or SPI
-  * @param[in] bus_flow_control_enabled bus type can have flow control Enable/Disable option
+  * @param[in] btlc1000_module_version BTLC1000 MR/ZR Module version
   *
   * @return Upon successful completion the function shall return @ref AT_BLE_SUCCESS, Otherwise the function shall return @ref at_ble_status_t 
   */
-at_ble_status_t platform_init(uint8_t bus_type, uint8_t bus_flow_control_enabled);
+at_ble_status_t platform_init(uint8_t bus_type, uint8_t btlc1000_module_version);
 
  /**@ingroup platform_group_functions
   * @brief sends a message over the platform-specific bus and blocks until Tx Completes
@@ -72,6 +80,7 @@ at_ble_status_t platform_init(uint8_t bus_type, uint8_t bus_flow_control_enabled
   * @param[in] len length of data
   *
   */
+ void platform_configure_primary_uart(uint32_t baudrate);
 void platform_send_sync(uint8_t *data, uint32_t len);
 
 void platform_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status);
@@ -86,8 +95,24 @@ void *platform_create_timer(void (*timer_cb)(void *));
 void platform_delete_timer(void *timer_handle);
 void platform_stop_timer(void *timer_handle);
 void platform_start_timer(void *timer_handle, uint32_t ms);
-void platform_configure_hw_fc_uart(void);
+//void platform_configure_hw_fc_uart(void);
+void platform_configure_hw_fc_uart(uint32_t baudrate);
 void platform_process_rxdata(uint8_t t_rx_data);
 void platform_dma_process_rxdata(uint8_t *buf, uint16_t len);
 
+void platform_enter_sleep(void);
+void platform_host_set_sleep(bool sleep);
+
+ /* functions that should be called to help cooperative multitasking scheduler 
+    to switch context to other tasks */
+void *platform_create_signal(void);
+void platform_delete_signal(void *signal_handler);
+void platform_trigger_signal(void *signal_handler);
+void platform_reset_signal(void *signal_handler);
+void platform_wait_for_signal(uint32_t count, void **signal_handler_list);
+
+#ifdef BTLC_REINIT_SUPPORT
+void platform_reset_timer(void);
+void platform_signal_set_default(void);
+#endif
 #endif // __PLATFORM_H__

@@ -80,16 +80,16 @@ int main(void) {
     clock_manager_init();
 
     // DMA init
-    dma_init();
+    //dma_init();
 
     // Initialize USBHID
-    usbhid_init();
+    //usbhid_init();
 
     // Init Serial communications
-    comm_init();
+    //comm_init();
 
     // Start USB stack to authorize VBus monitoring
-    udc_start();
+    //udc_start();
     // The main loop manages only the power mode
     // because the USB management is done by interrupt
     while (true) {

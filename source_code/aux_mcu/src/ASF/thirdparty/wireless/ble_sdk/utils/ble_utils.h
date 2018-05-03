@@ -3,7 +3,7 @@
 *
 * \brief BLE Utils declarations
 *
-* Copyright (c) 2016 Atmel Corporation. All rights reserved.
+* Copyright (c) 2017 Atmel Corporation. All rights reserved.
 *
 * \asf_license_start
 *
@@ -49,6 +49,19 @@
 
 #include <asf.h>
 
+/* Supported BLE Modules */
+#define BTLC1000_MR		0x00
+#define BTLC1000_ZR		0x01
+
+	/// BluSDK version
+#define BLE_SDK_MAJOR_NO(version)	((version >> 28) & 0x0000000F)
+#define BLE_SDK_MINOR_NO(version)	((version >> 24) & 0x0000000F)
+#define BLE_SDK_BUILD_NO(version)	(version & 0x0000FFFF)
+#define BLUSDK_VER_6_0	(0x60000000)
+#define BLUSDK_VER_6_1  (0x61000000)
+
+#define BLE_SDK_VERSION BLUSDK_VER_6_1
+
     /// Observer role
 #define   BLE_ROLE_OBSERVER   0x01
     /// Broadcaster role
@@ -60,16 +73,23 @@
     /// Device has all role, both peripheral and central
 #define   BLE_ROLE_ALL         0x0F
 
+#define BLE_ASSERT		(true)
 
+#if (BLE_ASSERT == true)
+#define ble_assert(expr) \
+{\
+	if (!(expr)) while (true);\
+}
+#else
+#define ble_assert(expr) ((void) 0)
+#endif
 
-#define DBG_LOG_CONT	printf
+#define DBG_LOG_CONT(...)
 
-#define DBG_LOG		    printf("\r\n");\
-						printf
+#define DBG_LOG(...)
 
-#define DBG_LOG_ADV	    printf("\r\nBLE-ADV: ");\
-						printf
-						
+#define DBG_LOG_ADV(...)
+
 #define UNUSED1(x) (void)(x)
 #define UNUSED2(x,y) (void)(x),(void)(y)
 #define UNUSED3(x,y,z) (void)(x),(void)(y),(void)(z)
@@ -94,13 +114,22 @@
 
 #define DBG_LOG_DEV			ALL_UNUSED
 #define DBG_LOG_CONT_DEV	ALL_UNUSED
-						
+
+#define BLU_SDK_API
+
 #define IEEE11073_EXPONENT						(0xFF000000)
 
 #define IEEE754_MANTISA(val)					((uint32_t)(val * 10))
 
 #define IEEE754_TO_IEEE11073_FLOAT(f_val)		(IEEE11073_EXPONENT | \
 												IEEE754_MANTISA(f_val))
+
+#define NIBBLE2ASCII(nibble) (((nibble < 0x0A) ? (nibble + '0') : (nibble + 0x57)))
+
+static inline void dump_hex_buffer(void *buf, uint32_t len)
+{
+
+}
 
 static inline uint32_t convert_ieee754_ieee11073_float(float f_val)
 {

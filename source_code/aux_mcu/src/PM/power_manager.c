@@ -35,11 +35,19 @@ const PM_APBCMASK_Type power_manager_apbcmask_cfg = {
 };
 
 /**
- * \fn      Power_manager_init
+ * \fn      power_manager_init
  * \brief   Enable / Disable peripheral clocks based on configuration
  */
 void power_manager_init(void){
     /* APBCMASK */
     PM->APBCMASK = power_manager_apbcmask_cfg;
+}
 
+/**
+ * \fn      power_manager_deinit
+ * \brief   Disable all peripheral clocks
+ */
+void power_manager_deinit(void){
+    /* APBCMASK */
+    PM->APBCMASK.reg = 0;
 }

@@ -69,7 +69,7 @@ void dma_init(void)
     dma_descriptors[DMA_UART_TX_CH].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;    // Byte data transfer
     dma_descriptors[DMA_UART_TX_CH].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val;   // Once data block is transferred, do nothing
     dma_descriptors[DMA_UART_TX_CH].DESCADDR.reg = 0;                                       // No next descriptor address
-    
+
     /* Setup DMA channel */
     DMAC->CHID.reg = DMAC_CHID_ID(DMA_UART_TX_CH);                                                       // Use channel 5
     dma_chctrlb_reg.reg = 0;                                                                // Clear temp register
@@ -85,7 +85,7 @@ void dma_init(void)
     dma_descriptors[DMA_UART_RX_CH].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;    // Byte data transfer
     dma_descriptors[DMA_UART_RX_CH].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_INT_Val;     // Once data block is transferred, generate interrupt
     dma_descriptors[DMA_UART_RX_CH].DESCADDR.reg = 0;                                       // No next descriptor address
-    
+
     /* Setup DMA channel */
     DMAC->CHID.reg = DMAC_CHID_ID(DMA_UART_RX_CH);                                                       // Use channel 6
     dma_chctrlb_reg.reg = 0;                                                                // Clear temp register
@@ -154,6 +154,33 @@ void dma_aux_mcu_init_rx_transfer(void* datap, uint16_t size)
     /* Resume DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(DMA_UART_RX_CH);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
+
+    cpu_irq_leave_critical();
+}
+
+/*! \fn     dma_aux_mcu_disable_transfer(void)
+*   \brief  Disable the DMA transfer for the aux MCU comms
+*/
+void dma_aux_mcu_disable_transfer(void)
+{
+    cpu_irq_enter_critical();
+
+    /* Stop DMA channel operation */
+    DMAC->CHID.reg= DMAC_CHID_ID(DMA_UART_TX_CH);
+    DMAC->CHCTRLA.reg = 0;
+
+    /* Wait for bit clear */
+    while(DMAC->CHCTRLA.reg != 0);
+
+    /* Stop DMA channel operation */
+    DMAC->CHID.reg= DMAC_CHID_ID(DMA_UART_TX_CH);
+    DMAC->CHCTRLA.reg = 0;
+
+    /* Wait for bit clear */
+    while(DMAC->CHCTRLA.reg != 0);
+
+    /* Reset bool */
+    dma_aux_mcu_packet_received = false;
 
     cpu_irq_leave_critical();
 }
