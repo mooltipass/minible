@@ -13,6 +13,26 @@
 volatile BOOL platform_io_voledin_conv_ready = FALSE;
 
 
+/*! \fn     EIC_Handler(void)
+*   \brief  Routine called for an extint
+*/
+void EIC_Handler(void)
+{
+    /* Wheel tick interrupt: ACK and disable interrupt */
+    if ((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0)
+    {
+        EIC->INTFLAG.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
+        EIC->INTENCLR.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
+    }
+    
+    /* Wheel click interrupt: ACK and disable interrupt */
+    if ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0)
+    {
+        EIC->INTFLAG.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
+        EIC->INTENCLR.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
+    }
+}
+
 /*! \fn     platform_io_enable_switch(void)
 *   \brief  Enable switch (and 3v3 stepup)
 */
@@ -75,7 +95,7 @@ BOOL platform_io_is_voledin_conversion_result_ready(void)
 
 /*! \fn     platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
 *   \brief  Fetch voled conversion result and trigger new conversion
-*   \return conversion result
+*   \return 12 bit conversion result
 */
 uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
 {
@@ -112,6 +132,52 @@ void platform_io_init_bat_adc_measurements(void)
     ADC->CTRLA.reg = ADC_CTRLA_ENABLE;                                                          // And enable ADC
 }
 
+/*! \fn     platform_io_enable_scroll_wheel_wakeup_interrupts(void)
+*   \brief  Enable scroll wheel external interrupt to wake up platform
+*/
+void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
+{
+    /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
+    PORT->Group[WHEEL_B_GROUP].PMUX[WHEEL_B_PINID/2].bit.WHEEL_B_PMUXREGID = PORT_PMUX_PMUXO_A_Val;     // Pin mux to EIC
+    PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PMUXEN = 1;                                    // Enable peripheral multiplexer
+    EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_TICKB_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;    // Detect low state
+    EIC->INTENSET.reg = (1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Enable interrupt from ext pin
+    EIC->WAKEUP.reg |= (1 << WHEEL_TICKB_EXTINT_NUM);                                                   // Enable wakeup from ext pin
+    
+    PORT->Group[WHEEL_SW_GROUP].PMUX[WHEEL_SW_PINID/2].bit.WHEEL_SW_PMUXREGID = PORT_PMUX_PMUXO_A_Val;  // Pin mux to EIC
+    PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.PMUXEN = 1;                                  // Enable peripheral multiplexer
+    EIC->CONFIG[WHEEL_CLICK_EXTINT_NUM/8].bit.WHEEL_CLICK_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;    // Detect low state
+    EIC->INTENSET.reg = (1 << WHEEL_CLICK_EXTINT_NUM);                                                  // Enable interrupt from ext pin
+    EIC->WAKEUP.reg |= (1 << WHEEL_CLICK_EXTINT_NUM);                                                   // Enable wakeup from ext pin
+}
+
+/*! \fn     platform_io_disable_scroll_wheel_wakeup_interrupts(void)
+*   \brief  Disable scroll wheel external interrupt to wake up platform
+*/
+void platform_io_disable_scroll_wheel_wakeup_interrupts(void)
+{
+    EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_TICKB_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;   // No detection
+    PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PMUXEN = 0;                                    // Disable peripheral multiplexer
+    EIC->INTENCLR.reg = (1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Disable interrupt from ext pin
+    EIC->WAKEUP.reg &= ~(1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Disable wakeup from ext pin
+    
+    EIC->CONFIG[WHEEL_CLICK_EXTINT_NUM/8].bit.WHEEL_CLICK_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;   // No detection
+    PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.PMUXEN = 0;                                  // Disable peripheral multiplexer
+    EIC->INTENCLR.reg = (1 << WHEEL_CLICK_EXTINT_NUM);                                                  // Disable interrupt from ext pin
+    EIC->WAKEUP.reg &= ~(1 << WHEEL_CLICK_EXTINT_NUM);                                                  // Disable wakeup from ext pin
+}
+
+/*! \fn     platform_io_disable_scroll_wheel_ports(void)
+*   \brief  Disable scroll wheel ports (but not the click!)
+*/
+void platform_io_disable_scroll_wheel_ports(void)
+{
+    PORT->Group[WHEEL_A_GROUP].PINCFG[WHEEL_A_PINID].bit.PULLEN = 0;
+    PORT->Group[WHEEL_A_GROUP].PINCFG[WHEEL_A_PINID].bit.INEN = 0;
+    PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PULLEN = 0;
+    PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.INEN = 0;
+}
+
 /*! \fn     platform_io_init_scroll_wheel_ports(void)
 *   \brief  Basic initialization of scroll wheels at boot
 */
@@ -142,6 +208,8 @@ void platform_io_init_smc_ports(void)
     PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.INEN = 1;                  // Setup card detection input with pull-up
     PORT->Group[SMC_POW_NEN_GROUP].DIRSET.reg = SMC_POW_NEN_MASK;                   // Setup power enable, disabled by default
     PORT->Group[SMC_POW_NEN_GROUP].OUTSET.reg = SMC_POW_NEN_MASK;                   // Setup power enable, disabled by default
+    PORT->Group[SMC_MOSI_GROUP].DIRSET.reg = SMC_MOSI_MASK;                         // MOSI Ouput Low By Default
+    PORT->Group[SMC_MOSI_GROUP].OUTCLR.reg = SMC_MOSI_MASK;                         // MOSI Ouput Low By Default
     PM->APBCMASK.bit.SMARTCARD_APB_SERCOM_BIT = 1;                                  // APB Clock Enable
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, SMARTCARD_GCLK_SERCOM_ID);     // Map 48MHz to SERCOM unit
     sercom_spi_init(SMARTCARD_SERCOM, SMARTCARD_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, SMARTCARD_MISO_PAD, SMARTCARD_MOSI_SCK_PADS, TRUE); 
@@ -158,7 +226,8 @@ void platform_io_smc_remove_function(void)
     PORT->Group[SMC_SCK_GROUP].PINCFG[SMC_SCK_PINID].bit.PMUXEN = 0;                // Disable SPI functionality
     PORT->Group[SMC_MOSI_GROUP].PINCFG[SMC_MOSI_PINID].bit.PMUXEN = 0;              // Disable SPI functionality
     PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.PMUXEN = 0;              // Disable SPI functionality
-    PORT->Group[SMC_MOSI_GROUP].DIRCLR.reg = SMC_MOSI_MASK;                         // Disable SPI functionality
+    PORT->Group[SMC_MOSI_GROUP].DIRSET.reg = SMC_MOSI_MASK;                         // MOSI Ouput Low By Default
+    PORT->Group[SMC_MOSI_GROUP].OUTCLR.reg = SMC_MOSI_MASK;                         // MOSI Ouput Low By Default
     PORT->Group[SMC_SCK_GROUP].DIRCLR.reg = SMC_SCK_MASK;                           // Disable SPI functionality
 }
 
@@ -209,7 +278,7 @@ void platform_io_smc_switch_to_spi(void)
 *   \brief  Initialize the platform accelerometer IO ports
 */
 void platform_io_init_accelerometer_ports(void)
-{
+{    
     EIC->EVCTRL.reg |= (1 << ACC_EXTINT_NUM);                                                                               // Enable events from extint pin
     EIC->CONFIG[ACC_EXTINT_NUM/8].bit.ACC_EIC_SENSE_REG = EIC_CONFIG_SENSE0_HIGH_Val;                                       // Detect high state
     PORT->Group[ACC_INT_GROUP].DIRCLR.reg = ACC_INT_MASK;                                                                   // Interrupt input, high Z
@@ -295,14 +364,14 @@ void platform_io_init_oled_ports(void)
     sercom_spi_init(OLED_SERCOM, OLED_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, OLED_MISO_PAD, OLED_MOSI_SCK_PADS, FALSE);
 }
 
-/*! \fn     platform_io_power_up_oled(BOOL power_1v2)
+/*! \fn     platform_io_power_up_oled(BOOL power_3v3)
 *   \brief  OLED powerup routine (3V3, 12V, reset release)
-*   \param  power_1v2   TRUE to use 1V2 as source for 12V stepup
+*   \param  power_3v3   TRUE to use USB 3V3 as source for 12V stepup
 */
-void platform_io_power_up_oled(BOOL power_1v2)
+void platform_io_power_up_oled(BOOL power_3v3)
 {
     /* 3V3 is already there when arriving here, just enable the 12V */
-    if (power_1v2 != FALSE)
+    if (power_3v3 == FALSE)
     {
         PORT->Group[VOLED_1V2_EN_GROUP].OUTSET.reg = VOLED_1V2_EN_MASK; 
     }
@@ -328,7 +397,23 @@ void platform_io_power_down_oled(void)
 {
     PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;
     PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;
-    PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK; 
+}
+
+/*! \fn     platform_io_is_usb_3v3_present(void)
+*   \brief  Check if the USB 3V3 is present
+*   \return TRUE or FALSE
+*   \note   No low pass filter has been implemented as the oled DC/DC can work at 1V2
+*/
+BOOL platform_io_is_usb_3v3_present(void)
+{
+    if ((PORT->Group[USB_3V3_GROUP].IN.reg & USB_3V3_MASK) == 0)
+    {
+        return FALSE;
+    }
+    else
+    {
+        return TRUE;
+    }
 }
 
 /*! \fn     platform_io_init_power_ports(void)
@@ -342,6 +427,33 @@ void platform_io_init_power_ports(void)
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 1;
     PORT->Group[VOLED_VIN_GROUP].PMUX[VOLED_VIN_PINID/2].bit.VOLED_VIN_PMUXREGID = VOLED_VIN_PMUX_ID;
 #endif
+
+    /* USB 3V3 presence */
+    PORT->Group[USB_3V3_GROUP].DIRCLR.reg = USB_3V3_MASK;                           // Setup USB 3V3 detection input with pull-down
+    PORT->Group[USB_3V3_GROUP].OUTCLR.reg = USB_3V3_MASK;                           // Setup USB 3V3 detection input with pull-down
+    PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.PULLEN = 1;                // Setup USB 3V3 detection input with pull-down
+    PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.INEN = 1;                  // Setup USB 3V3 detection input with pull-down
+}
+
+/*! \fn     platform_io_disable_aux_comms(void)
+*   \brief  Disable ports dedicated to aux comms
+*/
+void platform_io_disable_aux_comms(void)
+{
+    /* Reduces standby current by 40uA */
+    PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 0;                                  // AUX MCU TX, MAIN MCU RX: Disable peripheral multiplexer
+    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 0;                                  // AUX MCU RX, MAIN MCU TX: Disable peripheral multiplexer
+    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PULLEN = 1;                                  // AUX MCU RX, MAIN MCU TX: Pull down
+}
+
+/*! \fn     platform_io_enable_aux_comms(void)
+*   \brief  Enable ports dedicated to aux comms
+*/
+void platform_io_enable_aux_comms(void)
+{
+    PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 1;                                  // AUX MCU TX, MAIN MCU RX: Enable peripheral multiplexer
+    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 1;                                  // AUX MCU RX, MAIN MCU TX: Enable peripheral multiplexer
+    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PULLEN = 0;                                  // AUX MCU RX, MAIN MCU TX: Pull down disable
 }
 
 /*! \fn     platform_io_init_aux_comms_ports(void)
@@ -350,10 +462,8 @@ void platform_io_init_power_ports(void)
 void platform_io_init_aux_comms(void)
 {
     /* Port init */
-    PORT->Group[AUX_MCU_RX_GROUP].DIRSET.reg = AUX_MCU_RX_MASK;                                             // AUX MCU RX, MAIN MCU TX
     PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 1;                                  // Enable peripheral multiplexer
     PORT->Group[AUX_MCU_RX_GROUP].PMUX[AUX_MCU_RX_PINID/2].bit.AUX_MCU_RX_PMUXREGID = AUX_MCU_RX_PMUX_ID;   // AUX MCU RX, MAIN MCU TX
-    PORT->Group[AUX_MCU_TX_GROUP].DIRCLR.reg = AUX_MCU_TX_MASK;                                             // AUX MCU TX, MAIN MCU RX
     PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 1;                                  // Enable peripheral multiplexer
     PORT->Group[AUX_MCU_TX_GROUP].PMUX[AUX_MCU_TX_PINID/2].bit.AUX_MCU_TX_PMUXREGID = AUX_MCU_TX_PMUX_ID;   // AUX MCU TX, MAIN MCU RX
     PM->APBCMASK.bit.AUXMCU_APB_SERCOM_BIT = 1;                                                             // Enable SERCOM APB Clock Enable
@@ -392,6 +502,8 @@ void platform_io_init_ports(void)
     while ((EIC->STATUS.reg & EIC_STATUS_SYNCBUSY) != 0);
     /* Enable External Interrupt Controller */
     EIC->CTRL.reg = EIC_CTRL_ENABLE;
+    /* Enable its interrupts */
+    NVIC_EnableIRQ(EIC_IRQn);
     
     /* Power */
     platform_io_init_power_ports();
@@ -411,7 +523,6 @@ void platform_io_init_ports(void)
     /* AUX MCU, reset by default */
     PORT->Group[MCU_AUX_RST_EN_GROUP].DIRSET.reg = MCU_AUX_RST_EN_MASK;
     PORT->Group[MCU_AUX_RST_EN_GROUP].OUTSET.reg = MCU_AUX_RST_EN_MASK;
-    platform_io_release_aux_reset();
     
     /* Aux comms */
     platform_io_init_aux_comms();
@@ -419,8 +530,37 @@ void platform_io_init_ports(void)
     /* BLE enable, disabled by default */
     PORT->Group[BLE_EN_GROUP].DIRSET.reg = BLE_EN_MASK;
     PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
-    platform_io_enable_ble();
 
     /* Smartcards port */
     platform_io_init_smc_ports();
 }
+
+/*! \fn     platform_io_prepare_ports_for_sleep(void)
+*   \brief  Prepare the platform ports for sleep
+*/
+void platform_io_prepare_ports_for_sleep(void)
+{    
+    /* Disable BLE */
+    platform_io_disable_ble();
+    
+    /* Disable AUX comms ports */    
+    platform_io_disable_aux_comms();
+    
+    /* Enable wheel interrupt */
+    platform_io_enable_scroll_wheel_wakeup_interrupts();
+}
+
+/*! \fn     platform_io_prepare_ports_for_sleep_exit(void)
+*   \brief  Prepare the platform ports for sleep exit
+*/
+void platform_io_prepare_ports_for_sleep_exit(void)
+{
+    /* Disable wheel interrupt */
+    platform_io_disable_scroll_wheel_wakeup_interrupts();
+    
+    /* Reconfigure wheel port */
+    platform_io_init_scroll_wheel_ports();
+    
+    /* Enable AUX comms ports */
+    platform_io_enable_aux_comms();
+}    

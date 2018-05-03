@@ -9,9 +9,13 @@
 #define COMMS_AUX_MCU_H_
 
 /* Defines */
+// AUX MCU Message payload length
+#define AUX_MCU_MSG_PAYLOAD_LENGTH  536
+// HID payload size
+#define HID_PAYLOAD_SIZE            64
 // Aux MCU Message Type
-#define AUX_MCU_MSG_TYPE_USB    0x0000
-#define AUX_MCU_MSG_TYPE_BLE    0x0001
+#define AUX_MCU_MSG_TYPE_USB        0x0000
+#define AUX_MCU_MSG_TYPE_BLE        0x0001
 
 /* Typedefs */
 typedef struct
@@ -20,8 +24,8 @@ typedef struct
     uint16_t payload_length1;
     union
     {
-        uint8_t payload[536];
-        uint32_t payload_as_uint32[536/4];        
+        uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH];
+        uint32_t payload_as_uint32[AUX_MCU_MSG_PAYLOAD_LENGTH/4];        
     };
     uint16_t payload_length2;
     uint16_t payload_valid_flag;

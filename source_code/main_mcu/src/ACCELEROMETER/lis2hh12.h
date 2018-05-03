@@ -19,11 +19,10 @@ typedef struct
     int16_t acc_z;
 } acc_data_t;
 
-typedef struct
+typedef struct __attribute__((packed))
 {
-    uint8_t wasted_byte;
+    uint8_t wasted_byte_for_read_cmd;
     acc_data_t acc_data_array[32];
-    uint8_t mysterious_bytes[4];
 } acc_single_fifo_read_t;    
 
 typedef struct
@@ -45,5 +44,8 @@ BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_desc
 void lis2hh12_send_command(accelerometer_descriptor_t* descriptor_pt, uint8_t* data, uint32_t length);
 void lis2hh12_manual_acc_data_read(accelerometer_descriptor_t* descriptor_pt, acc_data_t* data_pt);
 RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descriptor_pt);
+void lis2hh12_deassert_ncs_and_go_to_sleep(accelerometer_descriptor_t* descriptor_pt);
+void lis2hh12_sleep_exit_and_dma_arm(accelerometer_descriptor_t* descriptor_pt);
+void lis2hh12_reset(accelerometer_descriptor_t* descriptor_pt);
 
 #endif /* LIS2HH12_H_ */

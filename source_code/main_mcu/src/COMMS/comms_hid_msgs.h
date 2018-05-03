@@ -8,6 +8,8 @@
 #ifndef COMMS_HID_MSGS_H_
 #define COMMS_HID_MSGS_H_
 
+#include "comms_aux_mcu.h"
+
 /* Defines */
 #define HID_1BYTE_NACK      0x00
 #define HID_1BYTE_ACK       0x01
@@ -22,13 +24,13 @@ typedef struct
     uint16_t payload_length;
     union
     {
-        uint8_t payload[0];
-        uint32_t payload_as_uint32[0];
+        uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)-sizeof(uint16_t)];
+        uint32_t payload_as_uint32[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)-sizeof(uint16_t))/4];
     };
 } hid_message_t;
 
 /* Prototypes */
-int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length);
+int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg);
 
 
 #endif /* COMMS_HID_MSGS_H_ */

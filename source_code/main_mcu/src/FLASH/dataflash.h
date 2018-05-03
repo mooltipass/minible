@@ -27,6 +27,8 @@ void dataflash_bulk_erase_with_wait(spi_flash_descriptor_t* descriptor_pt);
 RET_TYPE dataflash_check_presence(spi_flash_descriptor_t* descriptor_pt);
 void dataflash_send_write_enable(spi_flash_descriptor_t* descriptor_pt);
 void dataflash_wait_for_not_busy(spi_flash_descriptor_t* descriptor_pt);
+void dataflash_exit_power_down(spi_flash_descriptor_t* descriptor_pt);
 RET_TYPE dataflash_is_busy(spi_flash_descriptor_t* descriptor_pt);
+void dataflash_power_down(spi_flash_descriptor_t* descriptor_pt);
 
 #endif /* W25Q16_H_ */

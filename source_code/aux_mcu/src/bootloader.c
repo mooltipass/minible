@@ -52,54 +52,9 @@
 #include "clock_manager.h"
 #include "dma.h"
 #include "comm.h"
-#include "ble/ble.h"
 
 static volatile bool main_b_keyboard_enable = false;
 static volatile bool main_b_generic_enable = false;
-static volatile uint8_t main_b_vbus_status = 0;
-
-/****************************************************************************/
-/* The blob of code below is aimed at facilitating our development process  */
-/* To understand this, you need to know that:                               */
-/* - the Cortex M0 expects the stack pointer address to be at addr 0x0000   */
-/* - the Cortex M0 expects the reset handler address to be at addr 0x0004   */
-/*                                                                          */
-/* So this is what we do:                                                   */
-/* - put the sram base address + something at addr0 using the array below   */
-/* - then put the address of a custom function made to boot the main code   */
-/*                                                                          */
-/* This is made possible by:                                                */
-/* - adding .flash_start_addr=0x0 to linker option                          */
-/* - adding .start_app_function_addr=0x200 (matches the 2nd element in array*/
-/* - adding --undefined=jump_to_application_function to linker option       */
-/* - adding --undefined=jump_to_application_function_addr to linker option  */
-/*                                                                          */
-/* To move the application address, change APP_START_ADDR & .text           */
-/* What I don't understand: why the "+1" in the second array element        */
-/****************************************************************************/
-#define APP_START_ADDR (0x1000)
-const uint32_t jump_to_application_function_addr[2] __attribute__((used,section (".flash_start_addr"))) = {HMCRAMC0_ADDR+100,0x200+1};
-void jump_to_application_function(void) __attribute__((used,section (".start_app_function_addr")));
-void jump_to_application_function(void)
-{
-    /* Overwriting the default value of the NVMCTRL.CTRLB.MANW bit (errata reference 13134) */
-    NVMCTRL->CTRLB.bit.MANW = 1;
-    
-    /* Pointer to the Application Section */
-    void (*application_code_entry)(void);
-    
-    /* Rebase the Stack Pointer */
-    __set_MSP(*(uint32_t*)APP_START_ADDR);
-    
-    /* Rebase the vector table base address */
-    SCB->VTOR = ((uint32_t)APP_START_ADDR & SCB_VTOR_TBLOFF_Msk);
-    
-    /* Load the Reset Handler address of the application */
-    application_code_entry = (void (*)(void))(unsigned *)(*(unsigned *)(APP_START_ADDR + 4));
-    
-    /* Jump to user Reset Handler in the application */
-    application_code_entry();
-}
 
 /*! \brief Main function. Execution starts here.
  */
@@ -118,28 +73,27 @@ int main(void) {
 
     // Power Manager init
     power_manager_init();
-
+    
     // Clock Manager init
     clock_manager_init();
 
     // DMA init
-    //dma_init();
+    dma_init();
 
     // Initialize USBHID
-    //usbhid_init();
+    usbhid_init();
 
     // Init Serial communications
-    //comm_init();
-
+    comm_init();
+    
     // Start USB stack to authorize VBus monitoring
-    //udc_start();
+    udc_start();
     // The main loop manages only the power mode
     // because the USB management is done by interrupt
     while (true) {
-        //sleepmgr_enter_sleep();
+        // sleepmgr_enter_sleep();
         //sercom_send_single_byte(SERCOM1, 0x55);
-        //comm_task();
-        ble_main();
+        comm_task();
     }
 }
 
@@ -151,12 +105,17 @@ void main_resume_action(void) {
 }
 
 void main_sof_action(void) {
+    if ((!main_b_keyboard_enable))
+        return;
+    //ui_process(udd_get_frame_number());
 }
 
 void main_remotewakeup_enable(void) {
+
 }
 
 void main_remotewakeup_disable(void) {
+
 }
 
 bool main_keyboard_enable(void) {
@@ -169,7 +128,7 @@ void main_keyboard_disable(void) {
 }
 
 void main_vbus_event(uint8_t b_vbus_high) {
-    main_b_vbus_status = b_vbus_high;
+    (void)b_vbus_high;
     return;
 }
 

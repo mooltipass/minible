@@ -1,20 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="14.0">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>7.0</ProjectVersion>
     <ToolchainName>com.Atmel.ARMGCC.C</ToolchainName>
     <ProjectGuid>dce6c7e3-ee26-4d79-826b-08594b9ad897</ProjectGuid>
-    <avrdevice>ATSAMD21G18A</avrdevice>
+    <avrdevice>ATSAMD21E17A</avrdevice>
     <avrdeviceseries>samd21</avrdeviceseries>
     <OutputType>Executable</OutputType>
     <Language>C</Language>
     <OutputFileName>$(MSBuildProjectName)</OutputFileName>
     <OutputFileExtension>.elf</OutputFileExtension>
     <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
-    <AssemblyName>mini_ble</AssemblyName>
-    <Name>mini_ble</Name>
-    <RootNamespace>mini_ble</RootNamespace>
+    <AssemblyName>bootloader</AssemblyName>
+    <Name>bootloader</Name>
+    <RootNamespace>bootloader</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
@@ -31,9 +31,20 @@
         <options>
           <option id="common.boards" value="Add" config="" content-id="Atmel.ASF" />
           <option id="sam0.drivers.system" value="Add" config="" content-id="Atmel.ASF" />
+          <option id="common.services.usb.class.device" value="Add" config="composite" content-id="Atmel.ASF" />
           <option id="sam0.utils.linker_scripts" value="Add" config="" content-id="Atmel.ASF" />
         </options>
-        <configurations />
+        <configurations>
+          <configuration key="config.common.utils.stdio.stdio_usb.composite" value="disable" default="disable" content-id="Atmel.ASF" />
+          <configuration key="config.common.services.usb.class.cdc.device.composite" value="disable" default="disable" content-id="Atmel.ASF" />
+          <configuration key="config.common.services.usb.class.hid.device.generic.composite" value="disable" default="disable" content-id="Atmel.ASF" />
+          <configuration key="config.common.services.usb.class.hid.device.keyboard.composite" value="enable" default="disable" content-id="Atmel.ASF" />
+          <configuration key="config.sam0.drivers.extint" value="callback" default="callback" content-id="Atmel.ASF" />
+          <configuration key="config.common.services.usb.class.hid.device.mouse.composite" value="disable" default="disable" content-id="Atmel.ASF" />
+          <configuration key="config.common.services.usb.class.msc.device.composite" value="disable" default="disable" content-id="Atmel.ASF" />
+          <configuration key="config.common.services.usb.class.phdc.device.composite" value="disable" default="disable" content-id="Atmel.ASF" />
+          <configuration key="config.common.services.usb.class.vendor.device.composite" value="disable" default="disable" content-id="Atmel.ASF" />
+        </configurations>
         <files>
           <file path="src/main.c" framework="" version="" source="common2/applications/user_application/main.c" changed="False" content-id="Atmel.ASF" />
           <file path="src/config/conf_board.h" framework="" version="" source="common2/applications/user_application/user_board/config_samd21/conf_board.h" changed="False" content-id="Atmel.ASF" />
@@ -46,10 +57,10 @@
           <file path="src/ASF/common/utils/interrupt/interrupt_sam_nvic.h" framework="" version="" source="common/utils/interrupt/interrupt_sam_nvic.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/common/utils/parts.h" framework="" version="" source="common/utils/parts.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/drivers/system/clock/clock.h" framework="" version="" source="sam0/drivers/system/clock/clock.h" changed="False" content-id="Atmel.ASF" />
-          <file path="src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock.c" framework="" version="" source="sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock.c" changed="False" content-id="Atmel.ASF" />
-          <file path="src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock_config_check.h" framework="" version="" source="sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock_config_check.h" changed="False" content-id="Atmel.ASF" />
-          <file path="src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock_feature.h" framework="" version="" source="sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock_feature.h" changed="False" content-id="Atmel.ASF" />
-          <file path="src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1/gclk.c" framework="" version="" source="sam0/drivers/system/clock/clock_samd21_r21_da_ha1/gclk.c" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da/clock.c" framework="" version="" source="sam0/drivers/system/clock/clock_samd21_r21_da/clock.c" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da/clock_config_check.h" framework="" version="" source="sam0/drivers/system/clock/clock_samd21_r21_da/clock_config_check.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da/clock_feature.h" framework="" version="" source="sam0/drivers/system/clock/clock_samd21_r21_da/clock_feature.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da/gclk.c" framework="" version="" source="sam0/drivers/system/clock/clock_samd21_r21_da/gclk.c" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/drivers/system/clock/gclk.h" framework="" version="" source="sam0/drivers/system/clock/gclk.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/drivers/system/interrupt/system_interrupt.c" framework="" version="" source="sam0/drivers/system/interrupt/system_interrupt.c" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/drivers/system/interrupt/system_interrupt.h" framework="" version="" source="sam0/drivers/system/interrupt/system_interrupt.h" changed="False" content-id="Atmel.ASF" />
@@ -57,8 +68,8 @@
           <file path="src/ASF/sam0/drivers/system/pinmux/pinmux.c" framework="" version="" source="sam0/drivers/system/pinmux/pinmux.c" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/drivers/system/pinmux/pinmux.h" framework="" version="" source="sam0/drivers/system/pinmux/pinmux.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/drivers/system/pinmux/quick_start/qs_pinmux_basic.h" framework="" version="" source="sam0/drivers/system/pinmux/quick_start/qs_pinmux_basic.h" changed="False" content-id="Atmel.ASF" />
-          <file path="src/ASF/sam0/drivers/system/power/power_sam_d_r_h/power.h" framework="" version="" source="sam0/drivers/system/power/power_sam_d_r_h/power.h" changed="False" content-id="Atmel.ASF" />
-          <file path="src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h/reset.h" framework="" version="" source="sam0/drivers/system/reset/reset_sam_d_r_h/reset.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/system/power/power_sam_d_r/power.h" framework="" version="" source="sam0/drivers/system/power/power_sam_d_r/power.h" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/drivers/system/reset/reset_sam_d_r/reset.h" framework="" version="" source="sam0/drivers/system/reset/reset_sam_d_r/reset.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/drivers/system/system.c" framework="" version="" source="sam0/drivers/system/system.c" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/drivers/system/system.h" framework="" version="" source="sam0/drivers/system/system.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/utils/cmsis/samd21/include/component/ac.h" framework="" version="" source="sam0/utils/cmsis/samd21/include/component/ac.h" changed="False" content-id="Atmel.ASF" />
@@ -178,7 +189,7 @@
           <file path="src/ASF/sam0/utils/cmsis/samd21/source/system_samd21.h" framework="" version="" source="sam0/utils/cmsis/samd21/source/system_samd21.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/utils/compiler.h" framework="" version="" source="sam0/utils/compiler.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/utils/header_files/io.h" framework="" version="" source="sam0/utils/header_files/io.h" changed="False" content-id="Atmel.ASF" />
-          <file path="src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld" framework="" version="" source="sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld" changed="False" content-id="Atmel.ASF" />
+          <file path="src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21e17a_flash.ld" framework="" version="" source="sam0/utils/linker_scripts/samd21/gcc/samd21e17a_flash.ld" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/utils/make/Makefile.sam.in" framework="" version="" source="sam0/utils/make/Makefile.sam.in" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/utils/preprocessor/mrecursion.h" framework="" version="" source="sam0/utils/preprocessor/mrecursion.h" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/sam0/utils/preprocessor/mrepeat.h" framework="" version="" source="sam0/utils/preprocessor/mrepeat.h" changed="False" content-id="Atmel.ASF" />
@@ -198,18 +209,18 @@
           <file path="src/ASF/thirdparty/CMSIS/README.txt" framework="" version="" source="thirdparty/CMSIS/README.txt" changed="False" content-id="Atmel.ASF" />
           <file path="src/ASF/thirdparty/CMSIS/license.txt" framework="" version="" source="thirdparty/CMSIS/license.txt" changed="False" content-id="Atmel.ASF" />
         </files>
-        <documentation help="http://asf.atmel.com/docs/3.34.1/common.applications.user_application.sam0_system.user_board.atsamd21g18a/html/index.html" />
+        <documentation help="http://asf.atmel.com/docs/3.32.0/common.applications.user_application.sam0_system.user_board.atsamd21e17a/html/index.html" />
         <offline-documentation help="" />
         <dependencies>
-          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.28.1" />
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.32.0" />
         </dependencies>
-        <project id="common.applications.user_application.sam0_system.user_board.atsamd21g18a" value="Add" config="" content-id="Atmel.ASF" />
-        <board id="board.user_board.samd21g" value="Add" config="" content-id="Atmel.ASF" />
+        <project id="common.applications.user_application.sam0_system.user_board.atsamd21e17a" value="Add" config="" content-id="Atmel.ASF" />
+        <board id="board.user_board.samd21e" value="Add" config="" content-id="Atmel.ASF" />
       </framework-data>
     </AsfFrameworkConfig>
     <avrtool>com.atmel.avrdbg.tool.atmelice</avrtool>
-    <avrtoolserialnumber>J41800076626</avrtoolserialnumber>
-    <avrdeviceexpectedsignature>0x10010305</avrdeviceexpectedsignature>
+    <avrtoolserialnumber>J41800080444</avrtoolserialnumber>
+    <avrdeviceexpectedsignature>0x1001030B</avrdeviceexpectedsignature>
     <avrtoolinterface>SWD</avrtoolinterface>
     <com_atmel_avrdbg_tool_atmelice>
       <ToolOptions>
@@ -219,7 +230,7 @@
         <InterfaceName>SWD</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.atmelice</ToolType>
-      <ToolNumber>J41800076626</ToolNumber>
+      <ToolNumber>J41800080444</ToolNumber>
       <ToolName>Atmel-ICE</ToolName>
     </com_atmel_avrdbg_tool_atmelice>
     <avrtoolinterfaceclock>2000000</avrtoolinterfaceclock>
@@ -236,15 +247,16 @@
   <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
   <armgcc.compiler.symbols.DefSymbols>
     <ListValues>
+      <Value>NDEBUG</Value>
       <Value>BOARD=USER_BOARD</Value>
       <Value>ARM_MATH_CM0PLUS=true</Value>
-      <Value>__CORTEX_SC=0</Value>
-      <Value>NDEBUG</Value>
+      <Value>USB_DEVICE_LPM_SUPPORT</Value>
+      <Value>UDD_ENABLE</Value>
+      <Value>EXTINT_CALLBACK_MODE=true</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
   <armgcc.compiler.directories.IncludePaths>
     <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
       <Value>../src/ASF/common/boards</Value>
       <Value>../src/ASF/sam0/utils</Value>
       <Value>../src/ASF/sam0/utils/header_files</Value>
@@ -255,38 +267,38 @@
       <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
       <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
+      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da</Value>
       <Value>../src/ASF/sam0/drivers/system/clock</Value>
       <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
       <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
       <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
       <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
+      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r</Value>
       <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
+      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r</Value>
       <Value>../src/ASF/common2/boards/user_board</Value>
       <Value>../src</Value>
       <Value>../src/config</Value>
-      <Value>../src/PLATFORM</Value>
-      <Value>../src/CLOCKS</Value>
-      <Value>../src/SERCOM</Value>
-      <Value>../src/FLASH</Value>
-      <Value>../src/FILESYSTEM</Value>
-      <Value>../src/DMA</Value>
-      <Value>../src/TIMER</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-      <Value>../src/SMARTCARD</Value>
-      <Value>../src/OLED</Value>
-      <Value>../src/ACCELEROMETER</Value>
-      <Value>../src/INPUTS</Value>
-      <Value>../src/COMMS</Value>
+      <Value>../src/ASF/sam0/drivers/port</Value>
+      <Value>../src/ASF/common/services/sleepmgr</Value>
+      <Value>../src/ASF/common/services/usb</Value>
+      <Value>../src/ASF/common/services/usb/class/composite/device</Value>
+      <Value>../src/ASF/common/services/usb/class/hid</Value>
+      <Value>../src/ASF/common/services/usb/class/hid/device</Value>
+      <Value>../src/ASF/common/services/usb/class/hid/device/kbd</Value>
+      <Value>../src/ASF/common/services/usb/udc</Value>
+      <Value>../src/ASF/sam0/drivers/extint</Value>
+      <Value>../src/ASF/sam0/drivers/extint/extint_sam_d_r</Value>
+      <Value>../src/ASF/sam0/drivers/usb</Value>
+      <Value>../src/ASF/sam0/drivers/usb/usb_sam_d_r</Value>
+      <Value>../src/ASF/sam0/drivers/usb/stack_interface</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
   <armgcc.compiler.optimization.OtherFlags>-fdata-sections</armgcc.compiler.optimization.OtherFlags>
   <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
   <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
-  <armgcc.compiler.miscellaneous.OtherFlags>-pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wjump-misses-init</armgcc.compiler.miscellaneous.OtherFlags>
+  <armgcc.compiler.miscellaneous.OtherFlags>-pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500</armgcc.compiler.miscellaneous.OtherFlags>
   <armgcc.linker.general.UseNewlibNano>True</armgcc.linker.general.UseNewlibNano>
   <armgcc.linker.libraries.Libraries>
     <ListValues>
@@ -296,29 +308,13 @@
   </armgcc.linker.libraries.Libraries>
   <armgcc.linker.libraries.LibrarySearchPaths>
     <ListValues>
-      <Value>..\src\ASF\thirdparty\CMSIS\Lib\GCC</Value>
-      <Value>%24(ProjectDir)\Device_Startup</Value>
+      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
     </ListValues>
   </armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
-  <armgcc.linker.memorysettings.Flash>
-    <ListValues>
-      <Value>.start_app_function_addr=0x200</Value>
-      <Value>.flash_start_addr=0x0</Value>
-      <Value>.text=0x1000</Value>
-    </ListValues>
-  </armgcc.linker.memorysettings.Flash>
-  <armgcc.linker.memorysettings.ExternalRAM>False</armgcc.linker.memorysettings.ExternalRAM>
-  <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
-  <armgcc.linker.miscellaneous.OtherOptions>
-    <ListValues>
-      <Value>--undefined=jump_to_application_function_addr</Value>
-      <Value>--undefined=jump_to_application_function</Value>
-    </ListValues>
-  </armgcc.linker.miscellaneous.OtherOptions>
+  <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21e17a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
   <armgcc.assembler.general.IncludePaths>
     <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
       <Value>../src/ASF/common/boards</Value>
       <Value>../src/ASF/sam0/utils</Value>
       <Value>../src/ASF/sam0/utils/header_files</Value>
@@ -329,25 +325,36 @@
       <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
       <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
+      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da</Value>
       <Value>../src/ASF/sam0/drivers/system/clock</Value>
       <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
       <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
       <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
       <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
+      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r</Value>
       <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
+      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r</Value>
       <Value>../src/ASF/common2/boards/user_board</Value>
       <Value>../src</Value>
       <Value>../src/config</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
+      <Value>../src/ASF/sam0/drivers/port</Value>
+      <Value>../src/ASF/common/services/sleepmgr</Value>
+      <Value>../src/ASF/common/services/usb</Value>
+      <Value>../src/ASF/common/services/usb/class/composite/device</Value>
+      <Value>../src/ASF/common/services/usb/class/hid</Value>
+      <Value>../src/ASF/common/services/usb/class/hid/device</Value>
+      <Value>../src/ASF/common/services/usb/class/hid/device/kbd</Value>
+      <Value>../src/ASF/common/services/usb/udc</Value>
+      <Value>../src/ASF/sam0/drivers/extint</Value>
+      <Value>../src/ASF/sam0/drivers/extint/extint_sam_d_r</Value>
+      <Value>../src/ASF/sam0/drivers/usb</Value>
+      <Value>../src/ASF/sam0/drivers/usb/usb_sam_d_r</Value>
+      <Value>../src/ASF/sam0/drivers/usb/stack_interface</Value>
     </ListValues>
   </armgcc.assembler.general.IncludePaths>
-  <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD</armgcc.preprocessingassembler.general.AssemblerFlags>
+  <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD -DUSB_DEVICE_LPM_SUPPORT -DUDD_ENABLE -DEXTINT_CALLBACK_MODE=true</armgcc.preprocessingassembler.general.AssemblerFlags>
   <armgcc.preprocessingassembler.general.IncludePaths>
     <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
       <Value>../src/ASF/common/boards</Value>
       <Value>../src/ASF/sam0/utils</Value>
       <Value>../src/ASF/sam0/utils/header_files</Value>
@@ -358,19 +365,31 @@
       <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
       <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
+      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da</Value>
       <Value>../src/ASF/sam0/drivers/system/clock</Value>
       <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
       <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
       <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
       <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
+      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r</Value>
       <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
+      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r</Value>
       <Value>../src/ASF/common2/boards/user_board</Value>
       <Value>../src</Value>
       <Value>../src/config</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
+      <Value>../src/ASF/sam0/drivers/port</Value>
+      <Value>../src/ASF/common/services/sleepmgr</Value>
+      <Value>../src/ASF/common/services/usb</Value>
+      <Value>../src/ASF/common/services/usb/class/composite/device</Value>
+      <Value>../src/ASF/common/services/usb/class/hid</Value>
+      <Value>../src/ASF/common/services/usb/class/hid/device</Value>
+      <Value>../src/ASF/common/services/usb/class/hid/device/kbd</Value>
+      <Value>../src/ASF/common/services/usb/udc</Value>
+      <Value>../src/ASF/sam0/drivers/extint</Value>
+      <Value>../src/ASF/sam0/drivers/extint/extint_sam_d_r</Value>
+      <Value>../src/ASF/sam0/drivers/usb</Value>
+      <Value>../src/ASF/sam0/drivers/usb/usb_sam_d_r</Value>
+      <Value>../src/ASF/sam0/drivers/usb/stack_interface</Value>
     </ListValues>
   </armgcc.preprocessingassembler.general.IncludePaths>
 </ArmGcc>
@@ -386,15 +405,18 @@
   <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
   <armgcc.compiler.symbols.DefSymbols>
     <ListValues>
+      <Value>DEBUG</Value>
       <Value>BOARD=USER_BOARD</Value>
       <Value>ARM_MATH_CM0PLUS=true</Value>
-      <Value>__CORTEX_SC=0</Value>
-      <Value>DEBUG</Value>
+      <Value>USB_DEVICE_LPM_SUPPORT</Value>
+      <Value>UDD_ENABLE</Value>
+      <Value>EXTINT_CALLBACK_MODE=true</Value>
+      <Value>ACCESS_USB_ENABLED</Value>
+      <Value>UDD_NO_SLEEP_MGR</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
   <armgcc.compiler.directories.IncludePaths>
     <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
       <Value>../src/ASF/common/boards</Value>
       <Value>../src/ASF/sam0/utils</Value>
       <Value>../src/ASF/sam0/utils/header_files</Value>
@@ -405,31 +427,39 @@
       <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
       <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
+      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da</Value>
       <Value>../src/ASF/sam0/drivers/system/clock</Value>
       <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
       <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
       <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
       <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
+      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r</Value>
       <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
+      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r</Value>
       <Value>../src/ASF/common2/boards/user_board</Value>
       <Value>../src</Value>
       <Value>../src/config</Value>
-      <Value>../src/PLATFORM</Value>
-      <Value>../src/CLOCKS</Value>
+      <Value>../src/ASF/common/services/usb/class/hid/device/generic</Value>
+      <Value>../src/ASF/common/services/usb/class/hid/device/kbd</Value>
+      <Value>../src/ASF/common/services/usb/class/hid/device</Value>
+      <Value>../src/ASF/common/services/usb/class/hid</Value>
+      <Value>../src/ASF/common/services/usb/class/composite/device</Value>
+      <Value>../src/ASF/common/services/usb/udc</Value>
+      <Value>../src/ASF/common/services/usb</Value>
+      <Value>../src/ASF/sam0/drivers/port</Value>
+      <Value>../src/ASF/common/services/sleepmgr</Value>
+      <Value>../src/ASF/sam0/drivers/extint</Value>
+      <Value>../src/ASF/sam0/drivers/extint/extint_sam_d_r</Value>
+      <Value>../src/ASF/sam0/drivers/usb</Value>
+      <Value>../src/ASF/sam0/drivers/usb/usb_sam_d_r</Value>
+      <Value>../src/ASF/sam0/drivers/usb/stack_interface</Value>
+      <Value>../src/USBHID</Value>
       <Value>../src/SERCOM</Value>
-      <Value>../src/FLASH</Value>
-      <Value>../src/FILESYSTEM</Value>
+      <Value>../src/PORT</Value>
+      <Value>../src/PM</Value>
       <Value>../src/DMA</Value>
-      <Value>../src/TIMER</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-      <Value>../src/SMARTCARD</Value>
-      <Value>../src/OLED</Value>
-      <Value>../src/ACCELEROMETER</Value>
-      <Value>../src/INPUTS</Value>
-      <Value>../src/COMMS</Value>
+      <Value>../src/CLOCK</Value>
+      <Value>../src/COMM</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
@@ -437,7 +467,7 @@
   <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
   <armgcc.compiler.optimization.DebugLevel>Maximum (-g3)</armgcc.compiler.optimization.DebugLevel>
   <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
-  <armgcc.compiler.miscellaneous.OtherFlags>-pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wjump-misses-init</armgcc.compiler.miscellaneous.OtherFlags>
+  <armgcc.compiler.miscellaneous.OtherFlags>-pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500</armgcc.compiler.miscellaneous.OtherFlags>
   <armgcc.linker.general.UseNewlibNano>True</armgcc.linker.general.UseNewlibNano>
   <armgcc.linker.libraries.Libraries>
     <ListValues>
@@ -447,29 +477,14 @@
   </armgcc.linker.libraries.Libraries>
   <armgcc.linker.libraries.LibrarySearchPaths>
     <ListValues>
-      <Value>..\src\ASF\thirdparty\CMSIS\Lib\GCC</Value>
-      <Value>%24(ProjectDir)\Device_Startup</Value>
+      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
     </ListValues>
   </armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
-  <armgcc.linker.memorysettings.Flash>
-    <ListValues>
-      <Value>.start_app_function_addr=0x200</Value>
-      <Value>.flash_start_addr=0x0</Value>
-      <Value>.text=0x1000</Value>
-    </ListValues>
-  </armgcc.linker.memorysettings.Flash>
   <armgcc.linker.memorysettings.ExternalRAM />
-  <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
-  <armgcc.linker.miscellaneous.OtherOptions>
-    <ListValues>
-      <Value>--undefined=jump_to_application_function_addr</Value>
-      <Value>--undefined=jump_to_application_function</Value>
-    </ListValues>
-  </armgcc.linker.miscellaneous.OtherOptions>
+  <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21e17a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
   <armgcc.assembler.general.IncludePaths>
     <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
       <Value>../src/ASF/common/boards</Value>
       <Value>../src/ASF/sam0/utils</Value>
       <Value>../src/ASF/sam0/utils/header_files</Value>
@@ -480,26 +495,37 @@
       <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
       <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
+      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da</Value>
       <Value>../src/ASF/sam0/drivers/system/clock</Value>
       <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
       <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
       <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
       <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
+      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r</Value>
       <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
+      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r</Value>
       <Value>../src/ASF/common2/boards/user_board</Value>
       <Value>../src</Value>
       <Value>../src/config</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
+      <Value>../src/ASF/sam0/drivers/port</Value>
+      <Value>../src/ASF/common/services/sleepmgr</Value>
+      <Value>../src/ASF/common/services/usb</Value>
+      <Value>../src/ASF/common/services/usb/class/composite/device</Value>
+      <Value>../src/ASF/common/services/usb/class/hid</Value>
+      <Value>../src/ASF/common/services/usb/class/hid/device</Value>
+      <Value>../src/ASF/common/services/usb/class/hid/device/kbd</Value>
+      <Value>../src/ASF/common/services/usb/udc</Value>
+      <Value>../src/ASF/sam0/drivers/extint</Value>
+      <Value>../src/ASF/sam0/drivers/extint/extint_sam_d_r</Value>
+      <Value>../src/ASF/sam0/drivers/usb</Value>
+      <Value>../src/ASF/sam0/drivers/usb/usb_sam_d_r</Value>
+      <Value>../src/ASF/sam0/drivers/usb/stack_interface</Value>
     </ListValues>
   </armgcc.assembler.general.IncludePaths>
   <armgcc.assembler.debugging.DebugLevel>Default (-g)</armgcc.assembler.debugging.DebugLevel>
-  <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD</armgcc.preprocessingassembler.general.AssemblerFlags>
+  <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD -DUSB_DEVICE_LPM_SUPPORT -DUDD_ENABLE -DEXTINT_CALLBACK_MODE=true</armgcc.preprocessingassembler.general.AssemblerFlags>
   <armgcc.preprocessingassembler.general.IncludePaths>
     <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
       <Value>../src/ASF/common/boards</Value>
       <Value>../src/ASF/sam0/utils</Value>
       <Value>../src/ASF/sam0/utils/header_files</Value>
@@ -510,19 +536,31 @@
       <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
       <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
       <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
+      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da</Value>
       <Value>../src/ASF/sam0/drivers/system/clock</Value>
       <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
       <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
       <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
       <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
+      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r</Value>
       <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
+      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r</Value>
       <Value>../src/ASF/common2/boards/user_board</Value>
       <Value>../src</Value>
       <Value>../src/config</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
+      <Value>../src/ASF/sam0/drivers/port</Value>
+      <Value>../src/ASF/common/services/sleepmgr</Value>
+      <Value>../src/ASF/common/services/usb</Value>
+      <Value>../src/ASF/common/services/usb/class/composite/device</Value>
+      <Value>../src/ASF/common/services/usb/class/hid</Value>
+      <Value>../src/ASF/common/services/usb/class/hid/device</Value>
+      <Value>../src/ASF/common/services/usb/class/hid/device/kbd</Value>
+      <Value>../src/ASF/common/services/usb/udc</Value>
+      <Value>../src/ASF/sam0/drivers/extint</Value>
+      <Value>../src/ASF/sam0/drivers/extint/extint_sam_d_r</Value>
+      <Value>../src/ASF/sam0/drivers/usb</Value>
+      <Value>../src/ASF/sam0/drivers/usb/usb_sam_d_r</Value>
+      <Value>../src/ASF/sam0/drivers/usb/stack_interface</Value>
     </ListValues>
   </armgcc.preprocessingassembler.general.IncludePaths>
   <armgcc.preprocessingassembler.debugging.DebugLevel>Default (-Wa,-g)</armgcc.preprocessingassembler.debugging.DebugLevel>
@@ -530,142 +568,197 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="src\ACCELEROMETER\lis2hh12.c">
+    <Folder Include="src\" />
+    <Folder Include="src\ASF\" />
+    <Folder Include="src\ASF\common2\" />
+    <Folder Include="src\ASF\common2\boards\" />
+    <Folder Include="src\ASF\common2\boards\user_board\" />
+    <Folder Include="src\ASF\common\" />
+    <Folder Include="src\ASF\common\boards\" />
+    <Folder Include="src\ASF\common\services\" />
+    <Folder Include="src\ASF\common\services\sleepmgr\" />
+    <Folder Include="src\ASF\common\services\sleepmgr\samd\" />
+    <Folder Include="src\ASF\common\services\usb\" />
+    <Folder Include="src\ASF\common\services\usb\class\" />
+    <Folder Include="src\ASF\common\services\usb\class\composite\" />
+    <Folder Include="src\ASF\common\services\usb\class\composite\device\" />
+    <Folder Include="src\ASF\common\services\usb\class\hid\" />
+    <Folder Include="src\ASF\common\services\usb\class\hid\device\" />
+    <Folder Include="src\ASF\common\services\usb\class\hid\device\generic\" />
+    <Folder Include="src\ASF\common\services\usb\class\hid\device\kbd\" />
+    <Folder Include="src\ASF\common\services\usb\udc\" />
+    <Folder Include="src\ASF\common\utils\" />
+    <Folder Include="src\ASF\common\utils\interrupt\" />
+    <Folder Include="src\ASF\sam0\" />
+    <Folder Include="src\ASF\sam0\drivers\" />
+    <Folder Include="src\ASF\sam0\drivers\extint\" />
+    <Folder Include="src\ASF\sam0\drivers\extint\extint_sam_d_r\" />
+    <Folder Include="src\ASF\sam0\drivers\port\" />
+    <Folder Include="src\ASF\sam0\drivers\port\quick_start\" />
+    <Folder Include="src\ASF\sam0\drivers\system\" />
+    <Folder Include="src\ASF\sam0\drivers\system\clock\" />
+    <Folder Include="src\ASF\sam0\drivers\system\clock\clock_samd21_r21_da\" />
+    <Folder Include="src\ASF\sam0\drivers\system\interrupt\" />
+    <Folder Include="src\ASF\sam0\drivers\system\interrupt\system_interrupt_samd21\" />
+    <Folder Include="src\ASF\sam0\drivers\system\pinmux\" />
+    <Folder Include="src\ASF\sam0\drivers\system\pinmux\quick_start\" />
+    <Folder Include="src\ASF\sam0\drivers\system\power\" />
+    <Folder Include="src\ASF\sam0\drivers\system\power\power_sam_d_r\" />
+    <Folder Include="src\ASF\sam0\drivers\system\reset\" />
+    <Folder Include="src\ASF\sam0\drivers\system\reset\reset_sam_d_r\" />
+    <Folder Include="src\ASF\sam0\drivers\usb\" />
+    <Folder Include="src\ASF\sam0\drivers\usb\stack_interface\" />
+    <Folder Include="src\ASF\sam0\drivers\usb\usb_sam_d_r\" />
+    <Folder Include="src\ASF\sam0\utils\" />
+    <Folder Include="src\ASF\sam0\utils\cmsis\" />
+    <Folder Include="src\ASF\sam0\utils\cmsis\samd21\" />
+    <Folder Include="src\ASF\sam0\utils\cmsis\samd21\include\" />
+    <Folder Include="src\ASF\sam0\utils\cmsis\samd21\include\component\" />
+    <Folder Include="src\ASF\sam0\utils\cmsis\samd21\include\instance\" />
+    <Folder Include="src\ASF\sam0\utils\cmsis\samd21\include\pio\" />
+    <Folder Include="src\ASF\sam0\utils\cmsis\samd21\source\" />
+    <Folder Include="src\ASF\sam0\utils\cmsis\samd21\source\gcc\" />
+    <Folder Include="src\ASF\sam0\utils\header_files\" />
+    <Folder Include="src\ASF\sam0\utils\linker_scripts\" />
+    <Folder Include="src\ASF\sam0\utils\linker_scripts\samd21\" />
+    <Folder Include="src\ASF\sam0\utils\linker_scripts\samd21\gcc\" />
+    <Folder Include="src\ASF\sam0\utils\make\" />
+    <Folder Include="src\ASF\sam0\utils\preprocessor\" />
+    <Folder Include="src\ASF\sam0\utils\syscalls\" />
+    <Folder Include="src\ASF\sam0\utils\syscalls\gcc\" />
+    <Folder Include="src\ASF\thirdparty\" />
+    <Folder Include="src\ASF\thirdparty\CMSIS\" />
+    <Folder Include="src\ASF\thirdparty\CMSIS\Include\" />
+    <Folder Include="src\ASF\thirdparty\CMSIS\Lib\" />
+    <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
+    <Folder Include="src\config\" />
+    <Folder Include="src\DMA\" />
+    <Folder Include="src\CLOCK" />
+    <Folder Include="src\COMM" />
+    <Folder Include="src\PM\" />
+    <Folder Include="src\PORT\" />
+    <Folder Include="src\SERCOM\" />
+    <Folder Include="src\USBHID\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="src\ASF\common\services\sleepmgr\samd\sleepmgr.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\ACCELEROMETER\lis2hh12.h">
+    <None Include="src\ASF\common\services\sleepmgr\samd\sleepmgr.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\common\services\sleepmgr\sleepmgr.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\common\services\usb\class\composite\device\udi_composite_conf.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\common\services\usb\class\composite\device\udi_composite_desc.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\CLOCKS\driver_clocks.c">
+    <Compile Include="src\ASF\common\services\usb\class\hid\device\generic\udi_hid_generic.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\CLOCKS\driver_clocks.h">
+    <None Include="src\ASF\common\services\usb\class\hid\device\generic\udi_hid_generic.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\common\services\usb\class\hid\device\generic\udi_hid_generic_conf.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\common\services\usb\class\hid\device\kbd\udi_hid_kbd.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\COMMS\comms_aux_mcu.c">
+    <None Include="src\ASF\common\services\usb\class\hid\device\kbd\udi_hid_kbd.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\common\services\usb\class\hid\device\kbd\udi_hid_kbd_conf.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\common\services\usb\class\hid\device\udi_hid.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\COMMS\comms_aux_mcu.h">
+    <None Include="src\ASF\common\services\usb\class\hid\device\udi_hid.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\common\services\usb\class\hid\usb_protocol_hid.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\common\services\usb\udc\udc.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\COMMS\comms_hid_msgs.c">
+    <None Include="src\ASF\common\services\usb\udc\udc.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\common\services\usb\udc\udc_desc.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\common\services\usb\udc\udd.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\common\services\usb\udc\udi.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\common\services\usb\usb_atmel.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\common\services\usb\usb_protocol.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\bootloader.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\COMMS\comms_hid_msgs.h">
+    <Compile Include="src\bootloader.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\COMMS\comms_hid_msgs_debug.c">
+    <Compile Include="src\CLOCK\clock_manager.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\COMMS\comms_hid_msgs_debug.h">
+    <Compile Include="src\CLOCK\clock_manager.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\debug.c">
+    <Compile Include="src\COMM\comm.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\debug.h">
+    <Compile Include="src\COMM\comm.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\DMA\dma.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\DMA\dma.h">
+    <None Include="src\DMA\dma.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\PM\power_manager.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\FILESYSTEM\custom_bitstream.c">
+    <None Include="src\PM\power_manager.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\PORT\port_manager.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\FILESYSTEM\custom_bitstream.h">
+    <None Include="src\PORT\port_manager.h">
       <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\FILESYSTEM\custom_fs.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\FILESYSTEM\custom_fs.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\FILESYSTEM\custom_fs_emergency_font.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\FILESYSTEM\custom_fs_emergency_font.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\FLASH\dataflash.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\FLASH\dataflash.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\FLASH\dbflash.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\FLASH\dbflash.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\INPUTS\inputs.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\INPUTS\inputs.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\main.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\OLED\mooltipass_graphics_bundle.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\OLED\mooltipass_graphics_bundle.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\OLED\sh1122.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\OLED\sh1122.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\PLATFORM\platform_io.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\PLATFORM\platform_io.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\platform_defines.h">
-      <SubType>compile</SubType>
-    </Compile>
+    </None>
     <Compile Include="src\SERCOM\driver_sercom.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\SERCOM\driver_sercom.h">
+    <None Include="src\SERCOM\driver_sercom.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\USBHID\usbhid.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\SMARTCARD\smartcard_highlevel.c">
+    <None Include="src\USBHID\usbhid.h">
       <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\SMARTCARD\smartcard_highlevel.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\SMARTCARD\smartcard_lowlevel.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\SMARTCARD\smartcard_lowlevel.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\TIMER\driver_timer.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\TIMER\driver_timer.h">
-      <SubType>compile</SubType>
-    </Compile>
+    </None>
     <None Include="src\asf.h">
       <SubType>compile</SubType>
     </None>
     <Compile Include="src\ASF\common2\boards\user_board\init.c">
       <SubType>compile</SubType>
     </Compile>
-    <None Include="src\ASF\sam0\drivers\system\power\power_sam_d_r_h\power.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\utils\linker_scripts\samd21\gcc\samd21g18a_flash.ld">
+    <None Include="src\ASF\sam0\utils\linker_scripts\samd21\gcc\samd21e17a_flash.ld">
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\utils\make\Makefile.sam.in">
@@ -800,6 +893,12 @@
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\samd21e18a.h">
       <SubType>compile</SubType>
     </None>
+    <None Include="src\ASF\sam0\drivers\system\clock\clock_samd21_r21_da\clock_feature.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\system\reset\reset_sam_d_r\reset.h">
+      <SubType>compile</SubType>
+    </None>
     <None Include="src\ASF\sam0\utils\compiler.h">
       <SubType>compile</SubType>
     </None>
@@ -827,9 +926,6 @@
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\component\port.h">
       <SubType>compile</SubType>
     </None>
-    <None Include="src\ASF\sam0\drivers\system\clock\clock_samd21_r21_da_ha1\clock_feature.h">
-      <SubType>compile</SubType>
-    </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\component\hmatrixb.h">
       <SubType>compile</SubType>
     </None>
@@ -846,9 +942,6 @@
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\instance\tc4.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\system\reset\reset_sam_d_r_h\reset.h">
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\component\tcc.h">
@@ -992,6 +1085,9 @@
     <None Include="src\ASF\sam0\utils\cmsis\samd21\source\system_samd21.h">
       <SubType>compile</SubType>
     </None>
+    <None Include="src\ASF\sam0\drivers\system\power\power_sam_d_r\power.h">
+      <SubType>compile</SubType>
+    </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\instance\mtb.h">
       <SubType>compile</SubType>
     </None>
@@ -1017,6 +1113,9 @@
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\instance\eic.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\system\clock\clock_samd21_r21_da\clock_config_check.h">
       <SubType>compile</SubType>
     </None>
     <None Include="src\config\conf_board.h">
@@ -1079,19 +1178,31 @@
     <Compile Include="src\ASF\common\utils\interrupt\interrupt_sam_nvic.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\ASF\sam0\drivers\system\clock\clock_samd21_r21_da_ha1\clock.c">
+    <None Include="src\ASF\sam0\drivers\extint\extint.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\sam0\drivers\extint\extint_callback.c">
       <SubType>compile</SubType>
     </Compile>
-    <None Include="src\ASF\sam0\utils\cmsis\samd21\include\component\dsu.h">
+    <None Include="src\ASF\sam0\drivers\extint\extint_callback.h">
       <SubType>compile</SubType>
     </None>
-    <None Include="src\ASF\sam0\utils\preprocessor\mrecursion.h">
+    <Compile Include="src\ASF\sam0\drivers\extint\extint_sam_d_r\extint.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ASF\sam0\drivers\port\port.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\sam0\drivers\port\port.h">
       <SubType>compile</SubType>
     </None>
-    <None Include="src\ASF\sam0\drivers\system\clock\clock_samd21_r21_da_ha1\clock_config_check.h">
+    <None Include="src\ASF\sam0\drivers\port\quick_start\qs_port_basic.h">
       <SubType>compile</SubType>
     </None>
-    <Compile Include="src\ASF\sam0\drivers\system\clock\clock_samd21_r21_da_ha1\gclk.c">
+    <Compile Include="src\ASF\sam0\drivers\system\clock\clock_samd21_r21_da\clock.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ASF\sam0\drivers\system\clock\clock_samd21_r21_da\gclk.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\sam0\drivers\system\interrupt\system_interrupt.c">
@@ -1103,6 +1214,12 @@
     <Compile Include="src\ASF\sam0\drivers\system\system.c">
       <SubType>compile</SubType>
     </Compile>
+    <None Include="src\ASF\sam0\utils\cmsis\samd21\include\component\dsu.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\utils\preprocessor\mrecursion.h">
+      <SubType>compile</SubType>
+    </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\component\dmac.h">
       <SubType>compile</SubType>
     </None>
@@ -1127,6 +1244,21 @@
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\pio\samd21e16b.h">
       <SubType>compile</SubType>
     </None>
+    <Compile Include="src\ASF\sam0\drivers\usb\stack_interface\usb_device_udd.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ASF\sam0\drivers\usb\stack_interface\usb_dual.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\ASF\sam0\drivers\usb\stack_interface\usb_dual.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\ASF\sam0\drivers\usb\usb.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="src\ASF\sam0\drivers\usb\usb_sam_d_r\usb.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\ASF\sam0\utils\cmsis\samd21\source\gcc\startup_samd21.c">
       <SubType>compile</SubType>
     </Compile>
@@ -1139,78 +1271,13 @@
     <Compile Include="src\ASF\sam0\utils\syscalls\gcc\syscalls.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\defines.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\main.c">
-      <SubType>compile</SubType>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Device_Startup\" />
-    <Folder Include="src\" />
-    <Folder Include="src\ASF\" />
-    <Folder Include="src\ASF\common2\" />
-    <Folder Include="src\ASF\common2\boards\" />
-    <Folder Include="src\ASF\common2\boards\user_board\" />
-    <Folder Include="src\ASF\common\" />
-    <Folder Include="src\ASF\common\boards\" />
-    <Folder Include="src\ASF\common\utils\" />
-    <Folder Include="src\ASF\common\utils\interrupt\" />
-    <Folder Include="src\ASF\sam0\" />
-    <Folder Include="src\ASF\sam0\drivers\" />
-    <Folder Include="src\ASF\sam0\drivers\system\" />
-    <Folder Include="src\ASF\sam0\drivers\system\clock\" />
-    <Folder Include="src\ASF\sam0\drivers\system\clock\clock_samd21_r21_da_ha1\" />
-    <Folder Include="src\ASF\sam0\drivers\system\interrupt\" />
-    <Folder Include="src\ASF\sam0\drivers\system\interrupt\system_interrupt_samd21\" />
-    <Folder Include="src\ASF\sam0\drivers\system\pinmux\" />
-    <Folder Include="src\ASF\sam0\drivers\system\pinmux\quick_start\" />
-    <Folder Include="src\ASF\sam0\drivers\system\power\" />
-    <Folder Include="src\ASF\sam0\drivers\system\power\power_sam_d_r_h\" />
-    <Folder Include="src\ASF\sam0\drivers\system\reset\" />
-    <Folder Include="src\ASF\sam0\drivers\system\reset\reset_sam_d_r_h\" />
-    <Folder Include="src\ASF\sam0\utils\" />
-    <Folder Include="src\ASF\sam0\utils\cmsis\" />
-    <Folder Include="src\ASF\sam0\utils\cmsis\samd21\" />
-    <Folder Include="src\ASF\sam0\utils\cmsis\samd21\include\" />
-    <Folder Include="src\ASF\sam0\utils\cmsis\samd21\include\component\" />
-    <Folder Include="src\ASF\sam0\utils\cmsis\samd21\include\instance\" />
-    <Folder Include="src\ASF\sam0\utils\cmsis\samd21\include\pio\" />
-    <Folder Include="src\ASF\sam0\utils\cmsis\samd21\source\" />
-    <Folder Include="src\ASF\sam0\utils\cmsis\samd21\source\gcc\" />
-    <Folder Include="src\ASF\sam0\utils\header_files\" />
-    <Folder Include="src\ASF\sam0\utils\linker_scripts\" />
-    <Folder Include="src\ASF\sam0\utils\linker_scripts\samd21\" />
-    <Folder Include="src\ASF\sam0\utils\linker_scripts\samd21\gcc\" />
-    <Folder Include="src\ASF\sam0\utils\make\" />
-    <Folder Include="src\ASF\sam0\utils\preprocessor\" />
-    <Folder Include="src\ASF\sam0\utils\syscalls\" />
-    <Folder Include="src\ASF\sam0\utils\syscalls\gcc\" />
-    <Folder Include="src\ASF\thirdparty\" />
-    <Folder Include="src\ASF\thirdparty\CMSIS\" />
-    <Folder Include="src\ASF\thirdparty\CMSIS\Include\" />
-    <Folder Include="src\ASF\thirdparty\CMSIS\Lib\" />
-    <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
-    <Folder Include="src\config\" />
-    <Folder Include="src\CLOCKS" />
-    <Folder Include="src\FLASH" />
-    <Folder Include="src\FILESYSTEM" />
-    <Folder Include="src\DMA" />
-    <Folder Include="src\ACCELEROMETER" />
-    <Folder Include="src\INPUTS" />
-    <Folder Include="src\COMMS" />
-    <Folder Include="src\OLED" />
-    <Folder Include="src\SMARTCARD" />
-    <Folder Include="src\TIMER" />
-    <Folder Include="src\SERCOM" />
-    <Folder Include="src\PLATFORM" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Device_Startup\samd21g18a_flash.ld">
+    <None Include="src\config\conf_extint.h">
       <SubType>compile</SubType>
     </None>
-    <None Include="Device_Startup\samd21g18a_sram.ld">
+    <None Include="src\config\conf_sleepmgr.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="src\config\conf_usb.h">
       <SubType>compile</SubType>
     </None>
   </ItemGroup>

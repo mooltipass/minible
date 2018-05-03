@@ -126,16 +126,17 @@ RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, 
 void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
 void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
 RET_TYPE custom_fs_get_string_from_file(uint32_t string_id, cust_char_t** string_pt);
+void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc);
 uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id);
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void);
 ret_type_te custom_fs_set_current_language(uint16_t language_id);
 cust_char_t* custom_fs_get_current_language_text_desc(void);
-ret_type_te custom_fs_init(spi_flash_descriptor_t* desc);
 void custom_fs_stop_continuous_read_from_flash(void);
 BOOL custom_fs_settings_check_fw_upgrade_flag(void);
 void custom_fs_settings_clear_fw_upgrade_flag(void);
 void custom_fs_settings_set_fw_upgrade_flag(void);
 uint32_t custom_fs_get_number_of_languages(void);
 void custom_fs_settings_init(void);
+ret_type_te custom_fs_init(void);
 
 #endif /* CUSTOM_FS_H_ */

@@ -106,9 +106,24 @@ typedef struct
 #define ACC_APB_SERCOM_BIT          SERCOM1_
 #define ACC_SERCOM                  SERCOM1
 
+/* DMA channel descriptors */
+#define DMA_DESCID_RX_COMMS         0
+#define DMA_DESCID_RX_FS            1
+#define DMA_DESCID_TX_FS            2
+#define DMA_DESCID_TX_ACC           3
+#define DMA_DESCID_TX_OLED          4
+#define DMA_DESCID_RX_ACC           5
+#define DMA_DESCID_TX_COMMS         6
+
 /* External interrupts numbers */
 #define ACC_EXTINT_NUM              4
 #define ACC_EIC_SENSE_REG           SENSE4
+#define WHEEL_CLICK_EXTINT_NUM      8
+#define WHEEL_CLICK_EIC_SENSE_REG   SENSE0
+#define WHEEL_TICKA_EXTINT_NUM      0
+#define WHEEL_TICKA_EIC_SENSE_REG   SENSE0
+#define WHEEL_TICKB_EXTINT_NUM      1
+#define WHEEL_TICKB_EIC_SENSE_REG   SENSE1
 
 /* User event channels mapping */
 #define ACC_EV_GEN_CHANNEL          0
@@ -138,21 +153,36 @@ typedef struct
 #define OLED_BAUD_DIVIDER           5
 /* ACC SPI SCK = 48M / 2*(2+1)) = 8MHz (Max is 10MHz) */
 #define ACC_BAUD_DIVIDER            2
-/* DATA & DB FLASH SPI SCK = 48M / 2*(0+1)) = 24MHz */
-#define DATAFLASH_BAUD_DIVIDER      0
-#define DBFLASH_BAUD_DIVIDER        0
+/* DATA & DB FLASH SPI SCK = 48M / 2*(1+1)) = 12MHz (24MHz may not work on some boards when querying JEDEC ID) */
+#define DATAFLASH_BAUD_DIVIDER      1
+#define DBFLASH_BAUD_DIVIDER        1
 
 /* PORT defines */
 /* WHEEL ENCODER */
 #define WHEEL_A_GROUP           PIN_GROUP_0
 #define WHEEL_A_PINID           0
 #define WHEEL_A_MASK            (1UL << WHEEL_A_PINID)
+#if (WHEEL_A_PINID % 2) == 1
+    #define WHEEL_A_PMUXREGID   PMUXO
+#else
+    #define WHEEL_A_PMUXREGID   PMUXE
+#endif
 #define WHEEL_B_GROUP           PIN_GROUP_0
 #define WHEEL_B_PINID           1
 #define WHEEL_B_MASK            (1UL << WHEEL_B_PINID)
+#if (WHEEL_B_PINID % 2) == 1
+    #define WHEEL_B_PMUXREGID   PMUXO
+#else
+    #define WHEEL_B_PMUXREGID   PMUXE
+#endif
 #define WHEEL_SW_GROUP          PIN_GROUP_0
 #define WHEEL_SW_PINID          28
 #define WHEEL_SW_MASK           (1UL << WHEEL_SW_PINID)
+#if (WHEEL_SW_PINID % 2) == 1
+    #define WHEEL_SW_PMUXREGID  PMUXO
+#else
+    #define WHEEL_SW_PMUXREGID  PMUXE
+#endif
 /* POWER & BLE SYSTEM */
 #define SWDET_EN_GROUP          PIN_GROUP_0
 #define SWDET_EN_PINID          2

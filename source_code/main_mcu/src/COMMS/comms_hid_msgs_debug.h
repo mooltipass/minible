@@ -22,7 +22,7 @@
 #define HID_CMD_ID_DATAFLASH_WRITE_256B     0x8006
 
 /* Prototypes */
-int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length);
+int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg);
 
 
 #endif /* COMMS_HID_MSGS_DEBUG_H_ */

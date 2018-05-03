@@ -89,7 +89,6 @@ void timer_initialize_timebase(void)
     rtc_ctrl_reg.bit.CLKREP = 0;                                        // 24 hour mode
     rtc_ctrl_reg.bit.MODE = RTC_MODE2_CTRL_MODE_CLOCK_Val;              // Calendar mode
     rtc_ctrl_reg.bit.PRESCALER = RTC_MODE2_CTRL_PRESCALER_DIV1024_Val;  // Divide 1.024kHz signal by 1024
-    //rtc_ctrl_reg.bit.ENABLE = 1;                                      // Enable module
     while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
     RTC->MODE2.CTRL = rtc_ctrl_reg;                                     // Write register
     //RTC->MODE2.DBGCTRL.bit.DBGRUN = 1;                                  // Allow normal operation during debug mode
@@ -103,7 +102,7 @@ void timer_initialize_timebase(void)
     TCC0->PER.reg = TCC_PER_PER(48000-1);                               // Set period to be 48M/48000 = 1k
     TCC_CTRLA_Type tcc_ctrl_reg;                                        // tcc ctrl reg
     tcc_ctrl_reg.reg = TCC_CTRLA_ENABLE;                                // Enable tcc0
-    tcc_ctrl_reg.bit.RUNSTDBY = 1;                                      // Run during standby
+    tcc_ctrl_reg.bit.RUNSTDBY = 0;                                      // Do not run during standby
     tcc_ctrl_reg.bit.PRESCALER = TCC_CTRLA_PRESCALER_DIV1_Val;          // No prescaling
     while(TCC0->SYNCBUSY.reg & TCC_SYNCBUSY_ENABLE);                    // Wait for sync
     TCC0->CTRLA = tcc_ctrl_reg;                                         // Write register

@@ -65,6 +65,18 @@ RET_TYPE dbflash_check_presence(spi_flash_descriptor_t* descriptor_pt)
     }
 }
 
+/*! \fn     dbflash_enter_ultra_deep_power_down(spi_flash_descriptor_t* descriptor_pt)
+*   \brief  Enter ultra deep power down mode
+*   \param  descriptor_pt   Pointer to dbflash descriptor
+*/
+void dbflash_enter_ultra_deep_power_down(spi_flash_descriptor_t* descriptor_pt)
+{
+    uint8_t enter_ultra_deep_power_down[] = {DBFLASH_OPCODE_UDEEP_PDOWN_ENTER};
+    
+    /* Query JEDEC ID */
+    dbflash_send_command(descriptor_pt, enter_ultra_deep_power_down, sizeof(enter_ultra_deep_power_down));    
+}
+
 /*! \fn     dbflash_fill_page_read_write_erase_opcode_from_address(uint16_t pageNumber, uint16_t offset, uint8_t* buffer)
 *   \brief  Fill the opcode address field from the page number and offset
 *   \param  pageNumber  Page number
