@@ -5,6 +5,7 @@
 */
 #include <asf.h>
 #include "platform_defines.h"
+#include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "platform_io.h"
 #include "lis2hh12.h"
@@ -32,6 +33,9 @@ void debug_debug_screen(void)
     
     while(1)
     {
+        /* Deal with comms */
+        comms_aux_mcu_routine();
+        
         /* Clear screen */
         stat_times[0] = timer_get_systick();
         sh1122_clear_current_screen(&plat_oled_descriptor);

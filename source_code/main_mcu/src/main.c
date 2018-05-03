@@ -186,6 +186,8 @@ int main(void)
 {
     /* Initialize our platform */
     main_platform_init();
+    timer_delay_ms(2000);
+    main_standby_sleep();
     debug_debug_screen();
     
     // Test code: burn internal graphics data into external flash.
