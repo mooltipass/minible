@@ -456,7 +456,7 @@
     <ListValues>
       <Value>.start_app_function_addr=0x200</Value>
       <Value>.flash_start_addr=0x0</Value>
-      <Value>.text=0x1000</Value>
+      <Value>.text=0x2000</Value>
     </ListValues>
   </armgcc.linker.memorysettings.Flash>
   <armgcc.linker.memorysettings.ExternalRAM />

@@ -100,12 +100,23 @@ void debug_debug_screen(void)
         /* Line 6: display stats */
         sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, "STATS MS: text %u, erase %u, stats %u", stat_times[5]-stat_times[4], stat_times[1]-stat_times[0], stat_times[3]-stat_times[2]);
         
+        /* Get user action */
+        wheel_action_ret_te wheel_user_action = inputs_get_wheel_action(FALSE, FALSE);
+        
         /* Go to sleep? */
-        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_UP)
+        if (wheel_user_action == WHEEL_ACTION_UP)
         {
             timer_delay_ms(2000);
             main_standby_sleep();
         }   
+        
+        /* Upgrade firmware? */
+        if (wheel_user_action == WHEEL_ACTION_CLICK_DOWN)
+        {
+            custom_fs_settings_set_fw_upgrade_flag();
+            cpu_irq_disable();
+            NVIC_SystemReset();
+        }
         
         /* Delay for display */
         //timer_delay_ms(10);

@@ -44,7 +44,7 @@ typedef struct
 /* Simply an array point to our internal memory */
 #define NVM_MEMORY ((volatile uint16_t *)FLASH_ADDR)
 /* Our firmware start address */
-#define APP_START_ADDR (0x1000)
+#define APP_START_ADDR (0x2000)
 /* Internal storage slot for settings storage */
 #define SETTINGS_STORAGE_SLOT   0
 
