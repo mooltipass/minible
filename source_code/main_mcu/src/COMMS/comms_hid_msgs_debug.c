@@ -112,6 +112,13 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             send_msg->payload_length = 1;
             return 1;
         }
+        case HID_CMD_ID_START_BOOTLOADER:
+        {
+            custom_fs_settings_set_fw_upgrade_flag();
+            cpu_irq_disable();
+            NVIC_SystemReset();
+            while(1);            
+        }
         default: break;
     }
     

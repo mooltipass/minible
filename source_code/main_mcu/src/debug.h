@@ -10,6 +10,7 @@
 
 /* Prototypes */
 void debug_debug_screen(void);
+void debug_debug_menu(void);
 
 
 #endif /* DEBUG_H_ */

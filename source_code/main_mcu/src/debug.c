@@ -14,6 +14,75 @@
 #include "debug.h"
 #include "main.h"
 
+
+/*! \fn     debug_debug_menu(void)
+*   \brief  Debug menu
+*/
+void debug_debug_menu(void)
+{
+    wheel_action_ret_te wheel_user_action;
+    int16_t selected_item = 0;
+    BOOL redraw_needed = TRUE;
+    
+    while(1)
+    {
+        /* Still deal with comms */
+        comms_aux_mcu_routine();
+        
+        /* Draw menu */
+        if (redraw_needed != FALSE)
+        {
+            /* Clear screen */
+            redraw_needed = FALSE;
+            sh1122_clear_current_screen(&plat_oled_descriptor);
+            
+            /* Item selection */
+            if (selected_item > 1)
+            {
+                selected_item = 0;
+            }
+            else if (selected_item < 0)
+            {
+                selected_item = 1;
+            }
+            
+            /* Print items */
+            sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Scroll and click");
+            sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / acc / bat");
+            sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Language switch test");
+            
+            /* Cursor */
+            sh1122_put_string_xy(&plat_oled_descriptor, 0, 14 + selected_item*10, OLED_ALIGN_LEFT, u"-");
+        }
+        
+        /* Get user action */
+        wheel_user_action = inputs_get_wheel_action(FALSE, FALSE);
+        
+        /* action depending on scroll */
+        if (wheel_user_action == WHEEL_ACTION_UP)
+        {
+            redraw_needed = TRUE;
+            selected_item--;
+        }
+        else if (wheel_user_action == WHEEL_ACTION_DOWN)
+        {
+            redraw_needed = TRUE;
+            selected_item++;
+        }
+        else if (wheel_user_action == WHEEL_ACTION_SHORT_CLICK)
+        {
+            if (selected_item == 0)
+            {
+                debug_debug_screen();
+            }
+            else if (selected_item == 1)
+            {
+                // TODO
+            }
+        }
+    }
+}
+
 /*! \fn     debug_debug_screen(void)
 *   \brief  Debug screen
 */

@@ -117,7 +117,7 @@ class generic_hid_device:
 		
 		# Send all packets
 		for packet in packets:
-			sendHidPacket(packet)
+			self.sendHidPacket(packet)
 		
 	# Send message to device
 	def sendHidMessageWaitForAck(self, message):

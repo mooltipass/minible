@@ -212,12 +212,16 @@ class mooltipass_hid_device:
 		bundlefile.close()
 		print "Sending done!"
 		
+	
+	# Reboot to bootloader, no answer from device.
+	def rebootToBootloader(self):
+		self.device.sendHidMessage(self.getPacketForCommand(CMD_DBG_REBOOT_TO_BOOTLOADER, None))	
+	
 		
 		
 		
 		
-		
-	### BELOW ARE PICTURE TO RE-IMPLEMENT	
+	### BELOW ARE FEATURES TO RE-IMPLEMENT	
 			
 	# Ping device
 	def pingMooltipass(self):

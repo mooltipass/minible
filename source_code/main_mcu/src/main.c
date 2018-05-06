@@ -189,7 +189,7 @@ int main(void)
     main_platform_init();
     //timer_delay_ms(2000);
     //main_standby_sleep();
-    debug_debug_screen();
+    debug_debug_menu();
     
     // Test code: burn internal graphics data into external flash.
     //dataflash_bulk_erase_with_wait(&dataflash_descriptor);

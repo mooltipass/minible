@@ -95,15 +95,11 @@ void main_platform_init(void)
 */
 int main(void)
 {    
-    /* Pointer to our application */
-    void (*application_code_entry)(void);
-    
     /* Initialize our settings system */
     custom_fs_settings_init();
     
-    /* Update condition: either no application code entry or fw upgrade boolean set */
-    application_code_entry = (void (*)(void))(unsigned *)(*(unsigned *)(APP_START_ADDR + 4));
-    if (((uint32_t)application_code_entry != 0xFFFFFFFF) && (custom_fs_settings_check_fw_upgrade_flag() == FALSE))
+    /* If no flag set, jump to application */
+    if (custom_fs_settings_check_fw_upgrade_flag() == FALSE)
     {
         start_application();
     }
@@ -175,7 +171,7 @@ int main(void)
         }
     }
     
-    //custom_fs_settings_clear_fw_upgrade_flag();
+    custom_fs_settings_clear_fw_upgrade_flag();
     NVIC_SystemReset();
     while(1);
 }
