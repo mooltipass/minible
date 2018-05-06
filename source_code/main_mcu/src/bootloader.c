@@ -136,10 +136,10 @@ int main(void)
     fw_file_address += sizeof(fw_file_size);
     
     /* Check CRC32 */
-    //if (custom_fs_compute_and_check_external_bundle_crc32() == RETURN_NOK)
+    if (custom_fs_compute_and_check_external_bundle_crc32() == RETURN_NOK)
     {
         /* Wrong CRC32 */
-    //    start_application();
+        start_application();
     }
     
     /* Automatic write, disable caching */

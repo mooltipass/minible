@@ -10,7 +10,7 @@
 #define CUSTOM_FS_H_
 
 #include "platform_defines.h"
-#include "defines.h"
+#include "defines.h" 
 
 /* Defines */
 // Value indicating that there are no files within a descriptor
@@ -138,5 +138,11 @@ void custom_fs_settings_set_fw_upgrade_flag(void);
 uint32_t custom_fs_get_number_of_languages(void);
 void custom_fs_settings_init(void);
 ret_type_te custom_fs_init(void);
+
+/* Global vars, for debug only */
+#if defined(DEBUG_MENU_ENABLED)
+    extern custom_file_flash_header_t custom_fs_flash_header;
+    extern language_map_entry_t custom_fs_cur_language_entry;
+#endif   
 
 #endif /* CUSTOM_FS_H_ */

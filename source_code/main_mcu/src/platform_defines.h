@@ -66,6 +66,8 @@ typedef struct
 #define OLED_PRINTF_ENABLED
 /* Allow debug USB commands */
 #define DEBUG_USB_COMMANDS_ENABLED
+/* Allow debug menu */
+#define DEBUG_MENU_ENABLED
 
 /* GCLK ID defines */
 #define GCLK_ID_48M             GCLK_CLKCTRL_GEN_GCLK0_Val

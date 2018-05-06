@@ -8,6 +8,7 @@
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "platform_io.h"
+#include "custom_fs.h"
 #include "lis2hh12.h"
 #include "sh1122.h"
 #include "inputs.h"
@@ -47,9 +48,9 @@ void debug_debug_menu(void)
             }
             
             /* Print items */
-            sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Scroll and click");
-            sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / acc / bat");
-            sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Language switch test");
+            sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu");
+            sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Battery");
+            sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Language Switch Test");
             
             /* Cursor */
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 14 + selected_item*10, OLED_ALIGN_LEFT, u"-");
@@ -77,8 +78,36 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 1)
             {
-                // TODO
+                debug_language_test();
             }
+        }
+    }
+}
+
+/*! \fn     debug_language_test(void)
+*   \brief  Language test
+*/
+void debug_language_test(void)
+{
+    /* Language feature test */
+    while(1)
+    {
+        cust_char_t* temp_string;
+        for (uint16_t i = 0; i < custom_fs_get_number_of_languages(); i++)
+        {
+            custom_fs_set_current_language(i);
+            sh1122_refresh_used_font(&plat_oled_descriptor);
+            custom_fs_get_string_from_file(0, &temp_string);
+            sh1122_clear_current_screen(&plat_oled_descriptor);
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "%d/%d : ", i+1, custom_fs_flash_header.language_map_item_count);
+            sh1122_put_string_xy(&plat_oled_descriptor, 30, 0, OLED_ALIGN_LEFT, custom_fs_get_current_language_text_desc());            
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, "String file ID: %d", custom_fs_cur_language_entry.string_file_index);
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, "Start font file ID: %d", custom_fs_cur_language_entry.starting_font);
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Start bitmap file ID: %d", custom_fs_cur_language_entry.starting_bitmap);
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, "Recommended keyboard file ID: %d", custom_fs_cur_language_entry.keyboard_layout_id);
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, "Line #0:");
+            sh1122_put_string_xy(&plat_oled_descriptor, 50, 50, OLED_ALIGN_LEFT, temp_string);
+            timer_delay_ms(2000);
         }
     }
 }
