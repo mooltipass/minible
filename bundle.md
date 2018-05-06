@@ -103,6 +103,5 @@ This page explains in details the graphics bundle data structure.
 | 0->35 | Unicode string of language description, with terminating 0x0000 |
 | 36->37 | String file ID for that language |
 | 38->39 | Starting font ID for that language |
-| 40->41 | String file ID for that language |
-| 42->43 | Starting bitmap ID for that language |
-| 44->45 | Recommended keyboard layout ID |
+| 40->41 | Starting bitmap ID for that language |
+| 42->43 | Recommended keyboard layout ID |
