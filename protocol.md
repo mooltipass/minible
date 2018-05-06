@@ -134,3 +134,15 @@ Device Answer:
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
 | 0x8006   | 1 | 0x01 (indicates command success) |
+
+
+
+
+0x8007: Reboot to Bootloader
+----------------------------
+
+| byte 0-1 | byte 2-3                    | bytes 4-X |
+|:---------|:----------------------------|:----------|
+| 0x8007   | 0 | Nothing |
+
+Start main microcontroller bootloader. **No device answer**.
