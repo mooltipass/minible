@@ -29,17 +29,19 @@ typedef enum {
 
 /* Binary Image info */
 typedef struct{
-    uint32_t image_start_addr;
-    uint32_t image_len;
-    uint32_t image_crc;
-} __attribute__((packed)) T_image_info;
+    uint16_t cmd;
+    uint16_t reserved;
+    uint32_t size;
+    uint32_t crc;
+} T_image_info;
 
 /* Write Data */
 typedef struct{
-    uint32_t* addr;
-    uint16_t len;
-    uint32_t* src;
-} __attribute__((packed)) T_write_info;
+    uint16_t cmd;
+    uint16_t size;
+    uint32_t crc;
+    uint32_t* data;
+} T_write_info;
 
 
 /* Variables */
@@ -51,6 +53,7 @@ bool enter_programming = false;
 bool start_app = false;
 uint32_t write_addr = 0u;
 uint32_t current_len = 0u;
+uint32_t current_addr = 0u;
 
 
 /**
@@ -61,17 +64,20 @@ static void start_application(void)
     /* Pointer to the Application Section */
     void (*application_code_entry)(void);
 
-    /* Rebase the Stack Pointer */
-    __set_MSP(*(uint32_t *)APP_START_ADDR);
-
-    /* Rebase the vector table base address */
-    SCB->VTOR = ((uint32_t)APP_START_ADDR & SCB_VTOR_TBLOFF_Msk);
-
     /* Load the Reset Handler address of the application */
     application_code_entry = (void (*)(void))(unsigned *)(*(unsigned *)(APP_START_ADDR + 4));
 
-    /* Jump to user Reset Handler in the application */
-    application_code_entry();
+    /* Jump to application if startaddr different than erased */
+    if( *(uint32_t*)(APP_START_ADDR + 4) != 0xFFFFFFFF){
+        /* Rebase the Stack Pointer */
+        __set_MSP(*(uint32_t *)APP_START_ADDR);
+
+        /* Rebase the vector table base address */
+        SCB->VTOR = ((uint32_t)APP_START_ADDR & SCB_VTOR_TBLOFF_Msk);
+
+        /* Jump to user Reset Handler in the application */
+        application_code_entry();
+    }
 }
 
 static void timeout_init(void){
@@ -127,9 +133,6 @@ int main(void) {
     // Init Serial communications
     comm_init();
 
-    // Test Write bootloader
-    //nvm_write_buffer(dst, src, sizeof(src));
-
     // The main loop
     while (true) {
         switch(current_state){
@@ -162,10 +165,10 @@ int main(void) {
                 break;
 
             case START_APP:
+                /* If dma tx transmission ongoing wait until it finishes */
+                //dma_aux_mcu_wait_tx();
                 start_application();
-                /* reset in case of error */
-                break;
-
+                /* this line shall not be reached */
             default:
                 next_state = WAIT;
                 break;
@@ -187,36 +190,37 @@ void bootloader_enter_programming(T_image_info info){
     image_info = info;
 
     /* Variables to be used when writing to NVM */
-    write_addr = info.image_start_addr;
     current_len = 0u;
+    current_addr = APP_START_ADDR;
 
     /* Enter into programming */
     enter_programming = true;
 }
 
 
-void bootloader_write(uint32_t* dst, uint32_t* src, uint32_t len){
+void bootloader_write(uint32_t* src, uint32_t len){
 
     if(current_state != PROGRAM){
         return;
     }
 
     /* Checks for a later phase */
-    nvm_write_buffer(dst, src, sizeof(src));
+    nvm_write_buffer((uint32_t*)current_addr, src, len);
 
-    /* Increment lenght */
+    /* Increment lenght and address */
     current_len += len;
+    current_addr += len;
 
-    if(image_info.image_len >= current_len){
+    if(image_info.size <= current_len){
         start_app = true;
     }
 }
 
 
 bool bootloader_process_msg(uint8_t* buff, uint16_t buff_len){
-    T_boot_commands cmd = (T_boot_commands)buff[0];
-    T_image_info *info = (T_image_info *)&buff[1];
-    T_write_info *data = (T_write_info *)&buff[1];
+    T_boot_commands cmd = (T_boot_commands)((buff[1] << 8) + buff[0]);
+    T_image_info *info = (T_image_info *)buff;
+    T_write_info *write = (T_write_info *)buff;
     bool operation_ok = false;
 
     switch(cmd){
@@ -227,7 +231,7 @@ bool bootloader_process_msg(uint8_t* buff, uint16_t buff_len){
 
         case WRITE:
             if( enter_programming ){
-                bootloader_write(data->addr, data->src, data->len);
+                bootloader_write(write->data, write->size);
                 operation_ok = true;
             } else{
                 operation_ok = false;
