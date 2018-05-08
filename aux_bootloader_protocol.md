@@ -6,7 +6,7 @@
 3. Bootloader size needs to fit in 8kb size (or less). The application will start at a fixed address defined by the size of the bootloader.
   
 ## Message Structure and Serial Link Specs 
-The communication from main mcu to bootloader are performed according:
+The communication from main mcu to bootloader is performed according:
 [Aux Mcu <-> Serial Link Specification](aux_main_mcu_protocol.md)
 
 The commands received by the bootloader are performed in the top of the protocol mentioned above with MessageType equal to __0x0002__.
