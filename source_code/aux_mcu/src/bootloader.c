@@ -1,69 +1,113 @@
-/**
- * \file
- *
- * \brief Main functions for USB composite example
- *
- * Copyright (c) 2009-2015 Atmel Corporation. All rights reserved.
- *
- * \asf_license_start
- *
- * \page License
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- * 3. The name of Atmel may not be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * 4. This software may only be redistributed and used in connection with an
- *    Atmel microcontroller product.
- *
- * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
- * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * \asf_license_stop
- *
- */
-/*
- * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
- */
 #include <asf.h>
-#include "usbhid.h"
-#include "conf_usb.h"
 #include "port_manager.h"
 #include "driver_sercom.h"
 #include "power_manager.h"
 #include "clock_manager.h"
 #include "dma.h"
 #include "comm.h"
+#include "nvm.h"
+#include "bootloader.h"
 
-static volatile bool main_b_keyboard_enable = false;
-static volatile bool main_b_generic_enable = false;
+/* 349 ms max wait time */
+#define BOOTLOADER_TIMEOUT_MS       (349)
+#define BOOTLOADER_TIMEOUT_TICKS    ((BOOTLOADER_TIMEOUT_MS*48000)-1)
+#define APP_START_ADDR              (0x2000) /* Bootloader size 8k */
+
+
+/* State Machine */
+typedef enum {
+    WAIT,
+    PROGRAM,
+    START_APP,
+} T_boot_state;
+
+/* State Machine */
+typedef enum {
+    ENTER_PROGRAMMING,
+    WRITE
+} T_boot_commands;
+
+/* Binary Image info */
+typedef struct{
+    uint32_t image_start_addr;
+    uint32_t image_len;
+    uint32_t image_crc;
+} __attribute__((packed)) T_image_info;
+
+/* Write Data */
+typedef struct{
+    uint32_t* addr;
+    uint16_t len;
+    uint32_t* src;
+} __attribute__((packed)) T_write_info;
+
+
+/* Variables */
+T_image_info image_info;
+T_boot_state current_state = WAIT;
+T_boot_state next_state;
+bool entry_flg = true;
+bool enter_programming = false;
+bool start_app = false;
+uint32_t write_addr = 0u;
+uint32_t current_len = 0u;
+
+
+/**
+ * \brief Function to start the application.
+ */
+static void start_application(void)
+{
+    /* Pointer to the Application Section */
+    void (*application_code_entry)(void);
+
+    /* Rebase the Stack Pointer */
+    __set_MSP(*(uint32_t *)APP_START_ADDR);
+
+    /* Rebase the vector table base address */
+    SCB->VTOR = ((uint32_t)APP_START_ADDR & SCB_VTOR_TBLOFF_Msk);
+
+    /* Load the Reset Handler address of the application */
+    application_code_entry = (void (*)(void))(unsigned *)(*(unsigned *)(APP_START_ADDR + 4));
+
+    /* Jump to user Reset Handler in the application */
+    application_code_entry();
+}
+
+static void timeout_init(void){
+    /* Disable SysTick CTRL */
+    SysTick->CTRL &= ~(SysTick_CTRL_ENABLE_Msk);
+    SysTick->LOAD = 0u;
+    SysTick->VAL = 0u;
+    /* Perform Dummy Read to clear COUNTFLAG */
+    (void)SysTick->CTRL;
+
+    /* Initialize systick (use processor freq) */
+    SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk;
+    #if BOOTLOADER_TIMEOUT_TICKS < 0xFFFFFF
+        SysTick->LOAD = BOOTLOADER_TIMEOUT_TICKS;
+    #else
+        SysTick->LOAD = 0xFFFFFFu;
+    #endif /* BOOTLOADER_TIMEOUT_TICKS < 0xFFFFFF */
+
+    SysTick->VAL = 0u;
+}
+
+/**
+ * \brief Function to start the application.
+ * \return true - tiemout expired
+ * \return false - timeout not expired
+ */
+static bool timeout_expired(void){
+    return ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) != 0u);
+}
+
 
 /*! \brief Main function. Execution starts here.
  */
 int main(void) {
     irq_initialize_vectors();
     cpu_irq_enable();
-
-    // Initialize the sleep manager
-    //sleepmgr_init();
 
     // System init
     system_init();
@@ -73,74 +117,127 @@ int main(void) {
 
     // Power Manager init
     power_manager_init();
-    
+
     // Clock Manager init
     clock_manager_init();
 
     // DMA init
     dma_init();
 
-    // Initialize USBHID
-    usbhid_init();
-
     // Init Serial communications
     comm_init();
-    
-    // Start USB stack to authorize VBus monitoring
-    udc_start();
-    // The main loop manages only the power mode
-    // because the USB management is done by interrupt
+
+    // Test Write bootloader
+    //nvm_write_buffer(dst, src, sizeof(src));
+
+    // The main loop
     while (true) {
-        // sleepmgr_enter_sleep();
-        //sercom_send_single_byte(SERCOM1, 0x55);
-        comm_task();
+        switch(current_state){
+            case WAIT:
+                /* First action to execute when entering WAIT state */
+                if(entry_flg){
+                    timeout_init();
+                }
+
+                /* Process Programming Command */
+                comm_task();
+
+                /* programming mode ?? */
+                if( enter_programming ){
+                    next_state = PROGRAM;
+                }
+                /* timeout expired ?? */
+                else if(timeout_expired()){
+                    next_state = START_APP;
+                }
+                break;
+
+            case PROGRAM:
+                comm_task();
+
+                /* Start Application Required ?? */
+                if(start_app){
+                    next_state = START_APP;
+                }
+                break;
+
+            case START_APP:
+                start_application();
+                /* reset in case of error */
+                break;
+
+            default:
+                next_state = WAIT;
+                break;
+
+        }
+        /* Set entry flag if state changes */
+        if(next_state != current_state){
+            entry_flg = true;
+        } else{
+            entry_flg = false;
+        }
+        current_state = next_state;
     }
 }
 
-void main_suspend_action(void) {
+
+void bootloader_enter_programming(T_image_info info){
+    /* Store program information */
+    image_info = info;
+
+    /* Variables to be used when writing to NVM */
+    write_addr = info.image_start_addr;
+    current_len = 0u;
+
+    /* Enter into programming */
+    enter_programming = true;
 }
 
-void main_resume_action(void) {
 
-}
+void bootloader_write(uint32_t* dst, uint32_t* src, uint32_t len){
 
-void main_sof_action(void) {
-    if ((!main_b_keyboard_enable))
+    if(current_state != PROGRAM){
         return;
-    //ui_process(udd_get_frame_number());
+    }
+
+    /* Checks for a later phase */
+    nvm_write_buffer(dst, src, sizeof(src));
+
+    /* Increment lenght */
+    current_len += len;
+
+    if(image_info.image_len >= current_len){
+        start_app = true;
+    }
 }
 
-void main_remotewakeup_enable(void) {
 
+bool bootloader_process_msg(uint8_t* buff, uint16_t buff_len){
+    T_boot_commands cmd = (T_boot_commands)buff[0];
+    T_image_info *info = (T_image_info *)&buff[1];
+    T_write_info *data = (T_write_info *)&buff[1];
+    bool operation_ok = false;
+
+    switch(cmd){
+        case ENTER_PROGRAMMING:
+            bootloader_enter_programming(*info);
+            operation_ok = true;
+            break;
+
+        case WRITE:
+            if( enter_programming ){
+                bootloader_write(data->addr, data->src, data->len);
+                operation_ok = true;
+            } else{
+                operation_ok = false;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return operation_ok;
 }
 
-void main_remotewakeup_disable(void) {
 
-}
-
-bool main_keyboard_enable(void) {
-    main_b_keyboard_enable = true;
-    return true;
-}
-
-void main_keyboard_disable(void) {
-    main_b_keyboard_enable = false;
-}
-
-void main_vbus_event(uint8_t b_vbus_high) {
-    (void)b_vbus_high;
-    return;
-}
-
-bool main_generic_enable(void) {
-    main_b_generic_enable = true;
-    return true;
-}
-
-void main_generic_disable(void) {
-    main_b_generic_enable = false;
-}
-
-void main_hid_set_feature(uint8_t* report) {
-    (void)report;
-}

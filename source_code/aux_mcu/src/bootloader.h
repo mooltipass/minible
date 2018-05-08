@@ -44,62 +44,9 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 
-#ifndef _MAIN_H_
-#define _MAIN_H_
+#ifndef _BOOTLOADER_H_
+#define _BOOTLOADER_H_
 
-/*! \brief Called by HID RAW interface
- * Callback running when USB Host enable HID RAW interface
- *
- * \retval true if HID RAW startup is ok
- */
-bool main_generic_enable(void);
+bool bootloader_process_msg(uint8_t* buff, uint16_t buff_len);
 
-/*! \brief Called by HID RAW interface
- * Callback running when USB Host disable HID RAW interface
- */
-void main_generic_disable(void);
-
-/*! \brief Called by HID interface
- * Callback running when USB Host enable keyboard interface
- *
- * \retval true if keyboard startup is ok
- */
-bool main_keyboard_enable(void);
-
-/*! \brief Called by HID interface
- * Callback running when USB Host disable keyboard interface
- */
-void main_keyboard_disable(void);
-
-/*! \brief Called when a start of frame is received on USB line
- */
-void main_sof_action(void);
-
-/*! \brief Enters the application in low power mode
- * Callback called when USB host sets USB line in suspend state
- */
-void main_suspend_action(void);
-
-/*! \brief Called by UDD when the USB line exit of suspend state
- */
-void main_resume_action(void);
-
-/*! \brief Called by UDC when USB Host request to enable remote wakeup
- */
-void main_remotewakeup_enable(void);
-
-/*! \brief Called by UDC when USB Host request to disable remote wakeup
- */
-void main_remotewakeup_disable(void);
-
-/*! \brief Initialize the memories used by examples
- */
-void memories_initialization(void);
-
-/*! \brief vbus event notification
- */
-void main_vbus_event(uint8_t b_vbus_high);
-
-void main_hid_set_feature(uint8_t* report);
-
-#endif // _MAIN_H_
+#endif /* _BOOTLOADER_H_ */
