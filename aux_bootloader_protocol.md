@@ -13,9 +13,10 @@ The commands from main mcu to bootloader are performed according:
 The commands received by the bootloader are performed in the top of the protocol mentioned above with MessageType equal to __0x0002__.
 
 The payload has a size of __536 bytes__, so the commands will have the following structure:
-|Command| Data |
+
+| Command | Data |
 |:-:|:-:|
-|Byte 0-1| Byte 2-535 |
+| Byte 0-1 | Byte 2-535 |
 
 #### Enter Programming Command (0x0000)
 | byte 0-1 | byte 2-3 | byte 4-7 | byte 8-11 | byte 12-15 |
