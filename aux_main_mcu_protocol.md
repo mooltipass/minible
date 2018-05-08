@@ -20,6 +20,7 @@ from main MCU:
 **Message Type**  
 - 0x0000: Message to/from USB  
 - 0x0001: Message to/from Bluetooth  
+- 0x0002: Message to/from Bootloader 
   
 **Payload Length**  
 Message from main MCU: total payload length.  
