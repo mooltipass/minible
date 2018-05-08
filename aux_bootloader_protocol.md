@@ -14,7 +14,7 @@ The commands received by the bootloader are performed in the top of the protocol
 
 The payload has a size of __536 bytes__, so the commands will have the following structure:
 |Command| Data |
-|----|----|
+|:-:|:-:|
 |Byte 0-1| Byte 2-535 |
 
 #### Enter Programming Command (0x0000)
