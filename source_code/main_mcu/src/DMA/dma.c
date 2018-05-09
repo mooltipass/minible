@@ -27,6 +27,8 @@ volatile BOOL dma_oled_transfer_done = FALSE;
 volatile BOOL dma_acc_transfer_done = FALSE;
 /* Boolean to specify if we received a packet from aux MCU */
 volatile BOOL dma_aux_mcu_packet_received = FALSE;
+/* Boolean to specify if we sent a packet to aux MCU */
+volatile BOOL dma_aux_mcu_packet_sent = TRUE;
 
 
 /*! \fn     DMAC_Handler(void)
@@ -40,6 +42,15 @@ void DMAC_Handler(void)
     {
         /* Set transfer done boolean, clear interrupt */
         dma_aux_mcu_packet_received = TRUE;
+        DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
+    }
+    
+    /* AUX MCU RX routine */
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_TX_COMMS);
+    if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
+    {
+        /* Set transfer done boolean, clear interrupt */
+        dma_aux_mcu_packet_sent = TRUE;
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
     }
     
@@ -83,6 +94,14 @@ void DMAC_Handler(void)
 void dma_set_custom_fs_flag_done(void)
 {
     dma_custom_fs_transfer_done = TRUE;
+}
+
+/*! \fn     dma_wait_for_aux_mcu_packet_sent(void)
+*   \brief  Wait for aux mcu packet to be sent
+*/
+void dma_wait_for_aux_mcu_packet_sent(void)
+{
+    while (dma_aux_mcu_packet_sent == FALSE);
 }
 
 /*! \fn     dma_init(void)
@@ -208,7 +227,7 @@ void dma_init(void)
     dma_descriptors[DMA_DESCID_TX_COMMS].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_SRC_Val;    // Step selection for source
     dma_descriptors[DMA_DESCID_TX_COMMS].BTCTRL.bit.SRCINC = 1;                               // Source Address Increment is enabled.
     dma_descriptors[DMA_DESCID_TX_COMMS].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val; // Byte data transfer
-    dma_descriptors[DMA_DESCID_TX_COMMS].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val;// Once data block is transferred, do nothing
+    dma_descriptors[DMA_DESCID_TX_COMMS].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_INT_Val;  // Once data block is transferred, generate interrupt
     dma_descriptors[DMA_DESCID_TX_COMMS].DESCADDR.reg = 0;                                    // No next descriptor address
     
     /* Setup DMA channel */
@@ -218,6 +237,7 @@ void dma_init(void)
     dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
     dma_chctrlb_reg.bit.TRIGSRC = AUX_MCU_SERCOM_TXTRIG;                                    // Select TX trigger
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
+    DMAC->CHINTENSET.reg = DMAC_CHINTENSET_TCMPL;                                           // Enable channel transfer complete interrupt
 
     /* Setup transfer descriptor for aux MCU comms RX */
     dma_descriptors[DMA_DESCID_RX_COMMS].BTCTRL.reg = DMAC_BTCTRL_VALID;                     // Valid descriptor
@@ -586,7 +606,13 @@ void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t
 */
 void dma_aux_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
 {
+    /* Wait for previous transfer to be done */
+    while (dma_aux_mcu_packet_sent == FALSE);
+    
     cpu_irq_enter_critical();
+    
+    /* Set bool */
+    dma_aux_mcu_packet_sent = FALSE;
     
     /* Setup transfer size */
     dma_descriptors[DMA_DESCID_TX_COMMS].BTCNT.bit.BTCNT = (uint16_t)size;

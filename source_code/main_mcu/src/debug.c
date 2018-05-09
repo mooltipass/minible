@@ -5,6 +5,7 @@
 */
 #include <asf.h>
 #include "platform_defines.h"
+#include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "platform_io.h"
@@ -24,7 +25,7 @@ void debug_debug_menu(void)
     wheel_action_ret_te wheel_user_action;
     int16_t selected_item = 0;
     BOOL redraw_needed = TRUE;
-    
+
     while(1)
     {
         /* Still deal with comms */
@@ -38,19 +39,21 @@ void debug_debug_menu(void)
             sh1122_clear_current_screen(&plat_oled_descriptor);
             
             /* Item selection */
-            if (selected_item > 1)
+            if (selected_item > 3)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 1;
+                selected_item = 3;
             }
             
             /* Print items */
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu");
             sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Battery");
             sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Language Switch Test");
+            sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Animation Test");
+            sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"AUX MCU Flash");
             
             /* Cursor */
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 14 + selected_item*10, OLED_ALIGN_LEFT, u"-");
@@ -80,6 +83,14 @@ void debug_debug_menu(void)
             {
                 debug_language_test();
             }
+            else if (selected_item == 2)
+            {
+                debug_debug_animation();
+            }
+            else if (selected_item == 3)
+            {
+                logic_aux_mcu_flash_firmware_update();
+            }
         }
     }
 }
@@ -108,6 +119,20 @@ void debug_language_test(void)
             sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, "Line #0:");
             sh1122_put_string_xy(&plat_oled_descriptor, 50, 50, OLED_ALIGN_LEFT, temp_string);
             timer_delay_ms(2000);
+        }
+    }
+}
+
+/*! \fn     debug_debug_animation(void)
+*   \brief  Debug animation
+*/
+void debug_debug_animation(void)
+{
+    while (1)
+    {
+        for (uint16_t i = 0; i < 120; i++)
+        {
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i);
         }
     }
 }
