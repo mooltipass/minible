@@ -14,8 +14,8 @@
 #endif
 
 /* buffer for RX/TX DMA USART */
-T_comm_msg comm_rx;
-T_comm_msg comm_tx;
+T_comm_msg comm_rx __attribute__ ((aligned (4)));
+T_comm_msg comm_tx __attribute__ ((aligned (4)));
 
 /* counter of the number of bytes transfered through DMA */
 uint16_t comm_tx_dma_index;
@@ -74,13 +74,14 @@ void comm_process_out_msg(T_comm_msg_type msg_type, uint8_t* buff, uint16_t buff
 #else
         case COMM_MSG_TO_BOOTLOADER:
             if(bootloader_process_msg(buff, buff_len) == true){
-                memcpy(&comm_rx, &comm_tx, sizeof(T_comm_msg));
+                memcpy(&comm_tx, &comm_rx, sizeof(T_comm_msg));
                 dma_aux_mcu_init_tx_transfer( &comm_tx, sizeof(comm_rx));
             } else{
-                memcpy(&comm_rx, &comm_tx, sizeof(T_comm_msg));
+                memcpy(&comm_tx, &comm_rx, sizeof(T_comm_msg));
                 memset(comm_tx.payload, 0xFF, COMM_PAYLOAD_SIZE);
                 dma_aux_mcu_init_tx_transfer( &comm_tx, sizeof(comm_rx));
             }
+            //while(!dma_aux_mcu_check_and_clear_tx_transfer_flag());
             break;
 #endif
         default:

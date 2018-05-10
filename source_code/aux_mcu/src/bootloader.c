@@ -7,6 +7,7 @@
 #include "comm.h"
 #include "nvm.h"
 #include "bootloader.h"
+#include "driver_sercom.h"
 
 /* 349 ms max wait time */
 #define BOOTLOADER_TIMEOUT_MS       (349)
@@ -107,7 +108,12 @@ static void timeout_init(void){
 static bool timeout_expired(void){
     return ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) != 0u);
 }
-
+T_comm_msg internaltest = {
+    .msg_type = 2,
+    .payload_valid = 1,
+    .payload_len = 10,
+    .payload = {0x00,0x00,0x01,0x02,0x00,0x02,0x00,0x00,0x22,0x33,0x44,0x55},
+};
 
 /*! \brief Main function. Execution starts here.
  */
@@ -133,6 +139,11 @@ int main(void) {
     // Init Serial communications
     comm_init();
 
+    // send something through sercom
+    //sercom_send_single_byte(SERCOM1, 0x55);
+    //dma_aux_mcu_init_tx_transfer(&internaltest, sizeof(internaltest));
+
+
     // The main loop
     while (true) {
         switch(current_state){
@@ -148,6 +159,7 @@ int main(void) {
                 /* programming mode ?? */
                 if( enter_programming ){
                     next_state = PROGRAM;
+                    //dma_aux_mcu_init_tx_transfer(&internaltest, sizeof(internaltest));
                 }
                 /* timeout expired ?? */
                 else if(timeout_expired()){
@@ -165,8 +177,6 @@ int main(void) {
                 break;
 
             case START_APP:
-                /* If dma tx transmission ongoing wait until it finishes */
-                //dma_aux_mcu_wait_tx();
                 start_application();
                 /* this line shall not be reached */
             default:
@@ -195,6 +205,38 @@ void bootloader_enter_programming(T_image_info info){
 
     /* Enter into programming */
     enter_programming = true;
+#if 0
+    //__ASM("label: B label");
+    internaltest.payload[0] = WRITE;
+    internaltest.payload[1] = 0x00;
+
+    internaltest.payload[2] = 0x00;
+    internaltest.payload[3] = 0x02;
+
+    internaltest.payload[4] = 0x00;
+    internaltest.payload[5] = 0x00;
+    internaltest.payload[6] = 0x00;
+    internaltest.payload[7] = 0x00;
+
+    internaltest.payload[8] = 0x58;
+    internaltest.payload[9] = 0x17;
+    internaltest.payload[10] = 0x00;
+    internaltest.payload[11] = 0x20;
+
+    internaltest.payload[12] = 0x09;
+    internaltest.payload[13] = 0x20;
+    internaltest.payload[14] = 0x00;
+    internaltest.payload[15] = 0x00;
+
+    internaltest.payload[16] = 0xfe;
+    internaltest.payload[17] = 0xe7;
+    internaltest.payload[18] = 0xfe;
+    internaltest.payload[19] = 0xe7;
+    internaltest.payload[20] = 0xfe;
+    internaltest.payload[21] = 0xe7;
+    internaltest.payload[22] = 0xfe;
+    internaltest.payload[23] = 0xe7;
+#endif
 }
 
 
@@ -231,7 +273,7 @@ bool bootloader_process_msg(uint8_t* buff, uint16_t buff_len){
 
         case WRITE:
             if( enter_programming ){
-                bootloader_write(write->data, write->size);
+                bootloader_write(&write->data, write->size);
                 operation_ok = true;
             } else{
                 operation_ok = false;

@@ -112,13 +112,13 @@ const T_pin_cfg pin_ble_rts_uart0 = {
     .muxcfg = 0,
 };
 /* AUX UART -- SERCOM1 */
-T_pin_cfg pin_aux_tx = {
+const T_pin_cfg pin_aux_tx = {
     .pinid = PIN_PA16,
     .pincfg = PINCFG_PERIPHERAL,
     .iocfg = IO_OUTPUT_DEFAULT_HIGH,
     .muxcfg = MUX_PA16C_SERCOM1_PAD0,
 };
-T_pin_cfg pin_aux_rx = {
+const T_pin_cfg pin_aux_rx = {
     .pinid = PIN_PA17,
     .pincfg = PINCFG_PERIPHERAL,
     .iocfg = IO_INPUT_DEFAULT,
