@@ -55,6 +55,7 @@ As a consequence, from the "proto v2" boards, a dedicated main MCU output pin ex
 - a USB buffer needs to be implemented for packet de-serialization  
 - same for the BLE buffer  
 - the status messages are generated on the fly  
+- any Mooltipass command requires an answer (no risk to overwrite aux MCU buffers)  
 
 
 
