@@ -20,7 +20,7 @@ from main MCU:
 **Message Type**  
 - 0x0000: Message to/from USB  
 - 0x0001: Message to/from Bluetooth  
-- 0x0002: Message to/from Bootloader 
+- 0x0002: Message to/from Aux MCU Bootloader 
   
 **Payload Length**  
 Message from main MCU: total payload length.  
@@ -32,7 +32,7 @@ Message from aux MCU: if different than 0, total payload length. Otherwise paylo
 Message from aux MCU: if payload length #0 is 0, total payload length. Otherwise discarded.  
   
 **Payload**   
-The message payload, which may contain up to 536 bytes. This maximum size was decided in order to accomodate a single "write data node" command (command identifier: 2 bytes, message payload size field: 2 bytes, data node address: 2 bytes, data node size: 528 bytes).
+The message payload, which may contain up to 536 bytes. This maximum size was decided in order to accomodate a single "write data node" command (command identifier: 2 bytes, message payload size field: 2 bytes, data node address: 2 bytes, data node size: 528 bytes and 2 additional bytes reserved).
   
 **Payload valid flag**  
 This field should only be taken into account if **payload length #1 is 0**.  
@@ -40,14 +40,8 @@ If different than 0, this byte lets the message recipient know that the message 
   
 **Serial Link Specs**  
 The current USART baud rate clock is set to **6MHz**.  
-They key performance metric we want to hit is being able to scan the external DB flash memory as fast as possible (used when entering credentials management mode). That means the AUX MCU should have the first 64 bytes to send to the computer within 1ms after receiving the read node command (which itself is less than 64B long).   
-Doing so involves the following techniques:  
-- DMA descriptor chaining on main MCU: 2 + 2 + 64 = 68B and 544 - 68 = 476B  
-- after first DMA descriptor interrupt, DB flash data fetch  
-- same DMA descriptor chaining on aux MCU  
-  
-This leads to a theoretical transfer rate of 68x2=136B per ms (**1.36MHz** baud rate due to start & stop bits). As we however do prefer only using 2 chained DMA descriptors, this involves transferring a total of 68+544B within 2ms, leading to a USART baud rate requirement of (68+544)x500x10x8/8 = **3.06MHz**. Hence the selected 6MHz baud rate clock.  
-Please note that this thinking also applies to a requirement of being able to send pings every 2ms.  
-  
-**Linked Descriptors on ATSAMD21**  
-In reality, it is not possible to use linked DMA descriptors because of errata 15683. As a mitigation technique, in our main while loop we check the ongoing receive transfer DMA transferred byte count.
+They key performance metric we want to hit is being able to scan the external DB flash memory as fast as possible (used when entering credentials management mode). That means the AUX MCU should have the first 64 bytes to send to the computer within 1ms after receiving the read node command (which itself is less than 64B long). 
+A first unsuccessful approach to hit that goal was to use linked descriptors. However, due to errata 15683 for ATSAMD21 MCUs it is impossible to use them.  
+As a result, the main loop on both MCUs will continuously read the ongoing receive transfer DMA byte count. Therefore, the main MCU can process a "read node" command as soon as 2 (message type) + 2 (payload length #1) + 2 (command identifier) + 2 (payload length) + 2 (node address) = 10 bytes are received in 17us and the aux MCU could start sending data after the first 64 bytes are received in 106us.  
+
+
