@@ -35,6 +35,8 @@ typedef struct
 } aux_mcu_message_t;
 
 /* Prototypes */
+BOOL comms_aux_mcu_get_received_packet(aux_mcu_message_t** message, BOOL arm_new_rx);
+aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void);
 void comms_aux_mcu_routine(void);
 void comms_aux_init(void);
 

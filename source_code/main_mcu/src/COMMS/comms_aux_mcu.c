@@ -31,6 +31,47 @@ void comms_aux_init(void)
     //dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_message_buffer2, sizeof(aux_mcu_message_buffer1));
 }
 
+/*! \fn     comms_aux_mcu_get_temp_tx_message_object_pt(void)
+*   \brief  Get a pointer to our temporary tx message object
+*/
+aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void)
+{
+    return &aux_mcu_send_message;
+}
+
+/*! \fn     comms_aux_mcu_get_received_packet(aux_mcu_message_t* message, BOOL arm_new_rx)
+*   \brief  Get received packet (if any), and arm next RX dma transfer if specified
+*   \param  message     Where to store pointer to received message
+*   \param  arm_new_rx  Set to true to arm next DMA RX transfer
+*   \return If a message was received
+*/
+BOOL comms_aux_mcu_get_received_packet(aux_mcu_message_t** message, BOOL arm_new_rx)
+{
+    /* Check for rx flag */
+    if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
+    {
+        /* Check for valid flag */
+        if (aux_mcu_receive_message.payload_valid_flag != 0)
+        {
+            if (arm_new_rx != FALSE)
+            {
+                /* Arm next RX DMA transfer */
+                dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+            }    
+            *message = &aux_mcu_receive_message;        
+            return TRUE;
+        }
+        else
+        {
+            /* Payload invalid, rearm & return false */
+            dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+            return FALSE;
+        }
+    }
+    
+    return FALSE;
+}
+
 /*! \fn     comms_aux_mcu_routine(void)
 *   \brief  Routine dealing with aux mcu comms
 */
