@@ -49,6 +49,7 @@ Three different kinds of packets may be sent from the AUX MCU:
 - USB communications  
 - BLE communications  
 - status messages (USB disconnected & others)  
+
 If no flow control was implemented these 3 different packets may be sent **at once** to the main MCU, which may not have enough time to deal with each packet before being able to receive another.  
 As a consequence, from the "proto v2" boards, a dedicated main MCU output pin explicitely lets the aux MCU know to not send any packet. This does not lead to additional memory requirements on the aux MCU as:   
 - a USB buffer needs to be implemented for packet de-serialization  
