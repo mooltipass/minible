@@ -21,9 +21,10 @@ Do not forget to review our [contributors guidelines and coding rules](coding_ru
 * [Unicode Plane 0 Support Implementation (Fonts)](task_unicode_font)
 * [Unicode Plane 0 Support Implementation (HID)](task_unicode_hid)
 * [Secure Bootloader Implementation](task_bootloader)
+* [Aux MCU Bootloader Rewrite] (task_aux_mcu_bootloader)
+* [Aux MCU USB Communications] (task_aux_mcu_usb)
 * [Webauthn Implementation](task_u2f)
 * [User Interface Design](task_ui_design)
-* [Smartcard Emulation](task_smc_emul)
 * [RNG Implementation](task_rng)
 * OTP Implementation
 
