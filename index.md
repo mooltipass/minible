@@ -6,6 +6,7 @@ You'll find below different pages detailing our selected architecture.
 * [High Level Device Overview](highlevel_overview)
 * [WIP - Graphics Bundle Composition](bundle)
 * [WIP - Aux-Main MCU Protocol](aux_main_mcu_protocol)
+* [WIP - Bootloader Protocol](aux_bootloader_protocol)
 * [WIP - Message Protocol](protocol)
 * [WIP - Database Model](database_model)
 * [WIP - RAM Consumers](ram_consumers)
