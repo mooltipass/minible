@@ -38,7 +38,7 @@ The message payload, which may contain up to 536 bytes. This maximum size was de
 This field should only be taken into account if **payload length #1 is 0**.  
 If different than 0, this byte lets the message recipient know that the message is valid. As a given Mooltipass message sent through USB can be split over multiple 64 bytes packets, this byte allows the aux MCU to signal that this message is invalid if for some reason or another the sequence of 64bytes long HID packets sending is interrupted.
 
-**Reply request flag**
+**Reply request flag**  
 Request the aux MCU to reply to this message regardless of the "not send" input state (see below).   
   
 **Serial Link Specs**  
