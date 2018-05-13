@@ -231,6 +231,13 @@ class mooltipass_hid_device:
 		accYSamples = []
 		accZSamples = []
 		
+		# RNG parameters
+		bits_for_rng = 5
+		extraction_mask = (1 << bits_for_rng) - 1
+		# RNG local vars
+		current_word = 0x00
+		bit_in_word = 0
+		
 		while True:
 			# Ask for 32 samples
 			packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_GET_ACC_32_SAMPLES, None))	
@@ -242,15 +249,27 @@ class mooltipass_hid_device:
 			
 			# Store samples
 			for i in range(0, len(packet["data"])/6):
-					accXSamples.append(packet["data"][i*6+0] + packet["data"][i*6+1]*256)
-					accYSamples.append(packet["data"][i*6+2] + packet["data"][i*6+3]*256)
-					accZSamples.append(packet["data"][i*6+4] + packet["data"][i*6+5]*256)
+					#accXSamples.append(packet["data"][i*6+0] + packet["data"][i*6+1]*256)
+					#accYSamples.append(packet["data"][i*6+2] + packet["data"][i*6+3]*256)
+					#accZSamples.append(packet["data"][i*6+4] + packet["data"][i*6+5]*256)
 					data_counter += 3
 					
 					# Write random data
-					f.write(struct.pack('B', packet["data"][i*6+0]))
-					f.write(struct.pack('B', packet["data"][i*6+2]))
-					f.write(struct.pack('B', packet["data"][i*6+4]))
+					for number in [packet["data"][i*6+0], packet["data"][i*6+2], packet["data"][i*6+4]]:
+						# Apply mask
+						number = number & extraction_mask
+						
+						# Check if we have overspill
+						overspill = bit_in_word + bits_for_rng - 8
+						
+						if overspill > 0:
+							current_word = (current_word | (number << bit_in_word)) & 0x0FF
+							f.write(struct.pack('B', current_word))
+							current_word = number >> (bits_for_rng - overspill)
+							bit_in_word = overspill
+						else:
+							current_word = current_word | (number << bit_in_word)
+							bit_in_word += bits_for_rng
 			
 			# Print out performance
 			if current_second != datetime.now().second:
