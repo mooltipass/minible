@@ -42,7 +42,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
     temp_tx_message_pt->bootloader_message.programming_command.image_length = fw_file_size;
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->bootloader_message.command) + sizeof(temp_tx_message_pt->bootloader_message.programming_command);
     temp_tx_message_pt->payload_length2 = sizeof(temp_tx_message_pt->bootloader_message.command) + sizeof(temp_tx_message_pt->bootloader_message.programming_command);
-    temp_tx_message_pt->payload_valid_flag = 0x0001;
+    temp_tx_message_pt->tx_reply_request_flag = 0x0001;
     
     /* Send message */
     dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)temp_tx_message_pt, sizeof(*temp_tx_message_pt));
@@ -74,7 +74,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
         temp_tx_message_pt->bootloader_message.write_command.size = 512;
         temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->bootloader_message.command) + sizeof(temp_tx_message_pt->bootloader_message.write_command);
         temp_tx_message_pt->payload_length2 = sizeof(temp_tx_message_pt->bootloader_message.command) + sizeof(temp_tx_message_pt->bootloader_message.write_command);
-        temp_tx_message_pt->payload_valid_flag = 0x0001;        
+        temp_tx_message_pt->tx_reply_request_flag = 0x0001;        
         
         /* Fill payload */
         custom_fs_read_from_flash((uint8_t*)temp_tx_message_pt->bootloader_message.write_command.payload, fw_file_address, nb_bytes_to_read);

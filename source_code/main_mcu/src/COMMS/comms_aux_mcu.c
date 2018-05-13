@@ -51,7 +51,7 @@ BOOL comms_aux_mcu_get_received_packet(aux_mcu_message_t** message, BOOL arm_new
     if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
     {
         /* Check for valid flag */
-        if (aux_mcu_receive_message.payload_valid_flag != 0)
+        if (aux_mcu_receive_message.rx_payload_valid_flag != 0)
         {
             if (arm_new_rx != FALSE)
             {
@@ -104,7 +104,7 @@ void comms_aux_mcu_routine(void)
                 should_deal_with_packet = TRUE;
                 payload_length = aux_mcu_receive_message.payload_length1;
             }
-            else if (aux_mcu_receive_message.payload_valid_flag != 0)
+            else if (aux_mcu_receive_message.rx_payload_valid_flag != 0)
             {
                 arm_rx_transfer = TRUE;
                 should_deal_with_packet = TRUE;
@@ -127,7 +127,7 @@ void comms_aux_mcu_routine(void)
     else if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
     {
         /* Second part transfer, check if we have already dealt with this packet and if it is valid */
-        if ((aux_mcu_message_answered_using_first_bytes == FALSE) && (aux_mcu_receive_message.payload_valid_flag != 0))
+        if ((aux_mcu_message_answered_using_first_bytes == FALSE) && (aux_mcu_receive_message.rx_payload_valid_flag != 0))
         {
             arm_rx_transfer = TRUE;
             should_deal_with_packet = TRUE;
@@ -182,7 +182,7 @@ void comms_aux_mcu_routine(void)
         if (hid_reply_payload_length >= 0)
         {
             /* Set same message type and compute payload size */
-            aux_mcu_send_message.payload_valid_flag = 0x0001;
+            aux_mcu_send_message.rx_payload_valid_flag = 0x0001; // !!!!!!!!!!!!!!!! TO REMOVE ONCE AUX MCU IS UPDATED WITH LATEST PROTOCOL !!!!!!!!!!!!!
             aux_mcu_send_message.message_type = aux_mcu_receive_message.message_type;
             aux_mcu_send_message.payload_length1 = hid_reply_payload_length + sizeof(aux_mcu_receive_message.hid_message.message_type) + sizeof(aux_mcu_receive_message.hid_message.payload_length);
             aux_mcu_send_message.payload_length2 = hid_reply_payload_length + sizeof(aux_mcu_receive_message.hid_message.message_type) + sizeof(aux_mcu_receive_message.hid_message.payload_length);

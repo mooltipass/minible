@@ -31,7 +31,11 @@ typedef struct
         uint32_t payload_as_uint32[AUX_MCU_MSG_PAYLOAD_LENGTH/4];    
     };
     uint16_t payload_length2;
-    uint16_t payload_valid_flag;
+    union
+    {
+        uint16_t rx_payload_valid_flag;
+        uint16_t tx_reply_request_flag;        
+    };
 } aux_mcu_message_t;
 
 /* Prototypes */

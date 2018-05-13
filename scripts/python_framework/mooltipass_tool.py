@@ -56,6 +56,9 @@ def main():
 		
 		elif sys.argv[1] == "rebootToBootloader":
 			mooltipass_device.rebootToBootloader()
+			
+		elif sys.argv[1] == "accGet":
+			mooltipass_device.getAccData()
 		
 	#if not skipConnection:
 	#	mooltipass_device.disconnect()

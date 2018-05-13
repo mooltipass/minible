@@ -3,6 +3,7 @@
 *    Created:  06/03/2018
 *    Author:   Mathieu Stephan
 */
+#include <string.h>
 #include <asf.h>
 #include "comms_hid_msgs_debug.h"
 #include "comms_hid_msgs.h"
@@ -118,6 +119,17 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             cpu_irq_disable();
             NVIC_SystemReset();
             while(1);            
+        }
+        case HID_CMD_ID_GET_ACC_32_SAMPLES:
+        {
+            while (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) == FALSE);
+            memcpy((void*)send_msg->payload, (void*)acc_descriptor.fifo_read.acc_data_array, sizeof(acc_descriptor.fifo_read.acc_data_array));
+            
+            send_msg->payload_length = 54;
+            return 54; // TO REMOVE ONCE AUX MCU is fixed //
+            
+            send_msg->payload_length = sizeof(acc_descriptor.fifo_read.acc_data_array);
+            return sizeof(acc_descriptor.fifo_read.acc_data_array);
         }
         default: break;
     }
