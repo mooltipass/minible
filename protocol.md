@@ -137,7 +137,6 @@ Device Answer:
 
 
 
-
 0x8007: Reboot to Bootloader
 ----------------------------
 
@@ -146,3 +145,18 @@ Device Answer:
 | 0x8007   | 0 | Nothing |
 
 Start main microcontroller bootloader. **No device answer**.
+
+
+
+0x8008: Get 32 samples of accelerometer data
+--------------------------------------------
+
+| byte 0-1 | byte 2-3                    | bytes 4-X |
+|:---------|:----------------------------|:----------|
+| 0x8008   | 0 | Nothing |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x8008   | 192 | 32x (accX, accY, accZ - uint16_t) |
