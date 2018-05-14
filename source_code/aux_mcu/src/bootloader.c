@@ -65,14 +65,14 @@ static void start_application(void)
     /* Pointer to the Application Section */
     void (*application_code_entry)(void);
 
-    /* Disable transfer aux mcu */
-    dma_aux_mcu_disable_transfer();
-
     /* Load the Reset Handler address of the application */
     application_code_entry = (void (*)(void))(unsigned *)(*(unsigned *)(APP_START_ADDR + 4));
 
     /* Jump to application if startaddr different than erased */
     if( *(uint32_t*)(APP_START_ADDR + 4) != 0xFFFFFFFF){
+
+        /* Disable transfer aux mcu */
+        dma_aux_mcu_disable_transfer();
 
         /* Rebase the Stack Pointer */
         __set_MSP(*(uint32_t *)APP_START_ADDR);
@@ -158,7 +158,6 @@ int main(void) {
                 /* programming mode ?? */
                 if( enter_programming ){
                     next_state = PROGRAM;
-                    //dma_aux_mcu_init_tx_transfer(&internaltest, sizeof(internaltest));
                 }
                 /* timeout expired ?? */
                 else if(timeout_expired()){
