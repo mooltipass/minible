@@ -168,19 +168,29 @@ void dma_aux_mcu_disable_transfer(void)
     /* Stop DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(DMA_UART_TX_CH);
     DMAC->CHCTRLA.reg = 0;
-
+    /* Wait for bit clear */
+    while(DMAC->CHCTRLA.reg != 0);
+    DMAC->CHCTRLA.reg = DMAC_CHCTRLA_SWRST;
     /* Wait for bit clear */
     while(DMAC->CHCTRLA.reg != 0);
 
     /* Stop DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(DMA_UART_TX_CH);
     DMAC->CHCTRLA.reg = 0;
-
+    /* Wait for bit clear */
+    while(DMAC->CHCTRLA.reg != 0);
+    DMAC->CHCTRLA.reg = DMAC_CHCTRLA_SWRST;
     /* Wait for bit clear */
     while(DMAC->CHCTRLA.reg != 0);
 
     /* Reset bool */
     dma_aux_mcu_packet_received = false;
+
+    /* Disable IRQ */
+    NVIC_DisableIRQ(DMAC_IRQn);
+
+    /* Disable Main DMA */
+    DMAC->CTRL.reg = 0;
 
     cpu_irq_leave_critical();
 }
