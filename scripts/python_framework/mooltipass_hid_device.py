@@ -262,7 +262,7 @@ class mooltipass_hid_device:
 						# Check if we have overspill
 						overspill = bit_in_word + bits_for_rng - 8
 						
-						if overspill > 0:
+						if overspill >= 0:
 							current_word = (current_word | (number << bit_in_word)) & 0x0FF
 							f.write(struct.pack('B', current_word))
 							current_word = number >> (bits_for_rng - overspill)
