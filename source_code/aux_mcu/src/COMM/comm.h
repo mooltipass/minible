@@ -40,6 +40,7 @@ typedef struct{
     uint8_t msg_end   :1;
 } T_comm_pkt_status;
 
+void comm_deinit(void);
 void comm_init(void);
 void comm_task(void);
 void comm_usb_process_in_pkt(T_comm_pkt_status pkt_status, uint8_t* data, uint16_t data_len);

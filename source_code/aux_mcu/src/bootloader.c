@@ -9,9 +9,10 @@
 #include "bootloader.h"
 #include "driver_sercom.h"
 
-/* 349 ms max wait time */
-#define BOOTLOADER_TIMEOUT_MS       (349)
-#define BOOTLOADER_TIMEOUT_TICKS    ((BOOTLOADER_TIMEOUT_MS*48000)-1)
+/* Configure max wait time */
+#define BOOTLOADER_WAIT_TIME_MS     (5000u)
+#define BOOTLAODER_TICK_MS          (100u)
+#define SYSTICK_100MS               ((4800000u) - 1)
 #define APP_START_ADDR              (0x2000) /* Bootloader size 8k */
 
 
@@ -19,6 +20,7 @@
 typedef enum {
     WAIT,
     PROGRAM,
+    WAIT_TX_DMA,
     START_APP,
 } T_boot_state;
 
@@ -51,10 +53,11 @@ T_boot_state current_state = WAIT;
 T_boot_state next_state;
 bool entry_flg = true;
 bool enter_programming = false;
-bool start_app = false;
+bool exit_programming = false;
 uint32_t write_addr = 0u;
 uint32_t current_len = 0u;
 uint32_t current_addr = 0u;
+uint32_t timeout_ms = 0u;
 
 
 /**
@@ -71,6 +74,9 @@ static void start_application(void)
     /* Jump to application if startaddr different than erased */
     if( *(uint32_t*)(APP_START_ADDR + 4) != 0xFFFFFFFF){
 
+        /* Deinitialize COMM */
+        comm_deinit();
+
         /* Disable transfer aux mcu */
         dma_aux_mcu_disable_transfer();
 
@@ -85,6 +91,9 @@ static void start_application(void)
     }
 }
 
+/**
+ * \brief Configures SysTick timer with a reload value of 100ms
+ */
 static void timeout_init(void){
     /* Disable SysTick CTRL */
     SysTick->CTRL &= ~(SysTick_CTRL_ENABLE_Msk);
@@ -95,8 +104,8 @@ static void timeout_init(void){
 
     /* Initialize systick (use processor freq) */
     SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk;
-    #if BOOTLOADER_TIMEOUT_TICKS < 0xFFFFFF
-        SysTick->LOAD = BOOTLOADER_TIMEOUT_TICKS;
+    #if SYSTICK_100MS < 0xFFFFFF
+        SysTick->LOAD = SYSTICK_100MS;
     #else
         SysTick->LOAD = 0xFFFFFFu;
     #endif /* BOOTLOADER_TIMEOUT_TICKS < 0xFFFFFF */
@@ -106,18 +115,24 @@ static void timeout_init(void){
 
 /**
  * \brief Function to start the application.
- * \return true - tiemout expired
- * \return false - timeout not expired
+ * \return true     Timeout expired
+ * \return false    Timeout not expired
  */
 static bool timeout_expired(void){
-    return ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) != 0u);
+
+    /* COUNTFLAG is cleared after read */
+    if ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) != 0u){
+        timeout_ms += BOOTLAODER_TICK_MS; /* 100 ms tick */
+    }
+
+    /* Check Counter, reset if expired */
+    if( timeout_ms >= BOOTLOADER_WAIT_TIME_MS){
+        timeout_ms = 0u;
+        return true;
+    }
+
+    return false;
 }
-T_comm_msg internaltest = {
-    .msg_type = 2,
-    .payload_valid = 1,
-    .payload_len = 10,
-    .payload = {0x00,0x00,0x01,0x02,0x00,0x02,0x00,0x00,0x22,0x33,0x44,0x55},
-};
 
 /*! \brief Main function. Execution starts here.
  */
@@ -169,7 +184,13 @@ int main(void) {
                 comm_task();
 
                 /* Start Application Required ?? */
-                if(start_app){
+                if(exit_programming){
+                    next_state = WAIT_TX_DMA;
+                }
+                break;
+
+            case WAIT_TX_DMA:
+                if(dma_aux_mcu_check_tx_dma_transfer_flag()){
                     next_state = START_APP;
                 }
                 break;
@@ -192,8 +213,13 @@ int main(void) {
     }
 }
 
-
-void bootloader_enter_programming(T_image_info info){
+/**
+ * \fn      bootloader_enter_programming
+ * \brief   Saves image info to be received from MAIN MCU and
+ *          sets enter programming flag
+ * \param   info structure with the info of the image to be loaded
+ */
+static void bootloader_enter_programming(T_image_info info){
     /* Store program information */
     image_info = info;
 
@@ -203,42 +229,16 @@ void bootloader_enter_programming(T_image_info info){
 
     /* Enter into programming */
     enter_programming = true;
-#if 0
-    //__ASM("label: B label");
-    internaltest.payload[0] = WRITE;
-    internaltest.payload[1] = 0x00;
-
-    internaltest.payload[2] = 0x00;
-    internaltest.payload[3] = 0x02;
-
-    internaltest.payload[4] = 0x00;
-    internaltest.payload[5] = 0x00;
-    internaltest.payload[6] = 0x00;
-    internaltest.payload[7] = 0x00;
-
-    internaltest.payload[8] = 0x58;
-    internaltest.payload[9] = 0x17;
-    internaltest.payload[10] = 0x00;
-    internaltest.payload[11] = 0x20;
-
-    internaltest.payload[12] = 0x09;
-    internaltest.payload[13] = 0x20;
-    internaltest.payload[14] = 0x00;
-    internaltest.payload[15] = 0x00;
-
-    internaltest.payload[16] = 0xfe;
-    internaltest.payload[17] = 0xe7;
-    internaltest.payload[18] = 0xfe;
-    internaltest.payload[19] = 0xe7;
-    internaltest.payload[20] = 0xfe;
-    internaltest.payload[21] = 0xe7;
-    internaltest.payload[22] = 0xfe;
-    internaltest.payload[23] = 0xe7;
-#endif
 }
 
-
-void bootloader_write(uint32_t* src, uint32_t len){
+/**
+ * \fn      bootloader_write
+ * \brief   Writes src buffer to address defined by current_addr
+ *          which is incremented by len on each write
+ * \param   src pointer to buffer with the data to write
+ * \param   len length of src pointer in bytes
+ */
+static void bootloader_write(uint32_t* src, uint32_t len){
 
     if(current_state != PROGRAM){
         return;
@@ -247,16 +247,23 @@ void bootloader_write(uint32_t* src, uint32_t len){
     /* Checks for a later phase */
     nvm_write_buffer((uint32_t*)current_addr, src, len);
 
-    /* Increment lenght and address */
+    /* Increment length and address */
     current_len += len;
     current_addr += len;
 
     if(image_info.size <= current_len){
-        start_app = true;
+        exit_programming = true;
     }
 }
 
-
+/**
+ * \fn    bootloader_process_msg
+ * \brief Process commands received with Message Type equal to 0x0002
+ * \param buff      Pointer to payload
+ * \param buff_len  Length of the payload received
+ * \return true     Command Succeed
+ * \return false    Command Failed
+ */
 bool bootloader_process_msg(uint8_t* buff, uint16_t buff_len){
     T_boot_commands cmd = (T_boot_commands)((buff[1] << 8) + buff[0]);
     T_image_info *info = (T_image_info *)buff;

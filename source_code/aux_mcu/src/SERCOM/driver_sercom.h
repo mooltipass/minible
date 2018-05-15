@@ -24,6 +24,7 @@ typedef enum {
 } usart_tx_xck_rts_cts_pad_te;
 
 /* Prototypes */
+void sercom_usart_deinit(Sercom* sercom_pt);
 void sercom_usart_init(Sercom* sercom_pt,
                        uint32_t sercom_baud_div,
                        usart_rx_pad_te rx_pad,

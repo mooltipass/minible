@@ -21,6 +21,14 @@ T_comm_msg comm_tx __attribute__ ((aligned (4)));
 uint16_t comm_tx_dma_index;
 
 /**
+ * \fn      comm_deinit
+ * \brief   De initialize COMM component
+ */
+void comm_deinit(void){
+    sercom_usart_deinit(SERCOM1);
+}
+
+/**
  * \fn      comm_init
  * \brief   Initialize COMM component to be prepared for USART msg reception
  *          it shall be called after dma_init

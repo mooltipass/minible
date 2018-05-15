@@ -23,25 +23,6 @@ enum {
 DmacDescriptor dma_writeback_descriptors[DMA_NUM_OF_CH] __attribute__ ((aligned (16)));
 DmacDescriptor dma_descriptors[DMA_NUM_OF_CH] __attribute__ ((aligned (16)));
 
-/* Boolean to specify if we received a packet from aux MCU */
-volatile bool dma_aux_mcu_packet_received = false;
-
-
-/*! \fn     DMAC_Handler
-*   \brief  Function called by interrupt when RX is done
-*/
-void DMAC_Handler(void)
-{
-    /* Test channel DMA_UART_RX_CH: aux MCU RX routine */
-    DMAC->CHID.reg = DMAC_CHID_ID(DMA_UART_RX_CH);
-    if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
-    {
-        /* Set transfer done boolean, clear interrupt */
-        dma_aux_mcu_packet_received = true;
-        DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
-    }
-}
-
 /*! \fn     dma_init
  *  \brief  Initialize DMA controller that will be used later
  */
@@ -76,6 +57,7 @@ void dma_init(void)
     dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
     dma_chctrlb_reg.bit.TRIGSRC = DMA_TRIGSRC_SERCOM1_TX;                                    // Select TX trigger
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
+    DMAC->CHINTENSET.reg = DMAC_CHINTENSET_TCMPL;                                           // Enable channel transfer complete interrupt
 
     /* Setup transfer descriptor for USART RX */
     dma_descriptors[DMA_UART_RX_CH].BTCTRL.reg = DMAC_BTCTRL_VALID;                         // Valid descriptor
@@ -93,9 +75,6 @@ void dma_init(void)
     dma_chctrlb_reg.bit.TRIGSRC = DMA_TRIGSRC_SERCOM1_RX;                                    // Select RX trigger
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
     DMAC->CHINTENSET.reg = DMAC_CHINTENSET_TCMPL;                                           // Enable channel transfer complete interrupt
-
-    /* Enable IRQ */
-    NVIC_EnableIRQ(DMAC_IRQn);
 }
 
 /*! \fn     dma_aux_mcu_check_and_clear_dma_transfer_flag
@@ -105,13 +84,35 @@ void dma_init(void)
  */
 bool dma_aux_mcu_check_and_clear_dma_transfer_flag(void)
 {
-    /* flag can't be set twice, code is safe */
-    if (dma_aux_mcu_packet_received != false)
+    /* Test channel DMA_UART_RX_CH: aux MCU RX routine */
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_UART_RX_CH);
+    if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
     {
-        dma_aux_mcu_packet_received = false;
+        /* Set transfer done boolean, clear interrupt */
+        DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
         return true;
+    } else{
+        return false;
     }
-    return false;
+}
+
+/*! \fn     dma_aux_mcu_check_tx_dma_transfer_flag
+ *  \brief  Check if a DMA transfer to main MCU has been completed
+ *  \note   If the flag is true, flag will be cleared to false
+ *  \return true or false
+ */
+bool dma_aux_mcu_check_tx_dma_transfer_flag(void)
+{
+    /* Test channel DMA_UART_TX_CH: aux MCU TX routine */
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_UART_TX_CH);
+    if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
+    {
+        /* Set transfer done boolean, clear interrupt */
+        DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
+        return true;
+    } else{
+        return false;
+    }
 }
 
 /*! \fn     dma_aux_mcu_init_tx_transfer
@@ -183,14 +184,9 @@ void dma_aux_mcu_disable_transfer(void)
     /* Wait for bit clear */
     while(DMAC->CHCTRLA.reg != 0);
 
-    /* Reset bool */
-    dma_aux_mcu_packet_received = false;
-
-    /* Disable IRQ */
-    NVIC_DisableIRQ(DMAC_IRQn);
-
     /* Disable Main DMA */
     DMAC->CTRL.reg = 0;
+    while(DMAC->CTRL.reg != 0);
 
     cpu_irq_leave_critical();
 }

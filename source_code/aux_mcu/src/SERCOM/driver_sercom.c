@@ -5,6 +5,17 @@
  */
 #include "driver_sercom.h"
 
+/*! \fn     sercom_usart_deinit
+ *  \brief  De initialize and Reset a SERCOM in USART mode
+ */
+void sercom_usart_deinit(Sercom* sercom_pt){
+    /* Disable SERCOM */
+    sercom_pt->USART.CTRLA.reg = 0;
+    while (sercom_pt->USART.SYNCBUSY.reg);
+    /* Reset SERCOM */
+    sercom_pt->USART.CTRLA.reg = SERCOM_USART_CTRLA_SWRST;
+    while (sercom_pt->USART.SYNCBUSY.reg);
+}
 
 /*! \fn     sercom_usart_init
  *  \brief  Initialize a SERCOM in USART mode
