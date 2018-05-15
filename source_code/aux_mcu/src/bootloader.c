@@ -60,10 +60,10 @@ uint32_t current_addr = 0u;
 uint32_t timeout_ms = 0u;
 
 
-/**
- * \brief Function to start the application.
+/*! \fn     bootloader_start_application
+ *  \brief  Function to start the application.
  */
-static void start_application(void)
+static void bootloader_start_application(void)
 {
     /* Pointer to the Application Section */
     void (*application_code_entry)(void);
@@ -91,10 +91,10 @@ static void start_application(void)
     }
 }
 
-/**
- * \brief Configures SysTick timer with a reload value of 100ms
+/*! \fn     bootloader_timeout_init
+ *  \brief  Configures SysTick timer with a reload value of 100ms
  */
-static void timeout_init(void){
+static void bootloader_timeout_init(void){
     /* Disable SysTick CTRL */
     SysTick->CTRL &= ~(SysTick_CTRL_ENABLE_Msk);
     SysTick->LOAD = 0u;
@@ -113,12 +113,12 @@ static void timeout_init(void){
     SysTick->VAL = 0u;
 }
 
-/**
- * \brief Function to start the application.
- * \return true     Timeout expired
- * \return false    Timeout not expired
+/*! \fn     bootloader_timeout_expired
+ *  \brief  check if previously configured timeout has been expired
+ *  \return true     Timeout expired
+ *  \return false    Timeout not expired
  */
-static bool timeout_expired(void){
+static bool bootloader_timeout_expired(void){
 
     /* COUNTFLAG is cleared after read */
     if ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) != 0u){
@@ -134,37 +134,80 @@ static bool timeout_expired(void){
     return false;
 }
 
-/*! \brief Main function. Execution starts here.
+/*! \fn     bootloader_enter_programming
+ *  \brief  Saves image info to be received from MAIN MCU and
+ *          sets enter programming flag
+ *  \param  info structure with the info of the image to be loaded
+ */
+static void bootloader_enter_programming(T_image_info info){
+    /* Store program information */
+    image_info = info;
+
+    /* Variables to be used when writing to NVM */
+    current_len = 0u;
+    current_addr = APP_START_ADDR;
+
+    /* Enter into programming */
+    enter_programming = true;
+}
+
+/*! \fn     bootloader_write
+ *  \brief  Writes src buffer to address defined by current_addr
+ *          which is incremented by len on each write
+ *  \param  src pointer to buffer with the data to write
+ *  \param  len length of src pointer in bytes
+ */
+static void bootloader_write(uint32_t* src, uint32_t len){
+
+    if(current_state != PROGRAM){
+        return;
+    }
+
+    /* Checks for a later phase */
+    nvm_write_buffer((uint32_t*)current_addr, src, len);
+
+    /* Increment length and address */
+    current_len += len;
+    current_addr += len;
+
+    if(image_info.size <= current_len){
+        exit_programming = true;
+    }
+}
+
+/*! \fn     main
+ *  \brief  Main function. Execution starts here.
  */
 int main(void) {
+    /* Irq initialization */
     irq_initialize_vectors();
     cpu_irq_enable();
 
-    // System init
+    /* System init */
     system_init();
 
-    // Port init
+    /* Port init */
     port_manager_init();
 
-    // Power Manager init
+    /* Power Manager init */
     power_manager_init();
 
-    // Clock Manager init
+    /* Clock Manager init */
     clock_manager_init();
 
-    // DMA init
+    /* DMA init */
     dma_init();
 
-    // Init Serial communications
+    /* Init Serial communications */
     comm_init();
 
-    // The main loop
+    /* The main loop */
     while (true) {
         switch(current_state){
             case WAIT:
                 /* First action to execute when entering WAIT state */
                 if(entry_flg){
-                    timeout_init();
+                    bootloader_timeout_init();
                 }
 
                 /* Process Programming Command */
@@ -175,7 +218,7 @@ int main(void) {
                     next_state = PROGRAM;
                 }
                 /* timeout expired ?? */
-                else if(timeout_expired()){
+                else if(bootloader_timeout_expired()){
                     next_state = START_APP;
                 }
                 break;
@@ -196,7 +239,7 @@ int main(void) {
                 break;
 
             case START_APP:
-                start_application();
+                bootloader_start_application();
                 /* this line shall not be reached */
             default:
                 next_state = WAIT;
@@ -213,56 +256,12 @@ int main(void) {
     }
 }
 
-/**
- * \fn      bootloader_enter_programming
- * \brief   Saves image info to be received from MAIN MCU and
- *          sets enter programming flag
- * \param   info structure with the info of the image to be loaded
- */
-static void bootloader_enter_programming(T_image_info info){
-    /* Store program information */
-    image_info = info;
-
-    /* Variables to be used when writing to NVM */
-    current_len = 0u;
-    current_addr = APP_START_ADDR;
-
-    /* Enter into programming */
-    enter_programming = true;
-}
-
-/**
- * \fn      bootloader_write
- * \brief   Writes src buffer to address defined by current_addr
- *          which is incremented by len on each write
- * \param   src pointer to buffer with the data to write
- * \param   len length of src pointer in bytes
- */
-static void bootloader_write(uint32_t* src, uint32_t len){
-
-    if(current_state != PROGRAM){
-        return;
-    }
-
-    /* Checks for a later phase */
-    nvm_write_buffer((uint32_t*)current_addr, src, len);
-
-    /* Increment length and address */
-    current_len += len;
-    current_addr += len;
-
-    if(image_info.size <= current_len){
-        exit_programming = true;
-    }
-}
-
-/**
- * \fn    bootloader_process_msg
- * \brief Process commands received with Message Type equal to 0x0002
- * \param buff      Pointer to payload
- * \param buff_len  Length of the payload received
- * \return true     Command Succeed
- * \return false    Command Failed
+/*! \fn    bootloader_process_msg
+ *  \brief Process commands received with Message Type equal to 0x0002
+ *  \param buff     Pointer to payload
+ *  \param buff_len Length of the payload received
+ *  \return true    Command Succeed
+ *  \return false   Command Failed
  */
 bool bootloader_process_msg(uint8_t* buff, uint16_t buff_len){
     T_boot_commands cmd = (T_boot_commands)((buff[1] << 8) + buff[0]);
@@ -278,7 +277,7 @@ bool bootloader_process_msg(uint8_t* buff, uint16_t buff_len){
 
         case WRITE:
             if( enter_programming ){
-                bootloader_write(&write->data, write->size);
+                bootloader_write((uint32_t*)&write->data, write->size);
                 operation_ok = true;
             } else{
                 operation_ok = false;
