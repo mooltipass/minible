@@ -94,16 +94,13 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
         dma_wait_for_aux_mcu_packet_sent();
         
         /* Wait for answer... TODO: timeout? */
-        if (fw_file_size != 0)
-        {
-            while (comms_aux_mcu_get_received_packet(&temp_rx_message_pt, TRUE) == FALSE);
+        while (comms_aux_mcu_get_received_packet(&temp_rx_message_pt, TRUE) == FALSE);
             
-            /* Check for valid answer */
-            if ((temp_rx_message_pt->message_type != AUX_MCU_MSG_TYPE_BOOTLOADER) || (temp_rx_message_pt->bootloader_message.command != BOOTLOADER_WRITE_COMMAND))
-            {
-                return RETURN_NOK;
-            }            
-        }   
+        /* Check for valid answer */
+        if ((temp_rx_message_pt->message_type != AUX_MCU_MSG_TYPE_BOOTLOADER) || (temp_rx_message_pt->bootloader_message.command != BOOTLOADER_WRITE_COMMAND))
+        {
+            return RETURN_NOK;
+        }
     }      
     
     return RETURN_OK;
