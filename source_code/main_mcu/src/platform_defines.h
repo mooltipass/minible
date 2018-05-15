@@ -44,7 +44,7 @@ typedef struct
 /* Simply an array point to our internal memory */
 #define NVM_MEMORY ((volatile uint16_t *)FLASH_ADDR)
 /* Our firmware start address */
-#define APP_START_ADDR (0x1000)
+#define APP_START_ADDR (0x2000)
 /* Internal storage slot for settings storage */
 #define SETTINGS_STORAGE_SLOT   0
 
@@ -66,6 +66,8 @@ typedef struct
 #define OLED_PRINTF_ENABLED
 /* Allow debug USB commands */
 #define DEBUG_USB_COMMANDS_ENABLED
+/* Allow debug menu */
+#define DEBUG_MENU_ENABLED
 
 /* GCLK ID defines */
 #define GCLK_ID_48M             GCLK_CLKCTRL_GEN_GCLK0_Val

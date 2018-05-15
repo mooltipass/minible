@@ -8,7 +8,7 @@
 #ifndef COMMS_HID_MSGS_H_
 #define COMMS_HID_MSGS_H_
 
-#include "comms_aux_mcu.h"
+#include "comms_aux_mcu_defines.h"
 
 /* Defines */
 #define HID_1BYTE_NACK      0x00

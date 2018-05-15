@@ -77,7 +77,7 @@ static volatile uint8_t main_b_vbus_status = 0;
 /* To move the application address, change APP_START_ADDR & .text           */
 /* What I don't understand: why the "+1" in the second array element        */
 /****************************************************************************/
-#define APP_START_ADDR (0x1000)
+#define APP_START_ADDR (0x2000)
 const uint32_t jump_to_application_function_addr[2] __attribute__((used,section (".flash_start_addr"))) = {HMCRAMC0_ADDR+100,0x200+1};
 void jump_to_application_function(void) __attribute__((used,section (".start_app_function_addr")));
 void jump_to_application_function(void)

@@ -20,6 +20,8 @@
 #define HID_CMD_ID_ERASE_DATA_FLASH         0x8004
 #define HID_CMD_ID_IS_DATA_FLASH_READY      0x8005
 #define HID_CMD_ID_DATAFLASH_WRITE_256B     0x8006
+#define HID_CMD_ID_START_BOOTLOADER         0x8007
+#define HID_CMD_ID_GET_ACC_32_SAMPLES       0x8008
 
 /* Prototypes */
 int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg);

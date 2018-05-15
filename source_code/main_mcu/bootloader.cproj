@@ -239,6 +239,7 @@
       <Value>BOARD=USER_BOARD</Value>
       <Value>ARM_MATH_CM0PLUS=true</Value>
       <Value>__CORTEX_SC=0</Value>
+      <Value>BOOTLOADER</Value>
       <Value>NDEBUG</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
@@ -376,6 +377,7 @@
       <Value>BOARD=USER_BOARD</Value>
       <Value>ARM_MATH_CM0PLUS=true</Value>
       <Value>__CORTEX_SC=0</Value>
+      <Value>BOOTLOADER</Value>
       <Value>DEBUG</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>

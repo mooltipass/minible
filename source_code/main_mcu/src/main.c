@@ -24,6 +24,7 @@ sh1122_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigg
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 
+
 /****************************************************************************/
 /* The blob of code below is aimed at facilitating our development process  */
 /* To understand this, you need to know that:                               */
@@ -117,10 +118,10 @@ void main_platform_init(void)
         sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
         
         /* Wait to load bundle from USB */
-        while(1)
+        /*while(1)
         {
             comms_aux_mcu_routine();
-        }
+        }*/
     }
     
     /* Now that our custom filesystem is loaded, load the default font from flash */
@@ -186,9 +187,9 @@ int main(void)
 {
     /* Initialize our platform */
     main_platform_init();
-    timer_delay_ms(2000);
-    main_standby_sleep();
-    debug_debug_screen();
+    //timer_delay_ms(2000);
+    //main_standby_sleep();
+    debug_debug_menu();
     
     // Test code: burn internal graphics data into external flash.
     //dataflash_bulk_erase_with_wait(&dataflash_descriptor);

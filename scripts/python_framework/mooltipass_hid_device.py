@@ -2,6 +2,7 @@
 from os.path import isfile, join, isdir
 from mooltipass_defines import *
 from generic_hid_device import *
+from pprint import pprint
 from array import array
 from PIL import Image
 import struct
@@ -212,12 +213,73 @@ class mooltipass_hid_device:
 		bundlefile.close()
 		print "Sending done!"
 		
+	
+	# Reboot to bootloader, no answer from device.
+	def rebootToBootloader(self):
+		self.device.sendHidMessage(self.getPacketForCommand(CMD_DBG_REBOOT_TO_BOOTLOADER, None))	
+	
+	
+	# Get accelerometer data
+	def getAccData(self):
+		# Random bytes file
+		f = open('randombytes.bin', 'wb')
+		
+		# local vars
+		current_second = datetime.now().second
+		data_counter = 0
+		accXSamples = []
+		accYSamples = []
+		accZSamples = []
+		
+		# RNG parameters
+		bits_for_rng = 5
+		extraction_mask = (1 << bits_for_rng) - 1
+		# RNG local vars
+		current_word = 0x00
+		bit_in_word = 0
+		
+		while True:
+			# Ask for 32 samples
+			packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_GET_ACC_32_SAMPLES, None))	
+			
+			# Debug print
+			if False:
+				for i in range(0, len(packet["data"])/6):
+					print "X: " + hex(packet["data"][i*6+0] + packet["data"][i*6+1]*256)[2:].zfill(4) + " Y: " + hex(packet["data"][i*6+2] + packet["data"][i*6+3]*256)[2:].zfill(4) + " Z: " + hex(packet["data"][i*6+4] + packet["data"][i*6+5]*256)[2:].zfill(4)
+			
+			# Store samples
+			for i in range(0, len(packet["data"])/6):
+					#accXSamples.append(packet["data"][i*6+0] + packet["data"][i*6+1]*256)
+					#accYSamples.append(packet["data"][i*6+2] + packet["data"][i*6+3]*256)
+					#accZSamples.append(packet["data"][i*6+4] + packet["data"][i*6+5]*256)
+					data_counter += 3
+					
+					# Write random data
+					for number in [packet["data"][i*6+0], packet["data"][i*6+2], packet["data"][i*6+4]]:
+						# Apply mask
+						number = number & extraction_mask
+						
+						# Check if we have overspill
+						overspill = bit_in_word + bits_for_rng - 8
+						
+						if overspill >= 0:
+							current_word = (current_word | (number << bit_in_word)) & 0x0FF
+							f.write(struct.pack('B', current_word))
+							current_word = number >> (bits_for_rng - overspill)
+							bit_in_word = overspill
+						else:
+							current_word = current_word | (number << bit_in_word)
+							bit_in_word += bits_for_rng
+			
+			# Print out performance
+			if current_second != datetime.now().second:
+				current_second = datetime.now().second
+				print "Accelerometer receive:", data_counter , "samples/s"
+				data_counter = 0
+				f.flush()
 		
 		
-		
-		
-		
-	### BELOW ARE PICTURE TO RE-IMPLEMENT	
+	### BELOW ARE FEATURES TO RE-IMPLEMENT	
 			
 	# Ping device
 	def pingMooltipass(self):

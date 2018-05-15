@@ -31,6 +31,47 @@ void comms_aux_init(void)
     //dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_message_buffer2, sizeof(aux_mcu_message_buffer1));
 }
 
+/*! \fn     comms_aux_mcu_get_temp_tx_message_object_pt(void)
+*   \brief  Get a pointer to our temporary tx message object
+*/
+aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void)
+{
+    return &aux_mcu_send_message;
+}
+
+/*! \fn     comms_aux_mcu_get_received_packet(aux_mcu_message_t* message, BOOL arm_new_rx)
+*   \brief  Get received packet (if any), and arm next RX dma transfer if specified
+*   \param  message     Where to store pointer to received message
+*   \param  arm_new_rx  Set to true to arm next DMA RX transfer
+*   \return If a message was received
+*/
+BOOL comms_aux_mcu_get_received_packet(aux_mcu_message_t** message, BOOL arm_new_rx)
+{
+    /* Check for rx flag */
+    if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
+    {
+        /* Check for valid flag */
+        if (aux_mcu_receive_message.rx_payload_valid_flag != 0)
+        {
+            if (arm_new_rx != FALSE)
+            {
+                /* Arm next RX DMA transfer */
+                dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+            }    
+            *message = &aux_mcu_receive_message;        
+            return TRUE;
+        }
+        else
+        {
+            /* Payload invalid, rearm & return false */
+            dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+            return FALSE;
+        }
+    }
+    
+    return FALSE;
+}
+
 /*! \fn     comms_aux_mcu_routine(void)
 *   \brief  Routine dealing with aux mcu comms
 */
@@ -63,7 +104,7 @@ void comms_aux_mcu_routine(void)
                 should_deal_with_packet = TRUE;
                 payload_length = aux_mcu_receive_message.payload_length1;
             }
-            else if (aux_mcu_receive_message.payload_valid_flag != 0)
+            else if (aux_mcu_receive_message.rx_payload_valid_flag != 0)
             {
                 arm_rx_transfer = TRUE;
                 should_deal_with_packet = TRUE;
@@ -86,7 +127,7 @@ void comms_aux_mcu_routine(void)
     else if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
     {
         /* Second part transfer, check if we have already dealt with this packet and if it is valid */
-        if ((aux_mcu_message_answered_using_first_bytes == FALSE) && (aux_mcu_receive_message.payload_valid_flag != 0))
+        if ((aux_mcu_message_answered_using_first_bytes == FALSE) && (aux_mcu_receive_message.rx_payload_valid_flag != 0))
         {
             arm_rx_transfer = TRUE;
             should_deal_with_packet = TRUE;
@@ -119,23 +160,21 @@ void comms_aux_mcu_routine(void)
     {
         /* Cast payloads into correct type */
         int16_t hid_reply_payload_length = -1;
-        hid_message_t* hid_message_pt = (hid_message_t*)aux_mcu_receive_message.payload_as_uint32;
-        hid_message_t* send_hid_message_pt = (hid_message_t*)aux_mcu_send_message.payload_as_uint32;
                 
         /* Clear TX message just in case */
         memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
                 
         /* Parse message */
         #ifndef DEBUG_USB_COMMANDS_ENABLED
-        hid_reply_payload_length = comms_hid_msgs_parse(hid_message_pt, payload_length - sizeof(hid_message_pt->message_type) - sizeof(hid_message_pt->payload_length), send_hid_message_pt);
+        hid_reply_payload_length = comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), &aux_mcu_send_message.hid_message);
         #else
-        if (hid_message_pt->message_type >= HID_MESSAGE_START_CMD_ID_DBG)
+        if (aux_mcu_receive_message.hid_message.message_type >= HID_MESSAGE_START_CMD_ID_DBG)
         {
-            hid_reply_payload_length = comms_hid_msgs_parse_debug(hid_message_pt, payload_length - sizeof(hid_message_pt->message_type) - sizeof(hid_message_pt->payload_length), send_hid_message_pt);
+            hid_reply_payload_length = comms_hid_msgs_parse_debug(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), &aux_mcu_send_message.hid_message);
         }
         else
         {
-            hid_reply_payload_length = comms_hid_msgs_parse(hid_message_pt, payload_length - sizeof(hid_message_pt->message_type) - sizeof(hid_message_pt->payload_length), send_hid_message_pt);
+            hid_reply_payload_length = comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), &aux_mcu_send_message.hid_message);
         }
         #endif
                 
@@ -143,15 +182,19 @@ void comms_aux_mcu_routine(void)
         if (hid_reply_payload_length >= 0)
         {
             /* Set same message type and compute payload size */
-            aux_mcu_send_message.payload_valid_flag = 0x0001;
+            aux_mcu_send_message.rx_payload_valid_flag = 0x0001; // !!!!!!!!!!!!!!!! TO REMOVE ONCE AUX MCU IS UPDATED WITH LATEST PROTOCOL !!!!!!!!!!!!!
             aux_mcu_send_message.message_type = aux_mcu_receive_message.message_type;
-            aux_mcu_send_message.payload_length1 = hid_reply_payload_length + sizeof(hid_message_pt->message_type) + sizeof(hid_message_pt->payload_length);
-            aux_mcu_send_message.payload_length2 = hid_reply_payload_length + sizeof(hid_message_pt->message_type) + sizeof(hid_message_pt->payload_length);
+            aux_mcu_send_message.payload_length1 = hid_reply_payload_length + sizeof(aux_mcu_receive_message.hid_message.message_type) + sizeof(aux_mcu_receive_message.hid_message.payload_length);
+            aux_mcu_send_message.payload_length2 = hid_reply_payload_length + sizeof(aux_mcu_receive_message.hid_message.message_type) + sizeof(aux_mcu_receive_message.hid_message.payload_length);
                     
             /* Send message */
             dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
         }
-    }     
+    } 
+    else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BOOTLOADER)
+    {
+        asm("Nop");
+    }    
     
     /* If we need to rearm RX */
     if (arm_rx_transfer != FALSE)
