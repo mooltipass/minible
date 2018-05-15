@@ -58,7 +58,8 @@ typedef struct pin_cfg {
 } T_pin_cfg;
 
 /** Prototype declaration */
-static void port_manager_config(T_pin_cfg* pin);
+static void port_manager_config(const T_pin_cfg* pin);
+static void port_manager_config_sleep(uint32_t pinid);
 
 /* BLE UART 1 -- SERCOM0 */
 const T_pin_cfg pin_ble_rx_uart1 = {
@@ -111,13 +112,13 @@ const T_pin_cfg pin_ble_rts_uart0 = {
     .muxcfg = 0,
 };
 /* AUX UART -- SERCOM1 */
-T_pin_cfg pin_aux_tx = {
+const T_pin_cfg pin_aux_tx = {
     .pinid = PIN_PA16,
     .pincfg = PINCFG_PERIPHERAL,
     .iocfg = IO_OUTPUT_DEFAULT_HIGH,
     .muxcfg = MUX_PA16C_SERCOM1_PAD0,
 };
-T_pin_cfg pin_aux_rx = {
+const T_pin_cfg pin_aux_rx = {
     .pinid = PIN_PA17,
     .pincfg = PINCFG_PERIPHERAL,
     .iocfg = IO_INPUT_DEFAULT,
@@ -131,15 +132,45 @@ T_pin_cfg pin_aux_rx = {
 void port_manager_init(void){
     port_manager_config(&pin_aux_tx);
     port_manager_config(&pin_aux_rx);
+    // SERCOM2 ble primary uart
+    port_manager_config(&pin_ble_rx_uart0);
+    port_manager_config(&pin_ble_tx_uart0);
+    port_manager_config(&pin_ble_rts_uart0);
+    port_manager_config(&pin_ble_cts_uart0);
+    // SERCOM0 ble secondary uart
+    port_manager_config(&pin_ble_rx_uart1);
+    port_manager_config(&pin_ble_tx_uart1);
+    port_manager_config(&pin_ble_rts_uart1);
+    port_manager_config(&pin_ble_cts_uart1);
+}
+
+/**
+ * \fn      port_manager_deinit
+ * \brief   de-initialize MCU Port configuration to enter sleep
+ */
+void port_manager_deinit(void){
+
+    port_manager_config_sleep(pin_aux_tx.pinid);
+    port_manager_config_sleep(pin_aux_rx.pinid);
+    // SERCOM2 ble primary uart
+    port_manager_config_sleep(pin_ble_rx_uart0.pinid);
+    port_manager_config_sleep(pin_ble_tx_uart0.pinid);
+    port_manager_config_sleep(pin_ble_rts_uart0.pinid);
+    port_manager_config_sleep(pin_ble_cts_uart0.pinid);
+    // SERCOM0 ble secondary uart
+    port_manager_config_sleep(pin_ble_rx_uart1.pinid);
+    port_manager_config_sleep(pin_ble_tx_uart1.pinid);
+    port_manager_config_sleep(pin_ble_rts_uart1.pinid);
+    port_manager_config_sleep(pin_ble_cts_uart1.pinid);
 }
 
 /**
  * \fn      port_manager_config
- * \brief   Configures an specific mcu pin based on pin
+ * \brief   Configures an specific Mcu pin based on pin
  *          configuration parameter
  * \param   pin     Pointer to pin configuration
  */
-static void port_manager_config(T_pin_cfg* pin){
+static void port_manager_config(const T_pin_cfg* pin){
     PORT_WRCONFIG_Type wrconfig_tmp;
     uint32_t pinmask;
     uint8_t groupid;
@@ -188,3 +219,21 @@ static void port_manager_config(T_pin_cfg* pin){
     }
 
 }
+
+/**
+ * \fn      port_manager_config_sleep
+ * \brief   Configures an specific Mcu pin to sleep
+ * \param   pin     Pointer to pin configuration
+ */
+static void port_manager_config_sleep(uint32_t pinid){
+    T_pin_cfg pin_sleep_cfg = {
+        .pinid = pinid,
+        .pincfg = PINCFG_IO,
+        .iocfg = IO_INPUT_DEFAULT,
+        .muxcfg = 0,
+    };
+
+    port_manager_config(&pin_sleep_cfg);
+}
+
+

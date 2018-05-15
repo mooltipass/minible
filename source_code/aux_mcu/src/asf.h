@@ -51,10 +51,54 @@
  * The file is automatically generated and will be re-written when
  * running the ASF driver selector tool. Any changes will be discarded.
  */
+#ifdef BOOTLOADER
 
 // From module: Common SAM0 compiler driver
 #include <compiler.h>
 #include <status_codes.h>
+
+// From module: Common build items for user board support templates
+#include <user_board.h>
+
+// From module: Generic board support
+#include <board.h>
+
+// From module: Interrupt management - SAM implementation
+#include <interrupt.h>
+
+// From module: PORT - GPIO Pin Control
+#include <port.h>
+
+// From module: Part identification macros
+#include <parts.h>
+
+
+// From module: SYSTEM - Clock Management for SAMD21/R21/DAx
+#include <clock.h>
+#include <gclk.h>
+
+// From module: SYSTEM - Core System Driver
+#include <system.h>
+
+// From module: SYSTEM - I/O Pin Multiplexer
+#include <pinmux.h>
+
+// From module: SYSTEM - Interrupt Driver
+#include <system_interrupt.h>
+
+// From module: SYSTEM - Power Management for SAM D20/D21/R21/D09/D10/D11/DA0/DA1
+#include <power.h>
+
+// From module: SYSTEM - Reset Management for SAM D20/D21/R21/D09/D10/D11/DA0/DA1
+#include <reset.h>
+
+#else
+// From module: Common SAM0 compiler driver
+#include <compiler.h>
+#include <status_codes.h>
+
+// From module: Delay routines
+#include <delay.h>
 
 // From module: Common build items for user board support templates
 #include <user_board.h>
@@ -74,6 +118,14 @@
 
 // From module: Part identification macros
 #include <parts.h>
+
+// From module: SERCOM Callback API
+#include <sercom.h>
+#include <sercom_interrupt.h>
+
+// From module: SERCOM USART - Serial Communications (Callback APIs)
+#include <usart.h>
+#include <usart_interrupt.h>
 
 // From module: SAM D21/R21/D11/L21/DA1/L22 USB Dual role interface
 #include <usb_dual.h>
@@ -116,5 +168,14 @@
 
 // From module: USB HID Library (Device)
 #include <udi_hid.h>
+
+// From module: TC - Timer Counter (Callback APIs)
+#include <tc.h>
+#include <tc_interrupt.h>
+
+// From module: USART - Serial interface- SAM implementation for devices with only USART
+#include <serial.h>
+
+#endif // BOOTLOADER
 
 #endif // ASF_H

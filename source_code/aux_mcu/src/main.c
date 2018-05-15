@@ -52,9 +52,11 @@
 #include "clock_manager.h"
 #include "dma.h"
 #include "comm.h"
+#include "ble/ble.h"
 
 static volatile bool main_b_keyboard_enable = false;
 static volatile bool main_b_generic_enable = false;
+static volatile uint8_t main_b_vbus_status = 0;
 
 /****************************************************************************/
 /* The blob of code below is aimed at facilitating our development process  */
@@ -82,19 +84,19 @@ void jump_to_application_function(void)
 {
     /* Overwriting the default value of the NVMCTRL.CTRLB.MANW bit (errata reference 13134) */
     NVMCTRL->CTRLB.bit.MANW = 1;
-    
+
     /* Pointer to the Application Section */
     void (*application_code_entry)(void);
-    
+
     /* Rebase the Stack Pointer */
     __set_MSP(*(uint32_t*)APP_START_ADDR);
-    
+
     /* Rebase the vector table base address */
     SCB->VTOR = ((uint32_t)APP_START_ADDR & SCB_VTOR_TBLOFF_Msk);
-    
+
     /* Load the Reset Handler address of the application */
     application_code_entry = (void (*)(void))(unsigned *)(*(unsigned *)(APP_START_ADDR + 4));
-    
+
     /* Jump to user Reset Handler in the application */
     application_code_entry();
 }
@@ -116,10 +118,10 @@ int main(void) {
 
     // Power Manager init
     power_manager_init();
-    
+
     // Clock Manager init
     clock_manager_init();
-
+#if 1
     // DMA init
     dma_init();
 
@@ -128,16 +130,20 @@ int main(void) {
 
     // Init Serial communications
     comm_init();
-    
+
     // Start USB stack to authorize VBus monitoring
     udc_start();
     // The main loop manages only the power mode
     // because the USB management is done by interrupt
     while (true) {
-        // sleepmgr_enter_sleep();
-        //sercom_send_single_byte(SERCOM1, 0x55);
+        //sleepmgr_enter_sleep();
         comm_task();
     }
+#else
+    while (true) {
+        ble_main();
+    }
+#endif
 }
 
 void main_suspend_action(void) {
@@ -148,17 +154,12 @@ void main_resume_action(void) {
 }
 
 void main_sof_action(void) {
-    if ((!main_b_keyboard_enable))
-        return;
-    //ui_process(udd_get_frame_number());
 }
 
 void main_remotewakeup_enable(void) {
-
 }
 
 void main_remotewakeup_disable(void) {
-
 }
 
 bool main_keyboard_enable(void) {
@@ -171,7 +172,7 @@ void main_keyboard_disable(void) {
 }
 
 void main_vbus_event(uint8_t b_vbus_high) {
-    (void)b_vbus_high;
+    main_b_vbus_status = b_vbus_high;
     return;
 }
 

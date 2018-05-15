@@ -18,7 +18,7 @@
     <ToolchainFlavour>Native</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
-    <CacheFlash>true</CacheFlash>
+    <CacheFlash>false</CacheFlash>
     <ProgFlashFromRam>true</ProgFlashFromRam>
     <RamSnippetAddress>0x20000000</RamSnippetAddress>
     <UncachedRange />
@@ -219,7 +219,7 @@
       </framework-data>
     </AsfFrameworkConfig>
     <avrtool>com.atmel.avrdbg.tool.atmelice</avrtool>
-    <avrtoolserialnumber>J41800080444</avrtoolserialnumber>
+    <avrtoolserialnumber>J41800076626</avrtoolserialnumber>
     <avrdeviceexpectedsignature>0x1001030B</avrdeviceexpectedsignature>
     <avrtoolinterface>SWD</avrtoolinterface>
     <com_atmel_avrdbg_tool_atmelice>
@@ -230,7 +230,7 @@
         <InterfaceName>SWD</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.atmelice</ToolType>
-      <ToolNumber>J41800080444</ToolNumber>
+      <ToolNumber>J41800076626</ToolNumber>
       <ToolName>Atmel-ICE</ToolName>
     </com_atmel_avrdbg_tool_atmelice>
     <avrtoolinterfaceclock>2000000</avrtoolinterfaceclock>
@@ -405,14 +405,11 @@
   <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
   <armgcc.compiler.symbols.DefSymbols>
     <ListValues>
-      <Value>DEBUG</Value>
       <Value>BOARD=USER_BOARD</Value>
       <Value>ARM_MATH_CM0PLUS=true</Value>
-      <Value>USB_DEVICE_LPM_SUPPORT</Value>
-      <Value>UDD_ENABLE</Value>
       <Value>EXTINT_CALLBACK_MODE=true</Value>
-      <Value>ACCESS_USB_ENABLED</Value>
       <Value>UDD_NO_SLEEP_MGR</Value>
+      <Value>BOOTLOADER</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
   <armgcc.compiler.directories.IncludePaths>
@@ -439,27 +436,16 @@
       <Value>../src/ASF/common2/boards/user_board</Value>
       <Value>../src</Value>
       <Value>../src/config</Value>
-      <Value>../src/ASF/common/services/usb/class/hid/device/generic</Value>
-      <Value>../src/ASF/common/services/usb/class/hid/device/kbd</Value>
-      <Value>../src/ASF/common/services/usb/class/hid/device</Value>
-      <Value>../src/ASF/common/services/usb/class/hid</Value>
-      <Value>../src/ASF/common/services/usb/class/composite/device</Value>
-      <Value>../src/ASF/common/services/usb/udc</Value>
-      <Value>../src/ASF/common/services/usb</Value>
       <Value>../src/ASF/sam0/drivers/port</Value>
-      <Value>../src/ASF/common/services/sleepmgr</Value>
       <Value>../src/ASF/sam0/drivers/extint</Value>
       <Value>../src/ASF/sam0/drivers/extint/extint_sam_d_r</Value>
-      <Value>../src/ASF/sam0/drivers/usb</Value>
-      <Value>../src/ASF/sam0/drivers/usb/usb_sam_d_r</Value>
-      <Value>../src/ASF/sam0/drivers/usb/stack_interface</Value>
-      <Value>../src/USBHID</Value>
       <Value>../src/SERCOM</Value>
       <Value>../src/PORT</Value>
       <Value>../src/PM</Value>
       <Value>../src/DMA</Value>
       <Value>../src/CLOCK</Value>
       <Value>../src/COMM</Value>
+      <Value>../src/NVM</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
@@ -635,73 +621,17 @@
     <Folder Include="src\DMA\" />
     <Folder Include="src\CLOCK" />
     <Folder Include="src\COMM" />
+    <Folder Include="src\NVM" />
     <Folder Include="src\PM\" />
     <Folder Include="src\PORT\" />
     <Folder Include="src\SERCOM\" />
     <Folder Include="src\USBHID\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\ASF\common\services\sleepmgr\samd\sleepmgr.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <None Include="src\ASF\common\services\sleepmgr\samd\sleepmgr.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\common\services\sleepmgr\sleepmgr.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\common\services\usb\class\composite\device\udi_composite_conf.h">
-      <SubType>compile</SubType>
-    </None>
-    <Compile Include="src\ASF\common\services\usb\class\composite\device\udi_composite_desc.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\ASF\common\services\usb\class\hid\device\generic\udi_hid_generic.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <None Include="src\ASF\common\services\usb\class\hid\device\generic\udi_hid_generic.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\common\services\usb\class\hid\device\generic\udi_hid_generic_conf.h">
-      <SubType>compile</SubType>
-    </None>
-    <Compile Include="src\ASF\common\services\usb\class\hid\device\kbd\udi_hid_kbd.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <None Include="src\ASF\common\services\usb\class\hid\device\kbd\udi_hid_kbd.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\common\services\usb\class\hid\device\kbd\udi_hid_kbd_conf.h">
-      <SubType>compile</SubType>
-    </None>
-    <Compile Include="src\ASF\common\services\usb\class\hid\device\udi_hid.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <None Include="src\ASF\common\services\usb\class\hid\device\udi_hid.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\common\services\usb\class\hid\usb_protocol_hid.h">
-      <SubType>compile</SubType>
-    </None>
-    <Compile Include="src\ASF\common\services\usb\udc\udc.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <None Include="src\ASF\common\services\usb\udc\udc.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\common\services\usb\udc\udc_desc.h">
-      <SubType>compile</SubType>
-    </None>
     <None Include="src\ASF\common\services\usb\udc\udd.h">
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\common\services\usb\udc\udi.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\common\services\usb\usb_atmel.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\common\services\usb\usb_protocol.h">
       <SubType>compile</SubType>
     </None>
     <Compile Include="src\bootloader.c">
@@ -722,12 +652,21 @@
     <Compile Include="src\COMM\comm.h">
       <SubType>compile</SubType>
     </Compile>
+    <None Include="src\config\conf_power_manager.h">
+      <SubType>compile</SubType>
+    </None>
     <Compile Include="src\DMA\dma.c">
       <SubType>compile</SubType>
     </Compile>
     <None Include="src\DMA\dma.h">
       <SubType>compile</SubType>
     </None>
+    <Compile Include="src\NVM\nvm.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\NVM\nvm.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\PM\power_manager.c">
       <SubType>compile</SubType>
     </Compile>
@@ -746,9 +685,6 @@
     <None Include="src\SERCOM\driver_sercom.h">
       <SubType>compile</SubType>
     </None>
-    <Compile Include="src\USBHID\usbhid.c">
-      <SubType>compile</SubType>
-    </Compile>
     <None Include="src\USBHID\usbhid.h">
       <SubType>compile</SubType>
     </None>
@@ -1244,21 +1180,6 @@
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\pio\samd21e16b.h">
       <SubType>compile</SubType>
     </None>
-    <Compile Include="src\ASF\sam0\drivers\usb\stack_interface\usb_device_udd.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\ASF\sam0\drivers\usb\stack_interface\usb_dual.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <None Include="src\ASF\sam0\drivers\usb\stack_interface\usb_dual.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\sam0\drivers\usb\usb.h">
-      <SubType>compile</SubType>
-    </None>
-    <Compile Include="src\ASF\sam0\drivers\usb\usb_sam_d_r\usb.c">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\ASF\sam0\utils\cmsis\samd21\source\gcc\startup_samd21.c">
       <SubType>compile</SubType>
     </Compile>
@@ -1275,9 +1196,6 @@
       <SubType>compile</SubType>
     </None>
     <None Include="src\config\conf_sleepmgr.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\config\conf_usb.h">
       <SubType>compile</SubType>
     </None>
   </ItemGroup>

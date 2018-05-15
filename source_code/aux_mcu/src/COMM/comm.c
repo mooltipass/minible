@@ -9,13 +9,24 @@
 #include "dma.h"
 #include "driver_sercom.h"
 #include <string.h>
+#ifdef BOOTLOADER
+    #include "bootloader.h"
+#endif
 
 /* buffer for RX/TX DMA USART */
-T_comm_msg comm_rx;
-T_comm_msg comm_tx;
+T_comm_msg comm_rx __attribute__ ((aligned (4)));
+T_comm_msg comm_tx __attribute__ ((aligned (4)));
 
 /* counter of the number of bytes transfered through DMA */
 uint16_t comm_tx_dma_index;
+
+/**
+ * \fn      comm_deinit
+ * \brief   De initialize COMM component
+ */
+void comm_deinit(void){
+    sercom_usart_deinit(SERCOM1);
+}
 
 /**
  * \fn      comm_init
@@ -60,6 +71,7 @@ void comm_task(void){
 void comm_process_out_msg(T_comm_msg_type msg_type, uint8_t* buff, uint16_t buff_len){
 
     switch(msg_type){
+#ifndef BOOTLOADER
         case COMM_MSG_TO_USB:
             /* Send message to USB */
             usbhid_send_to_usb(buff, buff_len);
@@ -67,6 +79,19 @@ void comm_process_out_msg(T_comm_msg_type msg_type, uint8_t* buff, uint16_t buff
         case COMM_MSG_TO_BLE:
             /* Send message to BLE */
             break;
+#else
+        case COMM_MSG_TO_BOOTLOADER:
+            if(bootloader_process_msg(buff, buff_len) == true){
+                memcpy(&comm_tx, &comm_rx, sizeof(T_comm_msg));
+                dma_aux_mcu_init_tx_transfer( &comm_tx, sizeof(comm_rx));
+            } else{
+                memcpy(&comm_tx, &comm_rx, sizeof(T_comm_msg));
+                memset(comm_tx.payload, 0xFF, COMM_PAYLOAD_SIZE);
+                dma_aux_mcu_init_tx_transfer( &comm_tx, sizeof(comm_rx));
+            }
+            //while(!dma_aux_mcu_check_and_clear_tx_transfer_flag());
+            break;
+#endif
         default:
             break;
     }

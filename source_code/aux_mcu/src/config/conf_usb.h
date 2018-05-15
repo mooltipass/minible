@@ -54,7 +54,7 @@
  * @{
  */
 
-#define UDD_CLOCK_GEN      GCLK_GENERATOR_1
+#define UDD_CLOCK_GEN      GCLK_GENERATOR_0
 #define UDD_CLOCK_SOURCE   SYSTEM_CLOCK_SOURCE_DFLL
 
 //! Device definition (mandatory)

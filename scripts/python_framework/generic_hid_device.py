@@ -30,72 +30,72 @@ class generic_hid_device:
 		self.flipbit = 0x00
 		# Set to true to enable ack flag request
 		self.ack_flag_in_comms = False
-		
+
 	# Catch CTRL-C interrupt
 	def signal_handler(self, signal, frame):
 		print "Keyboard Interrupt"
 		self.disconnect()
 		sys.exit(0)
-		
+
 	# Message to HID packets
 	def get_packets_from_message(self, message):
 		# Packets array
 		packets = []
-		
+
 		# Prepare serialized message
 		message_payload = array('B')
 		message_payload.extend(message["cmd"])
 		message_payload.extend(message["len"])
 		message_payload.extend(message["data"])
-		
+
 		# Remaining payload bytes to send
 		remaining_bytes = len(message_payload)
-		
+
 		# Compute number of packets
 		nb_packets = ((remaining_bytes + HID_PACKET_DATA_PAYLOAD - 1) / HID_PACKET_DATA_PAYLOAD) - 1
-		
+
 		# Current packet ID
 		cur_packet_id = 0
 		cur_byte_index = 0
-		
+
 		# Loop until we've done with all the data
 		while cur_packet_id <= nb_packets:
 			packet = array('B')
-			
+
 			# compute payload length
 			payload_length = HID_PACKET_DATA_PAYLOAD
 			if remaining_bytes < HID_PACKET_DATA_PAYLOAD:
 				payload_length = remaining_bytes
-			
+
 			# payload length & flip bit
 			if self.ack_flag_in_comms:
 				packet.append(self.flipbit | LAST_MESSAGE_ACK_FLAG | payload_length)
 			else:
 				packet.append(self.flipbit | payload_length)
-			
+
 			## packet id
 			packet.append((cur_packet_id << 4) | nb_packets)
-			
+
 			# payload
 			packet.extend(message_payload[cur_byte_index:cur_byte_index+payload_length])
-			
+
 			# update local vars
 			remaining_bytes -= payload_length
 			cur_byte_index += payload_length
-			cur_packet_id += 1	
+			cur_packet_id += 1
 
 			# append packet
 			packets.append(packet)
-			
+
 		# Flip bit
 		if self.flipbit == 0x00:
 			self.flipbit = 0x80
 		else:
 			self.flipbit = 0x00
-			
+
 		# Return packets array
 		return packets
-		
+
 	# Send HID packet to device
 	def sendHidPacket(self, data):
 		# check that we're actually connected to a device
@@ -109,12 +109,12 @@ class generic_hid_device:
 
 		# send data
 		self.epout.write(data, 10000)
-		
+
 	# Send message to device
 	def sendHidMessage(self, message):
 		# Get packets for message
 		packets = self.get_packets_from_message(message)
-		
+
 		# Send all packets
 		for packet in packets:
 			self.sendHidPacket(packet)
@@ -123,16 +123,16 @@ class generic_hid_device:
 	def sendHidMessageWaitForAck(self, message):
 		# Get packets for message
 		packets = self.get_packets_from_message(message)
-		
+
 		# Send all packets
 		for packet in packets:
 			self.sendHidPacket(packet)
-			
+
 		# Wait for aux MCU ack and main ack
 		if self.ack_flag_in_comms:
 			self.receiveHidPacket()
 		return self.receiveHidMessage()
-	
+
 	# Receive HID packet, crash when nothing is sent
 	def receiveHidPacket(self):
 		# check that we're actually connected to a device
@@ -150,18 +150,18 @@ class generic_hid_device:
 			if HID_DEVICE_DEBUG:
 				print e
 			sys.exit("Device didn't send a packet")
-			
+
 	# Receive Message
 	def receiveHidMessage(self):
 		# For double checks
 		nb_payload_bytes_received = 0
-		
+
 		# Create packet object
 		packet = {}
 		packet["cmd"] = -1
 		packet["len"] = -1
 		packet["data"] = array('B')
-		
+
 		# Loop until we receive everything
 		while True:
 			answer = self.receiveHidPacket()
@@ -169,15 +169,15 @@ class generic_hid_device:
 			current_packet = (answer[1] & 0xF0) >> 4
 			total_packets = (answer[1] & 0x0F)
 			nb_payload_bytes_received += payload_length
-			
+
 			# First packet?
 			if packet["cmd"] == -1:
 				packet["cmd"] = answer[2] + answer[3] * 256
 				packet["len"] = answer[4] + answer[5] * 256
 				packet["data"].extend(answer[6:2+payload_length])
 			else:
-				packet["data"].extend(answer[2:2+payload_length])		
-				
+				packet["data"].extend(answer[2:2+payload_length])
+
 			# Check for completion
 			if current_packet == total_packets:
 				# Check for payload length match
@@ -189,8 +189,8 @@ class generic_hid_device:
 					return None
 				else:
 					return packet
-		
-	# Receive HID packet, return None when nothing is sent	
+
+	# Receive HID packet, return None when nothing is sent
 	def receiveHidPacketWithTimeout(self):
 		try :
 			data = self.epin.read(self.epin.wMaxPacketSize, timeout=self.read_timeout)
@@ -199,21 +199,21 @@ class generic_hid_device:
 			return data
 		except usb.core.USBError as e:
 			return None
-	
+
 	# Set new read timeout
 	def setReadTimeout(self, read_timeout):
 		self.read_timeout = read_timeout
-		
-	# Try to connect to HID device. 
+
+	# Try to connect to HID device.
 	# ping_packet: an array containing a ping packet to send to the device over HID
 	def connect(self, print_debug, device_vid, device_pid, read_timeout, ping_packet):
 		# Find our device
 		self.hid_device = usb.core.find(idVendor=device_vid, idProduct=device_pid)
 		self.read_timeout = read_timeout
-		
+
 		# Generate our hid message from our ping message (cheating: we're only doing one HID packet)
 		hid_packet = self.get_packets_from_message(ping_packet)[0]
-		
+
 		# Force aux MCU ACK request
 		hid_packet[0] |= LAST_MESSAGE_ACK_FLAG
 
@@ -261,7 +261,7 @@ class generic_hid_device:
 		if self.epout is None:
 			self.hid_device.reset()
 			return False
-			
+
 		if HID_DEVICE_DEBUG:
 			print "Selected OUT endpoint:", self.epout.bEndpointAddress
 
@@ -270,7 +270,7 @@ class generic_hid_device:
 		if self.epin is None:
 			self.hid_device.reset()
 			return False
-			
+
 		if HID_DEVICE_DEBUG:
 			print "Selected IN endpoint:", self.epin.bEndpointAddress
 
@@ -327,7 +327,7 @@ class generic_hid_device:
 		# Set connected var, return success
 		self.connected = True
 		return True
-		
+
 	# Disconnect from HID device
 	def disconnect(self):
 		# check that we're actually connected to a device
@@ -336,17 +336,17 @@ class generic_hid_device:
 			return
 		else:
 			print "Disconnecting from device..."
-		
+
 		# reset device
 		self.hid_device.reset()
-		
-	# Benchmark ping pong speed	
-	def benchmarkPingPongSpeed(self, ping_packet):	
+
+	# Benchmark ping pong speed
+	def benchmarkPingPongSpeed(self, ping_packet):
 		# check that we're actually connected to a device
 		if self.connected == False:
 			print "Not connected to device"
 			return
-		
+
 		# Generate our hid message from our ping message (cheating: we're only doing one HID packet)
 		hid_packet = self.get_packets_from_message(ping_packet)[0]
 
@@ -359,7 +359,7 @@ class generic_hid_device:
 				self.receiveHidPacket()
 			self.receiveHidPacket()
 			data_counter += 64
-			
+
 			# Print out performance
 			if current_second != datetime.now().second:
 				current_second = datetime.now().second

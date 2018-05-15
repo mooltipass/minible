@@ -30,6 +30,8 @@ typedef enum comm_msg_type{
     COMM_MSG_FROM_USB = COMM_MSG_TO_USB,
     COMM_MSG_TO_BLE = 1,
     COMM_MSG_FROM_BLE = COMM_MSG_TO_BLE,
+    COMM_MSG_TO_BOOTLOADER = 2,
+    COMM_MSG_FROM_BOOTLOADER = COMM_MSG_TO_BOOTLOADER,
 } T_comm_msg_type;
 
 /* Indicate pkt status */
@@ -38,6 +40,7 @@ typedef struct{
     uint8_t msg_end   :1;
 } T_comm_pkt_status;
 
+void comm_deinit(void);
 void comm_init(void);
 void comm_task(void);
 void comm_usb_process_in_pkt(T_comm_pkt_status pkt_status, uint8_t* data, uint16_t data_len);
