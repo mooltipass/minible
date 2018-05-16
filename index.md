@@ -12,6 +12,10 @@ You'll find below different pages detailing our selected architecture.
 * [WIP - RAM Consumers](ram_consumers)
 * [USB Raw HID Protocol](usb_hid_protocol)
 
+## [](#header-2)Test Reports
+You'll find below different test reports done on the Mooltipass BLE.
+* [RNG - 2018-05-16 4bits extracted and aggregated](test_reports/2018-05-16-rng-4bits-extracted)
+
 ## [](#header-2)Contributors
 Interested in joining our team? For this new project, we are using <a href="https://colony.io/">colony</a> to equally share Mooltipass revenue and keep track of the overall project progress.  
 You'll find below the available tasks, grouped by category.
