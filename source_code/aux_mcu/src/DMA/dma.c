@@ -130,8 +130,11 @@ void dma_aux_mcu_init_tx_transfer(void* datap, uint16_t size)
     dma_descriptors[DMA_UART_TX_CH].DSTADDR.reg = (uint32_t)&SERCOM1->USART.DATA.reg;
     /* Destination address: given value */
     dma_descriptors[DMA_UART_TX_CH].SRCADDR.reg = (uint32_t)datap + size;
-    /* Resume DMA channel operation */
+    /* Select TX DMA channel */
     DMAC->CHID.reg= DMAC_CHID_ID(DMA_UART_TX_CH);
+    /* Clear Transmit complete interrupt flag */
+    DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
+    /* Resume channel operation */
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
 
     cpu_irq_leave_critical();
