@@ -137,6 +137,9 @@ int main(void) {
     // because the USB management is done by interrupt
     while (true) {
         //sleepmgr_enter_sleep();
+        /* USB task */
+        usbhid_task();
+        /* USART task */
         comm_task();
     }
 #else
