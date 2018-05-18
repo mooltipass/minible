@@ -17,6 +17,7 @@
 #define USBHID_PKT_HEADER_SIZE  (2U)
 
 void usbhid_init(void);
+void usbhid_task(void);
 void usbhid_usb_callback(uint8_t *data);
 void usbhid_send_to_usb(uint8_t* buff, uint16_t buff_len);
 

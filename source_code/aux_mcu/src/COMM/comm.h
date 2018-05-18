@@ -15,14 +15,23 @@
 #define COMM_PAYLOAD_VALID      (true)
 #define COMM_PAYLOAD_NOT_VALID  (false)
 
-/* Message type */
+/* Message Structure main mcu to aux mcu */
 typedef struct {
     uint16_t msg_type;
-    uint16_t reserved;
-    uint8_t  payload[COMM_PAYLOAD_SIZE];
     uint16_t payload_len;
+    uint8_t  payload[COMM_PAYLOAD_SIZE];
+    uint16_t payload_len2;
+    uint16_t reply;
+} T_comm_rx_msg;
+
+/* Message Structure aux mcu to main mcu */
+typedef struct {
+    uint16_t msg_type;
+    uint16_t payload_len1;
+    uint8_t  payload[COMM_PAYLOAD_SIZE];
+    uint16_t payload_len2;
     uint16_t payload_valid;
-} T_comm_msg;
+} T_comm_tx_msg;
 
 /* Message Type enum */
 typedef enum comm_msg_type{
