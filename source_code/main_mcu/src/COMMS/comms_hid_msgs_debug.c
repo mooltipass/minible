@@ -125,9 +125,6 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             while (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) == FALSE);
             memcpy((void*)send_msg->payload, (void*)acc_descriptor.fifo_read.acc_data_array, sizeof(acc_descriptor.fifo_read.acc_data_array));
             
-            send_msg->payload_length = 54;
-            return 54; // TO REMOVE ONCE AUX MCU is fixed //
-            
             send_msg->payload_length = sizeof(acc_descriptor.fifo_read.acc_data_array);
             return sizeof(acc_descriptor.fifo_read.acc_data_array);
         }
