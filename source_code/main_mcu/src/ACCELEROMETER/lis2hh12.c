@@ -52,6 +52,20 @@ void lis2hh12_reset(accelerometer_descriptor_t* descriptor_pt)
     }
 }
 
+/*! \fn     lis2hh12_get_temperature(accelerometer_descriptor_t* descriptor_pt)
+*   \brief  Get temperature from LIS2HH12, multiplied by 100
+*   \param  descriptor_pt   Pointer to lis2hh12 descriptor
+*   \return the temperature 
+*	\note	Not working yet! see https://community.st.com/message/188719-re-temperature-sensor-on-lis2hh12-accelerometer?commentID=188719#comment-188719
+*/
+int16_t lis2hh12_get_temperature(accelerometer_descriptor_t* descriptor_pt)
+{
+	uint8_t getTemperatureCommand[] = {0x8B, 0x00, 0x00};
+	lis2hh12_send_command(descriptor_pt, getTemperatureCommand, sizeof(getTemperatureCommand));
+	int16_t tempHex = (int16_t)((uint16_t)getTemperatureCommand[1] | ((uint16_t)getTemperatureCommand[2]) << 8);
+	return tempHex;
+}
+
 /*! \fn     lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descriptor_pt)
 *   \brief  Check the lis2hh12 presence by reading who am i
 *   \param  descriptor_pt   Pointer to lis2hh12 descriptor
@@ -160,6 +174,16 @@ void lis2hh12_sleep_exit_and_dma_arm(accelerometer_descriptor_t* descriptor_pt)
     PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;    
 }
 
+/*! \fn     lis2hh12_dma_arm(accelerometer_descriptor_t* descriptor_pt)
+*   \brief  Arm DMA to resume data transfers
+*/
+void lis2hh12_dma_arm(accelerometer_descriptor_t* descriptor_pt)
+{	
+	/* Enable DMA transfer and clear nCS */
+	dma_acc_init_transfer((void*)&descriptor_pt->sercom_pt->SPI.DATA.reg, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd));
+	PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;
+}
+
 /*! \fn     lis2hh12_deassert_ncs_and_go_to_sleep(accelerometer_descriptor_t* descriptor_pt)
 *   \brief  Stop any ongoing DMA transfer and go to sleep
 */
@@ -209,7 +233,7 @@ BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_desc
             temp_evsys_channel_reg.bit.CHANNEL = descriptor_pt->evgen_channel;            // Map to selected channel
             EVSYS->CHANNEL = temp_evsys_channel_reg;                                      // Write register
             temp_evsys_channel_reg.bit.EVGEN = descriptor_pt->evgen_sel;                  // Select correct EIC output
-            EVSYS->CHANNEL = temp_evsys_channel_reg;                                      // Write register*/
+            EVSYS->CHANNEL = temp_evsys_channel_reg;                                      // Write register
         }
         
         /* Report there's data to be read */

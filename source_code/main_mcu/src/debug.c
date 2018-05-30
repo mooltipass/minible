@@ -17,6 +17,7 @@
 #include "inputs.h"
 #include "debug.h"
 #include "main.h"
+#include "dma.h"
 
 
 /*! \fn     debug_array_to_hex_u8string(uint8_t* array, uint8_t* string, uint16_t length)
@@ -42,6 +43,7 @@ void debug_debug_menu(void)
     wheel_action_ret_te wheel_user_action;
     int16_t selected_item = 0;
     BOOL redraw_needed = TRUE;
+	debug_mcu_and_aux_info();
 
     while(1)
     {
@@ -56,13 +58,13 @@ void debug_debug_menu(void)
             sh1122_clear_current_screen(&plat_oled_descriptor);
             
             /* Item selection */
-            if (selected_item > 5)
+            if (selected_item > 6)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 5;
+                selected_item = 6;
             }
             
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu");
@@ -77,8 +79,9 @@ void debug_debug_menu(void)
             }
             else
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Main MCU Flash");
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Aux MCU Flash");
+	            sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Main and Aux MCU Info");
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main MCU Flash");
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU Flash");
             }
             
             /* Cursor */
@@ -119,11 +122,15 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 4)
             {
+	            debug_mcu_and_aux_info();
+            }
+            else if (selected_item == 5)
+            {
                 custom_fs_settings_set_fw_upgrade_flag();
                 cpu_irq_disable();
                 NVIC_SystemReset();
             }
-            else if (selected_item == 5)
+            else if (selected_item == 6)
             {
                 logic_aux_mcu_flash_firmware_update();
             }
@@ -380,4 +387,39 @@ void debug_debug_screen(void)
             return;
         }
     }
+}
+
+/*! \fn     debug_mcu_and_aux_info(void)
+*   \brief  Print info about main & aux MCU
+*/
+void debug_mcu_and_aux_info(void)
+{	
+	/* Get part number */
+	char part_number[20] = "unknown";
+	if (DSU->DID.bit.DEVSEL == 0x05)
+	{
+		strcpy(part_number, "ATSAMD21G18A");
+	}
+	
+	/* Get temperature from accelerometer */
+	lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor);
+	while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
+	int16_t temperature = lis2hh12_get_temperature(&acc_descriptor);
+	lis2hh12_dma_arm(&acc_descriptor);
+	
+	/* Print info */
+	sh1122_clear_current_screen(&plat_oled_descriptor);
+	sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "Main MCU");
+	sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, "DID 0x%08x (%s), rev %c", DSU->DID.reg, part_number, 'A' + DSU->DID.bit.REVISION);
+	sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, "UID: 0x%08x%08x%08x%08x", *(uint32_t*)0x0080A00C, *(uint32_t*)0x0080A040, *(uint32_t*)0x0080A044, *(uint32_t*)0x0080A048);
+	//sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Board temperature: %i degrees", temperature);	
+	
+	/* Check for click to return */
+	while(1)
+	{
+		if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+		{
+			return;
+		}
+	}
 }

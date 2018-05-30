@@ -46,6 +46,8 @@ void lis2hh12_manual_acc_data_read(accelerometer_descriptor_t* descriptor_pt, ac
 RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descriptor_pt);
 void lis2hh12_deassert_ncs_and_go_to_sleep(accelerometer_descriptor_t* descriptor_pt);
 void lis2hh12_sleep_exit_and_dma_arm(accelerometer_descriptor_t* descriptor_pt);
+int16_t lis2hh12_get_temperature(accelerometer_descriptor_t* descriptor_pt);
+void lis2hh12_dma_arm(accelerometer_descriptor_t* descriptor_pt);
 void lis2hh12_reset(accelerometer_descriptor_t* descriptor_pt);
 
 #endif /* LIS2HH12_H_ */

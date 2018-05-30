@@ -10,6 +10,7 @@
 
 /* Prototypes */
 void debug_array_to_hex_u8string(uint8_t* array, uint8_t* string, uint16_t length);
+void debug_mcu_and_aux_info(void);
 void debug_debug_animation(void);
 void debug_smartcard_info(void);
 void debug_language_test(void);
