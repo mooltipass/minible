@@ -3,7 +3,9 @@
 *    Created:  21/04/2018
 *    Author:   Mathieu Stephan
 */
+#include <string.h>
 #include <asf.h>
+#include "smartcard_highlevel.h"
 #include "platform_defines.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
@@ -15,7 +17,23 @@
 #include "inputs.h"
 #include "debug.h"
 #include "main.h"
+#include "dma.h"
 
+
+/*! \fn     debug_array_to_hex_u8string(uint8_t* array, uint8_t* string, uint16_t length)
+*   \brief  Generate a string to display an array contents
+*   \param  array   Pointer to the array
+*   \param  string  Pointer to the u8 string
+*   \param  length  Length of the array
+*   \note   string length should be twice the size of the array
+*/
+void debug_array_to_hex_u8string(uint8_t* array, uint8_t* string, uint16_t length)
+{
+    for (uint16_t i = 0; i < length; i++)
+    {
+        sprintf((char*)&string[i*2], "%02x", array[i]);
+    }
+}
 
 /*! \fn     debug_debug_menu(void)
 *   \brief  Debug menu
@@ -25,6 +43,7 @@ void debug_debug_menu(void)
     wheel_action_ret_te wheel_user_action;
     int16_t selected_item = 0;
     BOOL redraw_needed = TRUE;
+	debug_mcu_and_aux_info();
 
     while(1)
     {
@@ -39,24 +58,34 @@ void debug_debug_menu(void)
             sh1122_clear_current_screen(&plat_oled_descriptor);
             
             /* Item selection */
-            if (selected_item > 3)
+            if (selected_item > 6)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 3;
+                selected_item = 6;
             }
             
-            /* Print items */
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu");
-            sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Battery");
-            sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Language Switch Test");
-            sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Animation Test");
-            sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"AUX MCU Flash");
+            
+            /* Print items */
+            if (selected_item < 4)
+            {
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Battery");
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Language Switch Test");
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Smartcard Debug");
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Animation Test");
+            }
+            else
+            {
+	            sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Main and Aux MCU Info");
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main MCU Flash");
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU Flash");
+            }
             
             /* Cursor */
-            sh1122_put_string_xy(&plat_oled_descriptor, 0, 14 + selected_item*10, OLED_ALIGN_LEFT, u"-");
+            sh1122_put_string_xy(&plat_oled_descriptor, 0, 14 + (selected_item%4)*10, OLED_ALIGN_LEFT, u"-");
         }
         
         /* Get user action */
@@ -85,13 +114,117 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 2)
             {
-                debug_debug_animation();
+                debug_smartcard_info();
             }
             else if (selected_item == 3)
             {
+                debug_debug_animation();
+            }
+            else if (selected_item == 4)
+            {
+	            debug_mcu_and_aux_info();
+            }
+            else if (selected_item == 5)
+            {
+                custom_fs_settings_set_fw_upgrade_flag();
+                cpu_irq_disable();
+                NVIC_SystemReset();
+            }
+            else if (selected_item == 6)
+            {
                 logic_aux_mcu_flash_firmware_update();
             }
+            redraw_needed = TRUE;
         }
+    }
+}
+
+/*! \fn     debug_smartcard_info(void)
+*   \brief  Smartcard Debug Info
+*/
+void debug_smartcard_info(void)
+{
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please insert card");
+    
+    while(1)
+    {
+        /* Return ? */
+        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+        {
+            return;
+        }
+        
+        if (smartcard_lowlevel_is_card_plugged() == RETURN_JDETECT)
+        {
+            /* Erase screen */
+            sh1122_clear_current_screen(&plat_oled_descriptor);
+            
+            /* Get detection result */
+            mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();
+            
+            /* Inform what the card is */
+            if (detection_result == RETURN_MOOLTIPASS_INVALID)
+            {
+                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Invalid Card");
+            }
+            else if (detection_result == RETURN_MOOLTIPASS_PB)
+            {
+                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Problem with card");
+            }
+            else if (detection_result == RETURN_MOOLTIPASS_BLANK)
+            {
+                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Blank card");
+            }
+            else if (detection_result == RETURN_MOOLTIPASS_USER)
+            {
+                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"User card");
+            }    
+            else if (detection_result == RETURN_MOOLTIPASS_BLOCKED)
+            {
+                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Blocked card");
+            }    
+            
+            /* Card debug info */
+            if (detection_result != RETURN_MOOLTIPASS_INVALID)
+            {                
+                uint8_t temp_string[40];
+                uint8_t data_buffer[20];
+                
+                /* Security mode */
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, "Security mode: %c", (smartcard_highlevel_check_security_mode2() == RETURN_OK) ? '2' : '1');
+                
+                /* Fabrication zone / Memory test zone / Manufacturer zone */
+                smartcard_highlevel_read_fab_zone(data_buffer);
+                uint16_t fz = (uint16_t)data_buffer[0] | (uint16_t)data_buffer[1]<<8;
+                smartcard_highlevel_read_mem_test_zone(data_buffer);
+                uint16_t mtz = (uint16_t)data_buffer[0] | (uint16_t)data_buffer[1]<<8;
+                smartcard_highlevel_read_manufacturer_zone(data_buffer);
+                uint16_t mz = (uint16_t)data_buffer[1] | (uint16_t)data_buffer[0]<<8;
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, "FZ: %04X / MTZ: %04X / MZ: %04X", fz, mtz, mz);
+                
+                /* Issuer zone */
+                strcpy((char*)temp_string, "IZ: ");
+                smartcard_highlevel_read_issuer_zone(data_buffer);
+                debug_array_to_hex_u8string(data_buffer, temp_string + 4, SMARTCARD_ISSUER_ZONE_LGTH);
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, (const char*)temp_string);
+                
+                /* Code protected zone */
+                strcpy((char*)temp_string, "CPZ: ");
+                smartcard_highlevel_read_code_protected_zone(data_buffer);
+                debug_array_to_hex_u8string(data_buffer, temp_string + 5, SMARTCARD_CPZ_LENGTH);
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, (const char*)temp_string);
+                
+                /* First bytes of AZ1 */
+                strcpy((char*)temp_string, "AZ1: ");
+                smartcard_lowlevel_read_smc((SMARTCARD_AZ1_BIT_START + 16*8)/8, (SMARTCARD_AZ1_BIT_START)/8, data_buffer);
+                debug_array_to_hex_u8string(data_buffer, temp_string + 5, 16);
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, (const char*)temp_string);
+            }            
+            
+            /* Remove power to the card */
+            platform_io_smc_remove_function();         
+        }              
     }
 }
 
@@ -118,7 +251,16 @@ void debug_language_test(void)
             sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, "Recommended keyboard file ID: %d", custom_fs_cur_language_entry.keyboard_layout_id);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, "Line #0:");
             sh1122_put_string_xy(&plat_oled_descriptor, 50, 50, OLED_ALIGN_LEFT, temp_string);
-            timer_delay_ms(2000);
+            
+            /* Return ? */
+            timer_start_timer(TIMER_WAIT_FUNCTS, 2000);
+            while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
+            {
+                if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+                {
+                    return;
+                }                
+            }
         }
     }
 }
@@ -133,6 +275,12 @@ void debug_debug_animation(void)
         for (uint16_t i = 0; i < 120; i++)
         {
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i);
+            
+            /* Return ? */
+            if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+            {
+                return;
+            }
         }
     }
 }
@@ -233,15 +381,45 @@ void debug_debug_screen(void)
             main_standby_sleep();
         }   
         
-        /* Upgrade firmware? */
-        if (wheel_user_action == WHEEL_ACTION_CLICK_DOWN)
+        /* Return ? */
+        if (wheel_user_action == WHEEL_ACTION_SHORT_CLICK)
         {
-            custom_fs_settings_set_fw_upgrade_flag();
-            cpu_irq_disable();
-            NVIC_SystemReset();
+            return;
         }
-        
-        /* Delay for display */
-        //timer_delay_ms(10);
     }
+}
+
+/*! \fn     debug_mcu_and_aux_info(void)
+*   \brief  Print info about main & aux MCU
+*/
+void debug_mcu_and_aux_info(void)
+{	
+	/* Get part number */
+	char part_number[20] = "unknown";
+	if (DSU->DID.bit.DEVSEL == 0x05)
+	{
+		strcpy(part_number, "ATSAMD21G18A");
+	}
+	
+	/* Get temperature from accelerometer */
+	lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor);
+	while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
+	int16_t temperature = lis2hh12_get_temperature(&acc_descriptor);
+	lis2hh12_dma_arm(&acc_descriptor);
+	
+	/* Print info */
+	sh1122_clear_current_screen(&plat_oled_descriptor);
+	sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "Main MCU");
+	sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, "DID 0x%08x (%s), rev %c", DSU->DID.reg, part_number, 'A' + DSU->DID.bit.REVISION);
+	sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, "UID: 0x%08x%08x%08x%08x", *(uint32_t*)0x0080A00C, *(uint32_t*)0x0080A040, *(uint32_t*)0x0080A044, *(uint32_t*)0x0080A048);
+	//sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Board temperature: %i degrees", temperature);	
+	
+	/* Check for click to return */
+	while(1)
+	{
+		if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+		{
+			return;
+		}
+	}
 }

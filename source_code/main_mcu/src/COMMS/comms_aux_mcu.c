@@ -182,7 +182,6 @@ void comms_aux_mcu_routine(void)
         if (hid_reply_payload_length >= 0)
         {
             /* Set same message type and compute payload size */
-            aux_mcu_send_message.rx_payload_valid_flag = 0x0001; // !!!!!!!!!!!!!!!! TO REMOVE ONCE AUX MCU IS UPDATED WITH LATEST PROTOCOL !!!!!!!!!!!!!
             aux_mcu_send_message.message_type = aux_mcu_receive_message.message_type;
             aux_mcu_send_message.payload_length1 = hid_reply_payload_length + sizeof(aux_mcu_receive_message.hid_message.message_type) + sizeof(aux_mcu_receive_message.hid_message.payload_length);
             aux_mcu_send_message.payload_length2 = hid_reply_payload_length + sizeof(aux_mcu_receive_message.hid_message.message_type) + sizeof(aux_mcu_receive_message.hid_message.payload_length);
