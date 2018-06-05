@@ -655,6 +655,12 @@
     <None Include="src\config\conf_power_manager.h">
       <SubType>compile</SubType>
     </None>
+    <Compile Include="src\COMM\comm_bootloader.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="src\COMM\comm_bootloader.h">
+      <SubType>compile</SubType>
+    </None>
     <Compile Include="src\DMA\dma.c">
       <SubType>compile</SubType>
     </Compile>

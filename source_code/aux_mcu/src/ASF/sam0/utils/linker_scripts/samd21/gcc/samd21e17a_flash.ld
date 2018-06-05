@@ -119,6 +119,16 @@ SECTIONS
     . = ALIGN(4);
     _etext = .;
 
+    /* Non Initialized Data section at first position of RAM */
+    .nidata (NOLOAD) :
+    {
+        . = ALIGN(4);
+        _start_nidata = .;
+        KEEP (*(.nidata))
+        . = ALIGN(4);
+        _end_nidata = .;
+    } > ram
+
     .relocate : AT (_etext)
     {
         . = ALIGN(4);
