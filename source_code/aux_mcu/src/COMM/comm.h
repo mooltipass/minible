@@ -18,7 +18,7 @@
 /* Message Structure main mcu to aux mcu */
 typedef struct {
     uint16_t msg_type;
-    uint16_t payload_len;
+    uint16_t payload_len1;
     uint8_t  payload[COMM_PAYLOAD_SIZE];
     uint16_t payload_len2;
     uint16_t reply;

@@ -99,7 +99,7 @@ bool dma_aux_mcu_check_and_clear_dma_transfer_flag(void)
 /*! \fn     dma_aux_mcu_check_tx_dma_transfer_flag
  *  \brief  Check if a DMA transfer to main MCU has been completed
  *  \note   If the flag is true, flag will be cleared to false
- *  \return true or false
+ *  \return true (transfer done, just one time)
  */
 bool dma_aux_mcu_check_tx_dma_transfer_flag(void)
 {
@@ -179,7 +179,7 @@ void dma_aux_mcu_disable_transfer(void)
     while(DMAC->CHCTRLA.reg != 0);
 
     /* Stop DMA channel operation */
-    DMAC->CHID.reg= DMAC_CHID_ID(DMA_UART_TX_CH);
+    DMAC->CHID.reg= DMAC_CHID_ID(DMA_UART_RX_CH);
     DMAC->CHCTRLA.reg = 0;
     /* Wait for bit clear */
     while(DMAC->CHCTRLA.reg != 0);

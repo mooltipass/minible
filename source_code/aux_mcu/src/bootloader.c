@@ -5,59 +5,28 @@
 #include "clock_manager.h"
 #include "dma.h"
 #include "comm.h"
+#include "comm_bootloader.h"
 #include "nvm.h"
 #include "bootloader.h"
 #include "driver_sercom.h"
 
 /* Configure max wait time */
-#define BOOTLOADER_WAIT_TIME_MS     (5000u)
+#define BOOTLOADER_WAIT_TIME_MS     (500u)
 #define BOOTLAODER_TICK_MS          (100u)
 #define SYSTICK_100MS               ((4800000u) - 1)
 #define APP_START_ADDR              (0x2000) /* Bootloader size 8k */
 
-
-/* State Machine */
-typedef enum {
-    WAIT,
-    PROGRAM,
-    WAIT_TX_DMA,
-    START_APP,
-} T_boot_state;
-
-/* Bootloader Commands */
-typedef enum {
-    ENTER_PROGRAMMING,
-    WRITE
-} T_boot_commands;
-
-/* Binary Image info */
-typedef struct{
-    uint16_t cmd;
-    uint16_t reserved;
-    uint32_t size;
-    uint32_t crc;
-} T_image_info;
-
-/* Write Data */
-typedef struct{
-    uint16_t cmd;
-    uint16_t size;
-    uint32_t crc;
-    uint32_t* data;
-} T_write_info;
-
-
-/* Variables */
-T_image_info image_info;
-T_boot_state current_state = WAIT;
-T_boot_state next_state;
-bool entry_flg = true;
-bool enter_programming = false;
-bool exit_programming = false;
-uint32_t write_addr = 0u;
-uint32_t current_len = 0u;
-uint32_t current_addr = 0u;
-uint32_t timeout_ms = 0u;
+/* Private Variables */
+static uint32_t image_size;
+static uint32_t image_crc;
+static T_boot_state current_state = BOOTLOADER_WAIT;
+static T_boot_state next_state;
+static bool entry_flg = true;
+static bool enter_programming = false;
+static bool exit_programming = false;
+static uint32_t current_len = 0u;
+static uint32_t current_addr = 0u;
+static uint32_t timeout_ms = 0u;
 
 
 /*! \fn     bootloader_start_application
@@ -134,14 +103,23 @@ static bool bootloader_timeout_expired(void){
     return false;
 }
 
+/*! \fn     bootloader_get_state
+ *  \brief  Return current bootloader state
+ */
+T_boot_state bootloader_get_state(void){
+    return current_state;
+}
+
 /*! \fn     bootloader_enter_programming
  *  \brief  Saves image info to be received from MAIN MCU and
  *          sets enter programming flag
- *  \param  info structure with the info of the image to be loaded
+ *  \param  size Image size
+ *  \param  crc  Image CRC
  */
-static void bootloader_enter_programming(T_image_info info){
+void bootloader_enter_programming(uint32_t size, uint32_t crc){
     /* Store program information */
-    image_info = info;
+    image_size = size;
+    image_crc = crc;
 
     /* Variables to be used when writing to NVM */
     current_len = 0u;
@@ -157,12 +135,7 @@ static void bootloader_enter_programming(T_image_info info){
  *  \param  src pointer to buffer with the data to write
  *  \param  len length of src pointer in bytes
  */
-static void bootloader_write(uint32_t* src, uint32_t len){
-
-    if(current_state != PROGRAM){
-        return;
-    }
-
+void bootloader_write(uint32_t* src, uint32_t len){
     /* Checks for a later phase */
     nvm_write_buffer((uint32_t*)current_addr, src, len);
 
@@ -170,7 +143,7 @@ static void bootloader_write(uint32_t* src, uint32_t len){
     current_len += len;
     current_addr += len;
 
-    if(image_info.size <= current_len){
+    if(image_size <= current_len){
         exit_programming = true;
     }
 }
@@ -201,10 +174,19 @@ int main(void) {
     /* Init Serial communications */
     comm_init();
 
+    /* Check if Programming is required
+     * before entering main loop
+     */
+    if( comm_bootloader_enter_programming_required() ){
+        current_state = BOOTLOADER_PROGRAM;
+    } else{
+        current_state = BOOTLOADER_WAIT;
+    }
+
     /* The main loop */
     while (true) {
         switch(current_state){
-            case WAIT:
+            case BOOTLOADER_WAIT:
                 /* First action to execute when entering WAIT state */
                 if(entry_flg){
                     bootloader_timeout_init();
@@ -215,34 +197,37 @@ int main(void) {
 
                 /* programming mode ?? */
                 if( enter_programming ){
-                    next_state = PROGRAM;
+                    next_state = BOOTLOADER_PROGRAM;
                 }
                 /* timeout expired ?? */
                 else if(bootloader_timeout_expired()){
-                    next_state = START_APP;
+                    next_state = BOOTLOADER_START_APP;
                 }
                 break;
 
-            case PROGRAM:
+            case BOOTLOADER_PROGRAM:
                 comm_task();
 
                 /* Start Application Required ?? */
                 if(exit_programming){
-                    next_state = WAIT_TX_DMA;
+                    next_state = BOOTLOADER_LAST_TX_DMA;
                 }
                 break;
 
-            case WAIT_TX_DMA:
+            case BOOTLOADER_LAST_TX_DMA:
                 if(dma_aux_mcu_check_tx_dma_transfer_flag()){
-                    next_state = START_APP;
+                    next_state = BOOTLOADER_START_APP;
                 }
                 break;
 
-            case START_APP:
+            case BOOTLOADER_START_APP:
                 bootloader_start_application();
                 /* this line shall not be reached */
+                next_state = BOOTLOADER_WAIT;
+                break;
+
             default:
-                next_state = WAIT;
+                next_state = BOOTLOADER_WAIT;
                 break;
 
         }
@@ -254,40 +239,6 @@ int main(void) {
         }
         current_state = next_state;
     }
-}
-
-/*! \fn    bootloader_process_msg
- *  \brief Process commands received with Message Type equal to 0x0002
- *  \param buff     Pointer to payload
- *  \param buff_len Length of the payload received
- *  \return true    Command Succeed
- *  \return false   Command Failed
- */
-bool bootloader_process_msg(uint8_t* buff, uint16_t buff_len){
-    T_boot_commands cmd = (T_boot_commands)((buff[1] << 8) + buff[0]);
-    T_image_info *info = (T_image_info *)buff;
-    T_write_info *write = (T_write_info *)buff;
-    bool operation_ok = false;
-
-    switch(cmd){
-        case ENTER_PROGRAMMING:
-            bootloader_enter_programming(*info);
-            operation_ok = true;
-            break;
-
-        case WRITE:
-            if( enter_programming ){
-                bootloader_write((uint32_t*)&write->data, write->size);
-                operation_ok = true;
-            } else{
-                operation_ok = false;
-            }
-            break;
-        default:
-            break;
-    }
-
-    return operation_ok;
 }
 
 

@@ -47,6 +47,18 @@
 #ifndef _BOOTLOADER_H_
 #define _BOOTLOADER_H_
 
-bool bootloader_process_msg(uint8_t* buff, uint16_t buff_len);
+/* Types */
+typedef enum {
+    BOOTLOADER_WAIT,
+    BOOTLOADER_PROGRAM,
+    BOOTLOADER_LAST_TX_DMA,
+    BOOTLOADER_START_APP,
+} T_boot_state;
+
+/* Prototypes */
+T_boot_state bootloader_get_state(void);
+void bootloader_enter_programming(uint32_t size, uint32_t crc);
+void bootloader_write(uint32_t* src, uint32_t len);
+
 
 #endif /* _BOOTLOADER_H_ */
