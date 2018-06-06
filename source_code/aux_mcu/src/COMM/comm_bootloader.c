@@ -73,7 +73,7 @@ bool comm_bootloader_enter_programming_required(void){
     /* Check for magic Key */
     if(comm_enter_programming.reserved == BOOTLOADER_MAGIC_KEY){
         /* Cleanup MAGIC KEY */
-        comm_enter_programming.reserved == 0;
+        comm_enter_programming.reserved = 0;
 
         /* Enter Programming command */
         bootloader_enter_programming(comm_enter_programming.size, comm_enter_programming.crc);
