@@ -21,6 +21,7 @@ from main MCU:
 - 0x0000: Message to/from USB  
 - 0x0001: Message to/from Bluetooth  
 - 0x0002: Message to/from Aux MCU Bootloader 
+- 0x0003: Status message from Aux MCU  
   
 **Payload Length**  
 Message from main MCU: total payload length.  
@@ -46,7 +47,7 @@ Request the aux MCU to reply to this message regardless of the "not send" input 
 The current USART baud rate clock is set to **6MHz**.  
 They key performance metric we want to hit is being able to scan the external DB flash memory as fast as possible (used when entering credentials management mode). That means the AUX MCU should have the first 64 bytes to send to the computer within 1ms after receiving the read node command (which itself is less than 64B long).  
 A first unsuccessful approach to hit that goal was to use linked descriptors. However, due to errata 15683 for ATSAMD21 MCUs it is impossible to use them.  
-As a result, the main loop on both MCUs will continuously read the ongoing receive transfer DMA byte count. Therefore, the main MCU can process a "read node" command as soon as 2 (message type) + 2 (payload length #1) + 2 (command identifier) + 2 (payload length) + 2 (node address) = 10 bytes are received in 17us and the aux MCU could start sending data after the first 64 bytes are received in 106us.  
+As a result, the main loop on both MCUs will continuously read the ongoing receive transfer DMA byte count. Therefore, the main MCU can process a "read node" command as soon as 2 (message type) + 2 (payload length #1) + 2 (command identifier) + 2 (payload length) + 2 (node address) = 10 bytes are received in 17us and the aux MCU could start sending data after the first 64 bytes are received in 106us.   
   
 ## [](#header-2) Protocol Intricacies
 The main MCU is a **communication slave**: all external devices (computers, phones...) initiate dialogs with the Mooltipass. The aux MCU simply forwards Mooltipass packets to the main MCU. To keep with that logic, the aux MCU **pushes** status updates to the main MCU.  
@@ -70,5 +71,11 @@ The other communication direction (main MCU to aux MCU) isn't a problem either, 
 - the main MCU will release the "not send" line state  
 
 This will therefore effectively "pause" all standard communications while the main MCU takes the role of communication master.
-
-
+  
+  
+## [](#header-2) Status message sent by the Aux MCU 
+Every **100ms** the aux MCU will send a status message:  
+  
+| 0 - 1 | 2 - 3 | 4 - 5                      | byte X - 539 | 540 - 541 | 542 - 543 |
+|:------|:------|:---------------------------|:-------------|:----------|-----------|
+| 0x0003| TBD   | fw ver 1B major & 1B minor | empty        | TBD       | 0x0000    |
