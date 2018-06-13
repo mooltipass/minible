@@ -76,6 +76,14 @@ This will therefore effectively "pause" all standard communications while the ma
 ## [](#header-2) Status message sent by the Aux MCU 
 Every **100ms** the aux MCU will send a status message:  
   
-| 0 - 1 | 2 - 3 | 4 - 5                      | byte X - 539 | 540 - 541 | 542 - 543 |
-|:------|:------|:---------------------------|:-------------|:----------|-----------|
-| 0x0003| TBD   | fw ver 1B major & 1B minor | empty        | TBD       | 0x0000    |
+| 0 - 1 | 2 - 3 |
+|:------|:------|
+| 0x0003| TBD   |
+
+| 4 - 5                      |
+|:---------------------------|
+| fw ver 1B major & 1B minor |
+
+| byte X - 539 | 540 - 541 | 542 - 543 |
+|:-------------|:----------|-----------|
+| empty        | TBD       | 0x0000    |
