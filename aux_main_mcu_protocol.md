@@ -76,14 +76,16 @@ This will therefore effectively "pause" all standard communications while the ma
 ## [](#header-2) Status message sent by the Aux MCU 
 Every **100ms** the aux MCU will send a status message:  
   
-| 0 - 1 | 2 - 3 |
-|:------|:------|
-| 0x0003| TBD   |
+| byte 0 - 1 | byte 2 - 3 |
+|:-----------|:-----------|
+| 0x0003     | TBD        |
 
-| 4 - 5                      |
-|:---------------------------|
-| fw ver 1B major & 1B minor |
+byte 4-5: aux MCU firmware version, major  
+byte 6-7: aux MCU firmware version, minor  
+byte 8-11: aux MCU device ID register (DSU->DID.reg)  
+byte 12-23: aux MCU UID (registers 0x0080A00C 0x0080A040 0x0080A044 0x0080A048)  
+byte 24-27: ATBTLC1000 device id (register 0x4000B000), or 0s if no BLE IC   
 
-| byte X - 539 | 540 - 541 | 542 - 543 |
-|:-------------|:----------|-----------|
-| empty        | TBD       | 0x0000    |
+| byte X - 539 | byte 540 - 541 | byte 542 - 543 |
+|:-------------|:---------------|----------------|
+| empty        | TBD            | 0x0000         |
