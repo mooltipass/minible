@@ -21,7 +21,7 @@ from main MCU:
 - 0x0000: Message to/from USB  
 - 0x0001: Message to/from Bluetooth  
 - 0x0002: Message to/from Aux MCU Bootloader 
-- 0x0003: Status message from Aux MCU  
+- 0x0003: Status message request from Main / status message from Aux MCU  
   
 **Payload Length**  
 Message from main MCU: total payload length.  
@@ -74,7 +74,6 @@ This will therefore effectively "pause" all standard communications while the ma
   
   
 ## [](#header-2) Status message sent by the Aux MCU 
-Every **100ms** the aux MCU will send a status message:  
   
 | byte 0 - 1 | byte 2 - 3 |
 |:-----------|:-----------|
