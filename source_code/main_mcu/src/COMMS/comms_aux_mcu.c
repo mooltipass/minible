@@ -19,10 +19,10 @@ aux_mcu_message_t aux_mcu_send_message;
 BOOL aux_mcu_message_answered_using_first_bytes = FALSE;
 
 
-/*! \fn     comms_aux_init(void)
+/*! \fn     comms_aux_init_rx(void)
 *   \brief  Init communications with aux MCU
 */
-void comms_aux_init(void)
+void comms_aux_init_rx(void)
 {
     dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
     
@@ -200,4 +200,48 @@ void comms_aux_mcu_routine(void)
     {
         dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
     }          
+}
+
+/*! \fn     comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt)
+*   \brief  Active wait for a message from the aux MCU. 
+*   \param  rx_message_pt_pt   Pointer to where to store the pointer to the received message
+*   \return OK if a message was received
+*   \note   Special care must be taken to discard other message we don't want (either with a please_retry or other mechanisms)
+*   \note   DMA RX arm must be called to rearm message receive
+*/
+RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt)
+{
+    /* Bool for the do{} */
+    BOOL reloop = FALSE;
+    
+    do
+    {
+        /* Do not reloop by default */
+        reloop = FALSE;
+        
+        /* Wait for complete message to be received */
+        while(dma_aux_mcu_check_and_clear_dma_transfer_flag() == FALSE);
+        
+        /* Get payload length */
+        uint16_t payload_length;
+        if (aux_mcu_receive_message.payload_length1 != 0)
+        {
+            payload_length = aux_mcu_receive_message.payload_length1;
+        }
+        else
+        {
+            payload_length = aux_mcu_receive_message.payload_length2;
+        }
+        
+        /* Check if message is invalid */
+        if ((payload_length > AUX_MCU_MSG_PAYLOAD_LENGTH) || ((aux_mcu_receive_message.payload_length1 == 0) && (aux_mcu_receive_message.rx_payload_valid_flag == 0)))
+        {
+            /* Reloop, rearm receive */
+            reloop = TRUE;
+            dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+        }        
+    }while (reloop != FALSE);
+        
+    /* Return OK */
+    return RETURN_OK;
 }

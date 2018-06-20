@@ -92,7 +92,7 @@ void main_platform_init(void)
     timer_initialize_timebase();                                        // Initialize the platform time base
     platform_io_init_ports();                                           // Initialize platform IO ports
     platform_io_init_bat_adc_measurements();                            // Initialize ADC for battery measurements
-    comms_aux_init();                                                   // Initialize communication handling with aux MCU
+    comms_aux_init_rx();                                                // Initialize communication handling with aux MCU
     custom_fs_set_dataflash_descriptor(&dataflash_descriptor);          // Store the dataflash descriptor for our custom fs library
     
     /* Initialize OLED screen */
@@ -194,7 +194,7 @@ void main_standby_sleep(void)
     dataflash_exit_power_down(&dataflash_descriptor);
     
     /* Re-enable AUX comms */
-    comms_aux_init();
+    comms_aux_init_rx();
     
     /* Resume accelerometer processing */
     lis2hh12_sleep_exit_and_dma_arm(&acc_descriptor);
