@@ -14,6 +14,7 @@
 #include "defines.h"
 #include "sh1122.h"
 #include "inputs.h"
+#include "fuses.h"
 #include "debug.h"
 #include "main.h"
 #include "dma.h"
@@ -72,9 +73,20 @@ void jump_to_application_function(void)
 */
 void main_platform_init(void)
 {
+    /* Initiatization results vars */
+    custom_fs_init_ret_type_te custom_fs_return;
+    RET_TYPE fuses_ok;
+    
+    /* At boot, directly enable the 3V3 */
     platform_io_enable_switch();                                        // Enable switch and 3v3 stepup
     DELAYMS_8M(100);                                                    // Leave 100ms for stepup powerup
-    custom_fs_settings_init();                                          // Initialize our settings system
+    
+    /* Check fuses */
+    fuses_ok = fuses_check_program(TRUE);                               // Check fuses and program them if incorrectly set
+    while(fuses_ok == RETURN_NOK);
+    
+    /* Perform Initalizations */
+    custom_fs_return = custom_fs_settings_init();                       // Initialize our settings system
     clocks_start_48MDFLL();                                             // Switch to 48M main clock
     dma_init();                                                         // Initialize the DMA controller
     timer_initialize_timebase();                                        // Initialize the platform time base
@@ -90,6 +102,13 @@ void main_platform_init(void)
     /* Release aux MCU reset and enable bluetooth */
     platform_io_release_aux_reset();
     platform_io_enable_ble();
+
+    /* Check initialization results */
+    if (custom_fs_return == CUSTOM_FS_INIT_NO_RWEE)
+    {
+        sh1122_put_error_string(&plat_oled_descriptor, u"No RWWE");
+        while(1);        
+    }
     
     /* Check for data flash */
     if (dataflash_check_presence(&dataflash_descriptor) == RETURN_NOK)
@@ -116,6 +135,7 @@ void main_platform_init(void)
     if (custom_fs_init() == RETURN_NOK)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
+        timer_delay_ms(3000);
         
         /* Wait to load bundle from USB */
         /*while(1)

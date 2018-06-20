@@ -171,6 +171,7 @@ int main(void)
         }
     }
     
+    while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
     custom_fs_settings_clear_fw_upgrade_flag();
     NVIC_SystemReset();
     while(1);

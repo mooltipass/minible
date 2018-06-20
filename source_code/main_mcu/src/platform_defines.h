@@ -21,6 +21,20 @@
  *  => board with the new LT1613 stepup, "beta v2 (new DC/DC)" silkscreen. SMC_POW_nEN pin change.
  */
  #define PLAT_V2_SETUP
+ 
+ 
+ /* Features depending on the defined platform */
+ #if defined(PLAT_V1_SETUP)
+     #define OLED_PRINTF_ENABLED
+     #define DEBUG_USB_COMMANDS_ENABLED
+     #define DEBUG_MENU_ENABLED
+     #define NO_SECURITY_BIT_CHECK
+#elif defined(PLAT_V2_SETUP)
+     #define OLED_PRINTF_ENABLED
+     #define DEBUG_USB_COMMANDS_ENABLED
+     #define DEBUG_MENU_ENABLED
+     #define NO_SECURITY_BIT_CHECK
+#endif
 
 /* Enums */
 typedef enum {PIN_GROUP_0 = 0, PIN_GROUP_1 = 1} pin_group_te;
@@ -63,11 +77,13 @@ typedef struct
 /* Use DMA transfers to send data to OLED screen */
 #define OLED_DMA_TRANSFER
 /* allow printf for the screen */
-#define OLED_PRINTF_ENABLED
+//#define OLED_PRINTF_ENABLED
 /* Allow debug USB commands */
-#define DEBUG_USB_COMMANDS_ENABLED
+//#define DEBUG_USB_COMMANDS_ENABLED
 /* Allow debug menu */
-#define DEBUG_MENU_ENABLED
+//#define DEBUG_MENU_ENABLED
+/* No security bit check */
+//#define NO_SECURITY_BIT_CHECK
 
 /* GCLK ID defines */
 #define GCLK_ID_48M             GCLK_CLKCTRL_GEN_GCLK0_Val

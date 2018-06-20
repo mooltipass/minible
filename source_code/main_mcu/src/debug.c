@@ -43,7 +43,6 @@ void debug_debug_menu(void)
     wheel_action_ret_te wheel_user_action;
     int16_t selected_item = 0;
     BOOL redraw_needed = TRUE;
-	debug_mcu_and_aux_info();
 
     while(1)
     {
