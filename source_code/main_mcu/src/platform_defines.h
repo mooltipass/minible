@@ -9,6 +9,10 @@
 #include <asf.h>
 #include "defines.h"
 
+/**************** FIRMWARE DEFINES ****************/
+#define FW_MAJOR    0
+#define FW_MINOR    1
+
 /**************** SETUP DEFINES ****************/
 /*  This project should be built differently
  *  depending on the Mooltipass version.
