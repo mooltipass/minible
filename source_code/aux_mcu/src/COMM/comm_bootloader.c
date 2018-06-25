@@ -89,7 +89,7 @@ bool comm_bootloader_enter_programming_required(void){
 
         /* Dma transfer to Aux Mcu*/
         dma_aux_mcu_init_tx_transfer( &tx, sizeof(tx));
-        while(dma_aux_mcu_check_tx_dma_transfer_flag() == false);
+        while(dma_aux_mcu_check_tx_dma_transfer_flag() == DMA_TX_BUSY);
         return true;
     } else{
         return false;

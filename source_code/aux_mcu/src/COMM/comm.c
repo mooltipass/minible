@@ -7,6 +7,7 @@
 
 #include "comm.h"
 #include "comm_bootloader.h"
+#include "comm_status.h"
 #include "dma.h"
 #include "driver_sercom.h"
 #include <string.h>
@@ -41,6 +42,11 @@ void comm_init(void){
 
     // init reception DMA
     dma_aux_mcu_init_rx_transfer(&comm_rx, sizeof(comm_rx));
+
+#ifndef BOOTLOADER
+    // init comm_status
+    comm_status_init();
+#endif
 }
 
 
@@ -78,6 +84,10 @@ void comm_process_out_msg(T_comm_msg_type msg_type, uint8_t* buff, uint16_t buff
             break;
         case COMM_MSG_TO_BOOTLOADER:
             comm_bootloader_process_msg((T_comm_bootloader_message*)buff);
+            break;
+            /* Answer STATUS message */
+        case COMM_MSG_STATUS:
+            comm_status_answer();
             break;
 #else
         case COMM_MSG_TO_BOOTLOADER:
