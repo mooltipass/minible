@@ -736,7 +736,6 @@
     <Folder Include="src\CLOCK" />
     <Folder Include="src\COMM" />
     <Folder Include="src\BLE" />
-    <Folder Include="src\STATUS" />
     <Folder Include="src\PM\" />
     <Folder Include="src\PORT\" />
     <Folder Include="src\SERCOM\" />
