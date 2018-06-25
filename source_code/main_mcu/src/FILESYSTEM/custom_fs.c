@@ -136,15 +136,21 @@ void custom_fs_stop_continuous_read_from_flash(void)
 
 /*! \fn     custom_fs_settings_init(spi_flash_descriptor_t* desc)
 *   \brief  Initialize our settings system
+*   \return Intialization success state
 */
-void custom_fs_settings_init(void)
+custom_fs_init_ret_type_te custom_fs_settings_init(void)
 {        
     /* Initialize platform settings pointer, located in slot 0 of internal storage */
     uint32_t flash_addr = custom_fs_get_custom_storage_slot_addr(SETTINGS_STORAGE_SLOT);
     if (flash_addr != 0)
     {
         custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_addr;
+        return CUSTOM_FS_INIT_OK;
     }    
+    else
+    {
+        return CUSTOM_FS_INIT_NO_RWEE;
+    }
 }
 
 /*! \fn     custom_fs_get_number_of_languages(void)

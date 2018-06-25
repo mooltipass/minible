@@ -281,6 +281,7 @@
       <Value>../src/INPUTS</Value>
       <Value>../src/COMMS</Value>
       <Value>../src/LOGIC</Value>
+      <Value>../src/SECURITY</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
@@ -432,6 +433,7 @@
       <Value>../src/INPUTS</Value>
       <Value>../src/COMMS</Value>
       <Value>../src/LOGIC</Value>
+      <Value>../src/SECURITY</Value>
     </ListValues>
   </armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
@@ -644,6 +646,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\platform_defines.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\SECURITY\fuses.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\SECURITY\fuses.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\SERCOM\driver_sercom.c">
@@ -1215,6 +1223,7 @@
     <Folder Include="src\INPUTS" />
     <Folder Include="src\COMMS" />
     <Folder Include="src\LOGIC" />
+    <Folder Include="src\SECURITY" />
     <Folder Include="src\OLED" />
     <Folder Include="src\SMARTCARD" />
     <Folder Include="src\TIMER" />

@@ -48,7 +48,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
     dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)temp_tx_message_pt, sizeof(*temp_tx_message_pt));
     dma_wait_for_aux_mcu_packet_sent();  
     
-    /* Wait for answer... TODO: timeout? */
+    /* Wait for answer... TODO: migrate to comms_aux_mcu_active_wait */
     while (comms_aux_mcu_get_received_packet(&temp_rx_message_pt, TRUE) == FALSE);
     
     /* Check for valid answer */
@@ -93,7 +93,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
         dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)temp_tx_message_pt, sizeof(*temp_tx_message_pt));
         dma_wait_for_aux_mcu_packet_sent();
         
-        /* Wait for answer... TODO: timeout? */
+        /* Wait for answer... TODO: migrate to comms_aux_mcu_active_wait */
         while (comms_aux_mcu_get_received_packet(&temp_rx_message_pt, TRUE) == FALSE);
             
         /* Check for valid answer */

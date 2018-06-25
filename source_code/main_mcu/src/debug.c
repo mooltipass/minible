@@ -43,7 +43,6 @@ void debug_debug_menu(void)
     wheel_action_ret_te wheel_user_action;
     int16_t selected_item = 0;
     BOOL redraw_needed = TRUE;
-	debug_mcu_and_aux_info();
 
     while(1)
     {
@@ -394,6 +393,8 @@ void debug_debug_screen(void)
 */
 void debug_mcu_and_aux_info(void)
 {	
+    aux_mcu_message_t* temp_rx_message;
+    
 	/* Get part number */
 	char part_number[20] = "unknown";
 	if (DSU->DID.bit.DEVSEL == 0x05)
@@ -413,7 +414,34 @@ void debug_mcu_and_aux_info(void)
 	sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, "DID 0x%08x (%s), rev %c", DSU->DID.reg, part_number, 'A' + DSU->DID.bit.REVISION);
 	sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, "UID: 0x%08x%08x%08x%08x", *(uint32_t*)0x0080A00C, *(uint32_t*)0x0080A040, *(uint32_t*)0x0080A044, *(uint32_t*)0x0080A048);
 	//sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Board temperature: %i degrees", temperature);	
+    
+    /* Prepare status message request */
+    aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
+    memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
+    
+    /* Fill the correct fields */
+    temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_STATUS;
+    temp_tx_message_pt->tx_reply_request_flag = 0x0001;
+    
+    /* Send message */
+    dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)temp_tx_message_pt, sizeof(*temp_tx_message_pt));
+    dma_wait_for_aux_mcu_packet_sent();
+    
+    /* Wait for message from aux MCU */
+    while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
+        
+    /* Cast aux MCU DID */
+    DSU_DID_Type aux_mcu_did;
+    aux_mcu_did.reg = temp_rx_message->aux_status_message.aux_did_register;
+        
+    /* This is debug, no need to check if it is the correct received message */
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Aux MCU, fw %d.%d, btle 0x%08x", temp_rx_message->aux_status_message.aux_fw_ver_major, temp_rx_message->aux_status_message.aux_fw_ver_minor, temp_rx_message->aux_status_message.btle_did);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, "DID 0x%08x, rev %c", aux_mcu_did.reg, 'A' + aux_mcu_did.bit.REVISION);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, "UID: 0x%08x%08x%08x%08x", temp_rx_message->aux_status_message.aux_uid_registers[0], temp_rx_message->aux_status_message.aux_uid_registers[1], temp_rx_message->aux_status_message.aux_uid_registers[2], temp_rx_message->aux_status_message.aux_uid_registers[3]);
 	
+    /* Info printed, rearm DMA RX */
+    comms_aux_init_rx();
+    
 	/* Check for click to return */
 	while(1)
 	{
