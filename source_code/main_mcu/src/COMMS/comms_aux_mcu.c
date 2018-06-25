@@ -242,6 +242,9 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt)
         }        
     }while (reloop != FALSE);
         
+    /* Store pointer to message */
+    *rx_message_pt_pt = &aux_mcu_receive_message;
+        
     /* Return OK */
     return RETURN_OK;
 }
