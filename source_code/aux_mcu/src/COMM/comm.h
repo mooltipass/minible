@@ -41,6 +41,7 @@ typedef enum comm_msg_type{
     COMM_MSG_FROM_BLE = COMM_MSG_TO_BLE,
     COMM_MSG_TO_BOOTLOADER = 2,
     COMM_MSG_FROM_BOOTLOADER = COMM_MSG_TO_BOOTLOADER,
+    COMM_MSG_STATUS = 3,
 } T_comm_msg_type;
 
 /* Indicate pkt status */

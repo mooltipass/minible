@@ -20,8 +20,11 @@ enum {
     DMA_UART_RX_CH = 1,
     DMA_NUM_OF_CH
 };
-DmacDescriptor dma_writeback_descriptors[DMA_NUM_OF_CH] __attribute__ ((aligned (16)));
-DmacDescriptor dma_descriptors[DMA_NUM_OF_CH] __attribute__ ((aligned (16)));
+
+/* Private DMA variables */
+static DmacDescriptor dma_writeback_descriptors[DMA_NUM_OF_CH] __attribute__ ((aligned (16)));
+static DmacDescriptor dma_descriptors[DMA_NUM_OF_CH] __attribute__ ((aligned (16)));
+static T_dma_state tx_dma_status = DMA_TX_FREE;
 
 /*! \fn     dma_init
  *  \brief  Initialize DMA controller that will be used later
@@ -50,6 +53,7 @@ void dma_init(void)
     dma_descriptors[DMA_UART_TX_CH].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;    // Byte data transfer
     dma_descriptors[DMA_UART_TX_CH].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val;   // Once data block is transferred, do nothing
     dma_descriptors[DMA_UART_TX_CH].DESCADDR.reg = 0;                                       // No next descriptor address
+    tx_dma_status = DMA_TX_FREE;
 
     /* Setup DMA channel */
     DMAC->CHID.reg = DMAC_CHID_ID(DMA_UART_TX_CH);                                                       // Use channel 5
@@ -101,7 +105,7 @@ bool dma_aux_mcu_check_and_clear_dma_transfer_flag(void)
  *  \note   If the flag is true, flag will be cleared to false
  *  \return true (transfer done, just one time)
  */
-bool dma_aux_mcu_check_tx_dma_transfer_flag(void)
+T_dma_state dma_aux_mcu_check_tx_dma_transfer_flag(void)
 {
     /* Test channel DMA_UART_TX_CH: aux MCU TX routine */
     DMAC->CHID.reg = DMAC_CHID_ID(DMA_UART_TX_CH);
@@ -109,10 +113,10 @@ bool dma_aux_mcu_check_tx_dma_transfer_flag(void)
     {
         /* Set transfer done boolean, clear interrupt */
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
-        return true;
-    } else{
-        return false;
+        tx_dma_status = DMA_TX_FREE;
     }
+
+    return tx_dma_status;
 }
 
 /*! \fn     dma_aux_mcu_init_tx_transfer
@@ -124,19 +128,22 @@ void dma_aux_mcu_init_tx_transfer(void* datap, uint16_t size)
 {
     cpu_irq_enter_critical();
 
-    /* Setup transfer size */
-    dma_descriptors[DMA_UART_TX_CH].BTCNT.bit.BTCNT = (uint16_t)size;
-    /* Source address: DATA register from SPI */
-    dma_descriptors[DMA_UART_TX_CH].DSTADDR.reg = (uint32_t)&SERCOM1->USART.DATA.reg;
-    /* Destination address: given value */
-    dma_descriptors[DMA_UART_TX_CH].SRCADDR.reg = (uint32_t)datap + size;
-    /* Select TX DMA channel */
-    DMAC->CHID.reg= DMAC_CHID_ID(DMA_UART_TX_CH);
-    /* Clear Transmit complete interrupt flag */
-    DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
-    /* Resume channel operation */
-    DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
-
+    if(dma_aux_mcu_check_tx_dma_transfer_flag() != DMA_TX_BUSY){
+        /* Setup transfer size */
+        dma_descriptors[DMA_UART_TX_CH].BTCNT.bit.BTCNT = (uint16_t)size;
+        /* Source address: DATA register from SPI */
+        dma_descriptors[DMA_UART_TX_CH].DSTADDR.reg = (uint32_t)&SERCOM1->USART.DATA.reg;
+        /* Destination address: given value */
+        dma_descriptors[DMA_UART_TX_CH].SRCADDR.reg = (uint32_t)datap + size;
+        /* Select TX DMA channel */
+        DMAC->CHID.reg= DMAC_CHID_ID(DMA_UART_TX_CH);
+        /* Clear Transmit complete interrupt flag */
+        DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
+        /* Resume channel operation */
+        DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
+        /* Set TX dma as busy */
+        tx_dma_status = DMA_TX_BUSY;
+    }
     cpu_irq_leave_critical();
 }
 
