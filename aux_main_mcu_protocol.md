@@ -84,6 +84,8 @@ This will therefore effectively "pause" all standard communications while the ma
 **byte 8-11**: aux MCU device ID register (DSU->DID.reg)  
 **byte 12-27**: aux MCU UID (registers 0x0080A00C 0x0080A040 0x0080A044 0x0080A048)  
 **byte 28-31**: ATBTLC1000 device id (register 0x4000B000), or 0s if no BLE IC   
+**byte 32-35**: SDK version (2 MSBytes: major & minor, 4LSBytes: SDK build number)  
+**byte 36-39**: BTLC1000 RF version  
 
 | byte X - 539 | byte 540 - 541 | byte 542 - 543 |
 |:-------------|:---------------|----------------|
