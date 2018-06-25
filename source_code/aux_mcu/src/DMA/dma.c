@@ -128,7 +128,7 @@ void dma_aux_mcu_init_tx_transfer(void* datap, uint16_t size)
 {
     cpu_irq_enter_critical();
 
-    if(dma_aux_mcu_check_tx_dma_transfer_flag != DMA_TX_BUSY){
+    if(dma_aux_mcu_check_tx_dma_transfer_flag() != DMA_TX_BUSY){
         /* Setup transfer size */
         dma_descriptors[DMA_UART_TX_CH].BTCNT.bit.BTCNT = (uint16_t)size;
         /* Source address: DATA register from SPI */
