@@ -46,7 +46,7 @@ void TCC0_Handler(void)
 */
 void timer_initialize_timebase(void)
 {        
-    /* Assign external 32kHz to GCLK3, divide it by 32 */
+    /* Assign internal 32kHz to GCLK3, divide it by 32 */
     GCLK_GENDIV_Type gendiv_reg;                                        // Gendiv struct
     gendiv_reg.bit.ID = GCLK_CLKCTRL_GEN_GCLK3_Val;                     // Select gclk3
     gendiv_reg.bit.DIV = 32;                                            // Divide by 32
