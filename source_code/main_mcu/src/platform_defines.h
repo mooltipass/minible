@@ -30,7 +30,7 @@
  * - FORCE_RESET_AUX removed (little added benefits)
  * - NO_COMMS added (see github pages)
  */
- #define PLAT_V3_SETUP
+ #define PLAT_V2_SETUP
  
  
  /* Features depending on the defined platform */
@@ -91,6 +91,8 @@ typedef struct
 #define FLASH_DMA_FETCHES
 /* Use DMA transfers to send data to OLED screen */
 #define OLED_DMA_TRANSFER
+/* Use a frame buffer on the platform */
+#define OLED_INTERNAL_FRAME_BUFFER
 /* allow printf for the screen */
 //#define OLED_PRINTF_ENABLED
 /* Allow debug USB commands */

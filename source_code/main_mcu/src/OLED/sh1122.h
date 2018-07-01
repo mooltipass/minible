@@ -39,13 +39,14 @@
 #define SH1122_CMD_SET_DISPLAY_ON                       0xAF
 
 /* Screen defines */
-#define	SH1122_OLED_Shift          0x1C
-#define SH1122_OLED_Max_Column     0x3F     // 256/4-1
-#define SH1122_OLED_Max_Row        0x3F     // 64-1
-#define	SH1122_OLED_Brightness     0x05     // Up to 0x0F
-#define SH1122_OLED_Contrast       0xFF     // Up to 0xFF
-#define SH1122_OLED_WIDTH          256
-#define SH1122_OLED_HEIGHT         64
+#define SH1122_OLED_Shift           0x1C
+#define SH1122_OLED_Max_Column      0x3F     // 256/4-1
+#define SH1122_OLED_Max_Row         0x3F     // 64-1
+#define SH1122_OLED_Brightness      0x05     // Up to 0x0F
+#define SH1122_OLED_Contrast        0xFF     // Up to 0xFF
+#define SH1122_OLED_WIDTH           256
+#define SH1122_OLED_HEIGHT          64
+#define SH1122_OLED_BPP             4
 
 /* Structs */
 // pixel buffer to allow merging of adjacent image data.
@@ -80,6 +81,10 @@ typedef struct
     int16_t cur_text_x;                                 // Current x for writing text
     int16_t cur_text_y;                                 // Current y for writing text
     BOOL oled_on;                                       // Know if oled is on
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    uint8_t frame_buffer[SH1122_OLED_HEIGHT][SH1122_OLED_WIDTH/(8/SH1122_OLED_BPP)];
+    BOOL frame_buffer_flush_in_progress;
+    #endif
 } sh1122_descriptor_t;
 
 /* Enums */
@@ -89,7 +94,7 @@ typedef enum {OLED_ALIGN_LEFT = 0, OLED_ALIGN_RIGHT = 1, OLED_ALIGN_CENTER = 2} 
 /* Prototypes */
 void sh1122_draw_non_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream);
 uint16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, const cust_char_t* string);
-void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream);
+void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream, BOOL write_to_buffer);
 void sh1122_draw_rectangle(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, int16_t width, int16_t height, uint16_t color);
 void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream);
 RET_TYPE sh1122_display_bitmap_from_flash_at_recommended_position(sh1122_descriptor_t* oled_descriptor, uint32_t file_id);
@@ -124,6 +129,13 @@ void sh1122_reset_max_text_x(sh1122_descriptor_t* oled_descriptor);
 void sh1122_init_display(sh1122_descriptor_t* oled_descriptor);
 void sh1122_oled_off(sh1122_descriptor_t* oled_descriptor);
 void sh1122_oled_on(sh1122_descriptor_t* oled_descriptor);
+
+/* Depending on enabled features */
+#ifdef OLED_INTERNAL_FRAME_BUFFER
+void sh1122_check_for_flush_and_terminate(sh1122_descriptor_t* oled_descriptor);
+void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor);
+void sh1122_clear_frame_buffer(sh1122_descriptor_t* oled_descriptor);
+#endif
 
 /* ifdef prototypes */
 #ifdef OLED_PRINTF_ENABLED

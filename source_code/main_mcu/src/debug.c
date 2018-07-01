@@ -85,6 +85,7 @@ void debug_debug_menu(void)
             
             /* Cursor */
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 14 + (selected_item%4)*10, OLED_ALIGN_LEFT, u"-");
+            //sh1122_flush_frame_buffer(&plat_oled_descriptor);
         }
         
         /* Get user action */
