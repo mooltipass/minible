@@ -240,15 +240,10 @@ int main(void)
     
     
     /* Animation test */
-    calendar_t temp_calendar;
-    uint32_t total_time=0;
-    uint32_t start_time;
-    uint32_t end_time;
     uint32_t abc = 0;
     uint32_t cntt = 0;
     while(1)
     {
-        start_time = timer_get_systick();
         for (uint32_t i = 0; i < 120; i++)
         {
             abc++;
@@ -271,13 +266,6 @@ int main(void)
                 sh1122_put_error_string(&plat_oled_descriptor, u"AUX COM Overflow");      
             }
             
-            //timer_start_timer(TIMER_TIMEOUT_FUNCTS, 25);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i);
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, "%i %i %i", acc_descriptor.fifo_read.acc_data_array[0].acc_x, acc_descriptor.fifo_read.acc_data_array[0].acc_y, acc_descriptor.fifo_read.acc_data_array[0].acc_z);
-            timer_get_calendar(&temp_calendar);
-            sh1122_printf_xy(&plat_oled_descriptor, 160, 50, OLED_ALIGN_LEFT, "%u:%u:%u", temp_calendar.bit.HOUR, temp_calendar.bit.MINUTE, temp_calendar.bit.SECOND);
-            //while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING);
-            
             if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_UP)
             {
                 timer_delay_ms(2000);
@@ -294,31 +282,7 @@ int main(void)
             }   
             //timer_delay_ms(100);
         }
-        if ((abc == 240) || (abc == 480))
-        {
-            main_standby_sleep();
-        }
-        end_time = timer_get_systick();
-        total_time = end_time - start_time;
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_CENTER, "%u Nb ms: %u", cntt, total_time);
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_CENTER, "%u", abc);
         //timer_delay_ms(100);
-    }
-    
-    /* Language feature test */
-    while(1)
-    {
-        cust_char_t* lapin;
-        for (uint16_t i = 0; i < custom_fs_get_number_of_languages(); i++)
-        {
-            custom_fs_set_current_language(i);
-            sh1122_refresh_used_font(&plat_oled_descriptor);
-            custom_fs_get_string_from_file(0, &lapin);
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, 0, 0, 24);
-            sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, custom_fs_get_current_language_text_desc());
-            sh1122_put_string_xy(&plat_oled_descriptor, 0, 45, OLED_ALIGN_CENTER, lapin);
-            timer_delay_ms(1000);
-        }        
     }
     
     /*

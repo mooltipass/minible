@@ -54,7 +54,11 @@ void debug_debug_menu(void)
         {
             /* Clear screen */
             redraw_needed = FALSE;
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
+            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            #else
             sh1122_clear_current_screen(&plat_oled_descriptor);
+            #endif
             
             /* Item selection */
             if (selected_item > 6)
@@ -66,26 +70,29 @@ void debug_debug_menu(void)
                 selected_item = 6;
             }
             
-            sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu");
+            sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);
             
             /* Print items */
             if (selected_item < 4)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Battery");
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Language Switch Test");
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Smartcard Debug");
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Animation Test");
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Battery", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Language Switch Test", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Smartcard Debug", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Animation Test", TRUE);
             }
             else
             {
-	            sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Main and Aux MCU Info");
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main MCU Flash");
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU Flash");
+	            sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Main and Aux MCU Info", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main MCU Flash", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU Flash", TRUE);
             }
             
             /* Cursor */
-            sh1122_put_string_xy(&plat_oled_descriptor, 0, 14 + (selected_item%4)*10, OLED_ALIGN_LEFT, u"-");
-            //sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            sh1122_put_string_xy(&plat_oled_descriptor, 0, 14 + (selected_item%4)*10, OLED_ALIGN_LEFT, u"-", TRUE);
+            
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
+            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            #endif
         }
         
         /* Get user action */
@@ -145,7 +152,7 @@ void debug_debug_menu(void)
 void debug_smartcard_info(void)
 {
     sh1122_clear_current_screen(&plat_oled_descriptor);
-    sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please insert card");
+    sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please insert card", FALSE);
     
     while(1)
     {
@@ -166,23 +173,23 @@ void debug_smartcard_info(void)
             /* Inform what the card is */
             if (detection_result == RETURN_MOOLTIPASS_INVALID)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Invalid Card");
+                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Invalid Card", FALSE);
             }
             else if (detection_result == RETURN_MOOLTIPASS_PB)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Problem with card");
+                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Problem with card", FALSE);
             }
             else if (detection_result == RETURN_MOOLTIPASS_BLANK)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Blank card");
+                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Blank card", FALSE);
             }
             else if (detection_result == RETURN_MOOLTIPASS_USER)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"User card");
+                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"User card", FALSE);
             }    
             else if (detection_result == RETURN_MOOLTIPASS_BLOCKED)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Blocked card");
+                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Blocked card", FALSE);
             }    
             
             /* Card debug info */
@@ -192,7 +199,7 @@ void debug_smartcard_info(void)
                 uint8_t data_buffer[20];
                 
                 /* Security mode */
-                sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, "Security mode: %c", (smartcard_highlevel_check_security_mode2() == RETURN_OK) ? '2' : '1');
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "Security mode: %c", (smartcard_highlevel_check_security_mode2() == RETURN_OK) ? '2' : '1');
                 
                 /* Fabrication zone / Memory test zone / Manufacturer zone */
                 smartcard_highlevel_read_fab_zone(data_buffer);
@@ -201,25 +208,25 @@ void debug_smartcard_info(void)
                 uint16_t mtz = (uint16_t)data_buffer[0] | (uint16_t)data_buffer[1]<<8;
                 smartcard_highlevel_read_manufacturer_zone(data_buffer);
                 uint16_t mz = (uint16_t)data_buffer[1] | (uint16_t)data_buffer[0]<<8;
-                sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, "FZ: %04X / MTZ: %04X / MZ: %04X", fz, mtz, mz);
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "FZ: %04X / MTZ: %04X / MZ: %04X", fz, mtz, mz);
                 
                 /* Issuer zone */
                 strcpy((char*)temp_string, "IZ: ");
                 smartcard_highlevel_read_issuer_zone(data_buffer);
                 debug_array_to_hex_u8string(data_buffer, temp_string + 4, SMARTCARD_ISSUER_ZONE_LGTH);
-                sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, (const char*)temp_string);
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, (const char*)temp_string);
                 
                 /* Code protected zone */
                 strcpy((char*)temp_string, "CPZ: ");
                 smartcard_highlevel_read_code_protected_zone(data_buffer);
                 debug_array_to_hex_u8string(data_buffer, temp_string + 5, SMARTCARD_CPZ_LENGTH);
-                sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, (const char*)temp_string);
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, FALSE, (const char*)temp_string);
                 
                 /* First bytes of AZ1 */
                 strcpy((char*)temp_string, "AZ1: ");
                 smartcard_lowlevel_read_smc((SMARTCARD_AZ1_BIT_START + 16*8)/8, (SMARTCARD_AZ1_BIT_START)/8, data_buffer);
                 debug_array_to_hex_u8string(data_buffer, temp_string + 5, 16);
-                sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, (const char*)temp_string);
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, FALSE, (const char*)temp_string);
             }            
             
             /* Remove power to the card */
@@ -243,14 +250,14 @@ void debug_language_test(void)
             sh1122_refresh_used_font(&plat_oled_descriptor);
             custom_fs_get_string_from_file(0, &temp_string);
             sh1122_clear_current_screen(&plat_oled_descriptor);
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "%d/%d : ", i+1, custom_fs_flash_header.language_map_item_count);
-            sh1122_put_string_xy(&plat_oled_descriptor, 30, 0, OLED_ALIGN_LEFT, custom_fs_get_current_language_text_desc());            
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, "String file ID: %d", custom_fs_cur_language_entry.string_file_index);
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, "Start font file ID: %d", custom_fs_cur_language_entry.starting_font);
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Start bitmap file ID: %d", custom_fs_cur_language_entry.starting_bitmap);
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, "Recommended keyboard file ID: %d", custom_fs_cur_language_entry.keyboard_layout_id);
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, "Line #0:");
-            sh1122_put_string_xy(&plat_oled_descriptor, 50, 50, OLED_ALIGN_LEFT, temp_string);
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "%d/%d : ", i+1, custom_fs_flash_header.language_map_item_count);
+            sh1122_put_string_xy(&plat_oled_descriptor, 30, 0, OLED_ALIGN_LEFT, custom_fs_get_current_language_text_desc(), FALSE);            
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "String file ID: %d", custom_fs_cur_language_entry.string_file_index);
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "Start font file ID: %d", custom_fs_cur_language_entry.starting_font);
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "Start bitmap file ID: %d", custom_fs_cur_language_entry.starting_bitmap);
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, FALSE, "Recommended keyboard file ID: %d", custom_fs_cur_language_entry.keyboard_layout_id);
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, FALSE, "Line #0:");
+            sh1122_put_string_xy(&plat_oled_descriptor, 50, 50, OLED_ALIGN_LEFT, temp_string, FALSE);
             
             /* Return ? */
             timer_start_timer(TIMER_WAIT_FUNCTS, 2000);
@@ -274,7 +281,7 @@ void debug_debug_animation(void)
     {
         for (uint16_t i = 0; i < 120; i++)
         {
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
             
             /* Return ? */
             if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
@@ -357,19 +364,19 @@ void debug_debug_screen(void)
         }
          
         /* Line 2: date */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, "CURRENT TIME: %u:%u:%u %u/%u/%u", temp_calendar.bit.HOUR, temp_calendar.bit.MINUTE, temp_calendar.bit.SECOND, temp_calendar.bit.DAY, temp_calendar.bit.MONTH, temp_calendar.bit.YEAR);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "CURRENT TIME: %u:%u:%u %u/%u/%u", temp_calendar.bit.HOUR, temp_calendar.bit.MINUTE, temp_calendar.bit.SECOND, temp_calendar.bit.DAY, temp_calendar.bit.MONTH, temp_calendar.bit.YEAR);
         
         /* Line 3: accelerometer */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, "ACC: Freq %uHz X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, acc_descriptor.fifo_read.acc_data_array[0].acc_x, acc_descriptor.fifo_read.acc_data_array[0].acc_y, acc_descriptor.fifo_read.acc_data_array[0].acc_z);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "ACC: Freq %uHz X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, acc_descriptor.fifo_read.acc_data_array[0].acc_x, acc_descriptor.fifo_read.acc_data_array[0].acc_y, acc_descriptor.fifo_read.acc_data_array[0].acc_z);
         
         /* Line 4: battery */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "BAT: ADC %u, %u mV", bat_adc_result, bat_adc_result*110/273);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "BAT: ADC %u, %u mV", bat_adc_result, bat_adc_result*110/273);
         
         /* Display stats */
         stat_times[5] = timer_get_systick();
         
         /* Line 6: display stats */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, "STATS MS: text %u, erase %u, stats %u", stat_times[5]-stat_times[4], stat_times[1]-stat_times[0], stat_times[3]-stat_times[2]);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, FALSE, "STATS MS: text %u, erase %u, stats %u", stat_times[5]-stat_times[4], stat_times[1]-stat_times[0], stat_times[3]-stat_times[2]);
         
         /* Get user action */
         wheel_action_ret_te wheel_user_action = inputs_get_wheel_action(FALSE, FALSE);
@@ -411,9 +418,9 @@ void debug_mcu_and_aux_info(void)
 	
 	/* Print info */
 	sh1122_clear_current_screen(&plat_oled_descriptor);
-	sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "Main MCU, fw %d.%d", FW_MAJOR, FW_MINOR);
-	sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, "DID 0x%08x (%s), rev %c", DSU->DID.reg, part_number, 'A' + DSU->DID.bit.REVISION);
-	sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, "UID: 0x%08x%08x%08x%08x", *(uint32_t*)0x0080A00C, *(uint32_t*)0x0080A040, *(uint32_t*)0x0080A044, *(uint32_t*)0x0080A048);
+	sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Main MCU, fw %d.%d", FW_MAJOR, FW_MINOR);
+	sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "DID 0x%08x (%s), rev %c", DSU->DID.reg, part_number, 'A' + DSU->DID.bit.REVISION);
+	sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", *(uint32_t*)0x0080A00C, *(uint32_t*)0x0080A040, *(uint32_t*)0x0080A044, *(uint32_t*)0x0080A048);
 	//sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Board temperature: %i degrees", temperature);	
     
     /* Prepare status message request */
@@ -446,9 +453,9 @@ void debug_mcu_and_aux_info(void)
     }    
         
     /* This is debug, no need to check if it is the correct received message */
-    sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "MCU fw %d.%d, btid 0x%08x ver 0x%08x", temp_rx_message->aux_status_message.aux_fw_ver_major, temp_rx_message->aux_status_message.aux_fw_ver_minor, temp_rx_message->aux_status_message.btle_did, temp_rx_message->aux_status_message.btle_sdk_version);
-    sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, "DID 0x%08x (%s), rev %c", aux_mcu_did.reg, part_number, 'A' + aux_mcu_did.bit.REVISION);
-    sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, "UID: 0x%08x%08x%08x%08x", temp_rx_message->aux_status_message.aux_uid_registers[0], temp_rx_message->aux_status_message.aux_uid_registers[1], temp_rx_message->aux_status_message.aux_uid_registers[2], temp_rx_message->aux_status_message.aux_uid_registers[3]);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "MCU fw %d.%d, btid 0x%08x ver 0x%08x", temp_rx_message->aux_status_message.aux_fw_ver_major, temp_rx_message->aux_status_message.aux_fw_ver_minor, temp_rx_message->aux_status_message.btle_did, temp_rx_message->aux_status_message.btle_sdk_version);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, FALSE, "DID 0x%08x (%s), rev %c", aux_mcu_did.reg, part_number, 'A' + aux_mcu_did.bit.REVISION);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", temp_rx_message->aux_status_message.aux_uid_registers[0], temp_rx_message->aux_status_message.aux_uid_registers[1], temp_rx_message->aux_status_message.aux_uid_registers[2], temp_rx_message->aux_status_message.aux_uid_registers[3]);
 	
     /* Info printed, rearm DMA RX */
     comms_aux_init_rx();
