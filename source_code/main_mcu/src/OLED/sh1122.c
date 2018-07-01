@@ -1298,7 +1298,7 @@ uint16_t sh1122_printf_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8
     oled_descriptor->cur_text_y = y;
     
     /* Display string */
-    return_val = sh1122_put_string(oled_descriptor, u16buf, wri);
+    return_val = sh1122_put_string(oled_descriptor, u16buf, write_to_buffer);
     oled_descriptor->max_text_x = max_text_x_copy;
     
     // Return the number of characters printed
