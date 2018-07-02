@@ -440,6 +440,11 @@ void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_desc
     /   TODO: compare sh1122_draw_full_screen_image_from_bitstream performance with sh1122_draw_aligned_image_from_bitstream
     */
 
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    /* Wait for a possible ongoing previous flush */
+    sh1122_check_for_flush_and_terminate(oled_descriptor);
+    #endif
+
     /* Set pixel write window */
     sh1122_set_row_address(oled_descriptor, 0);
     sh1122_set_column_address(oled_descriptor, 0);
@@ -651,19 +656,61 @@ void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descript
     bitstream_bitmap_close(bitstream);    
 }   
 
-/*! \fn     sh1122_draw_non_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream)
+/*! \fn     sh1122_draw_non_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream, BOOL write_to_buffer)
 *   \brief  Draw a 2 pixels non aligned picture from a bitstream
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
 *   \param  y                   Starting y
 *   \param  bitstream           Pointer to the bistream
+*   \param  write_to_buffer    Set to true to write to internal buffer
 */
-void sh1122_draw_non_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream)
+void sh1122_draw_non_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream, BOOL write_to_buffer)
 {
     uint16_t height = bitstream->height;
     uint16_t width = bitstream->width;
     uint16_t xoff = x - (x / 2) * 2;
+    
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    if (write_to_buffer != FALSE)
+    {
+        for (uint16_t yind=0; yind < height; yind++)
+        {
+            uint16_t xind = 0;
+            uint16_t pixels = 0;
 
+            /* Start x not a multiple of 2 */
+            if (xoff != 0)
+            {
+                /* Set xind to 1 as we're writing a pixel */
+                xind = 1;
+                
+                /* Fetch one pixel */
+                pixels = bitstream_bitmap_read(bitstream, 1);
+
+                /* Fill frame buffer */
+                oled_descriptor->frame_buffer[y+yind][x/2] |= pixels;
+            }
+            
+            /* Start x multiple of 2, start filling */
+            for (; xind < width; xind+=2)
+            {
+                if ((xind+2) <= width)
+                {
+                    pixels = bitstream_bitmap_read(bitstream, 2);
+                }
+                else
+                {
+                    pixels = bitstream_bitmap_read(bitstream, 1) << 4;
+                }                
+
+                /* Fill frame buffer */
+                oled_descriptor->frame_buffer[y+yind][(x+xind)/2] |= pixels;
+            }
+        }
+    } 
+    else
+    {
+    #endif
     for (uint16_t yind=0; yind < height; yind++)
     {
         uint16_t xind = 0;
@@ -724,6 +771,9 @@ void sh1122_draw_non_aligned_image_from_bitstream(sh1122_descriptor_t* oled_desc
         /* Stop sending data */
         sh1122_stop_data_sending(oled_descriptor);
     }
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    }
+    #endif
     
     /* Close bitstream */
     bitstream_bitmap_close(bitstream);
@@ -752,7 +802,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
     } 
     else
     {
-        sh1122_draw_non_aligned_image_from_bitstream(oled_descriptor, x, y, bitstream);
+        sh1122_draw_non_aligned_image_from_bitstream(oled_descriptor, x, y, bitstream, write_to_buffer);
     }    
 }
 

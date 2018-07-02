@@ -316,7 +316,12 @@ void debug_debug_screen(void)
         
         /* Clear screen */
         stat_times[0] = timer_get_systick();
+        #ifdef OLED_INTERNAL_FRAME_BUFFER
+        sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
+        sh1122_clear_frame_buffer(&plat_oled_descriptor);
+        #else
         sh1122_clear_current_screen(&plat_oled_descriptor);
+        #endif
         stat_times[1] = timer_get_systick();
         
         /* Data acq */
@@ -364,19 +369,23 @@ void debug_debug_screen(void)
         }
          
         /* Line 2: date */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "CURRENT TIME: %u:%u:%u %u/%u/%u", temp_calendar.bit.HOUR, temp_calendar.bit.MINUTE, temp_calendar.bit.SECOND, temp_calendar.bit.DAY, temp_calendar.bit.MONTH, temp_calendar.bit.YEAR);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, TRUE, "CURRENT TIME: %u:%u:%u %u/%u/%u", temp_calendar.bit.HOUR, temp_calendar.bit.MINUTE, temp_calendar.bit.SECOND, temp_calendar.bit.DAY, temp_calendar.bit.MONTH, temp_calendar.bit.YEAR);
         
         /* Line 3: accelerometer */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "ACC: Freq %uHz X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, acc_descriptor.fifo_read.acc_data_array[0].acc_x, acc_descriptor.fifo_read.acc_data_array[0].acc_y, acc_descriptor.fifo_read.acc_data_array[0].acc_z);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, TRUE, "ACC: Freq %uHz X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, acc_descriptor.fifo_read.acc_data_array[0].acc_x, acc_descriptor.fifo_read.acc_data_array[0].acc_y, acc_descriptor.fifo_read.acc_data_array[0].acc_z);
         
         /* Line 4: battery */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "BAT: ADC %u, %u mV", bat_adc_result, bat_adc_result*110/273);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, TRUE, "BAT: ADC %u, %u mV", bat_adc_result, bat_adc_result*110/273);
         
         /* Display stats */
         stat_times[5] = timer_get_systick();
         
         /* Line 6: display stats */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, FALSE, "STATS MS: text %u, erase %u, stats %u", stat_times[5]-stat_times[4], stat_times[1]-stat_times[0], stat_times[3]-stat_times[2]);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, TRUE, "STATS MS: text %u, erase %u, stats %u", stat_times[5]-stat_times[4], stat_times[1]-stat_times[0], stat_times[3]-stat_times[2]);
+
+        #ifdef OLED_INTERNAL_FRAME_BUFFER
+        sh1122_flush_frame_buffer(&plat_oled_descriptor);
+        #endif
         
         /* Get user action */
         wheel_action_ret_te wheel_user_action = inputs_get_wheel_action(FALSE, FALSE);
