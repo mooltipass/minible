@@ -55,7 +55,9 @@ void platform_io_disable_switch_and_die(void)
 */
 void platform_io_release_aux_reset(void)
 {
-     PORT->Group[MCU_AUX_RST_EN_GROUP].OUTCLR.reg = MCU_AUX_RST_EN_MASK;
+    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+    PORT->Group[MCU_AUX_RST_EN_GROUP].OUTCLR.reg = MCU_AUX_RST_EN_MASK;
+    #endif     
 }
 
 /*! \fn     platform_io_enable_ble(void)
@@ -423,7 +425,7 @@ BOOL platform_io_is_usb_3v3_present(void)
 void platform_io_init_power_ports(void)
 {
     /* Configure analog input */
-#if defined(PLAT_V2_SETUP)
+#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP)
     PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 1;
     PORT->Group[VOLED_VIN_GROUP].PMUX[VOLED_VIN_PINID/2].bit.VOLED_VIN_PMUXREGID = VOLED_VIN_PMUX_ID;
@@ -521,9 +523,11 @@ void platform_io_init_ports(void)
     /* Accelerometer */
     platform_io_init_accelerometer_ports();
 
+    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
     /* AUX MCU, reset by default */
     PORT->Group[MCU_AUX_RST_EN_GROUP].DIRSET.reg = MCU_AUX_RST_EN_MASK;
     PORT->Group[MCU_AUX_RST_EN_GROUP].OUTSET.reg = MCU_AUX_RST_EN_MASK;
+    #endif
     
     /* Aux comms */
     platform_io_init_aux_comms();

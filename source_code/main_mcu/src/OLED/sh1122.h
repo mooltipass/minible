@@ -39,13 +39,14 @@
 #define SH1122_CMD_SET_DISPLAY_ON                       0xAF
 
 /* Screen defines */
-#define	SH1122_OLED_Shift          0x1C
-#define SH1122_OLED_Max_Column     0x3F     // 256/4-1
-#define SH1122_OLED_Max_Row        0x3F     // 64-1
-#define	SH1122_OLED_Brightness     0x05     // Up to 0x0F
-#define SH1122_OLED_Contrast       0xFF     // Up to 0xFF
-#define SH1122_OLED_WIDTH          256
-#define SH1122_OLED_HEIGHT         64
+#define SH1122_OLED_Shift           0x1C
+#define SH1122_OLED_Max_Column      0x3F     // 256/4-1
+#define SH1122_OLED_Max_Row         0x3F     // 64-1
+#define SH1122_OLED_Brightness      0x05     // Up to 0x0F
+#define SH1122_OLED_Contrast        0xFF     // Up to 0xFF
+#define SH1122_OLED_WIDTH           256
+#define SH1122_OLED_HEIGHT          64
+#define SH1122_OLED_BPP             4
 
 /* Structs */
 // pixel buffer to allow merging of adjacent image data.
@@ -80,6 +81,10 @@ typedef struct
     int16_t cur_text_x;                                 // Current x for writing text
     int16_t cur_text_y;                                 // Current y for writing text
     BOOL oled_on;                                       // Know if oled is on
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    uint8_t frame_buffer[SH1122_OLED_HEIGHT][SH1122_OLED_WIDTH/(8/SH1122_OLED_BPP)];
+    BOOL frame_buffer_flush_in_progress;
+    #endif
 } sh1122_descriptor_t;
 
 /* Enums */
@@ -87,22 +92,23 @@ typedef enum {OLED_SCROLL_NONE = 0, OLED_SCROLL_UP = 1, OLED_SCROLL_DOWN = 2, OL
 typedef enum {OLED_ALIGN_LEFT = 0, OLED_ALIGN_RIGHT = 1, OLED_ALIGN_CENTER = 2} oled_align_te;
 
 /* Prototypes */
-void sh1122_draw_non_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream);
-uint16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, const cust_char_t* string);
-void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream);
-void sh1122_draw_rectangle(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, int16_t width, int16_t height, uint16_t color);
-void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream);
-RET_TYPE sh1122_display_bitmap_from_flash_at_recommended_position(sh1122_descriptor_t* oled_descriptor, uint32_t file_id);
-RET_TYPE sh1122_display_bitmap_from_flash(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint32_t file_id);
+void sh1122_draw_non_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream, BOOL write_to_buffer);
+uint16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, const cust_char_t* string, BOOL write_to_buffer);
+void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream, BOOL write_to_buffer);
+void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream, BOOL write_to_buffer);
+RET_TYPE sh1122_display_bitmap_from_flash_at_recommended_position(sh1122_descriptor_t* oled_descriptor, uint32_t file_id, BOOL write_to_buffer);
+RET_TYPE sh1122_display_bitmap_from_flash(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint32_t file_id, BOOL write_to_buffer);
 void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream);
+void sh1122_draw_rectangle(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, int16_t width, int16_t height, uint16_t color);
+uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, cust_char_t ch, BOOL write_to_buffer);
+uint16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str, BOOL write_to_buffer);
 void sh1122_flip_buffers(sh1122_descriptor_t* oled_descriptor, oled_scroll_te scroll_mode, uint32_t delay);
-uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, cust_char_t ch);
+RET_TYPE sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, BOOL write_to_buffer);
 uint16_t sh1122_put_error_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string);
 void sh1122_set_contrast_current(sh1122_descriptor_t* oled_descriptor, uint8_t contrast_current);
 uint16_t sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str);
 void sh1122_set_master_current(sh1122_descriptor_t* oled_descriptor, uint8_t master_current);
 void sh1122_move_display_start_line(sh1122_descriptor_t* oled_descriptor, int16_t offset);
-uint16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str);
 uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_t ch);
 void sh1122_write_single_command(sh1122_descriptor_t* oled_descriptor, uint8_t reg);
 void sh1122_set_column_address(sh1122_descriptor_t* oled_descriptor, uint8_t start);
@@ -110,7 +116,6 @@ void sh1122_write_single_word(sh1122_descriptor_t* oled_descriptor, uint16_t dat
 void sh1122_write_single_data(sh1122_descriptor_t* oled_descriptor, uint8_t data);
 void sh1122_set_row_address(sh1122_descriptor_t* oled_descriptor, uint8_t start);
 void sh1122_set_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y);
-RET_TYPE sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch);
 void sh1122_fill_screen(sh1122_descriptor_t* oled_descriptor, uint16_t color);
 void sh1122_set_max_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x);
 void sh1122_set_min_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x);
@@ -125,9 +130,16 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor);
 void sh1122_oled_off(sh1122_descriptor_t* oled_descriptor);
 void sh1122_oled_on(sh1122_descriptor_t* oled_descriptor);
 
+/* Depending on enabled features */
+#ifdef OLED_INTERNAL_FRAME_BUFFER
+void sh1122_check_for_flush_and_terminate(sh1122_descriptor_t* oled_descriptor);
+void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor);
+void sh1122_clear_frame_buffer(sh1122_descriptor_t* oled_descriptor);
+#endif
+
 /* ifdef prototypes */
 #ifdef OLED_PRINTF_ENABLED
-    uint16_t sh1122_printf_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, const char *fmt, ...);
+    uint16_t sh1122_printf_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, BOOL write_to_buffer, const char *fmt, ...);
 #endif
 
 

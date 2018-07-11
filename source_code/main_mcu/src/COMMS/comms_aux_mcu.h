@@ -27,6 +27,8 @@ typedef struct
     uint32_t aux_did_register;
     uint32_t aux_uid_registers[4];
     uint32_t btle_did;
+    uint32_t btle_sdk_version;
+    uint32_t btlc1000_rf_version;
 } aux_status_message_t;
 
 typedef struct
