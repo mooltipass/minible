@@ -4,18 +4,15 @@ import os
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
-
-import unicodedata
-import re
-
 from lxml import objectify
 from lxml import etree
-
+import unicodedata
 import statistics
+import re
 
 # Set the directory that you extract the cldr keyboards zip file here
 CLDR_KEYBOARDS_BASE_PATH = "cldr-keyboards-33.1/keyboards"
-# the platform filename in the cldr
+# the platform filename in the cldr, contains HID code to physical key code LUT
 PLATFORM_FILENAME = "_platform.xml"
 
 # These are the HID modifier keys.  We create a single byte value
@@ -65,32 +62,43 @@ class CLDR():
 			if PLATFORM_FILENAME not in filenames:
 				continue
 
+			# we know there's the hid map, we open it and check for the hardwareMap keywoard
 			platfile = os.path.join(directory, PLATFORM_FILENAME)
 			pobj = objectify.fromstring(open(platfile, "r").read())
 			map = pobj.find('hardwareMap')
+			
 			if map is not None:
-				
+				# generate iso to keycode LUT
 				iso_to_keycode = {i.attrib.get('iso'): i.attrib.get('keycode') for i in pobj.hardwareMap.getchildren()}
+				
+				# extract platform name
 				platform_name = pobj.attrib.get('id')
 				
+				# store iso to keycode LUT for this platform
 				self.hardware_maps[platform_name] = iso_to_keycode
 				if platform_name not in self.layouts.keys():
 					self.layouts[platform_name] = {}
 
 				# process each layout file
 				for f in filenames:
+					# only parse keyboard files
 					if f != PLATFORM_FILENAME:
+						# open keyboard file
 						keyb_file = os.path.join(directory, f)
 						obj = objectify.fromstring(open(keyb_file, "r").read())
+						
+						# get layout name
 						layout_name = obj.find('names').find('name').attrib.get('value')
 
+						# get maps
 						maps = obj.find('keyMap')
 						for m in maps:
+							# get modifier keys, check for caps lock
 							caps, mf = self.get_modifier_keys(m.attrib.get('modifiers'))
 							
 							# we don't support characters that require caps lock
 							# if some other combination can also yield this key, caps will be false.
-							if not caps:
+							if caps:
 								continue
 
 							for c in m.getchildren():
@@ -98,41 +106,70 @@ class CLDR():
 								if len(c.attrib) == 0:
 									continue
 
+								# hid keycode
 								keycode = iso_to_keycode.get(c.attrib.get('iso'))
 
 								# If no keycode can be found, we can't type it, so it gets skipped.
 								# Only known case for this in CLDR 32, is chromeos iso code C12.
 								if keycode is None:
 									continue
+									
+								# Debug
+								if False:
+									print "locale", obj.attrib.get('locale')
+									print "modifier", mf
+									print "iso", c.attrib.get('iso')
 
-								glyphs, points = self.parse_to_attrib(c.attrib.get('to'))
+								# Get glyphs and points for the "to" attribute
+								glyphs, points = self.parse_to_attrib(c.attrib.get('to'), obj.attrib.get('locale'), mf, c.attrib.get('iso'))
 								
+								#if platform_name == "windows" and layout_name == "French":
+								#	print keycode, c.attrib.get('to')
+								#	print glyphs
+								#	print points
+								#	print ""
+								
+								# Check for a single point: more than one point come from a bad python it seems (arabic, myanmar....)
 								if len(points) == 1:
 									if layout_name not in self.layouts[platform_name].keys():
 										self.layouts[platform_name][layout_name] = {} # unicode point -> set(modifier hex byte, keycode hex byte)
 									self.layouts[platform_name][layout_name][points[0]] = (mf, hex(int(keycode)))
+								else:
+									if False:
+										print "multiple points"
+										print "locale", obj.attrib.get('locale')
+										print "modifier", mf
+										print "glyphs", glyphs
+										print "points", points
+										print "iso", c.attrib.get('iso')
+										#print "to", unicode(c.attrib.get('to'))
+										print ""
 									
 
 
 	# Returns if caps is required and the Hex value of modifier HID byte
 	def get_modifier_keys(self, mds):
+		# No modifier keys :)
 		if mds is None:
-			return False, str(hex(0))
+			return False, []
+			
+		# Different options for modifier, just take the first one (simplest one!)
 		options = mds.split(" ")
 		opt = options[0]
+		
+		# Modifier key(s)
 		keys = opt.split("+")
-		final_keys = ""
-		final = 0;
+		final_keys = []
 		for key in keys:
+			# from our tests, when a modifier is finished with ? we should discard it
 			if not key.endswith("?"):
-				modcode = keys_map.get(key)
-				if modcode:
-					final += modcode
-				final_keys += key + "+"
+				final_keys.append(key)
+				
+		# return the modifier key and if caps lock is neeeded
 		if 'caps' in keys:
-			return True, hex(final)
+			return True, final_keys
 		else:
-			return False, hex(final)
+			return False, final_keys
 
 	def describe(self, glyphs):
 		glyphs, points = parse_to_attrib(glyphs)
@@ -146,14 +183,14 @@ class CLDR():
 
 		return desc
 
-	def parse_to_attrib(self, glyph):
+	def parse_to_attrib(self, glyph, locale, modifier, iso):
 		''' 
 		this just handles the odd formatting in the 'to' attribute on the xml.
 		They mix xmlencoded and actual unicode, and also the code point
 		encoded with a \u{...} notation.
 
 		Returns: list of glyps, list of code point ints
-		'''
+		'''		
 		# find all the \u{...} notation characters
 		myre = re.compile(r"\\u\{([A-F0-7]*[^\}])", re.UNICODE)
 		matches = myre.findall(glyph)
@@ -184,6 +221,13 @@ class CLDR():
 				try:
 					point = ord(glyph)
 				except:
+					if False:
+						print "error getting ord of", glyph
+						print "main reason: multiple keys"
+						print "locale", locale
+						print "modifier", modifier
+						print "iso", iso
+						print ""
 					point = "-"
 			glyphs.append(glyph)
 			points.append(point)
@@ -266,10 +310,10 @@ cldr.parse_cldr_xml()
 
 # now you can just access cldr.layouts directly if you want..
 
-cldr.show_platforms()
-cldr.show_layouts(1) # osx
-
-cldr.show_lut(1, 30) # German
-
-cldr.show_stats()
+#cldr.show_platforms()
+#cldr.show_layouts(1) # osx
+#
+#cldr.show_lut(1, 30) # German
+#
+#cldr.show_stats()
 
