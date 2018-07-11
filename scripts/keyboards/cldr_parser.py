@@ -14,7 +14,7 @@ from lxml import etree
 import statistics
 
 # Set the directory that you extract the cldr keyboards zip file here
-CLDR_KEYBOARDS_BASE_PATH = "cldr-keyboards-32.0.1/keyboards"
+CLDR_KEYBOARDS_BASE_PATH = "cldr-keyboards-33.1/keyboards"
 # the platform filename in the cldr
 PLATFORM_FILENAME = "_platform.xml"
 
