@@ -52,6 +52,7 @@
 #include "ble_manager.h"
 #include "ble_utils.h"
 #include "platform.h"
+#include "comm_status.h"
 
 #if BLE_DEVICE_ROLE == BLE_ROLE_ALL
 #ifndef ATT_DB_MEMORY
@@ -152,8 +153,8 @@ uint32_t event_pool_memory[4] = {0};
 #else
 uint32_t event_pool_memory[256] = {0};
 #endif
-uint32_t event_params_memory[1024] = {0};
-uint32_t rx_fifo_memory[256] = {0};
+uint32_t event_params_memory[256] = {0};
+uint32_t rx_fifo_memory[64] = {0};
 
 /** @brief initializes the platform */
 static void ble_init(at_ble_init_config_t * args);
@@ -164,6 +165,9 @@ static void ble_set_dev_config(at_ble_addr_t *addr);
 /** @brief function to get event from stack */
 at_ble_status_t ble_event_task(void)
 {
+    /* MBorrego (to don't have a blocking loop inside event get) */
+    at_ble_event_user_defined_post(NULL);
+
     if (at_ble_event_get(&event, ble_event_params, BLE_EVENT_TIMEOUT) == AT_BLE_SUCCESS)
     {
             ble_event_manager(event, ble_event_params);
@@ -178,6 +182,9 @@ uint32_t ble_sdk_version(void)
 	uint32_t fw_ver, rf_ver;
 	if(at_ble_firmware_version_get(&fw_ver) == AT_BLE_SUCCESS)
 	{
+        /* Set fw version */
+        comm_status_set_blefwid(fw_ver);
+
 		/* Check the SDK and Library version compatibility */
 		if ( (BLE_SDK_MAJOR_NO(fw_ver) == BLE_SDK_MAJOR_NO(BLE_SDK_VERSION)) && \
 			 (BLE_SDK_MINOR_NO(fw_ver) == BLE_SDK_MINOR_NO(BLE_SDK_VERSION)) )
@@ -194,6 +201,8 @@ uint32_t ble_sdk_version(void)
 
 		if(at_ble_rf_version_get(&rf_ver) == AT_BLE_SUCCESS)
 		{
+            /* Set RF version */
+            comm_status_set_blerfid(rf_ver);
 			DBG_LOG_DEV("BTLC1000 RF Version:0x%8X", (unsigned int)rf_ver);
 		}
 		else
@@ -383,6 +392,7 @@ static void ble_init(at_ble_init_config_t * args)
 		uint32_t chip_id = 0xFFFFFFFF;
 		if (at_ble_chip_id_get(&chip_id) == AT_BLE_SUCCESS)
 		{
+            comm_status_set_bledid(chip_id);
 			DBG_LOG("BTLC1000 Chip ID: 0x%6X", (unsigned int)chip_id);
 		}
 		else
