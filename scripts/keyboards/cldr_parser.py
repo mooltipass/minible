@@ -5,6 +5,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 from lxml import objectify
+from pprint import pprint
 from lxml import etree
 import unicodedata
 import statistics
@@ -133,7 +134,13 @@ class CLDR():
 								if len(points) == 1:
 									if layout_name not in self.layouts[platform_name].keys():
 										self.layouts[platform_name][layout_name] = {} # unicode point -> set(modifier hex byte, keycode hex byte)
-									self.layouts[platform_name][layout_name][points[0]] = (mf, hex(int(keycode)))
+										
+									# check for presence in dictionary 
+									if points[0] in self.layouts[platform_name][layout_name]:
+										if False and obj.attrib.get('locale') == "fr-t-k0-windows":
+											print glyphs, "-", points[0], "mapped to", mf, int(keycode), c.attrib.get('iso'), "already present in our dictionary:", self.layouts[platform_name][layout_name][points[0]][0], self.layouts[platform_name][layout_name][points[0]][1], self.layouts[platform_name][layout_name][points[0]][2]
+									else:
+										self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'))
 								else:
 									if False:
 										print "multiple points"
@@ -144,8 +151,52 @@ class CLDR():
 										print "iso", c.attrib.get('iso')
 										#print "to", unicode(c.attrib.get('to'))
 										print ""
-									
+						
+						# print our LUT, debug
+						if False and obj.attrib.get('locale') == "fr-t-k0-windows":
+							for key in sorted(self.layouts[platform_name][layout_name]):
+								print hex(key)
+								pprint(self.layouts[platform_name][layout_name][key])
+								print ""
+							#pprint(self.layouts[platform_name][layout_name])
+							#sys.exit(0)
+							print ""
+							print ""
+							
+						# print intervals, debug
+						if False and obj.attrib.get('locale') == "fr-t-k0-windows":
+							print self.get_unicode_intervals(self.layouts[platform_name][layout_name], 100)
+						if True:
+							print len(self.get_unicode_intervals(self.layouts[platform_name][layout_name], 100))
+							print obj.attrib.get('locale'), self.get_unicode_intervals(self.layouts[platform_name][layout_name], 100)
 
+							
+	# print unicode values intervals for a given max interval
+	def get_unicode_intervals(self, dictionary, max_interval):
+		# sort dictionary by keys (unicode values)
+		ordered_keys = sorted(dictionary)
+		
+		# get first element
+		start_key = ordered_keys[0]
+		last_key = ordered_keys[0]
+		
+		# list of intervals
+		interval_list = []
+		
+		# start looping
+		for key in ordered_keys:
+			# check for new interval
+			if key > last_key + max_interval:
+				interval_list.append([hex(start_key), hex(last_key)])
+				start_key = key
+				last_key = key
+			else:
+				last_key = key
+		
+		# add last interval
+		interval_list.append([hex(start_key), hex(last_key)])
+		
+		return interval_list
 
 	# Returns if caps is required and the Hex value of modifier HID byte
 	def get_modifier_keys(self, mds):
@@ -228,7 +279,7 @@ class CLDR():
 						print "modifier", modifier
 						print "iso", iso
 						print ""
-					point = "-"
+					point = ord("-")
 			glyphs.append(glyph)
 			points.append(point)
 
