@@ -384,7 +384,7 @@ static void hid_keyboard_app_init(void)
 	}
 }
 
-void ble_main(void )
+void ble_init(void )
 {
 	DBG_LOG("Initializing HID Keyboard Application");
 
@@ -418,38 +418,37 @@ void ble_main(void )
 	ble_mgr_events_callback_handler(REGISTER_CALL_BACK,
 									BLE_CUSTOM_EVENT_TYPE,
 									&hid_custom_event_cb);
+}
 
-	/* Capturing the events  */
-	while(app_exec)
-	{
-		ble_event_task();
+void ble_task(void){
+    /* Capturing the events  */
+    if(app_exec){
+        ble_event_task();
 
-		/* Check for key status */
-		if(conn_status){
-			DBG_LOG("Key Pressed...");
-			delay_ms(KEY_PAD_DEBOUNCE_TIME);
-			if((keyb_id == POSITION_ZERO) || (keyb_id == POSITION_SIX)){
-				app_keyb_report[0] = CAPS_ON;
-			}else{
-				app_keyb_report[0] = CAPS_OFF;
-			}
+        /* Check for key status */
+        if(conn_status){
+            DBG_LOG("Key Pressed...");
+            delay_ms(KEY_PAD_DEBOUNCE_TIME);
+            if((keyb_id == POSITION_ZERO) || (keyb_id == POSITION_SIX)){
+                app_keyb_report[0] = CAPS_ON;
+                }else{
+                app_keyb_report[0] = CAPS_OFF;
+            }
 
-			app_keyb_report[2] = keyb_disp[keyb_id];
-			hid_prf_report_update(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
-			delay_ms(20);
-			app_keyb_report[2] = 0x00;
-			hid_prf_report_update(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
+            app_keyb_report[2] = keyb_disp[keyb_id];
+            hid_prf_report_update(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
             delay_ms(20);
-			key_status = 0;
+            app_keyb_report[2] = 0x00;
+            hid_prf_report_update(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
+            delay_ms(20);
+            key_status = 0;
 
-			if(keyb_id == MAX_TEXT_LEN)
-			{
-				keyb_id = 0;
-			}
-			else
-			{
-				++keyb_id;
-			}
-		}
-	}
+            if(keyb_id == MAX_TEXT_LEN){
+                keyb_id = 0;
+            }
+            else{
+                ++keyb_id;
+            }
+        }
+    } /* endif app_exec */
 }

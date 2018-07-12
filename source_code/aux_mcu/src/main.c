@@ -121,7 +121,7 @@ int main(void) {
 
     // Clock Manager init
     clock_manager_init();
-#if 1
+
     // DMA init
     dma_init();
 
@@ -133,20 +133,19 @@ int main(void) {
 
     // Start USB stack to authorize VBus monitoring
     udc_start();
-    // The main loop manages only the power mode
-    // because the USB management is done by interrupt
+
+    // Init BLE
+    ble_init();
+
     while (true) {
         //sleepmgr_enter_sleep();
         /* USB task */
         usbhid_task();
         /* USART task */
         comm_task();
+        /* ble task */
+        ble_task();
     }
-#else
-    while (true) {
-        ble_main();
-    }
-#endif
 }
 
 void main_suspend_action(void) {

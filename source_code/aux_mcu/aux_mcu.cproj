@@ -444,7 +444,7 @@
       <Value>ANP_SIG_GATT_CLIENT</Value>
       <Value>ANS_CLIENT_SERVICE</Value>
       <Value>BLE_DEVICE_ROLE=BLE_ROLE_PERIPHERAL</Value>
-      <Value>BLE_ATT_DB_MEMORY_SIZE=1024</Value>
+      <Value>BLE_ATT_DB_MEMORY_SIZE=512</Value>
       <Value>DEVICE_INFORMATION_SERVICE</Value>
       <Value>HID_DEVICE</Value>
       <Value>HID_GATT_SERVER</Value>

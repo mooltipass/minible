@@ -560,7 +560,7 @@ typedef struct ble_custom_event_cb {
 }ble_custom_event_cb_t;
 
 /** \brief event timeout */
-#define BLE_EVENT_TIMEOUT			(20)
+#define BLE_EVENT_TIMEOUT			(1)
 
 /** \brief pin timeout */
 #define PIN_TIMEOUT					30000
