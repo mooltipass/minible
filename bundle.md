@@ -59,9 +59,9 @@ This page explains in details the graphics bundle data structure.
 |:-------------------|:----------|
 | 0->5 | Font header |
 | 6->65 | 15x uint16_t (interval_start-interval_end) of unicode chars for which we describe support description |
-| 66->(66+last_chr_valx2) | Uint16_t array of glyph indexes (set to an index when we support the char, 0xFFFF otherwise) |
-| (66+last_chr_valx2)->(66+last_chr_valx2+chr_countx8) | Glyph array |
-| (66+last_chr_valx2+chr_countx8)->... | Pixel data for glyphs |
+| 66->(66+described_chr_countx2) | Uint16_t array of glyph indexes (set to an index when we support the char, 0xFFFF otherwise) |
+| (66+described_chr_countx2)->(66+described_chr_countx2+chr_countx8) | Glyph array |
+| (66+described_chr_countx2+chr_countx8)->... | Pixel data for glyphs |
   
   
 ## [](#header-2) Font Header
