@@ -346,6 +346,7 @@ void sh1122_set_emergency_font(sh1122_descriptor_t* oled_descriptor)
 {
     oled_descriptor->currentFontAddress = CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR;
     custom_fs_read_from_flash((uint8_t*)&oled_descriptor->current_font_header, oled_descriptor->currentFontAddress, sizeof(oled_descriptor->current_font_header));
+    custom_fs_read_from_flash((uint8_t*)&oled_descriptor->current_unicode_inters, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header), sizeof(oled_descriptor->current_unicode_inters));
 }
 
 /*! \fn     sh1122_refresh_used_font(void)
@@ -362,6 +363,19 @@ void sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor)
     {
         /* Read font header */
         custom_fs_read_from_flash((uint8_t*)&oled_descriptor->current_font_header, oled_descriptor->currentFontAddress, sizeof(oled_descriptor->current_font_header));
+        
+        /* Read unicode chars support intervals */
+        custom_fs_read_from_flash((uint8_t*)&oled_descriptor->current_unicode_inters, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header), sizeof(oled_descriptor->current_unicode_inters));
+        
+        /* Check for ? support */
+        if (('?' < oled_descriptor->current_unicode_inters[0].interval_start) || ('?' > oled_descriptor->current_unicode_inters[0].interval_end))
+        {
+            oled_descriptor->question_mark_support_described = FALSE;
+        } 
+        else
+        {
+            oled_descriptor->question_mark_support_described = TRUE;
+        }
     }    
 }
 
@@ -971,39 +985,53 @@ uint16_t sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const cus
 */
 uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_t ch)
 {
+    uint16_t glyph_desc_pt_offset = 0;
+    uint16_t interval_start = 0;
     font_glyph_t glyph;
     uint16_t gind;
     
     /* Check that a font was actually chosen */
     if (oled_descriptor->currentFontAddress != 0)
     {
-        /* We only support characters after ' ' */
-        if (ch < ' ')
+        /* Check that support for this char is described */
+        BOOL char_support_described = FALSE;
+        for (uint16_t i=0; i < sizeof(oled_descriptor->current_unicode_inters)/sizeof(oled_descriptor->current_unicode_inters[0]); i++)
         {
-            return 0;
+            /* Check if char is within this interval */
+            if ((oled_descriptor->current_unicode_inters[i].interval_start != 0xFFFF) && (oled_descriptor->current_unicode_inters[i].interval_start <= ch) && (oled_descriptor->current_unicode_inters[i].interval_end >= ch))
+            {
+                interval_start = oled_descriptor->current_unicode_inters[i].interval_start;
+                char_support_described = TRUE;
+                break;
+            }
+            
+            /* Add offset to descriptor */
+            glyph_desc_pt_offset += oled_descriptor->current_unicode_inters[i].interval_end - oled_descriptor->current_unicode_inters[i].interval_start + 1;
         }
         
-        /* Check if the char isn't above the one we actually support */
-        if (ch > (oled_descriptor->current_font_header.last_chr_val + ' '))
+        /* Support not described, check if we could switch with ? */
+        if (char_support_described == FALSE)
         {
-            if ('?' > (oled_descriptor->current_font_header.last_chr_val + ' '))
+            if (oled_descriptor->question_mark_support_described != FALSE)
             {
-                return 0;
-            }
+                interval_start = oled_descriptor->current_unicode_inters[0].interval_start;
+                glyph_desc_pt_offset = 0;
+                ch = '?';
+            } 
             else
             {
-                ch = '?';                
+                return 0;
             }
         }
         
         /* Convert character to glyph index */
-        custom_fs_read_from_flash((uint8_t*)&gind, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + (ch - ' ')*sizeof(gind), sizeof(gind));
-        
-        // Check that we know this glyph
+        custom_fs_read_from_flash((uint8_t*)&gind, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + sizeof(oled_descriptor->current_unicode_inters) + glyph_desc_pt_offset*sizeof(gind) + (ch - interval_start)*sizeof(gind), sizeof(gind));
+
+        /* Check that we know this glyph */
         if(gind == 0xFFFF)
         {
             // If we don't know this character, try again with '?'
-            if ('?' > (oled_descriptor->current_font_header.last_chr_val + ' '))
+            if (oled_descriptor->question_mark_support_described == FALSE)
             {
                 return 0;
             }
@@ -1011,7 +1039,7 @@ uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_
             {
                 ch = '?';
             }            
-            custom_fs_read_from_flash((uint8_t*)&gind, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + (ch - ' ')*sizeof(gind), sizeof(gind));
+            custom_fs_read_from_flash((uint8_t*)&gind, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + sizeof(oled_descriptor->current_unicode_inters) + glyph_desc_pt_offset*sizeof(gind) + (ch - interval_start)*sizeof(gind), sizeof(gind));
             
             // If we still don't know it, return 0
             if (gind == 0xFFFF)
@@ -1021,7 +1049,7 @@ uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_
         }
 
         // Read the beginning of the glyph
-        custom_fs_read_from_flash((uint8_t*)&glyph, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + (oled_descriptor->current_font_header.last_chr_val+1)*sizeof(gind) + gind*sizeof(glyph), sizeof(glyph));
+        custom_fs_read_from_flash((uint8_t*)&glyph, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + sizeof(oled_descriptor->current_unicode_inters) + (oled_descriptor->current_font_header.described_chr_count)*sizeof(gind) + gind*sizeof(glyph), sizeof(glyph));
 
         if (glyph.glyph_data_offset == 0xFFFFFFFF)
         {
@@ -1050,6 +1078,8 @@ uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_
  */
 uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, cust_char_t ch, BOOL write_to_buffer)
 {
+    uint16_t glyph_desc_pt_offset = 0;  // Offset to the pointer of the glyph descriptor
+    uint16_t interval_start = 0;        // Unicode code of the first char of the current unicode support interval
     bitstream_bitmap_t bs;              // Character bitstream
     uint8_t glyph_width;                // Glyph width
     font_glyph_t glyph;                 // Glyph header
@@ -1061,33 +1091,45 @@ uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int1
         return 0;
     }
     
-    /* We only support characters after ' ' */
-    if (ch < ' ')
+    /* Check that support for this char is described */
+    BOOL char_support_described = FALSE;
+    for (uint16_t i=0; i < sizeof(oled_descriptor->current_unicode_inters)/sizeof(oled_descriptor->current_unicode_inters[0]); i++)
     {
-        return 0;
+        /* Check if char is within this interval */
+        if ((oled_descriptor->current_unicode_inters[i].interval_start != 0xFFFF) && (oled_descriptor->current_unicode_inters[i].interval_start <= ch) && (oled_descriptor->current_unicode_inters[i].interval_end >= ch))
+        {
+            interval_start = oled_descriptor->current_unicode_inters[i].interval_start;
+            char_support_described = TRUE;
+            break;
+        }
+        
+        /* Add offset to descriptor */
+        glyph_desc_pt_offset += oled_descriptor->current_unicode_inters[i].interval_end - oled_descriptor->current_unicode_inters[i].interval_start + 1;
     }
     
-    /* Check if the char isn't above the one we actually support */
-    if (ch > (oled_descriptor->current_font_header.last_chr_val + ' '))
+    /* Support not described, check if we could switch with ? */
+    if (char_support_described == FALSE)
     {
-        if ('?' > (oled_descriptor->current_font_header.last_chr_val + ' '))
+        if (oled_descriptor->question_mark_support_described != FALSE)
         {
-            return 0;
+            interval_start = oled_descriptor->current_unicode_inters[0].interval_start;
+            glyph_desc_pt_offset = 0;
+            ch = '?';
         }
         else
         {
-            ch = '?';
+            return 0;
         }
     }
     
     /* Convert character to glyph index */
-    custom_fs_read_from_flash((uint8_t*)&gind, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + (ch - ' ')*sizeof(gind), sizeof(gind));
-     
-    // Check that we know this glyph
+    custom_fs_read_from_flash((uint8_t*)&gind, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + sizeof(oled_descriptor->current_unicode_inters) + glyph_desc_pt_offset*sizeof(gind) + (ch - interval_start)*sizeof(gind), sizeof(gind));
+
+    /* Check that we know this glyph */
     if(gind == 0xFFFF)
     {
         // If we don't know this character, try again with '?'
-        if ('?' > (oled_descriptor->current_font_header.last_chr_val + ' '))
+        if (oled_descriptor->question_mark_support_described == FALSE)
         {
             return 0;
         }
@@ -1095,8 +1137,8 @@ uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int1
         {
             ch = '?';
         }
-        custom_fs_read_from_flash((uint8_t*)&gind, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + (ch - ' ')*sizeof(gind), sizeof(gind));
-         
+        custom_fs_read_from_flash((uint8_t*)&gind, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + sizeof(oled_descriptor->current_unicode_inters) + glyph_desc_pt_offset*sizeof(gind) + (ch - interval_start)*sizeof(gind), sizeof(gind));
+        
         // If we still don't know it, return 0
         if (gind == 0xFFFF)
         {
@@ -1105,7 +1147,7 @@ uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int1
     }
     
     /* Read glyph data */
-    custom_fs_read_from_flash((uint8_t*)&glyph, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + (oled_descriptor->current_font_header.last_chr_val+1)*sizeof(gind) + gind*sizeof(glyph), sizeof(glyph));
+    custom_fs_read_from_flash((uint8_t*)&glyph, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + sizeof(oled_descriptor->current_unicode_inters) + (oled_descriptor->current_font_header.described_chr_count)*sizeof(gind) + gind*sizeof(glyph), sizeof(glyph));
 
     if (glyph.glyph_data_offset == 0xFFFFFFFF)
     {
@@ -1120,7 +1162,7 @@ uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int1
         y += glyph.yoffset;
         
         /* Compute glyph data address */
-        custom_fs_address_t gaddr = oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + (oled_descriptor->current_font_header.last_chr_val+1)*sizeof(gind) + (oled_descriptor->current_font_header.chr_count) * sizeof(glyph) + glyph.glyph_data_offset;
+        custom_fs_address_t gaddr = oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header) + sizeof(oled_descriptor->current_unicode_inters) + (oled_descriptor->current_font_header.described_chr_count)*sizeof(gind) + (oled_descriptor->current_font_header.chr_count)*sizeof(glyph) + glyph.glyph_data_offset;
         
         // Initialize bitstream & draw the character
         bitstream_glyph_bitmap_init(&bs, &oled_descriptor->current_font_header, &glyph, gaddr, TRUE);
@@ -1220,7 +1262,7 @@ uint16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char
 */
 uint16_t sh1122_put_error_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string)
 {
-    return sh1122_put_string_xy(oled_descriptor, 0, 0, OLED_ALIGN_CENTER, string, TRUE);
+    return sh1122_put_string_xy(oled_descriptor, 0, 0, OLED_ALIGN_CENTER, string, FALSE);
 }
 
 /*! \fn     sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, const char* string, BOOL write_to_buffer) 

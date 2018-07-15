@@ -93,11 +93,18 @@ typedef struct
 // Font header
 typedef struct
 {
-    uint8_t height;         //*< height of font
-    uint8_t depth;          //*< Number of bits per pixel
-    uint16_t last_chr_val;  //*< Unicode value of last character
-    uint16_t chr_count;     //*< Number of characters in this font
+    uint8_t height;                 //*< height of font
+    uint8_t depth;                  //*< Number of bits per pixel
+    uint16_t described_chr_count;   //*< Number of described unicode chars (supported or not)
+    uint16_t chr_count;             //*< Number of characters in this font
 } font_header_t;
+
+// Unicode interval descriptor
+typedef struct 
+{
+    uint16_t interval_start;
+    uint16_t interval_end;
+} unicode_interval_desc_t;
 
 // Glyph struct
 typedef struct

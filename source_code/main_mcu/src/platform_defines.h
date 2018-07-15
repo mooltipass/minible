@@ -734,6 +734,6 @@ typedef struct
 #endif
 
 /* Display defines */
-#define DEFAULT_FONT_ID         1
+#define DEFAULT_FONT_ID         0
 
 #endif /* PLATFORM_DEFINES_H_ */

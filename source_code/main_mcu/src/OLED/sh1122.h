@@ -74,6 +74,8 @@ typedef struct
     gddram_px_t gddram_pixel[SH1122_OLED_HEIGHT];       // Buffer to merge adjascent pixels
     custom_fs_address_t currentFontAddress;             // Current font address
     font_header_t current_font_header;                  // Current font header
+    unicode_interval_desc_t current_unicode_inters[15]; // Current unicode interval descriptors
+    BOOL question_mark_support_described;               // If this font describes '?' support
     BOOL carriage_return_allowed;                       // If we are allowing \r
     BOOL line_feed_allowed;                             // If we are allowing \n
     int16_t min_text_x;                                 // Min text X   
