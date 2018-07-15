@@ -15,6 +15,7 @@ void debug_debug_animation(void);
 void debug_smartcard_info(void);
 void debug_language_test(void);
 void debug_debug_screen(void);
+void debug_glyph_scroll(void);
 void debug_debug_menu(void);
 
 

@@ -61,13 +61,13 @@ void debug_debug_menu(void)
             #endif
             
             /* Item selection */
-            if (selected_item > 6)
+            if (selected_item > 7)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 6;
+                selected_item = 7;
             }
             
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);
@@ -82,9 +82,10 @@ void debug_debug_menu(void)
             }
             else
             {
-	            sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Main and Aux MCU Info", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main MCU Flash", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU Flash", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Main and Aux MCU Info", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Scroll through glyphs", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Main MCU Flash", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Aux MCU Flash", TRUE);
             }
             
             /* Cursor */
@@ -133,11 +134,15 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 5)
             {
+	            debug_glyph_scroll();
+            }
+            else if (selected_item == 6)
+            {
                 custom_fs_settings_set_fw_upgrade_flag();
                 cpu_irq_disable();
                 NVIC_SystemReset();
             }
-            else if (selected_item == 6)
+            else if (selected_item == 7)
             {
                 logic_aux_mcu_flash_firmware_update();
             }
@@ -477,4 +482,40 @@ void debug_mcu_and_aux_info(void)
 			return;
 		}
 	}
+}
+
+/*! \fn     debug_glyph_scroll(void)
+*   \brief  Scroll through the glyphs
+*/
+void debug_glyph_scroll(void)
+{
+    wheel_action_ret_te action_ret = WHEEL_ACTION_UP;
+    uint16_t cur_glyph = 0;
+    
+    while (TRUE)
+    {
+        /* Clear screen */
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        
+        /* Find a glyph to print */
+        do
+        {
+            if (action_ret == WHEEL_ACTION_DOWN)
+            {
+                cur_glyph--;
+            }
+            else
+            {
+                cur_glyph++;                
+            }
+        }
+        while(sh1122_get_glyph_width(&plat_oled_descriptor, (cust_char_t)cur_glyph) == 0);
+        
+        /* Print glyph */     
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Glyph %d: ", cur_glyph);
+        sh1122_put_char(&plat_oled_descriptor, cur_glyph, FALSE);
+        
+        /* Get action */
+        action_ret = inputs_get_wheel_action(TRUE, FALSE);
+    }
 }
