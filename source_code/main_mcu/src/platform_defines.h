@@ -30,7 +30,7 @@
  * - FORCE_RESET_AUX removed (little added benefits)
  * - NO_COMMS added (see github pages)
  */
- #define PLAT_V2_SETUP
+ #define PLAT_V3_SETUP
  
  
  /* Features depending on the defined platform */
