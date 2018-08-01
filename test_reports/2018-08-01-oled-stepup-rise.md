@@ -2,6 +2,8 @@ Rise time tests for NiMH voltage to OLED voltage DC/DC converter.
 Tests done on MiniBLE v2 breakout board.  
 Yellow trace: OLED voltage.  
 Blue trace: Voltage at DC/DC converter input.  
+The serial resistance of the 1.XXV cables is causing the Vin voltage drop during VOLED rise.  
+
 
 ### [](#header-3)1.00V, 90ms rise
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/oled_stepup_rise/DS1Z_QuickPrint1.png?raw=true)
