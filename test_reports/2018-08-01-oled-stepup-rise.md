@@ -1,9 +1,10 @@
 Rise time tests for NiMH voltage to OLED voltage DC/DC converter.  
 Tests done on MiniBLE v2 breakout board.  
+Yellow trace: OLED voltage.  
+Blue trace: Voltage at DC/DC converter input.  
 
 ### [](#header-3)1.00V, 90ms rise
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/oled_stepup_rise/DS1Z_QuickPrint1.png?raw=true)
-
 
 ### [](#header-3)1.05V, 30ms rise
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/oled_stepup_rise/DS1Z_QuickPrint2.png?raw=true)
@@ -22,3 +23,15 @@ Tests done on MiniBLE v2 breakout board.
 
 ### [](#header-3)1.5V, 4ms rise
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/oled_stepup_rise/DS1Z_QuickPrint7.png?raw=true)
+
+### [](#header-3)1.00V Vin rise
+![](https://github.com/mooltipass/minible/blob/gh-pages/images/oled_stepup_rise/DS1Z_QuickPrint8.png?raw=true)
+
+### [](#header-3)1.05V Vin rise
+![](https://github.com/mooltipass/minible/blob/gh-pages/images/oled_stepup_rise/DS1Z_QuickPrint9.png?raw=true)
+
+### [](#header-3)1.1V Vin rise
+![](https://github.com/mooltipass/minible/blob/gh-pages/images/oled_stepup_rise/DS1Z_QuickPrint10.png?raw=true)
+
+### [](#header-3)1.2V Vin rise
+![](https://github.com/mooltipass/minible/blob/gh-pages/images/oled_stepup_rise/DS1Z_QuickPrint11.png?raw=true)
