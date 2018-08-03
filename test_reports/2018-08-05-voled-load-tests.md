@@ -1,5 +1,5 @@
 The goal of this test was to measure the Voled step-up efficiency, output average voltage and ripple at different loads.  
-
+Tests done on MiniBLE v2 breakout board.  
 
 ### [](#header-3)1.00V Vin
 
