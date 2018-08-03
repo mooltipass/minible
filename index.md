@@ -18,6 +18,7 @@ You'll find below different test reports done on the Mooltipass BLE.
 * [OLED step-up - 2018-08-01 rise times characterization](test_reports/2018-08-01-oled-stepup-rise)
 * [OLED step-up - 2018-08-05 load tests](test_reports/2018-08-05-voled-load-tests)
 * [3V3 step-up - 2018-08-01 rise times characterization](test_reports/2018-08-01-3v3-stepup-rise)
+* [3V3 step-up - 2018-08-05 load tests](test_reports/2018-08-05-3v3-load-tests)
 
 ## [](#header-2)Contributors
 Interested in joining our team? For this new project, we are using <a href="https://colony.io/">colony</a> to equally share Mooltipass revenue and keep track of the overall project progress.  
