@@ -1,5 +1,5 @@
 The goal of this test was to measure the Voled step-up efficiency, output average voltage and ripple at different loads.  
-Tests done on MiniBLE v2 breakout board.  
+Tests done on MiniBLE v2 breakout board, Iin measured on the PSU (precise enough), Vin & Vout measured using multimeters on the test points, Voutpkpk measured using oscilloscope.  
 
 ### [](#header-3)1.00V Vin
 
