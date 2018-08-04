@@ -140,11 +140,11 @@ void platform_io_init_bat_adc_measurements(void)
 void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
 {
     /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
-    PORT->Group[WHEEL_B_GROUP].PMUX[WHEEL_B_PINID/2].bit.WHEEL_B_PMUXREGID = PORT_PMUX_PMUXO_A_Val;     // Pin mux to EIC
-    PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PMUXEN = 1;                                    // Enable peripheral multiplexer
-    EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_TICKB_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;    // Detect low state
-    EIC->INTENSET.reg = (1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Enable interrupt from ext pin
-    EIC->WAKEUP.reg |= (1 << WHEEL_TICKB_EXTINT_NUM);                                                   // Enable wakeup from ext pin
+    //PORT->Group[WHEEL_B_GROUP].PMUX[WHEEL_B_PINID/2].bit.WHEEL_B_PMUXREGID = PORT_PMUX_PMUXO_A_Val;     // Pin mux to EIC
+    //PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PMUXEN = 1;                                    // Enable peripheral multiplexer
+    //EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_TICKB_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;    // Detect low state
+    //EIC->INTENSET.reg = (1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Enable interrupt from ext pin
+    //EIC->WAKEUP.reg |= (1 << WHEEL_TICKB_EXTINT_NUM);                                                   // Enable wakeup from ext pin
     
     PORT->Group[WHEEL_SW_GROUP].PMUX[WHEEL_SW_PINID/2].bit.WHEEL_SW_PMUXREGID = PORT_PMUX_PMUXO_A_Val;  // Pin mux to EIC
     PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.PMUXEN = 1;                                  // Enable peripheral multiplexer
@@ -157,15 +157,13 @@ void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
 *   \brief  Disable scroll wheel external interrupt to wake up platform
 */
 void platform_io_disable_scroll_wheel_wakeup_interrupts(void)
-{
-    EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_TICKB_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;   // No detection
-    PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PMUXEN = 0;                                    // Disable peripheral multiplexer
-    EIC->INTENCLR.reg = (1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Disable interrupt from ext pin
-    EIC->WAKEUP.reg &= ~(1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Disable wakeup from ext pin
+{    
+    //EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_TICKB_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;   // No detection
+    //PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PMUXEN = 0;                                    // Disable peripheral multiplexer
+    //EIC->WAKEUP.reg &= ~(1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Disable wakeup from ext pin
     
     EIC->CONFIG[WHEEL_CLICK_EXTINT_NUM/8].bit.WHEEL_CLICK_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;   // No detection
     PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.PMUXEN = 0;                                  // Disable peripheral multiplexer
-    EIC->INTENCLR.reg = (1 << WHEEL_CLICK_EXTINT_NUM);                                                  // Disable interrupt from ext pin
     EIC->WAKEUP.reg &= ~(1 << WHEEL_CLICK_EXTINT_NUM);                                                  // Disable wakeup from ext pin
 }
 
@@ -383,8 +381,8 @@ void platform_io_power_up_oled(BOOL power_3v3)
         PORT->Group[VOLED_3V3_EN_GROUP].OUTSET.reg = VOLED_3V3_EN_MASK;
     }
     
-    /* Depending on battery voltage, it may take a while for the 12v to rise */
-    timer_delay_ms(20);
+    /* Worst Voled rise time is 30ms when Vbat is at 1.05V */
+    timer_delay_ms(30);
     
     /* Release reset */
     PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK;
@@ -432,10 +430,10 @@ void platform_io_init_power_ports(void)
 #endif
 
     /* USB 3V3 presence */
-    PORT->Group[USB_3V3_GROUP].DIRCLR.reg = USB_3V3_MASK;                           // Setup USB 3V3 detection input with pull-down
-    PORT->Group[USB_3V3_GROUP].OUTCLR.reg = USB_3V3_MASK;                           // Setup USB 3V3 detection input with pull-down
-    PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.PULLEN = 1;                // Setup USB 3V3 detection input with pull-down
-    PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.INEN = 1;                  // Setup USB 3V3 detection input with pull-down
+    PORT->Group[USB_3V3_GROUP].DIRCLR.reg = USB_3V3_MASK;                                                   // Setup USB 3V3 detection input with pull-down
+    PORT->Group[USB_3V3_GROUP].OUTCLR.reg = USB_3V3_MASK;                                                   // Setup USB 3V3 detection input with pull-down
+    PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.PULLEN = 1;                                        // Setup USB 3V3 detection input with pull-down
+    PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.INEN = 1;                                          // Setup USB 3V3 detection input with pull-down
 }
 
 /*! \fn     platform_io_disable_aux_comms(void)
