@@ -14,6 +14,7 @@ You'll find below different pages detailing our selected architecture.
 
 ## [](#header-2)Test Reports
 You'll find below different test reports done on the Mooltipass BLE.
+* [WIP - Mini BLE breakout boards tests & history](mini_ble_breakout)
 * [RNG - 2018-05-16 4bits extracted and aggregated, flat table](test_reports/2018-05-16-rng-4bits-extracted)
 * [OLED step-up - 2018-08-01 rise times characterization](test_reports/2018-08-01-oled-stepup-rise)
 * [OLED step-up - 2018-08-05 load tests](test_reports/2018-08-05-voled-load-tests)
