@@ -194,6 +194,7 @@ void main_standby_sleep(void)
     
     /* Dataflash power up */
     dataflash_exit_power_down(&dataflash_descriptor);
+    //while (dataflash_check_presence(&dataflash_descriptor) != RETURN_OK);
     
     /* Re-enable AUX comms */
     comms_aux_init_rx();
@@ -209,8 +210,8 @@ int main(void)
 {
     /* Initialize our platform */
     main_platform_init();
-    //timer_delay_ms(2000);
-    //main_standby_sleep();
+    timer_delay_ms(500);
+    main_standby_sleep();
     debug_debug_menu();
     
     // Test code: burn internal graphics data into external flash.

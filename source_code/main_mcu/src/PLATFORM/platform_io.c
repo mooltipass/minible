@@ -470,6 +470,13 @@ void platform_io_init_aux_comms(void)
     PM->APBCMASK.bit.AUXMCU_APB_SERCOM_BIT = 1;                                                             // Enable SERCOM APB Clock Enable
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, AUXMCU_GCLK_SERCOM_ID);                                // Map 48MHz to SERCOM unit
     
+    /* Platform v3 */
+    #ifdef PLAT_V3_SETUP
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;    // Setup NO COMMS, disabled by default
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, disabled by default
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, disabled by default
+    #endif
+    
     /* Sercom init */
     /* MSB first, USART frame, async, 8x oversampling, internal clock */
     SERCOM_USART_CTRLA_Type temp_ctrla_reg;

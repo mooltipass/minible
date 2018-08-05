@@ -315,7 +315,5 @@ void dataflash_exit_power_down(spi_flash_descriptor_t* descriptor_pt)
 void dataflash_power_down(spi_flash_descriptor_t* descriptor_pt)
 {
     uint8_t enter_power_down[] = {0xB9};
-    
-    /* Query JEDEC ID */
     dataflash_send_command(descriptor_pt, enter_power_down, sizeof(enter_power_down));    
 }

@@ -733,6 +733,12 @@ typedef struct
     #define AUX_MCU_RX_PMUXREGID  PMUXE
 #endif
 
+#if defined(PLAT_V3_SETUP)
+    #define AUX_MCU_NOCOMMS_GROUP   PIN_GROUP_0
+    #define AUX_MCU_NOCOMMS_PINID   30
+    #define AUX_MCU_NOCOMMS_MASK    (1UL << AUX_MCU_NOCOMMS_PINID)
+#endif
+
 /* Display defines */
 #define DEFAULT_FONT_ID         0
 
