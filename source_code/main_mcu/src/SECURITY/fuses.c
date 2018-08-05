@@ -14,7 +14,9 @@
 #define EEPROM				(0x06LU << 4)       // Allocated EEPROM zone. 7 = 0B, 6 = 256B, 5 = 512B, 4 = 1024B...
 #define RESERVEDB			(0x01LU << 7)       // Reserved
 #define BOD33_LEVEL			(39LU << 8)         // Brownout level, 39 = 2.84V
-#define BOD33_ENABLE		(0x01LU << 14)      // Brownout enable (1 = enabled)
+//#define BOD33_ENABLE		(0x01LU << 14)      // Brownout enable (1 = enabled)
+// TODO: re-enable BOD after changing PSU sequence for Voled stepup
+#define BOD33_ENABLE		(0x00LU << 14)      // Brownout enable (1 = enabled)
 #define BOD33_ACTION		(0x01LU << 15)      // Brownout action (1 = reset)
 #define RESERVEDC			(0x70LU << 17)      // Reserved
 #define WDT_ENABLE			(0x00LU << 25)      // WDT enable (1 = enabled)

@@ -210,7 +210,7 @@ int main(void)
 {
     /* Initialize our platform */
     main_platform_init();
-    timer_delay_ms(500);
+    timer_delay_ms(2000);
     main_standby_sleep();
     debug_debug_menu();
     
