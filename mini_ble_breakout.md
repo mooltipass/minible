@@ -16,13 +16,13 @@ Variation between boards is currently being investigated.
 
 | Breakout # | USB->3V | DATAFLASH | DBFLASH | 3V OLED | 3V SMC | 3V ACC | 3V MCU | 
 |:-----------|:--------|:----------|:--------|:--------|:-------|:-------|:-------|
-| 1  | 402uA |
-| 2  | 26uA |
-| 3  | 813uA |
-| 4  | uA |
-| 5  | uA |
-| 6  | uA |
-| 7  | uA |
-| 8  | uA |
-| 9  | uA |
-| 10  | uA |
+| 1          | 13uA    | 1uA       | 1uA     | 1uA     | 0uA    | 6uA    | 7uA    |
+| 2          | 13uA    | 1uA       | 0uA     | 1uA     | 1uA    | 6uA    | 8uA    |
+| 3          | 13uA    | 1uA       | 0uA     | 1uA     | 1uA    | 5uA    | 6uA    |
+| 4          | uA |
+| 5          | uA |
+| 6          | uA |
+| 7          | uA |
+| 8          | uA |
+| 9          | uA |
+| 10         | uA |
