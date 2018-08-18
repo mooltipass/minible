@@ -10,8 +10,7 @@ The goal of this page is to make a record of all observations regarding the Mini
 ## [](#header-2)Main MCU Deep Sleep Power Consumption
 A firmware was made middle of August in order to check the power consumption when all ICs (except Aux MCU & ATBLTC) are in deep sleep.  
 The firmware may be downloaded [here](ressources/2018-08-18-main-mcu-direct-sleep.hex), all switches ON except Aux MCU, ATBTLC, DISCHG & CHARGE, current measurement on the different test points.
-When doing this test, make sure to remove the SWD adapter and to have applied patch 3) described above. 
-Variation between boards is currently being investigated.  
+When doing this test, make sure to remove the SWD adapter and to have applied patch 3) described above.  
 
 
 | Breakout # | USB->3V | DATAFLASH | DBFLASH | 3V OLED | 3V SMC | 3V ACC | 3V MCU | 
