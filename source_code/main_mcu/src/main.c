@@ -194,7 +194,6 @@ void main_standby_sleep(void)
     
     /* Dataflash power up */
     dataflash_exit_power_down(&dataflash_descriptor);
-    //while (dataflash_check_presence(&dataflash_descriptor) != RETURN_OK);
     
     /* Re-enable AUX comms */
     comms_aux_init_rx();
