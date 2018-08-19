@@ -135,17 +135,15 @@ void platform_io_init_bat_adc_measurements(void)
 }
 
 /*! \fn     platform_io_enable_scroll_wheel_wakeup_interrupts(void)
-*   \brief  Enable scroll wheel external interrupt to wake up platform
+*   \brief  Enable scroll wheel external interrupt to wake up platform (click only)
 */
 void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
 {
-    /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
-    //PORT->Group[WHEEL_B_GROUP].PMUX[WHEEL_B_PINID/2].bit.WHEEL_B_PMUXREGID = PORT_PMUX_PMUXO_A_Val;     // Pin mux to EIC
-    //PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PMUXEN = 1;                                    // Enable peripheral multiplexer
-    //EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_TICKB_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;    // Detect low state
-    //EIC->INTENSET.reg = (1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Enable interrupt from ext pin
-    //EIC->WAKEUP.reg |= (1 << WHEEL_TICKB_EXTINT_NUM);                                                   // Enable wakeup from ext pin
+    /* Change wheel pull up to pull downs for power consumption */
+    PORT->Group[WHEEL_A_GROUP].OUTCLR.reg = WHEEL_A_MASK;
+    PORT->Group[WHEEL_B_GROUP].OUTCLR.reg = WHEEL_B_MASK;
     
+    /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */    
     PORT->Group[WHEEL_SW_GROUP].PMUX[WHEEL_SW_PINID/2].bit.WHEEL_SW_PMUXREGID = PORT_PMUX_PMUXO_A_Val;  // Pin mux to EIC
     PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.PMUXEN = 1;                                  // Enable peripheral multiplexer
     EIC->CONFIG[WHEEL_CLICK_EXTINT_NUM/8].bit.WHEEL_CLICK_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;    // Detect low state
@@ -158,9 +156,9 @@ void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
 */
 void platform_io_disable_scroll_wheel_wakeup_interrupts(void)
 {    
-    //EIC->CONFIG[WHEEL_TICKB_EXTINT_NUM/8].bit.WHEEL_TICKB_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;   // No detection
-    //PORT->Group[WHEEL_B_GROUP].PINCFG[WHEEL_B_PINID].bit.PMUXEN = 0;                                    // Disable peripheral multiplexer
-    //EIC->WAKEUP.reg &= ~(1 << WHEEL_TICKB_EXTINT_NUM);                                                  // Disable wakeup from ext pin
+    /* Set wheel encoder pull-ups back */
+    PORT->Group[WHEEL_A_GROUP].OUTSET.reg = WHEEL_A_MASK;
+    PORT->Group[WHEEL_B_GROUP].OUTSET.reg = WHEEL_B_MASK;
     
     EIC->CONFIG[WHEEL_CLICK_EXTINT_NUM/8].bit.WHEEL_CLICK_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;   // No detection
     PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.PMUXEN = 0;                                  // Disable peripheral multiplexer
