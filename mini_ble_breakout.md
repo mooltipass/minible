@@ -22,13 +22,13 @@ When doing this test, make sure to remove the SWD adapter and to have applied pa
 | 1          | 13uA    | 1uA       | 1uA     | 1uA     | 0uA    | 6uA    | 7uA    |
 | 2          | 13uA    | 1uA       | 0uA     | 1uA     | 1uA    | 6uA    | 8uA    |
 | 3          | 13uA    | 1uA       | 0uA     | 1uA     | 1uA    | 5uA    | 6uA    |
-| 4          | uA |
-| 5          | uA |
-| 6          | uA |
-| 7          | uA |
-| 8          | uA |
-| 9          | uA |
-| 10         | uA |
+| 4          | 13uA    | 0uA       | 0uA     | 0uA     | 0uA    | 5uA    | 7uA    |
+| 5          | 17uA    | 0uA       | 0uA     | 0uA     | 0uA    | 5uA    | 13uA    |
+| 6          | 12uA    | 0uA       | 0uA     | 0uA     | 0uA    | 5uA    | 6uA    |
+| 7          | 13uA    | 0uA       | 0uA     | 0uA     | 0uA    | 5uA    | 6uA    |
+| 8          | 13uA    | 0uA       | 0uA     | 0uA     | 0uA    | 5uA    | 6uA    |
+| 9          | 13uA    | 0uA       | 0uA     | 0uA     | 0uA    | 5uA    | 6uA    |
+| 10         | 13uA    | 0uA       | 0uA     | 0uA     | 0uA    | 5uA    | 6uA    |
   
   
 Current measurement at the 1V2 input, DISCHG switch ON and 1V2 applied:  
