@@ -164,7 +164,7 @@ typedef struct
     #define AUXMCU_GCLK_SERCOM_ID       GCLK_CLKCTRL_ID_SERCOM5_CORE_Val
     #define AUXMCU_APB_SERCOM_BIT       SERCOM5_
     #define AUXMCU_SERCOM               SERCOM5
-    #define AUXMCU_RX_TXPO              2
+    #define AUXMCU_RX_TXPO              1
     #define AUXMCU_TX_PAD               3
     #define OLED_GCLK_SERCOM_ID         GCLK_CLKCTRL_ID_SERCOM4_CORE_Val
     #define OLED_MOSI_SCK_PADS          MOSI_P2_SCK_P3_SS_P1
