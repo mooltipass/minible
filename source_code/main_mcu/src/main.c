@@ -73,7 +73,7 @@ void jump_to_application_function(void)
 */
 void main_platform_init(void)
 {
-    /* Initiatization results vars */
+    /* Initialization results vars */
     custom_fs_init_ret_type_te custom_fs_return;
     RET_TYPE fuses_ok;
     
@@ -85,7 +85,7 @@ void main_platform_init(void)
     fuses_ok = fuses_check_program(TRUE);                               // Check fuses and program them if incorrectly set
     while(fuses_ok == RETURN_NOK);
     
-    /* Perform Initalizations */
+    /* Perform Initializations */
     custom_fs_return = custom_fs_settings_init();                       // Initialize our settings system
     clocks_start_48MDFLL();                                             // Switch to 48M main clock
     dma_init();                                                         // Initialize the DMA controller
