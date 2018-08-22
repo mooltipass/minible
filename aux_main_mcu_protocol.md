@@ -15,7 +15,7 @@ from main MCU:
     
 | byte 0 - 1   | byte 2 - 3        | byte 4 - 539  | byte 540 - 541     | byte 542 - 543      |
 |:-------------|:------------------|:--------------|:-------------------|---------------------|
-| Message Type | Payload Length    | Payload       | Payload Length #2  | Reply request flag  |
+| Message Type | Payload Length    | Payload       | Not used           | Reply request flag  |
   
 **Message Type**  
 - 0x0000: Message to/from USB  
@@ -31,7 +31,6 @@ Message from aux MCU: if different than 0, total payload length. Otherwise paylo
   
 **Payload Length #2**  
 Message from aux MCU: if payload length #1 is 0, total payload length. Otherwise discarded.  
-Message from main MCU: **field to be removed in the future**, aux MCU should use the other payload field.  
   
 **Payload**   
 The message payload, which may contain up to 536 bytes. This maximum size was decided in order to accomodate a single "write data node" command (command identifier: 2 bytes, message payload size field: 2 bytes, data node address: 2 bytes, data node size: 528 bytes and 2 additional bytes reserved).
