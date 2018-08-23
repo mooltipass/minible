@@ -25,10 +25,6 @@ BOOL aux_mcu_message_answered_using_first_bytes = FALSE;
 void comms_aux_init_rx(void)
 {
     dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
-    
-    /* For test */
-    //aux_mcu_message_buffer2.message_type = 0x5555;
-    //dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_message_buffer2, sizeof(aux_mcu_message_buffer1));
 }
 
 /*! \fn     comms_aux_mcu_get_temp_tx_message_object_pt(void)
@@ -184,7 +180,6 @@ void comms_aux_mcu_routine(void)
             /* Set same message type and compute payload size */
             aux_mcu_send_message.message_type = aux_mcu_receive_message.message_type;
             aux_mcu_send_message.payload_length1 = hid_reply_payload_length + sizeof(aux_mcu_receive_message.hid_message.message_type) + sizeof(aux_mcu_receive_message.hid_message.payload_length);
-            aux_mcu_send_message.payload_length2 = hid_reply_payload_length + sizeof(aux_mcu_receive_message.hid_message.message_type) + sizeof(aux_mcu_receive_message.hid_message.payload_length);
                     
             /* Send message */
             dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));

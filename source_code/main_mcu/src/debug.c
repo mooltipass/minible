@@ -461,6 +461,10 @@ void debug_mcu_and_aux_info(void)
     {
         strcpy(part_number, "ATSAMD21E17A");
     }
+    if (aux_mcu_did.bit.DEVSEL == 0x0A)
+    {
+        strcpy(part_number, "ATSAMD21E18A");
+    }
     else
     {
         strcpy(part_number, "unknown");
