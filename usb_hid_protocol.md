@@ -28,7 +28,7 @@ If the computer wants to send a 240 bytes long message to the mini, it will send
 | message flip bit | final acknowledge flag or request | current packet payload length |
   
 The message flip bit's main purpose is to explicitely mention that a new **message** (not packet) is being sent. This also allows the computer to discard a half-sent message by sending a new one with this bit flipped.  
-Therefore, this bit should be flipped every time a new message is sent.  
+Therefore, this bit should be flipped every time a new message is sent. This bit shouldn't be used when received by the computer.   
 At the end of a message transmission, if the computer set the final acknowledge request flag (bit6), regardless of the message contents' expected answer, the device will answer with a single 64B packet with the same byte0 and byte1 and the final acknowledge flag set.  
 This allows the computer to make sure his message was received.  
   
