@@ -315,7 +315,16 @@ BOOL dma_acc_check_and_clear_dma_transfer_flag(void)
 */
 uint16_t dma_aux_mcu_get_remaining_bytes_for_rx_transfer(void)
 {
-    return dma_writeback_descriptors[DMA_DESCID_RX_COMMS].BTCNT.reg;
+    /* Check for active channel */
+    DMAC_ACTIVE_Type active_reg_copy = DMAC->ACTIVE;
+    if (active_reg_copy.bit.ID == DMA_DESCID_RX_COMMS && active_reg_copy.bit.ABUSY != 0)
+    {
+        return active_reg_copy.bit.BTCNT;
+    } 
+    else
+    {
+        return dma_writeback_descriptors[DMA_DESCID_RX_COMMS].BTCNT.reg;
+    }
 }
 
 /*! \fn     dma_aux_mcu_check_and_clear_dma_transfer_flag(void)

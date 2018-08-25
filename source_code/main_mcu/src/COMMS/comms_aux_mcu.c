@@ -123,12 +123,18 @@ void comms_aux_mcu_routine(void)
     else if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
     {
         /* Second part transfer, check if we have already dealt with this packet and if it is valid */
-        if ((aux_mcu_message_answered_using_first_bytes == FALSE) && (aux_mcu_receive_message.rx_payload_valid_flag != 0))
+        if ((aux_mcu_message_answered_using_first_bytes == FALSE) && ((aux_mcu_receive_message.payload_length1 != 0) || ((aux_mcu_receive_message.payload_length1 == 0) && (aux_mcu_receive_message.rx_payload_valid_flag != 0))))
         {
             arm_rx_transfer = TRUE;
-            should_deal_with_packet = TRUE;
-            payload_length = aux_mcu_receive_message.payload_length2;
-            
+            should_deal_with_packet = TRUE;            
+            if (aux_mcu_receive_message.payload_length1 == 0)
+            {
+                payload_length = aux_mcu_receive_message.payload_length2;
+            } 
+            else
+            {
+                payload_length = aux_mcu_receive_message.payload_length1;
+            }            
         }
         else
         {
@@ -146,10 +152,6 @@ void comms_aux_mcu_routine(void)
         /* Note: there's a case where we don't rearm DMA if the message is valid but payload is too long... was lazy to implement it */
         return;
     }
-    
-    /*PORT->Group[DBFLASH_nCS_GROUP].OUTCLR.reg = DBFLASH_nCS_MASK;
-    asm("Nop");asm("Nop");asm("Nop");asm("Nop");asm("Nop");
-    PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK;*/
             
     /* USB / BLE Messages */
     if ((aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_USB) || (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BLE))
@@ -188,7 +190,11 @@ void comms_aux_mcu_routine(void)
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BOOTLOADER)
     {
         asm("Nop");
-    }    
+    }   
+    else
+    {
+        asm("Nop");        
+    } 
     
     /* If we need to rearm RX */
     if (arm_rx_transfer != FALSE)
