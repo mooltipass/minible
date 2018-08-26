@@ -57,18 +57,51 @@ void comms_aux_mcu_wait_for_message_sent(void)
     dma_wait_for_aux_mcu_packet_sent();
 }
 
-/*! \fn     comms_aux_mcu_send_sleep_message(void)
-*   \brief  Send the "go to sleep" message to aux MCU
+/*! \fn     comms_aux_mcu_send_simple_command_message(uint16_t command)
+*   \brief  Send simple command message to aux MCU
+*   \param  command The command to send
 */
-void comms_aux_mcu_send_sleep_message(void)
+void comms_aux_mcu_send_simple_command_message(uint16_t command)
 {
     comms_aux_mcu_wait_for_message_sent();
     memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
     aux_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;
     aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.main_mcu_command_message.command);
-    aux_mcu_send_message.main_mcu_command_message.command = MAIN_MCU_COMMAND_SLEEP;
+    aux_mcu_send_message.main_mcu_command_message.command = command;
     comms_aux_mcu_send_message((void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
     comms_aux_mcu_wait_for_message_sent();    
+}
+
+/*! \fn     comms_aux_mcu_send_receive_ping(void)
+*   \brief  Try to ping the aux MCU
+*   \return Success or not
+*/
+RET_TYPE comms_aux_mcu_send_receive_ping(void)
+{
+    aux_mcu_message_t* temp_rx_message_pt;
+    RET_TYPE return_val = RETURN_OK;
+
+    /* Tell the aux MCU to not send us messages */
+    platform_io_set_no_comms();
+    
+    /* Wait for possible previous message to be sent */
+    comms_aux_mcu_wait_for_message_sent();
+    
+    /* Prepare packet */
+    memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
+    aux_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;
+    aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.main_mcu_command_message.command);
+    aux_mcu_send_message.main_mcu_command_message.command = MAIN_MCU_COMMAND_PING;
+    comms_aux_mcu_send_message((void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
+    comms_aux_mcu_wait_for_message_sent();
+    
+    /* Wait for answer: no need to parse answer as filter is done in comms_aux_mcu_active_wait */
+    return_val = comms_aux_mcu_active_wait(&temp_rx_message_pt);
+    
+    /* Rearm receive */
+    comms_aux_arm_rx_and_clear_no_comms();
+    
+    return return_val;
 }
 
 /*! \fn     comms_aux_mcu_routine(void)
@@ -218,13 +251,22 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt)
     /* Bool for the do{} */
     BOOL reloop = FALSE;
     
+    /* Arm timer */
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS);
+    
     do
     {
         /* Do not reloop by default */
         reloop = FALSE;
         
         /* Wait for complete message to be received */
-        while(dma_aux_mcu_check_and_clear_dma_transfer_flag() == FALSE);
+        while((dma_aux_mcu_check_and_clear_dma_transfer_flag() == FALSE) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
+        
+        /* Did the timer expire? */
+        if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_EXPIRED)
+        {
+            return RETURN_NOK;
+        }
         
         /* Get payload length */
         uint16_t payload_length;

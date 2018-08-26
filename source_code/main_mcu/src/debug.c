@@ -438,6 +438,7 @@ void debug_mcu_and_aux_info(void)
 	//sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Board temperature: %i degrees", temperature);	
     
     /* Prepare status message request */
+    comms_aux_mcu_wait_for_message_sent();
     aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
     memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
     
@@ -447,7 +448,7 @@ void debug_mcu_and_aux_info(void)
     
     /* Send message */
     dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)temp_tx_message_pt, sizeof(*temp_tx_message_pt));
-    dma_wait_for_aux_mcu_packet_sent();
+    comms_aux_mcu_wait_for_message_sent();
     
     /* Wait for message from aux MCU */
     while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}

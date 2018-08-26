@@ -8,6 +8,9 @@
 
 #include <stdio.h>
 
+/* Defines */
+#define AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS    500
+
 /* Macros */
 #define XSTR(x) STR(x)
 #define STR(x) #x

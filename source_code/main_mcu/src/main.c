@@ -148,6 +148,19 @@ void main_platform_init(void)
         /* Now that our custom filesystem is loaded, load the default font from flash */
         sh1122_refresh_used_font(&plat_oled_descriptor);        
     }    
+    
+    /* Is Aux MCU present? */
+    if (comms_aux_mcu_send_receive_ping() == RETURN_NOK)
+    {
+        sh1122_put_error_string(&plat_oled_descriptor, u"No Aux MCU");
+        while(1);
+    }
+    
+    /* If USB present, send USB attach message */
+    if (platform_io_is_usb_3v3_present() != FALSE)
+    {
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+    }
 }
 
 /*! \fn     main_standby_sleep(void)
@@ -156,7 +169,7 @@ void main_platform_init(void)
 void main_standby_sleep(void)
 {    
     /* Send a go to sleep message to aux MCU */
-    comms_aux_mcu_send_sleep_message();
+    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_SLEEP);
     
     /* Disable aux MCU dma transfers */
     dma_aux_mcu_disable_transfer();
