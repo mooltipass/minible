@@ -17,34 +17,32 @@ from main MCU:
 |:-------------|:------------------|:--------------|:-------------------|---------------------|
 | Message Type | Payload Length    | Payload       | Not used           | Reply request flag  |
   
-**Message Type**  
+**Message Type:**  
 - 0x0000: Message to/from USB  
 - 0x0001: Message to/from Bluetooth  
 - 0x0002: Message to/from Aux MCU Bootloader 
 - 0x0003: Status message request from Main MCU / status message from Aux MCU  
 - 0x0004: Sleep command from main MCU  
   
-**Payload Length**  
-Message from main MCU: total payload length.  
+**From Main MCU: Payload Length Field**  
+Total payload length.  
 
-**Payload Length #1**  
-Message from aux MCU:  
+**From Aux MCU: Payload Length #1 Field**  
 For messages 0x0000 & 0x0001: if different than 0, total payload length. Otherwise payload length #2 is the actual payload length.  
 For other messages: payload length.  
   
-**Payload Length #2**  
-Message from aux MCU:  
+**From Aux MCU: Payload Length #2 Field**  
 For messages 0x0000 & 0x0001: if payload length #1 is 0, total payload length. Otherwise discarded.  
 For other messages: not used.  
   
-**Payload**   
+**Payload Field**   
 The message payload, which may contain up to 536 bytes. This maximum size was decided in order to accomodate a single "write data node" command (command identifier: 2 bytes, message payload size field: 2 bytes, data node address: 2 bytes, data node size: 528 bytes and 2 additional bytes reserved).
   
-**Payload valid flag**  
-This field should only be taken into account if **payload length #1 is 0 and if message type is different than 0x0000 & 0x0001**.  
+**From Aux MCU: Payload Valid Flag**  
+This field should only be taken into account if **payload length #1 is 0 and if the message type is different than 0x0000 & 0x0001**.  
 If different than 0, this byte lets the message recipient know that the message is valid. As a given Mooltipass message sent through USB can be split over multiple 64 bytes packets, this byte allows the aux MCU to signal that this message is invalid if for some reason or another the sequence of 64bytes long HID packets sending is interrupted.
 
-**Reply request flag**  
+**From Main MCU: Reply request flag**  
 Request the aux MCU to reply to this message regardless of the "not send" input state (see below).   
   
 **Serial Link Specs**  
