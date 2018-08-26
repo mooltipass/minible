@@ -22,7 +22,7 @@ from main MCU:
 - 0x0001: Message to/from Bluetooth  
 - 0x0002: Message to/from Aux MCU Bootloader 
 - 0x0003: Status message request from Main MCU / status message from Aux MCU  
-- 0x0004: Sleep command from main MCU  
+- 0x0004: Sleep command from Main MCU  
   
 **From Main MCU: Payload Length Field**  
 Total payload length.  
@@ -42,7 +42,7 @@ The message payload, which may contain up to 536 bytes. This maximum size was de
 This field should only be taken into account if **payload length #1 is 0 and if the message type is different than 0x0000 & 0x0001**.  
 If different than 0, this byte lets the message recipient know that the message is valid. As a given Mooltipass message sent through USB can be split over multiple 64 bytes packets, this byte allows the aux MCU to signal that this message is invalid if for some reason or another the sequence of 64bytes long HID packets sending is interrupted.
 
-**From Main MCU: Reply request flag**  
+**From Main MCU: Reply Request Flag**  
 Request the aux MCU to reply to this message regardless of the "not send" input state (see below).   
   
 **Serial Link Specs**  
@@ -91,4 +91,4 @@ This will therefore effectively "pause" all standard communications while the ma
 
 | byte X - 539 | byte 540 - 541 | byte 542 - 543 |
 |:-------------|:---------------|----------------|
-| empty        | TBD            | 0x0000         |
+| do not care  | 0x0000         | 0x0000         |
