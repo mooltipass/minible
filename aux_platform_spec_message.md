@@ -1,4 +1,4 @@
-## [](#header-2) Status message sent by the Aux MCU 
+## [](#header-2) Status Message Sent by the Aux MCU 
   
 | byte 0 - 1 | byte 2 - 3 |
 |:-----------|:-----------|
