@@ -476,7 +476,7 @@ void debug_mcu_and_aux_info(void)
     sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", temp_rx_message->aux_details_message.aux_uid_registers[0], temp_rx_message->aux_details_message.aux_uid_registers[1], temp_rx_message->aux_details_message.aux_uid_registers[2], temp_rx_message->aux_details_message.aux_uid_registers[3]);
 	
     /* Info printed, rearm DMA RX */
-    comms_aux_init_rx();
+    comms_aux_arm_rx_and_clear_no_comms();
     
 	/* Check for click to return */
 	while(1)

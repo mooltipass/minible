@@ -450,6 +450,7 @@ void platform_io_disable_aux_comms(void)
     PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 0;                                  // AUX MCU RX, MAIN MCU TX: Disable peripheral multiplexer
     PORT->Group[AUX_MCU_RX_GROUP].OUTSET.reg = AUX_MCU_RX_MASK;                                             // AUX MCU RX, MAIN MCU TX: Pull up
     PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PULLEN = 1;                                  // AUX MCU RX, MAIN MCU TX: Pull up
+    platform_io_set_no_comms();                                                                             // No comms during sleep
 }
 
 /*! \fn     platform_io_enable_aux_comms(void)
@@ -460,6 +461,28 @@ void platform_io_enable_aux_comms(void)
     PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 1;                                  // AUX MCU TX, MAIN MCU RX: Enable peripheral multiplexer
     PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 1;                                  // AUX MCU RX, MAIN MCU TX: Enable peripheral multiplexer
     PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PULLEN = 0;                                  // AUX MCU RX, MAIN MCU TX: Pull down disable
+}
+
+/*! \fn     platform_io_set_no_comms(void)
+*   \brief  Set no comms signal
+*/
+void platform_io_set_no_comms(void)
+{
+    /* Platform v3 */
+    #ifdef PLAT_V3_SETUP
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, disabled by default    
+    #endif
+}
+
+/*! \fn     platform_io_clear_no_comms(void)
+*   \brief  Clear no comms signal
+*/
+void platform_io_clear_no_comms(void)
+{
+    /* Platform v3 */
+    #ifdef PLAT_V3_SETUP
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, disabled by default    
+    #endif
 }
 
 /*! \fn     platform_io_init_aux_comms_ports(void)
@@ -477,9 +500,9 @@ void platform_io_init_aux_comms(void)
     
     /* Platform v3 */
     #ifdef PLAT_V3_SETUP
-        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;    // Setup NO COMMS, disabled by default
-        PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, disabled by default
-        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, disabled by default
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;    // Setup NO COMMS, enabled by default
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default
     #endif
     
     /* Sercom init */

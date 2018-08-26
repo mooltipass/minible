@@ -23,6 +23,7 @@
 
 // Main MCU commands
 #define MAIN_MCU_COMMAND_SLEEP          0x0001
+#define MAIN_MCU_COMMAND_ATTACH_USB     0x0002
 
 /* Typedefs */
 typedef struct
@@ -64,14 +65,13 @@ typedef struct
 } aux_mcu_message_t;
 
 /* Prototypes */
-BOOL comms_aux_mcu_get_received_packet(aux_mcu_message_t** message, BOOL arm_new_rx);
 void comms_aux_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length);
 RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt);
 aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void);
 void comms_aux_mcu_wait_for_message_sent(void);
+void comms_aux_arm_rx_and_clear_no_comms(void);
 void comms_aux_mcu_send_sleep_message(void);
 void comms_aux_mcu_routine(void);
-void comms_aux_init_rx(void);
 
 
 #endif /* COMMS_AUX_MCU_H_ */

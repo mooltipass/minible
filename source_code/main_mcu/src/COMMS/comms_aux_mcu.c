@@ -10,6 +10,7 @@
 #include "comms_hid_msgs.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
+#include "platform_io.h"
 #include "defines.h"
 #include "dma.h"
 /* Received and sent MCU messages */
@@ -19,12 +20,13 @@ aux_mcu_message_t aux_mcu_send_message;
 BOOL aux_mcu_message_answered_using_first_bytes = FALSE;
 
 
-/*! \fn     comms_aux_init_rx(void)
+/*! \fn     comms_aux_arm_rx_and_clear_no_comms(void)
 *   \brief  Init communications with aux MCU
 */
-void comms_aux_init_rx(void)
+void comms_aux_arm_rx_and_clear_no_comms(void)
 {
     dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+    platform_io_clear_no_comms();
 }
 
 /*! \fn     comms_aux_mcu_get_temp_tx_message_object_pt(void)
@@ -69,39 +71,6 @@ void comms_aux_mcu_send_sleep_message(void)
     comms_aux_mcu_wait_for_message_sent();    
 }
 
-/*! \fn     comms_aux_mcu_get_received_packet(aux_mcu_message_t* message, BOOL arm_new_rx)
-*   \brief  Get received packet (if any), and arm next RX dma transfer if specified
-*   \param  message     Where to store pointer to received message
-*   \param  arm_new_rx  Set to true to arm next DMA RX transfer
-*   \return If a message was received
-*/
-BOOL comms_aux_mcu_get_received_packet(aux_mcu_message_t** message, BOOL arm_new_rx)
-{
-    /* Check for rx flag */
-    if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
-    {
-        /* Check for valid flag */
-        if (aux_mcu_receive_message.rx_payload_valid_flag != 0)
-        {
-            if (arm_new_rx != FALSE)
-            {
-                /* Arm next RX DMA transfer */
-                dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
-            }    
-            *message = &aux_mcu_receive_message;        
-            return TRUE;
-        }
-        else
-        {
-            /* Payload invalid, rearm & return false */
-            dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
-            return FALSE;
-        }
-    }
-    
-    return FALSE;
-}
-
 /*! \fn     comms_aux_mcu_routine(void)
 *   \brief  Routine dealing with aux mcu comms
 */
@@ -143,7 +112,7 @@ void comms_aux_mcu_routine(void)
             else
             {
                 /* Arm next RX DMA transfer */
-                dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+                comms_aux_arm_rx_and_clear_no_comms();
             }
         } 
         else if ((aux_mcu_receive_message.payload_length1 != 0) && (nb_received_bytes_for_ongoing_transfer >= sizeof(aux_mcu_receive_message.message_type) + sizeof(aux_mcu_receive_message.payload_length1) + aux_mcu_receive_message.payload_length1))
@@ -173,7 +142,7 @@ void comms_aux_mcu_routine(void)
         else
         {
             /* Arm next RX DMA transfer */
-            dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+            comms_aux_arm_rx_and_clear_no_comms();
         }
         
         /* Reset bool */
@@ -233,7 +202,7 @@ void comms_aux_mcu_routine(void)
     /* If we need to rearm RX */
     if (arm_rx_transfer != FALSE)
     {
-        dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+        comms_aux_arm_rx_and_clear_no_comms();
     }          
 }
 
@@ -242,7 +211,7 @@ void comms_aux_mcu_routine(void)
 *   \param  rx_message_pt_pt   Pointer to where to store the pointer to the received message
 *   \return OK if a message was received
 *   \note   Special care must be taken to discard other message we don't want (either with a please_retry or other mechanisms)
-*   \note   DMA RX arm must be called to rearm message receive
+*   \note   DMA RX arm must be called to rearm message receive as a rearm in this code would enable data to be overwritten
 */
 RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt)
 {

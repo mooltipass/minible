@@ -48,14 +48,17 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
     dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)temp_tx_message_pt, sizeof(*temp_tx_message_pt));
     dma_wait_for_aux_mcu_packet_sent();  
     
-    /* Wait for answer... TODO: migrate to comms_aux_mcu_active_wait */
-    while (comms_aux_mcu_get_received_packet(&temp_rx_message_pt, TRUE) == FALSE);
+    /* Wait for answer... */
+    while(comms_aux_mcu_active_wait(&temp_rx_message_pt) == RETURN_NOK){}
     
     /* Check for valid answer */
     if ((temp_rx_message_pt->message_type != AUX_MCU_MSG_TYPE_BOOTLOADER) || (temp_rx_message_pt->bootloader_message.command != BOOTLOADER_PROGRAMMING_COMMAND))
     {
         return RETURN_NOK;
     }
+    
+    /* Answer checked, rearm RX */    
+    comms_aux_arm_rx_and_clear_no_comms();
     
     /* Send bytes by blocks of 512 */
     uint32_t nb_bytes_to_read;
@@ -93,14 +96,17 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
         dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)temp_tx_message_pt, sizeof(*temp_tx_message_pt));
         dma_wait_for_aux_mcu_packet_sent();
         
-        /* Wait for answer... TODO: migrate to comms_aux_mcu_active_wait */
-        while (comms_aux_mcu_get_received_packet(&temp_rx_message_pt, TRUE) == FALSE);
+        /* Wait for answer... */
+        while(comms_aux_mcu_active_wait(&temp_rx_message_pt) == RETURN_NOK){}
             
         /* Check for valid answer */
         if ((temp_rx_message_pt->message_type != AUX_MCU_MSG_TYPE_BOOTLOADER) || (temp_rx_message_pt->bootloader_message.command != BOOTLOADER_WRITE_COMMAND))
         {
             return RETURN_NOK;
         }
+        
+        /* Answer checked, rearm RX */
+        comms_aux_arm_rx_and_clear_no_comms();
     }      
     
     return RETURN_OK;
