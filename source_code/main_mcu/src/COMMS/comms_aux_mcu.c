@@ -35,6 +35,40 @@ aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void)
     return &aux_mcu_send_message;
 }
 
+/*! \fn     comms_aux_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length)
+*   \brief  Send a message to the AUX MCU
+*   \param  message         Pointer to the message to send
+*   \param  message_length  Message length
+*   \note   Transfer is done through DMA so data will be accessed after this function returns
+*/
+void comms_aux_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length)
+{    
+    /* The function below does wait for a previous transfer to finish */
+    dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)message, sizeof(aux_mcu_message_t));    
+}
+
+/*! \fn     comms_aux_mcu_wait_for_message_sent(void)
+*   \brief  Wait for previous message to be sent to aux MCU
+*/
+void comms_aux_mcu_wait_for_message_sent(void)
+{
+    dma_wait_for_aux_mcu_packet_sent();
+}
+
+/*! \fn     comms_aux_mcu_send_sleep_message(void)
+*   \brief  Send the "go to sleep" message to aux MCU
+*/
+void comms_aux_mcu_send_sleep_message(void)
+{
+    comms_aux_mcu_wait_for_message_sent();
+    memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
+    aux_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;
+    aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.main_mcu_command_message.command);
+    aux_mcu_send_message.main_mcu_command_message.command = MAIN_MCU_COMMAND_SLEEP;
+    comms_aux_mcu_send_message((void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
+    comms_aux_mcu_wait_for_message_sent();    
+}
+
 /*! \fn     comms_aux_mcu_get_received_packet(aux_mcu_message_t* message, BOOL arm_new_rx)
 *   \brief  Get received packet (if any), and arm next RX dma transfer if specified
 *   \param  message     Where to store pointer to received message
@@ -184,7 +218,7 @@ void comms_aux_mcu_routine(void)
             aux_mcu_send_message.payload_length1 = hid_reply_payload_length + sizeof(aux_mcu_receive_message.hid_message.message_type) + sizeof(aux_mcu_receive_message.hid_message.payload_length);
                     
             /* Send message */
-            dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
+            comms_aux_mcu_send_message((void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
         }
     } 
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BOOTLOADER)

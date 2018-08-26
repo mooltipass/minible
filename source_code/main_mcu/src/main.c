@@ -155,6 +155,9 @@ void main_platform_init(void)
 */
 void main_standby_sleep(void)
 {    
+    /* Send a go to sleep message to aux MCU */
+    comms_aux_mcu_send_sleep_message();
+    
     /* Disable aux MCU dma transfers */
     dma_aux_mcu_disable_transfer();
     

@@ -448,7 +448,8 @@ void platform_io_disable_aux_comms(void)
     /* Reduces standby current by 40uA */
     PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 0;                                  // AUX MCU TX, MAIN MCU RX: Disable peripheral multiplexer
     PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 0;                                  // AUX MCU RX, MAIN MCU TX: Disable peripheral multiplexer
-    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PULLEN = 1;                                  // AUX MCU RX, MAIN MCU TX: Pull down
+    PORT->Group[AUX_MCU_RX_GROUP].OUTSET.reg = AUX_MCU_RX_MASK;                                             // AUX MCU RX, MAIN MCU TX: Pull up
+    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PULLEN = 1;                                  // AUX MCU RX, MAIN MCU TX: Pull up
 }
 
 /*! \fn     platform_io_enable_aux_comms(void)

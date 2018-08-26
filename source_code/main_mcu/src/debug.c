@@ -442,7 +442,7 @@ void debug_mcu_and_aux_info(void)
     memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
     
     /* Fill the correct fields */
-    temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_STATUS;
+    temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_PLAT_DETAILS;
     temp_tx_message_pt->tx_reply_request_flag = 0x0001;
     
     /* Send message */
@@ -454,7 +454,7 @@ void debug_mcu_and_aux_info(void)
         
     /* Cast aux MCU DID */
     DSU_DID_Type aux_mcu_did;
-    aux_mcu_did.reg = temp_rx_message->aux_status_message.aux_did_register;
+    aux_mcu_did.reg = temp_rx_message->aux_details_message.aux_did_register;
     
     /* From DID, get part number */
     if (aux_mcu_did.bit.DEVSEL == 0x0B)
@@ -471,9 +471,9 @@ void debug_mcu_and_aux_info(void)
     }    
         
     /* This is debug, no need to check if it is the correct received message */
-    sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "MCU fw %d.%d, btid 0x%08x ver 0x%08x", temp_rx_message->aux_status_message.aux_fw_ver_major, temp_rx_message->aux_status_message.aux_fw_ver_minor, temp_rx_message->aux_status_message.btle_did, temp_rx_message->aux_status_message.btle_sdk_version);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "MCU fw %d.%d, btid 0x%08x ver 0x%08x", temp_rx_message->aux_details_message.aux_fw_ver_major, temp_rx_message->aux_details_message.aux_fw_ver_minor, temp_rx_message->aux_details_message.btle_did, temp_rx_message->aux_details_message.btle_sdk_version);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, FALSE, "DID 0x%08x (%s), rev %c", aux_mcu_did.reg, part_number, 'A' + aux_mcu_did.bit.REVISION);
-    sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", temp_rx_message->aux_status_message.aux_uid_registers[0], temp_rx_message->aux_status_message.aux_uid_registers[1], temp_rx_message->aux_status_message.aux_uid_registers[2], temp_rx_message->aux_status_message.aux_uid_registers[3]);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", temp_rx_message->aux_details_message.aux_uid_registers[0], temp_rx_message->aux_details_message.aux_uid_registers[1], temp_rx_message->aux_details_message.aux_uid_registers[2], temp_rx_message->aux_details_message.aux_uid_registers[3]);
 	
     /* Info printed, rearm DMA RX */
     comms_aux_init_rx();
