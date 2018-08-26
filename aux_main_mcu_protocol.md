@@ -18,28 +18,26 @@ from main MCU:
 | Message Type | Payload Length    | Payload       | Not used           | Reply request flag  |
   
 **Message Type:**  
-- 0x0000: Message to/from USB  
+- 0x0000: [Message to/from USB](protocol)  
 - 0x0001: Message to/from Bluetooth  
-- 0x0002: Message to/from Aux MCU Bootloader 
-- 0x0003: Status message request from Main MCU / status message from Aux MCU  
-- 0x0004: Sleep command from Main MCU  
+- 0x0002: [Message to/from Aux MCU Bootloader](aux_bootloader_protocol)  
+- 0x0003: [platform details message request from Main MCU / answer from Aux MCU](aux_platform_spec_message)    
+- 0x0004: [Command from Main MCU](main_to_aux_mcu_commands)  
   
 **From Main MCU: Payload Length Field**  
 Total payload length.  
 
 **From Aux MCU: Payload Length #1 Field**  
-For messages 0x0000 & 0x0001: if different than 0, total payload length. Otherwise payload length #2 is the actual payload length.  
-For other messages: payload length.  
+If different than 0, total payload length. Otherwise payload length #2 is the actual payload length.  
   
 **From Aux MCU: Payload Length #2 Field**  
-For messages 0x0000 & 0x0001: if payload length #1 is 0, total payload length. Otherwise discarded.  
-For other messages: not used.  
+If payload length #1 is 0, total payload length. Otherwise discarded.  
   
 **Payload Field**   
 The message payload, which may contain up to 536 bytes. This maximum size was decided in order to accomodate a single "write data node" command (command identifier: 2 bytes, message payload size field: 2 bytes, data node address: 2 bytes, data node size: 528 bytes and 2 additional bytes reserved).
   
 **From Aux MCU: Payload Valid Flag**  
-This field should only be taken into account if **payload length #1 is 0 and if the message type is different than 0x0000 & 0x0001**.  
+This field should only be taken into account if **payload length #1 is 0**.  
 If different than 0, this byte lets the message recipient know that the message is valid. As a given Mooltipass message sent through USB can be split over multiple 64 bytes packets, this byte allows the aux MCU to signal that this message is invalid if for some reason or another the sequence of 64bytes long HID packets sending is interrupted.
 
 **From Main MCU: Reply Request Flag**  
@@ -73,22 +71,3 @@ The other communication direction (main MCU to aux MCU) isn't a problem either, 
 - the main MCU will release the "not send" line state  
 
 This will therefore effectively "pause" all standard communications while the main MCU takes the role of communication master.
-  
-  
-## [](#header-2) Status message sent by the Aux MCU 
-  
-| byte 0 - 1 | byte 2 - 3 |
-|:-----------|:-----------|
-| 0x0003     | TBD        |
-
-**byte 4-5**: aux MCU firmware version, major  
-**byte 6-7**: aux MCU firmware version, minor  
-**byte 8-11**: aux MCU device ID register (DSU->DID.reg)  
-**byte 12-27**: aux MCU UID (registers 0x0080A00C 0x0080A040 0x0080A044 0x0080A048)  
-**byte 28-31**: ATBTLC1000 device id (register 0x4000B000), or 0s if no BLE IC   
-**byte 32-35**: SDK version (2 MSBytes: major & minor, 4LSBytes: SDK build number)  
-**byte 36-39**: BTLC1000 RF version  
-
-| byte X - 539 | byte 540 - 541 | byte 542 - 543 |
-|:-------------|:---------------|----------------|
-| do not care  | 0x0000         | 0x0000         |
