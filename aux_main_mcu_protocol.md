@@ -21,8 +21,9 @@ from main MCU:
 - 0x0000: [Message to/from USB](protocol)  
 - 0x0001: Message to/from Bluetooth  
 - 0x0002: [Message to/from Aux MCU Bootloader](aux_bootloader_protocol)  
-- 0x0003: [platform details message request from Main MCU / answer from Aux MCU](aux_platform_spec_message)    
+- 0x0003: [Platform Details Message Request/Answer from/to Main MCU](aux_platform_spec_message)    
 - 0x0004: [Command from Main MCU](main_to_aux_mcu_commands)  
+- 0x0005: [Event from Aux MCU](aux_mcu_event_messages)  
   
 **From Main MCU: Payload Length Field**  
 Total payload length.  
@@ -54,7 +55,7 @@ The main MCU is a **communication slave**: all external devices (computers, phon
 Three different kinds of packets may therefore be sent from the AUX MCU:  
 - USB communications  
 - BLE communications  
-- Status messages (USB disconnected & others)  
+- Event messages (USB disconnected & others)  
 
 If no flow control was implemented these 3 different packets may be sent **at once** to the main MCU, which may not have enough time to deal with each packet before being able to receive another.  
 As a consequence, from the "proto v2" boards, a dedicated main MCU output pin explicitely lets the aux MCU know to not send any packet. This does not lead to additional memory requirements on the aux MCU as:   
