@@ -22,6 +22,7 @@ from main MCU:
 - 0x0001: Message to/from Bluetooth  
 - 0x0002: Message to/from Aux MCU Bootloader 
 - 0x0003: Status message request from Main MCU / status message from Aux MCU  
+- 0x0004: Sleep command from main MCU  
   
 **Payload Length**  
 Message from main MCU: total payload length.  
