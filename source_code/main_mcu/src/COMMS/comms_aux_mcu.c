@@ -37,13 +37,12 @@ aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void)
     return &aux_mcu_send_message;
 }
 
-/*! \fn     comms_aux_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length)
+/*! \fn     comms_aux_mcu_send_message(aux_mcu_message_t* message)
 *   \brief  Send a message to the AUX MCU
 *   \param  message         Pointer to the message to send
-*   \param  message_length  Message length
 *   \note   Transfer is done through DMA so data will be accessed after this function returns
 */
-void comms_aux_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length)
+void comms_aux_mcu_send_message(aux_mcu_message_t* message)
 {    
     /* The function below does wait for a previous transfer to finish */
     dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)message, sizeof(aux_mcu_message_t));    
@@ -68,7 +67,7 @@ void comms_aux_mcu_send_simple_command_message(uint16_t command)
     aux_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;
     aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.main_mcu_command_message.command);
     aux_mcu_send_message.main_mcu_command_message.command = command;
-    comms_aux_mcu_send_message((void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
+    comms_aux_mcu_send_message((void*)&aux_mcu_send_message);
     comms_aux_mcu_wait_for_message_sent();    
 }
 
@@ -92,7 +91,7 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
     aux_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;
     aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.main_mcu_command_message.command);
     aux_mcu_send_message.main_mcu_command_message.command = MAIN_MCU_COMMAND_PING;
-    comms_aux_mcu_send_message((void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
+    comms_aux_mcu_send_message((void*)&aux_mcu_send_message);
     comms_aux_mcu_wait_for_message_sent();
     
     /* Wait for answer: no need to parse answer as filter is done in comms_aux_mcu_active_wait */
@@ -220,7 +219,7 @@ void comms_aux_mcu_routine(void)
             aux_mcu_send_message.payload_length1 = hid_reply_payload_length + sizeof(aux_mcu_receive_message.hid_message.message_type) + sizeof(aux_mcu_receive_message.hid_message.payload_length);
                     
             /* Send message */
-            comms_aux_mcu_send_message((void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
+            comms_aux_mcu_send_message((void*)&aux_mcu_send_message);
         }
     } 
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BOOTLOADER)

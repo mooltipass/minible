@@ -66,10 +66,10 @@ typedef struct
 } aux_mcu_message_t;
 
 /* Prototypes */
-void comms_aux_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length);
 RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt);
 aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void);
 void comms_aux_mcu_send_simple_command_message(uint16_t command);
+void comms_aux_mcu_send_message(aux_mcu_message_t* message);
 RET_TYPE comms_aux_mcu_send_receive_ping(void);
 void comms_aux_mcu_wait_for_message_sent(void);
 void comms_aux_arm_rx_and_clear_no_comms(void);
