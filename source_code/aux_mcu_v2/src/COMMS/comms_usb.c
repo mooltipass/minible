@@ -3,6 +3,7 @@
 *    Created:  22/08/2018
 *    Author:   Mathieu Stephan
 */
+#include <stdarg.h>
 #include <string.h>
 #include "platform_defines.h"
 #include "comms_main_mcu.h"
@@ -256,4 +257,22 @@ void comms_usb_communication_routine(void)
     }
 }
 
+/*! \fn     comms_usb_debug_printf(const char *fmt, ...) 
+*   \brief  Output debug string to USB
+*/
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsuggest-attribute=format"
+void comms_usb_debug_printf(const char *fmt, ...) 
+{
+    char buf[64];    
+    va_list ap;
+    
+    va_start(ap, fmt);
 
+    if (vsnprintf(buf, sizeof(buf), fmt, ap) > 0)
+    {
+        
+    }
+    va_end(ap);
+}
+#pragma GCC diagnostic pop

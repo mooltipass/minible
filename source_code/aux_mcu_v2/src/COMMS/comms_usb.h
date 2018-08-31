@@ -33,6 +33,7 @@ typedef struct
 void comms_usb_send_raw_hid_packet(hid_packet_t* packet, BOOL wait_send, uint16_t payload_size);
 void comms_usb_send_hid_message(aux_mcu_message_t* message);
 void comms_usb_raw_hid_recv_callback(uint16_t recv_bytes);
+void comms_usb_debug_printf(const char *fmt, ...);
 void comms_usb_configuration_callback(int config);
 void comms_usb_raw_hid_send_callback(void);
 void comms_usb_communication_routine(void);
