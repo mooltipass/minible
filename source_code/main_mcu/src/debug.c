@@ -5,6 +5,7 @@
 */
 #include <string.h>
 #include <asf.h>
+#include "comms_hid_msgs_debug.h"
 #include "smartcard_highlevel.h"
 #include "platform_defines.h"
 #include "logic_aux_mcu.h"
@@ -112,6 +113,7 @@ void debug_debug_menu(void)
         }
         else if (wheel_user_action == WHEEL_ACTION_SHORT_CLICK)
         {
+            comms_hid_msgs_debug_printf("Debug menu: item #%i selected", selected_item);
             if (selected_item == 0)
             {
                 debug_debug_screen();

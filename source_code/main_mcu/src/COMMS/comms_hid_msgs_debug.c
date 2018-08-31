@@ -3,15 +3,62 @@
 *    Created:  06/03/2018
 *    Author:   Mathieu Stephan
 */
+#include <stdarg.h>
 #include <string.h>
 #include <asf.h>
 #include "comms_hid_msgs_debug.h"
 #include "comms_hid_msgs.h"
+#include "comms_aux_mcu.h"
 #include "driver_sercom.h"
 #include "dataflash.h"
 #include "sh1122.h"
 #include "main.h"
 
+
+#ifdef DEBUG_USB_PRINTF_ENABLED
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsuggest-attribute=format"
+/*! \fn     comms_hid_msgs_debug_printf(const char *fmt, ...) 
+*   \brief  Output debug string to USB
+*/
+void comms_hid_msgs_debug_printf(const char *fmt, ...) 
+{
+    char buf[64];    
+    va_list ap;    
+    va_start(ap, fmt);
+
+    /* Print into our temporary buffer */
+    int16_t hypothetical_nb_chars = vsnprintf(buf, sizeof(buf), fmt, ap);
+    
+    /* No error? */
+    if (hypothetical_nb_chars > 0)
+    {
+        /* Compute number of chars printed to our buffer */
+        uint16_t actual_printed_chars = (uint16_t)hypothetical_nb_chars < sizeof(buf)-1? (uint16_t)hypothetical_nb_chars : sizeof(buf)-1;
+        
+        /* Use message to send to aux mcu as temporary buffer */        
+        comms_aux_mcu_wait_for_message_sent();
+        aux_mcu_message_t* temp_message = comms_aux_mcu_get_temp_tx_message_object_pt();
+        memset((void*)temp_message, 0, sizeof(aux_mcu_message_t));
+        temp_message->message_type = AUX_MCU_MSG_TYPE_USB;
+        temp_message->hid_message.message_type = HID_CMD_ID_DBG_MSG;
+        temp_message->hid_message.payload_length = actual_printed_chars*2 + 2;
+        temp_message->payload_length1 = temp_message->hid_message.payload_length + sizeof(temp_message->hid_message.payload_length) + sizeof(temp_message->hid_message.message_type);
+        
+        /* Copy to message payload */
+        for (uint16_t i = 0; i < actual_printed_chars; i++)
+        {
+            temp_message->hid_message.payload_as_uint16[i] = buf[i];
+        }
+        
+        /* Send message */
+        comms_aux_mcu_send_message((void*)temp_message);
+        comms_aux_mcu_wait_for_message_sent();
+    }
+    va_end(ap);
+}
+#pragma GCC diagnostic pop
+#endif
 
 /*! \fn     comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg)
 *   \brief  Parse an incoming message from USB or BLE

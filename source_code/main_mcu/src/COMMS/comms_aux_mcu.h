@@ -11,6 +11,7 @@
 #include "comms_aux_mcu_defines.h"
 #include "comms_bootloader_msg.h"
 #include "comms_hid_msgs.h"
+#include "defines.h"
 
 /* Defines */
 // Aux MCU Message Type

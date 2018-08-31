@@ -39,16 +39,19 @@
      #define DEBUG_USB_COMMANDS_ENABLED
      #define DEBUG_MENU_ENABLED
      #define NO_SECURITY_BIT_CHECK
+     #define DEBUG_USB_PRINTF_ENABLED
 #elif defined(PLAT_V2_SETUP)
      #define OLED_PRINTF_ENABLED
      #define DEBUG_USB_COMMANDS_ENABLED
      #define DEBUG_MENU_ENABLED
      #define NO_SECURITY_BIT_CHECK
+     #define DEBUG_USB_PRINTF_ENABLED
 #elif defined(PLAT_V3_SETUP)
      #define OLED_PRINTF_ENABLED
      #define DEBUG_USB_COMMANDS_ENABLED
      #define DEBUG_MENU_ENABLED
      #define NO_SECURITY_BIT_CHECK
+     #define DEBUG_USB_PRINTF_ENABLED
 #endif
 
 /* Enums */
@@ -101,6 +104,8 @@ typedef struct
 //#define DEBUG_MENU_ENABLED
 /* No security bit check */
 //#define NO_SECURITY_BIT_CHECK
+/* Debug printf through USB */
+//#define DEBUG_USB_PRINTF_ENABLED
 
 /* GCLK ID defines */
 #define GCLK_ID_48M             GCLK_CLKCTRL_GEN_GCLK0_Val

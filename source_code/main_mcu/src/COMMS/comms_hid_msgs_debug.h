@@ -8,6 +8,7 @@
 #ifndef COMMS_HID_MSGS_DEBUG_H_
 #define COMMS_HID_MSGS_DEBUG_H_
 
+#include "platform_defines.h"
 #include "comms_hid_msgs.h"
 
 /* Defines */
@@ -25,6 +26,9 @@
 
 /* Prototypes */
 int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg);
+#ifdef DEBUG_USB_PRINTF_ENABLED
+    void comms_hid_msgs_debug_printf(const char *fmt, ...);
+#endif
 
 
 #endif /* COMMS_HID_MSGS_DEBUG_H_ */
