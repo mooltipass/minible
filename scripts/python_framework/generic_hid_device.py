@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+from mooltipass_defines import *
 from datetime import datetime
 from array import array
 import platform
@@ -188,6 +189,12 @@ class generic_hid_device:
 					print "nb payload bytes received - 4 = " + str(nb_payload_bytes_received - 4)
 					return None
 				else:
+					# Check for debug message
+					if packet["cmd"] == CMD_DBG_MESSAGE:
+						temp_string = u"Debug message received: ";
+						for i in range(0, packet["len"]/2):
+							temp_string += unichr(packet["data"][i*2] + packet["data"][i*2+1]*256)
+						print temp_string
 					return packet
 
 	# Receive HID packet, return None when nothing is sent

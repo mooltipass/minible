@@ -10,6 +10,7 @@
 #include "main.h"
 #include "dma.h"
 #include "usb.h"
+#include "udc.h"
 
 
 /****************************************************************************/
@@ -103,6 +104,20 @@ int main (void)
 {
     /* Initialize our platform */
     main_platform_init();
+    
+    /* Test code: remove later */
+    udc_attach();    
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 2000);
+    while (TRUE)
+    {
+        if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_EXPIRED)
+        {
+            comms_usb_debug_printf("Hello %i, %i, %i", 1,2,3);
+            timer_start_timer(TIMER_TIMEOUT_FUNCTS, 2000);
+        }
+        comms_main_mcu_routine();
+        comms_usb_communication_routine();
+    }
     
     while(1)
     {

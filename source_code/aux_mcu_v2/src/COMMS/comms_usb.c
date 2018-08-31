@@ -10,6 +10,7 @@
 #include "comms_usb.h"
 #include "defines.h"
 #include "usb.h"
+#include "dma.h"
 
 /* USB comms buffers */
 static __attribute__((aligned(4))) hid_packet_t raw_hid_recv_buffer;
@@ -265,13 +266,33 @@ void comms_usb_communication_routine(void)
 void comms_usb_debug_printf(const char *fmt, ...) 
 {
     char buf[64];    
-    va_list ap;
-    
+    va_list ap;    
     va_start(ap, fmt);
 
-    if (vsnprintf(buf, sizeof(buf), fmt, ap) > 0)
+    /* Print into our temporary buffer */
+    int16_t hypothetical_nb_chars = vsnprintf(buf, sizeof(buf), fmt, ap);
+    
+    /* No error? */
+    if (hypothetical_nb_chars > 0)
     {
+        /* Compute number of chars printed to our buffer */
+        uint16_t actual_printed_chars = (uint16_t)hypothetical_nb_chars < sizeof(buf)-1? (uint16_t)hypothetical_nb_chars : sizeof(buf)-1;
         
+        /* Use message to send to aux mcu as temporary buffer */
+        dma_wait_for_main_mcu_packet_sent();
+        memset((void*)&comms_usb_temp_mcu_message_to_send, 0, sizeof(comms_usb_temp_mcu_message_to_send));
+        comms_usb_temp_mcu_message_to_send.hid_message.message_type = HID_CMD_ID_DEBUG_MSG;
+        comms_usb_temp_mcu_message_to_send.hid_message.payload_length = actual_printed_chars*2 + 2;
+        comms_usb_temp_mcu_message_to_send.payload_length1 = comms_usb_temp_mcu_message_to_send.hid_message.payload_length + sizeof(comms_usb_temp_mcu_message_to_send.hid_message.payload_length) + sizeof(comms_usb_temp_mcu_message_to_send.hid_message.message_type);
+        
+        /* Copy to message payload */
+        for (uint16_t i = 0; i < actual_printed_chars; i++)
+        {
+            comms_usb_temp_mcu_message_to_send.hid_message.payload_as_uint16[i] = buf[i];
+        }
+        
+        /* Send message */
+        comms_usb_send_hid_message(&comms_usb_temp_mcu_message_to_send);
     }
     va_end(ap);
 }
