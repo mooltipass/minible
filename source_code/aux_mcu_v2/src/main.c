@@ -1,10 +1,11 @@
 #include <asf.h>
-#include "comms_usb.h"
 #include "platform_defines.h"
 #include "comms_main_mcu.h"
 #include "driver_clocks.h"
 #include "driver_timer.h"
+#include "ble_manager.h"
 #include "platform_io.h"
+#include "comms_usb.h"
 #include "defines.h"
 #include "fuses.h"
 #include "main.h"
@@ -106,7 +107,15 @@ int main (void)
     main_platform_init();
     
     /* Test code: remove later */
-    udc_attach();    
+    udc_attach();
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 5000);
+    while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING)
+    {
+        comms_main_mcu_routine();
+        comms_usb_communication_routine();
+    }
+    ble_device_init(NULL);
+    while(TRUE);
     timer_start_timer(TIMER_TIMEOUT_FUNCTS, 2000);
     while (TRUE)
     {

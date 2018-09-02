@@ -82,9 +82,9 @@
  * \brief Memory barrier
  */
 #ifdef __GNUC__
-#  define barrier()        asm volatile("" ::: "memory")
+#  define barrier()        __asm volatile("" ::: "memory")
 #else
-#  define barrier()        asm ("")
+#  define barrier()        __asm ("")
 #endif
 
 /**

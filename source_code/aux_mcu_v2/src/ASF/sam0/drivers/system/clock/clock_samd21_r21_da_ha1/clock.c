@@ -194,6 +194,9 @@ uint32_t system_clock_source_get_hz(
 		return _system_clock_inst.xosc32k.frequency;
 
 	case SYSTEM_CLOCK_SOURCE_DFLL:
+    
+        /* Mathieu hack */
+	    return 48000000UL;
 
 		/* Check if the DFLL has been configured */
 		if (!(_system_clock_inst.dfll.control & SYSCTRL_DFLLCTRL_ENABLE))

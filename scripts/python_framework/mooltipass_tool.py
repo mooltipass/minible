@@ -28,7 +28,10 @@ def main():
 		print "Connected to device"
 		
 		while True:
-			mooltipass_device.getInternalDevice().receiveHidMessage()
+			try:
+				mooltipass_device.getInternalDevice().receiveHidMessage()
+			except:
+				continue
 		#mooltipass_device.getInternalDevice().benchmarkPingPongSpeed(mooltipass_device.createPingPacket())
 			
 		# Get Mooltipass Version
