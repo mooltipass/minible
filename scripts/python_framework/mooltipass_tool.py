@@ -30,6 +30,8 @@ def main():
 		while True:
 			try:
 				mooltipass_device.getInternalDevice().receiveHidMessage()
+			except KeyboardInterrupt:
+				sys.exit(0)
 			except:
 				continue
 		#mooltipass_device.getInternalDevice().benchmarkPingPongSpeed(mooltipass_device.createPingPacket())

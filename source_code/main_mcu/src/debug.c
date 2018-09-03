@@ -81,12 +81,17 @@ void debug_debug_menu(void)
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Smartcard Debug", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Animation Test", TRUE);
             }
-            else
+            else if (selected_item < 8)
             {
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Main and Aux MCU Info", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Scroll through glyphs", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Main MCU Flash", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Aux MCU Flash", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Scroll Through Glyphs", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU BLE Info", TRUE);
+                
+            }
+            else
+            {
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Main MCU Flash", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Aux MCU Flash", TRUE);
             }
             
             /* Cursor */
@@ -113,7 +118,6 @@ void debug_debug_menu(void)
         }
         else if (wheel_user_action == WHEEL_ACTION_SHORT_CLICK)
         {
-            comms_hid_msgs_debug_printf("Debug menu: item #%i selected", selected_item);
             if (selected_item == 0)
             {
                 debug_debug_screen();
@@ -140,11 +144,15 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 6)
             {
+	            debug_atbtlc_info();
+            }
+            else if (selected_item == 8)
+            {
                 custom_fs_settings_set_fw_upgrade_flag();
                 cpu_irq_disable();
                 NVIC_SystemReset();
             }
-            else if (selected_item == 7)
+            else if (selected_item == 9)
             {
                 logic_aux_mcu_flash_firmware_update();
             }
@@ -426,18 +434,11 @@ void debug_mcu_and_aux_info(void)
 		strcpy(part_number, "ATSAMD21G18A");
 	}
 	
-	/* Get temperature from accelerometer */
-	lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor);
-	while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
-	int16_t temperature = lis2hh12_get_temperature(&acc_descriptor);
-	lis2hh12_dma_arm(&acc_descriptor);
-	
 	/* Print info */
 	sh1122_clear_current_screen(&plat_oled_descriptor);
 	sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Main MCU, fw %d.%d", FW_MAJOR, FW_MINOR);
 	sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "DID 0x%08x (%s), rev %c", DSU->DID.reg, part_number, 'A' + DSU->DID.bit.REVISION);
 	sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", *(uint32_t*)0x0080A00C, *(uint32_t*)0x0080A040, *(uint32_t*)0x0080A044, *(uint32_t*)0x0080A048);
-	//sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, "Board temperature: %i degrees", temperature);	
     
     /* Prepare status message request */
     comms_aux_mcu_wait_for_message_sent();
@@ -474,10 +475,54 @@ void debug_mcu_and_aux_info(void)
     }    
         
     /* This is debug, no need to check if it is the correct received message */
-    sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "MCU fw %d.%d, btid 0x%08x ver 0x%08x", temp_rx_message->aux_details_message.aux_fw_ver_major, temp_rx_message->aux_details_message.aux_fw_ver_minor, temp_rx_message->aux_details_message.btle_did, temp_rx_message->aux_details_message.btle_sdk_version);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "Aux MCU fw %d.%d", temp_rx_message->aux_details_message.aux_fw_ver_major, temp_rx_message->aux_details_message.aux_fw_ver_minor);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, FALSE, "DID 0x%08x (%s), rev %c", aux_mcu_did.reg, part_number, 'A' + aux_mcu_did.bit.REVISION);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", temp_rx_message->aux_details_message.aux_uid_registers[0], temp_rx_message->aux_details_message.aux_uid_registers[1], temp_rx_message->aux_details_message.aux_uid_registers[2], temp_rx_message->aux_details_message.aux_uid_registers[3]);
 	
+    /* Info printed, rearm DMA RX */
+    comms_aux_arm_rx_and_clear_no_comms();
+    
+	/* Check for click to return */
+	while(1)
+	{
+		if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+		{
+			return;
+		}
+	}
+}
+
+/*! \fn     debug_atbtlc_info(void)
+*   \brief  Print info about aux MCU ATBTLC1000
+*/
+void debug_atbtlc_info(void)
+{	
+    aux_mcu_message_t* temp_rx_message;
+    
+    /* Prepare status message request */
+    comms_aux_mcu_wait_for_message_sent();
+    aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
+    memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
+    
+    /* Fill the correct fields */
+    temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_PLAT_DETAILS;
+    temp_tx_message_pt->tx_reply_request_flag = 0x0001;
+    
+    /* Send message */
+    dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)temp_tx_message_pt, sizeof(*temp_tx_message_pt));
+    comms_aux_mcu_wait_for_message_sent();
+    
+    /* Wait for message from aux MCU */
+    while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
+        
+    /* Output debug info */
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 00, OLED_ALIGN_LEFT, FALSE, "BluSDK Lib: %X.%X", temp_rx_message->aux_details_message.blusdk_lib_maj, temp_rx_message->aux_details_message.blusdk_lib_min);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "BluSDK Fw: %X.%X.%X", temp_rx_message->aux_details_message.blusdk_fw_maj, temp_rx_message->aux_details_message.blusdk_fw_min, temp_rx_message->aux_details_message.blusdk_fw_build);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "ATBTLC RF Ver: 0x%8X", (unsigned int)temp_rx_message->aux_details_message.atbtlc_rf_ver);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "ATBTLC Chip ID: 0x%6X", (unsigned int)temp_rx_message->aux_details_message.atbtlc_chip_id);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, FALSE, "ATBTLC Addr: 0x%02X%02X%02X%02X%02X%02X", temp_rx_message->aux_details_message.atbtlc_address[5], temp_rx_message->aux_details_message.atbtlc_address[4], temp_rx_message->aux_details_message.atbtlc_address[3], temp_rx_message->aux_details_message.atbtlc_address[2], temp_rx_message->aux_details_message.atbtlc_address[1], temp_rx_message->aux_details_message.atbtlc_address[0]);
+
     /* Info printed, rearm DMA RX */
     comms_aux_arm_rx_and_clear_no_comms();
     

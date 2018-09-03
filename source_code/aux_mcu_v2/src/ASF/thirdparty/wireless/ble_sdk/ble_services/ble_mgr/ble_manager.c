@@ -318,7 +318,7 @@ void ble_device_init(at_ble_addr_t *addr)
 	
 	platform_init(pf_cfg.bus_info.bus_type, pf_cfg.bus_info.btlc1000_uart_pinout_switch);
 	
-	trace_set_level(TRACE_LVL_DISABLE);
+	trace_set_level(TRACE_LVL_ALL);
 	
 	ble_init(&pf_cfg);
 	

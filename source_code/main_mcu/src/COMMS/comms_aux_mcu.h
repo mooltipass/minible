@@ -34,9 +34,14 @@ typedef struct
     uint16_t aux_fw_ver_minor;
     uint32_t aux_did_register;
     uint32_t aux_uid_registers[4];
-    uint32_t btle_did;
-    uint32_t btle_sdk_version;
-    uint32_t btlc1000_rf_version;
+    uint16_t blusdk_lib_maj;
+    uint16_t blusdk_lib_min;
+    uint16_t blusdk_fw_maj;
+    uint16_t blusdk_fw_min;
+    uint16_t blusdk_fw_build;
+    uint32_t atbtlc_rf_ver;
+    uint32_t atbtlc_chip_id;
+    uint8_t atbtlc_address[6];
 } aux_plat_details_message_t;
 
 typedef struct  

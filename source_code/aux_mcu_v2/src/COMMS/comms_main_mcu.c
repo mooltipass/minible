@@ -10,7 +10,9 @@
 #include "comms_hid_msgs.h"
 #include "comms_main_mcu.h"
 #include "driver_timer.h"
+#include "at_ble_api.h"
 #include "comms_usb.h"
+#include "ble_utils.h"
 #include "defines.h"
 #include "main.h"
 #include "dma.h"
@@ -59,9 +61,12 @@ void comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_le
 */
 void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message)
 {
+    //comms_usb_debug_printf("Received main MCU other message: %i", message->message_type);
+    
     if (message->message_type == AUX_MCU_MSG_TYPE_PLAT_DETAILS)
     {
         /* Status request */
+        memset(&main_mcu_send_message, 0x00, sizeof(aux_mcu_message_t));
         main_mcu_send_message.message_type = message->message_type;
         main_mcu_send_message.payload_length1 = sizeof(aux_plat_details_message_t);
         main_mcu_send_message.aux_details_message.aux_fw_ver_major = FW_MAJOR;
@@ -71,6 +76,34 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
         main_mcu_send_message.aux_details_message.aux_uid_registers[1] = *(uint32_t*)0x0080A040;
         main_mcu_send_message.aux_details_message.aux_uid_registers[2] = *(uint32_t*)0x0080A044;
         main_mcu_send_message.aux_details_message.aux_uid_registers[3] = *(uint32_t*)0x0080A048;
+        /* Here we should check if BLE is enabled */
+        if (TRUE)
+        {
+            /* Blusdk lib version */
+            main_mcu_send_message.aux_details_message.blusdk_lib_maj = BLE_SDK_MAJOR_NO(BLE_SDK_VERSION);
+            main_mcu_send_message.aux_details_message.blusdk_lib_min = BLE_SDK_MINOR_NO(BLE_SDK_VERSION);
+            
+            /* Try to get fw version */
+            uint32_t blusdk_fw_ver;
+            if(at_ble_firmware_version_get(&blusdk_fw_ver) == AT_BLE_SUCCESS)
+            {
+                main_mcu_send_message.aux_details_message.blusdk_fw_maj = BLE_SDK_MAJOR_NO(blusdk_fw_ver);
+                main_mcu_send_message.aux_details_message.blusdk_fw_min = BLE_SDK_MINOR_NO(blusdk_fw_ver);
+                main_mcu_send_message.aux_details_message.blusdk_fw_build = BLE_SDK_BUILD_NO(blusdk_fw_ver);
+                
+                /* Getting RF version */
+                at_ble_rf_version_get(&main_mcu_send_message.aux_details_message.atbtlc_rf_ver);
+                
+                /* ATBTLC1000 chip ID */
+                at_ble_chip_id_get(&main_mcu_send_message.aux_details_message.atbtlc_chip_id);
+                
+                /* ATBTLC address */
+                at_ble_addr_t atbtlc_address;
+                atbtlc_address.type = AT_BLE_ADDRESS_PUBLIC;
+                at_ble_addr_get(&atbtlc_address);
+                memcpy(main_mcu_send_message.aux_details_message.atbtlc_address, atbtlc_address.addr, sizeof(atbtlc_address.addr));
+            }
+        }
         
         /* Send message */
         comms_main_mcu_send_message((void*)&main_mcu_send_message, (uint16_t)sizeof(main_mcu_send_message));

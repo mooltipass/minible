@@ -5,6 +5,7 @@
 #include "driver_timer.h"
 #include "ble_manager.h"
 #include "platform_io.h"
+#include "hid_device.h"
 #include "comms_usb.h"
 #include "defines.h"
 #include "fuses.h"
@@ -115,7 +116,14 @@ int main (void)
         comms_usb_communication_routine();
     }
     ble_device_init(NULL);
-    while(TRUE);
+    hid_prf_init(NULL);
+    ble_advertisement_data_set();
+    at_ble_adv_start(AT_BLE_ADV_TYPE_UNDIRECTED, AT_BLE_ADV_GEN_DISCOVERABLE, NULL, AT_BLE_ADV_FP_ANY, 100, 0, false);
+    while(TRUE)
+    {
+        comms_main_mcu_routine();
+        comms_usb_communication_routine();
+    }
     timer_start_timer(TIMER_TIMEOUT_FUNCTS, 2000);
     while (TRUE)
     {

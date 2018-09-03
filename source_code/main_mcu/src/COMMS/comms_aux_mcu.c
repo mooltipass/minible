@@ -259,10 +259,16 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt)
         reloop = FALSE;
         
         /* Wait for complete message to be received */
-        while((dma_aux_mcu_check_and_clear_dma_transfer_flag() == FALSE) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
+        BOOL dma_check_return = FALSE;
+        timer_flag_te timer_flag_return = TIMER_RUNNING;
+        while((dma_check_return == FALSE) && (timer_flag_return == TIMER_RUNNING))
+        {
+            dma_check_return = dma_aux_mcu_check_and_clear_dma_transfer_flag();
+            timer_flag_return = timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE);
+        }
         
         /* Did the timer expire? */
-        if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_EXPIRED)
+        if (dma_check_return == FALSE)
         {
             return RETURN_NOK;
         }

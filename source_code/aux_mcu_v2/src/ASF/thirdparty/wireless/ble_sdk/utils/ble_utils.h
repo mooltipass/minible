@@ -115,8 +115,8 @@
 #define DBG_LOG_PTS			ALL_UNUSED
 #endif
 
-#define DBG_LOG_DEV			ALL_UNUSED
-#define DBG_LOG_CONT_DEV	ALL_UNUSED
+#define DBG_LOG_DEV			DBG_LOG
+#define DBG_LOG_CONT_DEV	DBG_LOG
 
 #define BLU_SDK_API
 						
