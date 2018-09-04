@@ -1,11 +1,10 @@
 #include <asf.h>
 #include "platform_defines.h"
+#include "hid_keyboard_app.h"
 #include "comms_main_mcu.h"
 #include "driver_clocks.h"
 #include "driver_timer.h"
-#include "ble_manager.h"
 #include "platform_io.h"
-#include "hid_device.h"
 #include "comms_usb.h"
 #include "defines.h"
 #include "fuses.h"
@@ -115,12 +114,15 @@ int main (void)
         comms_main_mcu_routine();
         comms_usb_communication_routine();
     }
-    ble_device_init(NULL);
-    hid_prf_init(NULL);
-    ble_advertisement_data_set();
-    at_ble_adv_start(AT_BLE_ADV_TYPE_UNDIRECTED, AT_BLE_ADV_GEN_DISCOVERABLE, NULL, AT_BLE_ADV_FP_ANY, 100, 0, false);
+    
+    mini_ble_init();
+    //ble_device_init(NULL);
+    //hid_prf_init(NULL);
+    //ble_advertisement_data_set();
+    //at_ble_adv_start(AT_BLE_ADV_TYPE_UNDIRECTED, AT_BLE_ADV_GEN_DISCOVERABLE, NULL, AT_BLE_ADV_FP_ANY, 100, 0, false);
     while(TRUE)
     {
+        mini_ble_task();
         comms_main_mcu_routine();
         comms_usb_communication_routine();
     }

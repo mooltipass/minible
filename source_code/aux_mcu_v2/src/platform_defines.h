@@ -38,20 +38,19 @@
 #define USB_RAWHID_USAGE            0x0074              // HID usage
 #define USB_STR_MANUFACTURER_VAL    "SE"                // Manufacturer string
 #define USB_STR_PRODUCT_VAL         "Mooltipass"        // Product string
-#define USB_ENDPOINT0_SIZE          32                  // Size for endpoint 0
 #define USB_RAWHID_INTERFACE        0                   // Interface for the raw HID
 #define USB_RAWHID_RX_ENDPOINT      1                   // Raw HID TX endpoint
 #define USB_RAWHID_TX_ENDPOINT      2                   // Raw HID RX endpoint
 #define USB_RAWHID_TX_SIZE          64                  // Raw HID transmit packet size
 #define USB_RAWHID_RX_SIZE          64                  // Raw HID receive packet size
-#define USB_RAWHID_TX_BUFFER        EP_DOUBLE_BUFFER    // Double buffer
-#define USB_RAWHID_RX_BUFFER        EP_DOUBLE_BUFFER    // Double buffer
 #define USB_KEYBOARD_INTERFACE      1                   // Interface for keyboard
 #define USB_KEYBOARD_ENDPOINT       3                   // Endpoint number for keyboard
 #define USB_KEYBOARD_SIZE           8                   // Endpoint size for keyboard
-#define USB_KEYBOARD_BUFFER         EP_DOUBLE_BUFFER    // Double buffer
-#define USB_WRITE_TIMEOUT   50                  // Timeout for writing in the pipe
-#define USB_READ_TIMEOUT 4 // Timeout for reading in the pipe
+#define USB_WRITE_TIMEOUT   50                          // Timeout for writing in the pipe
+#define USB_READ_TIMEOUT 4                              // Timeout for reading in the pipe
+
+/* Bluetooth defies */
+#define BLE_PLATFORM_NAME           "Mooltipass Mini"
 
 
 /* Enums */

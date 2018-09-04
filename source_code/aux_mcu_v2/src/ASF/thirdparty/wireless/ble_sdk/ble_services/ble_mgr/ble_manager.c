@@ -47,6 +47,7 @@
 
 #include <asf.h>
 #include <string.h>
+#include "platform_defines.h"
 #include "at_ble_api.h"
 #include "at_ble_trace.h"
 #include "ble_manager.h"
