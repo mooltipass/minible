@@ -24,6 +24,7 @@ void platform_io_init_scroll_wheel_ports(void);
 void platform_io_power_up_oled(BOOL power_3v3);
 void platform_io_disable_switch_and_die(void);
 void platform_io_smc_inserted_function(void);
+void platform_io_init_no_comms_signal(void);
 void platform_io_smc_remove_function(void);
 BOOL platform_io_is_usb_3v3_present(void);
 void platform_io_release_aux_reset(void);

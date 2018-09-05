@@ -80,6 +80,7 @@ void main_platform_init(void)
     /* At boot, directly enable the 3V3 */
     platform_io_enable_switch();                                        // Enable switch and 3v3 stepup
     platform_io_init_power_ports();                                     // Init power port, needed later to test if we are battery or usb powered
+    platform_io_init_no_comms_signal();                                 // Init no comms signal, used as wakeup for aux MCU at boot
     platform_io_init_bat_adc_measurements();                            // Initialize ADC measurements  
     platform_io_enable_vbat_to_oled_stepup();                           // Enable vbat to oled stepup
     platform_io_get_voledin_conversion_result_and_trigger_conversion(); // Start one measurement
@@ -103,7 +104,7 @@ void main_platform_init(void)
     timer_initialize_timebase();                                        // Initialize the platform time base
     platform_io_init_ports();                                           // Initialize platform IO ports
     platform_io_init_bat_adc_measurements();                            // Initialize ADC for battery measurements
-    comms_aux_arm_rx_and_clear_no_comms();                              // Initialize communication handling with aux MCU
+    comms_aux_arm_rx_and_clear_no_comms();                              // Initialize communication with aux MCU, enable aux boot
     custom_fs_set_dataflash_descriptor(&dataflash_descriptor);          // Store the dataflash descriptor for our custom fs library
     
     /* Initialize OLED screen */

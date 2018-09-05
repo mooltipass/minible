@@ -507,6 +507,19 @@ void platform_io_clear_no_comms(void)
     #endif
 }
 
+/*! \fn     platform_io_init_no_comms_signal(void)
+*   \brief  Initialize the aux comms signal, used as wakeup for aux MCU at boot
+*/
+void platform_io_init_no_comms_signal(void)
+{    
+    /* Platform v3 */
+    #ifdef PLAT_V3_SETUP
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;    // Setup NO COMMS, enabled by default
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default
+    #endif    
+}
+
 /*! \fn     platform_io_init_aux_comms_ports(void)
 *   \brief  Initialize the ports used for communication with aux MCU
 */
@@ -519,13 +532,6 @@ void platform_io_init_aux_comms(void)
     PORT->Group[AUX_MCU_TX_GROUP].PMUX[AUX_MCU_TX_PINID/2].bit.AUX_MCU_TX_PMUXREGID = AUX_MCU_TX_PMUX_ID;   // AUX MCU TX, MAIN MCU RX
     PM->APBCMASK.bit.AUXMCU_APB_SERCOM_BIT = 1;                                                             // Enable SERCOM APB Clock Enable
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, AUXMCU_GCLK_SERCOM_ID);                                // Map 48MHz to SERCOM unit
-    
-    /* Platform v3 */
-    #ifdef PLAT_V3_SETUP
-        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;    // Setup NO COMMS, enabled by default
-        PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default
-        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default
-    #endif
     
     /* Sercom init */
     /* MSB first, USART frame, async, 8x oversampling, internal clock */

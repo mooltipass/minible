@@ -88,7 +88,7 @@ typedef struct
 /********************/
 /* Voltage cutout   */
 /********************/
-#define BATTERY_ADC_OUT_CUTOUT  (1100*273/110)
+#define BATTERY_ADC_OUT_CUTOUT  (1140*273/110)
 
 /*************************/
 /* Functionality defines */
