@@ -26,10 +26,10 @@ Interested in joining our team? For this new project, we are using <a href="http
 You'll find below the available tasks, grouped by category.
 ### [](#header-3)Firmware:
 Do not forget to review our [contributors guidelines and coding rules](coding_rules).
-* [New Database Model Implementation](task_db)
 * [Unicode Plane 0 Support Implementation (HID)](task_unicode_hid)
-* [Secure Bootloader Implementation](task_bootloader)
 * [Aux MCU USB Communications - OUT report](task_aux_mcu_usb)
+* [New Database Model Implementation](task_db)
+* [Secure Bootloader Implementation](task_bootloader)
 * [Aux MCU Bootloader Rewrite](task_aux_mcu_bootloader)
 * [Webauthn Implementation](task_u2f)
 * [User Interface Design](task_ui_design)
