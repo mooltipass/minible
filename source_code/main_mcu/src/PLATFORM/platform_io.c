@@ -110,6 +110,7 @@ uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
 
 /*! \fn     platform_io_init_bat_adc_measurements(void)
 *   \brief  Initialize ADC to later perform battery voltage measurements
+*   \note   Function called when CPU is at 8MHz (boot), or 48MHz (runtime)
 */
 void platform_io_init_bat_adc_measurements(void)
 {
@@ -120,9 +121,9 @@ void platform_io_init_bat_adc_measurements(void)
     ADC_CTRLB_Type temp_adc_ctrb_reg;                                                           // Temp register
     temp_adc_ctrb_reg.reg = 0;                                                                  // Set to 0
     temp_adc_ctrb_reg.bit.RESSEL = ADC_CTRLB_RESSEL_16BIT_Val;                                  // Set to 16bit result to allow averaging mode
-    temp_adc_ctrb_reg.bit.PRESCALER = ADC_CTRLB_PRESCALER_DIV128_Val;                           // Set fclk_adc to 48M / 128 = 375kHz
+    temp_adc_ctrb_reg.bit.PRESCALER = ADC_CTRLB_PRESCALER_DIV128_Val;                           // Set fclk_adc to 48M / 128 = 375kHz (or 62.5kHz)
     ADC->CTRLB = temp_adc_ctrb_reg;                                                             // Write ctrlb
-    ADC->AVGCTRL.reg = ADC_AVGCTRL_ADJRES(4) | ADC_AVGCTRL_SAMPLENUM_1024;                      // Average on 1024 samples. Expected time for avg: 375k/(12-1)/1024 = 33.3Hz = 30ms. Single conversion mode, single ended, 12bit
+    ADC->AVGCTRL.reg = ADC_AVGCTRL_ADJRES(4) | ADC_AVGCTRL_SAMPLENUM_1024;                      // Average on 1024 samples. Expected time for avg: 375k/(12-1)/1024 = 33.3Hz = 30ms (or 180ms). Single conversion mode, single ended, 12bit
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                       // Wait for sync
     ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(VBAT_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND;  // 1x gain, one channel set to voled in
     ADC->INTENSET.reg = ADC_INTENSET_RESRDY;                                                    // Enable in result ready interrupt
@@ -348,12 +349,6 @@ void platform_io_init_flash_ports(void)
 */
 void platform_io_init_oled_ports(void)
 {
-    PORT->Group[VOLED_1V2_EN_GROUP].DIRSET.reg = VOLED_1V2_EN_MASK;                                     // OLED HV enable from 1V2, OUTPUT low by default
-    PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;                                     // OLED HV enable from 1V2, OUTPUT low by default
-    PORT->Group[VOLED_3V3_EN_GROUP].DIRSET.reg = VOLED_3V3_EN_MASK;                                     // OLED HV enable from 3V3, OUTPUT low by default
-    PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;                                     // OLED HV enable from 3V3, OUTPUT low by default
-    PORT->Group[OLED_nRESET_GROUP].DIRSET.reg = OLED_nRESET_MASK;                                       // OLED nRESET, OUTPUT
-    PORT->Group[OLED_nRESET_GROUP].OUTCLR.reg = OLED_nRESET_MASK;                                       // OLED nRESET, asserted
     PORT->Group[OLED_nCS_GROUP].DIRSET.reg = OLED_nCS_MASK;                                             // OLED nCS, OUTPUT high by default
     PORT->Group[OLED_nCS_GROUP].OUTSET.reg = OLED_nCS_MASK;                                             // OLED nCS, OUTPUT high by default
     PORT->Group[OLED_CD_GROUP].DIRSET.reg = OLED_CD_MASK;                                               // OLED CD, OUTPUT high by default
@@ -369,19 +364,38 @@ void platform_io_init_oled_ports(void)
     sercom_spi_init(OLED_SERCOM, OLED_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, OLED_MISO_PAD, OLED_MOSI_SCK_PADS, FALSE);
 }
 
+/*! \fn     platform_io_enable_vbat_to_oled_stepup(void)
+*   \brief  Enable Vbat to oled stepup
+*/
+void platform_io_enable_vbat_to_oled_stepup(void)
+{
+    PORT->Group[VOLED_1V2_EN_GROUP].OUTSET.reg = VOLED_1V2_EN_MASK; 
+}
+
+/*! \fn     platform_io_disable_vbat_to_oled_stepup(void)
+*   \brief  Disable Vbat to oled stepup
+*/
+void platform_io_disable_vbat_to_oled_stepup(void)
+{
+    PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;
+}
+
 /*! \fn     platform_io_power_up_oled(BOOL power_3v3)
 *   \brief  OLED powerup routine (3V3, 12V, reset release)
 *   \param  power_3v3   TRUE to use USB 3V3 as source for 12V stepup
+*   \note   1v2 is already present at the stepup input when this function is called
 */
 void platform_io_power_up_oled(BOOL power_3v3)
 {
     /* 3V3 is already there when arriving here, just enable the 12V */
     if (power_3v3 == FALSE)
     {
+        PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;
         PORT->Group[VOLED_1V2_EN_GROUP].OUTSET.reg = VOLED_1V2_EN_MASK; 
     }
     else
     {
+        PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;
         PORT->Group[VOLED_3V3_EN_GROUP].OUTSET.reg = VOLED_3V3_EN_MASK;
     }
     
@@ -438,6 +452,14 @@ void platform_io_init_power_ports(void)
     PORT->Group[USB_3V3_GROUP].OUTCLR.reg = USB_3V3_MASK;                                                   // Setup USB 3V3 detection input with pull-down
     PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.PULLEN = 1;                                        // Setup USB 3V3 detection input with pull-down
     PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.INEN = 1;                                          // Setup USB 3V3 detection input with pull-down
+    
+    /* OLED stepup ports */
+    PORT->Group[OLED_nRESET_GROUP].DIRSET.reg = OLED_nRESET_MASK;                                           // OLED nRESET, OUTPUT
+    PORT->Group[OLED_nRESET_GROUP].OUTCLR.reg = OLED_nRESET_MASK;                                           // OLED nRESET, asserted
+    PORT->Group[VOLED_1V2_EN_GROUP].DIRSET.reg = VOLED_1V2_EN_MASK;                                         // OLED HV enable from 1V2, OUTPUT low by default
+    PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;                                         // OLED HV enable from 1V2, OUTPUT low by default
+    PORT->Group[VOLED_3V3_EN_GROUP].DIRSET.reg = VOLED_3V3_EN_MASK;                                         // OLED HV enable from 3V3, OUTPUT low by default
+    PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;                                         // OLED HV enable from 3V3, OUTPUT low by default
 }
 
 /*! \fn     platform_io_disable_aux_comms(void)
@@ -540,9 +562,6 @@ void platform_io_init_ports(void)
     EIC->CTRL.reg = EIC_CTRL_ENABLE;
     /* Enable its interrupts */
     NVIC_EnableIRQ(EIC_IRQn);
-    
-    /* Power */
-    platform_io_init_power_ports();
     
     /* Scrollwheel */
     platform_io_init_scroll_wheel_ports();

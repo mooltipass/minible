@@ -311,10 +311,7 @@ void debug_debug_animation(void)
 *   \brief  Debug screen
 */
 void debug_debug_screen(void)
-{    
-    /* Start bat measurement */
-    platform_io_get_voledin_conversion_result_and_trigger_conversion();
-    
+{        
     /* Debug variables */
     uint32_t acc_int_nb_interrupts_latched = 0;
     uint32_t acc_int_nb_interrupts = 0;

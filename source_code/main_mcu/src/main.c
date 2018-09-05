@@ -79,7 +79,18 @@ void main_platform_init(void)
     
     /* At boot, directly enable the 3V3 */
     platform_io_enable_switch();                                        // Enable switch and 3v3 stepup
-    DELAYMS_8M(100);                                                    // Leave 100ms for stepup powerup
+    platform_io_init_power_ports();                                     // Init power port, needed later to test if we are battery or usb powered
+    platform_io_init_bat_adc_measurements();                            // Initialize ADC measurements  
+    platform_io_enable_vbat_to_oled_stepup();                           // Enable vbat to oled stepup
+    platform_io_get_voledin_conversion_result_and_trigger_conversion(); // Start one measurement
+    while(platform_io_is_voledin_conversion_result_ready() == FALSE);   // Do measurement even if we are USB powered, to leave exactly 180ms for platform boot
+    
+    /* Check if battery powered and undervoltage */    
+    if ((platform_io_is_usb_3v3_present() == FALSE) && (platform_io_get_voledin_conversion_result_and_trigger_conversion() < BATTERY_ADC_OUT_CUTOUT))
+    {
+        platform_io_disable_switch_and_die();
+        while(1);
+    }
     
     /* Check fuses */
     fuses_ok = fuses_check_program(TRUE);                               // Check fuses and program them if incorrectly set
