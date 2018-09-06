@@ -45,6 +45,7 @@
  */
 #include "extint.h"
 #include "extint_callback.h"
+#include "platform_defines.h"
 
 /**
  * \internal
@@ -217,6 +218,13 @@ uint8_t extint_get_current_channel(void)
 /** Handler for the EXTINT hardware module interrupt. */
 void EIC_Handler(void)
 {
+    /* No comms interrupt: ACK and disable interrupt */
+    if ((EIC->INTFLAG.reg & (1 << NOCOMMS_EXTINT_NUM)) != 0)
+    {
+        EIC->INTFLAG.reg = (1 << NOCOMMS_EXTINT_NUM);
+        EIC->INTENCLR.reg = (1 << NOCOMMS_EXTINT_NUM);
+    }
+    
 	/* Find any triggered channels, run associated callback handlers */
 	for (_current_channel = 0; _current_channel < EIC_NUMBER_OF_INTERRUPTS ; _current_channel++) {
 		if (extint_chan_is_detected(_current_channel)) {

@@ -13,8 +13,8 @@
 
 
 /* Prototypes */
+void main_standby_sleep(BOOL startup_run);
 void main_platform_init(void);
-void main_standby_sleep(void);
 
 
 #endif /* MAIN_H_ */

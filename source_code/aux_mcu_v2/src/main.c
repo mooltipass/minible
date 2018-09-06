@@ -65,6 +65,17 @@ void main_platform_init(void)
     /* Initialization results vars */
     RET_TYPE fuses_ok;
     
+    /* Enable EIC interrupts and no comms input */
+    platform_io_enable_eic();
+    platform_io_init_no_comms_input();
+    
+    /* Boot delay */
+    DELAYMS_8M(10);
+    
+    /* Sleep until main MCU tells us to wake up */
+    main_standby_sleep(TRUE);
+    //while ((PORT->Group[AUX_MCU_NOCOMMS_GROUP].IN.reg & AUX_MCU_NOCOMMS_MASK) != 0);
+    
     /* Check fuses */
     fuses_ok = fuses_check_program(TRUE);                               // Check fuses and program them if incorrectly set
     while(fuses_ok == RETURN_NOK);
@@ -78,33 +89,52 @@ void main_platform_init(void)
     usb_init();                                                         // Initialize USB stack
 }    
 
-/*! \fn     main_standby_sleep(void)
+/*! \fn     main_standby_sleep(BOOL startup_run)
 *   \brief  Go to sleep
+*   \param  startup_run     Set to TRUE when this routine is called at startup
 */
-void main_standby_sleep(void)
+void main_standby_sleep(BOOL startup_run)
 {        
     /* Errata 10416: disable interrupt routines */
     cpu_irq_enter_critical();
         
     /* Prepare the ports for sleep */
-    platform_io_prepare_ports_for_sleep();
+    if (startup_run != FALSE)
+    {
+        platform_io_prepare_ports_for_sleep();
+    }
+    
+    /* Enable no comms interrupt on low level */
+    platform_io_enable_no_comms_int();
     
     /* Enter deep sleep */
     SCB->SCR = SCB_SCR_SLEEPDEEP_Msk;
     __DSB();
     __WFI();
     
+    /* Disable no comms interrupt */
+    platform_io_disable_no_comms_int();
+    
     /* Prepare ports for sleep exit */
-    platform_io_prepare_ports_for_sleep_exit();
+    if (startup_run != FALSE)
+    {        
+        platform_io_prepare_ports_for_sleep_exit();
+    }
     
     /* Damn errata... enable interrupts */
-    cpu_irq_leave_critical();    
+    cpu_irq_leave_critical();
 }
 
 int main (void)
 {
     /* Initialize our platform */
     main_platform_init();
+    
+    while(TRUE)
+    {
+        comms_main_mcu_routine();
+        comms_usb_communication_routine();
+    }
     
     /* Test code: remove later */
     udc_attach();

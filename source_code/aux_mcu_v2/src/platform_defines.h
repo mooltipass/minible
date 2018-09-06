@@ -88,11 +88,21 @@ typedef uint32_t PIN_ID_T;
 #define DMA_DESCID_RX_COMMS         0
 #define DMA_DESCID_TX_COMMS         1
 
+/* External interrupts numbers */
+#if defined(PLAT_V3_SETUP)
+    #define NOCOMMS_EXTINT_NUM      2
+    #define NOCOMMS_EIC_SENSE_REG   SENSE2
+#endif
+
 /* SERCOM trigger for flash data transfers */
 #if defined(PLAT_V3_SETUP)
     #define AUX_MCU_SERCOM_RXTRIG           0x07
     #define AUX_MCU_SERCOM_TXTRIG           0x08
 #endif
+
+/* Speed defines */
+#define CPU_SPEED_HF                48000000UL
+#define CPU_SPEED_MF                8000000UL
 
 /* PORT defines */
 /* AUX MCU COMMS */
@@ -123,7 +133,12 @@ typedef uint32_t PIN_ID_T;
 #if defined(PLAT_V3_SETUP)
     #define AUX_MCU_NOCOMMS_GROUP   PIN_GROUP_0
     #define AUX_MCU_NOCOMMS_PINID   18
-    #define AUX_MCU_NOCOMMS_MASK    (1UL << AUX_MCU_NOCOMMS_PINID)
+#endif
+#define AUX_MCU_NOCOMMS_MASK        (1UL << AUX_MCU_NOCOMMS_PINID)
+#if (AUX_MCU_NOCOMMS_PINID % 2) == 1
+    #define AUX_MCU_NOCOMMS_PMUXREGID  PMUXO
+#else
+    #define AUX_MCU_NOCOMMS_PMUXREGID  PMUXE
 #endif
 
 /* USB pads */

@@ -10,10 +10,14 @@
 /* Prototypes */
 void platform_io_prepare_ports_for_sleep_exit(void);
 void platform_io_prepare_ports_for_sleep(void);
+void platform_io_disable_no_comms_int(void);
+void platform_io_enable_no_comms_int(void);
+void platform_io_init_no_comms_input(void);
 void platform_io_disable_main_comms(void);
 void platform_io_enable_main_comms(void);
 void platform_io_init_aux_comms(void);
 void platform_io_init_usb_ports(void);
+void platform_io_enable_eic(void);
 void platform_io_init_ports(void);
 
 

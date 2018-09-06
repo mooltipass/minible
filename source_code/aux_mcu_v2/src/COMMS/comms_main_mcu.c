@@ -14,6 +14,7 @@
 #include "comms_usb.h"
 #include "ble_utils.h"
 #include "defines.h"
+#include "logic.h"
 #include "main.h"
 #include "dma.h"
 #include "udc.h"
@@ -76,8 +77,9 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
         main_mcu_send_message.aux_details_message.aux_uid_registers[1] = *(uint32_t*)0x0080A040;
         main_mcu_send_message.aux_details_message.aux_uid_registers[2] = *(uint32_t*)0x0080A044;
         main_mcu_send_message.aux_details_message.aux_uid_registers[3] = *(uint32_t*)0x0080A048;
-        /* Here we should check if BLE is enabled */
-        if (TRUE)
+        
+        /* Check if BLE is enabled */
+        if (logic_is_ble_enabled() != FALSE)
         {
             /* Blusdk lib version */
             main_mcu_send_message.aux_details_message.blusdk_lib_maj = BLE_SDK_MAJOR_NO(BLE_SDK_VERSION);
@@ -114,7 +116,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
         {
             case MAIN_MCU_COMMAND_SLEEP:
             {
-                main_standby_sleep();
+                main_standby_sleep(TRUE);
                 break;
             }
             case MAIN_MCU_COMMAND_PING:
