@@ -8,6 +8,7 @@
 #include "comms_hid_msgs_debug.h"
 #include "platform_defines.h"
 #include "comms_hid_msgs.h"
+#include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "platform_io.h"
@@ -21,7 +22,7 @@ BOOL aux_mcu_message_answered_using_first_bytes = FALSE;
 
 
 /*! \fn     comms_aux_arm_rx_and_clear_no_comms(void)
-*   \brief  Init communications with aux MCU
+*   \brief  Init RX communications with aux MCU
 */
 void comms_aux_arm_rx_and_clear_no_comms(void)
 {
@@ -37,15 +38,21 @@ aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void)
     return &aux_mcu_send_message;
 }
 
-/*! \fn     comms_aux_mcu_send_message(aux_mcu_message_t* message)
-*   \brief  Send a message to the AUX MCU
-*   \param  message         Pointer to the message to send
-*   \note   Transfer is done through DMA so data will be accessed after this function returns
+/*! \fn     comms_aux_mcu_send_message(BOOL wait_for_send)
+*   \brief  Send aux_mcu_send_message to the AUX MCU
+*   \param  wait_for_send   Set to TRUE for function return when message is sent
+*   \note   Transfer is done through DMA so aux_mcu_send_message will be accessed after this function returns if boolean is set to false
 */
-void comms_aux_mcu_send_message(aux_mcu_message_t* message)
+void comms_aux_mcu_send_message(BOOL wait_for_send)
 {    
     /* The function below does wait for a previous transfer to finish */
-    dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)message, sizeof(aux_mcu_message_t));    
+    dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
+    
+    /* If asked, wait for message sent */
+    if (wait_for_send != FALSE)
+    {
+        dma_wait_for_aux_mcu_packet_sent();
+    }
 }
 
 /*! \fn     comms_aux_mcu_wait_for_message_sent(void)
@@ -67,43 +74,26 @@ void comms_aux_mcu_send_simple_command_message(uint16_t command)
     aux_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;
     aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.main_mcu_command_message.command);
     aux_mcu_send_message.main_mcu_command_message.command = command;
-    comms_aux_mcu_send_message((void*)&aux_mcu_send_message);
-    comms_aux_mcu_wait_for_message_sent();    
+    comms_aux_mcu_send_message(FALSE);
 }
 
-/*! \fn     comms_aux_mcu_get_ble_chip_id(void)
-*   \brief  Get ATBTLC1000 chip ID
-*   \return uint32_t of chipID
-*   \note   BLE must be enabled before calling this
+/*! \fn     comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt)
+*   \brief  Get an empty message ready to be sent
+*   \param  message_pt_pt   Pointer to where to store message pointer
 */
-uint32_t comms_aux_mcu_get_ble_chip_id(void)
+void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt)
 {
-    aux_mcu_message_t* temp_rx_message;
-    uint32_t return_val;
-    
-    /* Prepare status message request */
+    /* Wait for possible ongoing message to be sent */
     comms_aux_mcu_wait_for_message_sent();
+    
+    /* Get pointer to our message to be sent buffer */
     aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
+    
+    /* Clear it */
     memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
     
-    /* Fill the correct fields */
-    temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_PLAT_DETAILS;
-    temp_tx_message_pt->tx_reply_request_flag = 0x0001;
-    
-    /* Send message */
-    dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)temp_tx_message_pt, sizeof(*temp_tx_message_pt));
-    comms_aux_mcu_wait_for_message_sent();
-    
-    /* Wait for message from aux MCU */
-    while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
-    
-    /* Output debug info */
-    return_val = temp_rx_message->aux_details_message.atbtlc_chip_id;
-
-    /* Info printed, rearm DMA RX */
-    comms_aux_arm_rx_and_clear_no_comms();
-    
-    return return_val;
+    /* Store message pointer */
+    *message_pt_pt = temp_tx_message_pt;
 }
 
 /*! \fn     comms_aux_mcu_send_receive_ping(void)
@@ -113,21 +103,23 @@ uint32_t comms_aux_mcu_get_ble_chip_id(void)
 RET_TYPE comms_aux_mcu_send_receive_ping(void)
 {
     aux_mcu_message_t* temp_rx_message_pt;
+    aux_mcu_message_t* temp_tx_message_pt;
     RET_TYPE return_val = RETURN_OK;
 
     /* Tell the aux MCU to not send us messages */
-    platform_io_set_no_comms();
+    platform_io_set_no_comms();    
+    
+    /* Get an empty packet ready to be sent */
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt);
     
     /* Wait for possible previous message to be sent */
     comms_aux_mcu_wait_for_message_sent();
     
     /* Prepare packet */
-    memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
-    aux_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;
-    aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.main_mcu_command_message.command);
-    aux_mcu_send_message.main_mcu_command_message.command = MAIN_MCU_COMMAND_PING;
-    comms_aux_mcu_send_message((void*)&aux_mcu_send_message);
-    comms_aux_mcu_wait_for_message_sent();
+    temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->main_mcu_command_message.command);
+    temp_tx_message_pt->main_mcu_command_message.command = MAIN_MCU_COMMAND_PING;
+    comms_aux_mcu_send_message(TRUE);
     
     /* Wait for answer: no need to parse answer as filter is done in comms_aux_mcu_active_wait */
     return_val = comms_aux_mcu_active_wait(&temp_rx_message_pt);
@@ -254,13 +246,21 @@ void comms_aux_mcu_routine(void)
             aux_mcu_send_message.payload_length1 = hid_reply_payload_length + sizeof(aux_mcu_receive_message.hid_message.message_type) + sizeof(aux_mcu_receive_message.hid_message.payload_length);
                     
             /* Send message */
-            comms_aux_mcu_send_message((void*)&aux_mcu_send_message);
+            comms_aux_mcu_send_message(FALSE);
         }
     } 
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BOOTLOADER)
     {
         asm("Nop");
     }   
+    else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD)
+    {
+        if (aux_mcu_receive_message.main_mcu_command_message.command == MAIN_MCU_COMMAND_ENABLE_BLE)
+        {
+            /* BLE just got enabled */
+            logic_aux_mcu_set_ble_enabled_bool(TRUE);
+        }
+    }
     else
     {
         asm("Nop");        

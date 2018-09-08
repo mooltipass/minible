@@ -52,8 +52,7 @@ void comms_hid_msgs_debug_printf(const char *fmt, ...)
         }
         
         /* Send message */
-        comms_aux_mcu_send_message((void*)temp_message);
-        comms_aux_mcu_wait_for_message_sent();
+        comms_aux_mcu_send_message(TRUE);
     }
     va_end(ap);
 }

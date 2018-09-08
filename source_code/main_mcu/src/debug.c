@@ -421,8 +421,9 @@ void debug_debug_screen(void)
 *   \brief  Print info about main & aux MCU
 */
 void debug_mcu_and_aux_info(void)
-{	
+{
     aux_mcu_message_t* temp_rx_message;
+    aux_mcu_message_t* temp_tx_message_pt;
     
 	/* Get part number */
 	char part_number[20] = "unknown";
@@ -438,17 +439,12 @@ void debug_mcu_and_aux_info(void)
 	sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", *(uint32_t*)0x0080A00C, *(uint32_t*)0x0080A040, *(uint32_t*)0x0080A044, *(uint32_t*)0x0080A048);
     
     /* Prepare status message request */
-    comms_aux_mcu_wait_for_message_sent();
-    aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
-    memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
-    
-    /* Fill the correct fields */
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt);
     temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_PLAT_DETAILS;
     temp_tx_message_pt->tx_reply_request_flag = 0x0001;
     
     /* Send message */
-    dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)temp_tx_message_pt, sizeof(*temp_tx_message_pt));
-    comms_aux_mcu_wait_for_message_sent();
+    comms_aux_mcu_send_message(TRUE);
     
     /* Wait for message from aux MCU */
     while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
@@ -495,30 +491,18 @@ void debug_mcu_and_aux_info(void)
 void debug_atbtlc_info(void)
 {	
     aux_mcu_message_t* temp_rx_message;   
+    aux_mcu_message_t* temp_tx_message_pt;
     
     /* Enable BLE */
-    platform_io_enable_ble();
-    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ENABLE_BLE);
+    logic_aux_mcu_enable_ble(TRUE);
     
-    /* wait for BLE to bootup */
-    comms_aux_mcu_wait_for_message_sent();
-    while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
-        
-    /* Rearm DMA RX */
-    comms_aux_arm_rx_and_clear_no_comms();
-    
-    /* Prepare status message request */
-    comms_aux_mcu_wait_for_message_sent();
-    aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
-    memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
-    
-    /* Fill the correct fields */
+    /* Generate our packet */
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt);
     temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_PLAT_DETAILS;
     temp_tx_message_pt->tx_reply_request_flag = 0x0001;
     
     /* Send message */
-    dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)temp_tx_message_pt, sizeof(*temp_tx_message_pt));
-    comms_aux_mcu_wait_for_message_sent();
+    comms_aux_mcu_send_message(TRUE);
     
     /* Wait for message from aux MCU */
     while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
