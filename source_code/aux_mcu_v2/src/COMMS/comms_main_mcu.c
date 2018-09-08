@@ -7,6 +7,7 @@
 #include <asf.h>
 #include "comms_hid_msgs_debug.h"
 #include "platform_defines.h"
+#include "hid_keyboard_app.h"
 #include "comms_hid_msgs.h"
 #include "comms_main_mcu.h"
 #include "driver_timer.h"
@@ -18,13 +19,14 @@
 #include "main.h"
 #include "dma.h"
 #include "udc.h"
-/* Received and sent MCU messages */
+/* Message about to be sent to main MCU */
 aux_mcu_message_t main_mcu_send_message;
+/* Temporary message, used when dealing with message shorter than max size */
+volatile aux_mcu_message_t comms_main_mcu_temp_message;
 /* Flag set if we have treated a message by only looking at its first bytes */
-BOOL comms_main_mcu_usb_msg_answered_using_first_bytes = FALSE;
-BOOL comms_main_mcu_ble_msg_answered_using_first_bytes = FALSE;
-BOOL comms_main_mcu_other_msg_answered_using_first_bytes = FALSE;
-
+volatile BOOL comms_main_mcu_usb_msg_answered_using_first_bytes = FALSE;
+volatile BOOL comms_main_mcu_ble_msg_answered_using_first_bytes = FALSE;
+volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes = FALSE;
 
 /*! \fn     comms_main_init_rx(void)
 *   \brief  Init communications with aux MCU
@@ -39,7 +41,7 @@ void comms_main_init_rx(void)
 */
 aux_mcu_message_t* comms_main_mcu_get_temp_tx_message_object_pt(void)
 {
-    return &main_mcu_send_message;
+    return (aux_mcu_message_t*)&main_mcu_send_message;
 }
 
 /*! \fn     comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length)
@@ -67,7 +69,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
     if (message->message_type == AUX_MCU_MSG_TYPE_PLAT_DETAILS)
     {
         /* Status request */
-        memset(&main_mcu_send_message, 0x00, sizeof(aux_mcu_message_t));
+        memset((void*)&main_mcu_send_message, 0x00, sizeof(aux_mcu_message_t));
         main_mcu_send_message.message_type = message->message_type;
         main_mcu_send_message.payload_length1 = sizeof(aux_plat_details_message_t);
         main_mcu_send_message.aux_details_message.aux_fw_ver_major = FW_MAJOR;
@@ -103,7 +105,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 at_ble_addr_t atbtlc_address;
                 atbtlc_address.type = AT_BLE_ADDRESS_PUBLIC;
                 at_ble_addr_get(&atbtlc_address);
-                memcpy(main_mcu_send_message.aux_details_message.atbtlc_address, atbtlc_address.addr, sizeof(atbtlc_address.addr));
+                memcpy((void*)main_mcu_send_message.aux_details_message.atbtlc_address, (void*)atbtlc_address.addr, sizeof(atbtlc_address.addr));
             }
         }
         
@@ -129,6 +131,20 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 udc_attach();
                 break;
             }
+            case MAIN_MCU_COMMAND_ENABLE_BLE:
+            {
+                if (logic_is_ble_enabled() == FALSE)
+                {
+                    logic_set_ble_enabled();
+                    mini_ble_init();
+                    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
+                }
+                else
+                {
+                    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
+                }
+                break;
+            }
         }
     }
 }
@@ -141,63 +157,85 @@ void comms_main_mcu_routine(void)
     /* First: deal with fully received messages */
     if (dma_main_mcu_usb_msg_received != FALSE)
     {
+        /* Set bool and do necessary action: no point in setting the bool after the function call as the dma receiver will overwrite the packet anyways */
+        dma_main_mcu_usb_msg_received = FALSE;
+        
         if (comms_main_mcu_usb_msg_answered_using_first_bytes == FALSE)
         {
             comms_usb_send_hid_message((aux_mcu_message_t*)&dma_main_mcu_usb_rcv_message);
         }
-        comms_main_mcu_usb_msg_answered_using_first_bytes = FALSE;
-        dma_main_mcu_usb_msg_received = FALSE;
     }
     if (dma_main_mcu_ble_msg_received != FALSE)
     {
+        /* Set bool and do necessary action: no point in setting the bool after the function call as the dma receiver will overwrite the packet anyways */
+        dma_main_mcu_ble_msg_received = FALSE;
+        
         if (comms_main_mcu_ble_msg_answered_using_first_bytes == FALSE)
         {
             // TBD
         }
-        comms_main_mcu_ble_msg_answered_using_first_bytes = FALSE;
-        dma_main_mcu_ble_msg_received = FALSE;
     }
     if (dma_main_mcu_other_msg_received != FALSE)
     {
+        /* Set bool and do necessary action: no point in setting the bool after the function call as the dma receiver will overwrite the packet anyways */
+        dma_main_mcu_other_msg_received = FALSE;
+        
         if (comms_main_mcu_other_msg_answered_using_first_bytes == FALSE)
         {
             comms_main_mcu_deal_with_non_usb_non_ble_message((aux_mcu_message_t*)&dma_main_mcu_other_message);
         }
-        comms_main_mcu_other_msg_answered_using_first_bytes = FALSE;
-        dma_main_mcu_other_msg_received = FALSE;
     }
     
     /* Second: see if we could deal with a packet in advance */
     /* Ongoing RX transfer received bytes */
     uint16_t nb_received_bytes_for_ongoing_transfer = sizeof(dma_main_mcu_temp_rcv_message) - dma_main_mcu_get_remaining_bytes_for_rx_transfer();
     
-    /* Depending on the message type, set the correct bool pointer */
-    BOOL* answered_with_the_first_bytes_pointer = &comms_main_mcu_other_msg_answered_using_first_bytes;
+    /* Depending on the message type, set the correct bool pointers */
+    volatile BOOL* answered_with_the_first_bytes_pointer = &comms_main_mcu_other_msg_answered_using_first_bytes;
+    volatile BOOL* packet_fully_received_in_the_mean_time_pointer = &dma_main_mcu_other_msg_received;
     if (dma_main_mcu_temp_rcv_message.message_type == AUX_MCU_MSG_TYPE_USB)
     {
         answered_with_the_first_bytes_pointer = &comms_main_mcu_usb_msg_answered_using_first_bytes;
+        packet_fully_received_in_the_mean_time_pointer = &dma_main_mcu_usb_msg_received;
     } 
     else if (dma_main_mcu_temp_rcv_message.message_type == AUX_MCU_MSG_TYPE_BLE)
     {
         answered_with_the_first_bytes_pointer = &comms_main_mcu_ble_msg_answered_using_first_bytes;
+        packet_fully_received_in_the_mean_time_pointer = &dma_main_mcu_ble_msg_received;
     }
     
-    /* First part of message */
-    if ((nb_received_bytes_for_ongoing_transfer >= sizeof(dma_main_mcu_temp_rcv_message.message_type) + sizeof(dma_main_mcu_temp_rcv_message.payload_length1) + dma_main_mcu_temp_rcv_message.payload_length1) && (*answered_with_the_first_bytes_pointer == FALSE))
+    /* Check if we should deal with this packet */    
+    cpu_irq_enter_critical();
+    BOOL should_deal_with_packet = FALSE;
+    
+    /* Conditions: received more bytes than the payload length, didn't already reply using this method, received flag didn't arrive in the mean time */
+    if ((nb_received_bytes_for_ongoing_transfer >= sizeof(dma_main_mcu_temp_rcv_message.message_type) + sizeof(dma_main_mcu_temp_rcv_message.payload_length1) + dma_main_mcu_temp_rcv_message.payload_length1) && (*answered_with_the_first_bytes_pointer == FALSE) && ((sizeof(aux_mcu_message_t) - nb_received_bytes_for_ongoing_transfer) > 20) && (*packet_fully_received_in_the_mean_time_pointer == FALSE))
     {
-        /* Set bool and do necessary action */
+        should_deal_with_packet = TRUE;
+        
+        /* Set bool and do necessary action: no point in setting the bool after the function call as the dma receiver will overwrite the packet anyways */
         *answered_with_the_first_bytes_pointer = TRUE;
-        if (dma_main_mcu_temp_rcv_message.message_type == AUX_MCU_MSG_TYPE_USB)
+        
+        /* Copy message into dedicated buffer, as the message currently is in the dma temporary buffer. */
+        memset((void*)&comms_main_mcu_temp_message, 0, sizeof(comms_main_mcu_temp_message));
+        memcpy((void*)&comms_main_mcu_temp_message, (void*)&dma_main_mcu_temp_rcv_message, nb_received_bytes_for_ongoing_transfer);
+    }
+    cpu_irq_leave_critical();
+    
+    /* First part of message */
+    if (should_deal_with_packet != FALSE)
+    {        
+        if (comms_main_mcu_temp_message.message_type == AUX_MCU_MSG_TYPE_USB)
         {
-            comms_usb_send_hid_message((aux_mcu_message_t*)&dma_main_mcu_temp_rcv_message);
+            comms_usb_send_hid_message((aux_mcu_message_t*)&comms_main_mcu_temp_message);
         }
-        else if (dma_main_mcu_temp_rcv_message.message_type == AUX_MCU_MSG_TYPE_BLE)
+        else if (comms_main_mcu_temp_message.message_type == AUX_MCU_MSG_TYPE_BLE)
         {
             // TBD
         }
         else
         {
-            comms_main_mcu_deal_with_non_usb_non_ble_message((aux_mcu_message_t*)&dma_main_mcu_temp_rcv_message);            
+            comms_main_mcu_deal_with_non_usb_non_ble_message((aux_mcu_message_t*)&comms_main_mcu_temp_message);  
         }
     }
 }

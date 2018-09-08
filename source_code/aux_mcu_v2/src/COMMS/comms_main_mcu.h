@@ -12,6 +12,11 @@
 #include "comms_bootloader_msg.h"
 #include "comms_hid_msgs.h"
 
+/* Share vars */
+extern volatile BOOL comms_main_mcu_usb_msg_answered_using_first_bytes;
+extern volatile BOOL comms_main_mcu_ble_msg_answered_using_first_bytes;
+extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
+
 /* Defines */
 // Aux MCU Message Type
 #define AUX_MCU_MSG_TYPE_USB            0x0000
@@ -25,6 +30,7 @@
 #define MAIN_MCU_COMMAND_SLEEP          0x0001
 #define MAIN_MCU_COMMAND_ATTACH_USB     0x0002
 #define MAIN_MCU_COMMAND_PING           0x0003
+#define MAIN_MCU_COMMAND_ENABLE_BLE     0x0004
 
 /* Typedefs */
 typedef struct

@@ -73,7 +73,8 @@ typedef struct
 // Platform settings
 typedef struct  
 {
-    uint8_t reserved[252];
+    uint8_t reserved[250];
+    uint16_t first_boot_flag;
     uint32_t start_upgrade_flag;
 } custom_platform_settings_t;
 
@@ -144,6 +145,7 @@ BOOL custom_fs_settings_check_fw_upgrade_flag(void);
 void custom_fs_settings_clear_fw_upgrade_flag(void);
 void custom_fs_settings_set_fw_upgrade_flag(void);
 uint32_t custom_fs_get_number_of_languages(void);
+BOOL custom_fs_is_first_boot(void);
 ret_type_te custom_fs_init(void);
 
 /* Global vars, for debug only */

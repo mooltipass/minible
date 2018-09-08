@@ -74,7 +74,6 @@ void main_platform_init(void)
     
     /* Sleep until main MCU tells us to wake up */
     main_standby_sleep(TRUE);
-    //while ((PORT->Group[AUX_MCU_NOCOMMS_GROUP].IN.reg & AUX_MCU_NOCOMMS_MASK) != 0);
     
     /* Check fuses */
     fuses_ok = fuses_check_program(TRUE);                               // Check fuses and program them if incorrectly set
@@ -130,6 +129,7 @@ int main (void)
     /* Initialize our platform */
     main_platform_init();
     
+    udc_attach();
     while(TRUE)
     {
         comms_main_mcu_routine();

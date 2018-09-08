@@ -497,6 +497,22 @@ void custom_fs_settings_clear_fw_upgrade_flag(void)
     return;    
 }
 
+/*! \fn     custom_fs_is_first_boot(void)
+*   \brief  Check for first boot
+*   \return TRUE for first boot
+*/
+BOOL custom_fs_is_first_boot(void)
+{
+    if ((custom_fs_platform_settings_p != 0) && (custom_fs_platform_settings_p->first_boot_flag == 0xFFFF))
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }    
+}
+
 /*! \fn     custom_fs_settings_check_fw_upgrade_flag(void)
 *   \brief  Check for fw upgrade flag inside our settings
 *   \return The boolean

@@ -42,25 +42,49 @@ void DMAC_Handler(void)
         dma_aux_mcu_packet_received = TRUE;
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
         
+        /* Arm next transfer: leave this here! */
+        dma_main_mcu_init_rx_transfer();
+        
         /* Depending on message received, copy to the right rcv buffer and set flag */
         if (dma_main_mcu_temp_rcv_message.message_type == AUX_MCU_MSG_TYPE_USB)
         {
             memcpy((void*)&dma_main_mcu_usb_rcv_message, (void*)&dma_main_mcu_temp_rcv_message, sizeof(dma_main_mcu_temp_rcv_message));
-            dma_main_mcu_usb_msg_received = TRUE;
+            /* Check if received message has already been dealt with, do not set received flag if so */
+            if (comms_main_mcu_usb_msg_answered_using_first_bytes != FALSE)
+            {
+                comms_main_mcu_usb_msg_answered_using_first_bytes = FALSE;
+            } 
+            else
+            {
+                dma_main_mcu_usb_msg_received = TRUE;
+            }
         }
         else if (dma_main_mcu_temp_rcv_message.message_type == AUX_MCU_MSG_TYPE_BLE)
         {
             memcpy((void*)&dma_main_mcu_ble_rcv_message, (void*)&dma_main_mcu_temp_rcv_message, sizeof(dma_main_mcu_temp_rcv_message));
-            dma_main_mcu_ble_msg_received = TRUE;
+            /* Check if received message has already been dealt with, do not set received flag if so */
+            if (comms_main_mcu_ble_msg_answered_using_first_bytes != FALSE)
+            {
+                comms_main_mcu_ble_msg_answered_using_first_bytes = FALSE;
+            }
+            else
+            {
+                dma_main_mcu_ble_msg_received = TRUE;
+            }
         }
         else
         {
             memcpy((void*)&dma_main_mcu_other_message, (void*)&dma_main_mcu_temp_rcv_message, sizeof(dma_main_mcu_temp_rcv_message));
-            dma_main_mcu_other_msg_received = TRUE;        
+            /* Check if received message has already been dealt with, do not set received flag if so */
+            if (comms_main_mcu_other_msg_answered_using_first_bytes != FALSE)
+            {
+                comms_main_mcu_other_msg_answered_using_first_bytes = FALSE;
+            }
+            else
+            {
+                dma_main_mcu_other_msg_received = TRUE;
+            }    
         }
-        
-        /* Arm next transfer */
-        dma_main_mcu_init_rx_transfer();
     }
     
     /* MAIN MCU TX routine */
@@ -249,11 +273,10 @@ void dma_main_mcu_disable_transfer(void)
 
 /*! \fn     dma_main_mcu_init_rx_transfer(void)
 *   \brief  Initialize a DMA transfer from the main MCU
+*   \note   We are not disabling IRQs as this is called from an IRQ
 */
 void dma_main_mcu_init_rx_transfer(void)
-{
-    cpu_irq_enter_critical();
-    
+{    
     /* Setup transfer size */
     dma_descriptors[DMA_DESCID_RX_COMMS].BTCNT.bit.BTCNT = (uint16_t)sizeof(dma_main_mcu_temp_rcv_message);
     /* Source address: DATA register from SPI */
@@ -264,6 +287,4 @@ void dma_main_mcu_init_rx_transfer(void)
     /* Resume DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_RX_COMMS);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
-    
-    cpu_irq_leave_critical();
 }

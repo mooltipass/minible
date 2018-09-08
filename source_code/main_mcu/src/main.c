@@ -173,6 +173,15 @@ void main_platform_init(void)
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
     }
+    
+    /* Check for first boot, perform functional testing */
+    if (custom_fs_is_first_boot() == FALSE)
+    {
+        sh1122_put_error_string(&plat_oled_descriptor, u"First Boot Tests...");
+        platform_io_enable_ble();
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ENABLE_BLE);
+        comms_aux_mcu_get_ble_chip_id()
+    }
 }
 
 /*! \fn     main_standby_sleep(void)

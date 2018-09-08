@@ -71,6 +71,41 @@ void comms_aux_mcu_send_simple_command_message(uint16_t command)
     comms_aux_mcu_wait_for_message_sent();    
 }
 
+/*! \fn     comms_aux_mcu_get_ble_chip_id(void)
+*   \brief  Get ATBTLC1000 chip ID
+*   \return uint32_t of chipID
+*   \note   BLE must be enabled before calling this
+*/
+uint32_t comms_aux_mcu_get_ble_chip_id(void)
+{
+    aux_mcu_message_t* temp_rx_message;
+    uint32_t return_val;
+    
+    /* Prepare status message request */
+    comms_aux_mcu_wait_for_message_sent();
+    aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
+    memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
+    
+    /* Fill the correct fields */
+    temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_PLAT_DETAILS;
+    temp_tx_message_pt->tx_reply_request_flag = 0x0001;
+    
+    /* Send message */
+    dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)temp_tx_message_pt, sizeof(*temp_tx_message_pt));
+    comms_aux_mcu_wait_for_message_sent();
+    
+    /* Wait for message from aux MCU */
+    while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
+    
+    /* Output debug info */
+    return_val = temp_rx_message->aux_details_message.atbtlc_chip_id;
+
+    /* Info printed, rearm DMA RX */
+    comms_aux_arm_rx_and_clear_no_comms();
+    
+    return return_val;
+}
+
 /*! \fn     comms_aux_mcu_send_receive_ping(void)
 *   \brief  Try to ping the aux MCU
 *   \return Success or not

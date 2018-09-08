@@ -494,7 +494,18 @@ void debug_mcu_and_aux_info(void)
 */
 void debug_atbtlc_info(void)
 {	
-    aux_mcu_message_t* temp_rx_message;
+    aux_mcu_message_t* temp_rx_message;   
+    
+    /* Enable BLE */
+    platform_io_enable_ble();
+    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ENABLE_BLE);
+    
+    /* wait for BLE to bootup */
+    comms_aux_mcu_wait_for_message_sent();
+    while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
+        
+    /* Rearm DMA RX */
+    comms_aux_arm_rx_and_clear_no_comms();
     
     /* Prepare status message request */
     comms_aux_mcu_wait_for_message_sent();

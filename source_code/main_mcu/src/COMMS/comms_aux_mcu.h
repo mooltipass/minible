@@ -26,6 +26,7 @@
 #define MAIN_MCU_COMMAND_SLEEP          0x0001
 #define MAIN_MCU_COMMAND_ATTACH_USB     0x0002
 #define MAIN_MCU_COMMAND_PING           0x0003
+#define MAIN_MCU_COMMAND_ENABLE_BLE     0x0004
 
 /* Typedefs */
 typedef struct
@@ -79,6 +80,7 @@ void comms_aux_mcu_send_message(aux_mcu_message_t* message);
 RET_TYPE comms_aux_mcu_send_receive_ping(void);
 void comms_aux_mcu_wait_for_message_sent(void);
 void comms_aux_arm_rx_and_clear_no_comms(void);
+uint32_t comms_aux_mcu_get_ble_chip_id(void);
 void comms_aux_mcu_routine(void);
 
 
