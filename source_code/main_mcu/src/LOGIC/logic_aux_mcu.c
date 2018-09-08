@@ -80,11 +80,7 @@ uint32_t logic_aux_mcu_get_ble_chip_id(void)
         uint32_t return_val;
         
         /* Get an empty packet ready to be sent */
-        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message);
-        
-        /* Fill the correct fields */
-        temp_tx_message->message_type = AUX_MCU_MSG_TYPE_PLAT_DETAILS;
-        temp_tx_message->tx_reply_request_flag = 0x0001;
+        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message, AUX_MCU_MSG_TYPE_PLAT_DETAILS, TX_REPLY_REQUEST_FLAG);
         
         /* Send message */
         comms_aux_mcu_send_message(TRUE);

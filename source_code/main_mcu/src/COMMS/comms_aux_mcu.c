@@ -77,11 +77,13 @@ void comms_aux_mcu_send_simple_command_message(uint16_t command)
     comms_aux_mcu_send_message(FALSE);
 }
 
-/*! \fn     comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt)
+/*! \fn     comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type, uint16_t tx_reply_request_flag)
 *   \brief  Get an empty message ready to be sent
-*   \param  message_pt_pt   Pointer to where to store message pointer
+*   \param  message_pt_pt           Pointer to where to store message pointer
+*   \param  message_type            Message type
+*   \param  tx_reply_request_flag   TX reply request flag
 */
-void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt)
+void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type, uint16_t tx_reply_request_flag)
 {
     /* Wait for possible ongoing message to be sent */
     comms_aux_mcu_wait_for_message_sent();
@@ -91,6 +93,10 @@ void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message
     
     /* Clear it */
     memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
+    
+    /* Populate the fields */
+    temp_tx_message_pt->message_type = message_type;
+    temp_tx_message_pt->tx_reply_request_flag = tx_reply_request_flag;
     
     /* Store message pointer */
     *message_pt_pt = temp_tx_message_pt;
@@ -110,13 +116,9 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
     platform_io_set_no_comms();    
     
     /* Get an empty packet ready to be sent */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt);
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD, TX_REPLY_REQUEST_FLAG);
     
-    /* Wait for possible previous message to be sent */
-    comms_aux_mcu_wait_for_message_sent();
-    
-    /* Prepare packet */
-    temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;
+    /* Fill missing fields */
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->main_mcu_command_message.command);
     temp_tx_message_pt->main_mcu_command_message.command = MAIN_MCU_COMMAND_PING;
     comms_aux_mcu_send_message(TRUE);
