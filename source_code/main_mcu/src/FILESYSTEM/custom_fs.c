@@ -494,7 +494,17 @@ void custom_fs_settings_clear_fw_upgrade_flag(void)
     custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
     temp_settings.start_upgrade_flag = 0;
     custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
-    return;    
+}
+
+/*! \fn     custom_fs_settings_clear_first_boot_flag(void)
+*   \brief  Clear the first boot flag inside our settings
+*/
+void custom_fs_settings_clear_first_boot_flag(void)
+{
+    volatile custom_platform_settings_t temp_settings;
+    custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    temp_settings.first_boot_flag = 0;
+    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
 }
 
 /*! \fn     custom_fs_is_first_boot(void)

@@ -142,6 +142,7 @@ cust_char_t* custom_fs_get_current_language_text_desc(void);
 custom_fs_init_ret_type_te custom_fs_settings_init(void);
 void custom_fs_stop_continuous_read_from_flash(void);
 BOOL custom_fs_settings_check_fw_upgrade_flag(void);
+void custom_fs_settings_clear_first_boot_flag(void);
 void custom_fs_settings_clear_fw_upgrade_flag(void);
 void custom_fs_settings_set_fw_upgrade_flag(void);
 uint32_t custom_fs_get_number_of_languages(void);

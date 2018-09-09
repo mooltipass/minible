@@ -123,24 +123,31 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             }
             case MAIN_MCU_COMMAND_PING:
             {
+                /* Resend same message */
                 comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
                 break;
             }
             case MAIN_MCU_COMMAND_ATTACH_USB:
             {
+                /* Attach USB resistors */
                 udc_attach();
                 break;
             }
             case MAIN_MCU_COMMAND_ENABLE_BLE:
             {
+                /* Enable BLE */
                 if (logic_is_ble_enabled() == FALSE)
                 {
                     logic_set_ble_enabled();
                     mini_ble_init();
+                    message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+                    message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
                     comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
                 }
                 else
                 {
+                    message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+                    message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
                     comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
                 }
                 break;

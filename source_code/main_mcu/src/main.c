@@ -176,6 +176,7 @@ void main_platform_init(void)
     }
     
     /* Check for first boot, perform functional testing */
+    //if (custom_fs_is_first_boot() == TRUE)
     if (custom_fs_is_first_boot() == FALSE)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"First Boot Tests...");
@@ -187,6 +188,9 @@ void main_platform_init(void)
             sh1122_put_error_string(&plat_oled_descriptor, u"ATBTLC1000 error!");
             while(1);
         }
+        
+        /* Clear flag */
+        custom_fs_settings_clear_first_boot_flag();
     }
 }
 

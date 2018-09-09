@@ -257,12 +257,16 @@ void comms_aux_mcu_routine(void)
     }   
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD)
     {
-        if (aux_mcu_receive_message.main_mcu_command_message.command == MAIN_MCU_COMMAND_ENABLE_BLE)
+        asm("Nop");
+    }
+    else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_AUX_MCU_EVENT)
+    {
+        if (aux_mcu_receive_message.main_mcu_command_message.command == AUX_MCU_EVENT_BLE_ENABLED)
         {
             /* BLE just got enabled */
             logic_aux_mcu_set_ble_enabled_bool(TRUE);
         }
-    }
+    }  
     else
     {
         asm("Nop");        
