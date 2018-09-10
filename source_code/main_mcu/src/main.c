@@ -87,8 +87,9 @@ void main_platform_init(void)
     platform_io_get_voledin_conversion_result_and_trigger_conversion(); // Start one measurement
     while(platform_io_is_voledin_conversion_result_ready() == FALSE);   // Do measurement even if we are USB powered, to leave exactly 180ms for platform boot
     
-    /* Check if battery powered and undervoltage */    
-    if ((platform_io_is_usb_3v3_present() == FALSE) && (platform_io_get_voledin_conversion_result_and_trigger_conversion() < BATTERY_ADC_OUT_CUTOUT))
+    /* Check if battery powered and undervoltage */
+    uint16_t battery_voltage = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+    if ((platform_io_is_usb_3v3_present() == FALSE) && (battery_voltage < BATTERY_ADC_OUT_CUTOUT))
     {
         platform_io_disable_switch_and_die();
         while(1);
@@ -144,6 +145,21 @@ void main_platform_init(void)
         while(1);
     }
     
+    /* Is Aux MCU present? */
+    if (comms_aux_mcu_send_receive_ping() == RETURN_NOK)
+    {
+        sh1122_put_error_string(&plat_oled_descriptor, u"No Aux MCU");
+        while(1);
+    }
+    
+    /* Is battery present? */
+    // TODO: completely change the code below
+    if (battery_voltage > BATTERY_ADC_OVER_VOLTAGE)
+    {
+        sh1122_put_error_string(&plat_oled_descriptor, u"No battery");
+        while(1);
+    }
+    
     /* Initialize our custom file system stored in data flash */
     if (custom_fs_init() == RETURN_NOK)
     {
@@ -161,13 +177,6 @@ void main_platform_init(void)
         /* Now that our custom filesystem is loaded, load the default font from flash */
         sh1122_refresh_used_font(&plat_oled_descriptor);        
     }    
-    
-    /* Is Aux MCU present? */
-    if (comms_aux_mcu_send_receive_ping() == RETURN_NOK)
-    {
-        sh1122_put_error_string(&plat_oled_descriptor, u"No Aux MCU");
-        while(1);
-    }
     
     /* If USB present, send USB attach message */
     if (platform_io_is_usb_3v3_present() != FALSE)

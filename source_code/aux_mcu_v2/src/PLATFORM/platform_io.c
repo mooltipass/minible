@@ -9,6 +9,13 @@
 #include "driver_clocks.h"
 #include "driver_timer.h"
 #include "platform_io.h"
+/* Set when a conversion result is ready */
+volatile BOOL platform_cur_sense_conv_ready = FALSE;
+/* Set when we are measuring high current sense */
+volatile BOOL platform_io_measuring_hcursense = FALSE;
+/* Current measured values for high & low current */
+volatile uint16_t platform_io_high_cur_val;
+volatile uint16_t platform_io_low_cur_val;
 
 
 /*! \fn     EIC_Handler(void)
@@ -22,6 +29,117 @@ void EIC_Handler2(void)
         EIC->INTFLAG.reg = (1 << NOCOMMS_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << NOCOMMS_EXTINT_NUM);
     }
+}
+
+/*! \fn     ADC_Handler(void)
+*   \brief  Called once a conversion result is ready
+*/
+void ADC_Handler(void)
+{
+    if (platform_io_measuring_hcursense == FALSE)
+    {        
+        /* Switch bool */
+        platform_io_measuring_hcursense = TRUE;
+        
+        /* Store value */
+        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+        platform_io_low_cur_val = ADC->RESULT.reg;
+        
+        /* Set high current sense at adc input */
+        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+        ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(HCURSENSE_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND;
+        
+        /* Start conversion */
+        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+        ADC->SWTRIG.reg = ADC_SWTRIG_START;
+    } 
+    else
+    {        
+        /* Switch bool */
+        platform_io_measuring_hcursense = FALSE;
+        
+        /* Store value */
+        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+        platform_io_high_cur_val = ADC->RESULT.reg;
+        
+        /* Set low current sense at adc input */
+        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+        ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(LCURSENSE_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND;
+        
+        /* Set conv ready bool */
+        platform_cur_sense_conv_ready = TRUE;
+    }
+    
+    /* Clear interrupt */
+    ADC->INTFLAG.reg = ADC_INTFLAG_RESRDY;
+}
+
+/*! \fn     platform_io_is_current_sense_conversion_result_ready(void)
+*   \brief  Ask if a current sense conversion result is ready
+*   \return the bool
+*/
+BOOL platform_io_is_current_sense_conversion_result_ready(void)
+{
+    return platform_cur_sense_conv_ready;
+}
+
+/*! \fn     platform_io_get_cursense_conversion_result_and_trigger_conversion(void)
+*   \brief  Fetch current sense conversion result and trigger new conversion
+*   \return 32bit value: 16bit MSB is high current sense, 16bit LSB is low current sense
+*/
+uint32_t platform_io_get_cursense_conversion_result_and_trigger_conversion(void)
+{
+    /* Reset flag */
+    platform_cur_sense_conv_ready = FALSE;
+    
+    /* Trigger new conversion (mux is already set at the right input in the interrupt */
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+    ADC->SWTRIG.reg = ADC_SWTRIG_START;
+    
+    return ((uint32_t)platform_io_high_cur_val << 16) | (uint32_t)platform_io_low_cur_val;
+}
+
+/*! \fn     platform_io_enable_battery_charging_ports(void)
+*   \brief  Initialize the ports used for battery charging
+*/
+void platform_io_enable_battery_charging_ports(void)
+{
+    /* charge DC/DC enable, low output */
+    PORT->Group[CHARGE_EN_GROUP].DIRSET.reg = CHARGE_EN_MASK;
+    PORT->Group[CHARGE_EN_GROUP].OUTCLR.reg = CHARGE_EN_MASK;
+    
+    /* charge mosfet enable, low output */
+    PORT->Group[MOS_CHARGE_GROUP].DIRSET.reg = MOS_CHARGE_MASK;
+    PORT->Group[MOS_CHARGE_GROUP].OUTCLR.reg = MOS_CHARGE_MASK;
+    
+    /* Current sense inputs */    
+    PORT->Group[HIGH_CUR_SENSE_GROUP].DIRCLR.reg = HIGH_CUR_SENSE_MASK;
+    PORT->Group[HIGH_CUR_SENSE_GROUP].PINCFG[HIGH_CUR_SENSE_PINID].bit.PMUXEN = 1;
+    PORT->Group[HIGH_CUR_SENSE_GROUP].PMUX[HIGH_CUR_SENSE_PINID/2].bit.HIGH_CUR_SENSE_PMUXREGID = HIGH_CUR_SENSE_PMUX_ID;    
+    PORT->Group[LOW_CUR_SENSE_GROUP].DIRCLR.reg = LOW_CUR_SENSE_MASK;
+    PORT->Group[LOW_CUR_SENSE_GROUP].PINCFG[LOW_CUR_SENSE_PINID].bit.PMUXEN = 1;
+    PORT->Group[LOW_CUR_SENSE_GROUP].PMUX[LOW_CUR_SENSE_PINID/2].bit.LOW_CUR_SENSE_PMUXREGID = LOW_CUR_SENSE_PMUX_ID;
+
+    /* Setup ADC */
+    PM->APBCMASK.bit.ADC_ = 1;                                                                      // Enable ADC bus clock
+    clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, GCLK_CLKCTRL_ID_ADC_Val);                      // Map 48MHz to ADC unit
+    ADC->REFCTRL.reg = ADC_REFCTRL_REFSEL(ADC_REFCTRL_REFSEL_INTVCC0_Val);                          // Set VCC/1.48 as a reference
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
+    ADC_CTRLB_Type temp_adc_ctrb_reg;                                                               // Temp register
+    temp_adc_ctrb_reg.reg = 0;                                                                      // Set to 0
+    temp_adc_ctrb_reg.bit.RESSEL = ADC_CTRLB_RESSEL_16BIT_Val;                                      // Set to 16bit result to allow averaging mode
+    temp_adc_ctrb_reg.bit.PRESCALER = ADC_CTRLB_PRESCALER_DIV128_Val;                               // Set fclk_adc to 48M / 128 = 375kHz
+    ADC->CTRLB = temp_adc_ctrb_reg;                                                                 // Write ctrlb
+    ADC->AVGCTRL.reg = ADC_AVGCTRL_ADJRES(4) | ADC_AVGCTRL_SAMPLENUM_1024;                          // Average on 1024 samples. Expected time for avg: 375k/(12-1)/1024 = 33.3Hz = 30ms. Single conversion mode, single ended, 12bit
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
+    ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(LCURSENSE_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND; // 1x gain, one channel set to low cur sense
+    ADC->INTENSET.reg = ADC_INTENSET_RESRDY;                                                        // Enable in result ready interrupt
+    NVIC_EnableIRQ(ADC_IRQn);                                                                       // Enable int
+    uint16_t calib_val = ((*((uint32_t *)ADC_FUSES_LINEARITY_1_ADDR)) & 0x3F) << 5;                 // Fetch calibration value
+    calib_val |=  ((*((uint32_t *)ADC_FUSES_LINEARITY_0_ADDR)) & ADC_FUSES_LINEARITY_0_Msk) >> ADC_FUSES_LINEARITY_0_Pos;
+    ADC->CALIB.reg = calib_val;                                                                     // Store calibration value
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
+    ADC->CTRLA.reg = ADC_CTRLA_ENABLE;                                                              // And enable ADC
 }
 
 /*! \fn     platform_io_init_aux_comms_ports(void)
@@ -153,6 +271,9 @@ void platform_io_init_ports(void)
     
     /* USB comms */
     platform_io_init_usb_ports();
+    
+    /* NiMH charging ports */
+    platform_io_enable_battery_charging_ports();
 }    
 
 /*! \fn     platform_io_prepare_ports_for_sleep(void)

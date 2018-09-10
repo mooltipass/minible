@@ -86,6 +86,7 @@ void main_platform_init(void)
     platform_io_init_ports();                                           // Initialize platform IO ports
     comms_main_init_rx();                                               // Initialize communication handling with main MCU    
     usb_init();                                                         // Initialize USB stack
+    platform_io_get_cursense_conversion_result_and_trigger_conversion();// Start current sense measurements
 }    
 
 /*! \fn     main_standby_sleep(BOOL startup_run)
@@ -132,6 +133,10 @@ int main (void)
     udc_attach();
     while(TRUE)
     {
+        if (platform_io_is_current_sense_conversion_result_ready() != FALSE)
+        {
+            platform_io_get_cursense_conversion_result_and_trigger_conversion();
+        }
         comms_main_mcu_routine();
         comms_usb_communication_routine();
     }

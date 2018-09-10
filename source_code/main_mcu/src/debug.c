@@ -86,6 +86,7 @@ void debug_debug_menu(void)
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Main and Aux MCU Info", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Scroll Through Glyphs", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU BLE Info", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"NiMH Charging", TRUE);
                 
             }
             else
@@ -145,6 +146,10 @@ void debug_debug_menu(void)
             else if (selected_item == 6)
             {
 	            debug_atbtlc_info();
+            }
+            else if (selected_item == 7)
+            {
+	            debug_nimh_charging();
             }
             else if (selected_item == 8)
             {
@@ -557,5 +562,37 @@ void debug_glyph_scroll(void)
         
         /* Get action */
         action_ret = inputs_get_wheel_action(TRUE, FALSE);
+    }
+}
+
+/*! \fn     debug_nimh_charging(void)
+*   \brief  NiMH charge with debug info
+*/
+void debug_nimh_charging(void)
+{
+    /* Clear screen */
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    
+    /* Local vars */
+    uint16_t bat_adc_result = 0;
+    
+    BOOL screen_fresh_needed = TRUE;
+    while(TRUE)
+    {   
+        /* Battery measurement */
+        if (platform_io_is_voledin_conversion_result_ready() != FALSE)
+        {
+            bat_adc_result = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+        }
+        
+        /* Refresh screen? */
+        if (screen_fresh_needed != FALSE)
+        {
+            /* Reset bool */
+            screen_fresh_needed = FALSE;
+            
+            /* Debug info */
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, TRUE, "Vbat: %u mV", bat_adc_result*110/273);
+        }
     }
 }

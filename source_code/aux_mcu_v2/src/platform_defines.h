@@ -75,6 +75,12 @@ typedef uint32_t PIN_ID_T;
 #define GCLK_ID_48M             GCLK_CLKCTRL_GEN_GCLK0_Val
 #define GCLK_ID_32K             GCLK_CLKCTRL_GEN_GCLK3_Val
 
+/* ADC defines */
+#if defined(PLAT_V3_SETUP)
+    #define HCURSENSE_ADC_PIN_MUXPOS    ADC_INPUTCTRL_MUXPOS_PIN18_Val
+    #define LCURSENSE_ADC_PIN_MUXPOS    ADC_INPUTCTRL_MUXPOS_PIN19_Val
+#endif
+
 /* SERCOM defines */
 #if defined(PLAT_V3_SETUP)
     #define AUXMCU_GCLK_SERCOM_ID       GCLK_CLKCTRL_ID_SERCOM3_CORE_Val
@@ -139,6 +145,52 @@ typedef uint32_t PIN_ID_T;
     #define AUX_MCU_NOCOMMS_PMUXREGID  PMUXO
 #else
     #define AUX_MCU_NOCOMMS_PMUXREGID  PMUXE
+#endif
+
+/* NiMH charging */
+#if defined(PLAT_V3_SETUP)
+    #define CHARGE_EN_GROUP   PIN_GROUP_0
+    #define CHARGE_EN_PINID   22
+#endif
+#define CHARGE_EN_MASK        (1UL << CHARGE_EN_PINID)
+#if (CHARGE_EN_PINID % 2) == 1
+    #define CHARGE_EN_PMUXREGID  PMUXO
+#else
+    #define CHARGE_EN_PMUXREGID  PMUXE
+#endif
+#if defined(PLAT_V3_SETUP)
+    #define MOS_CHARGE_GROUP   PIN_GROUP_0
+    #define MOS_CHARGE_PINID   23
+#endif
+#define MOS_CHARGE_MASK        (1UL << MOS_CHARGE_PINID)
+#if (MOS_CHARGE_PINID % 2) == 1
+    #define MOS_CHARGE_PMUXREGID  PMUXO
+#else
+    #define MOS_CHARGE_PMUXREGID  PMUXE
+#endif
+
+#if defined(PLAT_V3_SETUP)
+    #define HIGH_CUR_SENSE_GROUP     PIN_GROUP_0
+    #define HIGH_CUR_SENSE_PINID     10
+    #define HIGH_CUR_SENSE_MASK      (1UL << HIGH_CUR_SENSE_PINID)
+    #define HIGH_CUR_SENSE_PMUX_ID   PORT_PMUX_PMUXE_B_Val
+    #if (HIGH_CUR_SENSE_PINID % 2) == 1
+        #define HIGH_CUR_SENSE_PMUXREGID PMUXO
+    #else
+        #define HIGH_CUR_SENSE_PMUXREGID PMUXE
+    #endif
+#endif
+
+#if defined(PLAT_V3_SETUP)
+    #define LOW_CUR_SENSE_GROUP     PIN_GROUP_0
+    #define LOW_CUR_SENSE_PINID     11
+    #define LOW_CUR_SENSE_MASK      (1UL << LOW_CUR_SENSE_PINID)
+    #define LOW_CUR_SENSE_PMUX_ID   PORT_PMUX_PMUXE_B_Val
+    #if (LOW_CUR_SENSE_PINID % 2) == 1
+        #define LOW_CUR_SENSE_PMUXREGID PMUXO
+    #else
+        #define LOW_CUR_SENSE_PMUXREGID PMUXE
+    #endif
 #endif
 
 /* USB pads */

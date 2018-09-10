@@ -8,6 +8,9 @@
 #define PLATFORM_IO_H_
 
 /* Prototypes */
+uint32_t platform_io_get_cursense_conversion_result_and_trigger_conversion(void);
+BOOL platform_io_is_current_sense_conversion_result_ready(void);
+void platform_io_enable_battery_charging_ports(void);
 void platform_io_prepare_ports_for_sleep_exit(void);
 void platform_io_prepare_ports_for_sleep(void);
 void platform_io_disable_no_comms_int(void);
