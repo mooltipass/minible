@@ -5,7 +5,7 @@
 | 2-3 (Payload Length) | 0           |
 | 4-539 (Payload)      | do not care |
 | 540-541 (Not used)   | 0x0000 |
-| 542-543 (Reply request flag) | 0x0000 |
+| 542-543 (Reply request flag) | 0x0001 |
 
 
 ## [](#header-2) Status Message Sent by the Aux MCU 
