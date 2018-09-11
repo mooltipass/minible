@@ -1,3 +1,13 @@
+## [](#header-2) Status Message Sent by the Main MCU 
+| Byte Numbers         | Description |
+|:---------------------|:------------|
+| 0-1 (Message type)   | 0x0003      |
+| 2-3 (Payload Length) | 0           |
+| 4-539 (Payload)      | do not care |
+| 540-541 (Not used)   | 0x0000 |
+| 542-543 (Reply request flag) | 0x0000 |
+
+
 ## [](#header-2) Status Message Sent by the Aux MCU 
   
 | Byte Numbers         | Description |
