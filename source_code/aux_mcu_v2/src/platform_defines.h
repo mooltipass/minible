@@ -193,6 +193,18 @@ typedef uint32_t PIN_ID_T;
     #endif
 #endif
 
+#if defined(PLAT_V3_SETUP)
+    #define DAC_GROUP     PIN_GROUP_0
+    #define DAC_PINID     2
+    #define DAC_MASK      (1UL << DAC_PINID)
+    #define DAC_PMUX_ID   PORT_PMUX_PMUXE_B_Val
+    #if (DAC_PINID % 2) == 1
+        #define DAC_PMUXREGID PMUXO
+    #else
+        #define DAC_PMUXREGID PMUXE
+    #endif
+#endif
+
 /* USB pads */
 #if defined(PLAT_V3_SETUP)
     #define USB_DM_GROUP        PIN_GROUP_0

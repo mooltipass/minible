@@ -99,6 +99,46 @@ uint32_t platform_io_get_cursense_conversion_result_and_trigger_conversion(void)
     return ((uint32_t)platform_io_high_cur_val << 16) | (uint32_t)platform_io_low_cur_val;
 }
 
+/*! \fn     platform_io_enable_step_down(uint16_t voltage)
+*   \brief  Enable the platform step down to charge the battery
+*   \param  voltage     Voltage in mV that the step-down should output
+*/
+void platform_io_enable_step_down(uint16_t voltage)
+{
+    /* We can't output less than 600mV */
+    if (voltage < 600)
+    {
+        voltage = 600;
+    }
+    
+    /* DAC PORT */
+    PORT->Group[DAC_GROUP].DIRCLR.reg = DAC_MASK;
+    PORT->Group[DAC_GROUP].PINCFG[DAC_PINID].bit.PMUXEN = 1;
+    PORT->Group[DAC_GROUP].PMUX[DAC_PINID/2].bit.DAC_PMUXREGID = DAC_PMUX_ID;
+    
+    /* Setup DAC */
+    PM->APBCMASK.bit.DAC_ = 1;                                                                      // Enable DAC bus clock
+    clocks_map_gclk_to_peripheral_clock(GCLK_ID_32K, GCLK_CLKCTRL_ID_DAC_Val);                      // Map 1kHz to DAC unit
+    DAC_CTRLB_Type temp_dac_ctrlb_reg;                                                              // Temp register
+    temp_dac_ctrlb_reg.reg = 0;                                                                     // Set to 0
+    temp_dac_ctrlb_reg.bit.REFSEL = DAC_CTRLB_REFSEL_INT1V_Val;                                     // 1V reference
+    temp_dac_ctrlb_reg.bit.VPD = 1;                                                                 // Voltage pump disabled
+    temp_dac_ctrlb_reg.bit.EOEN = 1;                                                                // Drive VOUT pin
+    temp_dac_ctrlb_reg.bit.BDWP = 1;                                                                // Bypass DATABUF
+    DAC->CTRLB = temp_dac_ctrlb_reg;                                                                // Write register
+    while ((DAC->STATUS.reg & DAC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
+    DAC->CTRLA.reg = DAC_CTRLA_ENABLE;                                                              // And enable ADC
+    uint32_t complicated_math = ((((uint32_t)voltage)*191) >> 9);
+    if (complicated_math > 698)
+    {
+        complicated_math = 698;
+    }    
+    complicated_math = 698 - complicated_math;                                                      // DAC val from voltage to output
+    while ((DAC->STATUS.reg & DAC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
+    DAC->DATA.reg = (uint16_t)complicated_math;                                                     // Write value
+    PORT->Group[CHARGE_EN_GROUP].OUTSET.reg = CHARGE_EN_MASK;                                       // Enable step-down
+}
+
 /*! \fn     platform_io_enable_battery_charging_ports(void)
 *   \brief  Initialize the ports used for battery charging
 */

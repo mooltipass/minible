@@ -130,6 +130,8 @@ int main (void)
     /* Initialize our platform */
     main_platform_init();
     
+    platform_io_enable_step_down(1234);
+    
     udc_attach();
     while(TRUE)
     {
