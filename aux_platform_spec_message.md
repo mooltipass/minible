@@ -1,4 +1,5 @@
 ## [](#header-2) Status Message Request Sent by the Main MCU 
+  
 | Byte Numbers         | Description |
 |:---------------------|:------------|
 | 0-1 (Message type)   | 0x0003      |
