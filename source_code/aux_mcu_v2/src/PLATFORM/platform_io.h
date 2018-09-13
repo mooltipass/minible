@@ -8,7 +8,7 @@
 #define PLATFORM_IO_H_
 
 /* Prototypes */
-uint32_t platform_io_get_cursense_conversion_result_and_trigger_conversion(void);
+uint32_t platform_io_get_cursense_conversion_result(BOOL trigger_conversion);
 BOOL platform_io_is_current_sense_conversion_result_ready(void);
 void platform_io_update_step_down_voltage(uint16_t voltage);
 void platform_io_enable_battery_charging_ports(void);

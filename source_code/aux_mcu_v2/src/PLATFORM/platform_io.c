@@ -11,8 +11,8 @@
 #include "platform_io.h"
 /* Set when a conversion result is ready */
 volatile BOOL platform_cur_sense_conv_ready = FALSE;
-/* Set when we are measuring high current sense */
-volatile BOOL platform_io_measuring_hcursense = FALSE;
+/* Set when we are measuring low current sense */
+volatile BOOL platform_io_measuring_lcursense = FALSE;
 /* Current measured values for high & low current */
 volatile uint16_t platform_io_high_cur_val;
 volatile uint16_t platform_io_low_cur_val;
@@ -36,27 +36,10 @@ void EIC_Handler2(void)
 */
 void ADC_Handler(void)
 {
-    if (platform_io_measuring_hcursense == FALSE)
+    if (platform_io_measuring_lcursense == FALSE)
     {        
         /* Switch bool */
-        platform_io_measuring_hcursense = TRUE;
-        
-        /* Store value */
-        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
-        platform_io_low_cur_val = ADC->RESULT.reg;
-        
-        /* Set high current sense at adc input */
-        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
-        ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(HCURSENSE_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND;
-        
-        /* Start conversion */
-        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
-        ADC->SWTRIG.reg = ADC_SWTRIG_START;
-    } 
-    else
-    {        
-        /* Switch bool */
-        platform_io_measuring_hcursense = FALSE;
+        platform_io_measuring_lcursense = TRUE;
         
         /* Store value */
         while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
@@ -65,6 +48,23 @@ void ADC_Handler(void)
         /* Set low current sense at adc input */
         while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
         ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(LCURSENSE_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND;
+        
+        /* Start conversion */
+        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+        ADC->SWTRIG.reg = ADC_SWTRIG_START;
+    } 
+    else
+    {        
+        /* Switch bool */
+        platform_io_measuring_lcursense = FALSE;
+        
+        /* Store value */
+        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+        platform_io_low_cur_val = ADC->RESULT.reg;
+        
+        /* Set high current sense at adc input */
+        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+        ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(HCURSENSE_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND;
         
         /* Set conv ready bool */
         platform_cur_sense_conv_ready = TRUE;
@@ -83,18 +83,22 @@ BOOL platform_io_is_current_sense_conversion_result_ready(void)
     return platform_cur_sense_conv_ready;
 }
 
-/*! \fn     platform_io_get_cursense_conversion_result_and_trigger_conversion(void)
-*   \brief  Fetch current sense conversion result and trigger new conversion
+/*! \fn     platform_io_get_cursense_conversion_result(BOOL trigger_conversion)
+*   \brief  Fetch current sense conversion result and trigger new conversion if asked
+*   \param  trigger_conversion: set to TRUE to trigger new conversion
 *   \return 32bit value: 16bit MSB is high current sense, 16bit LSB is low current sense
 */
-uint32_t platform_io_get_cursense_conversion_result_and_trigger_conversion(void)
+uint32_t platform_io_get_cursense_conversion_result(BOOL trigger_conversion)
 {
     /* Reset flag */
     platform_cur_sense_conv_ready = FALSE;
     
     /* Trigger new conversion (mux is already set at the right input in the interrupt */
-    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
-    ADC->SWTRIG.reg = ADC_SWTRIG_START;
+    if (trigger_conversion != FALSE)
+    {
+        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+        ADC->SWTRIG.reg = ADC_SWTRIG_START;
+    }
     
     return ((uint32_t)platform_io_high_cur_val << 16) | (uint32_t)platform_io_low_cur_val;
 }
@@ -197,7 +201,7 @@ void platform_io_enable_battery_charging_ports(void)
     ADC->CTRLB = temp_adc_ctrb_reg;                                                                 // Write ctrlb
     ADC->AVGCTRL.reg = ADC_AVGCTRL_ADJRES(4) | ADC_AVGCTRL_SAMPLENUM_1024;                          // Average on 1024 samples. Expected time for avg: 375k/(12-1)/1024 = 33.3Hz = 30ms. Single conversion mode, single ended, 12bit
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
-    ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(LCURSENSE_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND; // 1x gain, one channel set to low cur sense
+    ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(HCURSENSE_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND; // 1x gain, one channel set to high cur sense
     ADC->INTENSET.reg = ADC_INTENSET_RESRDY;                                                        // Enable in result ready interrupt
     NVIC_EnableIRQ(ADC_IRQn);                                                                       // Enable int
     uint16_t calib_val = ((*((uint32_t *)ADC_FUSES_LINEARITY_1_ADDR)) & 0x3F) << 5;                 // Fetch calibration value

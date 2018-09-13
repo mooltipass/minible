@@ -21,7 +21,7 @@ void logic_battery_init(void)
     timer_start_timer(TIMER_BATTERY_TICK, LOGIC_BATTERY_TIME_BETWEEN_ACTS);
     
     /* Start current sense measurements */
-    platform_io_get_cursense_conversion_result_and_trigger_conversion(); 
+    platform_io_get_cursense_conversion_result(TRUE); 
 }
 
 /*! \fn     logic_battery_start_charging(void)
@@ -46,7 +46,7 @@ void logic_battery_start_charging(void)
     
     /* Discard first measurement */
     while (platform_io_is_current_sense_conversion_result_ready() == FALSE);
-    platform_io_get_cursense_conversion_result_and_trigger_conversion(); 
+    platform_io_get_cursense_conversion_result(TRUE); 
 }
 
 /*! \fn     logic_battery_task(void)
@@ -61,9 +61,9 @@ void logic_battery_task(void)
         if (platform_io_is_current_sense_conversion_result_ready() != FALSE)
         {
             /* Extract low and high voltage sense */
-            uint32_t cur_sense_vs = platform_io_get_cursense_conversion_result_and_trigger_conversion();
-            volatile uint16_t high_voltage = (uint16_t)(cur_sense_vs >> 16);
-            volatile uint16_t low_voltage = (uint16_t)cur_sense_vs;
+            uint32_t cur_sense_vs = platform_io_get_cursense_conversion_result(FALSE);
+            volatile int16_t high_voltage = (int16_t)(cur_sense_vs >> 16);
+            volatile int16_t low_voltage = (int16_t)cur_sense_vs;
             
             /* Is current starting to flow into the battery? */
             if ((high_voltage - low_voltage) > LOGIC_BATTERY_CUR_FOR_ST_RAMP_END)
@@ -92,7 +92,10 @@ void logic_battery_task(void)
                     /* Increment voltage */
                     platform_io_update_step_down_voltage(logic_battery_charge_voltage);
                 }
-            }            
+            }  
+            
+            /* Trigger new conversion */
+            platform_io_get_cursense_conversion_result(TRUE);          
         }
     } 
     else
