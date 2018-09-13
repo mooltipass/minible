@@ -108,6 +108,20 @@ uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
     return return_val;
 }
 
+/*! \fn     platform_io_get_voledinmv_conversion_result_and_trigger_conversion(void)
+*   \brief  Fetch voled conversion result, convert it to mV and trigger new conversion
+*   \return mV of battery
+*/
+uint16_t platform_io_get_voledinmv_conversion_result_and_trigger_conversion(void)
+{
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+    platform_io_voledin_conv_ready = FALSE;
+    uint32_t return_val = ADC->RESULT.reg;
+    ADC->SWTRIG.reg = ADC_SWTRIG_START;
+    return_val = (return_val*103) >> 8;
+    return (uint16_t)return_val;
+}
+
 /*! \fn     platform_io_init_bat_adc_measurements(void)
 *   \brief  Initialize ADC to later perform battery voltage measurements
 *   \note   Function called when CPU is at 8MHz (boot), or 48MHz (runtime)

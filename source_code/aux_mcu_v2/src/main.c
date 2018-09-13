@@ -2,6 +2,7 @@
 #include "platform_defines.h"
 #include "hid_keyboard_app.h"
 #include "comms_main_mcu.h"
+#include "logic_battery.h"
 #include "driver_clocks.h"
 #include "driver_timer.h"
 #include "platform_io.h"
@@ -86,7 +87,7 @@ void main_platform_init(void)
     platform_io_init_ports();                                           // Initialize platform IO ports
     comms_main_init_rx();                                               // Initialize communication handling with main MCU    
     usb_init();                                                         // Initialize USB stack
-    platform_io_get_cursense_conversion_result_and_trigger_conversion();// Start current sense measurements
+    logic_battery_init();                                               // Initialize battery logic code
 }    
 
 /*! \fn     main_standby_sleep(BOOL startup_run)
@@ -129,16 +130,12 @@ int main (void)
 {
     /* Initialize our platform */
     main_platform_init();
-    
-    platform_io_enable_step_down(1234);
-    
-    udc_attach();
+        
+    //udc_attach();
+    logic_battery_start_charging();
     while(TRUE)
     {
-        if (platform_io_is_current_sense_conversion_result_ready() != FALSE)
-        {
-            platform_io_get_cursense_conversion_result_and_trigger_conversion();
-        }
+        logic_battery_task();
         comms_main_mcu_routine();
         comms_usb_communication_routine();
     }

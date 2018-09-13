@@ -10,6 +10,7 @@
 #include "hid_keyboard_app.h"
 #include "comms_hid_msgs.h"
 #include "comms_main_mcu.h"
+#include "logic_battery.h"
 #include "driver_timer.h"
 #include "at_ble_api.h"
 #include "comms_usb.h"
@@ -111,6 +112,18 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
         
         /* Send message */
         comms_main_mcu_send_message((void*)&main_mcu_send_message, (uint16_t)sizeof(main_mcu_send_message));
+    }
+    else if (message->message_type == AUX_MCU_MSG_TYPE_NIMH_CHARGE)
+    {
+        switch(message->nimh_charge_message.command_status)
+        {
+            case NIMH_CMD_CHARGE_START:
+            {
+                logic_battery_start_charging();
+                break;
+            }
+            default: break;
+        }
     }
     else if (message->message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD)
     {

@@ -8,6 +8,7 @@
 #define PLATFORM_IO_H_
 
 /* Prototypes */
+uint16_t platform_io_get_voledinmv_conversion_result_and_trigger_conversion(void);
 uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void);
 void platform_io_disable_scroll_wheel_wakeup_interrupts(void);
 void platform_io_enable_scroll_wheel_wakeup_interrupts(void);

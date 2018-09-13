@@ -99,18 +99,28 @@ uint32_t platform_io_get_cursense_conversion_result_and_trigger_conversion(void)
     return ((uint32_t)platform_io_high_cur_val << 16) | (uint32_t)platform_io_low_cur_val;
 }
 
+/*! \fn     platform_io_enable_charge_mosfets()
+*   \brief  Enable charge mosfets
+*/
+void platform_io_enable_charge_mosfets(void)
+{
+    PORT->Group[MOS_CHARGE_GROUP].OUTSET.reg = MOS_CHARGE_MASK;    
+}
+
+/*! \fn     platform_io_disable_charge_mosfets()
+*   \brief  Disable charge mosfets
+*/
+void platform_io_disable_charge_mosfets(void)
+{
+    PORT->Group[MOS_CHARGE_GROUP].OUTCLR.reg = MOS_CHARGE_MASK;    
+}
+
 /*! \fn     platform_io_enable_step_down(uint16_t voltage)
 *   \brief  Enable the platform step down to charge the battery
 *   \param  voltage     Voltage in mV that the step-down should output
 */
 void platform_io_enable_step_down(uint16_t voltage)
-{
-    /* We can't output less than 600mV */
-    if (voltage < 600)
-    {
-        voltage = 600;
-    }
-    
+{    
     /* DAC PORT */
     PORT->Group[DAC_GROUP].DIRCLR.reg = DAC_MASK;
     PORT->Group[DAC_GROUP].PINCFG[DAC_PINID].bit.PMUXEN = 1;
@@ -127,7 +137,23 @@ void platform_io_enable_step_down(uint16_t voltage)
     temp_dac_ctrlb_reg.bit.BDWP = 1;                                                                // Bypass DATABUF
     DAC->CTRLB = temp_dac_ctrlb_reg;                                                                // Write register
     while ((DAC->STATUS.reg & DAC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
-    DAC->CTRLA.reg = DAC_CTRLA_ENABLE;                                                              // And enable ADC
+    DAC->CTRLA.reg = DAC_CTRLA_ENABLE;                                                              // And enable DAC
+    platform_io_update_step_down_voltage(voltage);                                                  // Set output voltage
+    PORT->Group[CHARGE_EN_GROUP].OUTSET.reg = CHARGE_EN_MASK;                                       // Enable step-down
+}
+
+/*! \fn     platform_io_update_step_down_voltage(uint16_t voltage)
+*   \brief  Update step down voltage
+*   \param  voltage     Voltage in mV that the step-down should output
+*/
+void platform_io_update_step_down_voltage(uint16_t voltage)
+{
+    /* We can't output less than 550mV */
+    if (voltage < 550)
+    {
+        voltage = 550;
+    }
+    
     uint32_t complicated_math = ((((uint32_t)voltage)*191) >> 9);
     if (complicated_math > 698)
     {
@@ -135,8 +161,7 @@ void platform_io_enable_step_down(uint16_t voltage)
     }    
     complicated_math = 698 - complicated_math;                                                      // DAC val from voltage to output
     while ((DAC->STATUS.reg & DAC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
-    DAC->DATA.reg = (uint16_t)complicated_math;                                                     // Write value
-    PORT->Group[CHARGE_EN_GROUP].OUTSET.reg = CHARGE_EN_MASK;                                       // Enable step-down
+    DAC->DATA.reg = (uint16_t)complicated_math;                                                     // Write value    
 }
 
 /*! \fn     platform_io_enable_battery_charging_ports(void)
@@ -163,7 +188,7 @@ void platform_io_enable_battery_charging_ports(void)
     /* Setup ADC */
     PM->APBCMASK.bit.ADC_ = 1;                                                                      // Enable ADC bus clock
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, GCLK_CLKCTRL_ID_ADC_Val);                      // Map 48MHz to ADC unit
-    ADC->REFCTRL.reg = ADC_REFCTRL_REFSEL(ADC_REFCTRL_REFSEL_INTVCC0_Val);                          // Set VCC/1.48 as a reference
+    ADC->REFCTRL.reg = ADC_REFCTRL_REFSEL(ADC_REFCTRL_REFSEL_INTVCC1_Val);                          // Set VCC/2 as a reference
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
     ADC_CTRLB_Type temp_adc_ctrb_reg;                                                               // Temp register
     temp_adc_ctrb_reg.reg = 0;                                                                      // Set to 0

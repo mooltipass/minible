@@ -25,6 +25,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define AUX_MCU_MSG_TYPE_PLAT_DETAILS   0x0003
 #define AUX_MCU_MSG_TYPE_MAIN_MCU_CMD   0x0004
 #define AUX_MCU_MSG_TYPE_AUX_MCU_EVENT  0x0005
+#define AUX_MCU_MSG_TYPE_NIMH_CHARGE    0x0006
 
 // Main MCU commands
 #define MAIN_MCU_COMMAND_SLEEP          0x0001
@@ -34,6 +35,9 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 
 // Aux MCU events
 #define AUX_MCU_EVENT_BLE_ENABLED       0x0001
+
+// NiMH charge commands
+#define NIMH_CMD_CHARGE_START           0x0001
 
 // Flags
 #define TX_NO_REPLY_REQUEST_FLAG        0x0000
@@ -68,6 +72,13 @@ typedef struct
     uint8_t payload[];
 } aux_mcu_event_message_t;
 
+typedef struct  
+{
+    uint16_t command_status;
+    uint16_t battery_voltage;
+    uint16_t charge_current;
+} nimh_charge_message_t;
+
 typedef struct
 {
     uint16_t message_type;
@@ -78,6 +89,7 @@ typedef struct
         aux_plat_details_message_t aux_details_message;
         main_mcu_command_message_t main_mcu_command_message;
         aux_mcu_event_message_t aux_mcu_event_message;
+        nimh_charge_message_t nimh_charge_message;
         hid_message_t hid_message;
         uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH];
         uint32_t payload_as_uint32[AUX_MCU_MSG_PAYLOAD_LENGTH/4];    

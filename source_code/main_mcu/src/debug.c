@@ -570,11 +570,21 @@ void debug_glyph_scroll(void)
 */
 void debug_nimh_charging(void)
 {
+    aux_mcu_message_t* temp_tx_message_pt;
+    
     /* Clear screen */
     sh1122_clear_current_screen(&plat_oled_descriptor);
     
+    /* Generate our packet */
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE, TX_NO_REPLY_REQUEST_FLAG);
+    temp_tx_message_pt->nimh_charge_message.command_status = NIMH_CMD_CHARGE_START;
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->nimh_charge_message.command_status);
+    
+    /* Send message */
+    comms_aux_mcu_send_message(FALSE);
+    
     /* Local vars */
-    uint16_t bat_adc_result = 0;
+    uint16_t bat_mv = 0;
     
     BOOL screen_fresh_needed = TRUE;
     while(TRUE)
@@ -582,7 +592,8 @@ void debug_nimh_charging(void)
         /* Battery measurement */
         if (platform_io_is_voledin_conversion_result_ready() != FALSE)
         {
-            bat_adc_result = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+            bat_mv = platform_io_get_voledinmv_conversion_result_and_trigger_conversion();
+            screen_fresh_needed = TRUE;
         }
         
         /* Refresh screen? */
@@ -592,7 +603,7 @@ void debug_nimh_charging(void)
             screen_fresh_needed = FALSE;
             
             /* Debug info */
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, TRUE, "Vbat: %u mV", bat_adc_result*110/273);
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "Vbat: %u mV", bat_mv);
         }
     }
 }
