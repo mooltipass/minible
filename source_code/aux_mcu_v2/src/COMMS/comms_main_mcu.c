@@ -119,7 +119,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
         {
             case NIMH_CMD_CHARGE_START:
             {
-                logic_battery_start_charging();
+                logic_battery_start_charging(NIMH_13C_CHARGING);
                 break;
             }
             default: break;

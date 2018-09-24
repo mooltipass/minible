@@ -146,6 +146,16 @@ void platform_io_enable_step_down(uint16_t voltage)
     PORT->Group[CHARGE_EN_GROUP].OUTSET.reg = CHARGE_EN_MASK;                                       // Enable step-down
 }
 
+/*! \fn     platform_io_disable_step_down(void)
+*   \brief  Disable step-down
+*/
+void platform_io_disable_step_down(void)
+{
+    PORT->Group[CHARGE_EN_GROUP].OUTCLR.reg = CHARGE_EN_MASK;                                       // Disable step-down
+    while ((DAC->STATUS.reg & DAC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
+    DAC->CTRLA.reg = DAC_CTRLA_SWRST;                                                               // And reset DAC    
+}
+
 /*! \fn     platform_io_update_step_down_voltage(uint16_t voltage)
 *   \brief  Update step down voltage
 *   \param  voltage     Voltage in mV that the step-down should output

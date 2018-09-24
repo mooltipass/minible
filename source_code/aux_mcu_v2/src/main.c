@@ -132,7 +132,7 @@ int main (void)
     main_platform_init();
         
     //udc_attach();
-    logic_battery_start_charging();
+    logic_battery_start_charging(NIMH_13C_CHARGING);
     while(TRUE)
     {
         logic_battery_task();
