@@ -140,9 +140,9 @@ void platform_io_enable_step_down(uint16_t voltage)
     temp_dac_ctrlb_reg.bit.EOEN = 1;                                                                // Drive VOUT pin
     temp_dac_ctrlb_reg.bit.BDWP = 1;                                                                // Bypass DATABUF
     DAC->CTRLB = temp_dac_ctrlb_reg;                                                                // Write register
+    platform_io_update_step_down_voltage(voltage);                                                  // Set output voltage
     while ((DAC->STATUS.reg & DAC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
     DAC->CTRLA.reg = DAC_CTRLA_ENABLE;                                                              // And enable DAC
-    platform_io_update_step_down_voltage(voltage);                                                  // Set output voltage
     PORT->Group[CHARGE_EN_GROUP].OUTSET.reg = CHARGE_EN_MASK;                                       // Enable step-down
 }
 

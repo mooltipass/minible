@@ -76,8 +76,8 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
     /* Enable stepdown at provided voltage */
     platform_io_enable_step_down(logic_battery_charge_voltage);
     
-    /* Wait a little: to characterize later on! */
-    timer_delay_ms(100);
+    /* Leave a little time for step down voltage to stabilize */
+    timer_delay_ms(1);
     
     /* Enable charge mosfets */
     platform_io_enable_charge_mosfets();
