@@ -115,15 +115,16 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
     }
     else if (message->message_type == AUX_MCU_MSG_TYPE_NIMH_CHARGE)
     {
-        switch(message->nimh_charge_message.command_status)
-        {
-            case NIMH_CMD_CHARGE_START:
-            {
-                logic_battery_start_charging(NIMH_13C_CHARGING);
-                break;
-            }
-            default: break;
-        }
+        /* Return charging status */
+        memset((void*)&main_mcu_send_message, 0x00, sizeof(aux_mcu_message_t));
+        main_mcu_send_message.message_type = message->message_type;
+        main_mcu_send_message.payload_length1 = sizeof(nimh_charge_message_t);
+        main_mcu_send_message.nimh_charge_message.charge_status = logic_battery_get_charging_status();
+        main_mcu_send_message.nimh_charge_message.battery_voltage = logic_battery_get_vbat();
+        main_mcu_send_message.nimh_charge_message.charge_current = logic_battery_get_charging_current();
+        
+        /* Send message */
+        comms_main_mcu_send_message((void*)&main_mcu_send_message, (uint16_t)sizeof(main_mcu_send_message));
     }
     else if (message->message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD)
     {
@@ -163,6 +164,12 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                     message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
                     comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
                 }
+                break;
+            }
+            case MAIN_MCU_COMMAND_NIMH_CHARGE:
+            {
+                /* Charge NiMH battery */
+                logic_battery_start_charging(NIMH_13C_CHARGING);
                 break;
             }
         }

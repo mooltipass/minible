@@ -28,12 +28,10 @@
 #define MAIN_MCU_COMMAND_ATTACH_USB     0x0002
 #define MAIN_MCU_COMMAND_PING           0x0003
 #define MAIN_MCU_COMMAND_ENABLE_BLE     0x0004
+#define MAIN_MCU_COMMAND_NIMH_CHARGE    0x0005
 
 // Aux MCU events
 #define AUX_MCU_EVENT_BLE_ENABLED       0x0001
-
-// NiMH charge commands
-#define NIMH_CMD_CHARGE_START           0x0001
 
 // Flags
 #define TX_NO_REPLY_REQUEST_FLAG        0x0000
@@ -70,9 +68,9 @@ typedef struct
 
 typedef struct  
 {
-    uint16_t command_status;
+    uint16_t charge_status;
     uint16_t battery_voltage;
-    uint16_t charge_current;
+    int16_t charge_current;
 } nimh_charge_message_t;
 
 typedef struct

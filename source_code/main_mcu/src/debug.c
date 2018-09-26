@@ -570,40 +570,53 @@ void debug_glyph_scroll(void)
 */
 void debug_nimh_charging(void)
 {
+    aux_mcu_message_t* temp_rx_message;
     aux_mcu_message_t* temp_tx_message_pt;
     
     /* Clear screen */
     sh1122_clear_current_screen(&plat_oled_descriptor);
     
-    /* Generate our packet */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE, TX_NO_REPLY_REQUEST_FLAG);
-    temp_tx_message_pt->nimh_charge_message.command_status = NIMH_CMD_CHARGE_START;
-    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->nimh_charge_message.command_status);
+    /* Send battery charge message */
+    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
     
-    /* Send message */
-    comms_aux_mcu_send_message(FALSE);
+    /* Arm charge status request timer */
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 1000);
     
     /* Local vars */
     uint16_t bat_mv = 0;
     
-    BOOL screen_fresh_needed = TRUE;
     while(TRUE)
     {   
         /* Battery measurement */
         if (platform_io_is_voledin_conversion_result_ready() != FALSE)
         {
             bat_mv = platform_io_get_voledinmv_conversion_result_and_trigger_conversion();
-            screen_fresh_needed = TRUE;
         }
         
-        /* Refresh screen? */
-        if (screen_fresh_needed != FALSE)
+        /* Send a packet to aux MCU? */
+        if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_EXPIRED)
         {
-            /* Reset bool */
-            screen_fresh_needed = FALSE;
+            /* Generate our packet */
+            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE, TX_REPLY_REQUEST_FLAG);
+            
+            /* Send message */
+            comms_aux_mcu_send_message(TRUE);
+            
+            /* Wait for message from aux MCU */
+            while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
+            
+            /* Clear screen */
+            sh1122_clear_current_screen(&plat_oled_descriptor);
             
             /* Debug info */
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "Vbat: %u mV", bat_mv);
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "MCU Vbat: %umV, AUX Vbat: %umV", bat_mv, (temp_rx_message->nimh_charge_message.battery_voltage*103)>>8);           
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "Charge status: %u, current (ADC): %i", temp_rx_message->nimh_charge_message.charge_status, temp_rx_message->nimh_charge_message.charge_current);
+                
+            /* Info printed, rearm DMA RX */
+            comms_aux_arm_rx_and_clear_no_comms();
+            
+            /* Arm charge status request timer */
+            timer_start_timer(TIMER_TIMEOUT_FUNCTS, 1000);       
         }
     }
 }

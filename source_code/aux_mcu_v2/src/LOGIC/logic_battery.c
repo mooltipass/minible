@@ -31,6 +31,33 @@ void logic_battery_init(void)
     platform_io_get_cursense_conversion_result(TRUE); 
 }
 
+/*! \fn     logic_battery_get_charging_status(void)
+*   \brief  Get current battery charging status
+*   \return Battery charging status
+*/
+lb_state_machine_te logic_battery_get_charging_status(void)
+{
+    return logic_battery_state;
+}
+
+/*! \fn     logic_battery_get_vbat(void)
+*   \brief  Get current battery voltage
+*   \return Battery voltage (ADC value)
+*/
+uint16_t logic_battery_get_vbat(void)
+{
+    return logic_battery_diag_current_vbat;
+}
+
+/*! \fn     logic_battery_get_charging_current(void)
+*   \brief  Get current battery charging current (if any)
+*   \return Charging current
+*/
+int16_t logic_battery_get_charging_current(void)
+{
+    return logic_battery_diag_current_cur;
+}
+
 /*! \fn     logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
 *   \brief  Called to start battery charge
 *   \param  charging_type Charging scheme
