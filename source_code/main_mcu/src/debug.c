@@ -570,11 +570,15 @@ void debug_glyph_scroll(void)
 */
 void debug_nimh_charging(void)
 {
+    int16_t ystarts[256];
+    uint16_t sec_counter = 59;
+    uint16_t current_index = 0;
     aux_mcu_message_t* temp_rx_message;
     aux_mcu_message_t* temp_tx_message_pt;
     
     /* Clear screen */
     sh1122_clear_current_screen(&plat_oled_descriptor);
+    memset((void*)ystarts, 63, sizeof(ystarts));
     
     /* Send battery charge message */
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
@@ -595,7 +599,7 @@ void debug_nimh_charging(void)
         
         /* Send a packet to aux MCU? */
         if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_EXPIRED)
-        {
+        {            
             /* Generate our packet */
             comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE, TX_REPLY_REQUEST_FLAG);
             
@@ -614,6 +618,37 @@ void debug_nimh_charging(void)
                 
             /* Info printed, rearm DMA RX */
             comms_aux_arm_rx_and_clear_no_comms();
+            
+            /* Time to update our graph? */
+            if (sec_counter++ == 59)
+            {
+                sec_counter = 0;
+                
+                if (current_index == 255)
+                {
+                    /* Shift bars */
+                    for (uint16_t i = 0; i < 255; i++)
+                    {
+                        ystarts[i] = ystarts[i+1];
+                    }
+                } 
+                
+                /* Store data */
+                ystarts[current_index] = 63-((((temp_rx_message->nimh_charge_message.battery_voltage*103)>>8)-1100)>>3);
+                //ystarts[current_index] = 63-((bat_mv-1100)>>3);
+                
+                /* Increment index */
+                if (current_index != 255)
+                {
+                    current_index++;
+                }                    
+            }
+            
+            /* Draw graph */
+            for (uint16_t x = 0; x < 256; x++)
+            {
+                sh1122_draw_vertical_line(&plat_oled_descriptor, x, ystarts[x], 63, FALSE);
+            }
             
             /* Arm charge status request timer */
             timer_start_timer(TIMER_TIMEOUT_FUNCTS, 1000);       

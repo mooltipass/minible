@@ -670,6 +670,79 @@ void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descript
     bitstream_bitmap_close(bitstream);    
 }   
 
+/*! \fn     sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, BOOL write_to_buffer)
+*   \brief  Draw a vertical line on the display
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  x                   Starting x
+*   \param  ystart              Starting y
+*   \param  yend                Ending y
+*   \param  write_to_buffer     Set to true to write to internal buffer
+*/
+void sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, BOOL write_to_buffer)
+{
+    uint16_t xoff = x - (x / 2) * 2;
+    
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    if (write_to_buffer != FALSE)
+    {
+        for (int16_t y=ystart; y<=yend; y++)
+        {
+            uint8_t pixels = 0xF0;
+
+            /* Start x not a multiple of 2 */
+            if (xoff != 0)
+            {
+                pixels = 0x0F;
+            }
+            
+            /* Fill frame buffer */
+            oled_descriptor->frame_buffer[y][x/2] |= pixels;
+        }
+    } 
+    else
+    {
+    #endif
+    for (int16_t y=ystart; y<=yend; y++)
+    {
+        uint8_t pixels = 0xF0;
+        
+        /* Set pixel write window */
+        sh1122_set_row_address(oled_descriptor, y);
+        sh1122_set_column_address(oled_descriptor, x/2);
+        
+        /* Start filling the SSD1322 RAM */
+        sh1122_start_data_sending(oled_descriptor);
+
+        /* Start x not a multiple of 2 */
+        if (xoff != 0)
+        {
+            pixels = 0x0F;
+
+            /* Fill existing pixels if available */
+            if ((x/2) == oled_descriptor->gddram_pixel[y].xaddr)
+            {
+                pixels |= oled_descriptor->gddram_pixel[y].pixels;
+            }
+        }
+
+        /* Send the 2 pixels to the display */
+        sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, (uint8_t)(pixels & 0x00FF));
+        
+        /* Store pixel data in our gddram buffer for later merging */
+        oled_descriptor->gddram_pixel[y].pixels = (uint8_t)pixels;
+        oled_descriptor->gddram_pixel[y].xaddr = x/2;
+            
+        /* Wait for spi buffer to be sent */
+        sercom_spi_wait_for_transmit_complete(oled_descriptor->sercom_pt);
+            
+        /* Stop sending data */
+        sh1122_stop_data_sending(oled_descriptor);
+    }
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    }
+    #endif
+}    
+
 /*! \fn     sh1122_draw_non_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream, BOOL write_to_buffer)
 *   \brief  Draw a 2 pixels non aligned picture from a bitstream
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
