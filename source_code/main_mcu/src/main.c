@@ -7,6 +7,7 @@
 #include "driver_clocks.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
+#include "logic_power.h"
 #include "platform_io.h"
 #include "custom_fs.h"
 #include "dataflash.h"
@@ -110,7 +111,16 @@ void main_platform_init(void)
     custom_fs_set_dataflash_descriptor(&dataflash_descriptor);          // Store the dataflash descriptor for our custom fs library
     
     /* Initialize OLED screen */
-    platform_io_power_up_oled(platform_io_is_usb_3v3_present());
+    if (platform_io_is_usb_3v3_present() == FALSE)
+    {
+        logic_power_set_power_source(BATTERY_POWERED);
+        platform_io_power_up_oled(FALSE);
+    } 
+    else
+    {
+        logic_power_set_power_source(USB_POWERED);
+        platform_io_power_up_oled(TRUE);
+    }
     sh1122_init_display(&plat_oled_descriptor);
     
     /* Release aux MCU reset and enable bluetooth */

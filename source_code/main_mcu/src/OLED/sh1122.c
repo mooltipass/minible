@@ -670,15 +670,16 @@ void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descript
     bitstream_bitmap_close(bitstream);    
 }   
 
-/*! \fn     sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, BOOL write_to_buffer)
+/*! \fn     sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, uint8_t color, BOOL write_to_buffer)
 *   \brief  Draw a vertical line on the display
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
 *   \param  ystart              Starting y
 *   \param  yend                Ending y
+*   \param  color               4 bits Color
 *   \param  write_to_buffer     Set to true to write to internal buffer
 */
-void sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, BOOL write_to_buffer)
+void sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, uint8_t color, BOOL write_to_buffer)
 {
     uint16_t xoff = x - (x / 2) * 2;
     
@@ -687,12 +688,12 @@ void sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, 
     {
         for (int16_t y=ystart; y<=yend; y++)
         {
-            uint8_t pixels = 0xF0;
+            uint8_t pixels = color << 4;
 
             /* Start x not a multiple of 2 */
             if (xoff != 0)
             {
-                pixels = 0x0F;
+                pixels = color;
             }
             
             /* Fill frame buffer */
@@ -704,7 +705,7 @@ void sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, 
     #endif
     for (int16_t y=ystart; y<=yend; y++)
     {
-        uint8_t pixels = 0xF0;
+        uint8_t pixels = color << 4;
         
         /* Set pixel write window */
         sh1122_set_row_address(oled_descriptor, y);
@@ -716,7 +717,7 @@ void sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, 
         /* Start x not a multiple of 2 */
         if (xoff != 0)
         {
-            pixels = 0x0F;
+            pixels = color;
 
             /* Fill existing pixels if available */
             if ((x/2) == oled_descriptor->gddram_pixel[y].xaddr)

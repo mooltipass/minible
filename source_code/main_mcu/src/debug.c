@@ -12,6 +12,7 @@
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "platform_io.h"
+#include "logic_power.h"
 #include "custom_fs.h"
 #include "lis2hh12.h"
 #include "sh1122.h"
@@ -581,7 +582,10 @@ void debug_nimh_charging(void)
     memset((void*)ystarts, 63, sizeof(ystarts));
     
     /* Send battery charge message */
-    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
+    if (logic_power_get_power_source() == USB_POWERED)
+    {
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
+    }
     
     /* Arm charge status request timer */
     timer_start_timer(TIMER_TIMEOUT_FUNCTS, 1000);
@@ -613,8 +617,15 @@ void debug_nimh_charging(void)
             sh1122_clear_current_screen(&plat_oled_descriptor);
             
             /* Debug info */
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "MCU Vbat: %umV, AUX Vbat: %umV", bat_mv, (temp_rx_message->nimh_charge_message.battery_voltage*103)>>8);           
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "Charge status: %u, current (ADC): %i", temp_rx_message->nimh_charge_message.charge_status, temp_rx_message->nimh_charge_message.charge_current);
+            if (logic_power_get_power_source() == BATTERY_POWERED)
+            {
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "MCU Vbat: %umV", bat_mv);
+            } 
+            else
+            {
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "AUX Vbat: %umV", (temp_rx_message->nimh_charge_message.battery_voltage*103)>>8);
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "Charge status: %u, current (ADC): %i", temp_rx_message->nimh_charge_message.charge_status, temp_rx_message->nimh_charge_message.charge_current);
+            }
                 
             /* Info printed, rearm DMA RX */
             comms_aux_arm_rx_and_clear_no_comms();
@@ -634,8 +645,14 @@ void debug_nimh_charging(void)
                 } 
                 
                 /* Store data */
-                ystarts[current_index] = 63-((((temp_rx_message->nimh_charge_message.battery_voltage*103)>>8)-1100)>>3);
-                //ystarts[current_index] = 63-((bat_mv-1100)>>3);
+                if (logic_power_get_power_source() == BATTERY_POWERED)
+                {
+                    ystarts[current_index] = 63-((bat_mv-1100)>>3);
+                }
+                else
+                {
+                    ystarts[current_index] = 63-((((temp_rx_message->nimh_charge_message.battery_voltage*103)>>8)-1100)>>3);
+                }                
                 
                 /* Increment index */
                 if (current_index != 255)
@@ -647,7 +664,7 @@ void debug_nimh_charging(void)
             /* Draw graph */
             for (uint16_t x = 0; x < 256; x++)
             {
-                sh1122_draw_vertical_line(&plat_oled_descriptor, x, ystarts[x], 63, FALSE);
+                sh1122_draw_vertical_line(&plat_oled_descriptor, x, ystarts[x], 63, 0x04, FALSE);
             }
             
             /* Arm charge status request timer */
