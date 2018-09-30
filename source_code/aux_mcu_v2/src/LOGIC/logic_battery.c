@@ -125,7 +125,7 @@ void logic_battery_task(void)
                     logic_battery_charge_voltage += LOGIC_BATTERY_BAT_START_CHG_V_INC;
                     
                     /* Check for over voltage - may be caused by disconnected discharge path */
-                    if (logic_battery_charge_voltage >= LOGIC_BATTERY_MAX_V_FOR_ST_RAMP)
+                    if (low_voltage >= LOGIC_BATTERY_MAX_V_FOR_ST_RAMP)
                     {
                         /* Error state */
                         logic_battery_state = LB_ERROR_ST_RAMPING;
@@ -176,7 +176,7 @@ void logic_battery_task(void)
                         logic_battery_charge_voltage += LOGIC_BATTERY_BAT_CUR_REACH_V_INC;
                         
                         /* Check for over voltage - may be caused by disconnected discharge path */
-                        if (logic_battery_charge_voltage >= LOGIC_BATTERY_MAX_V_FOR_CUR_REACH)
+                        if (low_voltage >= LOGIC_BATTERY_MAX_V_FOR_CUR_REACH)
                         {
                             /* Error state */
                             logic_battery_state = LB_ERROR_ST_RAMPING;
@@ -250,7 +250,7 @@ void logic_battery_task(void)
                         logic_battery_charge_voltage += LOGIC_BATTERY_BAT_CUR_REACH_V_INC;
                         
                         /* Check for over voltage - may be caused by disconnected discharge path */
-                        if (logic_battery_charge_voltage >= LOGIC_BATTERY_MAX_V_FOR_CUR_REACH)
+                        if (low_voltage >= LOGIC_BATTERY_MAX_V_FOR_CUR_REACH)
                         {
                             /* Error state */
                             logic_battery_state = LB_ERROR_CUR_MAINTAIN;

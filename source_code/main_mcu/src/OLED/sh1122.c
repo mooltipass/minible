@@ -682,6 +682,7 @@ void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descript
 void sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, uint8_t color, BOOL write_to_buffer)
 {
     uint16_t xoff = x - (x / 2) * 2;
+    ystart = ystart<0?0:ystart;
     
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     if (write_to_buffer != FALSE)
