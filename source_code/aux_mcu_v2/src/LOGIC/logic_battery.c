@@ -8,7 +8,7 @@
 #include "driver_timer.h"
 #include "platform_io.h"
 /* Current charging type / speed */
-lb_nimh_charge_scheme_te logic_battery_charging_type = NIMH_13C_CHARGING;
+lb_nimh_charge_scheme_te logic_battery_charging_type = NIMH_12C_CHARGING;
 /* Current state machine */
 lb_state_machine_te logic_battery_state = LB_IDLE;
 /* Current voltage set for charging */
@@ -153,10 +153,10 @@ void logic_battery_task(void)
                 if (timer_has_timer_expired(TIMER_BATTERY_TICK, TRUE) == TIMER_EXPIRED)
                 {
                     /* Set voltage difference depending on charging scheme */
-                    uint16_t voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_13C;
-                    if (logic_battery_charging_type == NIMH_13C_CHARGING)
+                    uint16_t voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_12C;
+                    if (logic_battery_charging_type == NIMH_12C_CHARGING)
                     {
-                        voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_13C;
+                        voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_12C;
                     } 
                     
                     /* Is enough current flowing into the battery? */
@@ -219,10 +219,10 @@ void logic_battery_task(void)
                     }
                     
                     /* Set voltage difference depending on charging scheme */
-                    uint16_t voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_13C;
-                    if (logic_battery_charging_type == NIMH_13C_CHARGING)
+                    uint16_t voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_12C;
+                    if (logic_battery_charging_type == NIMH_12C_CHARGING)
                     {
-                        voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_13C;
+                        voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_12C;
                     }
                     
                     /* End of charge detection here */
@@ -238,6 +238,12 @@ void logic_battery_task(void)
                         /* Disable step-down */
                         platform_io_disable_step_down();
                     }
+                    else if ((high_voltage - low_voltage) > voltage_diff_goal + 4)
+                    {
+                        /* Decrease charge voltage */
+                        logic_battery_charge_voltage -= LOGIC_BATTERY_BAT_CUR_REACH_V_INC;
+                        platform_io_update_step_down_voltage(logic_battery_charge_voltage);
+                    }                        
                     else if ((high_voltage - low_voltage) < voltage_diff_goal - 2)
                     {
                         /* Increase charge voltage */

@@ -623,8 +623,7 @@ void debug_nimh_charging(void)
             } 
             else
             {
-                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "AUX Vbat: %umV", (temp_rx_message->nimh_charge_message.battery_voltage*103)>>8);
-                sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "Charge status: %u, current (ADC): %i", temp_rx_message->nimh_charge_message.charge_status, temp_rx_message->nimh_charge_message.charge_current);
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "%u - VBat: %umV - Cur %i", temp_rx_message->nimh_charge_message.charge_status, (temp_rx_message->nimh_charge_message.battery_voltage*103)>>8, temp_rx_message->nimh_charge_message.charge_current);
             }
                 
             /* Info printed, rearm DMA RX */
@@ -670,5 +669,10 @@ void debug_nimh_charging(void)
             /* Arm charge status request timer */
             timer_start_timer(TIMER_TIMEOUT_FUNCTS, 1000);       
         }
+        
+		if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+		{
+			return;
+		}
     }
 }
