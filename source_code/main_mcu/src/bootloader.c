@@ -45,56 +45,16 @@ static void start_application(void)
     application_code_entry();
 }
 
-/*! \fn     main_platform_init(void)
-*   \brief  Initialize our platform
-*/
-void main_platform_init(void)
-{
-    platform_io_enable_switch();                                        // Enable switch and 3v3 stepup
-    DELAYMS_8M(100);                                                    // Leave 100ms for stepup powerup
-    custom_fs_settings_init();                                          // Initialize our settings system
-    clocks_start_48MDFLL();                                             // Switch to 48M main clock
-    dma_init();                                                         // Initialize the DMA controller
-    timer_initialize_timebase();                                        // Initialize the platform time base
-    platform_io_init_ports();                                           // Initialize platform IO ports
-    platform_io_init_bat_adc_measurements();                            // Initialize ADC for battery measurements
-    comms_aux_init();                                                   // Initialize communication handling with aux MCU
-    custom_fs_set_dataflash_descriptor(&dataflash_descriptor);          // Store the dataflash descriptor for our custom fs library
-    
-    /* Initialize OLED screen */
-    platform_io_power_up_oled(platform_io_is_usb_3v3_present());
-    sh1122_init_display(&plat_oled_descriptor);
-    
-    /* Release aux MCU reset and enable bluetooth */
-    platform_io_release_aux_reset();
-    platform_io_enable_ble();
-    
-    /* Check for data flash */
-    if (dataflash_check_presence(&dataflash_descriptor) == RETURN_NOK)
-    {
-        sh1122_put_error_string(&plat_oled_descriptor, u"No Dataflash");
-        while(1);
-    }
-    
-    /* Check for DB flash */
-    if (dbflash_check_presence(&dbflash_descriptor) == RETURN_NOK)
-    {
-        sh1122_put_error_string(&plat_oled_descriptor, u"No DB Flash");
-        while(1);
-    }
-    
-    /* Initialize our custom file system stored in data flash */
-    if (custom_fs_init() == RETURN_NOK)
-    {
-        sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
-    }
-}
-
 /*! \fn     main(void)
 *   \brief  Program Main
 */
 int main(void)
-{    
+{
+    /* Enable switch and 3V3 stepup, set no comms signal, leave some time for stepup powerup */
+    platform_io_enable_switch();
+    platform_io_init_no_comms_signal();
+    DELAYMS_8M(100);
+    
     /* Initialize our settings system */
     custom_fs_settings_init();
     

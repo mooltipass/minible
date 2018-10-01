@@ -10,6 +10,8 @@
 
 /* Enums */
 typedef enum    {USB_POWERED, BATTERY_POWERED} power_source_te;
+typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7} lb_state_machine_te;
+
 
 /* Prototypes */
 void logic_power_set_power_source(power_source_te power_source);

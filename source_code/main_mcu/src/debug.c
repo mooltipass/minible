@@ -45,7 +45,7 @@ void debug_debug_menu(void)
     wheel_action_ret_te wheel_user_action;
     int16_t selected_item = 0;
     BOOL redraw_needed = TRUE;
-
+debug_debug_screen();
     while(1)
     {
         /* Still deal with comms */
@@ -623,7 +623,14 @@ void debug_nimh_charging(void)
             } 
             else
             {
-                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "%u - VBat: %umV - Cur %i", temp_rx_message->nimh_charge_message.charge_status, (temp_rx_message->nimh_charge_message.battery_voltage*103)>>8, temp_rx_message->nimh_charge_message.charge_current);
+                if (temp_rx_message->nimh_charge_message.charge_status == LB_CHARGING_DONE)
+                {
+                    sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Charging done");
+                } 
+                else
+                {
+                    sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "%u - VBat: %umV - Cur %i", temp_rx_message->nimh_charge_message.charge_status, (temp_rx_message->nimh_charge_message.battery_voltage*103)>>8, temp_rx_message->nimh_charge_message.charge_current);
+                }
             }
                 
             /* Info printed, rearm DMA RX */
@@ -664,6 +671,17 @@ void debug_nimh_charging(void)
             for (uint16_t x = 0; x < 256; x++)
             {
                 sh1122_draw_vertical_line(&plat_oled_descriptor, x, ystarts[x], 63, 0x04, FALSE);
+            }
+            
+            if (temp_rx_message->nimh_charge_message.charge_status == LB_CHARGING_DONE)
+            {
+                while (TRUE)
+                {
+                    if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+                    {
+                        return;
+                    }
+                }
             }
             
             /* Arm charge status request timer */
