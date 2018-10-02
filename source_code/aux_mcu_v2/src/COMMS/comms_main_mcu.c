@@ -126,6 +126,15 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
         /* Send message */
         comms_main_mcu_send_message((void*)&main_mcu_send_message, (uint16_t)sizeof(main_mcu_send_message));
     }
+    else if (message->message_type == AUX_MCU_MSG_TYPE_BOOTLOADER)
+    {
+        if (message->bootloader_message.command == BOOTLOADER_PROGRAMMING_COMMAND)
+        {
+            main_set_bootloader_flag();
+            cpu_irq_disable();
+            NVIC_SystemReset();
+        }
+    }        
     else if (message->message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD)
     {
         switch(message->main_mcu_command_message.command)

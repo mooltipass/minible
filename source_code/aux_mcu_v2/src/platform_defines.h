@@ -6,7 +6,9 @@
 #ifndef PLATFORM_DEFINES_H_
 #define PLATFORM_DEFINES_H_
 
-#include <asf.h>
+#ifndef BOOTLOADER
+    #include <asf.h>
+#endif  
 #include "defines.h"
 
 /**************** FIRMWARE DEFINES ****************/
@@ -51,7 +53,6 @@
 
 /* Bluetooth defies */
 #define BLE_PLATFORM_NAME           "Mooltipass Mini"
-
 
 /* Enums */
 typedef enum {PIN_GROUP_0 = 0, PIN_GROUP_1 = 1} pin_group_te;

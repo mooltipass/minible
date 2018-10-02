@@ -3,7 +3,11 @@
 *    Created:  10/11/2017
 *    Author:   Mathieu Stephan
 */
-#include <asf.h>
+#ifndef BOOTLOADER
+    #include <asf.h>
+#else
+    #include "sam.h"
+#endif
 #include "platform_defines.h"
 #include "driver_clocks.h"
 
@@ -57,7 +61,7 @@ void clocks_start_48MDFLL(void)
     SYSCTRL->DFLLCTRL.reg = 0;                                  // Disable ONDEMAND mode while writing configurations
     
     /* Load coarse and fine values from NVM and store them in DFFLVAL.COARSE & DFFLVAL.FINE */
-    uint32_t coarse_val = ((*((uint32_t *)SYSCTRL_FUSES_DFLL48M_COARSE_CAL_ADDR)) & SYSCTRL_FUSES_DFLL48M_COARSE_CAL_Msk) >> SYSCTRL_FUSES_DFLL48M_COARSE_CAL_Pos;
+    uint32_t coarse_val = ((*((uint32_t *)FUSES_DFLL48M_COARSE_CAL_ADDR)) & FUSES_DFLL48M_COARSE_CAL_Msk) >> FUSES_DFLL48M_COARSE_CAL_Pos;
     uint32_t fine_val =  ((*((uint32_t *)FUSES_DFLL48M_FINE_CAL_ADDR)) & FUSES_DFLL48M_FINE_CAL_Msk) >> FUSES_DFLL48M_FINE_CAL_Pos;
     SYSCTRL_DFLLVAL_Type dfll_val;                              // DFLL value register
     dfll_val.bit.COARSE = coarse_val;                           // Store coarse value

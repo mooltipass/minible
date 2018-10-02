@@ -13,7 +13,7 @@
 #include "dma.h"
 #include "usb.h"
 #include "udc.h"
-/* Bootloader lag at a given address */
+/* Bootloader flag at a given address */
 volatile uint32_t bootloader_flag __attribute__((used,section (".bootloader_flag")));
 
 /****************************************************************************/
@@ -58,6 +58,13 @@ void jump_to_application_function(void)
     application_code_entry();
 }
 
+/*! \fn     main_set_bootloader_flag(void)
+*   \brief  Set bootloader flag
+*/
+void main_set_bootloader_flag(void)
+{
+    bootloader_flag = BOOTLOADER_FLAG;
+}
 
 /*! \fn     main_platform_init(void)
 *   \brief  Initialize our platform
@@ -127,7 +134,7 @@ void main_standby_sleep(BOOL startup_run)
     cpu_irq_leave_critical();
 }
 
-int main (void)
+int main(void)
 {
     /* Initialize our platform */
     main_platform_init();

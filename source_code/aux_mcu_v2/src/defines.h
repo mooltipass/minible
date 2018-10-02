@@ -15,6 +15,7 @@
 /* Standard defines */
 #define FALSE                   0
 #define TRUE                    (!FALSE)
+#define BOOTLOADER_FLAG         0xDEADBEEF
 
 /* Enums */
 typedef enum    {RETURN_NOK = -1, RETURN_OK = 0} ret_type_te;
