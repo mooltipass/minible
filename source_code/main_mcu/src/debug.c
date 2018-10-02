@@ -45,7 +45,7 @@ void debug_debug_menu(void)
     wheel_action_ret_te wheel_user_action;
     int16_t selected_item = 0;
     BOOL redraw_needed = TRUE;
-debug_debug_screen();
+    
     while(1)
     {
         /* Still deal with comms */
@@ -63,13 +63,13 @@ debug_debug_screen();
             #endif
             
             /* Item selection */
-            if (selected_item > 7)
+            if (selected_item > 9)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 7;
+                selected_item = 9;
             }
             
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);

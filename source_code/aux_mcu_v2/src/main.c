@@ -13,7 +13,8 @@
 #include "dma.h"
 #include "usb.h"
 #include "udc.h"
-
+/* Bootloader lag at a given address */
+volatile uint32_t bootloader_flag __attribute__((used,section (".bootloader_flag")));
 
 /****************************************************************************/
 /* The blob of code below is aimed at facilitating our development process  */
@@ -131,7 +132,7 @@ int main (void)
     /* Initialize our platform */
     main_platform_init();
         
-    //udc_attach();
+    udc_attach();
     //logic_battery_start_charging(NIMH_12C_CHARGING);
     while(TRUE)
     {

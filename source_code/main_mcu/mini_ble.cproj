@@ -201,7 +201,7 @@
         <documentation help="http://asf.atmel.com/docs/3.34.1/common.applications.user_application.sam0_system.user_board.atsamd21g18a/html/index.html" />
         <offline-documentation help="" />
         <dependencies>
-          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.28.1" />
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.34.1" />
         </dependencies>
         <project id="common.applications.user_application.sam0_system.user_board.atsamd21g18a" value="Add" config="" content-id="Atmel.ASF" />
         <board id="board.user_board.samd21g" value="Add" config="" content-id="Atmel.ASF" />

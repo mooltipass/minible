@@ -104,10 +104,8 @@ uint32_t logic_aux_mcu_get_ble_chip_id(void)
 */
 RET_TYPE logic_aux_mcu_flash_firmware_update(void)
 {
-    /* No need to worry about other aux messages coming in as the aux MCU is only running the bootloader */
-    aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
-    memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
-    aux_mcu_message_t* temp_rx_message_pt;
+    aux_mcu_message_t* temp_rx_message;
+    aux_mcu_message_t* temp_tx_message_pt;
     
     /* Look for update file address */
     custom_fs_address_t fw_file_address;
@@ -123,29 +121,21 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
     fw_file_address += sizeof(fw_file_size);
     
     /* Prepare programming command */
-    temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_BOOTLOADER;
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BOOTLOADER, TX_REPLY_REQUEST_FLAG);
     temp_tx_message_pt->bootloader_message.command = BOOTLOADER_PROGRAMMING_COMMAND;
     temp_tx_message_pt->bootloader_message.programming_command.image_length = fw_file_size;
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->bootloader_message.command) + sizeof(temp_tx_message_pt->bootloader_message.programming_command);
-    temp_tx_message_pt->payload_length2 = sizeof(temp_tx_message_pt->bootloader_message.command) + sizeof(temp_tx_message_pt->bootloader_message.programming_command);
-    temp_tx_message_pt->tx_reply_request_flag = 0x0001;
     
     /* Send message */
-    dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)temp_tx_message_pt, sizeof(*temp_tx_message_pt));
-    dma_wait_for_aux_mcu_packet_sent();  
+    comms_aux_mcu_send_message(TRUE);
     
-    /* Wait for answer... */
-    while(comms_aux_mcu_active_wait(&temp_rx_message_pt) == RETURN_NOK){}
-    
-    /* Check for valid answer */
-    if ((temp_rx_message_pt->message_type != AUX_MCU_MSG_TYPE_BOOTLOADER) || (temp_rx_message_pt->bootloader_message.command != BOOTLOADER_PROGRAMMING_COMMAND))
-    {
-        return RETURN_NOK;
-    }
+    /* Wait for message from aux MCU */
+    while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
     
     /* Answer checked, rearm RX */    
     comms_aux_arm_rx_and_clear_no_comms();
     
+    #ifdef bla
     /* Send bytes by blocks of 512 */
     uint32_t nb_bytes_to_read;
     while (fw_file_size > 0)
@@ -194,6 +184,6 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
         /* Answer checked, rearm RX */
         comms_aux_arm_rx_and_clear_no_comms();
     }      
-    
+    #endif
     return RETURN_OK;
 }
