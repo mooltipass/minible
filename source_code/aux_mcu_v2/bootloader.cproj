@@ -63,7 +63,7 @@
   <armgcc.common.outputfiles.hex>True</armgcc.common.outputfiles.hex>
   <armgcc.common.outputfiles.lss>True</armgcc.common.outputfiles.lss>
   <armgcc.common.outputfiles.eep>True</armgcc.common.outputfiles.eep>
-  <armgcc.common.outputfiles.bin>True</armgcc.common.outputfiles.bin>
+  <armgcc.common.outputfiles.bin>False</armgcc.common.outputfiles.bin>
   <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
   <armgcc.compiler.symbols.DefSymbols><ListValues>
   <Value>BOOTLOADER</Value>
@@ -90,7 +90,7 @@
   <armgcc.common.outputfiles.hex>True</armgcc.common.outputfiles.hex>
   <armgcc.common.outputfiles.lss>True</armgcc.common.outputfiles.lss>
   <armgcc.common.outputfiles.eep>True</armgcc.common.outputfiles.eep>
-  <armgcc.common.outputfiles.bin>True</armgcc.common.outputfiles.bin>
+  <armgcc.common.outputfiles.bin>False</armgcc.common.outputfiles.bin>
   <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
   <armgcc.compiler.symbols.DefSymbols><ListValues>
   <Value>BOOTLOADER</Value>
