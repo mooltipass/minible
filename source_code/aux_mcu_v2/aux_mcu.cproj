@@ -332,7 +332,7 @@
   <armgcc.linker.libraries.Libraries><ListValues><Value>libble_sdk</Value><Value>libarm_cortexM0l_math</Value><Value>libm</Value></ListValues></armgcc.linker.libraries.Libraries>
   <armgcc.linker.libraries.LibrarySearchPaths><ListValues><Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value><Value>../src/ASF/thirdparty/wireless/ble_sdk/lib/cm0p/gcc</Value></ListValues></armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
-  <armgcc.linker.memorysettings.Flash><ListValues><Value>.start_app_function_addr=0x200</Value><Value>.flash_start_addr=0x0</Value><Value>.text=0x2000</Value><Value>.data=0x20000004</Value><Value>.relocate=0x20000004</Value><Value>.bootloader_flag=0x20000000</Value></ListValues></armgcc.linker.memorysettings.Flash>
+  <armgcc.linker.memorysettings.Flash><ListValues><Value>.start_app_function_addr=0x200</Value><Value>.flash_start_addr=0x0</Value><Value>.text=0x800</Value><Value>.data=0x20000004</Value><Value>.relocate=0x20000004</Value><Value>.bootloader_flag=0x20000000</Value></ListValues></armgcc.linker.memorysettings.Flash>
   <armgcc.linker.memorysettings.ExternalRAM></armgcc.linker.memorysettings.ExternalRAM>
   <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21e18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
   <armgcc.linker.miscellaneous.OtherOptions><ListValues><Value>--undefined=jump_to_application_function_addr</Value><Value>--undefined=jump_to_application_function</Value></ListValues></armgcc.linker.miscellaneous.OtherOptions>
@@ -382,7 +382,7 @@
   <armgcc.linker.libraries.Libraries><ListValues><Value>libble_sdk</Value><Value>libarm_cortexM0l_math</Value><Value>libm</Value></ListValues></armgcc.linker.libraries.Libraries>
   <armgcc.linker.libraries.LibrarySearchPaths><ListValues><Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value><Value>../src/ASF/thirdparty/wireless/ble_sdk/lib/cm0p/gcc</Value></ListValues></armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
-  <armgcc.linker.memorysettings.Flash><ListValues><Value>.start_app_function_addr=0x200</Value><Value>.flash_start_addr=0x0</Value><Value>.text=0x2000</Value><Value>.data=0x20000004</Value><Value>.relocate=0x20000004</Value><Value>.bootloader_flag=0x20000000</Value></ListValues></armgcc.linker.memorysettings.Flash>
+  <armgcc.linker.memorysettings.Flash><ListValues><Value>.start_app_function_addr=0x200</Value><Value>.flash_start_addr=0x0</Value><Value>.text=0x800</Value><Value>.data=0x20000004</Value><Value>.relocate=0x20000004</Value><Value>.bootloader_flag=0x20000000</Value></ListValues></armgcc.linker.memorysettings.Flash>
   <armgcc.linker.memorysettings.ExternalRAM></armgcc.linker.memorysettings.ExternalRAM>
   <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21e18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
   <armgcc.linker.miscellaneous.OtherOptions><ListValues><Value>--undefined=jump_to_application_function_addr</Value><Value>--undefined=jump_to_application_function</Value></ListValues></armgcc.linker.miscellaneous.OtherOptions>

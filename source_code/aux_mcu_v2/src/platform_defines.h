@@ -68,7 +68,7 @@ typedef uint32_t PIN_ID_T;
 /* Simply an array point to our internal memory */
 #define NVM_MEMORY ((volatile uint16_t *)FLASH_ADDR)
 /* Our firmware start address */
-#define APP_START_ADDR (0x2000)
+#define APP_START_ADDR (0x800)
 /* Internal storage slot for settings storage */
 #define SETTINGS_STORAGE_SLOT   0
 

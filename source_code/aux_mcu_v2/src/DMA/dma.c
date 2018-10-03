@@ -4,7 +4,11 @@
 *    Author:   Mathieu Stephan
 */
 #include <string.h>
-#include <asf.h>
+#ifndef BOOTLOADER
+    #include <asf.h>
+#else
+    #include "sam.h"
+#endif
 #include "platform_defines.h"
 #include "comms_main_mcu.h"
 #include "defines.h"
@@ -43,8 +47,9 @@ void DMAC_Handler(void)
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
         
         /* Arm next transfer: leave this here! */
-        dma_main_mcu_init_rx_transfer();
+        dma_main_mcu_init_rx_transfer();        
         
+        #ifndef BOOTLOADER        
         /* Depending on message received, copy to the right rcv buffer and set flag */
         if (dma_main_mcu_temp_rcv_message.message_type == AUX_MCU_MSG_TYPE_USB)
         {
@@ -85,6 +90,10 @@ void DMAC_Handler(void)
                 dma_main_mcu_other_msg_received = TRUE;
             }    
         }
+        #else
+            /* Bootloader: we're only receiving other messages :D */
+            dma_main_mcu_other_msg_received = TRUE;
+        #endif
     }
     
     /* MAIN MCU TX routine */
@@ -225,7 +234,9 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
     /* Wait for previous transfer to be done */
     while (dma_main_mcu_packet_sent == FALSE);
     
-    cpu_irq_enter_critical();
+    /* Disable IRQs */
+    __disable_irq();
+    __DMB();
     
     /* Set bool */
     dma_main_mcu_packet_sent = FALSE;
@@ -241,7 +252,9 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
     DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_TX_COMMS);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
     
-    cpu_irq_leave_critical();
+    /* Re-enable IRQs */
+    __DMB();
+    __enable_irq();
 }
 
 /*! \fn     dma_main_mcu_disable_transfer(void)
@@ -249,7 +262,9 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
 */
 void dma_main_mcu_disable_transfer(void)
 {
-    cpu_irq_enter_critical();
+    /* Disable IRQs */
+    __disable_irq();
+    __DMB();
     
     /* Stop DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_TX_COMMS);
@@ -266,9 +281,11 @@ void dma_main_mcu_disable_transfer(void)
     while(DMAC->CHCTRLA.reg != 0);
     
     /* Reset bool */
-    dma_aux_mcu_packet_received = FALSE;
+    dma_aux_mcu_packet_received = FALSE;    
     
-    cpu_irq_leave_critical();    
+    /* Re-enable IRQs */
+    __DMB();
+    __enable_irq();
 }
 
 /*! \fn     dma_main_mcu_init_rx_transfer(void)

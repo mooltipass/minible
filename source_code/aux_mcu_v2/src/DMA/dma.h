@@ -10,6 +10,7 @@
 #define DMA_H_
 
 #include "platform_defines.h"
+#include "comms_main_mcu.h"
 #include "defines.h"
 
 /* Global vars */

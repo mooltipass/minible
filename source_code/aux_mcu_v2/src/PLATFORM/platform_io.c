@@ -3,11 +3,14 @@
 *    Created:  22/08/2018
 *    Author:   Mathieu Stephan
 */
-#include <asf.h>
+#ifndef BOOTLOADER
+    #include <asf.h>
+#else
+    #include "sam.h"
+#endif
 #include "platform_defines.h"
 //#include "driver_sercom.h"
 #include "driver_clocks.h"
-#include "driver_timer.h"
 #include "platform_io.h"
 /* Set when a conversion result is ready */
 volatile BOOL platform_cur_sense_conv_ready = FALSE;
@@ -34,6 +37,7 @@ void EIC_Handler2(void)
 /*! \fn     ADC_Handler(void)
 *   \brief  Called once a conversion result is ready
 */
+#ifndef BOOTLOADER
 void ADC_Handler(void)
 {
     if (platform_io_measuring_lcursense == FALSE)
@@ -73,6 +77,7 @@ void ADC_Handler(void)
     /* Clear interrupt */
     ADC->INTFLAG.reg = ADC_INTFLAG_RESRDY;
 }
+#endif
 
 /*! \fn     platform_io_is_current_sense_conversion_result_ready(void)
 *   \brief  Ask if a current sense conversion result is ready

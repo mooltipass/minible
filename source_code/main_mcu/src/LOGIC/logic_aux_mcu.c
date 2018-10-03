@@ -122,7 +122,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
     
     /* Prepare programming command */
     comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BOOTLOADER, TX_REPLY_REQUEST_FLAG);
-    temp_tx_message_pt->bootloader_message.command = BOOTLOADER_PROGRAMMING_COMMAND;
+    temp_tx_message_pt->bootloader_message.command = BOOTLOADER_START_PROGRAMMING_COMMAND;
     temp_tx_message_pt->bootloader_message.programming_command.image_length = fw_file_size;
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->bootloader_message.command) + sizeof(temp_tx_message_pt->bootloader_message.programming_command);
     
@@ -135,8 +135,8 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
     /* Answer checked, rearm RX */    
     comms_aux_arm_rx_and_clear_no_comms();
     
-    #ifdef bla
     /* Send bytes by blocks of 512 */
+    uint32_t nb_bytes_sent = 0;
     uint32_t nb_bytes_to_read;
     while (fw_file_size > 0)
     {
@@ -148,42 +148,41 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
         }
         
         /* Prepare write command */
-        temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_BOOTLOADER;
+        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BOOTLOADER, TX_REPLY_REQUEST_FLAG);
         temp_tx_message_pt->bootloader_message.command = BOOTLOADER_WRITE_COMMAND;
         temp_tx_message_pt->bootloader_message.write_command.size = 512;
+        temp_tx_message_pt->bootloader_message.write_command.address = nb_bytes_sent;
         temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->bootloader_message.command) + sizeof(temp_tx_message_pt->bootloader_message.write_command);
-        temp_tx_message_pt->payload_length2 = sizeof(temp_tx_message_pt->bootloader_message.command) + sizeof(temp_tx_message_pt->bootloader_message.write_command);
-        temp_tx_message_pt->tx_reply_request_flag = 0x0001;        
         
         /* Fill payload */
         custom_fs_read_from_flash((uint8_t*)temp_tx_message_pt->bootloader_message.write_command.payload, fw_file_address, nb_bytes_to_read);
         
         /* Update vars */
         fw_file_address += nb_bytes_to_read;
-        fw_file_size -= nb_bytes_to_read;     
+        fw_file_size -= nb_bytes_to_read;   
+        nb_bytes_sent += nb_bytes_to_read;
         
         /* Padding for last packet */
         if ((fw_file_size == 0) && (nb_bytes_to_read != 512))
         {
             memset((void*)&temp_tx_message_pt->bootloader_message.write_command.payload[nb_bytes_to_read], 0, 512-nb_bytes_to_read);
-        }           
+        }
         
         /* Send message */
-        dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)temp_tx_message_pt, sizeof(*temp_tx_message_pt));
-        dma_wait_for_aux_mcu_packet_sent();
+        comms_aux_mcu_send_message(TRUE);
         
-        /* Wait for answer... */
-        while(comms_aux_mcu_active_wait(&temp_rx_message_pt) == RETURN_NOK){}
-            
-        /* Check for valid answer */
-        if ((temp_rx_message_pt->message_type != AUX_MCU_MSG_TYPE_BOOTLOADER) || (temp_rx_message_pt->bootloader_message.command != BOOTLOADER_WRITE_COMMAND))
-        {
-            return RETURN_NOK;
-        }
+        /* Wait for message from aux MCU */
+        while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
         
         /* Answer checked, rearm RX */
         comms_aux_arm_rx_and_clear_no_comms();
     }      
-    #endif
+        
+    /* Prepare start application command, no answers */
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BOOTLOADER, TX_REPLY_REQUEST_FLAG);
+    temp_tx_message_pt->bootloader_message.command = BOOTLOADER_START_APP_COMMAND;
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->bootloader_message.command);
+    comms_aux_mcu_send_message(TRUE);
+        
     return RETURN_OK;
 }
