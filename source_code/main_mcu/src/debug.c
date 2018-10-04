@@ -7,6 +7,7 @@
 #include <asf.h>
 #include "comms_hid_msgs_debug.h"
 #include "smartcard_highlevel.h"
+#include "smartcard_lowlevel.h"
 #include "platform_defines.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
@@ -63,13 +64,13 @@ void debug_debug_menu(void)
             #endif
             
             /* Item selection */
-            if (selected_item > 9)
+            if (selected_item > 10)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 9;
+                selected_item = 10;
             }
             
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);
@@ -78,22 +79,22 @@ void debug_debug_menu(void)
             if (selected_item < 4)
             {
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Battery", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Language Switch Test", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Smartcard Debug", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Animation Test", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main and Aux MCU Info", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU BLE Info", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"NiMH Charging", TRUE);
             }
             else if (selected_item < 8)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Main and Aux MCU Info", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Scroll Through Glyphs", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU BLE Info", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"NiMH Charging", TRUE);
-                
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Scroll Through Glyphs", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Language Switch Test", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Smartcard Debug", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Animation Test", TRUE);            
             }
             else
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Main MCU Flash", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Aux MCU Flash", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Smartcard Test", TRUE);                
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main MCU Flash", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU Flash", TRUE);
             }
             
             /* Cursor */
@@ -126,39 +127,43 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 1)
             {
-                debug_language_test();
+                debug_mcu_and_aux_info();
             }
             else if (selected_item == 2)
             {
-                debug_smartcard_info();
+                debug_atbtlc_info();
             }
             else if (selected_item == 3)
             {
-                debug_debug_animation();
+                debug_nimh_charging();
             }
             else if (selected_item == 4)
             {
-	            debug_mcu_and_aux_info();
+                debug_glyph_scroll();
             }
             else if (selected_item == 5)
             {
-	            debug_glyph_scroll();
+                debug_language_test();
             }
             else if (selected_item == 6)
             {
-	            debug_atbtlc_info();
+                debug_smartcard_info();
             }
             else if (selected_item == 7)
             {
-	            debug_nimh_charging();
+                debug_debug_animation();
             }
             else if (selected_item == 8)
+            {
+                debug_smartcard_test();
+            }
+            else if (selected_item == 9)
             {
                 custom_fs_settings_set_fw_upgrade_flag();
                 cpu_irq_disable();
                 NVIC_SystemReset();
             }
-            else if (selected_item == 9)
+            else if (selected_item == 10)
             {
                 logic_aux_mcu_flash_firmware_update();
             }
@@ -166,6 +171,68 @@ void debug_debug_menu(void)
         }
     }
 }
+
+/*! \fn     debug_smartcard_test(void)
+*   \brief  Smartcard Read/Write test
+*/
+void debug_smartcard_test(void)
+{
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please insert a blank card", FALSE);
+    
+    while(1)
+    {
+        /* Return ? */
+        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+        {
+            return;
+        }
+        
+        if (smartcard_lowlevel_is_card_plugged() == RETURN_JDETECT)
+        {            
+            /* Get detection result */
+            mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();
+            
+            /* Card debug info */
+            if (detection_result == RETURN_MOOLTIPASS_BLANK)
+            {
+                uint8_t random_data[256/8];
+                uint16_t success_count = 0;
+                
+                /* Perform a 100 read / write tests */
+                for (uint16_t i = 0; i < 100; i++)
+                {
+                    /* Fill buffer with accelerometer data */
+                    while(lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) == FALSE);
+                    memcpy((void*)random_data, acc_descriptor.fifo_read.acc_data_array, sizeof(random_data));
+                    
+                    /* Stats show */
+                    sh1122_clear_current_screen(&plat_oled_descriptor);
+                    sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Testing...", FALSE);
+                    sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "%d/%d OK", success_count, i);
+                    
+                    /* Reset card */
+                    smartcard_lowlevel_erase_application_zone1_nzone2(FALSE);
+                    smartcard_lowlevel_erase_application_zone1_nzone2(TRUE);
+                    smartcard_highlevel_set_authenticated_readwrite_to_zone1and2();
+                    
+                    /* Fill random bytes */
+                    if (smartcard_highlevel_write_aes_key(random_data) != RETURN_NOK)
+                    {
+                        success_count++;
+                    }                   
+                }
+            }
+            else
+            {
+                return;
+            }
+            
+            /* Remove power to the card */
+            platform_io_smc_remove_function();
+        }
+    }
+}    
 
 /*! \fn     debug_smartcard_info(void)
 *   \brief  Smartcard Debug Info
@@ -431,18 +498,18 @@ void debug_mcu_and_aux_info(void)
     aux_mcu_message_t* temp_rx_message;
     aux_mcu_message_t* temp_tx_message_pt;
     
-	/* Get part number */
-	char part_number[20] = "unknown";
-	if (DSU->DID.bit.DEVSEL == 0x05)
-	{
-		strcpy(part_number, "ATSAMD21G18A");
-	}
-	
-	/* Print info */
-	sh1122_clear_current_screen(&plat_oled_descriptor);
-	sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Main MCU, fw %d.%d", FW_MAJOR, FW_MINOR);
-	sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "DID 0x%08x (%s), rev %c", DSU->DID.reg, part_number, 'A' + DSU->DID.bit.REVISION);
-	sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", *(uint32_t*)0x0080A00C, *(uint32_t*)0x0080A040, *(uint32_t*)0x0080A044, *(uint32_t*)0x0080A048);
+    /* Get part number */
+    char part_number[20] = "unknown";
+    if (DSU->DID.bit.DEVSEL == 0x05)
+    {
+        strcpy(part_number, "ATSAMD21G18A");
+    }
+    
+    /* Print info */
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Main MCU, fw %d.%d", FW_MAJOR, FW_MINOR);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "DID 0x%08x (%s), rev %c", DSU->DID.reg, part_number, 'A' + DSU->DID.bit.REVISION);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", *(uint32_t*)0x0080A00C, *(uint32_t*)0x0080A040, *(uint32_t*)0x0080A044, *(uint32_t*)0x0080A048);
     
     /* Prepare status message request */
     comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PLAT_DETAILS, TX_REPLY_REQUEST_FLAG);
@@ -475,25 +542,25 @@ void debug_mcu_and_aux_info(void)
     sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "Aux MCU fw %d.%d", temp_rx_message->aux_details_message.aux_fw_ver_major, temp_rx_message->aux_details_message.aux_fw_ver_minor);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, FALSE, "DID 0x%08x (%s), rev %c", aux_mcu_did.reg, part_number, 'A' + aux_mcu_did.bit.REVISION);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", temp_rx_message->aux_details_message.aux_uid_registers[0], temp_rx_message->aux_details_message.aux_uid_registers[1], temp_rx_message->aux_details_message.aux_uid_registers[2], temp_rx_message->aux_details_message.aux_uid_registers[3]);
-	
+    
     /* Info printed, rearm DMA RX */
     comms_aux_arm_rx_and_clear_no_comms();
     
-	/* Check for click to return */
-	while(1)
-	{
-		if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
-		{
-			return;
-		}
-	}
+    /* Check for click to return */
+    while(1)
+    {
+        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+        {
+            return;
+        }
+    }
 }
 
 /*! \fn     debug_atbtlc_info(void)
 *   \brief  Print info about aux MCU ATBTLC1000
 */
 void debug_atbtlc_info(void)
-{	
+{    
     aux_mcu_message_t* temp_rx_message;   
     aux_mcu_message_t* temp_tx_message_pt;
     
@@ -520,14 +587,14 @@ void debug_atbtlc_info(void)
     /* Info printed, rearm DMA RX */
     comms_aux_arm_rx_and_clear_no_comms();
     
-	/* Check for click to return */
-	while(1)
-	{
-		if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
-		{
-			return;
-		}
-	}
+    /* Check for click to return */
+    while(1)
+    {
+        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+        {
+            return;
+        }
+    }
 }
 
 /*! \fn     debug_glyph_scroll(void)
@@ -537,6 +604,9 @@ void debug_glyph_scroll(void)
 {
     wheel_action_ret_te action_ret = WHEEL_ACTION_UP;
     uint16_t cur_glyph = 0;
+    
+    /* Dirty hack: set '?' support to FALSE so non supported chars aren't replaced with it */
+    plat_oled_descriptor.question_mark_support_described = FALSE;
     
     while (TRUE)
     {
@@ -563,6 +633,13 @@ void debug_glyph_scroll(void)
         
         /* Get action */
         action_ret = inputs_get_wheel_action(TRUE, FALSE);
+        
+        /* Exit ? */
+        if (action_ret == WHEEL_ACTION_SHORT_CLICK)
+        {
+            plat_oled_descriptor.question_mark_support_described = TRUE;
+            return;
+        }
     }
 }
 
@@ -688,9 +765,9 @@ void debug_nimh_charging(void)
             timer_start_timer(TIMER_TIMEOUT_FUNCTS, 1000);       
         }
         
-		if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
-		{
-			return;
-		}
+        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+        {
+            return;
+        }
     }
 }
