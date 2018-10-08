@@ -6,6 +6,7 @@ The goal of this page is to make a record of all observations regarding the Mini
 2) 3V3 switching for the OLED stepup is too quick, causing a 3V3 drop and triggering the BOD. The power-up sequence therefore needs to be changed to first switch on the 1V5 then disable it, then enable the 3V3.  
 3) U16 IO2 & IO3 (pin 3 & 7) are left unconnected, consuming current when in sleep. As a patch, pin 3 can be soldered with pin 4 (nWP not used when SRP not set) and pin 7 can be soldered with pin 8.  
 4) R8 & R7 resistors switched.  
+5) 1V2 to 3V3 and USB to 3V3 are connected together through ideal diodes. As a result, both 1V2 and USB 5V will be used at the same time for 3V3 generation, preventing us from accurately measuring the current used for charging the NiMH battery.  
   
     
 ## [](#header-2)Board Specific Bugs Found
