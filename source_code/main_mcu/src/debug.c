@@ -64,13 +64,13 @@ void debug_debug_menu(void)
             #endif
             
             /* Item selection */
-            if (selected_item > 10)
+            if (selected_item > 11)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 10;
+                selected_item = 11;
             }
             
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);
@@ -95,6 +95,7 @@ void debug_debug_menu(void)
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Smartcard Test", TRUE);                
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main MCU Flash", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU Flash", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
             }
             
             /* Cursor */
@@ -166,6 +167,16 @@ void debug_debug_menu(void)
             else if (selected_item == 10)
             {
                 logic_aux_mcu_flash_firmware_update();
+            }
+            else if (selected_item == 11)
+            {
+                sh1122_oled_off(&plat_oled_descriptor);     // Display off command    
+                platform_io_power_down_oled();              // Switch off stepup            
+                platform_io_set_wheel_click_pull_down();    // Pull down on wheel click to slowly discharge capacitor
+                timer_delay_ms(100);                        // From OLED datasheet wait before removing 3V3
+                platform_io_set_wheel_click_low();          // Completely discharge cap
+                timer_delay_ms(10);                         // Wait a tad
+                platform_io_disable_switch_and_die();       // Die!
             }
             redraw_needed = TRUE;
         }

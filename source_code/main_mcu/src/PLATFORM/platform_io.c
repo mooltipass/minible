@@ -210,6 +210,23 @@ void platform_io_init_scroll_wheel_ports(void)
     PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.INEN = 1;
 }
 
+/*! \fn     platform_io_set_wheel_click_pull_down(void)
+*   \brief  Setup pull down for wheel click instead of pullup
+*/
+void platform_io_set_wheel_click_pull_down(void)
+{
+    PORT->Group[WHEEL_SW_GROUP].OUTCLR.reg = WHEEL_SW_MASK;    
+}
+
+/*! \fn     platform_io_set_wheel_click_low(void)
+*   \brief  Setup set wheel click input low
+*/
+void platform_io_set_wheel_click_low(void)
+{
+    PORT->Group[WHEEL_SW_GROUP].DIRSET.reg = WHEEL_SW_MASK;
+    PORT->Group[WHEEL_SW_GROUP].OUTCLR.reg = WHEEL_SW_MASK; 
+}
+
 /*! \fn     platform_io_init_smc_ports(void)
 *   \brief  Basic initialization of SMC ports at boot
 */
