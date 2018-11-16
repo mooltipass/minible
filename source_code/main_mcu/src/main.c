@@ -3,6 +3,7 @@
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
 #include "platform_defines.h"
+#include "gui_dispatcher.h"
 #include "logic_aux_mcu.h"
 #include "driver_clocks.h"
 #include "comms_aux_mcu.h"
@@ -277,7 +278,20 @@ int main(void)
     main_platform_init();
     //timer_delay_ms(2000);
     //main_standby_sleep();
-    debug_debug_menu();
+    
+    /* Uncomment below for debug menu */
+    //debug_debug_menu();
+    
+    /* Set startup screen: TODO change back to locked */
+    gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU);
+    gui_dispatcher_get_back_to_current_screen();
+    
+    /* Infinite loop */
+    while(TRUE)
+    {
+        /* GUI main loop */
+        gui_dispatcher_main_loop();
+    }
     
     // Test code: burn internal graphics data into external flash.
     //dataflash_bulk_erase_with_wait(&dataflash_descriptor);
