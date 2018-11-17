@@ -313,6 +313,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
 */
 void sh1122_clear_frame_buffer(sh1122_descriptor_t* oled_descriptor)
 {    
+    sh1122_check_for_flush_and_terminate(oled_descriptor);
     memset((void*)oled_descriptor->frame_buffer, 0x00, sizeof(oled_descriptor->frame_buffer));
 }
 #endif

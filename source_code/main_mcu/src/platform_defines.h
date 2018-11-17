@@ -91,6 +91,11 @@ typedef struct
 #define BATTERY_ADC_OUT_CUTOUT      (1140*273/110)
 #define BATTERY_ADC_OVER_VOLTAGE    (1600*273/110)
 
+/********************/
+/* Display defines  */
+/********************/
+#define GUI_DISPLAY_WIDTH           256
+
 /*************************/
 /* Functionality defines */
 /*************************/

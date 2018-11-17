@@ -3,6 +3,7 @@
 *    Created:  16/11/2018
 *    Author:   Mathieu Stephan
 */
+#include "defines.h"
 
 
 #ifndef GUI_DISPATCHER_H_
@@ -25,6 +26,7 @@ typedef enum {  GUI_SCREEN_NINSERTED = 0,
              } gui_screen_te;
 
 /* Prototypes */
+void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action);
 void gui_dispatcher_set_current_screen(gui_screen_te screen);
 void gui_dispatcher_get_back_to_current_screen(void);
 void gui_dispatcher_main_loop(void);

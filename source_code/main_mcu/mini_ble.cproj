@@ -376,10 +376,22 @@
     <Compile Include="src\FLASH\dbflash.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\GUI\gui_carousel.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\GUI\gui_carousel.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\GUI\gui_dispatcher.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\GUI\gui_dispatcher.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\GUI\gui_main_menu.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\GUI\gui_main_menu.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\INPUTS\inputs.c">
