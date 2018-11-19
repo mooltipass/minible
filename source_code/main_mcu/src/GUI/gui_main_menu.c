@@ -1,8 +1,10 @@
-/*!  \file     gui_main_menu.h
+/*!  \file     gui_main_menu.c
 *    \brief    GUI for the main menu
 *    Created:  17/11/2018
 *    Author:   Mathieu Stephan
 */
+#include "gui_bluetooth_menu.h"
+#include "gui_dispatcher.h"
 #include "gui_main_menu.h"
 #include "gui_carousel.h"
 #include "defines.h"
@@ -35,8 +37,9 @@ void gui_main_menu_reset_state(void)
 /*! \fn     gui_main_menu_event_render(wheel_action_ret_te wheel_action)
 *   \brief  Render GUI depending on event received
 *   \param  wheel_action    Wheel action received
+*   \return TRUE if screen rendering is required
 */
-void gui_main_menu_event_render(wheel_action_ret_te wheel_action)
+BOOL gui_main_menu_event_render(wheel_action_ret_te wheel_action)
 {
     if (wheel_action == WHEEL_ACTION_NONE)
     {
@@ -90,5 +93,24 @@ void gui_main_menu_event_render(wheel_action_ret_te wheel_action)
                 gui_carousel_render(sizeof(simple_menu_pic_ids)/sizeof(simple_menu_pic_ids[0]), simple_menu_pic_ids, simple_menu_text_ids, gui_main_menu_selected_item, 0);
             }
         }
-    }        
+    }    
+    else if (wheel_action == WHEEL_ACTION_SHORT_CLICK)
+    {
+        /* Get selected icon */
+        uint16_t selected_icon = simple_menu_pic_ids[gui_main_menu_selected_item];
+        if (ADVANCED_MODE)
+        {
+            selected_icon = advanced_menu_pic_ids[gui_main_menu_selected_item];
+        }        
+        
+        /* Switch on the selected icon ID */
+        switch (selected_icon)
+        {
+            //case GUI_OPR_ICON_ID:   gui_dispatcher_set_current_screen(GUI_SCREEN_OPERATIONS); return TRUE;
+            case GUI_BT_ICON_ID:   gui_dispatcher_set_current_screen(GUI_SCREEN_BT); return TRUE;
+            default: break;
+        }
+    }
+        
+    return FALSE;
 }

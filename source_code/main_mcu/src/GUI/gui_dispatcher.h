@@ -9,6 +9,10 @@
 #ifndef GUI_DISPATCHER_H_
 #define GUI_DISPATCHER_H_
 
+/* Defines */
+#define GUI_BACK_ICON_ID        120
+#define GUI_BACK_TEXT_ID        11
+
 /* Enums */
 typedef enum {  GUI_SCREEN_NINSERTED = 0,
                 GUI_SCREEN_INSERTED_LCK,

@@ -28,7 +28,7 @@
 
 
 /* Prototypes */
-void gui_main_menu_event_render(wheel_action_ret_te wheel_action);
+BOOL gui_main_menu_event_render(wheel_action_ret_te wheel_action);
 void gui_main_menu_reset_state(void);
 
 

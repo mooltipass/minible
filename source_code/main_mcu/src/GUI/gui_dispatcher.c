@@ -3,6 +3,8 @@
 *    Created:  16/11/2018
 *    Author:   Mathieu Stephan
 */
+#include "gui_operations_menu.h"
+#include "gui_bluetooth_menu.h"
 #include "gui_dispatcher.h"
 #include "gui_main_menu.h"
 #include "gui_carousel.h"
@@ -21,6 +23,8 @@ void gui_dispatcher_set_current_screen(gui_screen_te screen)
 {
     gui_dispatcher_current_screen = screen;
     gui_main_menu_reset_state();
+    gui_bluetooth_menu_reset_state();
+    gui_operations_menu_reset_state();
 }
 
 /*! \fn     gui_dispatcher_get_back_to_current_screen(void)
@@ -37,12 +41,12 @@ void gui_dispatcher_get_back_to_current_screen(void)
         case GUI_SCREEN_INSERTED_UNKNOWN:   break;
         case GUI_SCREEN_MEMORY_MGMT:        break;
         case GUI_SCREEN_MAIN_MENU:          gui_main_menu_event_render(WHEEL_ACTION_NONE); break;
-        case GUI_SCREEN_BT:                 break;
+        case GUI_SCREEN_BT:                 gui_bluetooth_menu_event_render(WHEEL_ACTION_NONE); break;
         case GUI_SCREEN_CATEGORIES:         break;
         case GUI_SCREEN_FAVORITES:          break;
         case GUI_SCREEN_LOGIN:              break;
         case GUI_SCREEN_LOCK:               break;
-        case GUI_SCREEN_OPERATIONS:         break;
+        case GUI_SCREEN_OPERATIONS:         gui_operations_menu_event_render(WHEEL_ACTION_NONE); break;
         case GUI_SCREEN_SETTINGS:           break;
         default: break;
     }
@@ -54,6 +58,9 @@ void gui_dispatcher_get_back_to_current_screen(void)
 */
 void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
 {
+    /* Bool to know if we should rerender */
+    BOOL rerender_bool = FALSE;
+    
     /* switch to let the compiler optimize instead of function pointer array */
     switch (gui_dispatcher_current_screen)
     {
@@ -62,16 +69,22 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
         case GUI_SCREEN_INSERTED_INVALID:   break;
         case GUI_SCREEN_INSERTED_UNKNOWN:   break;
         case GUI_SCREEN_MEMORY_MGMT:        break;
-        case GUI_SCREEN_MAIN_MENU:          gui_main_menu_event_render(wheel_action); break;
-        case GUI_SCREEN_BT:                 break;
+        case GUI_SCREEN_MAIN_MENU:          rerender_bool = gui_main_menu_event_render(wheel_action); break;
+        case GUI_SCREEN_BT:                 rerender_bool = gui_bluetooth_menu_event_render(wheel_action); break;
         case GUI_SCREEN_CATEGORIES:         break;
         case GUI_SCREEN_FAVORITES:          break;
         case GUI_SCREEN_LOGIN:              break;
         case GUI_SCREEN_LOCK:               break;
-        case GUI_SCREEN_OPERATIONS:         break;
+        case GUI_SCREEN_OPERATIONS:         rerender_bool = gui_operations_menu_event_render(wheel_action); break;
         case GUI_SCREEN_SETTINGS:           break;
         default: break;
     }    
+    
+    /* Should we rerender? */
+    if (rerender_bool != FALSE)
+    {
+        gui_dispatcher_get_back_to_current_screen();
+    }
 }
 
 /*! \fn     gui_dispatcher_main_loop(void)

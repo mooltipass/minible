@@ -614,6 +614,12 @@
     <Compile Include="src\FLASH\dbflash.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\GUI\gui_bluetooth_menu.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\GUI\gui_bluetooth_menu.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\GUI\gui_carousel.c">
       <SubType>compile</SubType>
     </Compile>
@@ -630,6 +636,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\GUI\gui_main_menu.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\GUI\gui_operations_menu.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\GUI\gui_operations_menu.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\INPUTS\inputs.c">
