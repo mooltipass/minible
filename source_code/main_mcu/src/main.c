@@ -280,7 +280,7 @@ int main(void)
     //main_standby_sleep();
     
     /* Uncomment below for debug menu */
-    debug_debug_menu();
+    //debug_debug_menu();
     
     /* Set startup screen: TODO change back to locked */
     gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU);
@@ -291,6 +291,9 @@ int main(void)
     {
         /* GUI main loop */
         gui_dispatcher_main_loop();
+        
+        /* Communications */        
+        comms_aux_mcu_routine();
     }
     
     // Test code: burn internal graphics data into external flash.

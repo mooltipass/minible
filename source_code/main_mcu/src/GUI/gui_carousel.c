@@ -9,10 +9,9 @@
 #include "defines.h"
 #include "sh1122.h"
 #include "main.h"
-// Cache for oftenly used values
-uint16_t gui_carousel_inter_icon_spacing = 0;
-uint16_t gui_carousel_nb_elements_cache = 0;
-uint16_t gui_carousel_left_spacing = 0;
+/* Carousel spacing depending on number of elemnts */
+const uint16_t gui_carousel_inter_icon_spacing[] = {0,0,0,CAROUSEL_IS_SM(3),CAROUSEL_IS_SM(4),CAROUSEL_IS_SM(5),CAROUSEL_IS_SM(6),CAROUSEL_IS_SM(7),CAROUSEL_IS_SM(8)};
+const uint16_t gui_carousel_left_spacing[] = {0,0,0,CAROUSEL_LS_SM(3),CAROUSEL_LS_SM(4),CAROUSEL_LS_SM(5),CAROUSEL_LS_SM(6),CAROUSEL_LS_SM(7),CAROUSEL_LS_SM(8)};
 
 
 /*! \fn     gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const uint16_t* text_ids, uint16_t selected_id, int16_t anim_step)
@@ -28,34 +27,8 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
     /* Clear frame buffer */
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     
-    /* Check for cache mismatch to recompute inter icon spacing */
-    if (nb_elements != gui_carousel_nb_elements_cache)
-    {
-        /* Compute aggregate space available between icons */
-        uint16_t available_space = GUI_DISPLAY_WIDTH - (CAROUSEL_BIG_EDGE + 2*CAROUSEL_MID_EDGE + (nb_elements-3)*CAROUSEL_SMALL_EDGE);
-        
-        /* Use for loop to not use division: compute spacing between icons */
-        for (uint16_t i = 0; i < 70; i++)
-        {
-            if ((nb_elements-1)*i > available_space)
-            {
-                break;
-            } 
-            else
-            {
-                gui_carousel_inter_icon_spacing = i;
-            }
-        }
-        
-        /* Compute additional space on the left to center carousel */
-        gui_carousel_left_spacing = (available_space - gui_carousel_inter_icon_spacing*(nb_elements-1))/2;
-        
-        /* Store cache */
-        gui_carousel_nb_elements_cache = nb_elements;
-    }
-    
     /* Start displaying icons */
-    uint16_t cur_display_x = gui_carousel_left_spacing;
+    uint16_t cur_display_x = gui_carousel_left_spacing[nb_elements];
     for (uint16_t icon_id = 0; icon_id < nb_elements; icon_id++)
     {
         if (icon_id == selected_id)
@@ -83,8 +56,21 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
             sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-CAROUSEL_SMALL_EDGE/2, pic_ids[icon_id] + CAROUSEL_NB_SCALED_ICONS - 1, TRUE);
             cur_display_x += CAROUSEL_SMALL_EDGE;
         }
-        cur_display_x += gui_carousel_inter_icon_spacing;
+        cur_display_x += gui_carousel_inter_icon_spacing[nb_elements];
     }
+    
+    /* Add bottom text: during animation display next icon text */
+    cust_char_t* temp_string;
+    if (anim_step > 0)
+    {
+        selected_id++;
+    } 
+    else if (anim_step < 0)
+    {
+        selected_id--;
+    }
+    custom_fs_get_string_from_file(text_ids[selected_id], &temp_string);
+    sh1122_put_string_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_CENTER, temp_string, TRUE);
     
     /* Flush */
     sh1122_flush_frame_buffer(&plat_oled_descriptor);

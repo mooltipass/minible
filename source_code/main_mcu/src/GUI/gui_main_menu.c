@@ -15,7 +15,7 @@ const uint16_t advanced_menu_text_ids[] = {GUI_BT_TEXT_ID, GUI_CAT_TEXT_ID, GUI_
 uint16_t gui_main_menu_selected_item;
 
 // TODO: use logic
-#define ADVANCED_MODE   FALSE
+#define ADVANCED_MODE   TRUE
 
 /*! \fn     gui_main_menu_reset_state(void)
 *   \brief  Reset main menu state
