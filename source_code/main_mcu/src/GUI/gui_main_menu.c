@@ -106,8 +106,8 @@ BOOL gui_main_menu_event_render(wheel_action_ret_te wheel_action)
         /* Switch on the selected icon ID */
         switch (selected_icon)
         {
-            //case GUI_OPR_ICON_ID:   gui_dispatcher_set_current_screen(GUI_SCREEN_OPERATIONS); return TRUE;
-            case GUI_BT_ICON_ID:   gui_dispatcher_set_current_screen(GUI_SCREEN_BT); return TRUE;
+            case GUI_OPR_ICON_ID:   gui_dispatcher_set_current_screen(GUI_SCREEN_OPERATIONS, FALSE); return TRUE;
+            case GUI_BT_ICON_ID:   gui_dispatcher_set_current_screen(GUI_SCREEN_BT, FALSE); return TRUE;
             default: break;
         }
     }

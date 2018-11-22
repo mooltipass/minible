@@ -283,7 +283,7 @@ int main(void)
     //debug_debug_menu();
     
     /* Set startup screen: TODO change back to locked */
-    gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU);
+    gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE);
     //gui_dispatcher_set_current_screen(GUI_SCREEN_OPERATIONS);    
     gui_dispatcher_get_back_to_current_screen();
     

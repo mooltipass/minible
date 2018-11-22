@@ -11,16 +11,8 @@
 const uint16_t operations_menu_pic_ids[] = {GUI_CLONE_ICON_ID, GUI_CHANGE_PIN_ICON_ID, GUI_ERASE_USER_ICON_ID, GUI_BACK_ICON_ID};
 const uint16_t operations_menu_text_ids[] = {GUI_CLONE_TEXT_ID, GUI_CHANGE_PIN_TEXT_ID, GUI_ERASE_USER_TEXT_ID, GUI_BACK_TEXT_ID};
 // Currently selected item
-uint16_t gui_operations_menu_selected_item;
+uint16_t gui_operations_menu_selected_item = 0;
 
-
-/*! \fn     gui_operations_menu_reset_state(void)
-*   \brief  Reset operations menu state
-*/
-void gui_operations_menu_reset_state(void)
-{
-    gui_operations_menu_selected_item = 1;
-}
 
 /*! \fn     gui_operations_menu_event_render(wheel_action_ret_te wheel_action)
 *   \brief  Render GUI depending on event received
@@ -59,7 +51,12 @@ BOOL gui_operations_menu_event_render(wheel_action_ret_te wheel_action)
         /* Switch on the selected icon ID */
         switch (selected_icon)
         {
-            case GUI_BACK_ICON_ID:   gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU); return TRUE;
+            case GUI_BACK_ICON_ID:   
+            {
+                gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE);
+                gui_operations_menu_selected_item = 0;
+                return TRUE;
+            }                
             default: break;
         }
     }

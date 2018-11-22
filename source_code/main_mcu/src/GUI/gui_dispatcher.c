@@ -17,14 +17,17 @@ gui_screen_te gui_dispatcher_current_screen = GUI_SCREEN_NINSERTED;
 
 /*! \fn     gui_dispatcher_set_current_screen(gui_screen_te screen)
 *   \brief  Set current screen
-*   \param  screen  The screen
+*   \param  screen          The screen
+*   \param  reset_states    Set to true to reset previously selected items
 */
-void gui_dispatcher_set_current_screen(gui_screen_te screen)
+void gui_dispatcher_set_current_screen(gui_screen_te screen, BOOL reset_states)
 {
     gui_dispatcher_current_screen = screen;
-    gui_main_menu_reset_state();
-    gui_bluetooth_menu_reset_state();
-    gui_operations_menu_reset_state();
+    
+    if (reset_states != FALSE)
+    {
+        gui_main_menu_reset_state();
+    }
 }
 
 /*! \fn     gui_dispatcher_get_back_to_current_screen(void)

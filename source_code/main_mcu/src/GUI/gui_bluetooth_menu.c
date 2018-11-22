@@ -13,18 +13,11 @@ const uint16_t bluetooth_on_menu_pic_ids[] = {GUI_BT_DISABLE_ICON_ID, GUI_BT_PAI
 const uint16_t bluetooth_off_menu_text_ids[] = {GUI_BT_ENABLE_TEXT_ID, GUI_BT_PAIRED_DEV_TEXT_ID, GUI_NEW_PAIR_TEXT_ID, GUI_BACK_TEXT_ID};
 const uint16_t bluetooth_on_menu_text_ids[] = {GUI_BT_DISABLE_TEXT_ID, GUI_BT_PAIRED_DEV_TEXT_ID, GUI_NEW_PAIR_TEXT_ID, GUI_BACK_TEXT_ID};
 // Currently selected item
-uint16_t gui_bluetooth_menu_selected_item;
+uint16_t gui_bluetooth_menu_selected_item = 0;
 
 // TODO: use logic
 #define BT_ENABLED_BOOL   TRUE
 
-/*! \fn     gui_bluetooth_menu_reset_state(void)
-*   \brief  Reset main menu state
-*/
-void gui_bluetooth_menu_reset_state(void)
-{
-    gui_bluetooth_menu_selected_item = 0;
-}
 
 /*! \fn     gui_bluetooth_menu_event_render(wheel_action_ret_te wheel_action)
 *   \brief  Render GUI depending on event received
@@ -92,7 +85,12 @@ BOOL gui_bluetooth_menu_event_render(wheel_action_ret_te wheel_action)
         /* Switch on the selected icon ID */
         switch (selected_icon)
         {
-            case GUI_BACK_ICON_ID:   gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU); return TRUE;
+            case GUI_BACK_ICON_ID:   
+            {
+                gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE);
+                gui_bluetooth_menu_selected_item = 0;
+                return TRUE;
+            }                
             default: break;
         }
     }
