@@ -644,6 +644,12 @@
     <Compile Include="src\GUI\gui_operations_menu.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\GUI\gui_settings_menu.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\GUI\gui_settings_menu.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\INPUTS\inputs.c">
       <SubType>compile</SubType>
     </Compile>

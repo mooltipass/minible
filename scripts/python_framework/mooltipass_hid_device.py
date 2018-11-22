@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 from os.path import isfile, join, isdir
+from resizeimage import resizeimage
 from mooltipass_defines import *
 from generic_hid_device import *
 from pprint import pprint
@@ -89,6 +90,10 @@ class mooltipass_hid_device:
 				# Store modified time
 				time.sleep(0.1)
 				modified_time = os.stat(filename).st_mtime
+				
+				# Create new image
+				full_screen = Image.new("RGB", [256,64], "black")
+				full_screen = full_screen.convert(mode="RGB", colors=256)
 			
 				# Open image
 				image = Image.open(filename)
@@ -101,9 +106,21 @@ class mooltipass_hid_device:
 				#print "Format:", img_format, "size:", img_size, "mode:", img_mode
 				
 				# Check size
-				if img_size[0] != 256 or img_size[1] != 64:
-					print "Picture isn't 256x64"
+				if img_size[0] > 256 or img_size[1] > 64:
+					print "Picture too big for display"
 					return
+					
+				# Paste image on top of full screen
+				full_screen.paste(image)
+				
+				# Special case: 48x48 icons: display smaller versions of them next to them
+				if img_size[0] == 48 or img_size[1] == 48:
+					smaller_image = resizeimage.resize_cover(image, [36, 36])
+					full_screen.paste(smaller_image, [100,0])
+					smaller_image = resizeimage.resize_cover(image, [32, 32])
+					full_screen.paste(smaller_image, [150,0])
+					smaller_image = resizeimage.resize_cover(image, [24, 24])
+					full_screen.paste(smaller_image, [200,0])
 				
 				# Initialize vars
 				packet_payload = []
@@ -115,16 +132,16 @@ class mooltipass_hid_device:
 				self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_OPEN_DISP_BUFFER, None))
 				
 				# Loop through the pixels
-				for y in range(0, image.size[1]):
-					for x in range(0, image.size[0]/2):
+				for y in range(0, full_screen.size[1]):
+					for x in range(0, full_screen.size[0]/2):
 						if False:
-							pix1 = int(((255 - image.getpixel((x*2, y))[0] + 0) / math.pow(2, 8-bitdepth))*math.pow(2, 4-bitdepth))
+							pix1 = int(((255 - full_screen.getpixel((x*2, y))[0] + 0) / math.pow(2, 8-bitdepth))*math.pow(2, 4-bitdepth))
 						else:
-							pix1 = int(((image.getpixel((x*2, y))[0] + 0) / math.pow(2, 8-bitdepth))*math.pow(2, 4-bitdepth))
+							pix1 = int(((full_screen.getpixel((x*2, y))[0] + 0) / math.pow(2, 8-bitdepth))*math.pow(2, 4-bitdepth))
 						if False:
-							pix2 = int(((255 - image.getpixel((x*2+1, y))[0] + 0) / math.pow(2, 8-bitdepth))*math.pow(2, 4-bitdepth))
+							pix2 = int(((255 - full_screen.getpixel((x*2+1, y))[0] + 0) / math.pow(2, 8-bitdepth))*math.pow(2, 4-bitdepth))
 						else:
-							pix2 = int(((image.getpixel((x*2+1, y))[0] + 0) / math.pow(2, 8-bitdepth))*math.pow(2, 4-bitdepth))
+							pix2 = int(((full_screen.getpixel((x*2+1, y))[0] + 0) / math.pow(2, 8-bitdepth))*math.pow(2, 4-bitdepth))
 						
 						# Append to current payload
 						packet_payload.append((pix1 << 4) | pix2)

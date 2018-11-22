@@ -23,5 +23,4 @@
 BOOL gui_operations_menu_event_render(wheel_action_ret_te wheel_action);
 
 
-
 #endif /* GUI_OPERATIONS_MENU_H_ */

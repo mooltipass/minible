@@ -5,6 +5,7 @@
 */
 #include "gui_operations_menu.h"
 #include "gui_bluetooth_menu.h"
+#include "gui_settings_menu.h"
 #include "gui_dispatcher.h"
 #include "gui_main_menu.h"
 #include "gui_carousel.h"
@@ -50,7 +51,7 @@ void gui_dispatcher_get_back_to_current_screen(void)
         case GUI_SCREEN_LOGIN:              break;
         case GUI_SCREEN_LOCK:               break;
         case GUI_SCREEN_OPERATIONS:         gui_operations_menu_event_render(WHEEL_ACTION_NONE); break;
-        case GUI_SCREEN_SETTINGS:           break;
+        case GUI_SCREEN_SETTINGS:           gui_settings_menu_event_render(WHEEL_ACTION_NONE); break;
         default: break;
     }
 }
@@ -79,7 +80,7 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
         case GUI_SCREEN_LOGIN:              break;
         case GUI_SCREEN_LOCK:               break;
         case GUI_SCREEN_OPERATIONS:         rerender_bool = gui_operations_menu_event_render(wheel_action); break;
-        case GUI_SCREEN_SETTINGS:           break;
+        case GUI_SCREEN_SETTINGS:           rerender_bool = gui_settings_menu_event_render(wheel_action); break;
         default: break;
     }    
     
