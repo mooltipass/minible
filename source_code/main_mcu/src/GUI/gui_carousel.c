@@ -33,18 +33,34 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
     {
         if (icon_id == selected_id)
         {
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_BIG_EDGE-abs(anim_step)*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[icon_id] + abs(anim_step), TRUE);
-            cur_display_x += CAROUSEL_BIG_EDGE - abs(anim_step)*CAROUSEL_Y_ANIM_STEP;
+            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_BIG_EDGE-abs(anim_step)*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[icon_id] + abs(anim_step), TRUE);
+            cur_display_x += CAROUSEL_BIG_EDGE - abs(anim_step)*CAROUSEL_Y_ANIM_STEP*2;
         } 
         else if (icon_id == (selected_id - 1))
         {
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE-anim_step*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[icon_id] + (CAROUSEL_NB_SCALED_ICONS/2) + anim_step, TRUE);
-            cur_display_x += CAROUSEL_MID_EDGE - anim_step*CAROUSEL_Y_ANIM_STEP;
+            if (anim_step < 0)
+            {
+                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE-anim_step*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[icon_id] + (CAROUSEL_NB_SCALED_ICONS/2) + anim_step, TRUE);
+                cur_display_x += CAROUSEL_MID_EDGE - anim_step*CAROUSEL_Y_ANIM_STEP*2;
+            }
+            else
+            {
+                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE-anim_step*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[icon_id] + (CAROUSEL_NB_SCALED_ICONS/2) + anim_step, TRUE);
+                cur_display_x += CAROUSEL_MID_EDGE - anim_step*CAROUSEL_Y_ANIM_STEP;                
+            }
         }
         else if (icon_id == (selected_id + 1))
         {
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE+anim_step*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[icon_id] + (CAROUSEL_NB_SCALED_ICONS/2) - anim_step, TRUE);
-            cur_display_x += CAROUSEL_MID_EDGE + anim_step*CAROUSEL_Y_ANIM_STEP;
+            if (anim_step < 0)
+            {
+                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE+anim_step*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[icon_id] + (CAROUSEL_NB_SCALED_ICONS/2) - anim_step, TRUE);
+                cur_display_x += CAROUSEL_MID_EDGE + anim_step*CAROUSEL_Y_ANIM_STEP;
+            }
+            else
+            {
+                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE+anim_step*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[icon_id] + (CAROUSEL_NB_SCALED_ICONS/2) - anim_step, TRUE);
+                cur_display_x += CAROUSEL_MID_EDGE + anim_step*CAROUSEL_Y_ANIM_STEP*2;
+            }
         }
         else if (((icon_id == (selected_id - 2)) && (anim_step < 0)) || ((icon_id == (selected_id + 2)) && (anim_step > 0)))
         {

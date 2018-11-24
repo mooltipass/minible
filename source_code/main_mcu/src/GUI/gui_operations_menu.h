@@ -10,8 +10,8 @@
 
 /* Defines */
 // Icon IDs
-#define GUI_CLONE_ICON_ID       224
-#define GUI_CHANGE_PIN_ICON_ID  237
+#define GUI_CLONE_ICON_ID       192
+#define GUI_CHANGE_PIN_ICON_ID  201
 #define GUI_ERASE_USER_ICON_ID  120
 // Text IDs
 #define GUI_CLONE_TEXT_ID       8
