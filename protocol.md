@@ -189,7 +189,7 @@ Device Answer:
 |:------|:------------|
 | 0-1   | 0x800A |
 | 2-3   | payload length (TBD) |
-| 4-55  | see [aux_platform_spec_message](here) |
+| 4-55  | see [here](aux_platform_spec_message) |
 | 56-67 | reserved |
 | 67-68 | main MCU fw version, major |
 | 69-70 | main MCU fw version, minor |
