@@ -171,3 +171,26 @@ Device Answer:
 | 0x8009   | 0 | Nothing |
 
 Flash aux MCU with binary file included in the bundle. **No device answer**.
+
+
+
+0x800A: Get platform info
+-------------------------
+
+| byte 0-1 | byte 2-3                    | bytes 4-X |
+|:---------|:----------------------------|:----------|
+| 0x800A   | 0 | Nothing |
+
+Request platform info
+
+Device Answer:
+
+| Bytes | Description |
+|:------|:------------|
+| 0-1   | 0x800A |
+| 2-3   | payload length (TBD) |
+| 4-55  | see (aux_platform_spec_message)[here] |
+| 56-67 | reserved |
+| 67-68 | main MCU fw version, major |
+| 69-70 | main MCU fw version, minor |
+
