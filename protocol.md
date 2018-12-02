@@ -148,7 +148,7 @@ Start main microcontroller bootloader. **No device answer**.
 
 
 
-0x8008: Get 32 samples of accelerometer data
+0x8008: Get 32 Samples of Accelerometer Data
 --------------------------------------------
 
 | byte 0-1 | byte 2-3                    | bytes 4-X |
@@ -163,7 +163,7 @@ Device Answer:
 
 
 
-0x8009: Flash Aux MCU with bundle contents
+0x8009: Flash Aux MCU with Bundle Contents
 ------------------------------------------
 
 | byte 0-1 | byte 2-3                    | bytes 4-X |
@@ -174,7 +174,7 @@ Flash aux MCU with binary file included in the bundle. **No device answer**.
 
 
 
-0x800A: Get platform info
+0x800A: Get Platform Info
 -------------------------
 
 | byte 0-1 | byte 2-3                    | bytes 4-X |
