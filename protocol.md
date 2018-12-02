@@ -160,3 +160,14 @@ Device Answer:
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
 | 0x8008   | 192 | 32x (accX, accY, accZ - uint16_t) |
+
+
+
+0x8009: Flash Aux MCU with bundle contents
+------------------------------------------
+
+| byte 0-1 | byte 2-3                    | bytes 4-X |
+|:---------|:----------------------------|:----------|
+| 0x8009   | 0 | Nothing |
+
+Flash aux MCU with binary file included in the bundle. **No device answer**.
