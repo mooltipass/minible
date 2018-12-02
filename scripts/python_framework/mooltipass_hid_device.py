@@ -226,6 +226,10 @@ class mooltipass_hid_device:
 		packet_to_send["len"].fromstring(struct.pack('H', bytecounter))
 		self.device.sendHidMessageWaitForAck(packet_to_send)
 		
+		# Let the device know to reindex bundle
+		print "Letting the device know to reindex bundle..."
+		self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_REINDEX_BUNDLE, None))		
+		
 		# Close file
 		bundlefile.close()
 		print "Sending done!"
@@ -234,8 +238,27 @@ class mooltipass_hid_device:
 	# Reboot to bootloader, no answer from device.
 	def rebootToBootloader(self):
 		self.device.sendHidMessage(self.getPacketForCommand(CMD_DBG_REBOOT_TO_BOOTLOADER, None))	
+		
+		
+	# Flash the aux MCU from the bundle contents, no answer from device.
+	def flashAuxMcuFromBundle(self):
+		self.device.sendHidMessage(self.getPacketForCommand(CMD_DBG_FLASH_AUX_MCU, None))	
+				
+
+	# Get platform info
+	def getPlatInfo(self):
+		# Ask for the info
+		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_GET_PLAT_INFO, None))	
 	
-	
+		# Print it!
+		print ""
+		print "Platform Info"
+		print "Aux MCU major:", struct.unpack('H', packet["data"][0:2])[0]
+		print "Aux MCU minor:", struct.unpack('H', packet["data"][2:4])[0]
+		print "Main MCU major:", struct.unpack('H', packet["data"][64:66])[0]
+		print "Main MCU minor:", struct.unpack('H', packet["data"][66:68])[0]
+
+		
 	# Get accelerometer data
 	def getAccData(self):
 		# Random bytes file

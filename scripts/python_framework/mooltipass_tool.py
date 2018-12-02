@@ -65,6 +65,12 @@ def main():
 		elif sys.argv[1] == "rebootToBootloader":
 			mooltipass_device.rebootToBootloader()
 			
+		elif sys.argv[1] == "flashAuxMcuFromBundle":
+			mooltipass_device.flashAuxMcuFromBundle()
+			
+		elif sys.argv[1] == "platInfo":
+			mooltipass_device.getPlatInfo()
+			
 		elif sys.argv[1] == "accGet":
 			mooltipass_device.getAccData()
 		

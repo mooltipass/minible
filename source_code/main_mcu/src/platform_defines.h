@@ -11,7 +11,11 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    1
+#define FW_MINOR    2
+
+/* Changelog:
+- v0.2: platform info message, flash aux mcu message, reindex bundle message
+*/
 
 /**************** SETUP DEFINES ****************/
 /*  This project should be built differently

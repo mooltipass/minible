@@ -29,6 +29,8 @@ volatile BOOL dma_acc_transfer_done = FALSE;
 volatile BOOL dma_aux_mcu_packet_received = FALSE;
 /* Boolean to specify if we sent a packet to aux MCU */
 volatile BOOL dma_aux_mcu_packet_sent = TRUE;
+/* Boolean to specify if DMA needs to be rearmed to receive an aux MCU packet (use with caution) */
+volatile BOOL dma_aux_mcu_rx_transfer_to_be_rearmed = TRUE;
 
 
 /*! \fn     DMAC_Handler(void)
@@ -43,6 +45,7 @@ void DMAC_Handler(void)
         /* Set transfer done boolean, clear interrupt */
         dma_aux_mcu_packet_received = TRUE;
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
+        dma_aux_mcu_rx_transfer_to_be_rearmed = TRUE;
     }
     
     /* AUX MCU RX routine */
@@ -341,6 +344,24 @@ BOOL dma_aux_mcu_check_and_clear_dma_transfer_flag(void)
         return TRUE;
     }
     return FALSE;
+}
+
+/*! \fn     dma_aux_mcu_check_dma_transfer_flag(void)
+*   \brief  Check if a DMA transfer from aux MCU comms has been done
+*   \return TRUE or FALSE
+*/
+BOOL dma_aux_mcu_check_dma_transfer_flag(void)
+{
+    return dma_aux_mcu_packet_received;
+}
+
+/*! \fn     dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag(void)
+*   \brief  Wait for the complete reception of current AUX MCU packet
+*/
+void dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag(void)
+{
+    while (dma_aux_mcu_rx_transfer_to_be_rearmed == FALSE);
+    dma_aux_mcu_packet_received = FALSE;
 }
 
 /*! \fn     dma_custom_fs_init_transfer(void* spi_data_p, void* datap, uint16_t size)
@@ -684,6 +705,9 @@ void dma_aux_mcu_init_rx_transfer(void* spi_data_p, void* datap, uint16_t size)
     /* Resume DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_RX_COMMS);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
+    
+    /* Set boolean */
+    dma_aux_mcu_rx_transfer_to_be_rearmed = FALSE;
     
     cpu_irq_leave_critical();
 }

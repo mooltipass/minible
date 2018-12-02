@@ -20,6 +20,13 @@
 /* Typedefs */
 typedef struct
 {
+    uint8_t aux_mcu_infos[64];
+    uint16_t main_mcu_fw_major;
+    uint16_t main_mcu_fw_minor;
+} hid_message_detailed_plat_info_t;
+
+typedef struct
+{
     uint16_t message_type;
     uint16_t payload_length;
     union
@@ -27,6 +34,7 @@ typedef struct
         uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)-sizeof(uint16_t)];
         uint16_t payload_as_uint16[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)-sizeof(uint16_t))/2];
         uint32_t payload_as_uint32[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)-sizeof(uint16_t))/4];
+        hid_message_detailed_plat_info_t detailed_platform_info;
     };
 } hid_message_t;
 

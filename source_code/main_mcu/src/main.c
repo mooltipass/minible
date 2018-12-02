@@ -280,7 +280,7 @@ int main(void)
     //main_standby_sleep();
     
     /* Uncomment below for debug menu */
-    //debug_debug_menu();
+    debug_debug_menu();
     
     /* Set startup screen: TODO change back to locked */
     gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE);

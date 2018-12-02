@@ -8,11 +8,14 @@
 #include <asf.h>
 #include "comms_hid_msgs_debug.h"
 #include "comms_hid_msgs.h"
+#include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
 #include "driver_sercom.h"
+#include "platform_io.h"
 #include "dataflash.h"
 #include "sh1122.h"
 #include "main.h"
+#include "dma.h"
 
 
 #ifdef DEBUG_USB_PRINTF_ENABLED
@@ -159,6 +162,17 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             send_msg->payload_length = 1;
             return 1;
         }
+        case HID_CMD_ID_REINDEX_BUNDLE:
+        {
+            /* Refresh file system and font */
+            custom_fs_init();
+            sh1122_refresh_used_font(&plat_oled_descriptor);
+            
+            /* Set ack, leave same command id */
+            send_msg->payload[0] = HID_1BYTE_ACK;
+            send_msg->payload_length = 1;
+            return 1;
+        }
         case HID_CMD_ID_START_BOOTLOADER:
         {
             custom_fs_settings_set_fw_upgrade_flag();
@@ -169,10 +183,43 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
         case HID_CMD_ID_GET_ACC_32_SAMPLES:
         {
             while (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) == FALSE);
-            memcpy((void*)send_msg->payload, (void*)acc_descriptor.fifo_read.acc_data_array, sizeof(acc_descriptor.fifo_read.acc_data_array));
-            
+            memcpy((void*)send_msg->payload, (void*)acc_descriptor.fifo_read.acc_data_array, sizeof(acc_descriptor.fifo_read.acc_data_array));            
             send_msg->payload_length = sizeof(acc_descriptor.fifo_read.acc_data_array);
             return sizeof(acc_descriptor.fifo_read.acc_data_array);
+        }
+        case HID_CMD_ID_FLASH_AUX_MCU:
+        {            
+            /* Wait for current packet reception and arm reception */
+            dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
+            comms_aux_arm_rx_and_set_no_comms();
+            
+            logic_aux_mcu_flash_firmware_update();            
+            return -1;
+        }
+        case HID_CMD_ID_GET_DBG_PLAT_INFO:
+        {
+            aux_mcu_message_t* temp_rx_message;
+            aux_mcu_message_t* temp_tx_message_pt;
+            
+            /* Generate our packet */
+            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PLAT_DETAILS, TX_REPLY_REQUEST_FLAG);
+            
+            /* Wait for current packet reception and arm reception */
+            dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
+            comms_aux_arm_rx_and_set_no_comms();
+            
+            /* Send message */
+            comms_aux_mcu_send_message(TRUE);
+            
+            /* Wait for message from aux MCU */
+            while(comms_aux_mcu_active_wait(&temp_rx_message, TRUE) == RETURN_NOK){}
+                
+            /* Copy message contents into send packet */
+            memcpy((void*)send_msg->detailed_platform_info.aux_mcu_infos, (void*)&temp_rx_message->aux_details_message, sizeof(temp_rx_message->aux_details_message));
+            send_msg->detailed_platform_info.main_mcu_fw_major = FW_MAJOR;
+            send_msg->detailed_platform_info.main_mcu_fw_minor = FW_MINOR;
+            send_msg->payload_length = sizeof(send_msg->detailed_platform_info);
+            return sizeof(send_msg->detailed_platform_info);
         }
         default: break;
     }

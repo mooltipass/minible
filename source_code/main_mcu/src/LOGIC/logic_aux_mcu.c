@@ -7,6 +7,7 @@
 #include <asf.h>
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
+#include "driver_timer.h"
 #include "platform_io.h"
 #include "custom_fs.h"
 #include "defines.h"
@@ -51,7 +52,7 @@ void logic_aux_mcu_enable_ble(BOOL wait_for_enabled)
         {
             /* wait for BLE to bootup */
             comms_aux_mcu_wait_for_message_sent();
-            while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
+            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE) == RETURN_NOK){}
             
             /* Rearm DMA RX */
             comms_aux_arm_rx_and_clear_no_comms();
@@ -86,7 +87,7 @@ uint32_t logic_aux_mcu_get_ble_chip_id(void)
         comms_aux_mcu_send_message(TRUE);
         
         /* Wait for message from aux MCU */
-        while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
+        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE) == RETURN_NOK){}
         
         /* Output debug info */
         return_val = temp_rx_message->aux_details_message.atbtlc_chip_id;
@@ -130,7 +131,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
     comms_aux_mcu_send_message(TRUE);
     
     /* Wait for message from aux MCU */
-    while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
+    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE) == RETURN_NOK){}
     
     /* Answer checked, rearm RX */    
     comms_aux_arm_rx_and_clear_no_comms();
@@ -172,7 +173,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
         comms_aux_mcu_send_message(TRUE);
         
         /* Wait for message from aux MCU */
-        while(comms_aux_mcu_active_wait(&temp_rx_message) == RETURN_NOK){}
+        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE) == RETURN_NOK){}
         
         /* Answer checked, rearm RX */
         comms_aux_arm_rx_and_clear_no_comms();
@@ -183,6 +184,15 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
     temp_tx_message_pt->bootloader_message.command = BOOTLOADER_START_APP_COMMAND;
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->bootloader_message.command);
     comms_aux_mcu_send_message(TRUE);
+    
+    /* Let the aux MCU boot */
+    timer_delay_ms(1000);
+    
+    /* If USB present, send USB attach message */
+    if (platform_io_is_usb_3v3_present() != FALSE)
+    {
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+    }
         
     return RETURN_OK;
 }
