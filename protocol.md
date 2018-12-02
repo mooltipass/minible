@@ -57,6 +57,8 @@ Device Answer:
 0x8002: Send Pixel Data to Display Buffer
 ---------------------------
 
+From the PC: 
+
 | byte 0-1 | byte 2-3                    | bytes 4-X                          |
 |:---------|:----------------------------|:-----------------------------------|
 | 0x8002   | Payload size = number of pixels x 2 | Pixel data |
@@ -73,6 +75,8 @@ Device Answer:
 
 0x8003: Close Display Buffer
 ---------------------------
+
+From the PC: 
 
 | byte 0-1 | byte 2-3                    | bytes 4-X                          |
 |:---------|:----------------------------|:-----------------------------------|
@@ -91,6 +95,8 @@ Device Answer:
 0x8004: Erase Data Flash
 ------------------------
 
+From the PC: 
+
 | byte 0-1 | byte 2-3                    | bytes 4-X                          |
 |:---------|:----------------------------|:-----------------------------------|
 | 0x8004   | 0 | Nothing |
@@ -108,6 +114,8 @@ Device Answer:
 0x8005: Query Dataflash Ready Status
 ------------------------------------
 
+From the PC: 
+
 | byte 0-1 | byte 2-3                    | bytes 4-X                          |
 |:---------|:----------------------------|:-----------------------------------|
 | 0x8005   | 0 | Nothing |
@@ -122,6 +130,8 @@ Device Answer:
 
 0x8006: Write 256 Bytes to Dataflash
 ------------------------------------
+
+From the PC: 
 
 | byte 0-1 | byte 2-3                    | bytes 4-7                          | bytes 8-263                        |
 |:---------|:----------------------------|:-----------------------------------|:-----------------------------------|
@@ -140,6 +150,8 @@ Device Answer:
 0x8007: Reboot to Bootloader
 ----------------------------
 
+From the PC: 
+
 | byte 0-1 | byte 2-3                    | bytes 4-X |
 |:---------|:----------------------------|:----------|
 | 0x8007   | 0 | Nothing |
@@ -150,6 +162,8 @@ Start main microcontroller bootloader. **No device answer**.
 
 0x8008: Get 32 Samples of Accelerometer Data
 --------------------------------------------
+
+From the PC: 
 
 | byte 0-1 | byte 2-3                    | bytes 4-X |
 |:---------|:----------------------------|:----------|
@@ -166,6 +180,8 @@ Device Answer:
 0x8009: Flash Aux MCU with Bundle Contents
 ------------------------------------------
 
+From the PC: 
+
 | byte 0-1 | byte 2-3                    | bytes 4-X |
 |:---------|:----------------------------|:----------|
 | 0x8009   | 0 | Nothing |
@@ -176,6 +192,8 @@ Flash aux MCU with binary file included in the bundle. **No device answer**.
 
 0x800A: Get Platform Info
 -------------------------
+
+From the PC: 
 
 | byte 0-1 | byte 2-3                    | bytes 4-X |
 |:---------|:----------------------------|:----------|
@@ -194,3 +212,21 @@ Device Answer:
 | 67-68 | main MCU fw version, major |
 | 69-70 | main MCU fw version, minor |
 
+
+
+0x800B: Reindex Bundle
+------------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | bytes 4-X                          |
+|:---------|:----------------------------|:-----------------------------------|
+| 0x800B   | 0 | Nothing |
+
+Ask the platform to reindex the bundle (used after uploading a new bundle).
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x800B   | 1 | 0x01 (indicates command success) |
