@@ -98,7 +98,7 @@ typedef struct
 
 /* Prototypes */
 void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type, uint16_t tx_reply_request_flag);
-RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags);
+RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet);
 aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void);
 void comms_aux_mcu_send_simple_command_message(uint16_t command);
 void comms_aux_mcu_send_message(BOOL wait_for_send);

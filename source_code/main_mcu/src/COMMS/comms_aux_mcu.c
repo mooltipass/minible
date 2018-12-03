@@ -133,7 +133,7 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
     comms_aux_mcu_send_message(TRUE);
     
     /* Wait for answer: no need to parse answer as filter is done in comms_aux_mcu_active_wait */
-    return_val = comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE);
+    return_val = comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
     
     /* Rearm receive */
     comms_aux_arm_rx_and_clear_no_comms();
@@ -291,16 +291,17 @@ void comms_aux_mcu_routine(void)
     }          
 }
 
-/*! \fn     comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags)
+/*! \fn     comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet)
 *   \brief  Active wait for a message from the aux MCU. 
 *   \param  rx_message_pt_pt        Pointer to where to store the pointer to the received message
 *   \param  do_not_touch_dma_logic  Set to TRUE to not mess with the DMA flags
+*   \param  expected_packet         Expected packet
 *   \return OK if a message was received
 *   \note   Special care must be taken to discard other message we don't want (either with a please_retry or other mechanisms)
 *   \note   DMA RX arm must be called to rearm message receive as a rearm in this code would enable data to be overwritten
 *   \note   This function is not touching the no comms signal
 */
-RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags)
+RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet)
 {
     /* Bool for the do{} */
     BOOL reloop = FALSE;
@@ -357,6 +358,20 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
             }
             dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
         }        
+        
+        /* Check if received message is the one we expected */
+        if (aux_mcu_receive_message.message_type != expected_packet)
+        {
+            /* Reloop, rearm receive */
+            reloop = TRUE;
+            if (do_not_touch_dma_flags != FALSE)
+            {
+                dma_aux_mcu_check_and_clear_dma_transfer_flag();
+            }
+            dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+            
+            // TODO: take necessary action in case we received an unwanted message
+        }
     }while (reloop != FALSE);
         
     /* Store pointer to message */

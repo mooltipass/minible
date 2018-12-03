@@ -191,8 +191,7 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
         {            
             /* Wait for current packet reception and arm reception */
             dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
-            comms_aux_arm_rx_and_set_no_comms();
-            
+            comms_aux_arm_rx_and_set_no_comms();            
             logic_aux_mcu_flash_firmware_update();            
             return -1;
         }
@@ -212,7 +211,7 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             comms_aux_mcu_send_message(TRUE);
             
             /* Wait for message from aux MCU */
-            while(comms_aux_mcu_active_wait(&temp_rx_message, TRUE) == RETURN_NOK){}
+            while(comms_aux_mcu_active_wait(&temp_rx_message, TRUE, AUX_MCU_MSG_TYPE_PLAT_DETAILS) == RETURN_NOK){}
                 
             /* Copy message contents into send packet */
             memcpy((void*)send_msg->detailed_platform_info.aux_mcu_infos, (void*)&temp_rx_message->aux_details_message, sizeof(temp_rx_message->aux_details_message));
