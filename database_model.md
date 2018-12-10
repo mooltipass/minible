@@ -1,6 +1,7 @@
 ## [](#header-1) Mooltipass Database Model
 This page details the database model for the new Mooltipass Mini.  
-All strings use uint16_t as a character length.  
+- All strings use uint16_t as a character length.  
+- UserID field is now 7 bits: the biggest DB flash has 32k 264B pages, so for a one page parent node and a 2 pages child node that's an average of 85 credentials per user.  
    
 ## [](#header-2) 2 Bytes Long Flags
 
@@ -10,8 +11,9 @@ All strings use uint16_t as a character length.
 |:-----|:------------|-------------------------------|
 | 15->14 | 0b00 (creds), 0b10 (data) | same |
 | 13->13 | not valid bit | same |
-| 12->8 | user ID MSB (5b) | userID |
-| 7->4 | user ID LSB (4b) | reserved |
+| 12->8 | user ID MSbs (5b) | userID |
+| 7->6 | user ID LSbs (2b) | reserved |
+| 5->4 | reserved | reserved |
 | 3->0 | data: data type | not used |
 
 **Child Node**
@@ -20,8 +22,9 @@ All strings use uint16_t as a character length.
 |:-----|:------------|-------------------------------|
 | 15->14 | 0b01 | same |
 | 13->13 | not valid bit | same |
-| 12->8 | user ID MSB (5b) | userID |
-| 7->4 | user ID LSB (4b) | not used |
+| 12->8 | user ID MSbs (5b) | userID |
+| 7->6 | user ID LSbs (2b) | not used |
+| 5->4 | reserved | not used |
 | 3->0 | credential category UID | not used |
 
 **Backward compatibility**: specify a 0b1111 category for a password imported from an old mini DB (ascii flag).  
@@ -33,9 +36,9 @@ All strings use uint16_t as a character length.
 |:-----|:------------|-------------------------------|
 | 15->14 | 0b11: specified data node | same |
 | 13->13 | not valid bit | same |
-| 12->8 | user ID MSB (5b) | userID |
-| 7->4 | user ID LSB (4b) | payload length MSB (4b) |
-| 3->0 | (TBC) # of data nodes | payload length LSB (4b) |
+| 12->8 | user ID MSbs (5b) | userID |
+| 7->6 | user ID LSbs (2b) | payload length MSB (2b) |
+| 5->0 | # of data nodes | payload length LSB (6b) |
 
 ## [](#header-2) Nodes
 
