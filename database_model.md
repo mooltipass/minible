@@ -24,7 +24,7 @@ This page details the database model for the new Mooltipass Mini.
 | 13->13 | not valid bit | same |
 | 12->8 | user ID MSbs (5b) | userID |
 | 7->6 | user ID LSbs (2b) | not used |
-| 5 | reserved | not used |
+| 5 | 0b0 | not used |
 | 4 | ascii flag | not used |
 | 3->0 | credential category bitfield | not used |
 
@@ -72,20 +72,18 @@ This page details the database model for the new Mooltipass Mini.
 | 2->3 | previous child address (2B) |
 | 4->5 | next child address (2B) |
 | 6->7 | pointed to child address (0 when not a pointer) (2B) |
-| 8->135 | plain text login (128B) |
-| 136->199 | plain text description (64B) |
-| 200->201 | last modified date #1 (2B) |
-| 202->203 | last used date #1 (2B) |
-| 204->206 | CTR value #1 (3B) |
-| 207->334 | encrypted password #1 (128B) |
-| 335->336 | last modified date #2 (2B) |
-| 337->338 | last used date #2 (2B) |
-| 339->341 | CTR value #2 (3B) |
-| 342->469 | encrypted password #2 (128B) |
-| 470->519 | arbitrary third field (50B) |
-| 520->521 | key pressed after login typing (2B) |
-| 522->523 | key press after password typing (2B) |
-| 524->527 | reserved (4B) |
+| 8->9 | last modified date (2B) |
+| 10->11 | last used date (2B) |
+| 12->139 | plain text login (128B) |
+| 140->187 | plain text description (48B) |
+| 188->259 | arbitrary third field (36B) |
+| 260->261 | key pressed after login typing (2B) |
+| 262->263 | key press after password typing (2B) |
+| 264->265 | set to 0b010xxxxx 0bxx1xxxxx |
+| 266->393 | encrypted password (128B) |
+| 394 | reserved |
+| 395->397 | CTR value (3B) |
+| 398->527 | TBD |
 
 **For Information: Previous DB Child Node (132B)**
 
