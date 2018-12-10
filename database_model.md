@@ -24,10 +24,10 @@ This page details the database model for the new Mooltipass Mini.
 | 13->13 | not valid bit | same |
 | 12->8 | user ID MSbs (5b) | userID |
 | 7->6 | user ID LSbs (2b) | not used |
-| 5->4 | reserved | not used |
-| 3->0 | credential category UID | not used |
+| 5 | reserved | not used |
+| 4 | ascii flag | not used |
+| 3->0 | credential category bitfield | not used |
 
-**Backward compatibility**: specify a 0b1111 category for a password imported from an old mini DB (ascii flag).  
 **Forward compatibility**: use a bit in the 7->0 field to set unicode flag.  
 
 **Data Node**
