@@ -61,8 +61,8 @@ This page details the database model for the new Mooltipass Mini.
 | 0->1 | flags (2B) | same |
 | 2->3 | next data address (2B) | same |
 | 4->515 | 512B of encrypted data | 4->131 encrypted data |
-| 516->519 | encrypted data length (4B) | out of bounds |
-| 520->527 | reserved (8B) | out of bounds |
+| 516->517 | encrypted data length (2B) | out of bounds |
+| 518->527 | reserved (10B) | out of bounds |
 
 **Child Node (528B)**
 
