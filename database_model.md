@@ -8,17 +8,17 @@ All strings use uint16_t as a character length.
 
 | bits | description | on the previous mini DB model |
 |:-----|:------------|-------------------------------|
-| 15->14 | 0b00: specifies parent node type | same |
+| 15->14 | 0b00 (creds), 0b10 (data) | same |
 | 13->13 | not valid bit | same |
 | 12->8 | user ID MSB (5b) | userID |
 | 7->4 | user ID LSB (4b) | reserved |
-| 3->0 | reserved | not used |
+| 3->0 | data: data type | not used |
 
 **Child Node**
 
 | bits | description | on the previous mini DB model |
 |:-----|:------------|-------------------------------|
-| 15->14 | 0b01: credentials, 0b10: data start | same |
+| 15->14 | 0b01 | same |
 | 13->13 | not valid bit | same |
 | 12->8 | user ID MSB (5b) | userID |
 | 7->4 | user ID LSB (4b) | not used |
@@ -35,7 +35,7 @@ All strings use uint16_t as a character length.
 | 13->13 | not valid bit | same |
 | 12->8 | user ID MSB (5b) | userID |
 | 7->4 | user ID LSB (4b) | payload length MSB (4b) |
-| 3->0 | data category UID | payload length LSB (4b) |
+| 3->0 | (TBC) # of data nodes | payload length LSB (4b) |
 
 ## [](#header-2) Nodes
 
