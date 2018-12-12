@@ -8,15 +8,15 @@
 #include "gui_carousel.h"
 #include "defines.h"
 // Menu layout
-const uint16_t bluetooth_off_menu_pic_ids[] = {GUI_BT_ENABLE_ICON_ID, GUI_BT_PAIRED_DEV_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BACK_ICON_ID};
-const uint16_t bluetooth_on_menu_pic_ids[] = {GUI_BT_DISABLE_ICON_ID, GUI_BT_PAIRED_DEV_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BACK_ICON_ID};
-const uint16_t bluetooth_off_menu_text_ids[] = {GUI_BT_ENABLE_TEXT_ID, GUI_BT_PAIRED_DEV_TEXT_ID, GUI_NEW_PAIR_TEXT_ID, GUI_BACK_TEXT_ID};
-const uint16_t bluetooth_on_menu_text_ids[] = {GUI_BT_DISABLE_TEXT_ID, GUI_BT_PAIRED_DEV_TEXT_ID, GUI_NEW_PAIR_TEXT_ID, GUI_BACK_TEXT_ID};
+const uint16_t bluetooth_off_menu_pic_ids[] = {GUI_BT_ENABLE_ICON_ID, GUI_BT_UNPAIR_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BACK_ICON_ID};
+const uint16_t bluetooth_on_menu_pic_ids[] = {GUI_BT_DISABLE_ICON_ID, GUI_BT_UNPAIR_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BACK_ICON_ID};
+const uint16_t bluetooth_off_menu_text_ids[] = {GUI_BT_ENABLE_TEXT_ID, GUI_BT_UNPAIR_DEV_TEXT_ID, GUI_NEW_PAIR_TEXT_ID, GUI_BACK_TEXT_ID};
+const uint16_t bluetooth_on_menu_text_ids[] = {GUI_BT_DISABLE_TEXT_ID, GUI_BT_UNPAIR_DEV_TEXT_ID, GUI_NEW_PAIR_TEXT_ID, GUI_BACK_TEXT_ID};
 // Currently selected item
 uint16_t gui_bluetooth_menu_selected_item = 0;
 
 // TODO: use logic
-#define BT_ENABLED_BOOL   TRUE
+#define BT_ENABLED_BOOL   FALSE
 
 
 /*! \fn     gui_bluetooth_menu_event_render(wheel_action_ret_te wheel_action)
