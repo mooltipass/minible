@@ -3,6 +3,7 @@
 *    Created:  16/11/2018
 *    Author:   Mathieu Stephan
 */
+#include "comms_hid_msgs_debug.h"
 #include "gui_operations_menu.h"
 #include "gui_bluetooth_menu.h"
 #include "gui_settings_menu.h"

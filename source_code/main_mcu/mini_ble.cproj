@@ -673,6 +673,9 @@
     <Compile Include="src\main.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\NODEMGMT\nodemgmt.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\NODEMGMT\nodemgmt.h">
       <SubType>compile</SubType>
     </Compile>

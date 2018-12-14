@@ -14,8 +14,43 @@
 typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DATA = 2, NODE_TYPE_DATA = 3} node_type_te;
 
 /* Defines */
+#define BASE_NODE_SIZE                              264
+#define NODEMGMT_TYPE_FLAG_BITSHIFT                 14
+#define NODEMGMT_TYPE_FLAG_BITMASK_FINAL            0x0003
+#define NODEMGMT_VALID_BIT_BITSHIFT                 13
+#define NODEMGMT_VALID_BIT_BITMASK                  0x2000
+#define NODEMGMT_VALID_BIT_MASK_FINAL               0x0001
+#define NODEMGMT_CORRECT_FLAGS_BIT_BITSHIFT         5
+#define NODEMGMT_CORRECT_FLAGS_BIT_BITMASK_FINAL    0x0001
+#define NODEMGMT_YEAR_SHT                           9
+#define NODEMGMT_YEAR_MASK                          0xFE00
+#define NODEMGMT_YEAR_MASK_FINAL                    0x007F
+#define NODEMGMT_MONTH_SHT                          5
+#define NODEMGMT_MONTH_MASK                         0x03E0
+#define NODEMGMT_MONTH_MASK_FINAL                   0x000F
+#define NODEMGMT_DAY_MASK_FINAL                     0x001F
+#define NODEMGMT_ADDR_PAGE_BITSHIFT                 1
+#define NODEMGMT_ADDR_PAGE_MASK_FINAL               0x7fff
+#define NODEMGMT_ADDR_NODE_MASK                     0x0001
+#define NODEMGMT_USERID_BITSHIFT                    6
+#define NODEMGMT_USERID_MASK_FINAL                  0x007f
+#define NODEMGMT_ADDR_NULL                          0x0000
+#define NODEMGMT_VBIT_VALID                         0
+#define NODEMGMT_VBIT_INVALID                       1
+
 
 /* Structs */
+typedef struct
+{
+    BOOL datadbChanged;             // Boolean to indicate if the user data DB has changed since user login
+    BOOL dbChanged;                 // Boolean to indicate if the user DB has changed since user login
+    uint16_t currentUserId;         // The users ID
+    uint16_t firstParentNode;       // The address of the users first parent node (read from flash. eg cache)
+    uint16_t firstDataParentNode;   // The address of the users first data parent node (read from flash. eg cache)
+    uint16_t nextFreeParentNode;    // The address of the next free parent node
+    uint16_t nextFreeChildNode;     // The address of the next free parent node
+} nodemgmtHandle_t;
+
 // Parent node, see: https://mooltipass.github.io/minible/database_model
 typedef struct
 {
@@ -32,10 +67,13 @@ typedef struct
 typedef struct
 {
     uint16_t flags;
-    uint16_t nextDataAddress;       // Next data node in sequence 
-    uint8_t data[512];              // Encrypted data (512B)
+    uint16_t nextDataAddress;       // Next data node in sequence
     uint16_t data_length;           // Encrypted data length
-    uint8_t reserved[10];           // Reserved for future use
+    uint8_t data[256];              // Encrypted data (256B)
+    uint8_t reserved[2];            // Reserved for future use
+    uint16_t fakeFlags;             // Set to 0b110xxxxx 0bxx1xxxxx to help db algorithm
+    uint8_t data2[256];             // Encrypted data (256B)
+    uint8_t reserved2[6];           // Reserved for future use
 } child_data_node_t;
 
 // Child credential node, see: https://mooltipass.github.io/minible/database_model
@@ -68,6 +106,8 @@ typedef struct
     uint8_t password[128];          // Encrypted password
     uint8_t TBD[130];               // TBD
 } child_cred_node_t;
+
+/* Prototypes */
 
 
 #endif /* NODEMGMT_H_ */

@@ -73,6 +73,15 @@ def main():
 			
 		elif sys.argv[1] == "accGet":
 			mooltipass_device.getAccData()
+			
+		elif sys.argv[1] == "debugListen":
+			while True:
+				try:
+					mooltipass_device.getInternalDevice().receiveHidMessage()
+				except KeyboardInterrupt:
+					sys.exit(0)
+				except:
+					continue
 		
 	#if not skipConnection:
 	#	mooltipass_device.disconnect()
