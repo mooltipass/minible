@@ -28,7 +28,8 @@ This page details the database model for the new Mooltipass Mini.
 | 4 | ascii flag | not used |
 | 3->0 | credential category bitfield | not used |
 
-**Forward compatibility**: use a bit in the 7->0 field to set unicode flag.  
+**Forward compatibility**: use a bit in the 7->0 field to set unicode flag. 
+By setting bit 5 to 0 and the "matching" bit one page later to 1, this allows us to detect when scanning memory contents the child first and second pages.
 
 **Data Node**
 
@@ -38,7 +39,11 @@ This page details the database model for the new Mooltipass Mini.
 | 13->13 | not valid bit | same |
 | 12->8 | user ID MSbs (5b) | userID |
 | 7->6 | user ID LSbs (2b) | payload length MSB (2b) |
-| 5->0 | # of data nodes | payload length LSB (6b) |
+| 5 | 0b0 | payload length LSB (1b) |
+| 4->0 | # of data nodes | payload length LSB (5b) |
+
+By setting bit 5 to 0 and the "matching" bit one page later to 1, this allows us to detect when scanning memory contents the child first and second pages.  
+The # of data nodes is meant for information only, not for actual size (capped at 16).  
 
 ## [](#header-2) Nodes
 
@@ -60,9 +65,12 @@ This page details the database model for the new Mooltipass Mini.
 |:------|:------------|-------------------------------|
 | 0->1 | flags (2B) | same |
 | 2->3 | next data address (2B) | same |
-| 4->515 | 512B of encrypted data | 4->131 encrypted data |
-| 516->517 | encrypted data length (2B) | out of bounds |
-| 518->527 | reserved (10B) | out of bounds |
+| 4->5 | encrypted data length (2B) | 4->131 encrypted data |
+| 6->261 | 256B of encrypted data | 4->131 encrypted data |
+| 262->263 | reserved (2B) | out of bounds |
+| 264->265 | set to 0b110xxxxx 0bxx1xxxxx | out of bounds |
+| 266->521 | 256B of encrypted data | 4->131 encrypted data |
+| 522->527 | reserved (6B) | out of bounds |
 
 **Child Node (528B)**
 
