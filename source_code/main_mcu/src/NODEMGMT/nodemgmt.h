@@ -47,8 +47,7 @@ typedef struct
     uint16_t currentUserId;         // The users ID
     uint16_t firstParentNode;       // The address of the users first parent node (read from flash. eg cache)
     uint16_t firstDataParentNode;   // The address of the users first data parent node (read from flash. eg cache)
-    uint16_t nextFreeParentNode;    // The address of the next free parent node
-    uint16_t nextFreeChildNode;     // The address of the next free parent node
+    uint16_t nextFreeNode;          // The address of the next free node
 } nodemgmtHandle_t;
 
 // Parent node, see: https://mooltipass.github.io/minible/database_model
@@ -71,7 +70,7 @@ typedef struct
     uint16_t data_length;           // Encrypted data length
     uint8_t data[256];              // Encrypted data (256B)
     uint8_t reserved[2];            // Reserved for future use
-    uint16_t fakeFlags;             // Set to 0b110xxxxx 0bxx1xxxxx to help db algorithm
+    uint16_t fakeFlags;             // Same as flags but with bit 5 set to 1
     uint8_t data2[256];             // Encrypted data (256B)
     uint8_t reserved2[6];           // Reserved for future use
 } child_data_node_t;
@@ -100,7 +99,7 @@ typedef struct
     cust_char_t thirdField[36];     // Unicode BMP third field   
     uint16_t keyAfterLogin;         // Typed key after login
     uint16_t keyAfterPassword;      // Typed key after password
-    uint16_t fakeFlags;             // Set to 0b010xxxxx 0bxx1xxxxx to help db algorithm
+    uint16_t fakeFlags;             // Same as flags but with bit 5 set to 1
     uint8_t reserved;               // Reserved
     uint8_t ctr[3];                 // Encryption counter
     uint8_t password[128];          // Encrypted password

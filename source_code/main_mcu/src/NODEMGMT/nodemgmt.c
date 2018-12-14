@@ -66,8 +66,8 @@ static inline uint16_t validBitFromFlags(uint16_t flags)
     return ((flags >> NODEMGMT_VALID_BIT_BITSHIFT) & NODEMGMT_VALID_BIT_MASK_FINAL);
 }
 
-/*! \fn     validBitFromFlags(uint16_t flags)
-*   \brief  Gets the node valid bit from flags  
+/*! \fn     correctFlagsBitFromFlags(uint16_t flags)
+*   \brief  Gets the correct flags valid bit from flags  
 *   \return The valid 
 */
 static inline uint16_t correctFlagsBitFromFlags(uint16_t flags)
