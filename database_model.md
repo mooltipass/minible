@@ -13,7 +13,8 @@ This page details the database model for the new Mooltipass Mini.
 | 13->13 | not valid bit | same |
 | 12->8 | user ID MSbs (5b) | userID |
 | 7->6 | user ID LSbs (2b) | reserved |
-| 5->4 | reserved | reserved |
+| 5 | 0b0 | reserved |
+| 4 | reserved | reserved |
 | 3->0 | data: data type | not used |
 
 **Child Node**
@@ -68,7 +69,7 @@ The # of data nodes is meant for information only, not for actual size (capped a
 | 4->5 | encrypted data length (2B) | 4->131 encrypted data |
 | 6->261 | 256B of encrypted data | 4->131 encrypted data |
 | 262->263 | reserved (2B) | out of bounds |
-| 264->265 | set to 0b110xxxxx 0bxx1xxxxx | out of bounds |
+| 264->265 | same as flags, but with bit 5 set to 1 | out of bounds |
 | 266->521 | 256B of encrypted data | 4->131 encrypted data |
 | 522->527 | reserved (6B) | out of bounds |
 
@@ -87,7 +88,7 @@ The # of data nodes is meant for information only, not for actual size (capped a
 | 188->259 | arbitrary third field (36B) |
 | 260->261 | key pressed after login typing (2B) |
 | 262->263 | key press after password typing (2B) |
-| 264->265 | set to 0b010xxxxx 0bxx1xxxxx |
+| 264->265 | same as flags, but with bit 5 set to 1 |
 | 266->393 | encrypted password (128B) |
 | 394 | reserved |
 | 395->397 | CTR value (3B) |
