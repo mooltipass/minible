@@ -10,7 +10,7 @@
 #define GUI_DISPATCHER_H_
 
 /* Defines */
-#define GUI_BACK_ICON_ID        120
+#define GUI_BACK_ICON_ID        255
 #define GUI_BACK_TEXT_ID        11
 
 /* Enums */

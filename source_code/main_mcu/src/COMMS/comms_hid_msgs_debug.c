@@ -80,6 +80,7 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
     
     /* By default: copy the same CMD identifier for TX message */
     send_msg->message_type = rcv_msg->message_type;
+    uint16_t rcv_message_type = rcv_msg->message_type;
     
     /* Switch on command id */
     switch (rcv_msg->message_type)
@@ -218,6 +219,7 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             send_msg->detailed_platform_info.main_mcu_fw_major = FW_MAJOR;
             send_msg->detailed_platform_info.main_mcu_fw_minor = FW_MINOR;
             send_msg->payload_length = sizeof(send_msg->detailed_platform_info);
+            send_msg->message_type = rcv_message_type;
             return sizeof(send_msg->detailed_platform_info);
         }
         default: break;

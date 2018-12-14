@@ -10,14 +10,14 @@
 
 /* Defines */
 // Icon IDs
-#define GUI_BT_ENABLE_ICON_ID       120
+#define GUI_BT_ENABLE_ICON_ID       264
 #define GUI_BT_DISABLE_ICON_ID      129
-#define GUI_BT_PAIRED_DEV_ICON_ID   120
+#define GUI_BT_UNPAIR_ICON_ID       273
 #define GUI_NEW_PAIR_ICON_ID        210
 // Text IDs
 #define GUI_BT_ENABLE_TEXT_ID       12
 #define GUI_BT_DISABLE_TEXT_ID      13
-#define GUI_BT_PAIRED_DEV_TEXT_ID   14
+#define GUI_BT_UNPAIR_DEV_TEXT_ID   14
 #define GUI_NEW_PAIR_TEXT_ID        15
 
 
