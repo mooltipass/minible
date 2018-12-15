@@ -40,7 +40,7 @@ By setting bit 5 to 0 and the "matching" bit one page later to 1, this allows us
 | 13->13 | not valid bit | same |
 | 12->8 | user ID MSbs (5b) | userID |
 | 7->6 | user ID LSbs (2b) | payload length MSB (2b) |
-| 5 | 0b0 | payload length LSB (1b) |
+| 5 | flags not valid bit: 0b0 | payload length LSB (1b) |
 | 4->0 | # of data nodes | payload length LSB (5b) |
 
 By setting bit 5 to 0 and the "matching" bit one page later to 1, this allows us to detect when scanning memory contents the child nodes first and second 264B blocks.  
@@ -70,7 +70,7 @@ The # of data nodes is meant for information only, not for actual size (capped a
 | 6->261 | 256B of encrypted data | 4->131 encrypted data |
 | 262->263 | reserved (2B) | out of bounds |
 | 264->265 | same as flags, but with bit 5 set to 1 | out of bounds |
-| 266->521 | 256B of encrypted data | 4->131 encrypted data |
+| 266->521 | next 256B of encrypted data | 4->131 encrypted data |
 | 522->527 | reserved (6B) | out of bounds |
 
 **Child Node (528B)**
