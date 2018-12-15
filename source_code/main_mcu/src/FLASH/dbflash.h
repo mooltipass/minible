@@ -12,6 +12,9 @@
 // To define in project solution later
 #define DBFLASH_CHIP_8M
 
+// Enable boundary checks
+#define DBFLASH_MEMORY_BOUNDARY_CHECKS
+
 /* Prototypes */
 void dbflash_read_data_from_flash(spi_flash_descriptor_t* descriptor_pt, uint16_t pageNumber, uint16_t offset, uint16_t dataSize, void *data);
 void dbflash_send_data_with_four_bytes_opcode(spi_flash_descriptor_t* descriptor_pt, uint8_t* opcode, uint8_t* buffer, uint16_t buffer_size);

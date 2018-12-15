@@ -157,7 +157,7 @@ void dbflash_wait_for_not_busy(spi_flash_descriptor_t* descriptor_pt)
 */
 void dbflash_sector_zero_erase(spi_flash_descriptor_t* descriptor_pt, uint8_t sectorNumber)
 {
-    #ifdef MEMORY_BOUNDARY_CHECKS
+    #ifdef DBFLASH_MEMORY_BOUNDARY_CHECKS
         // Error check parameter sectorNumber
         if(!(sectorNumber == DBFLASH_SECTOR_ZERO_A_CODE || sectorNumber == DBFLASH_SECTOR_ZERO_B_CODE))
         {
@@ -181,7 +181,7 @@ void dbflash_sector_zero_erase(spi_flash_descriptor_t* descriptor_pt, uint8_t se
 */
 void dbflash_sector_erase(spi_flash_descriptor_t* descriptor_pt, uint8_t sectorNumber)
 {    
-    #ifdef MEMORY_BOUNDARY_CHECKS
+    #ifdef DBFLASH_MEMORY_BOUNDARY_CHECKS
         // Error check parameter sectorNumber
         if((sectorNumber < SECTOR_START) || (sectorNumber > SECTOR_END)) // Ex: 1M -> SECTOR_START = 1, SECTOR_END = 3  sectorNumber must be 1, 2, or 3
         {
@@ -218,7 +218,7 @@ void dbflash_chip_erase(spi_flash_descriptor_t* descriptor_pt)
 */
 void dbflash_block_erase(spi_flash_descriptor_t* descriptor_pt, uint16_t blockNumber)
 {
-    #ifdef MEMORY_BOUNDARY_CHECKS
+    #ifdef DBFLASH_MEMORY_BOUNDARY_CHECKS
         // Error check parameter blockNumber
         if(blockNumber >= BLOCK_COUNT)// Ex: 1M -> BLOCK_COUNT = 64.. valid pageNumber 0-63
         {
@@ -242,7 +242,7 @@ void dbflash_block_erase(spi_flash_descriptor_t* descriptor_pt, uint16_t blockNu
 */
 void dbflash_page_erase(spi_flash_descriptor_t* descriptor_pt, uint16_t pageNumber)
 {    
-    #ifdef MEMORY_BOUNDARY_CHECKS
+    #ifdef DBFLASH_MEMORY_BOUNDARY_CHECKS
         // Error check parameter pageNumber
         if(pageNumber >= PAGE_COUNT) // Ex: 1M -> PAGE_COUNT = 512.. valid pageNumber 0-511
         {
@@ -281,7 +281,7 @@ void dbflash_format_flash(spi_flash_descriptor_t* descriptor_pt)
 */
 void dbflash_load_page_to_internal_buffer(spi_flash_descriptor_t* descriptor_pt, uint16_t pageNumber)
 {
-    #ifdef MEMORY_BOUNDARY_CHECKS
+    #ifdef DBFLASH_MEMORY_BOUNDARY_CHECKS
         // Error check the parameter pageNumber
         if(pageNumber >= PAGE_COUNT) // Ex: 1M -> PAGE_COUNT = 512.. valid pageNumber 0-511
         {
@@ -310,7 +310,7 @@ void dbflash_load_page_to_internal_buffer(spi_flash_descriptor_t* descriptor_pt,
 */
 void dbflash_write_data_to_flash(spi_flash_descriptor_t* descriptor_pt, uint16_t pageNumber, uint16_t offset, uint16_t dataSize, void *data)
 {    
-    #ifdef MEMORY_BOUNDARY_CHECKS
+    #ifdef DBFLASH_MEMORY_BOUNDARY_CHECKS
         // Error check the parameter pageNumber
         if(pageNumber >= PAGE_COUNT) // Ex: 1M -> PAGE_COUNT = 512.. valid pageNumber 0-511
         {
@@ -343,18 +343,28 @@ void dbflash_write_data_to_flash(spi_flash_descriptor_t* descriptor_pt, uint16_t
 *   \param  offset          The starting byte offset to begin reading in pageNumber
 *   \param  dataSize        The number of bytes to read from the flash memory into the data buffer (assuming the data buffer is sufficiently large)
 *   \param  data            The buffer used to store the data read from flash
-*   \note   Function does not allow crossing page boundaries.
+*   \note   boundary checks are done for a maximum of 3 pages read (maximum abuse that a faulty address could do)
 */
 void dbflash_read_data_from_flash(spi_flash_descriptor_t* descriptor_pt, uint16_t pageNumber, uint16_t offset, uint16_t dataSize, void *data)
 {        
-    #ifdef MEMORY_BOUNDARY_CHECKS
-        // Error check the parameter pageNumber
-        if(pageNumber >= PAGE_COUNT) // Ex: 1M -> PAGE_COUNT = 512.. valid pageNumber 0-511
+    #ifdef DBFLASH_MEMORY_BOUNDARY_CHECKS
+        /* Use of ifs for speed */
+        uint16_t pages_used_for_command = offset + dataSize;
+        if (pages_used_for_command > 2*BYTES_PER_PAGE)
         {
-            dbflash_memory_boundary_error_callblack();
-        }    
-        // Error check the parameters offset and dataSize
-        if((offset + dataSize - 1) >= BYTES_PER_PAGE) // Ex: 1M -> BYTES_PER_PAGE = 264 offset + dataSize MUST be less than 264 (0-263 valid)
+            pages_used_for_command = 3;
+        } 
+        else if (pages_used_for_command > 1*BYTES_PER_PAGE)
+        {
+            pages_used_for_command = 2;
+        }
+        else
+        {
+            pages_used_for_command = 1;
+        }
+    
+        // Error check the parameter pageNumber
+        if(pageNumber + pages_used_for_command > PAGE_COUNT) // Ex: 1M -> PAGE_COUNT = 512.. valid pageNumber 0-511
         {
             dbflash_memory_boundary_error_callblack();
         }
