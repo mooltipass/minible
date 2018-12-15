@@ -3,6 +3,7 @@
 *    Created:  14/12/2018
 *    Author:   Mathieu Stephan
 */
+#include <assert.h>
 #include "comms_hid_msgs_debug.h"
 #include "nodemgmt.h"
 #include "dbflash.h"
@@ -137,4 +138,27 @@ RET_TYPE checkUserPermission(uint16_t node_addr)
     {
         return RETURN_NOK;
     }
+}
+
+/*! \fn     writeParentNodeDataBlockToFlash(uint16_t address, parent_node_t* parent_node)
+*   \brief  Write a parent node data block to flash
+*   \param  address Where to write
+*   \param  data    Pointer to the data
+*/
+void writeParentNodeDataBlockToFlash(uint16_t address, parent_node_t* parent_node)
+{
+    _Static_assert(BASE_NODE_SIZE == sizeof(parent_node->node_as_bytes), "Parent node isn't the size of base node size");
+    dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), BASE_NODE_SIZE, (void*)parent_node->node_as_bytes);
+}
+
+/*! \fn     writeChildNodeDataBlockToFlash(uint16_t address, child_node_t* child_node)
+*   \brief  Write a child node data block to flash
+*   \param  address Where to write
+*   \param  data    Pointer to the data
+*/
+void writeChildNodeDataBlockToFlash(uint16_t address, child_node_t* child_node)
+{
+    _Static_assert(2*BASE_NODE_SIZE == sizeof(child_node->node_as_bytes), "Parent node isn't the size of base node size");
+    dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), BASE_NODE_SIZE, (void*)child_node->node_as_bytes);
+    dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(address+1), BASE_NODE_SIZE * nodeNumberFromAddress(address+1), BASE_NODE_SIZE, (void*)(&child_node->node_as_bytes[BASE_NODE_SIZE]));
 }

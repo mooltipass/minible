@@ -58,9 +58,20 @@ typedef struct
     uint16_t nextParentAddress;     // Next parent node address (Alphabetically)
     uint16_t nextChildAddress;      // Parent node first child address
     cust_char_t service[126];       // Unicode BMP text describing service, used for sorting and searching
+    uint8_t reserved[4];            // Reserved for future use
+} parent_cred_node_t;
+
+// Parent node, see: https://mooltipass.github.io/minible/database_model
+typedef struct
+{
+    uint16_t flags;
+    uint16_t prevParentAddress;     // Previous parent node address (Alphabetically)
+    uint16_t nextParentAddress;     // Next parent node address (Alphabetically)
+    uint16_t nextChildAddress;      // Parent node first child address
+    cust_char_t service[126];       // Unicode BMP text describing service, used for sorting and searching
     uint8_t reserved;               // Reserved for future use
-    uint8_t startDataCtr[3];        // Encryption counter in case the child is a data node
-} parent_node_t;
+    uint8_t startDataCtr[3];        // Encryption counter
+} parent_data_node_t;
 
 // Child data node, see: https://mooltipass.github.io/minible/database_model
 typedef struct
@@ -105,6 +116,28 @@ typedef struct
     uint8_t password[128];          // Encrypted password
     uint8_t TBD[130];               // TBD
 } child_cred_node_t;
+
+// Parent node genetic typedef
+typedef struct
+{
+    union
+    {
+        parent_cred_node_t cred_parent;
+        parent_data_node_t data_parent;
+        uint8_t node_as_bytes[BASE_NODE_SIZE];
+    };    
+} parent_node_t;
+
+// Child node genetic typedef
+typedef struct
+{
+    union
+    {
+        child_cred_node_t cred_child;
+        child_data_node_t data_child;
+        uint8_t node_as_bytes[2*BASE_NODE_SIZE];
+    };
+} child_node_t;
 
 /* Prototypes */
 
