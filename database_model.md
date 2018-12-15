@@ -29,8 +29,8 @@ This page details the database model for the new Mooltipass Mini.
 | 4 | ascii flag | not used |
 | 3->0 | credential category bitfield | not used |
 
-**Forward compatibility**: use a bit in the 7->0 field to set unicode flag. 
-By setting bit 5 to 0 and the "matching" bit one page later to 1, this allows us to detect when scanning memory contents the child first and second pages.
+**Forward compatibility**: use a bit in the 7->0 field to set unicode flag.  
+By setting bit 5 to 0 and the "matching" bit one page later to 1, this allows us to detect when scanning memory contents the child nodes first and second 264B blocks.
 
 **Data Node**
 
@@ -43,7 +43,7 @@ By setting bit 5 to 0 and the "matching" bit one page later to 1, this allows us
 | 5 | 0b0 | payload length LSB (1b) |
 | 4->0 | # of data nodes | payload length LSB (5b) |
 
-By setting bit 5 to 0 and the "matching" bit one page later to 1, this allows us to detect when scanning memory contents the child first and second pages.  
+By setting bit 5 to 0 and the "matching" bit one page later to 1, this allows us to detect when scanning memory contents the child nodes first and second 264B blocks.  
 The # of data nodes is meant for information only, not for actual size (capped at 16).  
 
 ## [](#header-2) Nodes
