@@ -30,6 +30,7 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODEMGMT_MONTH_MASK_FINAL                   0x000F
 #define NODEMGMT_DAY_MASK_FINAL                     0x001F
 #define NODEMGMT_ADDR_PAGE_BITSHIFT                 1
+#define NODEMGMT_ADDR_PAGE_MASK                     0xfffe
 #define NODEMGMT_ADDR_PAGE_MASK_FINAL               0x7fff
 #define NODEMGMT_ADDR_NODE_MASK                     0x0001
 #define NODEMGMT_USERID_BITSHIFT                    6

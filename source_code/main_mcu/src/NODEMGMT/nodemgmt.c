@@ -48,6 +48,25 @@ static inline uint16_t nodeNumberFromAddress(uint16_t addr)
     return (addr & NODEMGMT_ADDR_NODE_MASK);
 }
 
+/*! \fn     getIncrementedAddress(uint16_t addr)
+*   \brief  Get next address for a given address
+*   \param  addr   The base address
+*   \return The next address for our addressing scheme
+ */
+uint16_t getIncrementedAddress(uint16_t addr)
+{
+    _Static_assert((BYTES_PER_PAGE == BASE_NODE_SIZE) || (BYTES_PER_PAGE == 2*BASE_NODE_SIZE), "Page size isn't 1 or 2 base node size");
+    _Static_assert(NODEMGMT_ADDR_PAGE_BITSHIFT == 1, "Addressing scheme doesn't fit 1 or 2 base node size per page");
+    
+    #if (BYTES_PER_PAGE == BASE_NODE_SIZE)
+        /* One node per page, change page */
+        return addr + (1 << NODEMGMT_ADDR_PAGE_BITSHIFT);
+    #else
+        /* 2 nodes per page */
+        return addr + 1;
+    #endif
+}
+
 /*! \fn     nodeTypeFromFlags(uint16_t flags)
 *   \brief  Gets nodeType from flags  
 *   \param  flags           The flags field of a node
@@ -160,5 +179,5 @@ void writeChildNodeDataBlockToFlash(uint16_t address, child_node_t* child_node)
 {
     _Static_assert(2*BASE_NODE_SIZE == sizeof(child_node->node_as_bytes), "Parent node isn't the size of base node size");
     dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), BASE_NODE_SIZE, (void*)child_node->node_as_bytes);
-    dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(address+1), BASE_NODE_SIZE * nodeNumberFromAddress(address+1), BASE_NODE_SIZE, (void*)(&child_node->node_as_bytes[BASE_NODE_SIZE]));
+    dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(getIncrementedAddress(address)), BASE_NODE_SIZE * nodeNumberFromAddress(getIncrementedAddress(address)), BASE_NODE_SIZE, (void*)(&child_node->node_as_bytes[BASE_NODE_SIZE]));
 }
