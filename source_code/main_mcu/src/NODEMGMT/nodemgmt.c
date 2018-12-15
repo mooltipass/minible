@@ -45,7 +45,12 @@ static inline uint16_t pageNumberFromAddress(uint16_t addr)
  */
 static inline uint16_t nodeNumberFromAddress(uint16_t addr)
 {
-    return (addr & NODEMGMT_ADDR_NODE_MASK);
+    #if (BYTES_PER_PAGE == BASE_NODE_SIZE)
+        /* One node per page */
+        return 0;
+    #else
+        return (addr & NODEMGMT_ADDR_NODE_MASK);
+    #endif
 }
 
 /*! \fn     getIncrementedAddress(uint16_t addr)
@@ -143,7 +148,7 @@ RET_TYPE checkUserPermission(uint16_t node_addr)
     // Node Page
     uint16_t page_addr = pageNumberFromAddress(node_addr);
     // Node byte address
-    uint16_t byte_addr = BASE_NODE_SIZE * (uint16_t)nodeNumberFromAddress(node_addr);
+    uint16_t byte_addr = BASE_NODE_SIZE * nodeNumberFromAddress(node_addr);
     
     // Fetch the flags
     dbflash_read_data_from_flash(&dbflash_descriptor, page_addr, byte_addr, sizeof(temp_flags), (void*)&temp_flags);
@@ -161,8 +166,8 @@ RET_TYPE checkUserPermission(uint16_t node_addr)
 
 /*! \fn     writeParentNodeDataBlockToFlash(uint16_t address, parent_node_t* parent_node)
 *   \brief  Write a parent node data block to flash
-*   \param  address Where to write
-*   \param  data    Pointer to the data
+*   \param  address     Where to write
+*   \param  parent_node Pointer to the node
 */
 void writeParentNodeDataBlockToFlash(uint16_t address, parent_node_t* parent_node)
 {
@@ -172,12 +177,32 @@ void writeParentNodeDataBlockToFlash(uint16_t address, parent_node_t* parent_nod
 
 /*! \fn     writeChildNodeDataBlockToFlash(uint16_t address, child_node_t* child_node)
 *   \brief  Write a child node data block to flash
-*   \param  address Where to write
-*   \param  data    Pointer to the data
+*   \param  address     Where to write
+*   \param  parent_node Pointer to the node
 */
 void writeChildNodeDataBlockToFlash(uint16_t address, child_node_t* child_node)
 {
     _Static_assert(2*BASE_NODE_SIZE == sizeof(child_node->node_as_bytes), "Parent node isn't the size of base node size");
     dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), BASE_NODE_SIZE, (void*)child_node->node_as_bytes);
     dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(getIncrementedAddress(address)), BASE_NODE_SIZE * nodeNumberFromAddress(getIncrementedAddress(address)), BASE_NODE_SIZE, (void*)(&child_node->node_as_bytes[BASE_NODE_SIZE]));
+}
+
+/*! \fn     readParentNodeDataBlockFromFlash(uint16_t address, parent_node_t* parent_node)
+*   \brief  Read a parent node data block to flash
+*   \param  address     Where to read
+*   \param  parent_node Pointer to the node
+*/
+void readParentNodeDataBlockFromFlash(uint16_t address, parent_node_t* parent_node)
+{
+    dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), sizeof(parent_node->node_as_bytes), (void*)parent_node->node_as_bytes);
+}
+
+/*! \fn     readChildNodeDataBlockFromFlash(uint16_t address, child_node_t* child_node)
+*   \brief  Read a parent node data block to flash
+*   \param  address     Where to read
+*   \param  parent_node Pointer to the node
+*/
+void readChildNodeDataBlockFromFlash(uint16_t address, child_node_t* child_node)
+{
+    dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), sizeof(child_node->node_as_bytes), (void*)child_node->node_as_bytes);
 }
