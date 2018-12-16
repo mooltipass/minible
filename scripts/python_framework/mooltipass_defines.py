@@ -3,8 +3,10 @@
 USB_READ_TIMEOUT		= 10000
 
 # Device VID & PID
-USB_VID                 = 0x16D0
-USB_PID                 = 0x09A0
+#USB_VID                 = 0x16D0
+#USB_PID                 = 0x09A0
+USB_VID                 = 0x1209
+USB_PID                 = 0x4321
 
 # TLV Field indexes
 LEN_INDEX               = 0x00
