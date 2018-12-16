@@ -45,6 +45,8 @@ static inline uint16_t pageNumberFromAddress(uint16_t addr)
  */
 static inline uint16_t nodeNumberFromAddress(uint16_t addr)
 {
+    _Static_assert(NODEMGMT_ADDR_PAGE_BITSHIFT == 1, "Addressing scheme doesn't fit 1 or 2 base node size per page");
+    
     #if (BYTES_PER_PAGE == BASE_NODE_SIZE)
         /* One node per page */
         return 0;
@@ -172,7 +174,7 @@ RET_TYPE checkUserPermission(uint16_t node_addr)
 */
 void writeParentNodeDataBlockToFlash(uint16_t address, parent_node_t* parent_node)
 {
-    _Static_assert(BASE_NODE_SIZE == sizeof(parent_node->node_as_bytes), "Parent node isn't the size of base node size");
+    _Static_assert(BASE_NODE_SIZE == sizeof(*parent_node), "Parent node isn't the size of base node size");
     dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), BASE_NODE_SIZE, (void*)parent_node->node_as_bytes);
 }
 
@@ -183,7 +185,7 @@ void writeParentNodeDataBlockToFlash(uint16_t address, parent_node_t* parent_nod
 */
 void writeChildNodeDataBlockToFlash(uint16_t address, child_node_t* child_node)
 {
-    _Static_assert(2*BASE_NODE_SIZE == sizeof(child_node->node_as_bytes), "Parent node isn't the size of base node size");
+    _Static_assert(2*BASE_NODE_SIZE == sizeof(*child_node), "Child node isn't twice the size of base node size");
     dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), BASE_NODE_SIZE, (void*)child_node->node_as_bytes);
     dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(getIncrementedAddress(address)), BASE_NODE_SIZE * nodeNumberFromAddress(getIncrementedAddress(address)), BASE_NODE_SIZE, (void*)(&child_node->node_as_bytes[BASE_NODE_SIZE]));
 }
@@ -206,4 +208,34 @@ void readParentNodeDataBlockFromFlash(uint16_t address, parent_node_t* parent_no
 void readChildNodeDataBlockFromFlash(uint16_t address, child_node_t* child_node)
 {
     dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), sizeof(child_node->node_as_bytes), (void*)child_node->node_as_bytes);
+}
+
+/*! \fn     userProfileStartingOffset(uint8_t uid, uint16_t *page, uint16_t *pageOffset)
+    \brienf Obtains page and page offset for a given user id
+    \param  uid             The id of the user to perform that profile page and offset calculation (0 up to NODE_MAX_UID)
+    \param  page            The page containing the user profile
+    \param  pageOffset      The offset of the page that indicates the start of the user profile
+ */
+void userProfileStartingOffset(uint16_t uid, uint16_t *page, uint16_t *pageOffset)
+{
+    if(uid >= NB_MAX_USERS)
+    {
+        /* No debug... no reason it should get stuck here as the data format doesn't allow such values */
+        while(1);
+    }
+
+    /* Check for bad surprises */    
+    _Static_assert(NODEMGMT_USER_PROFILE_SIZE == sizeof(nodemgmt_userprofile_t), "User profile isn't the right size");
+    
+    #if BYTES_PER_PAGE == NODEMGMT_USER_PROFILE_SIZE
+        /* One node per page: just return the UID */
+        *page = uid;
+        *pageOffset = 0;
+    #elif BYTES_PER_PAGE == 2*NODEMGMT_USER_PROFILE_SIZE
+        /* One node per page: bitmask and division by 2 */
+        *page = uid >> NODEMGMT_ADDR_PAGE_BITSHIFT;
+        *pageOffset = (uid & NODEMGMT_ADDR_PAGE_BITSHIFT) * NODEMGMT_USER_PROFILE_SIZE;
+    #else
+        #error "User profile isn't a multiple of page size"
+    #endif
 }

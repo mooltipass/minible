@@ -14,7 +14,9 @@
 typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DATA = 2, NODE_TYPE_DATA = 3} node_type_te;
 
 /* Defines */
+#define NB_MAX_USERS                                128
 #define BASE_NODE_SIZE                              264
+#define NODEMGMT_USER_PROFILE_SIZE                  264
 #define NODEMGMT_TYPE_FLAG_BITSHIFT                 14
 #define NODEMGMT_TYPE_FLAG_BITMASK_FINAL            0x0003
 #define NODEMGMT_VALID_BIT_BITSHIFT                 13
@@ -139,6 +141,38 @@ typedef struct
         uint8_t node_as_bytes[2*BASE_NODE_SIZE];
     };
 } child_node_t;
+
+// Favorite address
+typedef struct
+{
+    uint16_t parent_addr;
+    uint16_t child_addr;
+} favorite_addr_t;
+
+// List of favorite for a given category
+typedef struct
+{
+    favorite_addr_t favorite[12];
+} favorites_for_category_t;
+
+// User profile main data
+typedef struct
+{
+    uint16_t cred_start_address;
+    uint16_t data_start_address;
+    uint8_t reserved;
+    uint8_t current_ctr[3];
+    uint32_t cred_change_number;
+    uint32_t data_change_number;    
+} nodemgmt_profile_main_data_t;
+
+// User profile
+typedef struct
+{
+    nodemgmt_profile_main_data_t main_data;
+    favorites_for_category_t category_favorites[5];
+    uint8_t reserved[8];
+} nodemgmt_userprofile_t;
 
 /* Prototypes */
 RET_TYPE checkUserPermission(uint16_t node_addr);
