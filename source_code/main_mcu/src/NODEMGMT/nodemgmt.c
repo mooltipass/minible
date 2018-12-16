@@ -4,6 +4,7 @@
 *    Author:   Mathieu Stephan
 */
 #include <assert.h>
+#include <string.h>
 #include "comms_hid_msgs_debug.h"
 #include "nodemgmt.h"
 #include "dbflash.h"
@@ -211,7 +212,7 @@ void readChildNodeDataBlockFromFlash(uint16_t address, child_node_t* child_node)
 }
 
 /*! \fn     userProfileStartingOffset(uint8_t uid, uint16_t *page, uint16_t *pageOffset)
-    \brienf Obtains page and page offset for a given user id
+    \brief  Obtains page and page offset for a given user id
     \param  uid             The id of the user to perform that profile page and offset calculation (0 up to NODE_MAX_UID)
     \param  page            The page containing the user profile
     \param  pageOffset      The offset of the page that indicates the start of the user profile
@@ -238,4 +239,29 @@ void userProfileStartingOffset(uint16_t uid, uint16_t *page, uint16_t *pageOffse
     #else
         #error "User profile isn't a multiple of page size"
     #endif
+}
+
+/*! \fn     formatUserProfileMemory(uint8_t uid)
+ *  \brief  Formats the user profile flash memory of user uid.
+ *  \param  uid    The id of the user to format profile memory
+ */
+void formatUserProfileMemory(uint16_t uid)
+{
+    /* Page & offset for this UID */
+    uint16_t temp_page, temp_offset;
+    userProfileStartingOffset(uid, &temp_page, &temp_offset);
+    
+    if(uid >= NB_MAX_USERS)
+    {
+        /* No debug... no reason it should get stuck here as the data format doesn't allow such values */
+        while(1);
+    }
+    
+    #if NODE_ADDR_NULL != 0x0000
+        #error "NODE_ADDR_NULL != 0x0000"
+    #endif
+    
+    // Set buffer to all 0's.
+    memset((void*)&nodemgmt_current_handle.blob_buffer.temp_user_profile, 0, sizeof(nodemgmt_current_handle.blob_buffer.temp_user_profile));
+    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmtHandle_t), (void*)&nodemgmt_current_handle.blob_buffer.temp_user_profile);
 }

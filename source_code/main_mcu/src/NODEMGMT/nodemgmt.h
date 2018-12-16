@@ -14,6 +14,7 @@
 typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DATA = 2, NODE_TYPE_DATA = 3} node_type_te;
 
 /* Defines */
+#define NODE_ADDR_NULL                              0x0000
 #define NB_MAX_USERS                                128
 #define BASE_NODE_SIZE                              264
 #define NODEMGMT_USER_PROFILE_SIZE                  264
@@ -43,16 +44,6 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 
 
 /* Structs */
-typedef struct
-{
-    BOOL datadbChanged;             // Boolean to indicate if the user data DB has changed since user login
-    BOOL dbChanged;                 // Boolean to indicate if the user DB has changed since user login
-    uint16_t currentUserId;         // The users ID
-    uint16_t firstParentNode;       // The address of the users first parent node (read from flash. eg cache)
-    uint16_t firstDataParentNode;   // The address of the users first data parent node (read from flash. eg cache)
-    uint16_t nextFreeNode;          // The address of the next free node
-} nodemgmtHandle_t;
-
 // Parent node, see: https://mooltipass.github.io/minible/database_model
 typedef struct
 {
@@ -173,6 +164,28 @@ typedef struct
     favorites_for_category_t category_favorites[5];
     uint8_t reserved[8];
 } nodemgmt_userprofile_t;
+
+// big blob
+typedef struct
+{
+    union
+    {
+        nodemgmt_userprofile_t temp_user_profile;
+        parent_node_t temp_parent_node;
+    }; 
+} nodemgmt_big_blog_buffer;
+
+// Node management handle
+typedef struct
+{
+    BOOL datadbChanged;                     // Boolean to indicate if the user data DB has changed since user login
+    BOOL dbChanged;                         // Boolean to indicate if the user DB has changed since user login
+    uint16_t currentUserId;                 // The users ID
+    uint16_t firstParentNode;               // The address of the users first parent node (read from flash. eg cache)
+    uint16_t firstDataParentNode;           // The address of the users first data parent node (read from flash. eg cache)
+    uint16_t nextFreeNode;                  // The address of the next free node
+    nodemgmt_big_blog_buffer blob_buffer;   // Blob buffer for temporary allocs. In the future, one may argue to remove it and use dynamic allocs on functions
+} nodemgmtHandle_t;
 
 /* Prototypes */
 RET_TYPE checkUserPermission(uint16_t node_addr);
