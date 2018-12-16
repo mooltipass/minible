@@ -108,3 +108,27 @@ The # of data nodes is meant for information only, not for actual size (capped a
 | 37->99 | plain text login (63B) |
 | 100->131 | encrypted password (32B) |
 | 524->527 | reserved (4B) |
+
+## [](#header-2) User Profile and DB Flash Layout
+
+As with the previous mini device, sector 0a/b of the DB flash is reserved for user profiles and potentially other graphics.  
+For the mini ble, it will store up to 128 user profiles. Each user profile is 264B long and its content are shown in the tables below. As a result, the first 32kB in each DB flash are reserved for user profiles.  
+For information, 8Mb/16Mb/32Mb/64Mb DB flashes respectively contain 65kB/131kB/65kB/262kB in their sector 0.  
+Compared to our previous device, the number of favorites has been reduced to 12 (instead of 14). Users seem to not use more than 10 favorites.  
+
+**User Profile**
+
+| bytes | description |
+|:-----|:------------|
+| 0->1 | credential start address |
+| 2->3 | data start address |
+| 4 | reserved |
+| 5->7 | current CTR |
+| 8->11 | credential change number |
+| 12->15 | data change number |
+| 16->63 | 12 favorites (no category) |
+| 64->111 | 12 favorites (category #1) |
+| 112->159 | 12 favorites (category #2) |
+| 160->207 | 12 favorites (category #3) |
+| 208->255 | 12 favorites (category #4) |
+| 256->263 | reserved |
