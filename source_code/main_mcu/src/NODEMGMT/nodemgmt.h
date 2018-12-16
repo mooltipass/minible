@@ -141,6 +141,6 @@ typedef struct
 } child_node_t;
 
 /* Prototypes */
-
+RET_TYPE checkUserPermission(uint16_t node_addr);
 
 #endif /* NODEMGMT_H_ */

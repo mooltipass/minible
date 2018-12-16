@@ -34,8 +34,8 @@
 #endif
 
 /* USB defines */
-#define USB_VENDOR_ID               0x16D0              // Vendor ID (from MCS)
-#define USB_PRODUCT_ID              0x09A0              // Product ID (from MCS)
+#define USB_VENDOR_ID               0x1209              // Vendor ID
+#define USB_PRODUCT_ID              0x4321              // Product ID
 #define USB_RAWHID_USAGE_PAGE       0xFF31              // HID usage page, after 0xFF00: vendor-defined
 #define USB_RAWHID_USAGE            0x0074              // HID usage
 #define USB_STR_MANUFACTURER_VAL    "SE"                // Manufacturer string

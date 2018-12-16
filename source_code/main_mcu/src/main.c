@@ -13,6 +13,7 @@
 #include "custom_fs.h"
 #include "dataflash.h"
 #include "lis2hh12.h"
+#include "nodemgmt.h"
 #include "dbflash.h"
 #include "defines.h"
 #include "sh1122.h"

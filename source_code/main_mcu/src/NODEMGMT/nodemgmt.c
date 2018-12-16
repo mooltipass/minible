@@ -140,6 +140,7 @@ RET_TYPE extractDate(uint16_t date, uint8_t *year, uint8_t *month, uint8_t *day)
 *   \brief  Check that the user has the right to read/write a node
 *   \param  node_addr   Node address
 *   \return OK / NOK
+*   \note   Scanning a 8Mb Flash memory contents with that function was timed at 56ms in Debug mode.
 */
 RET_TYPE checkUserPermission(uint16_t node_addr)
 {
