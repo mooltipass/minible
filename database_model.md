@@ -25,7 +25,7 @@ This page details the database model for the new Mooltipass Mini.
 | 13->13 | not valid bit | same |
 | 12->8 | user ID MSbs (5b) | userID |
 | 7->6 | user ID LSbs (2b) | not used |
-| 5 | flags not valid: 0b0 | not used |
+| 5 | flags not valid bit: 0b0 | not used |
 | 4 | ascii flag | not used |
 | 3->0 | credential category bitfield | not used |
 
