@@ -249,7 +249,6 @@ void formatUserProfileMemory(uint16_t uid)
 {
     /* Page & offset for this UID */
     uint16_t temp_page, temp_offset;
-    userProfileStartingOffset(uid, &temp_page, &temp_offset);
     
     if(uid >= NB_MAX_USERS)
     {
@@ -262,6 +261,55 @@ void formatUserProfileMemory(uint16_t uid)
     #endif
     
     // Set buffer to all 0's.
+    userProfileStartingOffset(uid, &temp_page, &temp_offset);
     memset((void*)&nodemgmt_current_handle.blob_buffer.temp_user_profile, 0, sizeof(nodemgmt_current_handle.blob_buffer.temp_user_profile));
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmtHandle_t), (void*)&nodemgmt_current_handle.blob_buffer.temp_user_profile);
+}
+
+/*! \fn     getCurrentUserID(void)
+*   \brief  Get the current user ID
+*   \return The user ID
+*/
+uint16_t getCurrentUserID(void)
+{
+    return nodemgmt_current_handle.currentUserId;
+}
+
+/*! \fn     getFreeNodeAddress(void)
+*   \brief  Get next free node address
+*   \return The address
+*/
+uint16_t getFreeNodeAddress(void)
+{
+    return nodemgmt_current_handle.nextFreeNode;
+}
+
+/*! \fn     initNodeManagementHandle(uint16_t userIdNum)
+ *  \brief  Initializes the Node Management Handle, scans memory for the next free node
+ *  \param  userIdNum   The user id to initialize the handle for
+ */
+void initNodeManagementHandle(uint16_t userIdNum)
+{
+    if(userIdNum >= NB_MAX_USERS)
+    {
+        /* No debug... no reason it should get stuck here as the data format doesn't allow such values */
+        while(1);
+    }
+            
+    // fill current user id, first parent node address, user profile page & offset 
+    userProfileStartingOffset(userIdNum, &currentNodeMgmtHandle.pageUserProfile, &currentNodeMgmtHandle.offsetUserProfile);
+    currentNodeMgmtHandle.firstDataParentNode = getStartingDataParentAddress();
+    currentNodeMgmtHandle.firstParentNode = getStartingParentAddress();
+    currentNodeMgmtHandle.currentUserId = userIdNum;
+    currentNodeMgmtHandle.datadbChanged = FALSE;
+    currentNodeMgmtHandle.dbChanged = FALSE;
+    
+    // scan for next free parent and child nodes from the start of the memory
+    if (findFreeNodes(1, &currentNodeMgmtHandle.nextFreeNode, 0, 0) == 0)
+    {
+        currentNodeMgmtHandle.nextFreeNode = NODE_ADDR_NULL;
+    }
+    
+    // populate services LUT
+    populateServicesLut();
 }

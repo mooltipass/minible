@@ -318,14 +318,17 @@ void dbflash_write_data_to_flash(spi_flash_descriptor_t* descriptor_pt, uint16_t
         }
     
         // Error check the parameters offset and dataSize
-        if((offset + dataSize - 1) >= BYTES_PER_PAGE) // Ex: 1M -> BYTES_PER_PAGE = 264 offset + dataSize MUST be less than 264 (0-263 valid)
+        if((offset + dataSize) > BYTES_PER_PAGE) // Ex: 1M -> BYTES_PER_PAGE = 264 offset + dataSize MUST be less than 264 (0-263 valid)
         {
             dbflash_memory_boundary_error_callblack();
         }
     #endif
     
-    // Load the page in the internal buffer
-    dbflash_load_page_to_internal_buffer(descriptor_pt, pageNumber);
+    // If needed, load the page in the internal buffer
+    if ((offset != 0) || (dataSize != BYTES_PER_PAGE))
+    {
+        dbflash_load_page_to_internal_buffer(descriptor_pt, pageNumber);
+    }
     
     // Write the bytes in the buffer, write the buffer to page
     uint8_t opcode[4] = {DBFLASH_OPCODE_MMP_PROG_TBUF};
