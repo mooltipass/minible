@@ -122,6 +122,34 @@ void dbflash_send_data_with_four_bytes_opcode(spi_flash_descriptor_t* descriptor
     PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
 }
 
+/*! \fn     dbflash_send_pattern_data_with_four_bytes_opcode(spi_flash_descriptor_t* descriptor_pt, uint8_t* opcode, uint8_t pattern, uint16_t nb_bytes)
+*   \brief  Send pattern data with a four bytes opcode to flash
+*   \param  descriptor_pt   Pointer to dbflash descriptor
+*   \param  opcode      Pointer to 4 bytes long opcode
+*   \param  pattern     Pattern to write
+*   \param  nb_bytes    How many pattern bytes to write
+*/
+void dbflash_send_pattern_data_with_four_bytes_opcode(spi_flash_descriptor_t* descriptor_pt, uint8_t* opcode, uint8_t pattern, uint16_t nb_bytes)
+{   
+    /* SS low */
+    PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;
+    
+    /* Send opcode */
+    *opcode = sercom_spi_send_single_byte(descriptor_pt->sercom_pt, *opcode);opcode++;
+    *opcode = sercom_spi_send_single_byte(descriptor_pt->sercom_pt, *opcode);opcode++;
+    *opcode = sercom_spi_send_single_byte(descriptor_pt->sercom_pt, *opcode);opcode++;
+    *opcode = sercom_spi_send_single_byte(descriptor_pt->sercom_pt, *opcode);opcode++;
+    
+    /* Send data */
+    for (uint32_t i = 0; i < nb_bytes; i++)
+    {
+        sercom_spi_send_single_byte(descriptor_pt->sercom_pt, pattern);
+    }
+    
+    /* SS high */
+    PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
+}
+
 /*! \fn     db_wait_for_not_busy(spi_flash_descriptor_t* descriptor_pt)
 *   \brief  Wait for the flash to be not busy
 *   \param  descriptor_pt   Pointer to dataflash descriptor
@@ -293,6 +321,47 @@ void dbflash_load_page_to_internal_buffer(spi_flash_descriptor_t* descriptor_pt,
     uint8_t opcode[4] = {DBFLASH_OPCODE_MAINP_TO_BUF};
     dbflash_fill_page_read_write_erase_opcode_from_address(pageNumber, 0, &opcode[1]);
     dbflash_send_command(descriptor_pt, opcode, sizeof(opcode));
+    
+    /* Wait until memory is ready */
+    dbflash_wait_for_not_busy(descriptor_pt);
+}
+
+/*! \fn     dbflash_write_data_pattern_to_flash(spi_flash_descriptor_t* descriptor_pt, uint16_t pageNumber, uint16_t offset, uint16_t dataSize, uint8_t pattern)
+*   \brief  Writes a data pattern to flash memory. The data is written starting at offset of a page.
+*   \param  descriptor_pt   Pointer to dbflash descriptor
+*   \param  pageNumber      The target page number of flash memory
+*   \param  offset          The starting byte offset to begin writing in pageNumber
+*   \param  dataSize        The number of bytes to write from the data buffer (assuming the data buffer is sufficiently large)
+*   \param  pattern         Pattern to write in memory
+*   \note   The buffer will be destroyed.
+*   \note   Function does not allow crossing page boundaries.
+*/
+void dbflash_write_data_pattern_to_flash(spi_flash_descriptor_t* descriptor_pt, uint16_t pageNumber, uint16_t offset, uint16_t dataSize, uint8_t pattern)
+{    
+    #ifdef DBFLASH_MEMORY_BOUNDARY_CHECKS
+        // Error check the parameter pageNumber
+        if(pageNumber >= PAGE_COUNT) // Ex: 1M -> PAGE_COUNT = 512.. valid pageNumber 0-511
+        {
+            dbflash_memory_boundary_error_callblack();
+        }
+    
+        // Error check the parameters offset and dataSize
+        if((offset + dataSize) > BYTES_PER_PAGE) // Ex: 1M -> BYTES_PER_PAGE = 264 offset + dataSize MUST be less than 264 (0-263 valid)
+        {
+            dbflash_memory_boundary_error_callblack();
+        }
+    #endif
+    
+    // If needed, load the page in the internal buffer
+    if ((offset != 0) || (dataSize != BYTES_PER_PAGE))
+    {
+        dbflash_load_page_to_internal_buffer(descriptor_pt, pageNumber);
+    }
+    
+    // Write the bytes in the buffer, write the buffer to page
+    uint8_t opcode[4] = {DBFLASH_OPCODE_MMP_PROG_TBUF};
+    dbflash_fill_page_read_write_erase_opcode_from_address(pageNumber, offset, &opcode[1]); 
+    dbflash_send_pattern_data_with_four_bytes_opcode(descriptor_pt, opcode, pattern, dataSize);
     
     /* Wait until memory is ready */
     dbflash_wait_for_not_busy(descriptor_pt);

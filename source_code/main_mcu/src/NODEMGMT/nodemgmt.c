@@ -153,6 +153,36 @@ RET_TYPE extractDate(uint16_t date, uint8_t *year, uint8_t *month, uint8_t *day)
     return RETURN_OK;
 }
 
+/*! \fn     checkUserPermissionFromFlags(uint16_t flags)
+*   \brief  Check that the user has the right to read/write a node
+*   \param  flags       Flags contents
+*   \return OK / NOK
+*/
+RET_TYPE checkUserPermissionFromFlags(uint16_t flags)
+{
+    // Either the node belongs to us or it is invalid, check that the address is after sector 1 (upper check done at the flashread/write level)
+    if (((nodemgmt_current_handle.currentUserId == userIdFromFlags(flags)) && (correctFlagsBitFromFlags(flags) == NODEMGMT_VBIT_VALID)) || (validBitFromFlags(flags) == NODEMGMT_VBIT_INVALID))
+    {
+        return RETURN_OK;
+    }
+    else
+    {
+        return RETURN_NOK;
+    }
+}
+
+/*! \fn     checkUserPermissionFromFlagsAndLock(uint16_t flags)
+*   \brief  Check that the user has the right to read/write a node, lock if not
+*   \param  flags       Flags contents
+*/
+RET_TYPE checkUserPermissionFromFlagsAndLock(uint16_t flags)
+{
+    if (checkUserPermissionFromFlags(flags) == RETURN_NOK)
+    {
+        while(1);
+    }
+}
+
 /*! \fn     checkUserPermission(uint16_t node_addr)
 *   \brief  Check that the user has the right to read/write a node
 *   \param  node_addr   Node address
@@ -171,11 +201,11 @@ RET_TYPE checkUserPermission(uint16_t node_addr)
     // Fetch the flags
     dbflash_read_data_from_flash(&dbflash_descriptor, page_addr, byte_addr, sizeof(temp_flags), (void*)&temp_flags);
     
-    // Either the node belongs to us or it is invalid, check that the address is after sector 1 (upper check done at the flashread/write level)
-    if ((((nodemgmt_current_handle.currentUserId == userIdFromFlags(temp_flags)) && (correctFlagsBitFromFlags(temp_flags) == NODEMGMT_VBIT_VALID)) || (validBitFromFlags(temp_flags) == NODEMGMT_VBIT_INVALID)) && (page_addr >= PAGE_PER_SECTOR))
+    // Check permission and memory boundaries (high boundary done on the lower level)
+    if ((page_addr >= PAGE_PER_SECTOR) && (checkUserPermissionFromFlags(temp_flags) == RETURN_OK))
     {
-        return RETURN_OK;
-    }
+        return RETURN_OK;        
+    } 
     else
     {
         return RETURN_NOK;
@@ -276,8 +306,7 @@ void formatUserProfileMemory(uint16_t uid)
     
     // Set buffer to all 0's.
     userProfileStartingOffset(uid, &temp_page, &temp_offset);
-    memset((void*)&nodemgmt_current_handle.blob_buffer.temp_user_profile, 0, sizeof(nodemgmt_current_handle.blob_buffer.temp_user_profile));
-    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmtHandle_t), (void*)&nodemgmt_current_handle.blob_buffer.temp_user_profile);
+    dbflash_write_data_pattern_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmtHandle_t), 0x00);
 }
 
 /*! \fn     getCurrentUserID(void)
@@ -304,11 +333,11 @@ uint16_t getFreeNodeAddress(void)
  */
 uint16_t getStartingParentAddress(void)
 {
-    nodemgmt_userprofile_t* dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     uint16_t temp_address;
     
     // Each user profile is within a page, data starting parent node is at the end of the favorites
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (uint16_t)&(dirty_address_finding_trick->main_data.cred_start_address), 2, &temp_address);    
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_start_address), sizeof(temp_address), &temp_address);    
     
     return temp_address;
 }
@@ -319,11 +348,11 @@ uint16_t getStartingParentAddress(void)
  */
 uint16_t getStartingDataParentAddress(void)
 {
-    nodemgmt_userprofile_t* dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     uint16_t temp_address;
     
     // Each user profile is within a page, data starting parent node is at the end of the favorites
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (uint16_t)&(dirty_address_finding_trick->main_data.data_start_address), 2, &temp_address);    
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_start_address), sizeof(temp_address), &temp_address);    
     
     return temp_address;
 }
@@ -356,7 +385,7 @@ uint8_t findFreeNodes(uint8_t nbNodes, uint16_t* nodeArray, uint16_t startPage, 
         for(nodeItr = startNode; nodeItr < BYTES_PER_PAGE/BASE_NODE_SIZE; nodeItr++)
         {
             // read node flags (2 bytes - fixed size)
-            dbflash_read_data_from_flash(&dbflash_descriptor, pageItr, BASE_NODE_SIZE*nodeItr, 2, &nodeFlags);
+            dbflash_read_data_from_flash(&dbflash_descriptor, pageItr, BASE_NODE_SIZE*nodeItr, sizeof(nodeFlags), &nodeFlags);
             
             // If this slot is OK
             if(validBitFromFlags(nodeFlags) == NODEMGMT_VBIT_INVALID)
@@ -398,10 +427,97 @@ void initNodeManagementHandle(uint16_t userIdNum)
     nodemgmt_current_handle.dbChanged = FALSE;
     
     // scan for next free parent and child nodes from the start of the memory
-    if (findFreeNodes(1, &nodemgmt_current_handle.nextFreeNode, 0, 0) == 0)
+    if (findFreeNodes(1, &nodemgmt_current_handle.nextFreeNode, NODE_ADDR_NULL, NODE_ADDR_NULL) == 0)
     {
         nodemgmt_current_handle.nextFreeNode = NODE_ADDR_NULL;
     }
     
     // To think about: the old service LUT from the mini isn't needed as we support unicode now
+}
+
+/*! \fn     scanNodeUsage(void)
+*   \brief  Scan memory to find empty slots
+*/
+void scanNodeUsage(void)
+{
+    // Find one free node. If we don't find it, set the next to the null addr, we start looking from the just taken node
+    if (findFreeNodes(1, &nodemgmt_current_handle.nextFreeNode, pageNumberFromAddress(nodemgmt_current_handle.nextFreeNode), nodeNumberFromAddress(nodemgmt_current_handle.nextFreeNode)) == 0)
+    {
+        nodemgmt_current_handle.nextFreeNode = NODE_ADDR_NULL;
+    }
+}
+
+/*! \fn     deleteCurrentUserFromFlash(void)
+*   \brief  Delete user data from flash
+*/
+void deleteCurrentUserFromFlash(void)
+{
+    uint16_t next_parent_addr = nodemgmt_current_handle.firstParentNode;
+    uint16_t next_child_addr;
+    uint16_t temp_buffer[4];
+    uint16_t temp_address;
+    parent_data_node_t* parent_node_pt = (parent_data_node_t*)temp_buffer;
+    child_cred_node_t* child_node_pt = (child_cred_node_t*)temp_buffer;
+    
+    /* Boundary checks for the buffer we'll use to store start of node data */
+    parent_data_node_t* const parent_node_san_checks = 0;
+    _Static_assert(sizeof(temp_buffer) >= ((size_t)&(parent_node_san_checks->nextChildAddress)) + sizeof(parent_node_san_checks->nextChildAddress), "Buffer not long enough to store first bytes");
+    child_cred_node_t* const child_node_san_checks = 0;
+    _Static_assert(sizeof(temp_buffer) >= ((size_t)&(child_node_san_checks->nextChildAddress)) + sizeof(child_node_san_checks->nextChildAddress), "Buffer not long enough to store first bytes");
+        
+    // Delete user profile memory
+    formatUserProfileMemory(nodemgmt_current_handle.currentUserId);
+    
+    // Then browse through all the credentials to delete them
+    for (uint16_t i = 0; i < 2; i++)
+    {
+        while (next_parent_addr != NODE_ADDR_NULL)
+        {
+            // Read current parent node
+            dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(next_parent_addr), BASE_NODE_SIZE * nodeNumberFromAddress(next_parent_addr), sizeof(temp_buffer), (void*)parent_node_pt);
+            checkUserPermissionFromFlagsAndLock(parent_node_pt->flags);
+            
+            // Read his first child
+            next_child_addr = parent_node_pt->nextChildAddress;
+            
+            // Browse through all children
+            while (next_child_addr != NODE_ADDR_NULL)
+            {
+                // Read child node
+                dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(next_child_addr), BASE_NODE_SIZE * nodeNumberFromAddress(next_child_addr), sizeof(temp_buffer), (void*)child_node_pt);
+                checkUserPermissionFromFlagsAndLock(child_node_pt->flags);
+                
+                // Store the next child address in temp
+                if (i == 0)
+                {
+                    // First loop is cnode
+                    temp_address = child_node_pt->nextChildAddress;
+                }
+                else
+                {
+                    // Second loop is dnode
+                    child_data_node_t* temp_dnode_ptr = (child_data_node_t*)child_node_pt;
+                    temp_address = temp_dnode_ptr->nextDataAddress;
+                }
+                
+                // Delete child data block
+                dbflash_write_data_pattern_to_flash(&dbflash_descriptor, pageNumberFromAddress(next_child_addr), BASE_NODE_SIZE * nodeNumberFromAddress(next_child_addr), BASE_NODE_SIZE, 0xFF);
+                dbflash_write_data_pattern_to_flash(&dbflash_descriptor, pageNumberFromAddress(getIncrementedAddress(next_child_addr)), BASE_NODE_SIZE * nodeNumberFromAddress(getIncrementedAddress(next_child_addr)), BASE_NODE_SIZE, 0xFF);
+                
+                // Set correct next address
+                next_child_addr = temp_address;
+            }
+            
+            // Store the next parent address in temp
+            temp_address = parent_node_pt->nextParentAddress;
+            
+            // Delete parent data block
+            dbflash_write_data_pattern_to_flash(&dbflash_descriptor, pageNumberFromAddress(next_parent_addr), BASE_NODE_SIZE * nodeNumberFromAddress(next_parent_addr), BASE_NODE_SIZE, 0xFF);
+            
+            // Set correct next address
+            next_parent_addr = temp_address;
+        }
+        // First loop done, remove data nodes
+        next_parent_addr = nodemgmt_current_handle.firstDataParentNode;
+    }
 }
