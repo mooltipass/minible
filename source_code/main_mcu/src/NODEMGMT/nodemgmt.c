@@ -75,6 +75,20 @@ uint16_t getIncrementedAddress(uint16_t addr)
     #endif
 }
 
+/*! \fn     constructAddress(uint16_t pageNumber, uint8_t nodeNumber)
+*   \brief  Constructs an address for node storage in memory consisting of a page number and node number
+*   \param  pageNumber      The page number to be encoded
+*   \param  nodeNumber      The node number to be encoded
+*   \return address         The constructed / encoded address
+*   \note   No error checking is performed
+*   \note   See design notes for address format
+*   \note   Max Page Number and Node Number vary per flash size
+ */
+static inline uint16_t constructAddress(uint16_t pageNumber, uint8_t nodeNumber)
+{
+    return ((pageNumber << NODEMGMT_ADDR_PAGE_BITSHIFT) | ((uint16_t)nodeNumber & NODEMGMT_ADDR_NODE_MASK));
+}
+
 /*! \fn     nodeTypeFromFlags(uint16_t flags)
 *   \brief  Gets nodeType from flags  
 *   \param  flags           The flags field of a node
@@ -284,6 +298,85 @@ uint16_t getFreeNodeAddress(void)
     return nodemgmt_current_handle.nextFreeNode;
 }
 
+/*! \fn     getStartingParentAddress(void)
+ *  \brief  Gets the users starting parent node from the user profile memory portion of flash
+ *  \return The address
+ */
+uint16_t getStartingParentAddress(void)
+{
+    nodemgmt_userprofile_t* dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    uint16_t temp_address;
+    
+    // Each user profile is within a page, data starting parent node is at the end of the favorites
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (uint16_t)&(dirty_address_finding_trick->main_data.cred_start_address), 2, &temp_address);    
+    
+    return temp_address;
+}
+
+/*! \fn     getStartingDataParentAddress(void)
+ *  \brief  Gets the users starting data parent node from the user profile memory portion of flash
+ *  \return The address
+ */
+uint16_t getStartingDataParentAddress(void)
+{
+    nodemgmt_userprofile_t* dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    uint16_t temp_address;
+    
+    // Each user profile is within a page, data starting parent node is at the end of the favorites
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (uint16_t)&(dirty_address_finding_trick->main_data.data_start_address), 2, &temp_address);    
+    
+    return temp_address;
+}
+
+/*! \fn     findFreeNodes(uint8_t nbNodes, uint16_t* array)
+*   \brief  Find Free Nodes inside our external memory
+*   \param  nbNodes     Number of nodes we want to find
+*   \param  nodeArray   An array where to store the addresses
+*   \param  startPage   Page where to start the scanning
+*   \param  startNode   Scan start node address inside the start page
+*   \return the number of nodes found
+*/
+uint8_t findFreeNodes(uint8_t nbNodes, uint16_t* nodeArray, uint16_t startPage, uint8_t startNode)
+{
+    uint8_t nbNodesFound = 0;
+    uint16_t nodeFlags;
+    uint16_t pageItr;
+    uint8_t nodeItr;
+    
+    // Check the start page
+    if (startPage < PAGE_PER_SECTOR)
+    {
+        startPage = PAGE_PER_SECTOR;
+    }
+
+    // for each page
+    for(pageItr = startPage; pageItr < PAGE_COUNT; pageItr++)
+    {
+        // for each possible parent node in the page (changes per flash chip)
+        for(nodeItr = startNode; nodeItr < BYTES_PER_PAGE/BASE_NODE_SIZE; nodeItr++)
+        {
+            // read node flags (2 bytes - fixed size)
+            dbflash_read_data_from_flash(&dbflash_descriptor, pageItr, BASE_NODE_SIZE*nodeItr, 2, &nodeFlags);
+            
+            // If this slot is OK
+            if(validBitFromFlags(nodeFlags) == NODEMGMT_VBIT_INVALID)
+            {
+                if (nbNodesFound < nbNodes)
+                {
+                    nodeArray[nbNodesFound++] = constructAddress(pageItr, nodeItr);
+                }
+                else
+                {
+                    return nbNodesFound;
+                }
+            }
+        }
+        startNode = 0;
+    }    
+    
+    return nbNodesFound;
+}
+
 /*! \fn     initNodeManagementHandle(uint16_t userIdNum)
  *  \brief  Initializes the Node Management Handle, scans memory for the next free node
  *  \param  userIdNum   The user id to initialize the handle for
@@ -297,19 +390,18 @@ void initNodeManagementHandle(uint16_t userIdNum)
     }
             
     // fill current user id, first parent node address, user profile page & offset 
-    userProfileStartingOffset(userIdNum, &currentNodeMgmtHandle.pageUserProfile, &currentNodeMgmtHandle.offsetUserProfile);
-    currentNodeMgmtHandle.firstDataParentNode = getStartingDataParentAddress();
-    currentNodeMgmtHandle.firstParentNode = getStartingParentAddress();
-    currentNodeMgmtHandle.currentUserId = userIdNum;
-    currentNodeMgmtHandle.datadbChanged = FALSE;
-    currentNodeMgmtHandle.dbChanged = FALSE;
+    userProfileStartingOffset(userIdNum, &nodemgmt_current_handle.pageUserProfile, &nodemgmt_current_handle.offsetUserProfile);
+    nodemgmt_current_handle.firstDataParentNode = getStartingDataParentAddress();
+    nodemgmt_current_handle.firstParentNode = getStartingParentAddress();
+    nodemgmt_current_handle.currentUserId = userIdNum;
+    nodemgmt_current_handle.datadbChanged = FALSE;
+    nodemgmt_current_handle.dbChanged = FALSE;
     
     // scan for next free parent and child nodes from the start of the memory
-    if (findFreeNodes(1, &currentNodeMgmtHandle.nextFreeNode, 0, 0) == 0)
+    if (findFreeNodes(1, &nodemgmt_current_handle.nextFreeNode, 0, 0) == 0)
     {
-        currentNodeMgmtHandle.nextFreeNode = NODE_ADDR_NULL;
+        nodemgmt_current_handle.nextFreeNode = NODE_ADDR_NULL;
     }
     
-    // populate services LUT
-    populateServicesLut();
+    // To think about: the old service LUT from the mini isn't needed as we support unicode now
 }

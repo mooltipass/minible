@@ -181,6 +181,8 @@ typedef struct
     BOOL datadbChanged;                     // Boolean to indicate if the user data DB has changed since user login
     BOOL dbChanged;                         // Boolean to indicate if the user DB has changed since user login
     uint16_t currentUserId;                 // The users ID
+    uint16_t pageUserProfile;               // The page of the user profile
+    uint16_t offsetUserProfile;             // The offset of the user profile
     uint16_t firstParentNode;               // The address of the users first parent node (read from flash. eg cache)
     uint16_t firstDataParentNode;           // The address of the users first data parent node (read from flash. eg cache)
     uint16_t nextFreeNode;                  // The address of the next free node
@@ -188,6 +190,7 @@ typedef struct
 } nodemgmtHandle_t;
 
 /* Prototypes */
+void initNodeManagementHandle(uint16_t userIdNum);
 RET_TYPE checkUserPermission(uint16_t node_addr);
 
 #endif /* NODEMGMT_H_ */

@@ -282,6 +282,7 @@ int main(void)
     
     /* Uncomment below for debug menu */
     //debug_debug_menu();
+    initNodeManagementHandle(32);
     
     /* Set startup screen: TODO change back to locked */
     gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE);
