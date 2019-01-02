@@ -552,6 +552,160 @@ void deleteCurrentUserFromFlash(void)
     }
 }
 
+/*! \fn     createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress)
+ *  \brief  Writes a generic node to memory (next free via handle) (in alphabetical order)
+ *  \param  g                       The node to write to memory (nextFreeParentNode)
+ *  \param  node_type               The node type (see enum)
+ *  \param  firstNodeAddress        Address of the first node of its kind
+ *  \param  newFirstNodeAddress     If the firstNodeAddress changed, this var will store the new value
+ *  \return success status
+ *  \note   Handles necessary doubly linked list management
+ *  \note   Not called for child data node
+ */
+RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress)
+{
+    parent_cred_node_t* const parent_cred_node_san_checks = 0;
+    parent_data_node_t* const parent_data_node_san_checks = 0;
+    child_cred_node_t* const child_cred_node_san_checks = 0;
+    _Static_assert(&(parent_cred_node_san_checks->prevParentAddress) == &(parent_data_node_san_checks->prevParentAddress), "Next / Prev fields do not match across parent & child nodes");
+    _Static_assert(&(parent_cred_node_san_checks->prevParentAddress) == &(child_cred_node_san_checks->prevChildAddress), "Next / Prev fields do not match across parent & child nodes");
+    _Static_assert(&(parent_cred_node_san_checks->nextParentAddress) == &(parent_data_node_san_checks->nextParentAddress), "Next / Prev fields do not match across parent & child nodes");
+    _Static_assert(&(parent_cred_node_san_checks->nextParentAddress) == &(child_cred_node_san_checks->nextChildAddress), "Next / Prev fields do not match across parent & child nodes");
+    
+    //gNode* memNodePtr = &(currentNodeMgmtHandle.tempgNode);
+    uint16_t addr = NODE_ADDR_NULL;
+    int8_t res = 0;
+    
+    // Set newFirstNodeAddress to firstNodeAddress by default
+    *newFirstNodeAddress = firstNodeAddress;
+    
+    // Check space in flash
+    if (nodemgmt_current_handle.nextFreeNode == NODE_ADDR_NULL)
+    {
+        return RETURN_NOK;
+    }
+    
+    // Set flags to 0, added bonus: set valid flag
+    g->cred_parent.flags = 0;
+    
+    // Set node type    
+    g->cred_parent.flags |= (node_type << NODEMGMT_TYPE_FLAG_BITSHIFT);
+    
+    // Set correct user id to the node
+    g->cred_parent.flags |= (nodemgmt_current_handle.currentUserId << NODEMGMT_USERID_BITSHIFT);
+    
+    // Child nodes: set second flags
+    if ((node_type == NODE_TYPE_CHILD) || (node_type == NODE_TYPE_DATA))
+    {
+        g->data_child.fakeFlags = g->data_child.flags | (NODEMGMT_VBIT_INVALID << NODEMGMT_CORRECT_FLAGS_BIT_BITSHIFT);
+    }
+
+    // clear next/prev address
+    g->cred_parent.prevParentAddress = NODE_ADDR_NULL;
+    g->cred_parent.nextParentAddress = NODE_ADDR_NULL;
+    
+    // if user has no nodes. this node is the first node
+    if(firstNodeAddress == NODE_ADDR_NULL)
+    {
+        // write parent node to flash (destructive)
+        writeNodeDataBlockToFlash(currentNodeMgmtHandle.nextFreeNode, g);
+        
+        // read back from flash
+        readNodeDataBlockFromFlash(currentNodeMgmtHandle.nextFreeNode, g);
+        
+        // set new first node address
+        *newFirstNodeAddress = currentNodeMgmtHandle.nextFreeNode;
+    }
+    else
+    {        
+        // set first node address
+        addr = firstNodeAddress;
+        while(addr != NODE_ADDR_NULL)
+        {
+            // read node
+            readNode(memNodePtr, addr);
+            
+            // compare nodes (alphabetically)
+            res = strncmp((char*)g+comparisonFieldOffset, (char*)memNodePtr+comparisonFieldOffset, comparisonFieldLength);
+            if(res > 0)
+            {
+                // to add parent node comes after current node in memory.. go to next node
+                if(memNodePtr->nextAddress == NODE_ADDR_NULL)
+                {
+                    // end of linked list. Set to write node prev and next addr's
+                    g->prevAddress = addr; // current memNode Addr
+                    
+                    // write new node to flash
+                    writeNodeDataBlockToFlash(currentNodeMgmtHandle.nextFreeNode, g);
+                    
+                    // set previous last node to point to new node. write to flash
+                    memNodePtr->nextAddress = currentNodeMgmtHandle.nextFreeNode;
+                    writeNodeDataBlockToFlash(addr, memNodePtr);
+                    
+                    // read node from flash.. writes are destructive.
+                    readNode(g, currentNodeMgmtHandle.nextFreeNode);
+                                        
+                    // set loop exit case
+                    addr = NODE_ADDR_NULL; 
+                }
+                else
+                {
+                    // loop and read next node
+                    addr = memNodePtr->nextAddress;
+                }
+            }
+            else if(res < 0)
+            {
+                // to add parent node comes before current node in memory. Previous node is already not a memcmp match .. write node
+                
+                // set node to write next parent to current node in mem, set prev parent to current node in mems prev parent
+                g->nextAddress = addr;
+                g->prevAddress = memNodePtr->prevAddress;
+                
+                // write new node to flash
+                writeNodeDataBlockToFlash(currentNodeMgmtHandle.nextFreeNode, g);
+                
+                // read back from flash
+                readNodeDataBlockFromFlash(currentNodeMgmtHandle.nextFreeNode, g);
+                
+                // update current node in mem. set prev parent to address node to write was written to.
+                memNodePtr->prevAddress = currentNodeMgmtHandle.nextFreeNode;
+                writeNodeDataBlockToFlash(addr, memNodePtr);
+                
+                if(g->prevAddress != NODE_ADDR_NULL)
+                {
+                    // read p->prev node
+                    readNode(memNodePtr, g->prevAddress);
+                
+                    // update prev node to point next parent to addr of node to write node
+                    memNodePtr->nextAddress = currentNodeMgmtHandle.nextFreeNode;
+                    writeNodeDataBlockToFlash(g->prevAddress, memNodePtr);
+                }                
+                
+                if(addr == firstNodeAddress)
+                {
+                    // new node comes before current address and current address in first node.
+                    // new node should be first node
+                    *newFirstNodeAddress = currentNodeMgmtHandle.nextFreeNode;
+                }
+                
+                // set exit case
+                addr = NODE_ADDR_NULL;
+            }
+            else
+            {
+                // services match
+                // return nok. Same parent node
+                return RETURN_NOK;
+            } // end cmp results
+        } // end while
+    } // end if first parent
+    
+    scanNodeUsage();
+    
+    return RETURN_OK;
+}
+
 /*! \fn     createParentNode(parent_node_t* p, service_type_te type)
  *  \brief  Writes a parent node to memory (next free via handle) (in alphabetical order)
  *  \param  p               The parent node to write to memory (nextFreeParentNode)
@@ -563,9 +717,6 @@ RET_TYPE createParentNode(parent_node_t* p, service_type_te type)
 {
     uint16_t temp_address, first_parent_addr;
     RET_TYPE temprettype;
-    
-    // Set flags to 0, added bonus: set valid flag
-    p->cred_parent.flags = 0;
     
     // Set the first parent address depending on the type
     if (type == SERVICE_CRED_TYPE)
@@ -580,17 +731,15 @@ RET_TYPE createParentNode(parent_node_t* p, service_type_te type)
     // This is particular to parent nodes...
     p->cred_parent.nextChildAddress = NODE_ADDR_NULL;
     
+    // Call createGenericNode to add a node
     if (type == SERVICE_CRED_TYPE)
     {
-        p->cred_parent.flags |= (NODE_TYPE_PARENT << NODEMGMT_TYPE_FLAG_BITSHIFT);
+        temprettype = createGenericNode((generic_node_t*)p, NODE_TYPE_PARENT, first_parent_addr, &temp_address);
     }
     else
     {
-        p->cred_parent.flags |= (NODE_TYPE_PARENT_DATA << NODEMGMT_TYPE_FLAG_BITSHIFT);
+        temprettype = createGenericNode((generic_node_t*)p, NODE_TYPE_PARENT_DATA, first_parent_addr, &temp_address);
     }
-    
-    // Call createGenericNode to add a node
-    //temprettype = createGenericNode((gNode*)p, first_parent_addr, &temp_address, PNODE_COMPARISON_FIELD_OFFSET, NODE_PARENT_SIZE_OF_SERVICE);
     
     // If the return is ok & we changed the first node address
     if ((temprettype == RETURN_OK) && (first_parent_addr != temp_address))
