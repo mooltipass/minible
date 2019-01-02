@@ -12,6 +12,7 @@
 
 /* Typedefs */
 typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DATA = 2, NODE_TYPE_DATA = 3} node_type_te;
+typedef enum    {SERVICE_CRED_TYPE, SERVICE_DATA_TYPE} service_type_te;
 
 /* Defines */
 #define NODE_ADDR_NULL                              0x0000
@@ -19,6 +20,7 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define BASE_NODE_SIZE                              264
 #define NODEMGMT_USER_PROFILE_SIZE                  264
 #define NODEMGMT_TYPE_FLAG_BITSHIFT                 14
+#define NODEMGMT_TYPE_FLAG_BITMASK                  0xC000
 #define NODEMGMT_TYPE_FLAG_BITMASK_FINAL            0x0003
 #define NODEMGMT_VALID_BIT_BITSHIFT                 13
 #define NODEMGMT_VALID_BIT_BITMASK                  0x2000
@@ -132,6 +134,18 @@ typedef struct
         uint8_t node_as_bytes[2*BASE_NODE_SIZE];
     };
 } child_node_t;
+
+// Generic node typedef
+typedef struct
+{
+    union
+    {
+        parent_cred_node_t cred_parent;
+        parent_data_node_t data_parent;
+        child_cred_node_t cred_child;
+        child_data_node_t data_child;
+    };
+} generic_node_t;
 
 // Favorite address
 typedef struct

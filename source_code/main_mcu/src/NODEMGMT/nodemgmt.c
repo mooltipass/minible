@@ -175,7 +175,7 @@ RET_TYPE checkUserPermissionFromFlags(uint16_t flags)
 *   \brief  Check that the user has the right to read/write a node, lock if not
 *   \param  flags       Flags contents
 */
-RET_TYPE checkUserPermissionFromFlagsAndLock(uint16_t flags)
+void checkUserPermissionFromFlagsAndLock(uint16_t flags)
 {
     if (checkUserPermissionFromFlags(flags) == RETURN_NOK)
     {
@@ -357,6 +357,36 @@ uint16_t getStartingDataParentAddress(void)
     return temp_address;
 }
 
+/*! \fn     setStartingParentAddress(uint16_t parentAddress)
+ *  \brief  Sets the users starting parent node both in the handle and user profile memory portion of flash
+ *  \param  parentAddress   The constructed address of the users starting parent node
+ */
+void setStartingParentAddress(uint16_t parentAddress)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    
+    // update handle
+    nodemgmt_current_handle.firstParentNode = parentAddress;
+    
+    // Write parent address in the user profile page
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_start_address), sizeof(parentAddress), &parentAddress);
+}
+
+/*! \fn     setDataStartingParentAddress(uint16_t dataParentAddress)
+ *  \brief  Sets the users starting data parent node both in the handle and user profile memory portion of flash
+ *  \param  dataParentAddress   The constructed address of the users starting parent node
+ */
+void setDataStartingParentAddress(uint16_t dataParentAddress)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    
+    // update handle
+    nodemgmt_current_handle.firstDataParentNode = dataParentAddress;
+    
+    // Write data parent address in the user profile page
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_start_address), sizeof(dataParentAddress), &dataParentAddress);
+}
+
 /*! \fn     findFreeNodes(uint8_t nbNodes, uint16_t* array)
 *   \brief  Find Free Nodes inside our external memory
 *   \param  nbNodes     Number of nodes we want to find
@@ -520,4 +550,60 @@ void deleteCurrentUserFromFlash(void)
         // First loop done, remove data nodes
         next_parent_addr = nodemgmt_current_handle.firstDataParentNode;
     }
+}
+
+/*! \fn     createParentNode(parent_node_t* p, service_type_te type)
+ *  \brief  Writes a parent node to memory (next free via handle) (in alphabetical order)
+ *  \param  p               The parent node to write to memory (nextFreeParentNode)
+ *  \param  type            Type of context (data or credential)
+ *  \return success status
+ *  \note   Handles necessary doubly linked list management
+ */
+RET_TYPE createParentNode(parent_node_t* p, service_type_te type)
+{
+    uint16_t temp_address, first_parent_addr;
+    RET_TYPE temprettype;
+    
+    // Set flags to 0, added bonus: set valid flag
+    p->cred_parent.flags = 0;
+    
+    // Set the first parent address depending on the type
+    if (type == SERVICE_CRED_TYPE)
+    {
+        first_parent_addr = nodemgmt_current_handle.firstParentNode;
+    } 
+    else
+    {
+        first_parent_addr = nodemgmt_current_handle.firstDataParentNode;
+    }
+    
+    // This is particular to parent nodes...
+    p->cred_parent.nextChildAddress = NODE_ADDR_NULL;
+    
+    if (type == SERVICE_CRED_TYPE)
+    {
+        p->cred_parent.flags |= (NODE_TYPE_PARENT << NODEMGMT_TYPE_FLAG_BITSHIFT);
+    }
+    else
+    {
+        p->cred_parent.flags |= (NODE_TYPE_PARENT_DATA << NODEMGMT_TYPE_FLAG_BITSHIFT);
+    }
+    
+    // Call createGenericNode to add a node
+    //temprettype = createGenericNode((gNode*)p, first_parent_addr, &temp_address, PNODE_COMPARISON_FIELD_OFFSET, NODE_PARENT_SIZE_OF_SERVICE);
+    
+    // If the return is ok & we changed the first node address
+    if ((temprettype == RETURN_OK) && (first_parent_addr != temp_address))
+    {
+        if (type == SERVICE_CRED_TYPE)
+        {
+            setStartingParentAddress(temp_address);
+        }
+        else
+        {
+            setDataStartingParentAddress(temp_address);
+        }
+    }
+    
+    return temprettype;
 }
