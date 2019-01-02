@@ -17,6 +17,7 @@
 
 /* Prototypes */
 void dbflash_write_data_pattern_to_flash(spi_flash_descriptor_t* descriptor_pt, uint16_t pageNumber, uint16_t offset, uint16_t dataSize, uint8_t pattern);
+void dbflash_send_data_with_four_bytes_opcode_no_readback(spi_flash_descriptor_t* descriptor_pt, uint8_t* opcode, uint8_t* buffer, uint16_t buffer_size);
 void dbflash_send_pattern_data_with_four_bytes_opcode(spi_flash_descriptor_t* descriptor_pt, uint8_t* opcode, uint8_t pattern, uint16_t nb_bytes);
 void dbflash_read_data_from_flash(spi_flash_descriptor_t* descriptor_pt, uint16_t pageNumber, uint16_t offset, uint16_t dataSize, void *data);
 void dbflash_send_data_with_four_bytes_opcode(spi_flash_descriptor_t* descriptor_pt, uint8_t* opcode, uint8_t* buffer, uint16_t buffer_size);

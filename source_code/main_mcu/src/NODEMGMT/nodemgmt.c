@@ -8,6 +8,7 @@
 #include "comms_hid_msgs_debug.h"
 #include "nodemgmt.h"
 #include "dbflash.h"
+#include "utils.h"
 #include "main.h"
 
 // Current node management handle
@@ -318,13 +319,22 @@ uint16_t getCurrentUserID(void)
     return nodemgmt_current_handle.currentUserId;
 }
 
-/*! \fn     getFreeNodeAddress(void)
-*   \brief  Get next free node address
+/*! \fn     getFreeParentNodeAddress(void)
+*   \brief  Get next free parent node address
 *   \return The address
 */
-uint16_t getFreeNodeAddress(void)
+uint16_t getFreeParentNodeAddress(void)
 {
-    return nodemgmt_current_handle.nextFreeNode;
+    return nodemgmt_current_handle.nextParentFreeNode;
+}
+
+/*! \fn     getFreeChildNodeAddress(void)
+*   \brief  Get next free child node address
+*   \return The address
+*/
+uint16_t getFreeChildNodeAddress(void)
+{
+    return nodemgmt_current_handle.nextChildFreeNode;
 }
 
 /*! \fn     getStartingParentAddress(void)
@@ -387,20 +397,24 @@ void setDataStartingParentAddress(uint16_t dataParentAddress)
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_start_address), sizeof(dataParentAddress), &dataParentAddress);
 }
 
-/*! \fn     findFreeNodes(uint8_t nbNodes, uint16_t* array)
+/*! \fn     findFreeNodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode)
 *   \brief  Find Free Nodes inside our external memory
-*   \param  nbNodes     Number of nodes we want to find
-*   \param  nodeArray   An array where to store the addresses
-*   \param  startPage   Page where to start the scanning
-*   \param  startNode   Scan start node address inside the start page
+*   \param  nbParentNodes   Number of parent nodes we want to find
+*   \param  parentNodeArray An array where to store the addresses
+*   \param  nbChildtNodes   Number of child nodes we want to find
+*   \param  childNodeArray  An array where to store the addresses
+*   \param  startPage       Page where to start the scanning
+*   \param  startNode       Scan start node address inside the start page
 *   \return the number of nodes found
 */
-uint8_t findFreeNodes(uint8_t nbNodes, uint16_t* nodeArray, uint16_t startPage, uint8_t startNode)
+uint8_t findFreeNodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode)
 {
-    uint8_t nbNodesFound = 0;
+    uint16_t prevFreeAddressFound = NODE_ADDR_NULL;
+    uint16_t nbParentNodesFound = 0;
+    uint16_t nbChildNodesFound = 0;
     uint16_t nodeFlags;
     uint16_t pageItr;
-    uint8_t nodeItr;
+    uint16_t nodeItr;
     
     // Check the start page
     if (startPage < PAGE_PER_SECTOR)
@@ -420,20 +434,54 @@ uint8_t findFreeNodes(uint8_t nbNodes, uint16_t* nodeArray, uint16_t startPage, 
             // If this slot is OK
             if(validBitFromFlags(nodeFlags) == NODEMGMT_VBIT_INVALID)
             {
-                if (nbNodesFound < nbNodes)
+                // fill parent nodes first (only one block)
+                if (nbParentNodesFound != nbParentNodes)
                 {
-                    nodeArray[nbNodesFound++] = constructAddress(pageItr, nodeItr);
-                }
+                    parentNodeArray[nbParentNodesFound++] = constructAddress(pageItr, nodeItr);
+                } 
                 else
                 {
-                    return nbNodesFound;
+                    if (prevFreeAddressFound == NODE_ADDR_NULL)
+                    {
+                        // Store address if the next free block found is available
+                        prevFreeAddressFound = constructAddress(pageItr, nodeItr);
+                    } 
+                    else
+                    {
+                        childNodeArray[nbChildNodesFound++] = prevFreeAddressFound;
+                        prevFreeAddressFound = NODE_ADDR_NULL;
+                        
+                        // check for end
+                        if (nbChildNodesFound == nbChildtNodes)
+                        {
+                            return nbChildNodesFound+nbParentNodesFound;
+                        }
+                    }
                 }
+            }
+            else
+            {
+                // block found isn't available, reset flag
+                prevFreeAddressFound = NODE_ADDR_NULL;
             }
         }
         startNode = 0;
     }    
     
-    return nbNodesFound;
+    return nbChildNodesFound+nbParentNodesFound;
+}
+
+/*! \fn     scanNodeUsage(void)
+*   \brief  Scan memory to find empty slots
+*/
+void scanNodeUsage(void)
+{
+    // Find one free node. If we don't find it, set the next to the null addr, we start looking from the just taken node
+    if (findFreeNodes(1, &nodemgmt_current_handle.nextParentFreeNode, 1, &nodemgmt_current_handle.nextChildFreeNode, pageNumberFromAddress(nodemgmt_current_handle.nextParentFreeNode), nodeNumberFromAddress(nodemgmt_current_handle.nextParentFreeNode)) != 2)
+    {
+        nodemgmt_current_handle.nextParentFreeNode = NODE_ADDR_NULL;
+        nodemgmt_current_handle.nextChildFreeNode = NODE_ADDR_NULL;
+    }
 }
 
 /*! \fn     initNodeManagementHandle(uint16_t userIdNum)
@@ -457,24 +505,9 @@ void initNodeManagementHandle(uint16_t userIdNum)
     nodemgmt_current_handle.dbChanged = FALSE;
     
     // scan for next free parent and child nodes from the start of the memory
-    if (findFreeNodes(1, &nodemgmt_current_handle.nextFreeNode, NODE_ADDR_NULL, NODE_ADDR_NULL) == 0)
-    {
-        nodemgmt_current_handle.nextFreeNode = NODE_ADDR_NULL;
-    }
+    scanNodeUsage();
     
     // To think about: the old service LUT from the mini isn't needed as we support unicode now
-}
-
-/*! \fn     scanNodeUsage(void)
-*   \brief  Scan memory to find empty slots
-*/
-void scanNodeUsage(void)
-{
-    // Find one free node. If we don't find it, set the next to the null addr, we start looking from the just taken node
-    if (findFreeNodes(1, &nodemgmt_current_handle.nextFreeNode, pageNumberFromAddress(nodemgmt_current_handle.nextFreeNode), nodeNumberFromAddress(nodemgmt_current_handle.nextFreeNode)) == 0)
-    {
-        nodemgmt_current_handle.nextFreeNode = NODE_ADDR_NULL;
-    }
 }
 
 /*! \fn     deleteCurrentUserFromFlash(void)
@@ -564,6 +597,7 @@ void deleteCurrentUserFromFlash(void)
  */
 RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress)
 {
+    /* Sanity checks */
     parent_cred_node_t* const parent_cred_node_san_checks = 0;
     parent_data_node_t* const parent_data_node_san_checks = 0;
     child_cred_node_t* const child_cred_node_san_checks = 0;
@@ -571,50 +605,75 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
     _Static_assert(&(parent_cred_node_san_checks->prevParentAddress) == &(child_cred_node_san_checks->prevChildAddress), "Next / Prev fields do not match across parent & child nodes");
     _Static_assert(&(parent_cred_node_san_checks->nextParentAddress) == &(parent_data_node_san_checks->nextParentAddress), "Next / Prev fields do not match across parent & child nodes");
     _Static_assert(&(parent_cred_node_san_checks->nextParentAddress) == &(child_cred_node_san_checks->nextChildAddress), "Next / Prev fields do not match across parent & child nodes");
-    
-    //gNode* memNodePtr = &(currentNodeMgmtHandle.tempgNode);
+        
+    // Local vars
+    node_common_first_three_fields_t* temp_first_three_fields_pt = (node_common_first_three_fields_t*)&nodemgmt_current_handle.temp_parent_node;
+    child_cred_node_t* temp_half_child_node_pt = (child_cred_node_t*)&nodemgmt_current_handle.temp_parent_node;
+    parent_cred_node_t* temp_parent_node_pt = (parent_cred_node_t*)&nodemgmt_current_handle.temp_parent_node;
+    node_common_first_three_fields_t* g_first_three_fields_pt = (node_common_first_three_fields_t*)g;
+    uint16_t freeNodeAddress = NODE_ADDR_NULL;
     uint16_t addr = NODE_ADDR_NULL;
-    int8_t res = 0;
+    int16_t res = 0;
+    
+    // We handle everything except data nodes...
+    if (node_type == NODE_TYPE_DATA)
+    {
+        while(1);
+    }
     
     // Set newFirstNodeAddress to firstNodeAddress by default
     *newFirstNodeAddress = firstNodeAddress;
     
+    // Select correct free address based on node type
+    if (node_type == NODE_TYPE_CHILD)
+    {
+        freeNodeAddress = nodemgmt_current_handle.nextChildFreeNode;
+    }
+    else
+    {
+        freeNodeAddress = nodemgmt_current_handle.nextParentFreeNode;
+    }
+    
     // Check space in flash
-    if (nodemgmt_current_handle.nextFreeNode == NODE_ADDR_NULL)
+    if (freeNodeAddress == NODE_ADDR_NULL)
     {
         return RETURN_NOK;
     }
     
-    // Set flags to 0, added bonus: set valid flag
-    g->cred_parent.flags = 0;
+    // Set flags to 0, added bonus: set valid flags
+    g_first_three_fields_pt->flags = 0;
     
     // Set node type    
-    g->cred_parent.flags |= (node_type << NODEMGMT_TYPE_FLAG_BITSHIFT);
+    g_first_three_fields_pt->flags |= (node_type << NODEMGMT_TYPE_FLAG_BITSHIFT);
     
     // Set correct user id to the node
-    g->cred_parent.flags |= (nodemgmt_current_handle.currentUserId << NODEMGMT_USERID_BITSHIFT);
+    g_first_three_fields_pt->flags |= (nodemgmt_current_handle.currentUserId << NODEMGMT_USERID_BITSHIFT);
     
     // Child nodes: set second flags
-    if ((node_type == NODE_TYPE_CHILD) || (node_type == NODE_TYPE_DATA))
+    if (node_type == NODE_TYPE_CHILD)
     {
         g->data_child.fakeFlags = g->data_child.flags | (NODEMGMT_VBIT_INVALID << NODEMGMT_CORRECT_FLAGS_BIT_BITSHIFT);
     }
 
     // clear next/prev address
-    g->cred_parent.prevParentAddress = NODE_ADDR_NULL;
-    g->cred_parent.nextParentAddress = NODE_ADDR_NULL;
+    g_first_three_fields_pt->prevAddress = NODE_ADDR_NULL;
+    g_first_three_fields_pt->nextAddress = NODE_ADDR_NULL;
     
     // if user has no nodes. this node is the first node
     if(firstNodeAddress == NODE_ADDR_NULL)
     {
-        // write parent node to flash (destructive)
-        writeNodeDataBlockToFlash(currentNodeMgmtHandle.nextFreeNode, g);
-        
-        // read back from flash
-        readNodeDataBlockFromFlash(currentNodeMgmtHandle.nextFreeNode, g);
+        // Write node
+        if (node_type == NODE_TYPE_CHILD)
+        {
+            writeChildNodeDataBlockToFlash(freeNodeAddress, (child_node_t*)g);
+        }
+        else
+        {
+            writeParentNodeDataBlockToFlash(freeNodeAddress, (parent_node_t*)g);
+        }
         
         // set new first node address
-        *newFirstNodeAddress = currentNodeMgmtHandle.nextFreeNode;
+        *newFirstNodeAddress = freeNodeAddress;
     }
     else
     {        
@@ -622,28 +681,43 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
         addr = firstNodeAddress;
         while(addr != NODE_ADDR_NULL)
         {
-            // read node
-            readNode(memNodePtr, addr);
+            // read node: use read parent node function as all the fields always are in the first 264B
+            readParentNodeDataBlockFromFlash(addr, (parent_node_t*)temp_parent_node_pt);
             
             // compare nodes (alphabetically)
-            res = strncmp((char*)g+comparisonFieldOffset, (char*)memNodePtr+comparisonFieldOffset, comparisonFieldLength);
+            if (node_type == NODE_TYPE_CHILD)
+            {
+                res = utils_custchar_strncmp(g->cred_child.login, temp_half_child_node_pt->login, sizeof(temp_half_child_node_pt->login)/sizeof(temp_half_child_node_pt->login[0]));
+            }
+            else
+            {
+                res = utils_custchar_strncmp(g->cred_parent.service, temp_parent_node_pt->service, sizeof(temp_parent_node_pt->service)/sizeof(temp_parent_node_pt->service[0]));
+            }
+            
+            // Check comparison result
             if(res > 0)
             {
                 // to add parent node comes after current node in memory.. go to next node
-                if(memNodePtr->nextAddress == NODE_ADDR_NULL)
+                if(temp_first_three_fields_pt->nextAddress == NODE_ADDR_NULL)
                 {
                     // end of linked list. Set to write node prev and next addr's
-                    g->prevAddress = addr; // current memNode Addr
+                    g_first_three_fields_pt->prevAddress = addr; // current memNode Addr
                     
                     // write new node to flash
-                    writeNodeDataBlockToFlash(currentNodeMgmtHandle.nextFreeNode, g);
+                    if (node_type == NODE_TYPE_CHILD)
+                    {
+                        writeChildNodeDataBlockToFlash(freeNodeAddress, (child_node_t*)g);
+                    }
+                    else
+                    {
+                        writeParentNodeDataBlockToFlash(freeNodeAddress, (parent_node_t*)g);
+                    }
                     
-                    // set previous last node to point to new node. write to flash
-                    memNodePtr->nextAddress = currentNodeMgmtHandle.nextFreeNode;
-                    writeNodeDataBlockToFlash(addr, memNodePtr);
+                    // set previous last node to point to new node
+                    temp_first_three_fields_pt->nextAddress = freeNodeAddress;
                     
-                    // read node from flash.. writes are destructive.
-                    readNode(g, currentNodeMgmtHandle.nextFreeNode);
+                    // even if the previous node is of type child, we only need to write the first 264B!
+                    writeParentNodeDataBlockToFlash(addr, (parent_node_t*)temp_parent_node_pt);
                                         
                     // set loop exit case
                     addr = NODE_ADDR_NULL; 
@@ -651,42 +725,49 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
                 else
                 {
                     // loop and read next node
-                    addr = memNodePtr->nextAddress;
+                    addr = temp_first_three_fields_pt->nextAddress;
                 }
             }
             else if(res < 0)
             {
-                // to add parent node comes before current node in memory. Previous node is already not a memcmp match .. write node
-                
+                // to add parent node comes before current node in memory. Previous node is already not a memcmp match .. write node                
                 // set node to write next parent to current node in mem, set prev parent to current node in mems prev parent
-                g->nextAddress = addr;
-                g->prevAddress = memNodePtr->prevAddress;
+                g_first_three_fields_pt->nextAddress = addr;
+                g_first_three_fields_pt->prevAddress = temp_first_three_fields_pt->prevAddress;
                 
                 // write new node to flash
-                writeNodeDataBlockToFlash(currentNodeMgmtHandle.nextFreeNode, g);
-                
-                // read back from flash
-                readNodeDataBlockFromFlash(currentNodeMgmtHandle.nextFreeNode, g);
+                if (node_type == NODE_TYPE_CHILD)
+                {
+                    writeChildNodeDataBlockToFlash(freeNodeAddress, (child_node_t*)g);
+                }
+                else
+                {
+                    writeParentNodeDataBlockToFlash(freeNodeAddress, (parent_node_t*)g);
+                }
                 
                 // update current node in mem. set prev parent to address node to write was written to.
-                memNodePtr->prevAddress = currentNodeMgmtHandle.nextFreeNode;
-                writeNodeDataBlockToFlash(addr, memNodePtr);
+                temp_first_three_fields_pt->prevAddress = freeNodeAddress;                
                 
-                if(g->prevAddress != NODE_ADDR_NULL)
+                // even if the previous node is of type child, we only need to write the first 264B!
+                writeParentNodeDataBlockToFlash(addr, (parent_node_t*)temp_parent_node_pt);
+                
+                if(g_first_three_fields_pt->prevAddress != NODE_ADDR_NULL)
                 {
-                    // read p->prev node
-                    readNode(memNodePtr, g->prevAddress);
+                    // read p->prev node: use read parent node function as all the fields always are in the first 264B
+                    readParentNodeDataBlockFromFlash(g_first_three_fields_pt->prevAddress, (parent_node_t*)temp_parent_node_pt);
                 
                     // update prev node to point next parent to addr of node to write node
-                    memNodePtr->nextAddress = currentNodeMgmtHandle.nextFreeNode;
-                    writeNodeDataBlockToFlash(g->prevAddress, memNodePtr);
+                    temp_first_three_fields_pt->nextAddress = freeNodeAddress;
+                    
+                    // even if the previous node is of type child, we only need to write the first 264B!
+                    writeParentNodeDataBlockToFlash(g_first_three_fields_pt->prevAddress, (parent_node_t*)temp_parent_node_pt);
                 }                
                 
                 if(addr == firstNodeAddress)
                 {
                     // new node comes before current address and current address in first node.
                     // new node should be first node
-                    *newFirstNodeAddress = currentNodeMgmtHandle.nextFreeNode;
+                    *newFirstNodeAddress = freeNodeAddress;
                 }
                 
                 // set exit case
@@ -694,13 +775,13 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
             }
             else
             {
-                // services match
-                // return nok. Same parent node
+                // services match, return nok. Same parent node
                 return RETURN_NOK;
             } // end cmp results
         } // end while
     } // end if first parent
     
+    // Rescan node usage
     scanNodeUsage();
     
     return RETURN_OK;

@@ -113,6 +113,14 @@ typedef struct
     uint8_t TBD[130];               // TBD
 } child_cred_node_t;
 
+// Struct that includes the common first 3 fields for parent nodes & child cred node
+typedef struct
+{
+    uint16_t flags;
+    uint16_t prevAddress;
+    uint16_t nextAddress;  
+} node_common_first_three_fields_t;
+
 // Parent node genetic typedef
 typedef struct
 {
@@ -179,16 +187,6 @@ typedef struct
     uint8_t reserved[8];
 } nodemgmt_userprofile_t;
 
-// big blob
-typedef struct
-{
-    union
-    {
-        nodemgmt_userprofile_t temp_user_profile;
-        parent_node_t temp_parent_node;
-    }; 
-} nodemgmt_big_blog_buffer;
-
 // Node management handle
 typedef struct
 {
@@ -199,8 +197,9 @@ typedef struct
     uint16_t offsetUserProfile;             // The offset of the user profile
     uint16_t firstParentNode;               // The address of the users first parent node (read from flash. eg cache)
     uint16_t firstDataParentNode;           // The address of the users first data parent node (read from flash. eg cache)
-    uint16_t nextFreeNode;                  // The address of the next free node
-    nodemgmt_big_blog_buffer blob_buffer;   // Blob buffer for temporary allocs. In the future, one may argue to remove it and use dynamic allocs on functions
+    uint16_t nextParentFreeNode;            // The address of the next free parent node
+    uint16_t nextChildFreeNode;             // The address of the next free child node
+    parent_node_t temp_parent_node;         // Temp parent node to be used when needed
 } nodemgmtHandle_t;
 
 /* Prototypes */

@@ -122,6 +122,35 @@ void dbflash_send_data_with_four_bytes_opcode(spi_flash_descriptor_t* descriptor
     PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
 }
 
+/*! \fn     dbflash_send_data_with_four_bytes_opcode_no_readback(spi_flash_descriptor_t* descriptor_pt, uint8_t* opcode, uint8_t* buffer, uint16_t buffer_size)
+*   \brief  Send data with a four bytes opcode to flash, do not write read data into buffer
+*   \param  descriptor_pt   Pointer to dbflash descriptor
+*   \param  opcode      Pointer to 4 bytes long opcode
+*   \param  buffer      Pointer to the buffer of data
+*   \param  buffer_size Length of the buffer
+*/
+void dbflash_send_data_with_four_bytes_opcode_no_readback(spi_flash_descriptor_t* descriptor_pt, uint8_t* opcode, uint8_t* buffer, uint16_t buffer_size)
+{   
+    /* SS low */
+    PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;
+    
+    /* Send opcode */
+    *opcode = sercom_spi_send_single_byte(descriptor_pt->sercom_pt, *opcode);opcode++;
+    *opcode = sercom_spi_send_single_byte(descriptor_pt->sercom_pt, *opcode);opcode++;
+    *opcode = sercom_spi_send_single_byte(descriptor_pt->sercom_pt, *opcode);opcode++;
+    *opcode = sercom_spi_send_single_byte(descriptor_pt->sercom_pt, *opcode);opcode++;
+    
+    /* Send data */
+    for (uint32_t i = 0; i < buffer_size; i++)
+    {
+        (void)sercom_spi_send_single_byte(descriptor_pt->sercom_pt, *buffer);
+        buffer++;
+    }
+    
+    /* SS high */
+    PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
+}
+
 /*! \fn     dbflash_send_pattern_data_with_four_bytes_opcode(spi_flash_descriptor_t* descriptor_pt, uint8_t* opcode, uint8_t pattern, uint16_t nb_bytes)
 *   \brief  Send pattern data with a four bytes opcode to flash
 *   \param  descriptor_pt   Pointer to dbflash descriptor
@@ -333,7 +362,6 @@ void dbflash_load_page_to_internal_buffer(spi_flash_descriptor_t* descriptor_pt,
 *   \param  offset          The starting byte offset to begin writing in pageNumber
 *   \param  dataSize        The number of bytes to write from the data buffer (assuming the data buffer is sufficiently large)
 *   \param  pattern         Pattern to write in memory
-*   \note   The buffer will be destroyed.
 *   \note   Function does not allow crossing page boundaries.
 */
 void dbflash_write_data_pattern_to_flash(spi_flash_descriptor_t* descriptor_pt, uint16_t pageNumber, uint16_t offset, uint16_t dataSize, uint8_t pattern)
@@ -374,7 +402,6 @@ void dbflash_write_data_pattern_to_flash(spi_flash_descriptor_t* descriptor_pt, 
 *   \param  offset          The starting byte offset to begin writing in pageNumber
 *   \param  dataSize        The number of bytes to write from the data buffer (assuming the data buffer is sufficiently large)
 *   \param  data            The buffer containing the data to write to flash memory
-*   \note   The buffer will be destroyed.
 *   \note   Function does not allow crossing page boundaries.
 */
 void dbflash_write_data_to_flash(spi_flash_descriptor_t* descriptor_pt, uint16_t pageNumber, uint16_t offset, uint16_t dataSize, void *data)
@@ -402,7 +429,7 @@ void dbflash_write_data_to_flash(spi_flash_descriptor_t* descriptor_pt, uint16_t
     // Write the bytes in the buffer, write the buffer to page
     uint8_t opcode[4] = {DBFLASH_OPCODE_MMP_PROG_TBUF};
     dbflash_fill_page_read_write_erase_opcode_from_address(pageNumber, offset, &opcode[1]); 
-    dbflash_send_data_with_four_bytes_opcode(descriptor_pt, opcode, data, dataSize);
+    dbflash_send_data_with_four_bytes_opcode_no_readback(descriptor_pt, opcode, data, dataSize);
     
     /* Wait until memory is ready */
     dbflash_wait_for_not_busy(descriptor_pt);
