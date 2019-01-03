@@ -585,17 +585,18 @@ void deleteCurrentUserFromFlash(void)
     }
 }
 
-/*! \fn     createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress)
+/*! \fn     createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress)
  *  \brief  Writes a generic node to memory (next free via handle) (in alphabetical order)
  *  \param  g                       The node to write to memory (nextFreeParentNode)
  *  \param  node_type               The node type (see enum)
  *  \param  firstNodeAddress        Address of the first node of its kind
  *  \param  newFirstNodeAddress     If the firstNodeAddress changed, this var will store the new value
+ *  \param  storedAddress           Where to store the address at which the node was stored
  *  \return success status
  *  \note   Handles necessary doubly linked list management
  *  \note   Not called for child data node
  */
-RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress)
+RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress)
 {
     /* Sanity checks */
     parent_cred_node_t* const parent_cred_node_san_checks = 0;
@@ -784,17 +785,21 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
     // Rescan node usage
     scanNodeUsage();
     
+    // Store the address
+    *storedAddress = freeNodeAddress;
+    
     return RETURN_OK;
 }
 
-/*! \fn     createParentNode(parent_node_t* p, service_type_te type)
+/*! \fn     createParentNode(parent_node_t* p, service_type_te type, uint16_t* storedAddress)
  *  \brief  Writes a parent node to memory (next free via handle) (in alphabetical order)
  *  \param  p               The parent node to write to memory (nextFreeParentNode)
  *  \param  type            Type of context (data or credential)
+ *  \param  storedAddress           Where to store the address at which the node was stored
  *  \return success status
  *  \note   Handles necessary doubly linked list management
  */
-RET_TYPE createParentNode(parent_node_t* p, service_type_te type)
+RET_TYPE createParentNode(parent_node_t* p, service_type_te type, uint16_t* storedAddress)
 {
     uint16_t temp_address, first_parent_addr;
     RET_TYPE temprettype;
@@ -815,11 +820,11 @@ RET_TYPE createParentNode(parent_node_t* p, service_type_te type)
     // Call createGenericNode to add a node
     if (type == SERVICE_CRED_TYPE)
     {
-        temprettype = createGenericNode((generic_node_t*)p, NODE_TYPE_PARENT, first_parent_addr, &temp_address);
+        temprettype = createGenericNode((generic_node_t*)p, NODE_TYPE_PARENT, first_parent_addr, &temp_address, storedAddress);
     }
     else
     {
-        temprettype = createGenericNode((generic_node_t*)p, NODE_TYPE_PARENT_DATA, first_parent_addr, &temp_address);
+        temprettype = createGenericNode((generic_node_t*)p, NODE_TYPE_PARENT_DATA, first_parent_addr, &temp_address, storedAddress);
     }
     
     // If the return is ok & we changed the first node address
