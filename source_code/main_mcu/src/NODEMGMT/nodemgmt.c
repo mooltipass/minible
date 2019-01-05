@@ -410,6 +410,36 @@ uint16_t getStartingDataParentAddress(void)
     return temp_address;
 }
 
+/*! \fn     getCredChangeNumber(void)
+ *  \brief  Gets the users change number from the user profile memory portion of flash
+ *  \return The address
+ */
+uint32_t getCredChangeNumber(void)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    uint32_t change_number;
+    
+    // Each user profile is within a page, data starting parent node is at the end of the favorites
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_change_number), sizeof(change_number), (void*)&change_number);    
+    
+    return change_number;
+}
+
+/*! \fn     getDataChangeNumber(void)
+ *  \brief  Gets the users data change number from the user profile memory portion of flash
+ *  \return The address
+ */
+uint32_t getDataChangeNumber(void)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    uint32_t change_number;
+    
+    // Each user profile is within a page, data starting parent node is at the end of the favorites
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_change_number), sizeof(change_number), (void*)&change_number);    
+    
+    return change_number;
+}
+
 /*! \fn     setStartingParentAddress(uint16_t parentAddress)
  *  \brief  Sets the users starting parent node both in the handle and user profile memory portion of flash
  *  \param  parentAddress   The constructed address of the users starting parent node
@@ -438,6 +468,30 @@ void setDataStartingParentAddress(uint16_t dataParentAddress)
     
     // Write data parent address in the user profile page
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_start_address), sizeof(dataParentAddress), &dataParentAddress);
+}
+
+/*! \fn     setCredChangeNumber(uint32_t changeNumber)
+ *  \brief  Set the credential change number
+ *  \param  changeNumber    The new change number
+ */
+void setCredChangeNumber(uint32_t changeNumber)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    
+    // Write data parent address in the user profile page
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_change_number), sizeof(changeNumber), (void*)&changeNumber);
+}
+
+/*! \fn     setDataChangeNumber(uint32_t changeNumber)
+ *  \brief  Set the data change number
+ *  \param  changeNumber    The new change number
+ */
+void setDataChangeNumber(uint32_t changeNumber)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    
+    // Write data parent address in the user profile page
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_change_number), sizeof(changeNumber), (void*)&changeNumber);
 }
 
 /*! \fn     findFreeNodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode)
@@ -551,6 +605,32 @@ void initNodeManagementHandle(uint16_t userIdNum)
     scanNodeUsage();
     
     // To think about: the old service LUT from the mini isn't needed as we support unicode now
+}
+
+/*! \fn     userDBChangedActions(BOOL dataChanged)
+ *  \brief  Function called to inform that the DB has been changed
+ *  \param  dataChanged  FALSE when a standard credential is changed, something else when it is a data node that is changed
+ *  \note   Currently called on password change & add, 32B data write
+ */
+void userDBChangedActions(BOOL dataChanged)
+{
+    // Cred db change number
+    if ((nodemgmt_current_handle.dbChanged == FALSE) && (dataChanged == FALSE))
+    {
+        uint32_t current_cred_change_number = getCredChangeNumber();
+        current_cred_change_number++;
+        nodemgmt_current_handle.dbChanged = TRUE;
+        setCredChangeNumber(current_cred_change_number);
+    }
+    
+    // Data db change number
+    if ((nodemgmt_current_handle.datadbChanged == FALSE) && (dataChanged != FALSE))
+    {
+        uint32_t current_data_change_number = getDataChangeNumber();
+        current_data_change_number++;
+        nodemgmt_current_handle.datadbChanged = TRUE;
+        setDataChangeNumber(current_data_change_number);        
+    }
 }
 
 /*! \fn     deleteCurrentUserFromFlash(void)
