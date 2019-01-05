@@ -550,6 +550,26 @@ void readFav(uint16_t categoryId, uint16_t favId, uint16_t* parentAddress, uint1
     *childAddress = favorite.child_addr;
 }
 
+/*! \fn     readProfileCtr(void* buf)
+ *  \brief  Reads the users base CTR from the user profile flash memory
+ *  \param  buf             The buffer to store the read CTR
+ */
+void readProfileCtr(void* buf)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.current_ctr), sizeof(dirty_address_finding_trick->main_data.current_ctr), buf);
+}
+
+/**
+ * Sets the user DB change number in the user profile flash memory
+ * @param   buf             The buffer containing the user db change number
+ */
+void setProfileCtr(void *buf)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.current_ctr), sizeof(dirty_address_finding_trick->main_data.current_ctr), buf);
+}
+
 /*! \fn     findFreeNodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode)
 *   \brief  Find Free Nodes inside our external memory
 *   \param  nbParentNodes   Number of parent nodes we want to find
