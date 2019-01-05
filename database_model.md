@@ -1,6 +1,6 @@
 ## [](#header-1) Mooltipass Database Model
 This page details the database model for the new Mooltipass Mini.  
-- All strings use uint16_t as a character length.  
+- All strings use uint16_t as a character size.  
 - UserID field is now 7 bits: the biggest DB flash has 32k 264B pages, so for a one page parent node and a 2 pages child node that's an average of 85 credentials per user.  
    
 ## [](#header-2) 2 Bytes Long Flags
@@ -15,7 +15,7 @@ This page details the database model for the new Mooltipass Mini.
 | 7->6 | user ID LSbs (2b) | reserved |
 | 5 | flags not valid bit: 0b0 | reserved |
 | 4 | reserved | reserved |
-| 3->0 | data: data type | not used |
+| 3->0 | data parent: data type | not used |
 
 **Child Node**
 
@@ -36,7 +36,7 @@ By setting bit 5 to 0 and the "matching" bit one page later to 1, this allows us
 
 | bits | description | on the previous mini DB model |
 |:-----|:------------|-------------------------------|
-| 15->14 | 0b11: specified data node | same |
+| 15->14 | 0b11 | same |
 | 13->13 | not valid bit | same |
 | 12->8 | user ID MSbs (5b) | userID |
 | 7->6 | user ID LSbs (2b) | payload length MSB (2b) |
