@@ -178,7 +178,7 @@ RET_TYPE checkUserPermissionFromFlags(uint16_t flags)
 */
 void checkUserPermissionFromFlagsAndLock(uint16_t flags)
 {
-    if (checkUserPermissionFromFlags(flags) == RETURN_NOK)
+    if (checkUserPermissionFromFlags(flags) != RETURN_OK)
     {
         while(1);
     }
@@ -244,6 +244,22 @@ void writeChildNodeDataBlockToFlash(uint16_t address, child_node_t* child_node)
 void readParentNodeDataBlockFromFlash(uint16_t address, parent_node_t* parent_node)
 {
     dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), sizeof(parent_node->node_as_bytes), (void*)parent_node->node_as_bytes);
+}
+
+/*! \fn     readParentNode(uint16_t address, parent_node_t* parent_node)
+*   \brief  Read a parent node
+*   \param  address     Where to read
+*   \param  parent_node Pointer to the node
+*   \note   what's different from function above: sec checks
+*/
+void readParentNode(uint16_t address, parent_node_t* parent_node)
+{
+    readParentNodeDataBlockFromFlash(address, parent_node);
+    
+    if (checkUserPermissionFromFlags(parent_node->cred_parent.flags) != RETURN_OK)
+    {
+        while(1);
+    }
 }
 
 /*! \fn     readChildNodeDataBlockFromFlash(uint16_t address, child_node_t* child_node)
@@ -683,7 +699,7 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
         while(addr != NODE_ADDR_NULL)
         {
             // read node: use read parent node function as all the fields always are in the first 264B
-            readParentNodeDataBlockFromFlash(addr, (parent_node_t*)temp_parent_node_pt);
+            readParentNode(addr, (parent_node_t*)temp_parent_node_pt);
             
             // compare nodes (alphabetically)
             if (node_type == NODE_TYPE_CHILD)
@@ -755,7 +771,7 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
                 if(g_first_three_fields_pt->prevAddress != NODE_ADDR_NULL)
                 {
                     // read p->prev node: use read parent node function as all the fields always are in the first 264B
-                    readParentNodeDataBlockFromFlash(g_first_three_fields_pt->prevAddress, (parent_node_t*)temp_parent_node_pt);
+                    readParentNode(g_first_three_fields_pt->prevAddress, (parent_node_t*)temp_parent_node_pt);
                 
                     // update prev node to point next parent to addr of node to write node
                     temp_first_three_fields_pt->nextAddress = freeNodeAddress;
@@ -842,3 +858,38 @@ RET_TYPE createParentNode(parent_node_t* p, service_type_te type, uint16_t* stor
     
     return temprettype;
 }
+
+/*! \fn     createChildNode(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedAddress)
+ *  \brief  Writes a child node to memory (next free via handle) (in alphabetical order)
+ *  \param  pAddr           The parent node address of the child
+ *  \param  c               The child node to write to memory (nextFreeChildNode)
+ *  \param  storedAddress           Where to store the address at which the node was stored
+ *  \return success status
+ *  \note   Handles necessary doubly linked list management
+ */
+RET_TYPE createChildNode(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedAddress)
+{
+    uint16_t childFirstAddress, temp_address;
+    RET_TYPE temprettype;
+    
+    // Write date created & used fields
+    c->dateCreated = nodemgmt_current_date;
+    c->dateLastUsed = nodemgmt_current_date;
+    
+    // Read parent to get the first child address
+    readParentNode(pAddr, &nodemgmt_current_handle.temp_parent_node);
+    childFirstAddress = nodemgmt_current_handle.temp_parent_node.cred_parent.nextChildAddress;
+    
+    // Call createGenericNode to add a node
+    temprettype = createGenericNode((generic_node_t*)c, NODE_TYPE_CHILD, childFirstAddress, &temp_address, storedAddress);
+    
+    // If the return is ok & we changed the first child address
+    if ((temprettype == RETURN_OK) && (childFirstAddress != temp_address))
+    {
+        readParentNode(pAddr, &nodemgmt_current_handle.temp_parent_node);
+        nodemgmt_current_handle.temp_parent_node.cred_parent.nextChildAddress = temp_address;
+        writeParentNodeDataBlockToFlash(pAddr, &nodemgmt_current_handle.temp_parent_node);
+    }
+    
+    return temprettype;
+}  
