@@ -580,7 +580,7 @@ void setProfileCtr(void *buf)
 *   \param  startNode       Scan start node address inside the start page
 *   \return the number of nodes found
 */
-uint8_t findFreeNodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode)
+uint16_t findFreeNodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode)
 {
     uint16_t prevFreeAddressFound = NODE_ADDR_NULL;
     uint16_t nbParentNodesFound = 0;

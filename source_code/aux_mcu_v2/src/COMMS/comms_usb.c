@@ -130,13 +130,21 @@ void comms_usb_send_hid_message(aux_mcu_message_t* message)
         /* Copy payload */
         memcpy(raw_hid_send_buffer.payload, &(message->payload[payload_offset]), raw_hid_send_buffer.byte0.payload_len);
         
+        /* 0-fill padding */
+        uint16_t padding_length = sizeof(raw_hid_send_buffer.payload) - raw_hid_send_buffer.byte0.payload_len;
+        if (padding_length != 0)
+        {
+            memset((void*)(&raw_hid_send_buffer.payload[raw_hid_send_buffer.byte0.payload_len]), 0x00, padding_length);
+        }
+        
         /* update local vars */
         remaining_payload_to_send -= raw_hid_send_buffer.byte0.payload_len;
         payload_offset += raw_hid_send_buffer.byte0.payload_len;
         packet_id += 1;
         
-        /* Send packet */
-        comms_usb_send_raw_hid_packet(&raw_hid_send_buffer, TRUE, sizeof(raw_hid_send_buffer.byte0) + sizeof(raw_hid_send_buffer.byte1) + raw_hid_send_buffer.byte0.payload_len);
+        /* Send packet: always send 64B due to some strange windows receive trigger thingy */
+        //comms_usb_send_raw_hid_packet(&raw_hid_send_buffer, TRUE, sizeof(raw_hid_send_buffer.byte0) + sizeof(raw_hid_send_buffer.byte1) + raw_hid_send_buffer.byte0.payload_len);
+        comms_usb_send_raw_hid_packet(&raw_hid_send_buffer, TRUE, USB_RAWHID_RX_SIZE);
     }
 }
 

@@ -13,7 +13,12 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    1
+#define FW_MINOR    2
+
+/* Changelog:
+v0.2: added padding to USB comms 64B packet
+
+*/
 
 /**************** SETUP DEFINES ****************/
 /*  This project should be built differently
