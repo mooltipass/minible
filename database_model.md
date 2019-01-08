@@ -141,6 +141,7 @@ However, as the Mooltipass Mini BLE includes fleet management capabilities allow
 - the database AES key may be renewed without reprogramming the user card(s)  
 
 As a result, the Mooltipass Mini lookup table needed to be modified to include this encrypted AES key. The new LUT entry format follows:  
+
 | bytes | description |
 |:-----|:------------|
 | 0 | User ID |
