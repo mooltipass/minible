@@ -131,3 +131,23 @@ Compared to our previous device, the number of favorites has been reduced to 12 
 | 160->207 | 12 favorites (category #3) |
 | 208->255 | 12 favorites (category #4) |
 | 256->263 | reserved |
+
+## [](#header-2) CPZ Lookup Table
+
+As with the Mooltipass Mini, AES-CTR is used to encrypt all user data on the device. The encryption key is stored on the Mooltipass card while the AES CTR nonce is stored inside the MCU flash. At the time of user creation, a unique identifier is programmed into the Mooltipass card Code Protected Zone (CPZ) in order to associate a given card (and its clones) with a user ID and an AES-CTR nonce.  
+
+However, as the Mooltipass Mini BLE includes fleet management capabilities allowing a remote computer to manage the database of a given user, we now offer the possibility to provision the database AES key **on the device**. In this case, the AES key stored inside the Mooltipass Card is used to decrypt the AES key used to encrypt the user data. This has the following advantages:  
+- the card **and** the device are required to access the database encryption key  
+- the database AES key may be renewed without reprogramming the user card(s)  
+
+As a result, the Mooltipass Mini lookup table needed to be modified to include this encrypted AES key. The new LUT entry format follows:  
+| bytes | description |
+|:-----|:------------|
+| 0 | User ID |
+| 1 | Flag: use provisioned AES key |
+| 2->9 | Card CPZ |
+| 10->25 | AES CTR nonce |
+| 26->57 | Encrypted database AES key |
+| 58->63 | Reserved |
+
+This lookup table is stored inside the RWWEE part of our MCU, which is configured to be 8kB. The first 4 256B pages being used for other purposes, the maximum number of users is therefore limited to **124**.
