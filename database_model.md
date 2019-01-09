@@ -121,16 +121,15 @@ Compared to our previous device, the number of favorites has been reduced to 10 
 |:-----|:------------|
 | 0->1 | credential start address |
 | 2->33 | 16 data start addresses |
-| 34 | reserved |
-| 35->37 | current CTR |
-| 38->41 | credential change number |
-| 42->45 | data change number |
-| 46->85 | 10 favorites (no category) |
-| 86->125 | 10 favorites (category #1) |
-| 126->165 | 10 favorites (category #2) |
-| 166->205 | 10 favorites (category #3) |
-| 206->245 | 10 favorites (category #4) |
-| 246->263 | reserved |
+| 34->52 | reserved (19B) |
+| 53->55 | current CTR |
+| 56->59 | credential change number |
+| 60->63 | data change number |
+| 64->85 | 10 favorites (no category) |
+| 104->143 | 10 favorites (category #1) |
+| 144->183 | 10 favorites (category #2) |
+| 184->223 | 10 favorites (category #3) |
+| 224->263 | 10 favorites (category #4) |
 
 ## [](#header-2) CPZ Lookup Table
 
