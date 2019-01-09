@@ -4,6 +4,7 @@
 *    Author:   Mathieu Stephan
 */
 #include "defines.h"
+#include "utils.h"
 
 /*! \fn     utils_custchar_strncmp(cust_char_t* f_string, cust_char_t* sec_string, uint16_t nb_chars)
 *   \brief  Implementation of strncmp

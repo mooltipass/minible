@@ -165,15 +165,15 @@ typedef struct
 // List of favorite for a given category
 typedef struct
 {
-    favorite_addr_t favorite[12];
+    favorite_addr_t favorite[10];
 } favorites_for_category_t;
 
 // User profile main data
 typedef struct
 {
     uint16_t cred_start_address;
-    uint16_t data_start_address;
-    uint8_t reserved;
+    uint16_t data_start_address[16];
+    uint8_t reserved[19];
     uint8_t current_ctr[3];
     uint32_t cred_change_number;
     uint32_t data_change_number;    
@@ -184,7 +184,6 @@ typedef struct
 {
     nodemgmt_profile_main_data_t main_data;
     favorites_for_category_t category_favorites[5];
-    uint8_t reserved[8];
 } nodemgmt_userprofile_t;
 
 // Node management handle
@@ -196,7 +195,7 @@ typedef struct
     uint16_t pageUserProfile;               // The page of the user profile
     uint16_t offsetUserProfile;             // The offset of the user profile
     uint16_t firstParentNode;               // The address of the users first parent node (read from flash. eg cache)
-    uint16_t firstDataParentNode;           // The address of the users first data parent node (read from flash. eg cache)
+    uint16_t firstDataParentNode[16];       // The addresses of the users first data parent nodes (read from flash. eg cache)
     uint16_t nextParentFreeNode;            // The address of the next free parent node
     uint16_t nextChildFreeNode;             // The address of the next free child node
     parent_node_t temp_parent_node;         // Temp parent node to be used when needed

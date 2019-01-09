@@ -395,17 +395,24 @@ uint16_t getStartingParentAddress(void)
     return temp_address;
 }
 
-/*! \fn     getStartingDataParentAddress(void)
+/*! \fn     getStartingDataParentAddress(uint16_t typeId)
  *  \brief  Gets the users starting data parent node from the user profile memory portion of flash
+ *  \param  typeId  Type ID
  *  \return The address
  */
-uint16_t getStartingDataParentAddress(void)
+uint16_t getStartingDataParentAddress(uint16_t typeId)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     uint16_t temp_address;
     
+    // type id check
+    if (typeId >= (sizeof(dirty_address_finding_trick->main_data.data_start_address)/sizeof(dirty_address_finding_trick->main_data.data_start_address[0])))
+    {
+        return NODE_ADDR_NULL;
+    }
+    
     // Each user profile is within a page, data starting parent node is at the end of the favorites
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_start_address), sizeof(temp_address), &temp_address);    
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_start_address[typeId]), sizeof(temp_address), &temp_address);    
     
     return temp_address;
 }
@@ -455,19 +462,26 @@ void setStartingParentAddress(uint16_t parentAddress)
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_start_address), sizeof(parentAddress), &parentAddress);
 }
 
-/*! \fn     setDataStartingParentAddress(uint16_t dataParentAddress)
+/*! \fn     setDataStartingParentAddress(uint16_t dataParentAddress, uint16_t typeId)
  *  \brief  Sets the users starting data parent node both in the handle and user profile memory portion of flash
  *  \param  dataParentAddress   The constructed address of the users starting parent node
+ *  \param  typeId              The type ID
  */
-void setDataStartingParentAddress(uint16_t dataParentAddress)
+void setDataStartingParentAddress(uint16_t dataParentAddress, uint16_t typeId)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     
+    // type id check
+    if (typeId >= (sizeof(dirty_address_finding_trick->main_data.data_start_address)/sizeof(dirty_address_finding_trick->main_data.data_start_address[0])))
+    {
+        return;
+    }
+    
     // update handle
-    nodemgmt_current_handle.firstDataParentNode = dataParentAddress;
+    nodemgmt_current_handle.firstDataParentNode[typeId] = dataParentAddress;
     
     // Write data parent address in the user profile page
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_start_address), sizeof(dataParentAddress), &dataParentAddress);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_start_address[typeId]), sizeof(dataParentAddress), &dataParentAddress);
 }
 
 /*! \fn     setCredChangeNumber(uint32_t changeNumber)
@@ -671,11 +685,16 @@ void initNodeManagementHandle(uint16_t userIdNum)
             
     // fill current user id, first parent node address, user profile page & offset 
     userProfileStartingOffset(userIdNum, &nodemgmt_current_handle.pageUserProfile, &nodemgmt_current_handle.offsetUserProfile);
-    nodemgmt_current_handle.firstDataParentNode = getStartingDataParentAddress();
     nodemgmt_current_handle.firstParentNode = getStartingParentAddress();
     nodemgmt_current_handle.currentUserId = userIdNum;
     nodemgmt_current_handle.datadbChanged = FALSE;
     nodemgmt_current_handle.dbChanged = FALSE;
+    
+    // Get starting data parents
+    for (uint16_t i = 0; i < (sizeof(nodemgmt_current_handle.firstDataParentNode)/sizeof(nodemgmt_current_handle.firstDataParentNode[0])); i++)
+    {        
+        nodemgmt_current_handle.firstDataParentNode[i] = getStartingDataParentAddress(i);
+    }
     
     // scan for next free parent and child nodes from the start of the memory
     scanNodeUsage();
@@ -731,7 +750,7 @@ void deleteCurrentUserFromFlash(void)
     formatUserProfileMemory(nodemgmt_current_handle.currentUserId);
     
     // Then browse through all the credentials to delete them
-    for (uint16_t i = 0; i < 2; i++)
+    for (uint16_t i = 0; i < 1 + (sizeof(nodemgmt_current_handle.firstDataParentNode)/sizeof(nodemgmt_current_handle.firstDataParentNode[0])); i++)
     {
         while (next_parent_addr != NODE_ADDR_NULL)
         {
@@ -780,7 +799,7 @@ void deleteCurrentUserFromFlash(void)
             next_parent_addr = temp_address;
         }
         // First loop done, remove data nodes
-        next_parent_addr = nodemgmt_current_handle.firstDataParentNode;
+        next_parent_addr = nodemgmt_current_handle.firstDataParentNode[i-1];
     }
 }
 
@@ -994,11 +1013,12 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
  *  \brief  Writes a parent node to memory (next free via handle) (in alphabetical order)
  *  \param  p               The parent node to write to memory (nextFreeParentNode)
  *  \param  type            Type of context (data or credential)
- *  \param  storedAddress           Where to store the address at which the node was stored
+ *  \param  storedAddress   Where to store the address at which the node was stored
+ *  \param  typeId          In case of data parent, typeId
  *  \return success status
  *  \note   Handles necessary doubly linked list management
  */
-RET_TYPE createParentNode(parent_node_t* p, service_type_te type, uint16_t* storedAddress)
+RET_TYPE createParentNode(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId)
 {
     uint16_t temp_address, first_parent_addr;
     RET_TYPE temprettype;
@@ -1010,7 +1030,7 @@ RET_TYPE createParentNode(parent_node_t* p, service_type_te type, uint16_t* stor
     } 
     else
     {
-        first_parent_addr = nodemgmt_current_handle.firstDataParentNode;
+        first_parent_addr = nodemgmt_current_handle.firstDataParentNode[typeId];
     }
     
     // This is particular to parent nodes...
@@ -1035,7 +1055,7 @@ RET_TYPE createParentNode(parent_node_t* p, service_type_te type, uint16_t* stor
         }
         else
         {
-            setDataStartingParentAddress(temp_address);
+            setDataStartingParentAddress(temp_address, typeId);
         }
     }
     
