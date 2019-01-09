@@ -113,7 +113,7 @@ The # of data nodes is meant for information only, not for actual size (capped a
 
 As with the previous mini device, sector 0a/b of the DB flash is reserved for user profiles and potentially other graphics.  
 For the mini ble, it will store up to 128 user profiles. Each user profile is 264B long and its contents are shown in the table below. As a result, the first 32kB in each DB flash are reserved for user profiles. For information, 8Mb/16Mb/32Mb/64Mb DB flashes respectively contain 65kB/131kB/65kB/262kB in their sector 0.  
-Compared to our previous device, the number of favorites has been reduced to 12 (instead of 14)as users seem to not use more than 10 favorites.  
+Compared to our previous device, the number of favorites has been reduced to 10 (instead of 14) as users seem to not use more.  
 
 **User Profile**
 
