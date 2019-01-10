@@ -12,6 +12,7 @@
 #include "gui_carousel.h"
 #include "defines.h"
 #include "inputs.h"
+#include "main.h"
 
 // Current screen
 gui_screen_te gui_dispatcher_current_screen = GUI_SCREEN_NINSERTED;
@@ -22,8 +23,9 @@ gui_screen_te gui_dispatcher_current_screen = GUI_SCREEN_NINSERTED;
 *   \param  screen          The screen
 *   \param  reset_states    Set to true to reset previously selected items
 */
-void gui_dispatcher_set_current_screen(gui_screen_te screen, BOOL reset_states)
+void gui_dispatcher_set_current_screen(gui_screen_te screen, BOOL reset_states, oled_transition_te transition)
 {
+    plat_oled_descriptor.loaded_transition = transition;
     gui_dispatcher_current_screen = screen;
     
     if (reset_states != FALSE)

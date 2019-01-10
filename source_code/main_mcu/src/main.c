@@ -285,7 +285,7 @@ int main(void)
     initNodeManagementHandle(32);
     
     /* Set startup screen: TODO change back to locked */
-    gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE);
+    gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE, GUI_INTO_MENU_TRANSITION);
     //gui_dispatcher_set_current_screen(GUI_SCREEN_OPERATIONS);    
     gui_dispatcher_get_back_to_current_screen();
     

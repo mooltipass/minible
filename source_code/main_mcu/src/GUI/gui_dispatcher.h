@@ -4,6 +4,7 @@
 *    Author:   Mathieu Stephan
 */
 #include "defines.h"
+#include "sh1122.h"
 
 
 #ifndef GUI_DISPATCHER_H_
@@ -28,9 +29,13 @@ typedef enum {  GUI_SCREEN_NINSERTED = 0,
                 GUI_SCREEN_OPERATIONS,
                 GUI_SCREEN_SETTINGS
              } gui_screen_te;
+             
+/* Transitions */
+#define     GUI_INTO_MENU_TRANSITION    OLED_IN_OUT_TRANS
+#define     GUI_OUTOF_MENU_TRANSITION   OLED_OUT_IN_TRANS
 
 /* Prototypes */
-void gui_dispatcher_set_current_screen(gui_screen_te screen, BOOL reset_states);
+void gui_dispatcher_set_current_screen(gui_screen_te screen, BOOL reset_states, oled_transition_te transition);
 void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action);
 void gui_dispatcher_get_back_to_current_screen(void);
 void gui_dispatcher_main_loop(void);

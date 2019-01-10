@@ -53,7 +53,7 @@ BOOL gui_settings_menu_event_render(wheel_action_ret_te wheel_action)
         {
             case GUI_BACK_ICON_ID:
             {
-                gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE);
+                gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE, GUI_OUTOF_MENU_TRANSITION);
                 gui_settings_menu_selected_item = 0;
                 return TRUE;
             }

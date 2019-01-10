@@ -48,6 +48,11 @@
 #define SH1122_OLED_HEIGHT          64
 #define SH1122_OLED_BPP             4
 
+/* Enums */
+typedef enum {OLED_TRANS_NONE, OLED_LEFT_RIGHT_TRANS, OLED_RIGHT_LEFT_TRANS, OLED_TOP_BOT_TRANS, OLED_BOT_TOP_TRANS, OLED_IN_OUT_TRANS, OLED_OUT_IN_TRANS} oled_transition_te;
+typedef enum {OLED_SCROLL_NONE = 0, OLED_SCROLL_UP = 1, OLED_SCROLL_DOWN = 2, OLED_SCROLL_FLIP = 3} oled_scroll_te;
+typedef enum {OLED_ALIGN_LEFT = 0, OLED_ALIGN_RIGHT = 1, OLED_ALIGN_CENTER = 2} oled_align_te;
+
 /* Structs */
 // pixel buffer to allow merging of adjacent image data.
 // To conserve memory, only one GDDRAM word is kept per display line.
@@ -83,15 +88,12 @@ typedef struct
     int16_t cur_text_x;                                 // Current x for writing text
     int16_t cur_text_y;                                 // Current y for writing text
     BOOL oled_on;                                       // Know if oled is on
+    oled_transition_te loaded_transition;               // Loaded transition for full frame switch
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     uint8_t frame_buffer[SH1122_OLED_HEIGHT][SH1122_OLED_WIDTH/(8/SH1122_OLED_BPP)];
     BOOL frame_buffer_flush_in_progress;
     #endif
 } sh1122_descriptor_t;
-
-/* Enums */
-typedef enum {OLED_SCROLL_NONE = 0, OLED_SCROLL_UP = 1, OLED_SCROLL_DOWN = 2, OLED_SCROLL_FLIP = 3} oled_scroll_te;
-typedef enum {OLED_ALIGN_LEFT = 0, OLED_ALIGN_RIGHT = 1, OLED_ALIGN_CENTER = 2} oled_align_te;
 
 /* Prototypes */
 void sh1122_draw_non_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream, BOOL write_to_buffer);
@@ -101,9 +103,10 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
 void sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, uint8_t color, BOOL write_to_buffer);
 RET_TYPE sh1122_display_bitmap_from_flash_at_recommended_position(sh1122_descriptor_t* oled_descriptor, uint32_t file_id, BOOL write_to_buffer);
 RET_TYPE sh1122_display_bitmap_from_flash(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint32_t file_id, BOOL write_to_buffer);
-void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream);
 void sh1122_draw_rectangle(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, int16_t width, int16_t height, uint16_t color);
+void sh1122_display_pixel_line(sh1122_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint8_t* pixels);
 uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, cust_char_t ch, BOOL write_to_buffer);
+void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream);
 uint16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str, BOOL write_to_buffer);
 void sh1122_flip_buffers(sh1122_descriptor_t* oled_descriptor, oled_scroll_te scroll_mode, uint32_t delay);
 RET_TYPE sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, BOOL write_to_buffer);
