@@ -179,10 +179,10 @@ void main_platform_init(void)
         timer_delay_ms(3000);
         
         /* Wait to load bundle from USB */
-        /*while(1)
+        while(1)
         {
             comms_aux_mcu_routine();
-        }*/
+        }
     }
     else
     {
