@@ -127,6 +127,17 @@ typedef struct
     uint16_t keyboard_layout_id;    // Recommended keyboard layout ID
 } language_map_entry_t;
 
+// CPZ LUT entry
+typedef struct
+{
+    uint8_t user_id;
+    uint8_t use_provisioned_key_flag;
+    uint8_t cards_cpz[8];
+    uint8_t nonce[16];
+    uint8_t provisioned_key[32];
+    uint8_t reserved[6];
+} cpz_lut_entry_t;
+
 /* Prototypes */
 RET_TYPE custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size, BOOL use_dma);
 RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* address, custom_fs_file_type_te file_type);
@@ -134,6 +145,7 @@ RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, 
 void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
 void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
 RET_TYPE custom_fs_get_string_from_file(uint32_t string_id, cust_char_t** string_pt);
+RET_TYPE custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_pt);
 void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc);
 uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id);
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void);

@@ -29,6 +29,8 @@ custom_file_flash_header_t custom_fs_flash_header;
 BOOL custom_fs_data_bus_opened = FALSE;
 /* Temp string buffers for string reading */
 uint16_t custom_fs_temp_string1[128];
+/* CPZ look up table */
+cpz_lut_entry_t* custom_fs_cpz_lut;
 
 
 /*! \fn     custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
@@ -145,6 +147,8 @@ custom_fs_init_ret_type_te custom_fs_settings_init(void)
     if (flash_addr != 0)
     {
         custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_addr;
+        flash_addr = custom_fs_get_custom_storage_slot_addr(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT);
+        custom_fs_cpz_lut = (cpz_lut_entry_t *)flash_addr;
         return CUSTOM_FS_INIT_OK;
     }    
     else
@@ -537,4 +541,30 @@ BOOL custom_fs_settings_check_fw_upgrade_flag(void)
     {
         return FALSE;
     }
+}
+
+/*! \fn     custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_pt)
+*   \brief  Get a pointer to a CPZ LUT entry given a CPZ 
+*   \param  cpz         CPZ bytes
+*   \param  cpz_entry   Where to store the pointer to the CPZ entry
+*   \return Success status
+*/
+RET_TYPE custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_pt)
+{
+    // Loop through LUT entries
+    for (uint16_t i = 0; i < MAX_NUMBER_OF_USERS; i++)
+    {
+        // Check for valid user ID (erased flash)
+        if (custom_fs_cpz_lut[i].user_id != UINT8_MAX)
+        {
+            // Check for CPZ match
+            if (memcmp(custom_fs_cpz_lut[i].cards_cpz, cpz, sizeof(custom_fs_cpz_lut[0].cards_cpz)) == 0)
+            {
+                *cpz_entry_pt = &custom_fs_cpz_lut[i];
+                return RETURN_OK;
+            }
+        }
+    }
+    
+    return RETURN_NOK;
 }

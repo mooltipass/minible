@@ -11,7 +11,7 @@
 /* Configuration define */
 #define BOOTPROT			(0x07LU << 0)       // Bootloader protected zone. 7 = 0B, 6 = 512B, 5 = 1024B, 4 = 2048B...
 #define RESERVEDA			(0x01LU << 3)       // Reserved
-#define EEPROM				(0x06LU << 4)       // Allocated EEPROM zone. 7 = 0B, 6 = 256B, 5 = 512B, 4 = 1024B...
+#define EEPROM				(0x01LU << 4)       // Allocated EEPROM zone. 7 = 0B, 6 = 256B, 5 = 512B, 4 = 1024B..., 1 = 8192B
 #define RESERVEDB			(0x01LU << 7)       // Reserved
 #define BOD33_LEVEL			(39LU << 8)         // Brownout level, 39 = 2.84V
 //#define BOD33_ENABLE		(0x01LU << 14)      // Brownout enable (1 = enabled)

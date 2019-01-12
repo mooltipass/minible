@@ -82,7 +82,13 @@ typedef struct
 /* Our firmware start address */
 #define APP_START_ADDR (0x2000)
 /* Internal storage slot for settings storage */
-#define SETTINGS_STORAGE_SLOT   0
+#define SETTINGS_STORAGE_SLOT               0
+#define FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT    4
+
+/**********************/
+/* Device limitations */
+/**********************/
+#define MAX_NUMBER_OF_USERS     124
 
 /********************/
 /* Settings defines */
