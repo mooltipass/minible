@@ -88,7 +88,7 @@ typedef struct
 /**********************/
 /* Device limitations */
 /**********************/
-#define MAX_NUMBER_OF_USERS     124
+#define MAX_NUMBER_OF_USERS     112
 
 /********************/
 /* Settings defines */

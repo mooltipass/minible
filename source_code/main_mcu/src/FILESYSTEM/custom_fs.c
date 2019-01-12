@@ -149,6 +149,13 @@ custom_fs_init_ret_type_te custom_fs_settings_init(void)
         custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_addr;
         flash_addr = custom_fs_get_custom_storage_slot_addr(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT);
         custom_fs_cpz_lut = (cpz_lut_entry_t *)flash_addr;
+        
+        /* Quick sanity check on memory boundary */
+        if ((uint32_t)&custom_fs_cpz_lut[MAX_NUMBER_OF_USERS] != FLASH_ADDR + FLASH_SIZE)
+        {
+            while(1);
+        }
+        
         return CUSTOM_FS_INIT_OK;
     }    
     else
