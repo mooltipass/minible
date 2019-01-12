@@ -150,4 +150,4 @@ As a result, the Mooltipass Mini lookup table needed to be modified to include t
 | 26->57 | Encrypted database AES key |
 | 58->63 | Reserved |
 
-This lookup table is stored inside the RWWEE part of our MCU, which is configured to be 8kB. The first 4 256B pages being used for other purposes, the maximum number of users is therefore limited to **124**.
+This lookup table is stored inside the RWWEE part of our MCU, which is configured to be 8kB. The first 4 256B pages being used for other purposes, the maximum number of users is therefore limited to **112**.
