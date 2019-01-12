@@ -575,3 +575,24 @@ RET_TYPE custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_p
     
     return RETURN_NOK;
 }
+
+/*! \fn     custom_fs_detele_user_cpz_lut_entry(uint8_t user_id)
+*   \brief  Delete single CPZ LUT entry
+*   \param  user_id     The user ID
+*/
+void custom_fs_detele_user_cpz_lut_entry(uint8_t user_id)
+{
+    cpz_lut_entry_t one_page_of_lut_entries[4];
+    _Static_assert(sizeof(one_page_of_lut_entries) == NVMCTRL_ROW_SIZE, "One row != 4 LUT entries");    
+    
+    /* Sanity check */
+    if (user_id >= MAX_NUMBER_OF_USERS)
+    {
+        return;
+    }
+    
+    /* Read one page, write it back with modified bites */
+    custom_fs_read_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (user_id >> 2), (void*)one_page_of_lut_entries);
+    memset(&one_page_of_lut_entries[user_id&0x03], 0xFF, sizeof(one_page_of_lut_entries[0]));
+    custom_fs_write_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (user_id >> 2), (void*)one_page_of_lut_entries);
+}
