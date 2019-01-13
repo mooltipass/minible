@@ -634,10 +634,9 @@ RET_TYPE custom_fs_store_cpz_entry_to_free_slot(cpz_lut_entry_t* cpz_entry, uint
         {
             /* Store user id */
             *user_id = i;
-            cpz_entry->user_id = i;
-            memcpy(&custom_fs_cpz_lut[i], cpz_entry, sizeof(custom_fs_cpz_lut[0]));            
+            cpz_entry->user_id = i;       
             custom_fs_read_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (i >> 2), (void*)one_page_of_lut_entries);
-            memset(&one_page_of_lut_entries[i&0x03], 0xFF, sizeof(one_page_of_lut_entries[0]));
+            memcpy(&one_page_of_lut_entries[i&0x03], cpz_entry, sizeof(one_page_of_lut_entries[0]));
             custom_fs_write_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (i >> 2), (void*)one_page_of_lut_entries);
             return RETURN_OK;
         }
