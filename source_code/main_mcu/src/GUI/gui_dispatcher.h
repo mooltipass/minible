@@ -13,6 +13,8 @@
 /* Defines */
 #define GUI_BACK_ICON_ID        255
 #define GUI_BACK_TEXT_ID        11
+#define GUI_ANIMATION_FFRAME_ID 0
+#define GUI_ANIMATION_NBFRAMES  120
 
 /* Enums */
 typedef enum {  GUI_SCREEN_NINSERTED = 0,

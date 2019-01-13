@@ -280,9 +280,30 @@ int main(void)
     //timer_delay_ms(2000);
     //main_standby_sleep();
     
-    /* Uncomment below for debug menu */
-    //debug_debug_menu();
-    initNodeManagementHandle(32);
+    /* If button press at start, go to debug menu */
+    if (inputs_is_wheel_clicked() == RETURN_JDETECT)
+    {
+        debug_debug_menu();
+    }
+    
+    #ifdef BLA
+    /* Start animation */    
+    for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
+    {
+        timer_start_timer(TIMER_WAIT_FUNCTS, 22);
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
+        while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING);
+    }
+    timer_delay_ms(1234);  
+    #endif
+    
+    /* WIP */
+    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    sh1122_draw_vertical_line(&plat_oled_descriptor, 0, 0, 63, 0xFF, TRUE);
+    sh1122_draw_vertical_line(&plat_oled_descriptor, 255, 0, 63, 0xFF, TRUE);
+    sh1122_put_string_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_CENTER, u"Create a New User?", TRUE);
+    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    while(1);
     
     /* Set startup screen: TODO change back to locked */
     gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE, GUI_INTO_MENU_TRANSITION);

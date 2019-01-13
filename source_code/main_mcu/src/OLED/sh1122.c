@@ -315,7 +315,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
         {
             for (uint16_t y = 0; y < SH1122_OLED_HEIGHT; y++)
             {
-                sh1122_display_pixel_line(oled_descriptor, x*2, y, 2, &(oled_descriptor->frame_buffer[y][x]));
+                sh1122_display_horizontal_pixel_line(oled_descriptor, x*2, y, 2, &(oled_descriptor->frame_buffer[y][x]));
             }
         }
     }
@@ -326,7 +326,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
         {
             for (uint16_t y = 0; y < SH1122_OLED_HEIGHT; y++)
             {
-                sh1122_display_pixel_line(oled_descriptor, x*2, y, 2, &(oled_descriptor->frame_buffer[y][x]));
+                sh1122_display_horizontal_pixel_line(oled_descriptor, x*2, y, 2, &(oled_descriptor->frame_buffer[y][x]));
             }
         }
     }
@@ -335,7 +335,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
         /* Top to bottom */
         for (uint16_t y = 0; y < SH1122_OLED_HEIGHT; y++)
         {
-            sh1122_display_pixel_line(oled_descriptor, 0, y, SH1122_OLED_WIDTH, &(oled_descriptor->frame_buffer[y][0]));
+            sh1122_display_horizontal_pixel_line(oled_descriptor, 0, y, SH1122_OLED_WIDTH, &(oled_descriptor->frame_buffer[y][0]));
             DELAYMS(3);
         }
     }
@@ -344,7 +344,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
         /* Bottom to top */
         for (int16_t y = SH1122_OLED_HEIGHT-1; y >= 0; y--)
         {
-            sh1122_display_pixel_line(oled_descriptor, 0, y, SH1122_OLED_WIDTH, &(oled_descriptor->frame_buffer[y][0]));
+            sh1122_display_horizontal_pixel_line(oled_descriptor, 0, y, SH1122_OLED_WIDTH, &(oled_descriptor->frame_buffer[y][0]));
             DELAYMS(3);
         }
     }
@@ -360,11 +360,11 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
             uint16_t x_pos2 = (SH1122_OLED_WIDTH/2)+2*i-2;
             for (uint16_t y = low_y; y <= high_y; y++)
             {
-                sh1122_display_pixel_line(oled_descriptor, x_pos, y, 2, &(oled_descriptor->frame_buffer[y][x_pos/2]));
-                sh1122_display_pixel_line(oled_descriptor, x_pos2, y, 2, &(oled_descriptor->frame_buffer[y][x_pos2/2]));
+                sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, y, 2, &(oled_descriptor->frame_buffer[y][x_pos/2]));
+                sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos2, y, 2, &(oled_descriptor->frame_buffer[y][x_pos2/2]));
             }
-            sh1122_display_pixel_line(oled_descriptor, x_pos, low_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[low_y][x_pos/2]));
-            sh1122_display_pixel_line(oled_descriptor, x_pos, high_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[high_y][x_pos/2]));
+            sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, low_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[low_y][x_pos/2]));
+            sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, high_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[high_y][x_pos/2]));
             
             if ((i & 0x01) == 0)
             {
@@ -385,11 +385,11 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
             uint16_t x_pos2 = (SH1122_OLED_WIDTH/2)+2*i-2;
             for (uint16_t y = low_y; y <= high_y; y++)
             {
-                sh1122_display_pixel_line(oled_descriptor, x_pos, y, 2, &(oled_descriptor->frame_buffer[y][x_pos/2]));
-                sh1122_display_pixel_line(oled_descriptor, x_pos2, y, 2, &(oled_descriptor->frame_buffer[y][x_pos2/2]));
+                sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, y, 2, &(oled_descriptor->frame_buffer[y][x_pos/2]));
+                sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos2, y, 2, &(oled_descriptor->frame_buffer[y][x_pos2/2]));
             }
-            sh1122_display_pixel_line(oled_descriptor, x_pos, low_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[low_y][x_pos/2]));
-            sh1122_display_pixel_line(oled_descriptor, x_pos, high_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[high_y][x_pos/2]));
+            sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, low_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[low_y][x_pos/2]));
+            sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, high_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[high_y][x_pos/2]));
             
             if ((i & 0x01) == 1)
             {
@@ -767,7 +767,7 @@ void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descript
     bitstream_bitmap_close(bitstream);    
 }   
 
-/*! \fn     sh1122_display_pixel_line(sh1122_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint8_t* pixels)
+/*! \fn     sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint8_t* pixels)
 *   \brief  Display adjacent pixels at a given Y
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   X position
@@ -776,7 +776,7 @@ void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descript
 *   \param  pixels              Pointer to data buffer
 *   \note   We only support odd X positions for the moment
 */
-void sh1122_display_pixel_line(sh1122_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint8_t* pixels)
+void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint8_t* pixels)
 {
     /* Set pixel write window */
     sh1122_set_row_address(oled_descriptor, y);
