@@ -303,7 +303,7 @@ int main(void)
     sh1122_draw_vertical_line(&plat_oled_descriptor, 255, 0, 63, 0xFF, TRUE);
     sh1122_put_string_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_CENTER, u"Create a New User?", TRUE);
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
-    while(1);
+    //while(1);
     
     /* Set startup screen: TODO change back to locked */
     gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE, GUI_INTO_MENU_TRANSITION);

@@ -21,27 +21,30 @@ uint16_t gui_operations_menu_selected_item = 0;
 */
 BOOL gui_operations_menu_event_render(wheel_action_ret_te wheel_action)
 {
+    /* How many elements our menu has */
+    const uint16_t nb_menu_elements = sizeof(operations_menu_pic_ids)/sizeof(operations_menu_pic_ids[0]);
+    
     if (wheel_action == WHEEL_ACTION_NONE)
     {
-        gui_carousel_render(sizeof(operations_menu_pic_ids)/sizeof(operations_menu_pic_ids[0]), operations_menu_pic_ids, operations_menu_text_ids, gui_operations_menu_selected_item, 0);
+        gui_carousel_render(nb_menu_elements, operations_menu_pic_ids, operations_menu_text_ids, gui_operations_menu_selected_item, 0);
     }
     else if (wheel_action == WHEEL_ACTION_UP)
     {
-        if (gui_operations_menu_selected_item != 0)
+        gui_carousel_render_animation(nb_menu_elements, operations_menu_pic_ids, operations_menu_text_ids, gui_operations_menu_selected_item, TRUE);
+        if (gui_operations_menu_selected_item-- == 0)
         {
-            gui_carousel_render_animation(sizeof(operations_menu_pic_ids)/sizeof(operations_menu_pic_ids[0]), operations_menu_pic_ids, operations_menu_text_ids, gui_operations_menu_selected_item, TRUE);
-            gui_operations_menu_selected_item--;
-            gui_carousel_render(sizeof(operations_menu_pic_ids)/sizeof(operations_menu_pic_ids[0]), operations_menu_pic_ids, operations_menu_text_ids, gui_operations_menu_selected_item, 0);
-        }
+            gui_operations_menu_selected_item = nb_menu_elements-1;
+        }                
+        gui_carousel_render(nb_menu_elements, operations_menu_pic_ids, operations_menu_text_ids, gui_operations_menu_selected_item, 0);
     }
     else if (wheel_action == WHEEL_ACTION_DOWN)
     {        
-        if (gui_operations_menu_selected_item != ((sizeof(operations_menu_pic_ids)/sizeof(operations_menu_pic_ids[0]))-1))
-        {
-            gui_carousel_render_animation(sizeof(operations_menu_pic_ids)/sizeof(operations_menu_pic_ids[0]), operations_menu_pic_ids, operations_menu_text_ids, gui_operations_menu_selected_item, FALSE);
-            gui_operations_menu_selected_item++;
-            gui_carousel_render(sizeof(operations_menu_pic_ids)/sizeof(operations_menu_pic_ids[0]), operations_menu_pic_ids, operations_menu_text_ids, gui_operations_menu_selected_item, 0);
-        }
+            gui_carousel_render_animation(nb_menu_elements, operations_menu_pic_ids, operations_menu_text_ids, gui_operations_menu_selected_item, FALSE);
+            if (++gui_operations_menu_selected_item == nb_menu_elements)
+            {
+                gui_operations_menu_selected_item = 0;
+            }
+            gui_carousel_render(nb_menu_elements, operations_menu_pic_ids, operations_menu_text_ids, gui_operations_menu_selected_item, 0);
     }
     else if (wheel_action == WHEEL_ACTION_SHORT_CLICK)
     {

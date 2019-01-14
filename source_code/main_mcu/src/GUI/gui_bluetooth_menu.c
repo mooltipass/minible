@@ -26,51 +26,60 @@ uint16_t gui_bluetooth_menu_selected_item = 0;
 */
 BOOL gui_bluetooth_menu_event_render(wheel_action_ret_te wheel_action)
 {
+    /* How many elements our menu has */
+    const uint16_t nb_menu_elements = sizeof(bluetooth_on_menu_pic_ids)/sizeof(bluetooth_on_menu_pic_ids[0]);
+    
     if (wheel_action == WHEEL_ACTION_NONE)
     {
         if (BT_ENABLED_BOOL)
         {
-            gui_carousel_render(sizeof(bluetooth_on_menu_pic_ids)/sizeof(bluetooth_on_menu_pic_ids[0]), bluetooth_on_menu_pic_ids, bluetooth_on_menu_text_ids, gui_bluetooth_menu_selected_item, 0);
+            gui_carousel_render(nb_menu_elements, bluetooth_on_menu_pic_ids, bluetooth_on_menu_text_ids, gui_bluetooth_menu_selected_item, 0);
         }
         else
         {
-            gui_carousel_render(sizeof(bluetooth_off_menu_pic_ids)/sizeof(bluetooth_off_menu_pic_ids[0]), bluetooth_off_menu_pic_ids, bluetooth_off_menu_text_ids, gui_bluetooth_menu_selected_item, 0);
+            gui_carousel_render(nb_menu_elements, bluetooth_off_menu_pic_ids, bluetooth_off_menu_text_ids, gui_bluetooth_menu_selected_item, 0);
         }
     }
     else if (wheel_action == WHEEL_ACTION_UP)
-    {
-        if (gui_bluetooth_menu_selected_item != 0)
+    {         
+        if (BT_ENABLED_BOOL)
         {
-            if (BT_ENABLED_BOOL)
+            gui_carousel_render_animation(nb_menu_elements, bluetooth_on_menu_pic_ids, bluetooth_on_menu_text_ids, gui_bluetooth_menu_selected_item, TRUE);
+            if (gui_bluetooth_menu_selected_item-- == 0)
             {
-                gui_carousel_render_animation(sizeof(bluetooth_on_menu_pic_ids)/sizeof(bluetooth_on_menu_pic_ids[0]), bluetooth_on_menu_pic_ids, bluetooth_on_menu_text_ids, gui_bluetooth_menu_selected_item, TRUE);
-                gui_bluetooth_menu_selected_item--;
-                gui_carousel_render(sizeof(bluetooth_on_menu_pic_ids)/sizeof(bluetooth_on_menu_pic_ids[0]), bluetooth_on_menu_pic_ids, bluetooth_on_menu_text_ids, gui_bluetooth_menu_selected_item, 0);
+                gui_bluetooth_menu_selected_item = nb_menu_elements-1;
             }
-            else
+            gui_carousel_render(nb_menu_elements, bluetooth_on_menu_pic_ids, bluetooth_on_menu_text_ids, gui_bluetooth_menu_selected_item, 0);
+        }
+        else
+        {
+            gui_carousel_render_animation(nb_menu_elements, bluetooth_off_menu_pic_ids, bluetooth_off_menu_text_ids, gui_bluetooth_menu_selected_item, TRUE);
+            if (gui_bluetooth_menu_selected_item-- == 0)
             {
-                gui_carousel_render_animation(sizeof(bluetooth_off_menu_pic_ids)/sizeof(bluetooth_off_menu_pic_ids[0]), bluetooth_off_menu_pic_ids, bluetooth_off_menu_text_ids, gui_bluetooth_menu_selected_item, TRUE);
-                gui_bluetooth_menu_selected_item--;
-                gui_carousel_render(sizeof(bluetooth_off_menu_pic_ids)/sizeof(bluetooth_off_menu_pic_ids[0]), bluetooth_off_menu_pic_ids, bluetooth_off_menu_text_ids, gui_bluetooth_menu_selected_item, 0);
+                gui_bluetooth_menu_selected_item = nb_menu_elements-1;
             }
+            gui_carousel_render(nb_menu_elements, bluetooth_off_menu_pic_ids, bluetooth_off_menu_text_ids, gui_bluetooth_menu_selected_item, 0);
         }
     }
     else if (wheel_action == WHEEL_ACTION_DOWN)
     {        
-        if (gui_bluetooth_menu_selected_item != ((sizeof(bluetooth_off_menu_pic_ids)/sizeof(bluetooth_off_menu_pic_ids[0]))-1))
+        if (BT_ENABLED_BOOL)
         {
-            if (BT_ENABLED_BOOL)
+            gui_carousel_render_animation(nb_menu_elements, bluetooth_on_menu_pic_ids, bluetooth_on_menu_text_ids, gui_bluetooth_menu_selected_item, FALSE);
+            if (++gui_bluetooth_menu_selected_item == nb_menu_elements)
             {
-                gui_carousel_render_animation(sizeof(bluetooth_on_menu_pic_ids)/sizeof(bluetooth_on_menu_pic_ids[0]), bluetooth_on_menu_pic_ids, bluetooth_on_menu_text_ids, gui_bluetooth_menu_selected_item, FALSE);
-                gui_bluetooth_menu_selected_item++;
-                gui_carousel_render(sizeof(bluetooth_on_menu_pic_ids)/sizeof(bluetooth_on_menu_pic_ids[0]), bluetooth_on_menu_pic_ids, bluetooth_on_menu_text_ids, gui_bluetooth_menu_selected_item, 0);
+                gui_bluetooth_menu_selected_item = 0;
             }
-            else
+            gui_carousel_render(nb_menu_elements, bluetooth_on_menu_pic_ids, bluetooth_on_menu_text_ids, gui_bluetooth_menu_selected_item, 0);
+        }
+        else
+        {
+            gui_carousel_render_animation(nb_menu_elements, bluetooth_off_menu_pic_ids, bluetooth_off_menu_text_ids, gui_bluetooth_menu_selected_item, FALSE);
+            if (++gui_bluetooth_menu_selected_item == nb_menu_elements)
             {
-                gui_carousel_render_animation(sizeof(bluetooth_off_menu_pic_ids)/sizeof(bluetooth_off_menu_pic_ids[0]), bluetooth_off_menu_pic_ids, bluetooth_off_menu_text_ids, gui_bluetooth_menu_selected_item, FALSE);
-                gui_bluetooth_menu_selected_item++;
-                gui_carousel_render(sizeof(bluetooth_off_menu_pic_ids)/sizeof(bluetooth_off_menu_pic_ids[0]), bluetooth_off_menu_pic_ids, bluetooth_off_menu_text_ids, gui_bluetooth_menu_selected_item, 0);
+                gui_bluetooth_menu_selected_item = 0;
             }
+            gui_carousel_render(nb_menu_elements, bluetooth_off_menu_pic_ids, bluetooth_off_menu_text_ids, gui_bluetooth_menu_selected_item, 0);
         }
     }
     else if (wheel_action == WHEEL_ACTION_SHORT_CLICK)

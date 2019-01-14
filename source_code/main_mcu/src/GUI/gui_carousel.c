@@ -10,6 +10,7 @@
 #include "sh1122.h"
 #include "main.h"
 /* Carousel spacing depending on number of elemnts */
+const uint16_t gui_carousel_x_anim_steps[] = {0,0,0,CAROUSEL_X_STEP_ANIM(3),CAROUSEL_X_STEP_ANIM(4),CAROUSEL_X_STEP_ANIM(5),CAROUSEL_X_STEP_ANIM(6),CAROUSEL_X_STEP_ANIM(7),CAROUSEL_X_STEP_ANIM(8)};
 const uint16_t gui_carousel_inter_icon_spacing[] = {0,0,0,CAROUSEL_IS_SM(3),CAROUSEL_IS_SM(4),CAROUSEL_IS_SM(5),CAROUSEL_IS_SM(6),CAROUSEL_IS_SM(7),CAROUSEL_IS_SM(8)};
 const uint16_t gui_carousel_left_spacing[] = {0,0,0,CAROUSEL_LS_SM(3),CAROUSEL_LS_SM(4),CAROUSEL_LS_SM(5),CAROUSEL_LS_SM(6),CAROUSEL_LS_SM(7),CAROUSEL_LS_SM(8)};
 
@@ -27,51 +28,73 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
     /* Clear frame buffer */
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     
-    /* Start displaying icons */
-    uint16_t cur_display_x = gui_carousel_left_spacing[nb_elements];
-    for (uint16_t icon_id = 0; icon_id < nb_elements; icon_id++)
+    /* Compute most left icon index based on selected icon */
+    int16_t cur_icon_index = selected_id - (nb_elements/2);
+    if (cur_icon_index < 0)
     {
-        if (icon_id == selected_id)
+        cur_icon_index += nb_elements;
+    }
+    
+    /* Start displaying icons */
+    //uint16_t cur_display_x = gui_carousel_left_spacing[nb_elements] - anim_step*gui_carousel_inter_icon_spacing[nb_elements]*4/CAROUSEL_NB_SCALED_ICONS;
+    uint16_t cur_display_x = gui_carousel_left_spacing[nb_elements] - anim_step*gui_carousel_x_anim_steps[nb_elements];    
+    for (uint16_t i = 0; i < nb_elements; i++)
+    {
+        if (i == nb_elements/2)
         {
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_BIG_EDGE-abs(anim_step)*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[icon_id] + abs(anim_step), TRUE);
+            /* Center icon */
+            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_BIG_EDGE-abs(anim_step)*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[cur_icon_index] + abs(anim_step), TRUE);
             cur_display_x += CAROUSEL_BIG_EDGE - abs(anim_step)*CAROUSEL_Y_ANIM_STEP*2;
-        } 
-        else if (icon_id == (selected_id - 1))
+        }
+        else if (i == (nb_elements/2)-1)
         {
+            /* Left to the center icon */
             if (anim_step < 0)
             {
-                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE-anim_step*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[icon_id] + (CAROUSEL_NB_SCALED_ICONS/2) + anim_step, TRUE);
+                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE-anim_step*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[cur_icon_index] + (CAROUSEL_NB_SCALED_ICONS/2) + anim_step, TRUE);
                 cur_display_x += CAROUSEL_MID_EDGE - anim_step*CAROUSEL_Y_ANIM_STEP*2;
             }
             else
             {
-                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE-anim_step*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[icon_id] + (CAROUSEL_NB_SCALED_ICONS/2) + anim_step, TRUE);
-                cur_display_x += CAROUSEL_MID_EDGE - anim_step*CAROUSEL_Y_ANIM_STEP;                
+                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE-anim_step*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[cur_icon_index] + (CAROUSEL_NB_SCALED_ICONS/2) + anim_step, TRUE);
+                cur_display_x += CAROUSEL_MID_EDGE - anim_step*CAROUSEL_Y_ANIM_STEP;
             }
         }
-        else if (icon_id == (selected_id + 1))
+        else if (i == (nb_elements/2)+1)
         {
+            /* Right to the center icon */
             if (anim_step < 0)
             {
-                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE+anim_step*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[icon_id] + (CAROUSEL_NB_SCALED_ICONS/2) - anim_step, TRUE);
+                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE+anim_step*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[cur_icon_index] + (CAROUSEL_NB_SCALED_ICONS/2) - anim_step, TRUE);
                 cur_display_x += CAROUSEL_MID_EDGE + anim_step*CAROUSEL_Y_ANIM_STEP;
             }
             else
             {
-                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE+anim_step*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[icon_id] + (CAROUSEL_NB_SCALED_ICONS/2) - anim_step, TRUE);
+                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE+anim_step*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[cur_icon_index] + (CAROUSEL_NB_SCALED_ICONS/2) - anim_step, TRUE);
                 cur_display_x += CAROUSEL_MID_EDGE + anim_step*CAROUSEL_Y_ANIM_STEP*2;
             }
         }
-        else if (((icon_id == (selected_id - 2)) && (anim_step < 0)) || ((icon_id == (selected_id + 2)) && (anim_step > 0)))
+        else if (((i == (nb_elements/2)-2) && (anim_step < 0)) || ((i == (nb_elements/2)+2) && (anim_step > 0)))
         {
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_SMALL_EDGE+abs(anim_step)*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[icon_id] + CAROUSEL_NB_SCALED_ICONS - abs(anim_step) - 1, TRUE);
+            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_SMALL_EDGE+abs(anim_step)*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[cur_icon_index] + CAROUSEL_NB_SCALED_ICONS - abs(anim_step) - 1, TRUE);
             cur_display_x += CAROUSEL_SMALL_EDGE + abs(anim_step)*CAROUSEL_Y_ANIM_STEP;
         }
         else
         {
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-CAROUSEL_SMALL_EDGE/2, pic_ids[icon_id] + CAROUSEL_NB_SCALED_ICONS - 1, TRUE);
+            // to remove
+            if (i != 0 && i != nb_elements-1)
+                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-CAROUSEL_SMALL_EDGE/2, pic_ids[cur_icon_index] + CAROUSEL_NB_SCALED_ICONS - 1, TRUE);
             cur_display_x += CAROUSEL_SMALL_EDGE;
         }
+        
+        /* Increment icon index */
+        cur_icon_index++;
+        if (cur_icon_index == nb_elements)
+        {
+            cur_icon_index = 0;
+        }
+        
+        /* Add spacing */
         cur_display_x += gui_carousel_inter_icon_spacing[nb_elements];
     }
     
@@ -80,10 +103,18 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
     if (anim_step > 0)
     {
         selected_id++;
+        if (selected_id == nb_elements)
+        {
+            selected_id = 0;
+        }
     } 
     else if (anim_step < 0)
     {
         selected_id--;
+        if (selected_id == UINT16_MAX)
+        {
+            selected_id = nb_elements - 1;
+        }
     }
     custom_fs_get_string_from_file(text_ids[selected_id], &temp_string);
     sh1122_put_string_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_CENTER, temp_string, TRUE);

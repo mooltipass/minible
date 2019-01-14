@@ -41,57 +41,64 @@ void gui_main_menu_reset_state(void)
 */
 BOOL gui_main_menu_event_render(wheel_action_ret_te wheel_action)
 {
+    /* How many elements our menu has */
+    uint16_t nb_menu_elements = sizeof(simple_menu_pic_ids)/sizeof(simple_menu_pic_ids[0]);
+    if (ADVANCED_MODE)
+    {
+        nb_menu_elements = sizeof(advanced_menu_pic_ids)/sizeof(advanced_menu_pic_ids[0]);
+    }
+    
     if (wheel_action == WHEEL_ACTION_NONE)
     {
         if (ADVANCED_MODE)
         {
-            gui_carousel_render(sizeof(advanced_menu_pic_ids)/sizeof(advanced_menu_pic_ids[0]), advanced_menu_pic_ids, advanced_menu_text_ids, gui_main_menu_selected_item, 0);
+            gui_carousel_render(nb_menu_elements, advanced_menu_pic_ids, advanced_menu_text_ids, gui_main_menu_selected_item, 0);
         } 
         else
         {
-            gui_carousel_render(sizeof(simple_menu_pic_ids)/sizeof(simple_menu_pic_ids[0]), simple_menu_pic_ids, simple_menu_text_ids, gui_main_menu_selected_item, 0);
+            gui_carousel_render(nb_menu_elements, simple_menu_pic_ids, simple_menu_text_ids, gui_main_menu_selected_item, 0);
         }
     } 
     else if (wheel_action == WHEEL_ACTION_UP)
     {
-        if (gui_main_menu_selected_item != 0)
+        if (ADVANCED_MODE)
         {
-            if (ADVANCED_MODE)
+            gui_carousel_render_animation(nb_menu_elements, advanced_menu_pic_ids, advanced_menu_text_ids, gui_main_menu_selected_item, TRUE);
+            if (gui_main_menu_selected_item-- == 0)
             {
-                gui_carousel_render_animation(sizeof(advanced_menu_pic_ids)/sizeof(advanced_menu_pic_ids[0]), advanced_menu_pic_ids, advanced_menu_text_ids, gui_main_menu_selected_item, TRUE);
-                gui_main_menu_selected_item--;
-                gui_carousel_render(sizeof(advanced_menu_pic_ids)/sizeof(advanced_menu_pic_ids[0]), advanced_menu_pic_ids, advanced_menu_text_ids, gui_main_menu_selected_item, 0);
+                gui_main_menu_selected_item = nb_menu_elements-1;
             }
-            else
+            gui_carousel_render(nb_menu_elements, advanced_menu_pic_ids, advanced_menu_text_ids, gui_main_menu_selected_item, 0);
+        }
+        else
+        {
+            gui_carousel_render_animation(nb_menu_elements, simple_menu_pic_ids, simple_menu_text_ids, gui_main_menu_selected_item, TRUE);
+            if (gui_main_menu_selected_item-- == 0)
             {
-                gui_carousel_render_animation(sizeof(simple_menu_pic_ids)/sizeof(simple_menu_pic_ids[0]), simple_menu_pic_ids, simple_menu_text_ids, gui_main_menu_selected_item, TRUE);
-                gui_main_menu_selected_item--;
-                gui_carousel_render(sizeof(simple_menu_pic_ids)/sizeof(simple_menu_pic_ids[0]), simple_menu_pic_ids, simple_menu_text_ids, gui_main_menu_selected_item, 0);
+                gui_main_menu_selected_item = nb_menu_elements-1;
             }
+            gui_carousel_render(nb_menu_elements, simple_menu_pic_ids, simple_menu_text_ids, gui_main_menu_selected_item, 0);
         }
     }
     else if (wheel_action == WHEEL_ACTION_DOWN)
-    {
-        uint16_t last_element = sizeof(simple_menu_pic_ids)/sizeof(simple_menu_pic_ids[0]);
+    {        
         if (ADVANCED_MODE)
         {
-            last_element = sizeof(advanced_menu_pic_ids)/sizeof(advanced_menu_pic_ids[0]);
+            gui_carousel_render_animation(nb_menu_elements, advanced_menu_pic_ids, advanced_menu_text_ids, gui_main_menu_selected_item, FALSE);
+            if (++gui_main_menu_selected_item == nb_menu_elements)
+            {
+                gui_main_menu_selected_item = 0;
+            }
+            gui_carousel_render(nb_menu_elements, advanced_menu_pic_ids, advanced_menu_text_ids, gui_main_menu_selected_item, 0);
         }
-        
-        if (gui_main_menu_selected_item != (last_element-1))
+        else
         {
-            if (ADVANCED_MODE)
+            gui_carousel_render_animation(nb_menu_elements, simple_menu_pic_ids, simple_menu_text_ids, gui_main_menu_selected_item, FALSE);
+            if (++gui_main_menu_selected_item == nb_menu_elements)
             {
-                gui_carousel_render_animation(sizeof(advanced_menu_pic_ids)/sizeof(advanced_menu_pic_ids[0]), advanced_menu_pic_ids, advanced_menu_text_ids, gui_main_menu_selected_item, FALSE);
-                gui_main_menu_selected_item++;
-                gui_carousel_render(sizeof(advanced_menu_pic_ids)/sizeof(advanced_menu_pic_ids[0]), advanced_menu_pic_ids, advanced_menu_text_ids, gui_main_menu_selected_item, 0);
+                gui_main_menu_selected_item = 0;
             }
-            else
-            {
-                gui_carousel_render_animation(sizeof(simple_menu_pic_ids)/sizeof(simple_menu_pic_ids[0]), simple_menu_pic_ids, simple_menu_text_ids, gui_main_menu_selected_item, FALSE);
-                gui_main_menu_selected_item++;
-                gui_carousel_render(sizeof(simple_menu_pic_ids)/sizeof(simple_menu_pic_ids[0]), simple_menu_pic_ids, simple_menu_text_ids, gui_main_menu_selected_item, 0);
-            }
+            gui_carousel_render(nb_menu_elements, simple_menu_pic_ids, simple_menu_text_ids, gui_main_menu_selected_item, 0);
         }
     }    
     else if (wheel_action == WHEEL_ACTION_SHORT_CLICK)
