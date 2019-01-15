@@ -19,14 +19,16 @@
 #define CAROUSEL_NB_SCALED_ICONS    9
 // Y on each all icons are aligned
 #define CAROUSEL_Y_ALIGN            24
+// Number of animation steps
+#define CAROUSEL_NB_ANIM_STEPS      (CAROUSEL_NB_SCALED_ICONS/2)
 // Available space for a given number of icons
 #define CAROUSEL_AV_SPACE(x)        (GUI_DISPLAY_WIDTH - (CAROUSEL_BIG_EDGE + 2*CAROUSEL_MID_EDGE + ((x)-3)*CAROUSEL_SMALL_EDGE))
 // Spacing between icons
-#define CAROUSEL_IS_SM(x)           (CAROUSEL_AV_SPACE((x)) / ((x)-1))
+#define CAROUSEL_IS_SM(x)           (CAROUSEL_AV_SPACE((x)) / (x))
 // Spacing on the left of carousel
-#define CAROUSEL_LS_SM(x)           ((CAROUSEL_AV_SPACE((x)) - CAROUSEL_IS_SM((x))*((x)-1)) / 2)
+#define CAROUSEL_LS_SM(x)           ((CAROUSEL_IS_SM((x)) / 2) + ((CAROUSEL_AV_SPACE((x)) - CAROUSEL_IS_SM((x))*(x)) / 2))
 // X offset step for carousel animation
-#define CAROUSEL_X_STEP_ANIM(x)     (((CAROUSEL_IS_SM((x))) * 4) / CAROUSEL_NB_SCALED_ICONS)
+#define CAROUSEL_X_STEP_ANIM(x)     (((CAROUSEL_IS_SM(x))+CAROUSEL_MID_EDGE)/CAROUSEL_NB_ANIM_STEPS - 2)
 
 /* Prototypes */
 void gui_carousel_render_animation(uint16_t nb_elements, const uint16_t* pic_ids, const uint16_t* text_ids, uint16_t selected_id, BOOL left_anim);

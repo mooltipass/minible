@@ -190,32 +190,6 @@ void sh1122_reset_max_text_x(sh1122_descriptor_t* oled_descriptor)
     oled_descriptor->max_text_x = SH1122_OLED_WIDTH;
 }
 
-/*! \fn     sh1122_flip_displayed_buffer(sh1122_descriptor_t* oled_descriptor)
-*   \brief  Switch from active / inactive buffer
-*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
-*/
-void sh1122_flip_displayed_buffer(sh1122_descriptor_t* oled_descriptor)
-{
-    sh1122_move_display_start_line(oled_descriptor, SH1122_OLED_HEIGHT);
-}
-
-/*! \fn     sh1122_flip_buffers(sh1122_descriptor_t* oled_descriptor, oled_scroll_te scroll_mode, uint32_t delay)
-*   \brief  Flip buffer using scrolling
-*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
-*   \param  scroll_mode         Scrolling mode (see enum)
-*   \param  delay               Delay in ms between line scrolls
-*/
-void sh1122_flip_buffers(sh1122_descriptor_t* oled_descriptor, oled_scroll_te scroll_mode, uint32_t delay)
-{
-    int16_t offset = (scroll_mode == OLED_SCROLL_UP ? 1 : -1);
-    
-    for (uint8_t ind = 0; ind < SH1122_OLED_HEIGHT; ind++)
-    {
-        sh1122_move_display_start_line(oled_descriptor, offset);
-        timer_delay_ms(delay);
-    }
-}
-
 /*! \fn     sh1122_fill_screen(sh1122_descriptor_t* oled_descriptor, uint8_t color)
 *   \brief  Fill the sh1122 screen with a given color
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
@@ -315,7 +289,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
         {
             for (uint16_t y = 0; y < SH1122_OLED_HEIGHT; y++)
             {
-                sh1122_display_horizontal_pixel_line(oled_descriptor, x*2, y, 2, &(oled_descriptor->frame_buffer[y][x]));
+                sh1122_display_horizontal_pixel_line(oled_descriptor, x*2, y, 2, &(oled_descriptor->frame_buffer[y][x]), FALSE);
             }
         }
     }
@@ -326,7 +300,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
         {
             for (uint16_t y = 0; y < SH1122_OLED_HEIGHT; y++)
             {
-                sh1122_display_horizontal_pixel_line(oled_descriptor, x*2, y, 2, &(oled_descriptor->frame_buffer[y][x]));
+                sh1122_display_horizontal_pixel_line(oled_descriptor, x*2, y, 2, &(oled_descriptor->frame_buffer[y][x]), FALSE);
             }
         }
     }
@@ -335,7 +309,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
         /* Top to bottom */
         for (uint16_t y = 0; y < SH1122_OLED_HEIGHT; y++)
         {
-            sh1122_display_horizontal_pixel_line(oled_descriptor, 0, y, SH1122_OLED_WIDTH, &(oled_descriptor->frame_buffer[y][0]));
+            sh1122_display_horizontal_pixel_line(oled_descriptor, 0, y, SH1122_OLED_WIDTH, &(oled_descriptor->frame_buffer[y][0]), FALSE);
             DELAYMS(3);
         }
     }
@@ -344,7 +318,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
         /* Bottom to top */
         for (int16_t y = SH1122_OLED_HEIGHT-1; y >= 0; y--)
         {
-            sh1122_display_horizontal_pixel_line(oled_descriptor, 0, y, SH1122_OLED_WIDTH, &(oled_descriptor->frame_buffer[y][0]));
+            sh1122_display_horizontal_pixel_line(oled_descriptor, 0, y, SH1122_OLED_WIDTH, &(oled_descriptor->frame_buffer[y][0]), FALSE);
             DELAYMS(3);
         }
     }
@@ -360,11 +334,11 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
             uint16_t x_pos2 = (SH1122_OLED_WIDTH/2)+2*i-2;
             for (uint16_t y = low_y; y <= high_y; y++)
             {
-                sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, y, 2, &(oled_descriptor->frame_buffer[y][x_pos/2]));
-                sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos2, y, 2, &(oled_descriptor->frame_buffer[y][x_pos2/2]));
+                sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, y, 2, &(oled_descriptor->frame_buffer[y][x_pos/2]), FALSE);
+                sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos2, y, 2, &(oled_descriptor->frame_buffer[y][x_pos2/2]), FALSE);
             }
-            sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, low_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[low_y][x_pos/2]));
-            sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, high_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[high_y][x_pos/2]));
+            sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, low_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[low_y][x_pos/2]), FALSE);
+            sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, high_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[high_y][x_pos/2]), FALSE);
             
             if ((i & 0x01) == 0)
             {
@@ -385,11 +359,11 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
             uint16_t x_pos2 = (SH1122_OLED_WIDTH/2)+2*i-2;
             for (uint16_t y = low_y; y <= high_y; y++)
             {
-                sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, y, 2, &(oled_descriptor->frame_buffer[y][x_pos/2]));
-                sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos2, y, 2, &(oled_descriptor->frame_buffer[y][x_pos2/2]));
+                sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, y, 2, &(oled_descriptor->frame_buffer[y][x_pos/2]), FALSE);
+                sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos2, y, 2, &(oled_descriptor->frame_buffer[y][x_pos2/2]), FALSE);
             }
-            sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, low_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[low_y][x_pos/2]));
-            sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, high_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[high_y][x_pos/2]));
+            sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, low_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[low_y][x_pos/2]), FALSE);
+            sh1122_display_horizontal_pixel_line(oled_descriptor, x_pos, high_y, x_pos2-x_pos, &(oled_descriptor->frame_buffer[high_y][x_pos/2]), FALSE);
             
             if ((i & 0x01) == 1)
             {
@@ -627,6 +601,12 @@ void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descript
     uint16_t height = bitstream->height;
     uint16_t width = bitstream->width;
     
+    /* Check for off screen picture */
+    if ((x < 0) && (-x >= width))
+    {
+        return;
+    }
+    
     /* Frame buffer: we only support DMA transfers when not writing to buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
         /* Depending if we write in the frame buffer or not */
@@ -639,7 +619,19 @@ void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descript
                 for (uint16_t i = 0; i < width/2; i++)
                 {
                     uint8_t pixels = bitstream_bitmap_two_pixel_read(bitstream);
-                    oled_descriptor->frame_buffer[y+j][x/2+i] |= pixels;
+                    
+                    /* Check for off screen */
+                    if ((x + i*2) <= 0)
+                    {
+                        if (TRUE)
+                        {
+                            oled_descriptor->frame_buffer[y+j][x/2+i+SH1122_OLED_WIDTH/2] |= pixels;
+                        } 
+                    }
+                    else
+                    {
+                        oled_descriptor->frame_buffer[y+j][x/2+i] |= pixels;                        
+                    }
                 }
             }
         } 
@@ -767,36 +759,193 @@ void sh1122_draw_aligned_image_from_bitstream(sh1122_descriptor_t* oled_descript
     bitstream_bitmap_close(bitstream);    
 }   
 
-/*! \fn     sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint8_t* pixels)
+/*! \fn     sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint8_t* pixels, BOOL write_to_buffer)
 *   \brief  Display adjacent pixels at a given Y
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   X position
 *   \param  y                   Y position
 *   \param  width               Line width
 *   \param  pixels              Pointer to data buffer
+*   \param  write_to_buffer     Set to something else than FALSE to write to buffer
 *   \note   We only support odd X positions for the moment
 */
-void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint8_t* pixels)
+void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, uint16_t width, uint8_t* pixels, BOOL write_to_buffer)
 {
-    /* Set pixel write window */
-    sh1122_set_row_address(oled_descriptor, y);
-    sh1122_set_column_address(oled_descriptor, x/2);
-    
-    /* Start filling the SSD1322 RAM */
-    sh1122_start_data_sending(oled_descriptor);
-
-    /* Send line */
-    for (uint16_t i = 0; i < width/2; i++)
+    /* Check for off screen line on the left */
+    if (((x < 0) && (-x >= width) && (oled_descriptor->screen_wrapping_allowed == FALSE)) || (x < -SH1122_OLED_WIDTH))
     {
-        sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, *pixels);
-        pixels++;
+        return;
     }
     
-    /* Wait for spi buffer to be sent */
-    sercom_spi_wait_for_transmit_complete(oled_descriptor->sercom_pt);
+    /* X off screen, remove one OLED width if wrap enabled */
+    if ((x >= SH1122_OLED_WIDTH) && (oled_descriptor->screen_wrapping_allowed != FALSE))
+    {
+        x -= SH1122_OLED_WIDTH;
+    }
     
-    /* Stop sending data */
-    sh1122_stop_data_sending(oled_descriptor);
+    /* Check for off screen line on the right */
+    if (x >= SH1122_OLED_WIDTH)
+    {
+        return;
+    }
+    
+#ifdef OLED_INTERNAL_FRAME_BUFFER
+    if (write_to_buffer != FALSE)
+    {
+        /* Previous pixels in case we are shifted */
+        uint8_t prev_pixels = 0x00;
+        
+        /* Boolean to mention if pixel to be written is the first one in the buffer */
+        BOOL pixel_shift = FALSE;
+        
+        /* Check for negative x */
+        if (x < 0)
+        {
+            /* nb pixels to write */
+            uint16_t nb_pixels_to_be_written = -x>=width?width:-x;
+            
+            /* Wrapping allowed? */
+            if (oled_descriptor->screen_wrapping_allowed != FALSE)
+            {
+                /* Check for off screen already done */
+                if ((x%2) == 0)
+                {
+                    memcpy(&oled_descriptor->frame_buffer[y][x/2+SH1122_OLED_WIDTH/2], pixels, (nb_pixels_to_be_written/2));
+                    pixels -= x/2;
+                }
+                else
+                {
+                    pixel_shift = TRUE;
+                    for (int16_t i = x; i < x+nb_pixels_to_be_written; i+=2)
+                    {
+                        oled_descriptor->frame_buffer[y][(i+SH1122_OLED_WIDTH)/2] = (*pixels >> 4) | (prev_pixels << 4);
+                        prev_pixels = *pixels;
+                        pixels++;
+                    }
+                }
+                
+                /* Did we miss the last pixel? */
+                if ((x + nb_pixels_to_be_written)%2 != 0)
+                {
+                    if (pixel_shift != FALSE)
+                    {
+                        oled_descriptor->frame_buffer[y][(x+nb_pixels_to_be_written+SH1122_OLED_WIDTH)/2] = prev_pixels << 4;
+                    } 
+                    else
+                    {
+                        oled_descriptor->frame_buffer[y][(x+nb_pixels_to_be_written+SH1122_OLED_WIDTH)/2] = *pixels << 4;
+                    }
+                }
+            } 
+            else
+            {
+                /* remove off screen pixels */
+                pixels -= (x-1)/2;
+                if ((x%2) != 0)
+                {
+                    pixel_shift = TRUE;
+                    prev_pixels = *(pixels-1);
+                }
+            }     
+            
+            /* Check for end of display */
+            if (nb_pixels_to_be_written == width)
+            {
+                return;
+            }
+                   
+            /* Update x to 0, reduce width */
+            width += x;
+            x = 0;
+        }
+        
+        /* Now x is 0 or less than SH1122_OLED_WIDTH */
+        uint16_t nb_pixels_to_be_written = (x+width)>=SH1122_OLED_WIDTH?(SH1122_OLED_WIDTH-x):width;
+        
+        /* Pixels for on-screen */
+        if ((x%2 == 0) && (pixel_shift == FALSE))
+        {            
+            /* We are 2 pixels aligned */
+            memcpy(&oled_descriptor->frame_buffer[y][x/2], pixels, nb_pixels_to_be_written/2);
+            pixels += nb_pixels_to_be_written/2;
+        } 
+        else
+        {
+            /* We get pixel shift! */
+            pixel_shift = TRUE;
+            
+            /* Not 2 pixels aligned, loop */
+            for (int16_t i = x; i < x+nb_pixels_to_be_written-1; i+=2)
+            {
+                oled_descriptor->frame_buffer[y][i/2] = (*pixels >> 4) | (prev_pixels << 4);
+                prev_pixels = *pixels;
+                pixels++;
+            }
+        }
+        
+        /* Did we miss the last pixel? */
+        if ((x + nb_pixels_to_be_written)%2 != 0)
+        {
+            if (pixel_shift != FALSE)
+            {
+                oled_descriptor->frame_buffer[y][(x+nb_pixels_to_be_written)/2] = prev_pixels << 4;
+            } 
+            else
+            {
+                oled_descriptor->frame_buffer[y][(x+nb_pixels_to_be_written)/2] = *pixels << 4;
+            }
+        }
+            
+        /* Update x and width */
+        width -= nb_pixels_to_be_written;
+        x += nb_pixels_to_be_written;
+        
+        /* Out of screen and wrapping? */
+        if ((width > 0) && (oled_descriptor->screen_wrapping_allowed != FALSE))
+        {
+            x-= SH1122_OLED_WIDTH;
+            nb_pixels_to_be_written = (x+width)>=SH1122_OLED_WIDTH?(SH1122_OLED_WIDTH-x-1):width;
+            
+            if (pixel_shift != FALSE)
+            {
+                /* Not 2 pixels aligned, loop */
+                for (int16_t i = 0; i < width; i+=2)
+                {
+                    oled_descriptor->frame_buffer[y][i/2] = (*pixels >> 4) | (prev_pixels << 4);
+                    prev_pixels = *pixels;
+                    pixels++;
+                }
+            } 
+            else
+            {
+                /* We are 2 pixels aligned */
+                memcpy(&oled_descriptor->frame_buffer[y][0], pixels, nb_pixels_to_be_written/2);
+            }
+        }
+    } 
+    else
+#endif
+    {
+        /* Set pixel write window */
+        sh1122_set_row_address(oled_descriptor, y);
+        sh1122_set_column_address(oled_descriptor, x/2);
+        
+        /* Start filling the SSD1322 RAM */
+        sh1122_start_data_sending(oled_descriptor);
+
+        /* Send line */
+        for (uint16_t i = 0; i < width/2; i++)
+        {
+            sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, *pixels);
+            pixels++;
+        }
+        
+        /* Wait for spi buffer to be sent */
+        sercom_spi_wait_for_transmit_complete(oled_descriptor->sercom_pt);
+        
+        /* Stop sending data */
+        sh1122_stop_data_sending(oled_descriptor);
+    }
 }
 
 /*! \fn     sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, uint8_t color, BOOL write_to_buffer)
@@ -1010,8 +1159,29 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
     if ((x == 0) && (y == 0) && (bitstream->width == SH1122_OLED_WIDTH) && (bitstream->height == SH1122_OLED_HEIGHT))
     {
         /* Dedicated code to allow faster update */
-        //sh1122_draw_aligned_image_from_bitstream(oled_descriptor, x, y, bitstream);
         sh1122_draw_full_screen_image_from_bitstream(oled_descriptor, bitstream);        
+    }
+    else if (write_to_buffer != FALSE)
+    {
+        /* WIP */
+        /* Buffer large enough to contain a display line */
+        uint8_t pixel_buffer[SH1122_OLED_WIDTH/2];
+        
+        /* Check for buffer overflow */
+        if (bitstream->width > sizeof(pixel_buffer))
+        {
+            return;
+        }
+        
+        /* Lines loop */
+        for (uint16_t i = 0; i < bitstream->height; i++)
+        {            
+            bitstream_bitmap_array_read(bitstream, pixel_buffer, bitstream->width);
+            sh1122_display_horizontal_pixel_line(oled_descriptor, x, y+i, bitstream->width, pixel_buffer, write_to_buffer);
+        }
+        
+        /* Close bitstream */
+        bitstream_bitmap_close(bitstream);    
     }
     else if ((bitstream->width % 2 == 0) && (x % 2 == 0))
     {

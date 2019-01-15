@@ -28,6 +28,9 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
     /* Clear frame buffer */
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     
+    /* Allow wrapping */
+    plat_oled_descriptor.screen_wrapping_allowed = TRUE;
+    
     /* Compute most left icon index based on selected icon */
     int16_t cur_icon_index = selected_id - (nb_elements/2);
     if (cur_icon_index < 0)
@@ -36,7 +39,6 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
     }
     
     /* Start displaying icons */
-    //uint16_t cur_display_x = gui_carousel_left_spacing[nb_elements] - anim_step*gui_carousel_inter_icon_spacing[nb_elements]*4/CAROUSEL_NB_SCALED_ICONS;
     uint16_t cur_display_x = gui_carousel_left_spacing[nb_elements] - anim_step*gui_carousel_x_anim_steps[nb_elements];    
     for (uint16_t i = 0; i < nb_elements; i++)
     {
@@ -81,9 +83,7 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
         }
         else
         {
-            // to remove
-            if (i != 0 && i != nb_elements-1)
-                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-CAROUSEL_SMALL_EDGE/2, pic_ids[cur_icon_index] + CAROUSEL_NB_SCALED_ICONS - 1, TRUE);
+            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-CAROUSEL_SMALL_EDGE/2, pic_ids[cur_icon_index] + CAROUSEL_NB_SCALED_ICONS - 1, TRUE);
             cur_display_x += CAROUSEL_SMALL_EDGE;
         }
         
@@ -121,6 +121,9 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
     
     /* Flush */
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    
+    /* Prevent wrapping */
+    plat_oled_descriptor.screen_wrapping_allowed = FALSE;
 }
 
 
@@ -144,6 +147,6 @@ void gui_carousel_render_animation(uint16_t nb_elements, const uint16_t* pic_ids
         {
             gui_carousel_render(nb_elements, pic_ids, text_ids, selected_id, i);
         }
-        //timer_delay_ms(10);
+        //timer_delay_ms(1000);
     }
 }

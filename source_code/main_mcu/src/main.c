@@ -297,12 +297,45 @@ int main(void)
     timer_delay_ms(1234);  
     #endif
     
+    /*BOOL temp_bool = TRUE;
+    int16_t x = 0;
+    while(1)
+    {
+        for (x = -50; x < 260; x++)
+        {
+            temp_bool = TRUE;
+            wheel_action_ret_te user_action = inputs_get_wheel_action(FALSE, FALSE);
+            if ((user_action != WHEEL_ACTION_NONE) || (temp_bool != FALSE))
+            {
+                if (temp_bool != FALSE)
+                {
+                    temp_bool = FALSE;
+                }
+                else if (user_action == WHEEL_ACTION_DOWN)
+                {
+                    x++;
+                }
+                else
+                {
+                    x--;
+                }
+                plat_oled_descriptor.screen_wrapping_allowed = TRUE;
+                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, x, 14, 183, TRUE);
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Current x: %d", x);
+                sh1122_flush_frame_buffer(&plat_oled_descriptor);
+                sh1122_clear_frame_buffer(&plat_oled_descriptor);
+                plat_oled_descriptor.screen_wrapping_allowed = FALSE;
+            }
+            timer_delay_ms(30);
+        }
+    }*/
+    
     /* WIP */
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    /*sh1122_clear_frame_buffer(&plat_oled_descriptor);
     sh1122_draw_vertical_line(&plat_oled_descriptor, 0, 0, 63, 0xFF, TRUE);
     sh1122_draw_vertical_line(&plat_oled_descriptor, 255, 0, 63, 0xFF, TRUE);
     sh1122_put_string_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_CENTER, u"Create a New User?", TRUE);
-    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    sh1122_flush_frame_buffer(&plat_oled_descriptor);*/
     //while(1);
     
     /* Set startup screen: TODO change back to locked */
