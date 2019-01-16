@@ -14,6 +14,14 @@ const uint16_t operations_settings_text_ids[] = {GUI_KEYB_LAYOUT_CHANGE_TEXT_ID,
 uint16_t gui_settings_menu_selected_item = 0;
 
 
+/*! \fn     gui_operations_menu_reset_state(void)
+*   \brief  Reset menu state
+*/
+void gui_settings_menu_reset_state(void)
+{
+    gui_settings_menu_selected_item = 3;
+}
+
 /*! \fn     gui_settings_menu_event_render(wheel_action_ret_te wheel_action)
 *   \brief  Render GUI depending on event received
 *   \param  wheel_action    Wheel action received

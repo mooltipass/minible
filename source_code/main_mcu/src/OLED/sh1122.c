@@ -875,7 +875,7 @@ void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, 
             pixel_shift = TRUE;
             
             /* Not 2 pixels aligned, loop */
-            for (int16_t i = x; i < x+nb_pixels_to_be_written-1; i+=2)
+            for (int16_t i = x; i < x+nb_pixels_to_be_written; i+=2)
             {
                 oled_descriptor->frame_buffer[y][i/2] = (*pixels >> 4) | (prev_pixels << 4);
                 prev_pixels = *pixels;
@@ -1167,17 +1167,25 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
         /* Buffer large enough to contain a display line */
         uint8_t pixel_buffer[SH1122_OLED_WIDTH/2];
         
+        /* In some cases the routine does an extra read, depending on alignment */
+        pixel_buffer[bitstream->width/2] = 0;
+        
         /* Check for buffer overflow */
-        if (bitstream->width > sizeof(pixel_buffer))
+        if (bitstream->width > sizeof(pixel_buffer) - 1)
         {
             return;
         }
         
         /* Lines loop */
-        for (uint16_t i = 0; i < bitstream->height; i++)
+        for (int16_t i = 0; i < bitstream->height; i++)
         {            
             bitstream_bitmap_array_read(bitstream, pixel_buffer, bitstream->width);
-            sh1122_display_horizontal_pixel_line(oled_descriptor, x, y+i, bitstream->width, pixel_buffer, write_to_buffer);
+            
+            /* Check for on screen */
+            if ((y+i >= 0) && (y+i < SH1122_OLED_WIDTH))
+            {
+                sh1122_display_horizontal_pixel_line(oled_descriptor, x, y+i, bitstream->width, pixel_buffer, write_to_buffer);
+            }
         }
         
         /* Close bitstream */

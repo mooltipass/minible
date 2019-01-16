@@ -23,6 +23,7 @@
 
 /* Prototypes */
 BOOL gui_bluetooth_menu_event_render(wheel_action_ret_te wheel_action);
+void gui_blueooth_menu_reset_state(void);
 
 
 

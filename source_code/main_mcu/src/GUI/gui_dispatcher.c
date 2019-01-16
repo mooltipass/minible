@@ -32,6 +32,11 @@ void gui_dispatcher_set_current_screen(gui_screen_te screen, BOOL reset_states, 
     {
         gui_main_menu_reset_state();
     }
+    
+    /* Reset other menu states */
+    gui_settings_menu_reset_state();
+    gui_blueooth_menu_reset_state();
+    gui_operations_menu_reset_state();
 }
 
 /*! \fn     gui_dispatcher_get_back_to_current_screen(void)

@@ -26,6 +26,7 @@
 
 /* Prototypes */
 BOOL gui_settings_menu_event_render(wheel_action_ret_te wheel_action);
+void gui_settings_menu_reset_state(void);
 
 
 #endif /* GUI_SETTINGS_MENU_H_ */

@@ -14,6 +14,14 @@ const uint16_t operations_menu_text_ids[] = {GUI_CLONE_TEXT_ID, GUI_CHANGE_PIN_T
 uint16_t gui_operations_menu_selected_item = 0;
 
 
+/*! \fn     gui_operations_menu_reset_state(void)
+*   \brief  Reset menu state
+*/
+void gui_operations_menu_reset_state(void)
+{
+    gui_operations_menu_selected_item = 2;
+}
+
 /*! \fn     gui_operations_menu_event_render(wheel_action_ret_te wheel_action)
 *   \brief  Render GUI depending on event received
 *   \param  wheel_action    Wheel action received

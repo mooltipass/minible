@@ -19,6 +19,14 @@ uint16_t gui_bluetooth_menu_selected_item = 0;
 #define BT_ENABLED_BOOL   FALSE
 
 
+/*! \fn     gui_blueooth_menu_reset_state(void)
+*   \brief  Reset menu state
+*/
+void gui_blueooth_menu_reset_state(void)
+{
+    gui_bluetooth_menu_selected_item = 2;
+}
+
 /*! \fn     gui_bluetooth_menu_event_render(wheel_action_ret_te wheel_action)
 *   \brief  Render GUI depending on event received
 *   \param  wheel_action    Wheel action received
