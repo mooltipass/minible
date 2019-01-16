@@ -789,6 +789,12 @@ void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, 
         return;
     }
     
+    /* Check for correct Y */
+    if ((y < 0) || (y >= SH1122_OLED_HEIGHT))
+    {
+        return;
+    }
+    
 #ifdef OLED_INTERNAL_FRAME_BUFFER
     if (write_to_buffer != FALSE)
     {
@@ -892,7 +898,7 @@ void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, 
             } 
             else
             {
-                oled_descriptor->frame_buffer[y][(x+nb_pixels_to_be_written)/2] = *pixels << 4;
+                oled_descriptor->frame_buffer[y][(x+nb_pixels_to_be_written)/2] = *pixels;
             }
         }
             
@@ -1182,7 +1188,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
             bitstream_bitmap_array_read(bitstream, pixel_buffer, bitstream->width);
             
             /* Check for on screen */
-            if ((y+i >= 0) && (y+i < SH1122_OLED_WIDTH))
+            if ((y+i >= 0) && (y+i < SH1122_OLED_HEIGHT))
             {
                 sh1122_display_horizontal_pixel_line(oled_descriptor, x, y+i, bitstream->width, pixel_buffer, write_to_buffer);
             }

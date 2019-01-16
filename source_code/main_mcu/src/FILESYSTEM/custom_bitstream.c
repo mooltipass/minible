@@ -196,7 +196,7 @@ static inline uint8_t bitstream_bitmap_get_next_byte(bitstream_bitmap_t* bs)
 *   \brief  Read continuous pixel data
 *   \param  bs          Pointer to a bitmap bitstream structure
 *   \param  data        Pointer to where to store the data
-*   \param  nb_pixels   Number of pixels to be read (multiple of 4!)
+*   \param  nb_pixels   Number of pixels to be read
 */
 void bitstream_bitmap_array_read(bitstream_bitmap_t* bs, uint8_t* data, uint16_t nb_pixels)
 {
@@ -237,7 +237,7 @@ void bitstream_bitmap_array_read(bitstream_bitmap_t* bs, uint8_t* data, uint16_t
         while (nb_pixels != 0)
         {
             *data = 0;
-            for (uint16_t i = 0; i < 2; i++)
+            for (uint16_t i = 0; (i < 2) && (nb_pixels-i) != 0; i++)
             {
                 *data <<= 4;
                 if (bs->_bits == 0)
@@ -261,6 +261,11 @@ void bitstream_bitmap_array_read(bitstream_bitmap_t* bs, uint8_t* data, uint16_t
                     bs->_word = bitstream_bitmap_get_next_byte(bs);
                     *data |= ((bs->_word >> bs->_bits) * 15) / bs->mask;
                 }                
+            }
+            if (nb_pixels == 1)
+            {
+                *data <<= 4;
+                break;
             }
             nb_pixels-=2;
             data++;
