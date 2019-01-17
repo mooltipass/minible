@@ -286,16 +286,16 @@ int main(void)
         debug_debug_menu();
     }
     
-    #define BLA
+    //#define BLA
     #ifdef BLA
     /* Start animation */    
     for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
     {
-        timer_start_timer(TIMER_WAIT_FUNCTS, 22);
+        timer_start_timer(TIMER_WAIT_FUNCTS, 20);
         sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
         while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING);
     }
-    timer_delay_ms(1234);  
+    timer_delay_ms(1500);  
     #endif
     
     /*BOOL temp_bool = TRUE;

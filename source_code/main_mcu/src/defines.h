@@ -12,8 +12,9 @@
 #define AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS    500
 
 /* Macros */
-#define XSTR(x) STR(x)
-#define STR(x) #x
+#define XSTR(x)         STR(x)
+#define STR(x)          #x
+#define ARRAY_SIZE(x)   (sizeof((x)) / sizeof((x)[0]))
 
 /* Standard defines */
 #define AES_KEY_LENGTH          256

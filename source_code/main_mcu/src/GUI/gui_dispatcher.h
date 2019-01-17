@@ -11,8 +11,6 @@
 #define GUI_DISPATCHER_H_
 
 /* Defines */
-#define GUI_BACK_ICON_ID        255
-#define GUI_BACK_TEXT_ID        11
 #define GUI_ANIMATION_FFRAME_ID 0
 #define GUI_ANIMATION_NBFRAMES  120
 
@@ -22,12 +20,12 @@ typedef enum {  GUI_SCREEN_NINSERTED = 0,
                 GUI_SCREEN_INSERTED_INVALID,
                 GUI_SCREEN_INSERTED_UNKNOWN,
                 GUI_SCREEN_MEMORY_MGMT,
-                GUI_SCREEN_MAIN_MENU,
-                GUI_SCREEN_BT,
                 GUI_SCREEN_CATEGORIES,
                 GUI_SCREEN_FAVORITES,
                 GUI_SCREEN_LOGIN,
                 GUI_SCREEN_LOCK,
+                GUI_SCREEN_MAIN_MENU,
+                GUI_SCREEN_BT,
                 GUI_SCREEN_OPERATIONS,
                 GUI_SCREEN_SETTINGS
              } gui_screen_te;

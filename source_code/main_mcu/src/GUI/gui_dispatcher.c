@@ -4,12 +4,9 @@
 *    Author:   Mathieu Stephan
 */
 #include "comms_hid_msgs_debug.h"
-#include "gui_operations_menu.h"
-#include "gui_bluetooth_menu.h"
-#include "gui_settings_menu.h"
 #include "gui_dispatcher.h"
-#include "gui_main_menu.h"
 #include "gui_carousel.h"
+#include "gui_menu.h"
 #include "defines.h"
 #include "inputs.h"
 #include "main.h"
@@ -25,18 +22,17 @@ gui_screen_te gui_dispatcher_current_screen = GUI_SCREEN_NINSERTED;
 */
 void gui_dispatcher_set_current_screen(gui_screen_te screen, BOOL reset_states, oled_transition_te transition)
 {
+    /* Store transition, screen, call menu reset routine */
     plat_oled_descriptor.loaded_transition = transition;
-    gui_dispatcher_current_screen = screen;
+    gui_dispatcher_current_screen = screen;    
+    gui_menu_reset_selected_items(reset_states);
     
-    if (reset_states != FALSE)
+    /* If we're going into a menu, set the selected menu */
+    if ((screen >= GUI_SCREEN_MAIN_MENU) && (screen <= GUI_SCREEN_SETTINGS))
     {
-        gui_main_menu_reset_state();
+        gui_menu_set_selected_menu(screen-GUI_SCREEN_MAIN_MENU+MAIN_MENU);
+        gui_menu_update_menus();
     }
-    
-    /* Reset other menu states */
-    gui_settings_menu_reset_state();
-    gui_blueooth_menu_reset_state();
-    gui_operations_menu_reset_state();
 }
 
 /*! \fn     gui_dispatcher_get_back_to_current_screen(void)
@@ -52,14 +48,15 @@ void gui_dispatcher_get_back_to_current_screen(void)
         case GUI_SCREEN_INSERTED_INVALID:   break;
         case GUI_SCREEN_INSERTED_UNKNOWN:   break;
         case GUI_SCREEN_MEMORY_MGMT:        break;
-        case GUI_SCREEN_MAIN_MENU:          gui_main_menu_event_render(WHEEL_ACTION_NONE); break;
-        case GUI_SCREEN_BT:                 gui_bluetooth_menu_event_render(WHEEL_ACTION_NONE); break;
         case GUI_SCREEN_CATEGORIES:         break;
         case GUI_SCREEN_FAVORITES:          break;
         case GUI_SCREEN_LOGIN:              break;
         case GUI_SCREEN_LOCK:               break;
-        case GUI_SCREEN_OPERATIONS:         gui_operations_menu_event_render(WHEEL_ACTION_NONE); break;
-        case GUI_SCREEN_SETTINGS:           gui_settings_menu_event_render(WHEEL_ACTION_NONE); break;
+        /* Common menu architecture */
+        case GUI_SCREEN_MAIN_MENU:
+        case GUI_SCREEN_BT:
+        case GUI_SCREEN_OPERATIONS:
+        case GUI_SCREEN_SETTINGS:           gui_menu_event_render(WHEEL_ACTION_NONE);break;
         default: break;
     }
 }
@@ -81,14 +78,15 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
         case GUI_SCREEN_INSERTED_INVALID:   break;
         case GUI_SCREEN_INSERTED_UNKNOWN:   break;
         case GUI_SCREEN_MEMORY_MGMT:        break;
-        case GUI_SCREEN_MAIN_MENU:          rerender_bool = gui_main_menu_event_render(wheel_action); break;
-        case GUI_SCREEN_BT:                 rerender_bool = gui_bluetooth_menu_event_render(wheel_action); break;
         case GUI_SCREEN_CATEGORIES:         break;
         case GUI_SCREEN_FAVORITES:          break;
         case GUI_SCREEN_LOGIN:              break;
         case GUI_SCREEN_LOCK:               break;
-        case GUI_SCREEN_OPERATIONS:         rerender_bool = gui_operations_menu_event_render(wheel_action); break;
-        case GUI_SCREEN_SETTINGS:           rerender_bool = gui_settings_menu_event_render(wheel_action); break;
+        /* Common menu architecture */        
+        case GUI_SCREEN_MAIN_MENU:
+        case GUI_SCREEN_BT:
+        case GUI_SCREEN_OPERATIONS:
+        case GUI_SCREEN_SETTINGS:           rerender_bool = gui_menu_event_render(wheel_action);break;
         default: break;
     }    
     
