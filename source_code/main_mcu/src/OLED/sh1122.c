@@ -315,23 +315,47 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
     }
     else if (oled_descriptor->loaded_transition == OLED_LEFT_RIGHT_TRANS)
     {
+        uint8_t pixel_data[2];
+        
         /* Left to right */
         for (uint16_t x = 0; x < SH1122_OLED_WIDTH/2; x++)
         {
             for (uint16_t y = 0; y < SH1122_OLED_HEIGHT; y++)
             {
-                sh1122_display_horizontal_pixel_line(oled_descriptor, x*2, y, 2, &(oled_descriptor->frame_buffer[y][x]), FALSE);
+                pixel_data[0] = (oled_descriptor->frame_buffer[y][x]);
+                pixel_data[1] = SH1122_TRANSITION_PIXEL;
+                
+                if (x*2 + 2 < SH1122_OLED_WIDTH)
+                {
+                    sh1122_display_horizontal_pixel_line(oled_descriptor, x*2, y, 4, pixel_data, FALSE);
+                }
+                else
+                {
+                    sh1122_display_horizontal_pixel_line(oled_descriptor, x*2, y, 2, pixel_data, FALSE);                    
+                }
             }
         }
     }
     else if (oled_descriptor->loaded_transition == OLED_RIGHT_LEFT_TRANS)
     {
+        uint8_t pixel_data[2];
+        
         /* Right to left */
-        for (int16_t x = (SH1122_OLED_WIDTH/2)-1; x >= 0; x--)
+        for (int16_t x = (SH1122_OLED_WIDTH/2)-2; x >= -1; x--)
         {
             for (uint16_t y = 0; y < SH1122_OLED_HEIGHT; y++)
             {
-                sh1122_display_horizontal_pixel_line(oled_descriptor, x*2, y, 2, &(oled_descriptor->frame_buffer[y][x]), FALSE);
+                pixel_data[0] = SH1122_TRANSITION_PIXEL<<4;
+                pixel_data[1] = (oled_descriptor->frame_buffer[y][x+1]);
+                
+                if (x > 0)
+                {
+                    sh1122_display_horizontal_pixel_line(oled_descriptor, x*2, y, 4, pixel_data, FALSE);
+                }
+                else
+                {
+                    sh1122_display_horizontal_pixel_line(oled_descriptor, x*2 + 2, y, 2, pixel_data+1, FALSE);
+                }
             }
         }
     }
@@ -341,7 +365,12 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
         for (uint16_t y = 0; y < SH1122_OLED_HEIGHT; y++)
         {
             sh1122_display_horizontal_pixel_line(oled_descriptor, 0, y, SH1122_OLED_WIDTH, &(oled_descriptor->frame_buffer[y][0]), FALSE);
-            DELAYMS(3);
+            if (y+2 < SH1122_OLED_HEIGHT)
+            {                
+                /* Dotted line */
+                sh1122_draw_rectangle(oled_descriptor, 0, y+2, SH1122_OLED_WIDTH, 1, SH1122_TRANSITION_PIXEL);
+            }
+            DELAYMS(2);
         }
     }
     else if (oled_descriptor->loaded_transition == OLED_BOT_TOP_TRANS)
@@ -350,7 +379,12 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
         for (int16_t y = SH1122_OLED_HEIGHT-1; y >= 0; y--)
         {
             sh1122_display_horizontal_pixel_line(oled_descriptor, 0, y, SH1122_OLED_WIDTH, &(oled_descriptor->frame_buffer[y][0]), FALSE);
-            DELAYMS(3);
+            if (y-2 >= 0)
+            {
+                /* Dotted line */
+                sh1122_draw_rectangle(oled_descriptor, 0, y-2, SH1122_OLED_WIDTH, 1, SH1122_TRANSITION_PIXEL);
+            }
+            DELAYMS(2);
         }
     }
     else if (oled_descriptor->loaded_transition == OLED_IN_OUT_TRANS)
@@ -783,6 +817,7 @@ void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, 
 *   \param  width               Width
 *   \param  height              Height
 *   \param  color               4 bits color
+*   \note   No checks done on X & Y & width & height
 */
 void sh1122_draw_rectangle(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, int16_t width, int16_t height, uint16_t color)
 {

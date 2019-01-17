@@ -48,6 +48,9 @@
 #define SH1122_OLED_HEIGHT          64
 #define SH1122_OLED_BPP             4
 
+/* Transition defines */
+#define SH1122_TRANSITION_PIXEL     0x03
+
 /* Enums */
 typedef enum {OLED_TRANS_NONE, OLED_LEFT_RIGHT_TRANS, OLED_RIGHT_LEFT_TRANS, OLED_TOP_BOT_TRANS, OLED_BOT_TOP_TRANS, OLED_IN_OUT_TRANS, OLED_OUT_IN_TRANS} oled_transition_te;
 typedef enum {OLED_SCROLL_NONE = 0, OLED_SCROLL_UP = 1, OLED_SCROLL_DOWN = 2, OLED_SCROLL_FLIP = 3} oled_scroll_te;
