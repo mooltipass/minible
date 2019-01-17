@@ -286,6 +286,7 @@ int main(void)
         debug_debug_menu();
     }
     
+    #define BLA
     #ifdef BLA
     /* Start animation */    
     for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)

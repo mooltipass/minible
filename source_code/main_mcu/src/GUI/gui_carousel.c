@@ -25,8 +25,12 @@ const uint16_t gui_carousel_left_spacing[] = {0,0,0,CAROUSEL_LS_SM(3),CAROUSEL_L
 */
 void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const uint16_t* text_ids, uint16_t selected_id, int16_t anim_step)
 {
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
     /* Clear frame buffer */
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #else
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    #endif
     
     /* Allow wrapping */
     plat_oled_descriptor.screen_wrapping_allowed = TRUE;
@@ -117,10 +121,12 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
         }
     }
     custom_fs_get_string_from_file(text_ids[selected_id], &temp_string);
-    sh1122_put_string_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_CENTER, temp_string, TRUE);
+    sh1122_put_string_xy(&plat_oled_descriptor, 0, 45, OLED_ALIGN_CENTER, temp_string, TRUE);
     
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
     /* Flush */
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    #endif
     
     /* Prevent wrapping */
     plat_oled_descriptor.screen_wrapping_allowed = FALSE;
@@ -147,6 +153,5 @@ void gui_carousel_render_animation(uint16_t nb_elements, const uint16_t* pic_ids
         {
             gui_carousel_render(nb_elements, pic_ids, text_ids, selected_id, i);
         }
-        //timer_delay_ms(1000);
     }
 }
