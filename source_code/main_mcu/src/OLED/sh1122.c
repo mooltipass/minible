@@ -257,11 +257,21 @@ void sh1122_clear_current_screen(sh1122_descriptor_t* oled_descriptor)
     oled_descriptor->cur_text_y = 0;
 }
 
+#ifdef OLED_INTERNAL_FRAME_BUFFER
+/*! \fn     sh1122_clear_frame_buffer(sh1122_descriptor_t* oled_descriptor)
+*   \brief  Clear frame buffer
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*/
+void sh1122_clear_frame_buffer(sh1122_descriptor_t* oled_descriptor)
+{
+    sh1122_check_for_flush_and_terminate(oled_descriptor);
+    memset((void*)oled_descriptor->frame_buffer, 0x00, sizeof(oled_descriptor->frame_buffer));
+}
+
 /*! \fn     sh1122_check_for_flush_and_terminate(sh1122_descriptor_t* oled_descriptor)
 *   \brief  Check if a flush is in progress, and wait for its completion if so
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-#ifdef OLED_INTERNAL_FRAME_BUFFER
 void sh1122_check_for_flush_and_terminate(sh1122_descriptor_t* oled_descriptor)
 {
     /* Check for in progress flush */
@@ -396,16 +406,6 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
     
     /* Reset transition */
     oled_descriptor->loaded_transition = OLED_TRANS_NONE;
-}
-
-/*! \fn     sh1122_clear_frame_buffer(sh1122_descriptor_t* oled_descriptor)
-*   \brief  Clear frame buffer
-*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
-*/
-void sh1122_clear_frame_buffer(sh1122_descriptor_t* oled_descriptor)
-{    
-    sh1122_check_for_flush_and_terminate(oled_descriptor);
-    memset((void*)oled_descriptor->frame_buffer, 0x00, sizeof(oled_descriptor->frame_buffer));
 }
 #endif
 
@@ -635,7 +635,7 @@ void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, 
             /* Wrapping allowed? */
             if (oled_descriptor->screen_wrapping_allowed != FALSE)
             {
-                /* Check for off screen already done */
+                /* Check for 2 pixels alignment */
                 if ((x%2) == 0)
                 {
                     memcpy(&oled_descriptor->frame_buffer[y][x/2+SH1122_OLED_WIDTH/2], pixels, (nb_pixels_to_be_written/2));
@@ -643,7 +643,10 @@ void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, 
                 }
                 else
                 {
+                    /* We get pixel shift! */
                     pixel_shift = TRUE;
+
+                    /* Not 2 pixels aligned, loop */
                     for (int16_t i = x; i < x+nb_pixels_to_be_written; i+=2)
                     {
                         oled_descriptor->frame_buffer[y][(i+SH1122_OLED_WIDTH)/2] = (*pixels >> 4) | (prev_pixels << 4);
@@ -690,10 +693,9 @@ void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, 
         /* Now x is 0 or less than SH1122_OLED_WIDTH */
         uint16_t nb_pixels_to_be_written = (x+width)>=SH1122_OLED_WIDTH?(SH1122_OLED_WIDTH-x):width;
         
-        /* Pixels for on-screen */
+        /* Check for 2 pixels alignment */
         if ((x%2 == 0) && (pixel_shift == FALSE))
         {            
-            /* We are 2 pixels aligned */
             memcpy(&oled_descriptor->frame_buffer[y][x/2], pixels, nb_pixels_to_be_written/2);
             pixels += nb_pixels_to_be_written/2;
         } 
@@ -734,7 +736,13 @@ void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, 
             x-= SH1122_OLED_WIDTH;
             nb_pixels_to_be_written = (x+width)>=SH1122_OLED_WIDTH?(SH1122_OLED_WIDTH-x-1):width;
             
-            if (pixel_shift != FALSE)
+            /* Check for 2 pixels alignment */
+            if (pixel_shift == FALSE)
+            {
+                memcpy(&oled_descriptor->frame_buffer[y][0], pixels, nb_pixels_to_be_written/2);
+                pixels += nb_pixels_to_be_written/2;
+            } 
+            else
             {
                 /* Not 2 pixels aligned, loop */
                 for (int16_t i = 0; i < width; i+=2)
@@ -743,11 +751,6 @@ void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, 
                     prev_pixels = *pixels;
                     pixels++;
                 }
-            } 
-            else
-            {
-                /* We are 2 pixels aligned */
-                memcpy(&oled_descriptor->frame_buffer[y][0], pixels, nb_pixels_to_be_written/2);
             }
         
             /* Did we miss the last pixel? */
