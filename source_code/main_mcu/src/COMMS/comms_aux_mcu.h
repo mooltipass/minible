@@ -106,7 +106,7 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void);
 void comms_aux_mcu_wait_for_message_sent(void);
 void comms_aux_arm_rx_and_clear_no_comms(void);
 void comms_aux_arm_rx_and_set_no_comms(void);
-void comms_aux_mcu_routine(void);
+void comms_aux_mcu_routine(BOOL busy);
 
 
 #endif /* COMMS_AUX_MCU_H_ */

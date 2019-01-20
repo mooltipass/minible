@@ -102,6 +102,9 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
         cur_display_x += gui_carousel_inter_icon_spacing[nb_elements];
     }
     
+    /* Prevent wrapping */
+    plat_oled_descriptor.screen_wrapping_allowed = FALSE;
+    
     /* Add bottom text: during animation display next icon text */
     cust_char_t* temp_string;
     if (anim_step > 0)
@@ -121,15 +124,12 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
         }
     }
     custom_fs_get_string_from_file(text_ids[selected_id], &temp_string);
-    sh1122_put_string_xy(&plat_oled_descriptor, 0, 45, OLED_ALIGN_CENTER, temp_string, TRUE);
+    sh1122_put_string_xy(&plat_oled_descriptor, 0, 46, OLED_ALIGN_CENTER, temp_string, TRUE);
     
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     /* Flush */
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
     #endif
-    
-    /* Prevent wrapping */
-    plat_oled_descriptor.screen_wrapping_allowed = FALSE;
 }
 
 

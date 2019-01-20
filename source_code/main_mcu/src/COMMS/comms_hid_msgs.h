@@ -9,6 +9,7 @@
 #define COMMS_HID_MSGS_H_
 
 #include "comms_aux_mcu_defines.h"
+#include "defines.h"
 
 /* Defines */
 #define HID_1BYTE_NACK      0x00
@@ -39,7 +40,7 @@ typedef struct
 } hid_message_t;
 
 /* Prototypes */
-int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg);
+int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, BOOL do_not_deal_with);
 
 
 #endif /* COMMS_HID_MSGS_H_ */

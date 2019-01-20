@@ -50,7 +50,7 @@ void debug_debug_menu(void)
     while(1)
     {
         /* Still deal with comms */
-        comms_aux_mcu_routine();
+        comms_aux_mcu_routine(FALSE);
         
         /* Draw menu */
         if (redraw_needed != FALSE)
@@ -408,7 +408,7 @@ void debug_debug_screen(void)
     while(1)
     {
         /* Deal with comms */
-        comms_aux_mcu_routine();
+        comms_aux_mcu_routine(FALSE);
         
         /* Clear screen */
         stat_times[0] = timer_get_systick();

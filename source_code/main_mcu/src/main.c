@@ -181,7 +181,7 @@ void main_platform_init(void)
         /* Wait to load bundle from USB */
         while(1)
         {
-            comms_aux_mcu_routine();
+            comms_aux_mcu_routine(FALSE);
         }
     }
     else
@@ -293,9 +293,18 @@ int main(void)
     {
         timer_start_timer(TIMER_WAIT_FUNCTS, 20);
         sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
-        while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING);
+        while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
+        {
+            comms_aux_mcu_routine(TRUE);
+        }
+    }    
+    
+    /* End of animation: freeze on image, perform long time taking inits... */
+    timer_start_timer(TIMER_WAIT_FUNCTS, 1500);
+    while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
+    {
+        comms_aux_mcu_routine(TRUE);
     }
-    timer_delay_ms(1500);  
     #endif
     
     /*BOOL temp_bool = TRUE;
@@ -351,7 +360,7 @@ int main(void)
         gui_dispatcher_main_loop();
         
         /* Communications */        
-        comms_aux_mcu_routine();
+        comms_aux_mcu_routine(FALSE);
     }
     
     // Test code: burn internal graphics data into external flash.
@@ -390,7 +399,7 @@ int main(void)
         for (uint32_t i = 0; i < 120; i++)
         {
             abc++;
-            comms_aux_mcu_routine();
+            comms_aux_mcu_routine(FALSE);
             if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) != FALSE)
             {
                 cntt++;
