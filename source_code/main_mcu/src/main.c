@@ -172,15 +172,21 @@ void main_platform_init(void)
         while(1);
     }
     
+    /* If USB present, send USB attach message */
+    if (platform_io_is_usb_3v3_present() != FALSE)
+    {
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+    }
+    
     /* Initialize our custom file system stored in data flash */
     if (custom_fs_init() == RETURN_NOK)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
-        timer_delay_ms(3000);
         
         /* Wait to load bundle from USB */
         while(1)
         {
+            /* TODO: add a boolean to restrict available commands */
             comms_aux_mcu_routine(FALSE);
         }
     }
@@ -189,12 +195,6 @@ void main_platform_init(void)
         /* Now that our custom filesystem is loaded, load the default font from flash */
         sh1122_refresh_used_font(&plat_oled_descriptor);        
     }    
-    
-    /* If USB present, send USB attach message */
-    if (platform_io_is_usb_3v3_present() != FALSE)
-    {
-        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
-    }
     
     /* Check for first boot, perform functional testing */
     //if (custom_fs_is_first_boot() == TRUE)
