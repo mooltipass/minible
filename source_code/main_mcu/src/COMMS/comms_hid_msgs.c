@@ -26,11 +26,13 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         return -1;
     }
     
-    /* TODO: deal with that bool */
     /* If do_not_deal_with is set, send please retry... except for ping packet */
     if ((do_not_deal_with != FALSE) && (rcv_msg->message_type != HID_CMD_ID_PING))
     {
         /* Send please retry */
+        send_msg->message_type = HID_CMD_ID_RETRY;
+        send_msg->payload_length = 0;
+        return 0;
     }
     
     /* By default: copy the same CMD identifier for TX message */

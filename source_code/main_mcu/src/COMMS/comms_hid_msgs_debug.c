@@ -83,6 +83,9 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
     if (do_not_deal_with != FALSE)
     {
         /* Send please retry */
+        send_msg->message_type = HID_CMD_ID_RETRY;
+        send_msg->payload_length = 0;
+        return 0;
     }
     
     /* By default: copy the same CMD identifier for TX message */

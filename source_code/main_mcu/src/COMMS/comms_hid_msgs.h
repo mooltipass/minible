@@ -17,6 +17,7 @@
 
 /* Command defines */
 #define HID_CMD_ID_PING     0x0001
+#define HID_CMD_ID_RETRY    0x0002
 
 /* Typedefs */
 typedef struct
