@@ -67,13 +67,13 @@ void debug_debug_menu(void)
             #endif
             
             /* Item selection */
-            if (selected_item > 12)
+            if (selected_item > 13)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 12;
+                selected_item = 13;
             }
             
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);
@@ -101,8 +101,9 @@ void debug_debug_menu(void)
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Aux MCU Flash", TRUE);
             }
             else
-            {            
+            {
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Sleep", TRUE);
             }
             
             /* Cursor */
@@ -188,6 +189,10 @@ void debug_debug_menu(void)
                 platform_io_set_wheel_click_low();          // Completely discharge cap
                 timer_delay_ms(10);                         // Wait a tad
                 platform_io_disable_switch_and_die();       // Die!
+            }
+            else if (selected_item == 13)
+            {
+                main_standby_sleep();
             }
             redraw_needed = TRUE;
         }
@@ -497,19 +502,16 @@ void debug_debug_screen(void)
         #endif
         
         /* Get user action */
-        wheel_action_ret_te wheel_user_action = inputs_get_wheel_action(FALSE, FALSE);
-        
-        /* Go to sleep? */
-        if (wheel_user_action == WHEEL_ACTION_UP)
-        {
-            timer_delay_ms(2000);
-            main_standby_sleep();
-        }   
+        wheel_action_ret_te wheel_user_action = inputs_get_wheel_action(FALSE, FALSE);  
         
         /* Return ? */
         if (wheel_user_action == WHEEL_ACTION_SHORT_CLICK)
         {
             return;
+        }
+        else if (wheel_user_action == WHEEL_ACTION_DOWN)
+        {
+            main_standby_sleep();
         }
     }
 }
@@ -627,11 +629,8 @@ void debug_atbtlc_info(void)
 void debug_glyphs_show(void)
 {
     wheel_action_ret_te action_ret = WHEEL_ACTION_NONE;
-    uint16_t current_char = 0;
+    uint16_t current_char = ' ';
     uint8_t current_font = 0;
-    
-    /* Dirty hack: set '?' support to FALSE so non supported chars aren't replaced with it */
-    plat_oled_descriptor.question_mark_support_described = FALSE;
 
     /* Allow going to next line */
     plat_oled_descriptor.line_feed_allowed = TRUE;
@@ -645,14 +644,17 @@ void debug_glyphs_show(void)
         sh1122_set_emergency_font(&plat_oled_descriptor);
 
         /* Show current font ID */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Font ID: %d", current_font);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Font #%d: ", current_font);
 
         /* Set current font */
         sh1122_refresh_used_font(&plat_oled_descriptor, current_font);
+        
+        /* Dirty hack: set '?' support to FALSE so non supported chars aren't replaced with it */
+        plat_oled_descriptor.question_mark_support_described = FALSE;
 
         /* Set XY for following chars */
-        plat_oled_descriptor.cur_text_x = 0;
-        plat_oled_descriptor.cur_text_y = 10;
+        plat_oled_descriptor.cur_text_x = 50;
+        plat_oled_descriptor.cur_text_y = 0;
 
         /* Display all chars */
         while(sh1122_put_char(&plat_oled_descriptor, current_char++, FALSE) == RETURN_OK);
@@ -671,10 +673,12 @@ void debug_glyphs_show(void)
         else if (action_ret == WHEEL_ACTION_UP)
         {
             while(sh1122_refresh_used_font(&plat_oled_descriptor, --current_font) != RETURN_OK);
+            current_char = ' ';
         }
         else if (action_ret == WHEEL_ACTION_DOWN)
         {
             while(sh1122_refresh_used_font(&plat_oled_descriptor, ++current_font) != RETURN_OK);
+            current_char = ' ';
         }
     }
 }
@@ -685,16 +689,15 @@ void debug_glyphs_show(void)
 void debug_glyph_scroll(void)
 {
     wheel_action_ret_te action_ret = WHEEL_ACTION_UP;
-    uint16_t cur_glyph = 0;
+    uint8_t current_font = 0;
+    uint16_t temp_uint16 = 0;
+    uint16_t cur_glyph = ' ';
     
     /* Dirty hack: set '?' support to FALSE so non supported chars aren't replaced with it */
     plat_oled_descriptor.question_mark_support_described = FALSE;
     
     while (TRUE)
-    {
-        /* Clear screen */
-        sh1122_clear_current_screen(&plat_oled_descriptor);
-        
+    {        
         /* Find a glyph to print */
         do
         {
@@ -704,23 +707,40 @@ void debug_glyph_scroll(void)
             }
             else
             {
-                cur_glyph++;                
+                cur_glyph++;
             }
         }
-        while(sh1122_get_glyph_width(&plat_oled_descriptor, (cust_char_t)cur_glyph) == 0);
+        while(sh1122_get_glyph_width(&plat_oled_descriptor, (cust_char_t)cur_glyph, &temp_uint16) == 0);
         
-        /* Print glyph */     
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Glyph %d: ", cur_glyph);
+        /* Clear screen */
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        
+        /* Set Emergency Font */
+        sh1122_set_emergency_font(&plat_oled_descriptor);
+        
+        /* Print glyph */
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Font %d, glyph %d: ", current_font, cur_glyph);
+
+        /* Set current font */
+        sh1122_refresh_used_font(&plat_oled_descriptor, current_font);
+                
+        /* Print glyph */
         sh1122_put_char(&plat_oled_descriptor, cur_glyph, FALSE);
         
         /* Get action */
         action_ret = inputs_get_wheel_action(TRUE, FALSE);
         
         /* Exit ? */
-        if (action_ret == WHEEL_ACTION_SHORT_CLICK)
+        if (action_ret == WHEEL_ACTION_LONG_CLICK)
         {
             plat_oled_descriptor.question_mark_support_described = TRUE;
+            sh1122_set_emergency_font(&plat_oled_descriptor);
             return;
+        }
+        else if (action_ret == WHEEL_ACTION_SHORT_CLICK)
+        {
+            while(sh1122_refresh_used_font(&plat_oled_descriptor, ++current_font) != RETURN_OK);
+            cur_glyph = ' ';
         }
     }
 }

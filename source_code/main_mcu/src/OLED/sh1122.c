@@ -1296,28 +1296,33 @@ RET_TYPE sh1122_display_bitmap_from_flash(sh1122_descriptor_t* oled_descriptor, 
 */
 uint16_t sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str)
 {
+    uint16_t temp_uint16 = 0;
     uint16_t width=0;
     
     for (nat_type_t ind=0; (str[ind] != 0) && (str[ind] != '\r'); ind++)
     {
-        width += sh1122_get_glyph_width(oled_descriptor, str[ind]);
+        width += sh1122_get_glyph_width(oled_descriptor, str[ind], &temp_uint16);
     }
     
     return width;    
 }
 
-/*! \fn     sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, char ch)
+/*! \fn     sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, char ch, uint16_t* glyph_height)
 *   \brief  Return the width of the specified character in the current font
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  ch                  Character
+*   \param  glyph_height        Where to store the glyph height (added bonus)
 *   \return width of the glyph
 */
-uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_t ch)
+uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, uint16_t* glyph_height)
 {
     uint16_t glyph_desc_pt_offset = 0;
     uint16_t interval_start = 0;
     font_glyph_t glyph;
     uint16_t gind;
+    
+    /* Set default value */
+    *glyph_height = 0;
     
     /* Check that a font was actually chosen */
     if (oled_descriptor->currentFontAddress != 0)
@@ -1387,6 +1392,7 @@ uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_
         }
         else
         {
+            *glyph_height = glyph.yrect + glyph.yoffset;
             return glyph.xrect + glyph.xoffset + 1;
         }
     }
@@ -1510,6 +1516,8 @@ uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int1
 */
 RET_TYPE sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, BOOL write_to_buffer)
 {
+    uint16_t glyph_height = 0;
+    
     /* Have we actually selected a font? */
     if (oled_descriptor->currentFontAddress == 0)
     {
@@ -1527,9 +1535,9 @@ RET_TYPE sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, B
     }
     else
     {
-        uint16_t width = sh1122_get_glyph_width(oled_descriptor, ch);
+        uint16_t width = sh1122_get_glyph_width(oled_descriptor, ch, &glyph_height);
         
-        /* Check if we're not larger than the screen. No height check is performed as the low level routines won't allow it */
+        /* Check if we're not larger than the screen */
         if ((width + oled_descriptor->cur_text_x) > oled_descriptor->max_text_x)
         {
             if (oled_descriptor->line_feed_allowed != FALSE)
@@ -1547,6 +1555,12 @@ RET_TYPE sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, B
             {
                 return RETURN_NOK;
             }
+        }
+        
+        /* Same check but for Y */
+        if (glyph_height + oled_descriptor->cur_text_y > SH1122_OLED_HEIGHT)
+        {
+            return RETURN_NOK;
         }
         
         // Display the text

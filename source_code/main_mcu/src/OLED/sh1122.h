@@ -110,6 +110,7 @@ void sh1122_draw_rectangle(sh1122_descriptor_t* oled_descriptor, int16_t x, int1
 uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, cust_char_t ch, BOOL write_to_buffer);
 void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream);
 uint16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str, BOOL write_to_buffer);
+uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, uint16_t* glyph_height);
 RET_TYPE sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, BOOL write_to_buffer);
 uint16_t sh1122_put_error_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string);
 void sh1122_set_contrast_current(sh1122_descriptor_t* oled_descriptor, uint8_t contrast_current);
@@ -117,7 +118,6 @@ uint16_t sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const cus
 void sh1122_set_master_current(sh1122_descriptor_t* oled_descriptor, uint8_t master_current);
 void sh1122_move_display_start_line(sh1122_descriptor_t* oled_descriptor, int16_t offset);
 RET_TYPE sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor, uint16_t font_id);
-uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_t ch);
 void sh1122_write_single_command(sh1122_descriptor_t* oled_descriptor, uint8_t reg);
 void sh1122_set_column_address(sh1122_descriptor_t* oled_descriptor, uint8_t start);
 void sh1122_write_single_word(sh1122_descriptor_t* oled_descriptor, uint16_t data);

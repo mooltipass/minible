@@ -279,6 +279,7 @@ int main(void)
     main_platform_init();
     //timer_delay_ms(2000);
     //main_standby_sleep();
+    debug_debug_menu();
     
     /* If button press at start, go to debug menu */
     if (inputs_is_wheel_clicked() == RETURN_JDETECT)
