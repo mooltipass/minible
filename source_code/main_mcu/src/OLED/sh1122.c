@@ -454,15 +454,18 @@ void sh1122_set_emergency_font(sh1122_descriptor_t* oled_descriptor)
     custom_fs_read_from_flash((uint8_t*)&oled_descriptor->current_unicode_inters, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header), sizeof(oled_descriptor->current_unicode_inters));
 }
 
-/*! \fn     sh1122_refresh_used_font(void)
+/*! \fn     sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor, uint16_t font_id)
 *   \brief  Refreshed used font (in case of init or language change)
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  font_id             Font ID to use
+*   \return Success status
 */
-void sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor)
+RET_TYPE sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor, uint16_t font_id)
 {
-    if (custom_fs_get_file_address(DEFAULT_FONT_ID, &oled_descriptor->currentFontAddress, CUSTOM_FS_FONTS_TYPE) == RETURN_NOK)
+    if (custom_fs_get_file_address(font_id, &oled_descriptor->currentFontAddress, CUSTOM_FS_FONTS_TYPE) == RETURN_NOK)
     {
         oled_descriptor->currentFontAddress = 0;
+        return RETURN_NOK;
     }
     else
     {
@@ -481,6 +484,8 @@ void sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor)
         {
             oled_descriptor->question_mark_support_described = TRUE;
         }
+
+        return RETURN_OK;
     }    
 }
 
@@ -1531,6 +1536,12 @@ RET_TYPE sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, B
             {
                 oled_descriptor->cur_text_y += oled_descriptor->current_font_header.height;
                 oled_descriptor->cur_text_x = 0;
+
+                /* Check for out of screen */
+                if (oled_descriptor->cur_text_y >= SH1122_OLED_HEIGHT)
+                {
+                    return RETURN_NOK;
+                }
             }
             else
             {
