@@ -16,11 +16,25 @@ In all command descriptions below, hmstrlen() is a custom strlen function treati
 0x0001: Ping
 ------------
 
+From the PC:
+
 | byte 0-1 | byte 2-3         | bytes 4-X         |
 |:---------|:-----------------|:------------------|
 | 0x0001   | up to the sender | Arbitrary payload |
 
 The device will send back the very same message.
+
+
+0x0002: Please Retry
+--------------------
+
+From the device:
+
+| byte 0-1 | byte 2-3         | bytes 4-X         |
+|:---------|:-----------------|:------------------|
+| 0x0002   | 0                | N/A               |
+
+When the device is busy and can't deal with the message sent by the computer, it will reply a message with a "Please Retry" one, inviting the computer to re-send its packet.
 
   
 ## [](#header-2) Mooltipass Debug and Test Commands
@@ -147,8 +161,8 @@ Device Answer:
 
 
 
-0x8007: Reboot to Bootloader
-----------------------------
+0x8007: Reboot main MCU to Bootloader
+-------------------------------------
 
 From the PC: 
 
