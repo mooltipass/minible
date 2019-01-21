@@ -116,6 +116,7 @@ void sh1122_set_contrast_current(sh1122_descriptor_t* oled_descriptor, uint8_t c
 uint16_t sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str);
 void sh1122_set_master_current(sh1122_descriptor_t* oled_descriptor, uint8_t master_current);
 void sh1122_move_display_start_line(sh1122_descriptor_t* oled_descriptor, int16_t offset);
+RET_TYPE sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor, uint16_t font_id);
 uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_t ch);
 void sh1122_write_single_command(sh1122_descriptor_t* oled_descriptor, uint8_t reg);
 void sh1122_set_column_address(sh1122_descriptor_t* oled_descriptor, uint8_t start);
@@ -130,7 +131,6 @@ void sh1122_clear_current_screen(sh1122_descriptor_t* oled_descriptor);
 void sh1122_set_emergency_font(sh1122_descriptor_t* oled_descriptor);
 void sh1122_start_data_sending(sh1122_descriptor_t* oled_descriptor);
 void sh1122_stop_data_sending(sh1122_descriptor_t* oled_descriptor);
-void sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor);
 void sh1122_reset_max_text_x(sh1122_descriptor_t* oled_descriptor);
 void sh1122_init_display(sh1122_descriptor_t* oled_descriptor);
 void sh1122_oled_off(sh1122_descriptor_t* oled_descriptor);
