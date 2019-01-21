@@ -46,6 +46,9 @@ void debug_debug_menu(void)
     wheel_action_ret_te wheel_user_action;
     int16_t selected_item = 0;
     BOOL redraw_needed = TRUE;
+
+    /* Set Emergency Font */
+    sh1122_set_emergency_font(&plat_oled_descriptor);
     
     while(1)
     {
@@ -64,13 +67,13 @@ void debug_debug_menu(void)
             #endif
             
             /* Item selection */
-            if (selected_item > 11)
+            if (selected_item > 12)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 11;
+                selected_item = 12;
             }
             
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);
@@ -85,17 +88,21 @@ void debug_debug_menu(void)
             }
             else if (selected_item < 8)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Scroll Through Glyphs", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Language Switch Test", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Smartcard Debug", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Display All Fonts Glyphs", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Scroll Through Glyphs", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Language Switch Test", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Animation Test", TRUE);            
             }
-            else
+            else if (selected_item < 12)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Smartcard Test", TRUE);                
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main MCU Flash", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU Flash", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Smartcard Debug", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Smartcard Test", TRUE);                
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Main MCU Flash", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Aux MCU Flash", TRUE);
+            }
+            else
+            {            
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
             }
             
             /* Cursor */
@@ -140,15 +147,15 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 4)
             {
-                debug_glyph_scroll();
+                debug_glyphs_show();
             }
             else if (selected_item == 5)
             {
-                debug_language_test();
+                debug_glyph_scroll();
             }
             else if (selected_item == 6)
             {
-                debug_smartcard_info();
+                debug_language_test();
             }
             else if (selected_item == 7)
             {
@@ -156,19 +163,23 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 8)
             {
-                debug_smartcard_test();
+                debug_smartcard_info();
             }
             else if (selected_item == 9)
+            {
+                debug_smartcard_test();
+            }
+            else if (selected_item == 10)
             {
                 custom_fs_settings_set_fw_upgrade_flag();
                 cpu_irq_disable();
                 NVIC_SystemReset();
             }
-            else if (selected_item == 10)
+            else if (selected_item == 11)
             {
                 logic_aux_mcu_flash_firmware_update();
             }
-            else if (selected_item == 11)
+            else if (selected_item == 12)
             {
                 sh1122_oled_off(&plat_oled_descriptor);     // Display off command    
                 platform_io_power_down_oled();              // Switch off stepup            
@@ -346,8 +357,8 @@ void debug_language_test(void)
         for (uint16_t i = 0; i < custom_fs_get_number_of_languages(); i++)
         {
             custom_fs_set_current_language(i);
-            sh1122_refresh_used_font(&plat_oled_descriptor);
             custom_fs_get_string_from_file(0, &temp_string);
+            sh1122_set_emergency_font(&plat_oled_descriptor);
             sh1122_clear_current_screen(&plat_oled_descriptor);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "%d/%d : ", i+1, custom_fs_flash_header.language_map_item_count);
             sh1122_put_string_xy(&plat_oled_descriptor, 30, 0, OLED_ALIGN_LEFT, custom_fs_get_current_language_text_desc(), FALSE);            
@@ -356,6 +367,7 @@ void debug_language_test(void)
             sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "Start bitmap file ID: %d", custom_fs_cur_language_entry.starting_bitmap);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, FALSE, "Recommended keyboard file ID: %d", custom_fs_cur_language_entry.keyboard_layout_id);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, FALSE, "Line #0:");
+            sh1122_refresh_used_font(&plat_oled_descriptor, DEFAULT_FONT_ID);
             sh1122_put_string_xy(&plat_oled_descriptor, 50, 50, OLED_ALIGN_LEFT, temp_string, FALSE);
             
             /* Return ? */
@@ -364,6 +376,7 @@ void debug_language_test(void)
             {
                 if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
                 {
+                    sh1122_set_emergency_font(&plat_oled_descriptor);
                     return;
                 }                
             }
@@ -604,6 +617,64 @@ void debug_atbtlc_info(void)
         if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
         {
             return;
+        }
+    }
+}
+
+/*! \fn     debug_glyphs_show(void)
+*   \brief  Show all glyphs for a given font
+*/
+void debug_glyphs_show(void)
+{
+    wheel_action_ret_te action_ret = WHEEL_ACTION_NONE;
+    uint16_t current_char = 0;
+    uint8_t current_font = 0;
+    
+    /* Dirty hack: set '?' support to FALSE so non supported chars aren't replaced with it */
+    plat_oled_descriptor.question_mark_support_described = FALSE;
+
+    /* Allow going to next line */
+    plat_oled_descriptor.line_feed_allowed = TRUE;
+    
+    while (TRUE)
+    {
+        /* Clear screen */
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+
+        /* Set Emergency Font */
+        sh1122_set_emergency_font(&plat_oled_descriptor);
+
+        /* Show current font ID */
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Font ID: %d", current_font);
+
+        /* Set current font */
+        sh1122_refresh_used_font(&plat_oled_descriptor, current_font);
+
+        /* Set XY for following chars */
+        plat_oled_descriptor.cur_text_x = 0;
+        plat_oled_descriptor.cur_text_y = 10;
+
+        /* Display all chars */
+        while(sh1122_put_char(&plat_oled_descriptor, current_char++, FALSE) == RETURN_OK);
+        
+        /* Get action */
+        action_ret = inputs_get_wheel_action(TRUE, FALSE);
+        
+        /* Exit ? */
+        if (action_ret == WHEEL_ACTION_LONG_CLICK)
+        {
+            plat_oled_descriptor.question_mark_support_described = TRUE;
+            sh1122_set_emergency_font(&plat_oled_descriptor);
+            plat_oled_descriptor.line_feed_allowed = FALSE;
+            return;
+        }
+        else if (action_ret == WHEEL_ACTION_UP)
+        {
+            while(sh1122_refresh_used_font(&plat_oled_descriptor, --current_font) != RETURN_OK);
+        }
+        else if (action_ret == WHEEL_ACTION_DOWN)
+        {
+            while(sh1122_refresh_used_font(&plat_oled_descriptor, ++current_font) != RETURN_OK);
         }
     }
 }
