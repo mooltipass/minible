@@ -193,7 +193,7 @@ void main_platform_init(void)
     else
     {
         /* Now that our custom filesystem is loaded, load the default font from flash */
-        sh1122_refresh_used_font(&plat_oled_descriptor);        
+        sh1122_refresh_used_font(&plat_oled_descriptor, DEFAULT_FONT_ID);        
     }    
     
     /* Check for first boot, perform functional testing */
