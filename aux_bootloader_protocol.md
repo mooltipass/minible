@@ -25,21 +25,23 @@ The Aux MCU bootloader sends the same packet without the image length & crc fiel
 
 
 #### Write Command (0x0001)
-
+  
+From Main MCU:   
+  
 | byte 0-1 | byte 2-5 | byte 6-9 | byte 10-13 | byte 14-525 |
 |:-:|:-:|:-:|:-:|:-:|
 | 0x0001 | payload size (512) | payload CRC (not implemented) | write address | 512B payload |
 
-- __Command__: 0x0001
-- __Size__: Number of data bytes: only 512 bytes (2 rows) are supported at the moment
-- __CRC__: CRC of Data. (not yet implemented)
-- __Data__: Data to flash, it shall contain the application.
-- On every Write command, erase row will previously be executed before and will erase 4 pages (64B each page).
-- The internal address to write will be incremented on each write command.
-- After last write is performed, the bootloader will jump directly to application.
+On every Write command, erase row will previously be executed before and will erase 4 pages (64B each page).
+The Aux MCU bootloader sends the same packet without the non command fields completed to acknwledge data write.
 
-#### Aux Mcu Bootloader to Main Mcu (Response)
-1. Echo as positive response, next command can be received
-2. Full payload to 0xFF as negative response, main mcu shall reset the bootlooder and try again.
 
-Main MCU shall wait for the answer of Aux MCU bootloader to transmit the next command
+#### Start App Command (0x0002)
+  
+From Main MCU:   
+  
+| byte 0-1 |
+|:-:|
+| 0x0002 |
+
+Aux MCU will boot into its upgraded firmware and won't send a reply packet.
