@@ -1,4 +1,4 @@
-## MCU Messages for Aux MCU Firmware Upgrade
+## Messages for Aux MCU Firmware Upgrade
 
 The protocol for updating the Aux MCU firmware has been designed to be as simple as possible. This has been made possible by the fact that the Aux MCU is considered insecure.  
 Here is a quick overview of how the update process works:  
