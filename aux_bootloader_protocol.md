@@ -1,38 +1,34 @@
-## Communications Between Aux MCU Bootloader and Main MCU
-1. Aux MCU Bootloader is executed during startup and waits for the "enter programming command" during a limited time of TBD ms. After this time the Aux MCU will jump to application if a valid application is found (ie: jump address different than 0xFFFFFFFF).  
- 
-2. It is however still possible to start the bootloader during normal aux MCU firmware run via a "reboot to bootloader" command.  
+## Aux-Main MCU Messages for Aux MCU Firmware Upgrade
 
-3. Bootloader size should be as small as possible. The application will start at a fixed address defined by the size of the bootloader.  
+The protocol for updating the Aux MCU firmware has been designed to be as simple as possible. This has been made possible by the fact that the Aux MCU is considered insecure.  
+Here is a quick overview of how the update process works:  
+1. Main MCU main firmware sends a BOOTLOADER_START_PROGRAMMING_COMMAND messsage to Aux MCU  
+2. Aux MCU reboots into bootloader, sends BOOTLOADER_START_PROGRAMMING_COMMAND ack message  
+3. Main MCU sends 512B long firmware data chunks in BOOTLOADER_WRITE_COMMAND messages  
+4. Main MCU sends BOOTLOADER_START_APP_COMMAND message to Aux MCU  
+5. Aux MCU reboots into its upgraded firmware  
   
-## Message Structure and Serial Link Specs 
-The communication from main mcu to bootloader is performed according:
-[Aux Mcu <-> Serial Link Specification](aux_main_mcu_protocol.md)
+  
+## Message Structure & Commands
 
-The commands received by the bootloader are performed in the top of the protocol mentioned above with MessageType equal to __0x0002__.
-
-The payload has a size of __536 bytes__, so the commands will have the following structure:
-
-| Command | Data |
-|:-:|:-:|
-| Byte 0-1 | Byte 2-535 |
+The messages used are a subset of [Aux Mcu <-> Serial Link Specification](aux_main_mcu_protocol.md), where the message type is __0x0002__. The sub-messages described below are therefore embedded starting at byte 4 of the message format described in the previous link.
 
 #### Enter Programming Command (0x0000)
 
-| byte 0-1 | byte 2-3 | byte 4-7 | byte 8-11 |
-|:-:|:-:|:-:|:-:|
-| Command (2 bytes) | Reserved (2 bytes) | Image Length (4 bytes) | Image CRC (4 bytes) |
+From Main MCU:  
 
-- __Command__: 0x0000
-- __Reserved__: to preserve 4 byte alignment in the following fields.
-- __Image Length__: Binary Image Length.
-- __Image CRC__: CRC of binary image. (not yet implemented)
+| byte 0-1 | byte 2-5 | byte 6-9 |
+|:-:|:-:|:-:|
+| 0x0000 | Image Length | Image CRC (not implemented) |
+
+The Aux MCU bootloader sends the same packet without the image length & crc fields completed to acknwledge bootloader start.
+
 
 #### Write Command (0x0001)
 
-| byte 0-1 | byte 2-3 | byte 4-7 | byte 8-11 | 
-|:-:|:-:|:-:|:-:|
-| Command (2 bytes) | Size (2 bytes) | CRC (4 bytes) | Data (Size bytes) |
+| byte 0-1 | byte 2-5 | byte 6-9 | byte 10-13 | byte 14-525 |
+|:-:|:-:|:-:|:-:|:-:|
+| 0x0001 | payload size (512) | payload CRC (not implemented) | write address | 512B payload |
 
 - __Command__: 0x0001
 - __Size__: Number of data bytes: only 512 bytes (2 rows) are supported at the moment
