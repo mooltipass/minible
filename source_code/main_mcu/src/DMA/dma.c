@@ -401,6 +401,100 @@ void dma_custom_fs_init_transfer(void* spi_data_p, void* datap, uint16_t size)
     cpu_irq_leave_critical();
 }
 
+/*! \fn     dma_compute_crc32_from_spi(void* spi_data_p, uint32_t size)
+*   \brief  Use the DMA controller to compute a CRC32 from a spi transfer
+*   \param  spi_data_p  Pointer to the SPI data register
+*   \param  size        Number of bytes to transfer
+*   \return the crc32
+*/
+uint32_t dma_compute_crc32_from_spi(void* spi_data_p, uint32_t size)
+{
+    /* The byte that will be used to read/write spi data */
+    volatile uint8_t temp_src_dst_reg = 0;
+    
+    /* Setup CRC32 */
+    DMAC_CRCCTRL_Type crc_ctrl_reg;
+    crc_ctrl_reg.reg = 0;
+    crc_ctrl_reg.bit.CRCSRC = 0x20 + DMA_DESCID_RX_FS;                                      // Customfs RX DMA channel ID
+    crc_ctrl_reg.bit.CRCPOLY = DMAC_CRCCTRL_CRCPOLY_CRC32_Val;                              // CRC32
+    crc_ctrl_reg.bit.CRCBEATSIZE = DMAC_CRCCTRL_CRCBEATSIZE_BYTE_Val;                       // Beat size is one byte
+    DMAC->CRCCTRL = crc_ctrl_reg;                                                           // Store register
+    DMAC->CRCCHKSUM.reg = 0xFFFFFFFF;                                                       // Not sure why, it is needed
+
+    /* Setup transfer descriptor for custom fs RX: only setup the difference between what has been set in dma_init and what we need */
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.DSTINC = 0;                                // Destination Address Increment is not enabled.
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val; // Once data block is transferred, do not generate interrupt
+    
+    /* Setup DMA channel */
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_FS);                                        // Use correct channel
+    DMAC->CHINTENCLR.reg = DMAC_CHINTENSET_TCMPL;                                           // Disable interrupts
+
+    /* Setup transfer descriptor for custom fs TX: only setup the difference between what has been set in dma_init and what we need */
+    dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.bit.SRCINC = 0;                                // Source Address Increment is not enabled.
+
+    uint32_t nb_bytes_to_transfer = size;
+    while (size > 0)
+    {
+        /* Compute nb bytes to transfer */
+        if (size > UINT16_MAX)
+        {
+            nb_bytes_to_transfer = UINT16_MAX;
+        }
+        else
+        {
+            nb_bytes_to_transfer = size;
+        }
+        
+        /* Arm transfers */
+        /* SPI RX DMA TRANSFER */
+        /* Setup transfer size */
+        dma_descriptors[DMA_DESCID_RX_FS].BTCNT.bit.BTCNT = (uint16_t)nb_bytes_to_transfer;
+        /* Source address: DATA register from SPI */
+        dma_descriptors[DMA_DESCID_RX_FS].SRCADDR.reg = (uint32_t)spi_data_p;
+        /* Destination address: given value */
+        dma_descriptors[DMA_DESCID_RX_FS].DSTADDR.reg = (uint32_t)&temp_src_dst_reg;
+        /* Resume DMA channel operation */
+        DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_RX_FS);
+        DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
+
+        /* SPI TX DMA TRANSFER */
+        /* Setup transfer size */
+        dma_descriptors[DMA_DESCID_TX_FS].BTCNT.bit.BTCNT = (uint16_t)nb_bytes_to_transfer;
+        /* Source address: DATA register from SPI */
+        dma_descriptors[DMA_DESCID_TX_FS].DSTADDR.reg = (uint32_t)spi_data_p;
+        /* Destination address: given value */
+        dma_descriptors[DMA_DESCID_TX_FS].SRCADDR.reg = (uint32_t)&temp_src_dst_reg;
+        /* Resume DMA channel operation */
+        DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_TX_FS);
+        DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
+        
+        /* Wait for transfer to finish */
+        DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_FS);
+        while ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) == 0);
+        DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
+        
+        /* Update size */
+        size -= nb_bytes_to_transfer;
+    }
+    
+    /* Get crc32 from dma */
+    while ((DMAC->CRCSTATUS.reg & DMAC_CRCSTATUS_CRCBUSY) == DMAC_CRCSTATUS_CRCBUSY);
+    uint32_t return_val = DMAC->CRCCHKSUM.reg;
+
+    /* Reset default values */
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.DSTINC = 1;                                // Destination Address Increment is enabled.
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_INT_Val;   // Once data block is transferred, generate interrupt
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_FS);                                        // Use correct channel
+    DMAC->CHINTENSET.reg = DMAC_CHINTENSET_TCMPL;                                           // Enable interrupts
+    dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.bit.SRCINC = 1;                                // Source Address Increment is enabled.
+
+    /* Reset CRC engine */
+    DMAC->CRCCTRL.reg = 0;
+
+    /* Return CRC */
+    return return_val;
+}
+
 /*! \fn     dma_bootloader_compute_crc32_from_spi(void* spi_data_p, uint32_t size)
 *   \brief  Use the DMA controller to compute a CRC32 from a spi transfer
 *   \param  spi_data_p  Pointer to the SPI data register
