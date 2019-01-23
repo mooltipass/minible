@@ -420,14 +420,14 @@ uint32_t dma_compute_crc32_from_spi(void* spi_data_p, uint32_t size)
     crc_ctrl_reg.bit.CRCBEATSIZE = DMAC_CRCCTRL_CRCBEATSIZE_BYTE_Val;                       // Beat size is one byte
     DMAC->CRCCTRL = crc_ctrl_reg;                                                           // Store register
     DMAC->CRCCHKSUM.reg = 0xFFFFFFFF;                                                       // Not sure why, it is needed
+    DMAC->CTRL.bit.DMAENABLE = 0;
+    while ((DMAC->CTRL.reg & DMAC_CTRL_DMAENABLE) != 0);
+    DMAC->CTRL.bit.CRCENABLE = 1;
+    DMAC->CTRL.bit.DMAENABLE = 1;
 
     /* Setup transfer descriptor for custom fs RX: only setup the difference between what has been set in dma_init and what we need */
     dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.DSTINC = 0;                                // Destination Address Increment is not enabled.
     dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val; // Once data block is transferred, do not generate interrupt
-    
-    /* Setup DMA channel */
-    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_FS);                                        // Use correct channel
-    DMAC->CHINTENCLR.reg = DMAC_CHINTENSET_TCMPL;                                           // Disable interrupts
 
     /* Setup transfer descriptor for custom fs TX: only setup the difference between what has been set in dma_init and what we need */
     dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.bit.SRCINC = 0;                                // Source Address Increment is not enabled.
@@ -436,7 +436,7 @@ uint32_t dma_compute_crc32_from_spi(void* spi_data_p, uint32_t size)
     while (size > 0)
     {
         /* Compute nb bytes to transfer */
-        if (size > UINT16_MAX)
+        if (size > 0x0FFFFUL)
         {
             nb_bytes_to_transfer = UINT16_MAX;
         }
@@ -465,13 +465,15 @@ uint32_t dma_compute_crc32_from_spi(void* spi_data_p, uint32_t size)
         /* Destination address: given value */
         dma_descriptors[DMA_DESCID_TX_FS].SRCADDR.reg = (uint32_t)&temp_src_dst_reg;
         /* Resume DMA channel operation */
-        DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_TX_FS);
+        cpu_irq_enter_critical();
+        dma_custom_fs_transfer_done = FALSE;
+        DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_TX_FS);
         DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
+        cpu_irq_leave_critical();
         
         /* Wait for transfer to finish */
-        DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_FS);
-        while ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) == 0);
-        DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
+        while (dma_custom_fs_transfer_done == FALSE);
+        dma_custom_fs_transfer_done = FALSE;
         
         /* Update size */
         size -= nb_bytes_to_transfer;

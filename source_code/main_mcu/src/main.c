@@ -179,7 +179,7 @@ void main_platform_init(void)
     }
     
     /* Initialize our custom file system stored in data flash */
-    if (custom_fs_init() == RETURN_NOK)
+    if ((custom_fs_init() == RETURN_NOK) || (custom_fs_compute_and_check_external_bundle_crc32() == RETURN_NOK))
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
         
