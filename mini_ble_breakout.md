@@ -24,7 +24,7 @@ The goal of this page is to make a record of all observations regarding the Mini
 | 5          | uA |
 | 6          | uA |
 | 7          | uA |
-| 8          | uA |
+| 8          | @Dennis |
 | 9          | uA |
    
    
