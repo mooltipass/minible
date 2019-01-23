@@ -110,8 +110,12 @@ RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void)
     /* Start a read on external flash */
     dataflash_read_data_array_start(custom_fs_dataflash_desc, CUSTOM_FS_FILES_ADDR_OFFSET + sizeof(custom_fs_flash_header.magic_header) + sizeof(custom_fs_flash_header.total_size) + sizeof(custom_fs_flash_header.crc32));
     
+    #ifdef BOOTLOADER
     /* Use the DMA controller to compute the crc32 */
     uint32_t crc32 = dma_bootloader_compute_crc32_from_spi((void*)&custom_fs_dataflash_desc->sercom_pt->SPI.DATA.reg, custom_fs_flash_header.total_size - sizeof(custom_fs_flash_header.magic_header) - sizeof(custom_fs_flash_header.total_size) - sizeof(custom_fs_flash_header.crc32));
+    #else
+    uint32_t crc32 = dma_compute_crc32_from_spi((void*)&custom_fs_dataflash_desc->sercom_pt->SPI.DATA.reg, custom_fs_flash_header.total_size - sizeof(custom_fs_flash_header.magic_header) - sizeof(custom_fs_flash_header.total_size) - sizeof(custom_fs_flash_header.crc32));
+    #endif
     
     /* Stop transfer */
     dataflash_stop_ongoing_transfer(custom_fs_dataflash_desc);
