@@ -32,8 +32,7 @@ From Main MCU:
 |:-:|:-:|:-:|:-:|:-:|:-:|
 | 0x0001 | payload size (512) | payload CRC (not implemented) | write address | 512B payload | DNC |
 
-When receiving this message, the Aux MCU will take care of erasing its rows at the specified addresss.  
-The Aux MCU bootloader sends the same packet without the non command fields completed to acknwledge data write.  
+When receiving this message, the Aux MCU will take care of erasing its rows at the specified addresss. The Aux MCU bootloader then sends the same packet without the non command fields completed to acknowledge data write.  
 
 
 #### Start App Command (0x0002)
