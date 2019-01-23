@@ -141,7 +141,9 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
         {
             case MAIN_MCU_COMMAND_SLEEP:
             {
-                main_standby_sleep(TRUE);
+                /* Wait for interrupt to clear this flag if set (wait for full packet receive) */
+                while (comms_main_mcu_other_msg_answered_using_first_bytes != FALSE);                
+                main_standby_sleep(FALSE);
                 break;
             }
             case MAIN_MCU_COMMAND_PING:

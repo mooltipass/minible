@@ -293,7 +293,7 @@ void dma_main_mcu_disable_transfer(void)
 *   \note   We are not disabling IRQs as this is called from an IRQ
 */
 void dma_main_mcu_init_rx_transfer(void)
-{    
+{
     /* Setup transfer size */
     dma_descriptors[DMA_DESCID_RX_COMMS].BTCNT.bit.BTCNT = (uint16_t)sizeof(dma_main_mcu_temp_rcv_message);
     /* Source address: DATA register from SPI */

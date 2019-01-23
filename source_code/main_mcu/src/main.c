@@ -270,14 +270,6 @@ void main_standby_sleep(void)
     
     /* Resume accelerometer processing */
     lis2hh12_sleep_exit_and_dma_arm(&acc_descriptor);
-    
-    /* TODO: remove below when we don't have bugs anymore */
-    timer_delay_ms(100);
-    if (comms_aux_mcu_send_receive_ping() == RETURN_NOK)
-    {
-        sh1122_put_error_string(&plat_oled_descriptor, u"No Aux MCU");
-        while(1);
-    }
 }
 
 /*! \fn     main(void)

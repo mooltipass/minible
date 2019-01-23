@@ -318,6 +318,7 @@ void platform_io_disable_no_comms_int(void)
 void platform_io_disable_main_comms(void)
 {
     /* Reduces standby current by 40uA */
+    AUXMCU_SERCOM->USART.CTRLA.reg &= ~SERCOM_USART_CTRLA_ENABLE;                                           // Disable USART
     PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 0;                                  // AUX MCU TX, MAIN MCU RX: Disable peripheral multiplexer
     PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 0;                                  // AUX MCU RX, MAIN MCU TX: Disable peripheral multiplexer
     PORT->Group[AUX_MCU_TX_GROUP].OUTSET.reg = AUX_MCU_TX_MASK;                                             // AUX MCU TX, MAIN MCU RX: Pull up
@@ -329,6 +330,7 @@ void platform_io_disable_main_comms(void)
 */
 void platform_io_enable_main_comms(void)
 {
+    AUXMCU_SERCOM->USART.CTRLA.reg |= SERCOM_USART_CTRLA_ENABLE;                                            // Enable USART
     PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 1;                                  // AUX MCU TX, MAIN MCU RX: Enable peripheral multiplexer
     PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 1;                                  // AUX MCU RX, MAIN MCU TX: Enable peripheral multiplexer
     PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PULLEN = 0;                                  // AUX MCU RX, MAIN MCU TX: Pull up disable

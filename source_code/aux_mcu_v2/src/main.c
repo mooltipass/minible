@@ -78,7 +78,7 @@ void main_platform_init(void)
     platform_io_enable_eic();
     platform_io_init_no_comms_input();
     
-    /* Boot delay */
+    /* Main MCU boot delay, so it can set the interrupt line high */
     DELAYMS_8M(10);
     
     /* Sleep until main MCU tells us to wake up */
@@ -103,15 +103,18 @@ void main_platform_init(void)
 *   \param  startup_run     Set to TRUE when this routine is called at startup
 */
 void main_standby_sleep(BOOL startup_run)
-{        
+{    
+    /* Disable DMA transfers */
+    if (startup_run == FALSE)
+    {
+        dma_main_mcu_disable_transfer();
+    }
+    
     /* Errata 10416: disable interrupt routines */
     cpu_irq_enter_critical();
         
     /* Prepare the ports for sleep */
-    if (startup_run != FALSE)
-    {
-        platform_io_prepare_ports_for_sleep();
-    }
+    platform_io_prepare_ports_for_sleep();
     
     /* Enable no comms interrupt on low level */
     platform_io_enable_no_comms_int();
@@ -125,13 +128,17 @@ void main_standby_sleep(BOOL startup_run)
     platform_io_disable_no_comms_int();
     
     /* Prepare ports for sleep exit */
-    if (startup_run != FALSE)
-    {        
-        platform_io_prepare_ports_for_sleep_exit();
-    }
+    platform_io_prepare_ports_for_sleep_exit();
     
     /* Damn errata... enable interrupts */
     cpu_irq_leave_critical();
+    
+    /* Re-enable DMA transfers */
+    if (startup_run == FALSE)
+    {
+        DELAYMS(1);
+        comms_main_init_rx();
+    }
 }
 
 int main(void)
