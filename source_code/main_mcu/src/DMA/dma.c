@@ -112,6 +112,15 @@ void dma_wait_for_aux_mcu_packet_sent(void)
 */
 void dma_init(void)
 {
+    /* Setup CRC32 */
+    DMAC_CRCCTRL_Type crc_ctrl_reg;
+    crc_ctrl_reg.reg = 0;
+    crc_ctrl_reg.bit.CRCSRC = 0x20 + DMA_DESCID_RX_FS;                                      // Customfs RX DMA channel ID
+    crc_ctrl_reg.bit.CRCPOLY = DMAC_CRCCTRL_CRCPOLY_CRC32_Val;                              // CRC32
+    crc_ctrl_reg.bit.CRCBEATSIZE = DMAC_CRCCTRL_CRCBEATSIZE_BYTE_Val;                       // Beat size is one byte
+    DMAC->CRCCTRL = crc_ctrl_reg;                                                           // Store register
+    DMAC->CRCCHKSUM.reg = 0xFFFFFFFF;                                                       // Not sure why, it is needed
+    
     /* Setup DMA controller */
     DMAC_CTRL_Type dmac_ctrl_reg;
     DMAC->BASEADDR.reg = (uint32_t)&dma_descriptors[0];                                     // Base descriptor
@@ -121,6 +130,7 @@ void dma_init(void)
     dmac_ctrl_reg.bit.LVLEN1 = 1;                                                           // Enable priority level 1
     dmac_ctrl_reg.bit.LVLEN2 = 1;                                                           // Enable priority level 2
     dmac_ctrl_reg.bit.LVLEN3 = 1;                                                           // Enable priority level 3
+    dmac_ctrl_reg.bit.CRCENABLE = 1;
     DMAC->CTRL = dmac_ctrl_reg;                                                             // Write DMA control register
     //DMAC->DBGCTRL.bit.DBGRUN = 1;                                                         // Normal operation during debugging
     
@@ -412,19 +422,6 @@ uint32_t dma_compute_crc32_from_spi(void* spi_data_p, uint32_t size)
     /* The byte that will be used to read/write spi data */
     volatile uint8_t temp_src_dst_reg = 0;
     
-    /* Setup CRC32 */
-    DMAC_CRCCTRL_Type crc_ctrl_reg;
-    crc_ctrl_reg.reg = 0;
-    crc_ctrl_reg.bit.CRCSRC = 0x20 + DMA_DESCID_RX_FS;                                      // Customfs RX DMA channel ID
-    crc_ctrl_reg.bit.CRCPOLY = DMAC_CRCCTRL_CRCPOLY_CRC32_Val;                              // CRC32
-    crc_ctrl_reg.bit.CRCBEATSIZE = DMAC_CRCCTRL_CRCBEATSIZE_BYTE_Val;                       // Beat size is one byte
-    DMAC->CRCCTRL = crc_ctrl_reg;                                                           // Store register
-    DMAC->CRCCHKSUM.reg = 0xFFFFFFFF;                                                       // Not sure why, it is needed
-    DMAC->CTRL.bit.DMAENABLE = 0;
-    while ((DMAC->CTRL.reg & DMAC_CTRL_DMAENABLE) != 0);
-    DMAC->CTRL.bit.CRCENABLE = 1;
-    DMAC->CTRL.bit.DMAENABLE = 1;
-
     /* Setup transfer descriptor for custom fs RX: only setup the difference between what has been set in dma_init and what we need */
     dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.DSTINC = 0;                                // Destination Address Increment is not enabled.
     dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val; // Once data block is transferred, do not generate interrupt
@@ -491,7 +488,7 @@ uint32_t dma_compute_crc32_from_spi(void* spi_data_p, uint32_t size)
     dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.bit.SRCINC = 1;                                // Source Address Increment is enabled.
 
     /* Reset CRC engine */
-    DMAC->CRCCTRL.reg = 0;
+    //DMAC->CRCCTRL.reg = 0;
 
     /* Return CRC */
     return return_val;
