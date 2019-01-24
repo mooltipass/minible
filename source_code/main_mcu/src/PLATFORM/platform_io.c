@@ -608,9 +608,6 @@ void platform_io_init_ports(void)
     /* OLED display */
     platform_io_init_oled_ports();
     
-    /* External Flash */
-    platform_io_init_flash_ports();
-    
     /* Accelerometer */
     platform_io_init_accelerometer_ports();
 

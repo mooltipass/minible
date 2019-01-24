@@ -78,17 +78,20 @@ void jump_to_application_function(void)
 void main_platform_init(void)
 {
     /* Initialization results vars */
-    custom_fs_init_ret_type_te custom_fs_return;
-    RET_TYPE fuses_ok;
+    custom_fs_init_ret_type_te custom_fs_return = CUSTOM_FS_INIT_NO_RWEE;
+    RET_TYPE bundle_integrity_check_return = RETURN_NOK;
+    RET_TYPE custom_fs_init_return = RETURN_NOK;
+    RET_TYPE dataflash_init_return = RETURN_NOK;
+    RET_TYPE fuses_ok = RETURN_NOK;
     
-    /* At boot, directly enable the 3V3 */
-    platform_io_enable_switch();                                        // Enable switch and 3v3 stepup
-    platform_io_init_power_ports();                                     // Init power port, needed later to test if we are battery or usb powered
-    platform_io_init_no_comms_signal();                                 // Init no comms signal, used as wakeup for aux MCU at boot
-    platform_io_init_bat_adc_measurements();                            // Initialize ADC measurements  
-    platform_io_enable_vbat_to_oled_stepup();                           // Enable vbat to oled stepup
-    platform_io_get_voledin_conversion_result_and_trigger_conversion(); // Start one measurement
-    while(platform_io_is_voledin_conversion_result_ready() == FALSE);   // Do measurement even if we are USB powered, to leave exactly 180ms for platform boot
+    /* Measure 1Vx, boot aux MCU, check if USB powered */
+    platform_io_enable_switch();                                            // Enable switch and 3v3 stepup
+    platform_io_init_power_ports();                                         // Init power port, needed later to test if we are battery or usb powered
+    platform_io_init_no_comms_signal();                                     // Init no comms signal, used as wakeup for aux MCU at boot
+    platform_io_init_bat_adc_measurements();                                // Initialize ADC measurements  
+    platform_io_enable_vbat_to_oled_stepup();                               // Enable vbat to oled stepup
+    platform_io_get_voledin_conversion_result_and_trigger_conversion();     // Start one measurement
+    while(platform_io_is_voledin_conversion_result_ready() == FALSE);       // Do measurement even if we are USB powered, to leave exactly 180ms for platform boot
     
     /* Check if battery powered and undervoltage */
     uint16_t battery_voltage = platform_io_get_voledin_conversion_result_and_trigger_conversion();
@@ -98,19 +101,34 @@ void main_platform_init(void)
         while(1);
     }
     
-    /* Check fuses */
-    fuses_ok = fuses_check_program(TRUE);                               // Check fuses and program them if incorrectly set
+    /* Check fuses, program them if incorrectly set */
+    fuses_ok = fuses_check_program(TRUE);
     while(fuses_ok == RETURN_NOK);
     
-    /* Perform Initializations */
-    custom_fs_return = custom_fs_settings_init();                       // Initialize our settings system
-    clocks_start_48MDFLL();                                             // Switch to 48M main clock
-    dma_init();                                                         // Initialize the DMA controller
-    timer_initialize_timebase();                                        // Initialize the platform time base
-    platform_io_init_ports();                                           // Initialize platform IO ports
-    platform_io_init_bat_adc_measurements();                            // Initialize ADC for battery measurements
-    comms_aux_arm_rx_and_clear_no_comms();                              // Initialize communication with aux MCU, enable aux boot
-    custom_fs_set_dataflash_descriptor(&dataflash_descriptor);          // Store the dataflash descriptor for our custom fs library
+    /* Switch to 48MHz, initialize time base */
+    clocks_start_48MDFLL();
+    
+    /* Custom FS init, check for data flash, absence of bundle and bundle integrity */
+    platform_io_init_flash_ports();
+    custom_fs_return = custom_fs_settings_init();
+    custom_fs_set_dataflash_descriptor(&dataflash_descriptor);
+    dataflash_init_return = dataflash_check_presence(&dataflash_descriptor);
+    if (dataflash_init_return != RETURN_NOK)
+    {
+        custom_fs_init_return = custom_fs_init();
+        if (custom_fs_init_return != RETURN_NOK)
+        {
+            /* Bundle integrity check */
+            bundle_integrity_check_return = custom_fs_compute_and_check_external_bundle_crc32();
+        }
+    }
+    
+    /* Rest of initializations */
+    dma_init();                                                             // Initialize the DMA controller
+    timer_initialize_timebase();                                            // Initialize the platform time base
+    platform_io_init_ports();                                               // Initialize platform IO ports
+    platform_io_init_bat_adc_measurements();                                // Initialize ADC for battery measurements
+    comms_aux_arm_rx_and_clear_no_comms();                                  // Initialize communication with aux MCU, enable aux boot
     
     /* Initialize OLED screen */
     if (platform_io_is_usb_3v3_present() == FALSE)
@@ -137,7 +155,7 @@ void main_platform_init(void)
     }
     
     /* Check for data flash */
-    if (dataflash_check_presence(&dataflash_descriptor) == RETURN_NOK)
+    if (dataflash_init_return == RETURN_NOK)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Dataflash");
         while(1);
@@ -179,7 +197,7 @@ void main_platform_init(void)
     }
     
     /* Initialize our custom file system stored in data flash */
-    if ((custom_fs_init() == RETURN_NOK) || (custom_fs_compute_and_check_external_bundle_crc32() == RETURN_NOK))
+    if ((custom_fs_init_return == RETURN_NOK) || (bundle_integrity_check_return == RETURN_NOK))
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
         
