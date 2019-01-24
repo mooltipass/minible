@@ -105,7 +105,7 @@ void main_platform_init(void)
     fuses_ok = fuses_check_program(TRUE);
     while(fuses_ok == RETURN_NOK);
     
-    /* Switch to 48MHz, initialize time base */
+    /* Switch to 48MHz */
     clocks_start_48MDFLL();
     
     /* Custom FS init, check for data flash, absence of bundle and bundle integrity */
@@ -123,12 +123,12 @@ void main_platform_init(void)
         }
     }
     
-    /* Rest of initializations */
-    dma_init();                                                             // Initialize the DMA controller
-    timer_initialize_timebase();                                            // Initialize the platform time base
-    platform_io_init_ports();                                               // Initialize platform IO ports
-    platform_io_init_bat_adc_measurements();                                // Initialize ADC for battery measurements
-    comms_aux_arm_rx_and_clear_no_comms();                                  // Initialize communication with aux MCU, enable aux boot
+    /* DMA transfers inits, timebase, platform ios, enable comms */
+    dma_init();
+    timer_initialize_timebase();
+    platform_io_init_ports();
+    comms_aux_arm_rx_and_clear_no_comms();
+    platform_io_init_bat_adc_measurements();
     
     /* Initialize OLED screen */
     if (platform_io_is_usb_3v3_present() == FALSE)
@@ -288,6 +288,9 @@ void main_standby_sleep(void)
     
     /* Resume accelerometer processing */
     lis2hh12_sleep_exit_and_dma_arm(&acc_descriptor);
+    
+    /* Clear wheel detection */
+    inputs_clear_detections();
 }
 
 /*! \fn     main(void)

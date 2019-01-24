@@ -67,13 +67,13 @@ void debug_debug_menu(void)
             #endif
             
             /* Item selection */
-            if (selected_item > 13)
+            if (selected_item > 14)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 13;
+                selected_item = 14;
             }
             
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);
@@ -104,6 +104,7 @@ void debug_debug_menu(void)
             {
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Sleep", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Leave Menu", TRUE);
             }
             
             /* Cursor */
@@ -193,6 +194,10 @@ void debug_debug_menu(void)
             else if (selected_item == 13)
             {
                 main_standby_sleep();
+            }
+            else if (selected_item == 14)
+            {
+                return;
             }
             redraw_needed = TRUE;
         }
@@ -508,10 +513,6 @@ void debug_debug_screen(void)
         if (wheel_user_action == WHEEL_ACTION_SHORT_CLICK)
         {
             return;
-        }
-        else if (wheel_user_action == WHEEL_ACTION_DOWN)
-        {
-            main_standby_sleep();
         }
     }
 }
