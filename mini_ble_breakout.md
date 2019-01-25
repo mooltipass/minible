@@ -17,7 +17,7 @@ The goal of this page is to make a record of all observations regarding the Mini
   
 | Breakout # | Location |
 |:-----------|:----|
-| 1          | @limpkin |
+| 1          | @oliver |
 | 2          | @limpkin |
 | 3          | @raoulh |
 | 4          | uA |
