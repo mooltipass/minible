@@ -181,6 +181,10 @@ void comms_usb_communication_routine(void)
         if ((usb_recast[0] == 0xFF) && usb_recast[1] == 0xFF)
         {
             comms_usb_expect_flip_bit_state_set = FALSE;
+            comms_usb_temp_mcu_message_fill_index = 0;
+            comms_usb_expected_packet_number = 0;
+            comms_usb_arm_packet_receive();
+            return;
         }        
         
         /* Check for bit flip state: if it doesn't match, reset fill indexes */
