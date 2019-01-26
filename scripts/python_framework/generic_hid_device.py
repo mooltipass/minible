@@ -282,6 +282,13 @@ class generic_hid_device:
 			print "Selected IN endpoint:", self.epin.bEndpointAddress
 
 		time.sleep(0.5)
+		
+		# Set flip bit reset packet
+		flipbit_reset_packet = array('B')
+		flipbit_reset_packet.append(0xFF)
+		flipbit_reset_packet.append(0xFF)
+		self.epout.write(flipbit_reset_packet)
+		
 		try:
 			# try to send ping packet
 			self.epout.write(hid_packet)

@@ -178,7 +178,7 @@ void comms_usb_communication_routine(void)
         
         /* Special case: first two bytes set to 0xFF 0xFF, reset flip bit */
         uint8_t* usb_recast = (uint8_t*)&raw_hid_recv_buffer;
-        if ((usb_recast[0] == 0xFF) && usb_recast[1] == 0xFF)
+        if ((usb_recast[0] == 0xFF) && (usb_recast[1] == 0xFF))
         {
             comms_usb_expect_flip_bit_state_set = FALSE;
             comms_usb_temp_mcu_message_fill_index = 0;
