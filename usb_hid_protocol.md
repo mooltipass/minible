@@ -29,6 +29,7 @@ If the computer wants to send a 240 bytes long message to the mini, it will send
   
 The message flip bit's main purpose is to explicitely mention that a new **message** (not packet) is being sent. This also allows the computer to discard a half-sent message by sending a new one with this bit flipped.  
 Therefore, this bit should be flipped every time a new message is sent. This bit shouldn't be used when received by the computer.   
+The mooltipass device will discard packets having the flip bit incorrectly set. To reset the flip bit state machine, the computer may simply send a packet with **the first two bytes set to 0xFF**. The device will then expect the next packet to have the flip bit set to 0.  
 At the end of a message transmission, if the computer set the final acknowledge request flag (bit6), regardless of the message contents' expected answer, the device will answer with a single 64B packet with the same byte0 and byte1 and the final acknowledge flag set.  
 This allows the computer to make sure his message was received.  
   
