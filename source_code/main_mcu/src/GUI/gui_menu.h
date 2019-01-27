@@ -1,9 +1,8 @@
-/*
- * gui_menu.h
- *
- * Created: 17/01/2019 21:23:25
- *  Author: limpkin
- */ 
+/*!  \file     gui_menu.h
+*    \brief    Standardized code to handle our menus
+*    Created:  17/11/2018
+*    Author:   Mathieu Stephan
+*/
 
 
 #ifndef GUI_MENU_H_

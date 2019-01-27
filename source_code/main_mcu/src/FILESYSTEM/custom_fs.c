@@ -560,6 +560,23 @@ BOOL custom_fs_settings_check_fw_upgrade_flag(void)
     }
 }
 
+/*! \fn     custom_fs_settings_get_device_setting(uint16_t setting_id)
+*   \brief  Get a given setting for the device
+*   \param  setting_id  The setting ID
+*   \return The settings value or 0 if there's any error
+*/
+uint8_t custom_fs_settings_get_device_setting(uint16_t setting_id)
+{
+    if ((custom_fs_platform_settings_p == 0) || (setting_id >= NB_DEVICE_SETTINGS))
+    {
+        return 0;
+    }
+    else
+    {
+        return custom_fs_platform_settings_p->device_settings[setting_id];
+    }
+}
+
 /*! \fn     custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_pt)
 *   \brief  Get a pointer to a CPZ LUT entry given a CPZ 
 *   \param  cpz         CPZ bytes

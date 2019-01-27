@@ -13,6 +13,6 @@
 
 /* Prototypes */
 int16_t utils_custchar_strncmp(cust_char_t* f_string, cust_char_t* sec_string, uint16_t nb_chars);
-
+uint16_t utils_check_value_for_range(uint16_t val, uint16_t min, uint16_t max);
 
 #endif /* UTILS_H_ */

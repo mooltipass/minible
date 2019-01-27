@@ -30,14 +30,14 @@ void smartcard_lowlevel_clock_pulse(void);
 void smartcard_lowlevel_detect(void);
 
 // Macros
-/*! \fn     isSmartCardAbsent(void)
+/*! \fn     smartcard_low_level_is_smc_absent(void)
 *   \brief  Function used to check if the smartcard is absent
 *   \note   This function should only be used to check if the smartcard is absent. It works because scanSMCDectect reports the
 *           smartcard absent when it is not here during only one tick. It also works because the smartcard is always reported
 *           released via isCardPlugged
 *   \return RETURN_OK if absent
 */
-static inline RET_TYPE isSmartCardAbsent(void)
+static inline RET_TYPE smartcard_low_level_is_smc_absent(void)
 {
     if (!((PORT->Group[SMC_DET_GROUP].IN.reg & SMC_DET_MASK) == 0))
     {

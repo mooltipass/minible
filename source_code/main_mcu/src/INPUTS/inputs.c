@@ -5,6 +5,7 @@
 */
 #include <asf.h>
 #include "platform_defines.h"
+#include "logic_device.h"
 #include "defines.h"
 #include "inputs.h"
 
@@ -133,7 +134,7 @@ int16_t inputs_get_wheel_increment(void)
     
     if (inputs_wheel_cur_increment != 0)
     {
-        //activityDetectedRoutine();
+        logic_device_activity_detected();
         cpu_irq_enter_critical();        
         return_val = inputs_wheel_cur_increment;
         inputs_wheel_cur_increment = 0;
@@ -154,7 +155,7 @@ det_ret_type_te inputs_is_wheel_clicked(void)
 
     if ((return_val != RETURN_DET) && (return_val != RETURN_REL))
     {
-        //activityDetectedRoutine();
+        logic_device_activity_detected();
         cpu_irq_enter_critical();
         if (inputs_wheel_click_return == RETURN_JDETECT)
         {
@@ -291,7 +292,7 @@ wheel_action_ret_te inputs_get_wheel_action(BOOL wait_for_action, BOOL ignore_in
     // Don't forget to call the activity detected routine if something happened
     if (return_val != WHEEL_ACTION_NONE)
     {
-        //activityDetectedRoutine();
+        logic_device_activity_detected();
     }
     
     inputs_last_detection_type_ret = return_val;

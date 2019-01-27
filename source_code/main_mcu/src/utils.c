@@ -6,6 +6,7 @@
 #include "defines.h"
 #include "utils.h"
 
+
 /*! \fn     utils_custchar_strncmp(cust_char_t* f_string, cust_char_t* sec_string, uint16_t nb_chars)
 *   \brief  Implementation of strncmp
 *   \param  f_string    First string
@@ -32,4 +33,27 @@ int16_t utils_custchar_strncmp(cust_char_t* f_string, cust_char_t* sec_string, u
     }
     
     return 0;
+}
+
+/*! \fn     utils_check_value_for_range(uint16_t val, uint16_t min, uint16_t max)
+*   \brief  Make sure a given value is within a range
+*   \param  val     The value to check
+*   \param  min     Minimum value
+*   \param  max     Maximum value
+*   \return Controlled value
+*/
+uint16_t utils_check_value_for_range(uint16_t val, uint16_t min, uint16_t max)
+{
+    if (val < min)
+    {
+        return min;
+    }
+    else if (val > max)
+    {
+        return max;
+    }
+    else
+    {
+        return val;
+    }
 }
