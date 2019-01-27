@@ -8,6 +8,8 @@
 #include "driver_clocks.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
+#include "logic_device.h"
+#include "gui_prompts.h"
 #include "logic_power.h"
 #include "platform_io.h"
 #include "custom_fs.h"
@@ -300,8 +302,13 @@ int main(void)
 {
     /* Initialize our platform */
     main_platform_init();
-    //timer_delay_ms(2000);
-    //main_standby_sleep();
+    
+    /* Activity detected */
+    logic_device_activity_detected();
+
+
+    volatile uint16_t bla[32];
+    gui_prompts_get_user_pin(bla, 0);
     debug_debug_menu();
     
     /* If button press at start, go to debug menu */

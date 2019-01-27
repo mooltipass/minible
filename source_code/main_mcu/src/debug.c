@@ -46,9 +46,6 @@ void debug_debug_menu(void)
     wheel_action_ret_te wheel_user_action;
     int16_t selected_item = 0;
     BOOL redraw_needed = TRUE;
-
-    /* Set Emergency Font */
-    sh1122_set_emergency_font(&plat_oled_descriptor);
     
     while(1)
     {
@@ -58,6 +55,9 @@ void debug_debug_menu(void)
         /* Draw menu */
         if (redraw_needed != FALSE)
         {
+            /* Set Emergency Font */
+            sh1122_set_emergency_font(&plat_oled_descriptor);
+            
             /* Clear screen */
             redraw_needed = FALSE;
             #ifdef OLED_INTERNAL_FRAME_BUFFER

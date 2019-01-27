@@ -38,8 +38,8 @@ void smartcard_lowlevel_detect(void);
 *   \return RETURN_OK if absent
 */
 static inline RET_TYPE smartcard_low_level_is_smc_absent(void)
-{
-    if (!((PORT->Group[SMC_DET_GROUP].IN.reg & SMC_DET_MASK) == 0))
+{    
+    if ((PORT->Group[SMC_DET_GROUP].IN.reg & SMC_DET_MASK) == 0)
     {
         return RETURN_NOK;
     }

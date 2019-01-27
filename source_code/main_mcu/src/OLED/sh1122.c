@@ -211,6 +211,24 @@ void sh1122_reset_max_text_x(sh1122_descriptor_t* oled_descriptor)
     oled_descriptor->max_text_x = SH1122_OLED_WIDTH;
 }
 
+/*! \fn     sh1122_allow_line_feed(sh1122_descriptor_t* oled_descriptor)
+*   \brief  Allow line feed
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*/
+void sh1122_allow_line_feed(sh1122_descriptor_t* oled_descriptor)
+{
+    oled_descriptor->line_feed_allowed = TRUE;
+}
+
+/*! \fn     sh1122_prevent_line_feed(sh1122_descriptor_t* oled_descriptor)
+*   \brief  Prevent line feed
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*/
+void sh1122_prevent_line_feed(sh1122_descriptor_t* oled_descriptor)
+{
+    oled_descriptor->line_feed_allowed = FALSE;
+}
+
 /*! \fn     sh1122_fill_screen(sh1122_descriptor_t* oled_descriptor, uint8_t color)
 *   \brief  Fill the sh1122 screen with a given color
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
@@ -1606,6 +1624,31 @@ uint16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char
 uint16_t sh1122_put_error_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string)
 {
     return sh1122_put_string_xy(oled_descriptor, 0, 0, OLED_ALIGN_CENTER, string, FALSE);
+}
+
+/*! \fn     sh1122_put_centered_string(sh1122_descriptor_t* oled_descriptor, uint8_t y, const cust_char_t* string, BOOL write_to_buffer)
+*   \brief  Display a centered string on the screen
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  y                   Starting y
+*   \param  string              Null terminated string
+*   \param  write_to_buffer     Set to true to write to internal buffer
+*   \return How many characters were printed
+*/
+uint16_t sh1122_put_centered_string(sh1122_descriptor_t* oled_descriptor, uint8_t y, const cust_char_t* string, BOOL write_to_buffer) 
+{
+     return sh1122_put_string_xy(oled_descriptor, 0, y, OLED_ALIGN_CENTER, string, write_to_buffer);
+}
+
+/*! \fn     sh1122_set_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y)
+*   \brief  Set current text X & Y
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  x   X
+*   \param  y   Y
+*/
+void sh1122_set_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y)
+{
+    oled_descriptor->cur_text_x = x;
+    oled_descriptor->cur_text_y = y;
 }
 
 /*! \fn     sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, const char* string, BOOL write_to_buffer) 

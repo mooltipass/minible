@@ -28,7 +28,7 @@
 #define NB_DEVICE_SETTINGS                  64
 #define SETTING_RESERVED_ID                 0
 #define SETTING_RANDOM_PIN_ID               1
-#define SETTING_USER_INTERACTION_TIMEOUT    2
+#define SETTING_USER_INTERACTION_TIMEOUT_ID 2
 
 /* Typedefs */
 typedef uint32_t custom_fs_file_count_t;
