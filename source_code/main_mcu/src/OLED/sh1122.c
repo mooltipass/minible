@@ -211,6 +211,44 @@ void sh1122_reset_max_text_x(sh1122_descriptor_t* oled_descriptor)
     oled_descriptor->max_text_x = SH1122_OLED_WIDTH;
 }
 
+/*! \fn     sh1122_set_min_display_y(sh1122_descriptor_t* oled_descriptor, uint16_t y)
+*   \brief  Set minimum Y display
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  y                   Min y
+*/
+void sh1122_set_min_display_y(sh1122_descriptor_t* oled_descriptor, uint16_t y)
+{
+    if (y > SH1122_OLED_HEIGHT)
+    {
+        y = SH1122_OLED_HEIGHT;
+    }
+    oled_descriptor->min_disp_y = y;
+}
+
+/*! \fn     sh1122_set_max_display_y(sh1122_descriptor_t* oled_descriptor, uint16_t y)
+*   \brief  Set maximum Y display
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  y                   Max y
+*/
+void sh1122_set_max_display_y(sh1122_descriptor_t* oled_descriptor, uint16_t y)
+{
+    if (y > SH1122_OLED_HEIGHT)
+    {
+        y = SH1122_OLED_HEIGHT;
+    }
+    oled_descriptor->max_disp_y = y;
+}
+
+/*! \fn     sh1122_reset_lim_display_y(sh1122_descriptor_t* oled_descriptor)
+*   \brief  Reset min/max Y display
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*/
+void sh1122_reset_lim_display_y(sh1122_descriptor_t* oled_descriptor)
+{
+    oled_descriptor->min_disp_y = 0;
+    oled_descriptor->max_disp_y = SH1122_OLED_HEIGHT;
+}
+
 /*! \fn     sh1122_allow_line_feed(sh1122_descriptor_t* oled_descriptor)
 *   \brief  Allow line feed
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
@@ -227,6 +265,24 @@ void sh1122_allow_line_feed(sh1122_descriptor_t* oled_descriptor)
 void sh1122_prevent_line_feed(sh1122_descriptor_t* oled_descriptor)
 {
     oled_descriptor->line_feed_allowed = FALSE;
+}
+
+/*! \fn     sh1122_allow_partial_text_y_draw(sh1122_descriptor_t* oled_descriptor)
+*   \brief  Allow partial drawing of text in Y
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*/
+void sh1122_allow_partial_text_y_draw(sh1122_descriptor_t* oled_descriptor)
+{
+    oled_descriptor->allow_text_partial_y_draw = TRUE;
+}
+
+/*! \fn     sh1122_prevent_partial_text_y_draw(sh1122_descriptor_t* oled_descriptor)
+*   \brief  Prevent partial drawing of text in Y
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*/
+void sh1122_prevent_partial_text_y_draw(sh1122_descriptor_t* oled_descriptor)
+{
+    oled_descriptor->allow_text_partial_y_draw = FALSE;
 }
 
 /*! \fn     sh1122_fill_screen(sh1122_descriptor_t* oled_descriptor, uint8_t color)
@@ -307,7 +363,46 @@ void sh1122_check_for_flush_and_terminate(sh1122_descriptor_t* oled_descriptor)
         /* Clear bool */
         oled_descriptor->frame_buffer_flush_in_progress = FALSE;
     }
-}    
+}
+
+/*! \fn     sh1122_flush_frame_buffer_window(sh1122_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint16_t height)
+*   \brief  Only flush a small part of our frame buffer
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  x                   Window X
+*   \param  y                   Window Y
+*   \param  width               Box width
+*   \param  height              Box height
+*   \note   will force x & width to be even
+*/
+void sh1122_flush_frame_buffer_window(sh1122_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint16_t height)
+{
+    x = ((x)/2)*2;
+    width = ((width+1)/2)*2;
+    
+    /* Sanity checks */
+    if (x >= SH1122_OLED_WIDTH)
+    {
+        x = SH1122_OLED_WIDTH-1;
+    }
+    if (y >= SH1122_OLED_HEIGHT)
+    {
+        y = SH1122_OLED_HEIGHT-1;
+    }
+    if (x+width > SH1122_OLED_WIDTH)
+    {
+        width = SH1122_OLED_WIDTH-x;
+    }
+    if (y+height > SH1122_OLED_HEIGHT)
+    {
+        height = SH1122_OLED_HEIGHT-y;
+    }
+    
+    /* Display! */
+    for (uint16_t i = y; i < y+height; i++)
+    {
+        sh1122_display_horizontal_pixel_line(oled_descriptor, x, i, width, &oled_descriptor->frame_buffer[i][x/2], FALSE);
+    }
+}
 
 /*! \fn     sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
 *   \brief  Flush frame buffer to screen
@@ -514,12 +609,15 @@ RET_TYPE sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor, uint16_t
 void sh1122_init_display(sh1122_descriptor_t* oled_descriptor)
 {
     /* Vars init : should already be to 0 but you never know... */
+    oled_descriptor->allow_text_partial_y_draw = FALSE;
     oled_descriptor->screen_wrapping_allowed = FALSE;
     oled_descriptor->carriage_return_allowed = FALSE;
     oled_descriptor->line_feed_allowed = FALSE;
     oled_descriptor->currentFontAddress = 0;
     oled_descriptor->max_text_x = SH1122_OLED_WIDTH;
     oled_descriptor->min_text_x = 0;
+    oled_descriptor->max_disp_y = SH1122_OLED_HEIGHT;
+    oled_descriptor->min_disp_y = 0;
     
     /* Send the initialization sequence through SPI */
     for (uint16_t ind = 0; ind < sizeof(sh1122_init_sequence);)
@@ -652,7 +750,7 @@ void sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, 
 void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, uint16_t width, uint8_t* pixels, BOOL write_to_buffer)
 {    
     /* Check for correct Y */
-    if ((y < 0) || (y >= SH1122_OLED_HEIGHT))
+    if ((y < oled_descriptor->min_disp_y) || (y >= oled_descriptor->max_disp_y))
     {
         return;
     }
@@ -1019,7 +1117,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
     }
 
     /* Use different drawing methods if it's a full screen picture and if we are 2 pixels aligned */
-    if ((x == 0) && (y == 0) && (bitstream->width == SH1122_OLED_WIDTH) && (bitstream->height == SH1122_OLED_HEIGHT))
+    if ((x == 0) && (y == 0) && (bitstream->width == SH1122_OLED_WIDTH) && (bitstream->height == SH1122_OLED_HEIGHT) && (oled_descriptor->max_disp_y == SH1122_OLED_HEIGHT))
     {
         /* Dedicated code to allow faster write to display */
         sh1122_draw_full_screen_image_from_bitstream(oled_descriptor, bitstream);        
@@ -1048,7 +1146,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
             bitstream_bitmap_array_read(bitstream, pixel_buffer, bitstream->width);
             
             /* Check for on screen */
-            if ((y+i >= 0) && (y+i < SH1122_OLED_HEIGHT))
+            if ((y+i >= oled_descriptor->min_disp_y) && (y+i < oled_descriptor->max_disp_y))
             {
                 sh1122_display_horizontal_pixel_line(oled_descriptor, x, y+i, bitstream->width, pixel_buffer, write_to_buffer);
             }
@@ -1106,7 +1204,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
         /* Scan Y */
         for (uint16_t j = 0; j < bitstream->height; j++)
         {            
-            if ((y+j >= 0) && (y+j < SH1122_OLED_HEIGHT))
+            if ((y+j >= oled_descriptor->min_disp_y) && (y+j < oled_descriptor->max_disp_y))
             {
                 /* Set pixel write window */
                 sh1122_set_row_address(oled_descriptor, y+j);
@@ -1126,7 +1224,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
                 bitstream_bitmap_array_read(bitstream, pixel_buffer[buffer_sel], bitstream->width);
             }
                
-            if ((y+j >= 0) && (y+j < SH1122_OLED_HEIGHT))
+            if ((y+j >= oled_descriptor->min_disp_y) && (y+j < oled_descriptor->max_disp_y))
             { 
                 /* Wait for transfer done */
                 while(dma_oled_check_and_clear_dma_transfer_flag() == FALSE);
@@ -1159,7 +1257,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
             uint16_t pixels = 0;
                
             /* If y is off screen, simply continue looping */
-            if ((y+yind < 0) || (y+yind >= SH1122_OLED_HEIGHT))
+            if ((y+yind < oled_descriptor->min_disp_y) || (y+yind >= oled_descriptor->max_disp_y))
             {
                 for (uint16_t i = 0; i < bitstream->width; i++)
                 {
@@ -1564,7 +1662,7 @@ RET_TYPE sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, B
                 oled_descriptor->cur_text_x = 0;
 
                 /* Check for out of screen */
-                if (oled_descriptor->cur_text_y >= SH1122_OLED_HEIGHT)
+                if (oled_descriptor->cur_text_y >= oled_descriptor->max_disp_y)
                 {
                     return RETURN_NOK;
                 }
@@ -1576,7 +1674,7 @@ RET_TYPE sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, B
         }
         
         /* Same check but for Y */
-        if (glyph_height + oled_descriptor->cur_text_y > SH1122_OLED_HEIGHT)
+        if ((glyph_height + oled_descriptor->cur_text_y > oled_descriptor->max_disp_y) && (oled_descriptor->allow_text_partial_y_draw == FALSE))
         {
             return RETURN_NOK;
         }

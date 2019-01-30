@@ -16,15 +16,17 @@
 #include "rng.h"
 
 
-/*! \fn     gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID)
+/*! \fn     gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction)
 *   \brief  Overwrite the digits on the current pin entering screen
 *   \param  current_pin     Array containing the pin
 *   \param  selected_digit  Currently selected digit
 *   \param  stringID        String ID for text query
 */
-void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID)
+void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction)
 {
     cust_char_t* string_to_display;
+    uint16_t next_glyph_height;
+    uint16_t cur_glyph_height;
     
     /* Try to fetch the string to display */
     if (custom_fs_get_string_from_file(stringID, &string_to_display) != RETURN_OK)
@@ -32,14 +34,40 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
         return;
     }
     
-    // Display bitmap
-    /*miniOledBitmapDrawFlash(0, 0, selected_digit+BITMAP_PIN_SLOT1, 0);
-    miniOledSetMaxTextY(62);
-    miniOledAllowTextWritingYIncrement();
-    miniOledPutCenteredString(TWO_LINE_TEXT_FIRST_POS, readStoredStringToBuffer(stringID));
-    miniOledPreventTextWritingYIncrement();
-    miniOledResetMaxTextY();
-    miniOledSetFont(FONT_PROFONT_14);*/
+    /* Animation: get current digit and the next one */
+    int16_t next_digit = current_pin[selected_digit] + anim_direction;
+    if (next_digit == 0x10)
+    {
+        next_digit = 0;
+    }
+    else if (next_digit  < 0)
+    {
+        next_digit = 0x0F;
+    }
+    
+    /* Convert current digit and next one into chars */
+    cust_char_t current_char = current_pin[selected_digit] + u'0';
+    cust_char_t next_char = next_digit + u'0';
+    if (current_pin[selected_digit] >= 0x0A)
+    {
+        current_char = current_pin[selected_digit] + u'A' - 0x0A;
+    }
+    if (next_digit >= 0x0A)
+    {
+        next_char = next_digit + u'A' - 0x0A;
+    }
+    
+    /* Animation: get current digit height to know the display boundaries, get next digit height to know animation length */
+    sh1122_refresh_used_font(&plat_oled_descriptor, 1);
+    sh1122_get_glyph_width(&plat_oled_descriptor, current_char, &cur_glyph_height);
+    sh1122_get_glyph_width(&plat_oled_descriptor, next_char, &next_glyph_height);
+    
+    /* Number of animation steps */
+    int16_t nb_animation_steps = cur_glyph_height + 2;
+    if (anim_direction == 0)
+    {
+        nb_animation_steps = 1;
+    }
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
@@ -48,40 +76,67 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
     sh1122_clear_current_screen(&plat_oled_descriptor);
     #endif
     
-    /* Display bitmap */
+    /* Write fixed bitmaps & text */
     sh1122_allow_line_feed(&plat_oled_descriptor);
-    sh1122_set_max_text_x(&plat_oled_descriptor, 100);
     sh1122_refresh_used_font(&plat_oled_descriptor, 1);
-    sh1122_put_centered_string(&plat_oled_descriptor, 20, string_to_display, TRUE);
-    sh1122_refresh_used_font(&plat_oled_descriptor, 1);
-    sh1122_prevent_line_feed(&plat_oled_descriptor);    
+    sh1122_set_max_text_x(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X);
+    sh1122_put_centered_string(&plat_oled_descriptor, PIN_PROMPT_TEXT_Y, string_to_display, TRUE);
+    sh1122_prevent_line_feed(&plat_oled_descriptor);
     sh1122_reset_max_text_x(&plat_oled_descriptor);
     
-    /* Display the 4 digits */
-    for (uint16_t i = 0; i < 4; i++)
-    {
-        sh1122_set_xy(&plat_oled_descriptor, 164+17*i, 16);
-        if (i != selected_digit)
+    /* Prepare for digits display */
+    sh1122_refresh_used_font(&plat_oled_descriptor, 1);
+    sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
+    sh1122_set_min_display_y(&plat_oled_descriptor, PIN_PROMPT_DIGIT_Y);
+    sh1122_set_max_display_y(&plat_oled_descriptor, PIN_PROMPT_DIGIT_Y+cur_glyph_height);
+    
+    /* Animation code */
+    for (int16_t anim_step = 0; anim_step < nb_animation_steps; anim_step++)
+    {        
+        /* Why erase a small box when you can erase the screen? */
+        #ifdef OLED_INTERNAL_FRAME_BUFFER
+        if (anim_step != 0)
         {
-            sh1122_put_char(&plat_oled_descriptor, u'*', TRUE);
+            sh1122_clear_frame_buffer(&plat_oled_descriptor);
         }
-        else
+        #endif
+        
+        /* Display the 4 digits */
+        for (uint16_t i = 0; i < 4; i++)
         {
-            if (current_pin[i] >= 0x0A)
+            if (i != selected_digit)
             {
-                sh1122_put_char(&plat_oled_descriptor, current_pin[i]+u'A'-0x0A, TRUE);
+                sh1122_set_xy(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_DIGIT_Y+PIN_PROMPT_ASTX_Y_INC);
+                sh1122_put_char(&plat_oled_descriptor, u'*', TRUE);
             }
             else
             {
-                sh1122_put_char(&plat_oled_descriptor, current_pin[i]+u'0', TRUE);
+                sh1122_set_xy(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_DIGIT_Y + anim_step*anim_direction);
+                sh1122_put_char(&plat_oled_descriptor, current_char, TRUE);
+                sh1122_set_xy(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_DIGIT_Y + anim_step*anim_direction + (cur_glyph_height+1)*anim_direction*-1);
+                sh1122_put_char(&plat_oled_descriptor, next_char, TRUE);
             }
         }
+        
+        /* Flush updated part */
+        #ifdef OLED_INTERNAL_FRAME_BUFFER
+        if (anim_step == 0)
+        {
+            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+        } 
+        else
+        {
+            sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_DIGIT_Y, PIN_PROMPT_DIGIT_X_SPC*4, PIN_PROMPT_DIGIT_Y_WDW);
+        }
+        #endif
+        
+        /* Small delay for animation */
+        timer_delay_ms(3);
     }
-    
-    /* Flush */
-    #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_flush_frame_buffer(&plat_oled_descriptor);
-    #endif
+        
+    /* Reset temporary graphics settings */
+    sh1122_reset_lim_display_y(&plat_oled_descriptor);
+    sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
 }
 
 
@@ -124,7 +179,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     inputs_clear_detections();
     
     // Display current pin on screen
-    gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID);
+    gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0);
     
     // While the user hasn't entered his pin
     while(!finished)
@@ -138,23 +193,24 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
         // Position increment / decrement
         if ((detection_result == WHEEL_ACTION_UP) || (detection_result == WHEEL_ACTION_DOWN))
         {
-            if ((current_pin[selected_digit] == 0x0F) && (detection_result == WHEEL_ACTION_UP))
-            {
-                current_pin[selected_digit] = 0xFF;
-            }
-            else if ((current_pin[selected_digit] == 0) && (detection_result == WHEEL_ACTION_DOWN))
-            {
-                current_pin[selected_digit] = 0x10;
-            }
             if (detection_result == WHEEL_ACTION_UP)
             {
-                current_pin[selected_digit]++;
+                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 1);
+                if (current_pin[selected_digit]++ == 0x0F)
+                {
+                    current_pin[selected_digit] = 0;
+                }
+                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0);
             }
             else
             {
-                current_pin[selected_digit]--;
+                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, -1);
+                if (current_pin[selected_digit]-- == 0)
+                {
+                    current_pin[selected_digit] = 0x0F;
+                }
+                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0);
             }
-            gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID);
         }
         
         // Return if card removed or timer expired
@@ -188,7 +244,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
                 ret_val = RETURN_NOK;
                 finished = TRUE;
             }
-            gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID);
+            gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0);
         }
         else if (detection_result == WHEEL_ACTION_SHORT_CLICK)
         {
@@ -201,7 +257,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
                 ret_val = RETURN_OK;
                 finished = TRUE;
             }
-            gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID);
+            gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0);
         }
     }
     

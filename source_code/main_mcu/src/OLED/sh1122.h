@@ -87,8 +87,11 @@ typedef struct
     BOOL screen_wrapping_allowed;                       // If we are allowing screen wrapping
     BOOL carriage_return_allowed;                       // If we are allowing \r
     BOOL line_feed_allowed;                             // If we are allowing \n
-    int16_t min_text_x;                                 // Min text X   
-    int16_t max_text_x;                                 // Max text X   
+    BOOL allow_text_partial_y_draw;                     // Allow drawing of text if they go over max Y
+    uint16_t min_disp_y;                                // Min display Y
+    uint16_t max_disp_y;                                // Max display Y
+    int16_t min_text_x;                                 // Min text X
+    int16_t max_text_x;                                 // Max text X
     int16_t cur_text_x;                                 // Current x for writing text
     int16_t cur_text_y;                                 // Current y for writing text
     BOOL oled_on;                                       // Know if oled is on
@@ -124,11 +127,16 @@ void sh1122_set_column_address(sh1122_descriptor_t* oled_descriptor, uint8_t sta
 void sh1122_write_single_word(sh1122_descriptor_t* oled_descriptor, uint16_t data);
 void sh1122_write_single_data(sh1122_descriptor_t* oled_descriptor, uint8_t data);
 void sh1122_set_row_address(sh1122_descriptor_t* oled_descriptor, uint8_t start);
+void sh1122_set_max_display_y(sh1122_descriptor_t* oled_descriptor, uint16_t y);
+void sh1122_set_min_display_y(sh1122_descriptor_t* oled_descriptor, uint16_t y);
 void sh1122_set_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y);
 void sh1122_fill_screen(sh1122_descriptor_t* oled_descriptor, uint16_t color);
 void sh1122_set_max_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x);
 void sh1122_set_min_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x);
+void sh1122_prevent_partial_text_y_draw(sh1122_descriptor_t* oled_descriptor);
+void sh1122_allow_partial_text_y_draw(sh1122_descriptor_t* oled_descriptor);
 void sh1122_clear_current_screen(sh1122_descriptor_t* oled_descriptor);
+void sh1122_reset_lim_display_y(sh1122_descriptor_t* oled_descriptor);
 void sh1122_set_emergency_font(sh1122_descriptor_t* oled_descriptor);
 void sh1122_start_data_sending(sh1122_descriptor_t* oled_descriptor);
 void sh1122_prevent_line_feed(sh1122_descriptor_t* oled_descriptor);
@@ -141,6 +149,7 @@ void sh1122_oled_on(sh1122_descriptor_t* oled_descriptor);
 
 /* Depending on enabled features */
 #ifdef OLED_INTERNAL_FRAME_BUFFER
+void sh1122_flush_frame_buffer_window(sh1122_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void sh1122_check_for_flush_and_terminate(sh1122_descriptor_t* oled_descriptor);
 void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor);
 void sh1122_clear_frame_buffer(sh1122_descriptor_t* oled_descriptor);
