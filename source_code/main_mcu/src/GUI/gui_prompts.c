@@ -381,8 +381,8 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     /* Arm timer for scrolling */
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
 
-    // Arm timer for flashing
-    //activateTimer(TIMER_FLASHING, 500);
+    /* Arm timer for flashing */
+    timer_start_timer(TIMER_FLASHING, 500);
     
     // Loop while no timeout occurs or no button is pressed
     while (input_answer == MINI_INPUT_RET_NONE)
@@ -397,22 +397,6 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         /*if (usbCancelRequestReceived() == RETURN_OK)
         {
             input_answer = MINI_INPUT_RET_TIMEOUT;
-        }*/
-
-        // Screen flashing logic
-        /*if ((hasTimerExpired(TIMER_FLASHING, TRUE) == TIMER_EXPIRED) && (flash_flag == TRUE) && (flash_sm < 4))
-        {
-            // Look at the flash_sm LSb to know what is the display state
-            if ((flash_sm++ & 0x01) != 0x00)
-            {
-                miniOledNormalDisplay();
-            }
-            else
-            {
-                miniOledInvertedDisplay();
-            }
-            // Re-arm timer
-            activateTimer(TIMER_FLASHING, 500);
         }*/
         
         // Check if something has been pressed
@@ -448,6 +432,16 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
             #endif
+            
+            /* Flashing timer */
+            if ((timer_has_timer_expired(TIMER_FLASHING, TRUE) == TIMER_EXPIRED) && (flash_sm < 4))
+            {
+                /* Increment flashing state machine */
+                flash_sm++;
+                
+                /* Rearm timer */
+                timer_start_timer(TIMER_FLASHING, 500);
+            }         
             
             /* Rearm timer */
             timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
@@ -503,6 +497,12 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             {
                 sh1122_draw_rectangle(&plat_oled_descriptor, CONF_PROMPT_BITMAP_X, 0, SH1122_OLED_WIDTH-CONF_PROMPT_BITMAP_X, SH1122_OLED_HEIGHT, 0x03, TRUE);
             }
+            
+            /* Display flash if needed */
+            if ((flash_flag == TRUE) && ((flash_sm & 0x01) != 0x00))
+            {                
+                sh1122_draw_rectangle(&plat_oled_descriptor, 0, 0, 10, SH1122_OLED_HEIGHT, 0x05, TRUE);
+            }   
             
             /* Flush to display */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
