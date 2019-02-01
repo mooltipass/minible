@@ -306,7 +306,14 @@ int main(void)
     /* Activity detected */
     logic_device_activity_detected();
 
-
+    cust_char_t* bla1 = u"this is the wonderful line 1";
+    cust_char_t* bla2 = u"this is the wonderful line 2... how are you doing?";
+    cust_char_t* bla3 = u"this is the wonderful line 3... how are you doing?";
+    cust_char_t* bla4 = u"this is the wonderful line 4... how are you doing?";
+    confirmationText_t conf_text = {.lines[0]=bla1, .lines[1]=bla2, .lines[2]=bla3, .lines[3]=bla4};
+    //gui_prompts_ask_for_confirmation(1, (confirmationText_t*)u"super marmotte", TRUE);
+    gui_prompts_ask_for_confirmation(4, &conf_text, TRUE);
+    
     volatile uint16_t bla[32];
     gui_prompts_get_user_pin(bla, 0);
     debug_debug_menu();

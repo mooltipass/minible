@@ -7,6 +7,18 @@
 #include "utils.h"
 
 
+/*! \fn     utils_strlen(cust_char_t* string)
+*   \brief  Our own custom strlen
+*   \param  string      The string
+*   \return The string length
+*/
+uint16_t utils_strlen(cust_char_t* string)
+{
+    uint16_t i;
+    for (i = 0; string[i] != 0; i++);
+    return i;
+}
+
 /*! \fn     utils_custchar_strncmp(cust_char_t* f_string, cust_char_t* sec_string, uint16_t nb_chars)
 *   \brief  Implementation of strncmp
 *   \param  f_string    First string

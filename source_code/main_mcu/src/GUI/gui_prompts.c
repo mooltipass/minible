@@ -12,8 +12,30 @@
 #include "custom_fs.h"
 #include "defines.h"
 #include "inputs.h"
+#include "utils.h"
 #include "main.h"
 #include "rng.h"
+// Text Y positions for conf prompt
+const uint8_t gui_prompts_conf_prompt_y_positions[4][4] = {
+    {ONE_LINE_TEXT_FIRST_POS, 0, 0, 0},
+    {TWO_LINE_TEXT_FIRST_POS, TWO_LINE_TEXT_SECOND_POS, 0, 0},
+    {THREE_LINE_TEXT_FIRST_POS, THREE_LINE_TEXT_SECOND_POS, THREE_LINE_TEXT_THIRD_POS, 0},
+    {FOUR_LINE_TEXT_FIRST_POS, FOUR_LINE_TEXT_SECOND_POS, FOUR_LINE_TEXT_THIRD_POS, FOUR_LINE_TEXT_FOURTH_POS}
+};
+// Text fonts for conf prompt
+const uint8_t gui_prompts_conf_prompt_fonts[4][4] = {
+    {0, 0, 0, 0},
+    {0, 0, 0, 0},
+    {0, 0, 0, 0},
+    {0, 0, 0, 0}
+};
+// Boxes height for each line
+const uint8_t gui_prompts_conf_prompt_line_heights[4][4] = {
+    {14, 14, 14, 14},
+    {14, 14, 14, 14},
+    {14, 14, 14, 14},
+    {14, 14, 14, 14}
+};
 
 
 /*! \fn     gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction)
@@ -25,7 +47,6 @@
 void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction)
 {
     cust_char_t* string_to_display;
-    uint16_t next_glyph_height;
     uint16_t cur_glyph_height;
     
     /* Try to fetch the string to display */
@@ -60,7 +81,6 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
     /* Animation: get current digit height to know the display boundaries, get next digit height to know animation length */
     sh1122_refresh_used_font(&plat_oled_descriptor, 1);
     sh1122_get_glyph_width(&plat_oled_descriptor, current_char, &cur_glyph_height);
-    sh1122_get_glyph_width(&plat_oled_descriptor, next_char, &next_glyph_height);
     
     /* Number of animation steps */
     int16_t nb_animation_steps = cur_glyph_height + 2;
@@ -269,4 +289,251 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     
     // Return success status
     return ret_val;
+}
+
+/*! \fn     gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen)
+*   \brief  Ask for user confirmation for different things
+*   \param  nb_args         Number of text lines (must be either 1 2 or 3/4)
+*   \param  text_object     Pointer to the text object if more than 1 line, pointer to the string if not
+*   \param  flash_screen    Boolean to flash screen
+*   \return See enum
+*/
+mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen)
+{
+    BOOL flash_flag = FALSE;
+    uint16_t flash_sm = 0;
+    
+    /* Check the user hasn't disabled the flash screen feature */
+    if ((flash_screen != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTING_FLASH_SCREEN_ID) != FALSE))
+    {
+        flash_flag = TRUE;
+    }
+
+    // Variables for scrolling
+    BOOL string_scrolling[4];
+    uint16_t string_lengths[4];
+    int16_t string_offset_cntrs[4] = {0,0,0,0};
+    BOOL string_scrolling_left[4] = {TRUE, TRUE, TRUE, TRUE};
+        
+    /* Currently selected choice */
+    BOOL approve_selected = TRUE;
+    
+    /* Clear frame buffer */
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #else
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    #endif
+    
+    /* Set text display preferences */
+    sh1122_set_max_text_x(&plat_oled_descriptor, CONF_PROMPT_MAX_TEXT_X);
+    
+    if (nb_args == 1)
+    {
+        /* One line: display it */
+        sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][0]);
+        sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][0], (cust_char_t*)text_object, TRUE);
+    }    
+    else
+    {
+        /* More than one line: compute their lengths, display them, set scrolling bools */
+        for (uint16_t i = 0; i < nb_args; i++)
+        {
+            /* Set correct font */
+            sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][i]);
+            
+            /* Is scrolling needed for that string? */
+            string_lengths[i] = utils_strlen(text_object->lines[i]);
+            sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
+            if (string_lengths[i] != sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE))
+            {
+                string_scrolling[i] = TRUE;
+            }
+            else
+            {
+                string_scrolling[i] = FALSE;
+            }
+            
+            /* Now allow partial X text display and display partial text if there's any */
+            sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
+            sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);
+        }
+    }
+    
+    /* Display bitmap */
+    sh1122_draw_rectangle(&plat_oled_descriptor, CONF_PROMPT_BITMAP_X, 0, SH1122_OLED_WIDTH-CONF_PROMPT_BITMAP_X, SH1122_OLED_HEIGHT, 0x03, TRUE);
+    
+    /* Flush to display */
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    #endif
+    
+    /* Wait for user input */
+    mini_input_yes_no_ret_te input_answer = MINI_INPUT_RET_NONE;
+    wheel_action_ret_te detect_result;
+    
+    /* Activity detected */
+    logic_device_activity_detected();
+    
+    /* Clear possible remaining detection */
+    inputs_clear_detections();
+    
+    /* Arm timer for scrolling */
+    timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
+
+    // Arm timer for flashing
+    //activateTimer(TIMER_FLASHING, 500);
+    
+    // Loop while no timeout occurs or no button is pressed
+    while (input_answer == MINI_INPUT_RET_NONE)
+    {
+        // User interaction timeout or smartcard removed
+        if ((smartcard_low_level_is_smc_absent() == RETURN_OK) || (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED))
+        {
+            input_answer = MINI_INPUT_RET_TIMEOUT;
+        }
+        
+        // Read usb comms as the plugin could ask to cancel the request
+        /*if (usbCancelRequestReceived() == RETURN_OK)
+        {
+            input_answer = MINI_INPUT_RET_TIMEOUT;
+        }*/
+
+        // Screen flashing logic
+        /*if ((hasTimerExpired(TIMER_FLASHING, TRUE) == TIMER_EXPIRED) && (flash_flag == TRUE) && (flash_sm < 4))
+        {
+            // Look at the flash_sm LSb to know what is the display state
+            if ((flash_sm++ & 0x01) != 0x00)
+            {
+                miniOledNormalDisplay();
+            }
+            else
+            {
+                miniOledInvertedDisplay();
+            }
+            // Re-arm timer
+            activateTimer(TIMER_FLASHING, 500);
+        }*/
+        
+        // Check if something has been pressed
+        detect_result = inputs_get_wheel_action(FALSE, TRUE);
+        if (detect_result == WHEEL_ACTION_SHORT_CLICK)
+        {
+            if (approve_selected != FALSE)
+            {
+                input_answer = MINI_INPUT_RET_YES;
+            } 
+            else
+            {
+                input_answer = MINI_INPUT_RET_NO;
+            }
+        }
+        else if (detect_result == WHEEL_ACTION_LONG_CLICK)
+        {
+            input_answer = MINI_INPUT_RET_BACK;
+        }
+
+        // Knock to approve
+        #if defined(HARDWARE_MINI_CLICK_V2) && !defined(NO_ACCELEROMETER_FUNCTIONALITIES)
+        if ((scanAndGetDoubleZTap(FALSE) == ACC_RET_KNOCK) && (flash_flag_set != FALSE))
+        {
+            input_answer = MINI_INPUT_RET_YES;
+        }
+        #endif
+        
+        /* Text scrolling animation */
+        if ((timer_has_timer_expired(TIMER_SCROLLING, FALSE) == TIMER_EXPIRED) && (nb_args > 1))
+        {
+            /* Clear frame buffer as we'll only push the updated parts */
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
+            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            #endif
+            
+            /* Rearm timer */
+            timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
+
+            /* Display all strings */
+            for (uint16_t i = 0; i < nb_args; i++)
+            {
+                if (string_scrolling[i] != FALSE)
+                {
+                    /* Erase previous part */
+                    //sh1122_draw_rectangle(&plat_oled_descriptor, 0, gui_prompts_conf_prompt_y_positions[nb_args-1][i], CONF_PROMPT_MAX_TEXT_X, gui_prompts_conf_prompt_line_heights[nb_args-1][i], 0x00, TRUE);
+                    
+                    /* Set correct font */
+                    sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][i]);
+                    
+                    /* Check if scrolling is not needed anymore */
+                    sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
+                    if (sh1122_put_string_xy(&plat_oled_descriptor, string_offset_cntrs[i], gui_prompts_conf_prompt_y_positions[nb_args-1][i], OLED_ALIGN_LEFT, text_object->lines[i], TRUE) == string_lengths[i])
+                    {
+                        string_scrolling_left[i] = FALSE;
+                    } 
+                    if (string_offset_cntrs[i] == 0)
+                    {
+                        string_scrolling_left[i] = TRUE;
+                    }
+                    
+                    /* Now allow partial X text display and display partial text if there's any */
+                    sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
+                    sh1122_put_string_xy(&plat_oled_descriptor, string_offset_cntrs[i], gui_prompts_conf_prompt_y_positions[nb_args-1][i], OLED_ALIGN_LEFT, text_object->lines[i], TRUE);
+                    
+                    /* Increment or decrement X offset */
+                    if (string_scrolling_left[i] == FALSE)
+                    {
+                        string_offset_cntrs[i]++;
+                    } 
+                    else
+                    {
+                        string_offset_cntrs[i]--;
+                    }
+                }
+                else
+                {
+                    sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);                    
+                }
+            }
+    
+            /* Display bitmap */
+            if(approve_selected == FALSE)
+            {
+                sh1122_draw_rectangle(&plat_oled_descriptor, CONF_PROMPT_BITMAP_X, 0, SH1122_OLED_WIDTH-CONF_PROMPT_BITMAP_X, SH1122_OLED_HEIGHT, 0x05, TRUE);
+            }
+            else
+            {
+                sh1122_draw_rectangle(&plat_oled_descriptor, CONF_PROMPT_BITMAP_X, 0, SH1122_OLED_WIDTH-CONF_PROMPT_BITMAP_X, SH1122_OLED_HEIGHT, 0x03, TRUE);
+            }
+            
+            /* Flush to display */
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
+            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            #endif
+        }
+
+        
+        // Approve / deny display change
+        if (inputs_get_wheel_increment() != 0)
+        {
+            if(approve_selected == FALSE)
+            {
+                sh1122_draw_rectangle(&plat_oled_descriptor, CONF_PROMPT_BITMAP_X, 0, SH1122_OLED_WIDTH-CONF_PROMPT_BITMAP_X, SH1122_OLED_HEIGHT, 0x03, TRUE);
+            }
+            else
+            {
+                sh1122_draw_rectangle(&plat_oled_descriptor, CONF_PROMPT_BITMAP_X, 0, SH1122_OLED_WIDTH-CONF_PROMPT_BITMAP_X, SH1122_OLED_HEIGHT, 0x05, TRUE);
+            }
+            approve_selected = !approve_selected;
+            
+            /* Flush to display */
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
+            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            #endif
+        }
+    }
+    
+    /* Reset text preferences */
+    sh1122_reset_max_text_x(&plat_oled_descriptor);
+    sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
+    
+    return input_answer;
 }
