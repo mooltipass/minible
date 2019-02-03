@@ -1,6 +1,6 @@
 **Title**: Automatically fetch all UI features from device  
 **Time estimated**: medium  
-**Skills**: python & C
+**Skills**: python & C  
 **Description**:  
 Remotely fetch from USB the contents of the display frame buffer and implement remote control of the device (within #defines). This will therefore allow:  
 - Making sure all language strings are correctly displayed on the device  
