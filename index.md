@@ -11,6 +11,7 @@ You'll find below different pages detailing our selected architecture.
 * [WIP - Database Model](database_model)
 * [WIP - RAM Consumers](ram_consumers)
 * [USB Raw HID Protocol](usb_hid_protocol)
+* [Device Permissions and Modes](device_modes)
 
 ## [](#header-2)Test Reports
 You'll find below different test reports done on the Mooltipass BLE.
