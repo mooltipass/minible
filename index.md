@@ -28,11 +28,9 @@ You'll find below the available tasks, grouped by category.
 Do not forget to review our [contributors guidelines and coding rules](coding_rules).
 * [Unicode Plane 0 Support Implementation (HID)](task_unicode_hid)
 * [Aux MCU USB Communications - OUT report](task_aux_mcu_usb)
-* [New Database Model Implementation](task_db)
 * [Secure Bootloader Implementation](task_bootloader)
-* [Aux MCU Bootloader Rewrite](task_aux_mcu_bootloader)
+* [Create a Visual Virtual Device](task_picture_grabbing)
 * [Webauthn Implementation](task_u2f)
-* [User Interface Design](task_ui_design)
 * [RNG Characterization](task_rng)
 * OTP Implementation
 
