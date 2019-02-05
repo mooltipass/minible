@@ -182,6 +182,16 @@ void sh1122_oled_on(sh1122_descriptor_t* oled_descriptor)
     timer_delay_ms(100);
 }
 
+/*! \fn     sh1122_load_transition(sh1122_descriptor_t* oled_descriptor, oled_transition_te transition)
+*   \brief  Load transition when the next frame buffer flush occurs
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  transition          The transition
+*/
+void sh1122_load_transition(sh1122_descriptor_t* oled_descriptor, oled_transition_te transition)
+{
+    oled_descriptor->loaded_transition = transition;
+}
+
 /*! \fn     sh1122_set_min_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x)
 *   \brief  Set maximum text X position
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct

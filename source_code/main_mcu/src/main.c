@@ -305,17 +305,28 @@ int main(void)
     
     /* Activity detected */
     logic_device_activity_detected();
+    
+    
+    //while (TRUE)
+    //while (FALSE)
+    /*{
+        for (uint16_t i = 309; i < 309+14; i++)
+        {
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
+            timer_delay_ms(50);
+        }
+    }*/
 
-    cust_char_t* bla1 = u"this is the wonderful line 1";
-    cust_char_t* bla2 = u"this is the wonderful line 2... how are you doing?";
-    cust_char_t* bla3 = u"this is the wonderful line 3... how are you doing?";
+    cust_char_t* bla1 = u"themooltipass.com";
+    cust_char_t* bla2 = u"Do you want to login with";
+    cust_char_t* bla3 = u"mysuperextralonglogin@mydomain.com";
     cust_char_t* bla4 = u"this is the wonderful line 4... how are you doing?";
     confirmationText_t conf_text = {.lines[0]=bla1, .lines[1]=bla2, .lines[2]=bla3, .lines[3]=bla4};
     //gui_prompts_ask_for_confirmation(1, (confirmationText_t*)u"super marmotte", TRUE);
-    gui_prompts_ask_for_confirmation(4, &conf_text, TRUE);
+    gui_prompts_ask_for_confirmation(3, &conf_text, TRUE);
     
-    volatile uint16_t bla[32];
-    gui_prompts_get_user_pin(bla, 0);
+    /*volatile uint16_t bla[32];
+    gui_prompts_get_user_pin(bla, 0);*/
     debug_debug_menu();
     
     /* If button press at start, go to debug menu */
@@ -324,7 +335,7 @@ int main(void)
         debug_debug_menu();
     }
     
-    //#define BLA
+    #define BLA
     #ifdef BLA
     /* Start animation */    
     for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)

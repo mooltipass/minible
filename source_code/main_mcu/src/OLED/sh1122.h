@@ -119,6 +119,7 @@ uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_
 RET_TYPE sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, BOOL write_to_buffer);
 uint16_t sh1122_put_error_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string);
 void sh1122_set_contrast_current(sh1122_descriptor_t* oled_descriptor, uint8_t contrast_current);
+void sh1122_load_transition(sh1122_descriptor_t* oled_descriptor, oled_transition_te transition);
 uint16_t sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str);
 void sh1122_set_master_current(sh1122_descriptor_t* oled_descriptor, uint8_t master_current);
 void sh1122_move_display_start_line(sh1122_descriptor_t* oled_descriptor, int16_t offset);

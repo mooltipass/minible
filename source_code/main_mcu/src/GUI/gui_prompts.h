@@ -11,6 +11,15 @@
 #include "defines.h"
 
 /* Defines */
+
+// Bitmap ID defines
+#define BITMAP_POPUP_3LINES_ID  309
+#define BITMAP_YES_PRESS_ID     338
+#define BITMAP_NO_PRESS_ID      323
+#define BITMAP_NY_DOWN_ID       353
+#define BITMAP_NY_UP_ID         367
+#define POPUP_3LINES_ANIM_LGTH  14
+
 // PIN prompt
 #define PIN_PROMPT_MAX_TEXT_X   100
 #define PIN_PROMPT_TEXT_Y       22
@@ -30,8 +39,9 @@
 #define FOUR_LINE_TEXT_SECOND_POS       16
 #define FOUR_LINE_TEXT_THIRD_POS        32
 #define FOUR_LINE_TEXT_FOURTH_POS       48
-#define CONF_PROMPT_MAX_TEXT_X          240
-#define CONF_PROMPT_BITMAP_X            240
+#define CONF_PROMPT_MAX_TEXT_X          210
+#define CONF_PROMPT_BITMAP_X            210
+#define CONF_PROMPT_BITMAP_Y            1
 #define CONF_PROMPT_LINE_HEIGHT         14
 // Delay when scrolling a text
 #define SCROLLING_DEL                   33
