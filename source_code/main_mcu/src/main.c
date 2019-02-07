@@ -322,7 +322,7 @@ int main(void)
     cust_char_t* bla3 = u"mysuperextralonglogin@mydomain.com";
     cust_char_t* bla4 = u"this is the wonderful line 4... how are you doing?";
     confirmationText_t conf_text = {.lines[0]=bla1, .lines[1]=bla2, .lines[2]=bla3, .lines[3]=bla4};
-    //gui_prompts_ask_for_confirmation(1, (confirmationText_t*)u"super marmotte", TRUE);
+    gui_prompts_ask_for_confirmation(1, (confirmationText_t*)u"Erase  Current  User?", TRUE);
     gui_prompts_ask_for_confirmation(3, &conf_text, TRUE);
     
     /*volatile uint16_t bla[32];
