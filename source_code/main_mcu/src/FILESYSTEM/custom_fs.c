@@ -250,13 +250,14 @@ ret_type_te custom_fs_init(void)
     return custom_fs_set_current_language(0);
 }
 
-/*! \fn     custom_fs_get_string_from_file(uint32_t text_file_id, uint32_t string_id, char* string_pt)
+/*! \fn     custom_fs_get_string_from_file(uint32_t text_file_id, uint32_t string_id, char* string_pt, BOOL lock_on_fail)
 *   \brief  Read a string from a string file
-*   \param  string_id   String ID
-*   \param  string_pt   Pointer to the returned string
+*   \param  string_id       String ID
+*   \param  string_pt       Pointer to the returned string
+*   \param  lock_on_fail    Set to TRUE to lock device if we fail to fetch the string
 *   \return success status
 */
-RET_TYPE custom_fs_get_string_from_file(uint32_t string_id, cust_char_t** string_pt)
+RET_TYPE custom_fs_get_string_from_file(uint32_t string_id, cust_char_t** string_pt, BOOL lock_on_fail)
 {
     custom_fs_string_offset_t string_offset;
     custom_fs_string_length_t string_length;
@@ -264,12 +265,20 @@ RET_TYPE custom_fs_get_string_from_file(uint32_t string_id, cust_char_t** string
     /* Check that file #0 was requested and that file doesn't actually exist */
     if (custom_fs_current_text_file_addr == 0)
     {
+        if (lock_on_fail != FALSE)
+        {
+            while(1);
+        }
         return RETURN_NOK;
     }
     
     /* Check if string_id is valid */
     if (string_id >= custom_fs_current_text_file_string_count)
     {
+        if (lock_on_fail != FALSE)
+        {
+            while(1);
+        }
         return RETURN_NOK;
     }
     

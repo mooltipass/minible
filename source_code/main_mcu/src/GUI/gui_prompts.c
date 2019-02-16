@@ -56,10 +56,7 @@ void gui_prompts_display_information_on_screen(uint16_t string_id)
     #endif
     
     /* Try to fetch the string to display */
-    if (custom_fs_get_string_from_file(string_id, &string_to_display) != RETURN_OK)
-    {
-        while(1);
-    }
+    custom_fs_get_string_from_file(string_id, &string_to_display, TRUE);
     
     /* Display string */
     sh1122_refresh_used_font(&plat_oled_descriptor, 1);
@@ -103,10 +100,7 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
     uint16_t cur_glyph_height;
     
     /* Try to fetch the string to display */
-    if (custom_fs_get_string_from_file(stringID, &string_to_display) != RETURN_OK)
-    {
-        return;
-    }
+    custom_fs_get_string_from_file(stringID, &string_to_display, TRUE);
     
     /* Animation: get current digit and the next one */
     int16_t next_digit = current_pin[selected_digit] + anim_direction;
@@ -358,10 +352,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     uint16_t flash_sm = 0;
     
     /* Try to fetch the string to display */
-    if (custom_fs_get_string_from_file(string_id, &string_to_display) != RETURN_OK)
-    {
-        while(1);
-    }
+    custom_fs_get_string_from_file(string_id, &string_to_display, TRUE);
     
     /* Check the user hasn't disabled the flash screen feature */
     if ((flash_screen != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTING_FLASH_SCREEN_ID) != FALSE))

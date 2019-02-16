@@ -367,7 +367,7 @@ void debug_language_test(void)
         for (uint16_t i = 0; i < custom_fs_get_number_of_languages(); i++)
         {
             custom_fs_set_current_language(i);
-            custom_fs_get_string_from_file(0, &temp_string);
+            custom_fs_get_string_from_file(0, &temp_string, FALSE);
             sh1122_set_emergency_font(&plat_oled_descriptor);
             sh1122_clear_current_screen(&plat_oled_descriptor);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "%d/%d : ", i+1, custom_fs_flash_header.language_map_item_count);
