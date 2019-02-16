@@ -63,15 +63,32 @@ void gui_prompts_display_information_on_screen(uint16_t string_id)
     
     /* Display string */
     sh1122_refresh_used_font(&plat_oled_descriptor, 1);
-    sh1122_put_centered_string(&plat_oled_descriptor, PIN_PROMPT_TEXT_Y, string_to_display, TRUE);
+    sh1122_put_centered_string(&plat_oled_descriptor, INF_DISPLAY_TEXT_Y, string_to_display, TRUE);
     
     /* Flush frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
     #endif    
     
-    /* wait a tad */
+    /* Mandatory wait for information display */
     timer_delay_ms(2000);
+}
+
+/*! \fn     gui_prompts_display_information_on_screen_and_wait(uint16_t string_id)
+*   \brief  Display text information on screen
+*   \param  string_id   String ID to display
+*/
+void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id)
+{
+    // Display string 
+    gui_prompts_display_information_on_screen(string_id);
+    
+    // Clear current detections
+    inputs_clear_detections();
+    
+    /* Optional wait */
+    timer_start_timer(TIMER_WAIT_FUNCTS, 3000);
+    while ((timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK));
 }
 
 /*! \fn     gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction)

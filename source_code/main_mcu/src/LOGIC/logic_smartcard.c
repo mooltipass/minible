@@ -27,7 +27,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     if ((detection_result == RETURN_MOOLTIPASS_PB) || (detection_result == RETURN_MOOLTIPASS_INVALID))
     {
         // Either it is not a card or our Manufacturer Test Zone write/read test failed
-        gui_prompts_display_information_on_screen(ID_STRING_PB_CARD);
+        gui_prompts_display_information_on_screen_and_wait(ID_STRING_PB_CARD);
         platform_io_smc_remove_function();
     }
     #ifdef blou

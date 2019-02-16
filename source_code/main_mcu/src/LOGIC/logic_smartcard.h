@@ -12,7 +12,7 @@
 #include "defines.h"
 
 /* Defines */
-#define ID_STRING_PB_CARD   0
+#define ID_STRING_PB_CARD   21
 
 /* Prototypes */
 RET_TYPE logic_smartcard_handle_inserted(void);

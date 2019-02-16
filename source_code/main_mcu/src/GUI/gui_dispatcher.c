@@ -6,6 +6,7 @@
 #include "comms_hid_msgs_debug.h"
 #include "gui_dispatcher.h"
 #include "gui_carousel.h"
+#include "gui_prompts.h"
 #include "gui_menu.h"
 #include "defines.h"
 #include "inputs.h"
@@ -45,7 +46,7 @@ void gui_dispatcher_get_back_to_current_screen(void)
     {
         case GUI_SCREEN_NINSERTED:          break;
         case GUI_SCREEN_INSERTED_LCK:       break;
-        case GUI_SCREEN_INSERTED_INVALID:   break;
+        case GUI_SCREEN_INSERTED_INVALID:   gui_prompts_display_information_on_screen(ID_STRING_REMOVE_CARD); break;
         case GUI_SCREEN_INSERTED_UNKNOWN:   break;
         case GUI_SCREEN_MEMORY_MGMT:        break;
         case GUI_SCREEN_CATEGORIES:         break;

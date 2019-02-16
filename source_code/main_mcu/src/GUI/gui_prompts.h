@@ -51,6 +51,8 @@
 #define CONF_PROMPT_BITMAP_X            210
 #define CONF_PROMPT_BITMAP_Y            1
 #define CONF_PROMPT_LINE_HEIGHT         14
+// Information display
+#define INF_DISPLAY_TEXT_Y              20
 // Delay when scrolling a text
 #define SCROLLING_DEL                   33
 
@@ -64,6 +66,7 @@ typedef struct
 void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction);
 mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen);
 RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID);
+void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id);
 void gui_prompts_display_information_on_screen(uint16_t string_id);
 
 #endif /* GUI_PROMPTS_H_ */

@@ -11,8 +11,11 @@
 #define GUI_DISPATCHER_H_
 
 /* Defines */
+// Bitmaps
 #define GUI_ANIMATION_FFRAME_ID 0
 #define GUI_ANIMATION_NBFRAMES  120
+// Strings
+#define ID_STRING_REMOVE_CARD   22
 
 /* Enums */
 typedef enum {  GUI_SCREEN_NINSERTED = 0,

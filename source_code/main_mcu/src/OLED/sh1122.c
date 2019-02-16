@@ -1573,7 +1573,7 @@ uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_
         if (glyph.glyph_data_offset == 0xFFFFFFFF)
         {
             // If there's no glyph data, it is the space!
-            return (glyph.xrect >> 1); // space character is always too large...
+            return glyph.xrect;
         }
         else
         {
@@ -1672,7 +1672,7 @@ uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int1
     if (glyph.glyph_data_offset == 0xFFFFFFFF)
     {
         /* Space character, just fill in the gddram buffer and output background pixels */
-        glyph_width = glyph.xrect >> 1; // space character is always too large...
+        glyph_width = glyph.xrect;
     }
     else
     {
