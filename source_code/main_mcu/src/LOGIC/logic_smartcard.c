@@ -30,44 +30,36 @@ RET_TYPE logic_smartcard_handle_inserted(void)
         gui_prompts_display_information_on_screen_and_wait(ID_STRING_PB_CARD);
         platform_io_smc_remove_function();
     }
-    #ifdef blou
     else if (detection_result == RETURN_MOOLTIPASS_BLOCKED)
     {
         // The card is blocked, no pin code tries are remaining
-        guiDisplayInformationOnScreenAndWait(ID_STRING_CARD_BLOCKED);
-        printSmartCardInfo();
-        removeFunctionSMC();
+        gui_prompts_display_information_on_screen_and_wait(ID_STRING_CARD_BLOCKED);
+        platform_io_smc_remove_function();
     }
     else if (detection_result == RETURN_MOOLTIPASS_BLANK)
     {
         // This is a user free card, we can ask the user to create a new user inside the Mooltipass
-        if (guiAskForConfirmation(1, (confirmationText_t*)readStoredStringToBuffer(ID_STRING_NEWMP_USER)) == RETURN_OK)
+        if (gui_prompts_ask_for_one_line_confirmation(ID_STRING_CREATE_NEW_USER, FALSE) == MINI_INPUT_RET_YES)
         {
             volatile uint16_t pin_code;
             
             // Create a new user with his new smart card
-            if ((guiAskForNewPin(&pin_code, ID_STRING_PIN_NEW_CARD) == RETURN_NEW_PIN_OK) && (addNewUserAndNewSmartCard(&pin_code) == RETURN_OK))
+            if ((gui_prompts_get_user_pin(&pin_code, ID_STRING_NEW_CARD_PIN) == RETURN_OK))// && (addNewUserAndNewSmartCard(&pin_code) == RETURN_OK))
             {
-                guiDisplayInformationOnScreenAndWait(ID_STRING_USER_ADDED);
-                next_screen = SCREEN_DEFAULT_INSERTED_NLCK;
-                setSmartCardInsertedUnlocked();
+                gui_prompts_display_information_on_screen_and_wait(ID_STRING_NEW_USER_ADDED);
+                next_screen = GUI_SCREEN_MAIN_MENU;
+                //setSmartCardInsertedUnlocked();
                 return_value = RETURN_OK;
             }
             else
             {
                 // Something went wrong, user wasn't added
-                guiDisplayInformationOnScreenAndWait(ID_STRING_USER_NADDED);
+                gui_prompts_display_information_on_screen_and_wait(ID_STRING_COULDNT_ADD_USER);
             }
             pin_code = 0x0000;
         }
-        else
-        {
-            guiSetCurrentScreen(next_screen);
-            guiGetBackToCurrentScreen();
-            return return_value;
-        }
-        printSmartCardInfo();
     }
+    #ifdef blou
     else if (detection_result == RETURN_MOOLTIPASS_USER)
     {
         // Call valid card detection function

@@ -357,13 +357,13 @@ int main(void)
     #endif
     
     /* Get current smartcard detection result: TODO: when animations are enabled again, remove delay (not needed anymore) */
-    timer_delay_ms(CART_DELAY_FOR_DETECTION+1);
-    det_ret_type_te cart_detection_res = smartcard_lowlevel_is_card_plugged();
+    timer_delay_ms(CARD_DELAY_FOR_DETECTION+1);
+    det_ret_type_te card_detection_res = smartcard_lowlevel_is_card_plugged();
         
     /* Set startup screen: TODO change back to locked */
     gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE, GUI_INTO_MENU_TRANSITION);
     logic_device_activity_detected();
-    if (cart_detection_res != RETURN_JDETECT)
+    if (card_detection_res != RETURN_JDETECT)
     {
         gui_dispatcher_get_back_to_current_screen();
     }
@@ -372,14 +372,14 @@ int main(void)
     while(TRUE)
     {
         /* Do appropriate actions on smartcard insertion / removal */
-        if (cart_detection_res == RETURN_JDETECT)
+        if (card_detection_res == RETURN_JDETECT)
         {
             /* Light up the Mooltipass and call the dedicated function */
             logic_device_activity_detected();
             logic_smartcard_handle_inserted();
         }
         #ifdef BLI
-        else if (card_detect_ret == RETURN_JRELEASED)
+        else if (card_detection_res == RETURN_JRELEASED)
         {
             /* Light up the Mooltipass and call the dedicated function */
             activityDetectedRoutine();
@@ -406,7 +406,7 @@ int main(void)
         comms_aux_mcu_routine(FALSE);
         
         /* Get current smartcard detection result */
-        cart_detection_res = smartcard_lowlevel_is_card_plugged();
+        card_detection_res = smartcard_lowlevel_is_card_plugged();
     }
     
     // Test code: burn internal graphics data into external flash.

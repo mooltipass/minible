@@ -177,7 +177,7 @@ void smartcard_lowlevel_detect(void)
 {
     if ((PORT->Group[SMC_DET_GROUP].IN.reg & SMC_DET_MASK) == 0)
     {
-        if (card_detect_counter == CART_DELAY_FOR_DETECTION)
+        if (card_detect_counter == CARD_DELAY_FOR_DETECTION)
         {
             // We must make sure the user detected that the smartcard was removed before setting it as detected!
             if (card_return != RETURN_JRELEASED)

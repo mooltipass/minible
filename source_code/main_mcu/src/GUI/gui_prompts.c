@@ -344,10 +344,156 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     return ret_val;
 }
 
+/*! \fn     gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen)
+*   \brief  Ask for user confirmation for different things
+*   \param  string_id       String ID
+*   \param  flash_screen    Boolean to flash screen
+*   \return See enum
+*/
+mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen)
+{
+    cust_char_t* string_to_display;
+    BOOL approve_selected = TRUE;
+    BOOL flash_flag = FALSE;
+    uint16_t flash_sm = 0;
+    
+    /* Try to fetch the string to display */
+    if (custom_fs_get_string_from_file(string_id, &string_to_display) != RETURN_OK)
+    {
+        while(1);
+    }
+    
+    /* Check the user hasn't disabled the flash screen feature */
+    if ((flash_screen != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTING_FLASH_SCREEN_ID) != FALSE))
+    {
+        flash_flag = TRUE;
+    }
+    
+    /* Clear frame buffer */
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #else
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    #endif
+    
+    /* Display single line */
+    sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[0][0]);
+    sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[0][0], (cust_char_t*)string_to_display, TRUE);
+    
+    /* Flush to display */
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    #endif
+    
+    /* Transition the action bitmap */
+    for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
+    {
+        /* Write both in frame buffer and display */
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_Y+i, FALSE);
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_Y+i, TRUE);
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_N+i, FALSE);
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_N+i, TRUE);            
+        timer_delay_ms(15);
+    }
+    
+    /* Wait for user input */
+    mini_input_yes_no_ret_te input_answer = MINI_INPUT_RET_NONE;
+    wheel_action_ret_te detect_result;
+    
+    /* Activity detected */
+    logic_device_activity_detected();
+    
+    /* Clear possible remaining detection */
+    inputs_clear_detections();
+
+    /* Arm timer for flashing */
+    timer_start_timer(TIMER_FLASHING, 500);
+    
+    // Loop while no timeout occurs or no button is pressed
+    while (input_answer == MINI_INPUT_RET_NONE)
+    {
+        // User interaction timeout or smartcard removed
+        if ((smartcard_low_level_is_smc_absent() == RETURN_OK) || (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED))
+        {
+            input_answer = MINI_INPUT_RET_TIMEOUT;
+        }
+        
+        // Read usb comms as the plugin could ask to cancel the request
+        /*if (usbCancelRequestReceived() == RETURN_OK)
+        {
+            input_answer = MINI_INPUT_RET_TIMEOUT;
+        }*/
+        
+        // Check if something has been pressed
+        detect_result = inputs_get_wheel_action(FALSE, TRUE);
+        if (detect_result == WHEEL_ACTION_SHORT_CLICK)
+        {
+            if (approve_selected != FALSE)
+            {
+                input_answer = MINI_INPUT_RET_YES;
+                for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
+                {
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_PRESS_Y+i, FALSE);
+                    timer_delay_ms(10);
+                }
+            }
+            else
+            {
+                input_answer = MINI_INPUT_RET_NO;
+                for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
+                {
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_PRESS_N+i, FALSE);
+                    timer_delay_ms(10);
+                }
+            }
+        }
+        else if (detect_result == WHEEL_ACTION_LONG_CLICK)
+        {
+            input_answer = MINI_INPUT_RET_BACK;
+        }
+
+        // Knock to approve
+        #if defined(HARDWARE_MINI_CLICK_V2) && !defined(NO_ACCELEROMETER_FUNCTIONALITIES)
+        if ((scanAndGetDoubleZTap(FALSE) == ACC_RET_KNOCK) && (flash_flag_set != FALSE))
+        {
+            input_answer = MINI_INPUT_RET_YES;
+        }
+        #endif
+        
+        // Approve / deny display change
+        int16_t wheel_increments = inputs_get_wheel_increment();
+        if (wheel_increments != 0)
+        {
+            if (approve_selected == FALSE)
+            {
+                for (uint16_t i = 0; i < CONF_2LINES_SEL_AN_LGTH; i++)
+                {
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_Y+i, FALSE);
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_N+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
+                    timer_delay_ms(10);
+                }
+            }
+            else
+            {
+                for (uint16_t i = 0; i < CONF_2LINES_SEL_AN_LGTH; i++)
+                {
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_N+i, FALSE);
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_Y+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
+                    timer_delay_ms(10);
+                }
+            }                
+            approve_selected = !approve_selected;
+        }
+    }
+    
+    return input_answer;    
+}
+
 /*! \fn     gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen)
 *   \brief  Ask for user confirmation for different things
-*   \param  nb_args         Number of text lines (must be either 1 2 or 3/4)
-*   \param  text_object     Pointer to the text object if more than 1 line, pointer to the string if not
+*   \param  nb_args         Number of text lines (2 to 4)
+*   \param  text_object     Pointer to the text object
 *   \param  flash_screen    Boolean to flash screen
 *   \return See enum
 */
@@ -380,41 +526,29 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     #endif
     
     /* Set text display preferences */
-    if (nb_args != 1)
-    {
-        sh1122_set_max_text_x(&plat_oled_descriptor, CONF_PROMPT_MAX_TEXT_X);
-    }
+    sh1122_set_max_text_x(&plat_oled_descriptor, CONF_PROMPT_MAX_TEXT_X);   
     
-    if (nb_args == 1)
+    /* Compute lines lengths, display them, set scrolling bools */
+    for (uint16_t i = 0; i < nb_args; i++)
     {
-        /* One line: display it */
-        sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][0]);
-        sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][0], (cust_char_t*)text_object, TRUE);
-    }    
-    else
-    {
-        /* More than one line: compute their lengths, display them, set scrolling bools */
-        for (uint16_t i = 0; i < nb_args; i++)
+        /* Set correct font */
+        sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][i]);
+            
+        /* Is scrolling needed for that string? */
+        string_lengths[i] = utils_strlen(text_object->lines[i]);
+        sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
+        if (string_lengths[i] != sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE))
         {
-            /* Set correct font */
-            sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][i]);
-            
-            /* Is scrolling needed for that string? */
-            string_lengths[i] = utils_strlen(text_object->lines[i]);
-            sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
-            if (string_lengths[i] != sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE))
-            {
-                string_scrolling[i] = TRUE;
-            }
-            else
-            {
-                string_scrolling[i] = FALSE;
-            }
-            
-            /* Now allow partial X text display and display partial text if there's any */
-            sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
-            sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);
+            string_scrolling[i] = TRUE;
         }
+        else
+        {
+            string_scrolling[i] = FALSE;
+        }
+            
+        /* Now allow partial X text display and display partial text if there's any */
+        sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
+        sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);
     }
     
     /* Flush to display */
@@ -423,27 +557,12 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     #endif
     
     /* Transition done, now transition the action bitmap */
-    if (nb_args == 1)
+    for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH; i++)
     {
-        for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
-        {
-            /* Write both in frame buffer and display */
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_Y+i, FALSE);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_Y+i, TRUE);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_N+i, FALSE);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_N+i, TRUE);            
-            timer_delay_ms(15);
-        }        
-    } 
-    else
-    {
-        for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH; i++)
-        {
-            /* Write both in frame buffer and display */
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_3LINES_ID+i, FALSE);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_3LINES_ID+i, TRUE);
-            timer_delay_ms(30);
-        }
+        /* Write both in frame buffer and display */
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_3LINES_ID+i, FALSE);
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_3LINES_ID+i, TRUE);
+        timer_delay_ms(30);
     }
     
     /* Wait for user input */
@@ -480,47 +599,23 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         // Check if something has been pressed
         detect_result = inputs_get_wheel_action(FALSE, TRUE);
         if (detect_result == WHEEL_ACTION_SHORT_CLICK)
-        {
-            if (nb_args == 1)
+        { 
+            if (approve_selected != FALSE)
             {
-                if (approve_selected != FALSE)
+                input_answer = MINI_INPUT_RET_YES;
+                for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH+1; i++)
                 {
-                    input_answer = MINI_INPUT_RET_YES;
-                    for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
-                    {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_PRESS_Y+i, FALSE);
-                        timer_delay_ms(10);
-                    }
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_YES_PRESS_ID+i, FALSE);
+                    timer_delay_ms(10);
                 }
-                else
-                {
-                    input_answer = MINI_INPUT_RET_NO;
-                    for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
-                    {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_PRESS_N+i, FALSE);
-                        timer_delay_ms(10);
-                    }
-                }
-            } 
+            }
             else
             {
-                if (approve_selected != FALSE)
+                input_answer = MINI_INPUT_RET_NO;
+                for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH+1; i++)
                 {
-                    input_answer = MINI_INPUT_RET_YES;
-                    for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH+1; i++)
-                    {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_YES_PRESS_ID+i, FALSE);
-                        timer_delay_ms(10);
-                    }
-                }
-                else
-                {
-                    input_answer = MINI_INPUT_RET_NO;
-                    for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH+1; i++)
-                    {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NO_PRESS_ID+i, FALSE);
-                        timer_delay_ms(10);
-                    }
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NO_PRESS_ID+i, FALSE);
+                    timer_delay_ms(10);
                 }
             }
         }
@@ -538,7 +633,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         #endif
         
         /* Text scrolling animation */
-        if ((timer_has_timer_expired(TIMER_SCROLLING, FALSE) == TIMER_EXPIRED) && (nb_args > 1))
+        if (timer_has_timer_expired(TIMER_SCROLLING, FALSE) == TIMER_EXPIRED)
         {
             /* Clear frame buffer as we'll only push the updated parts */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
@@ -599,22 +694,16 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
                     sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);                    
                 }
             }
-    
-            if (nb_args == 1)
+            
+            /* Display bitmap */
+            if(approve_selected == FALSE)
             {
-            } 
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID, TRUE);
+            }
             else
             {
-                /* Display bitmap */
-                if(approve_selected == FALSE)
-                {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID, TRUE);
-                }
-                else
-                {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID+POPUP_3LINES_ANIM_LGTH-1, TRUE);
-                }
-            }
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID+POPUP_3LINES_ANIM_LGTH-1, TRUE);
+            }                
             
             /* Display flash if needed */
             if ((flash_flag == TRUE) && ((flash_sm & 0x01) != 0x00))
@@ -633,68 +722,45 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         int16_t wheel_increments = inputs_get_wheel_increment();
         if (wheel_increments != 0)
         {
-            if (nb_args == 1)
+            if (wheel_increments > 0)
             {
                 if (approve_selected == FALSE)
                 {
-                    for (uint16_t i = 0; i < CONF_2LINES_SEL_AN_LGTH; i++)
+                    for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH; i++)
                     {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_Y+i, FALSE);
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_N+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
+                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_UP_ID+i, FALSE);
                         timer_delay_ms(10);
                     }
-                }
+                } 
                 else
                 {
-                    for (uint16_t i = 0; i < CONF_2LINES_SEL_AN_LGTH; i++)
+                    for (int16_t i = POPUP_3LINES_ANIM_LGTH-1; i >= 0; i--)
                     {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_N+i, FALSE);
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_Y+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
+                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_UP_ID+i, FALSE);
                         timer_delay_ms(10);
                     }
                 }
             } 
             else
             {
-                if (wheel_increments > 0)
+                if (approve_selected == FALSE)
                 {
-                    if (approve_selected == FALSE)
+                    for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH; i++)
                     {
-                        for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH; i++)
-                        {
-                            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_UP_ID+i, FALSE);
-                            timer_delay_ms(10);
-                        }
-                    } 
-                    else
-                    {
-                        for (int16_t i = POPUP_3LINES_ANIM_LGTH-1; i >= 0; i--)
-                        {
-                            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_UP_ID+i, FALSE);
-                            timer_delay_ms(10);
-                        }
+                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID+i, FALSE);
+                        timer_delay_ms(10);
                     }
-                } 
+                }
                 else
                 {
-                    if (approve_selected == FALSE)
+                    for (int16_t i = POPUP_3LINES_ANIM_LGTH-1; i >= 0; i--)
                     {
-                        for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH; i++)
-                        {
-                            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID+i, FALSE);
-                            timer_delay_ms(10);
-                        }
-                    }
-                    else
-                    {
-                        for (int16_t i = POPUP_3LINES_ANIM_LGTH-1; i >= 0; i--)
-                        {
-                            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID+i, FALSE);
-                            timer_delay_ms(10);
-                        }
+                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID+i, FALSE);
+                        timer_delay_ms(10);
                     }
                 }
             }
+                
             approve_selected = !approve_selected;
         }
     }
