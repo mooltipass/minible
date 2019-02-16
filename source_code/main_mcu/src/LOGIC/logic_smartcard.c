@@ -6,8 +6,10 @@
 #include "smartcard_highlevel.h"
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
+#include "logic_security.h"
 #include "gui_prompts.h"
 #include "platform_io.h"
+#include "logic_user.h"
 #include "defines.h"
 
 
@@ -44,11 +46,11 @@ RET_TYPE logic_smartcard_handle_inserted(void)
             volatile uint16_t pin_code;
             
             // Create a new user with his new smart card
-            if ((gui_prompts_get_user_pin(&pin_code, ID_STRING_NEW_CARD_PIN) == RETURN_OK))// && (addNewUserAndNewSmartCard(&pin_code) == RETURN_OK))
+            if ((gui_prompts_get_user_pin(&pin_code, ID_STRING_NEW_CARD_PIN) == RETURN_OK) && (logic_user_create_new_user(&pin_code) == RETURN_OK))
             {
                 gui_prompts_display_information_on_screen_and_wait(ID_STRING_NEW_USER_ADDED);
+                logic_security_smartcard_unlocked_actions();
                 next_screen = GUI_SCREEN_MAIN_MENU;
-                //setSmartCardInsertedUnlocked();
                 return_value = RETURN_OK;
             }
             else
@@ -60,6 +62,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
         }
     }
     #ifdef blou
+    // TODO
     else if (detection_result == RETURN_MOOLTIPASS_USER)
     {
         // Call valid card detection function

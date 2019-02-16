@@ -666,10 +666,22 @@
     <Compile Include="src\LOGIC\logic_power.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\LOGIC\logic_security.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\LOGIC\logic_security.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\LOGIC\logic_smartcard.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\LOGIC\logic_smartcard.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\LOGIC\logic_user.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\LOGIC\logic_user.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\main.h">

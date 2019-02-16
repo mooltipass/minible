@@ -6,6 +6,7 @@
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
 #include "platform_defines.h"
+#include "logic_security.h"
 #include "driver_sercom.h"
 #include "driver_timer.h"
 #include "platform_io.h"
@@ -196,9 +197,9 @@ void smartcard_lowlevel_detect(void)
         // Smartcard remove functions
         if ((card_detect_counter != 0) && (card_powered != FALSE))
         {
-            platform_io_smc_remove_function();
             card_powered = FALSE;
-            //clearSmartCardInsertedUnlocked();
+            platform_io_smc_remove_function();
+            logic_security_clear_security_bools();
         }
         if (card_return == RETURN_DET)
         {

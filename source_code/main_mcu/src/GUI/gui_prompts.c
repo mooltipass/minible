@@ -65,10 +65,7 @@ void gui_prompts_display_information_on_screen(uint16_t string_id)
     /* Flush frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
-    #endif    
-    
-    /* Mandatory wait for information display */
-    timer_delay_ms(2000);
+    #endif
 }
 
 /*! \fn     gui_prompts_display_information_on_screen_and_wait(uint16_t string_id)
@@ -82,6 +79,9 @@ void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id)
     
     // Clear current detections
     inputs_clear_detections();
+    
+    /* Mandatory wait for information display */
+    timer_delay_ms(2000);
     
     /* Optional wait */
     timer_start_timer(TIMER_WAIT_FUNCTS, 3000);
@@ -125,7 +125,7 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
         next_char = next_digit + u'A' - 0x0A;
     }
     
-    /* Animation: get current digit height to know the display boundaries, get next digit height to know animation length */
+    /* Animation: get current digit height to know the display boundaries */
     sh1122_refresh_used_font(&plat_oled_descriptor, 1);
     sh1122_get_glyph_width(&plat_oled_descriptor, current_char, &cur_glyph_height);
     
