@@ -666,6 +666,12 @@
     <Compile Include="src\LOGIC\logic_power.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\LOGIC\logic_smartcard.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\LOGIC\logic_smartcard.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\main.h">
       <SubType>compile</SubType>
     </Compile>

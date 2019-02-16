@@ -12,6 +12,7 @@
 #include "custom_fs.h"
 #include "defines.h"
 #include "inputs.h"
+#include "sh1122.h"
 #include "utils.h"
 #include "main.h"
 #include "rng.h"
@@ -37,6 +38,41 @@ const uint8_t gui_prompts_conf_prompt_line_heights[4][4] = {
     {14, 14, 14, 14}
 };
 
+
+/*! \fn     gui_prompts_display_information_on_screen(uint16_t string_id)
+*   \brief  Display text information on screen
+*   \param  string_id   String ID to display
+*/
+void gui_prompts_display_information_on_screen(uint16_t string_id)
+{
+    cust_char_t* string_to_display;
+    
+    /* Clear frame buffer */
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #else
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    #endif
+    
+    /* Try to fetch the string to display */
+    if (custom_fs_get_string_from_file(string_id, &string_to_display) != RETURN_OK)
+    {
+        while(1);
+    }
+    
+    /* Display string */
+    sh1122_refresh_used_font(&plat_oled_descriptor, 1);
+    sh1122_put_centered_string(&plat_oled_descriptor, PIN_PROMPT_TEXT_Y, string_to_display, TRUE);
+    
+    /* Flush frame buffer */
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    #endif    
+    
+    /* wait a tad */
+    timer_delay_ms(2000);
+}
 
 /*! \fn     gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction)
 *   \brief  Overwrite the digits on the current pin entering screen

@@ -10,8 +10,11 @@
 #include "defines.h"
 #include <stdint.h>
 
-// DEFINES
+/* Typedefs */
 typedef enum    {MAN_FUSE = 0, EC2EN_FUSE = 1, ISSUER_FUSE = 2} card_fuse_type_te;
+    
+/* Defines */
+#define CART_DELAY_FOR_DETECTION    250
 
 // Prototypes
 uint8_t* smartcard_lowlevel_read_smc(uint16_t nb_bytes_total_read, uint16_t start_record_index, uint8_t* data_to_receive);

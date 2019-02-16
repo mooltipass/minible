@@ -3,6 +3,7 @@
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
 #include "platform_defines.h"
+#include "logic_smartcard.h"
 #include "gui_dispatcher.h"
 #include "logic_aux_mcu.h"
 #include "driver_clocks.h"
@@ -304,8 +305,7 @@ int main(void)
     main_platform_init();
     
     /* Activity detected */
-    logic_device_activity_detected();
-    
+    logic_device_activity_detected();    
     
     //while (TRUE)
     //while (FALSE)
@@ -322,12 +322,12 @@ int main(void)
     cust_char_t* bla3 = u"mysuperextralonglogin@mydomain.com";
     cust_char_t* bla4 = u"this is the wonderful line 4... how are you doing?";
     confirmationText_t conf_text = {.lines[0]=bla1, .lines[1]=bla2, .lines[2]=bla3, .lines[3]=bla4};
-    gui_prompts_ask_for_confirmation(1, (confirmationText_t*)u"Erase  Current  User?", TRUE);
-    gui_prompts_ask_for_confirmation(3, &conf_text, TRUE);
+    //gui_prompts_ask_for_confirmation(1, (confirmationText_t*)u"Erase  Current  User?", TRUE);
+    //gui_prompts_ask_for_confirmation(3, &conf_text, TRUE);
     
     /*volatile uint16_t bla[32];
     gui_prompts_get_user_pin(bla, 0);*/
-    debug_debug_menu();
+    //debug_debug_menu();
     
     /* If button press at start, go to debug menu */
     if (inputs_is_wheel_clicked() == RETURN_JDETECT)
@@ -335,7 +335,7 @@ int main(void)
         debug_debug_menu();
     }
     
-    #define BLA
+    //#define BLA
     #ifdef BLA
     /* Start animation */    
     for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
@@ -356,60 +356,57 @@ int main(void)
     }
     #endif
     
-    /*BOOL temp_bool = TRUE;
-    int16_t x = 0;
-    while(1)
-    {
-        for (x = -50; x < 260; x++)
-        {
-            temp_bool = TRUE;
-            wheel_action_ret_te user_action = inputs_get_wheel_action(FALSE, FALSE);
-            if ((user_action != WHEEL_ACTION_NONE) || (temp_bool != FALSE))
-            {
-                if (temp_bool != FALSE)
-                {
-                    temp_bool = FALSE;
-                }
-                else if (user_action == WHEEL_ACTION_DOWN)
-                {
-                    x++;
-                }
-                else
-                {
-                    x--;
-                }
-                plat_oled_descriptor.screen_wrapping_allowed = TRUE;
-                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, x, 14, 183, TRUE);
-                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Current x: %d", x);
-                sh1122_flush_frame_buffer(&plat_oled_descriptor);
-                sh1122_clear_frame_buffer(&plat_oled_descriptor);
-                plat_oled_descriptor.screen_wrapping_allowed = FALSE;
-            }
-            timer_delay_ms(30);
-        }
-    }*/
-    
-    /* WIP */
-    /*sh1122_clear_frame_buffer(&plat_oled_descriptor);
-    sh1122_draw_vertical_line(&plat_oled_descriptor, 0, 0, 63, 0xFF, TRUE);
-    sh1122_draw_vertical_line(&plat_oled_descriptor, 255, 0, 63, 0xFF, TRUE);
-    sh1122_put_string_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_CENTER, u"Create a New User?", TRUE);
-    sh1122_flush_frame_buffer(&plat_oled_descriptor);*/
-    //while(1);
-    
+    /* Get current smartcard detection result: TODO: when animations are enabled again, remove delay (not needed anymore) */
+    timer_delay_ms(CART_DELAY_FOR_DETECTION+1);
+    det_ret_type_te cart_detection_res = smartcard_lowlevel_is_card_plugged();
+        
     /* Set startup screen: TODO change back to locked */
     gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE, GUI_INTO_MENU_TRANSITION);
-    //gui_dispatcher_set_current_screen(GUI_SCREEN_OPERATIONS);    
-    gui_dispatcher_get_back_to_current_screen();
+    logic_device_activity_detected();
+    if (cart_detection_res != RETURN_JDETECT)
+    {
+        gui_dispatcher_get_back_to_current_screen();
+    }
     
     /* Infinite loop */
     while(TRUE)
     {
+        /* Do appropriate actions on smartcard insertion / removal */
+        if (cart_detection_res == RETURN_JDETECT)
+        {
+            /* Light up the Mooltipass and call the dedicated function */
+            logic_device_activity_detected();
+            logic_smartcard_handle_inserted();
+        }
+        #ifdef BLI
+        else if (card_detect_ret == RETURN_JRELEASED)
+        {
+            /* Light up the Mooltipass and call the dedicated function */
+            activityDetectedRoutine();
+            handleSmartcardRemoved();
+
+            /* Lock shortcut, if enabled */
+            if ((mp_lock_unlock_shortcuts != FALSE) && ((getMooltipassParameterInEeprom(LOCK_UNLOCK_FEATURE_PARAM) & LF_WIN_L_SEND_MASK) != 0))
+            {
+                usbSendLockShortcut();
+                mp_lock_unlock_shortcuts = FALSE;
+            }
+            
+            /* Set correct screen */
+            guiDisplayInformationOnScreenAndWait(ID_STRING_CARD_REMOVED);
+            guiSetCurrentScreen(SCREEN_DEFAULT_NINSERTED);
+            guiGetBackToCurrentScreen();
+        }
+        #endif
+        
         /* GUI main loop */
         gui_dispatcher_main_loop();
         
         /* Communications */        
         comms_aux_mcu_routine(FALSE);
+        
+        /* Get current smartcard detection result */
+        cart_detection_res = smartcard_lowlevel_is_card_plugged();
     }
     
     // Test code: burn internal graphics data into external flash.
