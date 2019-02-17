@@ -35,8 +35,7 @@
  * - FORCE_RESET_AUX removed (little added benefits)
  * - NO_COMMS added (see github pages)
  */
- #define PLAT_V3_SETUP
- 
+ #define PLAT_V3_SETUP 
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)
@@ -45,18 +44,26 @@
      #define DEBUG_MENU_ENABLED
      #define NO_SECURITY_BIT_CHECK
      #define DEBUG_USB_PRINTF_ENABLED
+     #define DEVELOPER_FEATURES_ENABLED
 #elif defined(PLAT_V2_SETUP)
      #define OLED_PRINTF_ENABLED
      #define DEBUG_USB_COMMANDS_ENABLED
      #define DEBUG_MENU_ENABLED
      #define NO_SECURITY_BIT_CHECK
      #define DEBUG_USB_PRINTF_ENABLED
+     #define DEVELOPER_FEATURES_ENABLED
 #elif defined(PLAT_V3_SETUP)
      #define OLED_PRINTF_ENABLED
      #define DEBUG_USB_COMMANDS_ENABLED
      #define DEBUG_MENU_ENABLED
      #define NO_SECURITY_BIT_CHECK
      #define DEBUG_USB_PRINTF_ENABLED
+     #define DEVELOPER_FEATURES_ENABLED
+#endif
+
+/* Developer features */
+#ifdef DEVELOPER_FEATURES_ENABLED
+    #define DEV_SKIP_INTRO_ANIM
 #endif
 
 /* Enums */

@@ -12,10 +12,11 @@
 
 /* Defines */
 // Bitmaps
-#define GUI_ANIMATION_FFRAME_ID 0
-#define GUI_ANIMATION_NBFRAMES  120
+#define GUI_ANIMATION_FFRAME_ID     0
+#define GUI_ANIMATION_NBFRAMES      120
+#define GUI_LOCKED_MINI_BITMAP_ID   453
 // Strings
-#define ID_STRING_REMOVE_CARD   22
+#define ID_STRING_REMOVE_CARD       22
 
 /* Enums */
 typedef enum {  GUI_SCREEN_NINSERTED = 0,

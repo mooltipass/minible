@@ -44,7 +44,13 @@ void gui_dispatcher_get_back_to_current_screen(void)
     /* switch to let the compiler optimize instead of function pointer array */
     switch (gui_dispatcher_current_screen)
     {
-        case GUI_SCREEN_NINSERTED:          break;
+        case GUI_SCREEN_NINSERTED:          {
+                                                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, GUI_LOCKED_MINI_BITMAP_ID, TRUE); 
+                                                #ifdef OLED_INTERNAL_FRAME_BUFFER
+                                                    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+                                                #endif
+                                                break;
+                                            }                                                
         case GUI_SCREEN_INSERTED_LCK:       break;
         case GUI_SCREEN_INSERTED_INVALID:   gui_prompts_display_information_on_screen(ID_STRING_REMOVE_CARD); break;
         case GUI_SCREEN_INSERTED_UNKNOWN:   break;

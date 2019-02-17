@@ -1115,7 +1115,7 @@ void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_desc
         bitstream_bitmap_array_read(bitstream, pixel_buffer[buffer_sel], sizeof(pixel_buffer[0])*2);
         dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)pixel_buffer[buffer_sel], sizeof(pixel_buffer[0]), oled_descriptor->dma_trigger_id);
         
-        for (uint32_t i = 0; i < (SH1122_OLED_WIDTH*SH1122_OLED_HEIGHT) - sizeof(pixel_buffer[0]); i+=sizeof(pixel_buffer[0])*2)
+        for (uint32_t i = 0; i < (SH1122_OLED_WIDTH*SH1122_OLED_HEIGHT) - sizeof(pixel_buffer[0])*2; i+=sizeof(pixel_buffer[0])*2)
         {            
             /* Read from bitstream in the next buffer */
             bitstream_bitmap_array_read(bitstream, pixel_buffer[(buffer_sel+1)&0x01], sizeof(pixel_buffer[0])*2);
@@ -1186,7 +1186,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
     }
 
     /* Use different drawing methods if it's a full screen picture and if we are 2 pixels aligned */
-    if ((x == 0) && (y == 0) && (bitstream->width == SH1122_OLED_WIDTH) && (bitstream->height == SH1122_OLED_HEIGHT) && (oled_descriptor->max_disp_y == SH1122_OLED_HEIGHT))
+    if ((x == 0) && (y == 0) && (bitstream->width == SH1122_OLED_WIDTH) && (bitstream->height == SH1122_OLED_HEIGHT) && (oled_descriptor->max_disp_y == SH1122_OLED_HEIGHT) && (write_to_buffer == FALSE))
     {
         /* Dedicated code to allow faster write to display */
         sh1122_draw_full_screen_image_from_bitstream(oled_descriptor, bitstream);        
@@ -1195,16 +1195,16 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
     else if (write_to_buffer != FALSE)
     {
         /* Buffer large enough to contain a display line */
-        uint8_t pixel_buffer[SH1122_OLED_WIDTH/2];
-        
-        /* In some cases the routine does an extra read, depending on alignment */
-        pixel_buffer[bitstream->width/2] = 0;
+        uint8_t pixel_buffer[(SH1122_OLED_WIDTH/2)+1];
         
         /* Check for buffer overflow */
-        if (bitstream->width > sizeof(pixel_buffer) - 1)
+        if ((bitstream->width/2) > sizeof(pixel_buffer) - 1)
         {
             return;
         }
+        
+        /* In some cases the routine does an extra read, depending on alignment */
+        pixel_buffer[bitstream->width/2] = 0;
 
         /* Wait for a possible ongoing previous flush */
         sh1122_check_for_flush_and_terminate(oled_descriptor);

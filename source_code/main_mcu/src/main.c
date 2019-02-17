@@ -321,8 +321,7 @@ int main(void)
         debug_debug_menu();
     }
     
-    //#define BLA
-    #ifdef BLA
+    #ifndef DEV_SKIP_INTRO_ANIM
     /* Start animation */    
     for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
     {
@@ -345,8 +344,8 @@ int main(void)
     /* Get current smartcard detection result */
     det_ret_type_te card_detection_res = smartcard_lowlevel_is_card_plugged();
         
-    /* Set startup screen: TODO change back to locked */
-    gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE, GUI_INTO_MENU_TRANSITION);
+    /* Set startup screen */
+    gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_INTO_MENU_TRANSITION);
     logic_device_activity_detected();
     if (card_detection_res != RETURN_JDETECT)
     {
