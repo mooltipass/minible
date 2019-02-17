@@ -81,10 +81,10 @@ void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id)
     inputs_clear_detections();
     
     /* Mandatory wait for information display */
-    timer_delay_ms(2000);
+    timer_delay_ms(1500);
     
     /* Optional wait */
-    timer_start_timer(TIMER_WAIT_FUNCTS, 3000);
+    timer_start_timer(TIMER_WAIT_FUNCTS, 2000);
     while ((timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK));
 }
 

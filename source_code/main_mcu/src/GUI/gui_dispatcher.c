@@ -11,7 +11,6 @@
 #include "defines.h"
 #include "inputs.h"
 #include "main.h"
-
 // Current screen
 gui_screen_te gui_dispatcher_current_screen = GUI_SCREEN_NINSERTED;
 

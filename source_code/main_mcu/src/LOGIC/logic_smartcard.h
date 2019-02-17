@@ -21,6 +21,7 @@
 
 /* Prototypes */
 RET_TYPE logic_smartcard_handle_inserted(void);
+void logic_smartcard_handle_removed(void);
 
 
 

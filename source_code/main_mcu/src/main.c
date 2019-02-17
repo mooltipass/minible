@@ -362,26 +362,24 @@ int main(void)
             logic_device_activity_detected();
             logic_smartcard_handle_inserted();
         }
-        #ifdef BLI
         else if (card_detection_res == RETURN_JRELEASED)
         {
             /* Light up the Mooltipass and call the dedicated function */
-            activityDetectedRoutine();
-            handleSmartcardRemoved();
+            logic_device_activity_detected();
+            logic_smartcard_handle_removed();
 
             /* Lock shortcut, if enabled */
-            if ((mp_lock_unlock_shortcuts != FALSE) && ((getMooltipassParameterInEeprom(LOCK_UNLOCK_FEATURE_PARAM) & LF_WIN_L_SEND_MASK) != 0))
+            /*if ((mp_lock_unlock_shortcuts != FALSE) && ((getMooltipassParameterInEeprom(LOCK_UNLOCK_FEATURE_PARAM) & LF_WIN_L_SEND_MASK) != 0))
             {
                 usbSendLockShortcut();
                 mp_lock_unlock_shortcuts = FALSE;
-            }
+            }*/
             
             /* Set correct screen */
-            guiDisplayInformationOnScreenAndWait(ID_STRING_CARD_REMOVED);
-            guiSetCurrentScreen(SCREEN_DEFAULT_NINSERTED);
-            guiGetBackToCurrentScreen();
+            gui_prompts_display_information_on_screen_and_wait(ID_STRING_CARD_REMOVED);
+            gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_INTO_MENU_TRANSITION);
+            gui_dispatcher_get_back_to_current_screen();
         }
-        #endif
         
         /* GUI main loop */
         gui_dispatcher_main_loop();

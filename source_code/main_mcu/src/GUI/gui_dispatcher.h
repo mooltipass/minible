@@ -17,6 +17,7 @@
 #define GUI_LOCKED_MINI_BITMAP_ID   453
 // Strings
 #define ID_STRING_REMOVE_CARD       22
+#define ID_STRING_CARD_REMOVED      28
 
 /* Enums */
 typedef enum {  GUI_SCREEN_NINSERTED = 0,
