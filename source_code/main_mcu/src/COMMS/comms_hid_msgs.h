@@ -41,7 +41,7 @@ typedef struct
 } hid_message_t;
 
 /* Prototypes */
-int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, BOOL do_not_deal_with);
+int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type);
 
 
 #endif /* COMMS_HID_MSGS_H_ */

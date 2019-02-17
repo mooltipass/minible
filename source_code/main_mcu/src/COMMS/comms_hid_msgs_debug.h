@@ -28,7 +28,7 @@
 #define HID_CMD_ID_REINDEX_BUNDLE           0x800B
 
 /* Prototypes */
-int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, BOOL do_not_deal_with);
+int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type);
 #ifdef DEBUG_USB_PRINTF_ENABLED
     void comms_hid_msgs_debug_printf(const char *fmt, ...);
 #else

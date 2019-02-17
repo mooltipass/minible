@@ -146,7 +146,7 @@ void main_platform_init(void)
     }
     sh1122_init_display(&plat_oled_descriptor);
     
-    /* Release aux MCU reset and enable bluetooth */
+    /* Release aux MCU reset (old platform only) and enable bluetooth AND gate */
     platform_io_release_aux_reset();
     platform_io_enable_ble();
 
@@ -199,7 +199,7 @@ void main_platform_init(void)
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
     }
     
-    /* Initialize our custom file system stored in data flash */
+    /* Display error messages if something went wrong during custom fs init and bundle check */
     if ((custom_fs_init_return == RETURN_NOK) || (bundle_integrity_check_return == RETURN_NOK))
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
@@ -207,8 +207,7 @@ void main_platform_init(void)
         /* Wait to load bundle from USB */
         while(1)
         {
-            /* TODO: add a boolean to restrict available commands */
-            comms_aux_mcu_routine(FALSE);
+            comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BUNDLE);
         }
     }
     else
@@ -306,16 +305,6 @@ int main(void)
     
     /* Activity detected */
     logic_device_activity_detected();    
-    
-    //while (TRUE)
-    //while (FALSE)
-    /*{
-        for (uint16_t i = 309; i < 309+14; i++)
-        {
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
-            timer_delay_ms(50);
-        }
-    }*/
 
     cust_char_t* bla1 = u"themooltipass.com";
     cust_char_t* bla2 = u"Do you want to login with";
@@ -324,9 +313,6 @@ int main(void)
     confirmationText_t conf_text = {.lines[0]=bla1, .lines[1]=bla2, .lines[2]=bla3, .lines[3]=bla4};
     //gui_prompts_ask_for_confirmation(1, (confirmationText_t*)u"Erase  Current  User?", TRUE);
     //gui_prompts_ask_for_confirmation(3, &conf_text, TRUE);
-    
-    /*volatile uint16_t bla[32];
-    gui_prompts_get_user_pin(bla, 0);*/
     //debug_debug_menu();
     
     /* If button press at start, go to debug menu */
@@ -344,7 +330,7 @@ int main(void)
         sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
         while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
         {
-            comms_aux_mcu_routine(TRUE);
+            comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         }
     }    
     
@@ -352,12 +338,11 @@ int main(void)
     timer_start_timer(TIMER_WAIT_FUNCTS, 1500);
     while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
     {
-        comms_aux_mcu_routine(TRUE);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
     }
     #endif
     
-    /* Get current smartcard detection result: TODO: when animations are enabled again, remove delay (not needed anymore) */
-    timer_delay_ms(CARD_DELAY_FOR_DETECTION+1);
+    /* Get current smartcard detection result */
     det_ret_type_te card_detection_res = smartcard_lowlevel_is_card_plugged();
         
     /* Set startup screen: TODO change back to locked */
@@ -403,191 +388,9 @@ int main(void)
         gui_dispatcher_main_loop();
         
         /* Communications */        
-        comms_aux_mcu_routine(FALSE);
+        comms_aux_mcu_routine(MSG_NO_RESTRICT);
         
         /* Get current smartcard detection result */
         card_detection_res = smartcard_lowlevel_is_card_plugged();
-    }
-    
-    // Test code: burn internal graphics data into external flash.
-    //dataflash_bulk_erase_with_wait(&dataflash_descriptor);
-    //dataflash_write_array_to_memory(&dataflash_descriptor, 0, mooltipass_bundle, (uint32_t)sizeof(mooltipass_bundle));
-    //custom_fs_init(&dataflash_descriptor);
-    
-    /*platform_io_get_voledin_conversion_result_and_trigger_conversion();
-    while (platform_io_is_voledin_conversion_result_ready() == FALSE);
-    platform_io_get_voledin_conversion_result_and_trigger_conversion();
-    uint16_t result = 0;
-    while (TRUE)
-    {
-        volatile uint32_t ts_start = timer_get_systick();
-        while (platform_io_is_voledin_conversion_result_ready() == FALSE);
-        volatile uint32_t ts_end = timer_get_systick();
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, "%u", ts_end-ts_start);
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, "%u", result);
-        result = platform_io_get_voledin_conversion_result_and_trigger_conversion();        
-    }*/
-    
-    /*while(1)
-    {
-        comms_aux_mcu_routine();
-         if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
-            break;
-    }   
-    custom_fs_init(&dataflash_descriptor);     */
-    
-    
-    /* Animation test */
-    uint32_t abc = 0;
-    uint32_t cntt = 0;
-    while(1)
-    {
-        for (uint32_t i = 0; i < 120; i++)
-        {
-            abc++;
-            comms_aux_mcu_routine(FALSE);
-            if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) != FALSE)
-            {
-                cntt++;
-                if (abc > 400)
-                {
-                    asm("Nop");
-                }
-            }
-            
-            if (SERCOM1->SPI.STATUS.bit.BUFOVF != 0)
-            {
-                sh1122_put_error_string(&plat_oled_descriptor, u"ACC Overflow");      
-            }
-            if (SERCOM4->SPI.STATUS.bit.BUFOVF != 0)
-            {
-                sh1122_put_error_string(&plat_oled_descriptor, u"AUX COM Overflow");      
-            }
-            
-            if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_UP)
-            {
-                timer_delay_ms(2000);
-                main_standby_sleep();
-                /*while (TRUE)
-                {
-                    comms_aux_mcu_routine();
-                    if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
-                    {
-                        custom_fs_init();
-                        break;
-                    }                        
-                }*/
-            }   
-            //timer_delay_ms(100);
-        }
-        //timer_delay_ms(100);
-    }
-    
-    /*
-    sh1122_put_string_xy(&plat_oled_descriptor, 1, 10, OLED_ALIGN_LEFT, u"F");
-    sh1122_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, u"supermarmotte!");
-    while (1);
-    {
-        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, 1, 0, 12);
-        timer_delay_ms(3000);while(1);
-        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, 0, 0, 10);
-        timer_delay_ms(3000);//while(1);
-        for (uint32_t j = 0; j < 40; j++)
-        for (uint32_t i = 0; i < 10; i++)
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, 0, 0, i);
-        
-    }*/
-    
-    
-    while(1)
-    {
-        if (smartcard_lowlevel_is_card_plugged() == RETURN_JDETECT)
-        {
-            mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();
-            
-            if ((detection_result == RETURN_MOOLTIPASS_PB) || (detection_result == RETURN_MOOLTIPASS_INVALID))
-            {
-                // Either it is not a card or our Manufacturer Test Zone write/read test failed
-                //guiDisplayInformationOnScreenAndWait(ID_STRING_PB_CARD);
-                //printSmartCardInfo();
-                //removeFunctionSMC();
-            }
-            else if (detection_result == RETURN_MOOLTIPASS_BLANK)
-            {/*
-                // This is a user free card, we can ask the user to create a new user inside the Mooltipass
-                if (guiAskForConfirmation(1, (confirmationText_t*)readStoredStringToBuffer(ID_STRING_NEWMP_USER)) == RETURN_OK)
-                {
-                    volatile uint16_t pin_code;
-                    
-                    // Create a new user with his new smart card
-                    if ((guiAskForNewPin(&pin_code, ID_STRING_PIN_NEW_CARD) == RETURN_NEW_PIN_OK) && (addNewUserAndNewSmartCard(&pin_code) == RETURN_OK))
-                    {
-                        guiDisplayInformationOnScreenAndWait(ID_STRING_USER_ADDED);
-                        next_screen = SCREEN_DEFAULT_INSERTED_NLCK;
-                        setSmartCardInsertedUnlocked();
-                        return_value = RETURN_OK;
-                    }
-                    else
-                    {
-                        // Something went wrong, user wasn't added
-                        guiDisplayInformationOnScreenAndWait(ID_STRING_USER_NADDED);
-                    }
-                    pin_code = 0x0000;
-                }
-                else
-                {
-                    guiSetCurrentScreen(next_screen);
-                    guiGetBackToCurrentScreen();
-                    return return_value;
-                }
-                printSmartCardInfo();*/
-            }
-            else if (detection_result == RETURN_MOOLTIPASS_USER)
-            {
-                 /* Card is new - transform it into a Mooltipass card */
-                 uint16_t factory_pin = SMARTCARD_FACTORY_PIN;
-
-                 /* Try to authenticate with factory pin */
-                 pin_check_return_te pin_try_return = smartcard_lowlevel_validate_code(&factory_pin);
-
-                 if (pin_try_return == RETURN_PIN_OK)
-                 {
-                     smartcard_highlevel_erase_smartcard();
-                     PORT->Group[OLED_CD_GROUP].OUTCLR.reg = OLED_CD_MASK;
-                     //PORT->Group[OLED_CD_GROUP].OUTCLR.reg = OLED_CD_MASK;
-                 }
-            
-            /*
-                // Call valid card detection function
-                uint8_t temp_return = validCardDetectedFunction(0, TRUE);
-                
-                // This a valid user smart card, we call a dedicated function for the user to unlock the card
-                if (temp_return == RETURN_VCARD_OK)
-                {
-                    unlockFeatureCheck();
-                    next_screen = SCREEN_DEFAULT_INSERTED_NLCK;
-                    return_value = RETURN_OK;
-                }
-                else if (temp_return == RETURN_VCARD_UNKNOWN)
-                {
-                    // Unknown card, go to dedicated screen
-                    guiSetCurrentScreen(SCREEN_DEFAULT_INSERTED_UNKNOWN);
-                    guiGetBackToCurrentScreen();
-                    return return_value;
-                }
-                else
-                {
-                    guiSetCurrentScreen(SCREEN_DEFAULT_INSERTED_LCK);
-                    guiGetBackToCurrentScreen();
-                    return return_value;
-                }
-                printSmartCardInfo();*/
-            }
-
-            /*if(smartcard_lowlevel_first_detect_function() == RETURN_CARD_4_TRIES_LEFT)
-            {
-                PORT->Group[OLED_CD_GROUP].OUTCLR.reg = OLED_CD_MASK;
-            }*/
-        }
     }
 }

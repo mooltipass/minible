@@ -252,7 +252,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     while(!finished)
     {
         // Still process the USB commands, reply with please retries
-        comms_aux_mcu_routine(TRUE);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         
         // detection result
         detection_result = inputs_get_wheel_action(FALSE, FALSE);

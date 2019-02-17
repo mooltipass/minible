@@ -141,11 +141,11 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
     return return_val;
 }
 
-/*! \fn     comms_aux_mcu_routine(BOOL busy)
+/*! \fn     comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
 *   \brief  Routine dealing with aux mcu comms
-*   \param  busy    Set to TRUE to let the packet parsing routines to not deal with the message and take the necessary actions
+*   \param  answer_restrict_type    Enum restricting which messages we can answer
 */
-void comms_aux_mcu_routine(BOOL busy)
+void comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
 {	
     /* Ongoing RX transfer received bytes */
     uint16_t nb_received_bytes_for_ongoing_transfer = sizeof(aux_mcu_receive_message) - dma_aux_mcu_get_remaining_bytes_for_rx_transfer();
@@ -241,15 +241,15 @@ void comms_aux_mcu_routine(BOOL busy)
                 
         /* Parse message */
         #ifndef DEBUG_USB_COMMANDS_ENABLED
-        hid_reply_payload_length = comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), &aux_mcu_send_message.hid_message, busy);
+        hid_reply_payload_length = comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), &aux_mcu_send_message.hid_message, answer_restrict_type);
         #else
         if (aux_mcu_receive_message.hid_message.message_type >= HID_MESSAGE_START_CMD_ID_DBG)
         {
-            hid_reply_payload_length = comms_hid_msgs_parse_debug(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), &aux_mcu_send_message.hid_message, busy);
+            hid_reply_payload_length = comms_hid_msgs_parse_debug(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), &aux_mcu_send_message.hid_message, answer_restrict_type);
         }
         else
         {
-            hid_reply_payload_length = comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), &aux_mcu_send_message.hid_message, busy);
+            hid_reply_payload_length = comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), &aux_mcu_send_message.hid_message, answer_restrict_type);
         }
         #endif
                 

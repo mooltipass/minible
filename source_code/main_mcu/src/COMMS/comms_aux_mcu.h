@@ -96,9 +96,11 @@ typedef struct
     };
 } aux_mcu_message_t;
 
+
 /* Prototypes */
 void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type, uint16_t tx_reply_request_flag);
 RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet);
+void comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type);
 aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void);
 void comms_aux_mcu_send_simple_command_message(uint16_t command);
 void comms_aux_mcu_send_message(BOOL wait_for_send);
@@ -106,7 +108,6 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void);
 void comms_aux_mcu_wait_for_message_sent(void);
 void comms_aux_arm_rx_and_clear_no_comms(void);
 void comms_aux_arm_rx_and_set_no_comms(void);
-void comms_aux_mcu_routine(BOOL busy);
 
 
 #endif /* COMMS_AUX_MCU_H_ */
