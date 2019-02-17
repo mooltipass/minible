@@ -161,6 +161,15 @@ void sh1122_move_display_start_line(sh1122_descriptor_t* oled_descriptor, int16_
     sh1122_write_single_data(oled_descriptor, (uint8_t)offset);   
 }
 
+/*! \fn     sh1122_is_oled_on(sh1122_descriptor_t* oled_descriptor)
+*   \brief  Know if OLED is ON
+*   \return A boolean
+*/
+BOOL sh1122_is_oled_on(sh1122_descriptor_t* oled_descriptor)
+{
+    return oled_descriptor->oled_on;
+}
+
 /*! \fn     sh1122_oled_off(sh1122_descriptor_t* oled_descriptor)
 *   \brief  Switch on the screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct

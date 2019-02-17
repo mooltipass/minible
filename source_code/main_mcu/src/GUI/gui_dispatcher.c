@@ -5,8 +5,11 @@
 */
 #include "comms_hid_msgs_debug.h"
 #include "gui_dispatcher.h"
+#include "driver_timer.h"
 #include "gui_carousel.h"
 #include "gui_prompts.h"
+#include "logic_power.h"
+#include "platform_io.h"
 #include "gui_menu.h"
 #include "defines.h"
 #include "inputs.h"
@@ -108,11 +111,28 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
 */
 void gui_dispatcher_main_loop(void)
 {
+    BOOL is_screen_on_copy = sh1122_is_oled_on(&plat_oled_descriptor);
+    
     // Get user action
     wheel_action_ret_te user_action = inputs_get_wheel_action(FALSE, FALSE);
     
+    // No activity, turn off screen
+    if (timer_has_timer_expired(TIMER_SCREEN, TRUE) == TIMER_EXPIRED)
+    {
+        // TODO: going to sleep screen
+        if (logic_power_get_power_source() == USB_POWERED)
+        {
+            sh1122_oled_off(&plat_oled_descriptor);
+            gui_dispatcher_get_back_to_current_screen();
+            platform_io_power_down_oled();
+        } 
+        else
+        {
+        }
+    }
+    
     // Run main GUI screen loop if there was an action. TODO: screen saver
-    if (user_action != WHEEL_ACTION_NONE)
+    if ((user_action != WHEEL_ACTION_NONE) && (((is_screen_on_copy != FALSE) && (TRUE /* screen saver place holder */)) || (gui_dispatcher_current_screen == GUI_SCREEN_INSERTED_LCK)))    
     {
         gui_dispatcher_event_dispatch(user_action);
     }
