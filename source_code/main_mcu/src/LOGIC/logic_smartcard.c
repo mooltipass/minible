@@ -66,7 +66,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
             volatile uint16_t pin_code;
             
             // Create a new user with his new smart card
-            if ((gui_prompts_get_user_pin(&pin_code, ID_STRING_NEW_CARD_PIN) == RETURN_OK) && (logic_user_create_new_user(&pin_code) == RETURN_OK))
+            if ((gui_prompts_get_user_pin(&pin_code, ID_STRING_NEW_CARD_PIN) == RETURN_OK) && (logic_user_create_new_user(&pin_code, FALSE, (uint8_t*)0) == RETURN_OK))
             {
                 gui_prompts_display_information_on_screen_and_wait(ID_STRING_NEW_USER_ADDED);
                 logic_security_smartcard_unlocked_actions();

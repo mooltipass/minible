@@ -158,7 +158,7 @@ custom_fs_init_ret_type_te custom_fs_settings_init(void)
     {
         custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_addr;
         flash_addr = custom_fs_get_custom_storage_slot_addr(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT);
-        custom_fs_cpz_lut = (cpz_lut_entry_t *)flash_addr;
+        custom_fs_cpz_lut = (cpz_lut_entry_t*)flash_addr;
         
         /* Quick sanity check on memory boundary */
         if ((uint32_t)&custom_fs_cpz_lut[MAX_NUMBER_OF_USERS] != FLASH_ADDR + FLASH_SIZE)
@@ -633,18 +633,24 @@ void custom_fs_detele_user_cpz_lut_entry(uint8_t user_id)
     custom_fs_write_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (user_id >> 2), (void*)one_page_of_lut_entries);
 }
 
-/*! \fn     custom_fs_get_nb_free_cpz_lut_entries(void)
+/*! \fn     custom_fs_get_nb_free_cpz_lut_entries(uint8_t* first_available_user_id)
 *   \brief  Get the number of free CPZ LUT entries
+*   \param  first_available_user_id     Pointer to where to store the ID of the first available user
 *   \return Guess what...
 */
-uint16_t custom_fs_get_nb_free_cpz_lut_entries(void)
+uint16_t custom_fs_get_nb_free_cpz_lut_entries(uint8_t* first_available_user_id)
 {
+    *first_available_user_id = 0xFF;
     uint16_t return_val = 0;
     
-    for (uint16_t i = 0; i < MAX_NUMBER_OF_USERS; i++)
+    for (uint8_t i = 0; i < MAX_NUMBER_OF_USERS; i++)
     {
         if (custom_fs_cpz_lut[i].user_id == UINT8_MAX)
         {
+            if (*first_available_user_id == 0xFF)
+            {
+                *first_available_user_id = i;
+            }
             return_val++;
         }
     }
@@ -652,31 +658,27 @@ uint16_t custom_fs_get_nb_free_cpz_lut_entries(void)
     return return_val;
 }
 
-/*! \fn     custom_fs_store_cpz_entry_to_free_slot(cpz_lut_entry_t* cpz_entry, uint8_t* user_id)
-*   \brief  Store a CPZ LUT entry in a free spot, return user id
+/*! \fn     custom_fs_store_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id)
+*   \brief  Store a CPZ LUT entry for a given user ID
 *   \param  cpz_entry   Pointer to the CPZ LUT entry
-*   \param  user_id     Pointer to store assigned user ID
+*   \param  user_id     User ID
 *   \return Operation result
 */
-RET_TYPE custom_fs_store_cpz_entry_to_free_slot(cpz_lut_entry_t* cpz_entry, uint8_t* user_id)
+RET_TYPE custom_fs_store_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id)
 {
     cpz_lut_entry_t one_page_of_lut_entries[4];
     _Static_assert(sizeof(one_page_of_lut_entries) == NVMCTRL_ROW_SIZE, "One row != 4 LUT entries");
     
-    /* Loop through all LUT entries */
-    for (uint16_t i = 0; i < MAX_NUMBER_OF_USERS; i++)
+    /* Check for availability */
+    if (custom_fs_cpz_lut[user_id].user_id != UINT8_MAX)
     {
-        if (custom_fs_cpz_lut[i].user_id == UINT8_MAX)
-        {
-            /* Store user id */
-            *user_id = i;
-            cpz_entry->user_id = i;       
-            custom_fs_read_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (i >> 2), (void*)one_page_of_lut_entries);
-            memcpy(&one_page_of_lut_entries[i&0x03], cpz_entry, sizeof(one_page_of_lut_entries[0]));
-            custom_fs_write_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (i >> 2), (void*)one_page_of_lut_entries);
-            return RETURN_OK;
-        }
+        return RETURN_NOK;
     }
     
-    return RETURN_NOK;
+    /* Store CPZ entry */
+    cpz_entry->user_id = user_id;
+    custom_fs_read_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (user_id >> 2), (void*)one_page_of_lut_entries);
+    memcpy(&one_page_of_lut_entries[user_id&0x03], cpz_entry, sizeof(one_page_of_lut_entries[0]));
+    custom_fs_write_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (user_id >> 2), (void*)one_page_of_lut_entries);
+    return RETURN_OK;
 }

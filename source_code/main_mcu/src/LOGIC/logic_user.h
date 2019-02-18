@@ -11,8 +11,8 @@
 #include "defines.h"
 
 /* Prototypes */
-ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code);
-
+ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, BOOL use_provisioned_key, uint8_t* aes_key);
+void logic_user_init_context(uint8_t user_id);
 
 
 #endif /* LOGIC_USER_H_ */

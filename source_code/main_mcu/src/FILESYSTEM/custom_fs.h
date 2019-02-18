@@ -23,6 +23,8 @@
 #define CUSTOM_FS_MAGIC_HEADER              0x12345678UL
 // Custom file flags
 #define CUSTOM_FS_BITMAP_RLE_FLAG           0x01
+// Flag to use provisioned key
+#define  CUSTOM_FS_PROV_KEY_FLAG            0x91
 
 /* Settings IDs */
 #define NB_DEVICE_SETTINGS                  64
@@ -141,8 +143,8 @@ typedef struct
     uint8_t user_id;
     uint8_t use_provisioned_key_flag;
     uint8_t cards_cpz[8];
-    uint8_t nonce[16];
-    uint8_t provisioned_key[32];
+    uint8_t nonce[AES_BLOCK_SIZE/8];
+    uint8_t provisioned_key[AES_KEY_LENGTH/8];
     uint8_t reserved[6];
 } cpz_lut_entry_t;
 
@@ -151,10 +153,11 @@ RET_TYPE custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_
 RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* address, custom_fs_file_type_te file_type);
 RET_TYPE custom_fs_get_string_from_file(uint32_t string_id, cust_char_t** string_pt, BOOL lock_on_fail);
 RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size);
-RET_TYPE custom_fs_store_cpz_entry_to_free_slot(cpz_lut_entry_t* cpz_entry, uint8_t* user_id);
 void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
 void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
 RET_TYPE custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_pt);
+uint16_t custom_fs_get_nb_free_cpz_lut_entries(uint8_t* first_available_user_id);
+RET_TYPE custom_fs_store_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id);
 void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc);
 uint8_t custom_fs_settings_get_device_setting(uint16_t setting_id);
 uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id);
@@ -163,7 +166,6 @@ ret_type_te custom_fs_set_current_language(uint16_t language_id);
 cust_char_t* custom_fs_get_current_language_text_desc(void);
 void custom_fs_detele_user_cpz_lut_entry(uint8_t user_id);
 custom_fs_init_ret_type_te custom_fs_settings_init(void);
-uint16_t custom_fs_get_nb_free_cpz_lut_entries(void);
 void custom_fs_stop_continuous_read_from_flash(void);
 BOOL custom_fs_settings_check_fw_upgrade_flag(void);
 void custom_fs_settings_clear_first_boot_flag(void);

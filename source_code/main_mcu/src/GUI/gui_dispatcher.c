@@ -128,6 +128,8 @@ void gui_dispatcher_main_loop(void)
         } 
         else
         {
+            /* Good night */
+            main_standby_sleep();
         }
     }
     

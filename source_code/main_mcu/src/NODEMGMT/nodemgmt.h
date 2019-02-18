@@ -202,7 +202,9 @@ typedef struct
 } nodemgmtHandle_t;
 
 /* Prototypes */
-void initNodeManagementHandle(uint16_t userIdNum);
+void nodemgmt_init_context(uint16_t userIdNum);
 RET_TYPE checkUserPermission(uint16_t node_addr);
+void nodemgmt_format_user_profile(uint16_t uid);
+void nodemgmt_read_profile_ctr(void* buf);
 
 #endif /* NODEMGMT_H_ */

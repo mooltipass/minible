@@ -329,11 +329,11 @@ void userProfileStartingOffset(uint16_t uid, uint16_t *page, uint16_t *pageOffse
     #endif
 }
 
-/*! \fn     formatUserProfileMemory(uint8_t uid)
+/*! \fn     nodemgmt_format_user_profile(uint8_t uid)
  *  \brief  Formats the user profile flash memory of user uid.
  *  \param  uid    The id of the user to format profile memory
  */
-void formatUserProfileMemory(uint16_t uid)
+void nodemgmt_format_user_profile(uint16_t uid)
 {
     /* Page & offset for this UID */
     uint16_t temp_page, temp_offset;
@@ -564,11 +564,11 @@ void readFav(uint16_t categoryId, uint16_t favId, uint16_t* parentAddress, uint1
     *childAddress = favorite.child_addr;
 }
 
-/*! \fn     readProfileCtr(void* buf)
+/*! \fn     nodemgmt_read_profile_ctr(void* buf)
  *  \brief  Reads the users base CTR from the user profile flash memory
  *  \param  buf             The buffer to store the read CTR
  */
-void readProfileCtr(void* buf)
+void nodemgmt_read_profile_ctr(void* buf)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.current_ctr), sizeof(dirty_address_finding_trick->main_data.current_ctr), buf);
@@ -671,11 +671,11 @@ void scanNodeUsage(void)
     }
 }
 
-/*! \fn     initNodeManagementHandle(uint16_t userIdNum)
+/*! \fn     nodemgmt_init_context(uint16_t userIdNum)
  *  \brief  Initializes the Node Management Handle, scans memory for the next free node
  *  \param  userIdNum   The user id to initialize the handle for
  */
-void initNodeManagementHandle(uint16_t userIdNum)
+void nodemgmt_init_context(uint16_t userIdNum)
 {
     if(userIdNum >= NB_MAX_USERS)
     {
@@ -747,7 +747,7 @@ void deleteCurrentUserFromFlash(void)
     _Static_assert(sizeof(temp_buffer) >= ((size_t)&(child_node_san_checks->nextChildAddress)) + sizeof(child_node_san_checks->nextChildAddress), "Buffer not long enough to store first bytes");
         
     // Delete user profile memory
-    formatUserProfileMemory(nodemgmt_current_handle.currentUserId);
+    nodemgmt_format_user_profile(nodemgmt_current_handle.currentUserId);
     
     // Then browse through all the credentials to delete them
     for (uint16_t i = 0; i < 1 + (sizeof(nodemgmt_current_handle.firstDataParentNode)/sizeof(nodemgmt_current_handle.firstDataParentNode[0])); i++)
