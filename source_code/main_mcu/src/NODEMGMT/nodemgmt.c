@@ -350,7 +350,7 @@ void nodemgmt_format_user_profile(uint16_t uid)
     
     // Set buffer to all 0's.
     userProfileStartingOffset(uid, &temp_page, &temp_offset);
-    dbflash_write_data_pattern_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmtHandle_t), 0x00);
+    dbflash_write_data_pattern_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmt_profile_main_data_t), 0x00);
 }
 
 /*! \fn     getCurrentUserID(void)

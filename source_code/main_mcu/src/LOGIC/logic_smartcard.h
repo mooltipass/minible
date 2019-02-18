@@ -18,8 +18,11 @@
 #define ID_STRING_NEW_CARD_PIN      25
 #define ID_STRING_NEW_USER_ADDED    26
 #define ID_STRING_COULDNT_ADD_USER  27
+#define ID_STRING_CONFIRM_PIN       29
+#define ID_STRING_DIFFERENT_PINS    30
 
 /* Prototypes */
+RET_TYPE logic_smartcard_ask_for_new_pin(volatile uint16_t* new_pin, uint16_t message_id);
 RET_TYPE logic_smartcard_handle_inserted(void);
 void logic_smartcard_handle_removed(void);
 

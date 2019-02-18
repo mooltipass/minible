@@ -4,6 +4,7 @@
 *    Author:   Mathieu Stephan
 */
 #include "smartcard_highlevel.h"
+#include "smartcard_lowlevel.h"
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
 #include "logic_security.h"
@@ -12,6 +13,35 @@
 #include "logic_user.h"
 #include "defines.h"
 
+
+/*! \fn     logic_smartcard_ask_for_new_pin(uint16_t* new_pin, uint16_t message_id)
+*   \brief  Ask user to enter a new PIN
+*   \param  new_pin     Pointer to where to store the new pin
+*   \param  message_id  Message ID
+*   \return Success status, see new_pinreturn_type_t
+*/
+RET_TYPE logic_smartcard_ask_for_new_pin(volatile uint16_t* new_pin, uint16_t message_id)
+{
+    volatile uint16_t other_pin;
+    
+    // Ask the user twice for the new pin and compare them
+    if ((gui_prompts_get_user_pin(new_pin, message_id) == RETURN_OK) && (gui_prompts_get_user_pin(&other_pin, ID_STRING_CONFIRM_PIN) == RETURN_OK))
+    {
+        if (*new_pin == other_pin)
+        {
+            other_pin = 0;
+            return RETURN_OK;
+        }
+        else
+        {
+            return RETURN_NOK;
+        }
+    }
+    else
+    {
+        return RETURN_NOK;
+    }
+}
 
 /*! \fn     logic_smartcard_handle_removed(void)
 *   \brief  Here is where are handled all smartcard removal logic
@@ -43,6 +73,8 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();
     // By default, return to invalid screen
     gui_screen_te next_screen = GUI_SCREEN_INSERTED_INVALID;
+    // By default, return to current screen
+    BOOL return_to_current_screen = TRUE;
     // Return fail by default
     RET_TYPE return_value = RETURN_NOK;
     
@@ -61,24 +93,49 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     else if (detection_result == RETURN_MOOLTIPASS_BLANK)
     {
         // This is a user free card, we can ask the user to create a new user inside the Mooltipass
-        if (gui_prompts_ask_for_one_line_confirmation(ID_STRING_CREATE_NEW_USER, FALSE) == MINI_INPUT_RET_YES)
+        mini_input_yes_no_ret_te prompt_answer = gui_prompts_ask_for_one_line_confirmation(ID_STRING_CREATE_NEW_USER, FALSE);
+        
+        if (prompt_answer == MINI_INPUT_RET_YES)
         {
             volatile uint16_t pin_code;
             
-            // Create a new user with his new smart card
-            if ((gui_prompts_get_user_pin(&pin_code, ID_STRING_NEW_CARD_PIN) == RETURN_OK) && (logic_user_create_new_user(&pin_code, FALSE, (uint8_t*)0) == RETURN_OK))
+            /* Create a new user with his new smart card */
+            if (logic_smartcard_ask_for_new_pin(&pin_code, ID_STRING_NEW_CARD_PIN) == RETURN_OK)
             {
-                gui_prompts_display_information_on_screen_and_wait(ID_STRING_NEW_USER_ADDED);
-                logic_security_smartcard_unlocked_actions();
-                next_screen = GUI_SCREEN_MAIN_MENU;
-                return_value = RETURN_OK;
-            }
+                /* User entered twice the same PIN, card is still there */
+                if (logic_user_create_new_user(&pin_code, FALSE, (uint8_t*)0) == RETURN_OK)
+                {
+                    /* PINs match, new user added to memories */
+                    gui_prompts_display_information_on_screen_and_wait(ID_STRING_NEW_USER_ADDED);
+                    logic_security_smartcard_unlocked_actions();
+                    next_screen = GUI_SCREEN_MAIN_MENU;
+                    return_value = RETURN_OK;
+                }
+                else
+                {
+                    // Something went wrong, user wasn't added
+                    gui_prompts_display_information_on_screen_and_wait(ID_STRING_COULDNT_ADD_USER);                    
+                }
+            } 
             else
             {
-                // Something went wrong, user wasn't added
-                gui_prompts_display_information_on_screen_and_wait(ID_STRING_COULDNT_ADD_USER);
+                /* PIN different or card removed */
+                if (smartcard_low_level_is_smc_absent() != RETURN_OK)
+                {
+                    gui_prompts_display_information_on_screen_and_wait(ID_STRING_DIFFERENT_PINS);                    
+                }
+                else
+                {
+                    return_to_current_screen = FALSE;
+                }
             }
+            
+            /* Reset PIN code */
             pin_code = 0x0000;
+        }
+        else if (prompt_answer == MINI_INPUT_RET_CARD_REMOVED)
+        {
+            return_to_current_screen = FALSE;
         }
     }
     #ifdef blou
@@ -113,6 +170,9 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     #endif
     
     gui_dispatcher_set_current_screen(next_screen, TRUE, GUI_INTO_MENU_TRANSITION);
-    gui_dispatcher_get_back_to_current_screen();
+    if (return_to_current_screen != FALSE)
+    {
+        gui_dispatcher_get_back_to_current_screen();
+    }
     return return_value;    
 }

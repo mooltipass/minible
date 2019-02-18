@@ -404,10 +404,16 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     // Loop while no timeout occurs or no button is pressed
     while (input_answer == MINI_INPUT_RET_NONE)
     {
-        // User interaction timeout or smartcard removed
-        if ((smartcard_low_level_is_smc_absent() == RETURN_OK) || (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED))
+        // User interaction timeout
+        if (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED)
         {
             input_answer = MINI_INPUT_RET_TIMEOUT;
+        }
+        
+        // Card removed
+        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        {
+            input_answer = MINI_INPUT_RET_CARD_REMOVED;
         }
         
         // Read usb comms as the plugin could ask to cancel the request
@@ -576,9 +582,17 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     while (input_answer == MINI_INPUT_RET_NONE)
     {
         // User interaction timeout or smartcard removed
-        if ((smartcard_low_level_is_smc_absent() == RETURN_OK) || (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED))
+        
+        // User interaction timeout
+        if (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED)
         {
             input_answer = MINI_INPUT_RET_TIMEOUT;
+        }
+        
+        // Card removed
+        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        {
+            input_answer = MINI_INPUT_RET_CARD_REMOVED;
         }
         
         // Read usb comms as the plugin could ask to cancel the request
