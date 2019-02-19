@@ -18,6 +18,7 @@
 // Strings
 #define ID_STRING_REMOVE_CARD       22
 #define ID_STRING_CARD_REMOVED      28
+#define ID_STRING_UNKNOWN_CARD      36
 
 /* Enums */
 typedef enum {  GUI_SCREEN_NINSERTED = 0,
