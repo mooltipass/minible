@@ -73,8 +73,6 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();
     // By default, return to invalid screen
     gui_screen_te next_screen = GUI_SCREEN_INSERTED_INVALID;
-    // By default, return to current screen
-    BOOL return_to_current_screen = TRUE;
     // Return fail by default
     RET_TYPE return_value = RETURN_NOK;
     
@@ -117,25 +115,13 @@ RET_TYPE logic_smartcard_handle_inserted(void)
                     gui_prompts_display_information_on_screen_and_wait(ID_STRING_COULDNT_ADD_USER);                    
                 }
             } 
-            else
+            else if (smartcard_low_level_is_smc_absent() != RETURN_OK)
             {
-                /* PIN different or card removed */
-                if (smartcard_low_level_is_smc_absent() != RETURN_OK)
-                {
-                    gui_prompts_display_information_on_screen_and_wait(ID_STRING_DIFFERENT_PINS);                    
-                }
-                else
-                {
-                    return_to_current_screen = FALSE;
-                }
+                gui_prompts_display_information_on_screen_and_wait(ID_STRING_DIFFERENT_PINS);
             }
             
             /* Reset PIN code */
             pin_code = 0x0000;
-        }
-        else if (prompt_answer == MINI_INPUT_RET_CARD_REMOVED)
-        {
-            return_to_current_screen = FALSE;
         }
     }
     #ifdef blou
@@ -170,7 +156,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     #endif
     
     gui_dispatcher_set_current_screen(next_screen, TRUE, GUI_INTO_MENU_TRANSITION);
-    if (return_to_current_screen != FALSE)
+    if (smartcard_low_level_is_smc_absent() != RETURN_OK)
     {
         gui_dispatcher_get_back_to_current_screen();
     }
