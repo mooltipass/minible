@@ -355,6 +355,24 @@ int main(void)
     /* Infinite loop */
     while(TRUE)
     {
+        /* Power supply change */
+        if ((logic_power_get_power_source() == BATTERY_POWERED) && (platform_io_is_usb_3v3_present() != FALSE))
+        {
+            logic_power_set_power_source(USB_POWERED);
+            sh1122_oled_off(&plat_oled_descriptor);
+            timer_delay_ms(50);
+            platform_io_power_up_oled(TRUE);
+            sh1122_oled_on(&plat_oled_descriptor);
+        } 
+        else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
+        {
+            logic_power_set_power_source(BATTERY_POWERED);
+            sh1122_oled_off(&plat_oled_descriptor);
+            timer_delay_ms(50);
+            platform_io_power_up_oled(FALSE);
+            sh1122_oled_on(&plat_oled_descriptor);
+        }        
+        
         /* Do appropriate actions on smartcard insertion / removal */
         if (card_detection_res == RETURN_JDETECT)
         {
