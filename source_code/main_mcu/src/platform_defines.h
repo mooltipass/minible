@@ -64,6 +64,7 @@
 /* Developer features */
 #ifdef DEVELOPER_FEATURES_ENABLED
     #define DEV_SKIP_INTRO_ANIM
+    #define SPECIAL_DEVELOPER_CARD_FEATURE
 #endif
 
 /* Enums */

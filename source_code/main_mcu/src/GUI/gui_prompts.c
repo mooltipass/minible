@@ -215,10 +215,12 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
 */
 RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID)
 {
-    // If we don't need a pin code, send default one
-    #if defined(NO_PIN_CODE_REQUIRED)
+    #ifdef SPECIAL_DEVELOPER_CARD_FEATURE
+    if (special_dev_card_inserted != FALSE)
+    {
         *pin_code = SMARTCARD_DEFAULT_PIN;
         return RETURN_OK;
+    }
     #endif
     
     BOOL random_pin_feature_enabled = (BOOL)custom_fs_settings_get_device_setting(SETTING_RANDOM_PIN_ID);

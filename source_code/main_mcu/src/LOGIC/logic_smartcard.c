@@ -127,7 +127,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     else if (detection_result == RETURN_MOOLTIPASS_USER)
     {
         // Call valid card detection function
-        valid_card_det_return_te temp_return = logic_smartcard_valid_card_unlock(0, TRUE);
+        valid_card_det_return_te temp_return = logic_smartcard_valid_card_unlock(TRUE);
         
         /* This a valid user smart card, we call a dedicated function for the user to unlock the card */
         if (temp_return == RETURN_VCARD_OK)
@@ -155,13 +155,12 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     return return_value;    
 }
 
-/*! \fn     logic_smartcard_valid_card_unlock(uint16_t* suggested_pin, BOOL hash_allow_flag)
+/*! \fn     logic_smartcard_valid_card_unlock(BOOL hash_allow_flag)
 *   \brief  Function called when a valid mooltipass card is detected
-*   \param  suggested_pin   If different than 0, try to unlock with this PIN (pointer)
 *   \param  hash_allow_flag Set to allow hash display if option is enabled
 *   \return Unlock status (see valid_card_det_return_t)
 */
-valid_card_det_return_te logic_smartcard_valid_card_unlock(uint16_t* suggested_pin, BOOL hash_allow_flag)
+valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag)
 {
     #ifdef MINI_VERSION
     uint8_t plateform_aes_key[AES_KEY_LENGTH/8];
@@ -189,7 +188,6 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(uint16_t* suggested_p
         #endif
         
         /* Ask the user to enter his PIN and check it */
-        (void)suggested_pin;
         if (logic_smartcard_user_unlock_process() == RETURN_OK)
         {
             /* Unlocking succeeded */

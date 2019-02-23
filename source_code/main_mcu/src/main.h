@@ -24,4 +24,9 @@ extern accelerometer_descriptor_t acc_descriptor;
 extern spi_flash_descriptor_t dataflash_descriptor;
 extern spi_flash_descriptor_t dbflash_descriptor;
 
+/* Global vars for developer features */
+#ifdef SPECIAL_DEVELOPER_CARD_FEATURE
+    extern BOOL special_dev_card_inserted;
+#endif
+
 #endif /* MAIN_H_ */

@@ -5,6 +5,8 @@
 */
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
+#include "platform_defines.h"
+#include "main.h"
 #include "defines.h"
 #include <string.h>
 
@@ -673,6 +675,17 @@ mooltipass_card_detect_return_te smartcard_highlevel_card_detected_routine(void)
             /* Check that the user setup his mooltipass card by checking that the CPZ is different from FFFF.... */
             if (memcmp(temp_buffer, "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", SMARTCARD_CPZ_LENGTH) != 0)
             {
+                /* Special dev feature to detect special dev card */
+                #ifdef SPECIAL_DEVELOPER_CARD_FEATURE
+                if (memcmp(temp_buffer, "\x00\x00\x00\x00\x00\x00\x00\x00", SMARTCARD_CPZ_LENGTH) == 0)
+                {
+                    special_dev_card_inserted = TRUE;
+                } 
+                else
+                {
+                    special_dev_card_inserted = FALSE;
+                }
+                #endif
                 return RETURN_MOOLTIPASS_USER;                
             }
 

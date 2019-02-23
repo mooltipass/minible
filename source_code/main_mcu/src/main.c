@@ -1,3 +1,4 @@
+#include <string.h>
 #include <asf.h>
 #include "mooltipass_graphics_bundle.h"
 #include "smartcard_highlevel.h"
@@ -32,6 +33,11 @@ sh1122_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigg
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 
+/* Used to know if there is no bootloader and if the special card is inserted*/
+#ifdef DEVELOPER_FEATURES_ENABLED
+BOOL special_dev_card_inserted = FALSE;
+uint32_t* mcu_sp_rh_addresses = 0;
+#endif
 
 /****************************************************************************/
 /* The blob of code below is aimed at facilitating our development process  */
@@ -302,6 +308,19 @@ int main(void)
 {
     /* Initialize our platform */
     main_platform_init();
+    
+    /* Special developer features */
+    #ifdef SPECIAL_DEVELOPER_CARD_FEATURE
+    /* Check if this is running on a device without bootloader, add CPZ entry for special card */
+    if (mcu_sp_rh_addresses[1] == 0x0201)
+    {
+        /* Special card has 0000 CPZ, set 0000 as nonce */
+        cpz_lut_entry_t special_user_profile;
+        memset(&special_user_profile, 0, sizeof(special_user_profile));
+        special_user_profile.user_id = 100;
+        custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id);
+    }
+    #endif
     
     /* Activity detected */
     logic_device_activity_detected();    
