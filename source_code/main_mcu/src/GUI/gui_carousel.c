@@ -126,6 +126,9 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
     custom_fs_get_string_from_file(text_ids[selected_id], &temp_string, TRUE);
     sh1122_put_string_xy(&plat_oled_descriptor, 0, 46, OLED_ALIGN_CENTER, temp_string, TRUE);
     
+    /* Battery display */
+    
+    
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     /* Flush */
     sh1122_flush_frame_buffer(&plat_oled_descriptor);

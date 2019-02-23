@@ -15,6 +15,7 @@
 #include "platform_io.h"
 #include "logic_power.h"
 #include "custom_fs.h"
+#include "nodemgmt.h"
 #include "lis2hh12.h"
 #include "sh1122.h"
 #include "inputs.h"
@@ -67,13 +68,13 @@ void debug_debug_menu(void)
             #endif
             
             /* Item selection */
-            if (selected_item > 14)
+            if (selected_item > 15)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 14;
+                selected_item = 15;
             }
             
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);
@@ -105,6 +106,7 @@ void debug_debug_menu(void)
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Sleep", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Leave Menu", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Setup Developper Card", TRUE);
             }
             
             /* Cursor */
@@ -199,9 +201,67 @@ void debug_debug_menu(void)
             {
                 return;
             }
+            else if (selected_item == 15)
+            {
+                debug_setup_dev_card();
+            }
             redraw_needed = TRUE;
         }
     }
+}
+
+/*! \fn     debug_setup_dev_card(void)
+*   \brief  Setup a smartcard to ease developer's work
+*/
+void debug_setup_dev_card(void)
+{
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please insert a blank card", FALSE);
+    
+    while(1)
+    {
+        /* Return ? */
+        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+        {
+            return;
+        }
+        
+        if (smartcard_lowlevel_is_card_plugged() == RETURN_JDETECT)
+        {
+            /* Get detection result */
+            mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();
+            
+            /* Card debug info */
+            if (detection_result == RETURN_MOOLTIPASS_BLANK)
+            {
+                volatile uint16_t pin_code = SMARTCARD_DEFAULT_PIN;
+                uint8_t temp_buffer[AES_KEY_LENGTH/8];
+                
+                /* all arrays set to 0, pin code set to default smartcard pin code */
+                memset(temp_buffer, 0, sizeof(temp_buffer));                
+                
+                /* Special user for special card has ID 100 */
+                nodemgmt_format_user_profile(100);
+                
+                /* Setup smartcard */
+                smartcard_highlevel_write_protected_zone(temp_buffer);
+                smartcard_highlevel_write_aes_key(temp_buffer);
+                smartcard_highlevel_write_security_code(&pin_code);                
+            }
+            else
+            {
+                return;
+            }
+            
+            /* Remove power to the card */
+            platform_io_smc_remove_function();
+            
+            /* Inform user */
+            sh1122_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"Done! Please reboot device!", FALSE);
+            timer_delay_ms(2000);
+            return;
+        }
+    }    
 }
 
 /*! \fn     debug_smartcard_test(void)
