@@ -22,7 +22,8 @@ From the PC:
 |:---------|:-----------------|:------------------|
 | 0x0001   | up to the sender | Arbitrary payload |
 
-The device will send back the very same message.
+The device will send back the very same message.  
+Tested status: tested
 
 
 0x0002: Please Retry
@@ -34,7 +35,8 @@ From the device:
 |:---------|:-----------------|:------------------|
 | 0x0002   | 0                | N/A               |
 
-When the device is busy and can't deal with the message sent by the computer, it will reply a message with a "Please Retry" one, inviting the computer to re-send its packet.
+When the device is busy and can't deal with the message sent by the computer, it will reply a message with a "Please Retry" one, inviting the computer to re-send its packet.  
+Tested status: tested
 
 
 0x0003: Get Platform Info
@@ -46,7 +48,7 @@ From the PC:
 |:---------|:-----------------|:------------------|
 | 0x0003   | 0                | N/A               |
 
-From the device:
+Device answer:
 
 | bytes  | value  |
 |:-------|:-------|
@@ -58,6 +60,26 @@ From the device:
 | 10->11 | Aux MCU fw minor |
 | 12->15 | Platform serial number |
 | 16->17 | DB memory size |
+
+Tested status: NOT tested
+
+
+0x0004: Set Current Date
+------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | bytes 4-X                          |
+|:---------|:----------------------------|:-----------------------------------|
+| 0x0004   | 2 | current date (16 bits encoding: 15 dn 9 -> Year (2010 + val), 8 dn 5 -> Month, 4 dn 0 -> Day of Month) |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0004   | 1 | 0x01 (indicates command success) |
+
+Tested status: NOT tested
 
   
 ## [](#header-2) Mooltipass Debug and Test Commands
