@@ -20,6 +20,7 @@
 #define HID_CMD_ID_RETRY        0x0002
 #define HID_CMD_ID_PLAT_INFO    0x0003
 #define HID_CMD_ID_SET_DATE     0x0004
+#define HID_CMD_ID_CANCEL_REQ   0x0005
 
 /* Typedefs */
 typedef struct

@@ -31,7 +31,7 @@ typedef enum    {RETURN_CARD_NDET, RETURN_CARD_TEST_PB, RETURN_CARD_4_TRIES_LEFT
 typedef enum    {MINI_INPUT_RET_TIMEOUT = -1, MINI_INPUT_RET_NONE = 0, MINI_INPUT_RET_NO = 1, MINI_INPUT_RET_YES = 2, MINI_INPUT_RET_BACK = 3, MINI_INPUT_RET_CARD_REMOVED = 4} mini_input_yes_no_ret_te;
 typedef enum    {RETURN_PIN_OK = 0, RETURN_PIN_NOK_3, RETURN_PIN_NOK_2, RETURN_PIN_NOK_1, RETURN_PIN_NOK_0} pin_check_return_te;
 typedef enum    {RETURN_VCARD_NOK = -1, RETURN_VCARD_OK = 0, RETURN_VCARD_UNKNOWN = 1} valid_card_det_return_te;
-typedef enum    {MSG_NO_RESTRICT, MSG_RESTRICT_ALL, MSG_RESTRICT_ALLBUT_BUNDLE} msg_restrict_type_te;
+typedef enum    {MSG_NO_RESTRICT, MSG_RESTRICT_ALL, MSG_RESTRICT_ALLBUT_BUNDLE, MSG_RESTRICT_ALLBUT_CANCEL} msg_restrict_type_te;
 typedef enum    {RETURN_REL = 0, RETURN_DET, RETURN_JDETECT, RETURN_JRELEASED} det_ret_type_te;
 typedef enum    {CUSTOM_FS_INIT_OK = 0, CUSTOM_FS_INIT_NO_RWEE = 1} custom_fs_init_ret_type_te;
 typedef enum    {RETURN_NOK = -1, RETURN_OK = 0} ret_type_te;

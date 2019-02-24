@@ -81,11 +81,18 @@ void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id)
     inputs_clear_detections();
     
     /* Mandatory wait for information display */
-    timer_delay_ms(1500);
+    timer_start_timer(TIMER_WAIT_FUNCTS, 1500);
+    while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
+    {
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);        
+    }
     
     /* Optional wait */
     timer_start_timer(TIMER_WAIT_FUNCTS, 2000);
-    while ((timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK));
+    while ((timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK))
+    {
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+    }
 }
 
 /*! \fn     gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction)
@@ -419,6 +426,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
         }
         
         // Read usb comms as the plugin could ask to cancel the request
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL);
         /*if (usbCancelRequestReceived() == RETURN_OK)
         {
             input_answer = MINI_INPUT_RET_TIMEOUT;
