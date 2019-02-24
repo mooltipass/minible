@@ -334,12 +334,6 @@ int main(void)
     //gui_prompts_ask_for_confirmation(3, &conf_text, TRUE);
     //debug_debug_menu();
     
-    /* If button press at start, go to debug menu */
-    if (inputs_is_wheel_clicked() == RETURN_JDETECT)
-    {
-        debug_debug_menu();
-    }
-    
     #ifndef DEV_SKIP_INTRO_ANIM
     /* Start animation */    
     for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)

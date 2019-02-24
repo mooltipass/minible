@@ -13,6 +13,7 @@
 #include "gui_menu.h"
 #include "defines.h"
 #include "inputs.h"
+#include "debug.h"
 #include "main.h"
 // Current screen
 gui_screen_te gui_dispatcher_current_screen = GUI_SCREEN_NINSERTED;
@@ -82,7 +83,18 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
     /* switch to let the compiler optimize instead of function pointer array */
     switch (gui_dispatcher_current_screen)
     {
-        case GUI_SCREEN_NINSERTED:          break;
+        case GUI_SCREEN_NINSERTED:
+        {
+            #ifdef DEBUG_MENU_ENABLED            
+            /* If button press, go to debug menu */
+            if (wheel_action == WHEEL_ACTION_LONG_CLICK)
+            {
+                debug_debug_menu();
+                rerender_bool = TRUE;
+            }
+            #endif
+            break;
+        }
         case GUI_SCREEN_INSERTED_LCK:       break;
         case GUI_SCREEN_INSERTED_INVALID:   break;
         case GUI_SCREEN_INSERTED_UNKNOWN:   break;
@@ -119,14 +131,12 @@ void gui_dispatcher_main_loop(void)
     // No activity, turn off screen
     if (timer_has_timer_expired(TIMER_SCREEN, TRUE) == TIMER_EXPIRED)
     {
-        // TODO: going to sleep screen
-        if (logic_power_get_power_source() == USB_POWERED)
-        {
-            sh1122_oled_off(&plat_oled_descriptor);
-            gui_dispatcher_get_back_to_current_screen();
-            platform_io_power_down_oled();
-        } 
-        else
+        gui_prompts_display_information_on_screen_and_wait(ID_STRING_GOING_TO_SLEEP);
+        sh1122_oled_off(&plat_oled_descriptor);
+        gui_dispatcher_get_back_to_current_screen();
+        platform_io_power_down_oled();
+        
+        if (logic_power_get_power_source() == BATTERY_POWERED)
         {
             /* Good night */
             main_standby_sleep();
