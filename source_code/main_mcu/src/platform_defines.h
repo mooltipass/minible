@@ -44,7 +44,8 @@
      #define DEBUG_MENU_ENABLED
      #define NO_SECURITY_BIT_CHECK
      #define DEBUG_USB_PRINTF_ENABLED
-     #define DEVELOPER_FEATURES_ENABLED
+     #define DEVELOPER_FEATURES_ENABLED     
+     #define DBFLASH_CHIP_8M
 #elif defined(PLAT_V2_SETUP)
      #define OLED_PRINTF_ENABLED
      #define DEBUG_USB_COMMANDS_ENABLED
@@ -52,6 +53,7 @@
      #define NO_SECURITY_BIT_CHECK
      #define DEBUG_USB_PRINTF_ENABLED
      #define DEVELOPER_FEATURES_ENABLED
+     #define DBFLASH_CHIP_8M
 #elif defined(PLAT_V3_SETUP)
      #define OLED_PRINTF_ENABLED
      #define DEBUG_USB_COMMANDS_ENABLED
@@ -59,6 +61,7 @@
      #define NO_SECURITY_BIT_CHECK
      #define DEBUG_USB_PRINTF_ENABLED
      #define DEVELOPER_FEATURES_ENABLED
+     #define DBFLASH_CHIP_8M
 #endif
 
 /* Developer features */

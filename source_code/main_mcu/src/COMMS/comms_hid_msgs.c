@@ -6,7 +6,10 @@
 #include <asf.h>
 #include <string.h>
 #include "comms_hid_msgs.h" 
+#include "comms_aux_mcu.h"
 #include "defines.h"
+#include "dbflash.h"
+#include "dma.h"
 
 
 /*! \fn     comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type)
@@ -44,6 +47,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
     
     /* By default: copy the same CMD identifier for TX message */
     send_msg->message_type = rcv_msg->message_type;
+    uint16_t rcv_message_type = rcv_msg->message_type;
     
     /* Switch on command id */
     switch (rcv_msg->message_type)
@@ -54,6 +58,36 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             memcpy((void*)send_msg->payload, (void*)rcv_msg->payload, rcv_msg->payload_length);
             send_msg->payload_length = rcv_msg->payload_length;
             return send_msg->payload_length;
+        }
+        
+        case HID_CMD_ID_PLAT_INFO:
+        {
+            aux_mcu_message_t* temp_rx_message;
+            aux_mcu_message_t* temp_tx_message_pt;
+            
+            /* Generate our packet */
+            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PLAT_DETAILS, TX_REPLY_REQUEST_FLAG);
+            
+            /* Wait for current packet reception and arm reception */
+            dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
+            comms_aux_arm_rx_and_set_no_comms();
+            
+            /* Send message */
+            comms_aux_mcu_send_message(TRUE);
+            
+            /* Wait for message from aux MCU */
+            while(comms_aux_mcu_active_wait(&temp_rx_message, TRUE, AUX_MCU_MSG_TYPE_PLAT_DETAILS) == RETURN_NOK){}
+            
+            /* Copy message contents into send packet */
+            send_msg->platform_info.main_mcu_fw_major = FW_MAJOR;
+            send_msg->platform_info.main_mcu_fw_minor = FW_MINOR;
+            send_msg->platform_info.aux_mcu_fw_major = temp_rx_message->aux_details_message.aux_fw_ver_major;
+            send_msg->platform_info.aux_mcu_fw_minor = temp_rx_message->aux_details_message.aux_fw_ver_minor;
+            send_msg->platform_info.plat_serial_number = 12345678;
+            send_msg->platform_info.memory_size = DBFLASH_CHIP;            
+            send_msg->payload_length = sizeof(send_msg->platform_info);
+            send_msg->message_type = rcv_message_type;
+            return sizeof(send_msg->platform_info);            
         }
         
         default: break;

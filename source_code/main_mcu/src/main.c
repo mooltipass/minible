@@ -418,6 +418,11 @@ int main(void)
         /* Communications */        
         comms_aux_mcu_routine(MSG_NO_RESTRICT);
         
+        /* Accelerometer interrupt */
+        if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) != FALSE)
+        {
+        }
+        
         /* Get current smartcard detection result */
         card_detection_res = smartcard_lowlevel_is_card_plugged();
     }

@@ -7,10 +7,8 @@
 #ifndef DBFLASH_MEM_H_
 #define DBFLASH_MEM_H_
 
+#include "platform_defines.h"
 #include "defines.h"
-
-// To define in project solution later
-#define DBFLASH_CHIP_8M
 
 // Enable boundary checks
 #define DBFLASH_MEMORY_BOUNDARY_CHECKS

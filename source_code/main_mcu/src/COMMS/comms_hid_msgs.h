@@ -16,8 +16,9 @@
 #define HID_1BYTE_ACK       0x01
 
 /* Command defines */
-#define HID_CMD_ID_PING     0x0001
-#define HID_CMD_ID_RETRY    0x0002
+#define HID_CMD_ID_PING         0x0001
+#define HID_CMD_ID_RETRY        0x0002
+#define HID_CMD_ID_PLAT_INFO    0x0003
 
 /* Typedefs */
 typedef struct
@@ -29,6 +30,16 @@ typedef struct
 
 typedef struct
 {
+    uint16_t main_mcu_fw_major;
+    uint16_t main_mcu_fw_minor;
+    uint16_t aux_mcu_fw_major;
+    uint16_t aux_mcu_fw_minor;
+    uint32_t plat_serial_number;
+    uint16_t memory_size;
+} hid_message_plat_info_t;
+
+typedef struct
+{
     uint16_t message_type;
     uint16_t payload_length;
     union
@@ -37,6 +48,7 @@ typedef struct
         uint16_t payload_as_uint16[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)-sizeof(uint16_t))/2];
         uint32_t payload_as_uint32[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)-sizeof(uint16_t))/4];
         hid_message_detailed_plat_info_t detailed_platform_info;
+        hid_message_plat_info_t platform_info;
     };
 } hid_message_t;
 

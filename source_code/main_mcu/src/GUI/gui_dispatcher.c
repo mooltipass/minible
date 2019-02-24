@@ -7,6 +7,7 @@
 #include "gui_dispatcher.h"
 #include "driver_timer.h"
 #include "gui_carousel.h"
+#include "logic_device.h"
 #include "gui_prompts.h"
 #include "logic_power.h"
 #include "platform_io.h"
@@ -131,6 +132,7 @@ void gui_dispatcher_main_loop(void)
     // No activity, turn off screen
     if (timer_has_timer_expired(TIMER_SCREEN, TRUE) == TIMER_EXPIRED)
     {
+        /* Display "going to sleep", switch off screen */
         gui_prompts_display_information_on_screen_and_wait(ID_STRING_GOING_TO_SLEEP);
         sh1122_oled_off(&plat_oled_descriptor);
         gui_dispatcher_get_back_to_current_screen();
@@ -140,6 +142,9 @@ void gui_dispatcher_main_loop(void)
         {
             /* Good night */
             main_standby_sleep();
+            
+            /* We are awake now! */
+            logic_device_activity_detected();
         }
     }
     
