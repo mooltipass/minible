@@ -36,6 +36,29 @@ From the device:
 
 When the device is busy and can't deal with the message sent by the computer, it will reply a message with a "Please Retry" one, inviting the computer to re-send its packet.
 
+
+0x0003: Get Platform Info
+-------------------------
+
+From the PC:
+
+| byte 0-1 | byte 2-3         | bytes 4-X         |
+|:---------|:-----------------|:------------------|
+| 0x0003   | 0                | N/A               |
+
+From the device:
+
+| bytes  | value  |
+|:-------|:-------|
+| 0->1   | 0x0003 |
+| 2->3   | 14     |
+| 4->5   | Main MCU fw major |
+| 6->7   | Main MCU fw minor |
+| 8->9   | Aux MCU fw major |
+| 10->11 | Aux MCU fw minor |
+| 12->15 | Platform serial number |
+| 16->17 | DB memory size |
+
   
 ## [](#header-2) Mooltipass Debug and Test Commands
 
