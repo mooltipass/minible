@@ -69,9 +69,9 @@ Tested status: NOT tested
 
 From the PC: 
 
-| byte 0-1 | byte 2-3                    | bytes 4-X                          |
-|:---------|:----------------------------|:-----------------------------------|
-| 0x0004   | 2 | current date (16 bits encoding: 15 dn 9 -> Year (2010 + val), 8 dn 5 -> Month, 4 dn 0 -> Day of Month) |
+| byte 0-1 | byte 2-3                    | bytes 4-5                          | bytes 6-X         |
+|:---------|:----------------------------|:-----------------------------------|:------------------|
+| 0x0004   | 2 | current date (15 dn 9 -> Year (2010 + val), 8 dn 5 -> Month, 4 dn 0 -> Day of Month) | N/A |
 
 Device Answer:
 
