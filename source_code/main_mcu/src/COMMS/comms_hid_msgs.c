@@ -7,6 +7,7 @@
 #include <string.h>
 #include "comms_hid_msgs.h" 
 #include "comms_aux_mcu.h"
+#include "nodemgmt.h"
 #include "defines.h"
 #include "dbflash.h"
 #include "dma.h"
@@ -88,6 +89,17 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             send_msg->payload_length = sizeof(send_msg->platform_info);
             send_msg->message_type = rcv_message_type;
             return sizeof(send_msg->platform_info);            
+        }
+        
+        case HID_CMD_ID_SET_DATE:
+        {
+            /* Set Date */
+            nodemgmt_set_current_date(rcv_msg->payload_as_uint16[0]);
+            
+            /* Set ack, leave same command id */
+            send_msg->payload[0] = HID_1BYTE_ACK;
+            send_msg->payload_length = 1;
+            return 1;
         }
         
         default: break;

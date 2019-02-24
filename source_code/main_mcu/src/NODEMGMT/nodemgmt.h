@@ -205,6 +205,7 @@ typedef struct
 void nodemgmt_init_context(uint16_t userIdNum);
 RET_TYPE checkUserPermission(uint16_t node_addr);
 void nodemgmt_format_user_profile(uint16_t uid);
+void nodemgmt_set_current_date(uint16_t date);
 void nodemgmt_read_profile_ctr(void* buf);
 
 #endif /* NODEMGMT_H_ */

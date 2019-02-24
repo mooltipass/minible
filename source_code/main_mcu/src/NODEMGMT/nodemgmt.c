@@ -17,11 +17,11 @@ nodemgmtHandle_t nodemgmt_current_handle;
 uint16_t nodemgmt_current_date;
 
 
-/*! \fn     setCurrentDate(uint16_t date)
+/*! \fn     nodemgmt_set_current_date(uint16_t date)
 *   \brief  Sets current date
 *   \param  date    The date (see format in documentation)
 */
-void setCurrentDate(uint16_t date)
+void nodemgmt_set_current_date(uint16_t date)
 {
     nodemgmt_current_date = date;
 }
