@@ -894,7 +894,11 @@ void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, 
         {
             if (pixel_shift != FALSE)
             {
-                oled_descriptor->frame_buffer[y][(x+nb_pixels_to_be_written)/2] = prev_pixels << 4;
+                if (x != 0)
+                {
+                    /* I wish I could explain you... */
+                    oled_descriptor->frame_buffer[y][(x+nb_pixels_to_be_written)/2] = prev_pixels << 4;
+                }
             } 
             else
             {
