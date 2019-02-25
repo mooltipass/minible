@@ -408,7 +408,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     inputs_clear_detections();
 
     /* Arm timer for flashing */
-    timer_start_timer(TIMER_FLASHING, 500);
+    timer_start_timer(TIMER_ANIMATIONS, 1000);
     
     // Loop while no timeout occurs or no button is pressed
     while (input_answer == MINI_INPUT_RET_NONE)
@@ -460,7 +460,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
             input_answer = MINI_INPUT_RET_BACK;
         }
 
-        // Knock to approve
+        // TODO: Knock to approve
         #if defined(HARDWARE_MINI_CLICK_V2) && !defined(NO_ACCELEROMETER_FUNCTIONALITIES)
         if ((scanAndGetDoubleZTap(FALSE) == ACC_RET_KNOCK) && (flash_flag_set != FALSE))
         {
@@ -491,6 +491,33 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
                 }
             }                
             approve_selected = !approve_selected;
+            
+            /* Reset state machine and wait before displaying idle animation again */
+            timer_start_timer(TIMER_ANIMATIONS, 3000);
+            flash_sm = 0;
+        }
+        
+        // Idle animation if enabled
+        if ((flash_flag != FALSE) && (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED))
+        {
+            if (approve_selected == FALSE)
+            {
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_IDLE_N+flash_sm, FALSE);
+            }
+            else
+            {
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_IDLE_Y+flash_sm, FALSE);
+            }
+            
+            /* Rearm timer */
+            timer_start_timer(TIMER_ANIMATIONS, 50);
+            
+            /* Check for overflow */
+            if (flash_sm++ == CONF_2LINES_IDLE_AN_LGT-1)
+            {
+                timer_start_timer(TIMER_ANIMATIONS, 200);
+                flash_sm = 0;
+            }
         }
     }
     
@@ -514,6 +541,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     {
         flash_flag = TRUE;
     }
+    flash_flag = TRUE;
 
     // Variables for scrolling
     BOOL string_scrolling[4];
@@ -586,13 +614,11 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
 
     /* Arm timer for flashing */
-    timer_start_timer(TIMER_FLASHING, 500);
+    timer_start_timer(TIMER_ANIMATIONS, 1000);
     
     // Loop while no timeout occurs or no button is pressed
     while (input_answer == MINI_INPUT_RET_NONE)
-    {
-        // User interaction timeout or smartcard removed
-        
+    {        
         // User interaction timeout
         if (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED)
         {
@@ -606,6 +632,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         }
         
         // Read usb comms as the plugin could ask to cancel the request
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL);
         /*if (usbCancelRequestReceived() == RETURN_OK)
         {
             input_answer = MINI_INPUT_RET_TIMEOUT;
@@ -653,20 +680,48 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             /* Clear frame buffer as we'll only push the updated parts */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
-            #endif
-            
-            /* Flashing timer */
-            if ((timer_has_timer_expired(TIMER_FLASHING, TRUE) == TIMER_EXPIRED) && (flash_sm < 4))
-            {
-                /* Increment flashing state machine */
-                flash_sm++;
-                
-                /* Rearm timer */
-                timer_start_timer(TIMER_FLASHING, 500);
-            }         
+            #endif        
             
             /* Rearm timer */
             timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
+            
+            // Idle animation if enabled
+            if ((flash_flag != FALSE) && (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED))
+            {
+                /* Rearm timer: won't obviously fire at said timeout as this is included in the above if() */
+                timer_start_timer(TIMER_ANIMATIONS, 50);
+                
+                /* Check for overflow */
+                if (flash_sm++ == CONF_3LINES_IDLE_AN_LGT-1)
+                {
+                    timer_start_timer(TIMER_ANIMATIONS, 200);
+                    flash_sm = 0;
+                }
+            }
+            
+            /* Display bitmap */
+            if(approve_selected == FALSE)
+            {
+                if (flash_sm != 0)
+                {
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_3LINES_IDLE_N+flash_sm, TRUE);
+                }
+                else
+                {
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID, TRUE);
+                }
+            }
+            else
+            {
+                if (flash_sm != 0)
+                {
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_3LINES_IDLE_Y+flash_sm, TRUE);
+                }
+                else
+                {
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID+POPUP_3LINES_ANIM_LGTH-1, TRUE);
+                }
+            }
 
             /* Display all strings */
             for (uint16_t i = 0; i < nb_args; i++)
@@ -710,28 +765,11 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
                 }
             }
             
-            /* Display bitmap */
-            if(approve_selected == FALSE)
-            {
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID, TRUE);
-            }
-            else
-            {
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID+POPUP_3LINES_ANIM_LGTH-1, TRUE);
-            }                
-            
-            /* Display flash if needed */
-            if ((flash_flag == TRUE) && ((flash_sm & 0x01) != 0x00))
-            {                
-                sh1122_draw_rectangle(&plat_oled_descriptor, 0, 0, 10, SH1122_OLED_HEIGHT, 0x05, TRUE);
-            }   
-            
             /* Flush to display */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
             #endif
         }
-
         
         // Approve / deny display change
         int16_t wheel_increments = inputs_get_wheel_increment();
@@ -777,6 +815,10 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             }
                 
             approve_selected = !approve_selected;
+            
+            /* Reset state machine and wait before displaying idle animation again */
+            timer_start_timer(TIMER_ANIMATIONS, 3000);
+            flash_sm = 0;
         }
     }
     
