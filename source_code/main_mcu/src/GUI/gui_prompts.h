@@ -53,7 +53,7 @@
 #define FOUR_LINE_TEXT_SECOND_POS       16
 #define FOUR_LINE_TEXT_THIRD_POS        32
 #define FOUR_LINE_TEXT_FOURTH_POS       48
-#define CONF_PROMPT_MAX_TEXT_X          218
+#define CONF_PROMPT_MAX_TEXT_X          222
 #define CONF_PROMPT_BITMAP_X            210
 #define CONF_PROMPT_BITMAP_Y            1
 #define CONF_PROMPT_LINE_HEIGHT         14

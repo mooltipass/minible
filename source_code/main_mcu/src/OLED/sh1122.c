@@ -654,6 +654,7 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor)
     oled_descriptor->currentFontAddress = 0;
     oled_descriptor->max_text_x = SH1122_OLED_WIDTH;
     oled_descriptor->min_text_x = 0;
+    oled_descriptor->max_disp_x = SH1122_OLED_WIDTH;
     oled_descriptor->max_disp_y = SH1122_OLED_HEIGHT;
     oled_descriptor->min_disp_y = 0;
     
@@ -867,7 +868,7 @@ void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, 
         }
         
         /* Now x is 0 or less than SH1122_OLED_WIDTH */
-        uint16_t nb_pixels_to_be_written = (x+width)>=SH1122_OLED_WIDTH?(SH1122_OLED_WIDTH-x):width;
+        uint16_t nb_pixels_to_be_written = (x+width)>=oled_descriptor->max_disp_x?(oled_descriptor->max_disp_x-x):width;
         
         /* Check for 2 pixels alignment */
         if ((x%2 == 0) && (pixel_shift == FALSE))
@@ -1187,13 +1188,13 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
     }
     
     /* X off screen, remove one OLED width if wrap enabled */
-    if ((x >= SH1122_OLED_WIDTH) && (oled_descriptor->screen_wrapping_allowed != FALSE))
+    if ((x >= oled_descriptor->max_disp_x) && (oled_descriptor->screen_wrapping_allowed != FALSE))
     {
-        x -= SH1122_OLED_WIDTH;
+        x -= oled_descriptor->max_disp_x;
     }
     
     /* Check for off screen line on the right */
-    if (x >= SH1122_OLED_WIDTH)
+    if (x >= oled_descriptor->max_disp_x)
     {
         return;
     }
@@ -1239,7 +1240,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
     }
     #endif
     #ifdef OLED_DMA_TRANSFER
-    else if ((bitstream->width % 2 == 0) && (x % 2 == 0))
+    else if ((bitstream->width % 2 == 0) && (x % 2 == 0) && (oled_descriptor->max_disp_x % 2 == 0))
     {
         /* Buffer large enough to contain a display line in order to trig one DMA transfer */
         uint8_t pixel_buffer[2][SH1122_OLED_WIDTH/2];
@@ -1266,13 +1267,14 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
             {
                 pixel_array_offset = -x/2;
                 nb_pixels_to_send += x;
+                x = 0;
             }
         }
 
         /* Bitmap over screen edge on the right */
-        if ((x + nb_pixels_to_send >= SH1122_OLED_WIDTH) && (oled_descriptor->screen_wrapping_allowed == FALSE))
+        if ((x + nb_pixels_to_send > oled_descriptor->max_disp_x) && (oled_descriptor->screen_wrapping_allowed == FALSE))
         {
-            nb_pixels_to_send = SH1122_OLED_WIDTH-x-1;
+            nb_pixels_to_send = oled_descriptor->max_disp_x-x;
         }
 
         #ifdef OLED_INTERNAL_FRAME_BUFFER
@@ -1286,7 +1288,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
         /* Scan Y */
         for (uint16_t j = 0; j < bitstream->height; j++)
         {            
-            if ((y+j >= oled_descriptor->min_disp_y) && (y+j < oled_descriptor->max_disp_y))
+            if ((y+j >= oled_descriptor->min_disp_y) && (y+j <= oled_descriptor->max_disp_y))
             {
                 /* Set pixel write window */
                 sh1122_set_row_address(oled_descriptor, y+j);
@@ -1306,7 +1308,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
                 bitstream_bitmap_array_read(bitstream, pixel_buffer[buffer_sel], bitstream->width);
             }
                
-            if ((y+j >= oled_descriptor->min_disp_y) && (y+j < oled_descriptor->max_disp_y))
+            if ((y+j >= oled_descriptor->min_disp_y) && (y+j <= oled_descriptor->max_disp_y))
             { 
                 /* Wait for transfer done */
                 while(dma_oled_check_and_clear_dma_transfer_flag() == FALSE);
@@ -1397,7 +1399,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
                 }
                 
                 /* Send the 2 pixels to the display */
-                if ((x+xind >= 0) && ((x+xind <= SH1122_OLED_WIDTH) || (oled_descriptor->screen_wrapping_allowed != FALSE)))
+                if ((x+xind >= 0) && ((x+xind <= oled_descriptor->max_disp_x) || (oled_descriptor->screen_wrapping_allowed != FALSE)))
                 {
                     sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, (uint8_t)(pixels & 0x00FF));
                 }
@@ -1766,7 +1768,10 @@ RET_TYPE sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, B
         }
         
         // Display the text
+        uint16_t max_disp_x_copy = oled_descriptor->max_disp_x;
+        oled_descriptor->max_disp_x = oled_descriptor->max_text_x;
         oled_descriptor->cur_text_x += sh1122_glyph_draw(oled_descriptor, oled_descriptor->cur_text_x, oled_descriptor->cur_text_y, ch, write_to_buffer);
+        oled_descriptor->max_disp_x = max_disp_x_copy;
     }
     
     return RETURN_OK;

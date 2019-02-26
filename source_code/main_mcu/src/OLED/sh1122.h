@@ -91,6 +91,7 @@ typedef struct
     BOOL allow_text_partial_x_draw;                     // Allow drawing of text if they go over max X
     uint16_t min_disp_y;                                // Min display Y
     uint16_t max_disp_y;                                // Max display Y
+    uint16_t max_disp_x;                                // Max display X
     int16_t min_text_x;                                 // Min text X
     int16_t max_text_x;                                 // Max text X
     int16_t cur_text_x;                                 // Current x for writing text
