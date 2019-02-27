@@ -42,6 +42,7 @@
 #define PIN_PROMPT_DIGIT_X_OFFS 140
 #define PIN_PROMPT_DIGIT_X_SPC  17
 #define PIN_PROMPT_DIGIT_Y_WDW  20
+
 // Confirmation prompt
 #define ONE_LINE_TEXT_FIRST_POS         5
 #define TWO_LINE_TEXT_FIRST_POS         20
@@ -57,8 +58,22 @@
 #define CONF_PROMPT_BITMAP_X            210
 #define CONF_PROMPT_BITMAP_Y            1
 #define CONF_PROMPT_LINE_HEIGHT         14
+
 // Information display
 #define INF_DISPLAY_TEXT_Y              20
+#define INFO_NOTIF_ANIM_LGTH            12
+#define ACTION_NOTIF_ANIM_LGTH          11
+#define WARNING_NOTIF_ANIM_LGTH         12
+#define INFO_NOTIF_IDLE_ANIM_LGTH       20
+#define ACTION_NOTIF_IDLE_ANIM_LGTH     21
+#define WARNING_NOTIF_IDLE_ANIM_LGTH    20
+#define BITMAP_INFO_NOTIF_POPUP_ID      502
+#define BITMAP_INFO_NOTIF_IDLE_ID       514
+#define BITMAP_ACTION_NOTIF_POPUP_ID    534
+#define BITMAP_ACTION_NOTIF_IDLE_ID     545
+#define BITMAP_WARNING_NOTIF_POPUP_ID   566
+#define BITMAP_WARNING_NOTIF_IDLE_ID    578
+
 // Delay when scrolling a text
 #define SCROLLING_DEL                   33
 
@@ -71,9 +86,9 @@ typedef struct
 /* Prototypes */
 void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction);
 mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen);
+void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type);
 mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen);
+void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type);
 RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID);
-void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id);
-void gui_prompts_display_information_on_screen(uint16_t string_id);
 
 #endif /* GUI_PROMPTS_H_ */

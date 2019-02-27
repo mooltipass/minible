@@ -56,8 +56,8 @@ void gui_dispatcher_get_back_to_current_screen(void)
                                                 #endif
                                                 break;
                                             }             
-        case GUI_SCREEN_INSERTED_INVALID:   gui_prompts_display_information_on_screen(ID_STRING_REMOVE_CARD); break;
-        case GUI_SCREEN_INSERTED_UNKNOWN:   gui_prompts_display_information_on_screen(ID_STRING_UNKNOWN_CARD); break;
+        case GUI_SCREEN_INSERTED_INVALID:   gui_prompts_display_information_on_screen(ID_STRING_REMOVE_CARD, DISP_MSG_ACTION); break;
+        case GUI_SCREEN_INSERTED_UNKNOWN:   gui_prompts_display_information_on_screen(ID_STRING_UNKNOWN_CARD, DISP_MSG_INFO); break;
         case GUI_SCREEN_MEMORY_MGMT:        break;
         case GUI_SCREEN_CATEGORIES:         break;
         case GUI_SCREEN_FAVORITES:          break;
@@ -133,7 +133,7 @@ void gui_dispatcher_main_loop(void)
     if (timer_has_timer_expired(TIMER_SCREEN, TRUE) == TIMER_EXPIRED)
     {
         /* Display "going to sleep", switch off screen */
-        gui_prompts_display_information_on_screen_and_wait(ID_STRING_GOING_TO_SLEEP);
+        gui_prompts_display_information_on_screen_and_wait(ID_STRING_GOING_TO_SLEEP, DISP_MSG_INFO);
         sh1122_oled_off(&plat_oled_descriptor);
         gui_dispatcher_get_back_to_current_screen();
         platform_io_power_down_oled();

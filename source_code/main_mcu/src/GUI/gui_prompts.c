@@ -37,13 +37,20 @@ const uint8_t gui_prompts_conf_prompt_line_heights[4][4] = {
     {14, 14, 14, 14},
     {14, 14, 14, 14}
 };
+// Min display X for notifications
+const uint8_t gui_prompts_notif_min_x[3] = {56, 40, 52};
+const uint16_t gui_prompts_notif_popup_anim_length[3] = {INFO_NOTIF_ANIM_LGTH, WARNING_NOTIF_ANIM_LGTH, ACTION_NOTIF_ANIM_LGTH};
+const uint16_t gui_prompts_notif_popup_anim_bitmap[3] = {BITMAP_INFO_NOTIF_POPUP_ID, BITMAP_WARNING_NOTIF_POPUP_ID, BITMAP_ACTION_NOTIF_POPUP_ID};
+const uint16_t gui_prompts_notif_idle_anim_length[3] = {INFO_NOTIF_IDLE_ANIM_LGTH, WARNING_NOTIF_IDLE_ANIM_LGTH, ACTION_NOTIF_IDLE_ANIM_LGTH};
+const uint16_t gui_prompts_notif_idle_anim_bitmap[3] = {BITMAP_INFO_NOTIF_IDLE_ID, BITMAP_WARNING_NOTIF_IDLE_ID, BITMAP_ACTION_NOTIF_IDLE_ID};
 
 
-/*! \fn     gui_prompts_display_information_on_screen(uint16_t string_id)
+/*! \fn     gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type)
 *   \brief  Display text information on screen
 *   \param  string_id   String ID to display
+*   \param  message_type    Message type (see enum)
 */
-void gui_prompts_display_information_on_screen(uint16_t string_id)
+void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type)
 {
     cust_char_t* string_to_display;
     
@@ -60,38 +67,58 @@ void gui_prompts_display_information_on_screen(uint16_t string_id)
     
     /* Display string */
     sh1122_refresh_used_font(&plat_oled_descriptor, 1);
+    sh1122_set_min_text_x(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type]);
     sh1122_put_centered_string(&plat_oled_descriptor, INF_DISPLAY_TEXT_Y, string_to_display, TRUE);
+    sh1122_reset_min_text_x(&plat_oled_descriptor);
     
     /* Flush frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
     #endif
+    
+    /* Animation depending on message type */
+    for (uint16_t i = 0; i < gui_prompts_notif_popup_anim_length[message_type]; i++)
+    {
+        timer_delay_ms(50);
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_popup_anim_bitmap[message_type]+i, FALSE);
+    }
 }
 
-/*! \fn     gui_prompts_display_information_on_screen_and_wait(uint16_t string_id)
+/*! \fn     gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type)
 *   \brief  Display text information on screen
-*   \param  string_id   String ID to display
+*   \param  string_id       String ID to display
+*   \param  message_type    Message type (see enum)
 */
-void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id)
+void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type)
 {
+    uint16_t i = 0;
+    
     // Display string 
-    gui_prompts_display_information_on_screen(string_id);
+    gui_prompts_display_information_on_screen(string_id, message_type);
     
     // Clear current detections
     inputs_clear_detections();
     
-    /* Mandatory wait for information display */
-    timer_start_timer(TIMER_WAIT_FUNCTS, 1500);
-    while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
-    {
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);        
-    }
-    
     /* Optional wait */
-    timer_start_timer(TIMER_WAIT_FUNCTS, 2000);
+    timer_start_timer(TIMER_ANIMATIONS, 50);
+    timer_start_timer(TIMER_WAIT_FUNCTS, 3000);
     while ((timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK))
     {
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);        
+        
+        /* Animation timer */
+        if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+        {
+            /* Rearm timer, increment current bitmap */
+            timer_start_timer(TIMER_ANIMATIONS, 50);
+            if (i++ == gui_prompts_notif_idle_anim_length[message_type]-1)
+            {
+                i = 0;
+            }
+            
+            /* Animation depending on message type */
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+i, FALSE);                 
+        }
     }
 }
 
@@ -541,7 +568,6 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     {
         flash_flag = TRUE;
     }
-    flash_flag = TRUE;
 
     // Variables for scrolling
     BOOL string_scrolling[4];
@@ -592,12 +618,17 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     #endif
     
     /* Transition done, now transition the action bitmap */
-    for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH; i++)
+    for (uint16_t j = 0; j < POPUP_3LINES_ANIM_LGTH; j++)
     {
-        /* Write both in frame buffer and display */
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_3LINES_ID+i, FALSE);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_3LINES_ID+i, TRUE);
-        timer_delay_ms(30);
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_3LINES_ID+j, TRUE);
+        for (uint16_t i = 0; i < nb_args; i++)
+        {            
+            sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);
+        }
+        #ifdef OLED_INTERNAL_FRAME_BUFFER
+        sh1122_flush_frame_buffer(&plat_oled_descriptor);
+        #endif
+        timer_delay_ms(10);
     }
     
     /* Wait for user input */

@@ -331,8 +331,12 @@ int main(void)
     cust_char_t* bla4 = u"this is the wonderful line 4... how are you doing?";
     confirmationText_t conf_text = {.lines[0]=bla1, .lines[1]=bla2, .lines[2]=bla3, .lines[3]=bla4};
     //gui_prompts_ask_for_confirmation(1, (confirmationText_t*)u"Erase  Current  User?", TRUE);
-    gui_prompts_ask_for_confirmation(3, &conf_text, TRUE);
+    //gui_prompts_ask_for_confirmation(3, &conf_text, TRUE);
     //debug_debug_menu();
+    /*gui_prompts_display_information_on_screen_and_wait(31, DISP_MSG_INFO);
+    gui_prompts_display_information_on_screen_and_wait(31, DISP_MSG_ACTION);
+    gui_prompts_display_information_on_screen_and_wait(31, DISP_MSG_WARNING);
+    timer_delay_ms(2000);*/
     
     #ifndef DEV_SKIP_INTRO_ANIM
     /* Start animation */    
@@ -407,7 +411,7 @@ int main(void)
             }*/
             
             /* Set correct screen */
-            gui_prompts_display_information_on_screen_and_wait(ID_STRING_CARD_REMOVED);
+            gui_prompts_display_information_on_screen_and_wait(ID_STRING_CARD_REMOVED, DISP_MSG_INFO);
             gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_INTO_MENU_TRANSITION);
             gui_dispatcher_get_back_to_current_screen();
         }

@@ -221,6 +221,15 @@ void sh1122_set_max_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x)
     oled_descriptor->max_text_x = x;
 }
 
+/*! \fn     sh1122_reset_min_text_x(sh1122_descriptor_t* oled_descriptor)
+*   \brief  Reset minimum text X position
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*/
+void sh1122_reset_min_text_x(sh1122_descriptor_t* oled_descriptor)
+{
+    oled_descriptor->min_text_x = 0;
+}
+
 /*! \fn     sh1122_reset_max_text_x(sh1122_descriptor_t* oled_descriptor)
 *   \brief  Reset maximum text X position
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct

@@ -147,6 +147,7 @@ void sh1122_start_data_sending(sh1122_descriptor_t* oled_descriptor);
 void sh1122_prevent_line_feed(sh1122_descriptor_t* oled_descriptor);
 void sh1122_stop_data_sending(sh1122_descriptor_t* oled_descriptor);
 void sh1122_reset_max_text_x(sh1122_descriptor_t* oled_descriptor);
+void sh1122_reset_min_text_x(sh1122_descriptor_t* oled_descriptor);
 void sh1122_allow_line_feed(sh1122_descriptor_t* oled_descriptor);
 void sh1122_init_display(sh1122_descriptor_t* oled_descriptor);
 BOOL sh1122_is_oled_on(sh1122_descriptor_t* oled_descriptor);
