@@ -35,13 +35,18 @@
 #define BITMAP_3LINES_IDLE_N    490
 
 // PIN prompt
-#define PIN_PROMPT_MAX_TEXT_X   100
-#define PIN_PROMPT_TEXT_Y       22
-#define PIN_PROMPT_DIGIT_Y      20
-#define PIN_PROMPT_ASTX_Y_INC   2
-#define PIN_PROMPT_DIGIT_X_OFFS 140
-#define PIN_PROMPT_DIGIT_X_SPC  17
-#define PIN_PROMPT_DIGIT_Y_WDW  20
+#define PIN_PROMPT_MAX_TEXT_X       100
+#define PIN_PROMPT_TEXT_Y           22
+#define PIN_PROMPT_DIGIT_Y          20
+#define PIN_PROMPT_ASTX_Y_INC       2
+#define PIN_PROMPT_ARROW_NOFFSET    20
+#define PIN_PROMPT_ARROW_POFFSET    20
+#define PIN_PROMPT_DIGIT_X_OFFS     140
+#define PIN_PROMPT_DIGIT_X_SPC      17
+#define PIN_PROMPT_DIGIT_Y_WDW      20
+#define PIN_PROMPT_POPUP_ANIM_LGTH  14
+#define BITMAP_PIN_UP_ARROW_POP_ID  566
+#define BITMAP_PIN_DN_ARROW_POP_ID  580
 
 // Confirmation prompt
 #define ONE_LINE_TEXT_FIRST_POS         5
@@ -63,7 +68,7 @@
 #define INF_DISPLAY_TEXT_Y              20
 #define INFO_NOTIF_ANIM_LGTH            12
 #define ACTION_NOTIF_ANIM_LGTH          11
-#define WARNING_NOTIF_ANIM_LGTH         12
+#define WARNING_NOTIF_ANIM_LGTH         11
 #define INFO_NOTIF_IDLE_ANIM_LGTH       20
 #define ACTION_NOTIF_IDLE_ANIM_LGTH     21
 #define WARNING_NOTIF_IDLE_ANIM_LGTH    20
@@ -84,7 +89,7 @@ typedef struct
 } confirmationText_t;
 
 /* Prototypes */
-void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction);
+void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t vert_anim_direction, int16_t hor_anim_direction);
 mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen);
 void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type);
 mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen);

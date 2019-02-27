@@ -337,6 +337,8 @@ int main(void)
     gui_prompts_display_information_on_screen_and_wait(31, DISP_MSG_ACTION);
     gui_prompts_display_information_on_screen_and_wait(31, DISP_MSG_WARNING);
     timer_delay_ms(2000);*/
+    volatile uint16_t pinpin;
+    gui_prompts_get_user_pin(&pinpin, 32);
     
     #ifndef DEV_SKIP_INTRO_ANIM
     /* Start animation */    

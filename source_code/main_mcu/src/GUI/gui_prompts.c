@@ -122,13 +122,15 @@ void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, disp
     }
 }
 
-/*! \fn     gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction)
+/*! \fn     gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction, int16_t vert_anim_direction, int16_t hor_anim_direction)
 *   \brief  Overwrite the digits on the current pin entering screen
-*   \param  current_pin     Array containing the pin
-*   \param  selected_digit  Currently selected digit
-*   \param  stringID        String ID for text query
+*   \param  current_pin         Array containing the pin
+*   \param  selected_digit      Currently selected digit
+*   \param  stringID            String ID for text query
+*   \param  vert_anim_direction Vertical anim direction (wheel up or down)
+*   \param  hor_anim_direction  Horizontal anim direction (next/previous digit)
 */
-void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction)
+void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t vert_anim_direction, int16_t hor_anim_direction)
 {
     cust_char_t* string_to_display;
     uint16_t cur_glyph_height;
@@ -137,7 +139,7 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
     custom_fs_get_string_from_file(stringID, &string_to_display, TRUE);
     
     /* Animation: get current digit and the next one */
-    int16_t next_digit = current_pin[selected_digit] + anim_direction;
+    int16_t next_digit = current_pin[selected_digit] + vert_anim_direction;
     if (next_digit == 0x10)
     {
         next_digit = 0;
@@ -165,7 +167,7 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
     
     /* Number of animation steps */
     int16_t nb_animation_steps = cur_glyph_height + 2;
-    if (anim_direction == 0)
+    if (vert_anim_direction == 0)
     {
         nb_animation_steps = 1;
     }
@@ -212,9 +214,9 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
             }
             else
             {
-                sh1122_set_xy(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_DIGIT_Y + anim_step*anim_direction);
+                sh1122_set_xy(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_DIGIT_Y + anim_step*vert_anim_direction);
                 sh1122_put_char(&plat_oled_descriptor, current_char, TRUE);
-                sh1122_set_xy(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_DIGIT_Y + anim_step*anim_direction + (cur_glyph_height+1)*anim_direction*-1);
+                sh1122_set_xy(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_DIGIT_Y + anim_step*vert_anim_direction + (cur_glyph_height+1)*vert_anim_direction*-1);
                 sh1122_put_char(&plat_oled_descriptor, next_char, TRUE);
             }
         }
@@ -238,6 +240,17 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
     /* Reset temporary graphics settings */
     sh1122_reset_lim_display_y(&plat_oled_descriptor);
     sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
+    
+    /* Special case: first display of pin entering screen */
+    if ((hor_anim_direction == 0) && (vert_anim_direction == 0))
+    {
+        for (uint16_t i = 0; i < PIN_PROMPT_POPUP_ANIM_LGTH; i++)
+        {
+            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_DIGIT_Y-PIN_PROMPT_ARROW_NOFFSET, BITMAP_PIN_UP_ARROW_POP_ID+i, FALSE);
+            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_DIGIT_Y+PIN_PROMPT_ARROW_POFFSET, BITMAP_PIN_DN_ARROW_POP_ID+i, FALSE);
+            timer_delay_ms(30);
+        }
+    }    
 }
 
 
@@ -282,7 +295,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     inputs_clear_detections();
     
     // Display current pin on screen
-    gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0);
+    gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 0);
     
     // While the user hasn't entered his pin
     while(!finished)
@@ -298,21 +311,21 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
         {
             if (detection_result == WHEEL_ACTION_UP)
             {
-                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 1);
+                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 1, 0);
                 if (current_pin[selected_digit]++ == 0x0F)
                 {
                     current_pin[selected_digit] = 0;
                 }
-                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0);
+                //gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 0);
             }
             else
             {
-                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, -1);
+                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, -1, 0);
                 if (current_pin[selected_digit]-- == 0)
                 {
                     current_pin[selected_digit] = 0x0F;
                 }
-                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0);
+                //gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 0);
             }
         }
         
@@ -347,7 +360,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
                 ret_val = RETURN_NOK;
                 finished = TRUE;
             }
-            gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0);
+            gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 0);
         }
         else if (detection_result == WHEEL_ACTION_SHORT_CLICK)
         {
@@ -360,7 +373,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
                 ret_val = RETURN_OK;
                 finished = TRUE;
             }
-            gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0);
+            gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 0);
         }
     }
     
