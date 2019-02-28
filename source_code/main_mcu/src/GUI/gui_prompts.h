@@ -35,18 +35,25 @@
 #define BITMAP_3LINES_IDLE_N    490
 
 // PIN prompt
-#define PIN_PROMPT_MAX_TEXT_X       100
-#define PIN_PROMPT_TEXT_Y           22
-#define PIN_PROMPT_DIGIT_Y          20
-#define PIN_PROMPT_ASTX_Y_INC       2
-#define PIN_PROMPT_ARROW_NOFFSET    20
-#define PIN_PROMPT_ARROW_POFFSET    20
-#define PIN_PROMPT_DIGIT_X_OFFS     140
-#define PIN_PROMPT_DIGIT_X_SPC      17
-#define PIN_PROMPT_DIGIT_Y_WDW      20
-#define PIN_PROMPT_POPUP_ANIM_LGTH  14
-#define BITMAP_PIN_UP_ARROW_POP_ID  566
-#define BITMAP_PIN_DN_ARROW_POP_ID  580
+#define PIN_PROMPT_ARROW_MOV_LGTH       7
+#define PIN_PROMPT_MAX_TEXT_X           130
+#define PIN_PROMPT_TEXT_Y               24
+#define PIN_PROMPT_ARROW_HOR_ANIM_STEP  4
+#define PIN_PROMPT_DIGIT_X_OFFS         134
+#define PIN_PROMPT_DIGIT_X_ADJ          7
+#define PIN_PROMPT_UP_ARROW_Y           4
+#define PIN_PROMPT_ARROW_HEIGHT         16
+#define PIN_PROMPT_DIGIT_HEIGHT         19
+#define PIN_PROMPT_DIGIT_X_SPC          24
+#define PIN_PROMPT_ASTX_Y_INC           4
+#define PIN_PROMPT_DIGIT_Y_SPACING      2
+#define PIN_PROMPT_POPUP_ANIM_LGTH      14
+#define BITMAP_PIN_UP_ARROW_POP_ID      566
+#define BITMAP_PIN_DN_ARROW_POP_ID      580
+#define BITMAP_PIN_UP_ARROW_MOVE_ID     628
+#define BITMAP_PIN_DN_ARROW_MOVE_ID     635
+#define BITMAP_PIN_UP_ARROW_ACTIVATE_ID 642
+#define BITMAP_PIN_DN_ARROW_ACTIVATE_ID 652
 
 // Confirmation prompt
 #define ONE_LINE_TEXT_FIRST_POS         5
@@ -65,10 +72,10 @@
 #define CONF_PROMPT_LINE_HEIGHT         14
 
 // Information display
-#define INF_DISPLAY_TEXT_Y              20
+#define INF_DISPLAY_TEXT_Y              24
 #define INFO_NOTIF_ANIM_LGTH            12
 #define ACTION_NOTIF_ANIM_LGTH          11
-#define WARNING_NOTIF_ANIM_LGTH         11
+#define WARNING_NOTIF_ANIM_LGTH         14
 #define INFO_NOTIF_IDLE_ANIM_LGTH       20
 #define ACTION_NOTIF_IDLE_ANIM_LGTH     21
 #define WARNING_NOTIF_IDLE_ANIM_LGTH    20
@@ -76,8 +83,8 @@
 #define BITMAP_INFO_NOTIF_IDLE_ID       514
 #define BITMAP_ACTION_NOTIF_POPUP_ID    534
 #define BITMAP_ACTION_NOTIF_IDLE_ID     545
-#define BITMAP_WARNING_NOTIF_POPUP_ID   566
-#define BITMAP_WARNING_NOTIF_IDLE_ID    578
+#define BITMAP_WARNING_NOTIF_POPUP_ID   594
+#define BITMAP_WARNING_NOTIF_IDLE_ID    608
 
 // Delay when scrolling a text
 #define SCROLLING_DEL                   33

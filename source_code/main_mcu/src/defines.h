@@ -11,6 +11,10 @@
 /* Defines */
 #define AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS    500
 
+/* Fonts defines */
+#define FONT_UBUNTU_MONO_BOLD_30_ID 0
+#define FONT_UBUNTU_MEDIUM_16_ID    1
+
 /* Macros */
 #define XSTR(x)                     STR(x)
 #define STR(x)                      #x
