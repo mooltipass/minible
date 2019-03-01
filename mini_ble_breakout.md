@@ -21,7 +21,7 @@ The goal of this page is to make a record of all observations regarding the Mini
 | 2          | @limpkin |
 | 3          | @raoulh |
 | 4          | uA |
-| 5          | uA |
+| 5          | @amro |
 | 6          | uA |
 | 7          | uA |
 | 8          | @Dennis |
