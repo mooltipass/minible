@@ -36,8 +36,8 @@
 
 // PIN prompt
 #define PIN_PROMPT_ARROW_MOV_LGTH       7
-#define PIN_PROMPT_MAX_TEXT_X           130
-#define PIN_PROMPT_TEXT_Y               24
+#define PIN_PROMPT_MAX_TEXT_X           134
+#define PIN_PROMPT_TEXT_Y               23
 #define PIN_PROMPT_ARROW_HOR_ANIM_STEP  4
 #define PIN_PROMPT_DIGIT_X_OFFS         134
 #define PIN_PROMPT_DIGIT_X_ADJ          7
@@ -56,7 +56,7 @@
 #define BITMAP_PIN_DN_ARROW_ACTIVATE_ID 652
 
 // Confirmation prompt
-#define ONE_LINE_TEXT_FIRST_POS         5
+#define ONE_LINE_TEXT_FIRST_POS         4
 #define TWO_LINE_TEXT_FIRST_POS         20
 #define TWO_LINE_TEXT_SECOND_POS        40
 #define THREE_LINE_TEXT_FIRST_POS       10
@@ -72,7 +72,7 @@
 #define CONF_PROMPT_LINE_HEIGHT         14
 
 // Information display
-#define INF_DISPLAY_TEXT_Y              24
+#define INF_DISPLAY_TEXT_Y              22
 #define INFO_NOTIF_ANIM_LGTH            12
 #define ACTION_NOTIF_ANIM_LGTH          11
 #define WARNING_NOTIF_ANIM_LGTH         14

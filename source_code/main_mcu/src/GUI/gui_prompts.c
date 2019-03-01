@@ -25,7 +25,7 @@ const uint8_t gui_prompts_conf_prompt_y_positions[4][4] = {
 };
 // Text fonts for conf prompt
 const uint8_t gui_prompts_conf_prompt_fonts[4][4] = {
-    {3, 0, 0, 0},
+    {FONT_UBUNTU_MEDIUM_17_ID, 0, 0, 0},
     {0, 0, 0, 0},
     {0, 0, 0, 0},
     {0, 0, 0, 0}
@@ -38,7 +38,7 @@ const uint8_t gui_prompts_conf_prompt_line_heights[4][4] = {
     {14, 14, 14, 14}
 };
 // Min display X for notifications
-const uint8_t gui_prompts_notif_min_x[3] = {54, 40, 52};
+const uint8_t gui_prompts_notif_min_x[3] = {56, 40, 52};
 const uint16_t gui_prompts_notif_popup_anim_length[3] = {INFO_NOTIF_ANIM_LGTH, WARNING_NOTIF_ANIM_LGTH, ACTION_NOTIF_ANIM_LGTH};
 const uint16_t gui_prompts_notif_popup_anim_bitmap[3] = {BITMAP_INFO_NOTIF_POPUP_ID, BITMAP_WARNING_NOTIF_POPUP_ID, BITMAP_ACTION_NOTIF_POPUP_ID};
 const uint16_t gui_prompts_notif_idle_anim_length[3] = {INFO_NOTIF_IDLE_ANIM_LGTH, WARNING_NOTIF_IDLE_ANIM_LGTH, ACTION_NOTIF_IDLE_ANIM_LGTH};
@@ -66,7 +66,7 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
     custom_fs_get_string_from_file(string_id, &string_to_display, TRUE);
     
     /* Display string */
-    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_16_ID);
+    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
     sh1122_set_min_text_x(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type]);
     sh1122_put_centered_string(&plat_oled_descriptor, INF_DISPLAY_TEXT_Y, string_to_display, TRUE);
     sh1122_reset_min_text_x(&plat_oled_descriptor);
@@ -176,7 +176,7 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
     
     /* Write prompt text, centered on the left part */
     sh1122_allow_line_feed(&plat_oled_descriptor);
-    sh1122_refresh_used_font(&plat_oled_descriptor, 1);
+    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
     sh1122_set_max_text_x(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X);
     sh1122_put_centered_string(&plat_oled_descriptor, PIN_PROMPT_TEXT_Y, string_to_display, TRUE);
     sh1122_prevent_line_feed(&plat_oled_descriptor);

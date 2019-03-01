@@ -13,7 +13,8 @@
 
 /* Fonts defines */
 #define FONT_UBUNTU_MONO_BOLD_30_ID 0
-#define FONT_UBUNTU_MEDIUM_16_ID    1
+#define FONT_UBUNTU_MEDIUM_15_ID    1
+#define FONT_UBUNTU_MEDIUM_17_ID    2
 
 /* Macros */
 #define XSTR(x)                     STR(x)
