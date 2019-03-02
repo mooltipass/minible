@@ -138,6 +138,7 @@ void sh1122_set_max_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x);
 void sh1122_set_min_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x);
 void sh1122_prevent_partial_text_y_draw(sh1122_descriptor_t* oled_descriptor);
 void sh1122_prevent_partial_text_x_draw(sh1122_descriptor_t* oled_descriptor);
+uint8_t sh1122_get_current_font_height(sh1122_descriptor_t* oled_descriptor);
 void sh1122_allow_partial_text_y_draw(sh1122_descriptor_t* oled_descriptor);
 void sh1122_allow_partial_text_x_draw(sh1122_descriptor_t* oled_descriptor);
 void sh1122_clear_current_screen(sh1122_descriptor_t* oled_descriptor);

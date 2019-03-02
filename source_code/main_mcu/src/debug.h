@@ -17,6 +17,7 @@ void debug_setup_dev_card(void);
 void debug_smartcard_test(void);
 void debug_nimh_charging(void);
 void debug_language_test(void);
+void debug_test_prompts(void);
 void debug_debug_screen(void);
 void debug_glyph_scroll(void);
 void debug_atbtlc_info(void);

@@ -9,9 +9,11 @@
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
 #include "platform_defines.h"
+#include "logic_smartcard.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
+#include "gui_prompts.h"
 #include "platform_io.h"
 #include "logic_power.h"
 #include "custom_fs.h"
@@ -37,6 +39,49 @@ void debug_array_to_hex_u8string(uint8_t* array, uint8_t* string, uint16_t lengt
     {
         sprintf((char*)&string[i*2], "%02x", array[i]);
     }
+}
+
+/*! \fn     debug_test_prompts(void)
+*   \brief  Display several prompts or notifications to check code
+*/
+void debug_test_prompts(void)
+{
+    volatile uint16_t pinpin;
+    
+    /* Set language */    
+    custom_fs_set_current_language(0);
+    
+    /* One line prompt */
+    gui_prompts_ask_for_one_line_confirmation(ID_STRING_CREATE_NEW_USER, TRUE);
+        
+    /* 2 lines prompt */
+    cust_char_t* two_line_prompt_1 = (cust_char_t*)u"Delete Service?";
+    cust_char_t* two_line_prompt_2 = (cust_char_t*)u"myreallysuperextralongwebsite.com";
+    confirmationText_t conf_text_2_lines = {.lines[0]=two_line_prompt_1, .lines[1]=two_line_prompt_2};
+    gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, TRUE);
+    
+    /* 3 lines prompt */
+    cust_char_t* three_line_prompt_1 = (cust_char_t*)u"themooltipass.com";
+    cust_char_t* three_line_prompt_2 = (cust_char_t*)u"Login With:";
+    cust_char_t* three_line_prompt_3 = (cust_char_t*)u"mysuperextralonglogin@mydomain.com";
+    confirmationText_t conf_text_3_lines = {.lines[0]=three_line_prompt_1, .lines[1]=three_line_prompt_2, .lines[2]=three_line_prompt_3};
+    gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE);
+    
+    /* 4 lines prompt */
+    cust_char_t* four_line_prompt_1 = (cust_char_t*)u"SSH Daemon";
+    cust_char_t* four_line_prompt_2 = (cust_char_t*)u"myserver.com";
+    cust_char_t* four_line_prompt_3 = (cust_char_t*)u"Login With:";
+    cust_char_t* four_line_prompt_4 = (cust_char_t*)u"mysuperextralonglogin@mydomain.com";
+    confirmationText_t conf_text_4_lines = {.lines[0]=four_line_prompt_1, .lines[1]=four_line_prompt_2, .lines[2]=four_line_prompt_3, .lines[3]=four_line_prompt_4};
+    gui_prompts_ask_for_confirmation(4, &conf_text_4_lines, TRUE);
+    
+    /* Notifications */
+    gui_prompts_display_information_on_screen_and_wait(35, DISP_MSG_INFO);
+    gui_prompts_display_information_on_screen_and_wait(35, DISP_MSG_ACTION);
+    gui_prompts_display_information_on_screen_and_wait(35, DISP_MSG_WARNING);
+    
+    /* Pin get */
+    gui_prompts_get_user_pin(&pinpin, 32);    
 }
 
 /*! \fn     debug_debug_menu(void)

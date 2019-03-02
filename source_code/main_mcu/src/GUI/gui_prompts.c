@@ -18,17 +18,24 @@
 #include "rng.h"
 // Text Y positions for conf prompt
 const uint8_t gui_prompts_conf_prompt_y_positions[4][4] = {
-    {ONE_LINE_TEXT_FIRST_POS, 0, 0, 0},
-    {TWO_LINE_TEXT_FIRST_POS, TWO_LINE_TEXT_SECOND_POS, 0, 0},
-    {THREE_LINE_TEXT_FIRST_POS, THREE_LINE_TEXT_SECOND_POS, THREE_LINE_TEXT_THIRD_POS, 0},
-    {FOUR_LINE_TEXT_FIRST_POS, FOUR_LINE_TEXT_SECOND_POS, FOUR_LINE_TEXT_THIRD_POS, FOUR_LINE_TEXT_FOURTH_POS}
+    {4, 0, 0, 0},
+    {12, 36, 0, 0},
+    {2, 22, 43, 0},
+    {0, 13, 29, 46}
 };
 // Text fonts for conf prompt
 const uint8_t gui_prompts_conf_prompt_fonts[4][4] = {
     {FONT_UBUNTU_MEDIUM_17_ID, 0, 0, 0},
-    {0, 0, 0, 0},
-    {0, 0, 0, 0},
-    {0, 0, 0, 0}
+    {FONT_UBUNTU_MEDIUM_17_ID, FONT_UBUNTU_REGULAR_16_ID, 0, 0},
+    {FONT_UBUNTU_REGULAR_16_ID, FONT_UBUNTU_MEDIUM_17_ID, FONT_UBUNTU_REGULAR_16_ID, 0},
+    {FONT_UBUNTU_MEDIUM_15_ID, FONT_UBUNTU_REGULAR_16_ID, FONT_UBUNTU_MEDIUM_17_ID, FONT_UBUNTU_REGULAR_16_ID}
+};
+// Max text X for conf prompts
+const uint8_t gui_prompts_conf_prompts_max_x[4][4] = {
+    {222, 0, 0, 0},
+    {222, 222, 0, 0},
+    {222, 210, 222, 222},
+    {222, 222, 222, 222}
 };
 // Boxes height for each line
 const uint8_t gui_prompts_conf_prompt_line_heights[4][4] = {
@@ -323,6 +330,9 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
         }
     }
     
+    /* Activity detected */
+    logic_device_activity_detected();
+    
     // Clear current detections
     inputs_clear_detections();
     
@@ -442,6 +452,9 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
         flash_flag = TRUE;
     }
     
+    /* Activity detected */
+    logic_device_activity_detected();
+    
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
@@ -473,9 +486,6 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     /* Wait for user input */
     mini_input_yes_no_ret_te input_answer = MINI_INPUT_RET_NONE;
     wheel_action_ret_te detect_result;
-    
-    /* Activity detected */
-    logic_device_activity_detected();
     
     /* Clear possible remaining detection */
     inputs_clear_detections();
@@ -616,6 +626,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     }
 
     // Variables for scrolling
+    uint8_t max_text_x[4];
     BOOL string_scrolling[4];
     uint16_t string_lengths[4];
     int16_t string_offset_cntrs[4] = {0,0,0,0};
@@ -632,29 +643,36 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     sh1122_clear_current_screen(&plat_oled_descriptor);
     #endif
     
-    /* Set text display preferences */
-    sh1122_set_max_text_x(&plat_oled_descriptor, CONF_PROMPT_MAX_TEXT_X);   
-    
     /* Compute lines lengths, display them, set scrolling bools */
     for (uint16_t i = 0; i < nb_args; i++)
     {
-        /* Set correct font */
+        /* Set correct font for given line */
         sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][i]);
-            
-        /* Is scrolling needed for that string? */
+        
+        /* Get text width in px */
+        uint16_t line_width = sh1122_get_string_width(&plat_oled_descriptor, text_object->lines[i]);
         string_lengths[i] = utils_strlen(text_object->lines[i]);
-        sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
-        if (string_lengths[i] != sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE))
+        
+        /* Larger than display area? */
+        if (line_width < CONF_PROMPT_BITMAP_X)
         {
-            string_scrolling[i] = TRUE;
+            string_scrolling[i] = FALSE;
+            max_text_x[i] = CONF_PROMPT_BITMAP_X;
+        } 
+        else if (line_width < gui_prompts_conf_prompts_max_x[nb_args-1][i])
+        {
+            string_scrolling[i] = FALSE;
+            max_text_x[i] = gui_prompts_conf_prompts_max_x[nb_args-1][i];
         }
         else
         {
-            string_scrolling[i] = FALSE;
+            string_scrolling[i] = TRUE;
+            max_text_x[i] = gui_prompts_conf_prompts_max_x[nb_args-1][i];
         }
-            
-        /* Now allow partial X text display and display partial text if there's any */
+        
+        /* Set correct font and max text X */
         sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
+        sh1122_set_max_text_x(&plat_oled_descriptor, max_text_x[i]);
         sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);
     }
     
@@ -668,7 +686,9 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     {
         sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_3LINES_ID+j, TRUE);
         for (uint16_t i = 0; i < nb_args; i++)
-        {            
+        {
+            sh1122_set_max_text_x(&plat_oled_descriptor, max_text_x[i]);
+            sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][i]);
             sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);
         }
         #ifdef OLED_INTERNAL_FRAME_BUFFER
@@ -803,15 +823,16 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             /* Display all strings */
             for (uint16_t i = 0; i < nb_args; i++)
             {
+                /* Set max text X, set correct font */
+                sh1122_set_max_text_x(&plat_oled_descriptor, max_text_x[i]);
+                sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][i]);
+                
                 if (string_scrolling[i] != FALSE)
                 {
                     /* Erase previous part */
                     #ifndef OLED_INTERNAL_FRAME_BUFFER
                     sh1122_draw_rectangle(&plat_oled_descriptor, 0, gui_prompts_conf_prompt_y_positions[nb_args-1][i], CONF_PROMPT_MAX_TEXT_X, gui_prompts_conf_prompt_line_heights[nb_args-1][i], 0x00, TRUE);
                     #endif
-                    
-                    /* Set correct font */
-                    sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][i]);
                     
                     /* Check if scrolling is not needed anymore */
                     sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);

@@ -648,6 +648,16 @@ RET_TYPE sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor, uint16_t
     }    
 }
 
+/*! \fn     sh1122_get_current_font_height(sh1122_descriptor_t oled_descriptor)
+*   \brief  Get current font height
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \return Font height
+*/
+uint8_t sh1122_get_current_font_height(sh1122_descriptor_t* oled_descriptor)
+{
+    return oled_descriptor->current_font_header.height;
+}
+
 /*! \fn     sh1122_init_display(sh1122_descriptor_t oled_descriptor)
 *   \brief  Initialize a SSD1322 display
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct

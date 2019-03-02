@@ -324,22 +324,9 @@ int main(void)
     
     /* Activity detected */
     logic_device_activity_detected();    
-
-    cust_char_t* bla1 = u"themooltipass.com";
-    cust_char_t* bla2 = u"Do you want to login with";
-    cust_char_t* bla3 = u"mysuperextralonglogin@mydomain.com";
-    cust_char_t* bla4 = u"this is the wonderful line 4... how are you doing?";
-    confirmationText_t conf_text = {.lines[0]=bla1, .lines[1]=bla2, .lines[2]=bla3, .lines[3]=bla4};
-    //gui_prompts_ask_for_confirmation(1, (confirmationText_t*)u"Erase  Current  User?", TRUE);
-    //gui_prompts_ask_for_confirmation(3, &conf_text, TRUE);
-    //debug_debug_menu();
-    volatile uint16_t pinpin;
-    custom_fs_set_current_language(0);
-    /*gui_prompts_display_information_on_screen_and_wait(35, DISP_MSG_INFO);
-    gui_prompts_display_information_on_screen_and_wait(35, DISP_MSG_ACTION);
-    gui_prompts_display_information_on_screen_and_wait(35, DISP_MSG_WARNING);*/
-    gui_prompts_ask_for_one_line_confirmation(ID_STRING_CREATE_NEW_USER, FALSE);
-    gui_prompts_get_user_pin(&pinpin, 32);
+    
+    /* tests */
+    debug_test_prompts();
     
     #ifndef DEV_SKIP_INTRO_ANIM
     /* Start animation */    

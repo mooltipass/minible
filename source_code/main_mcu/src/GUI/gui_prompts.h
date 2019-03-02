@@ -56,20 +56,8 @@
 #define BITMAP_PIN_DN_ARROW_ACTIVATE_ID 652
 
 // Confirmation prompt
-#define ONE_LINE_TEXT_FIRST_POS         4
-#define TWO_LINE_TEXT_FIRST_POS         20
-#define TWO_LINE_TEXT_SECOND_POS        40
-#define THREE_LINE_TEXT_FIRST_POS       10
-#define THREE_LINE_TEXT_SECOND_POS      26
-#define THREE_LINE_TEXT_THIRD_POS       42
-#define FOUR_LINE_TEXT_FIRST_POS        0
-#define FOUR_LINE_TEXT_SECOND_POS       16
-#define FOUR_LINE_TEXT_THIRD_POS        32
-#define FOUR_LINE_TEXT_FOURTH_POS       48
-#define CONF_PROMPT_MAX_TEXT_X          222
 #define CONF_PROMPT_BITMAP_X            210
 #define CONF_PROMPT_BITMAP_Y            1
-#define CONF_PROMPT_LINE_HEIGHT         14
 
 // Information display
 #define INF_DISPLAY_TEXT_Y              22
