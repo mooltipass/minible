@@ -326,7 +326,7 @@ int main(void)
     logic_device_activity_detected();    
     
     /* tests */
-    debug_test_prompts();
+    //debug_test_prompts();
     
     #ifndef DEV_SKIP_INTRO_ANIM
     /* Start animation */    

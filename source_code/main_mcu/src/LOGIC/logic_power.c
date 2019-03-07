@@ -25,3 +25,12 @@ power_source_te logic_power_get_power_source(void)
 {
     return logic_power_current_power_source;
 }
+
+/*! \fn     logic_power_get_battery_state(void)
+*   \brief  Get current battery state
+*   \return Current battery state (see enum)
+*/
+battery_state_te logic_power_get_battery_state(void)
+{
+    return BATTERY_50PCT;
+}
