@@ -265,7 +265,7 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
         if (dma_main_mcu_message_sent_mcu_systick_val < mcu_systick)
         {
             /* Main MCU systick is decreasing, we've detected a wrapover */
-            if((timer_get_systick() - dma_main_mcu_message_sent_systick_val) < 2)
+            if((timer_get_systick() - dma_main_mcu_message_sent_systick_val) < 20)
             {
                 /* This is a real wrapover as main MCU wrapover is ~300ms */
                 uint32_t t_delay = MCU_SYSTICK_MAX_PERIOD - mcu_systick + dma_main_mcu_message_sent_mcu_systick_val;
@@ -279,7 +279,7 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
         else
         {
             uint32_t t_delay = dma_main_mcu_message_sent_mcu_systick_val - mcu_systick;
-            if ((t_delay < 480) && ((timer_get_systick() - dma_main_mcu_message_sent_systick_val) < 2))
+            if ((t_delay < 480) && ((timer_get_systick() - dma_main_mcu_message_sent_systick_val) < 20))
             {
                 /* Less than 10us since message sent interrupt and now */
                 DELAYUS(10);
