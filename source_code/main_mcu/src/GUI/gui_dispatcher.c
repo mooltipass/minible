@@ -20,6 +20,15 @@
 gui_screen_te gui_dispatcher_current_screen = GUI_SCREEN_NINSERTED;
 
 
+/*! \fn     gui_dispatcher_get_current_screen(void)
+*   \brief  Get current screen
+*   \return The current screen
+*/
+gui_screen_te gui_dispatcher_get_current_screen(void)
+{
+    return gui_dispatcher_current_screen;
+}
+
 /*! \fn     gui_dispatcher_set_current_screen(gui_screen_te screen)
 *   \brief  Set current screen
 *   \param  screen          The screen
@@ -58,6 +67,7 @@ void gui_dispatcher_get_back_to_current_screen(void)
                                             }             
         case GUI_SCREEN_INSERTED_INVALID:   gui_prompts_display_information_on_screen(ID_STRING_REMOVE_CARD, DISP_MSG_ACTION); break;
         case GUI_SCREEN_INSERTED_UNKNOWN:   gui_prompts_display_information_on_screen(ID_STRING_UNKNOWN_CARD, DISP_MSG_INFO); break;
+        case GUI_SCREEN_FW_FILE_UPDATE:     gui_prompts_display_information_on_screen(ID_STRING_FW_FILE_UPDATE, DISP_MSG_INFO); break;        
         case GUI_SCREEN_MEMORY_MGMT:        break;
         case GUI_SCREEN_CATEGORIES:         break;
         case GUI_SCREEN_FAVORITES:          break;

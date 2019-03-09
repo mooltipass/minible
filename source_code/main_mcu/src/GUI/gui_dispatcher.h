@@ -20,6 +20,7 @@
 #define ID_STRING_CARD_REMOVED      28
 #define ID_STRING_UNKNOWN_CARD      36
 #define ID_STRING_GOING_TO_SLEEP    37
+#define ID_STRING_FW_FILE_UPDATE    38
 
 /* Enums */
 typedef enum {  GUI_SCREEN_NINSERTED = 0,
@@ -27,6 +28,7 @@ typedef enum {  GUI_SCREEN_NINSERTED = 0,
                 GUI_SCREEN_INSERTED_INVALID,
                 GUI_SCREEN_INSERTED_UNKNOWN,
                 GUI_SCREEN_MEMORY_MGMT,
+                GUI_SCREEN_FW_FILE_UPDATE,
                 GUI_SCREEN_CATEGORIES,
                 GUI_SCREEN_FAVORITES,
                 GUI_SCREEN_LOGIN,
@@ -44,6 +46,7 @@ typedef enum {  GUI_SCREEN_NINSERTED = 0,
 /* Prototypes */
 void gui_dispatcher_set_current_screen(gui_screen_te screen, BOOL reset_states, oled_transition_te transition);
 void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action);
+gui_screen_te gui_dispatcher_get_current_screen(void);
 void gui_dispatcher_get_back_to_current_screen(void);
 void gui_dispatcher_main_loop(void);
 

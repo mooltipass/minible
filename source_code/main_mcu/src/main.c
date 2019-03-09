@@ -392,37 +392,48 @@ int main(void)
             sh1122_oled_on(&plat_oled_descriptor);
         }        
         
-        /* Do appropriate actions on smartcard insertion / removal */
-        if (card_detection_res == RETURN_JDETECT)
+        /* Do not do anythign if we're uploading new graphics contents */
+        if (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE)
         {
-            /* Light up the Mooltipass and call the dedicated function */
-            logic_device_activity_detected();
-            logic_smartcard_handle_inserted();
-        }
-        else if (card_detection_res == RETURN_JRELEASED)
-        {
-            /* Light up the Mooltipass and call the dedicated function */
-            logic_device_activity_detected();
-            logic_smartcard_handle_removed();
-
-            /* Lock shortcut, if enabled */
-            /*if ((mp_lock_unlock_shortcuts != FALSE) && ((getMooltipassParameterInEeprom(LOCK_UNLOCK_FEATURE_PARAM) & LF_WIN_L_SEND_MASK) != 0))
+            /* Do appropriate actions on smartcard insertion / removal */
+            if (card_detection_res == RETURN_JDETECT)
             {
-                usbSendLockShortcut();
-                mp_lock_unlock_shortcuts = FALSE;
-            }*/
+                /* Light up the Mooltipass and call the dedicated function */
+                logic_device_activity_detected();
+                logic_smartcard_handle_inserted();
+            }
+            else if (card_detection_res == RETURN_JRELEASED)
+            {
+                /* Light up the Mooltipass and call the dedicated function */
+                logic_device_activity_detected();
+                logic_smartcard_handle_removed();
+
+                /* Lock shortcut, if enabled */
+                /*if ((mp_lock_unlock_shortcuts != FALSE) && ((getMooltipassParameterInEeprom(LOCK_UNLOCK_FEATURE_PARAM) & LF_WIN_L_SEND_MASK) != 0))
+                {
+                    usbSendLockShortcut();
+                    mp_lock_unlock_shortcuts = FALSE;
+                }*/
             
-            /* Set correct screen */
-            gui_prompts_display_information_on_screen_and_wait(ID_STRING_CARD_REMOVED, DISP_MSG_INFO);
-            gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_INTO_MENU_TRANSITION);
-            gui_dispatcher_get_back_to_current_screen();
+                /* Set correct screen */
+                gui_prompts_display_information_on_screen_and_wait(ID_STRING_CARD_REMOVED, DISP_MSG_INFO);
+                gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_INTO_MENU_TRANSITION);
+                gui_dispatcher_get_back_to_current_screen();
+            }
+        
+            /* GUI main loop */
+            gui_dispatcher_main_loop();            
         }
         
-        /* GUI main loop */
-        gui_dispatcher_main_loop();
-        
-        /* Communications */        
-        comms_aux_mcu_routine(MSG_NO_RESTRICT);
+        /* Communications */
+        if (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE)
+        {
+            comms_aux_mcu_routine(MSG_NO_RESTRICT);
+        }
+        else
+        {
+            comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BUNDLE);            
+        }
         
         /* Accelerometer interrupt */
         if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) != FALSE)

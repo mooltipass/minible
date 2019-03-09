@@ -11,6 +11,7 @@
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
 #include "driver_sercom.h"
+#include "logic_device.h"
 #include "platform_io.h"
 #include "dataflash.h"
 #include "sh1122.h"
@@ -144,6 +145,9 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
         }          
         case HID_CMD_ID_ERASE_DATA_FLASH:
         {
+            /* Required actions when we start dealing with graphics memory */
+            logic_device_bundle_update_start(TRUE);
+            
             /* Erase data flash */
             dataflash_bulk_erase_without_wait(&dataflash_descriptor);
             
@@ -181,9 +185,9 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             return 1;
         }
         case HID_CMD_ID_REINDEX_BUNDLE:
-        {
-            /* Refresh file system and font */
-            custom_fs_init();
+        {            
+            /* Do required actions */
+            logic_device_bundle_update_end(TRUE);
             
             /* Set ack, leave same command id */
             send_msg->payload[0] = HID_1BYTE_ACK;

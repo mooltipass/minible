@@ -3,6 +3,7 @@
 *    Created:  27/01/2019
 *    Author:   Mathieu Stephan
 */
+#include "gui_dispatcher.h"
 #include "logic_device.h"
 #include "driver_timer.h"
 #include "platform_io.h"
@@ -38,5 +39,44 @@ void logic_device_activity_detected(void)
         }
         
         sh1122_oled_on(&plat_oled_descriptor);
+    }
+}
+
+/*! \fn     logic_device_bundle_update_start(BOOL from_debug_messages)
+*   \brief  Function called when start updating the device graphics memory
+*   \param  from_debug_messages Set to TRUE if this function was called from debug messages
+*/
+void logic_device_bundle_update_start(BOOL from_debug_messages)
+{
+    if (from_debug_messages != FALSE)
+    {
+        /* Go to dedicated screen */
+        gui_dispatcher_set_current_screen(GUI_SCREEN_FW_FILE_UPDATE, TRUE, GUI_OUTOF_MENU_TRANSITION);
+        gui_dispatcher_get_back_to_current_screen();
+    } 
+    else
+    {
+        // TODO
+    }
+}
+
+/*! \fn     logic_device_bundle_update_end(BOOL from_debug_messages)
+*   \brief  Function called at the end of graphics upload
+*   \param  from_debug_messages Set to TRUE if this function was called from debug messages
+*/
+void logic_device_bundle_update_end(BOOL from_debug_messages)
+{
+    if (from_debug_messages != FALSE)
+    {        
+        /* Refresh file system and font */
+        custom_fs_init();
+        
+        /* Go to default screen */
+        gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_OUTOF_MENU_TRANSITION);
+        gui_dispatcher_get_back_to_current_screen();
+    } 
+    else
+    {
+        // TODO
     }
 }
