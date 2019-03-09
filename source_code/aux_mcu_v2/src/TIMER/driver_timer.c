@@ -39,7 +39,7 @@ void TCC0_Handler(void)
 void timer_initialize_timebase(void)
 {
     /* Enable MCU systick with max value period */
-    SysTick->LOAD = 0x00FFFFFF;
+    SysTick->LOAD = MCU_SYSTICK_MAX_PERIOD;
     SysTick->CTRL = 1;
     
     /* Assign internal 32kHz to GCLK3, divide it by 32 */
@@ -146,7 +146,7 @@ void timer_ms_tick(void)
 */
 BOOL timer_get_mcu_systick(uint32_t* value)
 {
-    *value = SysTick->VAL & 0x00FFFFFF;
+    *value = SysTick->VAL & MCU_SYSTICK_MAX_PERIOD;
     
     if ((SysTick->CTRL & 0x10000) != 0)
     {

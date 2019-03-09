@@ -12,6 +12,9 @@
 #include <asf.h>
 #include "defines.h"
 
+/* Defines */
+#define MCU_SYSTICK_MAX_PERIOD  0x00FFFFFFUL
+
 /* Structs */
 typedef struct
 {

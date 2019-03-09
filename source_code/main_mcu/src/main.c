@@ -392,7 +392,7 @@ int main(void)
             sh1122_oled_on(&plat_oled_descriptor);
         }        
         
-        /* Do not do anythign if we're uploading new graphics contents */
+        /* Do not do anything if we're uploading new graphics contents */
         if (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE)
         {
             /* Do appropriate actions on smartcard insertion / removal */

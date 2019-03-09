@@ -1,0 +1,120 @@
+[1mdiff --git a/source_code/aux_mcu_v2/.vs/aux_mcu/v14/.atsuo b/source_code/aux_mcu_v2/.vs/aux_mcu/v14/.atsuo[m
+[1mindex 6c240f6..f53b02f 100644[m
+Binary files a/source_code/aux_mcu_v2/.vs/aux_mcu/v14/.atsuo and b/source_code/aux_mcu_v2/.vs/aux_mcu/v14/.atsuo differ
+[1mdiff --git a/source_code/aux_mcu_v2/src/DMA/dma.c b/source_code/aux_mcu_v2/src/DMA/dma.c[m
+[1mindex 15d670b..b14d061 100644[m
+[1m--- a/source_code/aux_mcu_v2/src/DMA/dma.c[m
+[1m+++ b/source_code/aux_mcu_v2/src/DMA/dma.c[m
+[36m@@ -35,6 +35,9 @@[m [mvolatile aux_mcu_message_t dma_main_mcu_other_message;[m
+ volatile BOOL dma_main_mcu_usb_msg_received = FALSE;[m
+ volatile BOOL dma_main_mcu_ble_msg_received = FALSE;[m
+ volatile BOOL dma_main_mcu_other_msg_received = FALSE;[m
+[32m+[m[32m/* MCU systick value when the main MCU message sent interrupt happened */[m
+[32m+[m[32mvolatile uint32_t dma_main_mcu_message_sent_mcu_systick_val;[m
+[32m+[m[32mvolatile uint32_t dma_main_mcu_message_sent_systick_val;[m
+ [m
+ /*! \fn     DMAC_Handler(void)[m
+ *   \brief  Function called by interrupt when RX is done[m
+[36m@@ -106,6 +109,12 @@[m [mvoid DMAC_Handler(void)[m
+         /* Set transfer done boolean, clear interrupt */[m
+         dma_main_mcu_packet_sent = TRUE;[m
+         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;[m
+[32m+[m[41m        [m
+[32m+[m[32m        /* Store timestamp of message sent */[m
+[32m+[m[32m        #ifndef BOOTLOADER[m
+[32m+[m[32m        timer_get_mcu_systick((uint32_t*)&dma_main_mcu_message_sent_mcu_systick_val);[m
+[32m+[m[32m        dma_main_mcu_message_sent_systick_val = timer_get_systick();[m
+[32m+[m[32m        #endif[m
+     }[m
+ }[m
+ [m
+[36m@@ -243,11 +252,40 @@[m [mvoid dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)[m
+     [m
+     #ifndef BOOTLOADER[m
+     /* We just waited for previous message to be sent, leave a little time for MCU to raise no_comms */[m
+[32m+[m[32m    /* Maths: 6Mbit/s baud rate -> 3.3us for 20 bits + added interrupt latency */[m
+     if (went_through_loop_below != FALSE)[m
+     {[m
+         DELAYUS(10);[m
+     }[m
+     [m
+[32m+[m[32m    /* Edge case: we didn't go through the loop, the flag just got cleared but the main MCU hasn't raised no comms yet */[m
+[32m+[m[32m    uint32_t mcu_systick;[m
+[32m+[m[32m    timer_get_mcu_systick(&mcu_systick);[m
+[32m+[m[32m    if (dma_main_mcu_message_sent_mcu_systick_val < mcu_systick)[m
+[32m+[m[32m    {[m
+[32m+[m[32m        /* Main MCU systick is decreasing, we've detected a wrapover */[m
+[32m+[m[32m        if((timer_get_systick() - dma_main_mcu_message_sent_mcu_systick_val) < 2)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            /* This is a real wrapover as main MCU wrapover is ~300ms */[m
+[32m+[m[32m            uint32_t t_delay = MCU_SYSTICK_MAX_PERIOD - mcu_systick + dma_main_mcu_message_sent_mcu_systick_val;[m
+[32m+[m[32m            if (t_delay < 480)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                /* Less than 10us since message sent interrupt and now */[m
+[32m+[m[32m                DELAYUS(10);[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m[32m    }[m
+[32m+[m[32m    else[m
+[32m+[m[32m    {[m
+[32m+[m[32m        uint32_t t_delay = dma_main_mcu_message_sent_mcu_systick_val - mcu_systick;[m
+[32m+[m[32m        if (t_delay < 480)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            /* Less than 10us since message sent interrupt and now */[m
+[32m+[m[32m            DELAYUS(10);[m
+[32m+[m[32m        }[m
+[32m+[m[32m    }[m
+[32m+[m[41m    [m
+[32m+[m[41m    [m
+     /* Check for no comms */[m
+     if (logic_is_no_comms_unavailable() == FALSE)[m
+     {[m
+[1mdiff --git a/source_code/aux_mcu_v2/src/TIMER/driver_timer.c b/source_code/aux_mcu_v2/src/TIMER/driver_timer.c[m
+[1mindex eddac97..114a406 100644[m
+[1m--- a/source_code/aux_mcu_v2/src/TIMER/driver_timer.c[m
+[1m+++ b/source_code/aux_mcu_v2/src/TIMER/driver_timer.c[m
+[36m@@ -39,7 +39,7 @@[m [mvoid TCC0_Handler(void)[m
+ void timer_initialize_timebase(void)[m
+ {[m
+     /* Enable MCU systick with max value period */[m
+[31m-    SysTick->LOAD = 0x00FFFFFF;[m
+[32m+[m[32m    SysTick->LOAD = MCU_SYSTICK_MAX_PERIOD;[m
+     SysTick->CTRL = 1;[m
+     [m
+     /* Assign internal 32kHz to GCLK3, divide it by 32 */[m
+[36m@@ -146,7 +146,7 @@[m [mvoid timer_ms_tick(void)[m
+ */[m
+ BOOL timer_get_mcu_systick(uint32_t* value)[m
+ {[m
+[31m-    *value = SysTick->VAL & 0x00FFFFFF;[m
+[32m+[m[32m    *value = SysTick->VAL & MCU_SYSTICK_MAX_PERIOD;[m
+     [m
+     if ((SysTick->CTRL & 0x10000) != 0)[m
+     {[m
+[1mdiff --git a/source_code/aux_mcu_v2/src/TIMER/driver_timer.h b/source_code/aux_mcu_v2/src/TIMER/driver_timer.h[m
+[1mindex 3ef13b3..8eef18a 100644[m
+[1m--- a/source_code/aux_mcu_v2/src/TIMER/driver_timer.h[m
+[1m+++ b/source_code/aux_mcu_v2/src/TIMER/driver_timer.h[m
+[36m@@ -12,6 +12,9 @@[m
+ #include <asf.h>[m
+ #include "defines.h"[m
+ [m
+[32m+[m[32m/* Defines */[m
+[32m+[m[32m#define MCU_SYSTICK_MAX_PERIOD  0x00FFFFFFUL[m
+[32m+[m
+ /* Structs */[m
+ typedef struct[m
+ {[m
+[1mdiff --git a/source_code/main_mcu/src/main.c b/source_code/main_mcu/src/main.c[m
+[1mindex 23c9f46..97ba483 100644[m
+[1m--- a/source_code/main_mcu/src/main.c[m
+[1m+++ b/source_code/main_mcu/src/main.c[m
+[36m@@ -392,7 +392,7 @@[m [mint main(void)[m
+             sh1122_oled_on(&plat_oled_descriptor);[m
+         }        [m
+         [m
+[31m-        /* Do not do anythign if we're uploading new graphics contents */[m
+[32m+[m[32m        /* Do not do anything if we're uploading new graphics contents */[m
+         if (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE)[m
+         {[m
+             /* Do appropriate actions on smartcard insertion / removal */[m
