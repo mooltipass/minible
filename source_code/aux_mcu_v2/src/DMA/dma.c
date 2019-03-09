@@ -11,7 +11,10 @@
 #endif
 #include "platform_defines.h"
 #include "comms_main_mcu.h"
+#include "driver_timer.h"
+#include "platform_io.h"
 #include "defines.h"
+#include "logic.h"
 #include "dma.h"
 /* DMA Descriptors for our transfers and their DMA priority levels (highest number is higher priority, contrary to what is written in some datasheets) */
 /* Beware of errata 15683 if you do want to implement linked descriptors! */
@@ -232,7 +235,32 @@ BOOL dma_main_mcu_check_and_clear_dma_transfer_flag(void)
 void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
 {
     /* Wait for previous transfer to be done */
-    while (dma_main_mcu_packet_sent == FALSE);
+    BOOL went_through_loop_below = FALSE;
+    while (dma_main_mcu_packet_sent == FALSE)
+    {
+        went_through_loop_below = TRUE;
+    }
+    
+    #ifndef BOOTLOADER
+    /* We just waited for previous message to be sent, leave a little time for MCU to raise no_comms */
+    if (went_through_loop_below != FALSE)
+    {
+        DELAYUS(10);
+    }
+    
+    /* Check for no comms */
+    if (logic_is_no_comms_unavailable() == FALSE)
+    {
+        while(platform_io_is_no_comms_asserted() == RETURN_OK);
+    }
+    else
+    {
+        /* No access to no comms signal, add non negotiable delay */
+        DELAYMS(1);
+    }
+    #else
+    (void)went_through_loop_below;
+    #endif
     
     /* Disable IRQs */
     __disable_irq();

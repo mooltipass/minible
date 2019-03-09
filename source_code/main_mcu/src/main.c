@@ -260,7 +260,6 @@ void main_platform_init(void)
 void main_standby_sleep(void)
 {    
     /* Send a go to sleep message to aux MCU */
-    platform_io_set_no_comms();
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_SLEEP);
     dma_wait_for_aux_mcu_packet_sent();
     

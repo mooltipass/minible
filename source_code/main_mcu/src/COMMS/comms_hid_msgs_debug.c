@@ -208,7 +208,7 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
         {            
             /* Wait for current packet reception and arm reception */
             dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
-            comms_aux_arm_rx_and_set_no_comms();            
+            comms_aux_arm_rx_and_clear_no_comms();            
             logic_aux_mcu_flash_firmware_update();            
             return -1;
         }
@@ -222,7 +222,7 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             
             /* Wait for current packet reception and arm reception */
             dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
-            comms_aux_arm_rx_and_set_no_comms();
+            comms_aux_arm_rx_and_clear_no_comms();
             
             /* Send message */
             comms_aux_mcu_send_message(TRUE);

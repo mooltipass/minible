@@ -33,6 +33,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define MAIN_MCU_COMMAND_PING           0x0003
 #define MAIN_MCU_COMMAND_ENABLE_BLE     0x0004
 #define MAIN_MCU_COMMAND_NIMH_CHARGE    0x0005
+#define MAIN_MCU_COMMAND_NO_COMMS_UNAV  0x0006
 
 // Aux MCU events
 #define AUX_MCU_EVENT_BLE_ENABLED       0x0001

@@ -279,6 +279,22 @@ void platform_io_enable_eic(void)
     NVIC_EnableIRQ(EIC_IRQn);
 }
 
+/*! \fn     platform_io_is_no_comms_asserted(void)
+*   \brief  check if main MCU asserted no comms
+*   \return Assertion status
+*/
+RET_TYPE platform_io_is_no_comms_asserted(void)
+{    
+    if ((PORT->Group[AUX_MCU_NOCOMMS_GROUP].IN.reg & AUX_MCU_NOCOMMS_MASK) == 0)
+    {
+        return RETURN_NOK;
+    }
+    else
+    {
+        return RETURN_OK;
+    }
+}
+
 /*! \fn     platform_io_init_no_comms_input(void)
 *   \brief  Initialize no comms input port
 */

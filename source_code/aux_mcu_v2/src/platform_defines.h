@@ -13,12 +13,13 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    4
+#define FW_MINOR    5
 
 /* Changelog:
 v0.2: added padding to USB comms 64B packet
 v0.3: sleep problems solved
 v0.4: discarding USB messages having the incorrect flip bit
+v0.5: no comms signal handling
 
 */
 

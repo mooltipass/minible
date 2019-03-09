@@ -52,10 +52,8 @@ aux_mcu_message_t* comms_main_mcu_get_temp_tx_message_object_pt(void)
 *   \note   Transfer is done through DMA so data will be accessed after this function returns
 */
 void comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length)
-{
-    /* To implement here in the future: no comms check */
-    
-    /* The function below does wait for a previous transfer to finish */
+{    
+    /* The function below does wait for a previous transfer to finish and does check for no comms */
     dma_main_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)message, sizeof(aux_mcu_message_t));    
 }
 
@@ -181,6 +179,12 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             {
                 /* Charge NiMH battery */
                 logic_battery_start_charging(NIMH_12C_CHARGING);
+                break;
+            }
+            case MAIN_MCU_COMMAND_NO_COMMS_UNAV:
+            {
+                /* No comms signal unavailable */
+                logic_set_nocomms_unavailable();
                 break;
             }
         }

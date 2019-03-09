@@ -13,6 +13,8 @@
 #include "logic.h"
 
 /* Prototypes */
+void logic_set_nocomms_unavailable(void);
+BOOL logic_is_no_comms_unavailable(void);
 void logic_set_ble_disabled(void);
 void logic_set_ble_enabled(void);
 BOOL logic_is_ble_enabled(void);

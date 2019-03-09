@@ -30,15 +30,6 @@ void comms_aux_arm_rx_and_clear_no_comms(void)
     platform_io_clear_no_comms();
 }
 
-/*! \fn     comms_aux_arm_rx_and_set_no_comms(void)
-*   \brief  Init RX communications with aux MCU
-*/
-void comms_aux_arm_rx_and_set_no_comms(void)
-{
-    dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
-    platform_io_set_no_comms();
-}
-
 /*! \fn     comms_aux_mcu_get_temp_tx_message_object_pt(void)
 *   \brief  Get a pointer to our temporary tx message object
 */
@@ -120,9 +111,6 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
     aux_mcu_message_t* temp_rx_message_pt;
     aux_mcu_message_t* temp_tx_message_pt;
     RET_TYPE return_val = RETURN_OK;
-
-    /* Tell the aux MCU to not send us messages */
-    platform_io_set_no_comms();    
     
     /* Get an empty packet ready to be sent */
     comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD, TX_REPLY_REQUEST_FLAG);
