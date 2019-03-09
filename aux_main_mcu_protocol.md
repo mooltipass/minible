@@ -15,7 +15,7 @@ from main MCU:
     
 | byte 0 - 1   | byte 2 - 3        | byte 4 - 539  | byte 540 - 541     | byte 542 - 543      |
 |:-------------|:------------------|:--------------|:-------------------|---------------------|
-| Message Type | Payload Length    | Payload       | Not used           | Reply request flag  |
+| Message Type | Payload Length    | Payload       | Not used           | Not used            |
   
 **Message Type:**  
 - 0x0000: [Message to/from USB](protocol)  
@@ -39,10 +39,7 @@ The message payload, which may contain up to 536 bytes. This maximum size was de
   
 **From Aux MCU: Payload Valid Flag**  
 This field should only be taken into account if **payload length #1 is 0**.  
-If different than 0, this byte lets the message recipient know that the message is valid. As a given Mooltipass message sent through USB can be split over multiple 64 bytes packets, this byte allows the aux MCU to signal that this message is invalid if for some reason or another the sequence of 64bytes long HID packets sending is interrupted.
-
-**From Main MCU: Reply Request Flag**  
-Request the aux MCU to reply to this message regardless of the "not send" input state (see below).   
+If different than 0, this byte lets the message recipient know that the message is valid. As a given Mooltipass message sent through USB can be split over multiple 64 bytes packets, this byte allows the aux MCU to signal that this message is invalid if for some reason or another the sequence of 64 bytes long HID packets sending is interrupted. 
   
 **Serial Link Specs**  
 The current USART baud rate clock is set to **6MHz**.  
@@ -64,11 +61,4 @@ As a consequence, from the "proto v2" boards, a dedicated main MCU output pin ex
 - the status messages are generated on the fly by the aux MCU  
 - any Mooltipass command requires an answer (no risk to overwrite aux MCU buffers)  
 
-The other communication direction (main MCU to aux MCU) isn't a problem either, as the aux MCU also needs to keep buffers to do packet serialisation. Every time the aux MCU receives a packet received interrupt (from the DMA controller), it therefore should copy the received packet into the appropriate communicaiton buffer.  
-**However** there are a few cases of main MCU-initiated communications (manual password typing, going to bootloader command). In these scenarios:  
-- the main MCU will keep the "not send" line high to prevent standard communications  
-- the main MCU will send packets to the aux MCU with the reply flag set  
-- the aux MCU will answer these packets regardless of the "not send" line state  
-- the main MCU will release the "not send" line state  
-
-This will therefore effectively "pause" all standard communications while the main MCU takes the role of communication master.
+The other communication direction (main MCU to aux MCU) isn't a problem either, as the aux MCU also needs to keep buffers to do packet serialisation. Every time the aux MCU receives a packet received interrupt (from the DMA controller), it therefore should copy the received packet into the appropriate communication buffer.  
