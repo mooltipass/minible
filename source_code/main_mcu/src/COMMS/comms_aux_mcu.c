@@ -108,14 +108,22 @@ void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message
 */
 RET_TYPE comms_aux_mcu_send_receive_ping(void)
 {
+    /* Do not use the comms_aux_mcu_get_empty_packet_ready_to_be_sent method as we use 0xAA padding in case we want to reset the comms link later on */    
     aux_mcu_message_t* temp_rx_message_pt;
     aux_mcu_message_t* temp_tx_message_pt;
-    RET_TYPE return_val = RETURN_OK;
+    RET_TYPE return_val = RETURN_OK;    
     
-    /* Get an empty packet ready to be sent */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD, TX_REPLY_REQUEST_FLAG);
+    /* Wait for possible ongoing message to be sent */
+    comms_aux_mcu_wait_for_message_sent();
     
-    /* Fill missing fields */
+    /* Get pointer to our message to be sent buffer */
+    temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
+    
+    /* Fill message with magic 0xAA */
+    memset((void*)temp_tx_message_pt, 0xAA, sizeof(*temp_tx_message_pt));
+    
+    /* Populate the fields */
+    temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->main_mcu_command_message.command);
     temp_tx_message_pt->main_mcu_command_message.command = MAIN_MCU_COMMAND_PING;
     comms_aux_mcu_send_message(TRUE);

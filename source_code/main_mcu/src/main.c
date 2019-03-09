@@ -199,8 +199,16 @@ void main_platform_init(void)
     /* Is Aux MCU present? */
     if (comms_aux_mcu_send_receive_ping() == RETURN_NOK)
     {
-        sh1122_put_error_string(&plat_oled_descriptor, u"No Aux MCU");
-        while(1);
+        /* Try to reset our comms link */
+        dma_aux_mcu_disable_transfer();
+        comms_aux_arm_rx_and_clear_no_comms();
+        
+        /* Try again */
+        if (comms_aux_mcu_send_receive_ping() == RETURN_NOK)
+        {
+            sh1122_put_error_string(&plat_oled_descriptor, u"No Aux MCU");
+            while(1);
+        }
     }
     
     /* Is battery present? */
