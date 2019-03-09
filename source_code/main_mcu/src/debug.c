@@ -601,6 +601,11 @@ void debug_debug_screen(void)
         /* Line 4: battery */
         sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, TRUE, "BAT: ADC %u, %u mV", bat_adc_result, bat_adc_result*110/273);
         
+        /* Line 5: MCU system timer */
+        uint32_t systick_val;
+        timer_get_mcu_systick(&systick_val);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, TRUE, "MCU systick: %u", systick_val);
+        
         /* Display stats */
         stat_times[5] = timer_get_systick();
         

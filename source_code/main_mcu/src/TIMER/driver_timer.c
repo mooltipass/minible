@@ -45,7 +45,11 @@ void TCC0_Handler(void)
 *   \note   Will use GCLK3 for a 1.024KHz and uses the RTC module in calendar mode
 */
 void timer_initialize_timebase(void)
-{        
+{
+    /* Enable MCU systick with max value period */
+    SysTick->LOAD = 0x00FFFFFF;
+    SysTick->CTRL = 1;
+            
     /* Assign internal 32kHz to GCLK3, divide it by 32 */
     GCLK_GENDIV_Type gendiv_reg;                                        // Gendiv struct
     gendiv_reg.bit.ID = GCLK_CLKCTRL_GEN_GCLK3_Val;                     // Select gclk3
@@ -140,6 +144,25 @@ void timer_ms_tick(void)
                 context_timers[i].flag = TIMER_EXPIRED;
             }
         }
+    }
+}
+
+/*!	\fn		timer_get_mcu_systick(uint32_t* value)
+*	\brief	Get MCU systick
+*   \param  value   Pointer to where to store the value
+*   \return Bool indicating if the counter has overflowed
+*/
+BOOL timer_get_mcu_systick(uint32_t* value)
+{
+    *value = SysTick->VAL & 0x00FFFFFF;
+    
+    if ((SysTick->CTRL & 0x10000) != 0)
+    {
+        return TRUE;
+    } 
+    else
+    {
+        return FALSE;
     }
 }
 

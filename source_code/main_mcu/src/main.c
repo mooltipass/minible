@@ -92,6 +92,7 @@ void main_platform_init(void)
     RET_TYPE custom_fs_init_return = RETURN_NOK;
     RET_TYPE dataflash_init_return = RETURN_NOK;
     RET_TYPE fuses_ok = RETURN_NOK;
+    BOOL debugger_present = FALSE;
     
     /* Measure 1Vx, boot aux MCU, check if USB powered */
     platform_io_enable_switch();                                            // Enable switch and 3v3 stepup
@@ -113,6 +114,17 @@ void main_platform_init(void)
     /* Check fuses, program them if incorrectly set */
     fuses_ok = fuses_check_program(TRUE);
     while(fuses_ok == RETURN_NOK);
+    
+    /* Check if debugger present */
+    if (DSU->STATUSB.bit.DBGPRES != 0)
+    {
+        debugger_present = TRUE;
+        
+        /* Debugger connected but we are not on a dev platform? */
+        #ifndef NO_SECURITY_BIT_CHECK
+        while(1);
+        #endif
+    }
     
     /* Switch to 48MHz */
     clocks_start_48MDFLL();
@@ -198,6 +210,12 @@ void main_platform_init(void)
         sh1122_put_error_string(&plat_oled_descriptor, u"No battery");
         while(1);
     }
+    
+    /* If debugger attached, let the aux mcu know it shouldn't use the no comms signal */
+    if (debugger_present != FALSE)
+    {
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NO_COMMS_UNAV);
+    }    
     
     /* If USB present, send USB attach message */
     if (platform_io_is_usb_3v3_present() != FALSE)
