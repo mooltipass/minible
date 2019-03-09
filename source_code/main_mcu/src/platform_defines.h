@@ -777,7 +777,4 @@ typedef struct
     #define AUX_MCU_NOCOMMS_MASK    (1UL << AUX_MCU_NOCOMMS_PINID)
 #endif
 
-/* Display defines */
-#define DEFAULT_FONT_ID         0
-
 #endif /* PLATFORM_DEFINES_H_ */

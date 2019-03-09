@@ -184,7 +184,6 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
         {
             /* Refresh file system and font */
             custom_fs_init();
-            sh1122_refresh_used_font(&plat_oled_descriptor, DEFAULT_FONT_ID);
             
             /* Set ack, leave same command id */
             send_msg->payload[0] = HID_1BYTE_ACK;
