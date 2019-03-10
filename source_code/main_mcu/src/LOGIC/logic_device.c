@@ -48,6 +48,8 @@ void logic_device_activity_detected(void)
 */
 void logic_device_bundle_update_start(BOOL from_debug_messages)
 {
+    logic_device_activity_detected();
+    
     if (from_debug_messages != FALSE)
     {
         /* Go to dedicated screen */

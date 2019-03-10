@@ -138,16 +138,12 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
             // TODO
             break;
         }
-        case BATTERY_ERROR:
-        {
-            /* Do not display anything */
-            break;
-        }
         case BATTERY_0PCT:
         case BATTERY_25PCT:
         case BATTERY_50PCT:
         case BATTERY_75PCT:
         case BATTERY_100PCT:
+        case BATTERY_ERROR:
         {
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+battery_state, TRUE);
             break;            
