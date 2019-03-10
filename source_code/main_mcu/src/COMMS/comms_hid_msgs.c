@@ -76,6 +76,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             
             /* Wait for current packet reception and arm reception */
             dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
+            comms_aux_arm_rx_and_clear_no_comms();
             
             /* Send message */
             comms_aux_mcu_send_message(TRUE);

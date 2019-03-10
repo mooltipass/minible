@@ -255,7 +255,7 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
     /* Maths: 6Mbit/s baud rate -> 3.3us for 20 bits + added interrupt latency */
     if (went_through_loop_below != FALSE)
     {
-        DELAYUS(10);
+        DELAYUS(15);
     }
     else
     {
@@ -269,20 +269,20 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
             {
                 /* This is a real wrapover as main MCU wrapover is ~300ms */
                 uint32_t t_delay = MCU_SYSTICK_MAX_PERIOD - mcu_systick + dma_main_mcu_message_sent_mcu_systick_val;
-                if (t_delay < 480)
+                if (t_delay < 720)
                 {
-                    /* Less than 10us since message sent interrupt and now */
-                    DELAYUS(10);
+                    /* Less than 15us since message sent interrupt and now */
+                    DELAYUS(15);
                 }
             }
         }
         else
         {
             uint32_t t_delay = dma_main_mcu_message_sent_mcu_systick_val - mcu_systick;
-            if ((t_delay < 480) && ((timer_get_systick() - dma_main_mcu_message_sent_systick_val) < 20))
+            if ((t_delay < 720) && ((timer_get_systick() - dma_main_mcu_message_sent_systick_val) < 20))
             {
-                /* Less than 10us since message sent interrupt and now */
-                DELAYUS(10);
+                /* Less than 15us since message sent interrupt and now */
+                DELAYUS(15);
             }
         }        
     }
