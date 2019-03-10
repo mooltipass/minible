@@ -81,7 +81,7 @@ uint32_t logic_aux_mcu_get_ble_chip_id(void)
         uint32_t return_val;
         
         /* Get an empty packet ready to be sent */
-        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message, AUX_MCU_MSG_TYPE_PLAT_DETAILS, TX_REPLY_REQUEST_FLAG);
+        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message, AUX_MCU_MSG_TYPE_PLAT_DETAILS);
         
         /* Send message */
         comms_aux_mcu_send_message(TRUE);
@@ -122,7 +122,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
     fw_file_address += sizeof(fw_file_size);
     
     /* Prepare programming command */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BOOTLOADER, TX_REPLY_REQUEST_FLAG);
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BOOTLOADER);
     temp_tx_message_pt->bootloader_message.command = BOOTLOADER_START_PROGRAMMING_COMMAND;
     temp_tx_message_pt->bootloader_message.programming_command.image_length = fw_file_size;
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->bootloader_message.command) + sizeof(temp_tx_message_pt->bootloader_message.programming_command);
@@ -149,7 +149,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
         }
         
         /* Prepare write command */
-        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BOOTLOADER, TX_REPLY_REQUEST_FLAG);
+        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BOOTLOADER);
         temp_tx_message_pt->bootloader_message.command = BOOTLOADER_WRITE_COMMAND;
         temp_tx_message_pt->bootloader_message.write_command.size = 512;
         temp_tx_message_pt->bootloader_message.write_command.address = nb_bytes_sent;
@@ -180,7 +180,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
     }      
         
     /* Prepare start application command, no answers */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BOOTLOADER, TX_REPLY_REQUEST_FLAG);
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BOOTLOADER);
     temp_tx_message_pt->bootloader_message.command = BOOTLOADER_START_APP_COMMAND;
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->bootloader_message.command);
     comms_aux_mcu_send_message(TRUE);

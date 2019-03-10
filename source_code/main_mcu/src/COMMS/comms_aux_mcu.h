@@ -34,10 +34,6 @@
 // Aux MCU events
 #define AUX_MCU_EVENT_BLE_ENABLED       0x0001
 
-// Flags
-#define TX_NO_REPLY_REQUEST_FLAG        0x0000
-#define TX_REPLY_REQUEST_FLAG           0x0001
-
 /* Typedefs */
 typedef struct
 {
@@ -93,14 +89,14 @@ typedef struct
     union
     {
         uint16_t rx_payload_valid_flag;
-        uint16_t tx_reply_request_flag;        
+        uint16_t tx_not_used;        
     };
 } aux_mcu_message_t;
 
 
 /* Prototypes */
-void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type, uint16_t tx_reply_request_flag);
 RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet);
+void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type);
 void comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type);
 aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void);
 void comms_aux_mcu_send_simple_command_message(uint16_t command);

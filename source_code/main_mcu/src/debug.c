@@ -649,7 +649,7 @@ void debug_mcu_and_aux_info(void)
     sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", *(uint32_t*)0x0080A00C, *(uint32_t*)0x0080A040, *(uint32_t*)0x0080A044, *(uint32_t*)0x0080A048);
     
     /* Prepare status message request */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PLAT_DETAILS, TX_REPLY_REQUEST_FLAG);
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PLAT_DETAILS);
     
     /* Send message */
     comms_aux_mcu_send_message(TRUE);
@@ -705,7 +705,7 @@ void debug_atbtlc_info(void)
     logic_aux_mcu_enable_ble(TRUE);
     
     /* Generate our packet */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PLAT_DETAILS, TX_REPLY_REQUEST_FLAG);
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PLAT_DETAILS);
     
     /* Send message */
     comms_aux_mcu_send_message(TRUE);
@@ -895,7 +895,7 @@ void debug_nimh_charging(void)
         if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_EXPIRED)
         {            
             /* Generate our packet */
-            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE, TX_REPLY_REQUEST_FLAG);
+            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE);
             
             /* Send message */
             comms_aux_mcu_send_message(TRUE);
