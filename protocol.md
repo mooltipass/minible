@@ -82,14 +82,28 @@ Device Answer:
 Tested status: NOT tested
 
 
-0x0005: Store Credential
+0x0005: Cancel Request
+------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0005   |        N/A   |
+
+No device answer.
+
+Tested status: NOT tested
+
+
+0x0006: Store Credential
 ------------------------
 
 From the PC: 
 
 | bytes  | value  |
 |:-------|:-------|
-| 0->1   | 0x0005 |
+| 0->1   | 0x0006 |
 | 2->3   | depends on message contents |
 | 4->5   | index to the service name (0) |
 | 6->7   | index to the login name or 0xFFFF |
@@ -107,14 +121,14 @@ Device Answer:
 Tested status: NOT tested
 
 
-0x0006: Get Credential
+0x0007: Get Credential
 ----------------------
 
 From the PC: 
 
 | bytes  | value  |
 |:-------|:-------|
-| 0->1   | 0x0006 |
+| 0->1   | 0x0007 |
 | 2->3   | depends on message contents |
 | 4->5   | index to the service (0) |
 | 6->7   | index to the login or 0xFFFF |
