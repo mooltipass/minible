@@ -10,6 +10,7 @@
 #include "nodemgmt.h"
 #include "defines.h"
 #include "dbflash.h"
+#include "utils.h"
 #include "dma.h"
 
 
@@ -104,6 +105,82 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             /* Set ack, leave same command id */
             send_msg->payload[0] = HID_1BYTE_ACK;
             send_msg->payload_length = 1;
+            return 1;
+        }
+        
+        case HID_CMD_ID_STORE_CRED:
+        {   
+            /* Default answer: Nope! */
+            send_msg->payload[0] = HID_1BYTE_NACK;
+            send_msg->payload_length = 1;
+            
+            /********************************/
+            /* Here comes the sanity checks */
+            /********************************/
+            
+            /* Incorrect service name index */
+            if (rcv_msg->store_credential.service_name_index != 0)
+            {
+                return 1;
+            }
+            
+            /* Empty service name */
+            if (rcv_msg->store_credential.concatenated_strings[0] == 0)
+            {
+                return 1;
+            }
+            
+            /* Sequential order check */
+            uint16_t temp_length = 0;
+            uint16_t prev_length = 0;
+            uint16_t prev_check_index = 0;
+            uint16_t current_check_index = 0;
+            uint16_t check_indexes[5] = {   rcv_msg->store_credential.service_name_index, \
+                                            rcv_msg->store_credential.login_name_index, \
+                                            rcv_msg->store_credential.description_index, \
+                                            rcv_msg->store_credential.third_field_index, \
+                                            rcv_msg->store_credential.password_index};
+            uint16_t max_cust_char_length = (sizeof(rcv_msg->payload_as_cust_char_t) \
+                                            - sizeof(rcv_msg->store_credential.service_name_index) \
+                                            - sizeof(rcv_msg->store_credential.login_name_index) \
+                                            - sizeof(rcv_msg->store_credential.description_index) \
+                                            - sizeof(rcv_msg->store_credential.third_field_index) \
+                                            - sizeof(rcv_msg->store_credential.password_index))/sizeof(cust_char_t);
+            
+            /* Check all fields */                              
+            for (uint16_t i = 0; i < ARRAY_SIZE(check_indexes); i++)
+            {
+                current_check_index = check_indexes[i];
+                
+                /* If index indicates present field */
+                if (current_check_index != UINT16_MAX)
+                {
+                    /* If index is correct */
+                    if (current_check_index != prev_check_index + prev_length)
+                    {
+                        return 1;
+                    }
+                    
+                    /* Get string length */
+                    temp_length = utils_strnlen(&(rcv_msg->store_credential.concatenated_strings[current_check_index]), max_cust_char_length);
+                    
+                    /* Too long length */
+                    if (temp_length == max_cust_char_length)
+                    {
+                        return 1;
+                    }
+                    
+                    /* Store previous index & length */
+                    prev_length = temp_length + 1;
+                    prev_check_index = current_check_index;
+                    
+                    /* Reduce max length */
+                    max_cust_char_length -= (temp_length + 1);
+                }              
+            }    
+            
+            /* If we're here, everything is ok */        
+            
             return 1;
         }
         
