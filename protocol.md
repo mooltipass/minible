@@ -91,12 +91,12 @@ From the PC:
 |:-------|:-------|
 | 0->1   | 0x0005 |
 | 2->3   | depends on message contents |
-| 4->5   | index to the service name (14-4=10) |
-| 6->7   | index to the login name or 0 |
-| 8->9   | index to the description or 0 |
-| 10->11 | index to the third field or 0 |
-| 12->13 | index to the password or 0 |
-| 14->xxx | all above 0x0000 terminated fields concatenated |
+| 4->5   | index to the service name (0) |
+| 6->7   | index to the login name or 0xFFFF |
+| 8->9   | index to the description or 0xFFFF |
+| 10->11 | index to the third field or 0xFFFF |
+| 12->13 | index to the password or 0xFFFF |
+| 14->xxx | all above no 0xFFFF terminated fields concatenated |
 
 Device Answer:
 
@@ -116,9 +116,9 @@ From the PC:
 |:-------|:-------|
 | 0->1   | 0x0006 |
 | 2->3   | depends on message contents |
-| 4->5   | index to the service (8) |
-| 6->7   | index to the login or 0 |
-| 8->xxx | all above 0x0000 terminated fields concatenated |
+| 4->5   | index to the service (0) |
+| 6->7   | index to the login or 0xFFFF |
+| 8->xxx | all above no 0xFFFF terminated fields concatenated |
 
 Device Answer:
 
@@ -126,11 +126,11 @@ Device Answer:
 |:-------|:-------|
 | 0->1   | 0x0006 |
 | 2->3   | 0 for fail, otherwise depends on message contents |
-| 4->5   | index to the login name or 0 |
-| 6->7   | index to the description or 0 |
-| 8->9   | index to the third field or 0 |
-| 10->11 | index to the password or 0 |
-| 12->xxx | all above 0x0000 terminated fields concatenated |
+| 4->5   | index to the login name or 0xFFFF |
+| 6->7   | index to the description or 0xFFFF |
+| 8->9   | index to the third field or 0xFFFF |
+| 10->11 | index to the password or 0xFFFF |
+| 12->xxx | all above no 0xFFFF terminated fields concatenated |
 
 Tested status: NOT tested
   
