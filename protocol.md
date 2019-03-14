@@ -91,7 +91,7 @@ From the PC:
 |:-------|:-------|
 | 0->1   | 0x0005 |
 | 2->3   | depends on message contents |
-| 4->5   | index to the service name (14) |
+| 4->5   | index to the service name (14-4=10) |
 | 6->7   | index to the login name or 0 |
 | 8->9   | index to the description or 0 |
 | 10->11 | index to the third field or 0 |
