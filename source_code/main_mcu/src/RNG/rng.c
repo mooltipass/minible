@@ -20,7 +20,26 @@ void rng_fill_array(uint8_t* array, uint16_t nb_bytes)
 {
     for (uint16_t i = 0; i < nb_bytes; i++)
     {
-        array[i] = 4; // Chosen by fair dice roll. Guaranteed to be random.
+        /* Enough bytes available? */
+        while(rng_acc_feed_available_bytes_in_pool == 0)
+        {
+            if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor) != FALSE)
+            {
+                rng_feed_from_acc_read();
+            }            
+        }
+        
+        /* Fill byte */
+        array[i] = rng_acc_feed_available_pool[rng_acc_feed_available_byte_index++];
+        
+        /* Buffer wrapover? */
+        if (rng_acc_feed_available_byte_index >= sizeof(rng_acc_feed_available_pool))
+        {
+            rng_acc_feed_available_byte_index -= sizeof(rng_acc_feed_available_pool);
+        }
+        
+        /* Decrement number of bytes available */
+        rng_acc_feed_available_bytes_in_pool--;
     }
 }
 
@@ -63,6 +82,12 @@ void rng_feed_from_acc_read(void)
             {
                 /* Simply increment storage index */
                 rng_acc_feed_available_byte_index++;
+                
+                /* Check for wrapover */
+                if (rng_acc_feed_available_byte_index >= sizeof(rng_acc_feed_available_pool))
+                {
+                    rng_acc_feed_available_byte_index -= sizeof(rng_acc_feed_available_pool);
+                }
             }
             else
             {

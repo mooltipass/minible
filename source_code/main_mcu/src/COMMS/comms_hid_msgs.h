@@ -23,6 +23,7 @@
 #define HID_CMD_ID_CANCEL_REQ   0x0005
 #define HID_CMD_ID_STORE_CRED   0x0006
 #define HID_CMD_ID_GET_CRED     0x0007
+#define HID_CMD_ID_GET_32B_RNG  0x0008
 
 /* Typedefs */
 typedef struct

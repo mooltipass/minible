@@ -15,6 +15,7 @@
 #include "dbflash.h"
 #include "utils.h"
 #include "dma.h"
+#include "rng.h"
 
 
 /*! \fn     comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type)
@@ -109,6 +110,13 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             send_msg->payload[0] = HID_1BYTE_ACK;
             send_msg->payload_length = 1;
             return 1;
+        }
+        
+        case HID_CMD_ID_GET_32B_RNG:
+        {            
+            rng_fill_array(send_msg->payload, 32);
+            send_msg->payload_length = 32;
+            return 32;
         }
         
         case HID_CMD_ID_STORE_CRED:
