@@ -8,7 +8,10 @@
 #ifndef LOGIC_SECURITY_H_
 #define LOGIC_SECURITY_H_
 
+#include "defines.h"
+
 /* Prototypes */
+RET_TYPE logic_security_is_smc_inserted_unlocked(void);
 void logic_security_smartcard_unlocked_actions(void);
 void logic_security_clear_security_bools(void);
 

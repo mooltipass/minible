@@ -7,6 +7,9 @@
 #include <string.h>
 #include "comms_hid_msgs.h" 
 #include "comms_aux_mcu.h"
+#include "gui_prompts.h"
+#include "logic_user.h"
+#include "custom_fs.h"
 #include "nodemgmt.h"
 #include "defines.h"
 #include "dbflash.h"
@@ -179,7 +182,34 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 }              
             }    
             
-            /* If we're here, everything is ok */        
+            /* Dirty hack for fields not set */
+            uint16_t empty_string_index = utils_strlen(rcv_msg->store_credential.concatenated_strings);
+            if (rcv_msg->store_credential.login_name_index == UINT16_MAX)
+            {
+                rcv_msg->store_credential.login_name_index = empty_string_index;
+            }
+            if (rcv_msg->store_credential.description_index == UINT16_MAX)
+            {
+                rcv_msg->store_credential.description_index = empty_string_index;
+            }
+            if (rcv_msg->store_credential.third_field_index == UINT16_MAX)
+            {
+                rcv_msg->store_credential.third_field_index = empty_string_index;
+            }
+            if (rcv_msg->store_credential.password_index == UINT16_MAX)
+            {
+                rcv_msg->store_credential.password_index = empty_string_index;
+            }
+            
+            /* Proceed to other logic */
+            if (logic_user_store_credential(    &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.service_name_index]),\
+                                                &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.login_name_index]),\
+                                                &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.description_index]),\
+                                                &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.third_field_index]),\
+                                                &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.password_index])) == RETURN_OK)
+            {
+                send_msg->payload[0] = HID_1BYTE_ACK;                
+            }
             
             return 1;
         }

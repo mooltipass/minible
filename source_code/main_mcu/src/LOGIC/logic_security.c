@@ -3,8 +3,11 @@
 *    Created:  16/02/2019
 *    Author:   Mathieu Stephan
 */
+#include <asf.h>
 #include "logic_security.h"
 #include "defines.h"
+/* Inserted card unlocked */
+BOOL logic_security_smartcard_inserted_unlocked = FALSE;
 
 
 /*! \fn     logic_security_clear_security_bools(void)
@@ -30,12 +33,24 @@ void logic_security_clear_security_bools(void)
 *   \brief  Actions when smartcard is unlocked
 */
 void logic_security_smartcard_unlocked_actions(void)
+{    
+    cpu_irq_enter_critical();
+    logic_security_smartcard_inserted_unlocked = TRUE;
+    cpu_irq_leave_critical();
+}
+
+/*! \fn     logic_security_is_smc_inserted_unlocked(void)
+*   \brief  Know if inserted smartcard is unlocked
+*   \return (N)OK
+*/
+RET_TYPE logic_security_is_smc_inserted_unlocked(void)
 {
-    // TODO        
-    /*
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+    if (logic_security_smartcard_inserted_unlocked != FALSE)
     {
-    smartcard_inserted_unlocked = TRUE;
+        return RETURN_OK;
+    } 
+    else
+    {
+        return RETURN_NOK;
     }
-    */
 }

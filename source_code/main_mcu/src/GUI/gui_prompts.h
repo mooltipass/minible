@@ -12,6 +12,9 @@
 
 /* Defines */
 
+// Text defines
+#define ADD_CRED_TEXT_ID        39
+
 // Bitmap ID defines
 #define BITMAP_POPUP_3LINES_ID  309
 #define BITMAP_YES_PRESS_ID     338
