@@ -203,10 +203,10 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
         }
         case HID_CMD_ID_GET_ACC_32_SAMPLES:
         {
-            while (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) == FALSE);
-            memcpy((void*)send_msg->payload, (void*)acc_descriptor.fifo_read.acc_data_array, sizeof(acc_descriptor.fifo_read.acc_data_array));            
-            send_msg->payload_length = sizeof(acc_descriptor.fifo_read.acc_data_array);
-            return sizeof(acc_descriptor.fifo_read.acc_data_array);
+            while (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor) == FALSE);
+            memcpy((void*)send_msg->payload, (void*)plat_acc_descriptor.fifo_read.acc_data_array, sizeof(plat_acc_descriptor.fifo_read.acc_data_array));            
+            send_msg->payload_length = sizeof(plat_acc_descriptor.fifo_read.acc_data_array);
+            return sizeof(plat_acc_descriptor.fifo_read.acc_data_array);
         }
         case HID_CMD_ID_FLASH_AUX_MCU:
         {            

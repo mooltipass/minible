@@ -25,10 +25,11 @@
 #include "fuses.h"
 #include "debug.h"
 #include "main.h"
+#include "rng.h"
 #include "dma.h"
 
 /* Our oled & dataflash & dbflash descriptors */
-accelerometer_descriptor_t acc_descriptor = {.sercom_pt = ACC_SERCOM, .cs_pin_group = ACC_nCS_GROUP, .cs_pin_mask = ACC_nCS_MASK, .int_pin_group = ACC_INT_GROUP, .int_pin_mask = ACC_INT_MASK, .evgen_sel = ACC_EV_GEN_SEL, .evgen_channel = ACC_EV_GEN_CHANNEL, .dma_channel = 3};
+accelerometer_descriptor_t plat_acc_descriptor = {.sercom_pt = ACC_SERCOM, .cs_pin_group = ACC_nCS_GROUP, .cs_pin_mask = ACC_nCS_MASK, .int_pin_group = ACC_INT_GROUP, .int_pin_mask = ACC_INT_MASK, .evgen_sel = ACC_EV_GEN_SEL, .evgen_channel = ACC_EV_GEN_CHANNEL, .dma_channel = 3};
 sh1122_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigger_id = OLED_DMA_SERCOM_TX_TRIG, .sh1122_cs_pin_group = OLED_nCS_GROUP, .sh1122_cs_pin_mask = OLED_nCS_MASK, .sh1122_cd_pin_group = OLED_CD_GROUP, .sh1122_cd_pin_mask = OLED_CD_MASK};
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
@@ -190,7 +191,7 @@ void main_platform_init(void)
     }
     
     /* Check for accelerometer presence */
-    if (lis2hh12_check_presence_and_configure(&acc_descriptor) == RETURN_NOK)
+    if (lis2hh12_check_presence_and_configure(&plat_acc_descriptor) == RETURN_NOK)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Accelerometer");
         while(1);
@@ -275,9 +276,9 @@ void main_standby_sleep(void)
     dma_aux_mcu_disable_transfer();
     
     /* Wait for accelerometer DMA transfer end and put it to sleep */
-    lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor);
+    lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor);
     while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
-    lis2hh12_deassert_ncs_and_go_to_sleep(&acc_descriptor);
+    lis2hh12_deassert_ncs_and_go_to_sleep(&plat_acc_descriptor);
     
     /* DB & Dataflash power down */
     dbflash_enter_ultra_deep_power_down(&dbflash_descriptor);
@@ -315,7 +316,7 @@ void main_standby_sleep(void)
     comms_aux_arm_rx_and_clear_no_comms();
     
     /* Resume accelerometer processing */
-    lis2hh12_sleep_exit_and_dma_arm(&acc_descriptor);
+    lis2hh12_sleep_exit_and_dma_arm(&plat_acc_descriptor);
     
     /* Clear wheel detection */
     inputs_clear_detections();
@@ -444,8 +445,9 @@ int main(void)
         }
         
         /* Accelerometer interrupt */
-        if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&acc_descriptor) != FALSE)
+        if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor) != FALSE)
         {
+            rng_feed_from_acc_read();
         }
         
         /* Get current smartcard detection result */

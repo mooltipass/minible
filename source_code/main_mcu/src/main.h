@@ -20,7 +20,7 @@ void main_standby_sleep(void);
 
 /* Global vars to access descriptors */
 extern sh1122_descriptor_t plat_oled_descriptor;
-extern accelerometer_descriptor_t acc_descriptor;
+extern accelerometer_descriptor_t plat_acc_descriptor;
 extern spi_flash_descriptor_t dataflash_descriptor;
 extern spi_flash_descriptor_t dbflash_descriptor;
 
