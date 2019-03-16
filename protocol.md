@@ -138,7 +138,7 @@ Device Answer:
 
 | bytes  | value  |
 |:-------|:-------|
-| 0->1   | 0x0006 |
+| 0->1   | 0x0007 |
 | 2->3   | 0 for fail, otherwise depends on message contents |
 | 4->5   | index to the login name or 0xFFFF |
 | 6->7   | index to the description or 0xFFFF |
@@ -147,6 +147,25 @@ Device Answer:
 | 12->xxx | all above no 0xFFFF terminated fields concatenated |
 
 Tested status: NOT tested
+
+
+0x0008: Get 32 Random Bytes
+---------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0008   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3 | byte 4-35 |
+|:---------|:---------|:----------|
+| 0x0008   | 32       | Random bytes |
+
+Tested status: NOT tested
+
   
 ## [](#header-2) Mooltipass Debug and Test Commands
 
