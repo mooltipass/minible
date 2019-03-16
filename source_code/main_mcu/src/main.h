@@ -11,6 +11,7 @@
 
 #include "platform_defines.h"
 #include "lis2hh12.h"
+#include "defines.h"
 #include "sh1122.h"
 
 

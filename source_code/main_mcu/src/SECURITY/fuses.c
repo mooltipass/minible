@@ -5,7 +5,6 @@
 */
 #include <asf.h>
 #include "platform_defines.h"
-#include "defines.h"
 #include "fuses.h"
 
 /* Configuration define */

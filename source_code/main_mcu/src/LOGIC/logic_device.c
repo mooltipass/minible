@@ -9,7 +9,6 @@
 #include "platform_io.h"
 #include "logic_power.h"
 #include "custom_fs.h"
-#include "defines.h"
 #include "sh1122.h"
 #include "utils.h"
 #include "main.h"

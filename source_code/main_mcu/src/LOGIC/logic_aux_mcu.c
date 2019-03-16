@@ -10,7 +10,6 @@
 #include "driver_timer.h"
 #include "platform_io.h"
 #include "custom_fs.h"
-#include "defines.h"
 #include "dma.h"
 /* BLE enabled bool */
 BOOL logic_aux_mcu_ble_enabled = FALSE;

@@ -8,6 +8,8 @@
 #ifndef LOGIC_DEVICE_H_
 #define LOGIC_DEVICE_H_
 
+#include "defines.h"
+
 /* Defines */
 // Min & max timeout value for user interactions
 #define SETTING_MIN_USER_INTERACTION_TIMEOUT    7

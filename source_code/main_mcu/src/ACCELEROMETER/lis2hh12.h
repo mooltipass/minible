@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include "platform_defines.h"
+#include "defines.h"
 
 /* Structs */
 typedef struct

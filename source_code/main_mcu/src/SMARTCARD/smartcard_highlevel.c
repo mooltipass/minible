@@ -7,7 +7,6 @@
 #include "smartcard_lowlevel.h"
 #include "platform_defines.h"
 #include "main.h"
-#include "defines.h"
 #include <string.h>
 
 

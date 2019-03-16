@@ -10,7 +10,6 @@
 #include "driver_sercom.h"
 #include "driver_timer.h"
 #include "platform_io.h"
-#include "defines.h"
 #include "main.h"
 
 /** Current detection state, see enum, released by default */

@@ -11,7 +11,6 @@
 #include "gui_prompts.h"
 #include "platform_io.h"
 #include "logic_user.h"
-#include "defines.h"
 
 
 /*! \fn     logic_smartcard_ask_for_new_pin(uint16_t* new_pin, uint16_t message_id)

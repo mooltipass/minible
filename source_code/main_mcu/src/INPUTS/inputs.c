@@ -6,7 +6,6 @@
 #include <asf.h>
 #include "platform_defines.h"
 #include "logic_device.h"
-#include "defines.h"
 #include "inputs.h"
 
 // Wheel machine states

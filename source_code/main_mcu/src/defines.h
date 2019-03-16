@@ -7,6 +7,7 @@
 #define DEFINES_H_
 
 #include <stdio.h>
+#include "defines.h"
 
 /* Defines */
 #define AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS    500

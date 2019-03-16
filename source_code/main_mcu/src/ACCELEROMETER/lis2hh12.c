@@ -8,7 +8,6 @@
 #include "driver_clocks.h"
 #include "driver_timer.h"
 #include "lis2hh12.h"
-#include "defines.h"
 #include "dma.h"
 #include <string.h>
 

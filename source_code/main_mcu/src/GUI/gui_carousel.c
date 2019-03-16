@@ -8,7 +8,6 @@
 #include "gui_carousel.h"
 #include "driver_timer.h"
 #include "logic_power.h"
-#include "defines.h"
 #include "sh1122.h"
 #include "main.h"
 /* Carousel spacing depending on number of elemnts */

@@ -9,7 +9,6 @@
 #include "platform_defines.h"
 #include "driver_clocks.h"
 #include "driver_timer.h"
-#include "defines.h"
 #include "inputs.h"
 /* Timer array */
 volatile timerEntry_t context_timers[TOTAL_NUMBER_OF_TIMERS];

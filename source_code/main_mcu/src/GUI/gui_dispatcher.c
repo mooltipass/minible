@@ -12,7 +12,6 @@
 #include "logic_power.h"
 #include "platform_io.h"
 #include "gui_menu.h"
-#include "defines.h"
 #include "inputs.h"
 #include "debug.h"
 #include "main.h"

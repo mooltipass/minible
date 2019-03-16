@@ -6,9 +6,9 @@
 #ifndef SMART_CARD_HIGHER_LEVEL_FUNCTIONS_H_
 #define SMART_CARD_HIGHER_LEVEL_FUNCTIONS_H_
 
+#include <stdlib.h>
 #include "smartcard_lowlevel.h"
 #include "defines.h"
-#include <stdlib.h>
 
 #ifdef DEBUG_SMC_DUMP_USB_PRINT
     #define printSmartCardInfo() printSMCDebugInfoToUSB()

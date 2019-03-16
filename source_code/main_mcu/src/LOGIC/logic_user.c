@@ -10,7 +10,6 @@
 #include "logic_user.h"
 #include "custom_fs.h"
 #include "nodemgmt.h"
-#include "defines.h"
 #include "rng.h"
 // Next CTR value for our AES encryption
 uint8_t logic_user_next_ctr_val[MEMBER_SIZE(nodemgmt_profile_main_data_t,current_ctr)];

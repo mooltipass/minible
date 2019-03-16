@@ -6,7 +6,6 @@
 #include "gui_dispatcher.h"
 #include "gui_carousel.h"
 #include "gui_menu.h"
-#include "defines.h"
 
 /* Main Menu */
 const uint16_t simple_menu_pic_ids[] = {GUI_BT_ICON_ID, GUI_FAV_ICON_ID, GUI_LOGIN_ICON_ID, GUI_LOCK_ICON_ID, GUI_OPR_ICON_ID};

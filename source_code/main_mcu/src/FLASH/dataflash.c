@@ -7,7 +7,6 @@
 #include "driver_sercom.h"
 #include "driver_timer.h"
 #include "dataflash.h"
-#include "defines.h"
 
 
 /*! \fn     dataflash_write_array_to_memory(spi_flash_descriptor_t* descriptor_pt, uint32_t address, uint8_t* data, uint32_t length)

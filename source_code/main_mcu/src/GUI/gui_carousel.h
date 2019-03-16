@@ -3,10 +3,11 @@
 *    Created:  17/11/2018
 *    Author:   Mathieu Stephan
 */
-#include <stdio.h>
 
 #ifndef GUI_CAROUSEL_H_
 #define GUI_CAROUSEL_H_
+
+#include "defines.h"
 
 /* Defines */
 

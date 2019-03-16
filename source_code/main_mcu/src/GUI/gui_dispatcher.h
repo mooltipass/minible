@@ -3,12 +3,12 @@
 *    Created:  16/11/2018
 *    Author:   Mathieu Stephan
 */
-#include "defines.h"
-#include "sh1122.h"
-
 
 #ifndef GUI_DISPATCHER_H_
 #define GUI_DISPATCHER_H_
+
+#include "defines.h"
+#include "sh1122.h"
 
 /* Defines */
 // Bitmaps

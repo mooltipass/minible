@@ -5,7 +5,6 @@
 */
 #include <asf.h>
 #include "logic_security.h"
-#include "defines.h"
 /* Inserted card unlocked */
 BOOL logic_security_smartcard_inserted_unlocked = FALSE;
 

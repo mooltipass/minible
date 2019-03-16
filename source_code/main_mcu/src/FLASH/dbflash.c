@@ -6,7 +6,6 @@
 #include "platform_defines.h"
 #include "driver_sercom.h"
 #include "dbflash.h"
-#include "defines.h"
 
 
 /*! \fn     dbflash_memory_boundary_error_callblack(void)

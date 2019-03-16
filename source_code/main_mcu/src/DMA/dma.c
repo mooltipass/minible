@@ -7,7 +7,6 @@
 #include "platform_defines.h"
 #include "comms_aux_mcu.h"
 #include "platform_io.h"
-#include "defines.h"
 #include "dma.h"
 /* DMA Descriptors for our transfers and their DMA priority levels (highest number is higher priority, contrary to what is written in some datasheets) */
 /* Beware of errata 15683 if you do want to implement linked descriptors! */

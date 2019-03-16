@@ -12,7 +12,6 @@
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "platform_io.h"
-#include "defines.h"
 #include "dma.h"
 /* Received and sent MCU messages */
 aux_mcu_message_t aux_mcu_receive_message;
