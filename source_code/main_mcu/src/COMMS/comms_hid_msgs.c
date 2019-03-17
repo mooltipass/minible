@@ -150,7 +150,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                                             rcv_msg->store_credential.description_index, \
                                             rcv_msg->store_credential.third_field_index, \
                                             rcv_msg->store_credential.password_index};
-            uint16_t max_cust_char_length = (sizeof(rcv_msg->payload_as_cust_char_t) \
+            uint16_t max_cust_char_length = (sizeof(rcv_msg->payload) \
                                             - sizeof(rcv_msg->store_credential.service_name_index) \
                                             - sizeof(rcv_msg->store_credential.login_name_index) \
                                             - sizeof(rcv_msg->store_credential.description_index) \

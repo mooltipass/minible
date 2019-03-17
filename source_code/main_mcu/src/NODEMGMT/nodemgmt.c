@@ -246,14 +246,14 @@ void readParentNodeDataBlockFromFlash(uint16_t address, parent_node_t* parent_no
     dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), sizeof(parent_node->node_as_bytes), (void*)parent_node->node_as_bytes);
 }
 
-/*! \fn     readParentNode(uint16_t address, parent_node_t* parent_node, BOOL data_clean)
+/*! \fn     nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean)
 *   \brief  Read a parent node
 *   \param  address     Where to read
 *   \param  parent_node Pointer to the node
 *   \param  data_clean  Clean the strings
 *   \note   what's different from function above: sec checks
 */
-void readParentNode(uint16_t address, parent_node_t* parent_node, BOOL data_clean)
+void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean)
 {
     readParentNodeDataBlockFromFlash(address, parent_node);
     checkUserPermissionFromFlagsAndLock(parent_node->cred_parent.flags);
@@ -380,11 +380,11 @@ uint16_t getFreeChildNodeAddress(void)
     return nodemgmt_current_handle.nextChildFreeNode;
 }
 
-/*! \fn     getStartingParentAddress(void)
+/*! \fn     nodemgmt_get_starting_parent_addr(void)
  *  \brief  Gets the users starting parent node from the user profile memory portion of flash
  *  \return The address
  */
-uint16_t getStartingParentAddress(void)
+uint16_t nodemgmt_get_starting_parent_addr(void)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     uint16_t temp_address;
@@ -395,12 +395,12 @@ uint16_t getStartingParentAddress(void)
     return temp_address;
 }
 
-/*! \fn     getStartingDataParentAddress(uint16_t typeId)
+/*! \fn     nodemgmt_get_starting_data_parent_addr(uint16_t typeId)
  *  \brief  Gets the users starting data parent node from the user profile memory portion of flash
  *  \param  typeId  Type ID
  *  \return The address
  */
-uint16_t getStartingDataParentAddress(uint16_t typeId)
+uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     uint16_t temp_address;
@@ -685,7 +685,7 @@ void nodemgmt_init_context(uint16_t userIdNum)
             
     // fill current user id, first parent node address, user profile page & offset 
     userProfileStartingOffset(userIdNum, &nodemgmt_current_handle.pageUserProfile, &nodemgmt_current_handle.offsetUserProfile);
-    nodemgmt_current_handle.firstParentNode = getStartingParentAddress();
+    nodemgmt_current_handle.firstParentNode = nodemgmt_get_starting_parent_addr();
     nodemgmt_current_handle.currentUserId = userIdNum;
     nodemgmt_current_handle.datadbChanged = FALSE;
     nodemgmt_current_handle.dbChanged = FALSE;
@@ -693,7 +693,7 @@ void nodemgmt_init_context(uint16_t userIdNum)
     // Get starting data parents
     for (uint16_t i = 0; i < (sizeof(nodemgmt_current_handle.firstDataParentNode)/sizeof(nodemgmt_current_handle.firstDataParentNode[0])); i++)
     {        
-        nodemgmt_current_handle.firstDataParentNode[i] = getStartingDataParentAddress(i);
+        nodemgmt_current_handle.firstDataParentNode[i] = nodemgmt_get_starting_data_parent_addr(i);
     }
     
     // scan for next free parent and child nodes from the start of the memory
@@ -901,7 +901,7 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
         while(addr != NODE_ADDR_NULL)
         {
             // read node: use read parent node function as all the fields always are in the first 264B
-            readParentNode(addr, (parent_node_t*)temp_parent_node_pt, FALSE);
+            nodemgmt_read_parent_node(addr, (parent_node_t*)temp_parent_node_pt, FALSE);
             
             // compare nodes (alphabetically)
             if (node_type == NODE_TYPE_CHILD)
@@ -973,7 +973,7 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
                 if(g_first_three_fields_pt->prevAddress != NODE_ADDR_NULL)
                 {
                     // read p->prev node: use read parent node function as all the fields always are in the first 264B
-                    readParentNode(g_first_three_fields_pt->prevAddress, (parent_node_t*)temp_parent_node_pt, FALSE);
+                    nodemgmt_read_parent_node(g_first_three_fields_pt->prevAddress, (parent_node_t*)temp_parent_node_pt, FALSE);
                 
                     // update prev node to point next parent to addr of node to write node
                     temp_first_three_fields_pt->nextAddress = freeNodeAddress;
@@ -1080,7 +1080,7 @@ RET_TYPE createChildNode(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedA
     c->dateLastUsed = nodemgmt_current_date;
     
     // Read parent to get the first child address
-    readParentNode(pAddr, &nodemgmt_current_handle.temp_parent_node, FALSE);
+    nodemgmt_read_parent_node(pAddr, &nodemgmt_current_handle.temp_parent_node, FALSE);
     childFirstAddress = nodemgmt_current_handle.temp_parent_node.cred_parent.nextChildAddress;
     
     // Call createGenericNode to add a node
@@ -1089,7 +1089,7 @@ RET_TYPE createChildNode(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedA
     // If the return is ok & we changed the first child address
     if ((temprettype == RETURN_OK) && (childFirstAddress != temp_address))
     {
-        readParentNode(pAddr, &nodemgmt_current_handle.temp_parent_node, FALSE);
+        nodemgmt_read_parent_node(pAddr, &nodemgmt_current_handle.temp_parent_node, FALSE);
         nodemgmt_current_handle.temp_parent_node.cred_parent.nextChildAddress = temp_address;
         writeParentNodeDataBlockToFlash(pAddr, &nodemgmt_current_handle.temp_parent_node);
     }

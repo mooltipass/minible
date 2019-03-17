@@ -660,6 +660,12 @@
     <Compile Include="src\LOGIC\logic_bluetooth.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\LOGIC\logic_database.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\LOGIC\logic_database.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\LOGIC\logic_device.c">
       <SubType>compile</SubType>
     </Compile>

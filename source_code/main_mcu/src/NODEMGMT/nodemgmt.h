@@ -202,9 +202,12 @@ typedef struct
 } nodemgmtHandle_t;
 
 /* Prototypes */
-void nodemgmt_init_context(uint16_t userIdNum);
+void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean);
+uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);
+uint16_t nodemgmt_get_starting_parent_addr(void);
 RET_TYPE checkUserPermission(uint16_t node_addr);
 void nodemgmt_format_user_profile(uint16_t uid);
+void nodemgmt_init_context(uint16_t userIdNum);
 void nodemgmt_set_current_date(uint16_t date);
 void nodemgmt_read_profile_ctr(void* buf);
 

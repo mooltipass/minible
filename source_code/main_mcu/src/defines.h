@@ -42,6 +42,7 @@ typedef enum    {RETURN_VCARD_NOK = -1, RETURN_VCARD_OK = 0, RETURN_VCARD_UNKNOW
 typedef enum    {DISP_MSG_INFO = 0, DISP_MSG_WARNING = 1, DISP_MSG_ACTION = 2} display_message_te;
 typedef enum    {RETURN_REL = 0, RETURN_DET, RETURN_JDETECT, RETURN_JRELEASED} det_ret_type_te;
 typedef enum    {CUSTOM_FS_INIT_OK = 0, CUSTOM_FS_INIT_NO_RWEE = 1} custom_fs_init_ret_type_te;
+typedef enum    {COMPARE_MODE_MATCH = 0, COMPARE_MODE_COMPARE = 1} service_compare_mode_te;
 typedef enum    {RETURN_NOK = -1, RETURN_OK = 0} ret_type_te;
 
 /* Typedefs */
