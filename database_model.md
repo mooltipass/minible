@@ -15,7 +15,7 @@ This page details the database model for the new Mooltipass Mini.
 | 7->6 | user ID LSbs (2b) | reserved |
 | 5 | flags not valid bit: 0b0 | reserved |
 | 4 | data parent: prev gen flag | reserved |
-| 3->0 | data parent: data type | not used |
+| 3->0 | not used | not used |
 
 **Child Node**
 
