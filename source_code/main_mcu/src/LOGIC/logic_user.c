@@ -167,10 +167,19 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     
     /* Update existing login or create new one? */
     if (child_address != NODE_ADDR_NULL)
-    {        
-        logic_database_update_credential(child_address, desc, third, encrypted_password);
+    {
+        if (password != 0)
+        {
+            logic_database_update_credential(child_address, desc, third, encrypted_password);
+        } 
+        else
+        {
+            logic_database_update_credential(child_address, desc, third, 0);
+        }
         return RETURN_OK;
     }
-    
-    return RETURN_OK;
+    else
+    {
+        return logic_database_add_credential_for_service(parent_address, login, desc, third, encrypted_password);
+    }
 }

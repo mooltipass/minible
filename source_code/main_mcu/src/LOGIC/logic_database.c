@@ -188,3 +188,23 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
     /* Then write back to flash at same address */
     nodemgmt_write_child_node_block_to_flash(child_addr, (child_node_t*)&temp_cnode);
 }    
+
+/*! \fn     logic_database_add_credential_for_service(uint16_t service_addr, cust_char_t* login, cust_char_t* desc, cust_char_t* third, uint8_t* password)
+*   \brief  Add a new credential for a given service to our database
+*   \param  service_addr    Service address
+*   \param  login           Pointer to login string
+*   \param  desc            Pointer to description string, or 0 if not specified
+*   \param  third           Pointer to arbitrary third field, or 0 if not specified
+*   \param  passwordPointer to encrypted password, or 0 if not specified
+*   \return Success status
+*/
+RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_char_t* login, cust_char_t* desc, cust_char_t* third, uint8_t* password)
+{
+    uint16_t storage_addr = NODE_ADDR_NULL;
+    child_cred_node_t temp_cnode;
+    
+    /* Clear node */
+    memset((void*)&temp_cnode, 0, sizeof(temp_cnode));
+
+    return RETURN_OK;
+}
