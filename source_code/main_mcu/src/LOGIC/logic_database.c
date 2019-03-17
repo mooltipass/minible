@@ -3,7 +3,9 @@
 *    Created:  17/03/2019
 *    Author:   Mathieu Stephan
 */
+#include <string.h>
 #include "logic_database.h"
+#include "gui_dispatcher.h"
 #include "nodemgmt.h"
 #include "utils.h"
 
@@ -123,4 +125,34 @@ uint16_t logic_database_search_login_in_service(uint16_t parent_addr, cust_char_
     
     /* We didn't find the login */
     return NODE_ADDR_NULL;
+}
+
+/*! \fn     logic_database_add_service(cust_char_t* service, BOOL cred_type, uint16_t data_category_id)
+*   \brief  Add a new service to our database
+*   \param  service                 Name of the service / website
+*   \param  cred_type               Service type (see enum)
+*   \param  data_category_id        If cred_type is set to FALSE, the data category ID
+*   \return Address of the found node, NODE_ADDR_NULL if fail
+*   \note   Please call logic_database_search_service before calling this
+*/
+uint16_t logic_database_add_service(cust_char_t* service, service_type_te cred_type, uint16_t data_category_id)
+{
+    uint16_t storage_addr = NODE_ADDR_NULL;
+    parent_node_t temp_pnode;
+    
+    /* Clear node */
+    memset((void*)&temp_pnode, 0, sizeof(temp_pnode));
+    
+    /* Set field */
+    utils_strncpy(temp_pnode.cred_parent.service, service, sizeof(temp_pnode.cred_parent.service)/sizeof(cust_char_t));
+    
+    /* Create parent node, function handles flag setting etc */
+    if (nodemgmt_create_parent_node(&temp_pnode, cred_type, &storage_addr, data_category_id) == RETURN_OK)
+    {
+        return storage_addr;
+    }
+    else
+    {
+        return NODE_ADDR_NULL;
+    }
 }

@@ -18,6 +18,20 @@ uint16_t utils_strlen(cust_char_t* string)
     return i;
 }
 
+/*! \fn     utils_strncpy(cust_char_t* destination, cust_char_t* source, uint16_t max_chars)
+*   \brief  Our own version of strncpy
+*   \param  destination     Where to store
+*   \param  source          The source
+*   \param  max_chars       Maximum number of chars to copy
+*/
+void utils_strncpy(cust_char_t* destination, cust_char_t* source, uint16_t max_chars)
+{
+    for (uint16_t i = 0; (i < max_chars) && (source[i] != 0); i++)
+    {
+        destination[i] = source[i];
+    }
+}
+
 /*! \fn     utils_strnlen(cust_char_t* string, uint16_t maxlen)
 *   \brief  Our own custom strnlen
 *   \param  string      The string

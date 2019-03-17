@@ -12,7 +12,6 @@
 
 /* Typedefs */
 typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DATA = 2, NODE_TYPE_DATA = 3} node_type_te;
-typedef enum    {SERVICE_CRED_TYPE, SERVICE_DATA_TYPE} service_type_te;
 
 /* Defines */
 #define NODE_ADDR_NULL                              0x0000
@@ -202,6 +201,7 @@ typedef struct
 } nodemgmtHandle_t;
 
 /* Prototypes */
+RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);
 void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean);
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);

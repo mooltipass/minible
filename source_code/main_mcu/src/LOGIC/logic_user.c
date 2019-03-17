@@ -7,6 +7,7 @@
 #include "smartcard_highlevel.h"
 #include "logic_security.h"
 #include "logic_database.h"
+#include "gui_dispatcher.h"
 #include "gui_prompts.h"
 #include "logic_user.h"
 #include "custom_fs.h"
@@ -120,19 +121,32 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     
     /* Does service already exist? */
     uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, TRUE, 0);
+    uint16_t child_address = NODE_ADDR_NULL;
     
     /* If service exist, does login exist? */
     if (parent_address != NODE_ADDR_NULL)
     {
+        child_address = logic_database_search_login_in_service(parent_address, login);
     }
     
     /* Prepare prompt text */
     cust_char_t* three_line_prompt_2;
-    custom_fs_get_string_from_file(ADD_CRED_TEXT_ID, &three_line_prompt_2, TRUE);    
+    if (child_address == NODE_ADDR_NULL)
+    {
+        custom_fs_get_string_from_file(ADD_CRED_TEXT_ID, &three_line_prompt_2, TRUE);
+    } 
+    else
+    {
+        custom_fs_get_string_from_file(CHANGE_PWD_TEXT_ID, &three_line_prompt_2, TRUE);
+    } 
     confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=login};
     
     /* Request user approval */
-    if (gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE) != MINI_INPUT_RET_YES)
+    mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE);
+    gui_dispatcher_get_back_to_current_screen();
+    
+    /* Did the user approve? */
+    if (prompt_return != MINI_INPUT_RET_YES)
     {
         return RETURN_NOK;
     }

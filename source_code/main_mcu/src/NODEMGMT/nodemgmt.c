@@ -1025,7 +1025,7 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
     return RETURN_OK;
 }
 
-/*! \fn     createParentNode(parent_node_t* p, service_type_te type, uint16_t* storedAddress)
+/*! \fn     nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress)
  *  \brief  Writes a parent node to memory (next free via handle) (in alphabetical order)
  *  \param  p               The parent node to write to memory (nextFreeParentNode)
  *  \param  type            Type of context (data or credential)
@@ -1034,7 +1034,7 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
  *  \return success status
  *  \note   Handles necessary doubly linked list management
  */
-RET_TYPE createParentNode(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId)
+RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId)
 {
     uint16_t temp_address, first_parent_addr;
     RET_TYPE temprettype;

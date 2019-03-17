@@ -14,6 +14,7 @@
 
 // Text defines
 #define ADD_CRED_TEXT_ID        39
+#define CHANGE_PWD_TEXT_ID      40
 
 // Bitmap ID defines
 #define BITMAP_POPUP_3LINES_ID  309
