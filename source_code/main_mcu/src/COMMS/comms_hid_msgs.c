@@ -195,25 +195,28 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             {
                 rcv_msg->store_credential.login_name_index = empty_string_index;
             }
-            if (rcv_msg->store_credential.description_index == UINT16_MAX)
+            
+            /* In case we only want to update certain fields */
+            cust_char_t* description_field_pt = (cust_char_t*)0;
+            cust_char_t* third_field_pt = (cust_char_t*)0;
+            cust_char_t* password_field_pt = (cust_char_t*)0;
+            if (rcv_msg->store_credential.description_index != UINT16_MAX)
             {
-                rcv_msg->store_credential.description_index = empty_string_index;
+                description_field_pt = &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.description_index]);
             }
-            if (rcv_msg->store_credential.third_field_index == UINT16_MAX)
+            if (rcv_msg->store_credential.third_field_index != UINT16_MAX)
             {
-                rcv_msg->store_credential.third_field_index = empty_string_index;
+                third_field_pt = &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.third_field_index]);
             }
-            if (rcv_msg->store_credential.password_index == UINT16_MAX)
+            if (rcv_msg->store_credential.password_index != UINT16_MAX)
             {
-                rcv_msg->store_credential.password_index = empty_string_index;
+                password_field_pt = &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.password_index]);
             }
             
             /* Proceed to other logic */
             if (logic_user_store_credential(    &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.service_name_index]),\
                                                 &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.login_name_index]),\
-                                                &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.description_index]),\
-                                                &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.third_field_index]),\
-                                                &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.password_index])) == RETURN_OK)
+                                                description_field_pt, third_field_pt, password_field_pt) == RETURN_OK)
             {
                 send_msg->payload[0] = HID_1BYTE_ACK;                
             }

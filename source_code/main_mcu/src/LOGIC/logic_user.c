@@ -104,9 +104,9 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, BOOL use_pro
 *   \brief  Store new credential
 *   \param  service     Pointer to service string
 *   \param  login       Pointer to login string
-*   \param  desc        Pointer to description string
-*   \param  third       Pointer to arbitrary third field
-*   \param  password    Pointer to password string
+*   \param  desc        Pointer to description string, or 0 if not specified
+*   \param  third       Pointer to arbitrary third field, or 0 if not specified
+*   \param  password    Pointer to password string, or 0 if not specified
 *   \return success or not
 */
 RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
@@ -151,10 +151,17 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
         return RETURN_NOK;
     }
     
-    /* Does parent node exist? */
-    /*if (searchForServiceName)
+    /* If needed, add service */
+    if (parent_address == NODE_ADDR_NULL)
     {
-    }*/
+        parent_address = logic_database_add_service(service, SERVICE_CRED_TYPE, 0);
+        
+        /* Check for operation success */
+        if (parent_address == NODE_ADDR_NULL)
+        {
+            return RETURN_NOK;
+        }
+    }
     
     return RETURN_OK;
 }
