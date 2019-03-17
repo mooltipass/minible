@@ -202,6 +202,7 @@ typedef struct
 } nodemgmtHandle_t;
 
 /* Prototypes */
+void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean);
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);
 uint16_t nodemgmt_get_starting_parent_addr(void);

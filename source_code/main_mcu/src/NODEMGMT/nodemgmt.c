@@ -299,6 +299,22 @@ void readCredChildNode(uint16_t address, child_cred_node_t* child_node)
     child_node->description[(sizeof(child_node->description)/sizeof(child_node->description[0]))-1] = 0;
 }
 
+/*! \fn     nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_t* child_node)
+*   \brief  Read a child node but not the password fields
+*   \param  address     Where to read
+*   \param  child_node  Pointer to the node
+*/
+void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_t* child_node)
+{
+    readParentNodeDataBlockFromFlash(address, (parent_node_t*)child_node);
+    checkUserPermissionFromFlagsAndLock(child_node->flags);
+    
+    // String cleaning
+    child_node->login[(sizeof(child_node->login)/sizeof(child_node->login[0]))-1] = 0;
+    child_node->thirdField[(sizeof(child_node->thirdField)/sizeof(child_node->thirdField[0]))-1] = 0;
+    child_node->description[(sizeof(child_node->description)/sizeof(child_node->description[0]))-1] = 0;
+}
+
 /*! \fn     userProfileStartingOffset(uint8_t uid, uint16_t *page, uint16_t *pageOffset)
     \brief  Obtains page and page offset for a given user id
     \param  uid             The id of the user to perform that profile page and offset calculation (0 up to NODE_MAX_UID)

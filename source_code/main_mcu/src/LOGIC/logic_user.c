@@ -6,6 +6,7 @@
 #include <string.h>
 #include "smartcard_highlevel.h"
 #include "logic_security.h"
+#include "logic_database.h"
 #include "gui_prompts.h"
 #include "logic_user.h"
 #include "custom_fs.h"
@@ -115,6 +116,14 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     if (logic_security_is_smc_inserted_unlocked() != RETURN_OK)
     {
         return RETURN_NOK;
+    }
+    
+    /* Does service already exist? */
+    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, TRUE, 0);
+    
+    /* If service exist, does login exist? */
+    if (parent_address != NODE_ADDR_NULL)
+    {
     }
     
     /* Prepare prompt text */

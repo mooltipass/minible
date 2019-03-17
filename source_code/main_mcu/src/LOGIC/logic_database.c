@@ -80,3 +80,47 @@ uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_t
         }
     }    
 }
+
+/*! \fn     logic_database_search_login_in_service(uint16_t parent_addr, cust_char_t* login)
+*   \brief  Find a given login for a given parent
+*   \param  parent_addr Parent node address
+*   \param  login       Login
+*   \return Address of the found node, NODE_ADDR_NULL otherwise
+*/
+uint16_t logic_database_search_login_in_service(uint16_t parent_addr, cust_char_t* login)
+{
+    child_cred_node_t* temp_half_cnode_pt;
+    parent_node_t temp_pnode;
+    uint16_t next_node_addr;
+    
+    /* Dirty trick */
+    temp_half_cnode_pt = (child_cred_node_t*)&temp_pnode;
+    
+    /* Read parent node and get first child address */
+    nodemgmt_read_parent_node(parent_addr, &temp_pnode, TRUE);
+    next_node_addr = temp_pnode.cred_parent.nextChildAddress;
+    
+    /* Check that there's actually a child node */
+    if (next_node_addr == NODE_ADDR_NULL)
+    {
+        return NODE_ADDR_NULL;
+    }
+    
+    /* Start going through the nodes */
+    do
+    {
+        /* Read child node */
+        nodemgmt_read_cred_child_node_except_pwd(next_node_addr, temp_half_cnode_pt);
+        
+        /* Compare login with the provided name */        
+        if (utils_custchar_strncmp(login, temp_half_cnode_pt->login, ARRAY_SIZE(temp_half_cnode_pt->login)) == 0)
+        {
+            return next_node_addr;
+        }
+        next_node_addr = temp_half_cnode_pt->nextChildAddress;
+    }
+    while (next_node_addr != NODE_ADDR_NULL);
+    
+    /* We didn't find the login */
+    return NODE_ADDR_NULL;
+}
