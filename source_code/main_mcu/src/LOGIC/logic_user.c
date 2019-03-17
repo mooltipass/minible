@@ -111,7 +111,7 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, BOOL use_pro
 */
 RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
 {
-    // TODO: password encryption
+    uint8_t encrypted_password[NODEMGMT_ENCRYPTED_PASSWORD_ARRAY_B];
     
     /* Smartcard present and unlocked? */
     if (logic_security_is_smc_inserted_unlocked() != RETURN_OK)
@@ -161,6 +161,15 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
         {
             return RETURN_NOK;
         }
+    }
+    
+    // TODO: encryption here if needed
+    
+    /* Update existing login or create new one? */
+    if (child_address != NODE_ADDR_NULL)
+    {        
+        logic_database_update_credential(child_address, desc, third, encrypted_password);
+        return RETURN_OK;
     }
     
     return RETURN_OK;

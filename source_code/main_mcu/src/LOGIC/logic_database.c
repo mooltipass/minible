@@ -156,3 +156,35 @@ uint16_t logic_database_add_service(cust_char_t* service, service_type_te cred_t
         return NODE_ADDR_NULL;
     }
 }
+
+/*! \fn     logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cust_char_t* third, uint8_t* password)
+*   \brief  Update existing credential
+*   \param  child_addr  Child address
+*   \param  desc        Pointer to description string, or 0 if not specified
+*   \param  third       Pointer to arbitrary third field, or 0 if not specified
+*   \param  password    Pointer to encrypted password, or 0 if not specified
+*/
+void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cust_char_t* third, uint8_t* password)
+{
+    child_cred_node_t temp_cnode;
+    
+    /* Read node, ownership checks are done within */
+    nodemgmt_read_cred_child_node(child_addr, &temp_cnode);
+    
+    /* Update fields that are required */
+    if (desc != 0)
+    {
+        utils_strncpy(temp_cnode.description, desc, sizeof(temp_cnode.description)/sizeof(cust_char_t));
+    }
+    if (third != 0)
+    {
+        utils_strncpy(temp_cnode.thirdField, third, sizeof(temp_cnode.thirdField)/sizeof(cust_char_t));
+    }
+    if (password != 0)
+    {
+        memcpy(temp_cnode.password, password, sizeof(temp_cnode.password));
+    }
+    
+    /* Then write back to flash at same address */
+    nodemgmt_write_child_node_block_to_flash(child_addr, (child_node_t*)&temp_cnode);
+}    

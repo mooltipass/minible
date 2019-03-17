@@ -43,6 +43,9 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODEMGMT_VBIT_VALID                         0
 #define NODEMGMT_VBIT_INVALID                       1
 
+/* Size defines */
+#define NODEMGMT_ENCRYPTED_PASSWORD_ARRAY_B         128
+
 
 /* Structs */
 // Parent node, see: https://mooltipass.github.io/minible/database_model
@@ -108,7 +111,7 @@ typedef struct
     uint16_t fakeFlags;             // Same as flags but with bit 5 set to 1
     uint8_t reserved;               // Reserved
     uint8_t ctr[3];                 // Encryption counter
-    uint8_t password[128];          // Encrypted password
+    uint8_t password[NODEMGMT_ENCRYPTED_PASSWORD_ARRAY_B];          // Encrypted password
     uint8_t TBD[130];               // TBD
 } child_cred_node_t;
 
@@ -204,6 +207,8 @@ typedef struct
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);
 void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean);
+void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node);
+void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);
 uint16_t nodemgmt_get_starting_parent_addr(void);
 RET_TYPE checkUserPermission(uint16_t node_addr);

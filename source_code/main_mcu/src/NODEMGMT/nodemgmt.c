@@ -224,12 +224,12 @@ void writeParentNodeDataBlockToFlash(uint16_t address, parent_node_t* parent_nod
     dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), BASE_NODE_SIZE, (void*)parent_node->node_as_bytes);
 }
 
-/*! \fn     writeChildNodeDataBlockToFlash(uint16_t address, child_node_t* child_node)
+/*! \fn     nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node)
 *   \brief  Write a child node data block to flash
 *   \param  address     Where to write
 *   \param  parent_node Pointer to the node
 */
-void writeChildNodeDataBlockToFlash(uint16_t address, child_node_t* child_node)
+void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node)
 {
     _Static_assert(2*BASE_NODE_SIZE == sizeof(*child_node), "Child node isn't twice the size of base node size");
     dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), BASE_NODE_SIZE, (void*)child_node->node_as_bytes);
@@ -274,13 +274,13 @@ void readChildNodeDataBlockFromFlash(uint16_t address, child_node_t* child_node)
     dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), sizeof(child_node->node_as_bytes), (void*)child_node->node_as_bytes);
 }
 
-/*! \fn     readCredChildNode(uint16_t address, child_cred_node_t* child_node)
+/*! \fn     nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node)
 *   \brief  Read a child node
 *   \param  address     Where to read
 *   \param  child_node  Pointer to the node
 *   \note   what's different from function above: sec checks & timestamp updates
 */
-void readCredChildNode(uint16_t address, child_cred_node_t* child_node)
+void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node)
 {
     readChildNodeDataBlockFromFlash(address, (child_node_t*)child_node);
     checkUserPermissionFromFlagsAndLock(child_node->flags);
@@ -290,7 +290,7 @@ void readCredChildNode(uint16_t address, child_cred_node_t* child_node)
     {
         // Just update the good field and write at the same place
         child_node->dateLastUsed = nodemgmt_current_date;
-        writeChildNodeDataBlockToFlash(address, (child_node_t*)child_node);
+        nodemgmt_write_child_node_block_to_flash(address, (child_node_t*)child_node);
     }
     
     // String cleaning
@@ -900,7 +900,7 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
         // Write node
         if (node_type == NODE_TYPE_CHILD)
         {
-            writeChildNodeDataBlockToFlash(freeNodeAddress, (child_node_t*)g);
+            nodemgmt_write_child_node_block_to_flash(freeNodeAddress, (child_node_t*)g);
         }
         else
         {
@@ -941,7 +941,7 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
                     // write new node to flash
                     if (node_type == NODE_TYPE_CHILD)
                     {
-                        writeChildNodeDataBlockToFlash(freeNodeAddress, (child_node_t*)g);
+                        nodemgmt_write_child_node_block_to_flash(freeNodeAddress, (child_node_t*)g);
                     }
                     else
                     {
@@ -973,7 +973,7 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
                 // write new node to flash
                 if (node_type == NODE_TYPE_CHILD)
                 {
-                    writeChildNodeDataBlockToFlash(freeNodeAddress, (child_node_t*)g);
+                    nodemgmt_write_child_node_block_to_flash(freeNodeAddress, (child_node_t*)g);
                 }
                 else
                 {
