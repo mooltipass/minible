@@ -118,6 +118,80 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             return 32;
         }
         
+        case HID_CMD_ID_GET_CRED:
+        {
+            /* Default answer: Nope! */
+            send_msg->payload_length = 0;
+            
+            /* Incorrect service name index */
+            if (rcv_msg->get_credential_request.service_name_index != 0)
+            {
+                return 0;
+            }
+            
+            /* Empty service name */
+            if (rcv_msg->get_credential_request.concatenated_strings[0] == 0)
+            {
+                return 0;
+            }
+            
+            /* Max string length */
+            uint16_t max_cust_char_length = (sizeof(rcv_msg->payload) \
+                                            - sizeof(rcv_msg->get_credential_request.service_name_index) \
+                                            - sizeof(rcv_msg->get_credential_request.login_name_index))/sizeof(cust_char_t);
+            
+            /* Get service string length */
+            uint16_t service_length = utils_strnlen(&(rcv_msg->get_credential_request.concatenated_strings[0]), max_cust_char_length);
+            
+            /* Too long length */
+            if (service_length == max_cust_char_length)
+            {
+                return 0;
+            }
+            
+            /* Reduce max length */
+            max_cust_char_length -= (service_length + 1);
+            
+            /* Is the login specified? */
+            if (rcv_msg->get_credential_request.login_name_index == UINT16_MAX)
+            {
+                if (logic_user_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), 0, send_msg) < 0)
+                {
+                    return 0;
+                }
+                else
+                {
+                    
+                }                    
+            } 
+            else
+            {
+                /* Check correct index */
+                if (rcv_msg->get_credential_request.login_name_index != service_length + 1)
+                {
+                    return 0;
+                }
+                
+                /* Check login format */
+                uint16_t login_length = utils_strnlen(&(rcv_msg->get_credential_request.concatenated_strings[rcv_msg->get_credential_request.login_name_index]), max_cust_char_length);
+                
+                /* Too long length */
+                if (login_length == max_cust_char_length)
+                {
+                    return 0;
+                }
+                
+                if (logic_user_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), &(rcv_msg->get_credential_request.concatenated_strings[rcv_msg->get_credential_request.login_name_index]), send_msg) < 0)
+                {
+                    return 0;
+                }
+                else
+                {
+                    
+                }
+            }
+        }
+        
         case HID_CMD_ID_STORE_CRED:
         {   
             /* Default answer: Nope! */

@@ -49,15 +49,19 @@ void logic_device_bundle_update_start(BOOL from_debug_messages)
 {
     logic_device_activity_detected();
     
-    if (from_debug_messages != FALSE)
+    /* If we are in invalid screen, it means we don't have a bundle */
+    if (gui_dispatcher_get_current_screen() != GUI_SCREEN_INVALID)
     {
-        /* Go to dedicated screen */
-        gui_dispatcher_set_current_screen(GUI_SCREEN_FW_FILE_UPDATE, TRUE, GUI_OUTOF_MENU_TRANSITION);
-        gui_dispatcher_get_back_to_current_screen();
-    } 
-    else
-    {
-        // TODO
+        if (from_debug_messages != FALSE)
+        {
+            /* Go to dedicated screen */
+            gui_dispatcher_set_current_screen(GUI_SCREEN_FW_FILE_UPDATE, TRUE, GUI_OUTOF_MENU_TRANSITION);
+            gui_dispatcher_get_back_to_current_screen();
+        }
+        else
+        {
+            // TODO
+        }
     }
 }
 
@@ -67,17 +71,21 @@ void logic_device_bundle_update_start(BOOL from_debug_messages)
 */
 void logic_device_bundle_update_end(BOOL from_debug_messages)
 {
-    if (from_debug_messages != FALSE)
-    {        
-        /* Refresh file system and font */
-        custom_fs_init();
-        
-        /* Go to default screen */
-        gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_OUTOF_MENU_TRANSITION);
-        gui_dispatcher_get_back_to_current_screen();
-    } 
-    else
+    /* If we are in invalid screen, it means we don't have a bundle */
+    if (gui_dispatcher_get_current_screen() != GUI_SCREEN_INVALID)
     {
-        // TODO
+        if (from_debug_messages != FALSE)
+        {        
+            /* Refresh file system and font */
+            custom_fs_init();
+        
+            /* Go to default screen */
+            gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_OUTOF_MENU_TRANSITION);
+            gui_dispatcher_get_back_to_current_screen();
+        } 
+        else
+        {
+            // TODO
+        }
     }
 }

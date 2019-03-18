@@ -23,7 +23,8 @@
 #define ID_STRING_FW_FILE_UPDATE    38
 
 /* Enums */
-typedef enum {  GUI_SCREEN_NINSERTED = 0,
+typedef enum {  GUI_SCREEN_INVALID = 0,
+                GUI_SCREEN_NINSERTED,
                 GUI_SCREEN_INSERTED_LCK,
                 GUI_SCREEN_INSERTED_INVALID,
                 GUI_SCREEN_INSERTED_UNKNOWN,

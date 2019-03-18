@@ -8,6 +8,7 @@
 #include "logic_security.h"
 #include "logic_database.h"
 #include "gui_dispatcher.h"
+#include "driver_timer.h"
 #include "gui_prompts.h"
 #include "logic_user.h"
 #include "custom_fs.h"
@@ -182,4 +183,52 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     {
         return logic_database_add_credential_for_service(parent_address, login, desc, third, encrypted_password);
     }
+}
+
+/*! \fn     logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_message_t* send_msg)
+*   \brief  Get credential for service
+*   \param  service     Pointer to service string
+*   \param  login       Pointer to login string, or 0 if not specified
+*   \param  send_msg    Pointer to where to store our answer
+*   \return payload size or -1 if error
+*/
+int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_message_t* send_msg)
+{
+    /* Smartcard present and unlocked? */
+    if (logic_security_is_smc_inserted_unlocked() != RETURN_OK)
+    {
+        return -1;
+    }
+    
+    /* Does service already exist? */
+    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, TRUE, 0);
+    uint16_t child_address = NODE_ADDR_NULL;
+    
+    /* Service doesn't exist, deny request with a variable timeout for privacy concerns */
+    if (parent_address == NODE_ADDR_NULL)
+    {
+        /* From 3s to 7s */
+        timer_delay_ms(3000 + (rng_get_random_uint16_t()&0x0FFF));
+        return -1;
+    }    
+    
+    /* Check if wanted login has been specified */
+    if (login != 0)
+    {
+        child_address = logic_database_search_login_in_service(parent_address, login);
+        
+        /* Check for existing login */
+        if (child_address == NODE_ADDR_NULL)
+        {
+            /* From 3s to 7s */
+            timer_delay_ms(3000 + (rng_get_random_uint16_t()&0x0FFF));
+            return -1;
+        }       
+        
+        /* Prepare prompt */     
+    }
+    else
+    {
+        /* No login specified, check for existence */
+    }    
 }

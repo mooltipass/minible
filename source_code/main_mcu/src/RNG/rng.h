@@ -12,6 +12,8 @@
 
 /* Prototypes */
 void rng_fill_array(uint8_t* array, uint16_t nb_bytes);
+uint16_t rng_get_random_uint16_t(void);
+uint8_t rng_get_random_uint8_t(void);
 void rng_feed_from_acc_read(void);
 
 

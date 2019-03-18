@@ -14,6 +14,7 @@
 #include "gui_prompts.h"
 #include "logic_power.h"
 #include "platform_io.h"
+#include "logic_user.h"
 #include "custom_fs.h"
 #include "dataflash.h"
 #include "lis2hh12.h"
@@ -21,6 +22,7 @@
 #include "dbflash.h"
 #include "sh1122.h"
 #include "inputs.h"
+#include "utils.h"
 #include "fuses.h"
 #include "debug.h"
 #include "main.h"
@@ -382,6 +384,18 @@ int main(void)
     /* Infinite loop */
     while(TRUE)
     {
+        /*hid_message_t msg;
+        msg.message_type = HID_CMD_ID_STORE_CRED;
+        msg.payload_length = 333;
+        msg.store_credential.service_name_index = 0;
+        msg.store_credential.login_name_index = UINT16_MAX;
+        msg.store_credential.description_index = UINT16_MAX;
+        msg.store_credential.third_field_index = UINT16_MAX;
+        msg.store_credential.password_index = UINT16_MAX;
+        utils_strncpy(msg.store_credential.concatenated_strings, (const cust_char_t*)u"lapinou", 333);
+        hid_message_t msg2;
+        comms_hid_msgs_parse(&msg, 333, &msg2, MSG_NO_RESTRICT);*/
+        
         /* Power supply change */
         if ((logic_power_get_power_source() == BATTERY_POWERED) && (platform_io_is_usb_3v3_present() != FALSE))
         {

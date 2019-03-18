@@ -11,6 +11,38 @@ uint16_t rng_acc_feed_available_byte_index = 0;
 uint16_t rng_acc_feed_available_bytes_in_pool = 0;
 
 
+/*! \fn     rng_get_random_uint8_t(void)
+*   \brief  Get random uint8_t
+*   \return Random uint8_t
+*/
+uint8_t rng_get_random_uint8_t(void)
+{
+    uint8_t return_val;
+    
+    /* Enough bytes available? */
+    while(rng_acc_feed_available_bytes_in_pool == 0)
+    {
+        if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor) != FALSE)
+        {
+            rng_feed_from_acc_read();
+        }
+    }
+    
+    /* Fill byte */
+    return_val = rng_acc_feed_available_pool[rng_acc_feed_available_byte_index++];
+    
+    /* Buffer wrapover? */
+    if (rng_acc_feed_available_byte_index >= sizeof(rng_acc_feed_available_pool))
+    {
+        rng_acc_feed_available_byte_index -= sizeof(rng_acc_feed_available_pool);
+    }
+    
+    /* Decrement number of bytes available */
+    rng_acc_feed_available_bytes_in_pool--;
+    
+    return return_val;
+}
+
 /*! \fn     rng_fill_array(uint8_t* array, uint16_t nb_bytes)
 *   \brief  Fill array with random numbers
 *   \param  array       Array to fill
@@ -19,28 +51,19 @@ uint16_t rng_acc_feed_available_bytes_in_pool = 0;
 void rng_fill_array(uint8_t* array, uint16_t nb_bytes)
 {
     for (uint16_t i = 0; i < nb_bytes; i++)
-    {
-        /* Enough bytes available? */
-        while(rng_acc_feed_available_bytes_in_pool == 0)
-        {
-            if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor) != FALSE)
-            {
-                rng_feed_from_acc_read();
-            }            
-        }
-        
+    {        
         /* Fill byte */
-        array[i] = rng_acc_feed_available_pool[rng_acc_feed_available_byte_index++];
-        
-        /* Buffer wrapover? */
-        if (rng_acc_feed_available_byte_index >= sizeof(rng_acc_feed_available_pool))
-        {
-            rng_acc_feed_available_byte_index -= sizeof(rng_acc_feed_available_pool);
-        }
-        
-        /* Decrement number of bytes available */
-        rng_acc_feed_available_bytes_in_pool--;
+        array[i] = rng_get_random_uint8_t();
     }
+}
+
+/*! \fn     rng_get_random_uint16_t(void)
+*   \brief  Get random uint16_t
+*   \return Random uint16_t
+*/
+uint16_t rng_get_random_uint16_t(void)
+{
+    return (((uint16_t)rng_get_random_uint8_t()) << 8) | rng_get_random_uint8_t();
 }
 
 /*! \fn     rng_feed_from_acc_read(void)

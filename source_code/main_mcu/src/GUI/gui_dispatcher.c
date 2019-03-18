@@ -16,7 +16,7 @@
 #include "debug.h"
 #include "main.h"
 // Current screen
-gui_screen_te gui_dispatcher_current_screen = GUI_SCREEN_NINSERTED;
+gui_screen_te gui_dispatcher_current_screen = GUI_SCREEN_INVALID;
 
 
 /*! \fn     gui_dispatcher_get_current_screen(void)
