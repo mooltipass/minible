@@ -1078,7 +1078,7 @@ RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uin
     return temprettype;
 }
 
-/*! \fn     createChildNode(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedAddress)
+/*! \fn     nodemgmt_create_child_node(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedAddress)
  *  \brief  Writes a child node to memory (next free via handle) (in alphabetical order)
  *  \param  pAddr           The parent node address of the child
  *  \param  c               The child node to write to memory (nextFreeChildNode)
@@ -1086,7 +1086,7 @@ RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uin
  *  \return success status
  *  \note   Handles necessary doubly linked list management
  */
-RET_TYPE createChildNode(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedAddress)
+RET_TYPE nodemgmt_create_child_node(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedAddress)
 {
     uint16_t childFirstAddress, temp_address;
     RET_TYPE temprettype;

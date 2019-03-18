@@ -205,6 +205,22 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
     
     /* Clear node */
     memset((void*)&temp_cnode, 0, sizeof(temp_cnode));
+    
+    /* Update fields that are required */
+    utils_strncpy(temp_cnode.login, login, sizeof(temp_cnode.login)/sizeof(cust_char_t));
+    if (desc != 0)
+    {
+        utils_strncpy(temp_cnode.description, desc, sizeof(temp_cnode.description)/sizeof(cust_char_t));
+    }
+    if (third != 0)
+    {
+        utils_strncpy(temp_cnode.thirdField, third, sizeof(temp_cnode.thirdField)/sizeof(cust_char_t));
+    }
+    if (password != 0)
+    {
+        memcpy(temp_cnode.password, password, sizeof(temp_cnode.password));
+    }
 
-    return RETURN_OK;
+    /* Then create node */
+    return nodemgmt_create_child_node(service_addr, &temp_cnode, &storage_addr);
 }
