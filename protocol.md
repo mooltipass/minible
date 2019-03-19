@@ -140,11 +140,11 @@ Device Answer:
 |:-------|:-------|
 | 0->1   | 0x0007 |
 | 2->3   | 0 for fail, otherwise depends on message contents |
-| 4->5   | index to the login name or 0xFFFF |
-| 6->7   | index to the description or 0xFFFF |
-| 8->9   | index to the third field or 0xFFFF |
-| 10->11 | index to the password or 0xFFFF |
-| 12->xxx | all above no 0xFFFF terminated fields concatenated |
+| 4->5   | index to the login name |
+| 6->7   | index to the description |
+| 8->9   | index to the third field |
+| 10->11 | index to the password |
+| 12->xxx | all above 0 terminated fields concatenated |
 
 Tested status: NOT tested
 
