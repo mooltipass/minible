@@ -127,6 +127,51 @@ uint16_t logic_database_search_login_in_service(uint16_t parent_addr, cust_char_
     return NODE_ADDR_NULL;
 }
 
+/*! \fn     logic_database_get_number_of_creds_for_service(uint16_t parent_addr, uint16_t& fnode_addr)
+*   \brief  Get number of credentials for a given service
+*   \param  parent_addr Parent node address
+*   \param  fnode_addr  Where to store first node address
+*   \return Number of credentials for service
+*/
+uint16_t logic_database_get_number_of_creds_for_service(uint16_t parent_addr, uint16_t* fnode_addr)
+{
+    child_cred_node_t* temp_half_cnode_pt;
+    parent_node_t temp_pnode;
+    uint16_t next_node_addr;
+    uint16_t return_val = 0;
+    
+    /* Dirty trick */
+    temp_half_cnode_pt = (child_cred_node_t*)&temp_pnode;
+    
+    /* Read parent node and get first child address */
+    nodemgmt_read_parent_node(parent_addr, &temp_pnode, TRUE);
+    next_node_addr = temp_pnode.cred_parent.nextChildAddress;
+    *fnode_addr = next_node_addr;
+    
+    /* Check that there's actually a child node */
+    if (next_node_addr == NODE_ADDR_NULL)
+    {
+        return return_val;
+    }
+    
+    /* Start going through the nodes */
+    do
+    {
+        /* Read child node */
+        nodemgmt_read_cred_child_node_except_pwd(next_node_addr, temp_half_cnode_pt);
+        
+        /* Increment counter */
+        return_val++;
+        
+        /* Go to next node */
+        next_node_addr = temp_half_cnode_pt->nextChildAddress;
+    }
+    while (next_node_addr != NODE_ADDR_NULL);
+    
+    /* Return counter value */
+    return return_val;    
+}
+
 /*! \fn     logic_database_add_service(cust_char_t* service, BOOL cred_type, uint16_t data_category_id)
 *   \brief  Add a new service to our database
 *   \param  service                 Name of the service / website
@@ -223,4 +268,38 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
 
     /* Then create node */
     return nodemgmt_create_child_node(service_addr, &temp_cnode, &storage_addr);
+}
+
+/*! \fn     logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg)
+*   \brief  Fill a get cred message packet
+*   \param  child_node_addr Child node address
+*   \param  send_msg        Pointer to send message
+*   \return Payload size
+*/
+uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg)
+{
+    child_cred_node_t temp_cnode;    
+    uint16_t current_index = 0;
+    
+    /* Read node, ownership checks and text fields sanitizing are done within */
+    nodemgmt_read_cred_child_node(child_node_addr, &temp_cnode);
+    
+    /* Login field */
+    send_msg->get_credential_answer.login_name_index = current_index;
+    current_index += utils_strcpy(&(send_msg->get_credential_answer.concatenated_strings[current_index]), temp_cnode.login) + 1;
+    
+    /* Description field */
+    send_msg->get_credential_answer.description_index = current_index;
+    current_index += utils_strcpy(&(send_msg->get_credential_answer.concatenated_strings[current_index]), temp_cnode.description) + 1;
+    
+    /* Third field */
+    send_msg->get_credential_answer.third_field_index = current_index;
+    current_index += utils_strcpy(&(send_msg->get_credential_answer.concatenated_strings[current_index]), temp_cnode.thirdField) + 1;
+    
+    /* Password field */
+    send_msg->get_credential_answer.password_index = current_index;
+    memcpy(&(send_msg->get_credential_answer.concatenated_strings[current_index]), temp_cnode.password, sizeof(temp_cnode.password));
+    current_index += sizeof(temp_cnode.password);
+    
+    return current_index*sizeof(cust_char_t) + sizeof(send_msg->get_credential_answer.login_name_index) + sizeof(send_msg->get_credential_answer.description_index) + sizeof(send_msg->get_credential_answer.third_field_index) + sizeof(send_msg->get_credential_answer.password_index);
 }

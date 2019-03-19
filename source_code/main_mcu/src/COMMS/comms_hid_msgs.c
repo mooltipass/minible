@@ -181,13 +181,15 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                     return 0;
                 }
                 
-                if (logic_user_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), &(rcv_msg->get_credential_request.concatenated_strings[rcv_msg->get_credential_request.login_name_index]), send_msg) < 0)
+                /* Request user to send credential */
+                int16_t payload_length = logic_user_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), &(rcv_msg->get_credential_request.concatenated_strings[rcv_msg->get_credential_request.login_name_index]), send_msg);
+                if (payload_length < 0)
                 {
                     return 0;
                 }
                 else
                 {
-                    
+                    return payload_length;
                 }
             }
         }

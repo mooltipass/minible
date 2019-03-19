@@ -32,6 +32,26 @@ void utils_strncpy(cust_char_t* destination, cust_char_t* source, uint16_t max_c
     }
 }
 
+/*! \fn     utils_strcpy(cust_char_t* destination, cust_char_t* source)
+*   \brief  Our own version of strcpy
+*   \param  destination     Where to store
+*   \param  source          The source
+*   \return Number of chars copied
+*/
+uint16_t utils_strcpy(cust_char_t* destination, cust_char_t* source)
+{
+    uint16_t return_val = 0;
+    
+    while (*source != 0)
+    {
+        *destination = *source;
+        return_val++;
+        source++;
+    }
+    
+    return return_val;
+}
+
 /*! \fn     utils_strnlen(cust_char_t* string, uint16_t maxlen)
 *   \brief  Our own custom strnlen
 *   \param  string      The string

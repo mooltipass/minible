@@ -90,11 +90,11 @@ void rng_feed_from_acc_read(void)
         current_bit_offset += nb_extracted_bits;
         
         /* Check if we filled our current byte */
-        if (current_bit_offset >= sizeof(uint8_t))
+        if (current_bit_offset >= sizeof(uint8_t)*8)
         {
             /* Check where to store byte in our pool */
             uint16_t storage_index = rng_acc_feed_available_byte_index + rng_acc_feed_available_bytes_in_pool;
-            if (storage_index > sizeof(rng_acc_feed_available_pool))
+            if (storage_index >= sizeof(rng_acc_feed_available_pool))
             {
                 storage_index -= sizeof(rng_acc_feed_available_pool);
             }
@@ -118,13 +118,13 @@ void rng_feed_from_acc_read(void)
             }            
             
             /* How many extra bits we had to fille that uint8_t */
-            uint16_t extra_bits = nb_extracted_bits + current_bit_offset - sizeof(uint8_t);
+            uint16_t extra_bits = current_bit_offset - sizeof(uint8_t)*8;
             
             /* Store the remaining bits in the current byte */
             current_byte = extracted_bits >> (nb_extracted_bits - extra_bits);      
             
             /* Update current bit offset */
-            current_bit_offset -= sizeof(uint8_t);      
+            current_bit_offset -= sizeof(uint8_t)*8;      
         }
     }
 }

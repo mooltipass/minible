@@ -62,6 +62,15 @@ typedef struct
 
 typedef struct
 {
+    uint16_t login_name_index;
+    uint16_t description_index;
+    uint16_t third_field_index;
+    uint16_t password_index;
+    cust_char_t concatenated_strings[0];
+} hid_message_get_cred_answer_t;
+
+typedef struct
+{
     uint16_t message_type;
     uint16_t payload_length;
     union
@@ -74,6 +83,7 @@ typedef struct
         hid_message_plat_info_t platform_info;
         hid_message_store_cred_t store_credential;
         hid_message_get_cred_req_t get_credential_request;
+        hid_message_get_cred_answer_t get_credential_answer;
     };
 } hid_message_t;
 
