@@ -5,6 +5,7 @@
 */
 #include <string.h>
 #include "smartcard_highlevel.h"
+#include "logic_encryption.h"
 #include "logic_security.h"
 #include "logic_database.h"
 #include "gui_dispatcher.h"
@@ -13,9 +14,8 @@
 #include "logic_user.h"
 #include "custom_fs.h"
 #include "nodemgmt.h"
+#include "utils.h"
 #include "rng.h"
-// Next CTR value for our AES encryption
-uint8_t logic_user_next_ctr_val[MEMBER_SIZE(nodemgmt_profile_main_data_t,current_ctr)];
 
 
 /*! \fn     logic_user_init_context(uint8_t user_id)
@@ -25,7 +25,7 @@ uint8_t logic_user_next_ctr_val[MEMBER_SIZE(nodemgmt_profile_main_data_t,current
 void logic_user_init_context(uint8_t user_id)
 {
     nodemgmt_init_context(user_id);
-    nodemgmt_read_profile_ctr((void*)logic_user_next_ctr_val);
+    logic_encryption_init_context();
 }
 
 /*! \fn     logic_user_create_new_user(volatile uint16_t* pin_code, BOOL use_provisioned_key, volatile uint8_t* aes_key)
@@ -112,7 +112,7 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, BOOL use_pro
 */
 RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
 {
-    uint8_t encrypted_password[NODEMGMT_ENCRYPTED_PASSWORD_ARRAY_B];
+    cust_char_t encrypted_password[MEMBER_SIZE(child_cred_node_t, password)/sizeof(cust_char_t)];
     
     /* Smartcard present and unlocked? */
     if (logic_security_is_smc_inserted_unlocked() != RETURN_OK)
@@ -166,12 +166,22 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     
     // TODO: encryption here if needed
     
+    /* Fill RNG array with random numbers */
+    rng_fill_array((uint8_t*)encrypted_password, sizeof(encrypted_password));
+    
+    /* Password provided? */
+    if (password != 0)
+    {
+        /* Copy password into array */
+        utils_strncpy(encrypted_password, password, sizeof(encrypted_password)/sizeof(cust_char_t));
+    }
+    
     /* Update existing login or create new one? */
     if (child_address != NODE_ADDR_NULL)
     {
         if (password != 0)
         {
-            logic_database_update_credential(child_address, desc, third, encrypted_password);
+            logic_database_update_credential(child_address, desc, third, (uint8_t*)encrypted_password);
         } 
         else
         {
@@ -181,7 +191,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     }
     else
     {
-        return logic_database_add_credential_for_service(parent_address, login, desc, third, encrypted_password);
+        return logic_database_add_credential_for_service(parent_address, login, desc, third, (uint8_t*)encrypted_password);
     }
 }
 

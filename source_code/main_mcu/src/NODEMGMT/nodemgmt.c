@@ -590,11 +590,11 @@ void nodemgmt_read_profile_ctr(void* buf)
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.current_ctr), sizeof(dirty_address_finding_trick->main_data.current_ctr), buf);
 }
 
-/**
- * Sets the user DB change number in the user profile flash memory
- * @param   buf             The buffer containing the user db change number
+/*! \fn     nodemgmt_set_profile_ctr(void* buf)
+ *  \brief  Sets the user DB change number in the user profile flash memory
+ *  \param  buf             The buffer containing the new CTR
  */
-void setProfileCtr(void *buf)
+void nodemgmt_set_profile_ctr(void* buf)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.current_ctr), sizeof(dirty_address_finding_trick->main_data.current_ctr), buf);

@@ -43,9 +43,6 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODEMGMT_VBIT_VALID                         0
 #define NODEMGMT_VBIT_INVALID                       1
 
-/* Size defines */
-#define NODEMGMT_ENCRYPTED_PASSWORD_ARRAY_B         128
-
 
 /* Structs */
 // Parent node, see: https://mooltipass.github.io/minible/database_model
@@ -111,7 +108,7 @@ typedef struct
     uint16_t fakeFlags;             // Same as flags but with bit 5 set to 1
     uint8_t reserved;               // Reserved
     uint8_t ctr[3];                 // Encryption counter
-    uint8_t password[NODEMGMT_ENCRYPTED_PASSWORD_ARRAY_B];          // Encrypted password
+    uint8_t password[128];          // Encrypted password
     uint8_t TBD[130];               // TBD
 } child_cred_node_t;
 
@@ -217,5 +214,6 @@ void nodemgmt_format_user_profile(uint16_t uid);
 void nodemgmt_init_context(uint16_t userIdNum);
 void nodemgmt_set_current_date(uint16_t date);
 void nodemgmt_read_profile_ctr(void* buf);
+void nodemgmt_set_profile_ctr(void* buf);
 
 #endif /* NODEMGMT_H_ */
