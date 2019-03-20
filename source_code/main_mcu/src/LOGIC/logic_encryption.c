@@ -23,6 +23,7 @@ void logic_encryption_init_context(void)
 */
 void logic_encryption_pre_ctr_task(void)
 {
+    _Static_assert(CTR_FLASH_MIN_INCR % (MEMBER_SIZE(child_cred_node_t, password)/(AES_BLOCK_SIZE/8)) == 0, "CTR increment required by password CTR encryption not a multiple of CTR_FLASH_MIN_INCR");    
     uint8_t temp_buffer[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     uint16_t carry = CTR_FLASH_MIN_INCR;
     int16_t i;
