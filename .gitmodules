@@ -1,0 +1,3 @@
+[submodule "source_code/main_mcu/src/BearSSL"]
+	path = source_code/main_mcu/src/BearSSL
+	url = https://www.bearssl.org/git/BearSSL
