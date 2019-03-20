@@ -1304,6 +1304,19 @@
     <Folder Include="src\ASF\thirdparty\CMSIS\Include\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
+    <Folder Include="src\BearSSL\src" />
+    <Folder Include="src\BearSSL\src\aead" />
+    <Folder Include="src\BearSSL\src\codec" />
+    <Folder Include="src\BearSSL\src\ec" />
+    <Folder Include="src\BearSSL\src\hash" />
+    <Folder Include="src\BearSSL\src\int" />
+    <Folder Include="src\BearSSL\src\kdf" />
+    <Folder Include="src\BearSSL\src\mac" />
+    <Folder Include="src\BearSSL\src\x509" />
+    <Folder Include="src\BearSSL\src\symcipher" />
+    <Folder Include="src\BearSSL\src\ssl" />
+    <Folder Include="src\BearSSL\src\rsa" />
+    <Folder Include="src\BearSSL\src\rand" />
     <Folder Include="src\config\" />
     <Folder Include="src\CLOCKS" />
     <Folder Include="src\FLASH" />
@@ -1314,6 +1327,7 @@
     <Folder Include="src\COMMS" />
     <Folder Include="src\LOGIC" />
     <Folder Include="src\GUI" />
+    <Folder Include="src\BearSSL" />
     <Folder Include="src\NODEMGMT" />
     <Folder Include="src\RNG\" />
     <Folder Include="src\SECURITY" />
