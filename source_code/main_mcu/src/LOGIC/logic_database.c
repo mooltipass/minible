@@ -284,6 +284,21 @@ uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, h
     /* Read node, ownership checks and text fields sanitizing are done within */
     nodemgmt_read_cred_child_node(child_node_addr, &temp_cnode);
     
+    /* Clear send_msg */
+    memset(send_msg->payload, 0x00, sizeof(send_msg->payload));
+    
+    /* The strcpy below can be done as the message is way bigger than all fields combined */
+    _Static_assert( sizeof(temp_cnode.login) \
+                    + sizeof(temp_cnode.description) \
+                    + sizeof(temp_cnode.thirdField) \
+                    + sizeof(temp_cnode.password) + 4 \
+                    < \
+                    sizeof(send_msg->payload)
+                    - sizeof(send_msg->get_credential_answer.login_name_index) \
+                    - sizeof(send_msg->get_credential_answer.description_index) \
+                    - sizeof(send_msg->get_credential_answer.third_field_index) \
+                    - sizeof(send_msg->get_credential_answer.password_index), "Not enough space for send cred contents");
+    
     /* Login field */
     send_msg->get_credential_answer.login_name_index = current_index;
     current_index += utils_strcpy(&(send_msg->get_credential_answer.concatenated_strings[current_index]), temp_cnode.login) + 1;
