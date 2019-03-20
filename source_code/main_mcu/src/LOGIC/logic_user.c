@@ -174,6 +174,9 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     {
         /* Copy password into array */
         utils_strncpy(encrypted_password, password, sizeof(encrypted_password)/sizeof(cust_char_t));
+        
+        /* CTR encrypt password */
+        logic_encryption_ctr_encrypt((uint8_t*)encrypted_password, sizeof(encrypted_password));
     }
     
     /* Update existing login or create new one? */
