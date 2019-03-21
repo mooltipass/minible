@@ -231,27 +231,54 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
         return -1;
     }    
     
-    /* Check if wanted login has been specified */
-    if (login != 0)
+    /* See how many credentials there are for this service */
+    uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &child_address);
+    
+    /* Check if wanted login has been specified or if there's only one credential for that service */
+    if ((login != 0) || (nb_logins_for_cred == 1))
     {
-        child_address = logic_database_search_login_in_service(parent_address, login);
-        
-        /* Check for existing login */
-        if (child_address == NODE_ADDR_NULL)
+        /* Login specified? look for it */
+        if (login != 0)
         {
-            /* From 3s to 7s */
-            timer_delay_ms(3000 + (rng_get_random_uint16_t()&0x0FFF));
-            return -1;
+            child_address = logic_database_search_login_in_service(parent_address, login);
+            
+            /* Check for existing login */
+            if (child_address == NODE_ADDR_NULL)
+            {
+                /* From 3s to 7s */
+                timer_delay_ms(3000 + (rng_get_random_uint16_t()&0x0FFF));
+                return -1;
+            }
         }       
         
-        /* Prepare prompt */     
+        /* Get prefilled message */
+        uint16_t return_payload_size = logic_database_fill_get_cred_message_answer(child_address, send_msg);
+        
+        /* Prepare prompt message */
+        cust_char_t* three_line_prompt_2;
+        custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &three_line_prompt_2, TRUE);
+        confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.login_name_index])};
+
+        /* Request user approval */
+        mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE);
+        gui_dispatcher_get_back_to_current_screen();
+        
+        /* Did the user approve? */
+        if (prompt_return != MINI_INPUT_RET_YES)
+        {
+            memset(send_msg->payload, 0, sizeof(send_msg->payload));
+            return -1;
+        }
+        
+        /* User approved, decrypt password */
         // TODO
+        
+        /* Return payload size */
+        send_msg->payload_length = return_payload_size;
+        return return_payload_size;
     }
     else
-    {
-        /* No login specified, see how many logins are there */
-        uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &child_address);
-        
+    {        
         /* 3 cases: no login, 1 login, several logins */
         if (nb_logins_for_cred == 0)
         {
@@ -259,36 +286,9 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
             timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
             return -1;
         }
-        else if (nb_logins_for_cred == 1)
-        {
-            /* Get prefilled message */
-            uint16_t return_payload_size = logic_database_fill_get_cred_message_answer(child_address, send_msg);
-            
-            /* Prepare prompt message */
-            cust_char_t* three_line_prompt_2;
-            custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &three_line_prompt_2, TRUE);
-            confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.login_name_index])};
-
-            /* Request user approval */
-            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE);
-            gui_dispatcher_get_back_to_current_screen();
-            
-            /* Did the user approve? */
-            if (prompt_return != MINI_INPUT_RET_YES)
-            {
-                memset(send_msg->payload, 0, sizeof(send_msg->payload));
-                return -1;
-            }
-             
-            /* User approved, decrypt password */
-            // TODO
-             
-            /* Return payload size */
-            send_msg->payload_length = return_payload_size;
-            return return_payload_size;
-        }
         else
         {
+            /* 2 or more, as 1 is tackled in the previous if */
             // TODO
         }
     }    

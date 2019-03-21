@@ -45,6 +45,7 @@ uint16_t utils_strcpy(cust_char_t* destination, cust_char_t* source)
     while (*source != 0)
     {
         *destination = *source;
+        destination++;
         return_val++;
         source++;
     }
