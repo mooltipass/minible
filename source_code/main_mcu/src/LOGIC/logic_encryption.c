@@ -109,14 +109,18 @@ void logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length)
         /* Pre CTR encryption tasks */
         logic_encryption_pre_ctr_tasks((data_length + AES256_CTR_LENGTH - 1)/AES256_CTR_LENGTH);
         
-        //logic_encryption_add_vector_to_other()
+        /* Construct CTR for this encryption */
+        memcpy(credential_ctr, logic_encryption_cur_cpz_entry->nonce, sizeof(credential_ctr));
+        logic_encryption_add_vector_to_other(credential_ctr + (sizeof(credential_ctr) - sizeof(logic_encryption_next_ctr_val)), logic_encryption_next_ctr_val, sizeof(logic_encryption_next_ctr_val));
         
-        /*
+        /* Encrypt data
         memcpy((void*)temp_buffer, (void*)current_nonce, AES256_CTR_LENGTH);
         aesXorVectors(temp_buffer + (AES256_CTR_LENGTH-USER_CTR_SIZE), nextCtrVal, USER_CTR_SIZE);
         aes256CtrSetIv(&aesctx, temp_buffer, AES256_CTR_LENGTH);
-        aes256CtrEncrypt(&aesctx, data, AES_ROUTINE_ENC_SIZE);
-        memcpy((void*)ctr, (void*)nextCtrVal, USER_CTR_SIZE);*/
+        aes256CtrEncrypt(&aesctx, data, AES_ROUTINE_ENC_SIZE); */
+        
+        /* Reset vars */
+        memset(credential_ctr, 0, sizeof(credential_ctr));
         
         /* Post CTR encryption tasks */
         logic_encryption_post_ctr_tasks((data_length + AES256_CTR_LENGTH - 1)/AES256_CTR_LENGTH);    
