@@ -11,12 +11,12 @@
 #include "defines.h"
 
 /* Defines */
-#define CTR_FLASH_MIN_INCR  64
+#define CTR_FLASH_MIN_INCR  32
 
 /* Prototypes */
 void logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length);
 void logic_encryption_post_ctr_tasks(uint16_t ctr_inc);
-void logic_encryption_pre_ctr_tasks(void);
+void logic_encryption_pre_ctr_tasks(uint16_t ctr_inc);
 void logic_encryption_init_context(void);
 
 

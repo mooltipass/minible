@@ -163,6 +163,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 }
                 else
                 {
+                    send_msg->payload_length = payload_length;
                     return payload_length;
                 }                
             } 
@@ -191,6 +192,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 }
                 else
                 {
+                    send_msg->payload_length = payload_length;
                     return payload_length;
                 }
             }
