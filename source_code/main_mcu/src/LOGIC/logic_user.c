@@ -89,15 +89,22 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, BOOL use_pro
     {
         return RETURN_NOK;
     }
-    memset(temp_buffer, 0, sizeof(temp_buffer));
     
-    // TODO: Initialize encryption handling
-    //initEncryptionHandling(temp_buffer, temp_nonce);
+    /* AES key written, write down user profile. Will return OK as we've done the availability check before */
+    custom_fs_store_cpz_entry(&user_profile, new_user_id);
+    
+    /* Initialize encryption context */
+    cpz_lut_entry_t* cpz_stored_entry;
+    custom_fs_get_cpz_lut_entry(user_profile.cards_cpz, &cpz_stored_entry);
+    logic_encryption_init_context(temp_buffer, cpz_stored_entry);
+    
+    /* Erase AES key from memory */    
+    memset(temp_buffer, 0, sizeof(temp_buffer));
     
     // Write new pin code
     smartcard_highlevel_write_security_code(pin_code);
     
-    return custom_fs_store_cpz_entry(&user_profile, new_user_id);
+    return RETURN_OK;
 }
 
 /*! \fn     logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
