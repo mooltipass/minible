@@ -25,7 +25,6 @@
 void logic_user_init_context(uint8_t user_id)
 {
     nodemgmt_init_context(user_id);
-    logic_encryption_init_context();
 }
 
 /*! \fn     logic_user_create_new_user(volatile uint16_t* pin_code, BOOL use_provisioned_key, volatile uint8_t* aes_key)

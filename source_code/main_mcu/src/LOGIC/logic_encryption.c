@@ -5,9 +5,14 @@
 */
 #include <string.h>
 #include "logic_encryption.h"
+#include "custom_fs.h"
 #include "nodemgmt.h"
 // Next CTR value for our AES encryption
 uint8_t logic_encryption_next_ctr_val[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
+// Current user card AES key
+uint8_t logic_encryption_cur_aes_key[AES_KEY_LENGTH/8];
+// Current user CPZ user entry
+cpz_lut_entry_t* logic_encryption_cur_cpz_entry;
 
 
 /*! \fn     logic_encryption_ctr_array_to_uint32(uint8_t* array)
@@ -21,12 +26,35 @@ static inline uint32_t logic_encryption_ctr_array_to_uint32(uint8_t* array)
     return (((uint32_t)array[2]) << 0) | (((uint32_t)array[1]) << 8) | (((uint32_t)array[0]) << 16);
 }
 
-/*! \fn     logic_encryption_init_context(void)
-*   \brief  Init encryption context for current user
+/*! \fn     logic_encryption_add_vector_to_other(uint8_t* destination, uint8_t* source, uint16_t vector_length)
+*   \brief  Add two vectors together
+*   \param  destination     Array, which will also contain the result
+*   \param  source          The other array
+*   \param  vector_length   Vectors length
+*   \note   MSB is at [0]
 */
-void logic_encryption_init_context(void)
+void logic_encryption_add_vector_to_other(uint8_t* destination, uint8_t* source, uint16_t vector_length)
 {
-    nodemgmt_read_profile_ctr((void*)logic_encryption_next_ctr_val);    
+    uint16_t carry = 0;
+    
+    for (uint16_t i = vector_length-1; i >= 0; i--)
+    {
+        carry = ((uint16_t)destination[i]) + ((uint16_t)source[i]) + carry;
+        destination[i] = (uint8_t)(carry);
+        carry = (carry >> 8) & 0x00FF;
+    }    
+}
+
+/*! \fn     logic_encryption_init_context(uint8_t* card_aes_key, cpz_lut_entry_t* cpz_user_entry)
+*   \brief  Init encryption context for current user
+*   \param  card_aes_key    AES key stored on user card
+*   \param  cpz_user_entry  Pointer to memory persistent cpz entry
+*/
+void logic_encryption_init_context(uint8_t* card_aes_key, cpz_lut_entry_t* cpz_user_entry)
+{
+    memcpy(logic_encryption_cur_aes_key, card_aes_key, sizeof(logic_encryption_cur_aes_key));
+    nodemgmt_read_profile_ctr((void*)logic_encryption_next_ctr_val);
+    logic_encryption_cur_cpz_entry = cpz_user_entry;    
 }
 
 /*! \fn     logic_encryption_pre_ctr_tasks(void)
@@ -75,9 +103,13 @@ void logic_encryption_post_ctr_tasks(uint16_t ctr_inc)
 *   \param  data_length Data length
 */
 void logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length)
-{        
+{
+        uint8_t credential_ctr[AES256_CTR_LENGTH/8];
+        
         /* Pre CTR encryption tasks */
         logic_encryption_pre_ctr_tasks((data_length + AES256_CTR_LENGTH - 1)/AES256_CTR_LENGTH);
+        
+        //logic_encryption_add_vector_to_other()
         
         /*
         memcpy((void*)temp_buffer, (void*)current_nonce, AES256_CTR_LENGTH);

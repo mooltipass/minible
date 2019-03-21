@@ -3,8 +3,10 @@
 *    Created:  16/02/2019
 *    Author:   Mathieu Stephan
 */
+#include <string.h>
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
+#include "logic_encryption.h"
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
 #include "logic_security.h"
@@ -207,8 +209,13 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag)
 
             /* Init user flash context and encryption handling, set smartcard unlocked flag */             
             logic_user_init_context(cpz_user_entry->user_id);
-            //initEncryptionHandling(temp_buffer, temp_ctr_val);
+            logic_encryption_init_context(temp_buffer, cpz_user_entry);
             logic_security_smartcard_unlocked_actions();
+            
+            /* Clear temp vars */
+            memset((void*)temp_buffer, 0, sizeof(temp_buffer));
+            
+            /* Return success */
             return RETURN_VCARD_OK;
         }
         else
