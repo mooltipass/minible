@@ -37,7 +37,7 @@ void logic_encryption_add_vector_to_other(uint8_t* destination, uint8_t* source,
 {
     uint16_t carry = 0;
     
-    for (uint16_t i = vector_length-1; i >= 0; i--)
+    for (int16_t i = vector_length-1; i >= 0; i--)
     {
         carry = ((uint16_t)destination[i]) + ((uint16_t)source[i]) + carry;
         destination[i] = (uint8_t)(carry);
@@ -52,6 +52,7 @@ void logic_encryption_add_vector_to_other(uint8_t* destination, uint8_t* source,
 */
 void logic_encryption_init_context(uint8_t* card_aes_key, cpz_lut_entry_t* cpz_user_entry)
 {
+    // TODO: in case this is a fleet managed device, decrypt the main AES key
     memcpy(logic_encryption_cur_aes_key, card_aes_key, sizeof(logic_encryption_cur_aes_key));
     nodemgmt_read_profile_ctr((void*)logic_encryption_next_ctr_val);
     logic_encryption_cur_cpz_entry = cpz_user_entry;    
@@ -89,7 +90,7 @@ void logic_encryption_pre_ctr_tasks(uint16_t ctr_inc)
 */
 void logic_encryption_post_ctr_tasks(uint16_t ctr_inc)
 {
-    for (uint16_t i = sizeof(logic_encryption_next_ctr_val)-1; i >= 0; i--)
+    for (int16_t i = sizeof(logic_encryption_next_ctr_val)-1; i >= 0; i--)
     {
         ctr_inc = ((uint16_t)logic_encryption_next_ctr_val[i]) + ctr_inc;
         logic_encryption_next_ctr_val[i] = (uint8_t)(ctr_inc);

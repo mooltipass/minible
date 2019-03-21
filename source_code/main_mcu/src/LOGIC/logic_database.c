@@ -314,7 +314,7 @@ uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, h
     /* Password field */
     send_msg->get_credential_answer.password_index = current_index;
     memcpy(&(send_msg->get_credential_answer.concatenated_strings[current_index]), temp_cnode.password, sizeof(temp_cnode.password));
-    current_index += sizeof(temp_cnode.password)/sizeof(cust_char_t);
+    current_index += (sizeof(temp_cnode.password)/sizeof(cust_char_t)) + 1;
     
     return current_index*sizeof(cust_char_t) + sizeof(send_msg->get_credential_answer.login_name_index) + sizeof(send_msg->get_credential_answer.description_index) + sizeof(send_msg->get_credential_answer.third_field_index) + sizeof(send_msg->get_credential_answer.password_index);
 }
