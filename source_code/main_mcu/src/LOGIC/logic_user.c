@@ -170,8 +170,6 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
         }
     }
     
-    // TODO: encryption here if needed
-    
     /* Fill RNG array with random numbers */
     rng_fill_array((uint8_t*)encrypted_password, sizeof(encrypted_password));
     
@@ -213,6 +211,8 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
 */
 int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_message_t* send_msg)
 {
+    uint8_t temp_cred_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
+    
     /* Smartcard present and unlocked? */
     if (logic_security_is_smc_inserted_unlocked() != RETURN_OK)
     {
@@ -252,7 +252,7 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
         }       
         
         /* Get prefilled message */
-        uint16_t return_payload_size = logic_database_fill_get_cred_message_answer(child_address, send_msg);
+        uint16_t return_payload_size = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr);
         
         /* Prepare prompt message */
         cust_char_t* three_line_prompt_2;
@@ -271,7 +271,8 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
         }
         
         /* User approved, decrypt password */
-        // TODO
+        // TODO: check for all or new ctr xor/add style
+        logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password));
         
         /* Return payload size */
         send_msg->payload_length = return_payload_size;

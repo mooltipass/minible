@@ -99,7 +99,7 @@ void logic_encryption_post_ctr_tasks(uint16_t ctr_inc)
     }    
 }
 
-/*! \fn     logic_encryption_ctr_encrypt(void)
+/*! \fn     logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length)
 *   \brief  Encrypt data using next available CTR value
 *   \param  data        Pointer to data
 *   \param  data_length Data length
@@ -123,4 +123,25 @@ void logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length)
         
         /* Post CTR encryption tasks */
        logic_encryption_post_ctr_tasks((data_length + AES256_CTR_LENGTH - 1)/AES256_CTR_LENGTH);    
+}
+
+/*! \fn     logic_encryption_ctr_decrypt(uint8_t* data, uint8_t* cred_ctr, uint16_t data_length);
+*   \brief  Decrypt data using provided ctr value
+*   \param  data        Pointer to data
+*   \param  cred_ctr    Credential CTR
+*   \param  data_length Data length
+*/
+void logic_encryption_ctr_decrypt(uint8_t* data, uint8_t* cred_ctr, uint16_t data_length)
+{
+    uint8_t credential_ctr[AES256_CTR_LENGTH/8];
+    
+    /* Construct CTR for this encryption */
+    memcpy(credential_ctr, logic_encryption_cur_cpz_entry->nonce, sizeof(credential_ctr));
+    logic_encryption_add_vector_to_other(credential_ctr + (sizeof(credential_ctr) - sizeof(logic_encryption_next_ctr_val)), cred_ctr, sizeof(logic_encryption_next_ctr_val));
+    
+    /* Decrypt data */
+    br_aes_ct_ctrcbc_ctr(&logic_encryption_cur_aes_context, (void*)credential_ctr, (void*)data, data_length);
+    
+    /* Reset vars */
+    memset(credential_ctr, 0, sizeof(credential_ctr));  
 }

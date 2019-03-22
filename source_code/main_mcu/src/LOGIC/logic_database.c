@@ -270,13 +270,14 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
     return nodemgmt_create_child_node(service_addr, &temp_cnode, &storage_addr);
 }
 
-/*! \fn     logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg)
+/*! \fn     logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr)
 *   \brief  Fill a get cred message packet
 *   \param  child_node_addr Child node address
 *   \param  send_msg        Pointer to send message
+*   \param  cred_ctr        Where to store credential CTR
 *   \return Payload size
 */
-uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg)
+uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr)
 {
     child_cred_node_t temp_cnode;    
     uint16_t current_index = 0;
@@ -315,6 +316,9 @@ uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, h
     send_msg->get_credential_answer.password_index = current_index;
     memcpy(&(send_msg->get_credential_answer.concatenated_strings[current_index]), temp_cnode.password, sizeof(temp_cnode.password));
     current_index += (sizeof(temp_cnode.password)/sizeof(cust_char_t)) + 1;
+    
+    /* Copy CTR */
+    memcpy(cred_ctr, temp_cnode.ctr, sizeof(temp_cnode.ctr));
     
     return current_index*sizeof(cust_char_t) + sizeof(send_msg->get_credential_answer.login_name_index) + sizeof(send_msg->get_credential_answer.description_index) + sizeof(send_msg->get_credential_answer.third_field_index) + sizeof(send_msg->get_credential_answer.password_index);
 }
