@@ -275,7 +275,7 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
 *   \param  child_node_addr Child node address
 *   \param  send_msg        Pointer to send message
 *   \param  cred_ctr        Where to store credential CTR
-*   \return Payload size
+*   \return Payload size without pwd
 */
 uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr)
 {
@@ -315,7 +315,6 @@ uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, h
     /* Password field */
     send_msg->get_credential_answer.password_index = current_index;
     memcpy(&(send_msg->get_credential_answer.concatenated_strings[current_index]), temp_cnode.password, sizeof(temp_cnode.password));
-    current_index += (sizeof(temp_cnode.password)/sizeof(cust_char_t)) + 1;
     
     /* Copy CTR */
     memcpy(cred_ctr, temp_cnode.ctr, sizeof(temp_cnode.ctr));

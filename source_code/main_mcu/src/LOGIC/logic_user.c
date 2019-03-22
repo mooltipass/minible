@@ -252,7 +252,7 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
         }       
         
         /* Get prefilled message */
-        uint16_t return_payload_size = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr);
+        uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr);
         
         /* Prepare prompt message */
         cust_char_t* three_line_prompt_2;
@@ -273,6 +273,15 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
         /* User approved, decrypt password */
         // TODO: check for all or new ctr xor/add style
         logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password));
+        
+        /* 0 terminate password */
+        send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index + (MEMBER_SIZE(child_cred_node_t, password)/sizeof(cust_char_t)) - 1] = 0;
+                
+        /* Get password length */
+        uint16_t pwd_length = utils_strlen(&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]));
+        
+        /* COmpute payload size */
+        uint16_t return_payload_size = return_payload_size_without_pwd + pwd_length + 1;
         
         /* Return payload size */
         send_msg->payload_length = return_payload_size;
