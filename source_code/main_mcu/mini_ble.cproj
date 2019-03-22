@@ -313,7 +313,16 @@
     <Compile Include="src\BearSSL\src\inner.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\BearSSL\src\symcipher\aes_ct.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\BearSSL\src\symcipher\aes_ct_ctr.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\symcipher\aes_ct_ctrcbc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\symcipher\aes_ct_enc.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\CLOCKS\driver_clocks.c">

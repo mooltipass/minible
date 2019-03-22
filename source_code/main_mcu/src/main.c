@@ -4,6 +4,7 @@
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
 #include "platform_defines.h"
+#include "logic_encryption.h"
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
 #include "logic_aux_mcu.h"

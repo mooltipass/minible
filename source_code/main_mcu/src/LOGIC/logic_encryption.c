@@ -5,12 +5,13 @@
 */
 #include <string.h>
 #include "logic_encryption.h"
+#include "bearssl_block.h"
 #include "custom_fs.h"
 #include "nodemgmt.h"
 // Next CTR value for our AES encryption
 uint8_t logic_encryption_next_ctr_val[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
-// Current user card AES key
-uint8_t logic_encryption_cur_aes_key[AES_KEY_LENGTH/8];
+// Current encryption context */
+br_aes_ct_ctrcbc_keys logic_encryption_cur_aes_context;
 // Current user CPZ user entry
 cpz_lut_entry_t* logic_encryption_cur_cpz_entry;
 
@@ -53,7 +54,7 @@ void logic_encryption_add_vector_to_other(uint8_t* destination, uint8_t* source,
 void logic_encryption_init_context(uint8_t* card_aes_key, cpz_lut_entry_t* cpz_user_entry)
 {
     // TODO: in case this is a fleet managed device, decrypt the main AES key
-    memcpy(logic_encryption_cur_aes_key, card_aes_key, sizeof(logic_encryption_cur_aes_key));
+    br_aes_ct_ctrcbc_init(&logic_encryption_cur_aes_context, card_aes_key, AES_KEY_LENGTH/8);
     nodemgmt_read_profile_ctr((void*)logic_encryption_next_ctr_val);
     logic_encryption_cur_cpz_entry = cpz_user_entry;    
 }
@@ -114,15 +115,12 @@ void logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length)
         memcpy(credential_ctr, logic_encryption_cur_cpz_entry->nonce, sizeof(credential_ctr));
         logic_encryption_add_vector_to_other(credential_ctr + (sizeof(credential_ctr) - sizeof(logic_encryption_next_ctr_val)), logic_encryption_next_ctr_val, sizeof(logic_encryption_next_ctr_val));
         
-        /* Encrypt data
-        memcpy((void*)temp_buffer, (void*)current_nonce, AES256_CTR_LENGTH);
-        aesXorVectors(temp_buffer + (AES256_CTR_LENGTH-USER_CTR_SIZE), nextCtrVal, USER_CTR_SIZE);
-        aes256CtrSetIv(&aesctx, temp_buffer, AES256_CTR_LENGTH);
-        aes256CtrEncrypt(&aesctx, data, AES_ROUTINE_ENC_SIZE); */
+        /* Encrypt data */        
+        br_aes_ct_ctrcbc_ctr(&logic_encryption_cur_aes_context, (void*)credential_ctr, (void*)data, data_length);
         
         /* Reset vars */
         memset(credential_ctr, 0, sizeof(credential_ctr));
         
         /* Post CTR encryption tasks */
-        logic_encryption_post_ctr_tasks((data_length + AES256_CTR_LENGTH - 1)/AES256_CTR_LENGTH);    
+       logic_encryption_post_ctr_tasks((data_length + AES256_CTR_LENGTH - 1)/AES256_CTR_LENGTH);    
 }
