@@ -239,6 +239,22 @@
       <Value>BOARD=USER_BOARD</Value>
       <Value>ARM_MATH_CM0PLUS=true</Value>
       <Value>__CORTEX_SC=0</Value>
+      <Value>BR_ARMEL_CORTEXM_GCC=1</Value>
+      <Value>BR_amd64=0</Value>
+      <Value>BR_BE_UNALIGNED=0</Value>
+      <Value>BR_CT_MUL15=0</Value>
+      <Value>BR_ENABLE_INTRINSICS=0</Value>
+      <Value>BR_CT_MUL31=0</Value>
+      <Value>BR_i386=0</Value>
+      <Value>BR_LE_UNALIGNED=0</Value>
+      <Value>BR_NO_ARITH_SHIFT=0</Value>
+      <Value>BR_POWER_ASM_MACROS=0</Value>
+      <Value>_ARCH_PWR8=0</Value>
+      <Value>_MSC_VER=0</Value>
+      <Value>_M_IX86=0</Value>
+      <Value>_M_X64=0</Value>
+      <Value>__clang__=0</Value>
+      <Value>BR_POWER8=0</Value>
       <Value>NDEBUG</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
@@ -380,6 +396,26 @@
       <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
     </ListValues>
   </armgcc.preprocessingassembler.general.IncludePaths>
+  <armgcc.preprocessingassembler.symbols.DefSymbols>
+    <ListValues>
+      <Value>BR_ARMEL_CORTEXM_GCC=1</Value>
+      <Value>BR_amd64=0</Value>
+      <Value>BR_BE_UNALIGNED=0</Value>
+      <Value>BR_CT_MUL15=0</Value>
+      <Value>BR_ENABLE_INTRINSICS=0</Value>
+      <Value>BR_CT_MUL31=0</Value>
+      <Value>BR_i386=0</Value>
+      <Value>BR_LE_UNALIGNED=0</Value>
+      <Value>BR_NO_ARITH_SHIFT=0</Value>
+      <Value>BR_POWER8=0</Value>
+      <Value>BR_POWER_ASM_MACROS=0</Value>
+      <Value>_ARCH_PWR8=0</Value>
+      <Value>_MSC_VER=0</Value>
+      <Value>_M_IX86=0</Value>
+      <Value>_M_X64=0</Value>
+      <Value>__clang__=0</Value>
+    </ListValues>
+  </armgcc.preprocessingassembler.symbols.DefSymbols>
 </ArmGcc>
     </ToolchainSettings>
   </PropertyGroup>
@@ -396,6 +432,22 @@
       <Value>BOARD=USER_BOARD</Value>
       <Value>ARM_MATH_CM0PLUS=true</Value>
       <Value>__CORTEX_SC=0</Value>
+      <Value>BR_ARMEL_CORTEXM_GCC=1</Value>
+      <Value>BR_amd64=0</Value>
+      <Value>BR_BE_UNALIGNED=0</Value>
+      <Value>BR_CT_MUL15=0</Value>
+      <Value>BR_ENABLE_INTRINSICS=0</Value>
+      <Value>BR_CT_MUL31=0</Value>
+      <Value>BR_i386=0</Value>
+      <Value>BR_LE_UNALIGNED=0</Value>
+      <Value>BR_NO_ARITH_SHIFT=0</Value>
+      <Value>BR_POWER_ASM_MACROS=0</Value>
+      <Value>_ARCH_PWR8=0</Value>
+      <Value>_MSC_VER=0</Value>
+      <Value>_M_IX86=0</Value>
+      <Value>_M_X64=0</Value>
+      <Value>__clang__=0</Value>
+      <Value>BR_POWER8=0</Value>
       <Value>DEBUG</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
@@ -539,6 +591,26 @@
       <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
     </ListValues>
   </armgcc.preprocessingassembler.general.IncludePaths>
+  <armgcc.preprocessingassembler.symbols.DefSymbols>
+    <ListValues>
+      <Value>BR_ARMEL_CORTEXM_GCC=1</Value>
+      <Value>BR_amd64=0</Value>
+      <Value>BR_BE_UNALIGNED=0</Value>
+      <Value>BR_CT_MUL15=0</Value>
+      <Value>BR_ENABLE_INTRINSICS=0</Value>
+      <Value>BR_CT_MUL31=0</Value>
+      <Value>BR_i386=0</Value>
+      <Value>BR_LE_UNALIGNED=0</Value>
+      <Value>BR_NO_ARITH_SHIFT=0</Value>
+      <Value>BR_POWER8=0</Value>
+      <Value>BR_POWER_ASM_MACROS=0</Value>
+      <Value>_ARCH_PWR8=0</Value>
+      <Value>_MSC_VER=0</Value>
+      <Value>_M_IX86=0</Value>
+      <Value>_M_X64=0</Value>
+      <Value>__clang__=0</Value>
+    </ListValues>
+  </armgcc.preprocessingassembler.symbols.DefSymbols>
   <armgcc.preprocessingassembler.debugging.DebugLevel>Default (-Wa,-g)</armgcc.preprocessingassembler.debugging.DebugLevel>
 </ArmGcc>
     </ToolchainSettings>
