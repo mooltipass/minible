@@ -212,6 +212,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
 int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_message_t* send_msg)
 {
     uint8_t temp_cred_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
+    BOOL prev_gen_credential_flag = FALSE;
     
     /* Smartcard present and unlocked? */
     if (logic_security_is_smc_inserted_unlocked() != RETURN_OK)
@@ -252,7 +253,7 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
         }       
         
         /* Get prefilled message */
-        uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr);
+        uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr, &prev_gen_credential_flag);
         
         /* Prepare prompt message */
         cust_char_t* three_line_prompt_2;
@@ -271,11 +272,17 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
         }
         
         /* User approved, decrypt password */
-        // TODO: check for all or new ctr xor/add style
-        logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password));
+        logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
         
         /* 0 terminate password */
         send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index + (MEMBER_SIZE(child_cred_node_t, password)/sizeof(cust_char_t)) - 1] = 0;
+        
+        /* If old generation password, convert it to unicode */
+        if (prev_gen_credential_flag != FALSE)
+        {
+            _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
+            utils_ascii_to_unicode((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+        }
                 
         /* Get password length */
         uint16_t pwd_length = utils_strlen(&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]));

@@ -94,6 +94,20 @@ int16_t utils_custchar_strncmp(cust_char_t* f_string, cust_char_t* sec_string, u
     return 0;
 }
 
+/*! \fn     utils_ascii_to_unicode(uint8_t* string, uint16_t nb_chars)
+*   \brief  Convert ascii string to unicode
+*   \param  string      The string
+*   \param  nb_chars    String length
+*/
+void utils_ascii_to_unicode(uint8_t* string, uint16_t nb_chars)
+{
+    for (int16_t i = nb_chars - 1; i >= 0; i--)
+    {
+        string[i*2] = 0;
+        string[i*2 + 1] = string[i];
+    }
+}
+
 /*! \fn     utils_check_value_for_range(uint16_t val, uint16_t min, uint16_t max)
 *   \brief  Make sure a given value is within a range
 *   \param  val     The value to check

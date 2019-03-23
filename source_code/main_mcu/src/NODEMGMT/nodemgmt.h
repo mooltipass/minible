@@ -12,6 +12,9 @@
 
 /* Typedefs */
 typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DATA = 2, NODE_TYPE_DATA = 3} node_type_te;
+    
+/* Old gen defines */
+#define NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH           32
 
 /* Defines */
 #define NODE_ADDR_NULL                              0x0000
@@ -26,6 +29,7 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODEMGMT_VALID_BIT_MASK_FINAL               0x0001
 #define NODEMGMT_CORRECT_FLAGS_BIT_BITSHIFT         5
 #define NODEMGMT_CORRECT_FLAGS_BIT_BITMASK_FINAL    0x0001
+#define NODEMGMT_PREVGEN_BIT_BITMASK                0x0010
 #define NODEMGMT_YEAR_SHT                           9
 #define NODEMGMT_YEAR_MASK                          0xFE00
 #define NODEMGMT_YEAR_MASK_FINAL                    0x007F

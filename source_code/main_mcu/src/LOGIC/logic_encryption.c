@@ -46,6 +46,20 @@ void logic_encryption_add_vector_to_other(uint8_t* destination, uint8_t* source,
     }    
 }
 
+/*! \fn     logic_encryption_xor_vector_to_other(uint8_t* destination, uint8_t* source, uint16_t vector_length)
+*   \brief  XOR two vectors together
+*   \param  destination     Array, which will also contain the result
+*   \param  source          The other array
+*   \param  vector_length   Vectors length
+*/
+void logic_encryption_xor_vector_to_other(uint8_t* destination, uint8_t* source, uint16_t vector_length)
+{    
+    for (int16_t i = vector_length-1; i >= 0; i--)
+    {
+        destination[i] = destination[i] ^ source[i];
+    }    
+}
+
 /*! \fn     logic_encryption_init_context(uint8_t* card_aes_key, cpz_lut_entry_t* cpz_user_entry)
 *   \brief  Init encryption context for current user
 *   \param  card_aes_key    AES key stored on user card
@@ -125,19 +139,27 @@ void logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length)
        logic_encryption_post_ctr_tasks((data_length + AES256_CTR_LENGTH - 1)/AES256_CTR_LENGTH);    
 }
 
-/*! \fn     logic_encryption_ctr_decrypt(uint8_t* data, uint8_t* cred_ctr, uint16_t data_length);
+/*! \fn     logic_encryption_ctr_decrypt(uint8_t* data, uint8_t* cred_ctr, uint16_t data_length, BOOL old_gen_decrypt)
 *   \brief  Decrypt data using provided ctr value
-*   \param  data        Pointer to data
-*   \param  cred_ctr    Credential CTR
-*   \param  data_length Data length
+*   \param  data                Pointer to data
+*   \param  cred_ctr            Credential CTR
+*   \param  data_length         Data length
+*   \param  old_gen_decrypt     Set to TRUE when decrypting original mini password
 */
-void logic_encryption_ctr_decrypt(uint8_t* data, uint8_t* cred_ctr, uint16_t data_length)
+void logic_encryption_ctr_decrypt(uint8_t* data, uint8_t* cred_ctr, uint16_t data_length, BOOL old_gen_decrypt)
 {
     uint8_t credential_ctr[AES256_CTR_LENGTH/8];
     
     /* Construct CTR for this encryption */
     memcpy(credential_ctr, logic_encryption_cur_cpz_entry->nonce, sizeof(credential_ctr));
-    logic_encryption_add_vector_to_other(credential_ctr + (sizeof(credential_ctr) - sizeof(logic_encryption_next_ctr_val)), cred_ctr, sizeof(logic_encryption_next_ctr_val));
+    if (old_gen_decrypt == FALSE)
+    {
+        logic_encryption_add_vector_to_other(credential_ctr + (sizeof(credential_ctr) - sizeof(logic_encryption_next_ctr_val)), cred_ctr, sizeof(logic_encryption_next_ctr_val));
+    } 
+    else
+    {
+        logic_encryption_xor_vector_to_other(credential_ctr + (sizeof(credential_ctr) - sizeof(logic_encryption_next_ctr_val)), cred_ctr, sizeof(logic_encryption_next_ctr_val));
+    }
     
     /* Decrypt data */
     br_aes_ct_ctrcbc_ctr(&logic_encryption_cur_aes_context, (void*)credential_ctr, (void*)data, data_length);

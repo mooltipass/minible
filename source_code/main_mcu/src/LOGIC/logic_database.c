@@ -270,14 +270,15 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
     return nodemgmt_create_child_node(service_addr, &temp_cnode, &storage_addr);
 }
 
-/*! \fn     logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr)
+/*! \fn     logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag)
 *   \brief  Fill a get cred message packet
-*   \param  child_node_addr Child node address
-*   \param  send_msg        Pointer to send message
-*   \param  cred_ctr        Where to store credential CTR
+*   \param  child_node_addr             Child node address
+*   \param  send_msg                    Pointer to send message
+*   \param  cred_ctr                    Where to store credential CTR
+*   \param  prev_gen_credential_flag    Where to store flag for previous gen cred
 *   \return Payload size without pwd
 */
-uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr)
+uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag)
 {
     child_cred_node_t temp_cnode;    
     uint16_t current_index = 0;
@@ -318,6 +319,16 @@ uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, h
     
     /* Copy CTR */
     memcpy(cred_ctr, temp_cnode.ctr, sizeof(temp_cnode.ctr));
+    
+    /* Set prev gen bool */
+    if ((temp_cnode.flags & NODEMGMT_PREVGEN_BIT_BITMASK) != 0)
+    {
+        *prev_gen_credential_flag = TRUE;
+    } 
+    else
+    {
+        *prev_gen_credential_flag = FALSE;
+    }
     
     return current_index*sizeof(cust_char_t) + sizeof(send_msg->get_credential_answer.login_name_index) + sizeof(send_msg->get_credential_answer.description_index) + sizeof(send_msg->get_credential_answer.third_field_index) + sizeof(send_msg->get_credential_answer.password_index);
 }
