@@ -73,6 +73,15 @@ void logic_encryption_init_context(uint8_t* card_aes_key, cpz_lut_entry_t* cpz_u
     logic_encryption_cur_cpz_entry = cpz_user_entry;    
 }
 
+/*! \fn     logic_encryption_delete_context(void)
+*   \brief  Delete encryption context
+*/
+void logic_encryption_delete_context(void)
+{
+    memset((void*)&logic_encryption_cur_aes_context, 0, sizeof(logic_encryption_cur_aes_context));
+    logic_encryption_cur_cpz_entry = 0;
+}
+
 /*! \fn     logic_encryption_pre_ctr_tasks(void)
 *   \brief  CTR pre encryption tasks
 *   \param  ctr_inc     By how much we are planning to increment ctr value

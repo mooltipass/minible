@@ -22,6 +22,7 @@ void logic_encryption_init_context(uint8_t* card_aes_key, cpz_lut_entry_t* cpz_u
 void logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length);
 void logic_encryption_post_ctr_tasks(uint16_t ctr_inc);
 void logic_encryption_pre_ctr_tasks(uint16_t ctr_inc);
+void logic_encryption_delete_context(void);
 
 
 #endif /* LOGIC_ENCRYPTION_H_ */

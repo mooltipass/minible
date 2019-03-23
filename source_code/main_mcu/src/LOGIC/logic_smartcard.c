@@ -50,18 +50,12 @@ RET_TYPE logic_smartcard_ask_for_new_pin(volatile uint16_t* new_pin, uint16_t me
 */
 void logic_smartcard_handle_removed(void)
 {
-    // TODO    
-    /*uint8_t temp_ctr_val[AES256_CTR_LENGTH];
-    uint8_t temp_buffer[AES_KEY_LENGTH/8];*/
-
     /* Remove power and flags */
     platform_io_smc_remove_function();
     logic_security_clear_security_bools();
     
-    // Clear encryption context
-    /*memset((void*)temp_buffer, 0, AES_KEY_LENGTH/8);
-    memset((void*)temp_ctr_val, 0, AES256_CTR_LENGTH);
-    initEncryptionHandling(temp_buffer, temp_ctr_val);*/
+    /* Delete encryption context */
+    logic_encryption_delete_context();
 }
 
 /*! \fn     logic_smartcard_handle_inserted(void)

@@ -14,6 +14,7 @@ BOOL logic_security_smartcard_inserted_unlocked = FALSE;
 */
 void logic_security_clear_security_bools(void)
 {
+    logic_security_smartcard_inserted_unlocked = FALSE;
     // TODO
     /*
     context_valid_flag = FALSE;
