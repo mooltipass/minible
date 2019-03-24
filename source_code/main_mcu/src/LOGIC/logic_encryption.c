@@ -150,17 +150,21 @@ void logic_encryption_post_ctr_tasks(uint16_t ctr_inc)
     }    
 }
 
-/*! \fn     logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length)
+/*! \fn     logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length, uint8_t* ctr_val_used)
 *   \brief  Encrypt data using next available CTR value
-*   \param  data        Pointer to data
-*   \param  data_length Data length
+*   \param  data            Pointer to data
+*   \param  data_length     Data length
+*   \param  ctr_val_used    Where to store the CTR value used
 */
-void logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length)
+void logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length, uint8_t* ctr_val_used)
 {
         uint8_t credential_ctr[AES256_CTR_LENGTH/8];
         
         /* Pre CTR encryption tasks */
         logic_encryption_pre_ctr_tasks((data_length + AES256_CTR_LENGTH - 1)/AES256_CTR_LENGTH);
+        
+        /* Copy CTR value used for that credential */
+        memcpy(ctr_val_used, logic_encryption_next_ctr_val, sizeof(logic_encryption_next_ctr_val));
         
         /* Construct CTR for this encryption */
         memcpy(credential_ctr, logic_encryption_cur_cpz_entry->nonce, sizeof(credential_ctr));

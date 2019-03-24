@@ -135,6 +135,7 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* pro
 RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
 {
     cust_char_t encrypted_password[MEMBER_SIZE(child_cred_node_t, password)/sizeof(cust_char_t)];
+    uint8_t temp_cred_ctr_val[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     
     /* Smartcard present and unlocked? */
     if (logic_security_is_smc_inserted_unlocked() != RETURN_OK)
@@ -192,11 +193,12 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     /* Password provided? */
     if (password != 0)
     {
-        /* Copy password into array */
+        /* Copy password into array, 0 terminate it */
         utils_strncpy(encrypted_password, password, sizeof(encrypted_password)/sizeof(cust_char_t));
+        encrypted_password[(sizeof(encrypted_password)/sizeof(cust_char_t))-1] = 0;
         
         /* CTR encrypt password */
-        logic_encryption_ctr_encrypt((uint8_t*)encrypted_password, sizeof(encrypted_password));
+        logic_encryption_ctr_encrypt((uint8_t*)encrypted_password, sizeof(encrypted_password), temp_cred_ctr_val);
     }
     
     /* Update existing login or create new one? */
@@ -204,17 +206,17 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     {
         if (password != 0)
         {
-            logic_database_update_credential(child_address, desc, third, (uint8_t*)encrypted_password);
+            logic_database_update_credential(child_address, desc, third, (uint8_t*)encrypted_password, temp_cred_ctr_val);
         } 
         else
         {
-            logic_database_update_credential(child_address, desc, third, 0);
+            logic_database_update_credential(child_address, desc, third, 0, 0);
         }
         return RETURN_OK;
     }
     else
     {
-        return logic_database_add_credential_for_service(parent_address, login, desc, third, (uint8_t*)encrypted_password);
+        return logic_database_add_credential_for_service(parent_address, login, desc, third, (uint8_t*)encrypted_password, temp_cred_ctr_val);
     }
 }
 
@@ -304,7 +306,7 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
         uint16_t pwd_length = utils_strlen(&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]));
         
         /* COmpute payload size */
-        uint16_t return_payload_size = return_payload_size_without_pwd + pwd_length + 1;
+        uint16_t return_payload_size = return_payload_size_without_pwd + (pwd_length + 1)*2;
         
         /* Return payload size */
         send_msg->payload_length = return_payload_size;

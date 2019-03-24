@@ -26,9 +26,16 @@ uint16_t utils_strlen(cust_char_t* string)
 */
 void utils_strncpy(cust_char_t* destination, cust_char_t* source, uint16_t max_chars)
 {
-    for (uint16_t i = 0; (i < max_chars) && (source[i] != 0); i++)
+    uint16_t i;
+    for (i = 0; (i < max_chars) && (source[i] != 0); i++)
     {
         destination[i] = source[i];
+    }
+    
+    /* Terminating 0 */
+    if (i < max_chars)
+    {
+        destination[i] = 0;
     }
 }
 
@@ -49,6 +56,7 @@ uint16_t utils_strcpy(cust_char_t* destination, cust_char_t* source)
         return_val++;
         source++;
     }
+    *destination = 0;
     
     return return_val;
 }

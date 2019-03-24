@@ -202,14 +202,15 @@ uint16_t logic_database_add_service(cust_char_t* service, service_type_te cred_t
     }
 }
 
-/*! \fn     logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cust_char_t* third, uint8_t* password)
+/*! \fn     logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr)
 *   \brief  Update existing credential
 *   \param  child_addr  Child address
 *   \param  desc        Pointer to description string, or 0 if not specified
 *   \param  third       Pointer to arbitrary third field, or 0 if not specified
 *   \param  password    Pointer to encrypted password, or 0 if not specified
+*   \param  ctr             CTR value
 */
-void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cust_char_t* third, uint8_t* password)
+void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr)
 {
     child_cred_node_t temp_cnode;
     
@@ -227,6 +228,7 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
     }
     if (password != 0)
     {
+        memcpy(temp_cnode.ctr, ctr, MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr));
         memcpy(temp_cnode.password, password, sizeof(temp_cnode.password));
     }
     
@@ -234,16 +236,17 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
     nodemgmt_write_child_node_block_to_flash(child_addr, (child_node_t*)&temp_cnode);
 }    
 
-/*! \fn     logic_database_add_credential_for_service(uint16_t service_addr, cust_char_t* login, cust_char_t* desc, cust_char_t* third, uint8_t* password)
+/*! \fn     logic_database_add_credential_for_service(uint16_t service_addr, cust_char_t* login, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr)
 *   \brief  Add a new credential for a given service to our database
 *   \param  service_addr    Service address
 *   \param  login           Pointer to login string
 *   \param  desc            Pointer to description string, or 0 if not specified
 *   \param  third           Pointer to arbitrary third field, or 0 if not specified
-*   \param  passwordPointer to encrypted password, or 0 if not specified
+*   \param  password        Pointer to encrypted password, or 0 if not specified
+*   \param  ctr             CTR value
 *   \return Success status
 */
-RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_char_t* login, cust_char_t* desc, cust_char_t* third, uint8_t* password)
+RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_char_t* login, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr)
 {
     uint16_t storage_addr = NODE_ADDR_NULL;
     child_cred_node_t temp_cnode;
@@ -263,6 +266,7 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
     }
     if (password != 0)
     {
+        memcpy(temp_cnode.ctr, ctr, MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr));
         memcpy(temp_cnode.password, password, sizeof(temp_cnode.password));
     }
 
