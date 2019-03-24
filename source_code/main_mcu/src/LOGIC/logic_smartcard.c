@@ -96,7 +96,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
             if (logic_smartcard_ask_for_new_pin(&pin_code, ID_STRING_NEW_CARD_PIN) == RETURN_OK)
             {
                 /* User entered twice the same PIN, card is still there */
-                if (logic_user_create_new_user(&pin_code, FALSE, (uint8_t*)0) == RETURN_OK)
+                if (logic_user_create_new_user(&pin_code, (uint8_t*)0) == RETURN_OK)
                 {
                     /* PINs match, new user added to memories */
                     gui_prompts_display_information_on_screen_and_wait(ID_STRING_NEW_USER_ADDED, DISP_MSG_INFO);

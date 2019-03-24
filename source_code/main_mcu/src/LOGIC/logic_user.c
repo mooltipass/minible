@@ -9,6 +9,7 @@
 #include "logic_security.h"
 #include "logic_database.h"
 #include "gui_dispatcher.h"
+#include "bearssl_block.h"
 #include "driver_timer.h"
 #include "gui_prompts.h"
 #include "logic_user.h"
@@ -27,14 +28,14 @@ void logic_user_init_context(uint8_t user_id)
     nodemgmt_init_context(user_id);
 }
 
-/*! \fn     logic_user_create_new_user(volatile uint16_t* pin_code, BOOL use_provisioned_key, volatile uint8_t* aes_key)
+/*! \fn     logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key)
 *   \brief  Add a new user with a new smart card
 *   \param  pin_code            The new pin code
-*   \param  use_provisioned_key BOOL to specify use of provisioned key
-*   \param  aes_key             In case of provisioned key, the aes key
+*   \param  provisioned_key     If different than 0, provisioned aes key
+*   \note   provisioned_key contents will be destroyed!
 *   \return success or not
 */
-ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, BOOL use_provisioned_key, uint8_t* aes_key)
+ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key)
 {    
     // When inserting a new user and a new card, we need to setup the following elements
     // - AES encryption key, stored in the smartcard
@@ -53,19 +54,6 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, BOOL use_pro
     /* Setup user profile in MCU Flash */
     cpz_lut_entry_t user_profile;
     user_profile.user_id = new_user_id;
-    
-    /* Use provisioned key? */
-    if (use_provisioned_key != FALSE)
-    {
-        user_profile.use_provisioned_key_flag = CUSTOM_FS_PROV_KEY_FLAG;
-        // TODO: change below to write encrypted key
-        memcpy(user_profile.provisioned_key, aes_key, sizeof(user_profile.provisioned_key));
-    }
-    else
-    {
-        user_profile.use_provisioned_key_flag = 0;
-        rng_fill_array(user_profile.provisioned_key, sizeof(user_profile.provisioned_key));
-    }
     
     /* Nonce & Cards CPZ: random numbers */
     rng_fill_array(user_profile.cards_cpz, sizeof(user_profile.cards_cpz));
@@ -90,7 +78,35 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, BOOL use_pro
         return RETURN_NOK;
     }
     
-    /* AES key written, write down user profile. Will return OK as we've done the availability check before */
+    /* Use provisioned key? */
+    if (provisioned_key != 0)
+    {        
+        /* Set flag in user profile */
+        user_profile.use_provisioned_key_flag = CUSTOM_FS_PROV_KEY_FLAG;
+        
+        /* Buffer for empty ctr */
+        uint8_t temp_ctr[AES256_CTR_LENGTH/8];
+        memset(temp_ctr, 0, sizeof(temp_ctr));    
+        
+        /* Use card AES key to encrypt provisioned key */
+        br_aes_ct_ctrcbc_keys temp_aes_context;
+        br_aes_ct_ctrcbc_init(&temp_aes_context, temp_buffer, AES_KEY_LENGTH/8);
+        br_aes_ct_ctrcbc_ctr(&temp_aes_context, (void*)temp_ctr, (void*)provisioned_key, AES_KEY_LENGTH/8);
+        
+        /* Store encrypted provisioned key in user profile */
+        memcpy(user_profile.provisioned_key, provisioned_key, AES_KEY_LENGTH/8);
+        
+        /* Cleanup */
+        memset((void*)&temp_aes_context, 0, sizeof(temp_aes_context));
+        memset(provisioned_key, 0, AES_KEY_LENGTH/8);
+    }
+    else
+    {
+        user_profile.use_provisioned_key_flag = 0;
+        rng_fill_array(user_profile.provisioned_key, sizeof(user_profile.provisioned_key));
+    }
+    
+    /* Write down user profile. Will return OK as we've done the availability check before */
     custom_fs_store_cpz_entry(&user_profile, new_user_id);
     
     /* Initialize encryption context */
