@@ -67,10 +67,38 @@ void logic_encryption_xor_vector_to_other(uint8_t* destination, uint8_t* source,
 */
 void logic_encryption_init_context(uint8_t* card_aes_key, cpz_lut_entry_t* cpz_user_entry)
 {
-    // TODO: in case this is a fleet managed device, decrypt the main AES key
-    br_aes_ct_ctrcbc_init(&logic_encryption_cur_aes_context, card_aes_key, AES_KEY_LENGTH/8);
-    nodemgmt_read_profile_ctr((void*)logic_encryption_next_ctr_val);
-    logic_encryption_cur_cpz_entry = cpz_user_entry;    
+    /* Store CPZ user entry */
+    logic_encryption_cur_cpz_entry = cpz_user_entry;
+    
+    /* Is this a fleet managed user account ? */
+    if (logic_encryption_cur_cpz_entry->use_provisioned_key_flag == CUSTOM_FS_PROV_KEY_FLAG)
+    {
+        uint8_t user_provisioned_key[AES_KEY_LENGTH/8];
+        uint8_t temp_ctr[AES256_CTR_LENGTH/8];
+        
+        /* Store provisioned key in our buffer */
+        memcpy(user_provisioned_key, logic_encryption_cur_cpz_entry->provisioned_key, sizeof(user_provisioned_key));
+        
+        /* Set IV to 0 */
+        memset(temp_ctr, 0, sizeof(temp_ctr));
+        
+        /* Use card AES key to decrypt flash-stored AES key */
+        br_aes_ct_ctrcbc_init(&logic_encryption_cur_aes_context, card_aes_key, AES_KEY_LENGTH/8);        
+        br_aes_ct_ctrcbc_ctr(&logic_encryption_cur_aes_context, (void*)temp_ctr, (void*)user_provisioned_key, sizeof(user_provisioned_key));
+        
+        /* Initialize encryption context */
+        br_aes_ct_ctrcbc_init(&logic_encryption_cur_aes_context, user_provisioned_key, AES_KEY_LENGTH/8);
+        nodemgmt_read_profile_ctr((void*)logic_encryption_next_ctr_val);
+        
+        /* Clear temp var */
+        memset(user_provisioned_key, 0, sizeof(user_provisioned_key));
+    } 
+    else
+    {
+        /* Default user account: use smartcard AES key */
+        br_aes_ct_ctrcbc_init(&logic_encryption_cur_aes_context, card_aes_key, AES_KEY_LENGTH/8);
+        nodemgmt_read_profile_ctr((void*)logic_encryption_next_ctr_val);
+    }
 }
 
 /*! \fn     logic_encryption_delete_context(void)
