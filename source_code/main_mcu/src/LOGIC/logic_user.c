@@ -306,7 +306,7 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
         uint16_t pwd_length = utils_strlen(&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]));
         
         /* COmpute payload size */
-        uint16_t return_payload_size = return_payload_size_without_pwd + (pwd_length + 1)*2;
+        uint16_t return_payload_size = return_payload_size_without_pwd + (pwd_length + 1)*sizeof(cust_char_t);
         
         /* Return payload size */
         send_msg->payload_length = return_payload_size;

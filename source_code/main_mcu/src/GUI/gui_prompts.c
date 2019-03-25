@@ -185,7 +185,14 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
     sh1122_allow_line_feed(&plat_oled_descriptor);
     sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
     sh1122_set_max_text_x(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X);
-    sh1122_put_centered_string(&plat_oled_descriptor, PIN_PROMPT_TEXT_Y, string_to_display, TRUE);
+    if (utils_get_nb_lines(string_to_display) == 1)
+    {
+        sh1122_put_centered_string(&plat_oled_descriptor, PIN_PROMPT_1LTEXT_Y, string_to_display, TRUE);
+    }
+    else
+    {
+        sh1122_put_centered_string(&plat_oled_descriptor, PIN_PROMPT_2LTEXT_Y, string_to_display, TRUE);        
+    }    
     sh1122_prevent_line_feed(&plat_oled_descriptor);
     sh1122_reset_max_text_x(&plat_oled_descriptor);
     

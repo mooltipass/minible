@@ -18,6 +18,25 @@ uint16_t utils_strlen(cust_char_t* string)
     return i;
 }
 
+/*! \fn     utils_get_nb_lines(const cust_char_t* string)
+*   \brief  Count number of lines in string
+*   \param  string      The string
+*   \return The number of lines
+*/
+uint16_t utils_get_nb_lines(const cust_char_t* string)
+{
+    uint16_t return_val = 1;
+    while (*string)
+    {
+        if (*string == '\r')
+        {
+            return_val++;
+        }
+        string++;
+    }
+    return return_val;
+}
+
 /*! \fn     utils_strncpy(cust_char_t* destination, cust_char_t* source, uint16_t max_chars)
 *   \brief  Our own version of strncpy
 *   \param  destination     Where to store

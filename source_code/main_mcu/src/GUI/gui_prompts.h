@@ -42,7 +42,8 @@
 // PIN prompt
 #define PIN_PROMPT_ARROW_MOV_LGTH       7
 #define PIN_PROMPT_MAX_TEXT_X           134
-#define PIN_PROMPT_TEXT_Y               23
+#define PIN_PROMPT_1LTEXT_Y             23
+#define PIN_PROMPT_2LTEXT_Y             12
 #define PIN_PROMPT_ARROW_HOR_ANIM_STEP  4
 #define PIN_PROMPT_DIGIT_X_OFFS         134
 #define PIN_PROMPT_DIGIT_X_ADJ          7

@@ -1743,14 +1743,20 @@ RET_TYPE sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, B
         return RETURN_NOK;
     }
     
-    if ((ch == '\n') && (oled_descriptor->line_feed_allowed != FALSE))
+    if (ch == '\n')
     {
-        oled_descriptor->cur_text_y += oled_descriptor->current_font_header.height;
-        oled_descriptor->cur_text_x = 0;
+        if (oled_descriptor->line_feed_allowed != FALSE)
+        {
+            oled_descriptor->cur_text_y += oled_descriptor->current_font_header.height;
+            oled_descriptor->cur_text_x = 0;            
+        }
     }
-    else if ((ch == '\r') && (oled_descriptor->carriage_return_allowed != FALSE))
+    else if (ch == '\r')
     {
-        oled_descriptor->cur_text_x = 0;
+        if (oled_descriptor->carriage_return_allowed != FALSE)
+        {
+            oled_descriptor->cur_text_x = 0;
+        }
     }
     else
     {
