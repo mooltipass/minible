@@ -200,6 +200,11 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
         /* CTR encrypt password */
         logic_encryption_ctr_encrypt((uint8_t*)encrypted_password, sizeof(encrypted_password), temp_cred_ctr_val);
     }
+    else if (child_address == NODE_ADDR_NULL)
+    {
+        /* New credential but password somehow not specified */
+        encrypted_password[0] = 0;
+    }
     
     /* Update existing login or create new one? */
     if (child_address != NODE_ADDR_NULL)
