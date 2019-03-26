@@ -49,6 +49,7 @@ void gui_dispatcher_set_current_screen(gui_screen_te screen, BOOL reset_states, 
 void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action);
 gui_screen_te gui_dispatcher_get_current_screen(void);
 void gui_dispatcher_get_back_to_current_screen(void);
+void gui_dispatcher_idle_call(void);
 void gui_dispatcher_main_loop(void);
 
 

@@ -91,6 +91,27 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
     }
 }
 
+/*! \fn     gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame_id, uint16_t* timer_timeout, display_message_te message_type)
+*   \brief  Display a single frame of the animation for a given message
+*   \param  frame_id        Pointer to the frame ID, function automatically increments and loops
+*   \param  timer_timeout   Pointer to a future animation timer value to setup after calling function
+*   \param  message_type    Message type (see enum)
+*/
+void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame_id, uint16_t* timer_timeout, display_message_te message_type)
+{
+    /* Display correct frame */
+    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+*frame_id, FALSE);
+    
+    /* Increment frame ID */
+    if ((*frame_id)++ == gui_prompts_notif_idle_anim_length[message_type]-1)
+    {
+        *frame_id = 0;
+    }
+    
+    /* Store new timeout */
+    *timer_timeout = 50;    
+}
+
 /*! \fn     gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type)
 *   \brief  Display text information on screen
 *   \param  string_id       String ID to display

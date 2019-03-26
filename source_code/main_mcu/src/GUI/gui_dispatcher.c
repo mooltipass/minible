@@ -17,6 +17,8 @@
 #include "main.h"
 // Current screen
 gui_screen_te gui_dispatcher_current_screen = GUI_SCREEN_INVALID;
+// Current idle animation frame ID
+uint16_t gui_dispatcher_current_idle_anim_frame_id = 0;
 
 
 /*! \fn     gui_dispatcher_get_current_screen(void)
@@ -37,6 +39,7 @@ void gui_dispatcher_set_current_screen(gui_screen_te screen, BOOL reset_states, 
 {
     /* Store transition, screen, call menu reset routine */
     plat_oled_descriptor.loaded_transition = transition;
+    gui_dispatcher_current_idle_anim_frame_id = 0;
     gui_dispatcher_current_screen = screen;    
     gui_menu_reset_selected_items(reset_states);
     
@@ -106,7 +109,7 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
             break;
         }
         case GUI_SCREEN_INSERTED_LCK:       break;
-        case GUI_SCREEN_INSERTED_INVALID:   break;
+        case GUI_SCREEN_INSERTED_INVALID:   break;        
         case GUI_SCREEN_INSERTED_UNKNOWN:   break;
         case GUI_SCREEN_MEMORY_MGMT:        break;
         case GUI_SCREEN_CATEGORIES:         break;
@@ -126,6 +129,51 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
     {
         gui_dispatcher_get_back_to_current_screen();
     }
+}
+
+/*! \fn     gui_dispatcher_idle_call(void)
+*   \brief  Called for idle actions
+*/
+void gui_dispatcher_idle_call(void)
+{
+    /* Temp uint16_t */
+    uint16_t temp_uint16;
+    
+    /* switch to let the compiler optimize instead of function pointer array */
+    switch (gui_dispatcher_current_screen)
+    {
+        case GUI_SCREEN_NINSERTED:          break;
+        case GUI_SCREEN_INSERTED_LCK:       break;
+        case GUI_SCREEN_INSERTED_INVALID:   {
+                                                if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+                                                {
+                                                    /* Display new animation frame bitmap, rearm timer with provided value */
+                                                    gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_ACTION);
+                                                    timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
+                                                }
+                                                break;
+                                            }
+        case GUI_SCREEN_INSERTED_UNKNOWN:   {
+                                                if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+                                                {
+                                                    /* Display new animation frame bitmap, rearm timer with provided value */
+                                                    gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_INFO);
+                                                    timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
+                                                }
+                                                break;
+                                            }
+        case GUI_SCREEN_MEMORY_MGMT:        break;
+        case GUI_SCREEN_CATEGORIES:         break;
+        case GUI_SCREEN_FAVORITES:          break;
+        case GUI_SCREEN_LOGIN:              break;
+        case GUI_SCREEN_LOCK:               break;
+        /* Common menu architecture */
+        case GUI_SCREEN_MAIN_MENU:
+        case GUI_SCREEN_BT:
+        case GUI_SCREEN_OPERATIONS:
+        case GUI_SCREEN_SETTINGS:           break;
+        default: break;
+    }    
 }
 
 /*! \fn     gui_dispatcher_main_loop(void)
@@ -158,8 +206,15 @@ void gui_dispatcher_main_loop(void)
     }
     
     // Run main GUI screen loop if there was an action. TODO: screen saver
-    if ((user_action != WHEEL_ACTION_NONE) && (((is_screen_on_copy != FALSE) && (TRUE /* screen saver place holder */)) || (gui_dispatcher_current_screen == GUI_SCREEN_INSERTED_LCK)))    
+    if (((is_screen_on_copy != FALSE) && (TRUE /* screen saver place holder */)) || (gui_dispatcher_current_screen == GUI_SCREEN_INSERTED_LCK))
     {
-        gui_dispatcher_event_dispatch(user_action);
+        if (user_action != WHEEL_ACTION_NONE)
+        {
+            gui_dispatcher_event_dispatch(user_action);            
+        }
+        else
+        {
+            gui_dispatcher_idle_call();
+        }
     }
 }
