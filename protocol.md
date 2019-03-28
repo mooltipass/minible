@@ -61,7 +61,7 @@ Device answer:
 | 12->15 | Platform serial number |
 | 16->17 | DB memory size |
 
-Tested status: NOT tested
+Tested status: tested
 
 
 0x0004: Set Current Date
@@ -118,7 +118,7 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x0005   | 1 | 0x01 or 0x00 (success or fail) |
 
-Tested status: NOT tested
+Tested status: tested
 
 
 0x0007: Get Credential
@@ -146,7 +146,7 @@ Device Answer:
 | 10->11 | index to the password |
 | 12->xxx | all above 0 terminated fields concatenated |
 
-Tested status: NOT tested
+Tested status: tested
 
 
 0x0008: Get 32 Random Bytes
