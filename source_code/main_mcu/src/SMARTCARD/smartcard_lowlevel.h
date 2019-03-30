@@ -17,6 +17,7 @@ typedef enum    {MAN_FUSE = 0, EC2EN_FUSE = 1, ISSUER_FUSE = 2} card_fuse_type_t
 #define CARD_DELAY_FOR_DETECTION    250
 
 // Prototypes
+RET_TYPE smartcard_lowlevel_check_for_const_val_in_smc_array(uint16_t nb_bytes_total_read, uint16_t start_record_index, uint8_t value);
 uint8_t* smartcard_lowlevel_read_smc(uint16_t nb_bytes_total_read, uint16_t start_record_index, uint8_t* data_to_receive);
 void smartcard_lowlevel_write_smc(uint16_t start_index_bit, uint16_t nb_bits, uint8_t* data_to_write);
 pin_check_return_te smartcard_lowlevel_validate_code(volatile uint16_t* code);

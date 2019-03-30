@@ -550,7 +550,7 @@ void smartcard_lowlevel_set_pgmrst_signals(void)
 uint8_t* smartcard_lowlevel_read_smc(uint16_t nb_bytes_total_read, uint16_t start_record_index, uint8_t* data_to_receive)
 {
     uint8_t* return_val = data_to_receive;
-    uint8_t i;
+    uint16_t i;
 
     /* Set PGM / RST signals for operation */
     smartcard_lowlevel_clear_pgmrst_signals();
@@ -571,4 +571,42 @@ uint8_t* smartcard_lowlevel_read_smc(uint16_t nb_bytes_total_read, uint16_t star
     smartcard_lowlevel_set_pgmrst_signals();
 
     return return_val;
+}
+
+/*! \fn     smartcard_lowlevel_check_for_const_val_in_smc_array(uint16_t nb_bytes_total_read, uint16_t start_record_index, uint8_t value)
+*   \brief  Check if a given value is present in a contiguous space in the memory
+*   \param  nb_bytes_total_read     The number of bytes to be read
+*   \param  start_record_index      The index at which we start recording the answer
+*   \param  value                   Value to compare the array values with
+*   \return Comparison result
+*/
+RET_TYPE smartcard_lowlevel_check_for_const_val_in_smc_array(uint16_t nb_bytes_total_read, uint16_t start_record_index, uint8_t value)
+{
+    uint16_t i;
+
+    /* Set PGM / RST signals for operation */
+    smartcard_lowlevel_clear_pgmrst_signals();
+
+    for(i = 0; i < nb_bytes_total_read; i++)
+    {
+        /* Start transmission */
+        uint8_t data_byte = sercom_spi_send_single_byte(SMARTCARD_SERCOM, 0x00);
+
+        /* Store data in buffer or discard it*/
+        if (i >= start_record_index)
+        {
+            /* Perform check */
+            if (data_byte != value)
+            {
+                smartcard_lowlevel_set_pgmrst_signals();
+                return RETURN_NOK;
+            } 
+        }
+    }
+
+    /* Set PGM / RST signals to standby mode */
+    smartcard_lowlevel_set_pgmrst_signals();
+
+    /* If we got there it means the comparison was OK */
+    return RETURN_OK;
 }

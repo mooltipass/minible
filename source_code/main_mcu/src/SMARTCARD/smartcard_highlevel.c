@@ -495,6 +495,23 @@ RET_TYPE smartcard_highlevel_check_authenticated_readwrite_to_zone1(void)
     }
 }
 
+/*! \fn     smartcard_highlevel_check_hidden_aes_key_contents(void)
+*   \brief  Function called to check that the AES key contents are indeed well hidden
+*   \return OK or NOK
+*/
+RET_TYPE smartcard_highlevel_check_hidden_aes_key_contents(void)
+{
+    for (uint8_t i = 0; i < 20; i++)
+    {
+        if (smartcard_lowlevel_check_for_const_val_in_smc_array((SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED + AES_KEY_LENGTH)/8, (SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED)/8, 0xFF) != RETURN_OK)
+        {
+            return RETURN_NOK;
+        }
+    }
+
+    return RETURN_OK;
+}
+
 /*! \fn     smartcard_highlevel_set_authenticated_readwrite_to_zone2(void)
 *   \brief  Function called to only allow reads and writes to the application zone 2 when authenticated
 *   \return Operation success

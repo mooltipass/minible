@@ -20,6 +20,7 @@
 /************ PROTOTYPES ************/
 RET_TYPE smartcard_highlevel_write_to_appzone_and_check(uint16_t addr, uint16_t nb_bits, uint8_t* buffer, uint8_t* temp_buffer);
 mooltipass_card_detect_return_te smartcard_high_level_mooltipass_card_detected_routine(volatile uint16_t* pin_code);
+RET_TYPE smartcard_highlevel_check_hidden_aes_key_contents(void);
 RET_TYPE smartcard_highlevel_check_security_mode2(void);
 RET_TYPE smartcard_highlevel_check_authenticated_readwrite_to_zone12(void);
 RET_TYPE smartcard_highlevel_write_card_password(uint8_t* buffer);
