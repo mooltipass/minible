@@ -11,6 +11,7 @@
 #include "gui_dispatcher.h"
 #include "bearssl_block.h"
 #include "driver_timer.h"
+#include "platform_io.h"
 #include "gui_prompts.h"
 #include "logic_user.h"
 #include "custom_fs.h"
@@ -117,10 +118,30 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* pro
     /* Erase AES key from memory */    
     memset(temp_buffer, 0, sizeof(temp_buffer));
     
-    // Write new pin code
+    /* Write new pin code */
     smartcard_highlevel_write_security_code(pin_code);
     
-    return RETURN_OK;
+    /* Remove power to smartcard */
+    platform_io_smc_remove_function();
+
+    /* Wait a few ms */
+    timer_delay_ms(200);
+
+    /* Reconnect it, test the card */
+    if ((smartcard_highlevel_card_detected_routine() == RETURN_MOOLTIPASS_USER) && (smartcard_highlevel_check_hidden_aes_key_contents() == RETURN_OK) && (smartcard_high_level_mooltipass_card_detected_routine(pin_code) == RETURN_MOOLTIPASS_4_TRIES_LEFT))
+    {
+        return RETURN_OK;
+    }
+    else
+    {
+        /* Reset smartcard and delete just created user */
+        smartcard_high_level_mooltipass_card_detected_routine(pin_code);
+        smartcard_highlevel_erase_smartcard();
+        custom_fs_detele_user_cpz_lut_entry(new_user_id);
+
+        // Report fail
+        return RETURN_NOK;
+    }
 }
 
 /*! \fn     logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)

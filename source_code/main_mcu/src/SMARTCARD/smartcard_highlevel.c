@@ -501,7 +501,7 @@ RET_TYPE smartcard_highlevel_check_authenticated_readwrite_to_zone1(void)
 */
 RET_TYPE smartcard_highlevel_check_hidden_aes_key_contents(void)
 {
-    for (uint8_t i = 0; i < 20; i++)
+    for (uint16_t i = 0; i < 20; i++)
     {
         if (smartcard_lowlevel_check_for_const_val_in_smc_array((SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED + AES_KEY_LENGTH)/8, (SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED)/8, 0xFF) != RETURN_OK)
         {
