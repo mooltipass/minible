@@ -17,6 +17,7 @@
 #define FONT_UBUNTU_MEDIUM_15_ID    1
 #define FONT_UBUNTU_MEDIUM_17_ID    2
 #define FONT_UBUNTU_REGULAR_16_ID   3
+#define FONT_UBUNTU_REGULAR_13_ID   4
 
 /* Macros */
 #define XSTR(x)                     STR(x)
@@ -39,6 +40,7 @@ typedef enum    {MINI_INPUT_RET_TIMEOUT = -1, MINI_INPUT_RET_NONE = 0, MINI_INPU
 typedef enum    {MSG_NO_RESTRICT, MSG_RESTRICT_ALL, MSG_RESTRICT_ALLBUT_BUNDLE, MSG_RESTRICT_ALLBUT_CANCEL} msg_restrict_type_te;
 typedef enum    {RETURN_PIN_OK = 0, RETURN_PIN_NOK_3, RETURN_PIN_NOK_2, RETURN_PIN_NOK_1, RETURN_PIN_NOK_0} pin_check_return_te;
 typedef enum    {RETURN_VCARD_NOK = -1, RETURN_VCARD_OK = 0, RETURN_VCARD_UNKNOWN = 1} valid_card_det_return_te;
+typedef enum    {GUI_SEL_FAVORITE, GUI_SEL_SERVICE, GUI_SEL_DATA_SERVICE, GUI_SEL_CRED } gui_sel_item_te;
 typedef enum    {DISP_MSG_INFO = 0, DISP_MSG_WARNING = 1, DISP_MSG_ACTION = 2} display_message_te;
 typedef enum    {RETURN_REL = 0, RETURN_DET, RETURN_JDETECT, RETURN_JRELEASED} det_ret_type_te;
 typedef enum    {CUSTOM_FS_INIT_OK = 0, CUSTOM_FS_INIT_NO_RWEE = 1} custom_fs_init_ret_type_te;

@@ -436,6 +436,12 @@ int main(void)
             gui_dispatcher_main_loop();            
         }
         
+        /* test code */
+        if (gui_dispatcher_get_current_screen() == GUI_SCREEN_MAIN_MENU)
+        {
+            gui_prompts_ask_for_login_select(nodemgmt_get_starting_parent_addr());
+        }
+        
         /* Communications */
         if (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE)
         {

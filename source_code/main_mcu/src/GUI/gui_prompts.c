@@ -10,6 +10,7 @@
 #include "logic_device.h"
 #include "gui_prompts.h"
 #include "custom_fs.h"
+#include "nodemgmt.h"
 #include "defines.h"
 #include "inputs.h"
 #include "sh1122.h"
@@ -677,7 +678,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
     sh1122_clear_current_screen(&plat_oled_descriptor);
@@ -968,3 +969,76 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     
     return input_answer;
 }
+
+/*! \fn     gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
+*   \brief  Ask for user login selection / approval
+*   \param  parent_node_addr   Address of the parent node
+*   \return Valid child node address or NODE_ADDR_NULL otherwise
+*/
+uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
+{
+    uint16_t first_child_address, temp_child_address;
+    uint16_t picked_child = NODE_ADDR_NULL;
+    child_cred_node_t* temp_half_cnode_pt;
+    cust_char_t* select_login_string;
+    parent_node_t temp_half_cnode;
+    parent_node_t temp_pnode;
+    
+    /* Dirty trick */
+    temp_half_cnode_pt = (child_cred_node_t*)&temp_half_cnode;
+
+    /* Check parent node address */
+    if (parent_node_addr == NODE_ADDR_NULL)
+    {
+        return NODE_ADDR_NULL;
+    }
+
+    /* Read the parent node and read its first child address */
+    nodemgmt_read_parent_node(parent_node_addr, &temp_pnode, TRUE);
+    first_child_address = temp_pnode.cred_parent.nextChildAddress;
+
+    /* Check if there are stored credentials */
+    if (first_child_address == NODE_ADDR_NULL)
+    {
+        gui_prompts_display_information_on_screen(NO_CREDS_TEXT_ID, DISP_MSG_INFO);
+        return NODE_ADDR_NULL;
+    }
+    
+    /* Clear frame buffer */
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #else
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    #endif
+    
+    /* "Select login" string */
+    custom_fs_get_string_from_file(SELECT_LOGIN_TEXT_ID, &select_login_string, TRUE);    
+    
+    /* Prepare first line display (<<service>>: select credential), store it in the service field. Service field is 0 terminated by previous calls */
+    if (utils_strlen(temp_pnode.cred_parent.service) + utils_strlen(select_login_string) + 1 < MEMBER_SIZE(parent_cred_node_t, service) - 1)
+    {
+        utils_strcpy(&temp_pnode.cred_parent.service[utils_strlen(temp_pnode.cred_parent.service)], select_login_string);
+    }
+    
+    /* Display first line */
+    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_16_ID);
+    sh1122_put_centered_string(&plat_oled_descriptor, 0, temp_pnode.cred_parent.service, TRUE);
+
+    /* Read child node */
+    nodemgmt_read_cred_child_node_except_pwd(first_child_address, temp_half_cnode_pt);    
+    
+    sh1122_draw_rectangle(&plat_oled_descriptor, 73, 19, 110, 1, 0xFF, TRUE);
+    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
+    sh1122_put_centered_string(&plat_oled_descriptor, 33, u"dqsdqdq", TRUE);
+    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+    sh1122_put_centered_string(&plat_oled_descriptor, 19, u"dqsdsq", TRUE);
+    sh1122_put_centered_string(&plat_oled_descriptor, 49, u"dqdqsdq", TRUE);
+    
+    /* Flush to display */
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    #endif
+    
+    while(1);
+}    

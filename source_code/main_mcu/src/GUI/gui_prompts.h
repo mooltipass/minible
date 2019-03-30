@@ -16,6 +16,8 @@
 #define ADD_CRED_TEXT_ID        39
 #define CHANGE_PWD_TEXT_ID      40
 #define SEND_CREDS_FOR_TEXT_ID  41
+#define NO_CREDS_TEXT_ID        44
+#define SELECT_LOGIN_TEXT_ID    45
 
 // Bitmap ID defines
 #define BITMAP_POPUP_3LINES_ID  309
@@ -97,5 +99,6 @@ void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, disp
 mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen);
 void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type);
 RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID);
+uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr);
 
 #endif /* GUI_PROMPTS_H_ */
