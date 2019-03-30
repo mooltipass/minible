@@ -23,6 +23,8 @@
 #define ID_STRING_LAST_PIN_TRY      31
 #define ID_STRING_INSERT_PIN        32
 #define ID_STRING_WRONGPIN1LEFT     33
+#define ID_STRING_CARD_FAILING      42
+#define ID_STRING_PROCESSING        43
 
 /* Prototypes */
 RET_TYPE logic_smartcard_ask_for_new_pin(volatile uint16_t* new_pin, uint16_t message_id);

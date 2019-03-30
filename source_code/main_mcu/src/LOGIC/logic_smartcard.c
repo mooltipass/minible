@@ -95,6 +95,9 @@ RET_TYPE logic_smartcard_handle_inserted(void)
             /* Create a new user with his new smart card */
             if (logic_smartcard_ask_for_new_pin(&pin_code, ID_STRING_NEW_CARD_PIN) == RETURN_OK)
             {
+                /* Waiting screen */
+                gui_prompts_display_information_on_screen(ID_STRING_PROCESSING, DISP_MSG_INFO);
+                
                 /* User entered twice the same PIN, card is still there */
                 if (logic_user_create_new_user(&pin_code, (uint8_t*)0) == RETURN_OK)
                 {
@@ -181,6 +184,12 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag)
             computeAndDisplayBlockSizeEncryptionResult(plateform_aes_key, temp_ctr_val, ID_STRING_HASH1);
         }
         #endif
+        
+        /* Check card itself */
+        if (smartcard_highlevel_check_hidden_aes_key_contents() != RETURN_OK)
+        {
+            gui_prompts_display_information_on_screen_and_wait(ID_STRING_CARD_FAILING, DISP_MSG_WARNING);
+        }
         
         /* Ask the user to enter his PIN and check it */
         if (logic_smartcard_user_unlock_process() == RETURN_OK)
