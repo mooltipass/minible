@@ -1029,13 +1029,15 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
     /* Display first line */
     sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_16_ID);
     sh1122_put_centered_string(&plat_oled_descriptor, 0, temp_pnode.cred_parent.service, TRUE);
-    sh1122_draw_rectangle(&plat_oled_descriptor, 73, 19, 110, 1, 0xFF, TRUE);
+    sh1122_draw_rectangle(&plat_oled_descriptor, 73, LOGIN_SCROLL_Y_BAR, 110, 1, 0xFF, TRUE);
     
     /* Temp vars for our main loop */
     uint16_t before_top_of_list_child_addr = NODE_ADDR_NULL;
     uint16_t top_of_list_child_addr = NODE_ADDR_NULL;
     uint16_t center_list_child_addr = NODE_ADDR_NULL;
     BOOL end_of_list_reached_at_center = FALSE;
+    BOOL full_frame_flush = TRUE;
+    int16_t animation_step = 0;
     BOOL redraw_needed = TRUE;
     BOOL action_taken = FALSE;
     
@@ -1080,22 +1082,39 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
             {
                 if (end_of_list_reached_at_center == FALSE)
                 {
+                    before_top_of_list_child_addr = top_of_list_child_addr;
                     top_of_list_child_addr = center_list_child_addr;
+                    animation_step = ((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2;
+                    redraw_needed = TRUE;
                 }
             }
             else
             {
-                top_of_list_child_addr = before_top_of_list_child_addr;
+                if (top_of_list_child_addr != NODE_ADDR_NULL)
+                {
+                    top_of_list_child_addr = before_top_of_list_child_addr;
+                    animation_step = -((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2;
+                    redraw_needed = TRUE;
+                }
             }
-            
-            /* Even if in some cases it's not really required, ask for a redraw */
-            redraw_needed = TRUE;
         }                            
         
         /* Redraw if needed */
         if (redraw_needed != FALSE)
         {            
-            sh1122_clear_y_frame_buffer(&plat_oled_descriptor, 20, SH1122_OLED_HEIGHT);
+            sh1122_clear_y_frame_buffer(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1, SH1122_OLED_HEIGHT);
+            sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
+            
+            /* Animation: scrolling down, keeping the first of item displayed & fading out */
+            if ((animation_step > 0) && (before_top_of_list_child_addr != NODE_ADDR_NULL))
+            {
+                /* Fetch node */
+                nodemgmt_read_cred_child_node_except_pwd(before_top_of_list_child_addr, temp_half_cnode_pt);
+                
+                /* Display fading out login */
+                sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_FLINE-(((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2)+animation_step, temp_half_cnode_pt->login, TRUE);
+            }
             
             /* The currently picked address isn't the first one, fill first of the 3 items */
             if (top_of_list_child_addr != NODE_ADDR_NULL)
@@ -1108,7 +1127,7 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
                 
                 /* Display first login */
                 sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
-                sh1122_put_centered_string(&plat_oled_descriptor, 19, temp_half_cnode_pt->login, TRUE);
+                sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_FLINE+animation_step, temp_half_cnode_pt->login, TRUE);
                 
                 /* Extract center of list child address */
                 center_list_child_addr = temp_half_cnode_pt->nextChildAddress;
@@ -1121,7 +1140,8 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
             /* Center item */
             sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
             nodemgmt_read_cred_child_node_except_pwd(center_list_child_addr, temp_half_cnode_pt);
-            sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_MID_POS_Y, temp_half_cnode_pt->login, TRUE);
+            utils_surround_text_with_pointers(temp_half_cnode_pt->login, MEMBER_SIZE(child_cred_node_t, login));
+            sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_SLINE+animation_step, temp_half_cnode_pt->login, TRUE);
             
             /* Last item, if applicable */
             if (temp_half_cnode_pt->nextChildAddress == NODE_ADDR_NULL)
@@ -1135,19 +1155,52 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
                 
                 /* Display last login */
                 sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
-                sh1122_put_centered_string(&plat_oled_descriptor, 49, temp_half_cnode_pt->login, TRUE);
+                sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_TLINE+animation_step, temp_half_cnode_pt->login, TRUE);
                 
                 /* Reset bool */
                 end_of_list_reached_at_center = FALSE;
+                
+                /* Animation, scrolling up */
+                if ((animation_step < 0) && (temp_half_cnode_pt->nextChildAddress != NODE_ADDR_NULL))
+                {
+                    /* Fetch node */
+                    nodemgmt_read_cred_child_node_except_pwd(temp_half_cnode_pt->nextChildAddress, temp_half_cnode_pt);
+                    
+                    /* Display fading out login */
+                    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                    sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_TLINE+(((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2)+animation_step, temp_half_cnode_pt->login, TRUE);
+                }
             }
             
             /* Flush to display */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            if (full_frame_flush != FALSE)
+            {
+                sh1122_flush_frame_buffer(&plat_oled_descriptor);
+                full_frame_flush = FALSE;
+            } 
+            else
+            {
+                sh1122_flush_frame_buffer_y_window(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1, SH1122_OLED_HEIGHT);
+            }
             #endif
             
-            /* Reset bool */
-            redraw_needed = FALSE;
+            /* Animation processing */
+            if (animation_step > 0)
+            {
+                animation_step-=2;
+            }
+            else if (animation_step < 0)
+            {
+                animation_step+=2;
+            }
+            else
+            {
+                redraw_needed = FALSE;                
+            }
+            
+            /* Reset display settings */
+            sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
         }        
     }
     

@@ -467,6 +467,36 @@ void sh1122_flush_frame_buffer_window(sh1122_descriptor_t* oled_descriptor, uint
     }
 }
 
+/*! \fn     sh1122_flush_frame_buffer_y_window(sh1122_descriptor_t* oled_descriptor, uint16_t ystart, uint16_t yend)
+*   \brief  Flush frame buffer between two Y
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  ystart              Start Y
+*   \param  yend                End Y (exclusive)
+*/
+void sh1122_flush_frame_buffer_y_window(sh1122_descriptor_t* oled_descriptor, uint16_t ystart, uint16_t yend)
+{
+    /* Sanity checks */
+    if (ystart >= SH1122_OLED_HEIGHT)
+    {
+        ystart = SH1122_OLED_HEIGHT-1;
+    }
+    if (yend > SH1122_OLED_HEIGHT)
+    {
+        yend = SH1122_OLED_HEIGHT;
+    }
+    
+    /* Set pixel write window */
+    sh1122_set_row_address(oled_descriptor, ystart);
+    sh1122_set_column_address(oled_descriptor, 0);
+    
+    /* Start filling the SSD1322 RAM */
+    sh1122_start_data_sending(oled_descriptor);
+    
+    /* Send buffer! */
+    dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)&oled_descriptor->frame_buffer[ystart][0], (yend-ystart)*SH1122_OLED_WIDTH/2, oled_descriptor->dma_trigger_id);
+    oled_descriptor->frame_buffer_flush_in_progress = TRUE;
+}
+
 /*! \fn     sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
 *   \brief  Flush frame buffer to screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct

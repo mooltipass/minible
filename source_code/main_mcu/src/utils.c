@@ -157,3 +157,30 @@ uint16_t utils_check_value_for_range(uint16_t val, uint16_t min, uint16_t max)
         return val;
     }
 }
+
+/*! \fn     utils_surround_text_with_pointers(cust_char_t* text, uint16_t field_length)
+*   \brief  Surround a text with "> <"
+*   \param  text            Pointer to the text
+*   \param  field_length    Text max field length
+*/
+void utils_surround_text_with_pointers(cust_char_t* text, uint16_t field_length)
+{
+    uint16_t text_length = utils_strnlen(text, field_length);
+    
+    /* Do we have enough space to do what we want? */
+    if (text_length + 4 + 1 <= field_length)
+    {
+        /* Shift */
+        for (int16_t i = text_length; i >= 0; i--)
+        {
+            text[i+2] = text[i];
+        }
+        
+        /* Add pointers */
+        text[0] = '>';
+        text[1] = ' ';
+        text[text_length+2] = ' ';
+        text[text_length+3] = '<';
+        text[text_length+4] = 0;
+    }
+}
