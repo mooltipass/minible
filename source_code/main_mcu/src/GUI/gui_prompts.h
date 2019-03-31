@@ -82,6 +82,9 @@
 #define BITMAP_WARNING_NOTIF_POPUP_ID   594
 #define BITMAP_WARNING_NOTIF_IDLE_ID    608
 
+// Scroll through logins display
+#define LOGIN_SCROLL_MID_POS_Y          33
+
 // Delay when scrolling a text
 #define SCROLLING_DEL                   33
 

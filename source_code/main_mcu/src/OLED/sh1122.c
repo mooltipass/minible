@@ -388,6 +388,23 @@ void sh1122_clear_frame_buffer(sh1122_descriptor_t* oled_descriptor)
     memset((void*)oled_descriptor->frame_buffer, 0x00, sizeof(oled_descriptor->frame_buffer));
 }
 
+/*! \fn     sh1122_clear_y_frame_buffer(sh1122_descriptor_t* oled_descriptor)
+*   \brief  Clear frame buffer between two Y
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  ystart              Start Y
+*   \param  yend                End Y (exclusive)
+*/
+void sh1122_clear_y_frame_buffer(sh1122_descriptor_t* oled_descriptor, uint16_t ystart, uint16_t yend)
+{
+    if ((ystart >= SH1122_OLED_HEIGHT) || (yend > SH1122_OLED_HEIGHT))
+    {
+        return;
+    }
+    
+    sh1122_check_for_flush_and_terminate(oled_descriptor);
+    memset((void*)&oled_descriptor->frame_buffer[ystart][0], 0x00, (yend-ystart)*SH1122_OLED_WIDTH/2);
+}
+
 /*! \fn     sh1122_check_for_flush_and_terminate(sh1122_descriptor_t* oled_descriptor)
 *   \brief  Check if a flush is in progress, and wait for its completion if so
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct

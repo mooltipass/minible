@@ -977,11 +977,10 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
 */
 uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
 {
-    uint16_t first_child_address, temp_child_address;
-    uint16_t picked_child = NODE_ADDR_NULL;
     child_cred_node_t* temp_half_cnode_pt;
     cust_char_t* select_login_string;
     parent_node_t temp_half_cnode;
+    uint16_t first_child_address;
     parent_node_t temp_pnode;
     
     /* Dirty trick */
@@ -992,6 +991,12 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
     {
         return NODE_ADDR_NULL;
     }
+    
+    /* Activity detected */
+    logic_device_activity_detected();
+    
+    /* Clear possible remaining detection */
+    inputs_clear_detections();
 
     /* Read the parent node and read its first child address */
     nodemgmt_read_parent_node(parent_node_addr, &temp_pnode, TRUE);
@@ -1016,7 +1021,7 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
     custom_fs_get_string_from_file(SELECT_LOGIN_TEXT_ID, &select_login_string, TRUE);    
     
     /* Prepare first line display (<<service>>: select credential), store it in the service field. Service field is 0 terminated by previous calls */
-    if (utils_strlen(temp_pnode.cred_parent.service) + utils_strlen(select_login_string) + 1 < MEMBER_SIZE(parent_cred_node_t, service) - 1)
+    if (utils_strlen(temp_pnode.cred_parent.service) + utils_strlen(select_login_string) + 1 < (uint16_t)MEMBER_SIZE(parent_cred_node_t, service))
     {
         utils_strcpy(&temp_pnode.cred_parent.service[utils_strlen(temp_pnode.cred_parent.service)], select_login_string);
     }
@@ -1024,21 +1029,127 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
     /* Display first line */
     sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_16_ID);
     sh1122_put_centered_string(&plat_oled_descriptor, 0, temp_pnode.cred_parent.service, TRUE);
-
-    /* Read child node */
-    nodemgmt_read_cred_child_node_except_pwd(first_child_address, temp_half_cnode_pt);    
-    
     sh1122_draw_rectangle(&plat_oled_descriptor, 73, 19, 110, 1, 0xFF, TRUE);
-    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
-    sh1122_put_centered_string(&plat_oled_descriptor, 33, u"dqsdqdq", TRUE);
-    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
-    sh1122_put_centered_string(&plat_oled_descriptor, 19, u"dqsdsq", TRUE);
-    sh1122_put_centered_string(&plat_oled_descriptor, 49, u"dqdqsdq", TRUE);
     
-    /* Flush to display */
-    #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_flush_frame_buffer(&plat_oled_descriptor);
-    #endif
+    /* Temp vars for our main loop */
+    uint16_t before_top_of_list_child_addr = NODE_ADDR_NULL;
+    uint16_t top_of_list_child_addr = NODE_ADDR_NULL;
+    uint16_t center_list_child_addr = NODE_ADDR_NULL;
+    BOOL end_of_list_reached_at_center = FALSE;
+    BOOL redraw_needed = TRUE;
+    BOOL action_taken = FALSE;
     
-    while(1);
+    /* Loop until something has been done */
+    while (action_taken == FALSE)
+    {
+        /* User interaction timeout */
+        if (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED)
+        {
+            return NODE_ADDR_NULL;
+        }
+        
+        /* Card removed */
+        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        {
+            return NODE_ADDR_NULL;
+        }
+        
+        /* Read usb comms as the plugin could ask to cancel the request */
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL);
+        /*if (usbCancelRequestReceived() == RETURN_OK)
+        {
+            input_answer = MINI_INPUT_RET_TIMEOUT;
+        }*/
+        
+        /* Check if something has been pressed */
+        wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, TRUE);
+        if (detect_result == WHEEL_ACTION_SHORT_CLICK)
+        { 
+            return center_list_child_addr;
+        }
+        else if (detect_result == WHEEL_ACTION_LONG_CLICK)
+        {
+            return NODE_ADDR_NULL;
+        }
+        
+        /* Scroll up / down */
+        int16_t wheel_increments = inputs_get_wheel_increment();
+        if (wheel_increments != 0)
+        {
+            if (wheel_increments > 0)
+            {
+                if (end_of_list_reached_at_center == FALSE)
+                {
+                    top_of_list_child_addr = center_list_child_addr;
+                }
+            }
+            else
+            {
+                top_of_list_child_addr = before_top_of_list_child_addr;
+            }
+            
+            /* Even if in some cases it's not really required, ask for a redraw */
+            redraw_needed = TRUE;
+        }                            
+        
+        /* Redraw if needed */
+        if (redraw_needed != FALSE)
+        {            
+            sh1122_clear_y_frame_buffer(&plat_oled_descriptor, 20, SH1122_OLED_HEIGHT);
+            
+            /* The currently picked address isn't the first one, fill first of the 3 items */
+            if (top_of_list_child_addr != NODE_ADDR_NULL)
+            {
+                /* Fetch node */                
+                nodemgmt_read_cred_child_node_except_pwd(top_of_list_child_addr, temp_half_cnode_pt);
+                
+                /* Store address of the child before */
+                before_top_of_list_child_addr = temp_half_cnode_pt->prevChildAddress;
+                
+                /* Display first login */
+                sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                sh1122_put_centered_string(&plat_oled_descriptor, 19, temp_half_cnode_pt->login, TRUE);
+                
+                /* Extract center of list child address */
+                center_list_child_addr = temp_half_cnode_pt->nextChildAddress;
+            }
+            else
+            {
+                center_list_child_addr = first_child_address;
+            }
+            
+            /* Center item */
+            sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
+            nodemgmt_read_cred_child_node_except_pwd(center_list_child_addr, temp_half_cnode_pt);
+            sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_MID_POS_Y, temp_half_cnode_pt->login, TRUE);
+            
+            /* Last item, if applicable */
+            if (temp_half_cnode_pt->nextChildAddress == NODE_ADDR_NULL)
+            {
+                end_of_list_reached_at_center = TRUE;
+            } 
+            else
+            {
+                /* Fetch node */
+                nodemgmt_read_cred_child_node_except_pwd(temp_half_cnode_pt->nextChildAddress, temp_half_cnode_pt);
+                
+                /* Display last login */
+                sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                sh1122_put_centered_string(&plat_oled_descriptor, 49, temp_half_cnode_pt->login, TRUE);
+                
+                /* Reset bool */
+                end_of_list_reached_at_center = FALSE;
+            }
+            
+            /* Flush to display */
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
+            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            #endif
+            
+            /* Reset bool */
+            redraw_needed = FALSE;
+        }        
+    }
+    
+    return NODE_ADDR_NULL;
 }    
