@@ -439,6 +439,7 @@ int main(void)
         /* test code */
         if (gui_dispatcher_get_current_screen() == GUI_SCREEN_MAIN_MENU)
         {
+            //logic_user_store_credential(u"abracadabralapinou.com", u"encoreunsuperlogin", 0, 0, 0);
             //logic_user_store_credential(u"lapin.fr", u"zsuperlongpassword", 0, 0, 0);
             gui_prompts_ask_for_login_select(nodemgmt_get_starting_parent_addr());
             gui_dispatcher_get_back_to_current_screen();
