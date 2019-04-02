@@ -349,7 +349,7 @@ int main(void)
     logic_device_activity_detected();    
     
     /* tests */
-    //debug_test_prompts();
+    debug_test_prompts();
     
     #ifndef DEV_SKIP_INTRO_ANIM
     /* Start animation */    
@@ -441,8 +441,8 @@ int main(void)
         {
             //logic_user_store_credential(u"abracadabralapinou.com", u"encoreunsuperlogin", 0, 0, 0);
             //logic_user_store_credential(u"lapin.fr", u"zsuperlongpassword", 0, 0, 0);
-            gui_prompts_ask_for_login_select(nodemgmt_get_starting_parent_addr());
-            gui_dispatcher_get_back_to_current_screen();
+            //gui_prompts_ask_for_login_select(nodemgmt_get_starting_parent_addr());
+            //gui_dispatcher_get_back_to_current_screen();
         }
         
         /* Communications */

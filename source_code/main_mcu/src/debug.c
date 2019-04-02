@@ -768,7 +768,7 @@ void debug_glyphs_show(void)
         plat_oled_descriptor.cur_text_y = 0;
 
         /* Display all chars */
-        while(sh1122_put_char(&plat_oled_descriptor, current_char++, FALSE) == RETURN_OK);
+        while(sh1122_put_char(&plat_oled_descriptor, current_char++, FALSE) >= 0);
         
         /* Get action */
         action_ret = inputs_get_wheel_action(TRUE, FALSE);

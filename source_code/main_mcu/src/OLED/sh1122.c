@@ -1840,18 +1840,33 @@ int16_t sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, BO
         }
         
         /* Display the text */
+        int16_t cur_text_x_copy = oled_descriptor->cur_text_x;
         uint16_t max_disp_x_copy = oled_descriptor->max_disp_x;
         oled_descriptor->max_disp_x = oled_descriptor->max_text_x;
         oled_descriptor->cur_text_x += sh1122_glyph_draw(oled_descriptor, oled_descriptor->cur_text_x, oled_descriptor->cur_text_y, ch, write_to_buffer);
         oled_descriptor->max_disp_x = max_disp_x_copy;
         
         /* Return printed pixels width */
+        if (cur_text_x_copy < 0)
+        {
+            /* Start of print X is off screen */
+            if (oled_descriptor->cur_text_x > 0)
+            {
+                return oled_descriptor->cur_text_x;
+            } 
+            else
+            {
+                return 0;
+            }
+        }
         if (oled_descriptor->cur_text_x < SH1122_OLED_WIDTH)
         {
+            /* Normal use case */
             return width;
         } 
         else
         {
+            /* Part of glyph is displayed */
             return width - (oled_descriptor->cur_text_x - SH1122_OLED_WIDTH);
         }
     }

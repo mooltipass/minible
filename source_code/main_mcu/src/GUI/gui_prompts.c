@@ -669,7 +669,6 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     // Variables for scrolling
     BOOL string_scrolling_left[4] = {TRUE, TRUE, TRUE, TRUE};
     int16_t string_offset_cntrs[4] = {0,0,0,0};
-    uint16_t string_lengths[4];
     BOOL string_scrolling[4];
     uint8_t max_text_x[4];
         
@@ -692,7 +691,6 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         
         /* Get text width in px */
         uint16_t line_width = sh1122_get_string_width(&plat_oled_descriptor, text_object->lines[i]);
-        string_lengths[i] = utils_strlen(text_object->lines[i]);
         
         /* Larger than display area? */
         if (line_width < CONF_PROMPT_BITMAP_X)
@@ -875,29 +873,24 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
                     sh1122_draw_rectangle(&plat_oled_descriptor, 0, gui_prompts_conf_prompt_y_positions[nb_args-1][i], CONF_PROMPT_MAX_TEXT_X, gui_prompts_conf_prompt_line_heights[nb_args-1][i], 0x00, TRUE);
                     #endif
                     
-                    /* Check if scrolling is not needed anymore */
-                    sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
-                    if (sh1122_put_string_xy(&plat_oled_descriptor, string_offset_cntrs[i], gui_prompts_conf_prompt_y_positions[nb_args-1][i], OLED_ALIGN_LEFT, text_object->lines[i], TRUE) == string_lengths[i])
-                    {
-                        string_scrolling_left[i] = FALSE;
-                    } 
-                    if (string_offset_cntrs[i] == 0)
-                    {
-                        string_scrolling_left[i] = TRUE;
-                    }
-                    
-                    /* Now allow partial X text display and display partial text if there's any */
-                    sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
-                    sh1122_put_string_xy(&plat_oled_descriptor, string_offset_cntrs[i], gui_prompts_conf_prompt_y_positions[nb_args-1][i], OLED_ALIGN_LEFT, text_object->lines[i], TRUE);
+                    /* Display partial text */
+                    int16_t displayed_text_length = sh1122_put_string_xy(&plat_oled_descriptor, string_offset_cntrs[i], gui_prompts_conf_prompt_y_positions[nb_args-1][i], OLED_ALIGN_LEFT, text_object->lines[i], TRUE);
                     
                     /* Increment or decrement X offset */
                     if (string_scrolling_left[i] == FALSE)
                     {
-                        string_offset_cntrs[i]++;
+                        if (string_offset_cntrs[i]++ == 12)
+                        {
+                            string_scrolling_left[i] = TRUE;
+                        }
                     } 
                     else
                     {
                         string_offset_cntrs[i]--;
+                        if (displayed_text_length == max_text_x[i]-12)
+                        {
+                            string_scrolling_left[i] = FALSE;
+                        }
                     }
                 }
                 else
@@ -1025,11 +1018,10 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
     BOOL animation_just_started = TRUE;
     int16_t text_anim_x_offset[4];
     BOOL text_anim_going_right[4];
-    uint16_t strings_lengths[4];
     int16_t animation_step = 0;
     BOOL redraw_needed = TRUE;
     BOOL action_taken = FALSE;
-    uint16_t displayed_chars;
+    int16_t displayed_length;
     BOOL scrolling_needed[4];
     
     /* Lines display settings */    
@@ -1040,21 +1032,17 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
     uint16_t strings_y_positions[4] = {0, LOGIN_SCROLL_Y_FLINE, LOGIN_SCROLL_Y_SLINE, LOGIN_SCROLL_Y_TLINE};
     
     /* Reset temp vars */
-    memset(text_anim_going_right, 0, sizeof(text_anim_going_right));
+    memset(text_anim_going_right, FALSE, sizeof(text_anim_going_right));
     memset(text_anim_x_offset, 0, sizeof(text_anim_x_offset));
+    memset(scrolling_needed, FALSE, sizeof(scrolling_needed));
     
     /* "Select login" string */
     custom_fs_get_string_from_file(SELECT_LOGIN_TEXT_ID, &select_login_string, TRUE);
     
-    /* Prepare first line display (<<service>>: select credential + 3 spaces), store it in the service field. Service field is 0 terminated by previous calls */
-    if (utils_strlen(temp_pnode.cred_parent.service) + utils_strlen(select_login_string) + 3 + 1 <= (uint16_t)MEMBER_SIZE(parent_cred_node_t, service))
+    /* Prepare first line display (<<service>>: select credential), store it in the service field. Service field is 0 terminated by previous calls */
+    if (utils_strlen(temp_pnode.cred_parent.service) + utils_strlen(select_login_string) + 1 <= (uint16_t)MEMBER_SIZE(parent_cred_node_t, service))
     {
         utils_strcpy(&temp_pnode.cred_parent.service[utils_strlen(temp_pnode.cred_parent.service)], select_login_string);
-        uint16_t new_length = utils_strlen(temp_pnode.cred_parent.service);
-        temp_pnode.cred_parent.service[new_length] = ' ';
-        temp_pnode.cred_parent.service[new_length+1] = ' ';
-        temp_pnode.cred_parent.service[new_length+2] = ' ';
-        temp_pnode.cred_parent.service[new_length+3] = 0;
     }
     
     /* Arm timer for scrolling */
@@ -1213,12 +1201,6 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
                     {
                         end_of_list_reached_at_center = FALSE;
                     }
-                    
-                    /* Animation just started: store the string length, used for scrolling logic */
-                    if (animation_just_started != FALSE)
-                    {
-                        strings_lengths[i] = utils_strlen(strings_to_be_displayed[i]);
-                    }
             
                     /* Y offset for animations */
                     int16_t yoffset = 0;
@@ -1231,12 +1213,12 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
                     if (scrolling_needed[i] != FALSE)
                     {                        
                         /* Scrolling required: display with the correct X offset */
-                        displayed_chars = sh1122_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], strings_y_positions[i]+yoffset, OLED_ALIGN_LEFT, strings_to_be_displayed[i], TRUE);
+                        displayed_length = sh1122_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], strings_y_positions[i]+yoffset, OLED_ALIGN_LEFT, strings_to_be_displayed[i], TRUE);
                 
                         /* Scrolling: go change direction if we went too far */
                         if (text_anim_going_right[i] == FALSE)
                         {
-                            if (displayed_chars == strings_lengths[i])
+                            if (displayed_length == SH1122_OLED_WIDTH-12)
                             {
                                 text_anim_going_right[i] = TRUE;
                             }
@@ -1252,11 +1234,11 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
                     else
                     {
                         /* String not large enough or start of animation */
-                        displayed_chars = sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
+                        displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
                     }
                     
                     /* First run: based on the number of chars displayed, set the scrolling needed bool */
-                    if ((animation_just_started != FALSE) && (displayed_chars != strings_lengths[i]))
+                    if ((animation_just_started != FALSE) && (displayed_length < 0))
                     {
                         scrolling_needed[i] = TRUE;
                     }
@@ -1305,6 +1287,7 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
             /* Reset display settings */
             sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
             sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
+            sh1122_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Reset animation just started var */
             animation_just_started = FALSE;
