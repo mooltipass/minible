@@ -364,7 +364,7 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
             else
             {
                 /* Get prefilled message */
-                uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr, &prev_gen_credential_flag);
+                uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(selected_child_addr, send_msg, temp_cred_ctr, &prev_gen_credential_flag);
                 
                 /* User approved, decrypt password */
                 logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
