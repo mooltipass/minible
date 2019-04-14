@@ -184,13 +184,14 @@ void checkUserPermissionFromFlagsAndLock(uint16_t flags)
     }
 }
 
-/*! \fn     checkUserPermission(uint16_t node_addr)
+/*! \fn     nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type)
 *   \brief  Check that the user has the right to read/write a node
 *   \param  node_addr   Node address
+*   \param  node_type   Where to store the node type (see enum)
 *   \return OK / NOK
 *   \note   Scanning a 8Mb Flash memory contents with that function was timed at 56ms in Debug mode.
 */
-RET_TYPE checkUserPermission(uint16_t node_addr)
+RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type)
 {
     // Future node flags
     uint16_t temp_flags;
@@ -205,6 +206,16 @@ RET_TYPE checkUserPermission(uint16_t node_addr)
     // Check permission and memory boundaries (high boundary done on the lower level)
     if ((page_addr >= PAGE_PER_SECTOR) && (checkUserPermissionFromFlags(temp_flags) == RETURN_OK))
     {
+        /* Store node type */
+        if (validBitFromFlags(temp_flags) == NODEMGMT_VBIT_VALID)
+        {
+            *node_type = nodeTypeFromFlags(temp_flags);
+        } 
+        else
+        {
+            *node_type = NODE_TYPE_NULL;
+        }
+        
         return RETURN_OK;        
     } 
     else
@@ -236,12 +247,12 @@ void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* ch
     dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(getIncrementedAddress(address)), BASE_NODE_SIZE * nodeNumberFromAddress(getIncrementedAddress(address)), BASE_NODE_SIZE, (void*)(&child_node->node_as_bytes[BASE_NODE_SIZE]));
 }
 
-/*! \fn     readParentNodeDataBlockFromFlash(uint16_t address, parent_node_t* parent_node)
+/*! \fn     nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_node_t* parent_node)
 *   \brief  Read a parent node data block to flash
 *   \param  address     Where to read
 *   \param  parent_node Pointer to the node
 */
-void readParentNodeDataBlockFromFlash(uint16_t address, parent_node_t* parent_node)
+void nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_node_t* parent_node)
 {
     dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), sizeof(parent_node->node_as_bytes), (void*)parent_node->node_as_bytes);
 }
@@ -255,7 +266,7 @@ void readParentNodeDataBlockFromFlash(uint16_t address, parent_node_t* parent_no
 */
 void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean)
 {
-    readParentNodeDataBlockFromFlash(address, parent_node);
+    nodemgmt_read_parent_node_data_block_from_flash(address, parent_node);
     checkUserPermissionFromFlagsAndLock(parent_node->cred_parent.flags);
     
     if (data_clean != FALSE)
@@ -264,12 +275,12 @@ void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOO
     }
 }
 
-/*! \fn     readChildNodeDataBlockFromFlash(uint16_t address, child_node_t* child_node)
+/*! \fn     nodemgmt_read_child_node_data_block_from_flash(uint16_t address, child_node_t* child_node)
 *   \brief  Read a parent node data block to flash
 *   \param  address     Where to read
 *   \param  parent_node Pointer to the node
 */
-void readChildNodeDataBlockFromFlash(uint16_t address, child_node_t* child_node)
+void nodemgmt_read_child_node_data_block_from_flash(uint16_t address, child_node_t* child_node)
 {
     dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), sizeof(child_node->node_as_bytes), (void*)child_node->node_as_bytes);
 }
@@ -282,7 +293,7 @@ void readChildNodeDataBlockFromFlash(uint16_t address, child_node_t* child_node)
 */
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node)
 {
-    readChildNodeDataBlockFromFlash(address, (child_node_t*)child_node);
+    nodemgmt_read_child_node_data_block_from_flash(address, (child_node_t*)child_node);
     checkUserPermissionFromFlagsAndLock(child_node->flags);
     
     // If we have a date, update last used field
@@ -306,7 +317,7 @@ void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_no
 */
 void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_t* child_node)
 {
-    readParentNodeDataBlockFromFlash(address, (parent_node_t*)child_node);
+    nodemgmt_read_parent_node_data_block_from_flash(address, (parent_node_t*)child_node);
     checkUserPermissionFromFlagsAndLock(child_node->flags);
     
     // String cleaning

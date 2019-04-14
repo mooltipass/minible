@@ -209,11 +209,41 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             /* Check address length */
             if (rcv_msg->payload_length == sizeof(uint16_t))
             {
+                node_type_te temp_node_type;
+                
+                /* Check user permission */
+                if (nodemgmt_check_user_permission(rcv_msg->payload_as_uint16[0], &temp_node_type) == RETURN_OK)
+                {
+                    if ((temp_node_type == NODE_TYPE_PARENT) || (temp_node_type == NODE_TYPE_PARENT_DATA) || (temp_node_type == NODE_TYPE_NULL))
+                    {
+                        /* Read and send parent node */
+                        nodemgmt_read_parent_node_data_block_from_flash(rcv_msg->payload_as_uint16[0], (parent_node_t*)send_msg->payload_as_uint16);
+                        send_msg->payload_length = sizeof(parent_node_t);
+                        return sizeof(parent_node_t);
+                    } 
+                    else
+                    {
+                        /* Read and send child node */
+                        nodemgmt_read_child_node_data_block_from_flash(rcv_msg->payload_as_uint16[0], (child_node_t*)send_msg->payload_as_uint16);
+                        send_msg->payload_length = sizeof(child_node_t);
+                        return sizeof(child_node_t);
+                    }
+                } 
+                else
+                {
+                    /* Set nack, leave same command id */
+                    send_msg->payload[0] = HID_1BYTE_NACK;
+                    send_msg->payload_length = 1;
+                    return 1;
+                }
             } 
             else
             {
+                /* Set nack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
+                return 1;
             }
-            return 0;
         }
         
         case HID_CMD_ID_GET_CRED:

@@ -11,7 +11,7 @@
 #include "defines.h"
 
 /* Typedefs */
-typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DATA = 2, NODE_TYPE_DATA = 3} node_type_te;
+typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DATA = 2, NODE_TYPE_DATA = 3, NODE_TYPE_NULL = 4 /* Not a valid flag combination */} node_type_te;
     
 /* Old gen defines */
 #define NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH           32
@@ -207,13 +207,15 @@ typedef struct
 /* Prototypes */
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);
 RET_TYPE nodemgmt_create_child_node(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedAddress);
+void nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_node_t* parent_node);
+void nodemgmt_read_child_node_data_block_from_flash(uint16_t address, child_node_t* child_node);
 void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean);
 void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node);
+RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);
 uint16_t nodemgmt_get_starting_parent_addr(void);
-RET_TYPE checkUserPermission(uint16_t node_addr);
 void nodemgmt_format_user_profile(uint16_t uid);
 void nodemgmt_init_context(uint16_t userIdNum);
 void nodemgmt_set_current_date(uint16_t date);
