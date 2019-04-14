@@ -70,7 +70,7 @@ void gui_dispatcher_get_back_to_current_screen(void)
         case GUI_SCREEN_INSERTED_INVALID:   gui_prompts_display_information_on_screen(ID_STRING_REMOVE_CARD, DISP_MSG_ACTION); break;
         case GUI_SCREEN_INSERTED_UNKNOWN:   gui_prompts_display_information_on_screen(ID_STRING_UNKNOWN_CARD, DISP_MSG_INFO); break;
         case GUI_SCREEN_FW_FILE_UPDATE:     gui_prompts_display_information_on_screen(ID_STRING_FW_FILE_UPDATE, DISP_MSG_INFO); break;        
-        case GUI_SCREEN_MEMORY_MGMT:        break;
+        case GUI_SCREEN_MEMORY_MGMT:        gui_prompts_display_information_on_screen(ID_STRING_IN_MMM, DISP_MSG_INFO); break;
         case GUI_SCREEN_CATEGORIES:         break;
         case GUI_SCREEN_FAVORITES:          break;
         case GUI_SCREEN_LOGIN:              break;
@@ -162,7 +162,15 @@ void gui_dispatcher_idle_call(void)
                                                 }
                                                 break;
                                             }
-        case GUI_SCREEN_MEMORY_MGMT:        break;
+        case GUI_SCREEN_MEMORY_MGMT:        {
+                                                if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+                                                {
+                                                    /* Display new animation frame bitmap, rearm timer with provided value */
+                                                    gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_INFO);
+                                                    timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
+                                                }
+                                                break;
+                                            }
         case GUI_SCREEN_CATEGORIES:         break;
         case GUI_SCREEN_FAVORITES:          break;
         case GUI_SCREEN_LOGIN:              break;

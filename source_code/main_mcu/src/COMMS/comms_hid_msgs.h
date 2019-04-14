@@ -16,14 +16,22 @@
 #define HID_1BYTE_ACK       0x01
 
 /* Command defines */
-#define HID_CMD_ID_PING         0x0001
-#define HID_CMD_ID_RETRY        0x0002
-#define HID_CMD_ID_PLAT_INFO    0x0003
-#define HID_CMD_ID_SET_DATE     0x0004
-#define HID_CMD_ID_CANCEL_REQ   0x0005
-#define HID_CMD_ID_STORE_CRED   0x0006
-#define HID_CMD_ID_GET_CRED     0x0007
-#define HID_CMD_ID_GET_32B_RNG  0x0008
+#define HID_CMD_ID_PING             0x0001
+#define HID_CMD_ID_RETRY            0x0002
+#define HID_CMD_ID_PLAT_INFO        0x0003
+#define HID_CMD_ID_SET_DATE         0x0004
+#define HID_CMD_ID_CANCEL_REQ       0x0005
+#define HID_CMD_ID_STORE_CRED       0x0006
+#define HID_CMD_ID_GET_CRED         0x0007
+#define HID_CMD_ID_GET_32B_RNG      0x0008
+#define HID_CMD_START_MMM           0x0009
+// Below: commands requiring MMM
+#define HID_CMD_GET_START_PARENTS   0x0100
+#define HID_CMD_GET_END_MMM         0x0101
+#define HID_CMD_READ_NODE           0x0102
+// Define used to identify commands
+#define HID_FIRST_CMD_FOR_MMM       HID_CMD_GET_START_PARENTS
+#define HID_LAST_CMD_FOR_MMM        HID_CMD_GET_START_PARENTS
 
 /* Typedefs */
 typedef struct

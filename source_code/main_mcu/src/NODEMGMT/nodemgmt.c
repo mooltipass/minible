@@ -674,10 +674,10 @@ uint16_t findFreeNodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16
     return nbChildNodesFound+nbParentNodesFound;
 }
 
-/*! \fn     scanNodeUsage(void)
+/*! \fn     nodemgmt_scan_node_usage(void)
 *   \brief  Scan memory to find empty slots
 */
-void scanNodeUsage(void)
+void nodemgmt_scan_node_usage(void)
 {
     // Find one free node. If we don't find it, set the next to the null addr, we start looking from the just taken node
     if (findFreeNodes(1, &nodemgmt_current_handle.nextParentFreeNode, 1, &nodemgmt_current_handle.nextChildFreeNode, pageNumberFromAddress(nodemgmt_current_handle.nextParentFreeNode), nodeNumberFromAddress(nodemgmt_current_handle.nextParentFreeNode)) != 2)
@@ -713,7 +713,7 @@ void nodemgmt_init_context(uint16_t userIdNum)
     }
     
     // scan for next free parent and child nodes from the start of the memory
-    scanNodeUsage();
+    nodemgmt_scan_node_usage();
     
     // To think about: the old service LUT from the mini isn't needed as we support unicode now
 }
@@ -1017,7 +1017,7 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
     } // end if first parent
     
     // Rescan node usage
-    scanNodeUsage();
+    nodemgmt_scan_node_usage();
     
     // Store the address
     *storedAddress = freeNodeAddress;

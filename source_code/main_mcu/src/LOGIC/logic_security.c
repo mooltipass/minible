@@ -7,6 +7,8 @@
 #include "logic_security.h"
 /* Inserted card unlocked */
 BOOL logic_security_smartcard_inserted_unlocked = FALSE;
+/* Memory management mode */
+BOOL logic_security_management_mode = FALSE;
 
 
 /*! \fn     logic_security_clear_security_bools(void)
@@ -36,6 +38,7 @@ void logic_security_smartcard_unlocked_actions(void)
 {    
     cpu_irq_enter_critical();
     logic_security_smartcard_inserted_unlocked = TRUE;
+    logic_security_management_mode = FALSE;
     cpu_irq_leave_critical();
 }
 
@@ -53,4 +56,29 @@ RET_TYPE logic_security_is_smc_inserted_unlocked(void)
     {
         return RETURN_NOK;
     }
+}
+
+/*! \fn     logic_security_set_management_mode(void)
+*   \brief  Set device into management mode
+*/
+void logic_security_set_management_mode(void)
+{
+    logic_security_management_mode = TRUE;
+}
+
+/*! \fn     logic_security_clear_management_mode(void)
+*   \brief  Exit management mode
+*/
+void logic_security_clear_management_mode(void)
+{
+    logic_security_management_mode = FALSE;
+}
+
+/*! \fn     logic_security_is_management_mode_set(void)
+*   \brief  Check if device is in MMM
+*   \return RETURN_(N)OK
+*/
+RET_TYPE logic_security_is_management_mode_set(void)
+{
+    return logic_security_management_mode;
 }

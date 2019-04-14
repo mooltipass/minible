@@ -219,5 +219,6 @@ void nodemgmt_init_context(uint16_t userIdNum);
 void nodemgmt_set_current_date(uint16_t date);
 void nodemgmt_read_profile_ctr(void* buf);
 void nodemgmt_set_profile_ctr(void* buf);
+void nodemgmt_scan_node_usage(void);
 
 #endif /* NODEMGMT_H_ */

@@ -245,6 +245,9 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
             #endif
             timer_delay_ms(20);            
         }
+        
+        /* Erase digits again */
+        sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_DIGIT_HEIGHT, 0x00, TRUE);
     }
     
     /* Prepare for digits display */

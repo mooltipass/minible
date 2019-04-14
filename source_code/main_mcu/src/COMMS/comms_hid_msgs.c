@@ -5,8 +5,12 @@
 */
 #include <asf.h>
 #include <string.h>
-#include "comms_hid_msgs.h" 
+#include "logic_smartcard.h"
+#include "gui_dispatcher.h"
+#include "comms_hid_msgs.h"
+#include "logic_security.h"
 #include "comms_aux_mcu.h"
+#include "logic_device.h"
 #include "gui_prompts.h"
 #include "logic_user.h"
 #include "custom_fs.h"
@@ -58,6 +62,15 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
     /* By default: copy the same CMD identifier for TX message */
     send_msg->message_type = rcv_msg->message_type;
     uint16_t rcv_message_type = rcv_msg->message_type;
+    
+    /* Check for commands for management mode */
+    if ((rcv_msg->message_type >= HID_FIRST_CMD_FOR_MMM) && (rcv_msg->message_type <= HID_LAST_CMD_FOR_MMM) && (logic_security_is_management_mode_set() != RETURN_OK))
+    {
+        /* Set nack, leave same command id */
+        send_msg->payload[0] = HID_1BYTE_NACK;
+        send_msg->payload_length = 1;
+        return 1;
+    }
     
     /* Switch on command id */
     switch (rcv_msg->message_type)
@@ -116,6 +129,76 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             rng_fill_array(send_msg->payload, 32);
             send_msg->payload_length = 32;
             return 32;
+        }
+        
+        case HID_CMD_GET_START_PARENTS:
+        {
+            /* Get all starting parents */
+            send_msg->payload_as_uint16[0] = nodemgmt_get_starting_parent_addr();
+            for (uint16_t i = 0; i < MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address); i++)
+            {
+                send_msg->payload_as_uint16[1+i] = nodemgmt_get_starting_data_parent_addr(i);
+            }
+            
+            /* Return correct size */
+            send_msg->payload_length = (1 + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address))*sizeof(uint16_t);
+            return send_msg->payload_length;
+        }
+        
+        case HID_CMD_GET_END_MMM:
+        {
+            /* Clear bool */
+            logic_device_activity_detected();
+            logic_security_clear_management_mode();
+            
+            /* Set next screen */
+            gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE, GUI_OUTOF_MENU_TRANSITION);
+            gui_dispatcher_get_back_to_current_screen();
+            nodemgmt_scan_node_usage();
+            
+            /* Set ack, leave same command id */
+            send_msg->payload[0] = HID_1BYTE_ACK;
+            send_msg->payload_length = 1;
+            return 1;
+        }
+        
+        case HID_CMD_START_MMM:
+        {
+            /* Smartcard unlocked? */
+            if (logic_security_is_smc_inserted_unlocked() == RETURN_OK)
+            {
+                // TODO: if it makes sense, ask user to enter his PIN
+                
+                /* Prompt the user */
+                if (gui_prompts_ask_for_one_line_confirmation(ID_STRING_ENTER_MMM, TRUE) == MINI_INPUT_RET_YES)
+                {
+                    /* Approved, set next screen */
+                    gui_dispatcher_set_current_screen(GUI_SCREEN_MEMORY_MGMT, TRUE, GUI_INTO_MENU_TRANSITION);
+                    
+                    /* Update current state */
+                    logic_security_set_management_mode();
+                    
+                    /* Set success byte */
+                    send_msg->payload[0] = HID_1BYTE_ACK;
+                }
+            } 
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+            
+            /* Go back to old or updated screen */
+            gui_dispatcher_get_back_to_current_screen();
+            
+            /* Return success or failure */
+            send_msg->payload_length = 1;
+            return 1;
+        }
+        
+        case HID_CMD_READ_NODE:
+        {
+            return 0;
         }
         
         case HID_CMD_ID_GET_CRED:

@@ -145,7 +145,10 @@ RET_TYPE logic_smartcard_handle_inserted(void)
         }
     }
     
+    /* Set specified next screen */
     gui_dispatcher_set_current_screen(next_screen, TRUE, GUI_INTO_MENU_TRANSITION);
+    
+    /* Transition to next screen only if the card wasn't removed */
     if (smartcard_low_level_is_smc_absent() != RETURN_OK)
     {
         gui_dispatcher_get_back_to_current_screen();
