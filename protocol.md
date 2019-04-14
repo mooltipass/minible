@@ -166,6 +166,66 @@ Device Answer:
 
 Tested status: NOT tested
 
+
+0x0009: Start Memory Management
+-------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0009   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0009   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Tested status: NOT tested
+
+
+## [](#header-2) Memory Management Commands
+
+If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
+
+
+0x0100: Get Start Nodes Addresses
+---------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0100   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0101   | 34 | Credential start address + 16 data start addresses |
+
+Tested status: NOT tested
+
+
+0x0101: Leave Memory Management
+-------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0101   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0101   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Tested status: NOT tested
+
+
   
 ## [](#header-2) Mooltipass Debug and Test Commands
 
