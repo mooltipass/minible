@@ -21,7 +21,7 @@
 #define ID_STRING_UNKNOWN_CARD      36
 #define ID_STRING_GOING_TO_SLEEP    37
 #define ID_STRING_FW_FILE_UPDATE    38
-#define ID_STRING_IN_MMM            39
+#define ID_STRING_IN_MMM            47
 
 /* Enums */
 typedef enum {  GUI_SCREEN_INVALID = 0,

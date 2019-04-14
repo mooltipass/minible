@@ -159,7 +159,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     uint8_t temp_cred_ctr_val[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     
     /* Smartcard present and unlocked? */
-    if (logic_security_is_smc_inserted_unlocked() != RETURN_OK)
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
         return RETURN_NOK;
     }
@@ -262,7 +262,7 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
     BOOL prev_gen_credential_flag = FALSE;
     
     /* Smartcard present and unlocked? */
-    if (logic_security_is_smc_inserted_unlocked() != RETURN_OK)
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
         return -1;
     }

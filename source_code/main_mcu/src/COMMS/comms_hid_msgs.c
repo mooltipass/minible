@@ -64,7 +64,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
     uint16_t rcv_message_type = rcv_msg->message_type;
     
     /* Check for commands for management mode */
-    if ((rcv_msg->message_type >= HID_FIRST_CMD_FOR_MMM) && (rcv_msg->message_type <= HID_LAST_CMD_FOR_MMM) && (logic_security_is_management_mode_set() != RETURN_OK))
+    if ((rcv_msg->message_type >= HID_FIRST_CMD_FOR_MMM) && (rcv_msg->message_type <= HID_LAST_CMD_FOR_MMM) && (logic_security_is_management_mode_set() == FALSE))
     {
         /* Set nack, leave same command id */
         send_msg->payload[0] = HID_1BYTE_NACK;
@@ -147,14 +147,17 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         
         case HID_CMD_END_MMM:
         {
-            /* Clear bool */
-            logic_device_activity_detected();
-            logic_security_clear_management_mode();
-            
-            /* Set next screen */
-            gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE, GUI_OUTOF_MENU_TRANSITION);
-            gui_dispatcher_get_back_to_current_screen();
-            nodemgmt_scan_node_usage();
+            if (logic_security_is_management_mode_set() != FALSE)
+            {
+                /* Clear bool */
+                logic_device_activity_detected();
+                logic_security_clear_management_mode();
+                
+                /* Set next screen */
+                gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE, GUI_INTO_MENU_TRANSITION);
+                gui_dispatcher_get_back_to_current_screen();
+                nodemgmt_scan_node_usage();
+            }
             
             /* Set ack, leave same command id */
             send_msg->payload[0] = HID_1BYTE_ACK;
@@ -165,7 +168,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         case HID_CMD_START_MMM:
         {
             /* Smartcard unlocked? */
-            if (logic_security_is_smc_inserted_unlocked() == RETURN_OK)
+            if (logic_security_is_smc_inserted_unlocked() != FALSE)
             {
                 // TODO: if it makes sense, ask user to enter his PIN
                 
@@ -203,6 +206,13 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         
         case HID_CMD_READ_NODE:
         {
+            /* Check address length */
+            if (rcv_msg->payload_length == sizeof(uint16_t))
+            {
+            } 
+            else
+            {
+            }
             return 0;
         }
         

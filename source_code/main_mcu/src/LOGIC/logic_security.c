@@ -17,6 +17,7 @@ BOOL logic_security_management_mode = FALSE;
 void logic_security_clear_security_bools(void)
 {
     logic_security_smartcard_inserted_unlocked = FALSE;
+    logic_security_management_mode = FALSE;
     // TODO
     /*
     context_valid_flag = FALSE;
@@ -44,18 +45,11 @@ void logic_security_smartcard_unlocked_actions(void)
 
 /*! \fn     logic_security_is_smc_inserted_unlocked(void)
 *   \brief  Know if inserted smartcard is unlocked
-*   \return (N)OK
+*   \return The boolean
 */
-RET_TYPE logic_security_is_smc_inserted_unlocked(void)
+BOOL logic_security_is_smc_inserted_unlocked(void)
 {
-    if (logic_security_smartcard_inserted_unlocked != FALSE)
-    {
-        return RETURN_OK;
-    } 
-    else
-    {
-        return RETURN_NOK;
-    }
+    return logic_security_smartcard_inserted_unlocked;
 }
 
 /*! \fn     logic_security_set_management_mode(void)
@@ -76,9 +70,9 @@ void logic_security_clear_management_mode(void)
 
 /*! \fn     logic_security_is_management_mode_set(void)
 *   \brief  Check if device is in MMM
-*   \return RETURN_(N)OK
+*   \return The boolean
 */
-RET_TYPE logic_security_is_management_mode_set(void)
+BOOL logic_security_is_management_mode_set(void)
 {
     return logic_security_management_mode;
 }

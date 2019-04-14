@@ -31,7 +31,7 @@
 #define HID_CMD_READ_NODE           0x0102
 // Define used to identify commands
 #define HID_FIRST_CMD_FOR_MMM       HID_CMD_GET_START_PARENTS
-#define HID_LAST_CMD_FOR_MMM        HID_CMD_GET_START_PARENTS
+#define HID_LAST_CMD_FOR_MMM        HID_CMD_READ_NODE
 
 /* Typedefs */
 typedef struct
