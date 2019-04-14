@@ -27,7 +27,7 @@
 #define HID_CMD_START_MMM           0x0009
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
-#define HID_CMD_GET_END_MMM         0x0101
+#define HID_CMD_END_MMM             0x0101
 #define HID_CMD_READ_NODE           0x0102
 // Define used to identify commands
 #define HID_FIRST_CMD_FOR_MMM       HID_CMD_GET_START_PARENTS

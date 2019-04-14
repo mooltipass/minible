@@ -145,7 +145,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             return send_msg->payload_length;
         }
         
-        case HID_CMD_GET_END_MMM:
+        case HID_CMD_END_MMM:
         {
             /* Clear bool */
             logic_device_activity_detected();
@@ -180,6 +180,11 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                     
                     /* Set success byte */
                     send_msg->payload[0] = HID_1BYTE_ACK;
+                }
+                else
+                {
+                    /* Set failure byte */
+                    send_msg->payload[0] = HID_1BYTE_NACK;
                 }
             } 
             else
