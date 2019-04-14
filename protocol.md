@@ -203,7 +203,7 @@ Device Answer:
 
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
-| 0x0101   | 34 | Credential start address + 16 data start addresses |
+| 0x0100   | 34 | Credential start address + 16 data start addresses |
 
 Tested status: NOT tested
 
@@ -222,6 +222,24 @@ Device Answer:
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
 | 0x0101   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Tested status: NOT tested
+
+
+0x0102: Read Memory Node
+------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0102   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0102   | 264 or 528 | Memory node contents |
 
 Tested status: NOT tested
 
