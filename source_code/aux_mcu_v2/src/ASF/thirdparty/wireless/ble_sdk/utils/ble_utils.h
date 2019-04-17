@@ -85,6 +85,11 @@
 #define ble_assert(expr) ((void) 0)
 #endif
 
+#define DBG_LOG(...)
+#define DBG_LOG_ADV(...)
+#define DBG_LOG_CONT(...)
+
+/*
 #define DBG_LOG_CONT	comms_usb_debug_printf
 
 #define DBG_LOG		    comms_usb_debug_printf("\r\n");\
@@ -92,6 +97,7 @@
 
 #define DBG_LOG_ADV	    comms_usb_debug_printf("\r\nBLE-ADV: ");\
 						comms_usb_debug_printf
+*/
 						
 #define UNUSED1(x) (void)(x)
 #define UNUSED2(x,y) (void)(x),(void)(y)

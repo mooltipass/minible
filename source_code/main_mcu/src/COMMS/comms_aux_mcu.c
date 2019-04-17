@@ -12,6 +12,8 @@
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "platform_io.h"
+#include "sh1122.h"
+#include "main.h"
 #include "dma.h"
 /* Received and sent MCU messages */
 aux_mcu_message_t aux_mcu_receive_message;
@@ -293,7 +295,8 @@ void comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
 *   \return OK if a message was received
 *   \note   Special care must be taken to discard other message we don't want (either with a please_retry or other mechanisms)
 *   \note   DMA RX arm must be called to rearm message receive as a rearm in this code would enable data to be overwritten
-*   \note   This function is not touching the no comms signal
+*   \note   This function is not touching the no comms signal except in case the wrong message type isn't received
+*   // TODO: check usefulness of do_not_touch_dma_flags....
 */
 RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet)
 {
@@ -346,11 +349,8 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
         {
             /* Reloop, rearm receive */
             reloop = TRUE;
-            if (do_not_touch_dma_flags != FALSE)
-            {
-                dma_aux_mcu_check_and_clear_dma_transfer_flag();
-            }
-            dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+            dma_aux_mcu_check_and_clear_dma_transfer_flag();
+            comms_aux_arm_rx_and_clear_no_comms();
         }        
         
         /* Check if received message is the one we expected */
@@ -358,11 +358,8 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
         {
             /* Reloop, rearm receive */
             reloop = TRUE;
-            if (do_not_touch_dma_flags != FALSE)
-            {
-                dma_aux_mcu_check_and_clear_dma_transfer_flag();
-            }
-            dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+            dma_aux_mcu_check_and_clear_dma_transfer_flag();
+            comms_aux_arm_rx_and_clear_no_comms();
             
             // TODO: take necessary action in case we received an unwanted message
         }
