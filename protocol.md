@@ -247,20 +247,38 @@ Device Answer:
 Tested status: NOT tested
 
 
-0x0103: Set User Change Numbers
--------------------------------
+0x0103: Set Credential Change Number
+------------------------------------
 
 From the PC: 
 
-| byte 0-1 | byte 2-3                    | byte 4-7  | byte 8-11 |
-|:---------|:----------------------------|:----------|:----------|
-| 0x0103   | 8 | Credential change number | Data change number |
+| byte 0-1 | byte 2-3                    | byte 4-7  |
+|:---------|:----------------------------|:----------|
+| 0x0103   | 4 | Credential change number |
 
 Device Answer:
 
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
 | 0x0103   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Tested status: NOT tested
+
+
+0x0104: Set Data Change Number
+------------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | byte 4-7  |
+|:---------|:----------------------------|:----------|
+| 0x0104   | 4 | Data change number |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0104   | 1 | 0x00 (failure) / 0x01 (success) |
 
 Tested status: NOT tested
 
