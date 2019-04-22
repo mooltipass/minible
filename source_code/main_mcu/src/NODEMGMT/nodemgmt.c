@@ -521,10 +521,7 @@ void nodemgmt_set_start_addresses(uint16_t* addresses_array)
 
     // update handle    
     nodemgmt_current_handle.firstParentNode = addresses_array[0];
-    for (uint16_t i = 0; i < MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address); i++)
-    {
-        nodemgmt_current_handle.firstDataParentNode[i] = addresses_array[i+1];
-    }
+    memcpy(nodemgmt_current_handle.firstDataParentNode, &(addresses_array[1]), MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address));
 
     // Write addresses in the user profile page. Possible as the credential start address & data start addresses are contiguous in memory
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_start_address), (1 + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address))*sizeof(uint16_t), addresses_array);
