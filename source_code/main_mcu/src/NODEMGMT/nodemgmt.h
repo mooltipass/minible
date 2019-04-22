@@ -217,6 +217,8 @@ void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_no
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);
 uint16_t nodemgmt_get_starting_parent_addr(void);
 void nodemgmt_format_user_profile(uint16_t uid);
+uint32_t nodemgmt_get_cred_change_number(void);
+uint32_t nodemgmt_get_data_change_number(void);
 void nodemgmt_init_context(uint16_t userIdNum);
 void nodemgmt_set_current_date(uint16_t date);
 void nodemgmt_read_profile_ctr(void* buf);
