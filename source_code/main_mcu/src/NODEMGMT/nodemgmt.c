@@ -444,11 +444,11 @@ uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId)
     return temp_address;
 }
 
-/*! \fn     getCredChangeNumber(void)
+/*! \fn     nodemgmt_get_cred_change_number(void)
  *  \brief  Gets the users change number from the user profile memory portion of flash
  *  \return The address
  */
-uint32_t getCredChangeNumber(void)
+uint32_t nodemgmt_get_cred_change_number(void)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     uint32_t change_number;
@@ -459,11 +459,11 @@ uint32_t getCredChangeNumber(void)
     return change_number;
 }
 
-/*! \fn     getDataChangeNumber(void)
+/*! \fn     nodemgmt_get_data_change_number(void)
  *  \brief  Gets the users data change number from the user profile memory portion of flash
  *  \return The address
  */
-uint32_t getDataChangeNumber(void)
+uint32_t nodemgmt_get_data_change_number(void)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     uint32_t change_number;
@@ -739,7 +739,7 @@ void userDBChangedActions(BOOL dataChanged)
     // Cred db change number
     if ((nodemgmt_current_handle.dbChanged == FALSE) && (dataChanged == FALSE))
     {
-        uint32_t current_cred_change_number = getCredChangeNumber();
+        uint32_t current_cred_change_number = nodemgmt_get_cred_change_number();
         current_cred_change_number++;
         nodemgmt_current_handle.dbChanged = TRUE;
         setCredChangeNumber(current_cred_change_number);
@@ -748,7 +748,7 @@ void userDBChangedActions(BOOL dataChanged)
     // Data db change number
     if ((nodemgmt_current_handle.datadbChanged == FALSE) && (dataChanged != FALSE))
     {
-        uint32_t current_data_change_number = getDataChangeNumber();
+        uint32_t current_data_change_number = nodemgmt_get_data_change_number();
         current_data_change_number++;
         nodemgmt_current_handle.datadbChanged = TRUE;
         setDataChangeNumber(current_data_change_number);        
