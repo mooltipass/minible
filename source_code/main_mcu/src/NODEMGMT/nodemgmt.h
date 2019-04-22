@@ -214,7 +214,12 @@ void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOO
 void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node);
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
+void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId);
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);
+void nodemgmt_set_start_addresses(uint16_t* addresses_array);
+void nodemgmt_set_cred_start_address(uint16_t parentAddress);
+void nodemgmt_set_data_change_number(uint32_t changeNumber);
+void nodemgmt_set_cred_change_number(uint32_t changeNumber);
 uint16_t nodemgmt_get_starting_parent_addr(void);
 void nodemgmt_format_user_profile(uint16_t uid);
 uint32_t nodemgmt_get_cred_change_number(void);
