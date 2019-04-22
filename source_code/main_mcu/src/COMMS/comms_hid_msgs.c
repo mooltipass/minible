@@ -144,6 +144,69 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             send_msg->payload_length = (1 + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address))*sizeof(uint16_t);
             return send_msg->payload_length;
         }
+
+        case HID_CMD_SET_CRED_ST_PARENT:
+        {
+            /* Check address length */
+            if (rcv_msg->payload_length == sizeof(uint16_t))
+            {
+                /* Store new address */
+                nodemgmt_set_cred_start_address(rcv_msg->payload_as_uint16[0]);
+
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+            
+            send_msg->payload_length = 1;
+            return 1;
+        }
+
+        case HID_CMD_SET_DATA_ST_PARENT:
+        {
+            /* Check address length */
+            if (rcv_msg->payload_length == 2*sizeof(uint16_t))
+            {
+                /* Store new address */
+                nodemgmt_set_data_start_address(rcv_msg->payload_as_uint16[1], rcv_msg->payload_as_uint16[0]);
+
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+            
+            send_msg->payload_length = 1;
+            return 1;
+        }
+
+        case HID_CMD_SET_START_PARENTS:
+        {
+            /* Check address length */
+            if (rcv_msg->payload_length == (1 + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address))*sizeof(uint16_t))
+            {
+                /* Store new addresses */
+                nodemgmt_set_start_addresses(rcv_msg->payload_as_uint16);
+
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+            
+            send_msg->payload_length = 1;
+            return 1;
+        }
         
         case HID_CMD_END_MMM:
         {
@@ -244,6 +307,68 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload_length = 1;
                 return 1;
             }
+        }
+
+        // Read user db change number
+        case HID_CMD_GET_USER_CHANGE_NB :
+        {
+            /* Smartcard unlocked? */
+            if (logic_security_is_smc_inserted_unlocked() != FALSE)
+            {
+                send_msg->payload_as_uint32[0] = nodemgmt_get_cred_change_number();
+                send_msg->payload_as_uint32[1] = nodemgmt_get_data_change_number();
+                send_msg->payload_length = 2*sizeof(uint32_t);
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
+            }
+
+            return send_msg->payload_length;
+        }
+
+        case HID_CMD_SET_CRED_CHANGE_NB :
+        {
+            /* Check address length */
+            if (rcv_msg->payload_length == sizeof(uint32_t))
+            {
+                /* Store change number */
+                nodemgmt_set_cred_change_number(rcv_msg->payload_as_uint32[0]);
+
+                /* Set success byte */                
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+            
+            send_msg->payload_length = 1;
+            return 1;
+        }
+
+        case HID_CMD_SET_DATA_CHANGE_NB :
+        {
+            /* Check address length */
+            if (rcv_msg->payload_length == sizeof(uint32_t))
+            {
+                /* Store change number */
+                nodemgmt_set_data_change_number(rcv_msg->payload_as_uint32[0]);
+
+                /* Set success byte */                
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+            
+            send_msg->payload_length = 1;
+            return 1;
         }
         
         case HID_CMD_ID_GET_CRED:
