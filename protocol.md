@@ -10,6 +10,7 @@ This page explains the new Mooltipass messaging protocol and the different comma
 Debug and test commands have identifiers above 0x8000.  
 As with our previous devices, every non-debug / non-test message sent by the computer will receive an answer.  
 In all command descriptions below, hmstrlen() is a custom strlen function treating a character as a uint16_t (Unicode BMP). Therefore, hmstrlen("a") = 2.  
+Unless written otherwise, all commands below have been tested on an actual device.  
   
 ## [](#header-2) Mooltipass Commands
 
@@ -23,7 +24,6 @@ From the PC:
 | 0x0001   | up to the sender | Arbitrary payload |
 
 The device will send back the very same message.  
-Tested status: tested
 
 
 0x0002: Please Retry
@@ -36,7 +36,6 @@ From the device:
 | 0x0002   | 0                | N/A               |
 
 When the device is busy and can't deal with the message sent by the computer, it will reply a message with a "Please Retry" one, inviting the computer to re-send its packet.  
-Tested status: tested
 
 
 0x0003: Get Platform Info
@@ -61,8 +60,6 @@ Device answer:
 | 12->15 | Platform serial number |
 | 16->17 | DB memory size |
 
-Tested status: tested
-
 
 0x0004: Set Current Date
 ------------------------
@@ -78,8 +75,6 @@ Device Answer:
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
 | 0x0004   | 1 | 0x01 (indicates command success) |
-
-Tested status: NOT tested
 
 
 0x0005: Cancel Request
@@ -118,8 +113,6 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x0005   | 1 | 0x01 or 0x00 (success or fail) |
 
-Tested status: tested
-
 
 0x0007: Get Credential
 ----------------------
@@ -146,8 +139,6 @@ Device Answer:
 | 10->11 | index to the password |
 | 12->xxx | all above 0 terminated fields concatenated |
 
-Tested status: tested
-
 
 0x0008: Get 32 Random Bytes
 ---------------------------
@@ -164,8 +155,6 @@ Device Answer:
 |:---------|:---------|:----------|
 | 0x0008   | 32       | Random bytes |
 
-Tested status: NOT tested
-
 
 0x0009: Start Memory Management
 -------------------------------
@@ -181,8 +170,6 @@ Device Answer:
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
 | 0x0009   | 1 | 0x00 (failure) / 0x01 (success) |
-
-Tested status: NOT tested
 
 
 ## [](#header-2) Memory Management Commands
@@ -223,8 +210,6 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x0101   | 1 | 0x00 (failure) / 0x01 (success) |
 
-Tested status: NOT tested
-
 
 0x0102: Read Memory Node
 ------------------------
@@ -240,6 +225,42 @@ Device Answer:
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
 | 0x0102   | 264 or 528 | Memory node contents |
+
+Tested status: NOT tested
+
+
+0x0103: Get User Change Numbers
+-------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0103   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4-7  | byte 8-11 |
+|:---------|:----------------------------|:----------|:----------|
+| 0x0103   | 8 | Credential change number | Data change number |
+
+Tested status: NOT tested
+
+
+0x0104: Set User Change Numbers
+-------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | byte 4-7  | byte 8-11 |
+|:---------|:----------------------------|:----------|:----------|
+| 0x0104   | 8 | Credential change number | Data change number |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0104   | 1 | 0x00 (failure) / 0x01 (success) |
 
 Tested status: NOT tested
 
