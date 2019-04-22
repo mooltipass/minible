@@ -25,10 +25,16 @@
 #define HID_CMD_ID_GET_CRED         0x0007
 #define HID_CMD_ID_GET_32B_RNG      0x0008
 #define HID_CMD_START_MMM           0x0009
+#define HID_CMD_GET_USER_CHANGE_NB  0x000A
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101
 #define HID_CMD_READ_NODE           0x0102
+#define HID_CMD_SET_CRED_CHANGE_NB  0x0103
+#define HID_CMD_SET_DATA_CHANGE_NB  0x0104
+#define HID_CMD_SET_CRED_ST_PARENT  0x0105
+#define HID_CMD_SET_DATA_ST_PARENT  0x0106
+#define HID_CMD_SET_START_PARENTS   0x0107
 // Define used to identify commands
 #define HID_FIRST_CMD_FOR_MMM       HID_CMD_GET_START_PARENTS
 #define HID_LAST_CMD_FOR_MMM        HID_CMD_READ_NODE
