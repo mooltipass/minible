@@ -172,6 +172,24 @@ Device Answer:
 | 0x0009   | 1 | 0x00 (failure) / 0x01 (success) |
 
 
+0x000A: Get User Change Numbers
+-------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x000A   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4-7  | byte 8-11 |
+|:---------|:----------------------------|:----------|:----------|
+| 0x000A   | 8 | Credential change number | Data change number |
+
+Tested status: NOT tested
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
@@ -229,38 +247,20 @@ Device Answer:
 Tested status: NOT tested
 
 
-0x0103: Get User Change Numbers
+0x0103: Set User Change Numbers
 -------------------------------
 
 From the PC: 
-
-| byte 0-1 | byte 2-X     |
-|:---------|:-------------|
-| 0x0103   |        N/A   |
-
-Device Answer:
 
 | byte 0-1 | byte 2-3                    | byte 4-7  | byte 8-11 |
 |:---------|:----------------------------|:----------|:----------|
 | 0x0103   | 8 | Credential change number | Data change number |
 
-Tested status: NOT tested
-
-
-0x0104: Set User Change Numbers
--------------------------------
-
-From the PC: 
-
-| byte 0-1 | byte 2-3                    | byte 4-7  | byte 8-11 |
-|:---------|:----------------------------|:----------|:----------|
-| 0x0104   | 8 | Credential change number | Data change number |
-
 Device Answer:
 
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
-| 0x0104   | 1 | 0x00 (failure) / 0x01 (success) |
+| 0x0103   | 1 | 0x00 (failure) / 0x01 (success) |
 
 Tested status: NOT tested
 
