@@ -474,11 +474,11 @@ uint32_t nodemgmt_get_data_change_number(void)
     return change_number;
 }
 
-/*! \fn     setStartingParentAddress(uint16_t parentAddress)
+/*! \fn     nodemgmt_set_cred_start_address(uint16_t parentAddress)
  *  \brief  Sets the users starting parent node both in the handle and user profile memory portion of flash
  *  \param  parentAddress   The constructed address of the users starting parent node
  */
-void setStartingParentAddress(uint16_t parentAddress)
+void nodemgmt_set_cred_start_address(uint16_t parentAddress)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     
@@ -489,12 +489,12 @@ void setStartingParentAddress(uint16_t parentAddress)
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_start_address), sizeof(parentAddress), &parentAddress);
 }
 
-/*! \fn     setDataStartingParentAddress(uint16_t dataParentAddress, uint16_t typeId)
+/*! \fn     nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId)
  *  \brief  Sets the users starting data parent node both in the handle and user profile memory portion of flash
  *  \param  dataParentAddress   The constructed address of the users starting parent node
  *  \param  typeId              The type ID
  */
-void setDataStartingParentAddress(uint16_t dataParentAddress, uint16_t typeId)
+void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     
@@ -511,11 +511,30 @@ void setDataStartingParentAddress(uint16_t dataParentAddress, uint16_t typeId)
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_start_address[typeId]), sizeof(dataParentAddress), &dataParentAddress);
 }
 
-/*! \fn     setCredChangeNumber(uint32_t changeNumber)
+/*! \fn     nodemgmt_set_start_addresses(uint16_t* addresses_array)
+ *  \brief  Set all start addresses at once
+ *  \param  addresses_array     An array containing the credential start address followed by all the data start addresses
+ */
+void nodemgmt_set_start_addresses(uint16_t* addresses_array)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+
+    // update handle    
+    nodemgmt_current_handle.firstParentNode = addresses_array[0];
+    for (uint16_t i = 0; i < MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address); i++)
+    {
+        nodemgmt_current_handle.firstDataParentNode[i] = addresses_array[i+1];
+    }
+
+    // Write addresses in the user profile page. Possible as the credential start address & data start addresses are contiguous in memory
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_start_address), (1 + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address))*sizeof(uint16_t), addresses_array);
+}
+
+/*! \fn     nodemgmt_set_cred_change_number(uint32_t changeNumber)
  *  \brief  Set the credential change number
  *  \param  changeNumber    The new change number
  */
-void setCredChangeNumber(uint32_t changeNumber)
+void nodemgmt_set_cred_change_number(uint32_t changeNumber)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     
@@ -523,11 +542,11 @@ void setCredChangeNumber(uint32_t changeNumber)
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_change_number), sizeof(changeNumber), (void*)&changeNumber);
 }
 
-/*! \fn     setDataChangeNumber(uint32_t changeNumber)
+/*! \fn     nodemgmt_set_data_change_number(uint32_t changeNumber)
  *  \brief  Set the data change number
  *  \param  changeNumber    The new change number
  */
-void setDataChangeNumber(uint32_t changeNumber)
+void nodemgmt_set_data_change_number(uint32_t changeNumber)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     
@@ -742,7 +761,7 @@ void userDBChangedActions(BOOL dataChanged)
         uint32_t current_cred_change_number = nodemgmt_get_cred_change_number();
         current_cred_change_number++;
         nodemgmt_current_handle.dbChanged = TRUE;
-        setCredChangeNumber(current_cred_change_number);
+        nodemgmt_set_cred_change_number(current_cred_change_number);
     }
     
     // Data db change number
@@ -751,7 +770,7 @@ void userDBChangedActions(BOOL dataChanged)
         uint32_t current_data_change_number = nodemgmt_get_data_change_number();
         current_data_change_number++;
         nodemgmt_current_handle.datadbChanged = TRUE;
-        setDataChangeNumber(current_data_change_number);        
+        nodemgmt_set_data_change_number(current_data_change_number);        
     }
 }
 
@@ -1078,11 +1097,11 @@ RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uin
     {
         if (type == SERVICE_CRED_TYPE)
         {
-            setStartingParentAddress(temp_address);
+            nodemgmt_set_cred_start_address(temp_address);
         }
         else
         {
-            setDataStartingParentAddress(temp_address, typeId);
+            nodemgmt_set_data_start_address(temp_address, typeId);
         }
     }
     
