@@ -283,6 +283,60 @@ Device Answer:
 Tested status: NOT tested
 
 
+0x0105: Set Credential Start Parent
+-----------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | byte 4-5  |
+|:---------|:----------------------------|:----------|
+| 0x0105   | 2 | Start parent address |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0105   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Tested status: NOT tested
+
+
+0x0106: Set Data Start Parent
+-----------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | byte 4-5  | byte 6-7  |
+|:---------|:----------------------------|:----------|:----------|
+| 0x0106   | 4 | Data type ID | Start parent address |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0106   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Tested status: NOT tested
+
+
+0x0107: Set Start Nodes Addresses
+---------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0107   | 34 | Credential start address + 16 data start addresses |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0107   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Tested status: NOT tested
+
+
   
 ## [](#header-2) Mooltipass Debug and Test Commands
 
