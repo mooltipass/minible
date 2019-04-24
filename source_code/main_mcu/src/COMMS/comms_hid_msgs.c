@@ -135,13 +135,13 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         {
             /* Get all starting parents */
             send_msg->payload_as_uint16[0] = nodemgmt_get_starting_parent_addr();
-            for (uint16_t i = 0; i < MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address); i++)
+            for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, data_start_address); i++)
             {
                 send_msg->payload_as_uint16[1+i] = nodemgmt_get_starting_data_parent_addr(i);
             }
             
             /* Return correct size */
-            send_msg->payload_length = (1 + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address))*sizeof(uint16_t);
+            send_msg->payload_length = sizeof(uint16_t) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address);
             return send_msg->payload_length;
         }
 
@@ -190,7 +190,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         case HID_CMD_SET_START_PARENTS:
         {
             /* Check address length */
-            if (rcv_msg->payload_length == (1 + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address))*sizeof(uint16_t))
+            if (rcv_msg->payload_length == (sizeof(uint16_t) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address)))
             {
                 /* Store new addresses */
                 nodemgmt_set_start_addresses(rcv_msg->payload_as_uint16);
@@ -206,6 +206,26 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             
             send_msg->payload_length = 1;
             return 1;
+        }
+
+        case HID_CMD_GET_FREE_NODES:
+        {
+            /* Check for correct number of args and that not too many free slots have been requested */
+            if ((rcv_msg->payload_length == 3*sizeof(uint16_t)) && ((rcv_msg->payload_as_uint16[1] + rcv_msg->payload_as_uint16[2]) <= MEMBER_ARRAY_SIZE(hid_message_t,payload_as_uint16)))
+            {
+                uint16_t nb_nodes_found = nodemgmt_find_free_nodes(rcv_msg->payload_as_uint16[1], send_msg->payload_as_uint16, rcv_msg->payload_as_uint16[2], &(send_msg->payload_as_uint16[rcv_msg->payload_as_uint16[1]]), nodemgmt_page_from_address(rcv_msg->payload_as_uint16[0]), nodemgmt_node_from_address(rcv_msg->payload_as_uint16[0]));
+                
+                /* Send free nodes */
+                send_msg->payload_length = nb_nodes_found*sizeof(uint16_t);
+                return nb_nodes_found*sizeof(uint16_t);
+            }
+            else
+            {
+                /* Send failure */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
+                return 1;
+            }
         }
         
         case HID_CMD_END_MMM:
