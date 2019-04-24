@@ -493,14 +493,14 @@ void nodemgmt_set_data_change_number(uint32_t changeNumber)
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_change_number), sizeof(changeNumber), (void*)&changeNumber);
 }
 
-/*! \fn     setFav(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress)
+/*! \fn     nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress)
  *  \brief  Sets a user favorite in the user profile
  *  \param  categoryId      Category number of the fav record
  *  \param  favId           The id number of the fav record
  *  \param  parentAddress   The parent node address of the fav
  *  \param  childAddress    The child node address of the fav
  */
-void setFav(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress)
+void nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     favorite_addr_t favorite = {parentAddress, childAddress};
@@ -519,14 +519,14 @@ void setFav(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->category_favorites[categoryId].favorite[favId]), sizeof(favorite), (void*)&favorite);
 }
 
-/*! \fn     readFav(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress)
+/*! \fn     nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress)
  *  \brief  Reads a user favorite in the user profile
  *  \param  categoryId      Category number of the fav record
  *  \param  favId           The id number of the fav record
  *  \param  parentAddress   The parent node address of the fav
  *  \param  childAddress    The child node address of the fav
  */
-void readFav(uint16_t categoryId, uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress)
+void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     favorite_addr_t favorite;
