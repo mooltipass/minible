@@ -1043,7 +1043,7 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
     custom_fs_get_string_from_file(SELECT_LOGIN_TEXT_ID, &select_login_string, TRUE);
     
     /* Prepare first line display (<<service>>: select credential), store it in the service field. Service field is 0 terminated by previous calls */
-    if (utils_strlen(temp_pnode.cred_parent.service) + utils_strlen(select_login_string) + 1 <= (uint16_t)MEMBER_SIZE(parent_cred_node_t, service))
+    if (utils_strlen(temp_pnode.cred_parent.service) + utils_strlen(select_login_string) + 1 <= (uint16_t)MEMBER_ARRAY_SIZE(parent_cred_node_t, service))
     {
         utils_strcpy(&temp_pnode.cred_parent.service[utils_strlen(temp_pnode.cred_parent.service)], select_login_string);
     }
@@ -1190,7 +1190,7 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
                     /* Surround center of list item */
                     if (i == 2)
                     {
-                        utils_surround_text_with_pointers(temp_half_cnode_pt->login, MEMBER_SIZE(child_cred_node_t, login));
+                        utils_surround_text_with_pointers(temp_half_cnode_pt->login, MEMBER_ARRAY_SIZE(child_cred_node_t, login));
                     }
                     
                     /* First address: store the "before top address */
