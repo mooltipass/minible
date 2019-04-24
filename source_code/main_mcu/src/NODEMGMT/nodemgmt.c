@@ -200,7 +200,8 @@ RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_t
 */
 void nodemgmt_write_parent_node_data_block_to_flash(uint16_t address, parent_node_t* parent_node)
 {
-    _Static_assert(BASE_NODE_SIZE == sizeof(*parent_node), "Parent node isn't the size of base node size");
+    _Static_assert(BASE_NODE_SIZE == sizeof(*parent_node), "Parent node isn't the size of base node size");    
+    nodemgmt_user_id_to_flags(&(parent_node->cred_parent.flags), nodemgmt_current_handle.currentUserId);
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(address), BASE_NODE_SIZE * nodemgmt_node_from_address(address), BASE_NODE_SIZE, (void*)parent_node->node_as_bytes);
 }
 
@@ -212,6 +213,9 @@ void nodemgmt_write_parent_node_data_block_to_flash(uint16_t address, parent_nod
 void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node)
 {
     _Static_assert(2*BASE_NODE_SIZE == sizeof(*child_node), "Child node isn't twice the size of base node size");
+    nodemgmt_user_id_to_flags(&(child_node->cred_child.flags), nodemgmt_current_handle.currentUserId);
+    nodemgmt_user_id_to_flags(&(child_node->cred_child.fakeFlags), nodemgmt_current_handle.currentUserId);
+    child_node->cred_child.fakeFlags |= (NODEMGMT_VBIT_INVALID << NODEMGMT_CORRECT_FLAGS_BIT_BITSHIFT);
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(address), BASE_NODE_SIZE * nodemgmt_node_from_address(address), BASE_NODE_SIZE, (void*)child_node->node_as_bytes);
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(nodemgmt_get_incremented_address(address)), BASE_NODE_SIZE * nodemgmt_node_from_address(nodemgmt_get_incremented_address(address)), BASE_NODE_SIZE, (void*)(&child_node->node_as_bytes[BASE_NODE_SIZE]));
 }
