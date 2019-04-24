@@ -390,6 +390,69 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             send_msg->payload_length = 1;
             return 1;
         }
+
+        case HID_CMD_GET_CTR_VALUE:
+        {
+            /* Read CTR value from flash and send it */
+            nodemgmt_read_profile_ctr(send_msg->payload);            
+            send_msg->payload_length = MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr);
+            return MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr);
+        }
+
+        case HID_CMD_SET_CTR_VALUE:
+        {
+            if (rcv_msg->payload_length == MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr))
+            {
+                nodemgmt_set_profile_ctr(rcv_msg->payload);
+
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;         
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+            
+            send_msg->payload_length = 1;
+            return 1;
+        }
+
+        case HID_CMD_SET_FAVORITE:
+        {
+            if (rcv_msg->payload_length == 4*sizeof(uint16_t))
+            {
+                nodemgmt_set_favorite(rcv_msg->payload_as_uint16[0], rcv_msg->payload_as_uint16[1], rcv_msg->payload_as_uint16[2], rcv_msg->payload_as_uint16[3]);
+                
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+            
+            send_msg->payload_length = 1;
+            return 1;            
+        }
+
+        case HID_CMD_GET_FAVORITE:
+        {
+            if (rcv_msg->payload_length == 2*sizeof(uint16_t))
+            {
+                nodemgmt_read_favorite(rcv_msg->payload_as_uint16[0], rcv_msg->payload_as_uint16[1], &(send_msg->payload_as_uint16[0]), &(send_msg->payload_as_uint16[1]));
+                send_msg->payload_length = 2*sizeof(uint16_t);
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
+            }
+            
+            return send_msg->payload_length;            
+        }
         
         case HID_CMD_ID_GET_CRED:
         {
