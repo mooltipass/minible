@@ -9,6 +9,7 @@
 #define NODEMGMT_H_
 
 #include "defines.h"
+#include "dbflash.h"
 
 /* Typedefs */
 typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DATA = 2, NODE_TYPE_DATA = 3, NODE_TYPE_NULL = 4 /* Not a valid flag combination */} node_type_te;
@@ -203,6 +204,40 @@ typedef struct
     uint16_t nextChildFreeNode;             // The address of the next free child node
     parent_node_t temp_parent_node;         // Temp parent node to be used when needed
 } nodemgmtHandle_t;
+
+/* Inlines */
+
+
+/*! \fn     nodemgmt_page_from_address(uint16_t addr)
+*   \brief  Extracts a page number from a constructed address
+*   \param  addr    The constructed address used for extraction
+*   \return A page number in flash memory (uin16_t)
+*   \note   See design notes for address format
+*   \note   Max Page Number varies per flash size
+ */
+static inline uint16_t nodemgmt_page_from_address(uint16_t addr)
+{
+    return (addr >> NODEMGMT_ADDR_PAGE_BITSHIFT) & NODEMGMT_ADDR_PAGE_MASK_FINAL;
+}
+
+/*! \fn     nodemgmt_node_from_address(uint16_t addr)
+*   \brief  Extracts a node number from a constructed address
+*   \param  addr   The constructed address used for extraction
+*   \return A node number of a node in a page in flash memory
+*   \note   See design notes for address format
+*   \note   Max Node Number varies per flash size
+ */
+static inline uint16_t nodemgmt_node_from_address(uint16_t addr)
+{
+    _Static_assert(NODEMGMT_ADDR_PAGE_BITSHIFT == 1, "Addressing scheme doesn't fit 1 or 2 base node size per page");
+    
+    #if (BYTES_PER_PAGE == BASE_NODE_SIZE)
+        /* One node per page */
+        return 0;
+    #else
+        return (addr & NODEMGMT_ADDR_NODE_MASK);
+    #endif
+}
 
 /* Prototypes */
 uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode);
