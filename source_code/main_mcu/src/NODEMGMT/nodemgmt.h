@@ -205,9 +205,13 @@ typedef struct
 } nodemgmtHandle_t;
 
 /* Prototypes */
+uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode);
+RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress);
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);
+void nodemgmt_get_user_profile_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 RET_TYPE nodemgmt_create_child_node(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedAddress);
 void nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_node_t* parent_node);
+void nodemgmt_write_parent_node_data_block_to_flash(uint16_t address, parent_node_t* parent_node);
 void nodemgmt_read_child_node_data_block_from_flash(uint16_t address, child_node_t* child_node);
 void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean);
@@ -215,11 +219,16 @@ void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* ch
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId);
+void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags);
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);
+RET_TYPE nodemgmt_check_user_perm_from_flags(uint16_t flags);
 void nodemgmt_set_start_addresses(uint16_t* addresses_array);
 void nodemgmt_set_cred_start_address(uint16_t parentAddress);
 void nodemgmt_set_data_change_number(uint32_t changeNumber);
 void nodemgmt_set_cred_change_number(uint32_t changeNumber);
+uint16_t nodemgmt_get_incremented_address(uint16_t addr);
+void nodemgmt_user_db_changed_actions(BOOL dataChanged);
+void nodemgmt_delete_current_user_from_flash(void);
 uint16_t nodemgmt_get_starting_parent_addr(void);
 void nodemgmt_format_user_profile(uint16_t uid);
 uint32_t nodemgmt_get_cred_change_number(void);
