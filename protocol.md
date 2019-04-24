@@ -358,6 +358,78 @@ Device Answer:
 Tested status: NOT tested
 
 
+0x0109: Get CTR Value
+---------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0109   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4-6                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0109   | 1 or 3 | 0x00 (failure) or CTR values |
+
+Tested status: NOT tested
+
+
+0x010A: Set CTR Value
+---------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | byte 4-6                       |
+|:---------|:----------------------------|:--------------------------------|
+| 0x010A   | 3 | CTR value |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x010A   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Tested status: NOT tested
+
+
+0x010B: Set Favorite
+--------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | byte 4-5 | byte 6-7 | byte 8-9 | byte 10-11 |
+|:---------|:----------------------------|:---------|:---------|:---------|:---------|
+| 0x010A   | 8 | category ID | favorite ID | parent addr | child addr |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x010A   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Tested status: NOT tested
+
+
+0x010B: Get Favorite
+--------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | byte 4-5 | byte 6-7 |
+|:---------|:----------------------------|:---------|:---------|
+| 0x010B   | 4 | category ID | favorite ID |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4-5 | byte 6-7 |
+|:---------|:----------------------------|:---------|:---------|
+| 0x010B   | 1 (failure) or 4 | parent addr | child addr |
+
+Tested status: NOT tested
+
+
   
 ## [](#header-2) Mooltipass Debug and Test Commands
 
