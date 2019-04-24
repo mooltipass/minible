@@ -36,6 +36,11 @@
 #define HID_CMD_SET_DATA_ST_PARENT  0x0106
 #define HID_CMD_SET_START_PARENTS   0x0107
 #define HID_CMD_GET_FREE_NODES      0x0108
+#define HID_CMD_GET_CTR_VALUE       0x0109
+#define HID_CMD_SET_CTR_VALUE       0x010A
+#define HID_CMD_SET_FAVORITE        0x010B
+#define HID_CMD_GET_FAVORITE        0x010C
+#define HID_CMD_WRITE_NODE          0x010D
 // Define used to identify commands
 #define HID_FIRST_CMD_FOR_MMM       HID_CMD_GET_START_PARENTS
 #define HID_LAST_CMD_FOR_MMM        0x0200
