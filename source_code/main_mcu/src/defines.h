@@ -20,10 +20,11 @@
 #define FONT_UBUNTU_REGULAR_13_ID   4
 
 /* Macros */
-#define XSTR(x)                     STR(x)
-#define STR(x)                      #x
-#define ARRAY_SIZE(x)               (sizeof((x)) / sizeof((x)[0]))
-#define MEMBER_SIZE(type, member)   sizeof(((type*)0)->member)
+#define XSTR(x)                         STR(x)
+#define STR(x)                          #x
+#define ARRAY_SIZE(x)                   (sizeof((x)) / sizeof((x)[0]))
+#define MEMBER_SIZE(type, member)       sizeof(((type*)0)->member)
+#define MEMBER_ARRAY_SIZE(type, member) (sizeof(((type*)0)->member) / sizeof(((type*)0)->member[0]))
 
 /* Standard defines */
 #define AES_KEY_LENGTH          256
