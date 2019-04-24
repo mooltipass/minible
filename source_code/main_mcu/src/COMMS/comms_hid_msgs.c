@@ -329,7 +329,40 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             }
         }
 
-        // Read user db change number
+        case HID_CMD_WRITE_NODE:
+        {
+            node_type_te temp_node_type_te;
+
+            /* Check for big or small node size */
+            if ((rcv_msg->payload_length == sizeof(uint16_t) + sizeof(child_node_t)) \
+                    && (nodemgmt_check_user_permission(rcv_msg->payload_as_uint16[0], &temp_node_type_te) == RETURN_OK) \
+                    && (nodemgmt_check_user_permission(nodemgmt_get_incremented_address(rcv_msg->payload_as_uint16[0]), &temp_node_type_te) == RETURN_OK))
+            {
+                /* big node */
+                nodemgmt_write_child_node_block_to_flash(rcv_msg->payload_as_uint16[0], (child_node_t*)&(rcv_msg->payload_as_uint16[1]));
+
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else if ((rcv_msg->payload_length == sizeof(uint16_t) + sizeof(parent_node_t)) \
+                    && (nodemgmt_check_user_permission(rcv_msg->payload_as_uint16[0], &temp_node_type_te) == RETURN_OK))
+            {
+                /* small node */
+                nodemgmt_write_parent_node_data_block_to_flash(rcv_msg->payload_as_uint16[0], (parent_node_t*)&(rcv_msg->payload_as_uint16[1]));
+
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+
+            send_msg->payload_length = 1;
+            return 1;
+        }
+
         case HID_CMD_GET_USER_CHANGE_NB :
         {
             /* Smartcard unlocked? */
