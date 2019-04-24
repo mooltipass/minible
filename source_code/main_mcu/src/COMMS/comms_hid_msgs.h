@@ -35,9 +35,10 @@
 #define HID_CMD_SET_CRED_ST_PARENT  0x0105
 #define HID_CMD_SET_DATA_ST_PARENT  0x0106
 #define HID_CMD_SET_START_PARENTS   0x0107
+#define HID_CMD_GET_FREE_NODES      0x0108
 // Define used to identify commands
 #define HID_FIRST_CMD_FOR_MMM       HID_CMD_GET_START_PARENTS
-#define HID_LAST_CMD_FOR_MMM        HID_CMD_READ_NODE
+#define HID_LAST_CMD_FOR_MMM        0x0200
 
 /* Typedefs */
 typedef struct
