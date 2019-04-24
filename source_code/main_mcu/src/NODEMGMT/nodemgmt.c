@@ -57,12 +57,12 @@ static inline uint16_t nodeNumberFromAddress(uint16_t addr)
     #endif
 }
 
-/*! \fn     getIncrementedAddress(uint16_t addr)
+/*! \fn     nodemgmt_get_incremented_address(uint16_t addr)
 *   \brief  Get next address for a given address
 *   \param  addr   The base address
 *   \return The next address for our addressing scheme
  */
-uint16_t getIncrementedAddress(uint16_t addr)
+uint16_t nodemgmt_get_incremented_address(uint16_t addr)
 {
     _Static_assert((BYTES_PER_PAGE == BASE_NODE_SIZE) || (BYTES_PER_PAGE == 2*BASE_NODE_SIZE), "Page size isn't 1 or 2 base node size");
     _Static_assert(NODEMGMT_ADDR_PAGE_BITSHIFT == 1, "Addressing scheme doesn't fit 1 or 2 base node size per page");
@@ -154,12 +154,12 @@ RET_TYPE extractDate(uint16_t date, uint8_t *year, uint8_t *month, uint8_t *day)
     return RETURN_OK;
 }
 
-/*! \fn     checkUserPermissionFromFlags(uint16_t flags)
+/*! \fn     nodemgmt_check_user_perm_from_flags(uint16_t flags)
 *   \brief  Check that the user has the right to read/write a node
 *   \param  flags       Flags contents
 *   \return OK / NOK
 */
-RET_TYPE checkUserPermissionFromFlags(uint16_t flags)
+RET_TYPE nodemgmt_check_user_perm_from_flags(uint16_t flags)
 {
     // Either the node belongs to us or it is invalid, check that the address is after sector 1 (upper check done at the flashread/write level)
     if (((nodemgmt_current_handle.currentUserId == userIdFromFlags(flags)) && (correctFlagsBitFromFlags(flags) == NODEMGMT_VBIT_VALID)) || (validBitFromFlags(flags) == NODEMGMT_VBIT_INVALID))
@@ -172,13 +172,13 @@ RET_TYPE checkUserPermissionFromFlags(uint16_t flags)
     }
 }
 
-/*! \fn     checkUserPermissionFromFlagsAndLock(uint16_t flags)
+/*! \fn     nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags)
 *   \brief  Check that the user has the right to read/write a node, lock if not
 *   \param  flags       Flags contents
 */
-void checkUserPermissionFromFlagsAndLock(uint16_t flags)
+void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags)
 {
-    if (checkUserPermissionFromFlags(flags) != RETURN_OK)
+    if (nodemgmt_check_user_perm_from_flags(flags) != RETURN_OK)
     {
         while(1);
     }
@@ -204,7 +204,7 @@ RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_t
     dbflash_read_data_from_flash(&dbflash_descriptor, page_addr, byte_addr, sizeof(temp_flags), (void*)&temp_flags);
     
     // Check permission and memory boundaries (high boundary done on the lower level)
-    if ((page_addr >= PAGE_PER_SECTOR) && (checkUserPermissionFromFlags(temp_flags) == RETURN_OK))
+    if ((page_addr >= PAGE_PER_SECTOR) && (nodemgmt_check_user_perm_from_flags(temp_flags) == RETURN_OK))
     {
         /* Store node type */
         if (validBitFromFlags(temp_flags) == NODEMGMT_VBIT_VALID)
@@ -224,12 +224,12 @@ RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_t
     }
 }
 
-/*! \fn     writeParentNodeDataBlockToFlash(uint16_t address, parent_node_t* parent_node)
+/*! \fn     nodemgmt_write_parent_node_data_block_to_flash(uint16_t address, parent_node_t* parent_node)
 *   \brief  Write a parent node data block to flash
 *   \param  address     Where to write
 *   \param  parent_node Pointer to the node
 */
-void writeParentNodeDataBlockToFlash(uint16_t address, parent_node_t* parent_node)
+void nodemgmt_write_parent_node_data_block_to_flash(uint16_t address, parent_node_t* parent_node)
 {
     _Static_assert(BASE_NODE_SIZE == sizeof(*parent_node), "Parent node isn't the size of base node size");
     dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), BASE_NODE_SIZE, (void*)parent_node->node_as_bytes);
@@ -244,7 +244,7 @@ void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* ch
 {
     _Static_assert(2*BASE_NODE_SIZE == sizeof(*child_node), "Child node isn't twice the size of base node size");
     dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), BASE_NODE_SIZE, (void*)child_node->node_as_bytes);
-    dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(getIncrementedAddress(address)), BASE_NODE_SIZE * nodeNumberFromAddress(getIncrementedAddress(address)), BASE_NODE_SIZE, (void*)(&child_node->node_as_bytes[BASE_NODE_SIZE]));
+    dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(nodemgmt_get_incremented_address(address)), BASE_NODE_SIZE * nodeNumberFromAddress(nodemgmt_get_incremented_address(address)), BASE_NODE_SIZE, (void*)(&child_node->node_as_bytes[BASE_NODE_SIZE]));
 }
 
 /*! \fn     nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_node_t* parent_node)
@@ -267,7 +267,7 @@ void nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_no
 void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean)
 {
     nodemgmt_read_parent_node_data_block_from_flash(address, parent_node);
-    checkUserPermissionFromFlagsAndLock(parent_node->cred_parent.flags);
+    nodemgmt_check_user_perm_from_flags_and_lock(parent_node->cred_parent.flags);
     
     if (data_clean != FALSE)
     {
@@ -294,7 +294,7 @@ void nodemgmt_read_child_node_data_block_from_flash(uint16_t address, child_node
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node)
 {
     nodemgmt_read_child_node_data_block_from_flash(address, (child_node_t*)child_node);
-    checkUserPermissionFromFlagsAndLock(child_node->flags);
+    nodemgmt_check_user_perm_from_flags_and_lock(child_node->flags);
     
     // If we have a date, update last used field
     if (nodemgmt_current_date != 0x0000)
@@ -318,7 +318,7 @@ void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_no
 void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_t* child_node)
 {
     nodemgmt_read_parent_node_data_block_from_flash(address, (parent_node_t*)child_node);
-    checkUserPermissionFromFlagsAndLock(child_node->flags);
+    nodemgmt_check_user_perm_from_flags_and_lock(child_node->flags);
     
     // String cleaning
     child_node->login[(sizeof(child_node->login)/sizeof(child_node->login[0]))-1] = 0;
@@ -326,13 +326,13 @@ void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_
     child_node->description[(sizeof(child_node->description)/sizeof(child_node->description[0]))-1] = 0;
 }
 
-/*! \fn     userProfileStartingOffset(uint8_t uid, uint16_t *page, uint16_t *pageOffset)
+/*! \fn     nodemgmt_get_user_profile_starting_offset(uint8_t uid, uint16_t *page, uint16_t *pageOffset)
     \brief  Obtains page and page offset for a given user id
     \param  uid             The id of the user to perform that profile page and offset calculation (0 up to NODE_MAX_UID)
     \param  page            The page containing the user profile
     \param  pageOffset      The offset of the page that indicates the start of the user profile
  */
-void userProfileStartingOffset(uint16_t uid, uint16_t *page, uint16_t *pageOffset)
+void nodemgmt_get_user_profile_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset)
 {
     if(uid >= NB_MAX_USERS)
     {
@@ -376,35 +376,8 @@ void nodemgmt_format_user_profile(uint16_t uid)
     #endif
     
     // Set buffer to all 0's.
-    userProfileStartingOffset(uid, &temp_page, &temp_offset);
+    nodemgmt_get_user_profile_starting_offset(uid, &temp_page, &temp_offset);
     dbflash_write_data_pattern_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmt_profile_main_data_t), 0x00);
-}
-
-/*! \fn     getCurrentUserID(void)
-*   \brief  Get the current user ID
-*   \return The user ID
-*/
-uint16_t getCurrentUserID(void)
-{
-    return nodemgmt_current_handle.currentUserId;
-}
-
-/*! \fn     getFreeParentNodeAddress(void)
-*   \brief  Get next free parent node address
-*   \return The address
-*/
-uint16_t getFreeParentNodeAddress(void)
-{
-    return nodemgmt_current_handle.nextParentFreeNode;
-}
-
-/*! \fn     getFreeChildNodeAddress(void)
-*   \brief  Get next free child node address
-*   \return The address
-*/
-uint16_t getFreeChildNodeAddress(void)
-{
-    return nodemgmt_current_handle.nextChildFreeNode;
 }
 
 /*! \fn     nodemgmt_get_starting_parent_addr(void)
@@ -521,7 +494,7 @@ void nodemgmt_set_start_addresses(uint16_t* addresses_array)
 
     // update handle    
     nodemgmt_current_handle.firstParentNode = addresses_array[0];
-    memcpy(nodemgmt_current_handle.firstDataParentNode, &(addresses_array[1]), MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address)*sizeof(uint16_t));
+    memcpy(nodemgmt_current_handle.firstDataParentNode, &(addresses_array[1]), MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address));
 
     // Write addresses in the user profile page. Possible as the credential start address & data start addresses are contiguous in memory
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_start_address), (1 + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address))*sizeof(uint16_t), addresses_array);
@@ -627,7 +600,7 @@ void nodemgmt_set_profile_ctr(void* buf)
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.current_ctr), sizeof(dirty_address_finding_trick->main_data.current_ctr), buf);
 }
 
-/*! \fn     findFreeNodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode)
+/*! \fn     nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode)
 *   \brief  Find Free Nodes inside our external memory
 *   \param  nbParentNodes   Number of parent nodes we want to find
 *   \param  parentNodeArray An array where to store the addresses
@@ -637,7 +610,7 @@ void nodemgmt_set_profile_ctr(void* buf)
 *   \param  startNode       Scan start node address inside the start page
 *   \return the number of nodes found
 */
-uint16_t findFreeNodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode)
+uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode)
 {
     uint16_t prevFreeAddressFound = NODE_ADDR_NULL;
     uint16_t nbParentNodesFound = 0;
@@ -707,7 +680,7 @@ uint16_t findFreeNodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16
 void nodemgmt_scan_node_usage(void)
 {
     // Find one free node. If we don't find it, set the next to the null addr, we start looking from the just taken node
-    if (findFreeNodes(1, &nodemgmt_current_handle.nextParentFreeNode, 1, &nodemgmt_current_handle.nextChildFreeNode, pageNumberFromAddress(nodemgmt_current_handle.nextParentFreeNode), nodeNumberFromAddress(nodemgmt_current_handle.nextParentFreeNode)) != 2)
+    if (nodemgmt_find_free_nodes(1, &nodemgmt_current_handle.nextParentFreeNode, 1, &nodemgmt_current_handle.nextChildFreeNode, pageNumberFromAddress(nodemgmt_current_handle.nextParentFreeNode), nodeNumberFromAddress(nodemgmt_current_handle.nextParentFreeNode)) != 2)
     {
         nodemgmt_current_handle.nextParentFreeNode = NODE_ADDR_NULL;
         nodemgmt_current_handle.nextChildFreeNode = NODE_ADDR_NULL;
@@ -727,7 +700,7 @@ void nodemgmt_init_context(uint16_t userIdNum)
     }
             
     // fill current user id, first parent node address, user profile page & offset 
-    userProfileStartingOffset(userIdNum, &nodemgmt_current_handle.pageUserProfile, &nodemgmt_current_handle.offsetUserProfile);
+    nodemgmt_get_user_profile_starting_offset(userIdNum, &nodemgmt_current_handle.pageUserProfile, &nodemgmt_current_handle.offsetUserProfile);
     nodemgmt_current_handle.firstParentNode = nodemgmt_get_starting_parent_addr();
     nodemgmt_current_handle.currentUserId = userIdNum;
     nodemgmt_current_handle.datadbChanged = FALSE;
@@ -745,12 +718,12 @@ void nodemgmt_init_context(uint16_t userIdNum)
     // To think about: the old service LUT from the mini isn't needed as we support unicode now
 }
 
-/*! \fn     userDBChangedActions(BOOL dataChanged)
+/*! \fn     nodemgmt_user_db_changed_actions(BOOL dataChanged)
  *  \brief  Function called to inform that the DB has been changed
  *  \param  dataChanged  FALSE when a standard credential is changed, something else when it is a data node that is changed
  *  \note   Currently called on password change & add, 32B data write
  */
-void userDBChangedActions(BOOL dataChanged)
+void nodemgmt_user_db_changed_actions(BOOL dataChanged)
 {
     // Cred db change number
     if ((nodemgmt_current_handle.dbChanged == FALSE) && (dataChanged == FALSE))
@@ -771,10 +744,10 @@ void userDBChangedActions(BOOL dataChanged)
     }
 }
 
-/*! \fn     deleteCurrentUserFromFlash(void)
+/*! \fn     nodemgmt_delete_current_user_from_flash(void)
 *   \brief  Delete user data from flash
 */
-void deleteCurrentUserFromFlash(void)
+void nodemgmt_delete_current_user_from_flash(void)
 {
     uint16_t next_parent_addr = nodemgmt_current_handle.firstParentNode;
     uint16_t next_child_addr;
@@ -799,7 +772,7 @@ void deleteCurrentUserFromFlash(void)
         {
             // Read current parent node
             dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(next_parent_addr), BASE_NODE_SIZE * nodeNumberFromAddress(next_parent_addr), sizeof(temp_buffer), (void*)parent_node_pt);
-            checkUserPermissionFromFlagsAndLock(parent_node_pt->flags);
+            nodemgmt_check_user_perm_from_flags_and_lock(parent_node_pt->flags);
             
             // Read his first child
             next_child_addr = parent_node_pt->nextChildAddress;
@@ -809,7 +782,7 @@ void deleteCurrentUserFromFlash(void)
             {
                 // Read child node
                 dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(next_child_addr), BASE_NODE_SIZE * nodeNumberFromAddress(next_child_addr), sizeof(temp_buffer), (void*)child_node_pt);
-                checkUserPermissionFromFlagsAndLock(child_node_pt->flags);
+                nodemgmt_check_user_perm_from_flags_and_lock(child_node_pt->flags);
                 
                 // Store the next child address in temp
                 if (i == 0)
@@ -826,7 +799,7 @@ void deleteCurrentUserFromFlash(void)
                 
                 // Delete child data block
                 dbflash_write_data_pattern_to_flash(&dbflash_descriptor, pageNumberFromAddress(next_child_addr), BASE_NODE_SIZE * nodeNumberFromAddress(next_child_addr), BASE_NODE_SIZE, 0xFF);
-                dbflash_write_data_pattern_to_flash(&dbflash_descriptor, pageNumberFromAddress(getIncrementedAddress(next_child_addr)), BASE_NODE_SIZE * nodeNumberFromAddress(getIncrementedAddress(next_child_addr)), BASE_NODE_SIZE, 0xFF);
+                dbflash_write_data_pattern_to_flash(&dbflash_descriptor, pageNumberFromAddress(nodemgmt_get_incremented_address(next_child_addr)), BASE_NODE_SIZE * nodeNumberFromAddress(nodemgmt_get_incremented_address(next_child_addr)), BASE_NODE_SIZE, 0xFF);
                 
                 // Set correct next address
                 next_child_addr = temp_address;
@@ -846,7 +819,7 @@ void deleteCurrentUserFromFlash(void)
     }
 }
 
-/*! \fn     createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress)
+/*! \fn     nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress)
  *  \brief  Writes a generic node to memory (next free via handle) (in alphabetical order)
  *  \param  g                       The node to write to memory (nextFreeParentNode)
  *  \param  node_type               The node type (see enum)
@@ -857,7 +830,7 @@ void deleteCurrentUserFromFlash(void)
  *  \note   Handles necessary doubly linked list management
  *  \note   Not called for child data node
  */
-RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress)
+RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress)
 {
     /* Sanity checks */
     parent_cred_node_t* const parent_cred_node_san_checks = 0;
@@ -931,7 +904,7 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
         }
         else
         {
-            writeParentNodeDataBlockToFlash(freeNodeAddress, (parent_node_t*)g);
+            nodemgmt_write_parent_node_data_block_to_flash(freeNodeAddress, (parent_node_t*)g);
         }
         
         // set new first node address
@@ -972,14 +945,14 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
                     }
                     else
                     {
-                        writeParentNodeDataBlockToFlash(freeNodeAddress, (parent_node_t*)g);
+                        nodemgmt_write_parent_node_data_block_to_flash(freeNodeAddress, (parent_node_t*)g);
                     }
                     
                     // set previous last node to point to new node
                     temp_first_three_fields_pt->nextAddress = freeNodeAddress;
                     
                     // even if the previous node is of type child, we only need to write the first 264B!
-                    writeParentNodeDataBlockToFlash(addr, (parent_node_t*)temp_parent_node_pt);
+                    nodemgmt_write_parent_node_data_block_to_flash(addr, (parent_node_t*)temp_parent_node_pt);
                                         
                     // set loop exit case
                     addr = NODE_ADDR_NULL; 
@@ -1004,14 +977,14 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
                 }
                 else
                 {
-                    writeParentNodeDataBlockToFlash(freeNodeAddress, (parent_node_t*)g);
+                    nodemgmt_write_parent_node_data_block_to_flash(freeNodeAddress, (parent_node_t*)g);
                 }
                 
                 // update current node in mem. set prev parent to address node to write was written to.
                 temp_first_three_fields_pt->prevAddress = freeNodeAddress;                
                 
                 // even if the previous node is of type child, we only need to write the first 264B!
-                writeParentNodeDataBlockToFlash(addr, (parent_node_t*)temp_parent_node_pt);
+                nodemgmt_write_parent_node_data_block_to_flash(addr, (parent_node_t*)temp_parent_node_pt);
                 
                 if(g_first_three_fields_pt->prevAddress != NODE_ADDR_NULL)
                 {
@@ -1022,7 +995,7 @@ RET_TYPE createGenericNode(generic_node_t* g, node_type_te node_type, uint16_t f
                     temp_first_three_fields_pt->nextAddress = freeNodeAddress;
                     
                     // even if the previous node is of type child, we only need to write the first 264B!
-                    writeParentNodeDataBlockToFlash(g_first_three_fields_pt->prevAddress, (parent_node_t*)temp_parent_node_pt);
+                    nodemgmt_write_parent_node_data_block_to_flash(g_first_three_fields_pt->prevAddress, (parent_node_t*)temp_parent_node_pt);
                 }                
                 
                 if(addr == firstNodeAddress)
@@ -1079,14 +1052,14 @@ RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uin
     // This is particular to parent nodes...
     p->cred_parent.nextChildAddress = NODE_ADDR_NULL;
     
-    // Call createGenericNode to add a node
+    // Call nodemgmt_create_generic_node to add a node
     if (type == SERVICE_CRED_TYPE)
     {
-        temprettype = createGenericNode((generic_node_t*)p, NODE_TYPE_PARENT, first_parent_addr, &temp_address, storedAddress);
+        temprettype = nodemgmt_create_generic_node((generic_node_t*)p, NODE_TYPE_PARENT, first_parent_addr, &temp_address, storedAddress);
     }
     else
     {
-        temprettype = createGenericNode((generic_node_t*)p, NODE_TYPE_PARENT_DATA, first_parent_addr, &temp_address, storedAddress);
+        temprettype = nodemgmt_create_generic_node((generic_node_t*)p, NODE_TYPE_PARENT_DATA, first_parent_addr, &temp_address, storedAddress);
     }
     
     // If the return is ok & we changed the first node address
@@ -1126,15 +1099,15 @@ RET_TYPE nodemgmt_create_child_node(uint16_t pAddr, child_cred_node_t* c, uint16
     nodemgmt_read_parent_node(pAddr, &nodemgmt_current_handle.temp_parent_node, FALSE);
     childFirstAddress = nodemgmt_current_handle.temp_parent_node.cred_parent.nextChildAddress;
     
-    // Call createGenericNode to add a node
-    temprettype = createGenericNode((generic_node_t*)c, NODE_TYPE_CHILD, childFirstAddress, &temp_address, storedAddress);
+    // Call nodemgmt_create_generic_node to add a node
+    temprettype = nodemgmt_create_generic_node((generic_node_t*)c, NODE_TYPE_CHILD, childFirstAddress, &temp_address, storedAddress);
     
     // If the return is ok & we changed the first child address
     if ((temprettype == RETURN_OK) && (childFirstAddress != temp_address))
     {
         nodemgmt_read_parent_node(pAddr, &nodemgmt_current_handle.temp_parent_node, FALSE);
         nodemgmt_current_handle.temp_parent_node.cred_parent.nextChildAddress = temp_address;
-        writeParentNodeDataBlockToFlash(pAddr, &nodemgmt_current_handle.temp_parent_node);
+        nodemgmt_write_parent_node_data_block_to_flash(pAddr, &nodemgmt_current_handle.temp_parent_node);
     }
     
     return temprettype;
