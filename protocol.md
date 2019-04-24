@@ -430,6 +430,24 @@ Device Answer:
 Tested status: NOT tested
 
 
+0x010C: Write Node
+------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | byte 4-5 | byte 6-XXXX |
+|:---------|:----------------------------|:---------|:---------|
+| 0x010C   | 2+(264 or 528) | write address | node |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x010A   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Tested status: NOT tested
+
+
   
 ## [](#header-2) Mooltipass Debug and Test Commands
 
