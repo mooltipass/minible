@@ -324,7 +324,7 @@ Tested status: NOT tested
 
 From the PC: 
 
-| byte 0-1 | byte 2-3                    | byte 4                          |
+| byte 0-1 | byte 2-3                    | byte 4-37                       |
 |:---------|:----------------------------|:--------------------------------|
 | 0x0107   | 34 | Credential start address + 16 data start addresses |
 
@@ -333,6 +333,27 @@ Device Answer:
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
 | 0x0107   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Tested status: NOT tested
+
+
+0x0108: Get Free Nodes Addresses
+--------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | byte 4-5 | byte 6-7 | byte 8-9 |
+|:---------|:----------------------------|:---------|:---------|:---------|
+| 0x0108   | 6 | Search start address  | # parent nodes | # child nodes |
+
+Device Answer:
+
+| Bytes ID | Descrition |             
+|:---------|:-----------|
+| 0-1      | 0x0108     |
+| 2-3      | # addresses found x2     |
+| 4-4+pnodesreqedx2 | available parent nodes addresses and 0 if not enough availability |
+| 4+pnodesreqedx2-4+pnodesreqedx2+cnodesreqedx2      | available child nodes addresses and 0 if not enough availability     |
 
 Tested status: NOT tested
 
