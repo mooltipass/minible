@@ -9,7 +9,7 @@ This page explains the new Mooltipass messaging protocol and the different comma
    
 Debug and test commands have identifiers above 0x8000.  
 As with our previous devices, every non-debug / non-test message sent by the computer will receive an answer.  
-In all command descriptions below, hmstrlen() is a custom strlen function treating a character as a uint16_t (Unicode BMP). Therefore, hmstrlen("a") = 2.  
+Character size is 2 bytes in order to accomodate Unicode BMP.  
 Unless written otherwise, all commands below have been tested on an actual device.  
   
 ## [](#header-2) Mooltipass Commands
@@ -366,7 +366,7 @@ Tested status: NOT tested
 
 | byte 0-1 | byte 2-3                    | bytes 4-X                          |
 |:---------|:----------------------------|:-----------------------------------|
-| 0x8000   | hmstrlen(debug_message) + 2 | Debug Message + terminating 0x0000 |
+| 0x8000   | strlen(debug_message)x2 + 2 | Debug Message + terminating 0x0000 |
 
 Can be sent from both the device or the computer. **Does not require an answer.** 
 
