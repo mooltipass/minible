@@ -206,7 +206,7 @@ From the PC:
 
 Device Answer:
 
-| byte 0-1 | byte 2-3                    | byte 4                          |
+| byte 0-1 | byte 2-3                    | byte 4-37                          |
 |:---------|:----------------------------|:--------------------------------|
 | 0x0100   | 34 | Credential start address + 16 data start addresses |
 
@@ -240,9 +240,9 @@ From the PC:
 
 Device Answer:
 
-| byte 0-1 | byte 2-3                    | byte 4                          |
+| byte 0-1 | byte 2-3                    | byte 4-X                          |
 |:---------|:----------------------------|:--------------------------------|
-| 0x0102   | 264 or 528 | Memory node contents |
+| 0x0102   | 1 or 264 or 528 | 0x00 (failure) or memory node contents |
 
 Tested status: NOT tested
 
