@@ -26,37 +26,6 @@ void nodemgmt_set_current_date(uint16_t date)
     nodemgmt_current_date = date;
 }
 
-/*! \fn     pageNumberFromAddress(uint16_t addr)
-*   \brief  Extracts a page number from a constructed address
-*   \param  addr    The constructed address used for extraction
-*   \return A page number in flash memory (uin16_t)
-*   \note   See design notes for address format
-*   \note   Max Page Number varies per flash size
- */
-static inline uint16_t pageNumberFromAddress(uint16_t addr)
-{
-    return (addr >> NODEMGMT_ADDR_PAGE_BITSHIFT) & NODEMGMT_ADDR_PAGE_MASK_FINAL;
-}
-
-/*! \fn     nodeNumberFromAddress(uint16_t addr)
-*   \brief  Extracts a node number from a constructed address
-*   \param  addr   The constructed address used for extraction
-*   \return A node number of a node in a page in flash memory
-*   \note   See design notes for address format
-*   \note   Max Node Number varies per flash size
- */
-static inline uint16_t nodeNumberFromAddress(uint16_t addr)
-{
-    _Static_assert(NODEMGMT_ADDR_PAGE_BITSHIFT == 1, "Addressing scheme doesn't fit 1 or 2 base node size per page");
-    
-    #if (BYTES_PER_PAGE == BASE_NODE_SIZE)
-        /* One node per page */
-        return 0;
-    #else
-        return (addr & NODEMGMT_ADDR_NODE_MASK);
-    #endif
-}
-
 /*! \fn     nodemgmt_get_incremented_address(uint16_t addr)
 *   \brief  Get next address for a given address
 *   \param  addr   The base address
@@ -196,9 +165,9 @@ RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_t
     // Future node flags
     uint16_t temp_flags;
     // Node Page
-    uint16_t page_addr = pageNumberFromAddress(node_addr);
+    uint16_t page_addr = nodemgmt_page_from_address(node_addr);
     // Node byte address
-    uint16_t byte_addr = BASE_NODE_SIZE * nodeNumberFromAddress(node_addr);
+    uint16_t byte_addr = BASE_NODE_SIZE * nodemgmt_node_from_address(node_addr);
     
     // Fetch the flags
     dbflash_read_data_from_flash(&dbflash_descriptor, page_addr, byte_addr, sizeof(temp_flags), (void*)&temp_flags);
@@ -232,7 +201,7 @@ RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_t
 void nodemgmt_write_parent_node_data_block_to_flash(uint16_t address, parent_node_t* parent_node)
 {
     _Static_assert(BASE_NODE_SIZE == sizeof(*parent_node), "Parent node isn't the size of base node size");
-    dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), BASE_NODE_SIZE, (void*)parent_node->node_as_bytes);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(address), BASE_NODE_SIZE * nodemgmt_node_from_address(address), BASE_NODE_SIZE, (void*)parent_node->node_as_bytes);
 }
 
 /*! \fn     nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node)
@@ -243,8 +212,8 @@ void nodemgmt_write_parent_node_data_block_to_flash(uint16_t address, parent_nod
 void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node)
 {
     _Static_assert(2*BASE_NODE_SIZE == sizeof(*child_node), "Child node isn't twice the size of base node size");
-    dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), BASE_NODE_SIZE, (void*)child_node->node_as_bytes);
-    dbflash_write_data_to_flash(&dbflash_descriptor, pageNumberFromAddress(nodemgmt_get_incremented_address(address)), BASE_NODE_SIZE * nodeNumberFromAddress(nodemgmt_get_incremented_address(address)), BASE_NODE_SIZE, (void*)(&child_node->node_as_bytes[BASE_NODE_SIZE]));
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(address), BASE_NODE_SIZE * nodemgmt_node_from_address(address), BASE_NODE_SIZE, (void*)child_node->node_as_bytes);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(nodemgmt_get_incremented_address(address)), BASE_NODE_SIZE * nodemgmt_node_from_address(nodemgmt_get_incremented_address(address)), BASE_NODE_SIZE, (void*)(&child_node->node_as_bytes[BASE_NODE_SIZE]));
 }
 
 /*! \fn     nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_node_t* parent_node)
@@ -254,7 +223,7 @@ void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* ch
 */
 void nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_node_t* parent_node)
 {
-    dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), sizeof(parent_node->node_as_bytes), (void*)parent_node->node_as_bytes);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(address), BASE_NODE_SIZE * nodemgmt_node_from_address(address), sizeof(parent_node->node_as_bytes), (void*)parent_node->node_as_bytes);
 }
 
 /*! \fn     nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean)
@@ -282,7 +251,7 @@ void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOO
 */
 void nodemgmt_read_child_node_data_block_from_flash(uint16_t address, child_node_t* child_node)
 {
-    dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(address), BASE_NODE_SIZE * nodeNumberFromAddress(address), sizeof(child_node->node_as_bytes), (void*)child_node->node_as_bytes);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(address), BASE_NODE_SIZE * nodemgmt_node_from_address(address), sizeof(child_node->node_as_bytes), (void*)child_node->node_as_bytes);
 }
 
 /*! \fn     nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node)
@@ -680,7 +649,7 @@ uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeAr
 void nodemgmt_scan_node_usage(void)
 {
     // Find one free node. If we don't find it, set the next to the null addr, we start looking from the just taken node
-    if (nodemgmt_find_free_nodes(1, &nodemgmt_current_handle.nextParentFreeNode, 1, &nodemgmt_current_handle.nextChildFreeNode, pageNumberFromAddress(nodemgmt_current_handle.nextParentFreeNode), nodeNumberFromAddress(nodemgmt_current_handle.nextParentFreeNode)) != 2)
+    if (nodemgmt_find_free_nodes(1, &nodemgmt_current_handle.nextParentFreeNode, 1, &nodemgmt_current_handle.nextChildFreeNode, nodemgmt_page_from_address(nodemgmt_current_handle.nextParentFreeNode), nodemgmt_node_from_address(nodemgmt_current_handle.nextParentFreeNode)) != 2)
     {
         nodemgmt_current_handle.nextParentFreeNode = NODE_ADDR_NULL;
         nodemgmt_current_handle.nextChildFreeNode = NODE_ADDR_NULL;
@@ -771,7 +740,7 @@ void nodemgmt_delete_current_user_from_flash(void)
         while (next_parent_addr != NODE_ADDR_NULL)
         {
             // Read current parent node
-            dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(next_parent_addr), BASE_NODE_SIZE * nodeNumberFromAddress(next_parent_addr), sizeof(temp_buffer), (void*)parent_node_pt);
+            dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_parent_addr), BASE_NODE_SIZE * nodemgmt_node_from_address(next_parent_addr), sizeof(temp_buffer), (void*)parent_node_pt);
             nodemgmt_check_user_perm_from_flags_and_lock(parent_node_pt->flags);
             
             // Read his first child
@@ -781,7 +750,7 @@ void nodemgmt_delete_current_user_from_flash(void)
             while (next_child_addr != NODE_ADDR_NULL)
             {
                 // Read child node
-                dbflash_read_data_from_flash(&dbflash_descriptor, pageNumberFromAddress(next_child_addr), BASE_NODE_SIZE * nodeNumberFromAddress(next_child_addr), sizeof(temp_buffer), (void*)child_node_pt);
+                dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_child_addr), BASE_NODE_SIZE * nodemgmt_node_from_address(next_child_addr), sizeof(temp_buffer), (void*)child_node_pt);
                 nodemgmt_check_user_perm_from_flags_and_lock(child_node_pt->flags);
                 
                 // Store the next child address in temp
@@ -798,8 +767,8 @@ void nodemgmt_delete_current_user_from_flash(void)
                 }
                 
                 // Delete child data block
-                dbflash_write_data_pattern_to_flash(&dbflash_descriptor, pageNumberFromAddress(next_child_addr), BASE_NODE_SIZE * nodeNumberFromAddress(next_child_addr), BASE_NODE_SIZE, 0xFF);
-                dbflash_write_data_pattern_to_flash(&dbflash_descriptor, pageNumberFromAddress(nodemgmt_get_incremented_address(next_child_addr)), BASE_NODE_SIZE * nodeNumberFromAddress(nodemgmt_get_incremented_address(next_child_addr)), BASE_NODE_SIZE, 0xFF);
+                dbflash_write_data_pattern_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_child_addr), BASE_NODE_SIZE * nodemgmt_node_from_address(next_child_addr), BASE_NODE_SIZE, 0xFF);
+                dbflash_write_data_pattern_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(nodemgmt_get_incremented_address(next_child_addr)), BASE_NODE_SIZE * nodemgmt_node_from_address(nodemgmt_get_incremented_address(next_child_addr)), BASE_NODE_SIZE, 0xFF);
                 
                 // Set correct next address
                 next_child_addr = temp_address;
@@ -809,7 +778,7 @@ void nodemgmt_delete_current_user_from_flash(void)
             temp_address = parent_node_pt->nextParentAddress;
             
             // Delete parent data block
-            dbflash_write_data_pattern_to_flash(&dbflash_descriptor, pageNumberFromAddress(next_parent_addr), BASE_NODE_SIZE * nodeNumberFromAddress(next_parent_addr), BASE_NODE_SIZE, 0xFF);
+            dbflash_write_data_pattern_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_parent_addr), BASE_NODE_SIZE * nodemgmt_node_from_address(next_parent_addr), BASE_NODE_SIZE, 0xFF);
             
             // Set correct next address
             next_parent_addr = temp_address;
