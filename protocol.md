@@ -412,38 +412,38 @@ Device Answer:
 Tested status: NOT tested
 
 
-0x010B: Get Favorite
+0x010C: Get Favorite
 --------------------
 
 From the PC: 
 
 | byte 0-1 | byte 2-3                    | byte 4-5 | byte 6-7 |
 |:---------|:----------------------------|:---------|:---------|
-| 0x010B   | 4 | category ID | favorite ID |
+| 0x010C   | 4 | category ID | favorite ID |
 
 Device Answer:
 
 | byte 0-1 | byte 2-3                    | byte 4-5 | byte 6-7 |
 |:---------|:----------------------------|:---------|:---------|
-| 0x010B   | 1 (failure) or 4 | parent addr | child addr |
+| 0x010C   | 1 (failure) or 4 | parent addr | child addr |
 
 Tested status: NOT tested
 
 
-0x010C: Write Node
+0x010D: Write Node
 ------------------
 
 From the PC: 
 
 | byte 0-1 | byte 2-3                    | byte 4-5 | byte 6-XXXX |
 |:---------|:----------------------------|:---------|:---------|
-| 0x010C   | 2+(264 or 528) | write address | node |
+| 0x010D   | 2+(264 or 528) | write address | node |
 
 Device Answer:
 
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
-| 0x010A   | 1 | 0x00 (failure) / 0x01 (success) |
+| 0x010D   | 1 | 0x00 (failure) / 0x01 (success) |
 
 Tested status: NOT tested
 
