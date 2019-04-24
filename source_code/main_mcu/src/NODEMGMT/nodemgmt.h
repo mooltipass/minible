@@ -42,6 +42,7 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODEMGMT_ADDR_PAGE_MASK                     0xfffe
 #define NODEMGMT_ADDR_PAGE_MASK_FINAL               0x7fff
 #define NODEMGMT_ADDR_NODE_MASK                     0x0001
+#define NODEMGMT_USERID_MASK                        0x1FC0
 #define NODEMGMT_USERID_BITSHIFT                    6
 #define NODEMGMT_USERID_MASK_FINAL                  0x007f
 #define NODEMGMT_ADDR_NULL                          0x0000
@@ -207,6 +208,15 @@ typedef struct
 
 /* Inlines */
 
+/*! \fn     nodemgmt_user_id_to_flags(uint16_t *flags, uint8_t uid)
+*   \brief  Sets the user id to flags  
+*   \param  flags           The flags field of a node
+*   \return uid             The user id to set in flags (0 up to NODE_MAX_UID)
+*/
+static inline void nodemgmt_user_id_to_flags(uint16_t *flags, uint8_t uid)
+{
+    *flags = (*flags & (~NODEMGMT_USERID_MASK)) | ((uint16_t)uid << NODEMGMT_USERID_BITSHIFT);
+}
 
 /*! \fn     nodemgmt_page_from_address(uint16_t addr)
 *   \brief  Extracts a page number from a constructed address
