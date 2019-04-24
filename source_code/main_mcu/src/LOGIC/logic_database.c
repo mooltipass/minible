@@ -234,6 +234,7 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
     
     /* Then write back to flash at same address */
     nodemgmt_write_child_node_block_to_flash(child_addr, (child_node_t*)&temp_cnode);
+    nodemgmt_user_db_changed_actions(FALSE);
 }    
 
 /*! \fn     logic_database_add_credential_for_service(uint16_t service_addr, cust_char_t* login, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr)
@@ -271,7 +272,14 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
     }
 
     /* Then create node */
-    return nodemgmt_create_child_node(service_addr, &temp_cnode, &storage_addr);
+    ret_type_te ret_val = nodemgmt_create_child_node(service_addr, &temp_cnode, &storage_addr);
+    if (ret_val == RETURN_OK)
+    {
+        nodemgmt_user_db_changed_actions(FALSE);
+    }
+
+    /* Return success status */
+    return ret_val;
 }
 
 /*! \fn     logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag)
