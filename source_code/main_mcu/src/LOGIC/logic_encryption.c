@@ -60,6 +60,19 @@ void logic_encryption_xor_vector_to_other(uint8_t* destination, uint8_t* source,
     }    
 }
 
+/*! \fn     logic_encryption_get_cpz_ctr_entry(uint8_t* buffer)
+*   \brief  Write the current user CPZ CTR Nonce entry in buffer
+*   \param  buffer  Where to store the CPZ CTR Nonce entry
+*/
+void logic_encryption_get_cpz_ctr_entry(uint8_t* buffer)
+{
+    if (logic_encryption_cur_cpz_entry != 0)
+    {
+        memcpy(buffer, logic_encryption_cur_cpz_entry->cards_cpz, sizeof(logic_encryption_cur_cpz_entry->cards_cpz));
+        memcpy(&(buffer[sizeof(logic_encryption_cur_cpz_entry->cards_cpz)]), logic_encryption_cur_cpz_entry->nonce, sizeof(logic_encryption_cur_cpz_entry->nonce));
+    }
+}
+
 /*! \fn     logic_encryption_init_context(uint8_t* card_aes_key, cpz_lut_entry_t* cpz_user_entry)
 *   \brief  Init encryption context for current user
 *   \param  card_aes_key    AES key stored on user card
