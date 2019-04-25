@@ -164,6 +164,7 @@ uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id);
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void);
 ret_type_te custom_fs_set_current_language(uint16_t language_id);
 cust_char_t* custom_fs_get_current_language_text_desc(void);
+uint16_t custom_fs_settings_get_dump(uint8_t* dump_buffer);
 void custom_fs_detele_user_cpz_lut_entry(uint8_t user_id);
 custom_fs_init_ret_type_te custom_fs_settings_init(void);
 void custom_fs_stop_continuous_read_from_flash(void);
