@@ -190,6 +190,24 @@ Device Answer:
 Tested status: NOT tested
 
 
+0x000B: Get Card Protected Zone & CTR Nonce
+-------------------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x000B   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4-11          |
+|:---------|:----------------------------|:-------------------|
+| 0x000B   | 1 (failure) or 8 | Card CPZ |
+
+Tested status: NOT tested
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
@@ -444,6 +462,24 @@ Device Answer:
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
 | 0x010D   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Tested status: NOT tested
+
+
+0x010E: Get Card Protected Zone & CTR Nonce
+-------------------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x010E   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4-11          | byte 12-27         |
+|:---------|:----------------------------|:-------------------|:-------------------|
+| 0x010E   | 1 (failure) or 24 | Card CPZ | User AES CTR Nonce |
 
 Tested status: NOT tested
 
