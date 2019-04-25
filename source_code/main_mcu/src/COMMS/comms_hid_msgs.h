@@ -27,6 +27,7 @@
 #define HID_CMD_START_MMM           0x0009
 #define HID_CMD_GET_USER_CHANGE_NB  0x000A
 #define HID_CMD_GET_CUR_CARD_CPZ    0x000B
+#define HID_CMD_GET_DEVICE_SETTINGS 0x000C
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101
