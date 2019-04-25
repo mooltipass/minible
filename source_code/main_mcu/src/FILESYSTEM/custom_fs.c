@@ -586,6 +586,24 @@ uint8_t custom_fs_settings_get_device_setting(uint16_t setting_id)
     }
 }
 
+/*! \fn     custom_fs_settings_get_dump(uint8_t* dump_buffer)
+*   \brief  Get a dump of all device settings
+*   \param  dump_buffer Where to put all device settings
+*   \return Number of bytes written
+*/
+uint16_t custom_fs_settings_get_dump(uint8_t* dump_buffer)
+{
+    if (custom_fs_platform_settings_p == 0)
+    {
+        return 0;
+    }
+    else
+    {
+        memcpy(dump_buffer, custom_fs_platform_settings_p->device_settings, sizeof(custom_fs_platform_settings_p->device_settings));
+        return sizeof(custom_fs_platform_settings_p->device_settings);
+    }
+}
+
 /*! \fn     custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_pt)
 *   \brief  Get a pointer to a CPZ LUT entry given a CPZ 
 *   \param  cpz         CPZ bytes
