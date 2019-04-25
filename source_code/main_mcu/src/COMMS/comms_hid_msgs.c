@@ -168,6 +168,75 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             send_msg->payload_length = 1;
             return 1;
         }
+
+        case HID_CMD_RESET_UNKNOWN_CARD:
+        {
+            /* Resetting card if an unknown one is inserted */
+            if (gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_UNKNOWN)
+            {
+                /* Prompt user to unlock the card */
+                logic_device_activity_detected();
+                if (logic_smartcard_user_unlock_process() == RETURN_OK)
+                {
+                    /* Erase card! */
+                    smartcard_highlevel_erase_smartcard();
+
+                    /* Set next screen */
+                    gui_dispatcher_set_current_screen(GUI_SCREEN_INVALID, TRUE, GUI_INTO_MENU_TRANSITION);
+
+                    /* Set success byte */
+                    send_msg->payload[0] = HID_1BYTE_ACK;
+                }
+                else
+                {
+                    /* Set failure byte */
+                    send_msg->payload[0] = HID_1BYTE_NACK;
+                }
+
+                /* Update screen */
+                gui_dispatcher_get_back_to_current_screen();
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+            
+            send_msg->payload_length = 1;
+            return 1;
+        }
+
+        case HID_CMD_GET_NB_FREE_USERS:
+        {
+            uint8_t temp_uint8;
+
+            /* Get number of free users */
+            send_msg->payload[0] = custom_fs_get_nb_free_cpz_lut_entries(&temp_uint8);
+            send_msg->payload_length = 1;
+            return 1;
+        }
+
+        case HID_CMD_LOCK_DEVICE:
+        {
+            /* Lock device */
+            if (logic_security_is_smc_inserted_unlocked() != FALSE)
+            {
+                gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
+                gui_dispatcher_get_back_to_current_screen();
+                logic_smartcard_handle_removed();
+
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+            
+            send_msg->payload_length = 1;
+            return 1;
+        }
         
         case HID_CMD_GET_START_PARENTS:
         {
