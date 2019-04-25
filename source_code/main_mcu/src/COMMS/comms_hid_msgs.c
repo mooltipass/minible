@@ -150,6 +150,13 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             
             return send_msg->payload_length;            
         }
+
+        case HID_CMD_GET_DEVICE_SETTINGS:
+        {
+            /* Get a dump of all device settings */
+            send_msg->payload_length = custom_fs_settings_get_dump(send_msg->payload);
+            return send_msg->payload_length;
+        }
         
         case HID_CMD_GET_START_PARENTS:
         {
