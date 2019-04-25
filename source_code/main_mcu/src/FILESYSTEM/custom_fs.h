@@ -79,7 +79,7 @@ typedef struct
     uint32_t language_bitmap_starting_id;
 } custom_file_flash_header_t;
 
-// Platform settings
+// Platform settings: do not store anything critical here in case of glitching
 typedef struct  
 {
     uint8_t device_settings[NB_DEVICE_SETTINGS];
@@ -163,6 +163,7 @@ uint8_t custom_fs_settings_get_device_setting(uint16_t setting_id);
 uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id);
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void);
 ret_type_te custom_fs_set_current_language(uint16_t language_id);
+void custom_fs_settings_store_dump(uint8_t* settings_buffer);
 cust_char_t* custom_fs_get_current_language_text_desc(void);
 uint16_t custom_fs_settings_get_dump(uint8_t* dump_buffer);
 void custom_fs_detele_user_cpz_lut_entry(uint8_t user_id);
@@ -173,6 +174,7 @@ void custom_fs_settings_clear_first_boot_flag(void);
 void custom_fs_settings_clear_fw_upgrade_flag(void);
 void custom_fs_settings_set_fw_upgrade_flag(void);
 uint32_t custom_fs_get_number_of_languages(void);
+void custom_fs_settings_set_defaults(void);
 BOOL custom_fs_is_first_boot(void);
 ret_type_te custom_fs_init(void);
 
