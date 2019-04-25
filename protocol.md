@@ -208,8 +208,8 @@ Device Answer:
 Tested status: NOT tested
 
 
-0x000C: Get Free Nodes Addresses
---------------------------------
+0x000C: Get Device Settings
+---------------------------
 
 From the PC: 
 
@@ -219,14 +219,32 @@ From the PC:
 
 Device Answer:
 
-| Bytes ID | Type | Description  |             
-|:---------|:-----|:------------|
-| 0-1      | N/A  | 0x000C      |
-| 2-3      | N/A  | WIP...      |
-| 4 | N/A     | Reserved |
-| 5 | bool    | Random PIN |
-| 6 | uint8_t | User interaction timeout / 1024 |
-| 7 | bool    | Screen animation |
+| Bytes ID | Type | Description | Min | Max |         
+|:---------|:-----|:------------|:----|:----|
+| 0-1      | N/A  | 0x000C      | N/A | N/A |
+| 2-3      | N/A  | WIP...      | N/A | N/A |
+| 4 | N/A     | Reserved | N/A | N/A |
+| 5 | bool    | Random PIN | 0 | N/A |
+| 6 | uint8_t | User interaction timeout / 1024 | 7 | 25 |
+| 7 | bool    | Animation during prompt | 0 | N/A |
+
+Tested status: NOT tested
+
+
+0x000D: Set Device Settings
+---------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3     | byte 4-X |
+|:---------|:-------------|:---------|
+| 0x000D   |  WIP...      | aggregated settings (same as above) |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x000D   | 1 | 0x00 (failure) / 0x01 (success) |
 
 Tested status: NOT tested
 
