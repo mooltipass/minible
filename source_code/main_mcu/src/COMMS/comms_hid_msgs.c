@@ -157,6 +157,17 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             send_msg->payload_length = custom_fs_settings_get_dump(send_msg->payload);
             return send_msg->payload_length;
         }
+
+        case HID_CMD_SET_DEVICE_SETTINGS:
+        {
+            /* Store all settings */
+            custom_fs_settings_store_dump(rcv_msg->payload);
+            
+            /* Set ack, leave same command id */
+            send_msg->payload[0] = HID_1BYTE_ACK;
+            send_msg->payload_length = 1;
+            return 1;
+        }
         
         case HID_CMD_GET_START_PARENTS:
         {
