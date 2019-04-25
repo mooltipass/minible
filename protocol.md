@@ -190,8 +190,8 @@ Device Answer:
 Tested status: NOT tested
 
 
-0x000B: Get Card Protected Zone & CTR Nonce
--------------------------------------------
+0x000B: Get Card Protected Zone
+-------------------------------
 
 From the PC: 
 
@@ -298,7 +298,7 @@ Device Answer:
 
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
-| 0x000E   | 1 | 0x00 (failure) / 0x01 (success) |
+| 0x0010   | 1 | 0x00 (failure) / 0x01 (success) |
 
 Tested status: NOT tested
 
