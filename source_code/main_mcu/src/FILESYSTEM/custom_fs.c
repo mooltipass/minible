@@ -14,6 +14,8 @@
 #include "dataflash.h"
 #include "dma.h"
 
+/* Default device settings */
+const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = {0,0,0,0};
 /* Current selected language entry */
 language_map_entry_t custom_fs_cur_language_entry = {.starting_bitmap = 0, .starting_font = 0, .string_file_index = 0};
 /* Temp values to speed up string files reading */
@@ -602,6 +604,31 @@ uint16_t custom_fs_settings_get_dump(uint8_t* dump_buffer)
         memcpy(dump_buffer, custom_fs_platform_settings_p->device_settings, sizeof(custom_fs_platform_settings_p->device_settings));
         return sizeof(custom_fs_platform_settings_p->device_settings);
     }
+}
+
+/*! \fn     custom_fs_settings_store_dump(uint8_t* settings_buffer)
+*   \brief  Write device settings at once
+*   \param  settings_buffer     All device settings
+*/
+void custom_fs_settings_store_dump(uint8_t* settings_buffer)
+{
+    custom_platform_settings_t platform_settings_copy;
+
+    if (custom_fs_platform_settings_p != 0)
+    {
+        /* Copy settings structure stored in flash into ram, overwrite relevant settings part, flash again */
+        memcpy(&platform_settings_copy, custom_fs_platform_settings_p, sizeof(custom_platform_settings_t));
+        memcpy(platform_settings_copy.device_settings, settings_buffer, sizeof(platform_settings_copy.device_settings));
+        custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&platform_settings_copy);
+    }
+}
+
+/*! \fn     custom_fs_settings_set_defaults(void)
+*   \brief  Set default settings for device
+*/
+void custom_fs_settings_set_defaults(void)
+{
+    custom_fs_settings_store_dump((uint8_t*)custom_fs_default_device_settings);
 }
 
 /*! \fn     custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_pt)
