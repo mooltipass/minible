@@ -208,6 +208,29 @@ Device Answer:
 Tested status: NOT tested
 
 
+0x000C: Get Free Nodes Addresses
+--------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x000C   |        N/A   |
+
+Device Answer:
+
+| Bytes ID | Type | Description  |             
+|:---------|:-----|:------------|
+| 0-1      | N/A  | 0x000C      |
+| 2-3      | N/A  | WIP...      |
+| 4 | N/A     | Reserved |
+| 5 | bool    | Random PIN |
+| 6 | uint8_t | User interaction timeout / 1024 |
+| 7 | bool    | Screen animation |
+
+Tested status: NOT tested
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
@@ -366,7 +389,7 @@ From the PC:
 
 Device Answer:
 
-| Bytes ID | Descrition |             
+| Bytes ID | Description |             
 |:---------|:-----------|
 | 0-1      | 0x0108     |
 | 2-3      | # addresses found x2     |
