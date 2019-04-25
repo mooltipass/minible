@@ -5,6 +5,8 @@
 */
 #include <asf.h>
 #include <string.h>
+#include "smartcard_highlevel.h"
+#include "logic_encryption.h"
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
 #include "comms_hid_msgs.h"
@@ -129,6 +131,24 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             rng_fill_array(send_msg->payload, 32);
             send_msg->payload_length = 32;
             return 32;
+        }
+
+        case HID_CMD_GET_CUR_CARD_CPZ:
+        {
+            /* Smartcard unlocked or unknown card inserted */
+            if ((logic_security_is_smc_inserted_unlocked() != FALSE) || (gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_UNKNOWN))
+            {
+                smartcard_highlevel_read_code_protected_zone(send_msg->payload);
+                send_msg->payload_length = MEMBER_SIZE(cpz_lut_entry_t,cards_cpz);
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
+            }
+            
+            return send_msg->payload_length;            
         }
         
         case HID_CMD_GET_START_PARENTS:
@@ -485,6 +505,13 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             }
             
             return send_msg->payload_length;            
+        }
+
+        case HID_CMD_GET_CPZ_CTR:
+        {
+            send_msg->payload_length = MEMBER_SIZE(cpz_lut_entry_t,cards_cpz)+MEMBER_SIZE(cpz_lut_entry_t,nonce);
+            logic_encryption_get_cpz_ctr_entry(send_msg->payload);
+            return send_msg->payload_length;
         }
         
         case HID_CMD_ID_GET_CRED:
