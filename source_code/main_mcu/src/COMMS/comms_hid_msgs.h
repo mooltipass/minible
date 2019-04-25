@@ -26,6 +26,7 @@
 #define HID_CMD_ID_GET_32B_RNG      0x0008
 #define HID_CMD_START_MMM           0x0009
 #define HID_CMD_GET_USER_CHANGE_NB  0x000A
+#define HID_CMD_GET_CUR_CARD_CPZ    0x000B
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101
@@ -41,6 +42,7 @@
 #define HID_CMD_SET_FAVORITE        0x010B
 #define HID_CMD_GET_FAVORITE        0x010C
 #define HID_CMD_WRITE_NODE          0x010D
+#define HID_CMD_GET_CPZ_CTR         0x010E
 // Define used to identify commands
 #define HID_FIRST_CMD_FOR_MMM       HID_CMD_GET_START_PARENTS
 #define HID_LAST_CMD_FOR_MMM        0x0200
