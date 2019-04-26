@@ -571,8 +571,8 @@ Device Answer:
 Tested status: NOT tested
 
 
-0x010F: Get Favorite
---------------------
+0x010F: Get Favorites
+---------------------
 
 From the PC: 
 
