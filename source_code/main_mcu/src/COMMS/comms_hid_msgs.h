@@ -32,6 +32,7 @@
 #define HID_CMD_RESET_UNKNOWN_CARD  0x000E
 #define HID_CMD_GET_NB_FREE_USERS   0x000F
 #define HID_CMD_LOCK_DEVICE         0x0010
+#define HID_CMD_GET_DEVICE_STATUS   0x0011
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101
@@ -48,6 +49,7 @@
 #define HID_CMD_GET_FAVORITE        0x010C
 #define HID_CMD_WRITE_NODE          0x010D
 #define HID_CMD_GET_CPZ_CTR         0x010E
+#define HID_CMD_GET_FAVORITES       0x010F
 // Define used to identify commands
 #define HID_FIRST_CMD_FOR_MMM       HID_CMD_GET_START_PARENTS
 #define HID_LAST_CMD_FOR_MMM        0x0200
