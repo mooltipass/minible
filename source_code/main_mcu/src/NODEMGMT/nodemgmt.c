@@ -390,6 +390,20 @@ uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId)
     return temp_address;
 }
 
+/*! \fn     nodemgmt_get_start_addresses(uint16_t* addresses_array)
+ *  \brief  Get all start addresses at once
+ *  \return Number of start addresses
+ */
+uint16_t nodemgmt_get_start_addresses(uint16_t* addresses_array)
+{    
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+
+    // Write addresses in the user profile page. Possible as the credential start address & data start addresses are contiguous in memory
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_start_address), sizeof(uint16_t) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address), addresses_array);
+
+    return 1 + MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, data_start_address);
+}
+
 /*! \fn     nodemgmt_get_cred_change_number(void)
  *  \brief  Gets the users change number from the user profile memory portion of flash
  *  \return The address
@@ -551,6 +565,18 @@ void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* paren
     // return values to user
     *parentAddress = favorite.parent_addr;
     *childAddress = favorite.child_addr;
+}
+
+/*! \fn     nodemgmt_get_favorites(uint16_t* addresses_array)
+ *  \brief  Get all favorites at once
+ *  \param  addresses_array     Where to store them
+ *  \return Number of favorites written
+ */
+uint16_t nodemgmt_get_favorites(uint16_t* addresses_array)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)dirty_address_finding_trick->category_favorites, MEMBER_SIZE(nodemgmt_userprofile_t,category_favorites), (void*)&addresses_array);
+    return MEMBER_SIZE(nodemgmt_userprofile_t,category_favorites)/sizeof(favorite_addr_t);
 }
 
 /*! \fn     nodemgmt_read_profile_ctr(void* buf)
