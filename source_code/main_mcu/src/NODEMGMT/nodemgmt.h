@@ -267,12 +267,14 @@ RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_t
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId);
 void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags);
+uint16_t nodemgmt_get_start_addresses(uint16_t* addresses_array);
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);
 RET_TYPE nodemgmt_check_user_perm_from_flags(uint16_t flags);
 void nodemgmt_set_start_addresses(uint16_t* addresses_array);
 void nodemgmt_set_cred_start_address(uint16_t parentAddress);
 void nodemgmt_set_data_change_number(uint32_t changeNumber);
 void nodemgmt_set_cred_change_number(uint32_t changeNumber);
+uint16_t nodemgmt_get_favorites(uint16_t* addresses_array);
 uint16_t nodemgmt_get_incremented_address(uint16_t addr);
 void nodemgmt_user_db_changed_actions(BOOL dataChanged);
 void nodemgmt_delete_current_user_from_flash(void);
