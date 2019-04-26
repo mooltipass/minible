@@ -84,6 +84,38 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             send_msg->payload_length = rcv_msg->payload_length;
             return send_msg->payload_length;
         }
+
+        case HID_CMD_GET_DEVICE_STATUS:
+        {
+            /* Get device status */
+            send_msg->payload[0] = 0x00;
+            
+            // Last bit: is card inserted
+            if (smartcard_low_level_is_smc_absent() != RETURN_OK)
+            {
+                send_msg->payload[0] |= 0x01;
+            }
+            // Unlocking screen 0x02: not implemented on this device
+            // Smartcard unlocked
+            if (logic_security_is_smc_inserted_unlocked() != FALSE)
+            {
+                send_msg->payload[0] |= 0x04;
+            }
+            // Unknown card
+            if (gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_UNKNOWN)
+            {
+                send_msg->payload[0] |= 0x08;
+            }
+            // Management mode (useful when dealing with multiple interfaces)
+            if (logic_security_is_management_mode_set() != FALSE)
+            {
+                send_msg->payload[0] |= 0x10;
+            }
+
+            /* Send the status */
+            send_msg->payload_length = 1;
+            return 1;
+        }
         
         case HID_CMD_ID_PLAT_INFO:
         {
@@ -239,16 +271,9 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         }
         
         case HID_CMD_GET_START_PARENTS:
-        {
-            /* Get all starting parents */
-            send_msg->payload_as_uint16[0] = nodemgmt_get_starting_parent_addr();
-            for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, data_start_address); i++)
-            {
-                send_msg->payload_as_uint16[1+i] = nodemgmt_get_starting_data_parent_addr(i);
-            }
-            
-            /* Return correct size */
-            send_msg->payload_length = sizeof(uint16_t) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address);
+        {            
+            /* Return correct size & data */
+            send_msg->payload_length = nodemgmt_get_start_addresses(send_msg->payload_as_uint16)*sizeof(uint16_t);
             return send_msg->payload_length;
         }
 
@@ -598,6 +623,13 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         {
             send_msg->payload_length = MEMBER_SIZE(cpz_lut_entry_t,cards_cpz)+MEMBER_SIZE(cpz_lut_entry_t,nonce);
             logic_encryption_get_cpz_ctr_entry(send_msg->payload);
+            return send_msg->payload_length;
+        }
+
+        case HID_CMD_GET_FAVORITES:
+        {
+            /* Return correct size & data */
+            send_msg->payload_length = nodemgmt_get_favorites(send_msg->payload_as_uint16)*sizeof(favorite_addr_t);
             return send_msg->payload_length;
         }
         
