@@ -303,6 +303,34 @@ Device Answer:
 Tested status: NOT tested
 
 
+0x0011: Get Status
+------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0011   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0011   | 1 | status byte, see below |
+
+Status Byte:
+
+| Bitmask  | Description |             
+|:---------|:-----------|
+| 0x01     | Smartcard presence |
+| 0x02     | Not implemented |
+| 0x04     | Smartcard unlocked |
+| 0x08     | Unknown card inserted |
+| 0x10     | Device in management mode |
+
+Tested status: NOT tested
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
@@ -539,6 +567,25 @@ Device Answer:
 | byte 0-1 | byte 2-3                    | byte 4-5 | byte 6-7 |
 |:---------|:----------------------------|:---------|:---------|
 | 0x010C   | 1 (failure) or 4 | parent addr | child addr |
+
+Tested status: NOT tested
+
+
+0x010F: Get Favorite
+--------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x010F   |        N/A   |
+
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4-203 |
+|:---------|:----------------------------|:-----------|
+| 0x010F   | 1 (failure) or 200 | all favorites concatenated |
 
 Tested status: NOT tested
 
