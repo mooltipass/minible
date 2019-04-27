@@ -712,6 +712,97 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 }
             }
         }
+
+        case HID_CMD_CHECK_PASSWORD:
+        {
+            if (timer_has_timer_expired(TIMER_CHECK_PASSWORD, FALSE) != TIMER_EXPIRED)
+            {
+                /* Timer hasn't expired... do not allow check */
+                send_msg->payload[0] = HID_1BYTE_NA;
+            }
+            else
+            {
+                /* Default answer: Nope! */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
+            
+                /********************************/
+                /* Here comes the sanity checks */
+                /********************************/
+            
+                /* Incorrect service name index */
+                if (rcv_msg->check_credential.service_name_index != 0)
+                {
+                    return 1;
+                }
+            
+                /* Empty service name */
+                if (rcv_msg->check_credential.concatenated_strings[0] == 0)
+                {
+                    return 1;
+                }
+            
+                /* Sequential order check */
+                uint16_t temp_length = 0;
+                uint16_t prev_length = 0;
+                uint16_t prev_check_index = 0;
+                uint16_t current_check_index = 0;
+                uint16_t check_indexes[3] = {   rcv_msg->check_credential.service_name_index, \
+                                                rcv_msg->check_credential.login_name_index, \
+                                                rcv_msg->check_credential.password_index};
+                uint16_t max_cust_char_length = (sizeof(rcv_msg->payload) \
+                                                - sizeof(rcv_msg->check_credential.service_name_index) \
+                                                - sizeof(rcv_msg->check_credential.login_name_index) \
+                                                - sizeof(rcv_msg->check_credential.password_index))/sizeof(cust_char_t);
+            
+                /* Check all fields */                              
+                for (uint16_t i = 0; i < ARRAY_SIZE(check_indexes); i++)
+                {
+                    current_check_index = check_indexes[i];
+                
+                    /* If index is correct */
+                    if (current_check_index != prev_check_index + prev_length)
+                    {
+                        return 1;
+                    }
+                    
+                    /* Get string length */
+                    temp_length = utils_strnlen(&(rcv_msg->store_credential.concatenated_strings[current_check_index]), max_cust_char_length);
+                    
+                    /* Too long length */
+                    if (temp_length == max_cust_char_length)
+                    {
+                        return 1;
+                    }
+                    
+                    /* Store previous index & length */
+                    prev_length = temp_length + 1;
+                    prev_check_index = current_check_index;
+                    
+                    /* Reduce max length */
+                    max_cust_char_length -= (temp_length + 1);
+                }    
+            
+                /* Proceed to other logic */
+                if (logic_user_check_credential(    &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.service_name_index]),\
+                                                    &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.login_name_index]),\
+                                                    &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.password_index])) == RETURN_OK)
+                {
+                    send_msg->payload[0] = HID_1BYTE_ACK;                
+                }
+                else
+                {
+                    /* Not a match, arm timer */
+                    timer_start_timer(TIMER_CHECK_PASSWORD, CHECK_PASSWORD_TIMER_VAL);
+                    send_msg->payload[0] = HID_1BYTE_NACK;
+                }
+            
+                return 1;
+            }
+
+            send_msg->payload_length = 1;
+            return 1;   
+        }
         
         case HID_CMD_ID_STORE_CRED:
         {   
