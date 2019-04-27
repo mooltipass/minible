@@ -19,6 +19,15 @@ void smartcard_highlevel_read_aes_key(uint8_t* buffer)
     smartcard_lowlevel_read_smc((SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED + AES_KEY_LENGTH)/8, (SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED)/8, buffer);
 }
 
+/*! \fn     smartcard_highlevel_read_second_aes_key(uint8_t* buffer)
+*   \brief  Read the second AES 256 bits key from the card. Note that it is up to the code calling this function to check that we're authenticated, otherwise 0s will be read
+*   \param  buffer  Buffer to store the AES key
+*/
+void smartcard_highlevel_read_second_aes_key(uint8_t* buffer)
+{
+    smartcard_lowlevel_read_smc((SMARTCARD_AZ2_BIT_START + SMARTCARD_AZ2_BIT_RESERVED + AES_KEY_LENGTH)/8, (SMARTCARD_AZ2_BIT_START + SMARTCARD_AZ2_BIT_RESERVED)/8, buffer);
+}
+
 /*! \fn     smartcard_highlevel_read_application_zone1(uint8_t* buffer)
 *   \brief  Read Application Zone 1 data
 *   \param  buffer  Buffer to store the data
@@ -61,8 +70,8 @@ void smartcard_highlevel_write_application_zone2(uint8_t* buffer)
 */
 void smartcard_highlevel_read_card_login(uint8_t* buffer)
 {
-    // We take the space left in AZ2 -> 62 bytes (512 - 16 = 62 bytes)
-    smartcard_lowlevel_read_smc((SMARTCARD_AZ2_BIT_START + SMARTCARD_AZ2_BIT_RESERVED + SMARTCARD_MTP_LOGIN_LENGTH)/8, (SMARTCARD_AZ2_BIT_START + SMARTCARD_AZ2_BIT_RESERVED)/8, buffer);
+    // We take the space left in AZ2 -> 30 bytes (512 - 256 - 16 = 30 bytes)
+    smartcard_lowlevel_read_smc((SMARTCARD_AZ2_BIT_START + SMARTCARD_AZ2_BIT_RESERVED + AES_KEY_LENGTH + SMARTCARD_MTP_LOGIN_LENGTH)/8, (SMARTCARD_AZ2_BIT_START + SMARTCARD_AZ2_BIT_RESERVED + AES_KEY_LENGTH)/8, buffer);
 }
 
 /*! \fn     smartcard_highlevel_read_card_password(uint8_t* buffer)
@@ -406,6 +415,17 @@ RET_TYPE smartcard_highlevel_write_aes_key(uint8_t* buffer)
     return smartcard_highlevel_write_to_appzone_and_check(SMARTCARD_AZ1_BIT_START + SMARTCARD_AZ1_BIT_RESERVED, AES_KEY_LENGTH, buffer, temp_buffer);
 }
 
+/*! \fn     smartcard_highlevel_write_second_aes_key(uint8_t* buffer)
+*   \brief  Write the second AES 256 bits key to the card
+*   \param  buffer  Buffer containing the AES key
+*   \return Operation success
+*/
+RET_TYPE smartcard_highlevel_write_second_aes_key(uint8_t* buffer)
+{
+    uint8_t temp_buffer[AES_KEY_LENGTH/8];
+    return smartcard_highlevel_write_to_appzone_and_check(SMARTCARD_AZ2_BIT_START + SMARTCARD_AZ2_BIT_RESERVED, AES_KEY_LENGTH, buffer, temp_buffer);
+}
+
 /*! \fn     smartcard_highlevel_write_card_password(uint8_t* buffer)
 *   \brief  Write the Mooltipass website password to the card
 *   \param  buffer  Buffer containing the password
@@ -425,7 +445,7 @@ RET_TYPE smartcard_highlevel_write_card_password(uint8_t* buffer)
 RET_TYPE smartcard_highlevel_write_card_login(uint8_t* buffer)
 {
     uint8_t temp_buffer[SMARTCARD_MTP_LOGIN_LENGTH/8];
-    return smartcard_highlevel_write_to_appzone_and_check(SMARTCARD_AZ2_BIT_START + SMARTCARD_AZ2_BIT_RESERVED, SMARTCARD_MTP_LOGIN_LENGTH, buffer, temp_buffer);
+    return smartcard_highlevel_write_to_appzone_and_check(SMARTCARD_AZ2_BIT_START + SMARTCARD_AZ2_BIT_RESERVED + AES_KEY_LENGTH, SMARTCARD_MTP_LOGIN_LENGTH, buffer, temp_buffer);
 }
 
 /*! \fn     smartcard_highlevel_reset_blank_card(void)
