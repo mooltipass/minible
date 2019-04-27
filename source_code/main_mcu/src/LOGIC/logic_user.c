@@ -144,6 +144,69 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* pro
     }
 }
 
+/*! \fn     logic_user_check_credential(cust_char_t* service, cust_char_t* login, cust_char_t* password)
+*   \brief  Check if credential exists
+*   \param  service     Pointer to service string
+*   \param  login       Pointer to login string
+*   \param  password    Pointer to password string
+*   \return success or not
+*/
+RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, cust_char_t* password)
+{
+    uint8_t temp_cred_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
+    uint8_t encrypted_password[MEMBER_SIZE(child_cred_node_t,password)];
+    BOOL prev_gen_credential_flag = FALSE;
+    
+    /* Smartcard present and unlocked? */
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
+    {
+        return -1;
+    }
+    
+    /* Does service already exist? */
+    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, TRUE, 0);
+    
+    /* Service doesn't exist, deny request with a variable timeout for privacy concerns */
+    if (parent_address == NODE_ADDR_NULL)
+    {
+        return RETURN_NOK;
+    }
+
+    /* Check if child actually exists */
+    uint16_t child_address = logic_database_search_login_in_service(parent_address, login);
+            
+    /* Check for existing login */
+    if (child_address == NODE_ADDR_NULL)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Fetch password */
+    logic_database_fetch_encrypted_password(child_address, encrypted_password, temp_cred_ctr, &prev_gen_credential_flag);
+        
+    /* User approved, decrypt password */
+    logic_encryption_ctr_decrypt(encrypted_password, temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
+        
+    /* If old generation password, convert it to unicode */
+    if (prev_gen_credential_flag != FALSE)
+    {
+        _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
+        utils_ascii_to_unicode(encrypted_password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+    }
+
+    /* Finally do the comparison */
+    if (utils_custchar_strncmp(encrypted_password, password, sizeof(encrypted_password)/sizeof(cust_char_t)) == 0)
+    {
+        memset(encrypted_password, 0, sizeof(encrypted_password));
+        return RETURN_OK;
+    } 
+    else
+    {
+        memset(encrypted_password, 0, sizeof(encrypted_password));
+        return RETURN_NOK;
+    }
+}
+
 /*! \fn     logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
 *   \brief  Store new credential
 *   \param  service     Pointer to service string
