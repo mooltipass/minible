@@ -153,8 +153,8 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* pro
 */
 RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, cust_char_t* password)
 {
+    cust_char_t encrypted_password[MEMBER_SIZE(child_cred_node_t,password)/sizeof(cust_char_t)];
     uint8_t temp_cred_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
-    uint8_t encrypted_password[MEMBER_SIZE(child_cred_node_t,password)];
     BOOL prev_gen_credential_flag = FALSE;
     
     /* Smartcard present and unlocked? */
@@ -182,16 +182,16 @@ RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, c
     }
     
     /* Fetch password */
-    logic_database_fetch_encrypted_password(child_address, encrypted_password, temp_cred_ctr, &prev_gen_credential_flag);
+    logic_database_fetch_encrypted_password(child_address, (uint8_t*)encrypted_password, temp_cred_ctr, &prev_gen_credential_flag);
         
     /* User approved, decrypt password */
-    logic_encryption_ctr_decrypt(encrypted_password, temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
+    logic_encryption_ctr_decrypt((uint8_t*)encrypted_password, temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
         
     /* If old generation password, convert it to unicode */
     if (prev_gen_credential_flag != FALSE)
     {
         _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
-        utils_ascii_to_unicode(encrypted_password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+        utils_ascii_to_unicode((uint8_t*)encrypted_password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
     }
 
     /* Finally do the comparison */
