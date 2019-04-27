@@ -12,6 +12,7 @@
 #include "comms_hid_msgs.h"
 #include "logic_security.h"
 #include "comms_aux_mcu.h"
+#include "driver_timer.h"
 #include "logic_device.h"
 #include "gui_prompts.h"
 #include "logic_user.h"
