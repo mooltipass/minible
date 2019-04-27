@@ -282,6 +282,37 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
     return ret_val;
 }
 
+/*! \fn     logic_database_fetch_encrypted_password(uint16_t child_node_addr, uint8_t* password, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag)
+*   \brief  Fill a get cred message packet
+*   \param  child_node_addr             Child node address
+*   \param  password                    Where to store the encrypted password
+*   \param  cred_ctr                    Where to store credential CTR
+*   \param  prev_gen_credential_flag    Where to store flag for previous gen cred
+*/
+void logic_database_fetch_encrypted_password(uint16_t child_node_addr, uint8_t* password, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag)
+{
+    child_cred_node_t temp_cnode;
+    
+    /* Read node, ownership checks and text fields sanitizing are done within */
+    nodemgmt_read_cred_child_node(child_node_addr, &temp_cnode);
+
+    /* Copy encrypted password */
+    memcpy(password, temp_cnode.password, sizeof(temp_cnode.password));
+    
+    /* Copy CTR */
+    memcpy(cred_ctr, temp_cnode.ctr, sizeof(temp_cnode.ctr));
+    
+    /* Set prev gen bool */
+    if ((temp_cnode.flags & NODEMGMT_PREVGEN_BIT_BITMASK) != 0)
+    {
+        *prev_gen_credential_flag = TRUE;
+    }
+    else
+    {
+        *prev_gen_credential_flag = FALSE;
+    }
+}
+
 /*! \fn     logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag)
 *   \brief  Fill a get cred message packet
 *   \param  child_node_addr             Child node address
