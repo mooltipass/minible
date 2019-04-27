@@ -553,11 +553,14 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
         }
         
         // Read usb comms as the plugin could ask to cancel the request
-        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL);
-        /*if (usbCancelRequestReceived() == RETURN_OK)
+        if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD)
         {
-            input_answer = MINI_INPUT_RET_TIMEOUT;
-        }*/
+            /* As this routine may be called by other functions in the firmware.... flash_screen is set to true for ext requests */
+            if (flash_screen != FALSE)
+            {
+                input_answer = MINI_INPUT_RET_TIMEOUT;
+            }
+        }
         
         // Check if something has been pressed
         detect_result = inputs_get_wheel_action(FALSE, TRUE);
@@ -771,11 +774,14 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         }
         
         // Read usb comms as the plugin could ask to cancel the request
-        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL);
-        /*if (usbCancelRequestReceived() == RETURN_OK)
+        if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD)
         {
-            input_answer = MINI_INPUT_RET_TIMEOUT;
-        }*/
+            /* As this routine may be called by other functions in the firmware.... flash_screen is set to true for ext requests */
+            if (flash_screen != FALSE)
+            {
+                input_answer = MINI_INPUT_RET_TIMEOUT;
+            }
+        }
         
         // Check if something has been pressed
         detect_result = inputs_get_wheel_action(FALSE, TRUE);
@@ -1067,11 +1073,10 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
         }
         
         /* Read usb comms as the plugin could ask to cancel the request */
-        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL);
-        /*if (usbCancelRequestReceived() == RETURN_OK)
+        if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD)
         {
-            input_answer = MINI_INPUT_RET_TIMEOUT;
-        }*/
+            return NODE_ADDR_NULL;
+        }
         
         /* Check if something has been pressed */
         wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, TRUE);
