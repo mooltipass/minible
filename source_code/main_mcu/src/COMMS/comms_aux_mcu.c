@@ -139,11 +139,16 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
 /*! \fn     comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
 *   \brief  Routine dealing with aux mcu comms
 *   \param  answer_restrict_type    Enum restricting which messages we can answer
+*   \return The type of message received, if any
+*   \note   The message for which the type of message is return may or may not be valid!
 */
-void comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
+comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
 {	
     /* Ongoing RX transfer received bytes */
     uint16_t nb_received_bytes_for_ongoing_transfer = sizeof(aux_mcu_receive_message) - dma_aux_mcu_get_remaining_bytes_for_rx_transfer();
+
+    /* For return: type of message received */
+    comms_msg_rcvd_te msg_rcvd = NO_MSG_RCVD;
     
     /* Bool to treat packet */
     BOOL should_deal_with_packet = FALSE;
@@ -219,7 +224,7 @@ void comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
     if ((should_deal_with_packet == FALSE) || (payload_length > AUX_MCU_MSG_PAYLOAD_LENGTH))
     {
         /* Note: there's a case where we don't rearm DMA if the message is valid but payload is too long... was lazy to implement it */
-        return;
+        return NO_MSG_RCVD;
     }
             
     /* USB / BLE Messages */
@@ -233,6 +238,16 @@ void comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
                 
         /* Clear TX message just in case */
         memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
+
+        /* Depending on command ID, prepare return */
+        if (aux_mcu_receive_message.hid_message.message_type == HID_CMD_ID_CANCEL_REQ)
+        {
+            msg_rcvd = HID_CANCEL_MSG_RCVD;
+        } 
+        else
+        {
+            msg_rcvd = HID_MSG_RCVD;
+        }
                 
         /* Parse message */
         #ifndef DEBUG_USB_COMMANDS_ENABLED
@@ -261,14 +276,18 @@ void comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
     } 
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BOOTLOADER)
     {
+        msg_rcvd = BL_MSG_RCVD;
         asm("Nop");
     }   
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD)
     {
+        msg_rcvd = MAIN_MCU_MSG_RCVD;
         asm("Nop");
     }
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_AUX_MCU_EVENT)
     {
+        msg_rcvd = EVENT_MSG_RCVD;
+
         if (aux_mcu_receive_message.main_mcu_command_message.command == AUX_MCU_EVENT_BLE_ENABLED)
         {
             /* BLE just got enabled */
@@ -277,6 +296,7 @@ void comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
     }  
     else
     {
+        msg_rcvd = UNKNOW_MSG_RCVD;
         asm("Nop");        
     } 
     
@@ -284,7 +304,9 @@ void comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
     if (arm_rx_transfer != FALSE)
     {
         comms_aux_arm_rx_and_clear_no_comms();
-    }          
+    }       
+    
+    return msg_rcvd;   
 }
 
 /*! \fn     comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet)
