@@ -14,6 +14,7 @@
 /* Defines */
 #define HID_1BYTE_NACK      0x00
 #define HID_1BYTE_ACK       0x01
+#define HID_1BYTE_NA        0x02
 
 /* Command defines */
 #define HID_CMD_ID_PING             0x0001
@@ -33,6 +34,7 @@
 #define HID_CMD_GET_NB_FREE_USERS   0x000F
 #define HID_CMD_LOCK_DEVICE         0x0010
 #define HID_CMD_GET_DEVICE_STATUS   0x0011
+#define HID_CMD_CHECK_PASSWORD      0x0012
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101
@@ -91,6 +93,14 @@ typedef struct
 
 typedef struct
 {
+    uint16_t service_name_index;
+    uint16_t login_name_index;
+    uint16_t password_index;
+    cust_char_t concatenated_strings[0];
+} hid_message_check_cred_req_t;
+
+typedef struct
+{
     uint16_t login_name_index;
     uint16_t description_index;
     uint16_t third_field_index;
@@ -111,6 +121,7 @@ typedef struct
         hid_message_detailed_plat_info_t detailed_platform_info;
         hid_message_plat_info_t platform_info;
         hid_message_store_cred_t store_credential;
+        hid_message_check_cred_req_t check_credential;
         hid_message_get_cred_req_t get_credential_request;
         hid_message_get_cred_answer_t get_credential_answer;
     };
