@@ -331,6 +331,29 @@ Status Byte:
 Tested status: NOT tested
 
 
+0x0012: Check Credential
+------------------------
+
+From the PC: 
+
+| bytes  | value  |
+|:-------|:-------|
+| 0->1   | 0x0012 |
+| 2->3   | depends on message contents |
+| 4->5   | index to the service name (0) |
+| 6->7   | index to the login name |
+| 8->9   | index to the password |
+| 10->xxx | all above terminated fields concatenated |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0012   | 1 | 0x00 (fail), 0x01 (success), 0x02 (timeout protection) |
+
+Tested status: NOT tested
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
