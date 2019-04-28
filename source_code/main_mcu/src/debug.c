@@ -291,7 +291,13 @@ void debug_setup_dev_card(void)
                 /* Setup smartcard */
                 smartcard_highlevel_write_protected_zone(temp_buffer);
                 smartcard_highlevel_write_aes_key(temp_buffer);
-                smartcard_highlevel_write_security_code(&pin_code);                
+                smartcard_highlevel_write_security_code(&pin_code);
+
+                /* Special card has 0000 CPZ, set 0000 as nonce */
+                cpz_lut_entry_t special_user_profile;
+                memset(&special_user_profile, 0, sizeof(special_user_profile));
+                special_user_profile.user_id = 100;
+                custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id);             
             }
             else
             {
