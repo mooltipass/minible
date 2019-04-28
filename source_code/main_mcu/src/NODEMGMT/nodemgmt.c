@@ -96,16 +96,16 @@ static inline uint16_t userIdFromFlags(uint16_t flags)
     return ((flags >> NODEMGMT_USERID_BITSHIFT) & NODEMGMT_USERID_MASK_FINAL);
 }
 
-/*! \fn     constructDate(uint16_t year, uint16_t month, uint16_t day)
+/*! \fn     nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day)
 *   \brief  Packs a uint16_t type with a date code in format YYYYYYYMMMMDDDDD. Year Offset from 2010
 *   \param  year            The year to pack into the uint16_t
 *   \param  month           The month to pack into the uint16_t
 *   \param  day             The day to pack into the uint16_t
 *   \return date            The constructed / encoded date in uint16_t
 */
-static inline uint16_t constructDate(uint16_t year, uint16_t month, uint16_t day)
+uint16_t nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day)
 {
-    return (day | ((month << NODEMGMT_MONTH_SHT) & NODEMGMT_MONTH_MASK) | ((year << NODEMGMT_YEAR_SHT) & NODEMGMT_YEAR_MASK));
+    return (day | ((month << NODEMGMT_MONTH_SHT) & NODEMGMT_MONTH_MASK) | (((year-2010) << NODEMGMT_YEAR_SHT) & NODEMGMT_YEAR_MASK));
 }
 
 /*! \fn     extractDate(uint16_t date, uint8_t *year, uint8_t *month, uint8_t *day)
