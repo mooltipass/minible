@@ -66,9 +66,16 @@ Device answer:
 
 From the PC: 
 
-| byte 0-1 | byte 2-3                    | bytes 4-5                          | bytes 6-X         |
-|:---------|:----------------------------|:-----------------------------------|:------------------|
-| 0x0004   | 2 | current date (15 dn 9 -> Year (2010 + val), 8 dn 5 -> Month, 4 dn 0 -> Day of Month) | N/A |
+| bytes  | value  |
+|:-------|:-------|
+| 0->1   | 0x0004 |
+| 2->3   | 12 |
+| 4->5   | year |
+| 6->7   | month |
+| 8->9   | day |
+| 10->11 | hour |
+| 12->13 | minute |
+| 14->15 | second |
 
 Device Answer:
 
