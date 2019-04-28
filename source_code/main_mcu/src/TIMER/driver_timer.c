@@ -88,7 +88,7 @@ void timer_initialize_timebase(void)
     while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
     while((RTC->MODE2.CTRL.reg & RTC_MODE2_CTRL_SWRST) != 0);           // Wait for end of reset
     RTC_MODE2_CTRL_Type rtc_ctrl_reg;                                   // rtc ctrl struct
-    rtc_ctrl_reg.reg = RTC_MODE1_CTRL_ENABLE;                           // Enable module
+    rtc_ctrl_reg.reg = RTC_MODE2_CTRL_ENABLE;                           // Enable module
     rtc_ctrl_reg.bit.CLKREP = 0;                                        // 24 hour mode
     rtc_ctrl_reg.bit.MODE = RTC_MODE2_CTRL_MODE_CLOCK_Val;              // Calendar mode
     rtc_ctrl_reg.bit.PRESCALER = RTC_MODE2_CTRL_PRESCALER_DIV1024_Val;  // Divide 1.024kHz signal by 1024
@@ -113,7 +113,29 @@ void timer_initialize_timebase(void)
     NVIC_EnableIRQ(TCC0_IRQn);                                          // Enable int
 }
 
-/*!	\fn		timer_get_calendar(void)
+/*!	\fn		timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
+*	\brief	Set the current date
+*   \param  year    Current year
+*   \param  month   Current month
+*   \param  day     Current day
+*   \param  hour    Current hour
+*   \param  minute  Current minute
+*   \param  second  Current second
+*/
+void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
+{
+    calendar_t new_date;
+    new_date.bit.YEAR = year;
+    new_date.bit.MONTH = month;
+    new_date.bit.DAY = day;
+    new_date.bit.HOUR = hour;
+    new_date.bit.MINUTE = minute;
+    new_date.bit.SECOND = second;
+    while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
+    RTC->MODE2.CLOCK = new_date;
+}
+
+/*!	\fn		timer_get_calendar(calendar_t* calendar_pt)
 *	\brief	Get the current date
 *   \param  calendar_pt Pointer to a calendar struct
 */
