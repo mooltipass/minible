@@ -150,12 +150,23 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         
         case HID_CMD_ID_SET_DATE:
         {
-            /* Set Date */
-            timer_set_calendar(rcv_msg->payload_as_uint16[0], rcv_msg->payload_as_uint16[1], rcv_msg->payload_as_uint16[2], rcv_msg->payload_as_uint16[3], rcv_msg->payload_as_uint16[4],rcv_msg->payload_as_uint16[5]);
-            nodemgmt_set_current_date(nodemgmt_construct_date(rcv_msg->payload_as_uint16[0],rcv_msg->payload_as_uint16[1],rcv_msg->payload_as_uint16[2]));
+            /* Check address length */
+            if (rcv_msg->payload_length == 6*sizeof(uint16_t))
+            {
+                /* Set Date */
+                timer_set_calendar(rcv_msg->payload_as_uint16[0], rcv_msg->payload_as_uint16[1], rcv_msg->payload_as_uint16[2], rcv_msg->payload_as_uint16[3], rcv_msg->payload_as_uint16[4],rcv_msg->payload_as_uint16[5]);
+                nodemgmt_set_current_date(nodemgmt_construct_date(rcv_msg->payload_as_uint16[0],rcv_msg->payload_as_uint16[1],rcv_msg->payload_as_uint16[2]));
+                
+
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
             
-            /* Set ack, leave same command id */
-            send_msg->payload[0] = HID_1BYTE_ACK;
             send_msg->payload_length = 1;
             return 1;
         }
