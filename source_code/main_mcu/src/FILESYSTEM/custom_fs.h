@@ -33,6 +33,11 @@
 #define SETTING_USER_INTERACTION_TIMEOUT_ID 2
 #define SETTING_FLASH_SCREEN_ID             3
 
+/* User security settings flags */
+#define USER_SEC_FLG_LOGIN_CONF             0x01
+#define USER_SEC_FLG_PIN_FOR_MMM            0x02
+#define USER_SEC_FLG_CRED_SAVE_PROMPT_MMM   0x04
+
 /* Typedefs */
 typedef uint32_t custom_fs_file_count_t;
 typedef uint32_t custom_fs_address_t;
@@ -145,7 +150,8 @@ typedef struct
     uint8_t cards_cpz[8];
     uint8_t nonce[AES_BLOCK_SIZE/8];
     uint8_t provisioned_key[AES_KEY_LENGTH/8];
-    uint8_t reserved[6];
+    uint8_t security_settings_flags;
+    uint8_t reserved[5];
 } cpz_lut_entry_t;
 
 /* Prototypes */
