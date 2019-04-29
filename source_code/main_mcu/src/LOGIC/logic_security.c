@@ -6,9 +6,9 @@
 #include <asf.h>
 #include "logic_security.h"
 /* Inserted card unlocked */
-BOOL logic_security_smartcard_inserted_unlocked = FALSE;
+volatile BOOL logic_security_smartcard_inserted_unlocked = FALSE;
 /* Memory management mode */
-BOOL logic_security_management_mode = FALSE;
+volatile BOOL logic_security_management_mode = FALSE;
 
 
 /*! \fn     logic_security_clear_security_bools(void)
