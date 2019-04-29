@@ -25,7 +25,7 @@ The goal of this page is to make a record of all observations regarding the Mini
 | 6          | uA |
 | 7          | uA |
 | 8          | @Dennis |
-| 9          | uA |
+| 9          | @peter & amro |
    
    
 ## [](#header-2)Main MCU Deep Sleep Power Consumption
