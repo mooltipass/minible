@@ -318,7 +318,6 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
 *   \note   Special care must be taken to discard other message we don't want (either with a please_retry or other mechanisms)
 *   \note   DMA RX arm must be called to rearm message receive as a rearm in this code would enable data to be overwritten
 *   \note   This function is not touching the no comms signal except in case the wrong message type isn't received
-*   // TODO: check usefulness of do_not_touch_dma_flags....
 */
 RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet)
 {
