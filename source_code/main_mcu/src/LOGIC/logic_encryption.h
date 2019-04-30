@@ -21,6 +21,7 @@ void logic_encryption_xor_vector_to_other(uint8_t* destination, uint8_t* source,
 void logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length, uint8_t* ctr_val_used);
 void logic_encryption_init_context(uint8_t* card_aes_key, cpz_lut_entry_t* cpz_user_entry);
 void logic_encryption_get_cpz_ctr_entry(uint8_t* buffer);
+uint8_t logic_encryption_get_user_security_flags(void);
 void logic_encryption_post_ctr_tasks(uint16_t ctr_inc);
 void logic_encryption_pre_ctr_tasks(uint16_t ctr_inc);
 void logic_encryption_delete_context(void);
