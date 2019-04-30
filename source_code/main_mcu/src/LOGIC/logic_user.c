@@ -238,7 +238,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     }
 
     /* Special case: in MMM and user chose to not be prompted */
-    if ((logic_security_is_management_mode_set() != FALSE) && ((logic_encryption_get_user_security_flags() & USER_SEC_FLG_CRED_SAVE_PROMPT_MMM) != 0))
+    if ((logic_security_is_management_mode_set() == FALSE) || ((logic_encryption_get_user_security_flags() & USER_SEC_FLG_CRED_SAVE_PROMPT_MMM) != 0))
     {        
         /* Prepare prompt text */
         cust_char_t* three_line_prompt_2;
