@@ -10,6 +10,7 @@
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
 #include "logic_security.h"
+#include "driver_timer.h"
 #include "gui_prompts.h"
 #include "platform_io.h"
 #include "logic_user.h"
@@ -307,5 +308,45 @@ RET_TYPE logic_smartcard_user_unlock_process(void)
             // User cancelled the request
             return RETURN_NOK;
         }
+    }
+}
+
+/*! \fn     logic_smartcard_remove_card_and_reauth_user(void)
+*   \brief  Re-authentication process
+*   \return success or not
+*/
+RET_TYPE logic_smartcard_remove_card_and_reauth_user(void)
+{
+    uint8_t temp_cpz1[SMARTCARD_CPZ_LENGTH];
+    uint8_t temp_cpz2[SMARTCARD_CPZ_LENGTH];
+    
+    // Get current CPZ
+    smartcard_highlevel_read_code_protected_zone(temp_cpz1);
+    
+    // Disconnect smartcard
+    logic_smartcard_handle_removed();
+    
+    // Wait a few ms
+    timer_delay_ms(250);
+    
+    // Launch Unlocking process
+    if ((smartcard_highlevel_card_detected_routine() == RETURN_MOOLTIPASS_USER) && (logic_smartcard_valid_card_unlock(FALSE) == RETURN_VCARD_OK))
+    {
+        // Read other CPZ
+        smartcard_highlevel_read_code_protected_zone(temp_cpz2);
+        
+        // Check that they're actually the sames
+        if (memcmp(temp_cpz1, temp_cpz2, SMARTCARD_CPZ_LENGTH) == 0)
+        {
+            return RETURN_OK;
+        }
+        else
+        {
+            return RETURN_NOK;
+        }
+    }
+    else
+    {
+        return RETURN_NOK;
     }
 }
