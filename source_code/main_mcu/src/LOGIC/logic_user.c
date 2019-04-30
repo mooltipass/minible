@@ -236,27 +236,31 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     {
         child_address = logic_database_search_login_in_service(parent_address, login);
     }
-    
-    /* Prepare prompt text */
-    cust_char_t* three_line_prompt_2;
-    if (child_address == NODE_ADDR_NULL)
-    {
-        custom_fs_get_string_from_file(ADD_CRED_TEXT_ID, &three_line_prompt_2, TRUE);
-    } 
-    else
-    {
-        custom_fs_get_string_from_file(CHANGE_PWD_TEXT_ID, &three_line_prompt_2, TRUE);
-    } 
-    confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=login};
-    
-    /* Request user approval */
-    mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE);
-    gui_dispatcher_get_back_to_current_screen();
-    
-    /* Did the user approve? */
-    if (prompt_return != MINI_INPUT_RET_YES)
-    {
-        return RETURN_NOK;
+
+    /* Special case: in MMM and user chose to not be prompted */
+    if ((logic_security_is_management_mode_set() != FALSE) && ((logic_encryption_get_user_security_flags() & USER_SEC_FLG_CRED_SAVE_PROMPT_MMM) != 0))
+    {        
+        /* Prepare prompt text */
+        cust_char_t* three_line_prompt_2;
+        if (child_address == NODE_ADDR_NULL)
+        {
+            custom_fs_get_string_from_file(ADD_CRED_TEXT_ID, &three_line_prompt_2, TRUE);
+        }
+        else
+        {
+            custom_fs_get_string_from_file(CHANGE_PWD_TEXT_ID, &three_line_prompt_2, TRUE);
+        }
+        confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=login};
+        
+        /* Request user approval */
+        mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE);
+        gui_dispatcher_get_back_to_current_screen();
+        
+        /* Did the user approve? */
+        if (prompt_return != MINI_INPUT_RET_YES)
+        {
+            return RETURN_NOK;
+        }
     }
     
     /* If needed, add service */
