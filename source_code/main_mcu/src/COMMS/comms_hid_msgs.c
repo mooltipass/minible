@@ -154,10 +154,9 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             if (rcv_msg->payload_length == 6*sizeof(uint16_t))
             {
                 /* Set Date */
-                timer_set_calendar(rcv_msg->payload_as_uint16[0], rcv_msg->payload_as_uint16[1], rcv_msg->payload_as_uint16[2], rcv_msg->payload_as_uint16[3], rcv_msg->payload_as_uint16[4],rcv_msg->payload_as_uint16[5]);
+                timer_set_calendar(rcv_msg->payload_as_uint16[0], rcv_msg->payload_as_uint16[1], rcv_msg->payload_as_uint16[2], rcv_msg->payload_as_uint16[3], rcv_msg->payload_as_uint16[4], rcv_msg->payload_as_uint16[5]);
                 nodemgmt_set_current_date(nodemgmt_construct_date(rcv_msg->payload_as_uint16[0],rcv_msg->payload_as_uint16[1],rcv_msg->payload_as_uint16[2]));
                 
-
                 /* Set success byte */
                 send_msg->payload[0] = HID_1BYTE_ACK;
             }
@@ -397,35 +396,59 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         {
             /* Smartcard unlocked? */
             if (logic_security_is_smc_inserted_unlocked() != FALSE)
-            {
-                // TODO: if it makes sense, ask user to enter his PIN
-                
+            {                
                 /* Prompt the user */
                 if (gui_prompts_ask_for_one_line_confirmation(ID_STRING_ENTER_MMM, TRUE) == MINI_INPUT_RET_YES)
                 {
-                    /* Approved, set next screen */
-                    gui_dispatcher_set_current_screen(GUI_SCREEN_MEMORY_MGMT, TRUE, GUI_INTO_MENU_TRANSITION);
-                    
-                    /* Update current state */
-                    logic_security_set_management_mode();
-                    
-                    /* Set success byte */
-                    send_msg->payload[0] = HID_1BYTE_ACK;
+                    if ((logic_encryption_get_user_security_flags() & USER_SEC_FLG_PIN_FOR_MMM) != 0)
+                    {
+                        /* Require user to reauth himself */
+                        if (logic_smartcard_remove_card_and_reauth_user() == RETURN_OK)
+                        {
+                            /* Approved, set next screen */
+                            gui_dispatcher_set_current_screen(GUI_SCREEN_MEMORY_MGMT, TRUE, GUI_INTO_MENU_TRANSITION);
+                            
+                            /* Update current state */
+                            logic_security_set_management_mode();
+                            
+                            /* Set success byte */
+                            send_msg->payload[0] = HID_1BYTE_ACK;
+                        } 
+                        else
+                        {
+                            /* Couldn't reauth, set to inserted lock */
+                            gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
+
+                            /* Set failure byte */
+                            send_msg->payload[0] = HID_1BYTE_NACK;
+                        }
+                    } 
+                    else
+                    {
+                        /* Approved, set next screen */
+                        gui_dispatcher_set_current_screen(GUI_SCREEN_MEMORY_MGMT, TRUE, GUI_INTO_MENU_TRANSITION);
+                        
+                        /* Update current state */
+                        logic_security_set_management_mode();
+                        
+                        /* Set success byte */
+                        send_msg->payload[0] = HID_1BYTE_ACK;
+                    }
                 }
                 else
                 {
                     /* Set failure byte */
                     send_msg->payload[0] = HID_1BYTE_NACK;
                 }
+            
+                /* Go back to old or updated screen */
+                gui_dispatcher_get_back_to_current_screen();
             } 
             else
             {
                 /* Set failure byte */
                 send_msg->payload[0] = HID_1BYTE_NACK;
             }
-            
-            /* Go back to old or updated screen */
-            gui_dispatcher_get_back_to_current_screen();
             
             /* Return success or failure */
             send_msg->payload_length = 1;
