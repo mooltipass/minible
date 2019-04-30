@@ -365,20 +365,36 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
         /* Get prefilled message */
         uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr, &prev_gen_credential_flag);
         
-        /* Prepare prompt message */
-        cust_char_t* three_line_prompt_2;
-        custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &three_line_prompt_2, TRUE);
-        confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.login_name_index])};
-
-        /* Request user approval */
-        mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE);
-        gui_dispatcher_get_back_to_current_screen();
-        
-        /* Did the user approve? */
-        if (prompt_return != MINI_INPUT_RET_YES)
+        /* If user specified to be prompted for login confirmation */
+        if ((logic_encryption_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0)
         {
-            memset(send_msg->payload, 0, sizeof(send_msg->payload));
-            return -1;
+            /* Prepare prompt message */
+            cust_char_t* three_line_prompt_2;
+            custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &three_line_prompt_2, TRUE);
+            confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.login_name_index])};
+
+            /* Request user approval */
+            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE);
+            gui_dispatcher_get_back_to_current_screen();
+
+            /* Did the user approve? */
+            if (prompt_return != MINI_INPUT_RET_YES)
+            {
+                memset(send_msg->payload, 0, sizeof(send_msg->payload));
+                return -1;
+            }
+        }
+        else
+        {
+            /* Prepare prompt message */
+            cust_char_t* three_line_prompt_2;
+            //custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &three_line_prompt_2, TRUE);
+            confirmationText_t notif_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.login_name_index])};
+
+            // TODO: 3 lines notification website / logging you in with / username
+
+            /* Set information screen, do not call get back to current screen as screen is already updated */
+            gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);
         }
         
         /* User approved, decrypt password */
