@@ -106,7 +106,7 @@ static inline uint16_t userIdFromFlags(uint16_t flags)
 uint16_t nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day)
 {
     /* Why swap16 you ask? well... it's an old error that propagated until now... */
-    return swap16(day | ((month << NODEMGMT_MONTH_SHT) & NODEMGMT_MONTH_MASK) | (((year-2010) << NODEMGMT_YEAR_SHT) & NODEMGMT_YEAR_MASK));
+    return swap16(day | (((month-1) << NODEMGMT_MONTH_SHT) & NODEMGMT_MONTH_MASK) | (((year-2010) << NODEMGMT_YEAR_SHT) & NODEMGMT_YEAR_MASK));
 }
 
 /*! \fn     extractDate(uint16_t date, uint8_t *year, uint8_t *month, uint8_t *day)
