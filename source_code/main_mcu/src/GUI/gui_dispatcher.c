@@ -19,6 +19,8 @@
 gui_screen_te gui_dispatcher_current_screen = GUI_SCREEN_INVALID;
 // Current idle animation frame ID
 uint16_t gui_dispatcher_current_idle_anim_frame_id = 0;
+// Current idle animation loop number
+uint16_t gui_dispatcher_current_idle_anim_loop = 0;
 
 
 /*! \fn     gui_dispatcher_get_current_screen(void)
@@ -40,6 +42,7 @@ void gui_dispatcher_set_current_screen(gui_screen_te screen, BOOL reset_states, 
     /* Store transition, screen, call menu reset routine */
     plat_oled_descriptor.loaded_transition = transition;
     gui_dispatcher_current_idle_anim_frame_id = 0;
+    gui_dispatcher_current_idle_anim_loop = 0;
     gui_dispatcher_current_screen = screen;    
     gui_menu_reset_selected_items(reset_states);
     
@@ -56,6 +59,12 @@ void gui_dispatcher_set_current_screen(gui_screen_te screen, BOOL reset_states, 
 */
 void gui_dispatcher_get_back_to_current_screen(void)
 {
+    if (gui_dispatcher_current_screen == GUI_SCREEN_LOGIN_NOTIF)
+    {
+        /* We're currently displaying a login notification but were interrupted for another prompt... go to main menu */
+        gui_dispatcher_current_screen = GUI_SCREEN_MAIN_MENU;
+    }
+
     /* switch to let the compiler optimize instead of function pointer array */
     switch (gui_dispatcher_current_screen)
     {
@@ -108,6 +117,15 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
             #endif
             break;
         }
+
+        case GUI_SCREEN_LOGIN_NOTIF:
+        {
+            /* If action, end animation */
+            gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE, GUI_INTO_MENU_TRANSITION);
+            gui_dispatcher_get_back_to_current_screen();
+            break;
+        }
+        
         case GUI_SCREEN_INSERTED_LCK:       break;
         case GUI_SCREEN_INSERTED_INVALID:   break;        
         case GUI_SCREEN_INSERTED_UNKNOWN:   break;
@@ -136,6 +154,9 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
 */
 void gui_dispatcher_idle_call(void)
 {
+    /* Copy of current frame id */
+    uint16_t current_frame_id = gui_dispatcher_current_idle_anim_frame_id;
+
     /* Temp uint16_t */
     uint16_t temp_uint16;
     
@@ -144,6 +165,24 @@ void gui_dispatcher_idle_call(void)
     {
         case GUI_SCREEN_NINSERTED:          break;
         case GUI_SCREEN_INSERTED_LCK:       break;
+        case GUI_SCREEN_LOGIN_NOTIF:        {
+                                                if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+                                                {
+                                                    /* Enough animation loops to go back to main menu */
+                                                    if (gui_dispatcher_current_idle_anim_loop == 4)
+                                                    {
+                                                        gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE, GUI_INTO_MENU_TRANSITION);
+                                                        gui_dispatcher_get_back_to_current_screen();
+                                                    } 
+                                                    else
+                                                    {
+                                                        /* Display new animation frame bitmap, rearm timer with provided value */
+                                                        gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_ACTION);
+                                                        timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
+                                                    }
+                                                }
+                                                break;
+                                            }
         case GUI_SCREEN_INSERTED_INVALID:   {
                                                 if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
                                                 {
@@ -182,6 +221,12 @@ void gui_dispatcher_idle_call(void)
         case GUI_SCREEN_SETTINGS:           break;
         default: break;
     }    
+
+    /* Update loop number */
+    if (gui_dispatcher_current_idle_anim_frame_id != (current_frame_id + 1))
+    {
+        gui_dispatcher_current_idle_anim_loop++;
+    }
 }
 
 /*! \fn     gui_dispatcher_main_loop(void)
