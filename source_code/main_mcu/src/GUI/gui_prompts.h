@@ -103,6 +103,8 @@ typedef struct
 void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t vert_anim_direction, int16_t hor_anim_direction);
 void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame_id, uint16_t* timer_timeout, display_message_te message_type);
 mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen);
+void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type);
+void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type);
 void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type);
 mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen);
 void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type);
