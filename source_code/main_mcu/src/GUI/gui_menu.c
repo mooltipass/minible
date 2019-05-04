@@ -5,6 +5,9 @@
 */
 #include "gui_dispatcher.h"
 #include "gui_carousel.h"
+#include "gui_prompts.h"
+#include "logic_user.h"
+#include "nodemgmt.h"
 #include "gui_menu.h"
 
 /* Main Menu */
@@ -142,6 +145,19 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
         switch (selected_icon)
         {
             /* Main Menu */
+            case GUI_LOGIN_ICON_ID:         
+            {
+                /* Do we actually have credentials to show? */
+                if (nodemgmt_get_starting_parent_addr() != NODE_ADDR_NULL)
+                {
+                    logic_user_manual_select_login();
+                } 
+                else
+                {
+                    // TODO: no credentials notif
+                }
+                gui_dispatcher_get_back_to_current_screen();
+            }
             case GUI_OPR_ICON_ID:           gui_dispatcher_set_current_screen(GUI_SCREEN_OPERATIONS, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;
             case GUI_SETTINGS_ICON_ID:      gui_dispatcher_set_current_screen(GUI_SCREEN_SETTINGS, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;
             case GUI_BT_ICON_ID:            gui_dispatcher_set_current_screen(GUI_SCREEN_BT, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;

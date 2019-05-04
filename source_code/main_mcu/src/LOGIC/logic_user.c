@@ -316,14 +316,14 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     }
 }
 
-/*! \fn     logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_message_t* send_msg)
+/*! \fn     logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, hid_message_t* send_msg)
 *   \brief  Get credential for service
 *   \param  service     Pointer to service string
 *   \param  login       Pointer to login string, or 0 if not specified
 *   \param  send_msg    Pointer to where to store our answer
 *   \return payload size or -1 if error
 */
-int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_message_t* send_msg)
+int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, hid_message_t* send_msg)
 {
     uint8_t temp_cred_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     BOOL prev_gen_credential_flag = FALSE;
@@ -390,12 +390,13 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
         }
         else
         {
-            /* Prepare prompt message */
-            cust_char_t* three_line_prompt_2;
+            /* Prepare notification message */
+            cust_char_t* three_line_notif_2;
             //custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &three_line_prompt_2, TRUE);
-            confirmationText_t notif_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.login_name_index])};
+            confirmationText_t notif_text_3_lines = {.lines[0]=service, .lines[1]=three_line_notif_2, .lines[2]=&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.login_name_index])};
 
             // TODO: 3 lines notification website / logging you in with / username
+            gui_prompts_display_3line_information_on_screen(&notif_text_3_lines, DISP_MSG_INFO);
 
             /* Set information screen, do not call get back to current screen as screen is already updated */
             gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);
@@ -474,4 +475,332 @@ int16_t logic_user_get_credential(cust_char_t* service, cust_char_t* login, hid_
             }
         }
     }    
+}
+
+/*! \fn     logic_user_manual_select_login(void)
+*   \brief  Logic for finding a given login
+*/
+void logic_user_manual_select_login(void)
+{
+    uint16_t chosen_service_addr = nodemgmt_get_starting_parent_addr();
+    uint16_t nb_logins_for_cred;
+    uint16_t chosen_login_addr;
+    uint16_t state_machine = 0;
+
+    while (TRUE)
+    {
+        if (state_machine == 0)
+        {
+            /* Ask user to select a service */
+            chosen_service_addr = gui_prompts_service_selection_screen(chosen_service_addr);
+
+            /* No service was chosen or card removed */
+            if (chosen_service_addr == NODE_ADDR_NULL)
+            {
+                return;
+            }
+
+            /* Continue */
+            state_machine++;
+        }
+        else if (state_machine == 1)
+        {
+            /* See how many credentials there are for this service */
+            nb_logins_for_cred = logic_database_get_number_of_creds_for_service(chosen_service_addr, &chosen_login_addr);
+
+            /* More than one login */
+            if (nb_logins_for_cred != 1)
+            {
+                chosen_login_addr = gui_prompts_ask_for_login_select(chosen_service_addr);
+            }
+
+            /* Card removed, user going back... going one step back in the step machine as the previous code can take care of function exit */
+            if (chosen_login_addr == NODE_ADDR_NULL)
+            {
+                state_machine--;
+            }
+            else
+            {
+                state_machine++;
+            }
+        }
+        else if (state_machine == 2)
+        {
+            // Ask the user permission to enter login / password, check for back action
+            if (logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr) == RETURN_BACK)
+            {
+                /* Depending on number of child nodes, go back in history */
+                if (nb_logins_for_cred == 1)
+                {
+                    state_machine = 0;
+                } 
+                else
+                {
+                    state_machine--;
+                }
+            }
+            else
+            {
+                return;
+            }
+        }
+    }
+}
+
+/*! \fn     logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address)
+*   \brief  Ask the user to enter the login & password of a given service
+*   \param  parent_address  Address of the parent
+*   \param  child_address   Address of the child
+*   \param  RETURN_OK or RETURN_BACK
+*/
+RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address)
+{
+    child_cred_node_t* temp_half_cnode_pt;
+    parent_node_t temp_half_cnode;
+    parent_node_t temp_pnode;
+    
+    /* Dirty trick */
+    temp_half_cnode_pt = (child_cred_node_t*)&temp_half_cnode;
+
+    /* Read nodes */
+    nodemgmt_read_parent_node(parent_address, &temp_pnode, TRUE);
+    nodemgmt_read_cred_child_node_except_pwd(child_address, temp_half_cnode_pt);
+
+    /* Prepare first line display (service / user), store it in the service field. fields are 0 terminated by previous calls */
+    if (utils_strlen(temp_pnode.cred_parent.service) + utils_strlen(temp_half_cnode_pt->login) + 4 <= (uint16_t)MEMBER_ARRAY_SIZE(parent_cred_node_t, service))
+    {
+        uint16_t parent_length = utils_strlen(temp_pnode.cred_parent.service);
+        temp_pnode.cred_parent.service[parent_length] = ' ';
+        temp_pnode.cred_parent.service[parent_length+1] = '/';
+        temp_pnode.cred_parent.service[parent_length+2] = ' ';
+        utils_strcpy(&temp_pnode.cred_parent.service[parent_length+3], temp_half_cnode_pt->login);
+    }
+    
+    /* Prepare prompt and state machine */
+    uint16_t state_machine = 0;
+    cust_char_t* two_line_prompt_2;
+    confirmationText_t conf_text_2_lines = {.lines[0]=temp_pnode.cred_parent.service, .lines[1]=two_line_prompt_2};
+    
+    while (TRUE)
+    {
+        if (state_machine == 0)
+        {
+            // TODO
+            /* Ask for login confirmation */
+            //custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &two_line_prompt_2, TRUE);
+            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE);
+
+            /* Approved, back, card removed... */
+            if (prompt_return == MINI_INPUT_RET_CARD_REMOVED)
+            {
+                return RETURN_OK;
+            } 
+            else if (prompt_return == MINI_INPUT_RET_BACK)
+            {
+                return RETURN_BACK;
+            }
+            else
+            {
+                if (prompt_return == MINI_INPUT_RET_YES)
+                {
+                    // TODO
+                }
+
+                /* Move on */
+                state_machine++;
+            }
+        } 
+        else if (state_machine == 1)
+        {
+            // TODO
+            /* Ask for password confirmation */
+            //custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &two_line_prompt_2, TRUE);
+            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE);
+
+            /* Approved, back, card removed... */
+            if (prompt_return == MINI_INPUT_RET_CARD_REMOVED)
+            {
+                return RETURN_OK;
+            }
+            else if (prompt_return == MINI_INPUT_RET_BACK)
+            {
+                state_machine--;
+            }
+            else
+            {
+                if (prompt_return == MINI_INPUT_RET_YES)
+                {
+                    // TODO
+                }
+
+                /* Move on */
+                return RETURN_OK;
+            }
+        }
+    }
+
+    /*
+    confirmationText_t temp_conf_text;
+    
+    // If the user picked a credential set
+    if (child_address != NODE_ADDR_NULL)
+    {
+        // Read child node
+        readChildNode(&temp_cnode, child_address);
+        temp_conf_text.lines[0] = service_name;
+        
+        #ifdef MINI_VERSION
+        while(TRUE)
+        {
+            // If login isn't empty, ask the user if he wants to output the login
+            if (temp_cnode.login[0] != 0)
+            {
+                // Check if we're connected through USB
+                if (isUsbConfigured())
+                {
+                    temp_conf_text.lines[1] = readStoredStringToBuffer(ID_STRING_ENTERLOGINQ);
+                    RET_TYPE confirmation_result = guiAskForConfirmation(2, &temp_conf_text);
+                    if (confirmation_result == RETURN_OK)
+                    {
+                        usbKeybPutStr((char*)temp_cnode.login);
+                        if (getMooltipassParameterInEeprom(KEY_AFTER_LOGIN_SEND_BOOL_PARAM) != FALSE)
+                        {
+                            usbKeyboardPress(getMooltipassParameterInEeprom(KEY_AFTER_LOGIN_SEND_PARAM), 0);
+                        }
+                    }
+                    else if (confirmation_result == RETURN_BACK)
+                    {
+                        return RETURN_BACK;
+                    }
+                }
+                else
+                {
+                    temp_conf_text.lines[1] = readStoredStringToBuffer(ID_STRING_SHOW_LOGINQ);
+                    RET_TYPE confirmation_result = guiAskForConfirmation(2, &temp_conf_text);
+                    if (confirmation_result == RETURN_OK)
+                    {
+                        guiDisplayLoginOrPasswordOnScreen((char*)temp_cnode.login);
+                    }
+                    else if (confirmation_result == RETURN_BACK)
+                    {
+                        return RETURN_BACK;
+                    }
+                }
+            }
+            
+            decrypt32bBlockOfDataAndClearCTVFlag(temp_cnode.password, temp_cnode.ctr);
+            temp_cnode.password[sizeof(temp_cnode.password)-1] = 0;
+            // Ask the user if he wants to output the password
+            if (isUsbConfigured())
+            {
+                temp_conf_text.lines[1] = readStoredStringToBuffer(ID_STRING_ENTERPASSQ);
+                RET_TYPE confirmation_result = guiAskForConfirmation(2, &temp_conf_text);
+                if (confirmation_result == RETURN_OK)
+                {
+                    usbKeybPutStr((char*)temp_cnode.password);
+                    memset((void*)temp_cnode.password, 0x00, NODE_CHILD_SIZE_OF_PASSWORD);
+                    if (getMooltipassParameterInEeprom(KEY_AFTER_PASS_SEND_BOOL_PARAM) != FALSE)
+                    {
+                        usbKeyboardPress(getMooltipassParameterInEeprom(KEY_AFTER_PASS_SEND_PARAM), 0);
+                    }
+                    return RETURN_OK;
+                }
+                else if (confirmation_result == RETURN_BACK)
+                {
+                    if (temp_cnode.login[0] != 0)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        return RETURN_BACK;
+                    }
+                }
+                else
+                {
+                    return RETURN_NOK;
+                }
+            }
+            else
+            {
+                temp_conf_text.lines[1] = readStoredStringToBuffer(ID_STRING_SHOW_PASSQ);
+                RET_TYPE confirmation_result = guiAskForConfirmation(2, &temp_conf_text);
+                if (confirmation_result == RETURN_OK)
+                {
+                    guiDisplayLoginOrPasswordOnScreen((char*)temp_cnode.password);
+                    memset((void*)temp_cnode.password, 0x00, NODE_CHILD_SIZE_OF_PASSWORD);
+                    return RETURN_OK;
+                }
+                else if (confirmation_result == RETURN_BACK)
+                {
+                    if (temp_cnode.login[0] != 0)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        return RETURN_BACK;
+                    }
+                }
+                else
+                {
+                    return RETURN_NOK;
+                }
+            }
+        }
+        #else
+        // If login isn't empty, ask the user if he wants to output the login
+        if (temp_cnode.login[0] != 0)
+        {
+            // Check if we're connected through USB
+            if (isUsbConfigured())
+            {
+                temp_conf_text.lines[1] = readStoredStringToBuffer(ID_STRING_ENTERLOGINQ);
+                if (guiAskForConfirmation(2, &temp_conf_text) == RETURN_OK)
+                {
+                    usbKeybPutStr((char*)temp_cnode.login);
+                    if (getMooltipassParameterInEeprom(KEY_AFTER_LOGIN_SEND_BOOL_PARAM) != FALSE)
+                    {
+                        usbKeyboardPress(getMooltipassParameterInEeprom(KEY_AFTER_LOGIN_SEND_PARAM), 0);
+                    }
+                }
+            }
+            else
+            {
+                temp_conf_text.lines[1] = readStoredStringToBuffer(ID_STRING_SHOW_LOGINQ);
+                if (guiAskForConfirmation(2, &temp_conf_text) == RETURN_OK)
+                {
+                    guiDisplayLoginOrPasswordOnScreen((char*)temp_cnode.login);
+                }
+            }
+        }
+        
+        decrypt32bBlockOfDataAndClearCTVFlag(temp_cnode.password, temp_cnode.ctr);
+        // Ask the user if he wants to output the password
+        if (isUsbConfigured())
+        {
+            temp_conf_text.lines[1] = readStoredStringToBuffer(ID_STRING_ENTERPASSQ);
+            if (guiAskForConfirmation(2, &temp_conf_text) == RETURN_OK)
+            {
+                usbKeybPutStr((char*)temp_cnode.password);
+                memset((void*)temp_cnode.password, 0x00, NODE_CHILD_SIZE_OF_PASSWORD);
+                if (getMooltipassParameterInEeprom(KEY_AFTER_PASS_SEND_BOOL_PARAM) != FALSE)
+                {
+                    usbKeyboardPress(getMooltipassParameterInEeprom(KEY_AFTER_PASS_SEND_PARAM), 0);
+                }
+            }
+        }
+        else
+        {
+            temp_conf_text.lines[1] = readStoredStringToBuffer(ID_STRING_SHOW_PASSQ);
+            if (guiAskForConfirmation(2, &temp_conf_text) == RETURN_OK)
+            {
+                guiDisplayLoginOrPasswordOnScreen((char*)temp_cnode.password);
+                memset((void*)temp_cnode.password, 0x00, NODE_CHILD_SIZE_OF_PASSWORD);
+            }
+        }
+        #endif
+    }*/
+
+    return RETURN_OK;
 }

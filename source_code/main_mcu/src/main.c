@@ -235,8 +235,8 @@ void main_platform_init(void)
     } 
     
     /* Check for first boot, perform functional testing */
-    //if (custom_fs_is_first_boot() == FALSE)
-    if (custom_fs_is_first_boot() == TRUE)
+    //if (custom_fs_is_first_boot() == TRUE)
+    if (custom_fs_is_first_boot() == FALSE)
     {                
         /* Test no comms signal */
         platform_io_set_no_comms();

@@ -707,7 +707,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             if (rcv_msg->get_credential_request.login_name_index == UINT16_MAX)
             { 
                 /* Request user to send credential */
-                int16_t payload_length = logic_user_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), 0, send_msg);
+                int16_t payload_length = logic_user_usb_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), 0, send_msg);
                 if (payload_length < 0)
                 {
                     return 0;
@@ -736,7 +736,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 }
                 
                 /* Request user to send credential */
-                int16_t payload_length = logic_user_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), &(rcv_msg->get_credential_request.concatenated_strings[rcv_msg->get_credential_request.login_name_index]), send_msg);
+                int16_t payload_length = logic_user_usb_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), &(rcv_msg->get_credential_request.concatenated_strings[rcv_msg->get_credential_request.login_name_index]), send_msg);
                 if (payload_length < 0)
                 {
                     return 0;

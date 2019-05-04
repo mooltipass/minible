@@ -1424,4 +1424,337 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
     }
     
     return NODE_ADDR_NULL;
-}    
+}
+
+/*! \fn     gui_prompts_service_selection_screen(uint16_t start_address)
+*   \brief  Screen for manual service selection
+*   \param  start_address   Address of the service we should start at
+*   \return Valid parent node address or 0 otherwise
+*/
+uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
+{
+    cust_char_t* select_credential_string;
+    parent_node_t temp_pnode;
+    
+    /* Activity detected */
+    logic_device_activity_detected();
+    
+    /* Clear possible remaining detection */
+    inputs_clear_detections();
+
+    /* Sanity check */
+    if (start_address == NODE_ADDR_NULL)
+    {
+        return NODE_ADDR_NULL;
+    }
+
+    /* Read the parent that should be selected first */
+    nodemgmt_read_parent_node(start_address, &temp_pnode, TRUE);
+    
+    /* Clear frame buffer */
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #else
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    #endif
+    
+    /* Temp vars for our main loop */
+    uint16_t top_of_list_parent_addr = temp_pnode.cred_parent.prevParentAddress;
+    uint16_t before_top_of_list_parent_addr = NODE_ADDR_NULL;
+    uint16_t center_of_list_parent_addr = NODE_ADDR_NULL;
+    BOOL end_of_list_reached_at_center = FALSE;
+    BOOL animation_just_started = TRUE;
+    int16_t text_anim_x_offset[4];
+    BOOL text_anim_going_right[4];
+    int16_t animation_step = 0;
+    BOOL redraw_needed = TRUE;
+    BOOL action_taken = FALSE;
+    int16_t displayed_length;
+    BOOL scrolling_needed[4];
+    
+    /* Lines display settings */
+    uint16_t non_addr_null_addr_tbp = NODE_ADDR_NULL+1;
+    uint16_t* address_to_check_to_display[4] = {&non_addr_null_addr_tbp, &top_of_list_parent_addr, &center_of_list_parent_addr, &temp_pnode.cred_parent.nextParentAddress};
+    cust_char_t* strings_to_be_displayed[4] = {select_credential_string, temp_pnode.cred_parent.service, temp_pnode.cred_parent.service, temp_pnode.cred_parent.service};
+    uint16_t fonts_to_be_used[4] = {FONT_UBUNTU_REGULAR_16_ID, FONT_UBUNTU_REGULAR_13_ID, FONT_UBUNTU_MEDIUM_15_ID, FONT_UBUNTU_REGULAR_13_ID};
+    uint16_t strings_y_positions[4] = {0, LOGIN_SCROLL_Y_FLINE, LOGIN_SCROLL_Y_SLINE, LOGIN_SCROLL_Y_TLINE};
+    
+    /* Reset temp vars */
+    memset(text_anim_going_right, FALSE, sizeof(text_anim_going_right));
+    memset(text_anim_x_offset, 0, sizeof(text_anim_x_offset));
+    memset(scrolling_needed, FALSE, sizeof(scrolling_needed));
+    
+    /* TODO: "Select credential" string */
+    //custom_fs_get_string_from_file(SELECT_LOGIN_TEXT_ID, &select_login_string, TRUE);
+    
+    /* Arm timer for scrolling */
+    timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
+    
+    /* Loop until something has been done */
+    while (action_taken == FALSE)
+    {
+        /* User interaction timeout */
+        if (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED)
+        {
+            return NODE_ADDR_NULL;
+        }
+        
+        /* Card removed */
+        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        {
+            return NODE_ADDR_NULL;
+        }
+        
+        /* Read usb comms as the plugin could ask to cancel the request */
+        if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD)
+        {
+            return NODE_ADDR_NULL;
+        }
+        
+        /* Check if something has been pressed */
+        wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, TRUE);
+        if (detect_result == WHEEL_ACTION_SHORT_CLICK)
+        {
+            /* return selected address */
+            return center_of_list_parent_addr;
+        }
+        else if (detect_result == WHEEL_ACTION_LONG_CLICK)
+        {
+            return NODE_ADDR_NULL;
+        }
+        
+        /* Scroll up / down */
+        int16_t wheel_increments = inputs_get_wheel_increment();
+        if (wheel_increments != 0)
+        {
+            if (wheel_increments > 0)
+            {
+                if (end_of_list_reached_at_center == FALSE)
+                {
+                    before_top_of_list_parent_addr = top_of_list_parent_addr;
+                    top_of_list_parent_addr = center_of_list_parent_addr;
+                    animation_step = ((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2;
+                    animation_just_started = TRUE;
+                }
+            }
+            else
+            {
+                if (top_of_list_parent_addr != NODE_ADDR_NULL)
+                {
+                    top_of_list_parent_addr = before_top_of_list_parent_addr;
+                    animation_step = -((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2;
+                    animation_just_started = TRUE;
+                }
+            }
+            
+            /* If animation is happening */
+            if (animation_just_started != FALSE)
+            {
+                /* Reset scrolling states except for title */
+                memset(&text_anim_going_right[1], 0, sizeof(text_anim_going_right)-sizeof(text_anim_going_right[0]));
+                memset(&text_anim_x_offset[1], 0, sizeof(text_anim_x_offset)-sizeof(text_anim_x_offset[0]));
+                memset(&scrolling_needed[1], FALSE, sizeof(scrolling_needed)-sizeof(scrolling_needed[0]));
+                redraw_needed = TRUE;
+            }
+        }
+        
+        /* Scrolling logic */
+        if (timer_has_timer_expired(TIMER_SCROLLING, FALSE) == TIMER_EXPIRED)
+        {
+            /* Rearm timer */
+            timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
+            
+            /* Scrolling logic: when enabled, going left or right... */
+            for (uint16_t i = 0; i < 4; i++)
+            {
+                if (scrolling_needed[i] != FALSE)
+                {
+                    if (text_anim_going_right[i] == FALSE)
+                    {
+                        text_anim_x_offset[i]--;
+                    }
+                    else
+                    {
+                        text_anim_x_offset[i]++;
+                    }
+                }
+            }
+            redraw_needed = TRUE;
+        }
+        
+        /* Redraw if needed */
+        if (redraw_needed != FALSE)
+        {
+            /* Clear frame buffer, set display settings */
+            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
+            sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
+            
+            /* Animation: scrolling down, keeping the first of item displayed & fading out */
+            sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
+            if ((animation_step > 0) && (before_top_of_list_parent_addr != NODE_ADDR_NULL))
+            {
+                /* Fetch node */
+                nodemgmt_read_parent_node(before_top_of_list_parent_addr, &temp_pnode, TRUE);
+                
+                /* Display fading out service */
+                sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_FLINE-(((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2)+animation_step, temp_pnode.cred_parent.service, TRUE);
+            }
+            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            
+            /* Bar below the title */
+            sh1122_draw_rectangle(&plat_oled_descriptor, 73, LOGIN_SCROLL_Y_BAR, 110, 1, 0xFF, TRUE);
+            
+            /* Loop for 4 always displayed texts: title then 3 list items */
+            for (uint16_t i = 0; i < 4; i++)
+            {
+                if (i == 0)
+                {
+                    sh1122_reset_lim_display_y(&plat_oled_descriptor);
+                }
+                
+                /* Check if we should display it */
+                if (*(address_to_check_to_display[i]) != NODE_ADDR_NULL)
+                {
+                    /* Load the right font */
+                    sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[i]);
+                    
+                    /* Fetch node if needed */
+                    if (i > 0)
+                    {
+                        nodemgmt_read_parent_node(*(address_to_check_to_display[i]), &temp_pnode, TRUE);
+                    }
+                    
+                    /* Surround center of list item */
+                    if (i == 2)
+                    {
+                        utils_surround_text_with_pointers(temp_pnode.cred_parent.service, MEMBER_ARRAY_SIZE(parent_data_node_t, service));
+                    }
+                    
+                    /* First address: store the "before top address */
+                    if (i == 1)
+                    {
+                        before_top_of_list_parent_addr = temp_pnode.cred_parent.prevParentAddress;
+                    }
+                    
+                    /* Last address: store correct bool */
+                    if (i == 3)
+                    {
+                        end_of_list_reached_at_center = FALSE;
+                    }
+                    
+                    /* Y offset for animations */
+                    int16_t yoffset = 0;
+                    if (i > 0)
+                    {
+                        yoffset = animation_step;
+                    }
+                    
+                    /* Display string */
+                    if (scrolling_needed[i] != FALSE)
+                    {
+                        /* Scrolling required: display with the correct X offset */
+                        displayed_length = sh1122_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], strings_y_positions[i]+yoffset, OLED_ALIGN_LEFT, strings_to_be_displayed[i], TRUE);
+                        
+                        /* Scrolling: go change direction if we went too far */
+                        if (text_anim_going_right[i] == FALSE)
+                        {
+                            if (displayed_length == SH1122_OLED_WIDTH-12)
+                            {
+                                text_anim_going_right[i] = TRUE;
+                            }
+                        }
+                        else
+                        {
+                            if (text_anim_x_offset[i] == 12)
+                            {
+                                text_anim_going_right[i] = FALSE;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        /* String not large enough or start of animation */
+                        displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
+                    }
+                    
+                    /* First run: based on the number of chars displayed, set the scrolling needed bool */
+                    if ((animation_just_started != FALSE) && (displayed_length < 0))
+                    {
+                        scrolling_needed[i] = TRUE;
+                    }
+                    
+                    /* First item: store center list address */
+                    if (i == 1)
+                    {
+                        center_of_list_parent_addr = temp_pnode.cred_parent.nextParentAddress;
+                    }
+                    
+                    /* Last item & animation scrolling up: display upcoming item */
+                    if (i == 3)
+                    {
+                        if ((animation_step < 0) && (temp_pnode.cred_parent.nextParentAddress != NODE_ADDR_NULL))
+                        {
+                            /* Fetch node */
+                            nodemgmt_read_parent_node(temp_pnode.cred_parent.nextParentAddress, &temp_pnode, TRUE);
+                            
+                            /* Display fading out login */
+                            sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                            sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_TLINE+(((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2)+animation_step, temp_pnode.cred_parent.service, TRUE);
+                        }
+                    }
+                }
+                else
+                {
+                    /* Check for node to display failed */
+                    if (i == 1)
+                    {
+                        /* Couldn't display the top of the list, means our center child is the first child */
+                        center_of_list_parent_addr = start_address;
+                    }
+                    if (i == 3)
+                    {
+                        /* No last item to display, end of list reached at center */
+                        end_of_list_reached_at_center = TRUE;
+                    }
+                }
+                
+                if (i == 0)
+                {
+                    sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
+                }
+            }
+            
+            /* Reset display settings */
+            sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
+            sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
+            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            
+            /* Reset animation just started var */
+            animation_just_started = FALSE;
+            
+            /* Flush to display */
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
+            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            #endif
+            
+            /* Animation processing */
+            if (animation_step > 0)
+            {
+                animation_step-=2;
+            }
+            else if (animation_step < 0)
+            {
+                animation_step+=2;
+            }
+            else
+            {
+                redraw_needed = FALSE;
+            }
+        }
+    }
+    
+    return NODE_ADDR_NULL;
+}

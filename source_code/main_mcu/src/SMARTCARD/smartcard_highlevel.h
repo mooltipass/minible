@@ -71,20 +71,20 @@ void smartcard_highlevel_write_ec2en_fuse(void);
                 SMART CARD MEMORY MAP
 
 Bit Address                 Description                 Bits    Words
-0â€“15            Fabrication Zone (FZ)                   16      1
-16â€“79           Issuer Zone (IZ)                        64      4
-80â€“95           Security Code (SC)                      16      1
-96â€“111          Security Code Attempts counter (SCAC)   16      1
-112â€“175         Code Protected Zone (CPZ)               64      4
-176â€“687         Application Zone 1 (AZ1)                512     32
-688â€“735         Application Zone 1 Erase Key (EZ1)      48      3
-736â€“1247        Application Zone 2 (AZ2)                512     32
-1248â€“1279       Application Zone 2 Erase Key (EZ2)      32      2
-1280â€“1407       Application Zone 2 Erase Counter (EC2)  128     8
-1408â€“1423       Memory Test Zone (MTZ)                  16      1
-1424â€“1439       Manufacturerâ€™s Zone (MFZ)               16      1
-1440â€“1455       Block Write/Erase                       16      1
-1456â€“1471       MANUFACTURERâ€™S FUSE                     16      1
+0–15            Fabrication Zone (FZ)                   16      1
+16–79           Issuer Zone (IZ)                        64      4
+80–95           Security Code (SC)                      16      1
+96–111          Security Code Attempts counter (SCAC)   16      1
+112–175         Code Protected Zone (CPZ)               64      4
+176–687         Application Zone 1 (AZ1)                512     32
+688–735         Application Zone 1 Erase Key (EZ1)      48      3
+736–1247        Application Zone 2 (AZ2)                512     32
+1248–1279       Application Zone 2 Erase Key (EZ2)      32      2
+1280–1407       Application Zone 2 Erase Counter (EC2)  128     8
+1408–1423       Memory Test Zone (MTZ)                  16      1
+1424–1439       Manufacturer’s Zone (MFZ)               16      1
+1440–1455       Block Write/Erase                       16      1
+1456–1471       MANUFACTURER’S FUSE                     16      1
 1529            EC2EN FUSE (Controls use of EC2)        1
 1552 - 1567     ISSUER FUSE                             161
 
