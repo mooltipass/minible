@@ -682,7 +682,7 @@ void sh1122_set_emergency_font(sh1122_descriptor_t* oled_descriptor)
 */
 RET_TYPE sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor, uint16_t font_id)
 {
-    if (custom_fs_get_file_address(font_id, &oled_descriptor->currentFontAddress, CUSTOM_FS_FONTS_TYPE) == RETURN_NOK)
+    if (custom_fs_get_file_address(font_id, &oled_descriptor->currentFontAddress, CUSTOM_FS_FONTS_TYPE) != RETURN_OK)
     {
         oled_descriptor->currentFontAddress = 0;
         return RETURN_NOK;

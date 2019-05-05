@@ -117,7 +117,7 @@ void main_platform_init(void)
     
     /* Check fuses, program them if incorrectly set */
     fuses_ok = fuses_check_program(TRUE);
-    while(fuses_ok == RETURN_NOK);
+    while(fuses_ok != RETURN_OK);
     
     /* Check if debugger present */
     if (DSU->STATUSB.bit.DBGPRES != 0)
@@ -180,35 +180,35 @@ void main_platform_init(void)
     }
     
     /* Check for data flash */
-    if (dataflash_init_return == RETURN_NOK)
+    if (dataflash_init_return != RETURN_OK)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Dataflash");
         while(1);
     }
     
     /* Check for DB flash */
-    if (dbflash_check_presence(&dbflash_descriptor) == RETURN_NOK)
+    if (dbflash_check_presence(&dbflash_descriptor) != RETURN_OK)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No DB Flash");
         while(1);
     }
     
     /* Check for accelerometer presence */
-    if (lis2hh12_check_presence_and_configure(&plat_acc_descriptor) == RETURN_NOK)
+    if (lis2hh12_check_presence_and_configure(&plat_acc_descriptor) != RETURN_OK)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Accelerometer");
         while(1);
     }
     
     /* Is Aux MCU present? */
-    if (comms_aux_mcu_send_receive_ping() == RETURN_NOK)
+    if (comms_aux_mcu_send_receive_ping() != RETURN_OK)
     {
         /* Try to reset our comms link */
         dma_aux_mcu_disable_transfer();
         comms_aux_arm_rx_and_clear_no_comms();
         
         /* Try again */
-        if (comms_aux_mcu_send_receive_ping() == RETURN_NOK)
+        if (comms_aux_mcu_send_receive_ping() != RETURN_OK)
         {
             sh1122_put_error_string(&plat_oled_descriptor, u"No Aux MCU");
             while(1);
@@ -299,7 +299,7 @@ void main_platform_init(void)
     }
     
     /* Display error messages if something went wrong during custom fs init and bundle check */
-    if ((custom_fs_init_return == RETURN_NOK) || (bundle_integrity_check_return == RETURN_NOK))
+    if ((custom_fs_init_return != RETURN_OK) || (bundle_integrity_check_return != RETURN_OK))
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
         

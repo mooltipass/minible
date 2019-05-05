@@ -289,7 +289,7 @@ mooltipass_card_detect_return_te smartcard_high_level_mooltipass_card_detected_r
     if (temp_rettype == RETURN_PIN_OK)                                   // Unlock successful
     {
         // Check that the card is in security mode 2
-        if (smartcard_highlevel_check_security_mode2() == RETURN_NOK)
+        if (smartcard_highlevel_check_security_mode2() != RETURN_OK)
         {
             // Card is in mode 1... how could this happen?
             return RETURN_MOOLTIPASS_PB;
@@ -297,7 +297,7 @@ mooltipass_card_detect_return_te smartcard_high_level_mooltipass_card_detected_r
         else                                                            // Everything is in order - proceed
         {
             // Check that read / write accesses are correctly configured
-            if (smartcard_highlevel_check_authenticated_readwrite_to_zone12() == RETURN_NOK)
+            if (smartcard_highlevel_check_authenticated_readwrite_to_zone12() != RETURN_OK)
             {
                 return RETURN_MOOLTIPASS_PB;
             }

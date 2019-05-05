@@ -51,7 +51,7 @@ void logic_aux_mcu_enable_ble(BOOL wait_for_enabled)
         {
             /* wait for BLE to bootup */
             comms_aux_mcu_wait_for_message_sent();
-            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT) == RETURN_NOK){}
+            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT) != RETURN_OK){}
             
             /* Rearm DMA RX */
             comms_aux_arm_rx_and_clear_no_comms();
@@ -86,7 +86,7 @@ uint32_t logic_aux_mcu_get_ble_chip_id(void)
         comms_aux_mcu_send_message(TRUE);
         
         /* Wait for message from aux MCU */
-        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS) == RETURN_NOK){}
+        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS) != RETURN_OK){}
         
         /* Output debug info */
         return_val = temp_rx_message->aux_details_message.atbtlc_chip_id;
@@ -110,7 +110,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
     /* Look for update file address */
     custom_fs_address_t fw_file_address;
     custom_fs_binfile_size_t fw_file_size;
-    if (custom_fs_get_file_address(1, &fw_file_address, CUSTOM_FS_FW_UPDATE_TYPE) == RETURN_NOK)
+    if (custom_fs_get_file_address(1, &fw_file_address, CUSTOM_FS_FW_UPDATE_TYPE) != RETURN_OK)
     {
         /* We couldn't find the update file */
         return RETURN_NOK;
@@ -130,7 +130,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
     comms_aux_mcu_send_message(TRUE);
     
     /* Wait for message from aux MCU */
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_BOOTLOADER) == RETURN_NOK){}
+    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_BOOTLOADER) != RETURN_OK){}
     
     /* Answer checked, rearm RX */    
     comms_aux_arm_rx_and_clear_no_comms();
@@ -172,7 +172,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
         comms_aux_mcu_send_message(TRUE);
         
         /* Wait for message from aux MCU */
-        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_BOOTLOADER) == RETURN_NOK){}
+        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_BOOTLOADER) != RETURN_OK){}
         
         /* Answer checked, rearm RX */
         comms_aux_arm_rx_and_clear_no_comms();

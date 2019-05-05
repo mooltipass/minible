@@ -185,7 +185,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             }
             case GUI_LOCK_ICON_ID:
             {
-                gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_OUTOF_MENU_TRANSITION);
+                gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
                 logic_smartcard_handle_removed(); 
                 return TRUE;
             }                
