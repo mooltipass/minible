@@ -16,6 +16,7 @@
 #include "logic_user.h"
 #include "custom_fs.h"
 #include "nodemgmt.h"
+#include "text_ids.h"
 #include "utils.h"
 #include "rng.h"
 

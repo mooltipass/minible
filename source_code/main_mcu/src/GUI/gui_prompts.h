@@ -12,17 +12,6 @@
 
 /* Defines */
 
-// Text defines
-#define ADD_CRED_TEXT_ID        39
-#define CHANGE_PWD_TEXT_ID      40
-#define SEND_CREDS_FOR_TEXT_ID  41
-#define NO_CREDS_TEXT_ID        44
-#define SELECT_LOGIN_TEXT_ID    45
-#define SELECT_SERVICE_TEXT_ID  48
-#define LOGGING_WITH_TEXT_ID    49
-#define TYPE_LOGIN_TEXT_ID      50
-#define TYPE_PASSWORD_TEXT_ID   51
-
 // Bitmap ID defines
 #define BITMAP_POPUP_3LINES_ID  309
 #define BITMAP_YES_PRESS_ID     338

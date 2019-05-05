@@ -14,6 +14,7 @@
 #include "gui_prompts.h"
 #include "platform_io.h"
 #include "logic_user.h"
+#include "text_ids.h"
 
 
 /*! \fn     logic_smartcard_ask_for_new_pin(uint16_t* new_pin, uint16_t message_id)
@@ -27,7 +28,7 @@ RET_TYPE logic_smartcard_ask_for_new_pin(volatile uint16_t* new_pin, uint16_t me
     volatile uint16_t other_pin;
     
     // Ask the user twice for the new pin and compare them
-    if ((gui_prompts_get_user_pin(new_pin, message_id) == RETURN_OK) && (gui_prompts_get_user_pin(&other_pin, ID_STRING_CONFIRM_PIN) == RETURN_OK))
+    if ((gui_prompts_get_user_pin(new_pin, message_id) == RETURN_OK) && (gui_prompts_get_user_pin(&other_pin, CONFIRM_PIN_TEXT_ID) == RETURN_OK))
     {
         if (*new_pin == other_pin)
         {
@@ -75,26 +76,26 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     if ((detection_result == RETURN_MOOLTIPASS_PB) || (detection_result == RETURN_MOOLTIPASS_INVALID))
     {
         // Either it is not a card or our Manufacturer Test Zone write/read test failed
-        gui_prompts_display_information_on_screen_and_wait(ID_STRING_PB_CARD, DISP_MSG_WARNING);
+        gui_prompts_display_information_on_screen_and_wait(PB_CARD_TEXT_ID, DISP_MSG_WARNING);
         platform_io_smc_remove_function();
     }
     else if (detection_result == RETURN_MOOLTIPASS_BLOCKED)
     {
         // The card is blocked, no pin code tries are remaining
-        gui_prompts_display_information_on_screen_and_wait(ID_STRING_CARD_BLOCKED, DISP_MSG_WARNING);
+        gui_prompts_display_information_on_screen_and_wait(CARD_BLOCKED_TEXT_ID, DISP_MSG_WARNING);
         platform_io_smc_remove_function();
     }
     else if (detection_result == RETURN_MOOLTIPASS_BLANK)
     {
         // This is a user free card, we can ask the user to create a new user inside the Mooltipass
-        mini_input_yes_no_ret_te prompt_answer = gui_prompts_ask_for_one_line_confirmation(ID_STRING_CREATE_NEW_USER, FALSE);
+        mini_input_yes_no_ret_te prompt_answer = gui_prompts_ask_for_one_line_confirmation(CREATE_NEW_USER_TEXT_ID, FALSE);
         
         if (prompt_answer == MINI_INPUT_RET_YES)
         {
             volatile uint16_t pin_code;
             
             /* Create a new user with his new smart card */
-            if (logic_smartcard_ask_for_new_pin(&pin_code, ID_STRING_NEW_CARD_PIN) == RETURN_OK)
+            if (logic_smartcard_ask_for_new_pin(&pin_code, NEW_CARD_PIN_TEXT_ID) == RETURN_OK)
             {
                 /* Waiting screen */
                 gui_prompts_display_information_on_screen(ID_STRING_PROCESSING, DISP_MSG_INFO);
@@ -103,7 +104,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
                 if (logic_user_create_new_user(&pin_code, (uint8_t*)0) == RETURN_OK)
                 {
                     /* PINs match, new user added to memories */
-                    gui_prompts_display_information_on_screen_and_wait(ID_STRING_NEW_USER_ADDED, DISP_MSG_INFO);
+                    gui_prompts_display_information_on_screen_and_wait(NEW_USER_ADDED_TEXT_ID, DISP_MSG_INFO);
                     logic_security_smartcard_unlocked_actions();
                     next_screen = GUI_SCREEN_MAIN_MENU;
                     return_value = RETURN_OK;
@@ -111,12 +112,12 @@ RET_TYPE logic_smartcard_handle_inserted(void)
                 else
                 {
                     // Something went wrong, user wasn't added
-                    gui_prompts_display_information_on_screen_and_wait(ID_STRING_COULDNT_ADD_USER, DISP_MSG_WARNING);                    
+                    gui_prompts_display_information_on_screen_and_wait(COULDNT_ADD_USER_TEXT_ID, DISP_MSG_WARNING);                    
                 }
             } 
             else if (smartcard_low_level_is_smc_absent() != RETURN_OK)
             {
-                gui_prompts_display_information_on_screen_and_wait(ID_STRING_DIFFERENT_PINS, DISP_MSG_WARNING);
+                gui_prompts_display_information_on_screen_and_wait(DIFFERENT_PINS_TEXT_ID, DISP_MSG_WARNING);
             }
             
             /* Reset PIN code */
@@ -251,13 +252,13 @@ RET_TYPE logic_smartcard_user_unlock_process(void)
     /* Display warning if only one security try left */
     if (smartcard_highlevel_get_nb_sec_tries_left() == 1)
     {
-        gui_prompts_display_information_on_screen_and_wait(ID_STRING_LAST_PIN_TRY, DISP_MSG_INFO);
+        gui_prompts_display_information_on_screen_and_wait(LAST_PIN_TRY_TEXT_ID, DISP_MSG_INFO);
         warning_displayed = TRUE;
     }
     
     while (1)
     {
-        if (gui_prompts_get_user_pin(&temp_pin, ID_STRING_INSERT_PIN) == RETURN_OK)
+        if (gui_prompts_get_user_pin(&temp_pin, INSERT_PIN_TEXT_ID) == RETURN_OK)
         {
             /* Try unlocking the smartcard */
             temp_rettype = smartcard_high_level_mooltipass_card_detected_routine(&temp_pin);
@@ -272,17 +273,17 @@ RET_TYPE logic_smartcard_user_unlock_process(void)
                 }
                 case RETURN_MOOLTIPASS_0_TRIES_LEFT :
                 {
-                    gui_prompts_display_information_on_screen_and_wait(ID_STRING_CARD_BLOCKED, DISP_MSG_WARNING);
+                    gui_prompts_display_information_on_screen_and_wait(CARD_BLOCKED_TEXT_ID, DISP_MSG_WARNING);
                     return RETURN_NOK;
                 }
                 case RETURN_MOOLTIPASS_1_TRIES_LEFT :
                 {
                     /* If after a wrong try there's only one try left, ask user to remove his card as a security */
-                    gui_prompts_display_information_on_screen_and_wait(ID_STRING_WRONGPIN1LEFT, DISP_MSG_INFO);
+                    gui_prompts_display_information_on_screen_and_wait(WRONGPIN1LEFT_TEXT_ID, DISP_MSG_INFO);
                     if(warning_displayed == FALSE)
                     {
                         // Inform the user to remove his smart card
-                        gui_prompts_display_information_on_screen(ID_STRING_REMOVE_CARD, DISP_MSG_ACTION);
+                        gui_prompts_display_information_on_screen(REMOVE_CARD_TEXT_ID, DISP_MSG_ACTION);
                         
                         // Wait for the user to remove his smart card
                         while(smartcard_low_level_is_smc_absent() != RETURN_OK);
@@ -292,13 +293,13 @@ RET_TYPE logic_smartcard_user_unlock_process(void)
                 }
                 case RETURN_MOOLTIPASS_PB :
                 {
-                    gui_prompts_display_information_on_screen_and_wait(ID_STRING_PB_CARD, DISP_MSG_WARNING);
+                    gui_prompts_display_information_on_screen_and_wait(PB_CARD_TEXT_ID, DISP_MSG_WARNING);
                     return RETURN_NOK;
                 }
                 default :
                 {
                     // Both the enum and the defines allow us to do that
-                    gui_prompts_display_information_on_screen_and_wait(ID_STRING_WRONGPIN1LEFT + temp_rettype - RETURN_MOOLTIPASS_1_TRIES_LEFT, DISP_MSG_INFO);
+                    gui_prompts_display_information_on_screen_and_wait(WRONGPIN1LEFT_TEXT_ID + temp_rettype - RETURN_MOOLTIPASS_1_TRIES_LEFT, DISP_MSG_INFO);
                     break;
                 }
             }

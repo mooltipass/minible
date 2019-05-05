@@ -12,6 +12,7 @@
 #include "logic_power.h"
 #include "platform_io.h"
 #include "gui_menu.h"
+#include "text_ids.h"
 #include "inputs.h"
 #include "debug.h"
 #include "main.h"
@@ -76,9 +77,9 @@ void gui_dispatcher_get_back_to_current_screen(void)
                                                 #endif
                                                 break;
                                             }             
-        case GUI_SCREEN_INSERTED_INVALID:   gui_prompts_display_information_on_screen(ID_STRING_REMOVE_CARD, DISP_MSG_ACTION); break;
-        case GUI_SCREEN_INSERTED_UNKNOWN:   gui_prompts_display_information_on_screen(ID_STRING_UNKNOWN_CARD, DISP_MSG_INFO); break;
-        case GUI_SCREEN_FW_FILE_UPDATE:     gui_prompts_display_information_on_screen(ID_STRING_FW_FILE_UPDATE, DISP_MSG_INFO); break;        
+        case GUI_SCREEN_INSERTED_INVALID:   gui_prompts_display_information_on_screen(REMOVE_CARD_TEXT_ID, DISP_MSG_ACTION); break;
+        case GUI_SCREEN_INSERTED_UNKNOWN:   gui_prompts_display_information_on_screen(UNKNOWN_CARD_TEXT_ID, DISP_MSG_INFO); break;
+        case GUI_SCREEN_FW_FILE_UPDATE:     gui_prompts_display_information_on_screen(FW_FILE_UPDATE_TEXT_ID, DISP_MSG_INFO); break;        
         case GUI_SCREEN_MEMORY_MGMT:        gui_prompts_display_information_on_screen(ID_STRING_IN_MMM, DISP_MSG_INFO); break;
         case GUI_SCREEN_CATEGORIES:         break;
         case GUI_SCREEN_FAVORITES:          break;
@@ -243,7 +244,7 @@ void gui_dispatcher_main_loop(void)
     if (timer_has_timer_expired(TIMER_SCREEN, TRUE) == TIMER_EXPIRED)
     {
         /* Display "going to sleep", switch off screen */
-        gui_prompts_display_information_on_screen_and_wait(ID_STRING_GOING_TO_SLEEP, DISP_MSG_INFO);
+        gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO);
         sh1122_oled_off(&plat_oled_descriptor);
         gui_dispatcher_get_back_to_current_screen();
         platform_io_power_down_oled();

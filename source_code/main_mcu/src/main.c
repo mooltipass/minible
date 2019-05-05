@@ -18,6 +18,7 @@
 #include "logic_user.h"
 #include "custom_fs.h"
 #include "dataflash.h"
+#include "text_ids.h"
 #include "lis2hh12.h"
 #include "nodemgmt.h"
 #include "dbflash.h"
@@ -387,6 +388,7 @@ int main(void)
         memset(&special_user_profile, 0, sizeof(special_user_profile));
         special_user_profile.user_id = 100;
         //special_user_profile.security_settings_flags = XXXX;
+        special_user_profile.security_settings_flags = USER_SEC_FLG_LOGIN_CONF | USER_SEC_FLG_PIN_FOR_MMM | USER_SEC_FLG_CRED_SAVE_PROMPT_MMM;
         custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id);
     }
     #endif
@@ -473,7 +475,7 @@ int main(void)
                 }*/
             
                 /* Set correct screen */
-                gui_prompts_display_information_on_screen_and_wait(ID_STRING_CARD_REMOVED, DISP_MSG_INFO);
+                gui_prompts_display_information_on_screen_and_wait(CARD_REMOVED_TEXT_ID, DISP_MSG_INFO);
                 gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_INTO_MENU_TRANSITION);
                 gui_dispatcher_get_back_to_current_screen();
             }

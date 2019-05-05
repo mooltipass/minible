@@ -17,6 +17,7 @@
 #include "gui_prompts.h"
 #include "logic_user.h"
 #include "custom_fs.h"
+#include "text_ids.h"
 #include "nodemgmt.h"
 #include "dbflash.h"
 #include "utils.h"

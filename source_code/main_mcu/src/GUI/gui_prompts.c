@@ -11,6 +11,7 @@
 #include "gui_prompts.h"
 #include "custom_fs.h"
 #include "nodemgmt.h"
+#include "text_ids.h"
 #include "defines.h"
 #include "inputs.h"
 #include "sh1122.h"

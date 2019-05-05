@@ -15,13 +15,6 @@
 #define GUI_ANIMATION_FFRAME_ID     0
 #define GUI_ANIMATION_NBFRAMES      120
 #define GUI_LOCKED_MINI_BITMAP_ID   453
-// Strings
-#define ID_STRING_REMOVE_CARD       22
-#define ID_STRING_CARD_REMOVED      28
-#define ID_STRING_UNKNOWN_CARD      36
-#define ID_STRING_GOING_TO_SLEEP    37
-#define ID_STRING_FW_FILE_UPDATE    38
-#define ID_STRING_IN_MMM            47
 
 /* Enums */
 typedef enum {  GUI_SCREEN_INVALID = 0,

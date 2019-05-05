@@ -9,23 +9,24 @@
 #include "logic_user.h"
 #include "nodemgmt.h"
 #include "gui_menu.h"
+#include "text_ids.h"
 
 /* Main Menu */
 const uint16_t simple_menu_pic_ids[] = {GUI_BT_ICON_ID, GUI_FAV_ICON_ID, GUI_LOGIN_ICON_ID, GUI_LOCK_ICON_ID, GUI_OPR_ICON_ID};
 const uint16_t advanced_menu_pic_ids[] = {GUI_BT_ICON_ID, GUI_CAT_ICON_ID, GUI_FAV_ICON_ID, GUI_LOGIN_ICON_ID, GUI_LOCK_ICON_ID, GUI_OPR_ICON_ID, GUI_SETTINGS_ICON_ID};
-const uint16_t simple_menu_text_ids[] = {GUI_BT_TEXT_ID, GUI_FAV_TEXT_ID, GUI_LOGIN_TEXT_ID, GUI_LOCK_TEXT_ID, GUI_OPR_TEXT_ID};
-const uint16_t advanced_menu_text_ids[] = {GUI_BT_TEXT_ID, GUI_CAT_TEXT_ID, GUI_FAV_TEXT_ID, GUI_LOGIN_TEXT_ID, GUI_LOCK_TEXT_ID, GUI_OPR_TEXT_ID, GUI_SETTINGS_TEXT_ID};
+const uint16_t simple_menu_text_ids[] = {BT_TEXT_ID, FAV_TEXT_ID, LOGIN_TEXT_ID, LOCK_TEXT_ID, OPR_TEXT_ID};
+const uint16_t advanced_menu_text_ids[] = {BT_TEXT_ID, CAT_TEXT_ID, FAV_TEXT_ID, LOGIN_TEXT_ID, LOCK_TEXT_ID, OPR_TEXT_ID, SETTINGS_TEXT_ID};
 /* Bluetooth Menu */
 const uint16_t bluetooth_off_menu_pic_ids[] = {GUI_BT_ENABLE_ICON_ID, GUI_BT_UNPAIR_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BACK_ICON_ID};
 const uint16_t bluetooth_on_menu_pic_ids[] = {GUI_BT_DISABLE_ICON_ID, GUI_BT_UNPAIR_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BACK_ICON_ID};
-const uint16_t bluetooth_off_menu_text_ids[] = {GUI_BT_ENABLE_TEXT_ID, GUI_BT_UNPAIR_DEV_TEXT_ID, GUI_NEW_PAIR_TEXT_ID, GUI_BACK_TEXT_ID};
-const uint16_t bluetooth_on_menu_text_ids[] = {GUI_BT_DISABLE_TEXT_ID, GUI_BT_UNPAIR_DEV_TEXT_ID, GUI_NEW_PAIR_TEXT_ID, GUI_BACK_TEXT_ID};
+const uint16_t bluetooth_off_menu_text_ids[] = {BT_ENABLE_TEXT_ID, BT_UNPAIR_DEV_TEXT_ID, NEW_PAIR_TEXT_ID, BACK_TEXT_ID};
+const uint16_t bluetooth_on_menu_text_ids[] = {BT_DISABLE_TEXT_ID, BT_UNPAIR_DEV_TEXT_ID, NEW_PAIR_TEXT_ID, BACK_TEXT_ID};
 /* Operations Menu */
 const uint16_t operations_menu_pic_ids[] = {GUI_CLONE_ICON_ID, GUI_CHANGE_PIN_ICON_ID, GUI_ERASE_USER_ICON_ID, GUI_BACK_ICON_ID};
-const uint16_t operations_menu_text_ids[] = {GUI_CLONE_TEXT_ID, GUI_CHANGE_PIN_TEXT_ID, GUI_ERASE_USER_TEXT_ID, GUI_BACK_TEXT_ID};
+const uint16_t operations_menu_text_ids[] = {CLONE_TEXT_ID, CHANGE_PIN_TEXT_ID, ERASE_USER_TEXT_ID, BACK_TEXT_ID};
 /* Settings Menu */
 const uint16_t operations_settings_pic_ids[] = {GUI_KEYB_LAYOUT_CHANGE_ICON_ID, GUI_CRED_PROMPT_CHANGE_ICON_ID, GUI_PWD_DISP_CHANGE_ICON_ID, GUI_WHEEL_ROT_FLIP_ICON_ID, GUI_LANGUAGE_SWITCH_ICON_ID, GUI_BACK_ICON_ID};
-const uint16_t operations_settings_text_ids[] = {GUI_KEYB_LAYOUT_CHANGE_TEXT_ID, GUI_CRED_PROMPT_CHANGE_TEXT_ID, GUI_PWD_DISP_CHANGE_TEXT_ID, GUI_WHEEL_ROT_FLIP_TEXT_ID, GUI_LANGUAGE_SWITCH_TEXT_ID, GUI_BACK_TEXT_ID};
+const uint16_t operations_settings_text_ids[] = {KEYB_LAYOUT_CHANGE_TEXT_ID, CRED_PROMPT_CHANGE_TEXT_ID, PWD_DISP_CHANGE_TEXT_ID, WHEEL_ROT_FLIP_TEXT_ID, LANGUAGE_SWITCH_TEXT_ID, BACK_TEXT_ID};
 /* Array of pointers to the menus pics & texts */
 const uint16_t* gui_menu_menus_pics_ids[NB_MENUS] = {simple_menu_pic_ids, bluetooth_off_menu_pic_ids, operations_menu_pic_ids, operations_settings_pic_ids};
 const uint16_t* gui_menu_menus_text_ids[NB_MENUS] = {simple_menu_text_ids, bluetooth_off_menu_text_ids, operations_menu_text_ids, operations_settings_text_ids};

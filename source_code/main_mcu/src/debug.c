@@ -19,6 +19,7 @@
 #include "custom_fs.h"
 #include "nodemgmt.h"
 #include "lis2hh12.h"
+#include "text_ids.h"
 #include "sh1122.h"
 #include "inputs.h"
 #include "debug.h"
@@ -52,7 +53,7 @@ void debug_test_prompts(void)
     custom_fs_set_current_language(0);
     
     /* One line prompt */
-    gui_prompts_ask_for_one_line_confirmation(ID_STRING_CREATE_NEW_USER, TRUE);
+    gui_prompts_ask_for_one_line_confirmation(CREATE_NEW_USER_TEXT_ID, TRUE);
         
     /* 2 lines prompt */
     cust_char_t* two_line_prompt_1 = (cust_char_t*)u"Delete Service?";
