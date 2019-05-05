@@ -4,6 +4,7 @@
 *    Author:   Mathieu Stephan
 */
 #include "comms_hid_msgs_debug.h"
+#include "logic_smartcard.h"
 #include "gui_dispatcher.h"
 #include "driver_timer.h"
 #include "gui_carousel.h"
@@ -127,7 +128,7 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
             break;
         }
         
-        case GUI_SCREEN_INSERTED_LCK:       break;
+        case GUI_SCREEN_INSERTED_LCK:       logic_smartcard_handle_inserted(); break;
         case GUI_SCREEN_INSERTED_INVALID:   break;        
         case GUI_SCREEN_INSERTED_UNKNOWN:   break;
         case GUI_SCREEN_MEMORY_MGMT:        break;

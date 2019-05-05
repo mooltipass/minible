@@ -201,6 +201,20 @@ void sh1122_load_transition(sh1122_descriptor_t* oled_descriptor, oled_transitio
     oled_descriptor->loaded_transition = transition;
 }
 
+/*! \fn     sh1122_fade_into_darkness(sh1122_descriptor_t* oled_descriptor, oled_transition_te transition)
+*   \brief  Fade display into black
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  transition          The transition
+*/
+void sh1122_fade_into_darkness(sh1122_descriptor_t* oled_descriptor, oled_transition_te transition)
+{
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_load_transition(oled_descriptor, transition);
+    sh1122_clear_frame_buffer(oled_descriptor);
+    sh1122_flush_frame_buffer(oled_descriptor);
+    #endif
+}
+
 /*! \fn     sh1122_set_min_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x)
 *   \brief  Set maximum text X position
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct

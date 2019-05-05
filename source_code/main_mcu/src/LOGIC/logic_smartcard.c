@@ -134,7 +134,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     else if (detection_result == RETURN_MOOLTIPASS_USER)
     {
         // Call valid card detection function
-        valid_card_det_return_te temp_return = logic_smartcard_valid_card_unlock(TRUE);
+        valid_card_det_return_te temp_return = logic_smartcard_valid_card_unlock(TRUE, FALSE);
         
         /* This a valid user smart card, we call a dedicated function for the user to unlock the card */
         if (temp_return == RETURN_VCARD_OK)
@@ -165,12 +165,12 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     return return_value;    
 }
 
-/*! \fn     logic_smartcard_valid_card_unlock(BOOL hash_allow_flag)
+/*! \fn     logic_smartcard_valid_card_unlock(BOOL hash_allow_flag, BOOL fast_mode)
 *   \brief  Function called when a valid mooltipass card is detected
 *   \param  hash_allow_flag Set to allow hash display if option is enabled
 *   \return Unlock status (see valid_card_det_return_t)
 */
-valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag)
+valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag, BOOL fast_mode)
 {
     #ifdef MINI_VERSION
     uint8_t plateform_aes_key[AES_KEY_LENGTH/8];
@@ -197,8 +197,8 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag)
         }
         #endif
         
-        /* Check card itself */
-        if (smartcard_highlevel_check_hidden_aes_key_contents() != RETURN_OK)
+        /* Check for defective card, check always done on initial unlock */
+        if ((fast_mode == FALSE) && (smartcard_highlevel_check_hidden_aes_key_contents() != RETURN_OK))
         {
             gui_prompts_display_information_on_screen_and_wait(ID_STRING_CARD_FAILING, DISP_MSG_WARNING);
         }
@@ -334,11 +334,8 @@ RET_TYPE logic_smartcard_remove_card_and_reauth_user(void)
     // Disconnect smartcard
     logic_smartcard_handle_removed();
     
-    // Wait a few ms
-    timer_delay_ms(250);
-    
     // Launch Unlocking process
-    if ((smartcard_highlevel_card_detected_routine() == RETURN_MOOLTIPASS_USER) && (logic_smartcard_valid_card_unlock(FALSE) == RETURN_VCARD_OK))
+    if ((smartcard_highlevel_card_detected_routine() == RETURN_MOOLTIPASS_USER) && (logic_smartcard_valid_card_unlock(FALSE, TRUE) == RETURN_VCARD_OK))
     {
         // Read other CPZ
         smartcard_highlevel_read_code_protected_zone(temp_cpz2);

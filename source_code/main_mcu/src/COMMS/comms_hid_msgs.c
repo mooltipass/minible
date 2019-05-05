@@ -21,6 +21,7 @@
 #include "nodemgmt.h"
 #include "dbflash.h"
 #include "utils.h"
+#include "main.h"
 #include "dma.h"
 #include "rng.h"
 
@@ -403,6 +404,9 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 {
                     if ((logic_user_get_user_security_flags() & USER_SEC_FLG_PIN_FOR_MMM) != 0)
                     {
+                        /* As the following call takes a little while, cheat */
+                        sh1122_fade_into_darkness(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+                        
                         /* Require user to reauth himself */
                         if (logic_smartcard_remove_card_and_reauth_user() == RETURN_OK)
                         {

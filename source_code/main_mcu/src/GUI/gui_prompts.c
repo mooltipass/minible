@@ -91,6 +91,11 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
         timer_delay_ms(50);
         sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_popup_anim_bitmap[message_type]+i, FALSE);
     }
+    
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    /* Load transition (likely to be overwritten later */
+    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    #endif
 }
 
 /*! \fn     gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type
@@ -155,6 +160,11 @@ void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_li
         timer_delay_ms(50);
         sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_popup_anim_bitmap[message_type]+i, FALSE);
     }
+    
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    /* Load transition (likely to be overwritten later */
+    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    #endif
 }
 
 /*! \fn     gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame_id, uint16_t* timer_timeout, display_message_te message_type)
@@ -484,7 +494,9 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     inputs_clear_detections();
     
     // Display current pin on screen
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+    #endif
     gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 0);
     
     // While the user hasn't entered his pin
@@ -617,6 +629,9 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     /* Flush to display */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    
+    /* Load transition for function exit (likely to be overwritten later */
+    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     #endif
     
     /* Transition the action bitmap */
@@ -786,7 +801,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
     sh1122_clear_current_screen(&plat_oled_descriptor);
@@ -827,6 +842,9 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     /* Flush to display */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    
+    /* Load transition for function exit (likely to be overwritten later */
+    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     #endif
     
     /* Transition done, now transition the action bitmap */

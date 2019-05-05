@@ -127,11 +127,11 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* pro
     /* Depending on selected mode, setup secure flags */
     if (simple_mode == FALSE)
     {
-        user_profile.security_settings_flags = 0;
+        user_profile.security_settings_flags = 0xFF;
     }
     else
     {
-        user_profile.security_settings_flags = 0xFF;
+        user_profile.security_settings_flags = 0;
     }
     
     /* Reserved field: set to 0 */
