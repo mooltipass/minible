@@ -390,6 +390,7 @@ int main(void)
         //special_user_profile.security_settings_flags = XXXX;
         special_user_profile.security_settings_flags = USER_SEC_FLG_LOGIN_CONF | USER_SEC_FLG_PIN_FOR_MMM | USER_SEC_FLG_CRED_SAVE_PROMPT_MMM;
         custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id);
+        custom_fs_settings_set_defaults();
     }
     #endif
     

@@ -30,14 +30,14 @@ void logic_user_init_context(uint8_t user_id)
     nodemgmt_init_context(user_id);
 }
 
-/*! \fn     logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key)
+/*! \fn     logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key, BOOL simple_mode)
 *   \brief  Add a new user with a new smart card
 *   \param  pin_code            The new pin code
 *   \param  provisioned_key     If different than 0, provisioned aes key
 *   \note   provisioned_key contents will be destroyed!
 *   \return success or not
 */
-ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key)
+ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key, BOOL simple_mode)
 {    
     // When inserting a new user and a new card, we need to setup the following elements
     // - AES encryption key, stored in the smartcard
@@ -60,6 +60,16 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* pro
     /* Nonce & Cards CPZ: random numbers */
     rng_fill_array(user_profile.cards_cpz, sizeof(user_profile.cards_cpz));
     rng_fill_array(user_profile.nonce, sizeof(user_profile.nonce));
+
+    /* Depending on selected mode, setup secure flags */
+    if (simple_mode == FALSE)
+    {
+        user_profile.security_settings_flags = 0;
+    }
+    else
+    {
+        user_profile.security_settings_flags = 0xFF;
+    }
     
     /* Reserved field: set to 0 */
     memset(user_profile.reserved, 0, sizeof(user_profile.reserved));

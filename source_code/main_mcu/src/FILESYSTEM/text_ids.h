@@ -25,7 +25,7 @@
 #define BT_ENABLE_TEXT_ID               12
 #define BT_DISABLE_TEXT_ID              13
 #define BT_UNPAIR_DEV_TEXT_ID           14
-#define NEW_PAIR_TEXT_ID                15
+#define BT_NEW_PAIR_TEXT_ID             15
 #define KEYB_LAYOUT_CHANGE_TEXT_ID      16
 #define CRED_PROMPT_CHANGE_TEXT_ID      17
 #define PWD_DISP_CHANGE_TEXT_ID         18
@@ -60,6 +60,7 @@
 #define LOGGING_WITH_TEXT_ID            49
 #define TYPE_LOGIN_TEXT_ID              50
 #define TYPE_PASSWORD_TEXT_ID           51
+#define USE_SIMPLE_MODE_TEXT_ID         52
 
 #endif /* 
 S_H_ */

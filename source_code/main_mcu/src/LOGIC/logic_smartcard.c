@@ -97,11 +97,18 @@ RET_TYPE logic_smartcard_handle_inserted(void)
             /* Create a new user with his new smart card */
             if (logic_smartcard_ask_for_new_pin(&pin_code, NEW_CARD_PIN_TEXT_ID) == RETURN_OK)
             {
+                /* Check user for simple or advanced mode */
+                BOOL use_simple_mode = FALSE;
+                if (gui_prompts_ask_for_one_line_confirmation(USE_SIMPLE_MODE_TEXT_ID, FALSE) == MINI_INPUT_RET_YES)
+                {
+                    use_simple_mode = TRUE;
+                }
+
                 /* Waiting screen */
                 gui_prompts_display_information_on_screen(ID_STRING_PROCESSING, DISP_MSG_INFO);
                 
                 /* User entered twice the same PIN, card is still there */
-                if (logic_user_create_new_user(&pin_code, (uint8_t*)0) == RETURN_OK)
+                if (logic_user_create_new_user(&pin_code, (uint8_t*)0, use_simple_mode) == RETURN_OK)
                 {
                     /* PINs match, new user added to memories */
                     gui_prompts_display_information_on_screen_and_wait(NEW_USER_ADDED_TEXT_ID, DISP_MSG_INFO);

@@ -13,6 +13,7 @@
 /* Defines */
 // Min & max timeout value for user interactions
 #define SETTING_MIN_USER_INTERACTION_TIMEOUT    7
+#define SETTING_DFT_USER_INTERACTION_TIMEOUT    15
 #define SETTING_MAX_USER_INTERACTION_TIMOUT     25
 
 /* Prototypes */
