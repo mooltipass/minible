@@ -64,8 +64,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         return 0;
     }
     
-    /* By default: copy the same CMD identifier for TX message */
-    send_msg->message_type = rcv_msg->message_type;
+    /* Store received message type in case one of the routines below does some communication */
     uint16_t rcv_message_type = rcv_msg->message_type;
     
     /* Check for commands for management mode */
@@ -85,6 +84,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             /* Simple ping: copy the message contents */
             memcpy((void*)send_msg->payload, (void*)rcv_msg->payload, rcv_msg->payload_length);
             send_msg->payload_length = rcv_msg->payload_length;
+            send_msg->message_type = rcv_message_type;
             return send_msg->payload_length;
         }
 
@@ -116,6 +116,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             }
 
             /* Send the status */
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 1;
             return 1;
         }
@@ -168,12 +169,14 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload[0] = HID_1BYTE_NACK;
             }
             
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 1;
             return 1;
         }
         
         case HID_CMD_ID_GET_32B_RNG:
-        {            
+        {
+            send_msg->message_type = rcv_message_type;
             rng_fill_array(send_msg->payload, 32);
             send_msg->payload_length = 32;
             return 32;
@@ -194,6 +197,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload_length = 1;
             }
             
+            send_msg->message_type = rcv_message_type;
             return send_msg->payload_length;            
         }
 
@@ -201,6 +205,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         {
             /* Get a dump of all device settings */
             send_msg->payload_length = custom_fs_settings_get_dump(send_msg->payload);
+            send_msg->message_type = rcv_message_type;
             return send_msg->payload_length;
         }
 
@@ -210,6 +215,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             custom_fs_settings_store_dump(rcv_msg->payload);
             
             /* Set ack, leave same command id */
+            send_msg->message_type = rcv_message_type;
             send_msg->payload[0] = HID_1BYTE_ACK;
             send_msg->payload_length = 1;
             return 1;
@@ -248,6 +254,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload[0] = HID_1BYTE_NACK;
             }
             
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 1;
             return 1;
         }
@@ -258,6 +265,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
 
             /* Get number of free users */
             send_msg->payload[0] = custom_fs_get_nb_free_cpz_lut_entries(&temp_uint8);
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 1;
             return 1;
         }
@@ -280,6 +288,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload[0] = HID_1BYTE_NACK;
             }
             
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 1;
             return 1;
         }
@@ -288,6 +297,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         {            
             /* Return correct size & data */
             send_msg->payload_length = nodemgmt_get_start_addresses(send_msg->payload_as_uint16)*sizeof(uint16_t);
+            send_msg->message_type = rcv_message_type;
             return send_msg->payload_length;
         }
 
@@ -308,6 +318,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload[0] = HID_1BYTE_NACK;
             }
             
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 1;
             return 1;
         }
@@ -329,6 +340,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload[0] = HID_1BYTE_NACK;
             }
             
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 1;
             return 1;
         }
@@ -350,6 +362,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload[0] = HID_1BYTE_NACK;
             }
             
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 1;
             return 1;
         }
@@ -363,11 +376,13 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 
                 /* Send free nodes */
                 send_msg->payload_length = nb_nodes_found*sizeof(uint16_t);
+                send_msg->message_type = rcv_message_type;
                 return nb_nodes_found*sizeof(uint16_t);
             }
             else
             {
                 /* Send failure */
+                send_msg->message_type = rcv_message_type;
                 send_msg->payload[0] = HID_1BYTE_NACK;
                 send_msg->payload_length = 1;
                 return 1;
@@ -389,6 +404,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             }
             
             /* Set ack, leave same command id */
+            send_msg->message_type = rcv_message_type;
             send_msg->payload[0] = HID_1BYTE_ACK;
             send_msg->payload_length = 1;
             return 1;
@@ -456,6 +472,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             }
             
             /* Return success or failure */
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 1;
             return 1;
         }
@@ -475,6 +492,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                         /* Read and send parent node */
                         nodemgmt_read_parent_node_data_block_from_flash(rcv_msg->payload_as_uint16[0], (parent_node_t*)send_msg->payload_as_uint16);
                         send_msg->payload_length = sizeof(parent_node_t);
+                        send_msg->message_type = rcv_message_type;
                         return sizeof(parent_node_t);
                     } 
                     else
@@ -482,12 +500,14 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                         /* Read and send child node */
                         nodemgmt_read_child_node_data_block_from_flash(rcv_msg->payload_as_uint16[0], (child_node_t*)send_msg->payload_as_uint16);
                         send_msg->payload_length = sizeof(child_node_t);
+                        send_msg->message_type = rcv_message_type;
                         return sizeof(child_node_t);
                     }
                 } 
                 else
                 {
                     /* Set nack, leave same command id */
+                    send_msg->message_type = rcv_message_type;
                     send_msg->payload[0] = HID_1BYTE_NACK;
                     send_msg->payload_length = 1;
                     return 1;
@@ -496,6 +516,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             else
             {
                 /* Set nack, leave same command id */
+                send_msg->message_type = rcv_message_type;
                 send_msg->payload[0] = HID_1BYTE_NACK;
                 send_msg->payload_length = 1;
                 return 1;
@@ -532,6 +553,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload[0] = HID_1BYTE_NACK;
             }
 
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 1;
             return 1;
         }
@@ -552,6 +574,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload_length = 1;
             }
 
+            send_msg->message_type = rcv_message_type;
             return send_msg->payload_length;
         }
 
@@ -572,6 +595,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload[0] = HID_1BYTE_NACK;
             }
             
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 1;
             return 1;
         }
@@ -593,6 +617,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload[0] = HID_1BYTE_NACK;
             }
             
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 1;
             return 1;
         }
@@ -600,6 +625,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         case HID_CMD_GET_CTR_VALUE:
         {
             /* Read CTR value from flash and send it */
+            send_msg->message_type = rcv_message_type;
             nodemgmt_read_profile_ctr(send_msg->payload);            
             send_msg->payload_length = MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr);
             return MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr);
@@ -620,6 +646,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload[0] = HID_1BYTE_NACK;
             }
             
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 1;
             return 1;
         }
@@ -639,6 +666,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload[0] = HID_1BYTE_NACK;
             }
             
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 1;
             return 1;            
         }
@@ -657,6 +685,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload_length = 1;
             }
             
+            send_msg->message_type = rcv_message_type;
             return send_msg->payload_length;            
         }
 
@@ -664,6 +693,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         {
             send_msg->payload_length = MEMBER_SIZE(cpz_lut_entry_t,cards_cpz)+MEMBER_SIZE(cpz_lut_entry_t,nonce);
             logic_encryption_get_cpz_ctr_entry(send_msg->payload);
+            send_msg->message_type = rcv_message_type;
             return send_msg->payload_length;
         }
 
@@ -671,12 +701,14 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         {
             /* Return correct size & data */
             send_msg->payload_length = nodemgmt_get_favorites(send_msg->payload_as_uint16)*sizeof(favorite_addr_t);
+            send_msg->message_type = rcv_message_type;
             return send_msg->payload_length;
         }
         
         case HID_CMD_ID_GET_CRED:
         {
             /* Default answer: Nope! */
+            send_msg->message_type = rcv_message_type;
             send_msg->payload_length = 0;
             
             /* Incorrect service name index */
@@ -715,10 +747,12 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 int16_t payload_length = logic_user_usb_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), 0, send_msg);
                 if (payload_length < 0)
                 {
+                    send_msg->message_type = rcv_message_type;
                     return 0;
                 }
                 else
                 {
+                    send_msg->message_type = rcv_message_type;
                     send_msg->payload_length = payload_length;
                     return payload_length;
                 }                
@@ -744,6 +778,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 int16_t payload_length = logic_user_usb_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), &(rcv_msg->get_credential_request.concatenated_strings[rcv_msg->get_credential_request.login_name_index]), send_msg);
                 if (payload_length < 0)
                 {
+                    send_msg->message_type = rcv_message_type;
                     return 0;
                 }
                 else
@@ -759,6 +794,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             if (timer_has_timer_expired(TIMER_CHECK_PASSWORD, FALSE) != TIMER_EXPIRED)
             {
                 /* Timer hasn't expired... do not allow check */
+                send_msg->message_type = rcv_message_type;
                 send_msg->payload[0] = HID_1BYTE_NA;
                 send_msg->payload_length = 1;
                 return 1;
@@ -766,6 +802,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             else
             {
                 /* Default answer: Nope! */
+                send_msg->message_type = rcv_message_type;
                 send_msg->payload[0] = HID_1BYTE_NACK;
                 send_msg->payload_length = 1;
             
@@ -847,6 +884,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         case HID_CMD_ID_STORE_CRED:
         {   
             /* Default answer: Nope! */
+            send_msg->message_type = rcv_message_type;
             send_msg->payload[0] = HID_1BYTE_NACK;
             send_msg->payload_length = 1;
             
@@ -944,6 +982,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                                                 &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.login_name_index]),\
                                                 description_field_pt, third_field_pt, password_field_pt) == RETURN_OK)
             {
+                send_msg->message_type = rcv_message_type;
                 send_msg->payload[0] = HID_1BYTE_ACK;                
             }
             
