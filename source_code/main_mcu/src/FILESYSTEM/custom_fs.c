@@ -704,22 +704,16 @@ uint16_t custom_fs_get_nb_free_cpz_lut_entries(uint8_t* first_available_user_id)
     return return_val;
 }
 
-/*! \fn     custom_fs_store_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id)
-*   \brief  Store a CPZ LUT entry for a given user ID
+/*! \fn     custom_fs_update_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id)
+*   \brief  Update a CPZ LUT entry for a given user ID
 *   \param  cpz_entry   Pointer to the CPZ LUT entry
 *   \param  user_id     User ID
 *   \return Operation result
 */
-RET_TYPE custom_fs_store_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id)
+RET_TYPE custom_fs_update_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id)
 {
     cpz_lut_entry_t one_page_of_lut_entries[4];
     _Static_assert(sizeof(one_page_of_lut_entries) == NVMCTRL_ROW_SIZE, "One row != 4 LUT entries");
-    
-    /* Check for availability */
-    if (custom_fs_cpz_lut[user_id].user_id != UINT8_MAX)
-    {
-        return RETURN_NOK;
-    }
     
     /* Store CPZ entry */
     cpz_entry->user_id = user_id;
@@ -727,4 +721,22 @@ RET_TYPE custom_fs_store_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id)
     memcpy(&one_page_of_lut_entries[user_id&0x03], cpz_entry, sizeof(one_page_of_lut_entries[0]));
     custom_fs_write_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (user_id >> 2), (void*)one_page_of_lut_entries);
     return RETURN_OK;
+}
+
+/*! \fn     custom_fs_store_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id)
+*   \brief  Store a CPZ LUT entry for a given user ID
+*   \param  cpz_entry   Pointer to the CPZ LUT entry
+*   \param  user_id     User ID
+*   \return Operation result
+*/
+RET_TYPE custom_fs_store_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id)
+{    
+    /* Check for availability */
+    if (custom_fs_cpz_lut[user_id].user_id != UINT8_MAX)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Use update function */
+    return custom_fs_update_cpz_entry(cpz_entry, user_id);
 }

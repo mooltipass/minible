@@ -61,6 +61,8 @@
 #define TYPE_LOGIN_TEXT_ID              50
 #define TYPE_PASSWORD_TEXT_ID           51
 #define USE_SIMPLE_MODE_TEXT_ID         52
+#define ADVANCED_MENU_ENABLED_TEXT_ID   53
+#define SIMPLE_MENU_ENABLED_TEXT_ID     54
 
 #endif /* 
 S_H_ */

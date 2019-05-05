@@ -401,7 +401,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 /* Prompt the user */
                 if (gui_prompts_ask_for_one_line_confirmation(ID_STRING_ENTER_MMM, TRUE) == MINI_INPUT_RET_YES)
                 {
-                    if ((logic_encryption_get_user_security_flags() & USER_SEC_FLG_PIN_FOR_MMM) != 0)
+                    if ((logic_user_get_user_security_flags() & USER_SEC_FLG_PIN_FOR_MMM) != 0)
                     {
                         /* Require user to reauth himself */
                         if (logic_smartcard_remove_card_and_reauth_user() == RETURN_OK)

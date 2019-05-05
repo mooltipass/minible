@@ -37,6 +37,7 @@
 #define USER_SEC_FLG_LOGIN_CONF             0x01
 #define USER_SEC_FLG_PIN_FOR_MMM            0x02
 #define USER_SEC_FLG_CRED_SAVE_PROMPT_MMM   0x04
+#define USER_SEC_FLG_ADVANCED_MENU          0x08
 
 /* Typedefs */
 typedef uint32_t custom_fs_file_count_t;
@@ -163,6 +164,7 @@ void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void
 void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
 RET_TYPE custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_pt);
 uint16_t custom_fs_get_nb_free_cpz_lut_entries(uint8_t* first_available_user_id);
+RET_TYPE custom_fs_update_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id);
 RET_TYPE custom_fs_store_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id);
 void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc);
 uint8_t custom_fs_settings_get_device_setting(uint16_t setting_id);

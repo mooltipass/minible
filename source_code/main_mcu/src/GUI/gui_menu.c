@@ -36,7 +36,6 @@ uint16_t gui_menu_menus_nb_items[NB_MENUS] = {ARRAY_SIZE(simple_menu_pic_ids), A
 uint16_t gui_menu_selected_menu_items[NB_MENUS] = {0,0,0,0};
 /* Selected Menu */
 uint16_t gui_menu_selected_menu = MAIN_MENU;
-#define ADVANCED_MODE   TRUE
 #define BT_ENABLED_BOOL   FALSE
 
 
@@ -57,7 +56,7 @@ void gui_menu_reset_selected_items(BOOL reset_main_menu)
 {
     if (reset_main_menu != FALSE)
     {
-        if (ADVANCED_MODE)
+        if ((logic_user_get_user_security_flags() & USER_SEC_FLG_ADVANCED_MENU) != 0)
         {
             gui_menu_selected_menu_items[MAIN_MENU] = 3;
         }
@@ -77,7 +76,7 @@ void gui_menu_reset_selected_items(BOOL reset_main_menu)
 void gui_menu_update_menus(void)
 {
     /* Main menu: advanced mode or not? */
-    if (ADVANCED_MODE)
+    if ((logic_user_get_user_security_flags() & USER_SEC_FLG_ADVANCED_MENU) != 0)
     {
         gui_menu_menus_pics_ids[MAIN_MENU] = advanced_menu_pic_ids;
         gui_menu_menus_text_ids[MAIN_MENU] = advanced_menu_text_ids;
@@ -136,6 +135,30 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             *menu_selected_item = 0;
         }
         gui_carousel_render(menu_nb_items, menu_pics, menu_texts, *menu_selected_item, 0);
+    }
+    else if (wheel_action == WHEEL_ACTION_LONG_CLICK)
+    {
+        if (gui_menu_selected_menu == MAIN_MENU)
+        {
+            /* Main menu, long click to switch between simple / advanced menu */            
+            if ((logic_user_get_user_security_flags() & USER_SEC_FLG_ADVANCED_MENU) != 0)
+            {
+                logic_user_clear_user_security_flag(USER_SEC_FLG_ADVANCED_MENU);
+                gui_prompts_display_information_on_screen_and_wait(SIMPLE_MENU_ENABLED_TEXT_ID, DISP_MSG_INFO);
+            }                
+            else
+            {
+                logic_user_set_user_security_flag(USER_SEC_FLG_ADVANCED_MENU);
+                gui_prompts_display_information_on_screen_and_wait(ADVANCED_MENU_ENABLED_TEXT_ID, DISP_MSG_INFO);
+            }
+            
+            /* Update menu */
+            gui_menu_update_menus();
+            gui_menu_reset_selected_items(TRUE);
+            
+            /* Re-render menu */
+            return TRUE;
+        }
     }
     else if (wheel_action == WHEEL_ACTION_SHORT_CLICK)
     {

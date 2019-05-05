@@ -16,20 +16,20 @@ br_aes_ct_ctrcbc_keys logic_encryption_cur_aes_context;
 cpz_lut_entry_t* logic_encryption_cur_cpz_entry;
 
 
-/*! \fn     logic_encryption_get_user_security_flags(void)
-*   \brief  Get user security choices
-*   \return The bitmask
+/*! \fn     logic_encryption_get_cur_cpz_lut_entry(void)
+*   \brief  Get current user CPZ entry
+*   \return Pointer to the entry or 0 if user isn't logged in
 */
-uint8_t logic_encryption_get_user_security_flags(void)
+cpz_lut_entry_t* logic_encryption_get_cur_cpz_lut_entry(void)
 {
     if (logic_encryption_cur_cpz_entry != 0)
     {
-        return logic_encryption_cur_cpz_entry->security_settings_flags;
-    } 
+        return logic_encryption_cur_cpz_entry;
+    }
     else
     {
-        return 0xFF;
-    }
+        return 0;
+    }    
 }
 
 /*! \fn     logic_encryption_ctr_array_to_uint32(uint8_t* array)

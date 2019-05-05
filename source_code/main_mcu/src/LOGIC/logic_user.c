@@ -30,6 +30,69 @@ void logic_user_init_context(uint8_t user_id)
     nodemgmt_init_context(user_id);
 }
 
+/*! \fn     logic_user_get_user_security_flags(void)
+*   \brief  Get user security choices
+*   \return The bitmask
+*/
+uint8_t logic_user_get_user_security_flags(void)
+{
+    cpz_lut_entry_t* lut_entry_pt = logic_encryption_get_cur_cpz_lut_entry();
+    
+    if (lut_entry_pt != 0)
+    {
+        return lut_entry_pt->security_settings_flags;
+    }
+    else
+    {
+        /* No user set: return maximum security level */
+        return 0xFF;
+    }
+}
+
+/*! \fn     logic_user_set_user_security_flag(uint8_t bitmask)
+*   \brief  Add security flags to current user profile
+*   \param  bitmask     Security flags bitmask
+*/
+void logic_user_set_user_security_flag(uint8_t bitmask)
+{
+    cpz_lut_entry_t* lut_entry_pt = logic_encryption_get_cur_cpz_lut_entry();
+    cpz_lut_entry_t updated_entry;
+    
+    if (lut_entry_pt != 0)
+    {
+        /* Copy current cpz entry into the new one */
+        memcpy(&updated_entry, lut_entry_pt, sizeof(cpz_lut_entry_t));
+
+        /* Set requested flags */
+        updated_entry.security_settings_flags |= bitmask;
+        
+        /* Update CPZ entry */
+        custom_fs_update_cpz_entry(&updated_entry, updated_entry.user_id);
+    }
+}
+
+/*! \fn     logic_user_clear_user_security_flag(uint8_t bitmask)
+*   \brief  Clear security flags to current user profile
+*   \param  bitmask     Security flags bitmask
+*/
+void logic_user_clear_user_security_flag(uint8_t bitmask)
+{
+    cpz_lut_entry_t* lut_entry_pt = logic_encryption_get_cur_cpz_lut_entry();
+    cpz_lut_entry_t updated_entry;
+    
+    if (lut_entry_pt != 0)
+    {
+        /* Copy current cpz entry into the new one */
+        memcpy(&updated_entry, lut_entry_pt, sizeof(cpz_lut_entry_t));
+
+        /* Set requested flags */
+        updated_entry.security_settings_flags &= ~bitmask;
+        
+        /* Update CPZ entry */
+        custom_fs_update_cpz_entry(&updated_entry, updated_entry.user_id);
+    }
+}
+
 /*! \fn     logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key, BOOL simple_mode)
 *   \brief  Add a new user with a new smart card
 *   \param  pin_code            The new pin code
@@ -249,7 +312,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     }
 
     /* Special case: in MMM and user chose to not be prompted */
-    if ((logic_security_is_management_mode_set() == FALSE) || ((logic_encryption_get_user_security_flags() & USER_SEC_FLG_CRED_SAVE_PROMPT_MMM) != 0))
+    if ((logic_security_is_management_mode_set() == FALSE) || ((logic_user_get_user_security_flags() & USER_SEC_FLG_CRED_SAVE_PROMPT_MMM) != 0))
     {        
         /* Prepare prompt text */
         cust_char_t* three_line_prompt_2;
@@ -381,7 +444,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
         uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr, &prev_gen_credential_flag);
         
         /* If user specified to be prompted for login confirmation */
-        if ((logic_encryption_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0)
+        if ((logic_user_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0)
         {
             /* Prepare prompt message */
             cust_char_t* three_line_prompt_2;
