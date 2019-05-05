@@ -392,10 +392,10 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
         {
             /* Prepare notification message */
             cust_char_t* three_line_notif_2;
-            //custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &three_line_prompt_2, TRUE);
+            custom_fs_get_string_from_file(LOGGING_WITH_TEXT_ID, &three_line_notif_2, TRUE);
             confirmationText_t notif_text_3_lines = {.lines[0]=service, .lines[1]=three_line_notif_2, .lines[2]=&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.login_name_index])};
 
-            // TODO: 3 lines notification website / logging you in with / username
+            /* 3 lines notification website / logging you in with / username */
             gui_prompts_display_3line_information_on_screen(&notif_text_3_lines, DISP_MSG_INFO);
 
             /* Set information screen, do not call get back to current screen as screen is already updated */
@@ -585,9 +585,8 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
     {
         if (state_machine == 0)
         {
-            // TODO
             /* Ask for login confirmation */
-            //custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &two_line_prompt_2, TRUE);
+            custom_fs_get_string_from_file(TYPE_LOGIN_TEXT_ID, &two_line_prompt_2, TRUE);
             mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE);
 
             /* Approved, back, card removed... */
@@ -603,7 +602,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
             {
                 if (prompt_return == MINI_INPUT_RET_YES)
                 {
-                    // TODO
+                    // TODO2
                 }
 
                 /* Move on */
@@ -612,9 +611,8 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
         } 
         else if (state_machine == 1)
         {
-            // TODO
             /* Ask for password confirmation */
-            //custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &two_line_prompt_2, TRUE);
+            custom_fs_get_string_from_file(TYPE_PASSWORD_TEXT_ID, &two_line_prompt_2, TRUE);
             mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE);
 
             /* Approved, back, card removed... */
@@ -630,7 +628,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
             {
                 if (prompt_return == MINI_INPUT_RET_YES)
                 {
-                    // TODO
+                    // TODO2
                 }
 
                 /* Move on */

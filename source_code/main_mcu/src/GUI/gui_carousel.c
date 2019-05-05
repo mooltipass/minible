@@ -134,7 +134,7 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
     {
         case BATTERY_CHARGING:
         {
-            // TODO
+            // TODO2
             break;
         }
         case BATTERY_0PCT:

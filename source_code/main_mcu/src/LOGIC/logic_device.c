@@ -60,7 +60,7 @@ void logic_device_bundle_update_start(BOOL from_debug_messages)
         }
         else
         {
-            // TODO
+            // TODO3
         }
     }
 }
@@ -85,7 +85,7 @@ void logic_device_bundle_update_end(BOOL from_debug_messages)
         } 
         else
         {
-            // TODO
+            // TODO3
         }
     }
 }

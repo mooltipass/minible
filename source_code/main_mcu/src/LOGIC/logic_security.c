@@ -18,7 +18,7 @@ void logic_security_clear_security_bools(void)
 {
     logic_security_smartcard_inserted_unlocked = FALSE;
     logic_security_management_mode = FALSE;
-    // TODO
+    // TODO2
     /*
     context_valid_flag = FALSE;
     selected_login_flag = FALSE;

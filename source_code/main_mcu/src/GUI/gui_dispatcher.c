@@ -177,7 +177,7 @@ void gui_dispatcher_idle_call(void)
                                                     else
                                                     {
                                                         /* Display new animation frame bitmap, rearm timer with provided value */
-                                                        gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_ACTION);
+                                                        gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_INFO);
                                                         timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
                                                     }
                                                 }
@@ -258,7 +258,7 @@ void gui_dispatcher_main_loop(void)
         }
     }
     
-    // Run main GUI screen loop if there was an action. TODO: screen saver
+    // Run main GUI screen loop if there was an action. TODO3: screen saver
     if (((is_screen_on_copy != FALSE) && (TRUE /* screen saver place holder */)) || (gui_dispatcher_current_screen == GUI_SCREEN_INSERTED_LCK))
     {
         if (user_action != WHEEL_ACTION_NONE)

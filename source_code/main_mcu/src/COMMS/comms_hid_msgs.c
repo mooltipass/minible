@@ -51,7 +51,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
     {
         should_ignore_message = TRUE;
     }
-    // TODO: deal with all but bundle
+    // TODO2: deal with all but bundle
     
     /* Depending on restriction, answer please retry */
     if (should_ignore_message != FALSE)

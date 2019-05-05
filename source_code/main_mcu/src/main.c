@@ -215,7 +215,7 @@ void main_platform_init(void)
     }
     
     /* Is battery present? */
-    // TODO: completely change the code below
+    // TODO3: completely change the code below
     if (battery_voltage > BATTERY_ADC_OVER_VOLTAGE)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No battery");
@@ -386,6 +386,7 @@ int main(void)
         cpz_lut_entry_t special_user_profile;
         memset(&special_user_profile, 0, sizeof(special_user_profile));
         special_user_profile.user_id = 100;
+        //special_user_profile.security_settings_flags = XXXX;
         custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id);
     }
     #endif

@@ -692,7 +692,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
             input_answer = MINI_INPUT_RET_BACK;
         }
 
-        // TODO: Knock to approve
+        // TODO3: Knock to approve
         #if defined(HARDWARE_MINI_CLICK_V2) && !defined(NO_ACCELEROMETER_FUNCTIONALITIES)
         if ((scanAndGetDoubleZTap(FALSE) == ACC_RET_KNOCK) && (flash_flag_set != FALSE))
         {
@@ -1485,8 +1485,8 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     memset(text_anim_x_offset, 0, sizeof(text_anim_x_offset));
     memset(scrolling_needed, FALSE, sizeof(scrolling_needed));
     
-    /* TODO: "Select credential" string */
-    //custom_fs_get_string_from_file(SELECT_LOGIN_TEXT_ID, &select_login_string, TRUE);
+    /* "Select credential" string */
+    custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
     
     /* Arm timer for scrolling */
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);

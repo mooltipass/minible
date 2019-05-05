@@ -382,7 +382,7 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
             dma_aux_mcu_check_and_clear_dma_transfer_flag();
             comms_aux_arm_rx_and_clear_no_comms();
             
-            // TODO: take necessary action in case we received an unwanted message
+            // TODO2: take necessary action in case we received an unwanted message
         }
     }while (reloop != FALSE);
         

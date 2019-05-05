@@ -154,7 +154,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 } 
                 else
                 {
-                    // TODO: no credentials notif
+                    gui_prompts_display_information_on_screen_and_wait(NO_CREDS_TEXT_ID, DISP_MSG_INFO);
                 }
                 gui_dispatcher_get_back_to_current_screen();
             }
