@@ -661,6 +661,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
         {
             /* Ask for login confirmation */
             custom_fs_get_string_from_file(TYPE_LOGIN_TEXT_ID, &two_line_prompt_2, TRUE);
+            conf_text_2_lines.lines[1] = two_line_prompt_2;
             mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE);
 
             /* Approved, back, card removed... */
@@ -687,6 +688,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
         {
             /* Ask for password confirmation */
             custom_fs_get_string_from_file(TYPE_PASSWORD_TEXT_ID, &two_line_prompt_2, TRUE);
+            conf_text_2_lines.lines[1] = two_line_prompt_2;
             mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE);
 
             /* Approved, back, card removed... */

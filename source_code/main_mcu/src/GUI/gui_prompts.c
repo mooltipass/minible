@@ -847,6 +847,16 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     #endif
     
+    /* Wait for user input */
+    mini_input_yes_no_ret_te input_answer = MINI_INPUT_RET_NONE;
+    wheel_action_ret_te detect_result;
+    
+    /* Activity detected */
+    logic_device_activity_detected();
+    
+    /* Clear possible remaining detection */
+    inputs_clear_detections();
+    
     /* Transition done, now transition the action bitmap */
     for (uint16_t j = 0; j < POPUP_3LINES_ANIM_LGTH; j++)
     {
@@ -862,16 +872,6 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         #endif
         timer_delay_ms(10);
     }
-    
-    /* Wait for user input */
-    mini_input_yes_no_ret_te input_answer = MINI_INPUT_RET_NONE;
-    wheel_action_ret_te detect_result;
-    
-    /* Activity detected */
-    logic_device_activity_detected();
-    
-    /* Clear possible remaining detection */
-    inputs_clear_detections();
     
     /* Arm timer for scrolling */
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
@@ -1200,7 +1200,7 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
         }
         
         /* Check if something has been pressed */
-        wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, TRUE);
+        wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, FALSE);
         if (detect_result == WHEEL_ACTION_SHORT_CLICK)
         { 
             return center_list_child_addr;
@@ -1209,41 +1209,35 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
         {
             return NODE_ADDR_NULL;
         }
-        
-        /* Scroll up / down */
-        int16_t wheel_increments = inputs_get_wheel_increment();
-        if (wheel_increments != 0)
+        else if (detect_result == WHEEL_ACTION_DOWN)
         {
-            if (wheel_increments > 0)
+            if (end_of_list_reached_at_center == FALSE)
             {
-                if (end_of_list_reached_at_center == FALSE)
-                {
-                    before_top_of_list_child_addr = top_of_list_child_addr;
-                    top_of_list_child_addr = center_list_child_addr;
-                    animation_step = ((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2;
-                    animation_just_started = TRUE;
-                }
+                before_top_of_list_child_addr = top_of_list_child_addr;
+                top_of_list_child_addr = center_list_child_addr;
+                animation_step = ((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2;
+                animation_just_started = TRUE;
             }
-            else
+        }
+        else if (detect_result == WHEEL_ACTION_UP)
+        {
+            if (top_of_list_child_addr != NODE_ADDR_NULL)
             {
-                if (top_of_list_child_addr != NODE_ADDR_NULL)
-                {
-                    top_of_list_child_addr = before_top_of_list_child_addr;
-                    animation_step = -((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2;
-                    animation_just_started = TRUE;
-                }
+                top_of_list_child_addr = before_top_of_list_child_addr;
+                animation_step = -((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2;
+                animation_just_started = TRUE;
             }
+        }
             
-            /* If animation is happening */
-            if (animation_just_started != FALSE)
-            {
-                /* Reset scrolling states except for title */
-                memset(&text_anim_going_right[1], 0, sizeof(text_anim_going_right)-sizeof(text_anim_going_right[0]));
-                memset(&text_anim_x_offset[1], 0, sizeof(text_anim_x_offset)-sizeof(text_anim_x_offset[0]));
-                memset(&scrolling_needed[1], FALSE, sizeof(scrolling_needed)-sizeof(scrolling_needed[0]));
-                redraw_needed = TRUE;
-            }
-        }     
+        /* If animation is happening */
+        if (animation_just_started != FALSE)
+        {
+            /* Reset scrolling states except for title */
+            memset(&text_anim_going_right[1], 0, sizeof(text_anim_going_right)-sizeof(text_anim_going_right[0]));
+            memset(&text_anim_x_offset[1], 0, sizeof(text_anim_x_offset)-sizeof(text_anim_x_offset[0]));
+            memset(&scrolling_needed[1], FALSE, sizeof(scrolling_needed)-sizeof(scrolling_needed[0]));
+            redraw_needed = TRUE;
+        }
         
         /* Scrolling logic */
         if (timer_has_timer_expired(TIMER_SCROLLING, FALSE) == TIMER_EXPIRED)
@@ -1481,7 +1475,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     /* Temp vars for our main loop */
     uint16_t top_of_list_parent_addr = temp_pnode.cred_parent.prevParentAddress;
     uint16_t before_top_of_list_parent_addr = NODE_ADDR_NULL;
-    uint16_t center_of_list_parent_addr = NODE_ADDR_NULL;
+    uint16_t center_of_list_parent_addr = start_address;
     BOOL end_of_list_reached_at_center = FALSE;
     BOOL animation_just_started = TRUE;
     int16_t text_anim_x_offset[4];
@@ -1491,6 +1485,9 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     BOOL action_taken = FALSE;
     int16_t displayed_length;
     BOOL scrolling_needed[4];
+    
+    /* "Select credential" string */
+    custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
     
     /* Lines display settings */
     uint16_t non_addr_null_addr_tbp = NODE_ADDR_NULL+1;
@@ -1503,9 +1500,6 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     memset(text_anim_going_right, FALSE, sizeof(text_anim_going_right));
     memset(text_anim_x_offset, 0, sizeof(text_anim_x_offset));
     memset(scrolling_needed, FALSE, sizeof(scrolling_needed));
-    
-    /* "Select credential" string */
-    custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
     
     /* Arm timer for scrolling */
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
@@ -1532,7 +1526,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
         }
         
         /* Check if something has been pressed */
-        wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, TRUE);
+        wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, FALSE);
         if (detect_result == WHEEL_ACTION_SHORT_CLICK)
         {
             /* return selected address */
@@ -1542,40 +1536,35 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
         {
             return NODE_ADDR_NULL;
         }
-        
-        /* Scroll up / down */
-        int16_t wheel_increments = inputs_get_wheel_increment();
-        if (wheel_increments != 0)
+        else if (detect_result == WHEEL_ACTION_DOWN)
         {
-            if (wheel_increments > 0)
+            if (end_of_list_reached_at_center == FALSE)
             {
-                if (end_of_list_reached_at_center == FALSE)
-                {
-                    before_top_of_list_parent_addr = top_of_list_parent_addr;
-                    top_of_list_parent_addr = center_of_list_parent_addr;
-                    animation_step = ((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2;
-                    animation_just_started = TRUE;
-                }
+                before_top_of_list_parent_addr = top_of_list_parent_addr;
+                top_of_list_parent_addr = center_of_list_parent_addr;
+                animation_step = ((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2;
+                animation_just_started = TRUE;
             }
-            else
+        }
+        else if (detect_result == WHEEL_ACTION_UP)
+        {
+            if (top_of_list_parent_addr != NODE_ADDR_NULL)
             {
-                if (top_of_list_parent_addr != NODE_ADDR_NULL)
-                {
-                    top_of_list_parent_addr = before_top_of_list_parent_addr;
-                    animation_step = -((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2;
-                    animation_just_started = TRUE;
-                }
+                center_of_list_parent_addr = top_of_list_parent_addr;
+                top_of_list_parent_addr = before_top_of_list_parent_addr;
+                animation_step = -((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2;
+                animation_just_started = TRUE;
             }
+        }
             
-            /* If animation is happening */
-            if (animation_just_started != FALSE)
-            {
-                /* Reset scrolling states except for title */
-                memset(&text_anim_going_right[1], 0, sizeof(text_anim_going_right)-sizeof(text_anim_going_right[0]));
-                memset(&text_anim_x_offset[1], 0, sizeof(text_anim_x_offset)-sizeof(text_anim_x_offset[0]));
-                memset(&scrolling_needed[1], FALSE, sizeof(scrolling_needed)-sizeof(scrolling_needed[0]));
-                redraw_needed = TRUE;
-            }
+        /* If animation is happening */
+        if (animation_just_started != FALSE)
+        {
+            /* Reset scrolling states except for title */
+            memset(&text_anim_going_right[1], 0, sizeof(text_anim_going_right)-sizeof(text_anim_going_right[0]));
+            memset(&text_anim_x_offset[1], 0, sizeof(text_anim_x_offset)-sizeof(text_anim_x_offset[0]));
+            memset(&scrolling_needed[1], FALSE, sizeof(scrolling_needed)-sizeof(scrolling_needed[0]));
+            redraw_needed = TRUE;
         }
         
         /* Scrolling logic */
@@ -1727,12 +1716,6 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                 }
                 else
                 {
-                    /* Check for node to display failed */
-                    if (i == 1)
-                    {
-                        /* Couldn't display the top of the list, means our center child is the first child */
-                        center_of_list_parent_addr = start_address;
-                    }
                     if (i == 3)
                     {
                         /* No last item to display, end of list reached at center */

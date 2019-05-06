@@ -11,6 +11,7 @@
 #include "nodemgmt.h"
 #include "gui_menu.h"
 #include "text_ids.h"
+#include "main.h"
 
 /* Main Menu */
 const uint16_t simple_menu_pic_ids[] = {GUI_BT_ICON_ID, GUI_FAV_ICON_ID, GUI_LOGIN_ICON_ID, GUI_LOCK_ICON_ID, GUI_OPR_ICON_ID};
@@ -176,6 +177,9 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 if (nodemgmt_get_starting_parent_addr() != NODE_ADDR_NULL)
                 {
                     logic_user_manual_select_login();
+                    #ifdef OLED_INTERNAL_FRAME_BUFFER
+                    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+                    #endif
                 } 
                 else
                 {

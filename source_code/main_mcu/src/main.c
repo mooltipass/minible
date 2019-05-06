@@ -384,10 +384,13 @@ int main(void)
     if (mcu_sp_rh_addresses[1] == 0x0201)
     {
         /* Special card has 0000 CPZ, set 0000 as nonce */
+        //dbflash_format_flash(&dbflash_descriptor);
+        //nodemgmt_format_user_profile(100);
         cpz_lut_entry_t special_user_profile;
         memset(&special_user_profile, 0, sizeof(special_user_profile));
         special_user_profile.user_id = 100;
-        special_user_profile.security_settings_flags = USER_SEC_FLG_LOGIN_CONF | USER_SEC_FLG_PIN_FOR_MMM | USER_SEC_FLG_CRED_SAVE_PROMPT_MMM | USER_SEC_FLG_ADVANCED_MENU;
+        //special_user_profile.security_settings_flags = USER_SEC_FLG_LOGIN_CONF | USER_SEC_FLG_PIN_FOR_MMM | USER_SEC_FLG_CRED_SAVE_PROMPT_MMM | USER_SEC_FLG_ADVANCED_MENU;
+        special_user_profile.security_settings_flags = USER_SEC_FLG_LOGIN_CONF | USER_SEC_FLG_CRED_SAVE_PROMPT_MMM | USER_SEC_FLG_ADVANCED_MENU;
         custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id);
         custom_fs_settings_set_defaults();
     }
