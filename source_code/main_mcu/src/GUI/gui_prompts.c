@@ -5,6 +5,7 @@
 */
 #include <string.h>
 #include "smartcard_lowlevel.h"
+#include "logic_database.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "logic_device.h"
@@ -1480,6 +1481,8 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     BOOL animation_just_started = TRUE;
     int16_t text_anim_x_offset[4];
     BOOL text_anim_going_right[4];
+    cust_char_t cur_fchar = ' ';
+    cust_char_t fchar_array[3];
     int16_t animation_step = 0;
     BOOL redraw_needed = TRUE;
     BOOL action_taken = FALSE;
@@ -1553,6 +1556,28 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                 center_of_list_parent_addr = top_of_list_parent_addr;
                 top_of_list_parent_addr = before_top_of_list_parent_addr;
                 animation_step = -((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2;
+                animation_just_started = TRUE;
+            }
+        }
+        else if (detect_result == WHEEL_ACTION_CLICK_DOWN)
+        {
+            uint16_t next_diff_fletter_node_addr = logic_database_get_next_2_fletters_services(center_of_list_parent_addr, cur_fchar, &fchar_array[1]);
+            if (next_diff_fletter_node_addr != NODE_ADDR_NULL)
+            {                
+                center_of_list_parent_addr = next_diff_fletter_node_addr;
+                nodemgmt_read_parent_node(center_of_list_parent_addr, &temp_pnode, TRUE);
+                top_of_list_parent_addr = temp_pnode.cred_parent.prevParentAddress;
+                animation_just_started = TRUE;
+            }             
+        }
+        else if (detect_result == WHEEL_ACTION_CLICK_UP)
+        {            
+            uint16_t prev_diff_fletter_node_addr = logic_database_get_prev_2_fletters_services(center_of_list_parent_addr, cur_fchar, fchar_array);
+            if (prev_diff_fletter_node_addr != NODE_ADDR_NULL)
+            {
+                center_of_list_parent_addr = prev_diff_fletter_node_addr;
+                nodemgmt_read_parent_node(center_of_list_parent_addr, &temp_pnode, TRUE);
+                top_of_list_parent_addr = temp_pnode.cred_parent.prevParentAddress;
                 animation_just_started = TRUE;
             }
         }
@@ -1638,6 +1663,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                     /* Surround center of list item */
                     if (i == 2)
                     {
+                        cur_fchar = temp_pnode.cred_parent.service[0];
                         utils_surround_text_with_pointers(temp_pnode.cred_parent.service, MEMBER_ARRAY_SIZE(parent_data_node_t, service));
                     }
                     

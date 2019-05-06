@@ -10,6 +10,131 @@
 #include "utils.h"
 
 
+/*! \fn     logic_database_get_prev_2_fletters_services(uint16_t start_address, cust_char_t start_char, cust_char_t* char_array)
+*   \brief  Get the previous 2 services with different first letters
+*   \param  start_address       Address at which we should start looking
+*   \param  start_char          The current first char
+*   \param  char_array          An array for 2 chars
+*   \return Address of the next node having a different first letter
+*/
+uint16_t logic_database_get_prev_2_fletters_services(uint16_t start_address, cust_char_t start_char, cust_char_t* char_array)
+{
+    uint16_t previous_address = start_address;
+    uint16_t return_value = NODE_ADDR_NULL;
+    BOOL skip_first_change_bool = TRUE;
+    cust_char_t cur_char = start_char;
+    uint16_t current_node_addr;
+    int16_t storage_index = 1;
+    parent_node_t temp_pnode;
+    
+    /* To start with the loop below */
+    temp_pnode.cred_parent.prevParentAddress = start_address;
+    char_array[0] = ' '; char_array[1] = ' ';
+    
+    do
+    {
+        /* Update current node address */
+        current_node_addr = temp_pnode.cred_parent.prevParentAddress;
+        
+        /* Read Node */
+        nodemgmt_read_parent_node(current_node_addr, &temp_pnode, FALSE);
+        
+        /* Check if the fchar changed */
+        if (temp_pnode.cred_parent.service[0] != cur_char)
+        {            
+            if (skip_first_change_bool == FALSE)
+            {
+                char_array[storage_index--] = cur_char;
+                
+                /* First next letter, store address */
+                if (storage_index == 0)
+                {
+                    return_value = previous_address;
+                }
+                
+                /* Did we fill the array? */
+                if (storage_index == -1)
+                {
+                    break;
+                }
+            } 
+            else
+            {
+                skip_first_change_bool = FALSE;
+            }
+            
+            previous_address = current_node_addr;
+            cur_char = temp_pnode.cred_parent.service[0];
+        }    
+    } while (temp_pnode.cred_parent.prevParentAddress != NODE_ADDR_NULL);
+    
+    /* Check if we are at the first parent node and therefore need to store address & chars */
+    if (temp_pnode.cred_parent.prevParentAddress == NODE_ADDR_NULL)
+    {
+        if ((storage_index == 1) && (temp_pnode.cred_parent.service[0] != start_char))
+        {
+            char_array[1] = temp_pnode.cred_parent.service[0];
+            return_value = current_node_addr;
+        } 
+        else if ((storage_index == 0) && (temp_pnode.cred_parent.service[0] != char_array[1]))
+        {
+            char_array[0] = temp_pnode.cred_parent.service[0];
+        }
+    }
+    
+    return return_value;
+}
+
+/*! \fn     logic_database_get_next_2_fletters_services(uint16_t start_address, cust_char_t cur_char, cust_char_t* char_array)
+*   \brief  Get the next 2 services with different first letters
+*   \param  start_address       Address at which we should start looking
+*   \param  cur_char            The current first char
+*   \param  char_array          An array for 2 chars
+*   \return Address of the next node having a different first letter
+*/
+uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cust_char_t cur_char, cust_char_t* char_array)
+{
+    uint16_t return_value = NODE_ADDR_NULL;
+    uint16_t current_node_addr;
+    uint16_t storage_index = 0;
+    parent_node_t temp_pnode;
+    
+    /* To start with the loop below */
+    temp_pnode.cred_parent.nextParentAddress = start_address;
+    char_array[0] = ' '; char_array[1] = ' ';
+    
+    do 
+    {
+        /* Update current node address */
+        current_node_addr = temp_pnode.cred_parent.nextParentAddress;
+        
+        /* Read Node */
+        nodemgmt_read_parent_node(current_node_addr, &temp_pnode, FALSE);
+        
+        /* Check if the fchar changed */
+        if (temp_pnode.cred_parent.service[0] != cur_char)
+        {
+            char_array[storage_index++] = temp_pnode.cred_parent.service[0];
+            cur_char = temp_pnode.cred_parent.service[0];
+            
+            /* First next letter, store address */
+            if (storage_index == 1)
+            {
+                return_value = current_node_addr;
+            }
+            
+            /* Did we fill the array? */
+            if (storage_index == 2)
+            {
+                break;
+            }
+        }
+        
+    } while (temp_pnode.cred_parent.nextParentAddress != NODE_ADDR_NULL);
+    
+    return return_value;
+}
+
 /*! \fn     logic_database_search_service(cust_char_t* name, service_compare_mode_te compare_type, BOOL cred_type, uint16_t data_category_id)
 *   \brief  Find a given service name
 *   \param  name                    Name of the service / website
