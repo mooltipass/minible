@@ -1561,6 +1561,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
         }
         else if (detect_result == WHEEL_ACTION_CLICK_DOWN)
         {
+            fchar_array[0] = cur_fchar;
             uint16_t next_diff_fletter_node_addr = logic_database_get_next_2_fletters_services(center_of_list_parent_addr, cur_fchar, &fchar_array[1]);
             if (next_diff_fletter_node_addr != NODE_ADDR_NULL)
             {                
@@ -1571,7 +1572,8 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             }             
         }
         else if (detect_result == WHEEL_ACTION_CLICK_UP)
-        {            
+        {
+            fchar_array[2] = cur_fchar;  
             uint16_t prev_diff_fletter_node_addr = logic_database_get_prev_2_fletters_services(center_of_list_parent_addr, cur_fchar, fchar_array);
             if (prev_diff_fletter_node_addr != NODE_ADDR_NULL)
             {
