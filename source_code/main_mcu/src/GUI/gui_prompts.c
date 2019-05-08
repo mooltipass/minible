@@ -204,10 +204,13 @@ void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, disp
     // Clear current detections
     inputs_clear_detections();
     
+    // Store current smartcard inserted state
+    ret_type_te card_absent = smartcard_low_level_is_smc_absent();
+    
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
     timer_start_timer(TIMER_WAIT_FUNCTS, 3000);
-    while ((timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK))
+    while ((timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK) && (card_absent == smartcard_low_level_is_smc_absent()))
     {
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);        
         

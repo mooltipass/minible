@@ -3,6 +3,7 @@
 *    Created:  17/11/2018
 *    Author:   Mathieu Stephan
 */
+#include "smartcard_highlevel.h"
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
 #include "comms_aux_mcu.h"
@@ -246,10 +247,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             }
             
             case GUI_BT_DISABLE_ICON_ID:
-            {
-                aux_mcu_message_t* temp_rx_message;
-                ret_type_te func_return = RETURN_NOK;
-                
+            {                
                 /* Send message to the Aux MCU to enable bluetooth, don't wait for it to be enabled */
                 logic_aux_mcu_disable_ble(TRUE);
                 
@@ -263,6 +261,66 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 gui_menu_update_menus();
                 
                 return TRUE;       
+            }
+            
+            /* Operations menu */
+            case GUI_ERASE_USER_ICON_ID:
+            {
+                /* Delete user profile */
+                if ((gui_prompts_ask_for_one_line_confirmation(DELETE_USER_TEXT_ID, FALSE) == MINI_INPUT_RET_YES) && (logic_smartcard_remove_card_and_reauth_user() == RETURN_OK) && (gui_prompts_ask_for_one_line_confirmation(DELETE_USER_CONF_TEXT_ID, FALSE) == MINI_INPUT_RET_YES))
+                {
+                    uint8_t current_user_id = logic_user_get_current_user_id();
+                    gui_prompts_display_information_on_screen(PROCESSING_TEXT_ID, DISP_MSG_INFO);
+                    
+                    /* Delete user profile and credentials from external DB flash */
+                    nodemgmt_delete_current_user_from_flash();
+                    
+                    /* Ask if user wants to erase the card */
+                    if (gui_prompts_ask_for_one_line_confirmation(ERASE_CARD_TEXT_ID, FALSE) == MINI_INPUT_RET_YES)
+                    {
+                        /* Erase smartcard */
+                        gui_prompts_display_information_on_screen(PROCESSING_TEXT_ID, DISP_MSG_INFO);
+                        smartcard_highlevel_erase_smartcard();
+                        
+                        /* Erase other smartcards */
+                        while (gui_prompts_ask_for_one_line_confirmation(ERASE_OTHER_CARD_TEXT_ID, FALSE) == MINI_INPUT_RET_YES)
+                        {
+                            // Ask the user to insert other smartcards
+                            gui_prompts_display_information_on_screen_and_wait(REMOVE_CARD_TEXT_ID, DISP_MSG_ACTION);
+                            
+                            // Wait for the user to remove and enter another smartcard
+                            while (smartcard_lowlevel_is_card_plugged() != RETURN_JRELEASED);
+                            
+                            // Ask the user to insert other smartcards
+                            gui_prompts_display_information_on_screen_and_wait(INSERT_OTHER_CARD_TEXT_ID, DISP_MSG_ACTION);
+                            
+                            // Wait for the user to insert a new smart card
+                            while (smartcard_lowlevel_is_card_plugged() != RETURN_JDETECT);
+                            gui_prompts_display_information_on_screen(PROCESSING_TEXT_ID, DISP_MSG_INFO);
+                            
+                            // Check the card type & ask user to enter his pin, check that the new user id loaded by validCardDetectedFunction is still the same
+                            if ((smartcard_highlevel_card_detected_routine() == RETURN_MOOLTIPASS_USER) && (logic_smartcard_valid_card_unlock(FALSE, TRUE) == RETURN_VCARD_OK) && (current_user_id == logic_user_get_current_user_id()))
+                            {
+                                smartcard_highlevel_erase_smartcard();
+                            }
+                        }
+                    }
+                    
+                    /* Delete LUT entry in our internal flash */
+                    gui_prompts_display_information_on_screen(PROCESSING_TEXT_ID, DISP_MSG_INFO);
+                    custom_fs_detele_user_cpz_lut_entry(current_user_id);
+                    
+                    /* Go to invalid screen */
+                    gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_INVALID, TRUE, GUI_OUTOF_MENU_TRANSITION);
+                }
+                else
+                {
+                    gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);                    
+                }
+                
+                /* We're done! */
+                logic_smartcard_handle_removed();
+                return TRUE;
             }
             
             /* Common to all sub-menus */

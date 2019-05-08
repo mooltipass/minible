@@ -814,8 +814,12 @@ void nodemgmt_delete_current_user_from_flash(void)
             // Set correct next address
             next_parent_addr = temp_address;
         }
+        
         // First loop done, remove data nodes
-        next_parent_addr = nodemgmt_current_handle.firstDataParentNode[i-1];
+        if (i < (sizeof(nodemgmt_current_handle.firstDataParentNode)/sizeof(nodemgmt_current_handle.firstDataParentNode[0])))
+        {
+            next_parent_addr = nodemgmt_current_handle.firstDataParentNode[i];
+        }
     }
 }
 

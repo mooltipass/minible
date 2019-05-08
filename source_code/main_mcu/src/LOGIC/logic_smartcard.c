@@ -105,7 +105,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
                 }
 
                 /* Waiting screen */
-                gui_prompts_display_information_on_screen(ID_STRING_PROCESSING, DISP_MSG_INFO);
+                gui_prompts_display_information_on_screen(PROCESSING_TEXT_ID, DISP_MSG_INFO);
                 
                 /* User entered twice the same PIN, card is still there */
                 if (logic_user_create_new_user(&pin_code, (uint8_t*)0, use_simple_mode) == RETURN_OK)
@@ -200,7 +200,7 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
         /* Check for defective card, check always done on initial unlock */
         if ((fast_mode == FALSE) && (smartcard_highlevel_check_hidden_aes_key_contents() != RETURN_OK))
         {
-            gui_prompts_display_information_on_screen_and_wait(ID_STRING_CARD_FAILING, DISP_MSG_WARNING);
+            gui_prompts_display_information_on_screen_and_wait(CARD_FAILING_TEXT_ID, DISP_MSG_WARNING);
         }
         
         /* Ask the user to enter his PIN and check it */

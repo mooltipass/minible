@@ -50,8 +50,8 @@
 #define ADD_CRED_TEXT_ID                39
 #define CHANGE_PWD_TEXT_ID              40
 #define SEND_CREDS_FOR_TEXT_ID          41
-#define ID_STRING_CARD_FAILING          42
-#define ID_STRING_PROCESSING            43
+#define CARD_FAILING_TEXT_ID          42
+#define PROCESSING_TEXT_ID              43
 #define NO_CREDS_TEXT_ID                44
 #define SELECT_LOGIN_TEXT_ID            45
 #define ID_STRING_ENTER_MMM             46
@@ -67,6 +67,11 @@
 #define DISABLING_BLUETOOTH_TEXT_ID     56
 #define BLUETOOTH_ENABLED_TEXT_ID       57
 #define BLUETOOTH_DISABLED_TEXT_ID      58
+#define DELETE_USER_TEXT_ID             59
+#define DELETE_USER_CONF_TEXT_ID        60
+#define ERASE_CARD_TEXT_ID              61
+#define ERASE_OTHER_CARD_TEXT_ID        62
+#define INSERT_OTHER_CARD_TEXT_ID       63
 
 #endif /* 
 S_H_ */

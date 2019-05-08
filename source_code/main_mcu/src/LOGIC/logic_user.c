@@ -49,6 +49,25 @@ uint8_t logic_user_get_user_security_flags(void)
     }
 }
 
+/*! \fn     logic_user_get_current_user_id(void)
+*   \brief  Get current user ID
+*   \return User ID
+*/
+uint8_t logic_user_get_current_user_id(void)
+{
+    cpz_lut_entry_t* lut_entry_pt = logic_encryption_get_cur_cpz_lut_entry();
+    
+    if (lut_entry_pt != 0)
+    {
+        return lut_entry_pt->user_id;
+    }
+    else
+    {
+        /* No user set: invalid ID */
+        return 0xFF;
+    }
+}
+
 /*! \fn     logic_user_set_user_security_flag(uint8_t bitmask)
 *   \brief  Add security flags to current user profile
 *   \param  bitmask     Security flags bitmask

@@ -235,7 +235,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                     smartcard_highlevel_erase_smartcard();
 
                     /* Set next screen */
-                    gui_dispatcher_set_current_screen(GUI_SCREEN_INVALID, TRUE, GUI_INTO_MENU_TRANSITION);
+                    gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_INVALID, TRUE, GUI_INTO_MENU_TRANSITION);
 
                     /* Set success byte */
                     send_msg->payload[0] = HID_1BYTE_ACK;

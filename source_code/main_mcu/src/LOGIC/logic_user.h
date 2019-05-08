@@ -24,6 +24,7 @@ void logic_user_clear_user_security_flag(uint8_t bitmask);
 void logic_user_set_user_security_flag(uint8_t bitmask);
 uint8_t logic_user_get_user_security_flags(void);
 void logic_user_init_context(uint8_t user_id);
+uint8_t logic_user_get_current_user_id(void);
 void logic_user_manual_select_login(void);
 
 
