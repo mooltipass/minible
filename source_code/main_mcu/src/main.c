@@ -390,8 +390,15 @@ int main(void)
         special_user_profile.user_id = 100;
         //special_user_profile.security_settings_flags = USER_SEC_FLG_LOGIN_CONF | USER_SEC_FLG_PIN_FOR_MMM | USER_SEC_FLG_CRED_SAVE_PROMPT_MMM | USER_SEC_FLG_ADVANCED_MENU;
         special_user_profile.security_settings_flags = USER_SEC_FLG_LOGIN_CONF | USER_SEC_FLG_CRED_SAVE_PROMPT_MMM | USER_SEC_FLG_ADVANCED_MENU;
-        custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id);
-        custom_fs_settings_set_defaults();
+                
+        /* When developping on a newly flashed board: reset USB connection and reset defaults */
+        if (custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id) == RETURN_OK)
+        {
+            custom_fs_settings_set_defaults();
+            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
+            timer_delay_ms(2000);
+            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+        }
     }
     #endif
     
