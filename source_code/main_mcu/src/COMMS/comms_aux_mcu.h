@@ -30,9 +30,12 @@
 #define MAIN_MCU_COMMAND_ENABLE_BLE     0x0004
 #define MAIN_MCU_COMMAND_NIMH_CHARGE    0x0005
 #define MAIN_MCU_COMMAND_NO_COMMS_UNAV  0x0006
+#define MAIN_MCU_COMMAND_DISABLE_BLE    0x0007
+#define MAIN_MCU_COMMAND_DETACH_USB     0x0008
 
 // Aux MCU events
 #define AUX_MCU_EVENT_BLE_ENABLED       0x0001
+#define AUX_MCU_EVENT_BLE_DISABLED      0x0002
 
 /* Typedefs */
 typedef struct
@@ -95,7 +98,7 @@ typedef struct
 
 
 /* Prototypes */
-RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet);
+RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet, BOOL single_try);
 void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type);
 comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type);
 aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void);

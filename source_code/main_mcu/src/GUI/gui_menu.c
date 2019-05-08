@@ -5,7 +5,10 @@
 */
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
+#include "comms_aux_mcu.h"
+#include "logic_aux_mcu.h"
 #include "gui_carousel.h"
+#include "driver_timer.h"
 #include "gui_prompts.h"
 #include "logic_user.h"
 #include "nodemgmt.h"
@@ -38,7 +41,6 @@ uint16_t gui_menu_menus_nb_items[NB_MENUS] = {ARRAY_SIZE(simple_menu_pic_ids), A
 uint16_t gui_menu_selected_menu_items[NB_MENUS] = {0,0,0,0};
 /* Selected Menu */
 uint16_t gui_menu_selected_menu = MAIN_MENU;
-#define BT_ENABLED_BOOL   FALSE
 
 
 /*! \fn     gui_menu_set_selected_menu(menu_te menu)
@@ -92,7 +94,7 @@ void gui_menu_update_menus(void)
     }
 
     /* Bluetooth menu: BT enabled or not? */
-    if (BT_ENABLED_BOOL)
+    if (logic_aux_mcu_is_ble_enabled() != FALSE)
     {
         gui_menu_menus_pics_ids[BT_MENU] = bluetooth_on_menu_pic_ids;
         gui_menu_menus_text_ids[BT_MENU] = bluetooth_on_menu_text_ids;
@@ -196,6 +198,72 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             case GUI_OPR_ICON_ID:           gui_dispatcher_set_current_screen(GUI_SCREEN_OPERATIONS, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;
             case GUI_SETTINGS_ICON_ID:      gui_dispatcher_set_current_screen(GUI_SCREEN_SETTINGS, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;
             case GUI_BT_ICON_ID:            gui_dispatcher_set_current_screen(GUI_SCREEN_BT, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;
+            
+            /* Bluetooth Menu */
+            case GUI_BT_ENABLE_ICON_ID:
+            {
+                uint16_t temp_uint16;
+                aux_mcu_message_t* temp_rx_message;
+                ret_type_te func_return = RETURN_NOK;
+                uint16_t gui_dispatcher_current_idle_anim_frame_id = 0;
+                
+                /* Send message to the Aux MCU to enable bluetooth, don't wait for it to be enabled */
+                logic_aux_mcu_enable_ble(FALSE);
+                
+                /* Display information message */
+                gui_prompts_display_information_on_screen(ENABLING_BLUETOOTH_TEXT_ID, DISP_MSG_INFO);
+                
+                /* Wait for message to be sent before going to the logic below */
+                comms_aux_mcu_wait_for_message_sent();
+                
+                /* Wait for BT activation while displaying an animation */
+                while (func_return != RETURN_OK)
+                {
+                    func_return = comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, TRUE);
+                    
+                    /* Idle animation */
+                    if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+                    {
+                        /* Display new animation frame bitmap, rearm timer with provided value */
+                        gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_INFO);
+                        timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
+                    }
+                }
+                
+                /* Re-arm communication system */
+                comms_aux_arm_rx_and_clear_no_comms();
+                
+                /* Display information message */
+                gui_prompts_display_information_on_screen_and_wait(BLUETOOTH_ENABLED_TEXT_ID, DISP_MSG_INFO); 
+                
+                /* Set BLE enabled bool */
+                logic_aux_mcu_set_ble_enabled_bool(TRUE);
+                
+                /* Refresh menus */
+                gui_menu_update_menus();
+                
+                return TRUE;       
+            }
+            
+            case GUI_BT_DISABLE_ICON_ID:
+            {
+                aux_mcu_message_t* temp_rx_message;
+                ret_type_te func_return = RETURN_NOK;
+                
+                /* Send message to the Aux MCU to enable bluetooth, don't wait for it to be enabled */
+                logic_aux_mcu_disable_ble(TRUE);
+                
+                /* Display information message */
+                gui_prompts_display_information_on_screen_and_wait(BLUETOOTH_DISABLED_TEXT_ID, DISP_MSG_INFO);
+                
+                /* Set BLE enabled bool */
+                logic_aux_mcu_set_ble_enabled_bool(FALSE);
+                
+                /* Refresh menus */
+                gui_menu_update_menus();
+                
+                return TRUE;       
+            }
             
             /* Common to all sub-menus */
             case GUI_BACK_ICON_ID:

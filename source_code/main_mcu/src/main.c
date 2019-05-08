@@ -168,9 +168,8 @@ void main_platform_init(void)
     }
     sh1122_init_display(&plat_oled_descriptor);
     
-    /* Release aux MCU reset (old platform only) and enable bluetooth AND gate */
+    /* Release aux MCU reset (old platform only) */
     platform_io_release_aux_reset();
-    platform_io_enable_ble();
 
     /* Check initialization results */
     if (custom_fs_return == CUSTOM_FS_INIT_NO_RWEE)

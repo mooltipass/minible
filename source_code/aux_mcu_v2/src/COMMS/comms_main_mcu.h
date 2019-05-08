@@ -18,7 +18,6 @@ extern volatile BOOL comms_main_mcu_ble_msg_answered_using_first_bytes;
 extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 
 /* Defines */
-// Aux MCU Message Type
 #define AUX_MCU_MSG_TYPE_USB            0x0000
 #define AUX_MCU_MSG_TYPE_BLE            0x0001
 #define AUX_MCU_MSG_TYPE_BOOTLOADER     0x0002
@@ -34,9 +33,12 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define MAIN_MCU_COMMAND_ENABLE_BLE     0x0004
 #define MAIN_MCU_COMMAND_NIMH_CHARGE    0x0005
 #define MAIN_MCU_COMMAND_NO_COMMS_UNAV  0x0006
+#define MAIN_MCU_COMMAND_DISABLE_BLE    0x0007
+#define MAIN_MCU_COMMAND_DETACH_USB     0x0008
 
 // Aux MCU events
 #define AUX_MCU_EVENT_BLE_ENABLED       0x0001
+#define AUX_MCU_EVENT_BLE_DISABLED      0x0002
 
 /* Typedefs */
 typedef struct

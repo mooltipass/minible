@@ -128,7 +128,7 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
     comms_aux_mcu_send_message(TRUE);
     
     /* Wait for answer: no need to parse answer as filter is done in comms_aux_mcu_active_wait */
-    return_val = comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+    return_val = comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD, FALSE);
     
     /* Rearm receive */
     comms_aux_arm_rx_and_clear_no_comms();
@@ -309,23 +309,31 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     return msg_rcvd;   
 }
 
-/*! \fn     comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet)
+/*! \fn     comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet, BOOL single_try)
 *   \brief  Active wait for a message from the aux MCU. 
 *   \param  rx_message_pt_pt        Pointer to where to store the pointer to the received message
 *   \param  do_not_touch_dma_logic  Set to TRUE to not mess with the DMA flags
 *   \param  expected_packet         Expected packet
+*   \param  single_try              Set to TRUE to not use any timeout
 *   \return OK if a message was received
 *   \note   Special care must be taken to discard other message we don't want (either with a please_retry or other mechanisms)
 *   \note   DMA RX arm must be called to rearm message receive as a rearm in this code would enable data to be overwritten
 *   \note   This function is not touching the no comms signal except in case the wrong message type isn't received
 */
-RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet)
+RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet, BOOL single_try)
 {
     /* Bool for the do{} */
     BOOL reloop = FALSE;
     
     /* Arm timer */
-    timer_start_timer(TIMER_TIMEOUT_FUNCTS, AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS);
+    if (single_try == FALSE)
+    {
+        timer_start_timer(TIMER_TIMEOUT_FUNCTS, AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS);
+    } 
+    else
+    {
+        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 0);
+    }
     
     do
     {

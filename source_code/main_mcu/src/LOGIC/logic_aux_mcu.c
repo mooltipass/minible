@@ -51,7 +51,7 @@ void logic_aux_mcu_enable_ble(BOOL wait_for_enabled)
         {
             /* wait for BLE to bootup */
             comms_aux_mcu_wait_for_message_sent();
-            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT) != RETURN_OK){}
+            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE) != RETURN_OK){}
             
             /* Rearm DMA RX */
             comms_aux_arm_rx_and_clear_no_comms();
@@ -59,6 +59,37 @@ void logic_aux_mcu_enable_ble(BOOL wait_for_enabled)
             /* Set boolean */
             logic_aux_mcu_ble_enabled = TRUE;
         }
+    }
+}
+
+/*! \fn     logic_aux_mcu_disable_ble(BOOL wait_for_disabled)
+*   \brief  Enable bluetooth
+*   \param  wait_for_enabled    Set to true to wait for BLE enabled
+*/
+void logic_aux_mcu_disable_ble(BOOL wait_for_disabled)
+{
+    if (logic_aux_mcu_ble_enabled != FALSE)
+    {
+        aux_mcu_message_t* temp_rx_message;
+        
+        /* Send command to aux MCU */
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DISABLE_BLE);
+        
+        if (wait_for_disabled != FALSE)
+        {
+            /* wait for BLE to switch off */
+            comms_aux_mcu_wait_for_message_sent();
+            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE) != RETURN_OK){}
+            
+            /* Rearm DMA RX */
+            comms_aux_arm_rx_and_clear_no_comms();
+            
+            /* Set boolean */
+            logic_aux_mcu_ble_enabled = FALSE;
+        }
+        
+        /* Disable BLE */
+        platform_io_disable_ble();
     }
 }
 
@@ -86,7 +117,7 @@ uint32_t logic_aux_mcu_get_ble_chip_id(void)
         comms_aux_mcu_send_message(TRUE);
         
         /* Wait for message from aux MCU */
-        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS) != RETURN_OK){}
+        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE) != RETURN_OK){}
         
         /* Output debug info */
         return_val = temp_rx_message->aux_details_message.atbtlc_chip_id;
@@ -130,7 +161,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
     comms_aux_mcu_send_message(TRUE);
     
     /* Wait for message from aux MCU */
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_BOOTLOADER) != RETURN_OK){}
+    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_BOOTLOADER, FALSE) != RETURN_OK){}
     
     /* Answer checked, rearm RX */    
     comms_aux_arm_rx_and_clear_no_comms();
@@ -172,7 +203,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
         comms_aux_mcu_send_message(TRUE);
         
         /* Wait for message from aux MCU */
-        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_BOOTLOADER) != RETURN_OK){}
+        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_BOOTLOADER, FALSE) != RETURN_OK){}
         
         /* Answer checked, rearm RX */
         comms_aux_arm_rx_and_clear_no_comms();
