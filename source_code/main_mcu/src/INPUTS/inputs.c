@@ -143,6 +143,23 @@ int16_t inputs_get_wheel_increment(void)
     return return_val;
 }
 
+/*! \fn     inputs_raw_is_wheel_released(void)
+*   \brief  (raw access) know if the wheel is released
+*   \return TRUE if the wheel is release, FALSE otherwise
+*   \note   Know what you're doing if you're calling this, this is debounce-prone
+*/
+BOOL inputs_raw_is_wheel_released(void)
+{
+    if ((PORT->Group[WHEEL_SW_GROUP].IN.reg & WHEEL_SW_MASK) == 0)
+    {
+        return FALSE;
+    } 
+    else
+    {
+        return TRUE;
+    }
+}
+
 /*! \fn     inputs_is_wheel_clicked(void)
 *   \brief  Know if the wheel is clicked
 *   \return just released/pressed, (non)detected

@@ -1940,6 +1940,34 @@ uint16_t sh1122_put_centered_string(sh1122_descriptor_t* oled_descriptor, uint8_
      return sh1122_put_string_xy(oled_descriptor, 0, y, OLED_ALIGN_CENTER, string, write_to_buffer);
 }
 
+/*! \fn     void sh1122_put_centered_char(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, cust_char_t c, BOOL write_to_buffer)
+*   \brief  Display a char centered around an X position
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  x                   Centered around this x
+*   \param  y                   Starting y
+*   \param  c                   Char to print
+*   \param  write_to_buffer     Set to true to write to internal buffer
+*   \return How many characters were printed
+*/
+void sh1122_put_centered_char(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, cust_char_t c, BOOL write_to_buffer) 
+{
+    uint16_t glyph_height;
+    int16_t cur_text_x = oled_descriptor->cur_text_x;
+    int16_t cur_text_y = (int16_t)oled_descriptor->cur_text_y;
+    uint16_t width = sh1122_get_glyph_width(oled_descriptor, c, &glyph_height);
+    
+    /* Store cur text x & y */
+    oled_descriptor->cur_text_x = x-(width/2);
+    oled_descriptor->cur_text_y = y;
+   
+    /* Display char */
+    sh1122_put_char(oled_descriptor, c, write_to_buffer);
+
+    /* Restore x & y */
+    oled_descriptor->cur_text_x = cur_text_x;
+    oled_descriptor->cur_text_y = cur_text_y;
+}
+
 /*! \fn     sh1122_set_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y)
 *   \brief  Set current text X & Y
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct

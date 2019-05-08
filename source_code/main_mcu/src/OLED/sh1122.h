@@ -113,6 +113,7 @@ void sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, 
 RET_TYPE sh1122_display_bitmap_from_flash_at_recommended_position(sh1122_descriptor_t* oled_descriptor, uint32_t file_id, BOOL write_to_buffer);
 RET_TYPE sh1122_display_bitmap_from_flash(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint32_t file_id, BOOL write_to_buffer);
 uint16_t sh1122_put_centered_string(sh1122_descriptor_t* oled_descriptor, uint8_t y, const cust_char_t* string, BOOL write_to_buffer);
+void sh1122_put_centered_char(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, cust_char_t c, BOOL write_to_buffer);
 uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, cust_char_t ch, BOOL write_to_buffer);
 void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream);
 int16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str, BOOL write_to_buffer);

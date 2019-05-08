@@ -340,8 +340,7 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
         sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_DIGIT_HEIGHT, 0x00, TRUE);
         for (uint16_t i = 0; i < 4; i++)
         {
-            sh1122_set_xy(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ + PIN_PROMT_DIGIT_AST_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_ASTX_Y_INC);
-            sh1122_put_char(&plat_oled_descriptor, u'*', TRUE);
+            sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_ASTX_Y_INC, u'*', TRUE);
         }
         #ifdef OLED_INTERNAL_FRAME_BUFFER
         sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_DIGIT_HEIGHT);
@@ -385,8 +384,7 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
             if (i != selected_digit)
             {
                 /* Display '*' */
-                sh1122_set_xy(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ + PIN_PROMT_DIGIT_AST_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_ASTX_Y_INC);
-                sh1122_put_char(&plat_oled_descriptor, u'*', TRUE);
+                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_ASTX_Y_INC, u'*', TRUE);
             }
             else
             {
@@ -414,10 +412,8 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
                 /* Digits display with animation */
                 sh1122_set_min_display_y(&plat_oled_descriptor, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING);
                 sh1122_set_max_display_y(&plat_oled_descriptor, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT);
-                sh1122_set_xy(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + anim_step*vert_anim_direction);
-                sh1122_put_char(&plat_oled_descriptor, current_char, TRUE);
-                sh1122_set_xy(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + anim_step*vert_anim_direction + (PIN_PROMPT_DIGIT_HEIGHT+1)*vert_anim_direction*-1);
-                sh1122_put_char(&plat_oled_descriptor, next_char, TRUE);
+                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + anim_step*vert_anim_direction,  current_char, TRUE);
+                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + anim_step*vert_anim_direction + (PIN_PROMPT_DIGIT_HEIGHT+1)*vert_anim_direction*-1, next_char, TRUE);
                 sh1122_reset_lim_display_y(&plat_oled_descriptor);
             }
         }
@@ -1478,6 +1474,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     uint16_t before_top_of_list_parent_addr = NODE_ADDR_NULL;
     uint16_t center_of_list_parent_addr = start_address;
     BOOL end_of_list_reached_at_center = FALSE;
+    BOOL displaying_service_fchars = FALSE;
     BOOL animation_just_started = TRUE;
     int16_t text_anim_x_offset[4];
     BOOL text_anim_going_right[4];
@@ -1561,27 +1558,43 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
         }
         else if (detect_result == WHEEL_ACTION_CLICK_DOWN)
         {
-            fchar_array[0] = cur_fchar;
             uint16_t next_diff_fletter_node_addr = logic_database_get_next_2_fletters_services(center_of_list_parent_addr, cur_fchar, &fchar_array[1]);
             if (next_diff_fletter_node_addr != NODE_ADDR_NULL)
-            {                
+            {
+                fchar_array[0] = cur_fchar;
+                displaying_service_fchars = TRUE;
                 center_of_list_parent_addr = next_diff_fletter_node_addr;
                 nodemgmt_read_parent_node(center_of_list_parent_addr, &temp_pnode, TRUE);
                 top_of_list_parent_addr = temp_pnode.cred_parent.prevParentAddress;
                 animation_just_started = TRUE;
-            }             
+            }     
+            else
+            {
+                fchar_array[1] = cur_fchar;
+            }        
         }
         else if (detect_result == WHEEL_ACTION_CLICK_UP)
         {
-            fchar_array[2] = cur_fchar;  
             uint16_t prev_diff_fletter_node_addr = logic_database_get_prev_2_fletters_services(center_of_list_parent_addr, cur_fchar, fchar_array);
             if (prev_diff_fletter_node_addr != NODE_ADDR_NULL)
             {
+                fchar_array[2] = cur_fchar;
+                displaying_service_fchars = TRUE;
                 center_of_list_parent_addr = prev_diff_fletter_node_addr;
                 nodemgmt_read_parent_node(center_of_list_parent_addr, &temp_pnode, TRUE);
                 top_of_list_parent_addr = temp_pnode.cred_parent.prevParentAddress;
                 animation_just_started = TRUE;
             }
+            else
+            {
+                fchar_array[1] = cur_fchar;
+            }
+        }
+
+        /* We're displaying first chars but the wheel was released */
+        if ((displaying_service_fchars != FALSE) && (inputs_raw_is_wheel_released() != FALSE))
+        {
+            displaying_service_fchars = FALSE;
         }
             
         /* If animation is happening */
@@ -1712,8 +1725,30 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                     }
                     else
                     {
-                        /* String not large enough or start of animation */
-                        displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
+                        if (i == 0)
+                        {
+                            /* Title: either display selection text or the first chars */
+                            if (displaying_service_fchars == FALSE)
+                            {
+                                /* String not large enough or start of animation */
+                                displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
+                            } 
+                            else
+                            {
+                                /* Previous / Current / Next first service char */
+                                sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_16_ID);
+                                sh1122_put_centered_char(&plat_oled_descriptor, 103, strings_y_positions[i], fchar_array[0], TRUE);
+                                sh1122_put_centered_char(&plat_oled_descriptor, 153, strings_y_positions[i], fchar_array[2], TRUE);
+                                sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_17_ID);
+                                sh1122_put_centered_char(&plat_oled_descriptor, 128, strings_y_positions[i], fchar_array[1], TRUE);
+                                displayed_length = 1;
+                            }
+                        } 
+                        else
+                        {
+                            /* String not large enough or start of animation */
+                            displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
+                        }
                     }
                     
                     /* First run: based on the number of chars displayed, set the scrolling needed bool */
