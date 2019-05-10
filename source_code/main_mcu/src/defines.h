@@ -41,6 +41,7 @@ typedef enum    {MINI_INPUT_RET_TIMEOUT = -1, MINI_INPUT_RET_NONE = 0, MINI_INPU
 typedef enum    {HID_MSG_RCVD, HID_CANCEL_MSG_RCVD, BL_MSG_RCVD, EVENT_MSG_RCVD, MAIN_MCU_MSG_RCVD, ERRONEOUS_MSG_RCVD, UNKNOW_MSG_RCVD, NO_MSG_RCVD} comms_msg_rcvd_te;
 typedef enum    {MSG_NO_RESTRICT, MSG_RESTRICT_ALL, MSG_RESTRICT_ALLBUT_BUNDLE, MSG_RESTRICT_ALLBUT_CANCEL} msg_restrict_type_te;
 typedef enum    {RETURN_PIN_OK = 0, RETURN_PIN_NOK_3, RETURN_PIN_NOK_2, RETURN_PIN_NOK_1, RETURN_PIN_NOK_0} pin_check_return_te;
+typedef enum    {RETURN_NEW_PIN_NOK = -1, RETURN_NEW_PIN_OK = 0, RETURN_NEW_PIN_DIFF = 1} new_pinreturn_type_te;
 typedef enum    {RETURN_VCARD_NOK = -1, RETURN_VCARD_OK = 0, RETURN_VCARD_UNKNOWN = 1} valid_card_det_return_te;
 typedef enum    {GUI_SEL_FAVORITE, GUI_SEL_SERVICE, GUI_SEL_DATA_SERVICE, GUI_SEL_CRED } gui_sel_item_te;
 typedef enum    {DISP_MSG_INFO = 0, DISP_MSG_WARNING = 1, DISP_MSG_ACTION = 2} display_message_te;

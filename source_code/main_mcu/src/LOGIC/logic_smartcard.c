@@ -21,9 +21,9 @@
 *   \brief  Ask user to enter a new PIN
 *   \param  new_pin     Pointer to where to store the new pin
 *   \param  message_id  Message ID
-*   \return Success status, see new_pinreturn_type_t
+*   \return Success status, see new_pinreturn_type_te
 */
-RET_TYPE logic_smartcard_ask_for_new_pin(volatile uint16_t* new_pin, uint16_t message_id)
+new_pinreturn_type_te logic_smartcard_ask_for_new_pin(volatile uint16_t* new_pin, uint16_t message_id)
 {
     volatile uint16_t other_pin;
     
@@ -33,16 +33,16 @@ RET_TYPE logic_smartcard_ask_for_new_pin(volatile uint16_t* new_pin, uint16_t me
         if (*new_pin == other_pin)
         {
             other_pin = 0;
-            return RETURN_OK;
+            return RETURN_NEW_PIN_OK;
         }
         else
         {
-            return RETURN_NOK;
+            return RETURN_NEW_PIN_DIFF;
         }
     }
     else
     {
-        return RETURN_NOK;
+        return RETURN_NEW_PIN_NOK;
     }
 }
 
@@ -95,7 +95,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
             volatile uint16_t pin_code;
             
             /* Create a new user with his new smart card */
-            if (logic_smartcard_ask_for_new_pin(&pin_code, NEW_CARD_PIN_TEXT_ID) == RETURN_OK)
+            if (logic_smartcard_ask_for_new_pin(&pin_code, NEW_CARD_PIN_TEXT_ID) == RETURN_NEW_PIN_OK)
             {
                 /* Check user for simple or advanced mode */
                 BOOL use_simple_mode = FALSE;
@@ -334,6 +334,9 @@ RET_TYPE logic_smartcard_remove_card_and_reauth_user(void)
     // Disconnect smartcard
     logic_smartcard_handle_removed();
     
+    // Here we cheat: we display a prompt to hide the power off / on
+    gui_prompts_display_information_on_screen_and_wait(PLEASE_REAUTH_TEXT_ID, DISP_MSG_WARNING);
+    
     // Launch Unlocking process
     if ((smartcard_highlevel_card_detected_routine() == RETURN_MOOLTIPASS_USER) && (logic_smartcard_valid_card_unlock(FALSE, TRUE) == RETURN_VCARD_OK))
     {
@@ -354,4 +357,70 @@ RET_TYPE logic_smartcard_remove_card_and_reauth_user(void)
     {
         return RETURN_NOK;
     }
+}
+
+
+/*! \fn     logic_smartcard_clone_card(uint16_t* pincode)
+*   \brief  Clone a smartcard
+*   \param  pincode The current pin code
+*   \return success or not
+*/
+RET_TYPE logic_smartcard_clone_card(volatile uint16_t* pincode)
+{
+    // Temp buffers to store AZ1 & AZ2
+    uint8_t temp_az1[SMARTCARD_AZ_BIT_LENGTH/8];
+    uint8_t temp_az2[SMARTCARD_AZ_BIT_LENGTH/8];    
+    uint8_t temp_cpz[SMARTCARD_CPZ_LENGTH];
+    
+    // Check that the current smart card is unlocked
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
+    {
+        return RETURN_NOK;
+    }
+    
+    // Read code protected zone
+    smartcard_highlevel_read_code_protected_zone(temp_cpz);
+    
+    // Extract current AZ1 & AZ2
+    smartcard_highlevel_read_application_zone1(temp_az1);
+    smartcard_highlevel_read_application_zone2(temp_az2);
+    
+    // Inform the user to remove his smart card
+    gui_prompts_display_information_on_screen_and_wait(REMOVE_CARD_TEXT_ID, DISP_MSG_ACTION);
+    
+    // Wait for the user to remove his smart card
+    while (smartcard_lowlevel_is_card_plugged() != RETURN_JRELEASED);
+    
+    // Inform the user to insert a blank smart card
+    gui_prompts_display_information_on_screen_and_wait(INSERT_NEW_CARD_TEXT_ID, DISP_MSG_ACTION);
+    
+    // Wait for the user to insert a blank smart card
+    while (smartcard_lowlevel_is_card_plugged() != RETURN_JDETECT);
+    gui_prompts_display_information_on_screen(PROCESSING_TEXT_ID, DISP_MSG_INFO);
+    
+    // Check that we have a blank card
+    if (smartcard_highlevel_card_detected_routine() != RETURN_MOOLTIPASS_BLANK)
+    {
+        return RETURN_NOK;
+    }
+    
+    // Erase AZ1 & AZ2 in the new card
+    smartcard_lowlevel_erase_application_zone1_nzone2(FALSE);
+    smartcard_lowlevel_erase_application_zone1_nzone2(TRUE);
+    
+    // Write AZ1 & AZ2 & CPZ
+    smartcard_highlevel_write_application_zone1(temp_az1);
+    smartcard_highlevel_write_application_zone2(temp_az2);   
+    smartcard_highlevel_write_protected_zone(temp_cpz);
+    
+    // Write new password
+    smartcard_highlevel_write_security_code(pincode);
+    
+    // Set the smart card inserted unlocked flag, cleared by interrupt
+    logic_security_smartcard_unlocked_actions();
+    
+    // Inform the user that it is done
+    gui_prompts_display_information_on_screen_and_wait(CARD_CLONED_TEXT_ID, DISP_MSG_INFO);
+    
+    return RETURN_OK;
 }

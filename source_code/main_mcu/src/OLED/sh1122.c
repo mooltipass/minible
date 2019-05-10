@@ -1957,7 +1957,7 @@ void sh1122_put_centered_char(sh1122_descriptor_t* oled_descriptor, int16_t x, u
     uint16_t width = sh1122_get_glyph_width(oled_descriptor, c, &glyph_height);
     
     /* Store cur text x & y */
-    oled_descriptor->cur_text_x = x-(width/2);
+    oled_descriptor->cur_text_x = x-((width+1)/2);
     oled_descriptor->cur_text_y = y;
    
     /* Display char */

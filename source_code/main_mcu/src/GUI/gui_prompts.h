@@ -41,7 +41,7 @@
 #define PIN_PROMPT_2LTEXT_Y             12
 #define PIN_PROMPT_ARROW_HOR_ANIM_STEP  4
 #define PIN_PROMPT_DIGIT_X_OFFS         134
-#define PIN_PROMPT_DIGIT_X_ADJ          14
+#define PIN_PROMPT_DIGIT_X_ADJ          15
 #define PIN_PROMT_DIGIT_AST_ADJ         (-1)
 #define PIN_PROMPT_UP_ARROW_Y           4
 #define PIN_PROMPT_ARROW_HEIGHT         16

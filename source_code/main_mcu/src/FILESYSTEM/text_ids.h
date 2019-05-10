@@ -50,7 +50,7 @@
 #define ADD_CRED_TEXT_ID                39
 #define CHANGE_PWD_TEXT_ID              40
 #define SEND_CREDS_FOR_TEXT_ID          41
-#define CARD_FAILING_TEXT_ID          42
+#define CARD_FAILING_TEXT_ID            42
 #define PROCESSING_TEXT_ID              43
 #define NO_CREDS_TEXT_ID                44
 #define SELECT_LOGIN_TEXT_ID            45
@@ -72,6 +72,13 @@
 #define ERASE_CARD_TEXT_ID              61
 #define ERASE_OTHER_CARD_TEXT_ID        62
 #define INSERT_OTHER_CARD_TEXT_ID       63
+#define PIN_CHANGED_TEXT_ID             64
+#define PIN_NOT_CHANGED_TEXT_ID         65
+#define ENTER_NEW_PIN_TEXT_ID           66
+#define PIN_DIFFERENT_TEXT_ID           67
+#define CARD_NOT_BLANK_TEXT_ID          68
+#define INSERT_NEW_CARD_TEXT_ID         69
+#define CARD_CLONED_TEXT_ID             70
+#define PLEASE_REAUTH_TEXT_ID           71
 
-#endif /* 
-S_H_ */
+#endif

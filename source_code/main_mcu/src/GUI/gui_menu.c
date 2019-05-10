@@ -264,6 +264,80 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             }
             
             /* Operations menu */
+            case GUI_CLONE_ICON_ID:
+            {
+                /* User wants to clone his smartcard */
+                new_pinreturn_type_te temp_rettype;
+                volatile uint16_t pin_code;
+                
+                /* Reauth user */
+                if (logic_smartcard_remove_card_and_reauth_user() == RETURN_OK)
+                {
+                    /* Ask for new pin */
+                    temp_rettype = logic_smartcard_ask_for_new_pin(&pin_code, NEW_CARD_PIN_TEXT_ID);
+                    if (temp_rettype == RETURN_NEW_PIN_OK)
+                    {
+                        // Start the cloning process
+                        if (logic_smartcard_clone_card(&pin_code) == RETURN_OK)
+                        {
+                            // Well it worked....
+                        }
+                        else
+                        {
+                            gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_INVALID, TRUE, GUI_OUTOF_MENU_TRANSITION);
+                            gui_prompts_display_information_on_screen_and_wait(CARD_NOT_BLANK_TEXT_ID, DISP_MSG_WARNING);
+                        }
+                        pin_code = 0x0000;
+                    }
+                    else if (temp_rettype == RETURN_NEW_PIN_DIFF)
+                    {
+                        gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
+                        gui_prompts_display_information_on_screen_and_wait(PIN_DIFFERENT_TEXT_ID, DISP_MSG_WARNING);
+                        logic_smartcard_handle_removed();
+                    }
+                    else
+                    {
+                        return TRUE;
+                    }
+                }
+                else
+                {
+                    gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
+                }
+
+                return TRUE;
+            }
+
+            case GUI_CHANGE_PIN_ICON_ID:
+            {
+                /* User wants to change PIN */
+                if (logic_smartcard_remove_card_and_reauth_user() == RETURN_OK)
+                {
+                    /* User approved his pin, ask his new one */
+                    volatile uint16_t pin_code;
+                    
+                    if (logic_smartcard_ask_for_new_pin(&pin_code, ENTER_NEW_PIN_TEXT_ID) == RETURN_NEW_PIN_OK)
+                    {
+                        // User successfully entered a new pin
+                        smartcard_highlevel_write_security_code(&pin_code);
+
+                        /* Inform user */
+                        gui_prompts_display_information_on_screen_and_wait(PIN_CHANGED_TEXT_ID, DISP_MSG_INFO);
+                    }
+                    else
+                    {
+                        /* Inform user */
+                        gui_prompts_display_information_on_screen_and_wait(PIN_NOT_CHANGED_TEXT_ID, DISP_MSG_WARNING);
+                    }
+                    pin_code = 0x0000;
+                }
+                else
+                {
+                    gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
+                }
+                return TRUE;
+            }
+
             case GUI_ERASE_USER_ICON_ID:
             {
                 /* Delete user profile */
