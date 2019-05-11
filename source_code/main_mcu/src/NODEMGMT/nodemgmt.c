@@ -318,13 +318,39 @@ void nodemgmt_get_user_profile_starting_offset(uint16_t uid, uint16_t *page, uin
     _Static_assert(NODEMGMT_USER_PROFILE_SIZE == sizeof(nodemgmt_userprofile_t), "User profile isn't the right size");
     
     #if BYTES_PER_PAGE == NODEMGMT_USER_PROFILE_SIZE
-        /* One node per page: just return the UID */
-        *page = uid;
+        *page = uid*2;
         *pageOffset = 0;
     #elif BYTES_PER_PAGE == 2*NODEMGMT_USER_PROFILE_SIZE
-        /* One node per page: bitmask and division by 2 */
-        *page = uid >> NODEMGMT_ADDR_PAGE_BITSHIFT;
-        *pageOffset = (uid & NODEMGMT_ADDR_PAGE_BITSHIFT) * NODEMGMT_USER_PROFILE_SIZE;
+        *page = uid;
+        *pageOffset = 0;
+    #else
+        #error "User profile isn't a multiple of page size"
+    #endif
+}
+
+/*! \fn     nodemgmt_get_user_fav_names_starting_offset(uint8_t uid, uint16_t *page, uint16_t *pageOffset)
+    \brief  Obtains page and page offset for a given user id favorite strings
+    \param  uid             The id of the user to perform that profile page and offset calculation (0 up to NODE_MAX_UID)
+    \param  page            The page containing the user favorite strings
+    \param  pageOffset      The offset of the page that indicates the start of the user favorite strings
+ */
+void nodemgmt_get_user_fav_names_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset)
+{
+    if(uid >= NB_MAX_USERS)
+    {
+        /* No debug... no reason it should get stuck here as the data format doesn't allow such values */
+        while(1);
+    }
+
+    /* Check for bad surprises */    
+    _Static_assert(NODEMGMT_USER_PROFILE_SIZE == sizeof(nodemgmt_userprofile_t), "User profile isn't the right size");
+    
+    #if BYTES_PER_PAGE == NODEMGMT_USER_PROFILE_SIZE
+        *page = uid*2 + 1;
+        *pageOffset = 0;
+    #elif BYTES_PER_PAGE == 2*NODEMGMT_USER_PROFILE_SIZE
+        *page = uid;
+        *pageOffset = NODEMGMT_USER_PROFILE_SIZE;
     #else
         #error "User profile isn't a multiple of page size"
     #endif
@@ -699,7 +725,8 @@ void nodemgmt_init_context(uint16_t userIdNum)
         while(1);
     }
             
-    // fill current user id, first parent node address, user profile page & offset 
+    // fill current user id, first parent node address, user profile page & offset
+    nodemgmt_get_user_fav_names_starting_offset(userIdNum,&nodemgmt_current_handle.pageUserFavStrings, &nodemgmt_current_handle.offsetUserFavStrings);
     nodemgmt_get_user_profile_starting_offset(userIdNum, &nodemgmt_current_handle.pageUserProfile, &nodemgmt_current_handle.offsetUserProfile);
     nodemgmt_current_handle.firstParentNode = nodemgmt_get_starting_parent_addr();
     nodemgmt_current_handle.currentUserId = userIdNum;

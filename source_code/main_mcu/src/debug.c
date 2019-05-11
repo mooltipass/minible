@@ -272,6 +272,7 @@ void debug_reset_device(void)
         custom_fs_erase_256B_at_internal_custom_storage_slot(i);
     }
     custom_fs_settings_set_defaults();
+    nodemgmt_format_user_profile(100);
     cpu_irq_disable();
     NVIC_SystemReset();
 }
