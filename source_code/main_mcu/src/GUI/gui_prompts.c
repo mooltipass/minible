@@ -1930,11 +1930,6 @@ int16_t gui_prompts_select_category(void)
     sh1122_clear_current_screen(&plat_oled_descriptor);
     #endif
     
-    /* Reset temp vars */
-    memset(text_anim_going_right, FALSE, sizeof(text_anim_going_right));
-    memset(text_anim_x_offset, 0, sizeof(text_anim_x_offset));
-    memset(scrolling_needed, FALSE, sizeof(scrolling_needed));
-    
     /* Arm timer for scrolling */
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
     
@@ -1968,6 +1963,7 @@ int16_t gui_prompts_select_category(void)
             if (selected_category < 4)
             {
                 selected_category++;
+                function_just_started = TRUE;
             }
         }
         else if (detect_result == WHEEL_ACTION_UP)
@@ -1975,7 +1971,17 @@ int16_t gui_prompts_select_category(void)
             if (selected_category != 0)
             {
                 selected_category--;
+                function_just_started = TRUE;
             }
+        }
+        
+        if (function_just_started != FALSE)
+        {            
+            /* Reset temp vars */
+            memset(text_anim_going_right, FALSE, sizeof(text_anim_going_right));
+            memset(text_anim_x_offset, 0, sizeof(text_anim_x_offset));
+            memset(scrolling_needed, FALSE, sizeof(scrolling_needed));
+            redraw_needed = TRUE;
         }
         
         /* Scrolling logic */
