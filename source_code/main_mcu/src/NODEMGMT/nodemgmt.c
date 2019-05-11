@@ -328,13 +328,13 @@ void nodemgmt_get_user_profile_starting_offset(uint16_t uid, uint16_t *page, uin
     #endif
 }
 
-/*! \fn     nodemgmt_get_user_fav_names_starting_offset(uint8_t uid, uint16_t *page, uint16_t *pageOffset)
+/*! \fn     nodemgmt_get_user_category_names_starting_offset(uint8_t uid, uint16_t *page, uint16_t *pageOffset)
     \brief  Obtains page and page offset for a given user id favorite strings
     \param  uid             The id of the user to perform that profile page and offset calculation (0 up to NODE_MAX_UID)
     \param  page            The page containing the user favorite strings
     \param  pageOffset      The offset of the page that indicates the start of the user favorite strings
  */
-void nodemgmt_get_user_fav_names_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset)
+void nodemgmt_get_user_category_names_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset)
 {
     if(uid >= NB_MAX_USERS)
     {
@@ -626,6 +626,38 @@ void nodemgmt_set_profile_ctr(void* buf)
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.current_ctr), sizeof(dirty_address_finding_trick->main_data.current_ctr), buf);
 }
 
+/*! \fn     nodemgmt_get_category_string(uint16_t string_id, cust_char_t* string_pt)
+ *  \brief  Get a given user category string
+ *  \param  category_id     Category ID
+ *  \param  string_pt       Where to store the category string   
+ */
+void nodemgmt_get_category_string(uint16_t category_id, cust_char_t* string_pt)
+{
+    if (category_id >= MEMBER_ARRAY_SIZE(nodemgmt_user_category_strings_t, category_strings))
+    {
+        return;
+    }
+    
+    nodemgmt_user_category_strings_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserCategoryStrings, nodemgmt_current_handle.offsetUserCategoryStrings + (size_t)&(dirty_address_finding_trick->category_strings[category_id]), sizeof(dirty_address_finding_trick->category_strings[0]), string_pt);
+}
+
+/*! \fn     nodemgmt_set_category_string(uint16_t string_id, cust_char_t* string_pt)
+ *  \brief  Set a given user category string
+ *  \param  category_id     Category ID
+ *  \param  string_pt       Where to store the category string   
+ */
+void nodemgmt_set_category_string(uint16_t category_id, cust_char_t* string_pt)
+{
+    if (category_id >= MEMBER_ARRAY_SIZE(nodemgmt_user_category_strings_t, category_strings))
+    {
+        return;
+    }
+    
+    nodemgmt_user_category_strings_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserCategoryStrings, nodemgmt_current_handle.offsetUserCategoryStrings + (size_t)&(dirty_address_finding_trick->category_strings[category_id]), sizeof(dirty_address_finding_trick->category_strings[0]), string_pt);
+}
+
 /*! \fn     nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode)
 *   \brief  Find Free Nodes inside our external memory
 *   \param  nbParentNodes   Number of parent nodes we want to find
@@ -726,7 +758,7 @@ void nodemgmt_init_context(uint16_t userIdNum)
     }
             
     // fill current user id, first parent node address, user profile page & offset
-    nodemgmt_get_user_fav_names_starting_offset(userIdNum,&nodemgmt_current_handle.pageUserFavStrings, &nodemgmt_current_handle.offsetUserFavStrings);
+    nodemgmt_get_user_category_names_starting_offset(userIdNum, &nodemgmt_current_handle.pageUserCategoryStrings, &nodemgmt_current_handle.offsetUserCategoryStrings);
     nodemgmt_get_user_profile_starting_offset(userIdNum, &nodemgmt_current_handle.pageUserProfile, &nodemgmt_current_handle.offsetUserProfile);
     nodemgmt_current_handle.firstParentNode = nodemgmt_get_starting_parent_addr();
     nodemgmt_current_handle.currentUserId = userIdNum;

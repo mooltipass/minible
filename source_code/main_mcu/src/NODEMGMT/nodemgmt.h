@@ -191,6 +191,12 @@ typedef struct
     favorites_for_category_t category_favorites[5];
 } nodemgmt_userprofile_t;
 
+// User favorite strings
+typedef struct
+{
+    cust_char_t category_strings[4][33];
+} nodemgmt_user_category_strings_t;
+
 // Node management handle
 typedef struct
 {
@@ -199,8 +205,8 @@ typedef struct
     uint16_t currentUserId;                 // The users ID
     uint16_t pageUserProfile;               // The page of the user profile
     uint16_t offsetUserProfile;             // The offset of the user profile
-    uint16_t pageUserFavStrings;            // The page of the user favorite strings
-    uint16_t offsetUserFavStrings;          // The offset of the user favorite strings
+    uint16_t pageUserCategoryStrings;       // The page of the user favorite strings
+    uint16_t offsetUserCategoryStrings;     // The offset of the user favorite strings
     uint16_t firstParentNode;               // The address of the users first parent node (read from flash. eg cache)
     uint16_t firstDataParentNode[16];       // The addresses of the users first data parent nodes (read from flash. eg cache)
     uint16_t nextParentFreeNode;            // The address of the next free parent node
@@ -257,7 +263,7 @@ RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type,
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);
 void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress);
 void nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress);
-void nodemgmt_get_user_fav_names_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
+void nodemgmt_get_user_category_names_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 void nodemgmt_get_user_profile_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 RET_TYPE nodemgmt_create_child_node(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedAddress);
 void nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_node_t* parent_node);
@@ -269,6 +275,8 @@ void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* ch
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId);
+void nodemgmt_get_category_string(uint16_t category_id, cust_char_t* string_pt);
+void nodemgmt_set_category_string(uint16_t category_id, cust_char_t* string_pt);
 uint16_t nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day);
 void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags);
 uint16_t nodemgmt_get_start_addresses(uint16_t* addresses_array);
