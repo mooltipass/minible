@@ -116,13 +116,13 @@ uint16_t nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day)
 *   \param  day             The unpacked day
 *   \return success status
 */
-RET_TYPE extractDate(uint16_t date, uint8_t *year, uint8_t *month, uint8_t *day)
+/*RET_TYPE extractDate(uint16_t date, uint8_t *year, uint8_t *month, uint8_t *day)
 {
     *year = ((date >> NODEMGMT_YEAR_SHT) & NODEMGMT_YEAR_MASK_FINAL);
     *month = ((date >> NODEMGMT_MONTH_SHT) & NODEMGMT_MONTH_MASK_FINAL);
     *day = (date & NODEMGMT_DAY_MASK_FINAL);
     return RETURN_OK;
-}
+}*/
 
 /*! \fn     nodemgmt_check_user_perm_from_flags(uint16_t flags)
 *   \brief  Check that the user has the right to read/write a node
@@ -638,14 +638,16 @@ void nodemgmt_get_category_string(uint16_t category_id, cust_char_t* string_pt)
         return;
     }
     
-    nodemgmt_user_category_strings_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    nodemgmt_user_category_strings_t* const dirty_address_finding_trick = (nodemgmt_user_category_strings_t*)0;
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserCategoryStrings, nodemgmt_current_handle.offsetUserCategoryStrings + (size_t)&(dirty_address_finding_trick->category_strings[category_id]), sizeof(dirty_address_finding_trick->category_strings[0]), string_pt);
+    string_pt[MEMBER_SUB_ARRAY_SIZE(nodemgmt_user_category_strings_t, category_strings)-1] = 0;
 }
 
 /*! \fn     nodemgmt_set_category_string(uint16_t string_id, cust_char_t* string_pt)
  *  \brief  Set a given user category string
  *  \param  category_id     Category ID
- *  \param  string_pt       Where to store the category string   
+ *  \param  string_pt       Where to store the category string 
+ *  \note   Input buffer must have at least the same size as the filesystem category string field  
  */
 void nodemgmt_set_category_string(uint16_t category_id, cust_char_t* string_pt)
 {
@@ -654,7 +656,7 @@ void nodemgmt_set_category_string(uint16_t category_id, cust_char_t* string_pt)
         return;
     }
     
-    nodemgmt_user_category_strings_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    nodemgmt_user_category_strings_t* const dirty_address_finding_trick = (nodemgmt_user_category_strings_t*)0;
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserCategoryStrings, nodemgmt_current_handle.offsetUserCategoryStrings + (size_t)&(dirty_address_finding_trick->category_strings[category_id]), sizeof(dirty_address_finding_trick->category_strings[0]), string_pt);
 }
 
@@ -745,6 +747,18 @@ void nodemgmt_scan_node_usage(void)
     }
 }
 
+/*! \fn     nodemgmt_set_current_category_id(uint16_t catId)
+ *  \brief  Set current selected category ID
+ *  \param  catId   The category ID
+ */
+void nodemgmt_set_current_category_id(uint16_t catId)
+{
+    if (catId < NODEMGMT_NB_MAX_CATEGORIES)
+    {        
+        nodemgmt_current_handle.currentCategoryId = catId;
+    }
+}
+
 /*! \fn     nodemgmt_init_context(uint16_t userIdNum)
  *  \brief  Initializes the Node Management Handle, scans memory for the next free node
  *  \param  userIdNum   The user id to initialize the handle for
@@ -762,6 +776,7 @@ void nodemgmt_init_context(uint16_t userIdNum)
     nodemgmt_get_user_profile_starting_offset(userIdNum, &nodemgmt_current_handle.pageUserProfile, &nodemgmt_current_handle.offsetUserProfile);
     nodemgmt_current_handle.firstParentNode = nodemgmt_get_starting_parent_addr();
     nodemgmt_current_handle.currentUserId = userIdNum;
+    nodemgmt_current_handle.currentCategoryId = 0;
     nodemgmt_current_handle.datadbChanged = FALSE;
     nodemgmt_current_handle.dbChanged = FALSE;
     

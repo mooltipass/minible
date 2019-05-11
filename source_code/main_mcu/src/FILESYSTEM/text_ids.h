@@ -81,5 +81,6 @@
 #define CARD_CLONED_TEXT_ID             70
 #define PLEASE_REAUTH_TEXT_ID           71
 #define PRESS_SCROLL_HINT_TEXT_ID       72
+#define DEFAULT_CATEGORY_TEXT_ID        73
 
 #endif

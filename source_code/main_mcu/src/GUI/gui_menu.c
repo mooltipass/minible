@@ -203,6 +203,15 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 logic_smartcard_handle_removed(); 
                 return TRUE;
             }                
+            case GUI_CAT_ICON_ID:
+            {
+                int16_t selected_category = gui_prompts_select_category();
+                if (selected_category >= 0)
+                {
+                    nodemgmt_set_current_category_id(selected_category);
+                }
+                return TRUE;
+            }
             case GUI_OPR_ICON_ID:           gui_dispatcher_set_current_screen(GUI_SCREEN_OPERATIONS, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;
             case GUI_SETTINGS_ICON_ID:      gui_dispatcher_set_current_screen(GUI_SCREEN_SETTINGS, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;
             case GUI_BT_ICON_ID:            gui_dispatcher_set_current_screen(GUI_SCREEN_BT, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;

@@ -242,7 +242,7 @@ void gui_dispatcher_main_loop(void)
     wheel_action_ret_te user_action = inputs_get_wheel_action(FALSE, FALSE);
     
     // No activity, turn off screen
-    if (timer_has_timer_expired(TIMER_SCREEN, TRUE) == TIMER_EXPIRED)
+    if (timer_has_timer_expired(TIMER_SCREEN, FALSE) == TIMER_EXPIRED)
     {
         /* Display "going to sleep", switch off screen */
         gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO);

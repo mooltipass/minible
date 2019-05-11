@@ -21,6 +21,7 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODE_ADDR_NULL                              0x0000
 #define NB_MAX_USERS                                128
 #define BASE_NODE_SIZE                              264
+#define NODEMGMT_NB_MAX_CATEGORIES                  5
 #define NODEMGMT_USER_PROFILE_SIZE                  264
 #define NODEMGMT_TYPE_FLAG_BITSHIFT                 14
 #define NODEMGMT_TYPE_FLAG_BITMASK                  0xC000
@@ -212,6 +213,7 @@ typedef struct
     uint16_t nextParentFreeNode;            // The address of the next free parent node
     uint16_t nextChildFreeNode;             // The address of the next free child node
     parent_node_t temp_parent_node;         // Temp parent node to be used when needed
+    uint16_t currentCategoryId;             // Current category ID
 } nodemgmtHandle_t;
 
 /* Inlines */
@@ -289,6 +291,7 @@ void nodemgmt_set_cred_change_number(uint32_t changeNumber);
 uint16_t nodemgmt_get_favorites(uint16_t* addresses_array);
 uint16_t nodemgmt_get_incremented_address(uint16_t addr);
 void nodemgmt_user_db_changed_actions(BOOL dataChanged);
+void nodemgmt_set_current_category_id(uint16_t catId);
 void nodemgmt_delete_current_user_from_flash(void);
 uint16_t nodemgmt_get_starting_parent_addr(void);
 void nodemgmt_format_user_profile(uint16_t uid);

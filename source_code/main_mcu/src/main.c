@@ -398,7 +398,7 @@ int main(void)
             comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
             timer_delay_ms(2000);
             comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
-        }
+        }        
     }
     #endif
     

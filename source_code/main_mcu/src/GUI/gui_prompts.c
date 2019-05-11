@@ -1422,9 +1422,13 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
             animation_just_started = FALSE;
             
             /* Flush to display */
+            sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
             #endif
+            
+            /* Load function exit transition */
+            sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
             
             /* Animation processing */
             if (animation_step > 0)
@@ -1867,9 +1871,13 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             animation_just_started = FALSE;
             
             /* Flush to display */
+            sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
             #endif
+            
+            /* Load function exit transition */
+            sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
             
             /* Animation processing */
             if (animation_step > 0)
@@ -1888,4 +1896,216 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     }
     
     return NODE_ADDR_NULL;
+}
+
+/*! \fn     gui_prompts_select_category(void)
+*   \brief  Prompt user to select a credential category 
+*   \return category ID or -1 if he went back
+*/
+int16_t gui_prompts_select_category(void)
+{
+    cust_char_t temp_category_text[MEMBER_SUB_ARRAY_SIZE(nodemgmt_user_category_strings_t, category_strings) + 5];
+    BOOL function_just_started = TRUE;
+    cust_char_t* string_to_display;
+    int16_t selected_category = 0;
+    int16_t text_anim_x_offset[5];
+    BOOL text_anim_going_right[5];    
+    BOOL redraw_needed = TRUE;
+    BOOL action_taken = FALSE;
+    int16_t displayed_length;
+    BOOL scrolling_needed[5];
+    uint16_t temp_y_offset;
+    
+    /* Activity detected */
+    logic_device_activity_detected();
+    
+    /* Clear possible remaining detection */
+    inputs_clear_detections();
+    
+    /* Clear frame buffer */
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #else
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    #endif
+    
+    /* Reset temp vars */
+    memset(text_anim_going_right, FALSE, sizeof(text_anim_going_right));
+    memset(text_anim_x_offset, 0, sizeof(text_anim_x_offset));
+    memset(scrolling_needed, FALSE, sizeof(scrolling_needed));
+    
+    /* Arm timer for scrolling */
+    timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
+    
+    /* Loop until something has been done */
+    while (action_taken == FALSE)
+    {
+        /* User interaction timeout */
+        if (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED)
+        {
+            return -1;
+        }
+        
+        /* Card removed */
+        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        {
+            return -1;
+        }
+        
+        /* Check if something has been pressed */
+        wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, FALSE);
+        if (detect_result == WHEEL_ACTION_SHORT_CLICK)
+        {
+            return selected_category;
+        }
+        else if (detect_result == WHEEL_ACTION_LONG_CLICK)
+        {
+            return -1;
+        }
+        else if (detect_result == WHEEL_ACTION_DOWN)
+        {
+            if (selected_category < 4)
+            {
+                selected_category++;
+            }
+        }
+        else if (detect_result == WHEEL_ACTION_UP)
+        {
+            if (selected_category != 0)
+            {
+                selected_category--;
+            }
+        }
+        
+        /* Scrolling logic */
+        if (timer_has_timer_expired(TIMER_SCROLLING, FALSE) == TIMER_EXPIRED)
+        {
+            /* Rearm timer */
+            timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
+            
+            /* Scrolling logic: when enabled, going left or right... */
+            for (uint16_t i = 0; i < 5; i++)
+            {
+                if (scrolling_needed[i] != FALSE)
+                {
+                    if (text_anim_going_right[i] == FALSE)
+                    {
+                        text_anim_x_offset[i]--;
+                    }
+                    else
+                    {
+                        text_anim_x_offset[i]++;
+                    }
+                }
+            }
+            redraw_needed = TRUE;
+        }
+        
+        /* Redraw if needed */
+        if (redraw_needed != FALSE)
+        {
+            /* Clear frame buffer, set display settings */
+            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
+            sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
+            
+            /* Loop for 5 always displayed texts */
+            temp_y_offset = 0;
+            for (uint16_t i = 0; i < 5; i++)
+            {
+                if (i == 0)
+                {
+                    /* First string: "default" */
+                    custom_fs_get_string_from_file(DEFAULT_CATEGORY_TEXT_ID, &string_to_display, TRUE);
+                }
+                else
+                {
+                    /* Any other string: see if the user setup a string, otherwise set default one */
+                    nodemgmt_get_category_string(i-1, temp_category_text);
+                    
+                    /* Check for empty string */
+                    if ((temp_category_text[0] == 0xFFFF) || (temp_category_text[0] == 0))
+                    {
+                        custom_fs_get_string_from_file(DEFAULT_CATEGORY_TEXT_ID+i, &string_to_display, TRUE);
+                    }
+                    else
+                    {
+                        string_to_display = temp_category_text;
+                    }
+                }
+                
+                /* TBD */
+                if (i == selected_category)
+                {
+                    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);                    
+                    utils_surround_text_with_pointers(string_to_display, ARRAY_SIZE(temp_category_text));
+                } 
+                else
+                {
+                    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                }
+                    
+                /* Display string */
+                if (scrolling_needed[i] != FALSE)
+                {
+                    /* Scrolling required: display with the correct X offset */
+                    displayed_length = sh1122_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], i*12 + temp_y_offset, OLED_ALIGN_LEFT, string_to_display, TRUE);
+                        
+                    /* Scrolling: go change direction if we went too far */
+                    if (text_anim_going_right[i] == FALSE)
+                    {
+                        if (displayed_length == SH1122_OLED_WIDTH-12)
+                        {
+                            text_anim_going_right[i] = TRUE;
+                        }
+                    }
+                    else
+                    {
+                        if (text_anim_x_offset[i] == 12)
+                        {
+                            text_anim_going_right[i] = FALSE;
+                        }
+                    }
+                }
+                else
+                {
+                    /* String not large enough or start of animation */
+                    displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, i*12 + temp_y_offset, string_to_display, TRUE);
+                }
+                
+                /* Add offset if needed */
+                if (i == selected_category)
+                {
+                    temp_y_offset += 1;
+                }
+                    
+                /* First run: based on the number of chars displayed, set the scrolling needed bool */
+                if ((function_just_started != FALSE) && (displayed_length < 0))
+                {
+                    scrolling_needed[i] = TRUE;
+                }
+            }
+            
+            /* Reset display settings */
+            sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
+            sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
+            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            
+            /* Flush to display */
+            sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
+            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            #endif
+            
+            /* Load function exit transition */
+            sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+            
+            /* Reset Bool */
+            function_just_started = FALSE;
+            redraw_needed = FALSE;
+        }
+    }
+    
+    return -1;
 }
