@@ -1478,7 +1478,10 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     uint16_t center_of_list_parent_addr = start_address;
     BOOL end_of_list_reached_at_center = FALSE;
     BOOL displaying_service_fchars = FALSE;
+    BOOL user_knows_press_scroll =  FALSE;
     BOOL animation_just_started = TRUE;
+    BOOL hint_cur_displayed = FALSE;
+    BOOL displaying_hint = FALSE;
     int16_t text_anim_x_offset[4];
     BOOL text_anim_going_right[4];
     cust_char_t cur_fchar = ' ';
@@ -1506,6 +1509,9 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     
     /* Arm timer for scrolling */
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
+    
+    /* Timestamp to know when to display the hint */
+    uint32_t func_stat_ts = timer_get_systick();
     
     /* Loop until something has been done */
     while (action_taken == FALSE)
@@ -1561,6 +1567,15 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
         }
         else if (detect_result == WHEEL_ACTION_CLICK_DOWN)
         {
+            /* Reset hint display logic */
+            if (hint_cur_displayed != FALSE)
+            {
+                custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
+            }
+            user_knows_press_scroll = TRUE;
+            hint_cur_displayed = FALSE;
+            displaying_hint = FALSE;
+        
             uint16_t next_diff_fletter_node_addr = logic_database_get_next_2_fletters_services(center_of_list_parent_addr, cur_fchar, &fchar_array[1]);
             if (next_diff_fletter_node_addr != NODE_ADDR_NULL)
             {
@@ -1578,6 +1593,15 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
         }
         else if (detect_result == WHEEL_ACTION_CLICK_UP)
         {
+            /* Reset hint display logic */
+            if (hint_cur_displayed != FALSE)
+            {
+                custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
+            }
+            user_knows_press_scroll = TRUE;
+            hint_cur_displayed = FALSE;
+            displaying_hint = FALSE;
+            
             uint16_t prev_diff_fletter_node_addr = logic_database_get_prev_2_fletters_services(center_of_list_parent_addr, cur_fchar, fchar_array);
             if (prev_diff_fletter_node_addr != NODE_ADDR_NULL)
             {
@@ -1592,6 +1616,19 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             {
                 fchar_array[1] = cur_fchar;
             }
+        }
+        
+        /* Check if we should start displaying the hint */
+        if ((displaying_hint == FALSE) && ((timer_get_systick()-func_stat_ts) > GUI_DELAY_BEFORE_HINT) && (user_knows_press_scroll == FALSE))
+        {
+            displaying_hint = TRUE;
+            hint_cur_displayed = TRUE;
+            
+            /* Animation timer used for hint blinking */
+            timer_start_timer(TIMER_ANIMATIONS, GUI_DELAY_HINT_BLINKING);
+            
+            /* Load hint string */
+            custom_fs_get_string_from_file(PRESS_SCROLL_HINT_TEXT_ID, &select_credential_string, TRUE);
         }
 
         /* We're displaying first chars but the wheel was released */
@@ -1730,11 +1767,31 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                     {
                         if (i == 0)
                         {
-                            /* Title: either display selection text or the first chars */
+                            /* Title: either display selection text or the first chars or the hint */
                             if (displaying_service_fchars == FALSE)
                             {
-                                /* String not large enough or start of animation */
+                                /* Same pointer has the pointer to the string doesn't change when we reload strings */
                                 displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
+                                
+                                /* Blinking timer logic */
+                                if ((displaying_hint != FALSE) && (timer_has_timer_expired(TIMER_ANIMATIONS, FALSE) == TIMER_EXPIRED))
+                                {
+                                    /* Animation timer used for hint blinking */
+                                    timer_start_timer(TIMER_ANIMATIONS, GUI_DELAY_HINT_BLINKING);
+                                                         
+                                    if (hint_cur_displayed == FALSE)
+                                    {
+                                        /* Load hint string */
+                                        custom_fs_get_string_from_file(PRESS_SCROLL_HINT_TEXT_ID, &select_credential_string, TRUE);
+                                        hint_cur_displayed = TRUE;
+                                    } 
+                                    else
+                                    {
+                                        /* "Select credential" string */
+                                        custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
+                                        hint_cur_displayed = FALSE;
+                                    }                                
+                                }
                             } 
                             else
                             {

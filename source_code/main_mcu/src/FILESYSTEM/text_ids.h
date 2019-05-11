@@ -80,5 +80,6 @@
 #define INSERT_NEW_CARD_TEXT_ID         69
 #define CARD_CLONED_TEXT_ID             70
 #define PLEASE_REAUTH_TEXT_ID           71
+#define PRESS_SCROLL_HINT_TEXT_ID       72
 
 #endif

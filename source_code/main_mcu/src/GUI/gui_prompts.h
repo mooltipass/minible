@@ -86,6 +86,10 @@
 // Delay when scrolling a text
 #define SCROLLING_DEL                   33
 
+// Delay before starting to display hint
+#define GUI_DELAY_BEFORE_HINT           5000
+#define GUI_DELAY_HINT_BLINKING         5000
+
 /* Structs */
 typedef struct
 {
