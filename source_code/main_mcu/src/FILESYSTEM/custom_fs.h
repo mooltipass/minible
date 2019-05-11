@@ -38,6 +38,7 @@
 #define USER_SEC_FLG_PIN_FOR_MMM            0x02
 #define USER_SEC_FLG_CRED_SAVE_PROMPT_MMM   0x04
 #define USER_SEC_FLG_ADVANCED_MENU          0x08
+#define USER_SEC_FLG_BLE_ENABLED            0x10
 
 /* Typedefs */
 typedef uint32_t custom_fs_file_count_t;

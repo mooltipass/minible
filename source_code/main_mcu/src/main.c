@@ -388,7 +388,7 @@ int main(void)
         cpz_lut_entry_t special_user_profile;
         memset(&special_user_profile, 0, sizeof(special_user_profile));
         special_user_profile.user_id = 100;
-        //special_user_profile.security_settings_flags = USER_SEC_FLG_LOGIN_CONF | USER_SEC_FLG_PIN_FOR_MMM | USER_SEC_FLG_CRED_SAVE_PROMPT_MMM | USER_SEC_FLG_ADVANCED_MENU;
+        //special_user_profile.security_settings_flags = USER_SEC_FLG_LOGIN_CONF | USER_SEC_FLG_PIN_FOR_MMM | USER_SEC_FLG_CRED_SAVE_PROMPT_MMM | USER_SEC_FLG_ADVANCED_MENU | USER_SEC_FLG_BLE_ENABLED;
         special_user_profile.security_settings_flags = USER_SEC_FLG_LOGIN_CONF | USER_SEC_FLG_CRED_SAVE_PROMPT_MMM | USER_SEC_FLG_ADVANCED_MENU;
                 
         /* When developping on a newly flashed board: reset USB connection and reset defaults */

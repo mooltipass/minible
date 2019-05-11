@@ -205,11 +205,13 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             case GUI_BT_ENABLE_ICON_ID:
             {
                 logic_gui_enable_bluetooth();
+                logic_user_set_user_security_flag(USER_SEC_FLG_BLE_ENABLED);
                 return TRUE;       
             }            
             case GUI_BT_DISABLE_ICON_ID:
             {                
                 logic_gui_disable_bluetooth();
+                logic_user_clear_user_security_flag(USER_SEC_FLG_BLE_ENABLED);
                 return TRUE;       
             }
             

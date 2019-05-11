@@ -14,6 +14,7 @@
 #include "gui_prompts.h"
 #include "platform_io.h"
 #include "logic_user.h"
+#include "logic_gui.h"
 #include "text_ids.h"
 
 
@@ -139,6 +140,16 @@ RET_TYPE logic_smartcard_handle_inserted(void)
         /* This a valid user smart card, we call a dedicated function for the user to unlock the card */
         if (temp_return == RETURN_VCARD_OK)
         {
+            /* Enable / disable bluetooth depending on user preference */
+            if ((logic_user_get_user_security_flags() & USER_SEC_FLG_BLE_ENABLED) == 0)
+            {
+                logic_gui_disable_bluetooth();
+            }
+            else
+            {
+                logic_gui_enable_bluetooth();
+            }
+            
             //unlockFeatureCheck();
             next_screen = GUI_SCREEN_MAIN_MENU;
             return_value = RETURN_OK;
