@@ -778,6 +778,12 @@
     <Compile Include="src\LOGIC\logic_encryption.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\LOGIC\logic_gui.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\LOGIC\logic_gui.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\LOGIC\logic_power.c">
       <SubType>compile</SubType>
     </Compile>
