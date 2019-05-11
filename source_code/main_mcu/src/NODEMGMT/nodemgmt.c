@@ -714,8 +714,6 @@ void nodemgmt_init_context(uint16_t userIdNum)
     
     // scan for next free parent and child nodes from the start of the memory
     nodemgmt_scan_node_usage();
-    
-    // To think about: the old service LUT from the mini isn't needed as we support unicode now
 }
 
 /*! \fn     nodemgmt_user_db_changed_actions(BOOL dataChanged)

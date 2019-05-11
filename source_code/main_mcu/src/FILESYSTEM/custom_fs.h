@@ -167,6 +167,7 @@ RET_TYPE custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_p
 uint16_t custom_fs_get_nb_free_cpz_lut_entries(uint8_t* first_available_user_id);
 RET_TYPE custom_fs_update_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id);
 RET_TYPE custom_fs_store_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id);
+void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id);
 void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc);
 uint8_t custom_fs_settings_get_device_setting(uint16_t setting_id);
 uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id);

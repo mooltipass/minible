@@ -437,8 +437,41 @@ uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id)
     return (FLASH_ADDR + FLASH_SIZE - emulated_eeprom_size + slot_id*NVMCTRL_ROW_SIZE);
 }
 
+/*! \fn     custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id)
+*   \brief  Erase 256 bytes in a custom storage slot, located in NVM configured as EEPROM
+*   \param  slot_id     slot ID
+*   \note   Please make sure the fuses are correctly configured
+*   \note   NVM configured as EEPROM allows access to NVM when EEPROM is being written or erased (convenient when interrupts occur)
+*/
+void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id)
+{
+#ifndef FEATURE_NVM_RWWEE    
+    /* Compute address of where we want to write data */
+    uint32_t flash_addr = custom_fs_get_custom_storage_slot_addr(slot_id);
+    
+    /* Check if we were successful */
+    if (flash_addr == 0)
+    {
+        return;
+    }
+    
+    /* Automatic write, disable caching */
+    NVMCTRL->CTRLB.bit.MANW = 0;
+    NVMCTRL->CTRLB.bit.CACHEDIS = 1;
+    
+    /* Erase complete row */
+    while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+    NVMCTRL->ADDR.reg  = flash_addr/2;
+    NVMCTRL->CTRLA.reg = NVMCTRL_CTRLA_CMD_ER | NVMCTRL_CTRLA_CMDEX_KEY;
+
+    /* Disable automatic write, enable caching */
+    NVMCTRL->CTRLB.bit.MANW = 1;
+    NVMCTRL->CTRLB.bit.CACHEDIS = 0;
+#endif
+}
+
 /*! \fn     custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array)
-*   \brief  Write 256 bytes in a custom storage slot, located in NVM configured as EEPROM or EEPROM
+*   \brief  Write 256 bytes in a custom storage slot, located in NVM configured as EEPROM
 *   \param  slot_id     slot ID
 *   \param  array       256 bytes array (matches NVMCTRL_ROW_SIZE)
 *   \note   Please make sure the fuses are correctly configured

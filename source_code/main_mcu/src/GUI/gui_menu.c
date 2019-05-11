@@ -165,6 +165,12 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             /* Re-render menu */
             return TRUE;
         }
+        else
+        {
+            /* Any other menu, long click to go back */
+            gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE, GUI_OUTOF_MENU_TRANSITION);
+            return TRUE;
+        }
     }
     else if (wheel_action == WHEEL_ACTION_SHORT_CLICK)
     {

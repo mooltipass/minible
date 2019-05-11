@@ -16,6 +16,7 @@
 #include "gui_prompts.h"
 #include "platform_io.h"
 #include "logic_power.h"
+#include "dataflash.h"
 #include "custom_fs.h"
 #include "nodemgmt.h"
 #include "lis2hh12.h"
@@ -138,7 +139,7 @@ void debug_debug_menu(void)
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Display All Fonts Glyphs", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Scroll Through Glyphs", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Language Switch Test", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Animation Test", TRUE);            
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Reset Device", TRUE);            
             }
             else if (selected_item < 12)
             {
@@ -209,7 +210,7 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 7)
             {
-                debug_debug_animation();
+                debug_reset_device();
             }
             else if (selected_item == 8)
             {
@@ -254,6 +255,25 @@ void debug_debug_menu(void)
             redraw_needed = TRUE;
         }
     }
+}
+
+
+/*! \fn     debug_reset_device(void)
+*   \brief  Reset device: erase all flash memories
+*/
+void debug_reset_device(void)
+{
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please wait...", FALSE);
+    dataflash_bulk_erase_with_wait(&dataflash_descriptor);
+    dbflash_format_flash(&dbflash_descriptor);
+    for (uint16_t i = 0; i < 4096/NVMCTRL_ROW_SIZE; i++)
+    {
+        custom_fs_erase_256B_at_internal_custom_storage_slot(i);
+    }
+    custom_fs_settings_set_defaults();
+    cpu_irq_disable();
+    NVIC_SystemReset();
 }
 
 /*! \fn     debug_setup_dev_card(void)
