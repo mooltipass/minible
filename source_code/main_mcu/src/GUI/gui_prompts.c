@@ -64,6 +64,9 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
 {
     cust_char_t* string_to_display;
     
+    /* Activity detected routine */
+    logic_device_activity_detected();
+    
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
@@ -106,6 +109,9 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
 */
 void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type)
 {
+    /* Activity detected routine */
+    logic_device_activity_detected();
+    
     /* Check strings lengths and truncate them if necessary */
     sh1122_set_min_text_x(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type]);
     for (uint16_t i = 0; i < 3; i++)
@@ -177,7 +183,7 @@ void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_li
 void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame_id, uint16_t* timer_timeout, display_message_te message_type)
 {
     /* Display correct frame */
-    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+*frame_id, FALSE);
+    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+(*frame_id), FALSE);
     
     /* Increment frame ID */
     if ((*frame_id)++ == gui_prompts_notif_idle_anim_length[message_type]-1)

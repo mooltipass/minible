@@ -225,7 +225,7 @@ void gui_dispatcher_idle_call(void)
     }    
 
     /* Update loop number */
-    if (gui_dispatcher_current_idle_anim_frame_id != (current_frame_id + 1))
+    if ((gui_dispatcher_current_idle_anim_frame_id != (current_frame_id + 1)) && (gui_dispatcher_current_idle_anim_frame_id != current_frame_id))
     {
         gui_dispatcher_current_idle_anim_loop++;
     }
