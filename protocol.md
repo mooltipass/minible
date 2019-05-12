@@ -393,6 +393,7 @@ Tested status: NOT tested
 0x0014: Get User Categories Strings
 -----------------------------------
 
+Strings need to be padded.
 From the PC: 
 
 | byte 0-1 | byte 2-X     |
