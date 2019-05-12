@@ -404,7 +404,7 @@ Device Answer:
 
 | byte 0-1 | byte 2-3 | byte 4-69 | byte 70-135 | byte 136-201| byte 202-268 |
 |:---------|:---------|:----------|:----------|:----------|:----------|
-| 0x0014   | 264      | String #1 | String #2 | String #3 | String #4 |
+| 0x0014   | 264 or 1 | String #1 | String #2 | String #3 | String #4 |
 
 Tested status: NOT tested
 
