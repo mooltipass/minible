@@ -268,7 +268,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             _Static_assert(sizeof(nodemgmt_user_category_strings_t) == sizeof(nodemgmt_user_category_strings_t), "get/set categories message and db structure aren't the same");
             
             /* Set user categories strings */
-            if ((rcv_msg->payload_length == sizeof(nodemgmt_user_category_strings_t)) && (logic_security_is_smc_inserted_unlocked() != FALSE))
+            if ((rcv_msg->payload_length == sizeof(nodemgmt_user_category_strings_t)) && (logic_security_is_smc_inserted_unlocked() != FALSE) && (gui_prompts_ask_for_one_line_confirmation(SET_CAT_STRINGS_TEXT_ID, TRUE) == MINI_INPUT_RET_YES))
             {
                 /* Store category strings */
                 nodemgmt_set_category_strings((nodemgmt_user_category_strings_t*)&rcv_msg->get_set_cat_strings);

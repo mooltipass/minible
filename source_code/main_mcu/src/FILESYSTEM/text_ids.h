@@ -84,5 +84,6 @@
 #define DEFAULT_CATEGORY_TEXT_ID        73
 #define SELECT_CREDENTIAL_TEXT_ID       78
 #define NO_FAVORITES_TEXT_ID            79
+#define SET_CAT_STRINGS_TEXT_ID         80
 
 #endif
