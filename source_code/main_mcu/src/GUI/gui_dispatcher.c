@@ -242,7 +242,7 @@ void gui_dispatcher_main_loop(void)
     wheel_action_ret_te user_action = inputs_get_wheel_action(FALSE, FALSE);
     
     // No activity, turn off screen
-    if (timer_has_timer_expired(TIMER_SCREEN, FALSE) == TIMER_EXPIRED)
+    if (timer_has_timer_expired(TIMER_SCREEN, TRUE) == TIMER_EXPIRED)
     {
         /* Display "going to sleep", switch off screen */
         gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO);
@@ -250,6 +250,11 @@ void gui_dispatcher_main_loop(void)
         gui_dispatcher_get_back_to_current_screen();
         platform_io_power_down_oled();
         
+        /* The notification display routine calls the activity detected routine */
+        timer_start_timer(TIMER_SCREEN, 0);
+        timer_has_timer_expired(TIMER_SCREEN, TRUE);
+        
+        /* If we're battery powered, go to sleep */
         if (logic_power_get_power_source() == BATTERY_POWERED)
         {
             /* Good night */
