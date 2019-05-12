@@ -714,6 +714,28 @@ void nodemgmt_set_profile_ctr(void* buf)
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.current_ctr), sizeof(dirty_address_finding_trick->main_data.current_ctr), buf);
 }
 
+/*! \fn     nodemgmt_get_category_strings(nodemgmt_user_category_strings_t* strings_pt)
+ *  \brief  Get all category strings at once
+ *  \param  strings_pt  Where to store the strings
+ */
+void nodemgmt_get_category_strings(nodemgmt_user_category_strings_t* strings_pt)
+{
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserCategoryStrings, nodemgmt_current_handle.offsetUserCategoryStrings, sizeof(nodemgmt_user_category_strings_t), strings_pt);
+    strings_pt->category_strings[0][MEMBER_SUB_ARRAY_SIZE(nodemgmt_user_category_strings_t, category_strings)-1] = 0;
+    strings_pt->category_strings[1][MEMBER_SUB_ARRAY_SIZE(nodemgmt_user_category_strings_t, category_strings)-1] = 0;
+    strings_pt->category_strings[2][MEMBER_SUB_ARRAY_SIZE(nodemgmt_user_category_strings_t, category_strings)-1] = 0;
+    strings_pt->category_strings[3][MEMBER_SUB_ARRAY_SIZE(nodemgmt_user_category_strings_t, category_strings)-1] = 0;
+}
+
+/*! \fn     nodemgmt_set_category_strings(nodemgmt_user_category_strings_t* strings_pt)
+ *  \brief  Set all category strings at once
+ *  \param  strings_pt  Where the strings are stored
+ */
+void nodemgmt_set_category_strings(nodemgmt_user_category_strings_t* strings_pt)
+{
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserCategoryStrings, nodemgmt_current_handle.offsetUserCategoryStrings, sizeof(nodemgmt_user_category_strings_t), strings_pt);
+}
+
 /*! \fn     nodemgmt_get_category_string(uint16_t string_id, cust_char_t* string_pt)
  *  \brief  Get a given user category string
  *  \param  category_id     Category ID

@@ -221,6 +221,71 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             send_msg->payload_length = 1;
             return 1;
         }
+        
+        case HID_CMD_GET_USER_SETTINGS:
+        {
+            /* Get user security settings */
+            if (logic_security_is_smc_inserted_unlocked() != FALSE)
+            {
+                send_msg->message_type = rcv_message_type;
+                send_msg->payload[0] = logic_user_get_user_security_flags();
+                send_msg->payload_length = 1;
+                return 1;
+            } 
+            else
+            {
+                send_msg->message_type = rcv_message_type;
+                send_msg->payload_length = 0;
+                return 1;
+            }
+        }
+        
+        case HID_CMD_GET_CATEGORIES_STR:
+        {            
+            _Static_assert(sizeof(nodemgmt_user_category_strings_t) == sizeof(nodemgmt_user_category_strings_t), "get/set categories message and db structure aren't the same");
+            
+            /* Get user categories strings */
+            if (logic_security_is_smc_inserted_unlocked() != FALSE)
+            {
+                send_msg->message_type = rcv_message_type;
+                nodemgmt_get_category_strings((nodemgmt_user_category_strings_t*)&send_msg->get_set_cat_strings);
+                send_msg->payload_length = sizeof(nodemgmt_user_category_strings_t);
+                return sizeof(nodemgmt_user_category_strings_t);
+                
+            } 
+            else
+            {
+                /* Set nack, leave same command id */
+                send_msg->message_type = rcv_message_type;
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
+                return 1;
+            }
+        }
+        
+        case HID_CMD_SET_CATEGORIES_STR:
+        {
+            _Static_assert(sizeof(nodemgmt_user_category_strings_t) == sizeof(nodemgmt_user_category_strings_t), "get/set categories message and db structure aren't the same");
+            
+            /* Set user categories strings */
+            if ((rcv_msg->payload_length == sizeof(nodemgmt_user_category_strings_t)) && (logic_security_is_smc_inserted_unlocked() != FALSE))
+            {
+                /* Store category strings */
+                nodemgmt_set_category_strings((nodemgmt_user_category_strings_t*)&rcv_msg->get_set_cat_strings);
+                
+                /* Set ack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_ACK;                
+            }
+            else
+            {
+                /* Set nack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+            
+            send_msg->message_type = rcv_message_type;            
+            send_msg->payload_length = 1;
+            return 1; 
+        }    
 
         case HID_CMD_RESET_UNKNOWN_CARD:
         {

@@ -35,6 +35,9 @@
 #define HID_CMD_LOCK_DEVICE         0x0010
 #define HID_CMD_GET_DEVICE_STATUS   0x0011
 #define HID_CMD_CHECK_PASSWORD      0x0012
+#define HID_CMD_GET_USER_SETTINGS   0x0013
+#define HID_CMD_GET_CATEGORIES_STR  0x0014
+#define HID_CMD_SET_CATEGORIES_STR  0x0015
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101
@@ -110,6 +113,11 @@ typedef struct
 
 typedef struct
 {
+    cust_char_t category_strings[4][33];
+} hid_message_get_set_category_strings_t;
+
+typedef struct
+{
     uint16_t message_type;
     uint16_t payload_length;
     union
@@ -124,6 +132,7 @@ typedef struct
         hid_message_check_cred_req_t check_credential;
         hid_message_get_cred_req_t get_credential_request;
         hid_message_get_cred_answer_t get_credential_answer;
+        hid_message_get_set_category_strings_t get_set_cat_strings;
     };
 } hid_message_t;
 

@@ -278,6 +278,8 @@ void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* ch
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId);
+void nodemgmt_get_category_strings(nodemgmt_user_category_strings_t* strings_pt);
+void nodemgmt_set_category_strings(nodemgmt_user_category_strings_t* strings_pt);
 void nodemgmt_get_category_string(uint16_t category_id, cust_char_t* string_pt);
 void nodemgmt_set_category_string(uint16_t category_id, cust_char_t* string_pt);
 uint16_t nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day);
