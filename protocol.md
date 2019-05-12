@@ -368,13 +368,13 @@ From the PC:
 
 | byte 0-1 | byte 2-X     |
 |:---------|:-------------|
-| 0x0011   |        N/A   |
+| 0x0013   |        N/A   |
 
 Device Answer:
 
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
-| 0x0011   | 0 or 1 | if payload length is 1, see below |
+| 0x0013   | 0 or 1 | if payload length is 1, see below |
 
 User Security Settings Bitmask:
 
@@ -386,6 +386,42 @@ User Security Settings Bitmask:
 | 0x08     | Advanced menu |
 | 0x10     | Bluetooth enabled |
 | 0x20     | Credential display prompt |
+
+Tested status: NOT tested
+
+
+0x0014: Get User Categories Strings
+-----------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0014   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3 | byte 4-69 | byte 70-135 | byte 136-201| byte 202-268 |
+|:---------|:---------|:----------|:----------|:----------|:----------|
+| 0x0014   | 264      | String #1 | String #2 | String #3 | String #4 |
+
+Tested status: NOT tested
+
+
+0x0015: Set User Categories Strings
+-----------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3 | byte 4-69 | byte 70-135 | byte 136-201| byte 202-268 |
+|:---------|:---------|:----------|:----------|:----------|:----------|
+| 0x0015   | 264      | String #1 | String #2 | String #3 | String #4 |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0015   | 1 | 0x00 (failure) / 0x01 (success) |
 
 Tested status: NOT tested
 
