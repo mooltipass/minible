@@ -361,6 +361,35 @@ Device Answer:
 Tested status: NOT tested
 
 
+0x0013: Get User Settings
+-------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0011   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0011   | 0 or 1 | if payload length is 1, see below |
+
+User Security Settings Bitmask:
+
+| Bitmask  | Description |             
+|:---------|:-----------|
+| 0x01     | Login prompts on device |
+| 0x02     | PIN required to enter MMM |
+| 0x04     | Storage prompts during MMM |
+| 0x08     | Advanced menu |
+| 0x10     | Bluetooth enabled |
+| 0x20     | Credential display prompt |
+
+Tested status: NOT tested
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
