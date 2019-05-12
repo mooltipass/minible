@@ -184,3 +184,23 @@ void utils_surround_text_with_pointers(cust_char_t* text, uint16_t field_length)
         text[text_length+4] = 0;
     }
 }
+
+/*! \fn     utils_concatenate_strings_with_slash(cust_char_t* string1, cust_char_t* string2, uint16_t storage_length)
+*   \brief  Generate a string like "string1/string2"
+*   \param  string1         First string, where the result will be stored
+*   \param  string2         Second string
+*   \param  storage_length  How many chars we can put in string 1
+*   \note   both strings should be 0 terminated
+*/
+void utils_concatenate_strings_with_slash(cust_char_t* string1, cust_char_t* string2, uint16_t storage_length)
+{
+    uint16_t string1_length = utils_strlen(string1);
+    uint16_t string2_length = utils_strlen(string2);
+    
+    /* Do we have enough space to do what we want? */
+    if (string1_length + string2_length + 1 + 1 <= storage_length)
+    {
+        string1[string1_length] = '/';
+        utils_strcpy(&string1[string1_length+1], string2);
+    }    
+}

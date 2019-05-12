@@ -212,6 +212,35 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 }
                 return TRUE;
             }
+            case GUI_FAV_ICON_ID:
+            {
+                uint16_t chosen_service_addr, chosen_login_addr;
+                int16_t chosen_favorite_index;
+
+                while (TRUE)
+                {
+                    chosen_favorite_index = gui_prompts_favorite_selection_screen();
+
+                    /* No login was chosen */
+                    if (chosen_favorite_index < 0)
+                    {
+                        return TRUE;
+                    }
+                    
+                    /* Load address */
+                    nodemgmt_read_favorite_for_current_category(chosen_favorite_index, &chosen_service_addr, &chosen_login_addr);
+
+                    // Ask the user permission to enter login / password, check for back action
+                    if (logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr) == RETURN_BACK)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        return TRUE;
+                    }
+                }
+            }
             case GUI_OPR_ICON_ID:           gui_dispatcher_set_current_screen(GUI_SCREEN_OPERATIONS, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;
             case GUI_SETTINGS_ICON_ID:      gui_dispatcher_set_current_screen(GUI_SCREEN_SETTINGS, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;
             case GUI_BT_ICON_ID:            gui_dispatcher_set_current_screen(GUI_SCREEN_BT, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;

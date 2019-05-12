@@ -108,6 +108,7 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
 RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID);
 uint16_t gui_prompts_service_selection_screen(uint16_t start_address);
 uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr);
+int16_t gui_prompts_favorite_selection_screen(void);
 int16_t gui_prompts_select_category(void);
 
 #endif /* GUI_PROMPTS_H_ */

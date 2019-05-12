@@ -377,7 +377,7 @@ void nodemgmt_format_user_profile(uint16_t uid)
     
     // Set buffer to all 0's.
     nodemgmt_get_user_profile_starting_offset(uid, &temp_page, &temp_offset);
-    dbflash_write_data_pattern_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmt_profile_main_data_t), 0x00);
+    dbflash_write_data_pattern_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmt_userprofile_t), 0x00);
 }
 
 /*! \fn     nodemgmt_get_starting_parent_addr(void)
@@ -592,6 +592,94 @@ void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* paren
     // return values to user
     *parentAddress = favorite.parent_addr;
     *childAddress = favorite.child_addr;
+}
+
+/*! \fn     nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress)
+ *  \brief  Reads a user favorite in the user profile
+ *  \param  favId           The id number of the fav record
+ *  \param  parentAddress   The parent node address of the fav
+ *  \param  childAddress    The child node address of the fav
+ */
+void nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    favorite_addr_t favorite;
+    
+    if(favId >= (sizeof(dirty_address_finding_trick->category_favorites[0].favorite)/sizeof(dirty_address_finding_trick->category_favorites[0].favorite[0])))
+    {
+        while(1);
+    }
+    
+    // Read from flash
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->category_favorites[nodemgmt_current_handle.currentCategoryId].favorite[favId]), sizeof(favorite), (void*)&favorite);
+    
+    // return values to user
+    *parentAddress = favorite.parent_addr;
+    *childAddress = favorite.child_addr;
+}
+
+/*! \fn     nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId)
+ *  \brief  Get a non-null favorite ID after a given one
+ *  \param  favId           The id number at which we should start looking for favs
+ *  \return A favorite ID or -1
+ */
+int16_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    favorite_addr_t favorite;
+    
+    /* Sanity checks */
+    if(favId >= (sizeof(dirty_address_finding_trick->category_favorites[0].favorite)/sizeof(dirty_address_finding_trick->category_favorites[0].favorite[0])))
+    {
+        return -1;
+    }
+    
+    /* Start looking */
+    for (uint16_t i = favId; i < MEMBER_ARRAY_SIZE(favorites_for_category_t, favorite); i++)
+    {
+        // Read from flash
+        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->category_favorites[nodemgmt_current_handle.currentCategoryId].favorite[i]), sizeof(favorite), (void*)&favorite);
+
+        // Valid favorite?
+        if ((favorite.child_addr != NODE_ADDR_NULL) && (favorite.parent_addr != NODE_ADDR_NULL))
+        {
+            return i;
+        }
+    }
+    
+    return -1;
+}
+
+/*! \fn     nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId)
+ *  \brief  Get a non-null favorite ID after a given one
+ *  \param  favId           The id number at which we should start looking for favs
+ *  \return A favorite ID or -1
+ */
+int16_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    favorite_addr_t favorite;
+    
+    /* Sanity checks */
+    if(favId >= (sizeof(dirty_address_finding_trick->category_favorites[0].favorite)/sizeof(dirty_address_finding_trick->category_favorites[0].favorite[0])))
+    {
+        return -1;
+    }
+    
+    /* Start looking */
+    for (int16_t i = favId; i >= 0; i--)
+    {
+        // Read from flash
+        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->category_favorites[nodemgmt_current_handle.currentCategoryId].favorite[i]), sizeof(favorite), (void*)&favorite);
+
+        // Valid favorite?
+        if ((favorite.child_addr != NODE_ADDR_NULL) && (favorite.parent_addr != NODE_ADDR_NULL))
+        {
+            return i;
+        }
+    }
+    
+    return -1;
 }
 
 /*! \fn     nodemgmt_get_favorites(uint16_t* addresses_array)

@@ -82,5 +82,7 @@
 #define PLEASE_REAUTH_TEXT_ID           71
 #define PRESS_SCROLL_HINT_TEXT_ID       72
 #define DEFAULT_CATEGORY_TEXT_ID        73
+#define SELECT_CREDENTIAL_TEXT_ID       78
+#define NO_FAVORITES_TEXT_ID            79
 
 #endif

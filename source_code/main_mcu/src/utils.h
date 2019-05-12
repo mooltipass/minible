@@ -12,6 +12,7 @@
 
 
 /* Prototypes */
+void utils_concatenate_strings_with_slash(cust_char_t* string1, cust_char_t* string2, uint16_t storage_length);
 int16_t utils_custchar_strncmp(cust_char_t* f_string, cust_char_t* sec_string, uint16_t nb_chars);
 void utils_strncpy(cust_char_t* destination, cust_char_t* source, uint16_t max_chars);
 void utils_surround_text_with_pointers(cust_char_t* text, uint16_t field_length);
