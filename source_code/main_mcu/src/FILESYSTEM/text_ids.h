@@ -85,5 +85,11 @@
 #define SELECT_CREDENTIAL_TEXT_ID       78
 #define NO_FAVORITES_TEXT_ID            79
 #define SET_CAT_STRINGS_TEXT_ID         80
+#define PIN_FOR_MMM_TEXT_ID             81
+#define CONF_FOR_MMM_STORAGE_TEXT_ID    82
+#define QCONF_FOR_MMM_STORAGE_TEXT_ID   83
+#define QPIN_FOR_MMM_TEXT_ID            84
+#define QPROMPT_FOR_LOGIN_TEXT_ID       85
+#define QPROMPT_PWD_DISPLAY_TEXT_ID     86
 
 #endif

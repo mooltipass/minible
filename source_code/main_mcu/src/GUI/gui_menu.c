@@ -32,8 +32,8 @@ const uint16_t bluetooth_on_menu_text_ids[] = {BT_DISABLE_TEXT_ID, BT_UNPAIR_DEV
 const uint16_t operations_menu_pic_ids[] = {GUI_CLONE_ICON_ID, GUI_CHANGE_PIN_ICON_ID, GUI_ERASE_USER_ICON_ID, GUI_BACK_ICON_ID};
 const uint16_t operations_menu_text_ids[] = {CLONE_TEXT_ID, CHANGE_PIN_TEXT_ID, ERASE_USER_TEXT_ID, BACK_TEXT_ID};
 /* Settings Menu */
-const uint16_t operations_settings_pic_ids[] = {GUI_KEYB_LAYOUT_CHANGE_ICON_ID, GUI_CRED_PROMPT_CHANGE_ICON_ID, GUI_PWD_DISP_CHANGE_ICON_ID, GUI_WHEEL_ROT_FLIP_ICON_ID, GUI_LANGUAGE_SWITCH_ICON_ID, GUI_BACK_ICON_ID};
-const uint16_t operations_settings_text_ids[] = {KEYB_LAYOUT_CHANGE_TEXT_ID, CRED_PROMPT_CHANGE_TEXT_ID, PWD_DISP_CHANGE_TEXT_ID, WHEEL_ROT_FLIP_TEXT_ID, LANGUAGE_SWITCH_TEXT_ID, BACK_TEXT_ID};
+const uint16_t operations_settings_pic_ids[] = {GUI_LANGUAGE_SWITCH_ICON_ID, GUI_MMM_STORAGE_CONF_ICON_ID, GUI_PIN_FOR_MMM_ICON_ID, GUI_KEYB_LAYOUT_CHANGE_ICON_ID, GUI_CRED_PROMPT_CHANGE_ICON_ID, GUI_PWD_DISP_CHANGE_ICON_ID, GUI_BACK_ICON_ID};
+const uint16_t operations_settings_text_ids[] = {LANGUAGE_SWITCH_TEXT_ID, CONF_FOR_MMM_STORAGE_TEXT_ID, PIN_FOR_MMM_TEXT_ID, KEYB_LAYOUT_CHANGE_TEXT_ID, CRED_PROMPT_CHANGE_TEXT_ID, PWD_DISP_CHANGE_TEXT_ID, BACK_TEXT_ID};
 /* Array of pointers to the menus pics & texts */
 const uint16_t* gui_menu_menus_pics_ids[NB_MENUS] = {simple_menu_pic_ids, bluetooth_off_menu_pic_ids, operations_menu_pic_ids, operations_settings_pic_ids};
 const uint16_t* gui_menu_menus_text_ids[NB_MENUS] = {simple_menu_text_ids, bluetooth_off_menu_text_ids, operations_menu_text_ids, operations_settings_text_ids};
@@ -275,6 +275,71 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 logic_gui_erase_user();
                 return TRUE;
             }
+            
+            /* Settings menu */
+            case GUI_LANGUAGE_SWITCH_ICON_ID:
+            {
+                // TODO2
+                return FALSE;
+            }
+            case GUI_MMM_STORAGE_CONF_ICON_ID+2:
+            {
+                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QCONF_FOR_MMM_STORAGE_TEXT_ID, FALSE);
+                if (user_input == MINI_INPUT_RET_YES)
+                {
+                    logic_user_set_user_security_flag(USER_SEC_FLG_CRED_SAVE_PROMPT_MMM);
+                } 
+                else if (user_input == MINI_INPUT_RET_NO)
+                {
+                    logic_user_clear_user_security_flag(USER_SEC_FLG_CRED_SAVE_PROMPT_MMM);
+                }
+                return TRUE;
+            }
+            case GUI_PIN_FOR_MMM_ICON_ID+3:
+            {
+                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPIN_FOR_MMM_TEXT_ID, FALSE);
+                if (user_input == MINI_INPUT_RET_YES)
+                {
+                    logic_user_set_user_security_flag(USER_SEC_FLG_PIN_FOR_MMM);
+                }
+                else if (user_input == MINI_INPUT_RET_NO)
+                {
+                    logic_user_clear_user_security_flag(USER_SEC_FLG_PIN_FOR_MMM);
+                }
+                return TRUE;
+            }
+            case GUI_KEYB_LAYOUT_CHANGE_ICON_ID:
+            {
+                // TODO2
+                return FALSE;
+            }
+            case GUI_CRED_PROMPT_CHANGE_ICON_ID:
+            {
+                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPROMPT_FOR_LOGIN_TEXT_ID, FALSE);
+                if (user_input == MINI_INPUT_RET_YES)
+                {
+                    logic_user_set_user_security_flag(USER_SEC_FLG_LOGIN_CONF);
+                }
+                else if (user_input == MINI_INPUT_RET_NO)
+                {
+                    logic_user_clear_user_security_flag(USER_SEC_FLG_LOGIN_CONF);
+                }
+                return TRUE;                
+            }
+            case GUI_PWD_DISP_CHANGE_ICON_ID:
+            {
+                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPROMPT_PWD_DISPLAY_TEXT_ID, FALSE);
+                if (user_input == MINI_INPUT_RET_YES)
+                {
+                    logic_user_set_user_security_flag(USER_SEC_FLG_PWD_DISPLAY_PROMPT);
+                }
+                else if (user_input == MINI_INPUT_RET_NO)
+                {
+                    logic_user_clear_user_security_flag(USER_SEC_FLG_PWD_DISPLAY_PROMPT);
+                }
+                return TRUE;
+            }
+            
             
             /* Common to all sub-menus */
             case GUI_BACK_ICON_ID:

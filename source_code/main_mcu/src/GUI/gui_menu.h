@@ -39,6 +39,8 @@
 #define GUI_PWD_DISP_CHANGE_ICON_ID     228
 #define GUI_WHEEL_ROT_FLIP_ICON_ID      237
 #define GUI_LANGUAGE_SWITCH_ICON_ID     246
+#define GUI_PIN_FOR_MMM_ICON_ID         255
+#define GUI_MMM_STORAGE_CONF_ICON_ID    255
 
 /* Enums */
 typedef enum    {MAIN_MENU = 0, BT_MENU = 1, OPERATION_MENU = 2, SETTINGS_MENU = 3, NB_MENUS = 4} menu_te;
