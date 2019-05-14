@@ -75,6 +75,9 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     // Return fail by default
     RET_TYPE return_value = RETURN_NOK;
     
+    // Language: set default one
+    custom_fs_set_current_language(utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1));
+    
     if ((detection_result == RETURN_MOOLTIPASS_PB) || (detection_result == RETURN_MOOLTIPASS_INVALID))
     {
         // Either it is not a card or our Manufacturer Test Zone write/read test failed
@@ -89,9 +92,6 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     }
     else if (detection_result == RETURN_MOOLTIPASS_BLANK)
     {
-        // Language: set default one
-        custom_fs_set_current_language(utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1));
-        
         // This is a user free card, we can ask the user to create a new user inside the Mooltipass
         mini_input_yes_no_ret_te prompt_answer = gui_prompts_ask_for_one_line_confirmation(CREATE_NEW_USER_TEXT_ID, FALSE);
         
@@ -259,9 +259,6 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
     }
     else
     {
-        // Language: set default one
-        custom_fs_set_current_language(utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1));
-        
         // Unknown card
         return RETURN_VCARD_UNKNOWN;
     }
