@@ -16,6 +16,7 @@
 #include "logic_user.h"
 #include "logic_gui.h"
 #include "text_ids.h"
+#include "utils.h"
 
 
 /*! \fn     logic_smartcard_ask_for_new_pin(uint16_t* new_pin, uint16_t message_id)
@@ -88,6 +89,9 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     }
     else if (detection_result == RETURN_MOOLTIPASS_BLANK)
     {
+        // Language: set default one
+        custom_fs_set_current_language(utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1));
+        
         // This is a user free card, we can ask the user to create a new user inside the Mooltipass
         mini_input_yes_no_ret_te prompt_answer = gui_prompts_ask_for_one_line_confirmation(CREATE_NEW_USER_TEXT_ID, FALSE);
         
@@ -208,6 +212,9 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
         }
         #endif
         
+        /* Set language to user preferred one */
+        custom_fs_set_current_language(utils_check_value_for_range(cpz_user_entry->user_language, 0, custom_fs_get_number_of_languages()-1));
+        
         /* Check for defective card, check always done on initial unlock */
         if ((fast_mode == FALSE) && (smartcard_highlevel_check_hidden_aes_key_contents() != RETURN_OK))
         {
@@ -252,6 +259,9 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
     }
     else
     {
+        // Language: set default one
+        custom_fs_set_current_language(utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1));
+        
         // Unknown card
         return RETURN_VCARD_UNKNOWN;
     }
