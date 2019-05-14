@@ -91,5 +91,6 @@
 #define QPIN_FOR_MMM_TEXT_ID            84
 #define QPROMPT_FOR_LOGIN_TEXT_ID       85
 #define QPROMPT_PWD_DISPLAY_TEXT_ID     86
+#define SELECT_LANGUAGE_TEXT_ID         87
 
 #endif

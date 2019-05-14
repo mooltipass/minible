@@ -110,5 +110,6 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address);
 uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr);
 int16_t gui_prompts_favorite_selection_screen(void);
 int16_t gui_prompts_select_category(void);
+void gui_prompts_select_language(void);
 
 #endif /* GUI_PROMPTS_H_ */

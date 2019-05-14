@@ -49,6 +49,47 @@ uint8_t logic_user_get_user_security_flags(void)
     }
 }
 
+/*! \fn     logic_user_get_language(void)
+*   \brief  Get language for current user
+*   \return Language ID
+*/
+uint8_t logic_user_get_language(void)
+{
+    cpz_lut_entry_t* lut_entry_pt = logic_encryption_get_cur_cpz_lut_entry();
+    
+    if (lut_entry_pt != 0)
+    {
+        return utils_check_value_for_range(lut_entry_pt->user_language, 0, custom_fs_get_number_of_languages()-1);
+    }
+    else
+    {
+        /* No user set: return default language */
+        return 0;
+    }    
+}
+
+/*! \fn     logic_user_set_language(uint8_t language_id)
+*   \brief  Set language for current user
+*   \param  language_id User language ID
+*/
+void logic_user_set_language(uint8_t language_id)
+{
+    cpz_lut_entry_t* lut_entry_pt = logic_encryption_get_cur_cpz_lut_entry();
+    cpz_lut_entry_t updated_entry;
+    
+    if (lut_entry_pt != 0)
+    {
+        /* Copy current cpz entry into the new one */
+        memcpy(&updated_entry, lut_entry_pt, sizeof(cpz_lut_entry_t));
+
+        /* Set language */
+        updated_entry.user_language = language_id;
+        
+        /* Update CPZ entry */
+        custom_fs_update_cpz_entry(&updated_entry, updated_entry.user_id);
+    }
+}
+
 /*! \fn     logic_user_get_current_user_id(void)
 *   \brief  Get current user ID
 *   \return User ID
@@ -152,6 +193,9 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* pro
     {
         user_profile.security_settings_flags = 0;
     }
+    
+    /* Set language to preferred one */
+    user_profile.user_language = utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1);
     
     /* Reserved field: set to 0 */
     memset(user_profile.reserved, 0, sizeof(user_profile.reserved));

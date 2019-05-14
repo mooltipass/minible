@@ -1948,6 +1948,9 @@ int16_t gui_prompts_select_category(void)
             return -1;
         }
         
+        /* Deal with simple messages */
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        
         /* Check if something has been pressed */
         wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, FALSE);
         if (detect_result == WHEEL_ACTION_SHORT_CLICK)
@@ -2193,6 +2196,9 @@ int16_t gui_prompts_favorite_selection_screen(void)
         {
             return -1;
         }
+        
+        /* Deal with simple messages */
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         
         /* Check if something has been pressed */
         wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, FALSE);
@@ -2466,4 +2472,195 @@ int16_t gui_prompts_favorite_selection_screen(void)
     }
     
     return -1;
+}
+
+
+/*! \fn     int16_t gui_prompts_select_language(void)
+*   \brief  select language
+*/
+void gui_prompts_select_language(void)
+{    
+    uint8_t cur_language_id = custom_fs_get_current_language_id();
+    uint16_t nb_languages = custom_fs_get_number_of_languages();
+    
+    /* Activity detected */
+    logic_device_activity_detected();
+    
+    /* Clear possible remaining detection */
+    inputs_clear_detections();
+    
+    /* Clear frame buffer */
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #else
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    #endif
+    
+    /* Temp vars for our main loop */
+    int16_t first_language_id_in_list = -1;
+    int16_t last_language_id_in_list = -1;
+    cust_char_t* select_language_string;
+    int16_t animation_step = 0;
+    BOOL redraw_needed = TRUE;
+    BOOL action_taken = FALSE;
+    
+    /* Lines display settings */
+    uint16_t fonts_to_be_used[4] = {FONT_UBUNTU_REGULAR_16_ID, FONT_UBUNTU_REGULAR_13_ID, FONT_UBUNTU_MEDIUM_15_ID, FONT_UBUNTU_REGULAR_13_ID};
+    uint16_t strings_y_positions[4] = {0, LOGIN_SCROLL_Y_FLINE, LOGIN_SCROLL_Y_SLINE, LOGIN_SCROLL_Y_TLINE};
+    
+    /* Arm timer for scrolling */
+    timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
+    
+    /* Loop until something has been done */
+    while (action_taken == FALSE)
+    {
+        /* User interaction timeout */
+        if (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED)
+        {
+            custom_fs_set_current_language(cur_language_id);
+            return;
+        }
+        
+        /* Card removed */
+        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        {
+            custom_fs_set_current_language(cur_language_id);
+            return;
+        }
+        
+        /* Deal with simple messages */
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        
+        /* Check if something has been pressed */
+        wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, FALSE);
+        if (detect_result == WHEEL_ACTION_SHORT_CLICK)
+        {
+            custom_fs_set_current_language(first_language_id_in_list+1);
+            return;
+        }
+        else if (detect_result == WHEEL_ACTION_LONG_CLICK)
+        {
+            custom_fs_set_current_language(cur_language_id);
+            return;
+        }
+        else if (detect_result == WHEEL_ACTION_DOWN)
+        {
+            if ((last_language_id_in_list != -1) && (first_language_id_in_list + 1 != nb_languages-1))
+            {
+                animation_step = ((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2;
+                last_language_id_in_list = -1;
+                first_language_id_in_list++;
+            }
+        }
+        else if (detect_result == WHEEL_ACTION_UP)
+        {
+            if (first_language_id_in_list != -1)
+            {
+                animation_step = -((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2;
+                last_language_id_in_list = -1;
+                first_language_id_in_list--;
+            }
+        }
+        
+        /* Scrolling logic */
+        if (timer_has_timer_expired(TIMER_SCROLLING, FALSE) == TIMER_EXPIRED)
+        {
+            /* Rearm timer */
+            timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
+            redraw_needed = TRUE;
+        }
+        
+        /* Redraw if needed */
+        if (redraw_needed != FALSE)
+        {
+            /* Clear frame buffer, set display settings */
+            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
+            sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
+            
+            /* Animation: scrolling down, keeping the first of item displayed & fading out */
+            sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
+            if ((animation_step > 0) && (first_language_id_in_list > 0))
+            {                
+                /* Display fading out language */
+                custom_fs_set_current_language((uint8_t)(first_language_id_in_list-1));
+                sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_FLINE-(((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2)+animation_step, custom_fs_get_current_language_text_desc(), TRUE);
+            }
+            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            
+            /* Main frame title */
+            sh1122_reset_lim_display_y(&plat_oled_descriptor);            
+            custom_fs_set_current_language(first_language_id_in_list+1);
+            sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
+            custom_fs_get_string_from_file(SELECT_LANGUAGE_TEXT_ID, &select_language_string, TRUE);
+            sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[0], select_language_string, TRUE);
+            sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
+            
+            /* Bar below the title */
+            sh1122_draw_rectangle(&plat_oled_descriptor, 73, LOGIN_SCROLL_Y_BAR, 110, 1, 0xFF, TRUE);
+            
+            /* Loop for next 3 languages */
+            for (uint16_t i = 0; i < 3; i++)
+            {                
+                /* Check if we can display it */
+                if (((first_language_id_in_list + i) < nb_languages) && ((first_language_id_in_list + i) >= 0))
+                {
+                    last_language_id_in_list = i + first_language_id_in_list;
+                    custom_fs_set_current_language(first_language_id_in_list+i);
+                    sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[i+1]);
+                    
+                    /* Surround center of list item */
+                    if (i == 1)
+                    {
+                        utils_surround_text_with_pointers(custom_fs_get_current_language_text_desc(), MEMBER_ARRAY_SIZE(language_map_entry_t, language_descr));
+                    }
+                    
+                    /* Display language string */
+                    sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i+1]+animation_step, custom_fs_get_current_language_text_desc(), TRUE);
+                    
+                    /* Last item & animation scrolling up: display upcoming item */
+                    if (i == 2)
+                    {
+                        if ((animation_step < 0) && ((last_language_id_in_list + 1) < nb_languages))
+                        {                            
+                            /* Display fading out language */
+                            custom_fs_set_current_language(last_language_id_in_list+1);
+                            sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);                            
+                            sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_TLINE+(((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2)+animation_step, custom_fs_get_current_language_text_desc(), TRUE);
+                        }
+                    }
+                }
+            }
+            
+            /* Reset display settings */
+            sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
+            sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
+            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            
+            /* Flush to display */
+            sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
+            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            #endif
+            
+            /* Load function exit transition */
+            sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+            
+            /* Animation processing */
+            if (animation_step > 0)
+            {
+                animation_step-=2;
+            }
+            else if (animation_step < 0)
+            {
+                animation_step+=2;
+            }
+            else
+            {
+                redraw_needed = FALSE;
+            }
+        }
+    }
 }

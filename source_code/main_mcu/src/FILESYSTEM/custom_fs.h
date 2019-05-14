@@ -32,6 +32,7 @@
 #define SETTING_RANDOM_PIN_ID               1
 #define SETTING_USER_INTERACTION_TIMEOUT_ID 2
 #define SETTING_FLASH_SCREEN_ID             3
+#define SETTING_DEVICE_DEFAULT_LANGUAGE     4
 
 /* User security settings flags */
 #define USER_SEC_FLG_LOGIN_CONF             0x01
@@ -154,7 +155,8 @@ typedef struct
     uint8_t nonce[AES_BLOCK_SIZE/8];
     uint8_t provisioned_key[AES_KEY_LENGTH/8];
     uint8_t security_settings_flags;
-    uint8_t reserved[5];
+    uint8_t user_language;
+    uint8_t reserved[4];
 } cpz_lut_entry_t;
 
 /* Prototypes */
@@ -173,7 +175,7 @@ void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc);
 uint8_t custom_fs_settings_get_device_setting(uint16_t setting_id);
 uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id);
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void);
-ret_type_te custom_fs_set_current_language(uint16_t language_id);
+ret_type_te custom_fs_set_current_language(uint8_t language_id);
 void custom_fs_settings_store_dump(uint8_t* settings_buffer);
 cust_char_t* custom_fs_get_current_language_text_desc(void);
 uint16_t custom_fs_settings_get_dump(uint8_t* dump_buffer);
@@ -185,6 +187,7 @@ void custom_fs_settings_clear_first_boot_flag(void);
 void custom_fs_settings_clear_fw_upgrade_flag(void);
 void custom_fs_settings_set_fw_upgrade_flag(void);
 uint32_t custom_fs_get_number_of_languages(void);
+uint8_t custom_fs_get_current_language_id(void);
 void custom_fs_settings_set_defaults(void);
 BOOL custom_fs_is_first_boot(void);
 ret_type_te custom_fs_init(void);

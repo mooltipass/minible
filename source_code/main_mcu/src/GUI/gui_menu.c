@@ -279,8 +279,9 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             /* Settings menu */
             case GUI_LANGUAGE_SWITCH_ICON_ID:
             {
-                // TODO2
-                return FALSE;
+                gui_prompts_select_language();
+                logic_user_set_language(custom_fs_get_current_language_id());
+                return TRUE;
             }
             case GUI_MMM_STORAGE_CONF_ICON_ID+2:
             {

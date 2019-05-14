@@ -16,7 +16,7 @@
 #include "dma.h"
 
 /* Default device settings */
-const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = {0,FALSE,SETTING_DFT_USER_INTERACTION_TIMEOUT,TRUE};
+const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = {0,FALSE,SETTING_DFT_USER_INTERACTION_TIMEOUT,TRUE,0};
 /* Current selected language entry */
 language_map_entry_t custom_fs_cur_language_entry = {.starting_bitmap = 0, .starting_font = 0, .string_file_index = 0};
 /* Temp values to speed up string files reading */
@@ -32,6 +32,8 @@ custom_file_flash_header_t custom_fs_flash_header;
 BOOL custom_fs_data_bus_opened = FALSE;
 /* Temp string buffers for string reading */
 uint16_t custom_fs_temp_string1[128];
+/* Current language id */
+uint8_t custom_fs_cur_language_id = 0;
 /* CPZ look up table */
 cpz_lut_entry_t* custom_fs_cpz_lut;
 
@@ -195,12 +197,21 @@ cust_char_t* custom_fs_get_current_language_text_desc(void)
     return custom_fs_cur_language_entry.language_descr;
 }
 
-/*! \fn     custom_fs_set_current_language(uint16_t language_id)
+/*! \fn     custom_fs_get_current_language_id(void)
+*   \brief  Get current language ID
+*   \return The current language ID
+*/
+uint8_t custom_fs_get_current_language_id(void)
+{
+    return custom_fs_cur_language_id;
+} 
+
+/*! \fn     custom_fs_set_current_language(uint8_t language_id)
 *   \brief  Set current language
 *   \param  language_id     Language ID
 *   \return RETURN_(N)OK
 */
-ret_type_te custom_fs_set_current_language(uint16_t language_id)
+ret_type_te custom_fs_set_current_language(uint8_t language_id)
 {
     /* Check for valid language id */
     if ((language_id >= custom_fs_flash_header.language_map_item_count) || (custom_fs_flash_header.language_map_item_count == CUSTOM_FS_MAX_FILE_COUNT))
@@ -220,6 +231,9 @@ ret_type_te custom_fs_set_current_language(uint16_t language_id)
     {
         custom_fs_read_from_flash((uint8_t*)&custom_fs_current_text_file_string_count, custom_fs_current_text_file_addr, sizeof(custom_fs_current_text_file_string_count));
     }
+    
+    /* Language changed, stored current language ID */
+    custom_fs_cur_language_id = language_id;
     
     return RETURN_OK;
 }
