@@ -184,7 +184,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             case GUI_LOGIN_ICON_ID:         
             {
                 /* Do we actually have credentials to show? */
-                if (nodemgmt_get_starting_parent_addr() != NODE_ADDR_NULL)
+                if (nodemgmt_get_starting_parent_addr_for_category() != NODE_ADDR_NULL)
                 {
                     logic_user_manual_select_login();
                     #ifdef OLED_INTERNAL_FRAME_BUFFER

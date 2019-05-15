@@ -49,6 +49,8 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODEMGMT_ADDR_NULL                          0x0000
 #define NODEMGMT_VBIT_VALID                         0
 #define NODEMGMT_VBIT_INVALID                       1
+#define NODEMGMT_CAT_MASK                           0x0007
+#define NODEMGMT_CAT_BITSHIFT                       0
 
 /* User security settings flags */
 #define USER_SEC_FLG_LOGIN_CONF             0x01
@@ -224,6 +226,7 @@ typedef struct
     uint16_t nextChildFreeNode;             // The address of the next free child node
     parent_node_t temp_parent_node;         // Temp parent node to be used when needed
     uint16_t currentCategoryId;             // Current category ID
+    uint16_t currentCategoryFlags;          // Current category flags
 } nodemgmtHandle_t;
 
 /* Inlines */
@@ -286,6 +289,7 @@ void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_
 void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage);
 void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean);
 void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId);
+uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr);
 void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node);
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
@@ -301,6 +305,7 @@ void nodemgmt_store_user_sec_preferences(uint16_t sec_preferences);
 void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags);
 uint16_t nodemgmt_get_start_addresses(uint16_t* addresses_array);
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);
+uint16_t nodemgmt_get_starting_parent_addr_for_category(void);
 RET_TYPE nodemgmt_check_user_perm_from_flags(uint16_t flags);
 void nodemgmt_set_start_addresses(uint16_t* addresses_array);
 void nodemgmt_set_cred_start_address(uint16_t parentAddress);

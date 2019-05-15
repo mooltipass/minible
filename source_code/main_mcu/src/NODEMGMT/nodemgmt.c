@@ -96,6 +96,15 @@ static inline uint16_t userIdFromFlags(uint16_t flags)
     return ((flags >> NODEMGMT_USERID_BITSHIFT) & NODEMGMT_USERID_MASK_FINAL);
 }
 
+ /*! \fn     categoryFromFlags(uint16_t flags)
+ *   \brief  Gets the category from flags
+ *   \return category
+ */
+static inline uint16_t categoryFromFlags(uint16_t flags)
+{
+    return ((flags >> NODEMGMT_CAT_BITSHIFT) & NODEMGMT_CAT_MASK);
+}
+
 /*! \fn     nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day)
 *   \brief  Packs a uint16_t type with a date code in format YYYYYYYMMMMDDDDD. Year Offset from 2010
 *   \param  year            The year to pack into the uint16_t
@@ -438,6 +447,83 @@ uint16_t nodemgmt_get_user_language(void)
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.language_id), sizeof(language_id), &language_id);
     
     return language_id;
+}
+
+/*! \fn     nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr)
+ *  \brief  Gets the next parent node for the current category
+ *  \param  search_start_parent_addr    The parent address from which to start looking. Use NODE_ADDR_NULL to start from the beginning
+ *  \return The address or NODE_ADDR_NULL
+ */
+uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr)
+{
+    uint16_t next_parent_node_addr_to_scan = nodemgmt_current_handle.firstParentNode;
+    parent_cred_node_t* const dirty_address_finding_trick = (parent_cred_node_t*)0;
+    child_cred_node_t* const cdirty_address_finding_trick = (child_cred_node_t*)0;
+    uint16_t next_child_node_addr_to_scan;
+    uint16_t parent_read_buffer[4];
+    uint16_t child_read_buffer[4];
+    
+    /* Sanity check for this hack */
+    _Static_assert(0 == (size_t)&(cdirty_address_finding_trick->flags), "Incorrect buffer for flags & addr read");
+    _Static_assert(2 == (size_t)&(cdirty_address_finding_trick->prevChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(4 == (size_t)&(cdirty_address_finding_trick->nextChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(6 == (size_t)&(cdirty_address_finding_trick->mirroredChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(sizeof(child_read_buffer) == MEMBER_SIZE(child_cred_node_t, flags) + MEMBER_SIZE(child_cred_node_t, prevChildAddress) + MEMBER_SIZE(child_cred_node_t, nextChildAddress) + MEMBER_SIZE(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(0 == (size_t)&(dirty_address_finding_trick->flags), "Incorrect buffer for flags & addr read");
+    _Static_assert(2 == (size_t)&(dirty_address_finding_trick->prevParentAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(4 == (size_t)&(dirty_address_finding_trick->nextParentAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(6 == (size_t)&(dirty_address_finding_trick->nextChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(sizeof(parent_read_buffer) == MEMBER_SIZE(parent_cred_node_t, flags) + MEMBER_SIZE(parent_cred_node_t, prevParentAddress) + MEMBER_SIZE(parent_cred_node_t, nextParentAddress) + MEMBER_SIZE(parent_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
+    
+    /* Hack to read flags & prev / next address */
+    parent_cred_node_t* parent_node_pt = (parent_cred_node_t*)parent_read_buffer;
+    child_cred_node_t* child_node_pt = (child_cred_node_t*)child_read_buffer;
+    
+    /* Get next address to check for for the below loop in case we're not starting from the very beginning */
+    if (search_start_parent_addr != NODE_ADDR_NULL)
+    {
+        /* Read flags and prev/next address */
+        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(search_start_parent_addr), BASE_NODE_SIZE*nodemgmt_node_from_address(search_start_parent_addr), sizeof(parent_read_buffer), &parent_read_buffer);
+        next_parent_node_addr_to_scan = parent_node_pt->nextParentAddress;
+    }
+    
+    /* Loop */
+    while (next_parent_node_addr_to_scan != NODE_ADDR_NULL)
+    {
+        /* Read flags and prev/next address */
+        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_parent_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(next_parent_node_addr_to_scan), sizeof(parent_read_buffer), &parent_read_buffer);
+        next_child_node_addr_to_scan = parent_node_pt->nextChildAddress;
+        
+        /* Loop in children */
+        while (next_child_node_addr_to_scan != NODE_ADDR_NULL)
+        {
+            /* Read flags and prev/next address */
+            dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_child_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(next_child_node_addr_to_scan), sizeof(child_read_buffer), &child_read_buffer);
+                        
+            /* Check if it is of the current selected category */
+            if (categoryFromFlags(child_node_pt->flags) == nodemgmt_current_handle.currentCategoryFlags)
+            {
+                return next_parent_node_addr_to_scan;
+            }
+            
+            /* Go to next child if there's any */
+            next_child_node_addr_to_scan = child_node_pt->nextChildAddress;            
+        }
+        
+        /* Store next address to scan */
+        next_parent_node_addr_to_scan = parent_node_pt->nextParentAddress;
+    }
+    
+    return NODE_ADDR_NULL;
+}
+
+/*! \fn     nodemgmt_get_starting_parent_addr_for_category(void)
+ *  \brief  Gets the users starting parent node for the current category
+ *  \return The address
+ */
+uint16_t nodemgmt_get_starting_parent_addr_for_category(void)
+{
+    return nodemgmt_get_next_parent_node_for_cur_category(NODE_ADDR_NULL);
 }
 
 /*! \fn     nodemgmt_get_starting_parent_addr(void)
@@ -926,6 +1012,16 @@ void nodemgmt_set_current_category_id(uint16_t catId)
     if (catId < NODEMGMT_NB_MAX_CATEGORIES)
     {        
         nodemgmt_current_handle.currentCategoryId = catId;
+        
+        // Compute flags from category id
+        if (catId == 0)
+        {
+            nodemgmt_current_handle.currentCategoryFlags = 0;
+        } 
+        else
+        {
+            nodemgmt_current_handle.currentCategoryFlags = 1 << (catId-1);
+        }
     }
 }
 
@@ -948,6 +1044,7 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
     nodemgmt_get_user_profile_starting_offset(userIdNum, &nodemgmt_current_handle.pageUserProfile, &nodemgmt_current_handle.offsetUserProfile);
     nodemgmt_current_handle.firstParentNode = nodemgmt_get_starting_parent_addr();
     nodemgmt_current_handle.currentUserId = userIdNum;
+    nodemgmt_current_handle.currentCategoryFlags = 0;
     nodemgmt_current_handle.currentCategoryId = 0;
     nodemgmt_current_handle.datadbChanged = FALSE;
     nodemgmt_current_handle.dbChanged = FALSE;
