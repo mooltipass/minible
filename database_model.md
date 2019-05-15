@@ -85,7 +85,7 @@ The # of data nodes is meant for information only, not for actual size (capped a
 | 10->11 | last used date (2B) |
 | 12->139 | plain text login (128B) |
 | 140->187 | plain text description (48B) |
-| 188->259 | arbitrary third field (36B) |
+| 188->259 | arbitrary third field (72B) |
 | 260->261 | key pressed after login typing (2B) |
 | 262->263 | key press after password typing (2B) |
 | 264->265 | same as flags, but with bit 5 set to 1 |
