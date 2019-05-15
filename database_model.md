@@ -1,7 +1,7 @@
 ## [](#header-1) Mooltipass Database Model
 This page details the database model for the new Mooltipass Mini.  
-- All strings use uint16_t as a character size.  
-- UserID field is now 7 bits: the biggest DB flash has 32k 264B pages, so for a one page parent node and a 2 pages child node that's an average of 85 credentials per user.  
+- All strings use uint16_t as a character size to support Unicode BMP  
+- UserID field is now 7 bits: the biggest DB flash has 32k 264B pages, so for a one page parent node and a 2 pages child node that's an average of 85 credentials per user  
    
 ## [](#header-2) 2 Bytes Long Flags
 
@@ -107,12 +107,11 @@ The # of data nodes is meant for information only, not for actual size (capped a
 | 34->36 | CTR value (3B) |
 | 37->99 | plain text login (63B) |
 | 100->131 | encrypted password (32B) |
-| 524->527 | reserved (4B) |
 
 ## [](#header-2) User Profile and DB Flash Layout
 
 As with the previous mini device, sector 0a/b of the DB flash is reserved for user profiles.  
-For the mini ble, it will can up to 128 user profiles. Each user profile is composed of two contiguous 264B blocks whose contents are shown in the table below. As a result, the first 65kB in each DB flash are reserved for user profiles. For information, 8Mb/16Mb/32Mb/64Mb DB flashes respectively contain 65kB/131kB/65kB/262kB in their sector 0.  
+For the new mini, it can store up to 128 user profiles. Each user profile is composed of two contiguous 264B blocks whose contents are shown in the table below. As a result, the first 65kB of each DB flash are reserved for user profiles. For information, 8Mb/16Mb/32Mb/64Mb DB flashes respectively contain 65kB/131kB/65kB/262kB in their sector 0.  
 Compared to our previous device, the number of favorites has been reduced to 10 (instead of 14) as users seem to not use more.  
 
 **User Profile - First Block**
@@ -121,8 +120,8 @@ Compared to our previous device, the number of favorites has been reduced to 10 
 |:-----|:------------|
 | 0->1 | credential start address |
 | 2->33 | 16 data start addresses |
-| 34->35 | user security preferences |
-| 36->37 | user language |
+| 34->35 | security preferences |
+| 36->37 | language id |
 | 38->52 | reserved (15B) |
 | 53->55 | current CTR |
 | 56->59 | credential change number |
