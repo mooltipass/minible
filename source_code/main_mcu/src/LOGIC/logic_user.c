@@ -19,6 +19,10 @@
 #include "text_ids.h"
 #include "utils.h"
 #include "rng.h"
+// User security preferences
+uint16_t logic_user_cur_sec_preferences;
+// User language
+uint16_t logic_user_cur_language;
 
 
 /*! \fn     logic_user_init_context(uint8_t user_id)
@@ -27,67 +31,36 @@
 */
 void logic_user_init_context(uint8_t user_id)
 {
-    nodemgmt_init_context(user_id);
+    nodemgmt_init_context(user_id, &logic_user_cur_sec_preferences, &logic_user_cur_language);
+    logic_user_cur_language = utils_check_value_for_range(logic_user_cur_language, 0, custom_fs_get_number_of_languages()-1);
+    custom_fs_set_current_language(logic_user_cur_language);
 }
 
 /*! \fn     logic_user_get_user_security_flags(void)
 *   \brief  Get user security choices
 *   \return The bitmask
 */
-uint8_t logic_user_get_user_security_flags(void)
+uint16_t logic_user_get_user_security_flags(void)
 {
-    cpz_lut_entry_t* lut_entry_pt = logic_encryption_get_cur_cpz_lut_entry();
-    
-    if (lut_entry_pt != 0)
-    {
-        return lut_entry_pt->security_settings_flags;
-    }
-    else
-    {
-        /* No user set: return maximum security level */
-        return 0xFF;
-    }
+    return logic_user_cur_sec_preferences;
 }
 
 /*! \fn     logic_user_get_language(void)
 *   \brief  Get language for current user
 *   \return Language ID
 */
-uint8_t logic_user_get_language(void)
+uint16_t logic_user_get_language(void)
 {
-    cpz_lut_entry_t* lut_entry_pt = logic_encryption_get_cur_cpz_lut_entry();
-    
-    if (lut_entry_pt != 0)
-    {
-        return utils_check_value_for_range(lut_entry_pt->user_language, 0, custom_fs_get_number_of_languages()-1);
-    }
-    else
-    {
-        /* No user set: return default language */
-        return 0;
-    }    
+    return logic_user_cur_language;   
 }
 
-/*! \fn     logic_user_set_language(uint8_t language_id)
+/*! \fn     logic_user_set_language(uint16_t language_id)
 *   \brief  Set language for current user
 *   \param  language_id User language ID
 */
-void logic_user_set_language(uint8_t language_id)
+void logic_user_set_language(uint16_t language_id)
 {
-    cpz_lut_entry_t* lut_entry_pt = logic_encryption_get_cur_cpz_lut_entry();
-    cpz_lut_entry_t updated_entry;
-    
-    if (lut_entry_pt != 0)
-    {
-        /* Copy current cpz entry into the new one */
-        memcpy(&updated_entry, lut_entry_pt, sizeof(cpz_lut_entry_t));
-
-        /* Set language */
-        updated_entry.user_language = language_id;
-        
-        /* Update CPZ entry */
-        custom_fs_update_cpz_entry(&updated_entry, updated_entry.user_id);
-    }
+    nodemgmt_store_user_language(language_id);
 }
 
 /*! \fn     logic_user_get_current_user_id(void)
@@ -113,44 +86,20 @@ uint8_t logic_user_get_current_user_id(void)
 *   \brief  Add security flags to current user profile
 *   \param  bitmask     Security flags bitmask
 */
-void logic_user_set_user_security_flag(uint8_t bitmask)
+void logic_user_set_user_security_flag(uint16_t bitmask)
 {
-    cpz_lut_entry_t* lut_entry_pt = logic_encryption_get_cur_cpz_lut_entry();
-    cpz_lut_entry_t updated_entry;
-    
-    if (lut_entry_pt != 0)
-    {
-        /* Copy current cpz entry into the new one */
-        memcpy(&updated_entry, lut_entry_pt, sizeof(cpz_lut_entry_t));
-
-        /* Set requested flags */
-        updated_entry.security_settings_flags |= bitmask;
-        
-        /* Update CPZ entry */
-        custom_fs_update_cpz_entry(&updated_entry, updated_entry.user_id);
-    }
+    logic_user_cur_sec_preferences |= bitmask;
+    nodemgmt_store_user_sec_preferences(logic_user_cur_sec_preferences);
 }
 
-/*! \fn     logic_user_clear_user_security_flag(uint8_t bitmask)
+/*! \fn     logic_user_clear_user_security_flag(uint16_t bitmask)
 *   \brief  Clear security flags to current user profile
 *   \param  bitmask     Security flags bitmask
 */
-void logic_user_clear_user_security_flag(uint8_t bitmask)
+void logic_user_clear_user_security_flag(uint16_t bitmask)
 {
-    cpz_lut_entry_t* lut_entry_pt = logic_encryption_get_cur_cpz_lut_entry();
-    cpz_lut_entry_t updated_entry;
-    
-    if (lut_entry_pt != 0)
-    {
-        /* Copy current cpz entry into the new one */
-        memcpy(&updated_entry, lut_entry_pt, sizeof(cpz_lut_entry_t));
-
-        /* Set requested flags */
-        updated_entry.security_settings_flags &= ~bitmask;
-        
-        /* Update CPZ entry */
-        custom_fs_update_cpz_entry(&updated_entry, updated_entry.user_id);
-    }
+    logic_user_cur_sec_preferences &= ~bitmask;
+    nodemgmt_store_user_sec_preferences(logic_user_cur_sec_preferences);
 }
 
 /*! \fn     logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key, BOOL simple_mode)
@@ -183,25 +132,19 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* pro
     /* Nonce & Cards CPZ: random numbers */
     rng_fill_array(user_profile.cards_cpz, sizeof(user_profile.cards_cpz));
     rng_fill_array(user_profile.nonce, sizeof(user_profile.nonce));
-
-    /* Depending on selected mode, setup secure flags */
-    if (simple_mode == FALSE)
-    {
-        user_profile.security_settings_flags = 0xFF & (~USER_SEC_FLG_BLE_ENABLED);
-    }
-    else
-    {
-        user_profile.security_settings_flags = 0;
-    }
-    
-    /* Set language to preferred one */
-    user_profile.user_language = utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1);
     
     /* Reserved field: set to 0 */
     memset(user_profile.reserved, 0, sizeof(user_profile.reserved));
     
     /* Setup user profile in external flash */
-    nodemgmt_format_user_profile(new_user_id);
+    if (simple_mode == FALSE)
+    {
+        nodemgmt_format_user_profile(new_user_id, 0xFFFF & (~USER_SEC_FLG_BLE_ENABLED), utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1));
+    }
+    else
+    {
+        nodemgmt_format_user_profile(new_user_id, 0, utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1));
+    }
     
     /* Initialize nodemgmt context */
     logic_user_init_context(new_user_id);

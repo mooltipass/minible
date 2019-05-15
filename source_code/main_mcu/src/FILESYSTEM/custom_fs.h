@@ -34,14 +34,6 @@
 #define SETTING_FLASH_SCREEN_ID             3
 #define SETTING_DEVICE_DEFAULT_LANGUAGE     4
 
-/* User security settings flags */
-#define USER_SEC_FLG_LOGIN_CONF             0x01
-#define USER_SEC_FLG_PIN_FOR_MMM            0x02
-#define USER_SEC_FLG_CRED_SAVE_PROMPT_MMM   0x04
-#define USER_SEC_FLG_ADVANCED_MENU          0x08
-#define USER_SEC_FLG_BLE_ENABLED            0x10
-#define USER_SEC_FLG_PWD_DISPLAY_PROMPT     0x20
-
 /* Typedefs */
 typedef uint32_t custom_fs_file_count_t;
 typedef uint32_t custom_fs_address_t;
@@ -154,9 +146,7 @@ typedef struct
     uint8_t cards_cpz[8];
     uint8_t nonce[AES_BLOCK_SIZE/8];
     uint8_t provisioned_key[AES_KEY_LENGTH/8];
-    uint8_t security_settings_flags;
-    uint8_t user_language;
-    uint8_t reserved[4];
+    uint8_t reserved[6];
 } cpz_lut_entry_t;
 
 /* Prototypes */

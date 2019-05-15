@@ -50,6 +50,14 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODEMGMT_VBIT_VALID                         0
 #define NODEMGMT_VBIT_INVALID                       1
 
+/* User security settings flags */
+#define USER_SEC_FLG_LOGIN_CONF             0x01
+#define USER_SEC_FLG_PIN_FOR_MMM            0x02
+#define USER_SEC_FLG_CRED_SAVE_PROMPT_MMM   0x04
+#define USER_SEC_FLG_ADVANCED_MENU          0x08
+#define USER_SEC_FLG_BLE_ENABLED            0x10
+#define USER_SEC_FLG_PWD_DISPLAY_PROMPT     0x20
+
 
 /* Structs */
 // Parent node, see: https://mooltipass.github.io/minible/database_model
@@ -179,7 +187,9 @@ typedef struct
 {
     uint16_t cred_start_address;
     uint16_t data_start_address[16];
-    uint8_t reserved[19];
+    uint16_t sec_preferences;
+    uint16_t language_id;
+    uint8_t reserved[15];
     uint8_t current_ctr[3];
     uint32_t cred_change_number;
     uint32_t data_change_number;    
@@ -273,7 +283,9 @@ void nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_no
 void nodemgmt_write_parent_node_data_block_to_flash(uint16_t address, parent_node_t* parent_node);
 void nodemgmt_read_child_node_data_block_from_flash(uint16_t address, child_node_t* child_node);
 void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_t* child_node);
+void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage);
 void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean);
+void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId);
 void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node);
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
@@ -285,6 +297,7 @@ void nodemgmt_set_category_string(uint16_t category_id, cust_char_t* string_pt);
 uint16_t nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day);
 int16_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId);
 int16_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId);
+void nodemgmt_store_user_sec_preferences(uint16_t sec_preferences);
 void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags);
 uint16_t nodemgmt_get_start_addresses(uint16_t* addresses_array);
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);
@@ -296,14 +309,15 @@ void nodemgmt_set_cred_change_number(uint32_t changeNumber);
 uint16_t nodemgmt_get_favorites(uint16_t* addresses_array);
 uint16_t nodemgmt_get_incremented_address(uint16_t addr);
 void nodemgmt_user_db_changed_actions(BOOL dataChanged);
+void nodemgmt_store_user_language(uint16_t languageId);
 void nodemgmt_set_current_category_id(uint16_t catId);
 void nodemgmt_delete_current_user_from_flash(void);
 uint16_t nodemgmt_get_starting_parent_addr(void);
-void nodemgmt_format_user_profile(uint16_t uid);
+uint16_t nodemgmt_get_user_sec_preferences(void);
 uint32_t nodemgmt_get_cred_change_number(void);
 uint32_t nodemgmt_get_data_change_number(void);
-void nodemgmt_init_context(uint16_t userIdNum);
 void nodemgmt_set_current_date(uint16_t date);
+uint16_t nodemgmt_get_user_language(void);
 void nodemgmt_read_profile_ctr(void* buf);
 void nodemgmt_set_profile_ctr(void* buf);
 void nodemgmt_scan_node_usage(void);

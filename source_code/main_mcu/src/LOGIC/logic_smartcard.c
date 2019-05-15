@@ -15,6 +15,7 @@
 #include "platform_io.h"
 #include "logic_user.h"
 #include "logic_gui.h"
+#include "nodemgmt.h"
 #include "text_ids.h"
 #include "utils.h"
 
@@ -212,8 +213,8 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
         }
         #endif
         
-        /* Set language to user preferred one */
-        custom_fs_set_current_language(utils_check_value_for_range(cpz_user_entry->user_language, 0, custom_fs_get_number_of_languages()-1));
+        /* Already initialize user context, as there's no secret there. Also sets user language */
+        logic_user_init_context(cpz_user_entry->user_id);
         
         /* Check for defective card, check always done on initial unlock */
         if ((fast_mode == FALSE) && (smartcard_highlevel_check_hidden_aes_key_contents() != RETURN_OK))
@@ -240,8 +241,7 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
             }
             #endif
 
-            /* Init user flash context and encryption handling, set smartcard unlocked flag */             
-            logic_user_init_context(cpz_user_entry->user_id);
+            /* Init encryption handling, set smartcard unlocked flag */
             logic_encryption_init_context(temp_buffer, cpz_user_entry);
             logic_security_smartcard_unlocked_actions();
             

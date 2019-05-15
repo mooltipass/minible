@@ -272,7 +272,7 @@ void debug_reset_device(void)
         custom_fs_erase_256B_at_internal_custom_storage_slot(i);
     }
     custom_fs_settings_set_defaults();
-    nodemgmt_format_user_profile(100);
+    nodemgmt_format_user_profile(100, 0xFFFF & (~USER_SEC_FLG_BLE_ENABLED), 0);
     cpu_irq_disable();
     NVIC_SystemReset();
 }
@@ -308,7 +308,7 @@ void debug_setup_dev_card(void)
                 memset(temp_buffer, 0, sizeof(temp_buffer));                
                 
                 /* Special user for special card has ID 100 */
-                nodemgmt_format_user_profile(100);
+                nodemgmt_format_user_profile(100, 0xFFFF & (~USER_SEC_FLG_BLE_ENABLED), 0);
                 
                 /* Setup smartcard */
                 smartcard_highlevel_write_protected_zone(temp_buffer);

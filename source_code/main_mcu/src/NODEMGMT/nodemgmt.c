@@ -356,12 +356,16 @@ void nodemgmt_get_user_category_names_starting_offset(uint16_t uid, uint16_t *pa
     #endif
 }
 
-/*! \fn     nodemgmt_format_user_profile(uint8_t uid)
+/*! \fn     nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId)
  *  \brief  Formats the user profile flash memory of user uid.
- *  \param  uid    The id of the user to format profile memory
+ *  \param  uid             The id of the user to format profile memory
+ *  \param  secPreferences  User security preferences
+ *  \param  languageId      User language
  */
-void nodemgmt_format_user_profile(uint16_t uid)
+void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId)
 {
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+
     /* Page & offset for this UID */
     uint16_t temp_page, temp_offset;
     
@@ -378,6 +382,62 @@ void nodemgmt_format_user_profile(uint16_t uid)
     // Set buffer to all 0's.
     nodemgmt_get_user_profile_starting_offset(uid, &temp_page, &temp_offset);
     dbflash_write_data_pattern_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmt_userprofile_t), 0x00);
+    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)&(dirty_address_finding_trick->main_data.sec_preferences), sizeof(secPreferences), (void*)&secPreferences);
+    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)&(dirty_address_finding_trick->main_data.language_id), sizeof(languageId), (void*)&languageId);
+}
+
+/*! \fn     nodemgmt_store_user_sec_preferences(uint16_t sec_preferences)
+ *  \brief  Store user security preferences
+ *  \param  sec_preferences Security preferences bitfield
+ */
+void nodemgmt_store_user_sec_preferences(uint16_t sec_preferences)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    
+    // Write data parent address in the user profile page
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.sec_preferences), sizeof(sec_preferences), (void*)&sec_preferences);
+}
+
+/*! \fn     nodemgmt_get_user_sec_preferences(void)
+ *  \brief  Get user security preferences
+ *  \return User security preferences bitfield
+ */
+uint16_t nodemgmt_get_user_sec_preferences(void)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    uint16_t user_sec_flags;
+    
+    // Each user profile is within a page, data starting parent node is at the end of the favorites
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.sec_preferences), sizeof(user_sec_flags), &user_sec_flags);
+    
+    return user_sec_flags;
+}
+
+/*! \fn     nodemgmt_store_user_language(uint16_t languageId)
+ *  \brief  Store user language
+ *  \param  languageId  User language ID
+ */
+void nodemgmt_store_user_language(uint16_t languageId)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    
+    // Write data parent address in the user profile page
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.language_id), sizeof(languageId), (void*)&languageId);
+}
+
+/*! \fn     nodemgmt_get_user_language(void)
+ *  \brief  Get user language
+ *  \return User language ID
+ */
+uint16_t nodemgmt_get_user_language(void)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    uint16_t language_id;
+    
+    // Each user profile is within a page, data starting parent node is at the end of the favorites
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.language_id), sizeof(language_id), &language_id);
+    
+    return language_id;
 }
 
 /*! \fn     nodemgmt_get_starting_parent_addr(void)
@@ -869,11 +929,13 @@ void nodemgmt_set_current_category_id(uint16_t catId)
     }
 }
 
-/*! \fn     nodemgmt_init_context(uint16_t userIdNum)
+/*! \fn     nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage)
  *  \brief  Initializes the Node Management Handle, scans memory for the next free node
- *  \param  userIdNum   The user id to initialize the handle for
+ *  \param  userIdNum       The user id to initialize the handle for
+ *  \param  userSecFlags    Pointer to where to store user security flags
+ *  \param  userLanguage    Pointer to where to store user language
  */
-void nodemgmt_init_context(uint16_t userIdNum)
+void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage)
 {
     if(userIdNum >= NB_MAX_USERS)
     {
@@ -898,6 +960,10 @@ void nodemgmt_init_context(uint16_t userIdNum)
     
     // scan for next free parent and child nodes from the start of the memory
     nodemgmt_scan_node_usage();
+
+    // Store user security preference and language
+    *userSecFlags = nodemgmt_get_user_sec_preferences();
+    *userLanguage = nodemgmt_get_user_language();
 }
 
 /*! \fn     nodemgmt_user_db_changed_actions(BOOL dataChanged)
@@ -945,7 +1011,7 @@ void nodemgmt_delete_current_user_from_flash(void)
     _Static_assert(sizeof(temp_buffer) >= ((size_t)&(child_node_san_checks->nextChildAddress)) + sizeof(child_node_san_checks->nextChildAddress), "Buffer not long enough to store first bytes");
         
     // Delete user profile memory
-    nodemgmt_format_user_profile(nodemgmt_current_handle.currentUserId);
+    nodemgmt_format_user_profile(nodemgmt_current_handle.currentUserId, 0, 0);
     
     // Then browse through all the credentials to delete them
     for (uint16_t i = 0; i < 1 + (sizeof(nodemgmt_current_handle.firstDataParentNode)/sizeof(nodemgmt_current_handle.firstDataParentNode[0])); i++)
