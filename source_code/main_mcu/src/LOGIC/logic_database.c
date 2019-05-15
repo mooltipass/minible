@@ -40,7 +40,7 @@ uint16_t logic_database_get_prev_2_fletters_services(uint16_t start_address, cus
         nodemgmt_read_parent_node(current_node_addr, &temp_pnode, FALSE);
         
         /* Check if the fchar changed */
-        if ((temp_pnode.cred_parent.service[0] != cur_char) && (nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags()) != FALSE))
+        if ((temp_pnode.cred_parent.service[0] != cur_char) && (nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags()) != NODE_ADDR_NULL))
         {            
             if (skip_first_change_bool == FALSE)
             {
@@ -71,12 +71,12 @@ uint16_t logic_database_get_prev_2_fletters_services(uint16_t start_address, cus
     /* Check if we are at the first parent node and therefore need to store address & chars */
     if (temp_pnode.cred_parent.prevParentAddress == NODE_ADDR_NULL)
     {
-        if (((storage_index == 1) && (temp_pnode.cred_parent.service[0] != start_char)) && (nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags()) != FALSE))
+        if (((storage_index == 1) && (temp_pnode.cred_parent.service[0] != start_char)) && (nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags()) != NODE_ADDR_NULL))
         {
             char_array[1] = temp_pnode.cred_parent.service[0];
             return_value = current_node_addr;
         } 
-        else if (((storage_index == 0) && (temp_pnode.cred_parent.service[0] != char_array[1])) && (nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags()) != FALSE))
+        else if (((storage_index == 0) && (temp_pnode.cred_parent.service[0] != char_array[1])) && (nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags()) != NODE_ADDR_NULL))
         {
             char_array[0] = temp_pnode.cred_parent.service[0];
         }
@@ -112,7 +112,7 @@ uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cus
         nodemgmt_read_parent_node(current_node_addr, &temp_pnode, FALSE);
         
         /* Check if the fchar changed */
-        if ((temp_pnode.cred_parent.service[0] != cur_char) && (nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags()) != FALSE))
+        if ((temp_pnode.cred_parent.service[0] != cur_char) && (nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags()) != NODE_ADDR_NULL))
         {
             char_array[storage_index++] = temp_pnode.cred_parent.service[0];
             cur_char = temp_pnode.cred_parent.service[0];

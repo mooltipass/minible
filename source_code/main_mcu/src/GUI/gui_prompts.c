@@ -1129,7 +1129,7 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
 
     /* Read the parent node and read its first child address */
     nodemgmt_read_parent_node(parent_node_addr, &temp_pnode, TRUE);
-    first_child_address = temp_pnode.cred_parent.nextChildAddress;
+    first_child_address = nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags());
 
     /* Check if there are stored credentials */
     if (first_child_address == NODE_ADDR_NULL)
@@ -1150,6 +1150,8 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
     uint16_t before_top_of_list_child_addr = NODE_ADDR_NULL;
     uint16_t top_of_list_child_addr = NODE_ADDR_NULL;
     uint16_t center_list_child_addr = NODE_ADDR_NULL;
+    uint16_t bottom_list_child_addr = NODE_ADDR_NULL;
+    uint16_t after_bottom_list_child_addr = NODE_ADDR_NULL;
     BOOL end_of_list_reached_at_center = FALSE;
     BOOL animation_just_started = TRUE;
     int16_t text_anim_x_offset[4];
@@ -1162,7 +1164,7 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
     
     /* Lines display settings */    
     uint16_t non_addr_null_addr_tbp = NODE_ADDR_NULL+1;
-    uint16_t* address_to_check_to_display[4] = {&non_addr_null_addr_tbp, &top_of_list_child_addr, &center_list_child_addr, &temp_half_cnode_pt->nextChildAddress};
+    uint16_t* address_to_check_to_display[5] = {&non_addr_null_addr_tbp, &top_of_list_child_addr, &center_list_child_addr, &bottom_list_child_addr, &after_bottom_list_child_addr};
     cust_char_t* strings_to_be_displayed[4] = {temp_pnode.cred_parent.service, temp_half_cnode_pt->login, temp_half_cnode_pt->login, temp_half_cnode_pt->login};
     uint16_t fonts_to_be_used[4] = {FONT_UBUNTU_REGULAR_16_ID, FONT_UBUNTU_REGULAR_13_ID, FONT_UBUNTU_MEDIUM_15_ID, FONT_UBUNTU_REGULAR_13_ID};
     uint16_t strings_y_positions[4] = {0, LOGIN_SCROLL_Y_FLINE, LOGIN_SCROLL_Y_SLINE, LOGIN_SCROLL_Y_TLINE};
@@ -1322,7 +1324,7 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
                     /* First address: store the "before top address */
                     if (i == 1)
                     {
-                        before_top_of_list_child_addr = temp_half_cnode_pt->prevChildAddress;
+                        before_top_of_list_child_addr = nodemgmt_get_prev_child_node_for_cur_category(top_of_list_child_addr);
                     }
                     
                     /* Last address: store correct bool */
@@ -1372,19 +1374,20 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
                         scrolling_needed[i] = TRUE;
                     }
                     
-                    /* First item: store center list address */
-                    if (i == 1)
+                    /* Store next item addresses */
+                    if (i > 0)
                     {
-                        center_list_child_addr = temp_half_cnode_pt->nextChildAddress;
+                        /* Array has an extra slot */
+                        *(address_to_check_to_display[i+1]) = nodemgmt_get_next_child_node_for_cur_category(*(address_to_check_to_display[i]));
                     }                    
                     
                     /* Last item & animation scrolling up: display upcoming item */
                     if (i == 3)
                     {
-                        if ((animation_step < 0) && (temp_half_cnode_pt->nextChildAddress != NODE_ADDR_NULL))
+                        if ((animation_step < 0) && (*(address_to_check_to_display[i+1]) != NODE_ADDR_NULL))
                         {
                             /* Fetch node */
-                            nodemgmt_read_cred_child_node_except_pwd(temp_half_cnode_pt->nextChildAddress, temp_half_cnode_pt);
+                            nodemgmt_read_cred_child_node_except_pwd(*(address_to_check_to_display[i+1]), temp_half_cnode_pt);
                             
                             /* Display fading out login */
                             sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);

@@ -296,9 +296,9 @@ static inline uint16_t nodemgmt_node_from_address(uint16_t addr)
 uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode);
 RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress);
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);
+uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_child_addr, uint16_t category_flags);
 void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress);
 void nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress);
-BOOL nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_child_addr, uint16_t category_flags);
 void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node, BOOL write_category);
 void nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress);
 void nodemgmt_get_user_category_names_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
@@ -313,6 +313,8 @@ void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOO
 void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId);
 uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr);
 uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr);
+uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_child_addr);
+uint16_t nodemgmt_get_next_child_node_for_cur_category(uint16_t search_start_child_addr);
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId);

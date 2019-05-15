@@ -452,13 +452,93 @@ uint16_t nodemgmt_get_user_language(void)
     return language_id;
 }
 
+/*! \fn     nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_child_addr)
+ *  \brief  Gets the prev child node for the current category
+ *  \param  search_start_child_addr     The child address from which to start looking.
+ *  \return The address or NODE_ADDR_NULL
+ */
+uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_child_addr)
+{
+    child_cred_node_t* const cdirty_address_finding_trick = (child_cred_node_t*)0;
+    uint16_t prev_child_node_addr_to_scan = search_start_child_addr;
+    uint16_t child_read_buffer[4];
+    
+    /* Sanity check for this hack */
+    _Static_assert(0 == (size_t)&(cdirty_address_finding_trick->flags), "Incorrect buffer for flags & addr read");
+    _Static_assert(2 == (size_t)&(cdirty_address_finding_trick->prevChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(4 == (size_t)&(cdirty_address_finding_trick->nextChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(6 == (size_t)&(cdirty_address_finding_trick->mirroredChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(sizeof(child_read_buffer) == MEMBER_SIZE(child_cred_node_t, flags) + MEMBER_SIZE(child_cred_node_t, prevChildAddress) + MEMBER_SIZE(child_cred_node_t, nextChildAddress) + MEMBER_SIZE(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
+    
+    /* Hack to read flags & prev / next address */
+    child_cred_node_t* child_node_pt = (child_cred_node_t*)child_read_buffer;
+    
+    /* Nothing before nothing :D */
+    if (search_start_child_addr == NODE_ADDR_NULL)
+    {
+        return NODE_ADDR_NULL;
+    }
+    
+    /* Read flags and prev/next address */
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(prev_child_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(prev_child_node_addr_to_scan), sizeof(child_read_buffer), &child_read_buffer);
+    prev_child_node_addr_to_scan = child_node_pt->prevChildAddress;
+    
+    /* Loop */
+    while (prev_child_node_addr_to_scan != NODE_ADDR_NULL)
+    {
+        /* Read flags and prev/next address */
+        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(prev_child_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(prev_child_node_addr_to_scan), sizeof(child_read_buffer), &child_read_buffer);
+
+        /* Check if it is of the current selected category */
+        if (categoryFromFlags(child_node_pt->flags) == nodemgmt_current_handle.currentCategoryFlags)
+        {
+            // CATSEARCHLOGIC
+            return prev_child_node_addr_to_scan;
+        }
+        
+        /* Store next address to scan */
+        prev_child_node_addr_to_scan = child_node_pt->prevChildAddress;
+    }
+    
+    return NODE_ADDR_NULL;
+}    
+
+/*! \fn     nodemgmt_get_next_child_node_for_cur_category(uint16_t search_start_child_addr)
+ *  \brief  Gets the next child node for the current category
+ *  \param  search_start_child_addr     The child address from which to start looking.
+ *  \return The address or NODE_ADDR_NULL
+ */
+uint16_t nodemgmt_get_next_child_node_for_cur_category(uint16_t search_start_child_addr)
+{
+    /* We already have a function that does that, but the address it takes is inclusive...*/
+    child_cred_node_t* const cdirty_address_finding_trick = (child_cred_node_t*)0;
+    uint16_t child_read_buffer[4];
+        
+    /* Sanity check for this hack */
+    _Static_assert(0 == (size_t)&(cdirty_address_finding_trick->flags), "Incorrect buffer for flags & addr read");
+    _Static_assert(2 == (size_t)&(cdirty_address_finding_trick->prevChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(4 == (size_t)&(cdirty_address_finding_trick->nextChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(6 == (size_t)&(cdirty_address_finding_trick->mirroredChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(sizeof(child_read_buffer) == MEMBER_SIZE(child_cred_node_t, flags) + MEMBER_SIZE(child_cred_node_t, prevChildAddress) + MEMBER_SIZE(child_cred_node_t, nextChildAddress) + MEMBER_SIZE(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
+        
+    /* Hack to read flags & prev / next address */
+    child_cred_node_t* child_node_pt = (child_cred_node_t*)child_read_buffer;
+        
+    /* Read flags and prev/next address */
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(search_start_child_addr), BASE_NODE_SIZE*nodemgmt_node_from_address(search_start_child_addr), sizeof(child_read_buffer), &child_read_buffer);
+    search_start_child_addr = child_node_pt->nextChildAddress;
+
+    /* Use the other function */
+    return nodemgmt_check_for_logins_with_category_in_parent_node(search_start_child_addr, nodemgmt_current_handle.currentCategoryFlags);
+}    
+
 /*! \fn     nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_child_addr, uint16_t category_flags)
  *  \brief  See if a parent node contains children that have the desired category
  *  \param  start_child_addr    Address of the first child
  *  \param  category_flags      Desired category flags
- *  \return TRUE or FALSE
+ *  \return The address of the first child that has the desired category or NODE_ADDR_NULL
  */
-BOOL nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_child_addr, uint16_t category_flags)
+uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_child_addr, uint16_t category_flags)
 {
     child_cred_node_t* const cdirty_address_finding_trick = (child_cred_node_t*)0;
     uint16_t next_child_node_addr_to_scan = start_child_addr;
@@ -484,14 +564,14 @@ BOOL nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_child
         if (categoryFromFlags(child_node_pt->flags) == category_flags)
         {
             // CATSEARCHLOGIC
-            return TRUE;
+            return next_child_node_addr_to_scan;
         }
         
         /* Go to next child if there's any */
         next_child_node_addr_to_scan = child_node_pt->nextChildAddress;
     }
     
-    return FALSE;
+    return NODE_ADDR_NULL;
 }
 
 /*! \fn     nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr)
@@ -532,7 +612,7 @@ uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_pa
         dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(prev_parent_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(prev_parent_node_addr_to_scan), sizeof(parent_read_buffer), &parent_read_buffer);
 
         /* Check for logins with desired category */
-        if (nodemgmt_check_for_logins_with_category_in_parent_node(parent_node_pt->nextChildAddress, nodemgmt_current_handle.currentCategoryFlags) != FALSE)
+        if (nodemgmt_check_for_logins_with_category_in_parent_node(parent_node_pt->nextChildAddress, nodemgmt_current_handle.currentCategoryFlags) != NODE_ADDR_NULL)
         {
             return prev_parent_node_addr_to_scan;
         }
@@ -580,7 +660,7 @@ uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_pa
         dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_parent_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(next_parent_node_addr_to_scan), sizeof(parent_read_buffer), &parent_read_buffer);
 
         /* Check for logins with desired category */
-        if (nodemgmt_check_for_logins_with_category_in_parent_node(parent_node_pt->nextChildAddress, nodemgmt_current_handle.currentCategoryFlags) != FALSE)
+        if (nodemgmt_check_for_logins_with_category_in_parent_node(parent_node_pt->nextChildAddress, nodemgmt_current_handle.currentCategoryFlags) != NODE_ADDR_NULL)
         {
             return next_parent_node_addr_to_scan;
         }
