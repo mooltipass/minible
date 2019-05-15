@@ -111,17 +111,19 @@ The # of data nodes is meant for information only, not for actual size (capped a
 
 ## [](#header-2) User Profile and DB Flash Layout
 
-As with the previous mini device, sector 0a/b of the DB flash is reserved for user profiles and potentially other graphics.  
-For the mini ble, it will store up to 128 user profiles. Each user profile is 264B long and its contents are shown in the table below. As a result, the first 32kB in each DB flash are reserved for user profiles. For information, 8Mb/16Mb/32Mb/64Mb DB flashes respectively contain 65kB/131kB/65kB/262kB in their sector 0.  
+As with the previous mini device, sector 0a/b of the DB flash is reserved for user profiles.  
+For the mini ble, it will can up to 128 user profiles. Each user profile is composed of two contiguous 264B blocks whose contents are shown in the table below. As a result, the first 65kB in each DB flash are reserved for user profiles. For information, 8Mb/16Mb/32Mb/64Mb DB flashes respectively contain 65kB/131kB/65kB/262kB in their sector 0.  
 Compared to our previous device, the number of favorites has been reduced to 10 (instead of 14) as users seem to not use more.  
 
-**User Profile**
+**User Profile - First Block**
 
 | bytes | description |
 |:-----|:------------|
 | 0->1 | credential start address |
 | 2->33 | 16 data start addresses |
-| 34->52 | reserved (19B) |
+| 34->35 | user security preferences |
+| 36->37 | user language |
+| 38->52 | reserved (15B) |
 | 53->55 | current CTR |
 | 56->59 | credential change number |
 | 60->63 | data change number |
@@ -130,6 +132,15 @@ Compared to our previous device, the number of favorites has been reduced to 10 
 | 144->183 | 10 favorites (category #2) |
 | 184->223 | 10 favorites (category #3) |
 | 224->263 | 10 favorites (category #4) |
+
+**User Profile - Second Block**
+
+| bytes | description |
+|:-----|:------------|
+| 0->65 | Description string for category #1 |
+| 66->131 | Description string for category #2 |
+| 132->197 | Description string for category #3 |
+| 198->263 | Description string for category #4 |
 
 ## [](#header-2) CPZ Lookup Table
 
