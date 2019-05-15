@@ -240,8 +240,9 @@ uint16_t logic_database_search_login_in_service(uint16_t parent_addr, cust_char_
         nodemgmt_read_cred_child_node_except_pwd(next_node_addr, temp_half_cnode_pt);
         
         /* Compare login with the provided name */        
-        if (utils_custchar_strncmp(login, temp_half_cnode_pt->login, ARRAY_SIZE(temp_half_cnode_pt->login)) == 0)
+        if ((utils_custchar_strncmp(login, temp_half_cnode_pt->login, ARRAY_SIZE(temp_half_cnode_pt->login)) == 0) && (categoryFromFlags(temp_half_cnode_pt->flags) == nodemgmt_get_current_category_flags()))
         {
+            // CATSEARCHLOGIC
             return next_node_addr;
         }
         next_node_addr = temp_half_cnode_pt->nextChildAddress;
@@ -271,7 +272,7 @@ uint16_t logic_database_get_number_of_creds_for_service(uint16_t parent_addr, ui
     /* Read parent node and get first child address */
     nodemgmt_read_parent_node(parent_addr, &temp_pnode, TRUE);
     next_node_addr = temp_pnode.cred_parent.nextChildAddress;
-    *fnode_addr = next_node_addr;
+    *fnode_addr = NODE_ADDR_NULL;
     
     /* Check that there's actually a child node */
     if (next_node_addr == NODE_ADDR_NULL)
@@ -285,9 +286,20 @@ uint16_t logic_database_get_number_of_creds_for_service(uint16_t parent_addr, ui
         /* Read child node */
         nodemgmt_read_cred_child_node_except_pwd(next_node_addr, temp_half_cnode_pt);
         
-        /* Increment counter */
-        return_val++;
-        
+        /* Check for category */
+        if (categoryFromFlags(temp_half_cnode_pt->flags) == nodemgmt_get_current_category_flags())
+        {            
+            // CATSEARCHLOGIC            
+            /* Store first node */
+            if (*fnode_addr == NODE_ADDR_NULL)
+            {
+                *fnode_addr = next_node_addr;
+            }
+            
+            /* Increment counter */
+            return_val++;
+        }
+            
         /* Go to next node */
         next_node_addr = temp_half_cnode_pt->nextChildAddress;
     }
@@ -358,7 +370,7 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
     }
     
     /* Then write back to flash at same address */
-    nodemgmt_write_child_node_block_to_flash(child_addr, (child_node_t*)&temp_cnode);
+    nodemgmt_write_child_node_block_to_flash(child_addr, (child_node_t*)&temp_cnode, TRUE);
     nodemgmt_user_db_changed_actions(FALSE);
 }    
 

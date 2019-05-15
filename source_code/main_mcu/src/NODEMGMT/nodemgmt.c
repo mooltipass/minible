@@ -96,15 +96,6 @@ static inline uint16_t userIdFromFlags(uint16_t flags)
     return ((flags >> NODEMGMT_USERID_BITSHIFT) & NODEMGMT_USERID_MASK_FINAL);
 }
 
- /*! \fn     categoryFromFlags(uint16_t flags)
- *   \brief  Gets the category from flags
- *   \return category
- */
-static inline uint16_t categoryFromFlags(uint16_t flags)
-{
-    return ((flags >> NODEMGMT_CAT_BITSHIFT) & NODEMGMT_CAT_MASK);
-}
-
 /*! \fn     nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day)
 *   \brief  Packs a uint16_t type with a date code in format YYYYYYYMMMMDDDDD. Year Offset from 2010
 *   \param  year            The year to pack into the uint16_t
@@ -215,17 +206,29 @@ void nodemgmt_write_parent_node_data_block_to_flash(uint16_t address, parent_nod
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(address), BASE_NODE_SIZE * nodemgmt_node_from_address(address), BASE_NODE_SIZE, (void*)parent_node->node_as_bytes);
 }
 
-/*! \fn     nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node)
+/*! \fn     nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node, BOOL write_category)
 *   \brief  Write a child node data block to flash
-*   \param  address     Where to write
-*   \param  parent_node Pointer to the node
+*   \param  address         Where to write
+*   \param  parent_node     Pointer to the node
+*   \param  write_category  Set to TRUE to write category to flags
 */
-void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node)
+void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node, BOOL write_category)
 {
+    /* Enforce user ID */
     _Static_assert(2*BASE_NODE_SIZE == sizeof(*child_node), "Child node isn't twice the size of base node size");
     nodemgmt_user_id_to_flags(&(child_node->cred_child.flags), nodemgmt_current_handle.currentUserId);
     nodemgmt_user_id_to_flags(&(child_node->cred_child.fakeFlags), nodemgmt_current_handle.currentUserId);
     child_node->cred_child.fakeFlags |= (NODEMGMT_VBIT_INVALID << NODEMGMT_CORRECT_FLAGS_BIT_BITSHIFT);
+    
+    /* Write category flags if we're asked */
+    if (write_category != FALSE)
+    {
+        // CATSEARCHLOGIC
+        nodemgmt_categoryflags_to_flags(&(child_node->cred_child.flags), nodemgmt_current_handle.currentCategoryFlags);
+        nodemgmt_categoryflags_to_flags(&(child_node->cred_child.fakeFlags), nodemgmt_current_handle.currentCategoryFlags);
+    }
+    
+    /* Write to flash */
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(address), BASE_NODE_SIZE * nodemgmt_node_from_address(address), BASE_NODE_SIZE, (void*)child_node->node_as_bytes);
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(nodemgmt_get_incremented_address(address)), BASE_NODE_SIZE * nodemgmt_node_from_address(nodemgmt_get_incremented_address(address)), BASE_NODE_SIZE, (void*)(&child_node->node_as_bytes[BASE_NODE_SIZE]));
 }
@@ -284,7 +287,7 @@ void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_no
     {
         // Just update the good field and write at the same place
         child_node->dateLastUsed = nodemgmt_current_date;
-        nodemgmt_write_child_node_block_to_flash(address, (child_node_t*)child_node);
+        nodemgmt_write_child_node_block_to_flash(address, (child_node_t*)child_node, FALSE);
     }
     
     // String cleaning
@@ -503,6 +506,7 @@ uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_pa
             /* Check if it is of the current selected category */
             if (categoryFromFlags(child_node_pt->flags) == nodemgmt_current_handle.currentCategoryFlags)
             {
+                // CATSEARCHLOGIC
                 return next_parent_node_addr_to_scan;
             }
             
@@ -1003,6 +1007,15 @@ void nodemgmt_scan_node_usage(void)
     }
 }
 
+/*! \fn     nodemgmt_get_current_category_flags(void)
+ *  \brief  Get current selected category ID in flag form
+ *  \return The category in flag form
+ */
+uint16_t nodemgmt_get_current_category_flags(void)
+{
+    return nodemgmt_current_handle.currentCategoryFlags;
+}
+
 /*! \fn     nodemgmt_set_current_category_id(uint16_t catId)
  *  \brief  Set current selected category ID
  *  \param  catId   The category ID
@@ -1249,7 +1262,7 @@ RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type,
         // Write node
         if (node_type == NODE_TYPE_CHILD)
         {
-            nodemgmt_write_child_node_block_to_flash(freeNodeAddress, (child_node_t*)g);
+            nodemgmt_write_child_node_block_to_flash(freeNodeAddress, (child_node_t*)g, TRUE);
         }
         else
         {
@@ -1290,7 +1303,7 @@ RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type,
                     // write new node to flash
                     if (node_type == NODE_TYPE_CHILD)
                     {
-                        nodemgmt_write_child_node_block_to_flash(freeNodeAddress, (child_node_t*)g);
+                        nodemgmt_write_child_node_block_to_flash(freeNodeAddress, (child_node_t*)g, TRUE);
                     }
                     else
                     {
@@ -1322,7 +1335,7 @@ RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type,
                 // write new node to flash
                 if (node_type == NODE_TYPE_CHILD)
                 {
-                    nodemgmt_write_child_node_block_to_flash(freeNodeAddress, (child_node_t*)g);
+                    nodemgmt_write_child_node_block_to_flash(freeNodeAddress, (child_node_t*)g, TRUE);
                 }
                 else
                 {

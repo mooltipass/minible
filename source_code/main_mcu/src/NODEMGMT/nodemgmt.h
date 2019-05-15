@@ -49,6 +49,7 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODEMGMT_ADDR_NULL                          0x0000
 #define NODEMGMT_VBIT_VALID                         0
 #define NODEMGMT_VBIT_INVALID                       1
+#define NODEMGMT_CAT_MASK_FINAL                     0x0007
 #define NODEMGMT_CAT_MASK                           0x0007
 #define NODEMGMT_CAT_BITSHIFT                       0
 
@@ -241,6 +242,25 @@ static inline void nodemgmt_user_id_to_flags(uint16_t *flags, uint8_t uid)
     *flags = (*flags & (~NODEMGMT_USERID_MASK)) | ((uint16_t)uid << NODEMGMT_USERID_BITSHIFT);
 }
 
+/*! \fn     nodemgmt_categoryflags_to_flags(uint16_t* flags, uint16_t cat_flag)
+*   \brief  Sets the category id to flags
+*   \param  flags           The flags field of a node
+*   \return uid             The category id to set in flags
+*/
+static inline void nodemgmt_categoryflags_to_flags(uint16_t* flags, uint16_t cat_flag)
+{
+    *flags = (*flags & (~NODEMGMT_CAT_MASK)) | (cat_flag << NODEMGMT_CAT_BITSHIFT);    
+}
+
+ /*! \fn     categoryFromFlags(uint16_t flags)
+ *   \brief  Gets the category from flags
+ *   \return category
+ */
+static inline uint16_t categoryFromFlags(uint16_t flags)
+{
+    return ((flags >> NODEMGMT_CAT_BITSHIFT) & NODEMGMT_CAT_MASK_FINAL);
+}
+
 /*! \fn     nodemgmt_page_from_address(uint16_t addr)
 *   \brief  Extracts a page number from a constructed address
 *   \param  addr    The constructed address used for extraction
@@ -278,6 +298,7 @@ RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type,
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);
 void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress);
 void nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress);
+void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node, BOOL write_category);
 void nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress);
 void nodemgmt_get_user_category_names_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 void nodemgmt_get_user_profile_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
@@ -290,7 +311,6 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
 void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean);
 void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId);
 uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr);
-void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node);
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId);
@@ -317,6 +337,7 @@ void nodemgmt_user_db_changed_actions(BOOL dataChanged);
 void nodemgmt_store_user_language(uint16_t languageId);
 void nodemgmt_set_current_category_id(uint16_t catId);
 void nodemgmt_delete_current_user_from_flash(void);
+uint16_t nodemgmt_get_current_category_flags(void);
 uint16_t nodemgmt_get_starting_parent_addr(void);
 uint16_t nodemgmt_get_user_sec_preferences(void);
 uint32_t nodemgmt_get_cred_change_number(void);

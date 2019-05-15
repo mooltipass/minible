@@ -562,7 +562,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
 */
 void logic_user_manual_select_login(void)
 {
-    uint16_t chosen_service_addr = nodemgmt_get_starting_parent_addr();
+    uint16_t chosen_service_addr = nodemgmt_get_starting_parent_addr_for_category();
     uint16_t nb_logins_for_cred;
     uint16_t chosen_login_addr;
     uint16_t state_machine = 0;
