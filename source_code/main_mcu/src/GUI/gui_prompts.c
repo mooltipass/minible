@@ -1470,9 +1470,6 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     {
         return NODE_ADDR_NULL;
     }
-
-    /* Read the parent that should be selected first */
-    nodemgmt_read_parent_node(start_address, &temp_pnode, TRUE);
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
@@ -1483,9 +1480,11 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     #endif
     
     /* Temp vars for our main loop */
-    uint16_t top_of_list_parent_addr = temp_pnode.cred_parent.prevParentAddress;
+    uint16_t top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(start_address);
     uint16_t before_top_of_list_parent_addr = NODE_ADDR_NULL;
     uint16_t center_of_list_parent_addr = start_address;
+    uint16_t bottom_of_list_parent_addr = NODE_ADDR_NULL;
+    uint16_t after_bottom_of_list_parent_addr = NODE_ADDR_NULL;
     BOOL end_of_list_reached_at_center = FALSE;
     BOOL displaying_service_fchars = FALSE;
     BOOL user_knows_press_scroll =  FALSE;
@@ -1507,7 +1506,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     
     /* Lines display settings */
     uint16_t non_addr_null_addr_tbp = NODE_ADDR_NULL+1;
-    uint16_t* address_to_check_to_display[4] = {&non_addr_null_addr_tbp, &top_of_list_parent_addr, &center_of_list_parent_addr, &temp_pnode.cred_parent.nextParentAddress};
+    uint16_t* address_to_check_to_display[5] = {&non_addr_null_addr_tbp, &top_of_list_parent_addr, &center_of_list_parent_addr, &bottom_of_list_parent_addr, &after_bottom_of_list_parent_addr};
     cust_char_t* strings_to_be_displayed[4] = {select_credential_string, temp_pnode.cred_parent.service, temp_pnode.cred_parent.service, temp_pnode.cred_parent.service};
     uint16_t fonts_to_be_used[4] = {FONT_UBUNTU_REGULAR_16_ID, FONT_UBUNTU_REGULAR_13_ID, FONT_UBUNTU_MEDIUM_15_ID, FONT_UBUNTU_REGULAR_13_ID};
     uint16_t strings_y_positions[4] = {0, LOGIN_SCROLL_Y_FLINE, LOGIN_SCROLL_Y_SLINE, LOGIN_SCROLL_Y_TLINE};
@@ -1592,8 +1591,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                 fchar_array[0] = cur_fchar;
                 displaying_service_fchars = TRUE;
                 center_of_list_parent_addr = next_diff_fletter_node_addr;
-                nodemgmt_read_parent_node(center_of_list_parent_addr, &temp_pnode, TRUE);
-                top_of_list_parent_addr = temp_pnode.cred_parent.prevParentAddress;
+                top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(center_of_list_parent_addr);
                 animation_just_started = TRUE;
             }     
             else
@@ -1618,8 +1616,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                 fchar_array[2] = cur_fchar;
                 displaying_service_fchars = TRUE;
                 center_of_list_parent_addr = prev_diff_fletter_node_addr;
-                nodemgmt_read_parent_node(center_of_list_parent_addr, &temp_pnode, TRUE);
-                top_of_list_parent_addr = temp_pnode.cred_parent.prevParentAddress;
+                top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(center_of_list_parent_addr);
                 animation_just_started = TRUE;
             }
             else
@@ -1735,7 +1732,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                     /* First address: store the "before top address */
                     if (i == 1)
                     {
-                        before_top_of_list_parent_addr = temp_pnode.cred_parent.prevParentAddress;
+                        before_top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(top_of_list_parent_addr);
                     }
                     
                     /* Last address: store correct bool */
@@ -1827,19 +1824,20 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                         scrolling_needed[i] = TRUE;
                     }
                     
-                    /* First item: store center list address */
-                    if (i == 1)
+                    /* Store next item address */
+                    if (i > 0)
                     {
-                        center_of_list_parent_addr = temp_pnode.cred_parent.nextParentAddress;
+                        /* Array has an extra element */
+                        *(address_to_check_to_display[i+1]) = nodemgmt_get_next_parent_node_for_cur_category(*(address_to_check_to_display[i]));
                     }
                     
                     /* Last item & animation scrolling up: display upcoming item */
                     if (i == 3)
                     {
-                        if ((animation_step < 0) && (temp_pnode.cred_parent.nextParentAddress != NODE_ADDR_NULL))
+                        if ((animation_step < 0) && (*(address_to_check_to_display[i+1]) != NODE_ADDR_NULL))
                         {
                             /* Fetch node */
-                            nodemgmt_read_parent_node(temp_pnode.cred_parent.nextParentAddress, &temp_pnode, TRUE);
+                            nodemgmt_read_parent_node(*(address_to_check_to_display[i+1]), &temp_pnode, TRUE);
                             
                             /* Display fading out login */
                             sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
