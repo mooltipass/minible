@@ -126,7 +126,11 @@ typedef struct
     uint16_t fakeFlags;             // Same as flags but with bit 5 set to 1
     uint8_t reserved;               // Reserved
     uint8_t ctr[3];                 // Encryption counter
-    uint8_t password[128];          // Encrypted password
+    union
+    {
+        uint8_t password[128];      // Encrypted password
+        cust_char_t cust_char_password[64];        
+    };
     uint8_t TBD[130];               // TBD
 } child_cred_node_t;
 

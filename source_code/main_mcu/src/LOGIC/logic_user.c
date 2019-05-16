@@ -15,6 +15,7 @@
 #include "gui_prompts.h"
 #include "logic_user.h"
 #include "custom_fs.h"
+#include "logic_gui.h"
 #include "nodemgmt.h"
 #include "text_ids.h"
 #include "utils.h"
@@ -601,10 +602,63 @@ void logic_user_manual_select_login(void)
             }
             else
             {
-                state_machine++;
+                if ((logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0)
+                {
+                    /* Password display prompt */
+                    state_machine++;
+                }
+                else
+                {     
+                    /* Typing prompt */        
+                    state_machine+=2;   
+                }
             }
         }
         else if (state_machine == 2)
+        {
+            // Fetch parent node to prepare prompt text
+            _Static_assert(sizeof(child_node_t) >= sizeof(parent_node_t), "Invalid buffer reuse");
+            child_node_t temp_cnode;
+            parent_node_t* temp_pnode_pt = (parent_node_t*)&temp_cnode;
+            nodemgmt_read_parent_node(chosen_service_addr, temp_pnode_pt, TRUE);
+            
+            // Ask the user if he wants to display credentials on screen
+            cust_char_t* display_cred_prompt_text;
+            custom_fs_get_string_from_file(QPROMPT_SNGL_DISP_CRED_TEXT_ID, &display_cred_prompt_text, TRUE);
+            confirmationText_t prompt_object = {.lines[0] = temp_pnode_pt->cred_parent.service, .lines[1] = display_cred_prompt_text};
+            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_confirmation(2, &prompt_object, FALSE);
+            
+            if (display_prompt_return == MINI_INPUT_RET_BACK)
+            {
+                /* Depending on number of child nodes, go back in history */
+                if (nb_logins_for_cred == 1)
+                {
+                    /* Go back to service selection */
+                    state_machine = 0;
+                }
+                else
+                {
+                    /* Go back to login selection */
+                    state_machine--;
+                }
+            }
+            else if (display_prompt_return == MINI_INPUT_RET_YES)
+            {
+                nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
+                logic_gui_display_login_password((child_cred_node_t*)&temp_cnode);
+                memset(&temp_cnode, 0, sizeof(temp_cnode));
+                return;
+            }
+            else if (display_prompt_return == MINI_INPUT_RET_NO)
+            {
+                state_machine++;
+            }
+            else
+            {
+                return;
+            }
+        }
+        else if (state_machine == 3)
         {
             // Ask the user permission to enter login / password, check for back action
             if (logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr) == RETURN_BACK)
@@ -612,11 +666,29 @@ void logic_user_manual_select_login(void)
                 /* Depending on number of child nodes, go back in history */
                 if (nb_logins_for_cred == 1)
                 {
-                    state_machine = 0;
+                    if ((logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0)
+                    {
+                        /* Go back to password display prompt */
+                        state_machine--;
+                    } 
+                    else
+                    {
+                        /* Go back to service selection */
+                        state_machine = 0;
+                    }
                 } 
                 else
                 {
-                    state_machine--;
+                    if ((logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0)
+                    {
+                        /* Go back to password display prompt */
+                        state_machine--;
+                    }
+                    else
+                    {
+                        /* Go back to login selection */
+                        state_machine-=2;
+                    }
                 }
             }
             else

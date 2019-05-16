@@ -1154,6 +1154,7 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
     uint16_t after_bottom_list_child_addr = NODE_ADDR_NULL;
     BOOL end_of_list_reached_at_center = FALSE;
     BOOL animation_just_started = TRUE;
+    BOOL first_function_run = TRUE;
     int16_t text_anim_x_offset[4];
     BOOL text_anim_going_right[4];
     int16_t animation_step = 0;
@@ -1425,7 +1426,14 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
             animation_just_started = FALSE;
             
             /* Flush to display */
-            sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+            if (first_function_run != FALSE)
+            {
+                first_function_run = FALSE;
+            } 
+            else
+            {
+                sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+            }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
             #endif
@@ -1493,6 +1501,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     BOOL user_knows_press_scroll =  FALSE;
     BOOL animation_just_started = TRUE;
     BOOL hint_cur_displayed = FALSE;
+    BOOL first_function_run = TRUE;
     BOOL displaying_hint = FALSE;
     int16_t text_anim_x_offset[4];
     BOOL text_anim_going_right[4];
@@ -1872,7 +1881,14 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             animation_just_started = FALSE;
             
             /* Flush to display */
-            sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+            if (first_function_run != FALSE)
+            {
+                first_function_run = FALSE;
+            }
+            else
+            {
+                sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+            }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
             #endif
@@ -1907,6 +1923,7 @@ int16_t gui_prompts_select_category(void)
 {
     cust_char_t temp_category_text[MEMBER_SUB_ARRAY_SIZE(nodemgmt_user_category_strings_t, category_strings) + 5];
     BOOL function_just_started = TRUE;
+    BOOL first_function_run = TRUE;
     cust_char_t* string_to_display;
     int16_t selected_category = 0;
     int16_t text_anim_x_offset[5];
@@ -2103,7 +2120,14 @@ int16_t gui_prompts_select_category(void)
             sh1122_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Flush to display */
-            sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+            if (first_function_run != FALSE)
+            {
+                first_function_run = FALSE;
+            }
+            else
+            {
+                sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+            }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
             #endif
@@ -2157,6 +2181,7 @@ int16_t gui_prompts_favorite_selection_screen(void)
     int16_t bottom_list_child_index = -1;
     int16_t after_bottom_list_child_index = -1;
     BOOL animation_just_started = TRUE;
+    BOOL first_function_run = TRUE;
     int16_t text_anim_x_offset[4];
     BOOL text_anim_going_right[4];
     int16_t animation_step = 0;
@@ -2448,7 +2473,14 @@ int16_t gui_prompts_favorite_selection_screen(void)
             animation_just_started = FALSE;
             
             /* Flush to display */
-            sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+            if (first_function_run != FALSE)
+            {
+                first_function_run = FALSE;
+            }
+            else
+            {
+                sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+            }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
             #endif
@@ -2502,6 +2534,7 @@ void gui_prompts_select_language(void)
     int16_t first_language_id_in_list = -1;
     int16_t last_language_id_in_list = -1;
     cust_char_t* select_language_string;
+    BOOL first_function_run = TRUE;
     int16_t animation_step = 0;
     BOOL redraw_needed = TRUE;
     BOOL action_taken = FALSE;
@@ -2641,7 +2674,14 @@ void gui_prompts_select_language(void)
             sh1122_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Flush to display */
-            sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+            if (first_function_run != FALSE)
+            {
+                first_function_run = FALSE;
+            }
+            else
+            {
+                sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+            }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
             #endif

@@ -8,10 +8,12 @@
 #ifndef LOGIC_GUI_H_
 #define LOGIC_GUI_H_
 
+#include "nodemgmt.h"
 #include "defines.h"
 
 
 /* Prototypes */
+void logic_gui_display_login_password(child_cred_node_t* child_node);
 void logic_gui_disable_bluetooth(void);
 void logic_gui_enable_bluetooth(void);
 void logic_gui_clone_card(void);
