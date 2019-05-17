@@ -924,7 +924,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                     }
                     
                     /* Get string length */
-                    temp_length = utils_strnlen(&(rcv_msg->store_credential.concatenated_strings[current_check_index]), max_cust_char_length);
+                    temp_length = utils_strnlen(&(rcv_msg->check_credential.concatenated_strings[current_check_index]), max_cust_char_length);
                     
                     /* Too long length */
                     if (temp_length == max_cust_char_length)
@@ -941,9 +941,9 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 }    
             
                 /* Proceed to other logic */
-                if (logic_user_check_credential(    &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.service_name_index]),\
-                                                    &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.login_name_index]),\
-                                                    &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.password_index])) == RETURN_OK)
+                if (logic_user_check_credential(    &(rcv_msg->check_credential.concatenated_strings[rcv_msg->check_credential.service_name_index]),\
+                                                    &(rcv_msg->check_credential.concatenated_strings[rcv_msg->check_credential.login_name_index]),\
+                                                    &(rcv_msg->check_credential.concatenated_strings[rcv_msg->check_credential.password_index])) == RETURN_OK)
                 {
                     send_msg->payload[0] = HID_1BYTE_ACK;                
                 }
