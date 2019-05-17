@@ -92,7 +92,7 @@ The # of data nodes is meant for information only, not for actual size (capped a
 | 266 | reserved |
 | 267->269 | CTR value (3B) |
 | 270->397 | encrypted password (128B) |
-| 398->399 | set to 0 |
+| 398->399 | password terminating 0 |
 | 400->527 | TBD |
 
 **For Information: Previous DB Child Node (132B)**
