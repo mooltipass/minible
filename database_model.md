@@ -89,10 +89,11 @@ The # of data nodes is meant for information only, not for actual size (capped a
 | 260->261 | key pressed after login typing (2B) |
 | 262->263 | key press after password typing (2B) |
 | 264->265 | same as flags, but with bit 5 set to 1 |
-| 266->393 | encrypted password (128B) |
-| 394 | reserved |
-| 395->397 | CTR value (3B) |
-| 398->527 | TBD |
+| 266 | reserved |
+| 267->269 | CTR value (3B) |
+| 270->397 | encrypted password (128B) |
+| 398->399 | set to 0 |
+| 400->527 | TBD |
 
 **For Information: Previous DB Child Node (132B)**
 
