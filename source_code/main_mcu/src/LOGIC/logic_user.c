@@ -362,9 +362,8 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     /* Password provided? */
     if (password != 0)
     {
-        /* Copy password into array, 0 terminate it */
+        /* Copy password into array, no need to terminate it given the underlying database model */
         utils_strncpy(encrypted_password, password, sizeof(encrypted_password)/sizeof(cust_char_t));
-        encrypted_password[(sizeof(encrypted_password)/sizeof(cust_char_t))-1] = 0;
         
         /* CTR encrypt password */
         logic_encryption_ctr_encrypt((uint8_t*)encrypted_password, sizeof(encrypted_password), temp_cred_ctr_val);
@@ -486,9 +485,6 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
         /* User approved, decrypt password */
         logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
         
-        /* 0 terminate password */
-        send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index + (MEMBER_SIZE(child_cred_node_t, password)/sizeof(cust_char_t)) - 1] = 0;
-        
         /* If old generation password, convert it to unicode */
         if (prev_gen_credential_flag != FALSE)
         {
@@ -499,7 +495,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
         /* Get password length */
         uint16_t pwd_length = utils_strlen(&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]));
         
-        /* COmpute payload size */
+        /* Compute payload size */
         uint16_t return_payload_size = return_payload_size_without_pwd + (pwd_length + 1)*sizeof(cust_char_t);
         
         /* Return payload size */
@@ -534,9 +530,6 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
                 /* User approved, decrypt password */
                 logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
                 
-                /* 0 terminate password */
-                send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index + (MEMBER_SIZE(child_cred_node_t, password)/sizeof(cust_char_t)) - 1] = 0;
-                
                 /* If old generation password, convert it to unicode */
                 if (prev_gen_credential_flag != FALSE)
                 {
@@ -547,7 +540,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
                 /* Get password length */
                 uint16_t pwd_length = utils_strlen(&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]));
                 
-                /* COmpute payload size */
+                /* Compute payload size */
                 uint16_t return_payload_size = return_payload_size_without_pwd + (pwd_length + 1)*sizeof(cust_char_t);
                 
                 /* Return payload size */

@@ -473,7 +473,8 @@ uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, h
     _Static_assert( sizeof(temp_cnode.login) \
                     + sizeof(temp_cnode.description) \
                     + sizeof(temp_cnode.thirdField) \
-                    + sizeof(temp_cnode.password) + 4 \
+                    + sizeof(temp_cnode.password) 
+                    + sizeof(temp_cnode.pwdTerminatingZero) + 4 \
                     < \
                     sizeof(send_msg->payload)
                     - sizeof(send_msg->get_credential_answer.login_name_index) \
@@ -495,7 +496,7 @@ uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, h
     
     /* Password field */
     send_msg->get_credential_answer.password_index = current_index;
-    memcpy(&(send_msg->get_credential_answer.concatenated_strings[current_index]), temp_cnode.password, sizeof(temp_cnode.password));
+    memcpy(&(send_msg->get_credential_answer.concatenated_strings[current_index]), temp_cnode.password, sizeof(temp_cnode.password) + sizeof(temp_cnode.pwdTerminatingZero));
     
     /* Copy CTR */
     memcpy(cred_ctr, temp_cnode.ctr, sizeof(temp_cnode.ctr));

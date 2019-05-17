@@ -283,7 +283,7 @@ void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_no
     nodemgmt_check_user_perm_from_flags_and_lock(child_node->flags);
     
     // If we have a date, update last used field
-    if (nodemgmt_current_date != 0x0000)
+    if ((nodemgmt_current_date != 0x0000) && (child_node->dateLastUsed != nodemgmt_current_date))
     {
         // Just update the good field and write at the same place
         child_node->dateLastUsed = nodemgmt_current_date;
@@ -291,6 +291,7 @@ void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_no
     }
     
     // String cleaning
+    child_node->pwdTerminatingZero = 0;
     child_node->login[(sizeof(child_node->login)/sizeof(child_node->login[0]))-1] = 0;
     child_node->thirdField[(sizeof(child_node->thirdField)/sizeof(child_node->thirdField[0]))-1] = 0;
     child_node->description[(sizeof(child_node->description)/sizeof(child_node->description[0]))-1] = 0;

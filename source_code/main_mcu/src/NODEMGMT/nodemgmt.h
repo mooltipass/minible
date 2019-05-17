@@ -131,7 +131,8 @@ typedef struct
         uint8_t password[128];      // Encrypted password
         cust_char_t cust_char_password[64];        
     };
-    uint8_t TBD[130];               // TBD
+    cust_char_t pwdTerminatingZero; // Set to 0
+    uint8_t TBD[128];               // TBD
 } child_cred_node_t;
 
 // Struct that includes the common first 3 fields for parent nodes & child cred node
