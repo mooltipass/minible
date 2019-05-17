@@ -6,6 +6,8 @@
 #include <asf.h>
 #include "platform_defines.h"
 #include "logic_device.h"
+#include "driver_timer.h"
+#include "platform_io.h"
 #include "inputs.h"
 
 // Wheel machine states
@@ -29,6 +31,9 @@ BOOL inputs_discard_release_event = FALSE;
 BOOL inputs_wheel_reverse_bool = FALSE;
 // Last detection type returned (cleared when calling cleardetections)
 wheel_action_ret_te inputs_last_detection_type_ret = WHEEL_ACTION_NONE;
+#ifndef BOOTLOADER
+uint16_t inputs_force_reboot_timer = 0;
+#endif
 
 
 /*! \fn     inputs_scan(void)
@@ -95,6 +100,20 @@ void inputs_scan(void)
     // Wheel click
     if ((PORT->Group[WHEEL_SW_GROUP].IN.reg & WHEEL_SW_MASK) == 0)
     {
+        #ifndef BOOTLOADER
+        /* Increment force reboot timer and reboot if it reached target value */
+        if (inputs_force_reboot_timer++ == NB_MS_WHEEL_PRESS_FOR_REBOOT)
+        {
+            /* Switch off screen wait for user to release button */
+            while (platform_io_is_usb_3v3_present() != FALSE);
+            platform_io_power_down_oled();
+            while ((PORT->Group[WHEEL_SW_GROUP].IN.reg & WHEEL_SW_MASK) == 0);
+            DELAYMS(200);
+            platform_io_disable_switch_and_die();
+            while(1);
+        }
+        #endif
+        
         if ((inputs_wheel_click_counter == 50) && (inputs_wheel_click_return != RETURN_JRELEASED))
         {
             inputs_wheel_click_return = RETURN_JDETECT;
@@ -110,6 +129,10 @@ void inputs_scan(void)
     }
     else
     {
+        #ifdef BOOTLOADER
+        inputs_force_reboot_timer = 0;
+        #endif
+        
         if (inputs_wheel_click_return == RETURN_DET)
         {
             inputs_wheel_click_return = RETURN_JRELEASED;

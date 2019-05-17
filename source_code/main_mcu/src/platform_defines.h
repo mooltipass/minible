@@ -297,6 +297,9 @@ typedef struct
 #define DATAFLASH_BAUD_DIVIDER      1
 #define DBFLASH_BAUD_DIVIDER        1
 
+/* Reboot timer */
+#define NB_MS_WHEEL_PRESS_FOR_REBOOT    10000
+
 /* PORT defines */
 /* WHEEL ENCODER */
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)

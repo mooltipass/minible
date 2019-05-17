@@ -47,6 +47,15 @@ void platform_io_enable_switch(void)
 */
 void platform_io_disable_switch_and_die(void)
 {
+    /* Charge capacitor: pull down for slow ramp down */
+    PORT->Group[WHEEL_SW_GROUP].OUTCLR.reg = WHEEL_SW_MASK;
+    DELAYMS_8M(10);
+    
+    /* Charge capacitor: strong pull to ground */
+    PORT->Group[WHEEL_SW_GROUP].DIRSET.reg = WHEEL_SW_MASK;
+    DELAYMS_8M(10);
+    
+    /* Disable 3V3 stepup */
     PORT->Group[SWDET_EN_GROUP].OUTCLR.reg = SWDET_EN_MASK;
 }
 
