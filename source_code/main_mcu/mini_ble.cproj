@@ -718,6 +718,12 @@
     <Compile Include="src\FLASH\dbflash.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\functional_testing.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\functional_testing.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\GUI\gui_carousel.c">
       <SubType>compile</SubType>
     </Compile>

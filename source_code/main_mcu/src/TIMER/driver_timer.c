@@ -125,7 +125,7 @@ void timer_initialize_timebase(void)
 void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
 {
     calendar_t new_date;
-    new_date.bit.YEAR = year;
+    new_date.bit.YEAR = year-2000;
     new_date.bit.MONTH = month;
     new_date.bit.DAY = day;
     new_date.bit.HOUR = hour;

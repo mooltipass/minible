@@ -2,6 +2,7 @@
 #include <asf.h>
 #include "mooltipass_graphics_bundle.h"
 #include "smartcard_highlevel.h"
+#include "functional_testing.h"
 #include "smartcard_lowlevel.h"
 #include "platform_defines.h"
 #include "logic_encryption.h"
@@ -237,63 +238,8 @@ void main_platform_init(void)
     /* Check for first boot, perform functional testing */
     //if (custom_fs_is_first_boot() == TRUE)
     if (custom_fs_is_first_boot() == FALSE)
-    {                
-        /* Test no comms signal */
-        platform_io_set_no_comms();
-        if (comms_aux_mcu_send_receive_ping() == RETURN_OK)
-        {
-            sh1122_put_error_string(&plat_oled_descriptor, u"Nocomms error!");
-            while(1);            
-        }
-        platform_io_clear_no_comms();
-        
-        /* First boot should be done using battery */
-        if (platform_io_is_usb_3v3_present() != FALSE)
-        {
-            sh1122_put_error_string(&plat_oled_descriptor, u"Power using battery first!");
-            while(1);
-        }    
-        
-        /* Check for removed card */
-        if (smartcard_low_level_is_smc_absent() != RETURN_OK)
-        {
-            sh1122_put_error_string(&plat_oled_descriptor, u"Please remove the card first!");
-            while(1);
-        }    
-        
-        /* Start BLE... takes a little while... */
-        sh1122_put_error_string(&plat_oled_descriptor, u"First boot tests...");
-        logic_aux_mcu_enable_ble(TRUE);
-        sh1122_clear_current_screen(&plat_oled_descriptor);            
-        
-        /* Get BLE ID */
-        if (logic_aux_mcu_get_ble_chip_id() == 0)
-        {
-            sh1122_put_error_string(&plat_oled_descriptor, u"ATBTLC1000 error!");
-            while(1);
-        }
-        
-        /* Plug card... */
-        sh1122_put_error_string(&plat_oled_descriptor, u"Insert card");
-        while (smartcard_low_level_is_smc_absent() == RETURN_OK);
-        sh1122_clear_current_screen(&plat_oled_descriptor);
-        mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();        
-        if ((detection_result == RETURN_MOOLTIPASS_PB) || (detection_result == RETURN_MOOLTIPASS_INVALID))
-        {
-            sh1122_put_error_string(&plat_oled_descriptor, u"Invalid card!");
-            while(1);            
-        }        
-        
-        /* Connect USB... */
-        sh1122_put_error_string(&plat_oled_descriptor, u"Please connect USB...");
-        while (platform_io_is_usb_3v3_present() == FALSE);
-        sh1122_clear_current_screen(&plat_oled_descriptor);
-        
-        /* Clear flag */
-        custom_fs_settings_clear_first_boot_flag();
-        
-        /* We're good! */
-        sh1122_put_error_string(&plat_oled_descriptor, u"All Good!");
+    {      
+        functional_testing_start();
         while(1);
     }
     
@@ -388,16 +334,17 @@ int main(void)
         cpz_lut_entry_t special_user_profile;
         memset(&special_user_profile, 0, sizeof(special_user_profile));
         special_user_profile.user_id = 100;
-        //special_user_profile.security_settings_flags = USER_SEC_FLG_LOGIN_CONF | USER_SEC_FLG_PIN_FOR_MMM | USER_SEC_FLG_CRED_SAVE_PROMPT_MMM | USER_SEC_FLG_ADVANCED_MENU | USER_SEC_FLG_BLE_ENABLED;
-        //special_user_profile.security_settings_flags = USER_SEC_FLG_LOGIN_CONF | USER_SEC_FLG_CRED_SAVE_PROMPT_MMM | USER_SEC_FLG_ADVANCED_MENU;
                 
         /* When developping on a newly flashed board: reset USB connection and reset defaults */
         if (custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id) == RETURN_OK)
         {
             custom_fs_settings_set_defaults();
-            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
-            timer_delay_ms(2000);
-            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+            if (platform_io_is_usb_3v3_present() != FALSE)
+            {
+                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
+                timer_delay_ms(2000);
+                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+            }
         }        
     }
     #endif
@@ -406,7 +353,7 @@ int main(void)
     logic_device_activity_detected();    
     
     /* tests */
-    //debug_test_prompts();
+    debug_debug_menu();
     
     #ifndef DEV_SKIP_INTRO_ANIM
     /* Start animation */    

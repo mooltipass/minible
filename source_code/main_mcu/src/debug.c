@@ -8,6 +8,7 @@
 #include "comms_hid_msgs_debug.h"
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
+#include "functional_testing.h"
 #include "platform_defines.h"
 #include "logic_smartcard.h"
 #include "logic_aux_mcu.h"
@@ -137,7 +138,7 @@ void debug_debug_menu(void)
             else if (selected_item < 8)
             {
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Display All Fonts Glyphs", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Scroll Through Glyphs", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Setup Developper Card", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Language Switch Test", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Reset Device", TRUE);            
             }
@@ -150,10 +151,10 @@ void debug_debug_menu(void)
             }
             else
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Sleep", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Leave Menu", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Setup Developper Card", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Functional Test", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Sleep", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Leave Debug Menu", TRUE);
             }
             
             /* Cursor */
@@ -202,7 +203,7 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 5)
             {
-                debug_glyph_scroll();
+                debug_setup_dev_card();
             }
             else if (selected_item == 6)
             {
@@ -232,6 +233,11 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 12)
             {
+                sh1122_clear_current_screen(&plat_oled_descriptor);
+                functional_testing_start();
+            }
+            else if (selected_item == 13)
+            {
                 sh1122_oled_off(&plat_oled_descriptor);     // Display off command    
                 platform_io_power_down_oled();              // Switch off stepup            
                 platform_io_set_wheel_click_pull_down();    // Pull down on wheel click to slowly discharge capacitor
@@ -240,17 +246,13 @@ void debug_debug_menu(void)
                 timer_delay_ms(10);                         // Wait a tad
                 platform_io_disable_switch_and_die();       // Die!
             }
-            else if (selected_item == 13)
+            else if (selected_item == 14)
             {
                 main_standby_sleep();
             }
-            else if (selected_item == 14)
-            {
-                return;
-            }
             else if (selected_item == 15)
             {
-                debug_setup_dev_card();
+                return;
             }
             redraw_needed = TRUE;
         }
@@ -504,7 +506,7 @@ void debug_language_test(void)
             sh1122_set_emergency_font(&plat_oled_descriptor);
             sh1122_clear_current_screen(&plat_oled_descriptor);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "%d/%d : ", i+1, custom_fs_flash_header.language_map_item_count);
-            sh1122_put_string_xy(&plat_oled_descriptor, 30, 0, OLED_ALIGN_LEFT, custom_fs_get_current_language_text_desc(), FALSE);            
+            sh1122_put_string_xy(&plat_oled_descriptor, 40, 0, OLED_ALIGN_LEFT, custom_fs_get_current_language_text_desc(), FALSE);            
             sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "String file ID: %d", custom_fs_cur_language_entry.string_file_index);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "Start font file ID: %d", custom_fs_cur_language_entry.starting_font);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "Start bitmap file ID: %d", custom_fs_cur_language_entry.starting_bitmap);
@@ -621,7 +623,7 @@ void debug_debug_screen(void)
         }
          
         /* Line 2: date */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, TRUE, "CURRENT TIME: %u:%u:%u %u/%u/%u", temp_calendar.bit.HOUR, temp_calendar.bit.MINUTE, temp_calendar.bit.SECOND, temp_calendar.bit.DAY, temp_calendar.bit.MONTH, temp_calendar.bit.YEAR);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, TRUE, "CURRENT TIME: %u:%u:%u %u/%u/%u", temp_calendar.bit.HOUR, temp_calendar.bit.MINUTE, temp_calendar.bit.SECOND, temp_calendar.bit.DAY, temp_calendar.bit.MONTH, temp_calendar.bit.YEAR + 2000);
         
         /* Line 3: accelerometer */
         sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, TRUE, "ACC: Freq %uHz X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_x, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_y, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_z);
