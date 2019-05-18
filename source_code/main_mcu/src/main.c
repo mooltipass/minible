@@ -239,7 +239,7 @@ void main_platform_init(void)
     //if (custom_fs_is_first_boot() == TRUE)
     if (custom_fs_is_first_boot() == FALSE)
     {      
-        functional_testing_start();
+        functional_testing_start(TRUE);
         while(1);
     }
     

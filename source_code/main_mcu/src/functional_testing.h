@@ -12,7 +12,7 @@
 #include "defines.h"
 
 /* Prototypes */
-void functional_testing_start(void);
+void functional_testing_start(BOOL clear_first_boot_flag);
 
 
 
