@@ -49,8 +49,10 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     /* Wheel testing */
     sh1122_put_error_string(&plat_oled_descriptor, u"scroll up");
     while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_UP);
+    sh1122_clear_current_screen(&plat_oled_descriptor);
     sh1122_put_error_string(&plat_oled_descriptor, u"scroll down");
     while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_DOWN);
+    sh1122_clear_current_screen(&plat_oled_descriptor);
     sh1122_put_error_string(&plat_oled_descriptor, u"click");
     while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK);
     sh1122_clear_current_screen(&plat_oled_descriptor);
