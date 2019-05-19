@@ -63,3 +63,5 @@ Current measurement at the 1V2 input, DISCHG switch ON and 1V2 applied:
 | 8          | uA |
 | 9          | uA |
 | 10         | uA |
+
+Smartcard power consupption during idle was measured to be 11uA
