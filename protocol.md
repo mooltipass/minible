@@ -372,9 +372,9 @@ From the PC:
 
 Device Answer:
 
-| byte 0-1 | byte 2-3                    | byte 4                          |
+| byte 0-1 | byte 2-3                    | byte 4-5                          |
 |:---------|:----------------------------|:--------------------------------|
-| 0x0013   | 0 or 1 | if payload length is 1, see below |
+| 0x0013   | 0 or 2 | if payload length is 2, see below |
 
 User Security Settings Bitmask:
 
