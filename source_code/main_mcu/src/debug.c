@@ -746,7 +746,7 @@ void debug_atbtlc_info(void)
     /* Output debug info */
     sh1122_clear_current_screen(&plat_oled_descriptor);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 00, OLED_ALIGN_LEFT, FALSE, "BluSDK Lib: %X.%X", temp_rx_message->aux_details_message.blusdk_lib_maj, temp_rx_message->aux_details_message.blusdk_lib_min);
-    sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "BluSDK Fw: %X.%X.%X", temp_rx_message->aux_details_message.blusdk_fw_maj, temp_rx_message->aux_details_message.blusdk_fw_min, temp_rx_message->aux_details_message.blusdk_fw_build);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "ATBTLC Fw: %X.%X, Build %X", temp_rx_message->aux_details_message.blusdk_fw_maj, temp_rx_message->aux_details_message.blusdk_fw_min, temp_rx_message->aux_details_message.blusdk_fw_build);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "ATBTLC RF Ver: 0x%8X", (unsigned int)temp_rx_message->aux_details_message.atbtlc_rf_ver);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "ATBTLC Chip ID: 0x%6X", (unsigned int)temp_rx_message->aux_details_message.atbtlc_chip_id);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, FALSE, "ATBTLC Addr: 0x%02X%02X%02X%02X%02X%02X", temp_rx_message->aux_details_message.atbtlc_address[5], temp_rx_message->aux_details_message.atbtlc_address[4], temp_rx_message->aux_details_message.atbtlc_address[3], temp_rx_message->aux_details_message.atbtlc_address[2], temp_rx_message->aux_details_message.atbtlc_address[1], temp_rx_message->aux_details_message.atbtlc_address[0]);
