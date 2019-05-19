@@ -357,7 +357,7 @@ int main(void)
     logic_device_activity_detected();    
     
     /* tests */
-    main_standby_sleep();
+    //main_standby_sleep();
     
     #ifndef DEV_SKIP_INTRO_ANIM
     /* Start animation */    
