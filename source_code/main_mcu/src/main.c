@@ -306,6 +306,9 @@ void main_standby_sleep(void)
     /* Dataflash power up */
     dataflash_exit_power_down(&dataflash_descriptor);
     
+    /* Send any command to DB flash to wake it up (required in case of going to sleep twice) */
+    dbflash_check_presence(&dbflash_descriptor);
+    
     /* Re-enable AUX comms */
     comms_aux_arm_rx_and_clear_no_comms();
     
@@ -354,7 +357,7 @@ int main(void)
     logic_device_activity_detected();    
     
     /* tests */
-    debug_debug_menu();
+    main_standby_sleep();
     
     #ifndef DEV_SKIP_INTRO_ANIM
     /* Start animation */    
