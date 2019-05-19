@@ -287,9 +287,11 @@ void platform_io_smc_inserted_function(void)
     PORT->Group[SMC_SCK_GROUP].PMUX[SMC_SCK_PINID/2].bit.SMC_SCK_PMUXREGID = SMC_SCK_PMUX_ID;
     PORT->Group[SMC_MOSI_GROUP].DIRSET.reg = SMC_MOSI_MASK;                         // Enable SPI functionality
     PORT->Group[SMC_MOSI_GROUP].OUTCLR.reg = SMC_MOSI_MASK;                         // Enable SPI functionality
-    PORT->Group[SMC_MOSI_GROUP].PINCFG[SMC_MOSI_PINID].bit.PMUXEN = 1;              // Enable SPI functionality
-    PORT->Group[SMC_MOSI_GROUP].PMUX[SMC_MOSI_PINID/2].bit.SMC_MOSI_PMUXREGID = SMC_MOSI_PMUX_ID;
+    /* PIN MUX on MOSI isn't required: writing to smartcard is always done with big banging */
+    //PORT->Group[SMC_MOSI_GROUP].PINCFG[SMC_MOSI_PINID].bit.PMUXEN = 1;              // Enable SPI functionality
+    //PORT->Group[SMC_MOSI_GROUP].PMUX[SMC_MOSI_PINID/2].bit.SMC_MOSI_PMUXREGID = SMC_MOSI_PMUX_ID;
     PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.PMUXEN = 1;              // Enable SPI functionality
+    /****************************************************************************************/
     PORT->Group[SMC_MISO_GROUP].PMUX[SMC_MISO_PINID/2].bit.SMC_MISO_PMUXREGID = SMC_MISO_PMUX_ID;
     PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.INEN = 1;                // MISO as input (required when switching to bit banging)
 }
@@ -300,7 +302,9 @@ void platform_io_smc_inserted_function(void)
 void platform_io_smc_switch_to_bb(void)
 {
     PORT->Group[SMC_SCK_GROUP].PINCFG[SMC_SCK_PINID].bit.PMUXEN = 0;                // Disable SPI functionality
-    PORT->Group[SMC_MOSI_GROUP].PINCFG[SMC_MOSI_PINID].bit.PMUXEN = 0;              // Disable SPI functionality
+    /* PIN MUX on MOSI isn't required: writing to smartcard is always done with big banging */
+    //PORT->Group[SMC_MOSI_GROUP].PINCFG[SMC_MOSI_PINID].bit.PMUXEN = 0;              // Disable SPI functionality
+    /****************************************************************************************/
     PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.PMUXEN = 0;              // Disable SPI functionality
 }
 
@@ -310,7 +314,9 @@ void platform_io_smc_switch_to_bb(void)
 void platform_io_smc_switch_to_spi(void)
 {
     PORT->Group[SMC_SCK_GROUP].PINCFG[SMC_SCK_PINID].bit.PMUXEN = 1;                // Enable SPI functionality
-    PORT->Group[SMC_MOSI_GROUP].PINCFG[SMC_MOSI_PINID].bit.PMUXEN = 1;              // Enable SPI functionality
+    /* PIN MUX on MOSI isn't required: writing to smartcard is always done with big banging */
+    //PORT->Group[SMC_MOSI_GROUP].PINCFG[SMC_MOSI_PINID].bit.PMUXEN = 1;              // Enable SPI functionality
+    /****************************************************************************************/
     PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.PMUXEN = 1;              // Enable SPI functionality
 }
 

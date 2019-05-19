@@ -83,6 +83,20 @@ uint8_t logic_user_get_current_user_id(void)
     }
 }
 
+/*! \fn     logic_user_get_user_cards_cpz(uint8_t* buffer)
+*   \brief  Get current user cards CPZ
+*   \param  buffer      Where to store the user cards' CPZ
+*/
+void logic_user_get_user_cards_cpz(uint8_t* buffer)
+{
+    cpz_lut_entry_t* lut_entry_pt = logic_encryption_get_cur_cpz_lut_entry();
+    
+    if (lut_entry_pt != 0)
+    {
+        memcpy(buffer, lut_entry_pt->cards_cpz, MEMBER_SIZE(cpz_lut_entry_t, cards_cpz));
+    }  
+}
+
 /*! \fn     logic_user_set_user_security_flag(uint8_t bitmask)
 *   \brief  Add security flags to current user profile
 *   \param  bitmask     Security flags bitmask
