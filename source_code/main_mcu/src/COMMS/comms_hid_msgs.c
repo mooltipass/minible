@@ -115,11 +115,22 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             {
                 send_msg->payload[0] |= 0x10;
             }
-
-            /* Send the status */
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
+            
+            /* If user logged in, send user security preferences */
+            if (logic_security_is_smc_inserted_unlocked() != FALSE)
+            {
+                send_msg->message_type = rcv_message_type;
+                send_msg->payload_as_uint16[1] = logic_user_get_user_security_flags();
+                send_msg->payload_length = 4;
+                return 4;
+            }
+            else
+            {
+                /* Send the status */
+                send_msg->message_type = rcv_message_type;
+                send_msg->payload_length = 1;
+                return 1;                
+            }
         }
         
         case HID_CMD_ID_PLAT_INFO:
@@ -230,13 +241,13 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->message_type = rcv_message_type;
                 send_msg->payload_as_uint16[0] = logic_user_get_user_security_flags();
                 send_msg->payload_length = 2;
-                return 1;
+                return 2;
             } 
             else
             {
                 send_msg->message_type = rcv_message_type;
                 send_msg->payload_length = 0;
-                return 1;
+                return 0;
             }
         }
         
