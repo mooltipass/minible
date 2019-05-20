@@ -321,9 +321,9 @@ From the PC:
 
 Device Answer:
 
-| byte 0-1 | byte 2-3                    | byte 4                          |
-|:---------|:----------------------------|:--------------------------------|
-| 0x0011   | 1 | status byte, see below |
+| byte 0-1 | byte 2-3                    | byte 4 | byte 5 | byte 6-7 |
+|:---------|:----------------------------|:-------|:-------|:-------|
+| 0x0011   | 1 or 4 | status byte, see below | reserved | user security preferences |
 
 Status Byte:
 
