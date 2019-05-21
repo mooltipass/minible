@@ -14,6 +14,7 @@ void platform_io_update_step_down_voltage(uint16_t voltage);
 void platform_io_enable_battery_charging_ports(void);
 void platform_io_prepare_ports_for_sleep_exit(void);
 void platform_io_enable_step_down(uint16_t voltage);
+void platform_io_init_ble_ports_for_disabled(void);
 RET_TYPE platform_io_is_no_comms_asserted(void);
 void platform_io_prepare_ports_for_sleep(void);
 void platform_io_disable_charge_mosfets(void);

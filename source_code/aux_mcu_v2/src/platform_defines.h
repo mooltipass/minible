@@ -157,6 +157,62 @@ typedef uint32_t PIN_ID_T;
     #define AUX_MCU_NOCOMMS_PMUXREGID  PMUXE
 #endif
 
+/* BLE */
+#if defined(PLAT_V3_SETUP)
+    #define BLE_WAKE_OUT_GROUP   PIN_GROUP_0
+    #define BLE_WAKE_OUT_PINID   15
+#endif
+#define BLE_WAKE_OUT_MASK        (1UL << BLE_WAKE_OUT_PINID)
+#if (BLE_WAKE_OUT_PINID % 2) == 1
+    #define BLE_WAKE_OUT_PMUXREGID  PMUXO
+#else
+    #define BLE_WAKE_OUT_PMUXREGID  PMUXE
+#endif
+
+#if defined(PLAT_V3_SETUP)
+    #define BLE_EN_GROUP   PIN_GROUP_0
+    #define BLE_EN_PINID   1
+#endif
+#define BLE_EN_MASK        (1UL << BLE_EN_PINID)
+#if (BLE_EN_PINID % 2) == 1
+    #define BLE_EN_PMUXREGID  PMUXO
+#else
+    #define BLE_EN_PMUXREGID  PMUXE
+#endif
+
+#if defined(PLAT_V3_SETUP)
+    #define BLE_UART0_TX_GROUP   PIN_GROUP_0
+    #define BLE_UART0_TX_PINID   8
+#endif
+#define BLE_UART0_TX_MASK        (1UL << BLE_UART0_TX_PINID)
+#if (BLE_UART0_TX_PINID % 2) == 1
+    #define BLE_UART0_TX_PMUXREGID  PMUXO
+#else
+    #define BLE_UART0_TX_PMUXREGID  PMUXE
+#endif
+
+#if defined(PLAT_V3_SETUP)
+    #define BLE_UART1_TX_GROUP   PIN_GROUP_0
+    #define BLE_UART1_TX_PINID   4
+#endif
+#define BLE_UART1_TX_MASK        (1UL << BLE_UART1_TX_PINID)
+#if (BLE_UART1_TX_PINID % 2) == 1
+    #define BLE_UART1_TX_PMUXREGID  PMUXO
+#else
+    #define BLE_UART1_TX_PMUXREGID  PMUXE
+#endif
+
+#if defined(PLAT_V3_SETUP)
+    #define BLE_UART1_RTS_GROUP   PIN_GROUP_0
+    #define BLE_UART1_RTS_PINID   6
+#endif
+#define BLE_UART1_RTS_MASK        (1UL << BLE_UART1_RTS_PINID)
+#if (BLE_UART1_RTS_PINID % 2) == 1
+    #define BLE_UART1_RTS_PMUXREGID  PMUXO
+#else
+    #define BLE_UART1_RTS_PMUXREGID  PMUXE
+#endif
+
 /* NiMH charging */
 #if defined(PLAT_V3_SETUP)
     #define CHARGE_EN_GROUP   PIN_GROUP_0

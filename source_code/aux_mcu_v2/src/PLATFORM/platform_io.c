@@ -352,6 +352,24 @@ void platform_io_enable_main_comms(void)
     PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PULLEN = 0;                                  // AUX MCU RX, MAIN MCU TX: Pull up disable
 }
 
+
+/*! \fn     platform_io_init_ble_ports_for_disabled(void)
+*   \brief  Initialize the platform BLE ports for a disabled BTLC1000
+*/
+void platform_io_init_ble_ports_for_disabled(void)
+{
+    PORT->Group[BLE_WAKE_OUT_GROUP].DIRSET.reg = BLE_WAKE_OUT_MASK;
+    PORT->Group[BLE_WAKE_OUT_GROUP].OUTCLR.reg = BLE_WAKE_OUT_MASK;
+    PORT->Group[BLE_EN_GROUP].DIRSET.reg = BLE_EN_MASK;
+    PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
+    PORT->Group[BLE_UART0_TX_GROUP].DIRSET.reg = BLE_UART0_TX_MASK;
+    PORT->Group[BLE_UART0_TX_GROUP].OUTCLR.reg = BLE_UART0_TX_MASK;
+    PORT->Group[BLE_UART1_TX_GROUP].DIRSET.reg = BLE_UART1_TX_MASK;
+    PORT->Group[BLE_UART1_TX_GROUP].OUTCLR.reg = BLE_UART1_TX_MASK;
+    PORT->Group[BLE_UART1_RTS_GROUP].DIRSET.reg = BLE_UART1_RTS_MASK;
+    PORT->Group[BLE_UART1_RTS_GROUP].OUTCLR.reg = BLE_UART1_RTS_MASK;
+}
+
 /*! \fn     platform_io_init_usb_ports(void)
 *   \brief  Initialize the platform USB ports
 */
@@ -376,6 +394,9 @@ void platform_io_init_ports(void)
     
     /* NiMH charging ports */
     platform_io_enable_battery_charging_ports();
+    
+    /* BLE */
+    platform_io_init_ble_ports_for_disabled();
 }    
 
 /*! \fn     platform_io_prepare_ports_for_sleep(void)
