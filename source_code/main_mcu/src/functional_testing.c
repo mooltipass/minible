@@ -100,5 +100,5 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     
     /* We're good! */
     sh1122_put_error_string(&plat_oled_descriptor, u"All Good!");    
-    timer_delay_ms(2000);
+    timer_delay_ms(4000);
 }

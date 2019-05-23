@@ -236,11 +236,13 @@ void main_platform_init(void)
     } 
     
     /* Check for first boot, perform functional testing */
-    //if (custom_fs_is_first_boot() == TRUE)
-    if (custom_fs_is_first_boot() == FALSE)
+    #ifdef DEVELOPER_FEATURES_ENABLED
+    if ((custom_fs_is_first_boot() == TRUE) && (mcu_sp_rh_addresses[1] != 0x0201))
+    #else
+    if (custom_fs_is_first_boot() == TRUE)
+    #endif
     {      
         functional_testing_start(TRUE);
-        while(1);
     }
     
     /* Display error messages if something went wrong during custom fs init and bundle check */
