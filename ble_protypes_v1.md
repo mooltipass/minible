@@ -15,6 +15,5 @@ The goal of this page is to make a record of all observations regarding the Mini
    
    
 ## [](#header-2)Platform sleep power consumptions
-Deep sleep on main and aux MCU, ATBTLC1000 off, measured power consumption at 1V5 IN was 85uA, 88uA and 100uA.  
-Power consumption increase compared to breakout board is explained by switching to TPS61220 in variable output.  
+Deep sleep on main and aux MCU, ATBTLC1000 off, measured power consumption at 1V5 IN was 85uA, 88uA and 100uA. This increase compared to breakout boards is explained by switching to TPS61220 in variable output.  
 Measured 3.18V voltages were 3.167V, 3.147V, 3.174V and 3.163V. Average therefore is 3.16V.  
