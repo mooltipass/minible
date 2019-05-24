@@ -364,10 +364,11 @@ void platform_io_init_ble_ports_for_disabled(void)
     PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
     PORT->Group[BLE_UART0_TX_GROUP].DIRSET.reg = BLE_UART0_TX_MASK;
     PORT->Group[BLE_UART0_TX_GROUP].OUTCLR.reg = BLE_UART0_TX_MASK;
-    PORT->Group[BLE_UART1_TX_GROUP].DIRSET.reg = BLE_UART1_TX_MASK;
-    PORT->Group[BLE_UART1_TX_GROUP].OUTCLR.reg = BLE_UART1_TX_MASK;
     PORT->Group[BLE_UART1_RTS_GROUP].DIRSET.reg = BLE_UART1_RTS_MASK;
     PORT->Group[BLE_UART1_RTS_GROUP].OUTCLR.reg = BLE_UART1_RTS_MASK;
+    /* Below: leave disabled, doesn't change anything */
+    //PORT->Group[BLE_UART1_TX_GROUP].DIRSET.reg = BLE_UART1_TX_MASK;
+    //PORT->Group[BLE_UART1_TX_GROUP].OUTSET.reg = BLE_UART1_TX_MASK;
 }
 
 /*! \fn     platform_io_init_usb_ports(void)
