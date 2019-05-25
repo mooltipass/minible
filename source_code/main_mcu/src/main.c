@@ -329,6 +329,9 @@ int main(void)
     /* Initialize our platform */
     main_platform_init();
     
+    /* TO REMOVE */
+    //platform_io_enable_ble();
+    
     /* Special developer features */
     #ifdef SPECIAL_DEVELOPER_CARD_FEATURE
     /* Check if this is running on a device without bootloader, add CPZ entry for special card */

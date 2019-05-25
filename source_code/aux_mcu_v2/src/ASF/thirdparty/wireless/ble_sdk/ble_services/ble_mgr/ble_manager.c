@@ -53,6 +53,7 @@
 #include "ble_manager.h"
 #include "ble_utils.h"
 #include "platform.h"
+#include "debug.h"
 
 #if BLE_DEVICE_ROLE == BLE_ROLE_ALL
 #ifndef ATT_DB_MEMORY
@@ -1963,6 +1964,7 @@ void ble_event_manager(at_ble_events_t events, void *event_params)
 	case AT_BLE_LE_TEST_STATUS:
 	case AT_BLE_LE_PACKET_REPORT:
 	{
+        debug_tx_sweep_inc();
 		uint8_t idx;
 		events -= (AT_BLE_HTPT_MEAS_INTV_CHG_REQ + 1);
 		for (idx = 0; idx < MAX_DTM_EVENT_SUBSCRIBERS; idx++)

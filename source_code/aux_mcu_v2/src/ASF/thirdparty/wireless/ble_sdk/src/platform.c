@@ -51,6 +51,8 @@
 #include "ble_utils.h"
 #include "conf_serialdrv.h"
 #include "timer_hw.h"
+#include "comms_usb.h"
+#include "comms_main_mcu.h"
 
 static void (*recv_async_cb)(uint8_t) = NULL;
 static volatile bool platform_timer_used = false;
@@ -301,6 +303,8 @@ void platform_wait_for_signal(uint32_t count, void **signal_handler_list)
 			}			
 			if(!signal_presence)
 			{
+    			comms_main_mcu_routine();
+    			comms_usb_communication_routine();
 			    /************ Points to Remeber to before putting Host MCU to sleep *******************/
 			   /*	Host MCU can go to sleep with wakeup sources (Host Wakeup Pin/UART/Bus Timer/Event Timeout Timer) 
 					configured with below conditions are met.
@@ -311,7 +315,8 @@ void platform_wait_for_signal(uint32_t count, void **signal_handler_list)
 				4. Host MCU should not go to deep sleep until BTLC1000 wakeup line goes low (to avoid latencies)
 				5. In RTOS Task can yield until signals are triggered, But Host MCU should meet the above condition 
 					before putting Host MCU to sleep */
-					platform_enter_sleep();
+               // TODO: re-enable below!!!
+			    //platform_enter_sleep();
 			}
 		} while (!signal_presence);
 	}

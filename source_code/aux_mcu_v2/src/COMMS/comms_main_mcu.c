@@ -12,10 +12,13 @@
 #include "comms_main_mcu.h"
 #include "logic_battery.h"
 #include "driver_timer.h"
+#include "ble_manager.h"
 #include "at_ble_api.h"
+#include "hid_device.h"
 #include "comms_usb.h"
 #include "ble_utils.h"
 #include "defines.h"
+#include "debug.h"
 #include "logic.h"
 #include "main.h"
 #include "dma.h"
@@ -169,16 +172,10 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 {
                     logic_set_ble_enabled();
                     mini_ble_init();
-                    message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-                    message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
-                    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
                 }
-                else
-                {
-                    message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-                    message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
-                    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
-                }
+                message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+                message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
+                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
                 break;
             }
             case MAIN_MCU_COMMAND_DISABLE_BLE:
@@ -188,16 +185,10 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 {
                     // TODO: implement calls to the BLE api
                     logic_set_ble_disabled();
-                    message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-                    message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISABLED;
-                    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
                 }
-                else
-                {
-                    message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-                    message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISABLED;
-                    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
-                }
+                message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+                message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISABLED;
+                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
                 break;
             }
             case MAIN_MCU_COMMAND_NIMH_CHARGE:
@@ -210,6 +201,16 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             {
                 /* No comms signal unavailable */
                 logic_set_nocomms_unavailable();
+                break;
+            }
+            case MAIN_MCU_COMMAND_TX_SWEEP_SGL:
+            {
+                /* ble_manager will send the event to main MCU */
+                debug_tx_sweep_start();
+                break;
+            }
+            default:
+            {
                 break;
             }
         }

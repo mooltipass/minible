@@ -11,6 +11,7 @@
 #include "comms_aux_mcu_defines.h"
 #include "comms_bootloader_msg.h"
 #include "comms_hid_msgs.h"
+#include "defines.h"
 
 /* Share vars */
 extern volatile BOOL comms_main_mcu_usb_msg_answered_using_first_bytes;
@@ -36,9 +37,13 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define MAIN_MCU_COMMAND_DISABLE_BLE    0x0007
 #define MAIN_MCU_COMMAND_DETACH_USB     0x0008
 
+// Debug MCU commands
+#define MAIN_MCU_COMMAND_TX_SWEEP_SGL   0x1000
+
 // Aux MCU events
 #define AUX_MCU_EVENT_BLE_ENABLED       0x0001
 #define AUX_MCU_EVENT_BLE_DISABLED      0x0002
+#define AUX_MCU_EVENT_TW_SWEEP_DONE     0x0003
 
 /* Typedefs */
 typedef struct

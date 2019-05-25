@@ -151,10 +151,10 @@ void debug_debug_menu(void)
             }
             else
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Functional Test", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Sleep", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Leave Debug Menu", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"RF Frequency Sweep", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Functional Test", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Sleep", TRUE);
             }
             
             /* Cursor */
@@ -237,10 +237,14 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 12)
             {
+                debug_rf_freq_sweep();
+            }
+            else if (selected_item == 13)
+            {
                 sh1122_clear_current_screen(&plat_oled_descriptor);
                 functional_testing_start(FALSE);
             }
-            else if (selected_item == 13)
+            else if (selected_item == 14)
             {
                 /* Check for USB power */
                 if (platform_io_is_usb_3v3_present() != FALSE)
@@ -257,13 +261,9 @@ void debug_debug_menu(void)
                 timer_delay_ms(10);                         // Wait a tad
                 platform_io_disable_switch_and_die();       // Die!
             }
-            else if (selected_item == 14)
-            {
-                main_standby_sleep();
-            }
             else if (selected_item == 15)
             {
-                return;
+                main_standby_sleep();
             }
             redraw_needed = TRUE;
         }
@@ -732,6 +732,59 @@ void debug_mcu_and_aux_info(void)
             return;
         }
     }
+}
+
+/*! \fn     debug_rf_freq_sweep(void)
+*   \brief  Use ATBTLC1000 test mode to do a tx frequency sweep
+*/
+void debug_rf_freq_sweep(void)
+{
+    aux_mcu_message_t* temp_rx_message;
+    uint16_t run_number = 0;
+    
+    /* Enable BLE */
+    logic_aux_mcu_enable_ble(TRUE);
+    
+    /* Start single sweep */
+    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_TX_SWEEP_SGL);
+    comms_aux_mcu_wait_for_message_sent();
+ 
+    while (TRUE)
+    {       
+        /* Plot run numbers */
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        sh1122_printf_xy(&plat_oled_descriptor, 100, 20, OLED_ALIGN_LEFT, FALSE, "Run #%d", run_number);
+        
+        /* Wait for end of sweep */
+        uint16_t nb_fails = 0;
+        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE) != RETURN_OK)
+        {
+            nb_fails++;
+            
+            /* Click for return */
+            if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+            {
+                return;
+            }            
+            
+            /* We waited too long, blusdk fail */
+            if (nb_fails > 4)
+            {
+                run_number = 0;
+                break;
+            }
+        }
+        
+        /* Rearm RX */
+        comms_aux_arm_rx_and_clear_no_comms();
+        
+        /* Start other sweep */
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_TX_SWEEP_SGL);
+        comms_aux_mcu_wait_for_message_sent();
+        
+        /* Increment run number */
+        run_number++;
+    }   
 }
 
 /*! \fn     debug_atbtlc_info(void)

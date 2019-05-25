@@ -15,6 +15,7 @@ void debug_debug_animation(void);
 void debug_smartcard_info(void);
 void debug_setup_dev_card(void);
 void debug_smartcard_test(void);
+void debug_rf_freq_sweep(void);
 void debug_nimh_charging(void);
 void debug_language_test(void);
 void debug_test_prompts(void);

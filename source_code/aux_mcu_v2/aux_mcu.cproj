@@ -1063,6 +1063,12 @@
     <None Include="src\config\conf_timer.h">
       <SubType>compile</SubType>
     </None>
+    <Compile Include="src\debug.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\debug.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\defines.h">
       <SubType>compile</SubType>
     </Compile>

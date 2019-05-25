@@ -27,7 +27,7 @@ def main():
 			
 		print "Connected to device"
 		
-		while False:
+		while True:
 			try:
 				mooltipass_device.getInternalDevice().receiveHidMessage()
 			except KeyboardInterrupt:
