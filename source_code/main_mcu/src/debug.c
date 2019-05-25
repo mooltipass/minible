@@ -179,6 +179,10 @@ void debug_debug_menu(void)
             redraw_needed = TRUE;
             selected_item++;
         }
+        else if (wheel_user_action == WHEEL_ACTION_LONG_CLICK)
+        {
+            return;
+        }
         else if (wheel_user_action == WHEEL_ACTION_SHORT_CLICK)
         {
             if (selected_item == 0)
@@ -238,6 +242,13 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 13)
             {
+                /* Check for USB power */
+                if (platform_io_is_usb_3v3_present() != FALSE)
+                {
+                    sh1122_clear_current_screen(&plat_oled_descriptor);
+                    sh1122_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"Remove USB cable", FALSE);
+                    while((platform_io_is_usb_3v3_present() != FALSE));
+                }
                 sh1122_oled_off(&plat_oled_descriptor);     // Display off command    
                 platform_io_power_down_oled();              // Switch off stepup            
                 platform_io_set_wheel_click_pull_down();    // Pull down on wheel click to slowly discharge capacitor

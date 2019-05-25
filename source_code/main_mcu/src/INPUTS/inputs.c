@@ -32,7 +32,7 @@ BOOL inputs_wheel_reverse_bool = FALSE;
 // Last detection type returned (cleared when calling cleardetections)
 wheel_action_ret_te inputs_last_detection_type_ret = WHEEL_ACTION_NONE;
 #ifndef BOOTLOADER
-uint16_t inputs_force_reboot_timer = 0;
+volatile uint16_t inputs_force_reboot_timer = 0;
 #endif
 
 
