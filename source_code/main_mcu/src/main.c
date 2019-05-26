@@ -401,6 +401,7 @@ int main(void)
         /* Power supply change */
         if ((logic_power_get_power_source() == BATTERY_POWERED) && (platform_io_is_usb_3v3_present() != FALSE))
         {
+            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
             logic_power_set_power_source(USB_POWERED);
             sh1122_oled_off(&plat_oled_descriptor);
             timer_delay_ms(50);
@@ -409,6 +410,7 @@ int main(void)
         } 
         else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
         {
+            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
             logic_power_set_power_source(BATTERY_POWERED);
             sh1122_oled_off(&plat_oled_descriptor);
             timer_delay_ms(50);
