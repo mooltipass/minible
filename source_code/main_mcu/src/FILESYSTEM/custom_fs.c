@@ -587,6 +587,42 @@ void custom_fs_settings_clear_first_boot_flag(void)
     custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
 }
 
+/*! \fn     custom_fs_define_powered_off_due_to_battery_voltage(BOOL set_flag)
+*   \brief  Set / clear powered off due to battery voltage flag
+*   \param  set_flag    Set to TRUE to set the flag
+*/
+void custom_fs_define_powered_off_due_to_battery_voltage(BOOL set_flag)
+{
+    volatile custom_platform_settings_t temp_settings;
+    custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    if (set_flag == FALSE)
+    {
+        temp_settings.powered_off_due_to_battery_flag = 0;
+    } 
+    else
+    {
+        temp_settings.powered_off_due_to_battery_flag = 0x1212;
+    }
+    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    return;    
+}
+
+/*! \fn     custom_fs_is_powered_off_due_to_battery_voltage(void)
+*   \brief  Check if were just powered off due to low battery voltage
+*   \return BOOL containing our answer
+*/
+BOOL custom_fs_is_powered_off_due_to_battery_voltage(void)
+{
+    if ((custom_fs_platform_settings_p != 0) && (custom_fs_platform_settings_p->powered_off_due_to_battery_flag == 0x1212))
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
 /*! \fn     custom_fs_is_first_boot(void)
 *   \brief  Check for first boot
 *   \return TRUE for first boot

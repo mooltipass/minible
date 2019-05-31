@@ -99,17 +99,34 @@ void main_platform_init(void)
     RET_TYPE fuses_ok = RETURN_NOK;
     BOOL debugger_present = FALSE;
     
-    /* Measure 1Vx, boot aux MCU, check if USB powered */
+    /* Low level port initializations for power supplies */
     platform_io_enable_switch();                                            // Enable switch and 3v3 stepup
-    platform_io_init_power_ports();                                         // Init power port, needed later to test if we are battery or usb powered
-    platform_io_init_no_comms_signal();                                     // Init no comms signal, used as wakeup for aux MCU at boot
+    platform_io_init_power_ports();                                         // Init power port, needed to test if we are battery or usb powered
+    platform_io_init_no_comms_signal();                                     // Init no comms signal, used later as wakeup for the aux MCU
+    
+    /* Check if we previously powered off due to low battery and still haven't charged since then */
+    if (custom_fs_is_powered_off_due_to_battery_voltage() != FALSE)
+    {
+        if (platform_io_is_usb_3v3_present() == FALSE)
+        {
+            platform_io_disable_switch_and_die();
+            while(1);
+        } 
+        else
+        {
+            custom_fs_define_powered_off_due_to_battery_voltage(FALSE);
+        }
+    }
+    
+    /* Measure battery voltage */
     platform_io_init_bat_adc_measurements();                                // Initialize ADC measurements  
     platform_io_enable_vbat_to_oled_stepup();                               // Enable vbat to oled stepup
     platform_io_get_voledin_conversion_result_and_trigger_conversion();     // Start one measurement
     while(platform_io_is_voledin_conversion_result_ready() == FALSE);       // Do measurement even if we are USB powered, to leave exactly 180ms for platform boot
     
-    /* Check if battery powered and undervoltage */
+    /* Check if battery powered and under-voltage */
     uint16_t battery_voltage = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+    logic_power_register_vbat_adc_measurement(battery_voltage);
     if ((platform_io_is_usb_3v3_present() == FALSE) && (battery_voltage < BATTERY_ADC_OUT_CUTOUT))
     {
         platform_io_disable_switch_and_die();
@@ -397,26 +414,15 @@ int main(void)
     
     /* Infinite loop */
     while(TRUE)
-    {        
-        /* Power supply change */
-        if ((logic_power_get_power_source() == BATTERY_POWERED) && (platform_io_is_usb_3v3_present() != FALSE))
+    {
+        /* Power handling routine */
+        power_action_te power_action = logic_power_routine();
+        if ((power_action == POWER_ACT_POWER_OFF) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE))
         {
-            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
-            logic_power_set_power_source(USB_POWERED);
-            sh1122_oled_off(&plat_oled_descriptor);
-            timer_delay_ms(50);
-            platform_io_power_up_oled(TRUE);
-            sh1122_oled_on(&plat_oled_descriptor);
-        } 
-        else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
-        {
-            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
-            logic_power_set_power_source(BATTERY_POWERED);
-            sh1122_oled_off(&plat_oled_descriptor);
-            timer_delay_ms(50);
-            platform_io_power_up_oled(FALSE);
-            sh1122_oled_on(&plat_oled_descriptor);
-        }        
+            custom_fs_define_powered_off_due_to_battery_voltage(TRUE);
+            platform_io_disable_switch_and_die();
+            while(1);
+        }
         
         /* Do not do anything if we're uploading new graphics contents */
         if (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE)

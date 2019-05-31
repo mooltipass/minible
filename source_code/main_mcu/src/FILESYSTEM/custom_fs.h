@@ -84,7 +84,8 @@ typedef struct
 typedef struct  
 {
     uint8_t device_settings[NB_DEVICE_SETTINGS];
-    uint8_t reserved[186];
+    uint8_t reserved[184];
+    uint16_t powered_off_due_to_battery_flag;
     uint16_t first_boot_flag;
     uint32_t start_upgrade_flag;
 } custom_platform_settings_t;
@@ -161,6 +162,7 @@ uint16_t custom_fs_get_nb_free_cpz_lut_entries(uint8_t* first_available_user_id)
 RET_TYPE custom_fs_update_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id);
 RET_TYPE custom_fs_store_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id);
 void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id);
+void custom_fs_define_powered_off_due_to_battery_voltage(BOOL set_flag);
 void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc);
 uint8_t custom_fs_settings_get_device_setting(uint16_t setting_id);
 uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id);
@@ -168,6 +170,7 @@ RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void);
 ret_type_te custom_fs_set_current_language(uint8_t language_id);
 void custom_fs_settings_store_dump(uint8_t* settings_buffer);
 cust_char_t* custom_fs_get_current_language_text_desc(void);
+BOOL custom_fs_is_powered_off_due_to_battery_voltage(void);
 uint16_t custom_fs_settings_get_dump(uint8_t* dump_buffer);
 void custom_fs_detele_user_cpz_lut_entry(uint8_t user_id);
 custom_fs_init_ret_type_te custom_fs_settings_init(void);

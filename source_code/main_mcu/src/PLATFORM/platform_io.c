@@ -127,7 +127,11 @@ uint16_t platform_io_get_voledinmv_conversion_result_and_trigger_conversion(void
     platform_io_voledin_conv_ready = FALSE;
     uint32_t return_val = ADC->RESULT.reg;
     ADC->SWTRIG.reg = ADC_SWTRIG_START;
+    #ifdef PLAT_V3_SETUP
     return_val = (return_val*103) >> 8;
+    #else
+    return_val = (return_val*199) >> 9;
+    #endif
     return (uint16_t)return_val;
 }
 
@@ -487,7 +491,7 @@ BOOL platform_io_is_usb_3v3_present(void)
 void platform_io_init_power_ports(void)
 {
     /* Configure analog input */
-#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP)
+#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
     PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 1;
     PORT->Group[VOLED_VIN_GROUP].PMUX[VOLED_VIN_PINID/2].bit.VOLED_VIN_PMUXREGID = VOLED_VIN_PMUX_ID;
@@ -539,7 +543,7 @@ void platform_io_enable_aux_comms(void)
 void platform_io_set_no_comms(void)
 {
     /* Platform v3 */
-    #ifdef PLAT_V3_SETUP
+    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, disabled by default    
     #endif
 }
@@ -550,7 +554,7 @@ void platform_io_set_no_comms(void)
 void platform_io_clear_no_comms(void)
 {
     /* Platform v3 */
-    #ifdef PLAT_V3_SETUP
+    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, disabled by default    
     #endif
 }
@@ -561,7 +565,7 @@ void platform_io_clear_no_comms(void)
 void platform_io_init_no_comms_signal(void)
 {    
     /* Platform v3 */
-    #ifdef PLAT_V3_SETUP
+    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;    // Setup NO COMMS, enabled by default
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default
