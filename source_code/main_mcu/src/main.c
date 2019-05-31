@@ -419,7 +419,14 @@ int main(void)
         power_action_te power_action = logic_power_routine();
         if ((power_action == POWER_ACT_POWER_OFF) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE))
         {
+            /* Set flag */
             custom_fs_define_powered_off_due_to_battery_voltage(TRUE);
+            
+            /* Out of battery! */
+            gui_prompts_display_information_on_screen_and_wait(BATTERY_EMPTY_TEXT_ID, DISP_MSG_WARNING);
+            sh1122_oled_off(&plat_oled_descriptor);
+            platform_io_power_down_oled();
+            timer_delay_ms(100);
             platform_io_disable_switch_and_die();
             while(1);
         }

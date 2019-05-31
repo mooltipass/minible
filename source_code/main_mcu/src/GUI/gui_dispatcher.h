@@ -16,6 +16,9 @@
 #define GUI_ANIMATION_NBFRAMES      120
 #define GUI_LOCKED_MINI_BITMAP_ID   453
 
+// Animations
+#define GUI_BATTERY_ANIM_DELAY_MS   500
+
 /* Enums */
 typedef enum {  GUI_SCREEN_INVALID = 0,
                 GUI_SCREEN_NINSERTED,
@@ -43,6 +46,7 @@ typedef enum {  GUI_SCREEN_INVALID = 0,
 void gui_dispatcher_set_current_screen(gui_screen_te screen, BOOL reset_states, oled_transition_te transition);
 void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action);
 gui_screen_te gui_dispatcher_get_current_screen(void);
+void gui_dispatcher_display_battery_bt_overlay(void);
 void gui_dispatcher_get_back_to_current_screen(void);
 void gui_dispatcher_idle_call(void);
 void gui_dispatcher_main_loop(void);

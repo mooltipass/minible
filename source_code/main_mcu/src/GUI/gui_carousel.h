@@ -13,8 +13,8 @@
 
 // Bitmap IDs
 #define BITMAP_BATTERY_0PCT_ID      662
-#define BITMAP_TRAY_BT_OFF          668
 #define BITMAP_TRAY_BT_CONNECTED_ID 668
+#define BITMAP_TRAY_BT_OFF          669
 #define BITMAP_TRAY_BT_ON           670
 
 // Big, medium, small icon X/Y

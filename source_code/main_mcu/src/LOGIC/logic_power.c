@@ -38,8 +38,28 @@ power_source_te logic_power_get_power_source(void)
 *   \return Current battery state (see enum)
 */
 battery_state_te logic_power_get_battery_state(void)
-{
-    return BATTERY_50PCT;
+{    
+    /* I'm sure some more fancy logic will be required here in the future */
+    if (logic_power_last_vbat_measurement < BATTERY_ADC_20PCT_VOLTAGE)
+    {
+        return BATTERY_0PCT;
+    }
+    else if (logic_power_last_vbat_measurement < BATTERY_ADC_40PCT_VOLTAGE)
+    {
+        return BATTERY_25PCT;
+    }
+    else if (logic_power_last_vbat_measurement < BATTERY_ADC_60PCT_VOLTAGE)
+    {
+        return BATTERY_50PCT;
+    }
+    else if (logic_power_last_vbat_measurement < BATTERY_ADC_80PCT_VOLTAGE)
+    {
+        return BATTERY_75PCT;
+    }
+    else
+    {
+        return BATTERY_100PCT;
+    }
 }
 
 /*! \fn     logic_power_register_vbat_adc_measurement(uint16_t adc_val)
@@ -84,7 +104,7 @@ power_action_te logic_power_routine(void)
     }
     
     /* Action based on battery measurement */
-    if (logic_power_last_vbat_measurement < BATTERY_ADC_OUT_CUTOUT)
+    if ((logic_power_get_power_source() == BATTERY_POWERED) && (logic_power_last_vbat_measurement < BATTERY_ADC_OUT_CUTOUT))
     {
         return POWER_ACT_POWER_OFF;
     }

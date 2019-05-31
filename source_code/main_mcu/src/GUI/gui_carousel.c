@@ -128,31 +128,6 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
     sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
     sh1122_put_string_xy(&plat_oled_descriptor, 0, 46, OLED_ALIGN_CENTER, temp_string, TRUE);
     
-    /* Battery display */
-    battery_state_te battery_state = logic_power_get_battery_state();
-    switch(battery_state)
-    {
-        case BATTERY_CHARGING:
-        {
-            // TODO2
-            break;
-        }
-        case BATTERY_0PCT:
-        case BATTERY_25PCT:
-        case BATTERY_50PCT:
-        case BATTERY_75PCT:
-        case BATTERY_100PCT:
-        case BATTERY_ERROR:
-        {
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+battery_state, TRUE);
-            break;            
-        }
-        default: break;
-    }
-    
-    /* Bluetooth display */
-    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_TRAY_BT_CONNECTED_ID+logic_bluetooth_get_state(), TRUE);
-    
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     /* Flush */
     sh1122_flush_frame_buffer(&plat_oled_descriptor);

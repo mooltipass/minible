@@ -93,5 +93,6 @@
 #define QPROMPT_PWD_DISPLAY_TEXT_ID     86
 #define SELECT_LANGUAGE_TEXT_ID         87
 #define QPROMPT_SNGL_DISP_CRED_TEXT_ID  88
+#define BATTERY_EMPTY_TEXT_ID           89
 
 #endif

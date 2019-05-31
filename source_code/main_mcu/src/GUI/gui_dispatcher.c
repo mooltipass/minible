@@ -5,6 +5,7 @@
 */
 #include "comms_hid_msgs_debug.h"
 #include "logic_smartcard.h"
+#include "logic_bluetooth.h"
 #include "gui_dispatcher.h"
 #include "driver_timer.h"
 #include "gui_carousel.h"
@@ -23,6 +24,8 @@ gui_screen_te gui_dispatcher_current_screen = GUI_SCREEN_INVALID;
 uint16_t gui_dispatcher_current_idle_anim_frame_id = 0;
 // Current idle animation loop number
 uint16_t gui_dispatcher_current_idle_anim_loop = 0;
+// Current battery charging animation index
+uint16_t gui_dispatcher_battery_charging_anim_index = 0;
 
 
 /*! \fn     gui_dispatcher_get_current_screen(void)
@@ -32,6 +35,37 @@ uint16_t gui_dispatcher_current_idle_anim_loop = 0;
 gui_screen_te gui_dispatcher_get_current_screen(void)
 {
     return gui_dispatcher_current_screen;
+}
+
+/*! \fn     gui_dispatcher_display_battery_bt_overlay(void)
+*   \brief  Display battery / bt overlay in current frame buffer
+*/
+void gui_dispatcher_display_battery_bt_overlay(void)
+{
+    /* Battery display */
+    battery_state_te battery_state = logic_power_get_battery_state();
+    switch(battery_state)
+    {
+        case BATTERY_CHARGING:
+        {
+            // TODO2
+            break;
+        }
+        case BATTERY_0PCT:
+        case BATTERY_25PCT:
+        case BATTERY_50PCT:
+        case BATTERY_75PCT:
+        case BATTERY_100PCT:
+        case BATTERY_ERROR:
+        {
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+battery_state, TRUE);
+            break;
+        }
+        default: break;
+    }
+    
+    /* Bluetooth display */
+    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_TRAY_BT_CONNECTED_ID+logic_bluetooth_get_state(), TRUE);
 }
 
 /*! \fn     gui_dispatcher_set_current_screen(gui_screen_te screen)
@@ -72,7 +106,9 @@ void gui_dispatcher_get_back_to_current_screen(void)
     {
         case GUI_SCREEN_INSERTED_LCK:
         case GUI_SCREEN_NINSERTED:          {
-                                                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, GUI_LOCKED_MINI_BITMAP_ID, TRUE); 
+                                                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, GUI_LOCKED_MINI_BITMAP_ID, TRUE);
+                                                timer_start_timer(TIMER_ANIMATIONS, GUI_BATTERY_ANIM_DELAY_MS);
+                                                gui_dispatcher_display_battery_bt_overlay();
                                                 #ifdef OLED_INTERNAL_FRAME_BUFFER
                                                     sh1122_flush_frame_buffer(&plat_oled_descriptor);
                                                 #endif
@@ -165,8 +201,19 @@ void gui_dispatcher_idle_call(void)
     /* switch to let the compiler optimize instead of function pointer array */
     switch (gui_dispatcher_current_screen)
     {
-        case GUI_SCREEN_NINSERTED:          break;
-        case GUI_SCREEN_INSERTED_LCK:       break;
+        case GUI_SCREEN_NINSERTED:
+        case GUI_SCREEN_INSERTED_LCK:       {
+                                                if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+                                                {
+                                                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, GUI_LOCKED_MINI_BITMAP_ID, TRUE);
+                                                    timer_start_timer(TIMER_ANIMATIONS, GUI_BATTERY_ANIM_DELAY_MS);
+                                                    gui_dispatcher_display_battery_bt_overlay();
+                                                    #ifdef OLED_INTERNAL_FRAME_BUFFER
+                                                    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+                                                    #endif
+                                                }    
+                                                break;                                                
+                                            }
         case GUI_SCREEN_LOGIN_NOTIF:        {
                                                 if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
                                                 {
