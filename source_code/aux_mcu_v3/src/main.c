@@ -147,7 +147,15 @@ int main(void)
     /* Initialize our platform */
     main_platform_init();
         
+    /* Test code: remove later */
     udc_attach();
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 5000);
+    while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING)
+    {
+        comms_main_mcu_routine();
+        comms_usb_communication_routine();
+    }
+    start_bluetooth();
     
     /* Infinite loop */
     while(TRUE)

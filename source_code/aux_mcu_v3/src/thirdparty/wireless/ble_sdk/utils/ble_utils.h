@@ -49,6 +49,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "comms_usb.h"
 
 /// Observer role
 #define BLE_ROLE_OBSERVER 0x01
@@ -61,15 +62,20 @@
 /// Device has all role, both peripheral and central
 #define BLE_ROLE_ALL 0x0F
 
-#define DBG_LOG_CONT printf
+//#define blabla
+#ifdef blabla
+#define DBG_LOG(...)
+#define DBG_LOG_ADV(...)
+#define DBG_LOG_CONT(...)
+#else
+#define DBG_LOG_CONT	comms_usb_debug_printf
 
-#define DBG_LOG                                                                                                        \
-	printf("\r\n");                                                                                                    \
-	printf
+#define DBG_LOG		    comms_usb_debug_printf("\r\n");\
+						comms_usb_debug_printf
 
-#define DBG_LOG_ADV                                                                                                    \
-	printf("\r\nBLE-ADV: ");                                                                                           \
-	printf
+#define DBG_LOG_ADV	    comms_usb_debug_printf("\r\nBLE-ADV: ");\
+						comms_usb_debug_printf
+#endif
 
 #define UNUSED1(x) (void)(x)
 #define UNUSED2(x, y) (void)(x), (void)(y)

@@ -75,10 +75,7 @@
 /****************************************************************************************
  *							        Function                                     		*
  ****************************************************************************************/
-void LED_init(void);
-void LED_On(void);
-void LED_Off(void);
-void LED_Toggle(void);
+int start_bluetooth(void);
 void button_register_callback(ble_button_cb_t button_cb);
 
 #endif /*__HID_DEVICE_APP_H__*/

@@ -162,7 +162,7 @@ static void Timer_init(void)
 
 void system_init(void)
 {
-	init_mcu();
+	//init_mcu();
 
 	// GPIO on PA01
 
@@ -220,22 +220,9 @@ void system_init(void)
 
 	gpio_set_pin_function(BTLC1000_WAKEUP_PIN, GPIO_PIN_FUNCTION_OFF);
 
-	// GPIO on PB30
-
-	gpio_set_pin_level(BLE_APP_LED,
-	                   // <y> Initial level
-	                   // <id> pad_initial_level
-	                   // <false"> Low
-	                   // <true"> High
-	                   false);
-
-	// Set pin direction to output
-	gpio_set_pin_direction(BLE_APP_LED, GPIO_DIRECTION_OUT);
-
-	gpio_set_pin_function(BLE_APP_LED, GPIO_PIN_FUNCTION_OFF);
-
     // Warning: the function below will disable the no comms interrupt!
-	EXTERNAL_IRQ_0_init();
+    // Not needed: not using the app demo button
+	//EXTERNAL_IRQ_0_init();
 
 	BLE_FC_UART_init();
 	BLE_UART_init();

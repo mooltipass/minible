@@ -66,8 +66,13 @@
 #include "ble_utils.h"
 #include "atmel_start_pins.h"
 #include "hal_ext_irq.h"
+#include "driver_init.h"
+#include "defines.h"
 
 /* =========================== GLOBALS ============================================================ */
+
+/* Ports initialization done bool */
+BOOL bluetooth_ports_initialization_done = FALSE;
 
 /* Control point notification structure */
 hid_control_mode_ntf_t hid_control_point_value;
@@ -164,29 +169,6 @@ static uint8_t hid_app_keyb_report_map[] = {
     0x91, 0x01, /* Output (Constant)                 */
     0xC0        /* End Collection                    */
 };
-
-void LED_init(void)
-{
-	gpio_set_pin_direction(BLE_APP_LED, GPIO_DIRECTION_OUT);
-	gpio_set_pin_pull_mode(BLE_APP_LED, GPIO_PULL_OFF);
-	gpio_set_pin_function(BLE_APP_LED, GPIO_PIN_FUNCTION_OFF);
-	gpio_set_pin_level(BLE_APP_LED, true);
-}
-
-void LED_On(void)
-{
-	gpio_set_pin_level(BLE_APP_LED, false);
-}
-
-void LED_Off(void)
-{
-	gpio_set_pin_level(BLE_APP_LED, true);
-}
-
-void LED_Toggle(void)
-{
-	gpio_toggle_pin_level(BLE_APP_LED);
-}
 
 void button_register_callback(ble_button_cb_t button_cb)
 {
@@ -320,25 +302,25 @@ static void hid_keyboard_app_init(void)
 	}
 }
 
-static void app_timer2_cb(void)
+int start_bluetooth(void)
 {
-	LED_Toggle();
-}
-
-int main2(void)
-{
-	bsp_init();
+    if (bluetooth_ports_initialization_done == FALSE)
+    {
+        bluetooth_ports_initialization_done = TRUE;
+        system_init();
+    }
+	//bsp_init();
 
 	/* Initialize the LED */
-	LED_init();
+	//LED_init();
 
 	/* Initialize serial console */
-	serial_console_init();
+	//serial_console_init();
 
 	/* Initialize button*/
-	button_register_callback(button_cb);
+	//button_register_callback(button_cb);
 
-	ble_timer_start(BLE_APP_TIMER_ID2, MS_TIMER(500), BLE_TIMER_REPEAT, app_timer2_cb);
+	//ble_timer_start(BLE_APP_TIMER_ID2, MS_TIMER(500), BLE_TIMER_REPEAT, app_timer2_cb);
 
 	DBG_LOG("Initializing HID Keyboard Application");
 
