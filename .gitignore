@@ -4,6 +4,8 @@ source_code/aux_mcu_v2/Debug/
 source_code/aux_mcu_v2/Release/
 source_code/aux_mcu_v3/Debug/
 source_code/aux_mcu_v3/Release/
+source_code/aux_mcu_v4/Debug/
+source_code/aux_mcu_v4/Release/
 source_code/main_mcu/Debug/
 source_code/main_mcu/Release/
 *Thumbs.db

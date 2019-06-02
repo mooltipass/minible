@@ -756,24 +756,7 @@ void debug_rf_freq_sweep(void)
         sh1122_printf_xy(&plat_oled_descriptor, 100, 20, OLED_ALIGN_LEFT, FALSE, "Run #%d", run_number);
         
         /* Wait for end of sweep */
-        uint16_t nb_fails = 0;
-        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE) != RETURN_OK)
-        {
-            nb_fails++;
-            
-            /* Click for return */
-            if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
-            {
-                return;
-            }            
-            
-            /* We waited too long, blusdk fail */
-            if (nb_fails > 4)
-            {
-                run_number = 0;
-                break;
-            }
-        }
+        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE) != RETURN_OK);
         
         /* Rearm RX */
         comms_aux_arm_rx_and_clear_no_comms();
@@ -781,6 +764,12 @@ void debug_rf_freq_sweep(void)
         /* Start other sweep */
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_TX_SWEEP_SGL);
         comms_aux_mcu_wait_for_message_sent();
+        
+        /* Click for return */
+        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+        {
+            return;
+        }
         
         /* Increment run number */
         run_number++;

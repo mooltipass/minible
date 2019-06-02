@@ -95,9 +95,9 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             uint32_t blusdk_fw_ver;
             if(at_ble_firmware_version_get(&blusdk_fw_ver) == AT_BLE_SUCCESS)
             {
-                //main_mcu_send_message.aux_details_message.blusdk_fw_maj = BLE_SDK_MAJOR_NO(blusdk_fw_ver);
-                //main_mcu_send_message.aux_details_message.blusdk_fw_min = BLE_SDK_MINOR_NO(blusdk_fw_ver);
-                //main_mcu_send_message.aux_details_message.blusdk_fw_build = BLE_SDK_BUILD_NO(blusdk_fw_ver);
+                main_mcu_send_message.aux_details_message.blusdk_fw_maj = BLE_SDK_MAJOR_NO(blusdk_fw_ver);
+                main_mcu_send_message.aux_details_message.blusdk_fw_min = BLE_SDK_MINOR_NO(blusdk_fw_ver);
+                main_mcu_send_message.aux_details_message.blusdk_fw_build = BLE_SDK_BUILD_NO(blusdk_fw_ver);
                 
                 /* Getting RF version */
                 //at_ble_rf_version_get(&main_mcu_send_message.aux_details_message.atbtlc_rf_ver);

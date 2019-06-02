@@ -26,6 +26,11 @@ extern struct usart_async_descriptor BLE_FC_UART;
 extern struct usart_async_descriptor BLE_UART;
 extern struct timer_descriptor      Timer;
 
+/* ATMEL ugliness macros */
+#define BLE_SDK_MAJOR_NO(version)	((version >> 28) & 0x0000000F)
+#define BLE_SDK_MINOR_NO(version)	((version >> 24) & 0x0000000F)
+#define BLE_SDK_BUILD_NO(version)	(version & 0x0000FFFF)
+
 /* Prototypes */
 void logic_bluetooth_start_bluetooth(void);
 void logic_bluetooth_routine(void);

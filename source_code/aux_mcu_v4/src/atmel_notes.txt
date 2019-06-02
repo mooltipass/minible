@@ -1,0 +1,133 @@
+ * \page License
+ *
+ * Subject to your compliance with these terms, you may use Microchip
+ * software and any derivatives exclusively with Microchip products.
+ * It is your responsibility to comply with third party license terms applicable
+ * to your use of third party software (including open source software) that
+ * may accompany Microchip software.
+ *
+ * THIS SOFTWARE IS SUPPLIED BY MICROCHIP "AS IS". NO WARRANTIES,
+ * WHETHER EXPRESS, IMPLIED OR STATUTORY, APPLY TO THIS SOFTWARE,
+ * INCLUDING ANY IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY,
+ * AND FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL MICROCHIP BE
+ * LIABLE FOR ANY INDIRECT, SPECIAL, PUNITIVE, INCIDENTAL OR CONSEQUENTIAL
+ * LOSS, DAMAGE, COST OR EXPENSE OF ANY KIND WHATSOEVER RELATED TO THE
+ * SOFTWARE, HOWEVER CAUSED, EVEN IF MICROCHIP HAS BEEN ADVISED OF THE
+ * POSSIBILITY OR THE DAMAGES ARE FORESEEABLE.  TO THE FULLEST EXTENT
+ * ALLOWED BY LAW, MICROCHIP'S TOTAL LIABILITY ON ALL CLAIMS IN ANY WAY
+ * RELATED TO THIS SOFTWARE WILL NOT EXCEED THE AMOUNT OF FEES, IF ANY,
+ * THAT YOU HAVE PAID DIRECTLY TO MICROCHIP FOR THIS SOFTWARE.
+ *
+ * \asf_license_stop
+ *
+ */
+/*
+ * Support and FAQ: visit <a href="https://www.microchip.com/support/">Microchip Support</a>
+ */
+/**
+ * \mainpage HID KEY BOARD Example
+ * \section Introduction
+ * **************************** Introduction *********************************
+ * + The HID Key board example application bring-up the HID over GATT (HOGP) profile defined by the Bluetooth SIG.
+ * + The HID over GATT (HOGP) profile defined by the Bluetooth SIG enables support of HID services over a Bluetooth Low Energy (BLE) 
+ *   protocol stack using Generic Attribute profile (GATT). This allows devices like keyboard or mouse implementing HOGP to connect 
+ *   to a compatible HOGP/BLE host device (e.g.: Mobile Phone, Tablet, TV, etc.).
+ *- Supported Evolution Kit -
+ *	+ ATSAML21-XPRO-B + ATBTLC1000 XPRO
+ *	+ ATSAMD21-XPRO + ATBTLC1000 XPRO
+ *	+ ATSAMG55-XPRO + ATBTLC1000 XPRO
+ *	+ ATSAM4S-XPRO + ATBTLC1000 XPRO
+ *- Running the Demo -
+ * + 1. Build and flash the binary into supported evaluation board.
+ * + 2. Open the console using TeraTerm or any serial port monitor.
+ * + 3. Press the Reset button.
+ * + 4. Wait for around 10 seconds for the patches to be downloaded device will initialize and start-up.
+ * + 5. The device is now in advertising mode.
+ * + 6. The demo requires use of an Android mobile phone supporting HOGP.  The HOGP profile is natively supported in 
+ *      Android from version 4.4 (Android KitKat) and higher versions. The phone must include support a Bluetooth chipset supporting BT 4.0 or 
+ *      higher version on the mobile phone, In Bluetooth settings scan for the devices, device with “ATMEL-HID” will be found as shown below. 
+ *      Click on “ATMEL-HID” to get connected.
+ * + 7. Once connected, the client side will request for the pairing procedure . The console log provides a guidance for the user to 
+        enter the pass-key.
+ * + 8. Once the device connected to host (Phone). User can click on SW0 button on supported platform for simulating mouse movement.
+ * + 9. For every press on button, the user can see corresponding string on HID host as described below: 
+ *      + Hello Atmel
+ * \section Modules
+ * ***************************** Modules **************************************
+ *- BLE Manger -  
+ *  + The Event Manager is responsible for handling the following:
+ *    + Generic BLE Event Handling:-
+ *       + BLE Event Manager handles the events triggered by BLE stack and also responsible 
+ *  	 for invoking all registered callbacks for respective events. BLE Manager 
+ *  	 handles all GAP related functionality. In addition to that handles multiple connection 
+ *  	 instances, Pairing, Encryption, Scanning.
+ *    + Handling Multi-role/multi-connection:-
+ *  	  + BLE Event Manager is responsible for handling multiple connection instances 
+ *  	  and stores bonding information and Keys to retain the bonded device. 
+ *  	  BLE Manager is able to identify and remove the device information when pairing/encryption 
+ *		  gets failed. In case of multi-role, it handles the state/event handling of both central and peripheral in multiple contexts.
+ *    + Controlling the Advertisement data:-
+ *  	  + BLE Event Manager is responsible for generating the advertisement and scan response data
+ *  	  for BLE profiles/services that are attached with BLE Manager.
+ *
+ *- BLE Profile -
+ *  + This profile defines how a device with Bluetooth low energy wireless communications can support HID services over the Bluetooth 
+ *    low energy protocol stack using the Generic Attribute Profile.
+ *  + HID Over GATT Profile supports two services:
+ *  + **Human Interface Device**: 
+ *    + The HID Service exposes characteristics required for a HID Device to transfer HID report descriptors and reports to a HID Host. 
+ *    This also exposes the characteristics for a HID Host to write to a Device. The Human Interface Device Service is instantiated as a Primary Service.
+ *  + **Device Information service**: 
+ *    + The Device Information Service exposes manufacturer and/or vendor information about a device.
+ *
+ *- BLE Platform Services -
+ *  +  Interface Settings -
+ *	  + Connect ATBTLC1000 XPRO to SAML21-XPRO-B -> EXT1
+ *	  + Connect ATBTLC1000 XPRO to SAMD21-XPRO -> EXT1
+ *	  + Connect ATBTLC1000 XPRO to SAMG55-XPRO -> EXT1
+ *	  + Connect ATBTLC1000 XPRO to SAM4S-XPRO  -> EXT1
+ *  +  Serial Console COM port settings -
+ *    + Baudrate 115200
+ *	  + Parity None, Stop Bit 1, Start Bit 1
+ *	  + No Hardware Handshake
+ *	+  6-Wire Mode Connection Setup -
+ *    + Pins are 1:1 match with SAML21/D21 Xpro EXT1 Header to BTLC1000 XPro Header
+ *	  + UART(No Flow Control)-SAM L21/D21 XPro Pins (Rx-Pin13, Tx-Pin14)
+ *	  + UART(With Flow Control)-SAM G55 Xpro Pins (Rx-Pin13, Tx-Pin14, RTS-Pin5, CTS-Pin6, Rx-Pin16, Tx-Pin17)
+ *	  + BTLC1000 Wakeup Pin-SAM G55 XPro Pins(Pin4)
+ *	  + BTLC1000 Chip Enable Pin-SAM G55 XPro Pins(Pin10)
+ *	  + BTLC1000 Vcc Pin-SAM L21/D21/G55 Xpro Pins(Pin20)
+ *	  + BTLC1000 GND Pin-SAM L21/D21/G55 Xpro Pins(Pin19)
+ *  +  4-Wire Mode Connection setup -
+ * 	  + UART(With Flow Control)-SAM L21/D21 XPro Pins (Rx-Pin15, Tx-Pin17, RTS-Pin16, CTS-Pin18)
+ * 	  + BTLC1000 Wakeup Pin-SAM L21/D21 XPro Pins (Rx-Pin6)
+ * 	  + BTLC1000 Chip Enable Pin-SAM L21/D21 XPro Pins (Rx-Pin4)
+ * 	  + UART(With Flow Control)-SAM G55/4S Xpro Pins (Rx-Pin13, Tx-Pin14, RTS-Pin5, CTS-Pin6)
+ * 	  + BTLC1000 Wakeup Pin-SAM G55/4S XPro Pins(Pin4)
+ * 	  + BTLC1000 Chip Enable Pin-SAM G55/4S XPro Pins(Pin10)
+ * 	  + BTLC1000 Vcc Pin-SAM L21/D21/G55/4S Xpro Pins(Pin20)
+ * 	  + BTLC1000 GND Pin-SAM L21/D21/G55/4S Xpro Pins(Pin19)
+ *
+ *\section BLE SDK Package
+ * ***************************** BLE SDK Package ******************************************
+ *- Links for BluSDK -
+ *		+ http://www.atmel.com/devices/ATBTLC1000.aspx?tab=documents
+ *- Links for ATBTLC1000 -
+ *		+ http://www.atmel.com/devices/ATBTLC1000.aspx
+ *- Development Kit -
+ *		+ http://www.atmel.com/devices/ATBTLC1000.aspx?tab=tools
+ *- SAM L21 + BTLC1000 XPro -
+ *		+ http://www.atmel.com/tools/ATBTLC1000-XSTK.aspx
+ *- BTLC1000 XPro -
+ *		+ http://www.atmel.com/tools/ATBTLC1000-XPRO.aspx
+ *- Applications -
+ *		+ http://www.atmel.com/devices/ATBTLC1000.aspx?tab=applications
+ *- Support and FAQ visit - 
+ *		+ <a href="https://www.microchip.com/support/">Microchip Support</a>
+ */
+
+/**
+ * \mainpage
+ * \section preface Preface
+ * This is the reference manual for the HID Keyboard Device Profile Application declarations
+ */

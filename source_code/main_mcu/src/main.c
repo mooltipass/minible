@@ -348,7 +348,7 @@ int main(void)
     
     /* TO REMOVE */
     //platform_io_set_no_comms();while(1);
-    //platform_io_enable_ble();
+    platform_io_enable_ble();
     
     /* Special developer features */
     #ifdef SPECIAL_DEVELOPER_CARD_FEATURE
