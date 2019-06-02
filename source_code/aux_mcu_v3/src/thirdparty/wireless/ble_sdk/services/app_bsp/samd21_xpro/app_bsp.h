@@ -52,11 +52,6 @@ typedef enum { BLE_APP_TIMER_ID1, BLE_APP_TIMER_ID2, BLE_APP_TIMER_ID3 } ble_app
 
 typedef enum { BLE_TIMER_ONESHOT, BLE_TIMER_REPEAT } ble_timer_mode_t;
 
-/* Console buffer size */
-#define CONSOLE_BUFFER_SIZE (200)
-
-/* BLE Console redirection */
-
 /* No of Software timer required for this application */
 #define MAX_SW_TIMER (3)
 
@@ -65,8 +60,6 @@ typedef enum { BLE_TIMER_ONESHOT, BLE_TIMER_REPEAT } ble_timer_mode_t;
 typedef void (*ble_button_cb_t)(void);
 
 typedef void (*ble_timer_cb_t)(void);
-
-void bsp_init(void);
 
 void ble_timer_start(ble_app_timer_t timer_id, uint32_t time, ble_timer_mode_t timer_mode, ble_timer_cb_t timer_cb);
 

@@ -20,50 +20,12 @@ static void ble_app_timer1_cb(const struct timer_task *const timer_task);
 static void ble_app_timer2_cb(const struct timer_task *const timer_task);
 static void ble_app_timer3_cb(const struct timer_task *const timer_task);
 
-struct io_descriptor *console_usart_io;
-uint8_t               print_buf[CONSOLE_BUFFER_SIZE];
-volatile bool         console_print_done = true;
-volatile bool         console_rx_done    = false;
-uint8_t               console_rx_data;
-
 struct timer_task app_timer_1_task, app_timer_2_task, app_timer_3_task;
 
 ble_timer_cb_t ble_timer_cb[MAX_SW_TIMER] = {NULL, NULL, NULL};
 
 platform_hw_timer_callback_t bus_timer_callback;
 
-void bsp_init(void)
-{
-	system_init();
-}
-
-int usart_serial_putchar(struct io_descriptor *io_descr, char data)
-{
-	static uint8_t putchar_data;
-	/* wait for console print to be completed */
-	while (console_print_done == false) {
-		;
-	}
-
-	putchar_data = (uint8_t)data;
-
-	/* Change the Tx Flag to indicate transmission begins */
-	console_print_done = false;
-
-	/* Start transmission */
-	io_descr->write(io_descr, (const uint8_t *)&putchar_data, 1);
-
-	return 0;
-}
-
-int usart_serial_getchar(struct io_descriptor *io_descr, char *data)
-{
-	while (console_rx_done == false)
-		;
-	*data           = (char)console_rx_data;
-	console_rx_done = false;
-	return 0;
-}
 
 volatile bool bsp_timer_status[MAX_SW_TIMER] = {
     false,
