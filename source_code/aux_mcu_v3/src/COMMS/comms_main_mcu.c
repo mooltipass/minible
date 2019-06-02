@@ -9,7 +9,7 @@
 #include "comms_hid_msgs_debug.h"
 #include "interrupt_sam_nvic.h"
 #include "platform_defines.h"
-#include "hid_keyboard_app.h"
+#include "logic_bluetooth.h"
 #include "comms_hid_msgs.h"
 #include "comms_main_mcu.h"
 #include "logic_battery.h"
@@ -173,7 +173,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 if (logic_is_ble_enabled() == FALSE)
                 {
                     logic_set_ble_enabled();
-                    start_bluetooth();
+                    logic_bluetooth_start_bluetooth();
                 }
                 message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
                 message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;

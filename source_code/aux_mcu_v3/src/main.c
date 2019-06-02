@@ -1,6 +1,6 @@
 #include "interrupt_sam_nvic.h"
 #include "platform_defines.h"
-#include "hid_keyboard_app.h"
+#include "logic_bluetooth.h"
 #include "comms_main_mcu.h"
 #include "logic_battery.h"
 #include "driver_clocks.h"
@@ -155,7 +155,7 @@ int main(void)
         comms_main_mcu_routine();
         comms_usb_communication_routine();
     }
-    start_bluetooth();
+    logic_bluetooth_start_bluetooth();
     
     /* Infinite loop */
     while(TRUE)

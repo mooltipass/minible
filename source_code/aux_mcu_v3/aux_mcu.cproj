@@ -832,12 +832,6 @@
     <Compile Include="src\hal\utils\src\utils_syscalls.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\hid_keyboard_app.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\hid_keyboard_app.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\hpl\core\hpl_core_m0plus_base.c">
       <SubType>compile</SubType>
     </Compile>
@@ -974,6 +968,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\LOGIC\logic_battery.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\LOGIC\logic_bluetooth.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\LOGIC\logic_bluetooth.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\main.c">

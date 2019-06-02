@@ -1,106 +1,38 @@
-/**
- * \file
- *
- * \brief HID Keyboard Device Profile Application declarations
- *
- * Copyright (c) 2016 Atmel Corporation. All rights reserved.
- *
- * \asf_license_start
- *
- * \page License
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- * 3. The name of Atmel may not be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * 4. This software may only be redistributed and used in connection with an
- *    Atmel micro controller product.
- *
- * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
- * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * \asf_license_stop
- *
- */
 /*
- * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
- */
-
-/**
- * \mainpage
- * \section preface Preface
- * This is the reference manual for the HID Keyboard Device Profile Application declarations
- */
-/*- Includes -----------------------------------------------------------------------*/
-#include <string.h>
-#include <stdint.h>
-#include "platform.h"
-#include "at_ble_api.h"
-#include "hal_delay.h"
-#include "ble_config.h"
-#include "app_bsp.h"
-#include "hid.h"
-#include "hid_device.h"
+ * logic_bluetooth.c
+ *
+ * Created: 02/06/2019 18:08:22
+ *  Author: limpkin
+ */ 
+#include "platform_defines.h"
+#include "logic_bluetooth.h"
 #include "ble_manager.h"
-
-#include "hid_keyboard_app.h"
-#include "device_info.h"
-#include "ble_utils.h"
-#include "atbtlc1000_pins.h"
-#include "hal_ext_irq.h"
 #include "driver_init.h"
+#include "at_ble_api.h"
+#include "hid_device.h"
 #include "defines.h"
-
-/* =========================== GLOBALS ============================================================ */
-
+// Ports initialization done bool
+BOOL logic_bluetooth_ports_initialization_done = FALSE;
 /* Ports initialization done bool */
 BOOL bluetooth_ports_initialization_done = FALSE;
-
 /* Control point notification structure */
 hid_control_mode_ntf_t hid_control_point_value;
-
 /* Report notification structure */
 hid_report_ntf_t report_ntf_info;
-
 /* Boot notification structure */
 hid_boot_ntf_t boot_ntf_info;
-
 /* Protocol mode notification structure */
 hid_proto_mode_ntf_t hid_proto_mode_value;
-
 /* HID profile structure for application */
 hid_prf_info_t hid_prf_data;
-
 /* Keyboard character info to be displayed during demo */
 uint8_t keyb_disp[12] = {0x0B, 0x08, 0x0F, 0x0F, 0x12, 0x2C, 0x04, 0x17, 0x10, 0x08, 0x0F, 0x28};
-
 /* Keyboard character to be printed */
 uint8_t keyb_id = 0;
-
 /* Profile connection status */
 uint8_t conn_status = 0;
-
 /* Keyboard report value */
 uint8_t app_keyb_report[8] = {0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00};
-
 /* Keyboard key status */
 volatile uint8_t key_status = 0;
 
@@ -169,11 +101,6 @@ static uint8_t hid_app_keyb_report_map[] = {
     0x91, 0x01, /* Output (Constant)                 */
     0xC0        /* End Collection                    */
 };
-
-void button_register_callback(ble_button_cb_t button_cb)
-{
-	ext_irq_register(BLE_APP_SW, button_cb);
-}
 
 /* Callback called during connection */
 static at_ble_status_t hid_connect_cb(void *params)
@@ -302,79 +229,76 @@ static void hid_keyboard_app_init(void)
 	}
 }
 
-int start_bluetooth(void)
+void logic_bluetooth_start_bluetooth(void)
 {
-    if (bluetooth_ports_initialization_done == FALSE)
+    if (logic_bluetooth_ports_initialization_done == FALSE)
     {
-        bluetooth_ports_initialization_done = TRUE;
         system_init();
     }
-	//bsp_init();
+    //bsp_init();
 
-	/* Initialize the LED */
-	//LED_init();
+    /* Initialize the LED */
+    //LED_init();
 
-	/* Initialize serial console */
-	//serial_console_init();
+    /* Initialize serial console */
+    //serial_console_init();
 
-	/* Initialize button*/
-	//button_register_callback(button_cb);
+    /* Initialize button*/
+    //button_register_callback(button_cb);
 
-	//ble_timer_start(BLE_APP_TIMER_ID2, MS_TIMER(500), BLE_TIMER_REPEAT, app_timer2_cb);
+    //ble_timer_start(BLE_APP_TIMER_ID2, MS_TIMER(500), BLE_TIMER_REPEAT, app_timer2_cb);
 
-	DBG_LOG("Initializing HID Keyboard Application");
+    DBG_LOG("Initializing HID Keyboard Application");
 
-	/* Initialize the profile based on user input */
-	hid_keyboard_app_init();
+    /* Initialize the profile based on user input */
+    hid_keyboard_app_init();
 
-	/* initialize the ble chip  and Set the device mac address */
-	ble_device_init(NULL);
+    /* initialize the ble chip  and Set the device mac address */
+    ble_device_init(NULL);
 
-	hid_prf_init(NULL);
+    hid_prf_init(NULL);
 
-	/* Register the notification handler */
-	notify_report_ntf_handler(hid_prf_report_ntf_cb);
-	notify_boot_ntf_handler(hid_prf_boot_ntf_cb);
-	notify_protocol_mode_handler(hid_prf_protocol_mode_ntf_cb);
-	notify_control_point_handler(hid_prf_control_point_ntf_cb);
+    /* Register the notification handler */
+    notify_report_ntf_handler(hid_prf_report_ntf_cb);
+    notify_boot_ntf_handler(hid_prf_boot_ntf_cb);
+    notify_protocol_mode_handler(hid_prf_protocol_mode_ntf_cb);
+    notify_control_point_handler(hid_prf_control_point_ntf_cb);
 
-	/* Callback registering for BLE-GAP Role */
-	ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GAP_EVENT_TYPE, hid_app_gap_handle);
+    /* Callback registering for BLE-GAP Role */
+    ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GAP_EVENT_TYPE, hid_app_gap_handle);
 
-	/* Callback registering for BLE-GATT-Server Role */
-	ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GATT_SERVER_EVENT_TYPE, hid_app_gatt_server_handle);
+    /* Callback registering for BLE-GATT-Server Role */
+    ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GATT_SERVER_EVENT_TYPE, hid_app_gatt_server_handle);
 
-	/* Capturing the events  */
-	while (app_exec) {
-		ble_event_task();
+    /* Capturing the events  */
+    while (app_exec) {
+        ble_event_task();
 
-		/* Check for key status */
-		if (key_status && conn_status) {
-			DBG_LOG("Key Pressed...");
-			delay_ms(KEY_PAD_DEBOUNCE_TIME);
-			if ((keyb_id == POSITION_ZERO) || (keyb_id == POSITION_SIX)) {
-				app_keyb_report[0] = CAPS_ON;
-			} else {
-				app_keyb_report[0] = CAPS_OFF;
-			}
+        /* Check for key status */
+        if (key_status && conn_status) {
+            DBG_LOG("Key Pressed...");
+            //delay_ms(KEY_PAD_DEBOUNCE_TIME);
+            if ((keyb_id == POSITION_ZERO) || (keyb_id == POSITION_SIX)) {
+                app_keyb_report[0] = CAPS_ON;
+                } else {
+                app_keyb_report[0] = CAPS_OFF;
+            }
 
-			app_keyb_report[2] = keyb_disp[keyb_id];
-			hid_prf_report_update(
-			    report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
-			delay_ms(20);
-			app_keyb_report[2] = 0x00;
-			hid_prf_report_update(
-			    report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
+            app_keyb_report[2] = keyb_disp[keyb_id];
+            hid_prf_report_update(
+            report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
+            delay_ms(20);
+            app_keyb_report[2] = 0x00;
+            hid_prf_report_update(
+            report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
 
-			key_status = 0;
+            key_status = 0;
 
-			if (keyb_id == MAX_TEXT_LEN) {
-				keyb_id = 0;
-			} else {
-				++keyb_id;
-			}
-		}
-	}
-    
-    return 1;
+            if (keyb_id == MAX_TEXT_LEN) {
+                keyb_id = 0;
+                } else {
+                ++keyb_id;
+            }
+        }
+    }
 }

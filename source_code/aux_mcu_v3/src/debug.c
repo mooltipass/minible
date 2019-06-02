@@ -6,7 +6,7 @@
  */
 #include "sam.h"
 #include "at_ble_api.h"
-#include "hid_keyboard_app.h"
+#include "logic_bluetooth.h"
 #include "comms_main_mcu.h"
 #include "defines.h"
 #include "debug.h"
