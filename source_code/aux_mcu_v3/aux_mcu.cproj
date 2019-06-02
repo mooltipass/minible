@@ -381,7 +381,7 @@
   <armgcc.common.outputfiles.hex>True</armgcc.common.outputfiles.hex>
   <armgcc.common.outputfiles.lss>True</armgcc.common.outputfiles.lss>
   <armgcc.common.outputfiles.eep>True</armgcc.common.outputfiles.eep>
-  <armgcc.common.outputfiles.bin>True</armgcc.common.outputfiles.bin>
+  <armgcc.common.outputfiles.bin>False</armgcc.common.outputfiles.bin>
   <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
   <armgcc.compiler.symbols.DefSymbols>
     <ListValues>
@@ -532,13 +532,7 @@
     <Compile Include="Device_Startup\startup_samd21.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\atmel_start.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\atmel_start.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\atmel_start_pins.h">
+    <Compile Include="src\atbtlc1000_pins.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ble_config.c">
@@ -1013,12 +1007,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\stdio_redirect\stdio_io.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\stdio_start.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\stdio_start.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\thirdparty\wireless\ble_sdk\ble_profiles\hid_device\hid_device.c">

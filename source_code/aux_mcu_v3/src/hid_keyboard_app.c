@@ -64,7 +64,7 @@
 #include "hid_keyboard_app.h"
 #include "device_info.h"
 #include "ble_utils.h"
-#include "atmel_start_pins.h"
+#include "atbtlc1000_pins.h"
 #include "hal_ext_irq.h"
 #include "driver_init.h"
 #include "defines.h"

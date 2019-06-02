@@ -47,7 +47,8 @@
 #include "hal_usart_async.h"
 #include "platform.h"
 #include "ble_config.h"
-#include "atmel_start.h"
+#include "driver_init.h"
+#include "atbtlc1000_pins.h"
 
 #if UART_FLOWCONTROL_6WIRE_MODE == true
 #define BLE_COM_UART BLE_UART

@@ -10,11 +10,10 @@ file for SAMD21
 #include <hal_io.h>
 #include <hal_timer.h>
 
-#include "atmel_start.h"
-#include "atmel_start_pins.h"
+#include "atbtlc1000_pins.h"
+#include "driver_init.h"
 #include "ble_config.h"
 #include "app_bsp.h"
-#include "stdio_start.h"
 #include "platform.h"
 
 static void ble_app_timer1_cb(const struct timer_task *const timer_task);
@@ -36,12 +35,6 @@ platform_hw_timer_callback_t bus_timer_callback;
 void bsp_init(void)
 {
 	system_init();
-}
-
-void serial_console_init(void)
-{
-	usart_sync_enable(&CONSOLE_UART);
-	stdio_io_init(&CONSOLE_UART.io);
 }
 
 int usart_serial_putchar(struct io_descriptor *io_descr, char data)

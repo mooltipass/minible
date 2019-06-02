@@ -12,8 +12,6 @@
 extern "C" {
 #endif // __cplusplus
 
-#define CONSOLE_UART TARGET_IO
-
 #define DEVICE_INFORMATION_SERVICE
 
 #define HID_SERVICE

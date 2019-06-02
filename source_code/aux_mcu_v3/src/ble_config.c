@@ -5,7 +5,7 @@
  * Please copy examples or other code you want to keep to a separate file or main.c
  * to avoid loosing it when reconfiguring.
  */
-#include "atmel_start.h"
+#include "atbtlc1000_pins.h"
 #include "ble_config.h"
 #include "hal_delay.h"
 
