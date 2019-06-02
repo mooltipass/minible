@@ -631,18 +631,6 @@
     <Compile Include="src\DMA\dma.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\driver_init.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\driver_init.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\examples\driver_examples.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\examples\driver_examples.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\hal\include\hal_atomic.h">
       <SubType>compile</SubType>
     </Compile>
@@ -1086,7 +1074,6 @@
     <Folder Include="src\" />
     <Folder Include="src\Config\" />
     <Folder Include="Device_Startup\" />
-    <Folder Include="src\examples\" />
     <Folder Include="src\hal\" />
     <Folder Include="src\hal\include\" />
     <Folder Include="src\hal\src\" />

@@ -6,11 +6,28 @@
  */ 
 #include "platform_defines.h"
 #include "logic_bluetooth.h"
+#include "hal_usart_async.h"
+#include "atbtlc1000_pins.h"
+#include "hpl_gclk_base.h"
+#include "hpl_tc_base.h"
+#include "hpl_pm_base.h"
 #include "ble_manager.h"
-#include "driver_init.h"
 #include "at_ble_api.h"
 #include "hid_device.h"
+#include "hal_timer.h"
+#include "hal_gpio.h"
 #include "defines.h"
+/**************** UART VARS ***********************/
+/*! The buffer size for USART */
+#define BLE_FC_UART_BUFFER_SIZE 16
+/*! The buffer size for USART */
+#define BLE_UART_BUFFER_SIZE 16
+struct usart_async_descriptor BLE_FC_UART;
+struct usart_async_descriptor BLE_UART;
+struct timer_descriptor       Timer;
+static uint8_t BLE_FC_UART_buffer[BLE_FC_UART_BUFFER_SIZE];
+static uint8_t BLE_UART_buffer[BLE_UART_BUFFER_SIZE];
+/**************************************************/
 // Ports initialization done bool
 BOOL logic_bluetooth_ports_initialization_done = FALSE;
 /* Ports initialization done bool */
@@ -35,8 +52,6 @@ uint8_t conn_status = 0;
 uint8_t app_keyb_report[8] = {0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00};
 /* Keyboard key status */
 volatile uint8_t key_status = 0;
-
-bool app_exec = true;
 
 static at_ble_status_t hid_connect_cb(void *params);
 
@@ -231,22 +246,30 @@ static void hid_keyboard_app_init(void)
 
 void logic_bluetooth_start_bluetooth(void)
 {
+    /* Do low level inits if not done already */
     if (logic_bluetooth_ports_initialization_done == FALSE)
     {
-        system_init();
+        /* FC UART Init */
+        _pm_enable_bus_clock(PM_BUS_APBC, SERCOM0);
+        _gclk_enable_channel(SERCOM0_GCLK_ID_CORE, GCLK_CLKCTRL_GEN_GCLK0_Val);
+        usart_async_init(&BLE_FC_UART, SERCOM0, BLE_FC_UART_buffer, BLE_FC_UART_BUFFER_SIZE, (void *)NULL);
+        gpio_set_pin_function(PA04, PINMUX_PA04D_SERCOM0_PAD0);
+        gpio_set_pin_function(PA05, PINMUX_PA05D_SERCOM0_PAD1);
+        gpio_set_pin_function(PA06, PINMUX_PA06D_SERCOM0_PAD2);
+        gpio_set_pin_function(PA07, PINMUX_PA07D_SERCOM0_PAD3);
+        
+        /* Standard UART Init */
+        _pm_enable_bus_clock(PM_BUS_APBC, SERCOM2);
+        _gclk_enable_channel(SERCOM2_GCLK_ID_CORE, GCLK_CLKCTRL_GEN_GCLK0_Val);
+        usart_async_init(&BLE_UART, SERCOM2, BLE_UART_buffer, BLE_UART_BUFFER_SIZE, (void *)NULL);
+        gpio_set_pin_function(PA08, PINMUX_PA08D_SERCOM2_PAD0);
+        gpio_set_pin_function(PA09, PINMUX_PA09D_SERCOM2_PAD1);
+        
+        /* Timer Init */
+        _pm_enable_bus_clock(PM_BUS_APBC, TC3);
+        _gclk_enable_channel(TC3_GCLK_ID, GCLK_CLKCTRL_GEN_GCLK0_Val);
+        timer_init(&Timer, TC3, _tc_get_timer());
     }
-    //bsp_init();
-
-    /* Initialize the LED */
-    //LED_init();
-
-    /* Initialize serial console */
-    //serial_console_init();
-
-    /* Initialize button*/
-    //button_register_callback(button_cb);
-
-    //ble_timer_start(BLE_APP_TIMER_ID2, MS_TIMER(500), BLE_TIMER_REPEAT, app_timer2_cb);
 
     DBG_LOG("Initializing HID Keyboard Application");
 
@@ -255,7 +278,6 @@ void logic_bluetooth_start_bluetooth(void)
 
     /* initialize the ble chip  and Set the device mac address */
     ble_device_init(NULL);
-
     hid_prf_init(NULL);
 
     /* Register the notification handler */
@@ -271,7 +293,7 @@ void logic_bluetooth_start_bluetooth(void)
     ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GATT_SERVER_EVENT_TYPE, hid_app_gatt_server_handle);
 
     /* Capturing the events  */
-    while (app_exec) {
+    while (FALSE) {
         ble_event_task();
 
         /* Check for key status */
@@ -287,7 +309,7 @@ void logic_bluetooth_start_bluetooth(void)
             app_keyb_report[2] = keyb_disp[keyb_id];
             hid_prf_report_update(
             report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
-            delay_ms(20);
+            //delay_ms(20);
             app_keyb_report[2] = 0x00;
             hid_prf_report_update(
             report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
@@ -301,4 +323,9 @@ void logic_bluetooth_start_bluetooth(void)
             }
         }
     }
+}
+
+void logic_bluetooth_routine(void)
+{
+    ble_event_task();
 }

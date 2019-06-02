@@ -21,8 +21,14 @@
 /** @brief Disable caps */
 #define CAPS_OFF (0)
 
+/* ATMEL global var ugliness */
+extern struct usart_async_descriptor BLE_FC_UART;
+extern struct usart_async_descriptor BLE_UART;
+extern struct timer_descriptor      Timer;
+
 /* Prototypes */
 void logic_bluetooth_start_bluetooth(void);
+void logic_bluetooth_routine(void);
 
 
 #endif /* LOGIC_BLUETOOTH_H_ */

@@ -45,9 +45,9 @@
 #include "serial_drv.h"
 #include "ble_utils.h"
 #include "hal_usart_async.h"
+#include "logic_bluetooth.h"
 #include "platform.h"
 #include "ble_config.h"
-#include "driver_init.h"
 #include "atbtlc1000_pins.h"
 
 #if UART_FLOWCONTROL_6WIRE_MODE == true

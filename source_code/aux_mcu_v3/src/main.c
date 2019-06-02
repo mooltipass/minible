@@ -148,14 +148,14 @@ int main(void)
     main_platform_init();
         
     /* Test code: remove later */
-    udc_attach();
+    /*udc_attach();
     timer_start_timer(TIMER_TIMEOUT_FUNCTS, 5000);
     while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING)
     {
         comms_main_mcu_routine();
         comms_usb_communication_routine();
     }
-    logic_bluetooth_start_bluetooth();
+    logic_bluetooth_start_bluetooth();*/
     
     /* Infinite loop */
     while(TRUE)
@@ -167,7 +167,7 @@ int main(void)
         /* If BLE enabled: deal with events */
         if (logic_is_ble_enabled() != FALSE)
         {
-            //mini_ble_task();
+            logic_bluetooth_routine();
         }
     }
 }

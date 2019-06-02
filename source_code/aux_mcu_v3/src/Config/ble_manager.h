@@ -205,7 +205,7 @@ typedef enum ble_peripheral_state {
 typedef at_ble_status_t (*ble_event_callback_t)(void *params);
 
 /** @brief event timeout */
-#define BLE_EVENT_TIMEOUT (20)
+#define BLE_EVENT_TIMEOUT (1)
 
 /** @brief pin timeout */
 #define PIN_TIMEOUT 30000

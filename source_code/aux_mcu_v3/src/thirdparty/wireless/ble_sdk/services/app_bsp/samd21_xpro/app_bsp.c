@@ -11,7 +11,7 @@ file for SAMD21
 #include <hal_timer.h>
 
 #include "atbtlc1000_pins.h"
-#include "driver_init.h"
+#include "logic_bluetooth.h"
 #include "ble_config.h"
 #include "app_bsp.h"
 #include "platform.h"
