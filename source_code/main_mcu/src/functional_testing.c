@@ -24,7 +24,7 @@
 void functional_testing_start(BOOL clear_first_boot_flag)
 {
     aux_mcu_message_t* temp_rx_message;
-    
+    #ifdef bla
     /* Test no comms signal */
     platform_io_set_no_comms();
     if (comms_aux_mcu_send_receive_ping() == RETURN_OK)
@@ -67,6 +67,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     /* Wait for enumeration */
     while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE) != RETURN_OK);
     sh1122_clear_current_screen(&plat_oled_descriptor);
+    comms_aux_arm_rx_and_clear_no_comms();
     
     /* Switch to LDO for voled stepup */
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
@@ -75,6 +76,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     timer_delay_ms(5);
     platform_io_power_up_oled(TRUE);
     sh1122_oled_on(&plat_oled_descriptor);
+    #endif
     
     /* Signal the aux MCU do its functional testing */
     sh1122_put_error_string(&plat_oled_descriptor, u"Please wait...");
@@ -82,6 +84,8 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     
     /* Wait for end of sweep */
     while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE) != RETURN_OK);
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    comms_aux_arm_rx_and_clear_no_comms();
     
     /* Check functional test result */
     uint8_t func_test_result = temp_rx_message->aux_mcu_event_message.payload[0];
@@ -95,7 +99,6 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         sh1122_put_error_string(&plat_oled_descriptor, u"Battery error!");
         while(1);
     }
-    sh1122_clear_current_screen(&plat_oled_descriptor);
     
     /* Ask for card, tests all SMC related signals */
     sh1122_put_error_string(&plat_oled_descriptor, u"insert card");

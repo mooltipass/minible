@@ -38,6 +38,8 @@ void comms_usb_configuration_callback(int config);
 void comms_usb_raw_hid_send_callback(void);
 void comms_usb_communication_routine(void);
 void comms_usb_arm_packet_receive(void);
+void comms_usb_clear_enumerated(void);
+BOOL comms_usb_is_enumerated(void);
 
 
 #endif /* COMMS_USB_H_ */

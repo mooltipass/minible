@@ -97,6 +97,7 @@ typedef struct
         nimh_charge_message_t nimh_charge_message;
         hid_message_t hid_message;
         uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH];
+        uint8_t payload_as_uint16[AUX_MCU_MSG_PAYLOAD_LENGTH/2];
         uint32_t payload_as_uint32[AUX_MCU_MSG_PAYLOAD_LENGTH/4];    
     };
     uint16_t payload_length2;

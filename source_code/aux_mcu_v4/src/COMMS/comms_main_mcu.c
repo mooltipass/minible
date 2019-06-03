@@ -13,6 +13,7 @@
 #include "logic_battery.h"
 #include "driver_timer.h"
 #include "ble_manager.h"
+#include "ble_manager.h"
 #include "at_ble_api.h"
 #include "hid_device.h"
 #include "comms_usb.h"
@@ -66,7 +67,9 @@ void comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_le
 */
 void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message)
 {
-    //comms_usb_debug_printf("Received main MCU other message: %i", message->message_type);
+    #ifdef MAIN_MCU_MSG_DBG_PRINT
+    comms_usb_debug_printf("Received main MCU other message: %i, %i", message->message_type, message->payload_as_uint16[0]);
+    #endif
     
     if (message->message_type == AUX_MCU_MSG_TYPE_PLAT_DETAILS)
     {
@@ -162,6 +165,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             case MAIN_MCU_COMMAND_DETACH_USB:
             {
                 /* Detach USB resistors */
+                comms_usb_clear_enumerated();
                 udc_detach();
                 break;
             }
@@ -210,6 +214,25 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* ble_manager will send the event to main MCU */
                 debug_tx_sweep_start();
                 break;
+            }
+            case MAIN_MCU_COMMAND_FUNC_TEST:
+            {
+                /* Functional test: prepare answer message */
+                message->aux_mcu_event_message.payload[0] = 0;
+                message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+                message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_FUNC_TEST_DONE;
+                message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id) + sizeof(uint8_t);
+                
+                /* Functional test: start by turning on bluetooth */
+                logic_bluetooth_start_bluetooth();
+                if (ble_sdk_version() == 0)
+                {
+                    message->aux_mcu_event_message.payload[0] = 1;
+                }
+                
+                /* Send functional test result */
+                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));      
+                break;          
             }
             default:
             {

@@ -160,6 +160,10 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             send_msg->platform_info.memory_size = DBFLASH_CHIP;            
             send_msg->payload_length = sizeof(send_msg->platform_info);
             send_msg->message_type = rcv_message_type;
+            
+            /* Rearm receive */
+            comms_aux_arm_rx_and_clear_no_comms();
+            
             return sizeof(send_msg->platform_info);            
         }
         

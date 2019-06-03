@@ -29,6 +29,8 @@ BOOL comms_usb_expect_flip_bit_state_set = FALSE;
 volatile BOOL comms_usb_raw_hid_packet_received = FALSE;
 volatile BOOL comms_usb_raw_hid_packet_receive_length = 0;
 volatile BOOL comms_usb_raw_hid_packet_being_sent = FALSE;
+/* Set when we are enumerated */
+BOOL comms_usb_enumerated = FALSE;
 
 /* Debug vars */
 uint16_t dbg_mcu_hid_msg_sent = 0;
@@ -148,6 +150,23 @@ void comms_usb_send_hid_message(aux_mcu_message_t* message)
     }
 }
 
+/*! \fn     comms_usb_is_enumerated(void)
+*   \brief  Check if we're enumerated
+*   \return The Bool
+*/
+BOOL comms_usb_is_enumerated(void)
+{
+    return comms_usb_enumerated;
+}
+
+/*! \fn     comms_usb_clear_enumerated(void)
+*   \brief  Clear enumerated bool
+*/
+void comms_usb_clear_enumerated(void)
+{
+    comms_usb_enumerated = FALSE;
+}
+
 /*! \fn     comms_usb_configuration_callback(int config)
 *   \brief  Called when device is configured, initialize USB comms
 */
@@ -155,6 +174,9 @@ void comms_usb_configuration_callback(int config)
 {
     /* Unused */
     (void)config;
+    
+    /* Set enumerated boolean */
+    comms_usb_enumerated = TRUE;
     
     /* Reset global vars */
     comms_usb_expect_flip_bit_state_set = FALSE;
@@ -287,7 +309,7 @@ void comms_usb_communication_routine(void)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsuggest-attribute=format"
 void comms_usb_debug_printf(const char *fmt, ...) 
-{
+{    
     char buf[64];    
     va_list ap;    
     va_start(ap, fmt);
@@ -296,7 +318,7 @@ void comms_usb_debug_printf(const char *fmt, ...)
     int16_t hypothetical_nb_chars = vsnprintf(buf, sizeof(buf), fmt, ap);
     
     /* No error? */
-    if (hypothetical_nb_chars > 0)
+    if ((hypothetical_nb_chars > 0) && (comms_usb_enumerated != FALSE))
     {
         /* Compute number of chars printed to our buffer */
         uint16_t actual_printed_chars = (uint16_t)hypothetical_nb_chars < sizeof(buf)-1? (uint16_t)hypothetical_nb_chars : sizeof(buf)-1;
