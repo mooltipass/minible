@@ -163,6 +163,16 @@ void comms_usb_configuration_callback(int config)
     
     /* Start receiving raw HID packets */
     comms_usb_arm_packet_receive();
+    
+    /* Get pointer to message to send, wait for possible previous message to be sent */
+    aux_mcu_message_t* message = comms_main_mcu_get_temp_tx_message_object_pt();
+    dma_wait_for_main_mcu_packet_sent();
+    
+    /* Let the main MCU know that we're enumerated */
+    message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+    message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_USB_ENUMERATED;
+    message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id);
+    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
 } 
 
 /*! \fn     comms_usb_communication_routine(void)

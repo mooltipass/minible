@@ -186,7 +186,7 @@ void main_platform_init(void)
     }
     sh1122_init_display(&plat_oled_descriptor);
     
-    /* Release aux MCU reset (old platform only) */
+    /* Release aux MCU reset (v2 platform only) */
     platform_io_release_aux_reset();
 
     /* Check initialization results */
@@ -232,14 +232,6 @@ void main_platform_init(void)
         }
     }
     
-    /* Is battery present? */
-    // TODO3: completely change the code below
-    if (battery_voltage > BATTERY_ADC_OVER_VOLTAGE)
-    {
-        sh1122_put_error_string(&plat_oled_descriptor, u"No battery");
-        while(1);
-    }
-    
     /* If debugger attached, let the aux mcu know it shouldn't use the no comms signal */
     if (debugger_present != FALSE)
     {
@@ -253,7 +245,7 @@ void main_platform_init(void)
     } 
     
     /* Check for first boot, perform functional testing */
-    #ifdef DEVELOPER_FEATURES_ENABLED
+    #ifdef DEVELOPER_FEATURES_ENABLEDXXXX
     if ((custom_fs_is_first_boot() == TRUE) && (mcu_sp_rh_addresses[1] != 0x0201))
     #else
     if (custom_fs_is_first_boot() == TRUE)

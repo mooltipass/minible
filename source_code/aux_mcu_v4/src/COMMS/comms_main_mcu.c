@@ -175,6 +175,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 }
                 message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
                 message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
+                message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id);
                 comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
                 break;
             }
@@ -188,6 +189,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 }
                 message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
                 message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISABLED;
+                message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id);
                 comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
                 break;
             }

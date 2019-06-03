@@ -3,6 +3,7 @@
 *    Created:  06/09/2018
 *    Author:   Mathieu Stephan
 */
+#include "comms_main_mcu.h"
 #include "defines.h"
 #include "logic.h"
 /* Boolean to know if BLE is enabled */

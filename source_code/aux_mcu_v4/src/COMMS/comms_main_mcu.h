@@ -36,6 +36,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define MAIN_MCU_COMMAND_NO_COMMS_UNAV  0x0006
 #define MAIN_MCU_COMMAND_DISABLE_BLE    0x0007
 #define MAIN_MCU_COMMAND_DETACH_USB     0x0008
+#define MAIN_MCU_COMMAND_FUNC_TEST      0x0009
 
 // Debug MCU commands
 #define MAIN_MCU_COMMAND_TX_SWEEP_SGL   0x1000
@@ -44,6 +45,8 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define AUX_MCU_EVENT_BLE_ENABLED       0x0001
 #define AUX_MCU_EVENT_BLE_DISABLED      0x0002
 #define AUX_MCU_EVENT_TW_SWEEP_DONE     0x0003
+#define AUX_MCU_EVENT_FUNC_TEST_DONE    0x0004
+#define AUX_MCU_EVENT_USB_ENUMERATED    0x0005
 
 /* Typedefs */
 typedef struct

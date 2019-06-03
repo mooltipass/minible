@@ -23,6 +23,8 @@
 */
 void functional_testing_start(BOOL clear_first_boot_flag)
 {
+    aux_mcu_message_t* temp_rx_message;
+    
     /* Test no comms signal */
     platform_io_set_no_comms();
     if (comms_aux_mcu_send_receive_ping() == RETURN_OK)
@@ -60,26 +62,40 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     /* Ask to connect USB to test USB LDO + LDO 3V3 to 8V  */
     sh1122_put_error_string(&plat_oled_descriptor, u"connect USB");
     while (platform_io_is_usb_3v3_present() == FALSE);
+    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+    
+    /* Wait for enumeration */
+    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE) != RETURN_OK);
     sh1122_clear_current_screen(&plat_oled_descriptor);
     
     /* Switch to LDO for voled stepup */
+    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
     logic_power_set_power_source(USB_POWERED);
     sh1122_oled_off(&plat_oled_descriptor);
-    timer_delay_ms(50);
+    timer_delay_ms(5);
     platform_io_power_up_oled(TRUE);
-    sh1122_oled_on(&plat_oled_descriptor);    
+    sh1122_oled_on(&plat_oled_descriptor);
     
-    /* Start BLE... takes a little while... */
-    sh1122_put_error_string(&plat_oled_descriptor, u"please wait...");
-    logic_aux_mcu_enable_ble(TRUE);
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    /* Signal the aux MCU do its functional testing */
+    sh1122_put_error_string(&plat_oled_descriptor, u"Please wait...");
+    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_FUNC_TEST);
     
-    /* Get BLE ID */
-    if (logic_aux_mcu_get_ble_chip_id() == 0)
+    /* Wait for end of sweep */
+    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE) != RETURN_OK);
+    
+    /* Check functional test result */
+    uint8_t func_test_result = temp_rx_message->aux_mcu_event_message.payload[0];
+    if (func_test_result == 1)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"ATBTLC1000 error!");
         while(1);
     }
+    else if (func_test_result == 2)
+    {
+        sh1122_put_error_string(&plat_oled_descriptor, u"Battery error!");
+        while(1);
+    }
+    sh1122_clear_current_screen(&plat_oled_descriptor);
     
     /* Ask for card, tests all SMC related signals */
     sh1122_put_error_string(&plat_oled_descriptor, u"insert card");
