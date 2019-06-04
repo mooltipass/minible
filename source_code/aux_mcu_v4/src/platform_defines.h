@@ -37,7 +37,7 @@ v0.7: brand new solution with ble task handling
  * - NO_COMMS added (see github pages)
  */
  #define PLAT_V3_SETUP
- #define MAIN_MCU_MSG_DBG_PRINT
+ //#define MAIN_MCU_MSG_DBG_PRINT
  
 /* Features depending on the defined platform */
 #if defined(PLAT_V3_SETUP)

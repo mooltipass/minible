@@ -14,6 +14,7 @@
 #include "driver_timer.h"
 #include "ble_manager.h"
 #include "ble_manager.h"
+#include "platform_io.h"
 #include "at_ble_api.h"
 #include "hid_device.h"
 #include "comms_usb.h"
@@ -228,7 +229,78 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 if (ble_sdk_version() == 0)
                 {
                     message->aux_mcu_event_message.payload[0] = 1;
+                    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
+                    break;
                 }
+                
+                /* Battery charging tests: set charging LDO to max voltage without enabling charge mosfets and make sure there's no charging current */
+                platform_io_enable_step_down(1800);
+                
+                /* Discard first measurement */
+                while (platform_io_is_current_sense_conversion_result_ready() == FALSE);
+                platform_io_get_cursense_conversion_result(TRUE);
+                
+                /* Measure charging current */
+                while (platform_io_is_current_sense_conversion_result_ready() == FALSE);
+                uint32_t cur_sense_vs = platform_io_get_cursense_conversion_result(FALSE);
+                volatile int16_t high_voltage = (int16_t)(cur_sense_vs >> 16);
+                volatile int16_t low_voltage = (int16_t)cur_sense_vs;
+                
+                /* Charging current? (check for 40mA) */
+                if ((high_voltage - low_voltage) > 100)
+                {
+                    platform_io_disable_step_down();
+                    message->aux_mcu_event_message.payload[0] = 2;
+                    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
+                    break;                    
+                }    
+                
+                /* Set voltage at a reasonable value */
+                uint16_t current_charge_voltage = 1200;
+                platform_io_get_cursense_conversion_result(TRUE);
+                platform_io_update_step_down_voltage(current_charge_voltage);
+                timer_delay_ms(5);
+                
+                /* Start charging! */
+                platform_io_enable_charge_mosfets();
+                
+                /* Increase the voltage until we get some current (40mA) */
+                while (TRUE)
+                {
+                    while (platform_io_is_current_sense_conversion_result_ready() == FALSE);
+                    cur_sense_vs = platform_io_get_cursense_conversion_result(FALSE);
+                    high_voltage = (int16_t)(cur_sense_vs >> 16);
+                    low_voltage = (int16_t)cur_sense_vs;
+                    
+                    if ((high_voltage - low_voltage) > LOGIC_BATTERY_CUR_FOR_ST_RAMP_END)
+                    {
+                        /* All good! */
+                        break;
+                    }
+                    else
+                    {
+                        /* Increase charge voltage */
+                        current_charge_voltage += 10;
+                        
+                        /* Check for over voltage - may be caused by disconnected charge path */
+                        if ((low_voltage >= LOGIC_BATTERY_MAX_V_FOR_ST_RAMP) || (current_charge_voltage > 1650))
+                        {
+                            message->aux_mcu_event_message.payload[0] = 2;
+                            break;
+                        }
+                        else
+                        {
+                            /* Increment voltage */
+                            platform_io_update_step_down_voltage(current_charge_voltage);
+                            platform_io_get_cursense_conversion_result(TRUE);
+                        }
+                    }
+                }
+                
+                /* Disable DC/DC and mosfets */
+                platform_io_disable_charge_mosfets();
+                timer_delay_ms(1);
+                platform_io_disable_step_down();
                 
                 /* Send functional test result */
                 comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));      

@@ -24,7 +24,7 @@
 void functional_testing_start(BOOL clear_first_boot_flag)
 {
     aux_mcu_message_t* temp_rx_message;
-    #ifdef bla
+    
     /* Test no comms signal */
     platform_io_set_no_comms();
     if (comms_aux_mcu_send_receive_ping() == RETURN_OK)
@@ -33,6 +33,10 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         while(1);
     }
     platform_io_clear_no_comms();
+    
+    /* Receive pending ping */
+    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD, FALSE) != RETURN_OK);
+    comms_aux_arm_rx_and_clear_no_comms();
     
     /* First boot should be done using battery */
     if (platform_io_is_usb_3v3_present() != FALSE)
@@ -70,15 +74,14 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     comms_aux_arm_rx_and_clear_no_comms();
     
     /* Switch to LDO for voled stepup */
-    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
     logic_power_set_power_source(USB_POWERED);
     sh1122_oled_off(&plat_oled_descriptor);
     timer_delay_ms(5);
     platform_io_power_up_oled(TRUE);
     sh1122_oled_on(&plat_oled_descriptor);
-    #endif
     
     /* Signal the aux MCU do its functional testing */
+    platform_io_enable_ble();
     sh1122_put_error_string(&plat_oled_descriptor, u"Please wait...");
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_FUNC_TEST);
     
@@ -99,6 +102,9 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         sh1122_put_error_string(&plat_oled_descriptor, u"Battery error!");
         while(1);
     }
+    
+    /* Re-disable bluetooth */
+    platform_io_disable_ble();
     
     /* Ask for card, tests all SMC related signals */
     sh1122_put_error_string(&plat_oled_descriptor, u"insert card");
