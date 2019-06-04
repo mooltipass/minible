@@ -22,12 +22,12 @@ static at_ble_status_t debug_tx_sweep_inc(void *param)
     {
         /* Continue on this freq */
         DBG_LOG_DEV("Inner %d, Freq %d", debug_inner_loop, debug_current_freq_set);
-        while(at_ble_dtm_tx_test_start(debug_current_freq_set, 36, PAYL_01010101) != AT_BLE_SUCCESS);
+        while(at_ble_dtm_tx_test_start(debug_current_freq_set, 36, PAYL_ALL_1) != AT_BLE_SUCCESS);
     }
     else
     {
         debug_inner_loop = 0;
-        if (debug_current_freq_set++ == 36)
+        if (debug_current_freq_set++ == 40)
         {
             aux_mcu_message_t message;
             message.message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
@@ -39,7 +39,7 @@ static at_ble_status_t debug_tx_sweep_inc(void *param)
         {
             debug_current_freq_set++;
             DBG_LOG_DEV("Inner %d, Freq %d", debug_inner_loop, debug_current_freq_set);
-            while(at_ble_dtm_tx_test_start(debug_current_freq_set, 36, PAYL_01010101) != AT_BLE_SUCCESS);
+            while(at_ble_dtm_tx_test_start(debug_current_freq_set, 36, PAYL_ALL_1) != AT_BLE_SUCCESS);
         }
     }
     return AT_BLE_SUCCESS;
@@ -58,5 +58,5 @@ void debug_tx_sweep_start(void)
         ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_DTM_EVENT_TYPE, &dtm_custom_event_cb);
         debug_tx_test_cb_set = TRUE;
     }
-    while(at_ble_dtm_tx_test_start(debug_current_freq_set, 36, PAYL_01010101) != AT_BLE_SUCCESS);
+    while(at_ble_dtm_tx_test_start(debug_current_freq_set, 36, PAYL_ALL_1) != AT_BLE_SUCCESS);
 }
