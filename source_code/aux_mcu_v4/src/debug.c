@@ -27,7 +27,7 @@ static at_ble_status_t debug_tx_sweep_inc(void *param)
     else
     {
         debug_inner_loop = 0;
-        if (debug_current_freq_set++ == 40)
+        if (debug_current_freq_set == 39)
         {
             aux_mcu_message_t message;
             message.message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
