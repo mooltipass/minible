@@ -50,6 +50,19 @@ aux_mcu_message_t* comms_main_mcu_get_temp_tx_message_object_pt(void)
     return (aux_mcu_message_t*)&main_mcu_send_message;
 }
 
+/*! \fn     comms_main_mcu_send_simple_event(uint16_t event_id)
+*   \brief  Send a simple event to main MCU
+*   \param  event_id    The event ID
+*/
+void comms_main_mcu_send_simple_event(uint16_t event_id)
+{
+    dma_wait_for_main_mcu_packet_sent();
+    main_mcu_send_message.aux_mcu_event_message.event_id = event_id;
+    main_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+    main_mcu_send_message.payload_length1 = sizeof(main_mcu_send_message.aux_mcu_event_message.event_id);
+    comms_main_mcu_send_message((void*)&main_mcu_send_message, (uint16_t)sizeof(aux_mcu_message_t));
+}
+
 /*! \fn     comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length)
 *   \brief  Send a message to the MCU
 *   \param  message         Pointer to the message to send

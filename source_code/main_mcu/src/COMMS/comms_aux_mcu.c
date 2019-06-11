@@ -12,6 +12,7 @@
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "platform_io.h"
+#include "logic_power.h"
 #include "sh1122.h"
 #include "main.h"
 #include "dma.h"
@@ -293,6 +294,31 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
             /* BLE just got enabled */
             logic_aux_mcu_set_ble_enabled_bool(TRUE);
         }
+        switch(aux_mcu_receive_message.main_mcu_command_message.command)
+        {
+            case AUX_MCU_EVENT_BLE_ENABLED:
+            {
+                /* BLE just got enabled */
+                logic_aux_mcu_set_ble_enabled_bool(TRUE);
+                break;
+            }
+            case AUX_MCU_EVENT_USB_ENUMERATED:
+            {
+                logic_aux_mcu_set_usb_enumerated_bool(TRUE);
+                break;
+            }
+            case AUX_MCU_EVENT_CHARGE_DONE:
+            {
+                logic_power_set_battery_charging_bool(FALSE, TRUE);
+                break;
+            }
+            case AUX_MCU_EVENT_CHARGE_FAIL:
+            {
+                logic_power_set_battery_charging_bool(FALSE, FALSE);
+                break;
+            }
+            default: break;
+        }            
     }  
     else
     {

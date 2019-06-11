@@ -4,6 +4,7 @@
 *    Author:   Mathieu Stephan
 */
 #include <asf.h>
+#include "comms_main_mcu.h"
 #include "logic_battery.h"
 #include "driver_timer.h"
 #include "platform_io.h"
@@ -136,6 +137,9 @@ void logic_battery_task(void)
                         
                         /* Disable step-down */
                         platform_io_disable_step_down();
+                                                
+                        /* Inform main MCU */
+                        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_FAIL);
                     }
                     else
                     {
@@ -187,6 +191,9 @@ void logic_battery_task(void)
                             
                             /* Disable step-down */
                             platform_io_disable_step_down();
+                            
+                            /* Inform main MCU */
+                            comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_FAIL);
                         }
                         else
                         {
@@ -237,6 +244,9 @@ void logic_battery_task(void)
                         
                         /* Disable step-down */
                         platform_io_disable_step_down();
+                        
+                        /* Inform main MCU */
+                        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_DONE);
                     }
                     else if ((high_voltage - low_voltage) > voltage_diff_goal + 4)
                     {
@@ -261,6 +271,9 @@ void logic_battery_task(void)
                             
                             /* Disable step-down */
                             platform_io_disable_step_down();
+                            
+                            /* Inform main MCU */
+                            comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_FAIL);
                         }
                         else
                         {

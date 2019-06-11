@@ -958,6 +958,7 @@ void debug_nimh_charging(void)
     if (logic_power_get_power_source() == USB_POWERED)
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
+        logic_power_set_battery_charging_bool(TRUE, FALSE);
     }
     
     /* Arm charge status request timer */

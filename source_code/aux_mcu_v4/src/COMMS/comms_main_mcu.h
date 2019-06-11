@@ -47,6 +47,8 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define AUX_MCU_EVENT_TW_SWEEP_DONE     0x0003
 #define AUX_MCU_EVENT_FUNC_TEST_DONE    0x0004
 #define AUX_MCU_EVENT_USB_ENUMERATED    0x0005
+#define AUX_MCU_EVENT_CHARGE_DONE       0x0006
+#define AUX_MCU_EVENT_CHARGE_FAIL       0x0007
 
 /* Typedefs */
 typedef struct
@@ -113,6 +115,7 @@ void comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_le
 BOOL comms_aux_mcu_get_received_packet(aux_mcu_message_t** message, BOOL arm_new_rx);
 void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message);
 aux_mcu_message_t* comms_main_mcu_get_temp_tx_message_object_pt(void);
+void comms_main_mcu_send_simple_event(uint16_t event_id);
 void comms_main_mcu_routine(void);
 void comms_main_init_rx(void);
 

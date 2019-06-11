@@ -25,7 +25,7 @@ uint16_t gui_dispatcher_current_idle_anim_frame_id = 0;
 // Current idle animation loop number
 uint16_t gui_dispatcher_current_idle_anim_loop = 0;
 // Current battery charging animation index
-uint16_t gui_dispatcher_battery_charging_anim_index = 0;
+battery_state_te gui_dispatcher_battery_charging_anim_index = 0;
 
 
 /*! \fn     gui_dispatcher_get_current_screen(void)
@@ -41,27 +41,23 @@ gui_screen_te gui_dispatcher_get_current_screen(void)
 *   \brief  Display battery / bt overlay in current frame buffer
 */
 void gui_dispatcher_display_battery_bt_overlay(void)
-{
-    /* Battery display */
-    battery_state_te battery_state = logic_power_get_battery_state();
-    switch(battery_state)
+{    
+    /* Charging or not? */
+    if (logic_power_is_battery_charging() == FALSE)
     {
-        case BATTERY_CHARGING:
+        /* Our enum allows us to do so */
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+logic_power_get_battery_state(), TRUE);
+    } 
+    else
+    {
+        /* Check for end condition */
+        if (gui_dispatcher_battery_charging_anim_index > BATTERY_100PCT)
         {
-            // TODO2
-            break;
+            gui_dispatcher_battery_charging_anim_index = BATTERY_0PCT;
         }
-        case BATTERY_0PCT:
-        case BATTERY_25PCT:
-        case BATTERY_50PCT:
-        case BATTERY_75PCT:
-        case BATTERY_100PCT:
-        case BATTERY_ERROR:
-        {
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+battery_state, TRUE);
-            break;
-        }
-        default: break;
+        
+        /* Display and increment */
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+(gui_dispatcher_battery_charging_anim_index++), TRUE);
     }
     
     /* Bluetooth display */
@@ -295,7 +291,6 @@ void gui_dispatcher_main_loop(void)
         gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO);
         sh1122_oled_off(&plat_oled_descriptor);
         gui_dispatcher_get_back_to_current_screen();
-        platform_io_power_down_oled();
         
         /* The notification display routine calls the activity detected routine */
         timer_start_timer(TIMER_SCREEN, 0);
@@ -304,6 +299,9 @@ void gui_dispatcher_main_loop(void)
         /* If we're battery powered, go to sleep */
         if (logic_power_get_power_source() == BATTERY_POWERED)
         {
+            /* Hack: only disable OLED stepup when battery powered. When USB powered, if 3V3 USB isn't loaded then we can't detect USB disconnection */
+            platform_io_power_down_oled();
+            
             /* Good night */
             main_standby_sleep();
             

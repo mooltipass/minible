@@ -29,6 +29,8 @@ BOOL comms_usb_expect_flip_bit_state_set = FALSE;
 volatile BOOL comms_usb_raw_hid_packet_received = FALSE;
 volatile BOOL comms_usb_raw_hid_packet_receive_length = 0;
 volatile BOOL comms_usb_raw_hid_packet_being_sent = FALSE;
+/* Set when we just got enumerated */
+volatile BOOL comms_usb_just_enumerated = FALSE;
 /* Set when we are enumerated */
 BOOL comms_usb_enumerated = FALSE;
 
@@ -186,15 +188,8 @@ void comms_usb_configuration_callback(int config)
     /* Start receiving raw HID packets */
     comms_usb_arm_packet_receive();
     
-    /* Get pointer to message to send, wait for possible previous message to be sent */
-    aux_mcu_message_t* message = comms_main_mcu_get_temp_tx_message_object_pt();
-    dma_wait_for_main_mcu_packet_sent();
-    
-    /* Let the main MCU know that we're enumerated */
-    message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-    message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_USB_ENUMERATED;
-    message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id);
-    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
+    /* Set just enumerated flag */
+    comms_usb_just_enumerated = TRUE;
 } 
 
 /*! \fn     comms_usb_communication_routine(void)
@@ -202,6 +197,13 @@ void comms_usb_configuration_callback(int config)
 */
 void comms_usb_communication_routine(void)
 {
+    /* If we just were enumerated, let main MCU know */
+    if (comms_usb_just_enumerated != FALSE)
+    {
+        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_USB_ENUMERATED);
+        comms_usb_just_enumerated = FALSE;
+    }
+    
     /* Did we receive a packet? */
     if (comms_usb_raw_hid_packet_received != FALSE)
     {

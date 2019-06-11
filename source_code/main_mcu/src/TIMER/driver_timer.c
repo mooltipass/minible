@@ -9,6 +9,7 @@
 #include "platform_defines.h"
 #include "driver_clocks.h"
 #include "driver_timer.h"
+#include "logic_power.h"
 #include "inputs.h"
 /* Timer array */
 volatile timerEntry_t context_timers[TOTAL_NUMBER_OF_TIMERS];
@@ -35,6 +36,9 @@ void TCC0_Handler(void)
         
             /* Scan buttons */
             inputs_scan();
+            
+            /* Power logic */
+            logic_power_ms_tick();
         }
     #endif
 }

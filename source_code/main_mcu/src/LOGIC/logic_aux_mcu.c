@@ -13,6 +13,8 @@
 #include "dma.h"
 /* BLE enabled bool */
 BOOL logic_aux_mcu_ble_enabled = FALSE;
+/* USB enumerated bool */
+BOOL logic_aux_mcu_usb_enumerated = FALSE;
 
 
 /*! \fn     logic_aux_mcu_set_ble_enabled_bool(BOOL ble_enabled)
@@ -24,6 +26,15 @@ void logic_aux_mcu_set_ble_enabled_bool(BOOL ble_enabled)
     logic_aux_mcu_ble_enabled = ble_enabled;
 }
 
+/*! \fn     logic_aux_mcu_set_usb_enumerated_bool(BOOL usb_enumerated)
+*   \brief  Set USB enumerated
+*   \param  usb_enumerated  USB enumerated state
+*/
+void logic_aux_mcu_set_usb_enumerated_bool(BOOL usb_enumerated)
+{
+    logic_aux_mcu_usb_enumerated = usb_enumerated;
+}
+
 /*! \fn     logic_aux_mcu_is_ble_enabled(void)
 *   \brief  Check if the BLE is enabled
 *   \return BLE enabled boolean
@@ -31,6 +42,15 @@ void logic_aux_mcu_set_ble_enabled_bool(BOOL ble_enabled)
 BOOL logic_aux_mcu_is_ble_enabled(void)
 {
     return logic_aux_mcu_ble_enabled;
+}
+
+/*! \fn     logic_aux_mcu_is_usb_enumerated(void)
+*   \brief  Check if USB enumerated
+*   \return USB enumerated boolean
+*/
+BOOL logic_aux_mcu_is_usb_enumerated(void)
+{
+    return logic_aux_mcu_usb_enumerated;
 }
 
 /*! \fn     logic_aux_mcu_enable_ble(BOOL wait_for_enabled)
