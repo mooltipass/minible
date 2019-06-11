@@ -245,7 +245,7 @@ void main_platform_init(void)
     } 
     
     /* Check for first boot, perform functional testing */
-    #ifdef DEVELOPER_FEATURES_ENABLEDXX
+    #ifdef DEVELOPER_FEATURES_ENABLED
     if ((custom_fs_is_first_boot() == TRUE) && (mcu_sp_rh_addresses[1] != 0x0201))
     #else
     if (custom_fs_is_first_boot() == TRUE)

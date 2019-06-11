@@ -18,18 +18,15 @@ volatile BOOL platform_io_voledin_conv_ready = FALSE;
 */
 void EIC_Handler(void)
 {
-    /* Wheel tick interrupt: ACK and disable interrupt */
-    if ((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0)
+    /* All the interrupts below are used to wake up the platform from sleep. If we detect any of them, we disable all of them */
+    if (((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << USB_3V3_EXTINT_NUM)) != 0))
     {
         EIC->INTFLAG.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
-    }
-    
-    /* Wheel click interrupt: ACK and disable interrupt */
-    if ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0)
-    {
         EIC->INTFLAG.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
+        EIC->INTFLAG.reg = (1 << USB_3V3_EXTINT_NUM);
+        EIC->INTENCLR.reg = (1 << USB_3V3_EXTINT_NUM);
     }
 }
 
@@ -177,6 +174,19 @@ void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
     EIC->CONFIG[WHEEL_CLICK_EXTINT_NUM/8].bit.WHEEL_CLICK_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;    // Detect low state
     EIC->INTENSET.reg = (1 << WHEEL_CLICK_EXTINT_NUM);                                                  // Enable interrupt from ext pin
     EIC->WAKEUP.reg |= (1 << WHEEL_CLICK_EXTINT_NUM);                                                   // Enable wakeup from ext pin
+}
+
+/*! \fn     platform_io_enable_usb_3v3_wakeup_interrupt(void)
+*   \brief  Enable  USB 3V3 external interrupt to wake up platform
+*/
+void platform_io_enable_usb_3v3_wakeup_interrupt(void)
+{
+    /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
+    PORT->Group[USB_3V3_GROUP].PMUX[USB_3V3_PINID/2].bit.USB_3V3_PMUXREGID = PORT_PMUX_PMUXO_A_Val;     // Pin mux to EIC
+    PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.PMUXEN = 1;                                    // Enable peripheral multiplexer
+    EIC->CONFIG[USB_3V3_EXTINT_NUM/8].bit.USB_3V3_EIC_SENSE_REG = EIC_CONFIG_SENSE0_HIGH_Val;           // Detect high state
+    EIC->INTENSET.reg = (1 << USB_3V3_EXTINT_NUM);                                                      // Enable interrupt from ext pin
+    EIC->WAKEUP.reg |= (1 << USB_3V3_EXTINT_NUM);    
 }
 
 /*! \fn     platform_io_disable_scroll_wheel_wakeup_interrupts(void)
@@ -660,6 +670,9 @@ void platform_io_prepare_ports_for_sleep(void)
     
     /* Enable wheel interrupt */
     platform_io_enable_scroll_wheel_wakeup_interrupts();
+    
+    /* Enable USB 3V3 interrupt */
+    platform_io_enable_usb_3v3_wakeup_interrupt();
 }
 
 /*! \fn     platform_io_prepare_ports_for_sleep_exit(void)

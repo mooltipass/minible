@@ -256,6 +256,8 @@ typedef struct
     #define WHEEL_TICKA_EIC_SENSE_REG   SENSE0
     #define WHEEL_TICKB_EXTINT_NUM      1
     #define WHEEL_TICKB_EIC_SENSE_REG   SENSE1
+    #define USB_3V3_EXTINT_NUM          15
+    #define USB_3V3_EIC_SENSE_REG       SENSE7
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
     #define ACC_EXTINT_NUM              9
     #define ACC_EIC_SENSE_REG           SENSE1
@@ -265,6 +267,8 @@ typedef struct
     #define WHEEL_TICKA_EIC_SENSE_REG   SENSE7
     #define WHEEL_TICKB_EXTINT_NUM      2
     #define WHEEL_TICKB_EIC_SENSE_REG   SENSE2
+    #define USB_3V3_EXTINT_NUM          1
+    #define USB_3V3_EIC_SENSE_REG       SENSE1
 #endif
 
 /* User event channels mapping */
@@ -424,6 +428,11 @@ typedef struct
     #define USB_3V3_PINID           1
 #endif
 #define USB_3V3_MASK            (1UL << USB_3V3_PINID)
+#if (USB_3V3_PINID % 2) == 1
+    #define USB_3V3_PMUXREGID  PMUXO
+#else
+    #define USB_3V3_PMUXREGID  PMUXE
+#endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
     #define VOLED_1V2_EN_GROUP      PIN_GROUP_1

@@ -14,6 +14,7 @@ void platform_io_disable_scroll_wheel_wakeup_interrupts(void);
 void platform_io_enable_scroll_wheel_wakeup_interrupts(void);
 BOOL platform_io_is_voledin_conversion_result_ready(void);
 void platform_io_prepare_acc_ports_for_sleep_exit(void);
+void platform_io_enable_usb_3v3_wakeup_interrupt(void);
 void platform_io_prepare_ports_for_sleep_exit(void);
 void platform_io_disable_vbat_to_oled_stepup(void);
 void platform_io_disable_scroll_wheel_ports(void);
