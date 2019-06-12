@@ -696,7 +696,7 @@ void debug_mcu_and_aux_info(void)
     comms_aux_mcu_send_message(TRUE);
     
     /* Wait for message from aux MCU */
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE) != RETURN_OK){}
+    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
         
     /* Cast aux MCU DID */
     DSU_DID_Type aux_mcu_did;
@@ -756,7 +756,7 @@ void debug_rf_freq_sweep(void)
         sh1122_printf_xy(&plat_oled_descriptor, 100, 20, OLED_ALIGN_LEFT, FALSE, "Run #%d", run_number);
         
         /* Wait for end of sweep */
-        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE) != RETURN_OK);
+        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_TX_SWEEP_DONE) != RETURN_OK);
         
         /* Rearm RX */
         comms_aux_arm_rx_and_clear_no_comms();
@@ -794,7 +794,7 @@ void debug_atbtlc_info(void)
     comms_aux_mcu_send_message(TRUE);
     
     /* Wait for message from aux MCU */
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE) != RETURN_OK){}
+    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
         
     /* Output debug info */
     sh1122_clear_current_screen(&plat_oled_descriptor);
@@ -985,7 +985,7 @@ void debug_nimh_charging(void)
             comms_aux_mcu_send_message(TRUE);
             
             /* Wait for message from aux MCU */
-            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE) != RETURN_OK){}
+            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE, -1) != RETURN_OK){}
             
             /* Clear screen */
             sh1122_clear_current_screen(&plat_oled_descriptor);

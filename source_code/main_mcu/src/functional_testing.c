@@ -35,7 +35,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     platform_io_clear_no_comms();
     
     /* Receive pending ping */
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD, FALSE) != RETURN_OK);
+    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD, FALSE, -1) != RETURN_OK);
     comms_aux_arm_rx_and_clear_no_comms();
     
     /* First boot should be done using battery */
@@ -69,7 +69,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
     
     /* Wait for enumeration */
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE) != RETURN_OK);
+    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_USB_ENUMERATED) != RETURN_OK);
     sh1122_clear_current_screen(&plat_oled_descriptor);
     comms_aux_arm_rx_and_clear_no_comms();
     
@@ -86,7 +86,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_FUNC_TEST);
     
     /* Wait for end of sweep */
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE) != RETURN_OK);
+    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_FUNC_TEST_DONE) != RETURN_OK);
     sh1122_clear_current_screen(&plat_oled_descriptor);
     comms_aux_arm_rx_and_clear_no_comms();
     
