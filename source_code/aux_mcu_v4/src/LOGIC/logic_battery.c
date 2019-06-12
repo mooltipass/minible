@@ -88,6 +88,25 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
     platform_io_get_cursense_conversion_result(TRUE); 
 }
 
+/*! \fn     logic_battery_stop_charging(void)
+*   \brief  Stop charging if we are
+*/
+void logic_battery_stop_charging(void)
+{
+    if ((logic_battery_state == LB_CHARGE_START_RAMPING) || (logic_battery_state == LB_CHARGING_REACH) || (logic_battery_state == LB_CUR_MAINTAIN))
+    {        
+        /* Disable charging */
+        platform_io_disable_charge_mosfets();
+        timer_delay_ms(1);
+        
+        /* Disable step-down */
+        platform_io_disable_step_down();
+        
+        /* Reset state machine */
+        logic_battery_state = LB_IDLE;
+    }
+}
+
 /*! \fn     logic_battery_task(void)
 *   \brief  Function regularly called by main()
 */

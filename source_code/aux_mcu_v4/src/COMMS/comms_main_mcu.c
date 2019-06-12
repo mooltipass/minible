@@ -181,6 +181,9 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* Detach USB resistors */
                 comms_usb_clear_enumerated();
                 udc_detach();
+                
+                /* Stop charging if we are */
+                logic_battery_stop_charging();
                 break;
             }
             case MAIN_MCU_COMMAND_ENABLE_BLE:

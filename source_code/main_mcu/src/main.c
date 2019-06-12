@@ -168,6 +168,7 @@ void main_platform_init(void)
     
     /* DMA transfers inits, timebase, platform ios, enable comms */
     dma_init();
+    logic_power_init();
     timer_initialize_timebase();
     platform_io_init_ports();
     comms_aux_arm_rx_and_clear_no_comms();
@@ -414,6 +415,7 @@ int main(void)
         {
             /* Set flag */
             custom_fs_define_powered_off_due_to_battery_voltage(TRUE);
+            logic_power_power_down_actions();
             
             /* Out of battery! */
             gui_prompts_display_information_on_screen_and_wait(BATTERY_EMPTY_TEXT_ID, DISP_MSG_WARNING);

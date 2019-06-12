@@ -587,6 +587,35 @@ void custom_fs_settings_clear_first_boot_flag(void)
     custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
 }
 
+/*! \fn     custom_fs_define_nb_ms_since_last_full_charge(uint32_t nb_ms)
+*   \brief  Store the number of ms since last full charge
+*   \param  nb_ms   Number of ms
+*/
+void custom_fs_define_nb_ms_since_last_full_charge(uint32_t nb_ms)
+{
+    volatile custom_platform_settings_t temp_settings;
+    custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    temp_settings.nb_ms_since_last_full_charge = nb_ms;
+    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    return;    
+}
+
+/*! \fn     custom_fs_get_nb_ms_since_last_full_charge(void)
+*   \brief  Get number of ms since last full charge (first boot: this will be at 0xFFFF and this is actually perfect
+*   \return Number of ms
+*/
+uint32_t custom_fs_get_nb_ms_since_last_full_charge(void)
+{
+    if (custom_fs_platform_settings_p != 0)
+    {
+        return custom_fs_platform_settings_p->nb_ms_since_last_full_charge;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 /*! \fn     custom_fs_define_powered_off_due_to_battery_voltage(BOOL set_flag)
 *   \brief  Set / clear powered off due to battery voltage flag
 *   \param  set_flag    Set to TRUE to set the flag

@@ -9,6 +9,7 @@
 #include "logic_device.h"
 #include "logic_power.h"
 #include "platform_io.h"
+#include "custom_fs.h"
 #include "sh1122.h"
 #include "main.h"
 // Number of ms spent on battery since the last full charge
@@ -53,6 +54,22 @@ power_source_te logic_power_get_power_source(void)
     return logic_power_current_power_source;
 }
 
+/*! \fn     logic_power_init(void)
+*   \brief  Init power logic
+*/
+void logic_power_init(void)
+{
+    logic_power_nb_ms_spent_since_last_full_charge = custom_fs_get_nb_ms_since_last_full_charge();
+}
+
+/*! \fn     logic_power_power_down_actions(void)
+*   \brief  Actions to be taken before powering down
+*/
+void logic_power_power_down_actions(void)
+{
+    custom_fs_define_nb_ms_since_last_full_charge(logic_power_nb_ms_spent_since_last_full_charge);
+}
+
 /*! \fn     logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_success)
 *   \brief  Set battery charging bool
 *   \param  battery_charging    The boolean
@@ -63,9 +80,10 @@ void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_su
     logic_power_battery_charging = battery_charging;
     
     /* In case of charge success, reset our counter */
-    if (charge_success != FALSE)
+    if ((battery_charging == FALSE) && (charge_success != FALSE))
     {
         logic_power_nb_ms_spent_since_last_full_charge = 0;
+        custom_fs_define_nb_ms_since_last_full_charge(logic_power_nb_ms_spent_since_last_full_charge);
     }
 }
 
@@ -137,6 +155,7 @@ power_action_te logic_power_routine(void)
     else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
+        logic_power_set_battery_charging_bool(FALSE, FALSE);
         logic_power_set_power_source(BATTERY_POWERED);
         logic_aux_mcu_set_usb_enumerated_bool(FALSE);
         sh1122_oled_off(&plat_oled_descriptor);

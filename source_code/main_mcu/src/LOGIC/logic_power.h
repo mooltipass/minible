@@ -24,7 +24,9 @@ void logic_power_set_power_source(power_source_te power_source);
 battery_state_te logic_power_get_battery_state(void);
 power_source_te logic_power_get_power_source(void);
 BOOL logic_power_is_battery_charging(void);
+void logic_power_power_down_actions(void);
 power_action_te logic_power_routine(void);
 void logic_power_ms_tick(void);
+void logic_power_init(void);
 
 #endif /* LOGIC_POWER_H_ */
