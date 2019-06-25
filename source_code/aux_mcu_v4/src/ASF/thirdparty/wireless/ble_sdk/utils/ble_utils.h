@@ -94,13 +94,14 @@
 #define ALL_UNUSED_IMPL(nargs) ALL_UNUSED_IMPL_(nargs)
 #define ALL_UNUSED(...) ALL_UNUSED_IMPL( VA_NUM_ARGS(__VA_ARGS__))(__VA_ARGS__ )
 
-#define DEBUG_LOG_DISABLED
+//#define DEBUG_LOG_DISABLED
 #if defined DEBUG_LOG_DISABLED
 	#define DBG_LOG_CONT	    ALL_UNUSED
 	#define DBG_LOG		        ALL_UNUSED
 	#define DBG_LOG_ADV	        ALL_UNUSED
 	#define DBG_LOG_DEV			ALL_UNUSED
 	#define DBG_LOG_CONT_DEV	ALL_UNUSED
+	#define DBG_LOG_PTS			ALL_UNUSED
 #else
     #define DBG_LOG_CONT	    comms_usb_debug_printf
 
@@ -111,12 +112,9 @@
 						        comms_usb_debug_printf
 	#define DBG_LOG_DEV			comms_usb_debug_printf
 	#define DBG_LOG_CONT_DEV	comms_usb_debug_printf
-#endif
-
-#ifdef ENABLE_PTS
-#define DBG_LOG_PTS			DBG_LOG
-#else
-#define DBG_LOG_PTS			ALL_UNUSED
+    //#define ENABLE_PTS
+	//#define DBG_LOG_PTS			DBG_LOG
+	#define DBG_LOG_PTS			ALL_UNUSED
 #endif
 
 

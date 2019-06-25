@@ -22,6 +22,8 @@ hid_boot_ntf_t  boot_ntf_info;
 hid_proto_mode_ntf_t hid_proto_mode_value;
 /* HID profile structure for application */
 hid_prf_info_t hid_prf_data;
+/* HID profile structure for application */
+hid_prf_info_t raw_hid_prf_data;
 /* Keyboard character info to be displayed during demo */
 uint8_t keyb_disp[12] = {0x0B, 0x08, 0x0F, 0x0F, 0x12, 0x2C, 0x04, 0x17, 0x10, 0x08, 0x0F, 0x28};
 /* Keyboard character to be printed */
@@ -158,7 +160,7 @@ static void hid_prf_report_ntf_cb(hid_report_ntf_t *report_info)
 }
 
 /* Initialize the application information for HID profile*/
-static void hid_keyboard_app_init(void)
+static void hid_mooltipass_app_init(void)
 {
 #ifdef ENABLE_PTS	
 	uint16_t i=0;
@@ -197,6 +199,42 @@ static void hid_keyboard_app_init(void)
 	}else{
 		DBG_LOG("HID Profile Configuration Failed");
 	}
+    
+    /* Now to the RAW HID endpoint */    
+    raw_hid_prf_data.hid_serv_instance = 2;
+    raw_hid_prf_data.hid_device = HID_KEYBOARD_MODE;
+    raw_hid_prf_data.protocol_mode = HID_REPORT_PROTOCOL_MODE;
+    raw_hid_prf_data.num_of_report = HID_NUM_OF_REPORT;
+    
+    /*Update the report information based on report id, User can allocate maximum HID_MAX_REPORT_NUM number of report*/
+    raw_hid_prf_data.report_id[0] = 1;
+    raw_hid_prf_data.report_type[0] = INPUT_REPORT;
+    
+    raw_hid_prf_data.report_val[0] = &app_keyb_report[0];
+    raw_hid_prf_data.report_len[0] = sizeof(app_keyb_report);
+    raw_hid_prf_data.report_map_info.report_map = hid_app_keyb_report_map;
+    raw_hid_prf_data.report_map_info.report_map_len = sizeof(hid_app_keyb_report_map);
+    raw_hid_prf_data.hid_device_info.bcd_hid = 0x0111;
+    raw_hid_prf_data.hid_device_info.bcountry_code = 0x00;
+    raw_hid_prf_data.hid_device_info.flags = 0x02;
+    
+    #ifdef ENABLE_PTS
+    DBG_LOG_PTS("Report Map Characteristic Value");
+    DBG_LOG_PTS("\r\n");
+    for (i=0; i<sizeof(hid_app_keyb_report_map); i++)
+    {
+        DBG_LOG_PTS(" 0x%02X ", hid_app_keyb_report_map[i]);
+    }
+    DBG_LOG_PTS("\r\n");
+    DBG_LOG_PTS("HID Information Characteristic Value");
+    DBG_LOG_PTS("bcdHID 0x%02X, bCountryCode 0x%02X Flags 0x%02X", raw_hid_prf_data.hid_device_info.bcd_hid, raw_hid_prf_data.hid_device_info.bcountry_code, raw_hid_prf_data.hid_device_info.flags);
+    #endif // _DEBUG
+    
+    if(hid_prf_conf(&raw_hid_prf_data)==HID_PRF_SUCESS){
+        DBG_LOG("RAW HID Profile Configured");
+        }else{
+        DBG_LOG("RAW HID Profile Configuration Failed");
+    }
 }
 
 void logic_bluetooth_start_bluetooth(void)
@@ -204,7 +242,7 @@ void logic_bluetooth_start_bluetooth(void)
     DBG_LOG("Initializing HID Keyboard Application");
     
     /* Initialize the profile based on user input */
-    hid_keyboard_app_init();
+    hid_mooltipass_app_init();
     
     /* initialize the ble chip  and Set the device mac address */
     ble_device_init(NULL);

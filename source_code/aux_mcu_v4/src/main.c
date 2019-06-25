@@ -151,6 +151,7 @@ int main(void)
             
     //udc_attach();
     //logic_battery_start_charging(NIMH_12C_CHARGING);
+    #ifdef bla
     while(TRUE)
     {
         logic_battery_task();
@@ -163,6 +164,7 @@ int main(void)
            logic_bluetooth_routine();
         }
     }
+    #endif
     
     /* Test code: remove later */
     udc_attach();
@@ -173,7 +175,6 @@ int main(void)
         comms_usb_communication_routine();
     }    
     logic_bluetooth_start_bluetooth();
-    debug_tx_sweep_start();
     while(TRUE)
     {
         logic_bluetooth_routine();
