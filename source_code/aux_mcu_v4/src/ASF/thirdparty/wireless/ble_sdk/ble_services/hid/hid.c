@@ -593,9 +593,9 @@ uint16_t hid_service_dbreg(uint8_t inst, uint8_t *report_type, uint8_t *report_i
 			descval[0] = report_id[id];
 			descval[1] = report_type[id];
 			if((status = at_ble_descriptor_value_set(hid_serv_inst[inst].hid_dev_report_val_char[id]->additional_desc_list->handle, &descval[0], 2)) == AT_BLE_SUCCESS){
-				DBG_LOG_DEV("HID Service :: hid_service_dbreg :: Report Reference Descriptor Value Set");
+				DBG_LOG_DEV("hid_service_dbreg :: Report Reference Descriptor Value Set");
 			}else{
-				DBG_LOG("HID Service :: hid_service_dbreg :: Report Reference Descriptor Value Set Fail Reason %d",status);
+				DBG_LOG("hid_service_dbreg :: Report Reference Descriptor Value Set Fail Reason %d",status);
 			}
 		}
 		return hid_inst[inst].serv.handle;

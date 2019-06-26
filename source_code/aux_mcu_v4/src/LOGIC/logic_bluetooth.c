@@ -31,7 +31,9 @@ uint8_t keyb_id = 0;
 /* Profile connection status */
 uint8_t conn_status = 0;
 /* Keyboard report value */
-uint8_t app_keyb_report[8] = {0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00};		
+uint8_t app_keyb_report[8] = {0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00};
+/* Raw Keyboard report value */
+uint8_t raw_app_keyb_report[8] = {0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00};	
 /* Keyboard key status */
 volatile uint8_t key_status = 0;
 
@@ -108,6 +110,42 @@ static uint8_t hid_app_keyb_report_map[] =
    0x29, 101,		/* Usage Maximum (101)               */
    0x15, 0x00,		/* Logical Minimum (0)               */
    0x25, 101,		/* Logical Maximum (101)             */
+   0x75, 0x08,		/* Report Size (8)                   */
+   0x95, 0x06,		/* Report Count (6)                  */
+   0x81, 0x00,		/* Input (Data, Array)               */
+   0x05, 0x08,		/* Usage Page (LED)                  */
+   0x19, 0x01,		/* Usage Minimum (1)                 */
+   0x29, 0x05,		/* Usage Maximum (5)                 */
+   0x15, 0x00,		/* Logical Minimum (0)               */
+   0x25, 0x01,		/* Logical Maximum (1)               */
+   0x75, 0x01,		/* Report Size (1)                   */
+   0x95, 0x05,		/* Report Count (5)                  */
+   0x91, 0x02,		/* Output (Data, Variable, Absolute) */
+   0x95, 0x03,		/* Report Count (3)                  */
+   0x91, 0x01,		/* Output (Constant)                 */
+   0xC0				/* End Collection                    */
+};
+
+/* raw keyboard report */
+static uint8_t raw_hid_app_keyb_report_map[] =
+{
+   0x05, 0x01,		/* Usage Page (Generic Desktop)      */
+   0x09, 0x06,		/* Usage (Keyboard)                  */
+   0xA1, 0x01,		/* Collection (Application)          */
+   0x85, 0x02,		/* REPORT ID (2) - MANDATORY         */ 
+   0x05, 0x07,		/* Usage Page (Keyboard)             */
+   0x19, 224,		/* Usage Minimum (224)               */
+   0x29, 231,		/* Usage Maximum (231)               */
+   0x15, 0x00,		/* Logical Minimum (0)               */
+   0x25, 0x01,		/* Logical Maximum (1)               */
+   0x75, 0x01,		/* Report Size (1)                   */
+   0x95, 0x08,		/* Report Count (8)                  */
+   0x81, 0x02,		/* Input (Data, Variable, Absolute)  */
+   0x81, 0x01,		/* Input (Constant)                  */
+   0x19, 0x00,		/* Usage Minimum (0)                 */
+   0x29, 102,		/* Usage Maximum (101)               */
+   0x15, 0x00,		/* Logical Minimum (0)               */
+   0x25, 102,		/* Logical Maximum (101)             */
    0x75, 0x08,		/* Report Size (8)                   */
    0x95, 0x06,		/* Report Count (6)                  */
    0x81, 0x00,		/* Input (Data, Array)               */
@@ -207,13 +245,13 @@ static void hid_mooltipass_app_init(void)
     raw_hid_prf_data.num_of_report = HID_NUM_OF_REPORT;
     
     /*Update the report information based on report id, User can allocate maximum HID_MAX_REPORT_NUM number of report*/
-    raw_hid_prf_data.report_id[0] = 1;
+    raw_hid_prf_data.report_id[0] = 2;
     raw_hid_prf_data.report_type[0] = INPUT_REPORT;
     
-    raw_hid_prf_data.report_val[0] = &app_keyb_report[0];
-    raw_hid_prf_data.report_len[0] = sizeof(app_keyb_report);
-    raw_hid_prf_data.report_map_info.report_map = hid_app_keyb_report_map;
-    raw_hid_prf_data.report_map_info.report_map_len = sizeof(hid_app_keyb_report_map);
+    raw_hid_prf_data.report_val[0] = &raw_app_keyb_report[0];
+    raw_hid_prf_data.report_len[0] = sizeof(raw_app_keyb_report);
+    raw_hid_prf_data.report_map_info.report_map = raw_hid_app_keyb_report_map;
+    raw_hid_prf_data.report_map_info.report_map_len = sizeof(raw_hid_app_keyb_report_map);
     raw_hid_prf_data.hid_device_info.bcd_hid = 0x0111;
     raw_hid_prf_data.hid_device_info.bcountry_code = 0x00;
     raw_hid_prf_data.hid_device_info.flags = 0x02;
@@ -221,7 +259,7 @@ static void hid_mooltipass_app_init(void)
     #ifdef ENABLE_PTS
     DBG_LOG_PTS("Report Map Characteristic Value");
     DBG_LOG_PTS("\r\n");
-    for (i=0; i<sizeof(hid_app_keyb_report_map); i++)
+    for (i=0; i<sizeof(raw_hid_app_keyb_report_map); i++)
     {
         DBG_LOG_PTS(" 0x%02X ", hid_app_keyb_report_map[i]);
     }
