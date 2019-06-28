@@ -33,7 +33,8 @@ uint8_t conn_status = 0;
 /* Keyboard report value */
 uint8_t app_keyb_report[8] = {0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00};
 /* Raw Keyboard report value */
-uint8_t raw_app_keyb_report[8] = {0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00};	
+uint8_t raw_hid_data_in_buf[65];
+uint8_t raw_hid_data_out_buf[65];
 /* Keyboard key status */
 volatile uint8_t key_status = 0;
 
@@ -129,37 +130,28 @@ static uint8_t hid_app_keyb_report_map[] =
 /* raw keyboard report */
 static uint8_t raw_hid_app_keyb_report_map[] =
 {
-   0x05, 0x01,		/* Usage Page (Generic Desktop)      */
-   0x09, 0x06,		/* Usage (Keyboard)                  */
-   0xA1, 0x01,		/* Collection (Application)          */
-   0x85, 0x02,		/* REPORT ID (2) - MANDATORY         */ 
-   0x05, 0x07,		/* Usage Page (Keyboard)             */
-   0x19, 224,		/* Usage Minimum (224)               */
-   0x29, 231,		/* Usage Maximum (231)               */
-   0x15, 0x00,		/* Logical Minimum (0)               */
-   0x25, 0x01,		/* Logical Maximum (1)               */
-   0x75, 0x01,		/* Report Size (1)                   */
-   0x95, 0x08,		/* Report Count (8)                  */
-   0x81, 0x02,		/* Input (Data, Variable, Absolute)  */
-   0x81, 0x01,		/* Input (Constant)                  */
-   0x19, 0x00,		/* Usage Minimum (0)                 */
-   0x29, 102,		/* Usage Maximum (101)               */
-   0x15, 0x00,		/* Logical Minimum (0)               */
-   0x25, 102,		/* Logical Maximum (101)             */
-   0x75, 0x08,		/* Report Size (8)                   */
-   0x95, 0x06,		/* Report Count (6)                  */
-   0x81, 0x00,		/* Input (Data, Array)               */
-   0x05, 0x08,		/* Usage Page (LED)                  */
-   0x19, 0x01,		/* Usage Minimum (1)                 */
-   0x29, 0x05,		/* Usage Maximum (5)                 */
-   0x15, 0x00,		/* Logical Minimum (0)               */
-   0x25, 0x01,		/* Logical Maximum (1)               */
-   0x75, 0x01,		/* Report Size (1)                   */
-   0x95, 0x05,		/* Report Count (5)                  */
-   0x91, 0x02,		/* Output (Data, Variable, Absolute) */
-   0x95, 0x03,		/* Report Count (3)                  */
-   0x91, 0x01,		/* Output (Constant)                 */
-   0xC0				/* End Collection                    */
+    0x06, USB_RAWHID_USAGE_PAGE & 0xFF, (USB_RAWHID_USAGE_PAGE >> 8) & 0xFF,
+    0x0A, USB_RAWHID_USAGE & 0xFF, (USB_RAWHID_USAGE >> 8) & 0xFF,
+    0xA1, 0x01,                         // Collection (application)
+    0xA1, 0x02,                         // Collection (logical)
+    0x85, 0x02,                         // Report ID 2
+    0x75, 0x08,                         // report size = 8 bits
+    0x15, 0x00,                         // logical minimum = 0
+    0x26, 0xFF, 0x00,                   // logical maximum = 255
+    0x95, USB_RAWHID_TX_SIZE,           // report count
+    0x09, 0x01,                         // usage
+    0x81, 0x02,                         // Input (array)
+    0xC0,                               // end collection (logical)    
+    0xA1, 0x02,                         // Collection (logical)
+    0x85, 0x03,                         // Report ID 3
+    0x75, 0x08,                         // report size = 8 bits
+    0x15, 0x00,                         // logical minimum = 0
+    0x26, 0xFF, 0x00,                   // logical maximum = 255
+    0x95, USB_RAWHID_RX_SIZE,           // report count
+    0x09, 0x02,                         // usage
+    0x91, 0x02,                         // Output (array)
+    0xC0,                               // end collection (logical)
+    0xC0                                // end collection (application)
 };
 
 /* Callback called when host change the control point value */
@@ -206,7 +198,7 @@ static void hid_mooltipass_app_init(void)
 	hid_prf_data.hid_serv_instance = 1;
 	hid_prf_data.hid_device = HID_KEYBOARD_MODE; 
 	hid_prf_data.protocol_mode = HID_REPORT_PROTOCOL_MODE; 
-	hid_prf_data.num_of_report = HID_NUM_OF_REPORT;
+	hid_prf_data.num_of_report = 1;
 	
 	/*Update the report information based on report id, User can allocate maximum HID_MAX_REPORT_NUM number of report*/
 	hid_prf_data.report_id[0] = 1;  
@@ -240,16 +232,20 @@ static void hid_mooltipass_app_init(void)
     
     /* Now to the RAW HID endpoint */    
     raw_hid_prf_data.hid_serv_instance = 2;
-    raw_hid_prf_data.hid_device = HID_KEYBOARD_MODE;
+    raw_hid_prf_data.hid_device = HID_RAW_MODE;
+    //raw_hid_prf_data.hid_device = HID_KEYBOARD_MODE;
     raw_hid_prf_data.protocol_mode = HID_REPORT_PROTOCOL_MODE;
-    raw_hid_prf_data.num_of_report = HID_NUM_OF_REPORT;
+    raw_hid_prf_data.num_of_report = 2;
     
     /*Update the report information based on report id, User can allocate maximum HID_MAX_REPORT_NUM number of report*/
     raw_hid_prf_data.report_id[0] = 2;
-    raw_hid_prf_data.report_type[0] = INPUT_REPORT;
-    
-    raw_hid_prf_data.report_val[0] = &raw_app_keyb_report[0];
-    raw_hid_prf_data.report_len[0] = sizeof(raw_app_keyb_report);
+    raw_hid_prf_data.report_type[0] = INPUT_REPORT;    
+    raw_hid_prf_data.report_val[0] = &raw_hid_data_out_buf[0];
+    raw_hid_prf_data.report_len[0] = sizeof(raw_hid_data_out_buf);
+    raw_hid_prf_data.report_id[1] = 3;
+    raw_hid_prf_data.report_type[1] = OUTPUT_REPORT;
+    raw_hid_prf_data.report_val[1] = &raw_hid_data_in_buf[0];
+    raw_hid_prf_data.report_len[1] = sizeof(raw_hid_data_in_buf);
     raw_hid_prf_data.report_map_info.report_map = raw_hid_app_keyb_report_map;
     raw_hid_prf_data.report_map_info.report_map_len = sizeof(raw_hid_app_keyb_report_map);
     raw_hid_prf_data.hid_device_info.bcd_hid = 0x0111;

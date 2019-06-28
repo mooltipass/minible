@@ -104,12 +104,8 @@
 	#define DBG_LOG_PTS			ALL_UNUSED
 #else
     #define DBG_LOG_CONT	    comms_usb_debug_printf
-
-    #define DBG_LOG		        comms_usb_debug_printf("\r\n");\
-						        comms_usb_debug_printf
-
-    #define DBG_LOG_ADV	        comms_usb_debug_printf("\r\nBLE-ADV: ");\
-						        comms_usb_debug_printf
+    #define DBG_LOG		        comms_usb_debug_printf
+    #define DBG_LOG_ADV	        comms_usb_debug_printf
 	#define DBG_LOG_DEV			comms_usb_debug_printf
 	#define DBG_LOG_CONT_DEV	comms_usb_debug_printf
     //#define ENABLE_PTS

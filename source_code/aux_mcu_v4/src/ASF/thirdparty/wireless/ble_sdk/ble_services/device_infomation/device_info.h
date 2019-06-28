@@ -46,6 +46,7 @@
 *							        Includes	                                     							*
 ****************************************************************************************/
 
+#include "platform_defines.h"
 #include "ble_manager.h"
 
 /****************************************************************************************
@@ -56,10 +57,10 @@
 //	<s.20>Manufacture Name
 //	<i> String Descriptor describing Manufacture Name.
 //	<id> default_manufacturer_name
-#define DEFAULT_MANUFACTURER_NAME					("ATMEL")
+#define DEFAULT_MANUFACTURER_NAME					("Stephan Electronics")
 
 /** @brief User should set the length based on DEFAULT_MANUFACTURER_NAME */
-#define DIS_CHAR_MANUFACTURER_NAME_INIT_LEN			(0x05)
+#define DIS_CHAR_MANUFACTURER_NAME_INIT_LEN			(19)
 
 /** @brief User can set the maximum length for manufacture name */
 #define DIS_CHAR_MANUFACTURER_NAME_MAX_LEN			(0x14)
@@ -68,10 +69,10 @@
 //	<s.20>Model Number
 //	<i>String Descriptor describing Model Number.
 //	<id> default_model_number
-#define DEFAULT_MODEL_NUMBER						("BLE DEVICE")
+#define DEFAULT_MODEL_NUMBER						("Mini BLE")
 
 /** @brief User should set the length based on DEFAULT_MODEL_NUMBER*/
-#define DIS_CHAR_MODEL_NUMBER_INIT_LEN				(0x0a)
+#define DIS_CHAR_MODEL_NUMBER_INIT_LEN				(8)
 
 /** @brief User can set the maximum length for model number */
 #define DIS_CHAR_MODEL_NUMBER_MAX_LEN				(0x14)
@@ -80,10 +81,10 @@
 //  <s.20>Serial Number
 //  <i>String Descriptor describing Serial Number.
 //	<id> default_serial_number
-#define DEFAULT_SERIAL_NUMBER						("BTLC1000/SAMB11")
+#define DEFAULT_SERIAL_NUMBER						("SERIAL")
 
 /** @brief User should set the length based on  DEFAULT_SERIAL_NUMBER*/
-#define DIS_CHAR_SERIAL_NUMBER_INIT_LEN			0x0f
+#define DIS_CHAR_SERIAL_NUMBER_INIT_LEN			6
 
 /** @brief User can set the maximum length for serial number */
 #define DIS_CHAR_SERIAL_NUMBER_MAX_LEN			0x14
@@ -147,8 +148,8 @@
 
 /** @brief PnP ID characteristic value configure by user*/
 #define PNP_ID_VENDOR_ID_SOURCE		0x01
-#define PNP_ID_VENDOR_ID			0x2222
-#define PNP_ID_PRODUCT_ID			0x3333
+#define PNP_ID_VENDOR_ID			USB_VENDOR_ID
+#define PNP_ID_PRODUCT_ID			USB_PRODUCT_ID
 #define PNP_ID_PRODUCT_VERSION		0x0001
 
 /** @brief system ID characteristic default values */

@@ -191,7 +191,7 @@ class generic_hid_device:
 				else:
 					# Check for debug message
 					if packet["cmd"] == CMD_DBG_MESSAGE:
-						temp_string = u"Debug message received: ";
+						temp_string = u"DBG: ";
 						for i in range(0, packet["len"]/2):
 							temp_string += unichr(packet["data"][i*2] + packet["data"][i*2+1]*256)
 						print temp_string

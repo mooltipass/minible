@@ -76,6 +76,8 @@ typedef enum
 	
 	/// Enable report protocol mode
 	HID_KEYBOARD_MODE,
+    
+    HID_RAW_MODE
 }hid_dev_type;
 
 /**@brief Protocol Mode Value

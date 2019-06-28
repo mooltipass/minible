@@ -151,6 +151,7 @@ int main(void)
             
     //udc_attach();
     //logic_battery_start_charging(NIMH_12C_CHARGING);
+    //#define bla
     #ifdef bla
     while(TRUE)
     {

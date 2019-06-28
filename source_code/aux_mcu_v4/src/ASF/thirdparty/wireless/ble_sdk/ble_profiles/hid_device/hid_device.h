@@ -53,7 +53,7 @@
 //	<i> Defines numbers of Reporter available for HID.
 //	<i> Default: 1
 //	<id> hid_num_of_report
-#define HID_NUM_OF_REPORT				(1)
+#define HID_NUM_OF_REPORT				(2)
 
 /** @brief HID Service Instance : Configure by user. */
 #define HID_SERV_INST 					(1) 
@@ -130,7 +130,7 @@
 //	<s.9>	Advertising String
 //	<i>	String Descriptor describing in advertising packet.
 //	<id> hid_sensor_adv_data_name_data
-#define ADV_DATA_NAME_DATA				("ATMEL-HID")
+#define ADV_DATA_NAME_DATA				("Mooltipass_Mini_BLE")
 
 /** @brief Advertisement data UUID length */
 #define ADV_DATA_UUID_LEN				(2)

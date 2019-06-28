@@ -150,7 +150,7 @@
 #if defined HID_DEVICE
 	#ifdef HID_KEYBOARD_DEVICE
 	#ifndef BLE_DEVICE_NAME
-		#define BLE_DEVICE_NAME				"ATMEL-HID"
+		#define BLE_DEVICE_NAME				"Mooltipass_Mini_BLE"
 	#endif	/* BLE_DEVICE_NAME */
 	#define BLE_AUTHENTICATION_LEVEL	(AT_BLE_NO_SEC)
 	#define BLE_IO_CAPABALITIES			(AT_BLE_IO_CAP_NO_INPUT_NO_OUTPUT)
@@ -163,7 +163,7 @@
 */
 	#ifdef HID_MOUSE_DEVICE
 	#ifndef BLE_DEVICE_NAME
-		#define BLE_DEVICE_NAME				"ATMEL-HID"
+		#define BLE_DEVICE_NAME				"Mooltipass_Mini_BLE"
 	#endif	/* BLE_DEVICE_NAME */
 	#define BLE_PAIR_ENABLE				(false)
 	#endif
