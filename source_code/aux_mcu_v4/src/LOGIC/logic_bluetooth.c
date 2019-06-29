@@ -6,6 +6,7 @@
  */ 
 #include "platform_defines.h"
 #include "logic_bluetooth.h"
+#include "driver_timer.h"
 #include "ble_manager.h"
 #include "at_ble_api.h"
 #include "hid_device.h"
@@ -29,7 +30,7 @@ uint8_t keyb_disp[12] = {0x0B, 0x08, 0x0F, 0x0F, 0x12, 0x2C, 0x04, 0x17, 0x10, 0
 /* Keyboard character to be printed */
 uint8_t keyb_id = 0;
 /* Profile connection status */
-uint8_t conn_status = 0;
+BOOL logic_bluetooth_connected = FALSE;
 /* Keyboard report value */
 uint8_t app_keyb_report[8] = {0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00};
 /* Raw Keyboard report value */
@@ -51,9 +52,10 @@ static at_ble_status_t hid_connect_cb(void *params)
     at_ble_handle_t *handle;
     handle = (at_ble_handle_t *)params;
     keyb_id = 0;
-    conn_status = 1;
+    logic_bluetooth_connected = TRUE;
     ALL_UNUSED(&handle);
-    
+    DBG_LOG("Connected to device");
+    timer_start_timer(TIMER_BT_TESTS, 5000);
     return AT_BLE_SUCCESS;
 }
 
@@ -63,8 +65,9 @@ static at_ble_status_t hid_disconnect_cb(void *params)
     at_ble_handle_t *handle;
     handle =(at_ble_handle_t *)params;
     keyb_id = 0;
-    conn_status = 0;
+    logic_bluetooth_connected = FALSE;
     ALL_UNUSED(&handle);
+    DBG_LOG("Disconnected from device");
     return AT_BLE_SUCCESS;
 }
 
@@ -310,7 +313,7 @@ void logic_bluetooth_start_bluetooth(void)
         ble_event_task();
         
         /* Check for key status */
-        if(key_status && conn_status){
+        if(key_status && logic_bluetooth_connected){
             DBG_LOG("Key Pressed...");
             //delay_ms(KEY_PAD_DEBOUNCE_TIME);
             if((keyb_id == POSITION_ZERO) || (keyb_id == POSITION_SIX)){
@@ -342,4 +345,17 @@ void logic_bluetooth_start_bluetooth(void)
 void logic_bluetooth_routine(void)
 {
     ble_event_task();
+    
+    if (logic_bluetooth_connected != FALSE)
+    {
+        if (timer_has_timer_expired(TIMER_BT_TESTS, TRUE) == TIMER_EXPIRED)
+        {            
+            timer_start_timer(TIMER_BT_TESTS, 5000);            
+            app_keyb_report[2] = 17;
+            hid_prf_report_update(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
+            timer_delay_ms(20);
+            app_keyb_report[2] = 0x00;
+            hid_prf_report_update(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
+        }
+    }
 }
