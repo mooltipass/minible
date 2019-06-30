@@ -228,23 +228,8 @@ void main_platform_init(void)
         /* Try again */
         if (comms_aux_mcu_send_receive_ping() != RETURN_OK)
         {
-            /* Send magic reboot packet */
-            comms_aux_mcu_send_magic_reboot_packet();
-            
-            /* Set no comms (keep platform in sleep) */
-            platform_io_set_no_comms();
-            
-            /* Wait for platform to boot */
-            timer_delay_ms(100);
-            
-            /* Reset our comms */
-            dma_aux_mcu_disable_transfer();
-            
-            /* Enable our comms, clear no comms signal */
-            comms_aux_arm_rx_and_clear_no_comms();
-            
-            /* Leave some time to boot before pinging again */
-            timer_delay_ms(100);
+            /* Use hard comms reset procedure */
+            comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot();
             
             if (comms_aux_mcu_send_receive_ping() != RETURN_OK)
             {

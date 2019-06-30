@@ -102,13 +102,15 @@ void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message
     *message_pt_pt = temp_tx_message_pt;
 }
 
-/*! \fn     comms_aux_mcu_send_magic_reboot_packet(void)
-*   \brief  Send special packet to reboot aux mcu in case of lost comms
-*   \note   We don't need to send that message twice as the ping packet sent previously is padded with 0xFF...
+/*! \fn     comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void)
+*   \brief  Hard reset of aux MCU comms using an aux MCU reboot
 */
-void comms_aux_mcu_send_magic_reboot_packet(void)
+void comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void)
 {
     aux_mcu_message_t* temp_tx_message_pt;
+    
+    /* Set no comms (keep platform in sleep after its reboot) */
+    platform_io_set_no_comms();
     
     /* Wait for possible ongoing message to be sent */
     comms_aux_mcu_wait_for_message_sent();
@@ -116,9 +118,21 @@ void comms_aux_mcu_send_magic_reboot_packet(void)
     /* Get pointer to our message to be sent buffer */
     temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
     
-    /* Fill message with magic 0xFF */
+    /* Fill message with magic 0xFF, send it twice */
     memset((void*)temp_tx_message_pt, 0xFF, sizeof(*temp_tx_message_pt));
-    comms_aux_mcu_send_message(TRUE);    
+    comms_aux_mcu_send_message(TRUE);comms_aux_mcu_send_message(TRUE);
+    
+    /* Wait for platform to boot */
+    timer_delay_ms(100);
+    
+    /* Reset our comms */
+    dma_aux_mcu_disable_transfer();
+    
+    /* Enable our comms, clear no comms signal */
+    comms_aux_arm_rx_and_clear_no_comms();
+    
+    /* Leave some time to boot before chatting again */
+    timer_delay_ms(100);
 }
 
 /*! \fn     comms_aux_mcu_send_receive_ping(void)
@@ -126,23 +140,13 @@ void comms_aux_mcu_send_magic_reboot_packet(void)
 *   \return Success or not
 */
 RET_TYPE comms_aux_mcu_send_receive_ping(void)
-{
-    /* Do not use the comms_aux_mcu_get_empty_packet_ready_to_be_sent method as we use 0xAA padding in case we want to reset the comms link later on */    
+{ 
     aux_mcu_message_t* temp_rx_message_pt;
     aux_mcu_message_t* temp_tx_message_pt;
-    RET_TYPE return_val = RETURN_OK;    
+    RET_TYPE return_val;    
     
-    /* Wait for possible ongoing message to be sent */
-    comms_aux_mcu_wait_for_message_sent();
-    
-    /* Get pointer to our message to be sent buffer */
-    temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
-    
-    /* Fill message with magic 0xFF */
-    memset((void*)temp_tx_message_pt, 0xFF, sizeof(*temp_tx_message_pt));
-    
-    /* Populate the fields */
-    temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;
+    /* Prepare ping message and send it */
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->main_mcu_command_message.command);
     temp_tx_message_pt->main_mcu_command_message.command = MAIN_MCU_COMMAND_PING;
     comms_aux_mcu_send_message(TRUE);
