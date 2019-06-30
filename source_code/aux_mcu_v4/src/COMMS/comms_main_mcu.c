@@ -10,6 +10,7 @@
 #include "logic_bluetooth.h"
 #include "comms_hid_msgs.h"
 #include "comms_main_mcu.h"
+#include "comms_raw_hid.h"
 #include "logic_battery.h"
 #include "driver_timer.h"
 #include "ble_manager.h"
@@ -17,7 +18,6 @@
 #include "platform_io.h"
 #include "at_ble_api.h"
 #include "hid_device.h"
-#include "comms_usb.h"
 #include "ble_utils.h"
 #include "defines.h"
 #include "debug.h"
@@ -343,7 +343,7 @@ void comms_main_mcu_routine(void)
         
         if (comms_main_mcu_usb_msg_answered_using_first_bytes == FALSE)
         {
-            comms_usb_send_hid_message((aux_mcu_message_t*)&dma_main_mcu_usb_rcv_message);
+            comms_raw_hid_send_hid_message(USB_INTERFACE, (aux_mcu_message_t*)&dma_main_mcu_usb_rcv_message);
         }
     }
     if (dma_main_mcu_ble_msg_received != FALSE)
@@ -408,7 +408,7 @@ void comms_main_mcu_routine(void)
     {        
         if (comms_main_mcu_temp_message.message_type == AUX_MCU_MSG_TYPE_USB)
         {
-            comms_usb_send_hid_message((aux_mcu_message_t*)&comms_main_mcu_temp_message);
+            comms_raw_hid_send_hid_message(USB_INTERFACE, (aux_mcu_message_t*)&comms_main_mcu_temp_message);
         }
         else if (comms_main_mcu_temp_message.message_type == AUX_MCU_MSG_TYPE_BLE)
         {

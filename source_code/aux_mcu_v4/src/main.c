@@ -4,10 +4,10 @@
 #include "comms_main_mcu.h"
 #include "logic_battery.h"
 #include "driver_clocks.h"
+#include "comms_raw_hid.h"
 #include "driver_timer.h"
 #include "platform_io.h"
 #include "ble_manager.h"
-#include "comms_usb.h"
 #include "defines.h"
 #include "logic.h"
 #include "fuses.h"
@@ -149,7 +149,7 @@ int main(void)
     /* Initialize our platform */
     main_platform_init();
             
-    udc_attach();
+    //udc_attach();
     //logic_battery_start_charging(NIMH_12C_CHARGING);
     #define bla
     #ifdef bla

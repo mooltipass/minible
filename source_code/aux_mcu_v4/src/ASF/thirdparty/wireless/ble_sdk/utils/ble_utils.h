@@ -38,7 +38,7 @@
 #define __BLE_UTILS_H__
 
 #include <asf.h>
-#include "comms_usb.h"
+#include "comms_raw_hid.h"
 
 /* Supported BLE Modules */
 #define BTLC1000_MR		0x00

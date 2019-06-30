@@ -870,10 +870,10 @@
     <Compile Include="src\COMMS\comms_main_mcu.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\COMMS\comms_usb.c">
+    <Compile Include="src\COMMS\comms_raw_hid.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\COMMS\comms_usb.h">
+    <Compile Include="src\COMMS\comms_raw_hid.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\config\user_board.h">

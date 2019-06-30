@@ -33,7 +33,7 @@
 #include "udc.h"
 #include "usb.h"
 #include "usb_utils.h"
-#include "comms_usb.h"
+#include "comms_raw_hid.h"
 #include "usb_descriptors.h"
 #include "platform_defines.h"
 
@@ -381,7 +381,7 @@ void USB_Handler(void)
       if (i == USB_RAWHID_TX_ENDPOINT)
       {
           /* Our comms code will rearm usb receive */
-          comms_usb_raw_hid_recv_callback(udc_mem[i].out.PCKSIZE.bit.BYTE_COUNT);
+          comms_raw_hid_recv_callback(USB_INTERFACE, udc_mem[i].out.PCKSIZE.bit.BYTE_COUNT);
       }
       else
       {
@@ -397,7 +397,7 @@ void USB_Handler(void)
 
       if (i == USB_RAWHID_RX_ENDPOINT)
       {
-          comms_usb_raw_hid_send_callback();
+          comms_raw_hid_send_callback(USB_INTERFACE);
       }
       //udc_send_callback(i);
     }

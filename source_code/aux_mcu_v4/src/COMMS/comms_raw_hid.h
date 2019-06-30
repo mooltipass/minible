@@ -30,14 +30,14 @@ typedef struct
 } hid_packet_t;
 
 /* Prototypes */
-void comms_usb_send_raw_hid_packet(hid_packet_t* packet, BOOL wait_send, uint16_t payload_size);
-void comms_usb_send_hid_message(aux_mcu_message_t* message);
-void comms_usb_raw_hid_recv_callback(uint16_t recv_bytes);
+void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* packet, BOOL wait_send, uint16_t payload_size);
+void comms_raw_hid_send_hid_message(hid_interface_te hid_interface, aux_mcu_message_t* message);
+void comms_raw_hid_recv_callback(hid_interface_te hid_interface, uint16_t recv_bytes);
+void comms_raw_hid_connection_set_callback(hid_interface_te hid_interface);
+void comms_raw_hid_arm_packet_receive(hid_interface_te hid_interface);
+void comms_raw_hid_send_callback(hid_interface_te hid_interface);
 void comms_usb_debug_printf(const char *fmt, ...);
-void comms_usb_configuration_callback(int config);
-void comms_usb_raw_hid_send_callback(void);
 void comms_usb_communication_routine(void);
-void comms_usb_arm_packet_receive(void);
 void comms_usb_clear_enumerated(void);
 BOOL comms_usb_is_enumerated(void);
 

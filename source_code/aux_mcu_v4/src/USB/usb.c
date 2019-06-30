@@ -32,7 +32,7 @@
 #include "udc.h"
 #include "usb.h"
 #include "usb_utils.h"
-#include "comms_usb.h"
+#include "comms_raw_hid.h"
 #include "usb_descriptors.h"
 #include "platform_defines.h"
 
@@ -176,7 +176,7 @@ void usb_handle_standard_request(usb_request_t *request)
           desc = (usb_descriptor_header_t *)((uint8_t *)desc + desc->bLength);
         }
 
-        comms_usb_configuration_callback(usb_config);
+        comms_raw_hid_connection_set_callback(USB_INTERFACE);
       }
     } break;
 
