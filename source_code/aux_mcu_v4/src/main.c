@@ -149,7 +149,7 @@ int main(void)
     /* Initialize our platform */
     main_platform_init();
             
-    //udc_attach();
+    udc_attach();
     //logic_battery_start_charging(NIMH_12C_CHARGING);
     #define bla
     #ifdef bla

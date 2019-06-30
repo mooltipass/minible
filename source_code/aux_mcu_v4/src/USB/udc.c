@@ -377,11 +377,15 @@ void USB_Handler(void)
     if (flags & USB_DEVICE_EPINTFLAG_TRCPT0)
     {
       USB->DEVICE.DeviceEndpoint[i].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRCPT0;
-      USB->DEVICE.DeviceEndpoint[i].EPSTATUSSET.bit.BK0RDY = 1;
 
       if (i == USB_RAWHID_TX_ENDPOINT)
       {
+          /* Our comms code will rearm usb receive */
           comms_usb_raw_hid_recv_callback(udc_mem[i].out.PCKSIZE.bit.BYTE_COUNT);
+      }
+      else
+      {
+          USB->DEVICE.DeviceEndpoint[i].EPSTATUSSET.bit.BK0RDY = 1;          
       }
       //udc_recv_callback(i, udc_mem[i].out.PCKSIZE.bit.BYTE_COUNT);
     }
