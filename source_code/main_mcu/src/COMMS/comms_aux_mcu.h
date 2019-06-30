@@ -114,6 +114,7 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
 aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void);
 void comms_aux_mcu_send_simple_command_message(uint16_t command);
 void comms_aux_mcu_send_message(BOOL wait_for_send);
+void comms_aux_mcu_send_magic_reboot_packet(void);
 RET_TYPE comms_aux_mcu_send_receive_ping(void);
 void comms_aux_mcu_wait_for_message_sent(void);
 void comms_aux_arm_rx_and_clear_no_comms(void);

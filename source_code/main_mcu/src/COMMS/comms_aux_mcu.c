@@ -102,6 +102,25 @@ void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message
     *message_pt_pt = temp_tx_message_pt;
 }
 
+/*! \fn     comms_aux_mcu_send_magic_reboot_packet(void)
+*   \brief  Send special packet to reboot aux mcu in case of lost comms
+*   \note   We don't need to send that message twice as the ping packet sent previously is padded with 0xFF...
+*/
+void comms_aux_mcu_send_magic_reboot_packet(void)
+{
+    aux_mcu_message_t* temp_tx_message_pt;
+    
+    /* Wait for possible ongoing message to be sent */
+    comms_aux_mcu_wait_for_message_sent();
+    
+    /* Get pointer to our message to be sent buffer */
+    temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
+    
+    /* Fill message with magic 0xFF */
+    memset((void*)temp_tx_message_pt, 0xFF, sizeof(*temp_tx_message_pt));
+    comms_aux_mcu_send_message(TRUE);    
+}
+
 /*! \fn     comms_aux_mcu_send_receive_ping(void)
 *   \brief  Try to ping the aux MCU
 *   \return Success or not
@@ -119,8 +138,8 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
     /* Get pointer to our message to be sent buffer */
     temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
     
-    /* Fill message with magic 0xAA */
-    memset((void*)temp_tx_message_pt, 0xAA, sizeof(*temp_tx_message_pt));
+    /* Fill message with magic 0xFF */
+    memset((void*)temp_tx_message_pt, 0xFF, sizeof(*temp_tx_message_pt));
     
     /* Populate the fields */
     temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;

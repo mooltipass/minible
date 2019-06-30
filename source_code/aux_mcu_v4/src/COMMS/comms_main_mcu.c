@@ -85,6 +85,25 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
     comms_usb_debug_printf("Received main MCU other message: %i, %i", message->message_type, message->payload_as_uint16[0]);
     #endif
     
+    /* Special reboot packet: check for only 0xff */
+    BOOL special_reboot_packet = TRUE;
+    uint8_t* rcv_message_recast = (uint8_t*)message;
+    for (uint16_t i = 0; i < sizeof(aux_mcu_message_t); i++)
+    {
+        if (rcv_message_recast[i] != 0xFF)
+        {
+            special_reboot_packet = FALSE;
+            break;
+        }
+    }
+    
+    /* Reboot if needed */
+    if (special_reboot_packet != FALSE)
+    {
+        cpu_irq_disable();
+        NVIC_SystemReset();        
+    }
+    
     if (message->message_type == AUX_MCU_MSG_TYPE_PLAT_DETAILS)
     {
         /* Status request */
