@@ -161,7 +161,7 @@ void platform_io_enable_step_down(uint16_t voltage)
 */
 void platform_io_disable_step_down(void)
 {
-    PORT->Group[DAC_GROUP].PINCFG[DAC_PINID].bit.PMUXEN = 1;                                        // Disable DAC pin mux
+    PORT->Group[DAC_GROUP].PINCFG[DAC_PINID].bit.PMUXEN = 0;                                        // Disable DAC pin mux
     PORT->Group[CHARGE_EN_GROUP].OUTCLR.reg = CHARGE_EN_MASK;                                       // Disable step-down
     while ((DAC->STATUS.reg & DAC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
     DAC->CTRLA.reg = DAC_CTRLA_SWRST;                                                               // And reset DAC
