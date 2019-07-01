@@ -135,9 +135,14 @@ void platform_io_enable_step_down(uint16_t voltage)
     PORT->Group[DAC_GROUP].PINCFG[DAC_PINID].bit.PMUXEN = 1;
     PORT->Group[DAC_GROUP].PMUX[DAC_PINID/2].bit.DAC_PMUXREGID = DAC_PMUX_ID;
     
+    /* Setup DAC clock */
+    if (PM->APBCMASK.bit.DAC_ == 0)
+    {
+        PM->APBCMASK.bit.DAC_ = 1;                                                                  // Enable DAC bus clock
+        clocks_map_gclk_to_peripheral_clock(GCLK_ID_32K, GCLK_CLKCTRL_ID_DAC_Val);                  // Map 1kHz to DAC unit
+    }
+    
     /* Setup DAC */
-    PM->APBCMASK.bit.DAC_ = 1;                                                                      // Enable DAC bus clock
-    clocks_map_gclk_to_peripheral_clock(GCLK_ID_32K, GCLK_CLKCTRL_ID_DAC_Val);                      // Map 1kHz to DAC unit
     DAC_CTRLB_Type temp_dac_ctrlb_reg;                                                              // Temp register
     temp_dac_ctrlb_reg.reg = 0;                                                                     // Set to 0
     temp_dac_ctrlb_reg.bit.REFSEL = DAC_CTRLB_REFSEL_INT1V_Val;                                     // 1V reference
@@ -156,9 +161,12 @@ void platform_io_enable_step_down(uint16_t voltage)
 */
 void platform_io_disable_step_down(void)
 {
+    PORT->Group[DAC_GROUP].PINCFG[DAC_PINID].bit.PMUXEN = 1;                                        // Disable DAC pin mux
     PORT->Group[CHARGE_EN_GROUP].OUTCLR.reg = CHARGE_EN_MASK;                                       // Disable step-down
     while ((DAC->STATUS.reg & DAC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
-    DAC->CTRLA.reg = DAC_CTRLA_SWRST;                                                               // And reset DAC    
+    DAC->CTRLA.reg = DAC_CTRLA_SWRST;                                                               // And reset DAC
+    while ((DAC->CTRLA.reg & DAC_CTRLA_SWRST) != 0);                                                // Wait for sync
+    while ((DAC->STATUS.reg & DAC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync  
 }
 
 /*! \fn     platform_io_update_step_down_voltage(uint16_t voltage)

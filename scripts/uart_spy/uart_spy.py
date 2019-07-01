@@ -23,6 +23,14 @@ MAIN_MCU_COMMAND_DISABLE_BLE	= 0x0007
 MAIN_MCU_COMMAND_DETACH_USB		= 0x0008
 MAIN_MCU_COMMAND_FUNC_TEST		= 0x0009
 
+AUX_MCU_EVENT_BLE_ENABLED       = 0x0001
+AUX_MCU_EVENT_BLE_DISABLED      = 0x0002
+AUX_MCU_EVENT_TX_SWEEP_DONE     = 0x0003
+AUX_MCU_EVENT_FUNC_TEST_DONE    = 0x0004
+AUX_MCU_EVENT_USB_ENUMERATED    = 0x0005
+AUX_MCU_EVENT_CHARGE_DONE       = 0x0006
+AUX_MCU_EVENT_CHARGE_FAIL       = 0x0007
+
 # UARTs
 uart_main_mcu = "COM7"
 uart_aux_mcu = "COM8"
@@ -88,53 +96,171 @@ while True:
 		[frame, mcu] = queue.get(True, 1)
 		
 		# Decode frame
-		message_type = struct.unpack("H", frame[0:2])[0]
+		[message_type, total_payload, command, command_payload_length] = struct.unpack("HHHH", frame[0:8])
 		
 		# Debug depending on message
-		if message_type == AUX_MCU_MSG_TYPE_NIMH_CHARGE:
+		if message_type == AUX_MCU_MSG_TYPE_USB or message_type == AUX_MCU_MSG_TYPE_BLE:
+			if message_type == AUX_MCU_MSG_TYPE_USB:
+				interface_name = "USB"
+			else:
+				interface_name = "BLE"
+				
+			if mcu == "AUX":				
+				usb_lut = [	"0x0000: Not valid",
+							"0x0001: ping",
+							"0x0002: invalid - please retry",
+							"0x0003: platform info request",
+							"0x0004: set date",
+							"0x0005: cancel request",
+							"0x0006: store credential",
+							"0x0007: get credential",
+							"0x0008: get 32b rng",
+							"0x0009: start mmm",
+							"0x000A: get user change nb",
+							"0x000B: get card cpz",
+							"0x000C: get device settings",
+							"0x000D: set device settings",
+							"0x000E: reset unknown card",
+							"0x000F: get nb free users",
+							"0x0010: lock device",
+							"0x0011: get device status",
+							"0x0012: check password",
+							"0x0013: get user settings",
+							"0x0014: get category strings",
+							"0x0015: set category strings"]
+				usb_lut_mmm = [
+							"0x0100: get start parents",
+							"0x0101: end mmm",
+							"0x0102: read node",
+							"0x0103: set cred change nb",
+							"0x0104: set data change nb",
+							"0x0105: set cred start parent",
+							"0x0106: set data start parent",
+							"0x0107: set start parents",
+							"0x0108: get free nodes",
+							"0x0109: get ctr value",
+							"0x010A: set ctr value",
+							"0x010B: set favorite",
+							"0x010C: get favorite",
+							"0x010D: write node",
+							"0x010E: get cpz ctr",
+							"0x010F: get favorites"]
+				
+				if command >= 0x0100:
+					command_msg = usb_lut_mmm[command-0x100]
+				else:
+					command_msg = usb_lut[command]
+					
+				print("Aux->Main: " + interface_name + " Message - " + command_msg)
+			else:
+				usb_lut = [	"0x0000: Not valid",
+							"0x0001: pong",
+							"0x0002: please retry",
+							"0x0003: platform info",
+							"0x0004: set date answer",
+							"0x0005: invalid - cancel request",
+							"0x0006: store credential answer",
+							"0x0007: get credential answer",
+							"0x0008: 32b rng",
+							"0x0009: start mmm answer",
+							"0x000A: get user change nb answer",
+							"0x000B: get card cpz answer",
+							"0x000C: get device settings answer",
+							"0x000D: set device settings",
+							"0x000E: reset unknown card answer",
+							"0x000F: get nb free users answer",
+							"0x0010: lock device answer",
+							"0x0011: get device status answer",
+							"0x0012: check password answer",
+							"0x0013: get user settings answer",
+							"0x0014: get category strings answer",
+							"0x0015: set category strings"]
+				usb_lut_mmm = [
+							"0x0100: get start parents answer",
+							"0x0101: end mmm answer",
+							"0x0102: read node answer",
+							"0x0103: set cred change nb answer",
+							"0x0104: set data change nb answer",
+							"0x0105: set cred start parent answer",
+							"0x0106: set data start parent answer",
+							"0x0107: set start parents answer",
+							"0x0108: get free nodes answer",
+							"0x0109: get ctr value answer",
+							"0x010A: set ctr value answer",
+							"0x010B: set favorite answer",
+							"0x010C: get favorite answer",
+							"0x010D: write node answer",
+							"0x010E: get cpz ctr answer",
+							"0x010F: get favorites answer"]
+				
+				if command >= 0x0100:
+					command_msg = usb_lut_mmm[command-0x100]
+				else:
+					command_msg = usb_lut[command]
+					
+				print("Main->Aux: " + interface_name + " Message - " + command_msg)
+		elif message_type == AUX_MCU_MSG_TYPE_NIMH_CHARGE:
 			if mcu == "AUX":
 				charge_status_lut = ["idle", "current charge ramp start", "current charge ramp", "ramping start error", "current maintaining", "current ramp error", "current maintaining error", "charging done"]
 				[type, payload, charge_status, battery_voltage, charge_current] = struct.unpack("HHHHH", frame[0:10])
 				battery_voltage = battery_voltage*103/256
 				
-				print("Aux MCU: charging report")
+				print("Aux->Main: charging report")
 				print("Current status:", charge_status_lut[charge_status])
 				print("Battery voltage:", str(battery_voltage)+"mV")
 				print("Charging current:", str(charge_current*0.4)+"mA")
 			else:
-				print("Main MCU: charging report request")
-		elif message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD:
-			[type, payload, command] = struct.unpack("HHH", frame[0:6])
-			
-			# Switch on command
-			if command == MAIN_MCU_COMMAND_PING:
-				if mcu == "AUX":
-					print("Aux MCU: PONG")
-				else:
-					print("Main MCU: PING")
-			else:
-				print(mcu, "message type", hex(message_type))
-				print(' '.join(str.format('{:02X}', x) for x in frame))
+				print("Main->Aux: charging report request")
 		elif message_type == AUX_MCU_MSG_TYPE_PLAT_DETAILS:
 			if mcu == "AUX":
 				[type, payload, fw_major, fw_minor, did, uid1, uid2, uid3, uid4, blusdk_maj, blusdk_min, blusdk_fw_maj, blusdk_fw_min, blusdk_fw_bld, rf_ver, atbtlc_chip_id, addr1, addr2, addr3, addr4, addr5, addr6 ] = struct.unpack("HHHHIIIIIHHHHHIIBBBBBB", frame[0:54])
 			
-				print("Aux MCU: platform details")
-				print("Aux FW:", str(fw_major) + "." + str(fw_minor))
-				print("DID:", "0x" + ''.join(str.format('{:08X}', did)))
-				print("UID:", "0x" + ''.join(str.format('{:08X}', x) for x in [uid1, uid2, uid3, uid4]))
-				print("BluSDK lib:", str(blusdk_maj) + "." + str(blusdk_min))
-				print("BluSDK fw:", str(blusdk_fw_maj) + "." + str(blusdk_fw_min), "build", ''.join(str.format('{:04X}', blusdk_fw_bld)))
-				print("RF version:", "0x" + ''.join(str.format('{:08X}', rf_ver)))
-				print("ATBTLC1000 chip id:", "0x" + ''.join(str.format('{:08X}', atbtlc_chip_id)))
-				print("BLE address:", ''.join(str.format('{:02X}', x) for x in [addr1, addr2, addr3, addr4, addr5, addr6]))
+				print("Aux->Main: platform details")
+				print("           Aux FW:", str(fw_major) + "." + str(fw_minor))
+				print("           DID:", "0x" + ''.join(str.format('{:08X}', did)))
+				print("           UID:", "0x" + ''.join(str.format('{:08X}', x) for x in [uid1, uid2, uid3, uid4]))
+				print("           BluSDK lib:", str(blusdk_maj) + "." + str(blusdk_min))
+				print("           BluSDK fw:", str(blusdk_fw_maj) + "." + str(blusdk_fw_min), "build", ''.join(str.format('{:04X}', blusdk_fw_bld)))
+				print("           RF version:", "0x" + ''.join(str.format('{:08X}', rf_ver)))
+				print("           ATBTLC1000 chip id:", "0x" + ''.join(str.format('{:08X}', atbtlc_chip_id)))
+				print("           BLE address:", ''.join(str.format('{:02X}', x) for x in [addr1, addr2, addr3, addr4, addr5, addr6]))
 			else:
-				print("Main MCU: aux MCU details request")
+				print("Main->Aux: aux MCU details request")
+		elif message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD:
+			if mcu == "AUX":
+				if command == MAIN_MCU_COMMAND_PING:
+					print("Aux->Main: pong to Main")
+				else:
+					print("Aux->Main: invalid command!")
+			else:
+				command_lut = [	"0x0000: invalid",
+								"0x0001: sleep",
+								"0x0002: attach usb",
+								"0x0003: ping to Aux",
+								"0x0004: enable BLE",
+								"0x0005: charge battery",
+								"0x0006: no comms signal unavailable",
+								"0x0007: disable BLE",
+								"0x0008: detach USB",
+								"0x0009: functional test"]
+				print("Main->Aux: command " + command_lut[command])
+		elif message_type == AUX_MCU_MSG_TYPE_AUX_MCU_EVENT:
+			if mcu == "AUX":
+				event_lut = [	"0x0000: invalid",
+								"0x0001: ble enabled",
+								"0x0002: ble disabled",
+								"0x0003: tx sweep done",
+								"0x0004: func test done",
+								"0x0005: usb enumerated",
+								"0x0006: charge done",
+								"0x0007: charge failed"]
+				print("Aux->Main: event " + event_lut[command])
+			else:
+				print("Main->Aux: invalid packet (event)")
 		else:
 			print(mcu, "message type", hex(message_type))
 			print(' '.join(str.format('{:02X}', x) for x in frame))
 		
-		print("")
 	except Queue.Empty:
 		pass
 	except KeyboardInterrupt:

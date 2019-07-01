@@ -14,6 +14,7 @@
 /* BLE enabled bool */
 BOOL logic_aux_mcu_ble_enabled = FALSE;
 /* USB enumerated bool */
+BOOL logic_aux_mcu_usb_just_enumerated = FALSE;
 BOOL logic_aux_mcu_usb_enumerated = FALSE;
 
 
@@ -32,6 +33,7 @@ void logic_aux_mcu_set_ble_enabled_bool(BOOL ble_enabled)
 */
 void logic_aux_mcu_set_usb_enumerated_bool(BOOL usb_enumerated)
 {
+    logic_aux_mcu_usb_just_enumerated = usb_enumerated;
     logic_aux_mcu_usb_enumerated = usb_enumerated;
 }
 
@@ -42,6 +44,17 @@ void logic_aux_mcu_set_usb_enumerated_bool(BOOL usb_enumerated)
 BOOL logic_aux_mcu_is_ble_enabled(void)
 {
     return logic_aux_mcu_ble_enabled;
+}
+
+/*! \fn     logic_aux_mcu_is_usb_just_enumerated(void)
+*   \brief  Check if USB was just enumerated and clear the bool
+*   \return USB enumerated boolean
+*/
+BOOL logic_aux_mcu_is_usb_just_enumerated(void)
+{
+    BOOL return_val = logic_aux_mcu_usb_just_enumerated;
+    logic_aux_mcu_usb_just_enumerated = FALSE;
+    return return_val;
 }
 
 /*! \fn     logic_aux_mcu_is_usb_enumerated(void)

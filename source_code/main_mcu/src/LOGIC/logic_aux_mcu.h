@@ -15,6 +15,7 @@ void logic_aux_mcu_set_ble_enabled_bool(BOOL ble_enabled);
 void logic_aux_mcu_disable_ble(BOOL wait_for_disabled);
 void logic_aux_mcu_enable_ble(BOOL wait_for_enabled);
 RET_TYPE logic_aux_mcu_flash_firmware_update(void);
+BOOL logic_aux_mcu_is_usb_just_enumerated(void);
 uint32_t logic_aux_mcu_get_ble_chip_id(void);
 BOOL logic_aux_mcu_is_usb_enumerated(void);
 BOOL logic_aux_mcu_is_ble_enabled(void);

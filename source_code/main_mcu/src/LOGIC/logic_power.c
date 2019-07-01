@@ -167,7 +167,7 @@ power_action_te logic_power_routine(void)
     }
     
     /* Battery charging */
-    if ((logic_power_get_power_source() == USB_POWERED) && (logic_aux_mcu_is_usb_enumerated() != FALSE) && (logic_power_battery_charging == FALSE) && (logic_power_nb_ms_spent_since_last_full_charge > NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
+    if ((logic_power_get_power_source() == USB_POWERED) && (logic_aux_mcu_is_usb_just_enumerated() != FALSE) && (logic_power_battery_charging == FALSE) && (logic_power_nb_ms_spent_since_last_full_charge > NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
         logic_power_battery_charging = TRUE;
