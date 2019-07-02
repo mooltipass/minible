@@ -23,13 +23,13 @@ MAIN_MCU_COMMAND_DISABLE_BLE	= 0x0007
 MAIN_MCU_COMMAND_DETACH_USB		= 0x0008
 MAIN_MCU_COMMAND_FUNC_TEST		= 0x0009
 
-AUX_MCU_EVENT_BLE_ENABLED       = 0x0001
-AUX_MCU_EVENT_BLE_DISABLED      = 0x0002
-AUX_MCU_EVENT_TX_SWEEP_DONE     = 0x0003
-AUX_MCU_EVENT_FUNC_TEST_DONE    = 0x0004
-AUX_MCU_EVENT_USB_ENUMERATED    = 0x0005
-AUX_MCU_EVENT_CHARGE_DONE       = 0x0006
-AUX_MCU_EVENT_CHARGE_FAIL       = 0x0007
+AUX_MCU_EVENT_BLE_ENABLED		= 0x0001
+AUX_MCU_EVENT_BLE_DISABLED		= 0x0002
+AUX_MCU_EVENT_TX_SWEEP_DONE		= 0x0003
+AUX_MCU_EVENT_FUNC_TEST_DONE	= 0x0004
+AUX_MCU_EVENT_USB_ENUMERATED	= 0x0005
+AUX_MCU_EVENT_CHARGE_DONE		= 0x0006
+AUX_MCU_EVENT_CHARGE_FAIL		= 0x0007
 
 # UARTs
 uart_main_mcu = "COM7"
@@ -51,16 +51,58 @@ def reverse_mask(x):
 	x = ((x & 0x33) << 2) | ((x & 0xCC) >> 2)
 	x = ((x & 0x0F) << 4) | ((x & 0xF0) >> 4)
 	return x
+	
+def is_frame_valid(frame):
+	# Extract values
+	[message_type, total_payload, command, command_payload_length] = struct.unpack("HHHH", frame_bis[0:8])
+	
+	if message_type == AUX_MCU_MSG_TYPE_USB:
+		if command >= 1 and <= 0x0015:
+			return True
+		elif command >= 0x0100 and <= 0x010F:
+			return True
+		else:
+			return False
+	elif message_type == AUX_MCU_MSG_TYPE_BLE:
+		if command >= 1 and <= 0x0015:
+			return True
+		elif command >= 0x0100 and <= 0x010F:
+			return True
+		else:
+			return False
+	elif message_type == AUX_MCU_MSG_TYPE_BOOTLOADER:
+		if command >= 0x0000 and <= 0x0002:
+			return True
+		else:
+			return False
+	elif message_type == AUX_MCU_MSG_TYPE_PLAT_DETAILS:
+		return True
+	elif message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD:
+		if command >= 0x0001 and <= 0x0009:
+			return True
+		else:
+			return False
+	elif message_type == AUX_MCU_MSG_TYPE_AUX_MCU_EVENT:
+		if command >= 0x0001 and <= 0x0007:
+			return True
+		else:
+			return False
+	elif message_type == AUX_MCU_MSG_TYPE_NIMH_CHARGE:
+		return True
+	else:
+		return False
 
 def serial_read(s, mcu):
-	in_sync = False
+	resync_was_done = True
 	nb_bytes = 0
 	frame = []
 	while True:
+		# Read the right number of bytes to get a full frame
 		bytes = s.read(link_frame_bytes-nb_bytes)
 		frame.extend(bytes)
 		nb_bytes = len(frame)
 		
+		# Do we have a full frame?
 		if link_frame_bytes == nb_bytes:
 			# Convert frame if needed
 			if sys.version_info[0] < 3:
@@ -68,24 +110,22 @@ def serial_read(s, mcu):
 			else:
 				frame_bis = frame
 				
-			# To be changed later: change bit order
+			# To possibly be changed later: change bit order
 			for i in range(0, link_frame_bytes):
 				frame_bis[i] = reverse_mask(frame_bis[i])
-				
-			if in_sync == False:
-				message_type = frame_bis[0] + frame_bis[1]*256	
-				# First message to be read
-				if message_type < 100:
-					in_sync = True
-				else:
-					frame = frame[1:]
-					nb_bytes -= 1
 			
-			if in_sync == True:									   
+			# Check for valid frame
+			if is_frame_valid(frame_bis):
+				resync_was_done = True
+				# remove one byte
+				frame = frame[1:]
+				nb_bytes -= 1
+			else:							   
 				# Add to the queue
-				queue.put([frame_bis, mcu])
+				queue.put([frame_bis, mcu, resync_was_done])
 				nb_bytes = 0
-				frame = []
+				frame = []		
+				resync_was_done = False
 
 # Reading threads
 thread1 = threading.Thread(target=serial_read, args=(ser_main,"MAIN",),).start()
@@ -93,10 +133,14 @@ thread2 = threading.Thread(target=serial_read, args=(ser_aux,"AUX"),).start()
 
 while True:
 	try:
-		[frame, mcu] = queue.get(True, 1)
+		[frame, mcu, resync_done] = queue.get(True, 1)
 		
 		# Decode frame
 		[message_type, total_payload, command, command_payload_length] = struct.unpack("HHHH", frame[0:8])
+		
+		# Resync done?
+		if resync_done:
+			print("<<<<<<< RESYNC DONE >>>>>>>")
 		
 		# Debug depending on message
 		if message_type == AUX_MCU_MSG_TYPE_USB or message_type == AUX_MCU_MSG_TYPE_BLE:
@@ -216,14 +260,14 @@ while True:
 				[type, payload, fw_major, fw_minor, did, uid1, uid2, uid3, uid4, blusdk_maj, blusdk_min, blusdk_fw_maj, blusdk_fw_min, blusdk_fw_bld, rf_ver, atbtlc_chip_id, addr1, addr2, addr3, addr4, addr5, addr6 ] = struct.unpack("HHHHIIIIIHHHHHIIBBBBBB", frame[0:54])
 			
 				print("Aux->Main: platform details")
-				print("           Aux FW:", str(fw_major) + "." + str(fw_minor))
-				print("           DID:", "0x" + ''.join(str.format('{:08X}', did)))
-				print("           UID:", "0x" + ''.join(str.format('{:08X}', x) for x in [uid1, uid2, uid3, uid4]))
-				print("           BluSDK lib:", str(blusdk_maj) + "." + str(blusdk_min))
-				print("           BluSDK fw:", str(blusdk_fw_maj) + "." + str(blusdk_fw_min), "build", ''.join(str.format('{:04X}', blusdk_fw_bld)))
-				print("           RF version:", "0x" + ''.join(str.format('{:08X}', rf_ver)))
-				print("           ATBTLC1000 chip id:", "0x" + ''.join(str.format('{:08X}', atbtlc_chip_id)))
-				print("           BLE address:", ''.join(str.format('{:02X}', x) for x in [addr1, addr2, addr3, addr4, addr5, addr6]))
+				print("			  Aux FW:", str(fw_major) + "." + str(fw_minor))
+				print("			  DID:", "0x" + ''.join(str.format('{:08X}', did)))
+				print("			  UID:", "0x" + ''.join(str.format('{:08X}', x) for x in [uid1, uid2, uid3, uid4]))
+				print("			  BluSDK lib:", str(blusdk_maj) + "." + str(blusdk_min))
+				print("			  BluSDK fw:", str(blusdk_fw_maj) + "." + str(blusdk_fw_min), "build", ''.join(str.format('{:04X}', blusdk_fw_bld)))
+				print("			  RF version:", "0x" + ''.join(str.format('{:08X}', rf_ver)))
+				print("			  ATBTLC1000 chip id:", "0x" + ''.join(str.format('{:08X}', atbtlc_chip_id)))
+				print("			  BLE address:", ''.join(str.format('{:02X}', x) for x in [addr1, addr2, addr3, addr4, addr5, addr6]))
 			else:
 				print("Main->Aux: aux MCU details request")
 		elif message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD:
@@ -265,29 +309,3 @@ while True:
 		pass
 	except KeyboardInterrupt:
 		sys.exit(0)
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
