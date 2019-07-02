@@ -61,12 +61,16 @@ def is_frame_valid(frame):
 			return True
 		elif command >= 0x0100 and command <= 0x010F:
 			return True
+		elif command >= 0x8000 and command <= 0x8010:
+			return True
 		else:
 			return False
 	elif message_type == AUX_MCU_MSG_TYPE_BLE:
 		if command >= 1 and command <= 0x0015:
 			return True
 		elif command >= 0x0100 and command <= 0x010F:
+			return True
+		elif command >= 0x8000 and command <= 0x8010:
 			return True
 		else:
 			return False
@@ -194,8 +198,23 @@ while True:
 							"0x010D: write node",
 							"0x010E: get cpz ctr",
 							"0x010F: get favorites"]
+				usb_lut_debug = [
+							"0x8000: debug message",
+							"0x8001: open display buffer",
+							"0x8002: send to display buffer",
+							"0x8003: close display buffer",
+							"0x8004: erase dataflash",
+							"0x8005: is dataflash ready",
+							"0x8006: dataflash 256B write",
+							"0x8007: start bootloader",
+							"0x8008: get acc 32 samples",
+							"0x8009: flash aux mcu",
+							"0x800A: get debug platform info",
+							"0x800B: reindex bundle"]
 				
-				if command >= 0x0100:
+				if command >= 0x8000:
+					command_msg = usb_lut_debug[command-0x8000]
+				elif command >= 0x0100:
 					command_msg = usb_lut_mmm[command-0x100]
 				else:
 					command_msg = usb_lut[command]
@@ -240,9 +259,24 @@ while True:
 							"0x010C: get favorite answer",
 							"0x010D: write node answer",
 							"0x010E: get cpz ctr answer",
-							"0x010F: get favorites answer"]
+							"0x010F: get favorites answer"]			
+				usb_lut_debug = [
+							"0x8000: debug message",
+							"0x8001: open display buffer answer",
+							"0x8002: send to display buffer answer",
+							"0x8003: close display buffer answer",
+							"0x8004: erase dataflash answer",
+							"0x8005: is dataflash ready answer",
+							"0x8006: dataflash 256B write answer",
+							"0x8007: start bootloader answer",
+							"0x8008: get acc 32 samples answer",
+							"0x8009: flash aux mcu answer",
+							"0x800A: get debug platform info answer",
+							"0x800B: reindex bundle answer"]
 				
-				if command >= 0x0100:
+				if command >= 0x8000:
+					command_msg = usb_lut_debug[command-0x8000]
+				elif command >= 0x0100:
 					command_msg = usb_lut_mmm[command-0x100]
 				else:
 					command_msg = usb_lut[command]
