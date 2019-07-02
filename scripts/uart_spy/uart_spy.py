@@ -54,40 +54,42 @@ def reverse_mask(x):
 	
 def is_frame_valid(frame):
 	# Extract values
-	[message_type, total_payload, command, command_payload_length] = struct.unpack("HHHH", frame_bis[0:8])
+	[message_type, total_payload, command, command_payload_length] = struct.unpack("HHHH", frame[0:8])
 	
 	if message_type == AUX_MCU_MSG_TYPE_USB:
-		if command >= 1 and <= 0x0015:
+		if command >= 1 and command <= 0x0015:
 			return True
-		elif command >= 0x0100 and <= 0x010F:
+		elif command >= 0x0100 and command <= 0x010F:
 			return True
 		else:
 			return False
 	elif message_type == AUX_MCU_MSG_TYPE_BLE:
-		if command >= 1 and <= 0x0015:
+		if command >= 1 and command <= 0x0015:
 			return True
-		elif command >= 0x0100 and <= 0x010F:
+		elif command >= 0x0100 and command <= 0x010F:
 			return True
 		else:
 			return False
 	elif message_type == AUX_MCU_MSG_TYPE_BOOTLOADER:
-		if command >= 0x0000 and <= 0x0002:
+		if command >= 0x0000 and command <= 0x0002:
 			return True
 		else:
 			return False
 	elif message_type == AUX_MCU_MSG_TYPE_PLAT_DETAILS:
 		return True
 	elif message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD:
-		if command >= 0x0001 and <= 0x0009:
+		if command >= 0x0001 and command <= 0x0009:
 			return True
 		else:
 			return False
 	elif message_type == AUX_MCU_MSG_TYPE_AUX_MCU_EVENT:
-		if command >= 0x0001 and <= 0x0007:
+		if command >= 0x0001 and command <= 0x0007:
 			return True
 		else:
 			return False
 	elif message_type == AUX_MCU_MSG_TYPE_NIMH_CHARGE:
+		return True
+	elif message_type == 0xFFFF:
 		return True
 	else:
 		return False
@@ -115,7 +117,7 @@ def serial_read(s, mcu):
 				frame_bis[i] = reverse_mask(frame_bis[i])
 			
 			# Check for valid frame
-			if is_frame_valid(frame_bis):
+			if not is_frame_valid(frame_bis):
 				resync_was_done = True
 				# remove one byte
 				frame = frame[1:]
@@ -140,7 +142,10 @@ while True:
 		
 		# Resync done?
 		if resync_done:
-			print("<<<<<<< RESYNC DONE >>>>>>>")
+			if mcu == "AUX":
+				print("<<<<<<< AUX RESYNC DONE >>>>>>>")
+			else:
+				print("<<<<<<< MAIN RESYNC DONE >>>>>>>")
 		
 		# Debug depending on message
 		if message_type == AUX_MCU_MSG_TYPE_USB or message_type == AUX_MCU_MSG_TYPE_BLE:
