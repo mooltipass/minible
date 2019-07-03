@@ -94,5 +94,7 @@
 #define SELECT_LANGUAGE_TEXT_ID         87
 #define QPROMPT_SNGL_DISP_CRED_TEXT_ID  88
 #define BATTERY_EMPTY_TEXT_ID           89
+#define ENABLE_ADV_MENU_TEXT_ID         90
+#define ENABLE_SIMPLE_MENU_TEXT_ID      91
 
 #endif

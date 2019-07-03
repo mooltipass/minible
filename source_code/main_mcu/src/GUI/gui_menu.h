@@ -26,6 +26,7 @@
 #define GUI_CLONE_ICON_ID       192
 #define GUI_CHANGE_PIN_ICON_ID  201
 #define GUI_ERASE_USER_ICON_ID  282
+#define GUI_SIMPLE_ADV_ICON_ID  689
 
 /* Bluetooth picture & text IDs */
 #define GUI_BT_ENABLE_ICON_ID       264
