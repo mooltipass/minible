@@ -140,15 +140,35 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
     switch (gui_dispatcher_current_screen)
     {
         case GUI_SCREEN_NINSERTED:
-        {
-            #ifdef DEBUG_MENU_ENABLED            
-            /* If button press, go to debug menu */
+        {       
+            /* If button press, go to debug menu or power off */
             if (wheel_action == WHEEL_ACTION_LONG_CLICK)
             {
+                #ifdef DEBUG_MENU_ENABLED
                 debug_debug_menu();
                 rerender_bool = TRUE;
+                #else
+                /* Only if battery powered */
+                if ((platform_io_is_usb_3v3_present() == FALSE) && TRUE)
+                {
+                    /* Prompt user */
+                    if (gui_prompts_ask_for_one_line_confirmation(QSWITCH_OFF_DEVICE, FALSE) == MINI_INPUT_RET_YES)
+                    {
+                        sh1122_oled_off(&plat_oled_descriptor);     // Display off command
+                        platform_io_power_down_oled();              // Switch off stepup
+                        platform_io_set_wheel_click_pull_down();    // Pull down on wheel click to slowly discharge capacitor
+                        timer_delay_ms(100);                        // From OLED datasheet wait before removing 3V3
+                        platform_io_set_wheel_click_low();          // Completely discharge cap
+                        timer_delay_ms(10);                         // Wait a tad
+                        platform_io_disable_switch_and_die();       // Die!
+                    }
+                    else
+                    {
+                        rerender_bool = TRUE;
+                    }
+                }                
+                #endif
             }
-            #endif
             break;
         }
 
@@ -160,7 +180,37 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
             break;
         }
         
-        case GUI_SCREEN_INSERTED_LCK:       logic_smartcard_handle_inserted(); break;
+        case GUI_SCREEN_INSERTED_LCK:
+        {
+            /* Long click to power off */
+            if (wheel_action == WHEEL_ACTION_LONG_CLICK)
+            {          
+                /* Only if battery powered */ 
+                if ((platform_io_is_usb_3v3_present() == FALSE) && TRUE)
+                {
+                    /* Prompt user */
+                    if (gui_prompts_ask_for_one_line_confirmation(QSWITCH_OFF_DEVICE, FALSE) == MINI_INPUT_RET_YES)
+                    {
+                        sh1122_oled_off(&plat_oled_descriptor);     // Display off command
+                        platform_io_power_down_oled();              // Switch off stepup
+                        platform_io_set_wheel_click_pull_down();    // Pull down on wheel click to slowly discharge capacitor
+                        timer_delay_ms(100);                        // From OLED datasheet wait before removing 3V3
+                        platform_io_set_wheel_click_low();          // Completely discharge cap
+                        timer_delay_ms(10);                         // Wait a tad
+                        platform_io_disable_switch_and_die();       // Die!                        
+                    }
+                    else
+                    {
+                        rerender_bool = TRUE;                 
+                    }
+                } 
+            }
+            else
+            {
+                logic_smartcard_handle_inserted();
+            }            
+            break;
+        }            
         case GUI_SCREEN_INSERTED_INVALID:   break;        
         case GUI_SCREEN_INSERTED_UNKNOWN:   break;
         case GUI_SCREEN_MEMORY_MGMT:        break;

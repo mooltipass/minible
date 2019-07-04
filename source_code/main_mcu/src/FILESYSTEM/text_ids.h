@@ -96,5 +96,6 @@
 #define BATTERY_EMPTY_TEXT_ID           89
 #define ENABLE_ADV_MENU_TEXT_ID         90
 #define ENABLE_SIMPLE_MENU_TEXT_ID      91
+#define QSWITCH_OFF_DEVICE              92
 
 #endif
