@@ -129,7 +129,7 @@ void inputs_scan(void)
     }
     else
     {
-        #ifdef BOOTLOADER
+        #ifndef BOOTLOADER
         inputs_force_reboot_timer = 0;
         #endif
         
