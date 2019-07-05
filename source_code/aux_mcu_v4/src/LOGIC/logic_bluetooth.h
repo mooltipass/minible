@@ -22,6 +22,7 @@
 #define CAPS_OFF (0)
 
 /* Prototypes */
+void logic_bluetoot_set_battery_level(uint8_t pct);
 void logic_bluetooth_start_bluetooth(void);
 void logic_bluetooth_routine(void);
 

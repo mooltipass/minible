@@ -326,6 +326,7 @@
       <Value>EXTINT_CALLBACK_MODE=true</Value>
       <Value>USART_CALLBACK_MODE=true</Value>
       <Value>HID_GATT_SERVER</Value>
+      <Value>BATTERY_SERVICE</Value>
       <Value>NDEBUG</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
@@ -335,6 +336,7 @@
       <Value>../src/ASF/thirdparty/wireless/ble_sdk/ble_profiles/hid_device</Value>
       <Value>../src/ASF/thirdparty/wireless/ble_sdk/ble_services/hid</Value>
       <Value>../src/ASF/thirdparty/wireless/ble_sdk/ble_services/ble_mgr</Value>
+      <Value>../src/ASF/thirdparty/wireless/ble_sdk/ble_services/battery</Value>
       <Value>../src/ASF/thirdparty/wireless/ble_sdk/inc</Value>
       <Value>../src/ASF/thirdparty/wireless/ble_sdk/services/serial/uart</Value>
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
@@ -550,6 +552,7 @@
       <Value>EXTINT_CALLBACK_MODE=true</Value>
       <Value>USART_CALLBACK_MODE=true</Value>
       <Value>HID_GATT_SERVER</Value>
+      <Value>BATTERY_SERVICE</Value>
       <Value>DEBUG</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
@@ -559,6 +562,7 @@
       <Value>../src/ASF/thirdparty/wireless/ble_sdk/ble_profiles/hid_device</Value>
       <Value>../src/ASF/thirdparty/wireless/ble_sdk/ble_services/hid</Value>
       <Value>../src/ASF/thirdparty/wireless/ble_sdk/ble_services/ble_mgr</Value>
+      <Value>../src/ASF/thirdparty/wireless/ble_sdk/ble_services/battery</Value>
       <Value>../src/ASF/thirdparty/wireless/ble_sdk/inc</Value>
       <Value>../src/ASF/thirdparty/wireless/ble_sdk/services/serial/uart</Value>
       <Value>../src/ASF/sam0/drivers/sercom/usart</Value>
@@ -817,6 +821,7 @@
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\ble_mgr\" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\device_infomation\" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\hid\" />
+    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\battery" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\inc\" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\lib\" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\lib\cm0p\" />
@@ -843,6 +848,12 @@
     <Folder Include="src\PLATFORM" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\battery\battery.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\battery\battery.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\CLOCKS\driver_clocks.c">
       <SubType>compile</SubType>
     </Compile>

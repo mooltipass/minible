@@ -11,6 +11,7 @@
 #include "at_ble_api.h"
 #include "hid_device.h"
 #include "ble_utils.h"
+#include "battery.h"
 #include "defines.h"
 #include "hid.h"
 /* Control point notification structure */
@@ -38,6 +39,14 @@ uint8_t raw_hid_data_in_buf[65];
 uint8_t raw_hid_data_out_buf[65];
 /* Keyboard key status */
 volatile uint8_t key_status = 0;
+/* Notification sent flag for battery char changed */
+BOOL battery_notification_flag = TRUE;
+/* Battery service handler */
+bat_gatt_service_handler_t bas_service_handler;
+/* Connection handle */
+at_ble_handle_t ble_connection_handle;
+/* Battery level advertised */
+uint8_t ble_battery_level = 33;
 
 static at_ble_status_t hid_custom_event(void *param)
 {
@@ -56,6 +65,11 @@ static at_ble_status_t hid_connect_cb(void *params)
     ALL_UNUSED(&handle);
     DBG_LOG("Connected to device");
     timer_start_timer(TIMER_BT_TESTS, 5000);
+
+    /* From battery service */
+    at_ble_connected_t *connected = (at_ble_connected_t *)params;
+    ble_connection_handle = connected->handle;
+
     return AT_BLE_SUCCESS;
 }
 
@@ -68,25 +82,92 @@ static at_ble_status_t hid_disconnect_cb(void *params)
     logic_bluetooth_connected = FALSE;
     ALL_UNUSED(&handle);
     DBG_LOG("Disconnected from device");
+
+    /* From battery service */
+    battery_notification_flag = TRUE;
+
     return AT_BLE_SUCCESS;
+}
+
+/* Callback registered for AT_BLE_PAIR_DONE event from stack */
+static at_ble_status_t ble_paired_app_event(void *param)
+{
+	at_ble_pair_done_t *pair_done = (at_ble_pair_done_t *)param;
+	if(pair_done->status == AT_BLE_SUCCESS)
+	{
+    	DBG_LOG("Paired to device");
+		ALL_UNUSED(param);
+		return pair_done->status;
+	}
+    else
+    {
+    	DBG_LOG("Failed pairing to device");
+    }
+	return pair_done->status;
+}
+
+/* Callback registered for AT_BLE_ENCRYPTION_STATUS_CHANGED event from stack */
+static at_ble_status_t ble_enc_status_changed_app_event(void *param)
+{
+	at_ble_encryption_status_changed_t *encryption_status_changed = (at_ble_encryption_status_changed_t *)param;
+	if(encryption_status_changed->status == AT_BLE_SUCCESS)
+	{
+    	DBG_LOG("Enc status changed success");
+		ALL_UNUSED(param);
+		return encryption_status_changed->status;
+	}
+    else
+    {
+        DBG_LOG("Enc status changed failed");
+    }
+	return encryption_status_changed->status;
 }
 
 /* Callback called when report send over the air */
 static at_ble_status_t hid_notification_confirmed_cb(void *params)
 {
+    // TODO explore for what this is sent... keyboard/hid/battery
 	at_ble_cmd_complete_event_t *notification_status;
 	notification_status = (at_ble_cmd_complete_event_t *)params;
 	DBG_LOG_DEV("Keyboard report send to host status %d", notification_status->status);
+
+    /* From battery service */
+    if(!notification_status->status)
+    {
+        battery_notification_flag = TRUE;
+        DBG_LOG_DEV("sending notification to the peer success");
+    }
+
 	return AT_BLE_SUCCESS;
+}
+
+/* Callback registered for AT_BLE_CHARACTERISTIC_CHANGED event from stack */
+static at_ble_status_t ble_char_changed_app_event(void *param)
+{
+    at_ble_characteristic_changed_t *char_handle = (at_ble_characteristic_changed_t *)param;
+    at_ble_status_t status = bat_char_changed_event(&bas_service_handler, char_handle);
+    if(status == AT_BLE_SUCCESS)
+    {
+        battery_notification_flag = TRUE;
+    }
+    else if (status == AT_BLE_PRF_NTF_DISABLED)
+    {
+        battery_notification_flag = FALSE;
+    }
+
+    return status;
 }
 
 static const ble_gap_event_cb_t hid_app_gap_handle = {
 	.connected = hid_connect_cb,
-	.disconnected = hid_disconnect_cb
+	.disconnected = hid_disconnect_cb,
+	.pair_done = ble_paired_app_event,
+	.encryption_status_changed = ble_enc_status_changed_app_event
 };
 
 static const ble_gatt_server_event_cb_t hid_app_gatt_server_handle = {
-	.notification_confirmed = hid_notification_confirmed_cb
+	.notification_confirmed = hid_notification_confirmed_cb,
+	.characteristic_changed = ble_char_changed_app_event
 };
 
 /* All BLE Manager Custom Event callback */
@@ -283,7 +364,16 @@ void logic_bluetooth_start_bluetooth(void)
     hid_mooltipass_app_init();
     
     /* initialize the ble chip  and Set the device mac address */
-    ble_device_init(NULL);
+    ble_device_init(NULL);    
+    
+    /* Initialize the battery service */
+    bat_init_service(&bas_service_handler, &ble_battery_level);
+    
+    /* Define the primary service in the GATT server database */
+    if(bat_primary_service_define(&bas_service_handler)!= AT_BLE_SUCCESS)
+    {
+        DBG_LOG("defining battery service failed");
+    }
     
     hid_prf_init(NULL);
     
@@ -357,6 +447,21 @@ void logic_bluetooth_routine(void)
             timer_delay_ms(20);
             app_keyb_report[2] = 0x00;
             hid_prf_report_update(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
+        }
+    }
+}
+
+void logic_bluetoot_set_battery_level(uint8_t pct)
+{
+    ble_battery_level = pct;
+
+    /* send the notification and Update the battery level  */
+    if(battery_notification_flag)
+    {
+        if(bat_update_char_value(ble_connection_handle,&bas_service_handler, pct, battery_notification_flag) == AT_BLE_SUCCESS)
+        {
+            DBG_LOG("Battery Level:%d%%", pct);
+            battery_notification_flag = FALSE;
         }
     }
 }

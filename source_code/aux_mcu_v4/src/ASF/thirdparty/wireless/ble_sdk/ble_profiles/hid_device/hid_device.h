@@ -130,7 +130,7 @@
 //	<s.9>	Advertising String
 //	<i>	String Descriptor describing in advertising packet.
 //	<id> hid_sensor_adv_data_name_data
-#define ADV_DATA_NAME_DATA				("Mooltipass_Mini_BLE")
+#define ADV_DATA_NAME_DATA				("Mooltipass_BLE")
 
 /** @brief Advertisement data UUID length */
 #define ADV_DATA_UUID_LEN				(2)

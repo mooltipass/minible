@@ -6,15 +6,15 @@
 #include <string.h>
 #ifndef BOOTLOADER
     #include <asf.h>
+    #include "driver_timer.h"
+    #include "logic.h"
 #else
     #include "sam.h"
 #endif
 #include "platform_defines.h"
 #include "comms_main_mcu.h"
-#include "driver_timer.h"
 #include "platform_io.h"
 #include "defines.h"
-#include "logic.h"
 #include "dma.h"
 /* DMA Descriptors for our transfers and their DMA priority levels (highest number is higher priority, contrary to what is written in some datasheets) */
 /* Beware of errata 15683 if you do want to implement linked descriptors! */
