@@ -93,11 +93,9 @@
 #else
 #define DBG_LOG_CONT	comms_usb_debug_printf
 
-#define DBG_LOG		    comms_usb_debug_printf("\r\n");\
-						comms_usb_debug_printf
+#define DBG_LOG		    comms_usb_debug_printf
 
-#define DBG_LOG_ADV	    comms_usb_debug_printf("\r\nBLE-ADV: ");\
-						comms_usb_debug_printf
+#define DBG_LOG_ADV	    comms_usb_debug_printf
 #endif
 						
 #define UNUSED1(x) (void)(x)

@@ -328,7 +328,7 @@ void comms_usb_communication_routine(void)
 #pragma GCC diagnostic ignored "-Wsuggest-attribute=format"
 void comms_usb_debug_printf(const char *fmt, ...) 
 {    
-    char buf[64];    
+    char buf[128];    
     va_list ap;    
     va_start(ap, fmt);
 

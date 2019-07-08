@@ -142,7 +142,7 @@ static at_ble_status_t hid_notification_confirmed_cb(void *params)
 }
 
 /* Callback registered for AT_BLE_CHARACTERISTIC_CHANGED event from stack */
-static at_ble_status_t ble_char_changed_app_event(void *param)
+at_ble_status_t ble_char_changed_app_event(void *param)
 {
     at_ble_characteristic_changed_t *char_handle = (at_ble_characteristic_changed_t *)param;
     at_ble_status_t status = bat_char_changed_event(&bas_service_handler, char_handle);
@@ -166,8 +166,7 @@ static const ble_gap_event_cb_t hid_app_gap_handle = {
 };
 
 static const ble_gatt_server_event_cb_t hid_app_gatt_server_handle = {
-	.notification_confirmed = hid_notification_confirmed_cb,
-	.characteristic_changed = ble_char_changed_app_event
+	.notification_confirmed = hid_notification_confirmed_cb
 };
 
 /* All BLE Manager Custom Event callback */
@@ -313,7 +312,7 @@ static void hid_mooltipass_app_init(void)
 	}else{
 		DBG_LOG("HID Profile Configuration Failed");
 	}
-    //return;
+    return;
     
     /* Now to the RAW HID endpoint */    
     raw_hid_prf_data.hid_serv_instance = 2;
@@ -439,7 +438,7 @@ void logic_bluetooth_routine(void)
     
     if (logic_bluetooth_connected != FALSE)
     {
-        if (timer_has_timer_expired(TIMER_BT_TESTS, TRUE) == TIMER_EXPIRED)
+        if ((timer_has_timer_expired(TIMER_BT_TESTS, TRUE) == TIMER_EXPIRED) && false)
         {            
             timer_start_timer(TIMER_BT_TESTS, 5000);            
             app_keyb_report[2] = 17;

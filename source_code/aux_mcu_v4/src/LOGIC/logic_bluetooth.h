@@ -9,6 +9,8 @@
 #ifndef LOGIC_BLUETOOTH_H_
 #define LOGIC_BLUETOOTH_H_
 
+#include "at_ble_api.h"
+
 /* ATMEL ugliness */
 /** @brief Maximum text length */
 #define MAX_TEXT_LEN (11)
@@ -22,6 +24,7 @@
 #define CAPS_OFF (0)
 
 /* Prototypes */
+at_ble_status_t ble_char_changed_app_event(void *param);
 void logic_bluetoot_set_battery_level(uint8_t pct);
 void logic_bluetooth_start_bluetooth(void);
 void logic_bluetooth_routine(void);

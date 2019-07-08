@@ -127,6 +127,7 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
     /* Keyboard / raw hid switch */
     if (device == HID_KEYBOARD_MODE)
     {        
+        DBG_LOG("Protocol mode characteristic: %d", cur_characteristic_index);
         /*Configure HID Protocol Mode Characteristic : Value related info*/
         hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
         hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
@@ -162,6 +163,7 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
         cur_characteristic_index++;
     } 
 	
+	DBG_LOG("Report map characteristic: %d", cur_characteristic_index);
 	/*Configure HID Report Map Characteristic : Value related info*/
 	hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
 	hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
@@ -214,6 +216,7 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
 
 		if(report_type[id] == INPUT_REPORT)
         {
+            DBG_LOG("input report characteristic: %d", id + cur_characteristic_index);
             #ifdef ENABLE_PTS
 		    uint8_t i=0;
 		    DBG_LOG_PTS("Input Report Characteristic Value");
@@ -240,6 +243,7 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
 		}
         else if(report_type[id] == OUTPUT_REPORT)
         {
+            DBG_LOG("output report characteristic: %d", id + cur_characteristic_index);
 			hid_inst[servinst].serv_chars[id + cur_characteristic_index].char_val.properties = (AT_BLE_CHAR_READ|AT_BLE_CHAR_WRITE_WITHOUT_RESPONSE|AT_BLE_CHAR_WRITE);			
 			/* Configure the HID characteristic value permission */
 			if(BLE_PAIR_ENABLE)
@@ -256,6 +260,7 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
 		}
         else if(report_type[id] == FEATURE_REPORT)
         {
+            DBG_LOG("feature report characteristic: %d", id + cur_characteristic_index);
 			hid_inst[servinst].serv_chars[id + cur_characteristic_index].char_val.properties = (AT_BLE_CHAR_READ|AT_BLE_CHAR_WRITE);			
 			/* Configure the HID characteristic permission */
 			if(BLE_PAIR_ENABLE)
@@ -306,6 +311,7 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
 	
 	if(device == HID_KEYBOARD_MODE)
     {
+        DBG_LOG("boot keyboard intput characteristic: %d", cur_characteristic_index);
         #ifdef ENABLE_PTS
 	    uint8_t i=0;
 	    DBG_LOG_PTS("Boot Keyboard Input Report Characteristic Value");
@@ -363,6 +369,7 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
         /* Increment current index */
         cur_characteristic_index++;
 		 
+		DBG_LOG("boot keyboard output characteristic: %d", cur_characteristic_index);
         /*Configure HID Boot Keyboard Input Report Characteristic : Value related info*/
         hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
         hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
@@ -405,6 +412,7 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
         cur_characteristic_index++;
 	}
  
+    DBG_LOG("hid information characteristic: %d", cur_characteristic_index);
     /*Configure HID Information Characteristic : Value related info*/
     hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
     hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
@@ -446,6 +454,7 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
 	/* Increment current index */
 	cur_characteristic_index++;
 	
+	DBG_LOG("hid control characteristic: %d", cur_characteristic_index);
 	/*Configure HID Control Point Characteristic : Value related info*/
 	hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
 	hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;

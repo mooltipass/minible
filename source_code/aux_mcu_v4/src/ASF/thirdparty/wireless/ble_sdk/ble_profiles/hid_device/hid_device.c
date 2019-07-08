@@ -50,6 +50,7 @@
 #include "hid_device.h"
 #include "hid.h"
 #include "device_info.h"
+#include "logic_bluetooth.h"
 
 static const ble_gap_event_cb_t hid_gap_handle = {
 	.disconnected = hid_prf_disconnect_event_handler
@@ -202,6 +203,14 @@ at_ble_status_t hid_prf_char_changed_handler(void *params)
 	memcpy((uint8_t *)&change_params, change_char, sizeof(at_ble_characteristic_changed_t));
 	serv_inst = hid_serv_get_instance(change_params.char_handle);
 	DBG_LOG_DEV("hid_prf_char_changed_handler : Service Instance %d", serv_inst);
+    
+    /* Mathieu: if we were not able to find the handle for HID, it means this is meant for battery service */
+    if (serv_inst == 0xFF)
+    {
+        DBG_LOG_DEV("Couldn't find HID instance, redirecting to device info service");
+        return ble_char_changed_app_event(params);
+    }
+    
 	ntf_op = hid_ntf_instance(serv_inst, change_params.char_handle);
     DBG_LOG_DEV("hid_prf_char_changed_handler : Notification Operation %d", ntf_op);
    
