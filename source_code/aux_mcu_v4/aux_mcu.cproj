@@ -415,7 +415,7 @@
       <Value>.bootloader_flag=0x20000000</Value>
     </ListValues>
   </armgcc.linker.memorysettings.Flash>
-  <armgcc.linker.memorysettings.ExternalRAM>False</armgcc.linker.memorysettings.ExternalRAM>
+  <armgcc.linker.memorysettings.ExternalRAM />
   <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21j18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
   <armgcc.linker.miscellaneous.OtherOptions>
     <ListValues>
@@ -642,7 +642,7 @@
       <Value>.bootloader_flag=0x20000000</Value>
     </ListValues>
   </armgcc.linker.memorysettings.Flash>
-  <armgcc.linker.memorysettings.ExternalRAM>False</armgcc.linker.memorysettings.ExternalRAM>
+  <armgcc.linker.memorysettings.ExternalRAM />
   <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21j18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
   <armgcc.linker.miscellaneous.OtherOptions>
     <ListValues>

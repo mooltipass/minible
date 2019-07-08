@@ -907,7 +907,7 @@ typedef enum
 //	<i> Defines maximum number of Scan device can have buffer .
 //	<i> Default: 10
 //	<id> max_scan_device
-#define MAX_SCAN_DEVICE					(20)			  //Max number of scan device
+#define MAX_SCAN_DEVICE					(10)			  //Max number of scan device
 
 /* Scan interval 30ms in term of 625us */
 //	<o> Scan Interval in units of 625us <1-1000:50>
@@ -935,7 +935,7 @@ typedef enum
 //	<i> Default: 1
 //	<id> gap_max_device_connected
 #ifndef BLE_MAX_DEVICE_CONNECTION
-#define BLE_MAX_DEVICE_CONNECTION 		(8) // Maximum No.of device information that BLE-Device can Handle
+#define BLE_MAX_DEVICE_CONNECTION 		(1) // Maximum No.of device information that BLE-Device can Handle
 #endif
 
 #if ((BLE_MAX_DEVICE_CONNECTION < 1) || (BLE_MAX_DEVICE_CONNECTION > 8))

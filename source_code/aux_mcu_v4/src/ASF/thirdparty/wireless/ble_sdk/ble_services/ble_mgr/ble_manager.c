@@ -145,7 +145,7 @@ uint32_t event_pool_memory[4] = {0};
 #else
 uint32_t event_pool_memory[256] = {0};
 #endif
-uint32_t event_params_memory[1024] = {0};
+uint32_t event_params_memory[512] = {0};
 uint32_t rx_fifo_memory[256] = {0};
 	
 /** @brief initializes the platform */
