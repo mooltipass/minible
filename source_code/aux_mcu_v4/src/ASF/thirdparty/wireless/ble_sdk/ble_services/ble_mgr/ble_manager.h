@@ -156,7 +156,7 @@
 	#define BLE_IO_CAPABALITIES			(AT_BLE_IO_CAP_NO_INPUT_NO_OUTPUT)
 	#define BLE_MITM_REQ				(false)
 	#define BLE_BOND_REQ				(false)
-	#define BLE_PAIR_ENABLE				(false)
+	#define BLE_PAIR_ENABLE				(true)
 	#endif
 
 /*! \def  HID Mouse Profile GAP configurations

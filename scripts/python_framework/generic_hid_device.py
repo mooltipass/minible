@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+from __future__ import print_function
 from mooltipass_defines import *
 from datetime import datetime
 from array import array
@@ -34,7 +34,7 @@ class generic_hid_device:
 
 	# Catch CTRL-C interrupt
 	def signal_handler(self, signal, frame):
-		print "Keyboard Interrupt"
+		print("Keyboard Interrupt")
 		self.disconnect()
 		sys.exit(0)
 
@@ -53,7 +53,7 @@ class generic_hid_device:
 		remaining_bytes = len(message_payload)
 
 		# Compute number of packets
-		nb_packets = ((remaining_bytes + HID_PACKET_DATA_PAYLOAD - 1) / HID_PACKET_DATA_PAYLOAD) - 1
+		nb_packets = int(((remaining_bytes + HID_PACKET_DATA_PAYLOAD - 1) / HID_PACKET_DATA_PAYLOAD)) - 1
 
 		# Current packet ID
 		cur_packet_id = 0
@@ -101,12 +101,12 @@ class generic_hid_device:
 	def sendHidPacket(self, data):
 		# check that we're actually connected to a device
 		if self.connected == False:
-			print "Not connected to device"
+			print("Not connected to device")
 			return
 
 		# debug: print sent data
 		if HID_DEVICE_DEBUG:
-			print "TX DBG data:", ' '.join(hex(x) for x in data)
+			print("TX DBG data:", ' '.join(hex(x) for x in data))
 
 		# send data
 		self.epout.write(data, 10000)
@@ -131,29 +131,32 @@ class generic_hid_device:
 
 		# Wait for aux MCU ack and main ack
 		if self.ack_flag_in_comms:
-			self.receiveHidPacket()
+			self.receiveHidPacket(True)
 		return self.receiveHidMessage()
 
 	# Receive HID packet, crash when nothing is sent
-	def receiveHidPacket(self):
+	def receiveHidPacket(self, exit_on_timeout):
 		# check that we're actually connected to a device
 		if self.connected == False:
-			print "Not connected to device"
+			print("Not connected to device")
 			return None
 
 		# read from endpoint
 		try :
 			data = self.epin.read(self.epin.wMaxPacketSize, timeout=self.read_timeout)
 			if HID_DEVICE_DEBUG:
-				print "RX DBG data:", ' '.join(hex(x) for x in data)
+				print("RX DBG data:", ' '.join(hex(x) for x in data))
 			return data
 		except usb.core.USBError as e:
 			if HID_DEVICE_DEBUG:
-				print e
-			sys.exit("Device didn't send a packet")
+				print(e)
+			if exit_on_timeout:
+				sys.exit("Device didn't send a packet")
+			else:
+				return None
 
 	# Receive Message
-	def receiveHidMessage(self):
+	def receiveHidMessage(self, exit_on_timeout):
 		# For double checks
 		nb_payload_bytes_received = 0
 
@@ -165,7 +168,9 @@ class generic_hid_device:
 
 		# Loop until we receive everything
 		while True:
-			answer = self.receiveHidPacket()
+			answer = self.receiveHidPacket(exit_on_timeout)			
+			if exit_on_timeout == False and answer == None:
+				return
 			payload_length = answer[0] & 0x3F
 			current_packet = (answer[1] & 0xF0) >> 4
 			total_packets = (answer[1] & 0x0F)
@@ -183,18 +188,21 @@ class generic_hid_device:
 			if current_packet == total_packets:
 				# Check for payload length match
 				if len(packet["data"]) != packet["len"] or len(packet["data"]) != nb_payload_bytes_received - 4:
-					print "Message receive: error in payload size!"
-					print "len(packet) = " + str(len(packet["data"]))
-					print "packet[\"len\"] = " + str(packet["len"])
-					print "nb payload bytes received - 4 = " + str(nb_payload_bytes_received - 4)
+					print("Message receive: error in payload size!")
+					print("len(packet) = " + str(len(packet["data"])))
+					print("packet[\"len\"] = " + str(packet["len"]))
+					print("nb payload bytes received - 4 = " + str(nb_payload_bytes_received - 4))
 					return None
 				else:
 					# Check for debug message
 					if packet["cmd"] == CMD_DBG_MESSAGE:
 						temp_string = u"DBG: ";
-						for i in range(0, packet["len"]/2):
-							temp_string += unichr(packet["data"][i*2] + packet["data"][i*2+1]*256)
-						print temp_string
+						for i in range(0, int(packet["len"]/2)):
+							if sys.version_info[0] < 3:
+								temp_string += unichr(packet["data"][i*2] + packet["data"][i*2+1]*256)
+							else:
+								temp_string += chr(packet["data"][i*2] + packet["data"][i*2+1]*256)
+						print(temp_string)
 					return packet
 
 	# Receive HID packet, return None when nothing is sent
@@ -202,7 +210,7 @@ class generic_hid_device:
 		try :
 			data = self.epin.read(self.epin.wMaxPacketSize, timeout=self.read_timeout)
 			if HID_DEVICE_DEBUG:
-				print "RX DBG data:", ' '.join(hex(x) for x in data)
+				print("RX DBG data:", ' '.join(hex(x) for x in data))
 			return data
 		except usb.core.USBError as e:
 			return None
@@ -227,12 +235,12 @@ class generic_hid_device:
 		# Was it found?
 		if self.hid_device is None:
 			if print_debug:
-				print "Device not found"
+				print("Device not found")
 			return False
 
 		# Device found
 		if print_debug:
-			print "USB device found"
+			print("USB device found")
 
 		# Different init codes depending on the platform
 		if platform.system() == "Linux":
@@ -240,24 +248,24 @@ class generic_hid_device:
 			try:
 				self.hid_device.detach_kernel_driver(0)
 				self.hid_device.reset()
-			except Exception, e:
+			except Exception as e:
 				pass # Probably already detached
 		else:
 			# Set the active configuration. With no arguments, the first configuration will be the active one
 			try:
 				self.hid_device.set_configuration()
-			except Exception, e:
+			except Exception as e:
 				if print_debug:
-					print "Cannot set configuration the device:" , str(e)
+					print("Cannot set configuration the device:" , str(e))
 				return False
 
 		if HID_DEVICE_DEBUG:
 			for cfg in self.hid_device:
-				print "configuration val:", str(cfg.bConfigurationValue)
+				print("configuration val:", str(cfg.bConfigurationValue))
 				for intf in cfg:
-					print "int num:", str(intf.bInterfaceNumber), ", int alt:", str(intf.bAlternateSetting)
+					print("int num:", str(intf.bInterfaceNumber), ", int alt:", str(intf.bAlternateSetting))
 					for ep in intf:
-						print "endpoint addr:", str(ep.bEndpointAddress)
+						print("endpoint addr:", str(ep.bEndpointAddress))
 
 		# Get an endpoint instance
 		cfg = self.hid_device.get_active_configuration()
@@ -270,7 +278,7 @@ class generic_hid_device:
 			return False
 
 		if HID_DEVICE_DEBUG:
-			print "Selected OUT endpoint:", self.epout.bEndpointAddress
+			print("Selected OUT endpoint:", self.epout.bEndpointAddress)
 
 		# Match the first IN endpoint
 		self.epin = usb.util.find_descriptor(intf, custom_match = lambda e: usb.util.endpoint_direction(e.bEndpointAddress) == usb.util.ENDPOINT_IN)
@@ -279,7 +287,7 @@ class generic_hid_device:
 			return False
 
 		if HID_DEVICE_DEBUG:
-			print "Selected IN endpoint:", self.epin.bEndpointAddress
+			print("Selected IN endpoint:", self.epin.bEndpointAddress)
 
 		time.sleep(0.5)
 		
@@ -293,7 +301,7 @@ class generic_hid_device:
 			# try to send ping packet
 			self.epout.write(hid_packet)
 			if HID_DEVICE_DEBUG:
-				print "TX DBG data:", ' '.join(hex(x) for x in hid_packet)
+				print("TX DBG data:", ' '.join(hex(x) for x in hid_packet))
 			# try to receive one answer
 			temp_bool = True
 			while temp_bool:
@@ -301,41 +309,41 @@ class generic_hid_device:
 					# try to receive aux MCU answer
 					data = self.epin.read(self.epin.wMaxPacketSize, timeout=500)
 					if HID_DEVICE_DEBUG:
-						print "RX DBG data:", ' '.join(hex(x) for x in data)
+						print("RX DBG data:", ' '.join(hex(x) for x in data))
 					# check that the received data is correct (cheating as we know we should receive one packet)
 					if hid_packet == data[0:len(hid_packet)]:
 						if print_debug:
-							print "Received aux MCU ACK"
+							print("Received aux MCU ACK")
 					else:
 						if print_debug:
-							print "Incorrect Aux MCU ACK..."
-							print "Cleaning remaining input packets"
+							print("Incorrect Aux MCU ACK...")
+							print("Cleaning remaining input packets")
 						continue
 					# try to receive answer
 					data = self.epin.read(self.epin.wMaxPacketSize, timeout=500)
 					if HID_DEVICE_DEBUG:
-						print "RX2 DBG data:", ' '.join(hex(x) for x in data)
+						print("RX2 DBG data:", ' '.join(hex(x) for x in data))
 					# check that the received data is correct (cheating as we know we should receive one packet)
 					# remove useless ACK
 					hid_packet[0] = hid_packet[0] & ~LAST_MESSAGE_ACK_FLAG
 					if hid_packet == data[0:len(hid_packet)]:
 						if print_debug:
-							print "Received main MCU ACK"
+							print("Received main MCU ACK")
 						temp_bool = False
 					else:
 						if print_debug:
-							print "Incorrect main MCU ping answer..."
-							print "Cleaning remaining input packets"
+							print("Incorrect main MCU ping answer...")
+							print("Cleaning remaining input packets")
 						continue
 					time.sleep(.5)
 				except usb.core.USBError as e:
 					self.hid_device.reset()
 					if print_debug:
-						print e
+						print(e)
 					return False
 		except usb.core.USBError as e:
 			if print_debug:
-				print e
+				print(e)
 			return False
 
 		# Set connected var, return success
@@ -346,10 +354,10 @@ class generic_hid_device:
 	def disconnect(self):
 		# check that we're actually connected to a device
 		if self.connected == False or self.hid_device == None:
-			print "Not connected to device"
+			print("Not connected to device")
 			return
 		else:
-			print "Disconnecting from device..."
+			print("Disconnecting from device...")
 
 		# reset device
 		self.hid_device.reset()
@@ -358,7 +366,7 @@ class generic_hid_device:
 	def benchmarkPingPongSpeed(self, ping_packet):
 		# check that we're actually connected to a device
 		if self.connected == False:
-			print "Not connected to device"
+			print("Not connected to device")
 			return
 
 		# Generate our hid message from our ping message (cheating: we're only doing one HID packet)
@@ -370,16 +378,16 @@ class generic_hid_device:
 		while True:
 			self.sendHidPacket(hid_packet)
 			if self.ack_flag_in_comms:
-				self.receiveHidPacket()
-			self.receiveHidPacket()
+				self.receiveHidPacket(True)
+			self.receiveHidPacket(True)
 			data_counter += 64
 
 			# Print out performance
 			if current_second != datetime.now().second:
 				current_second = datetime.now().second
-				print "Ping pong transfer speed (unidirectional):", data_counter , "B/s"
+				print("Ping pong transfer speed (unidirectional):", data_counter , "B/s")
 				if self.ack_flag_in_comms:
-					print "Ping pong transfer speed (bidirectional cumulated):", data_counter*3 , "B/s"
+					print("Ping pong transfer speed (bidirectional cumulated):", data_counter*3 , "B/s")
 				else:
-					print "Ping pong transfer speed (bidirectional cumulated):", data_counter*2 , "B/s"
+					print("Ping pong transfer speed (bidirectional cumulated):", data_counter*2 , "B/s")
 				data_counter = 0

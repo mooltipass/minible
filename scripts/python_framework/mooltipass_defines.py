@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 # Timeout for reading data in ms
 USB_READ_TIMEOUT		= 10000
 

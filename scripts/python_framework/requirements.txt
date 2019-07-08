@@ -1,0 +1,2 @@
+python-resize-image
+pyusb

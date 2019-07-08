@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+from __future__ import print_function
 from mooltipass_hid_device import *
 from datetime import datetime
 from array import array
@@ -25,15 +25,16 @@ def main():
 		if mooltipass_device.connect(True) == False:
 			sys.exit(0)
 			
-		print "Connected to device"
+		print("Connected to device")
 		
 		while len(sys.argv) > 1 and sys.argv[1] == "log":
-			try:
-				mooltipass_device.getInternalDevice().receiveHidMessage()
-			except KeyboardInterrupt:
-				sys.exit(0)
-			except:
-				continue
+			mooltipass_device.getInternalDevice().receiveHidMessage(exit_on_timeout=False)
+			#try:
+			#	mooltipass_device.getInternalDevice().receiveHidMessage()
+			#except KeyboardInterrupt:
+			#	sys.exit(0)
+			#except Exception as e:
+			#	continue
 		#mooltipass_device.getInternalDevice().benchmarkPingPongSpeed(mooltipass_device.createPingPacket())
 			
 		# Get Mooltipass Version
@@ -52,7 +53,7 @@ def main():
 				bitdepth = 4
 				mooltipass_device.sendAndMonitorFrame(sys.argv[2], bitdepth)
 			else:
-				print "Please specify picture filename"
+				print("Please specify picture filename")
 		
 		elif sys.argv[1] == "uploadDebugBundle":
 			# mooltipass_tool.py uploadDebugBundle filename
@@ -60,7 +61,7 @@ def main():
 				filename = sys.argv[2]
 				mooltipass_device.uploadDebugBundle(filename)
 			else:
-				print "Please specify bundle filename"
+				print("Please specify bundle filename")
 		
 		elif sys.argv[1] == "rebootToBootloader":
 			mooltipass_device.rebootToBootloader()
