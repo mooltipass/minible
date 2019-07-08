@@ -425,7 +425,7 @@ void mini_ble_task(void){
         ble_event_task();
 
         /* Check for key status */
-        if(conn_status && false){
+        if(conn_status && true){
             DBG_LOG("Key Pressed...");
             delay_ms(KEY_PAD_DEBOUNCE_TIME);
             if((keyb_id == POSITION_ZERO) || (keyb_id == POSITION_SIX)){

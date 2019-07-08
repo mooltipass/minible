@@ -149,18 +149,18 @@ int main(void)
         
     //udc_attach();
     //logic_battery_start_charging(NIMH_12C_CHARGING);
-    while(TRUE)
-    {
-        logic_battery_task();
-        comms_main_mcu_routine();
-        comms_usb_communication_routine();
-        
-        /* If BLE enabled: deal with events */
-        if (logic_is_ble_enabled() != FALSE)
-        {
-            mini_ble_task();
-        }
-    }
+    //while(TRUE)
+    //{
+    //    logic_battery_task();
+    //    comms_main_mcu_routine();
+    //    comms_usb_communication_routine();
+    //    
+    //    /* If BLE enabled: deal with events */
+    //    if (logic_is_ble_enabled() != FALSE)
+    //    {
+    //        mini_ble_task();
+    //    }
+    //}
     
     /* Test code: remove later */
     udc_attach();

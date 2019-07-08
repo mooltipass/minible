@@ -102,7 +102,14 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
 	/* Configure the HID service permission */
 	if(BLE_PAIR_ENABLE)
     {
-		hid_inst[servinst].serv.perm = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);
+        if(BLE_MITM_REQ)
+        {
+            hid_inst[servinst].serv.perm = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);
+        }
+        else
+        {
+            hid_inst[servinst].serv.perm = (AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_ENC_NO_AUTHN_NO_AUTHR);
+        }                        
 	}
     else
     {
@@ -173,7 +180,14 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
 	/* Configure the HID characteristic value permission */
 	if(BLE_PAIR_ENABLE)
     {
-		hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;
+        if(BLE_MITM_REQ)
+        {
+            hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;
+        }
+        else
+        {
+            hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR;
+        }
     }
     else
     {
@@ -231,7 +245,14 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
 			/* Configure the HID characteristic value permission */
 			if(BLE_PAIR_ENABLE)
             {
-				hid_inst[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;
+                if(BLE_MITM_REQ)
+                {
+                    hid_inst[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;
+                }
+                else
+                {
+                    hid_inst[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR;
+                }
 			}
             else
             {
@@ -248,7 +269,14 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
 			/* Configure the HID characteristic value permission */
 			if(BLE_PAIR_ENABLE)
             {
-				hid_inst[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);
+                if(BLE_MITM_REQ)
+                {
+                    hid_inst[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);
+                }
+                else
+                {
+                    hid_inst[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_ENC_NO_AUTHN_NO_AUTHR);
+                }
 			}
             else
             {
@@ -265,7 +293,14 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
 			/* Configure the HID characteristic permission */
 			if(BLE_PAIR_ENABLE)
             {
-				hid_inst[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);
+                if(BLE_MITM_REQ)
+                {
+                    hid_inst[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);
+                }
+                else
+                {
+                    hid_inst[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_ENC_NO_AUTHN_NO_AUTHR);
+                }
 			}
             else
             {
@@ -340,7 +375,14 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
 		/* Configure the HID characteristic value permission */
 		if(BLE_PAIR_ENABLE)
         {
-			hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);
+            if(BLE_MITM_REQ)
+            {
+                hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);
+            }
+            else
+            {
+                hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_ENC_NO_AUTHN_NO_AUTHR);
+            }
 		}
         else
         {
@@ -382,7 +424,14 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
         /* Configure the HID characteristic value permission */
         if(BLE_PAIR_ENABLE)
         {
-            hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;
+            if(BLE_MITM_REQ)
+            {
+                hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;
+            }
+            else
+            {
+                hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR;
+            }
         }
         else
         {
@@ -425,7 +474,14 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
 	/* Configure the HID characteristic value permission */
 	if(BLE_PAIR_ENABLE)
     {
-		hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;
+        if(BLE_MITM_REQ)
+        {
+            hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;
+        }
+        else
+        {
+            hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR;
+        }
 	}
     else
     {

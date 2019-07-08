@@ -85,7 +85,7 @@
 #define ble_assert(expr) ((void) 0)
 #endif
 
-#define blabla
+//#define blabla
 #ifdef blabla
 #define DBG_LOG(...)
 #define DBG_LOG_ADV(...)

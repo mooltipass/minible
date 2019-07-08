@@ -312,7 +312,6 @@ static void hid_mooltipass_app_init(void)
 	}else{
 		DBG_LOG("HID Profile Configuration Failed");
 	}
-    return;
     
     /* Now to the RAW HID endpoint */    
     raw_hid_prf_data.hid_serv_instance = 2;
