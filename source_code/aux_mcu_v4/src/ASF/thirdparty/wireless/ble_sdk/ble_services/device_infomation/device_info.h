@@ -69,10 +69,10 @@
 //	<s.20>Model Number
 //	<i>String Descriptor describing Model Number.
 //	<id> default_model_number
-#define DEFAULT_MODEL_NUMBER						("Mini BLE")
+#define DEFAULT_MODEL_NUMBER						("Mooltipass Mini BLE")
 
 /** @brief User should set the length based on DEFAULT_MODEL_NUMBER*/
-#define DIS_CHAR_MODEL_NUMBER_INIT_LEN				(8)
+#define DIS_CHAR_MODEL_NUMBER_INIT_LEN				(19)
 
 /** @brief User can set the maximum length for model number */
 #define DIS_CHAR_MODEL_NUMBER_MAX_LEN				(0x14)

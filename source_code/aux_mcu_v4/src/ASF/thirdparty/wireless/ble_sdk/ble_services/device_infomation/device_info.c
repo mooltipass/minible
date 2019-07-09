@@ -321,35 +321,6 @@ void dis_init_service(dis_gatt_service_handler_t *device_info_serv)
 	device_info_serv->serv_chars[7].client_config_handle = 0;         /*client config handles*/
 	device_info_serv->serv_chars[7].server_config_handle = 0;         /*server config handles*/
 	device_info_serv->serv_chars[7].presentation_format = NULL;       /* presentation format */
-	
-	//Characteristic Info for IEEE 11073-20601 Regulatory Certification Data List
-	device_info_serv->serv_chars[8].char_val_handle = 0;          /* handle stored here */
-	device_info_serv->serv_chars[8].uuid.type = AT_BLE_UUID_16;
-	device_info_serv->serv_chars[8].uuid.uuid[0] = (uint8_t) DIS_CHAR_IEEE_REG_CERT_DATA_LIST_UUID;          /* UUID : Software Revision */
-	device_info_serv->serv_chars[8].uuid.uuid[1] = (uint8_t) (DIS_CHAR_IEEE_REG_CERT_DATA_LIST_UUID >> 8);          /* UUID : Software Revision */
-	device_info_serv->serv_chars[8].properties = AT_BLE_CHAR_READ; /* Properties */
-	device_info_serv->serv_chars[8].init_value = char_value.ieee_reg_cert_data_list;					/*Initial Value*/
-	device_info_serv->serv_chars[8].value_init_len = DIS_CHAR_IEEE_REG_CERT_DATA_LIST_INIT_LEN;
-	device_info_serv->serv_chars[8].value_max_len = DIS_CHAR_IEEE_REG_CERT_DATA_LIST_MAX_LEN;
-#if BLE_PAIR_ENABLE
-    #if BLE_MITM_REQ
-    device_info_serv->serv_chars[8].value_permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;   /* permissions */
-    #else
-	device_info_serv->serv_chars[8].value_permissions = AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR;   /* permissions */
-    #endif
-#else
-	device_info_serv->serv_chars[8].value_permissions = AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR;   /* permissions */
-#endif
-	device_info_serv->serv_chars[8].user_desc = NULL;           /* user defined name */
-	device_info_serv->serv_chars[8].user_desc_len = 0;
-	device_info_serv->serv_chars[8].user_desc_max_len = 0;
-	device_info_serv->serv_chars[8].user_desc_permissions = AT_BLE_ATTR_NO_PERMISSIONS;             /*user description permissions*/
-	device_info_serv->serv_chars[8].client_config_permissions = AT_BLE_ATTR_NO_PERMISSIONS;         /*client config permissions*/
-	device_info_serv->serv_chars[8].server_config_permissions = AT_BLE_ATTR_NO_PERMISSIONS;         /*server config permissions*/
-	device_info_serv->serv_chars[8].user_desc_handle = 0;             /*user desc handles*/
-	device_info_serv->serv_chars[8].client_config_handle = 0;         /*client config handles*/
-	device_info_serv->serv_chars[8].server_config_handle = 0;         /*server config handles*/
-	device_info_serv->serv_chars[8].presentation_format = NULL;       /* presentation format */
 }
 
 /**@brief Register a dis service instance inside stack. */
@@ -359,7 +330,7 @@ at_ble_status_t dis_primary_service_define(dis_gatt_service_handler_t *dis_prima
 	return(at_ble_primary_service_define(&dis_primary_service->serv_uuid,
 	&dis_primary_service->serv_handle,
 	NULL, 0,
-	dis_primary_service->serv_chars,DIS_TOTAL_CHARATERISTIC_NUM));
+	dis_primary_service->serv_chars,8));
 }
 
 /**@brief  Update the DIS characteristic value after defining the services using dis_primary_service_define*/

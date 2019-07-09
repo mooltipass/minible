@@ -132,7 +132,7 @@ class generic_hid_device:
 		# Wait for aux MCU ack and main ack
 		if self.ack_flag_in_comms:
 			self.receiveHidPacket(True)
-		return self.receiveHidMessage()
+		return self.receiveHidMessage(True)
 
 	# Receive HID packet, crash when nothing is sent
 	def receiveHidPacket(self, exit_on_timeout):

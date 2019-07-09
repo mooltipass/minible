@@ -52,14 +52,6 @@
 #include "device_info.h"
 #include "logic_bluetooth.h"
 
-static const ble_gap_event_cb_t hid_gap_handle = {
-	.disconnected = hid_prf_disconnect_event_handler
-};
-
-static const ble_gatt_server_event_cb_t hid_gatt_server_handle = {
-	.characteristic_changed = hid_prf_char_changed_handler
-};
-
 /* Notification callback function pointer */
 report_ntf_callback_t report_ntf_cb;
 boot_ntf_callback_t boot_ntf_cb;
@@ -115,16 +107,10 @@ void hid_prf_init(void *param)
 	dis_init_service(&device_info_serv);
 	
 	/* Define the primary service in the GATT server database */
-	dis_primary_service_define(&device_info_serv);
+	dis_primary_service_define(&device_info_serv);    
 	
 	/* HID Profile Advertisement*/
 	hid_prf_dev_adv();
-	
-	/* Callback registering for BLE-GAP Role */
-	ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GAP_EVENT_TYPE, &hid_gap_handle);
-	
-	/* Callback registering for BLE-GATT-Server Role */
-	ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GATT_SERVER_EVENT_TYPE, &hid_gatt_server_handle);
 	
 	UNUSED(param);
 }

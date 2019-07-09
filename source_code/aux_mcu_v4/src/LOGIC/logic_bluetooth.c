@@ -166,12 +166,17 @@ static const ble_gap_event_cb_t hid_app_gap_handle = {
 };
 
 static const ble_gatt_server_event_cb_t hid_app_gatt_server_handle = {
-	.notification_confirmed = hid_notification_confirmed_cb
+	.notification_confirmed = hid_notification_confirmed_cb,
+	.characteristic_changed = hid_prf_char_changed_handler
 };
 
 /* All BLE Manager Custom Event callback */
 static const ble_custom_event_cb_t hid_custom_event_cb = {
 	.custom_event = hid_custom_event
+};
+
+static const ble_gap_event_cb_t hid_gap_handle = {
+    .disconnected = hid_prf_disconnect_event_handler
 };
 
 /* keyboard report */
@@ -312,6 +317,7 @@ static void hid_mooltipass_app_init(void)
 	}else{
 		DBG_LOG("HID Profile Configuration Failed");
 	}
+    return;
     
     /* Now to the RAW HID endpoint */    
     raw_hid_prf_data.hid_serv_instance = 2;
@@ -387,14 +393,13 @@ void logic_bluetooth_start_bluetooth(void)
     &hid_app_gap_handle);
     
     /* Callback registering for BLE-GATT-Server Role */
-    ble_mgr_events_callback_handler(REGISTER_CALL_BACK,
-    BLE_GATT_SERVER_EVENT_TYPE,
-    &hid_app_gatt_server_handle);
+    ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GATT_SERVER_EVENT_TYPE, &hid_app_gatt_server_handle);   
+    
+    /* Callback registering for BLE-GAP Role */
+    ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GAP_EVENT_TYPE, &hid_gap_handle);
     
     /* Register callbacks for custom related events */
-    ble_mgr_events_callback_handler(REGISTER_CALL_BACK,
-    BLE_CUSTOM_EVENT_TYPE,
-    &hid_custom_event_cb);
+    ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_CUSTOM_EVENT_TYPE, &hid_custom_event_cb);
     
     /* Capturing the events  */
     while(FALSE)
