@@ -35,8 +35,8 @@ BOOL logic_bluetooth_connected = FALSE;
 /* Keyboard report value */
 uint8_t app_keyb_report[8] = {0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00};
 /* Raw Keyboard report value */
-uint8_t raw_hid_data_in_buf[65];
-uint8_t raw_hid_data_out_buf[65];
+uint8_t raw_hid_data_in_buf[64];
+uint8_t raw_hid_data_out_buf[64];
 /* Keyboard key status */
 volatile uint8_t key_status = 0;
 /* Notification sent flag for battery char changed */
@@ -50,6 +50,16 @@ uint8_t ble_battery_level = 33;
 /* Just paired to device */
 BOOL logic_bluetooth_just_paired = FALSE;
 
+
+void logic_bluetooth_send(uint8_t* data, uint16_t data_len)
+{
+    if (data_len > 64)
+    {
+        data_len = 64;
+    }
+    memcpy(raw_hid_data_out_buf, data, data_len);
+    hid_prf_report_update(0, 1, 2, raw_hid_data_out_buf, sizeof(raw_hid_data_out_buf));
+}
 
 static at_ble_status_t hid_custom_event(void *param)
 {

@@ -211,6 +211,15 @@ at_ble_status_t hid_prf_char_changed_handler(void *params)
 		   mode_ntf_cb(&protocol_mode);
 	   }
 	   break;
+       
+       case CHAR_REPORT:
+       {
+           if (serv_inst == 1)
+           {
+               logic_bluetooth_send(change_params.char_new_value, change_params.char_len);
+           }
+       }
+       break;           
 	   
 	   case CHAR_REPORT_CCD:
 	   {
