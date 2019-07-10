@@ -223,6 +223,11 @@ at_ble_status_t hid_prf_char_changed_handler(void *params)
 	   break;
 		   
 	   case (BOOT_MOUSE_INPUT_REPORT||BOOT_KEY_INPUT_REPORT):
+       {
+       }
+       break;
+
+       case (BOOT_KEY_INPUT_CCD):
 	   {
 		   boot_info.serv_inst = serv_inst;
 		   boot_info.boot_value = ntf_op;
@@ -231,6 +236,7 @@ at_ble_status_t hid_prf_char_changed_handler(void *params)
 		   boot_ntf_cb(&boot_info);
 	   }
 	   break;
+
 	   case CONTROL_POINT:
 	   {
 		  control_point.serv_inst = serv_inst;
@@ -238,6 +244,7 @@ at_ble_status_t hid_prf_char_changed_handler(void *params)
 		  control_point_ntf_cb(&control_point);
 	   }
 	   break;
+
 	   default:
 	   {
 		   DBG_LOG_DEV("Unhandled Notification");

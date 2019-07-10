@@ -47,6 +47,9 @@ bat_gatt_service_handler_t bas_service_handler;
 at_ble_handle_t ble_connection_handle;
 /* Battery level advertised */
 uint8_t ble_battery_level = 33;
+/* Just paired to device */
+BOOL logic_bluetooth_just_paired = FALSE;
+
 
 static at_ble_status_t hid_custom_event(void *param)
 {
@@ -95,6 +98,7 @@ static at_ble_status_t ble_paired_app_event(void *param)
 	at_ble_pair_done_t *pair_done = (at_ble_pair_done_t *)param;
 	if(pair_done->status == AT_BLE_SUCCESS)
 	{
+    	logic_bluetooth_just_paired = TRUE;
     	DBG_LOG("Paired to device");
 		ALL_UNUSED(param);
 		return pair_done->status;
@@ -317,7 +321,6 @@ static void hid_mooltipass_app_init(void)
 	}else{
 		DBG_LOG("HID Profile Configuration Failed");
 	}
-    return;
     
     /* Now to the RAW HID endpoint */    
     raw_hid_prf_data.hid_serv_instance = 2;
@@ -439,6 +442,11 @@ void logic_bluetooth_start_bluetooth(void)
 void logic_bluetooth_routine(void)
 {
     ble_event_task();
+    
+    if (logic_bluetooth_just_paired != FALSE)
+    {
+        logic_bluetooth_just_paired = FALSE;
+    }
     
     if (logic_bluetooth_connected != FALSE)
     {

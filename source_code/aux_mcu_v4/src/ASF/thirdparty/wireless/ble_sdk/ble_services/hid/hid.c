@@ -346,7 +346,7 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
 	
 	if(device == HID_KEYBOARD_MODE)
     {
-        DBG_LOG("boot keyboard intput characteristic: %d", cur_characteristic_index);
+        DBG_LOG("boot keyboard output characteristic: %d", cur_characteristic_index);
         #ifdef ENABLE_PTS
 	    uint8_t i=0;
 	    DBG_LOG_PTS("Boot Keyboard Input Report Characteristic Value");
@@ -411,7 +411,7 @@ void hid_serv_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t repo
         /* Increment current index */
         cur_characteristic_index++;
 		 
-		DBG_LOG("boot keyboard output characteristic: %d", cur_characteristic_index);
+		DBG_LOG("boot keyboard input characteristic: %d", cur_characteristic_index);
         /*Configure HID Boot Keyboard Input Report Characteristic : Value related info*/
         hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
         hid_inst[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
@@ -648,6 +648,10 @@ uint8_t hid_ntf_instance(uint8_t serv_num, uint16_t char_handle)
 	if(hid_serv_inst[serv_num].hid_dev_boot_keyboard_in_report->char_val.handle == char_handle){
 		return BOOT_KEY_INPUT_REPORT;
 	}
+	DBG_LOG_DEV("hid_ntf_instance :: Boot Keyboard CCD Handle %d", hid_serv_inst[serv_num].hid_dev_boot_keyboard_in_report->client_config_desc.handle);
+	if(hid_serv_inst[serv_num].hid_dev_boot_keyboard_in_report->client_config_desc.handle == char_handle){
+		return BOOT_KEY_INPUT_CCD;
+	}
 #endif
 
 #ifdef HID_MOUSE_DEVICE
@@ -661,7 +665,7 @@ uint8_t hid_ntf_instance(uint8_t serv_num, uint16_t char_handle)
 	if(hid_serv_inst[serv_num].hid_control_point->char_val.handle == char_handle){
 		return CONTROL_POINT;
 	}
-	return 0;
+	return 0xFF;
 }
 
 /**
