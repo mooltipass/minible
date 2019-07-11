@@ -23,12 +23,15 @@
 /** @brief Disable caps */
 #define CAPS_OFF (0)
 
+/* Global vars */
+
+
 /* Prototypes */
+void logic_bluetooth_send(uint8_t* data, uint16_t data_len);
 at_ble_status_t ble_char_changed_app_event(void *param);
 void logic_bluetoot_set_battery_level(uint8_t pct);
 void logic_bluetooth_start_bluetooth(void);
 void logic_bluetooth_routine(void);
-void logic_bluetooth_send(uint8_t* data, uint16_t data_len);
 
 
 #endif /* LOGIC_BLUETOOTH_H_ */

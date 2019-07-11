@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "platform_defines.h"
+#include "logic_bluetooth.h"
 #include "comms_main_mcu.h"
 #include "comms_raw_hid.h"
 #include "defines.h"
@@ -34,6 +35,15 @@ volatile BOOL comms_usb_just_enumerated = FALSE;
 /* Set when we are enumerated */
 BOOL comms_usb_enumerated = FALSE;
 
+
+/*! \fn     comms_raw_hid_get_recv_buffer(hid_interface_te hid_interface)
+*   \brief  Get the pointer to a receive buffer
+*   \param  hid_interface   HID interface
+*/
+uint8_t* comms_raw_hid_get_recv_buffer(hid_interface_te hid_interface)
+{
+    return (uint8_t*)&(raw_hid_recv_buffer[hid_interface]);
+}
 
 /*! \fn     comms_raw_hid_recv_callback(hid_interface_te hid_interface, uint16_t recv_bytes)
 *   \brief  Function called when a HID packet is received
@@ -101,6 +111,9 @@ void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* pac
     } 
     else
     {
+        logic_bluetooth_send((uint8_t*)packet, payload_size);
+        // TO REMOVE LATER
+        comms_raw_hid_packet_being_sent[hid_interface] = FALSE;
     }
     
     /* If asked, wait */

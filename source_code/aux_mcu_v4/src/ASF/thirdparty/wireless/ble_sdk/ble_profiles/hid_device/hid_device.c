@@ -50,6 +50,7 @@
 #include "hid_device.h"
 #include "hid.h"
 #include "device_info.h"
+#include "comms_raw_hid.h"
 #include "logic_bluetooth.h"
 
 /* Notification callback function pointer */
@@ -216,7 +217,9 @@ at_ble_status_t hid_prf_char_changed_handler(void *params)
        {
            if (serv_inst == 1)
            {
-               logic_bluetooth_send(change_params.char_new_value, change_params.char_len);
+               uint8_t* recv_buf = comms_raw_hid_get_recv_buffer(BLE_INTERFACE);
+               memcpy(recv_buf, change_params.char_new_value, change_params.char_len);
+               comms_raw_hid_recv_callback(BLE_INTERFACE, change_params.char_len);
            }
        }
        break;           
