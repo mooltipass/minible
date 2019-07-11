@@ -7,230 +7,318 @@
 #include "platform_defines.h"
 #include "logic_bluetooth.h"
 #include "driver_timer.h"
+#include "device_info.h"
 #include "ble_manager.h"
 #include "at_ble_api.h"
-#include "hid_device.h"
 #include "ble_utils.h"
 #include "battery.h"
 #include "defines.h"
-#include "hid.h"
-/* Control point notification structure */
-hid_control_mode_ntf_t hid_control_point_value; 
-/* Report notification structure */
-hid_report_ntf_t report_ntf_info;
-/* Boot notification structure */
-hid_boot_ntf_t  boot_ntf_info;
-/* Protocol mode notification structure */
-hid_proto_mode_ntf_t hid_proto_mode_value;
-/* HID profile structure for application */
-hid_prf_info_t hid_prf_data;
-/* HID profile structure for application */
-hid_prf_info_t raw_hid_prf_data;
-/* Keyboard character info to be displayed during demo */
-uint8_t keyb_disp[12] = {0x0B, 0x08, 0x0F, 0x0F, 0x12, 0x2C, 0x04, 0x17, 0x10, 0x08, 0x0F, 0x28};
-/* Keyboard character to be printed */
-uint8_t keyb_id = 0;
-/* Profile connection status */
-BOOL logic_bluetooth_connected = FALSE;
-/* Keyboard report value */
-uint8_t app_keyb_report[8] = {0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00};
-/* Raw Keyboard report value */
-uint8_t raw_hid_data_in_buf[64];
-uint8_t raw_hid_data_out_buf[64];
-/* Keyboard key status */
-volatile uint8_t key_status = 0;
-/* Notification sent flag for battery char changed */
-BOOL battery_notification_flag = TRUE;
+/* Control point notification structure for HID services*/
+hid_control_mode_ntf_t logic_bluetooth_hid_control_point_value[HID_MAX_SERV_INST];
+/* Report notification structure for HID services */
+hid_report_ntf_t logic_bluetooth_report_ntf_info[BLE_TOTAL_NUMBER_OF_REPORTS];
+/* HID GATT services instances */
+hid_gatt_serv_handler_t logic_bluetooth_hid_gatt_instances[HID_MAX_SERV_INST];
+/* HID service instances */
+hid_serv_t logic_bluetooth_hid_serv_instances[HID_MAX_SERV_INST];
+/* Boot notification structure for keyboard service in boot protocol */
+hid_boot_ntf_t logic_bluetooth_boot_keyboard_report_ntf_info;
+/* Protocol mode notification structure for keyboard service */
+hid_proto_mode_ntf_t logic_bluetooth_protocol_mode_value;
 /* Battery service handler */
-bat_gatt_service_handler_t bas_service_handler;
-/* Connection handle */
-at_ble_handle_t ble_connection_handle;
+bat_gatt_service_handler_t logic_bluetooth_bas_service_handler;
+/* Notification sent flag for battery char changed */
+BOOL logic_bluetooth_battery_notification_flag = TRUE;
+/* Bluetooth connection handle */
+at_ble_handle_t logic_bluetooth_ble_connection_handle;
 /* Battery level advertised */
-uint8_t ble_battery_level = 33;
-/* Just paired to device */
+uint8_t logic_bluetooth_ble_battery_level = 33;
+/* Array of pointers to keyboard & raw hid profiles */
+hid_prf_info_t* hid_prf_dataref[HID_MAX_SERV_INST];
+/* HID profile structure for raw hid profile */
+hid_prf_info_t logic_bluetooth_raw_hid_prf_data;
+/* HID profile structure for keyboard profile */
+hid_prf_info_t logic_bluetooth_hid_prf_data;
+/* HID reports for RAW HID interface */
+uint8_t logic_bluetooth_raw_hid_data_out_buf[64];
+uint8_t logic_bluetooth_raw_hid_data_in_buf[64];
+/* Control points and reports for HID keyboard */
+uint8_t logic_bluetooth_boot_keyb_out_report[1];
+uint8_t logic_bluetooth_boot_keyb_in_report[8];
+uint8_t logic_bluetooth_keyboard_in_report[8];
+uint8_t logic_bluetooth_ctrl_point[1];
+/* Bluetooth connection bools */
 BOOL logic_bluetooth_just_paired = FALSE;
+BOOL logic_bluetooth_connected = FALSE;
+BOOL logic_bluetooth_paired = FALSE;
 
-
-void logic_bluetooth_send(uint8_t* data, uint16_t data_len)
-{
-    if (data_len > 64)
-    {
-        data_len = 64;
-    }
-    memcpy(raw_hid_data_out_buf, data, data_len);
-    hid_prf_report_update(0, 1, 2, raw_hid_data_out_buf, sizeof(raw_hid_data_out_buf));
-}
 
 static at_ble_status_t hid_custom_event(void *param)
 {
     at_ble_status_t status = AT_BLE_SUCCESS;
-    key_status = 1;
     return status;
 }
 
-/* Callback called during connection */
-static at_ble_status_t hid_connect_cb(void *params)
+/*! \fn     logic_bluetooth_hid_connected_callback(void* params)
+*   \brief  Called during device connection
+*/
+static at_ble_status_t logic_bluetooth_hid_connected_callback(void* params)
 {
-    at_ble_handle_t *handle;
-    handle = (at_ble_handle_t *)params;
-    keyb_id = 0;
-    logic_bluetooth_connected = TRUE;
-    ALL_UNUSED(&handle);
     DBG_LOG("Connected to device");
-    timer_start_timer(TIMER_BT_TESTS, 5000);
-
-    /* From battery service */
-    at_ble_connected_t *connected = (at_ble_connected_t *)params;
-    ble_connection_handle = connected->handle;
+    
+    /* Set booleans */
+    logic_bluetooth_connected = TRUE;
+    
+    /* Store connection handle */
+    at_ble_connected_t* connected = (at_ble_connected_t*)params;
+    logic_bluetooth_ble_connection_handle = connected->handle;
 
     return AT_BLE_SUCCESS;
 }
 
-/* Callback called during disconnect */
-static at_ble_status_t hid_disconnect_cb(void *params)
+/*! \fn     logic_bluetooth_hid_disconnected_callback(void* params)
+*   \brief  Called during device disconnection
+*/
+static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
 {
-    at_ble_handle_t *handle;
-    handle =(at_ble_handle_t *)params;
-    keyb_id = 0;
-    logic_bluetooth_connected = FALSE;
-    ALL_UNUSED(&handle);
     DBG_LOG("Disconnected from device");
+    
+    /* Set booleans */
+    logic_bluetooth_just_paired = FALSE;
+    logic_bluetooth_connected = FALSE;
+    logic_bluetooth_paired = FALSE;
 
     /* From battery service */
-    battery_notification_flag = TRUE;
+    logic_bluetooth_battery_notification_flag = TRUE;    
+    
+    /* Start advertising again */
+    logic_bluetooth_start_advertising();
 
     return AT_BLE_SUCCESS;
 }
 
-/* Callback registered for AT_BLE_PAIR_DONE event from stack */
-static at_ble_status_t ble_paired_app_event(void *param)
+/*! \fn     logic_bluetooth_hid_paired_callback(void* params)
+*   \brief  Called during device pairing
+*/
+static at_ble_status_t logic_bluetooth_hid_paired_callback(void* param)
 {
-	at_ble_pair_done_t *pair_done = (at_ble_pair_done_t *)param;
-	if(pair_done->status == AT_BLE_SUCCESS)
-	{
-    	logic_bluetooth_just_paired = TRUE;
-    	DBG_LOG("Paired to device");
-		ALL_UNUSED(param);
-		return pair_done->status;
-	}
+    at_ble_pair_done_t* pair_done = (at_ble_pair_done_t*)param;
+    
+    if(pair_done->status == AT_BLE_SUCCESS)
+    {
+        DBG_LOG("Paired to device");
+        
+        /* Set booleans */
+        logic_bluetooth_just_paired = TRUE;
+        logic_bluetooth_paired = TRUE;
+    }
     else
     {
-    	DBG_LOG("Failed pairing to device");
+        DBG_LOG("Failed pairing to device");
     }
-	return pair_done->status;
+    
+    return pair_done->status;
 }
 
-/* Callback registered for AT_BLE_ENCRYPTION_STATUS_CHANGED event from stack */
-static at_ble_status_t ble_enc_status_changed_app_event(void *param)
+/*! \fn     logic_bluetooth_encryption_changed_callback(void* params)
+*   \brief  Called during encryption status change
+*/
+static at_ble_status_t logic_bluetooth_encryption_changed_callback(void *param)
 {
-	at_ble_encryption_status_changed_t *encryption_status_changed = (at_ble_encryption_status_changed_t *)param;
-	if(encryption_status_changed->status == AT_BLE_SUCCESS)
-	{
-    	DBG_LOG("Enc status changed success");
-		ALL_UNUSED(param);
-		return encryption_status_changed->status;
-	}
+    at_ble_encryption_status_changed_t *encryption_status_changed = (at_ble_encryption_status_changed_t *)param;
+    if(encryption_status_changed->status == AT_BLE_SUCCESS)
+    {
+        DBG_LOG("Enc status changed success");
+        return encryption_status_changed->status;
+    }
     else
     {
         DBG_LOG("Enc status changed failed");
     }
-	return encryption_status_changed->status;
+    return encryption_status_changed->status;
 }
 
-/* Callback called when report send over the air */
-static at_ble_status_t hid_notification_confirmed_cb(void *params)
+/* Callbacks for GAP */
+static const ble_gap_event_cb_t hid_app_gap_handle = 
+{
+    .connected = logic_bluetooth_hid_connected_callback,
+    .disconnected = logic_bluetooth_hid_disconnected_callback,
+    .pair_done = logic_bluetooth_hid_paired_callback,
+    .encryption_status_changed = logic_bluetooth_encryption_changed_callback
+};
+
+/*! \fn     logic_bluetooth_notification_confirmed_callback(void* params)
+*   \brief  Called when the notification has been confirmed by client
+*/
+static at_ble_status_t logic_bluetooth_notification_confirmed_callback(void* params)
 {
     // TODO explore for what this is sent... keyboard/hid/battery
-	at_ble_cmd_complete_event_t *notification_status;
-	notification_status = (at_ble_cmd_complete_event_t *)params;
-	DBG_LOG_DEV("Keyboard report send to host status %d", notification_status->status);
+    at_ble_cmd_complete_event_t *notification_status;
+    notification_status = (at_ble_cmd_complete_event_t *)params;
+    DBG_LOG_DEV("Keyboard report send to host status %d", notification_status->status);
 
     /* From battery service */
     if(!notification_status->status)
     {
-        battery_notification_flag = TRUE;
+        logic_bluetooth_battery_notification_flag = TRUE;
         DBG_LOG_DEV("sending notification to the peer success");
     }
 
-	return AT_BLE_SUCCESS;
+    return AT_BLE_SUCCESS;
 }
 
-/* Callback registered for AT_BLE_CHARACTERISTIC_CHANGED event from stack */
-at_ble_status_t ble_char_changed_app_event(void *param)
+/*! \fn     logic_bluetooth_characteristic_changed_handler(void* params)
+*   \brief  Service characteristic change handler function
+*/
+at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params)
 {
-    at_ble_characteristic_changed_t *char_handle = (at_ble_characteristic_changed_t *)param;
-    at_ble_status_t status = bat_char_changed_event(&bas_service_handler, char_handle);
-    if(status == AT_BLE_SUCCESS)
-    {
-        battery_notification_flag = TRUE;
-    }
-    else if (status == AT_BLE_PRF_NTF_DISABLED)
-    {
-        battery_notification_flag = FALSE;
-    }
+    at_ble_characteristic_changed_t change_params;
 
-    return status;
+    /* Copy locally the change params */
+    memcpy((uint8_t*)&change_params, params, sizeof(at_ble_characteristic_changed_t));
+    
+    /* See if this is for the hid service, and if so get the service instance */
+    uint8_t serv_inst = logic_bluetooth_get_hid_serv_instance(change_params.char_handle);
+    DBG_LOG_DEV("hid_prf_char_changed_handler : Service Instance %d", serv_inst);
+    
+    /* Mathieu: if we were not able to find the handle for HID, it means this is meant for battery service */
+    if (serv_inst == 0xFF)
+    {
+        DBG_LOG_DEV("Couldn't find HID instance, redirecting to device info service");
+        at_ble_status_t status = bat_char_changed_event(&logic_bluetooth_bas_service_handler, (at_ble_characteristic_changed_t*)params);
+        if(status == AT_BLE_SUCCESS)
+        {
+            logic_bluetooth_battery_notification_flag = TRUE;
+        }
+        else if (status == AT_BLE_PRF_NTF_DISABLED)
+        {
+            logic_bluetooth_battery_notification_flag = FALSE;
+        }
+        return status;
+    }
+    
+    /* Get the kind of notification based on the characteristic handle */
+    uint8_t ntf_op = logic_bluetooth_get_notif_instance(serv_inst, change_params.char_handle);
+    DBG_LOG_DEV("hid_prf_char_changed_handler : Notification Operation %d", ntf_op);
+    
+    switch(ntf_op)
+    {
+        case PROTOCOL_MODE:
+        {
+            logic_bluetooth_protocol_mode_value.serv_inst = serv_inst;
+            logic_bluetooth_protocol_mode_value.mode = change_params.char_new_value[0];
+            logic_bluetooth_protocol_mode_value.conn_handle = change_params.conn_handle;
+            hid_prf_dataref[serv_inst]->protocol_mode = change_params.char_new_value[0];
+            DBG_LOG_DEV("Protocol Mode Notification Callback :: Service Instance %d  New Protocol Mode  %d  Connection Handle %d", serv_inst, logic_bluetooth_protocol_mode_value.mode, change_params.conn_handle);
+        }
+        break;
+        
+        case CHAR_REPORT:
+        {
+            if (serv_inst == BLE_RAW_HID_SERVICE_INSTANCE)
+            {
+                uint8_t* recv_buf = comms_raw_hid_get_recv_buffer(BLE_INTERFACE);
+                memcpy(recv_buf, change_params.char_new_value, change_params.char_len);
+                comms_raw_hid_recv_callback(BLE_INTERFACE, change_params.char_len);
+            }
+        }
+        break;
+        
+        case CHAR_REPORT_CCD:
+        {
+            uint8_t report_id = logic_bluetooth_get_reportid(serv_inst, change_params.char_handle);
+            logic_bluetooth_report_ntf_info[report_id].serv_inst = serv_inst;
+            logic_bluetooth_report_ntf_info[report_id].report_ID = report_id;
+            logic_bluetooth_report_ntf_info[report_id].conn_handle = change_params.conn_handle;
+            logic_bluetooth_report_ntf_info[report_id].ntf_conf = (change_params.char_new_value[1]<<8 | change_params.char_new_value[0]);
+            DBG_LOG_DEV("Report Notification Callback Service Instance %d  Report ID  %d  Notification(Enable/Disable) %d Connection Handle %d", serv_inst, report_id, logic_bluetooth_report_ntf_info[report_id].ntf_conf, change_params.conn_handle);
+        }
+        break;
+        
+        case (BOOT_KEY_INPUT_REPORT):
+        {
+            // todo... do something about that
+        }
+        break;
+
+        case (BOOT_KEY_INPUT_CCD):
+        {
+            logic_bluetooth_boot_keyboard_report_ntf_info.serv_inst = serv_inst;
+            logic_bluetooth_boot_keyboard_report_ntf_info.boot_value = ntf_op;
+            logic_bluetooth_boot_keyboard_report_ntf_info.conn_handle = change_params.conn_handle;
+            logic_bluetooth_boot_keyboard_report_ntf_info.ntf_conf = (change_params.char_new_value[1]<<8 | change_params.char_new_value[0]);
+            DBG_LOG_DEV("Boot Notification Callback :: Service Instance %d  Boot Value  %d  Notification(Enable/Disable) %d", serv_inst, ntf_op, logic_bluetooth_boot_keyboard_report_ntf_info.ntf_conf);
+        }
+        break;
+
+        case CONTROL_POINT:
+        {
+            logic_bluetooth_hid_control_point_value[serv_inst].serv_inst = serv_inst;
+            logic_bluetooth_hid_control_point_value[serv_inst].control_value = (change_params.char_new_value[1]<<8 | change_params.char_new_value[0]);
+            DBG_LOG_DEV("Control Point Notification Callback :: Service Instance %d Control Value %d", logic_bluetooth_hid_control_point_value[serv_inst].serv_inst, logic_bluetooth_hid_control_point_value[serv_inst].control_value);
+        }
+        break;
+
+        default:
+        {
+            DBG_LOG_DEV("Unhandled Notification");
+        }
+        break;
+    }
+    return AT_BLE_SUCCESS;
 }
 
-static const ble_gap_event_cb_t hid_app_gap_handle = {
-	.connected = hid_connect_cb,
-	.disconnected = hid_disconnect_cb,
-	.pair_done = ble_paired_app_event,
-	.encryption_status_changed = ble_enc_status_changed_app_event
-};
-
-static const ble_gatt_server_event_cb_t hid_app_gatt_server_handle = {
-	.notification_confirmed = hid_notification_confirmed_cb,
-	.characteristic_changed = hid_prf_char_changed_handler
+/* GATT callbacks */
+static const ble_gatt_server_event_cb_t hid_app_gatt_server_handle = 
+{
+    .notification_confirmed = logic_bluetooth_notification_confirmed_callback,
+    .characteristic_changed = logic_bluetooth_characteristic_changed_handler
 };
 
 /* All BLE Manager Custom Event callback */
-static const ble_custom_event_cb_t hid_custom_event_cb = {
-	.custom_event = hid_custom_event
-};
-
-static const ble_gap_event_cb_t hid_gap_handle = {
-    .disconnected = hid_prf_disconnect_event_handler
+static const ble_custom_event_cb_t hid_custom_event_cb = 
+{
+    .custom_event = hid_custom_event
 };
 
 /* keyboard report */
-static uint8_t hid_app_keyb_report_map[] =
+static uint8_t logic_bluetooth_keyb_report_map[] =
 {
-   0x05, 0x01,		/* Usage Page (Generic Desktop)      */
-   0x09, 0x06,		/* Usage (Keyboard)                  */
-   0xA1, 0x01,		/* Collection (Application)          */
-   0x85, 0x01,		/* REPORT ID (1) - MANDATORY         */ 
-   0x05, 0x07,		/* Usage Page (Keyboard)             */
-   0x19, 224,		/* Usage Minimum (224)               */
-   0x29, 231,		/* Usage Maximum (231)               */
-   0x15, 0x00,		/* Logical Minimum (0)               */
-   0x25, 0x01,		/* Logical Maximum (1)               */
-   0x75, 0x01,		/* Report Size (1)                   */
-   0x95, 0x08,		/* Report Count (8)                  */
-   0x81, 0x02,		/* Input (Data, Variable, Absolute)  */
-   0x81, 0x01,		/* Input (Constant)                  */
-   0x19, 0x00,		/* Usage Minimum (0)                 */
-   0x29, 101,		/* Usage Maximum (101)               */
-   0x15, 0x00,		/* Logical Minimum (0)               */
-   0x25, 101,		/* Logical Maximum (101)             */
-   0x75, 0x08,		/* Report Size (8)                   */
-   0x95, 0x06,		/* Report Count (6)                  */
-   0x81, 0x00,		/* Input (Data, Array)               */
-   0x05, 0x08,		/* Usage Page (LED)                  */
-   0x19, 0x01,		/* Usage Minimum (1)                 */
-   0x29, 0x05,		/* Usage Maximum (5)                 */
-   0x15, 0x00,		/* Logical Minimum (0)               */
-   0x25, 0x01,		/* Logical Maximum (1)               */
-   0x75, 0x01,		/* Report Size (1)                   */
-   0x95, 0x05,		/* Report Count (5)                  */
-   0x91, 0x02,		/* Output (Data, Variable, Absolute) */
-   0x95, 0x03,		/* Report Count (3)                  */
-   0x91, 0x01,		/* Output (Constant)                 */
-   0xC0				/* End Collection                    */
+   0x05, 0x01,      /* Usage Page (Generic Desktop)      */
+   0x09, 0x06,      /* Usage (Keyboard)                  */
+   0xA1, 0x01,      /* Collection (Application)          */
+   0x85, 0x01,      /* REPORT ID (1) - MANDATORY         */ 
+   0x05, 0x07,      /* Usage Page (Keyboard)             */
+   0x19, 224,       /* Usage Minimum (224)               */
+   0x29, 231,       /* Usage Maximum (231)               */
+   0x15, 0x00,      /* Logical Minimum (0)               */
+   0x25, 0x01,      /* Logical Maximum (1)               */
+   0x75, 0x01,      /* Report Size (1)                   */
+   0x95, 0x08,      /* Report Count (8)                  */
+   0x81, 0x02,      /* Input (Data, Variable, Absolute)  */
+   0x81, 0x01,      /* Input (Constant)                  */
+   0x19, 0x00,      /* Usage Minimum (0)                 */
+   0x29, 101,       /* Usage Maximum (101)               */
+   0x15, 0x00,      /* Logical Minimum (0)               */
+   0x25, 101,       /* Logical Maximum (101)             */
+   0x75, 0x08,      /* Report Size (8)                   */
+   0x95, 0x06,      /* Report Count (6)                  */
+   0x81, 0x00,      /* Input (Data, Array)               */
+   0x05, 0x08,      /* Usage Page (LED)                  */
+   0x19, 0x01,      /* Usage Minimum (1)                 */
+   0x29, 0x05,      /* Usage Maximum (5)                 */
+   0x15, 0x00,      /* Logical Minimum (0)               */
+   0x25, 0x01,      /* Logical Maximum (1)               */
+   0x75, 0x01,      /* Report Size (1)                   */
+   0x95, 0x05,      /* Report Count (5)                  */
+   0x91, 0x02,      /* Output (Data, Variable, Absolute) */
+   0x95, 0x03,      /* Report Count (3)                  */
+   0x91, 0x01,      /* Output (Constant)                 */
+   0xC0             /* End Collection                    */
 };
 
 /* raw keyboard report */
-static uint8_t raw_hid_app_keyb_report_map[] =
+static uint8_t logic_bluetooth_raw_report_map[] =
 {
     0x06, USB_RAWHID_USAGE_PAGE & 0xFF, (USB_RAWHID_USAGE_PAGE >> 8) & 0xFF,
     0x0A, USB_RAWHID_USAGE & 0xFF, (USB_RAWHID_USAGE >> 8) & 0xFF,
@@ -256,199 +344,873 @@ static uint8_t raw_hid_app_keyb_report_map[] =
     0xC0                                // end collection (application)
 };
 
-/* Callback called when host change the control point value */
-static void hid_prf_control_point_ntf_cb(hid_control_mode_ntf_t *hid_control_point_value_t)
-{
-	DBG_LOG_DEV("Control Point Notification Callback :: Service Instance %d Control Value %d", 
-					hid_control_point_value_t->serv_inst, hid_control_point_value_t->control_value);
-}
-
-/* Callback called when host change the protocol mode value */
-static void hid_prf_protocol_mode_ntf_cb(hid_proto_mode_ntf_t *protocol_mode)
-{
-	DBG_LOG_DEV("Protocol Mode Notification Callback :: Service Instance %d  New Protocol Mode  %d  Connection Handle %d", 
-					protocol_mode->serv_inst, protocol_mode->mode, protocol_mode->conn_handle);
-}
-
-/* Callback called when host enable/disable the notification for boot report (Mouse/Keyboard)
-   Mouse Boot Value 4
-   Keyboard Boot Value 6
+/*! \fn     logic_bluetooth_get_hid_serv_instance(uint16_t handle)
+*   \brief  Function to get service instance
+*   \param  Connection handle
 */
-static void hid_prf_boot_ntf_cb(hid_boot_ntf_t *boot_ntf_info_t)
+uint8_t logic_bluetooth_get_hid_serv_instance(uint16_t handle)
 {
-	DBG_LOG_DEV("Boot Notification Callback :: Service Instance %d  Boot Value  %d  Notification(Enable/Disable) %d", 
-					boot_ntf_info_t->serv_inst, boot_ntf_info_t->boot_value, boot_ntf_info_t->ntf_conf);
+    DBG_LOG_DEV("logic_bluetooth_get_hid_serv_instance :: Get service Instance Handle %d", handle);
+    for(uint8_t id = 0; id<HID_MAX_SERV_INST; id++)
+    {
+        DBG_LOG_DEV("logic_bluetooth_get_hid_serv_instance :: Service Handle %d  Characteristic Handle %d", *(logic_bluetooth_hid_serv_instances[id].hid_dev_serv_handle), logic_bluetooth_hid_serv_instances[id].hid_control_point->char_val.handle);
+        if((handle > *(logic_bluetooth_hid_serv_instances[id].hid_dev_serv_handle)) && (handle <= logic_bluetooth_hid_serv_instances[id].hid_control_point->char_val.handle))
+        {
+            DBG_LOG_DEV("logic_bluetooth_get_hid_serv_instance :: Service Instance %d", id);
+            return id;
+        }
+    }
+    return  0xff;
 }
 
-/* Callback called when host enable/disable the notification for report (Mouse/Keyboard) */
-static void hid_prf_report_ntf_cb(hid_report_ntf_t *report_info)
+/*! \fn     logic_bluetooth_get_notif_instance(uint8_t serv_num, uint16_t char_handle)
+*   \brief  Function to get the notification instance.
+*   \param  serv_num        Service Instance
+*   \param  char_handle     Character Handle
+*   \return see enum
+*/
+uint8_t logic_bluetooth_get_notif_instance(uint8_t serv_num, uint16_t char_handle)
 {
-	DBG_LOG_DEV("Report Notification Callback Service Instance %d  Report ID  %d  Notification(Enable/Disable) %d Connection Handle %d", 
-					report_info->serv_inst, report_info->report_ID, report_info->ntf_conf, report_info->conn_handle);
-    report_ntf_info.serv_inst = report_info->serv_inst;
-	report_ntf_info.report_ID = report_info->report_ID;
-	report_ntf_info.ntf_conf = report_info->ntf_conf;
-	report_ntf_info.conn_handle = report_info->conn_handle;
+    DBG_LOG_DEV("logic_bluetooth_get_notif_instance :: Search Handle %d", char_handle);
+    DBG_LOG_DEV("logic_bluetooth_get_notif_instance :: Protocol Mode Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_dev_proto_mode_char->char_val.handle);
+    
+    if(logic_bluetooth_hid_serv_instances[serv_num].hid_dev_proto_mode_char->char_val.handle == char_handle)
+    {
+        return PROTOCOL_MODE;
+    }
+
+    for(uint8_t id = 0; id < hid_prf_dataref[serv_num]->num_of_report; id++)
+    {
+        DBG_LOG_DEV("logic_bluetooth_get_notif_instance :: Report Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_val_char[id]->char_val.handle);
+        if(char_handle == logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_val_char[id]->char_val.handle)
+        {
+            return CHAR_REPORT;
+        }
+        DBG_LOG_DEV("logic_bluetooth_get_notif_instance :: Report CCD Handle %d",logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_val_char[id]->client_config_desc.handle);
+        if(char_handle == logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_val_char[id]->client_config_desc.handle)
+        {
+            return CHAR_REPORT_CCD;
+        }
+    }
+    
+    DBG_LOG_DEV("logic_bluetooth_get_notif_instance :: Boot Keyboard Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_dev_boot_keyboard_in_report->char_val.handle);
+    if(logic_bluetooth_hid_serv_instances[serv_num].hid_dev_boot_keyboard_in_report->char_val.handle == char_handle)
+    {
+        return BOOT_KEY_INPUT_REPORT;
+    }
+    
+    DBG_LOG_DEV("logic_bluetooth_get_notif_instance :: Boot Keyboard CCD Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_dev_boot_keyboard_in_report->client_config_desc.handle);
+    if(logic_bluetooth_hid_serv_instances[serv_num].hid_dev_boot_keyboard_in_report->client_config_desc.handle == char_handle)
+    {
+        return BOOT_KEY_INPUT_CCD;
+    }
+
+    DBG_LOG_DEV("logic_bluetooth_get_notif_instance :: Control Point Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_control_point->char_val.handle);
+    if(logic_bluetooth_hid_serv_instances[serv_num].hid_control_point->char_val.handle == char_handle)
+    {
+        return CONTROL_POINT;
+    }
+    
+    return 0xFF;
 }
 
-/* Initialize the application information for HID profile*/
-static void hid_mooltipass_app_init(void)
+/*! \fn     logic_bluetooth_boot_key_report_update(at_ble_handle_t conn_handle, uint8_t serv_inst, uint8_t* bootreport, uint16_t len)
+*   \brief  Function to update the boot keyboard report
+*   \param  conn_handle     Connection handle
+*   \param  serv_inst       Service Instance
+*   \param  bootreport      Report to be send
+*   \param  len             Length of report
+*/
+void logic_bluetooth_boot_key_report_update(at_ble_handle_t conn_handle, uint8_t serv_inst, uint8_t* bootreport, uint16_t len)
 {
-#ifdef ENABLE_PTS	
-	uint16_t i=0;
-#endif	
-	hid_prf_data.hid_serv_instance = 1;
-	hid_prf_data.hid_device = HID_KEYBOARD_MODE; 
-	hid_prf_data.protocol_mode = HID_REPORT_PROTOCOL_MODE; 
-	hid_prf_data.num_of_report = 1;
-	
-	/*Update the report information based on report id, User can allocate maximum HID_MAX_REPORT_NUM number of report*/
-	hid_prf_data.report_id[0] = 1;  
-	hid_prf_data.report_type[0] = INPUT_REPORT;  
-	
-	hid_prf_data.report_val[0] = &app_keyb_report[0];	
-	hid_prf_data.report_len[0] = sizeof(app_keyb_report);
-	hid_prf_data.report_map_info.report_map = hid_app_keyb_report_map;
-	hid_prf_data.report_map_info.report_map_len = sizeof(hid_app_keyb_report_map);
-	hid_prf_data.hid_device_info.bcd_hid = 0x0111;        
-	hid_prf_data.hid_device_info.bcountry_code = 0x00;
-	hid_prf_data.hid_device_info.flags = 0x02; 
-	
-#ifdef ENABLE_PTS
-	DBG_LOG_PTS("Report Map Characteristic Value");
-	DBG_LOG_PTS("\r\n");
-	for (i=0; i<sizeof(hid_app_keyb_report_map); i++)
-	{
-		DBG_LOG_PTS(" 0x%02X ", hid_app_keyb_report_map[i]);
-	}
-	DBG_LOG_PTS("\r\n");	
-	DBG_LOG_PTS("HID Information Characteristic Value");
-	DBG_LOG_PTS("bcdHID 0x%02X, bCountryCode 0x%02X Flags 0x%02X", hid_prf_data.hid_device_info.bcd_hid, hid_prf_data.hid_device_info.bcountry_code, hid_prf_data.hid_device_info.flags);
-#endif // _DEBUG
-	
-	if(hid_prf_conf(&hid_prf_data)==HID_PRF_SUCESS){
-		DBG_LOG("HID Profile Configured");
-	}else{
-		DBG_LOG("HID Profile Configuration Failed");
-	}
+    at_ble_status_t status;
+    uint16_t length = 2;
+    uint8_t value = 0;
     
-    /* Now to the RAW HID endpoint */    
-    raw_hid_prf_data.hid_serv_instance = 2;
-    raw_hid_prf_data.hid_device = HID_RAW_MODE;
-    //raw_hid_prf_data.hid_device = HID_KEYBOARD_MODE;
-    raw_hid_prf_data.protocol_mode = HID_REPORT_PROTOCOL_MODE;
-    raw_hid_prf_data.num_of_report = 2;
-    
-    /*Update the report information based on report id, User can allocate maximum HID_MAX_REPORT_NUM number of report*/
-    raw_hid_prf_data.report_id[0] = 2;
-    raw_hid_prf_data.report_type[0] = INPUT_REPORT;    
-    raw_hid_prf_data.report_val[0] = &raw_hid_data_out_buf[0];
-    raw_hid_prf_data.report_len[0] = sizeof(raw_hid_data_out_buf);
-    raw_hid_prf_data.report_id[1] = 3;
-    raw_hid_prf_data.report_type[1] = OUTPUT_REPORT;
-    raw_hid_prf_data.report_val[1] = &raw_hid_data_in_buf[0];
-    raw_hid_prf_data.report_len[1] = sizeof(raw_hid_data_in_buf);
-    raw_hid_prf_data.report_map_info.report_map = raw_hid_app_keyb_report_map;
-    raw_hid_prf_data.report_map_info.report_map_len = sizeof(raw_hid_app_keyb_report_map);
-    raw_hid_prf_data.hid_device_info.bcd_hid = 0x0111;
-    raw_hid_prf_data.hid_device_info.bcountry_code = 0x00;
-    raw_hid_prf_data.hid_device_info.flags = 0x02;
-    
-    #ifdef ENABLE_PTS
-    DBG_LOG_PTS("Report Map Characteristic Value");
-    DBG_LOG_PTS("\r\n");
-    for (i=0; i<sizeof(raw_hid_app_keyb_report_map); i++)
+    status = at_ble_characteristic_value_get(logic_bluetooth_hid_serv_instances[serv_inst].hid_dev_boot_keyboard_in_report->client_config_desc.handle, &value, &length);
+    if (status != AT_BLE_SUCCESS)
     {
-        DBG_LOG_PTS(" 0x%02X ", hid_app_keyb_report_map[i]);
-    }
-    DBG_LOG_PTS("\r\n");
-    DBG_LOG_PTS("HID Information Characteristic Value");
-    DBG_LOG_PTS("bcdHID 0x%02X, bCountryCode 0x%02X Flags 0x%02X", raw_hid_prf_data.hid_device_info.bcd_hid, raw_hid_prf_data.hid_device_info.bcountry_code, raw_hid_prf_data.hid_device_info.flags);
-    #endif // _DEBUG
-    
-    if(hid_prf_conf(&raw_hid_prf_data)==HID_PRF_SUCESS){
-        DBG_LOG("RAW HID Profile Configured");
-        }else{
-        DBG_LOG("RAW HID Profile Configuration Failed");
-    }
-}
-
-void logic_bluetooth_start_bluetooth(void)
-{
-    DBG_LOG("Initializing HID Keyboard Application");
-    
-    /* Initialize the profile based on user input */
-    hid_mooltipass_app_init();
-    
-    /* initialize the ble chip  and Set the device mac address */
-    ble_device_init(NULL);    
-    
-    /* Initialize the battery service */
-    bat_init_service(&bas_service_handler, &ble_battery_level);
-    
-    /* Define the primary service in the GATT server database */
-    if(bat_primary_service_define(&bas_service_handler)!= AT_BLE_SUCCESS)
-    {
-        DBG_LOG("defining battery service failed");
+        DBG_LOG_DEV("logic_bluetooth_boot_key_report_update :: Characteristic value get fail Reason %d", status);
     }
     
-    hid_prf_init(NULL);
-    
-    /* Register the notification handler */
-    notify_report_ntf_handler(hid_prf_report_ntf_cb);
-    notify_boot_ntf_handler(hid_prf_boot_ntf_cb);
-    notify_protocol_mode_handler(hid_prf_protocol_mode_ntf_cb);
-    notify_control_point_handler(hid_prf_control_point_ntf_cb);
-    
-    /* Callback registering for BLE-GAP Role */
-    ble_mgr_events_callback_handler(REGISTER_CALL_BACK,
-    BLE_GAP_EVENT_TYPE,
-    &hid_app_gap_handle);
-    
-    /* Callback registering for BLE-GATT-Server Role */
-    ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GATT_SERVER_EVENT_TYPE, &hid_app_gatt_server_handle);   
-    
-    /* Callback registering for BLE-GAP Role */
-    ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GAP_EVENT_TYPE, &hid_gap_handle);
-    
-    /* Register callbacks for custom related events */
-    ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_CUSTOM_EVENT_TYPE, &hid_custom_event_cb);
-    
-    /* Capturing the events  */
-    while(FALSE)
+    //If Notification Enabled
+    if(value == 1)
     {
-        ble_event_task();
-        
-        /* Check for key status */
-        if(key_status && logic_bluetooth_connected){
-            DBG_LOG("Key Pressed...");
-            //delay_ms(KEY_PAD_DEBOUNCE_TIME);
-            if((keyb_id == POSITION_ZERO) || (keyb_id == POSITION_SIX)){
-                app_keyb_report[0] = CAPS_ON;
-                }else{
-                app_keyb_report[0] = CAPS_OFF;
-            }
-            
-            app_keyb_report[2] = keyb_disp[keyb_id];
-            hid_prf_report_update(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
-            //delay_ms(20);
-            app_keyb_report[2] = 0x00;
-            hid_prf_report_update(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
-            
-            key_status = 0;
-            
-            if(keyb_id == MAX_TEXT_LEN)
-            {
-                keyb_id = 0;
-            }
-            else
-            {
-                ++keyb_id;
-            }
+        status = at_ble_characteristic_value_set(logic_bluetooth_hid_serv_instances[serv_inst].hid_dev_boot_keyboard_in_report->char_val.handle, bootreport, len);
+        if (status != AT_BLE_SUCCESS)
+        {
+            DBG_LOG_DEV("logic_bluetooth_boot_key_report_update :: Characteristic value set fail Reason %d", status);
+        }
+        //Need to check for connection handle
+        status = at_ble_notification_send(conn_handle, logic_bluetooth_hid_serv_instances[serv_inst].hid_dev_boot_keyboard_in_report->char_val.handle);
+        if (status != AT_BLE_SUCCESS)
+        {
+            DBG_LOG_DEV("logic_bluetooth_boot_key_report_update :: Notification send failed %d", status);
         }
     }
 }
 
+/*! \fn     logic_bluetooth_get_reportid(uint8_t serv, uint16_t handle)
+*   \brief  Function to get the report ID
+*   \param  serv        HID service instance
+*   \param  handle      Connection handle
+  */
+uint8_t logic_bluetooth_get_reportid(uint8_t serv, uint16_t handle)
+{
+    uint8_t descval[2] = {0, 0};
+    uint16_t len = 2;
+    uint8_t id = 0;
+    uint8_t status;
+    
+    DBG_LOG_DEV("logic_bluetooth_get_reportid :: Report Number %d", hid_prf_dataref[serv]->num_of_report);
+    for(id = 0; id < hid_prf_dataref[serv]->num_of_report; id++)
+    {
+        DBG_LOG_DEV("logic_bluetooth_get_reportid :: id %d Search Handle %d, CCD Handle %d", id, handle, logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->client_config_desc.handle);
+        if(handle == logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->client_config_desc.handle)
+        {
+            DBG_LOG_DEV("logic_bluetooth_get_reportid :: Report ID Descriptor Handle %d :: id %d :: serv %d", logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->additional_desc_list->handle, id, serv);
+            status = at_ble_descriptor_value_get(logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->additional_desc_list->handle, &descval[0], &len);
+            if (status != AT_BLE_SUCCESS)
+            {
+                DBG_LOG_DEV("logic_bluetooth_get_reportid :: Decriptor value get failed");
+            }
+            else
+            {
+                DBG_LOG_DEV("logic_bluetooth_get_reportid :: Descriptor value Report ID %d Type %d", descval[0], descval[1]);   
+            }
+            return descval[0];
+        }
+    }
+    return HID_INVALID_INST;
+}
+
+/*! \fn     logic_bluetooth_get_report_characteristic(uint16_t handle, uint8_t serv, uint8_t reportid)
+*   \brief  Function to get report characteristic id.
+*   \param  handle      Connection handle
+*   \param  serv        Service Instance
+*   \param  reportid    Report id
+*/
+uint8_t logic_bluetooth_get_report_characteristic(uint16_t handle, uint8_t serv, uint8_t reportid)
+{
+    uint8_t descval[2] = {0, 0};
+    at_ble_status_t status;
+    uint16_t len = 2;
+    uint8_t id = 0;
+
+    DBG_LOG_DEV("logic_bluetooth_get_report_characteristic :: Handle %d Service Instance %d Report ID %d", handle, serv, reportid); 
+    for(id = 0; id < hid_prf_dataref[serv]->num_of_report; id++)
+    {
+        DBG_LOG_DEV("logic_bluetooth_get_report_characteristic :: Report ID Descriptor Handle %d :: id %d :: serv %d", logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->additional_desc_list->handle, id, serv);
+        status = at_ble_descriptor_value_get(logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->additional_desc_list->handle, &descval[0], &len);
+        if (status != AT_BLE_SUCCESS)
+        {
+            DBG_LOG_DEV("logic_bluetooth_get_report_characteristic :: Decriptor value get failed Reason %d", status);
+        }
+        else
+        {
+            DBG_LOG_DEV("logic_bluetooth_get_report_characteristic :: Report Value ID %d Type %d", descval[0], descval[1]); 
+        }
+        if(descval[0] == reportid)
+        {
+            DBG_LOG_DEV("logic_bluetooth_get_report_characteristic :: Report Characteristic ID %d", id);
+            return id;
+        }
+    }
+    
+    DBG_LOG_DEV("Couldn't find report char!");
+    return HID_INVALID_INST;
+}
+
+/*! \fn     logic_bluetooth_update_report(uint16_t conn_handle, uint8_t serv_inst, uint8_t reportid, uint8_t *report, uint16_t len)
+*   \brief  Function to update the report
+*   \param  conn_handle Connection handle
+*   \param  serv_inst   Service Instance
+*   \param  report_id   Report ID
+*   \param  report      Report to be send
+*   \param  len         Length of report
+*/
+void logic_bluetooth_update_report(uint16_t conn_handle, uint8_t serv_inst, uint8_t reportid, uint8_t* report, uint16_t len)
+{
+    // TODO: should we check for notification subscription?
+    uint16_t status = 0;
+    uint8_t id;
+    
+    /* Get report characteristic id */
+    id = logic_bluetooth_get_report_characteristic(conn_handle, serv_inst, reportid);
+    
+    if(id != HID_INVALID_INST)
+    {
+        DBG_LOG_DEV("logic_bluetooth_update_report :: Send report");
+        if((status = at_ble_characteristic_value_set(logic_bluetooth_hid_serv_instances[serv_inst].hid_dev_report_val_char[id]->char_val.handle, report, len)) == AT_BLE_SUCCESS)
+        {
+            DBG_LOG_DEV("logic_bluetooth_update_report :: Notify Value conn_handle %d", conn_handle);
+            status = at_ble_notification_send(conn_handle, logic_bluetooth_hid_serv_instances[serv_inst].hid_dev_report_val_char[id]->char_val.handle);
+            if (status != AT_BLE_SUCCESS)
+            {
+                DBG_LOG_DEV("logic_bluetooth_update_report :: Send notification fail Reason %d", status);
+            }
+        }
+        else
+        {
+            DBG_LOG("logic_bluetooth_update_report :: Characteristic Value Set Failed Reason %d", status);
+        }
+    }
+}
+
+/*! \fn     logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t *mode, uint8_t report_num, uint8_t *report_type, uint8_t **report_val, uint8_t *report_len, hid_info_t *info)
+*   \brief  Initialize the hid profile based on user input
+*   \param  servinst    HID service instance 
+*   \param  device      HID device
+*   \param  mode        HID mode
+*   \param  report_num  Number of report
+*   \param  report_type Report Type
+*   \param  report_val  Report Value
+*   \param  report_len  Report Length
+*   \param  info        HID device info 
+*/
+void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t* mode, uint8_t report_num, uint8_t* report_type, uint8_t** report_val, uint8_t* report_len, hid_info_t* info)
+{
+    uint16_t cur_characteristic_index = 0;
+    
+    /* Configure the HID service type */
+    logic_bluetooth_hid_gatt_instances[servinst].serv.type = PRIMARY_SERVICE;
+
+    /* Configure the HID service permission */
+    if(BLE_PAIR_ENABLE)
+    {
+        if(BLE_MITM_REQ)
+        {
+            logic_bluetooth_hid_gatt_instances[servinst].serv.perm = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);
+        }
+        else
+        {
+            logic_bluetooth_hid_gatt_instances[servinst].serv.perm = (AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_ENC_NO_AUTHN_NO_AUTHR);
+        }                        
+    }
+    else
+    {
+        logic_bluetooth_hid_gatt_instances[servinst].serv.perm = (AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_NO_AUTHN_NO_AUTHR);
+    }   
+    /* Configure the HID service handle */
+    logic_bluetooth_hid_gatt_instances[servinst].serv.handle = 0;   
+    /* Configure HID Service */
+    logic_bluetooth_hid_gatt_instances[servinst].serv.uuid.type = AT_BLE_UUID_16;
+    logic_bluetooth_hid_gatt_instances[servinst].serv.uuid.uuid[0] = (uint8_t) HID_SERV_UUID;
+    logic_bluetooth_hid_gatt_instances[servinst].serv.uuid.uuid[1] = (uint8_t) (HID_SERV_UUID>>8);      
+    /* Configure HID include service list */
+    logic_bluetooth_hid_gatt_instances[servinst].serv.inc_list = NULL;  
+    /* Configure the HID include service count */
+    logic_bluetooth_hid_gatt_instances[servinst].serv.included_count = 0;   
+    /*Map the service UUID instance*/
+    logic_bluetooth_hid_serv_instances[servinst].hid_dev_serv_uuid = &logic_bluetooth_hid_gatt_instances[servinst].serv.uuid;   
+    /*Map the service UUID instance*/
+    logic_bluetooth_hid_serv_instances[servinst].hid_dev_serv_handle = &logic_bluetooth_hid_gatt_instances[servinst].serv.handle;
+    
+    /* Keyboard / raw hid switch */
+    if (device == HID_KEYBOARD_MODE)
+    {        
+        DBG_LOG("Protocol mode characteristic: %d", cur_characteristic_index);
+        /*Configure HID Protocol Mode Characteristic : Value related info*/
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.uuid[0] =(uint8_t) HID_UUID_CHAR_PROTOCOL_MODE;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.uuid[1] = (uint8_t)(HID_UUID_CHAR_PROTOCOL_MODE >> 8);
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.properties = (AT_BLE_CHAR_READ|AT_BLE_CHAR_WRITE_WITHOUT_RESPONSE);
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.init_value = mode;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.len = sizeof(uint8_t);
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.max_len = sizeof(uint8_t);
+        /* Configure the HID characteristic value permission */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_NO_AUTHN_NO_AUTHR);
+        /*Configure HID Protocol Mode Characteristic : user descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.user_description = NULL;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.len = 0;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.handle = 0;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.permissions = AT_BLE_ATTR_NO_PERMISSIONS;
+        /*Configure HID Protocol Mode Characteristic : presentation format related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].presentation_format = NULL;
+        /*Configure HID Protocol Mode Characteristic : client config descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].client_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].client_config_desc.handle = 0;
+        /*Configure HID Protocol Mode Characteristic : server config descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].server_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].server_config_desc.handle = 0;
+        /*Configure HID Protocol Mode Characteristic : generic descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].additional_desc_list = NULL;
+        /*Configure HID Protocol Mode Characteristic : count of generic descriptor */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].additional_desc_count = 0;
+        /*Map the device protocol mode characteristic*/
+        logic_bluetooth_hid_serv_instances[servinst].hid_dev_proto_mode_char = &logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index];
+        
+        /* Increment current index */
+        cur_characteristic_index++;
+    } 
+    
+    DBG_LOG("Report map characteristic: %d", cur_characteristic_index);
+    /*Configure HID Report Map Characteristic : Value related info*/
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.uuid[0] =(uint8_t) HID_UUID_CHAR_REPORT_MAP;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.uuid[1] = (uint8_t)(HID_UUID_CHAR_REPORT_MAP >> 8);
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.properties = AT_BLE_CHAR_READ;   
+    /* Configure the HID characteristic value permission */
+    if(BLE_PAIR_ENABLE)
+    {
+        if(BLE_MITM_REQ)
+        {
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;
+        }
+        else
+        {
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR;
+        }
+    }
+    else
+    {
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR;
+    }   
+    /*Configure HID Report Map Characteristic : user descriptor related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.user_description = NULL;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.len = 0;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.handle = 0;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.permissions = AT_BLE_ATTR_NO_PERMISSIONS;   
+    /*Configure HID Report Map Characteristic : presentation format related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].presentation_format = NULL;   
+    /*Configure HID Report Map Characteristic : client config descriptor related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].client_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].client_config_desc.handle = 0;    
+    /*Configure HID Report Map Characteristic : server config descriptor related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].server_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].server_config_desc.handle = 0;    
+    /*Configure HID Report Map Characteristic : generic descriptor related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].additional_desc_list = NULL;  
+    /*Configure HID Report Map Characteristic : count of generic descriptor */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].additional_desc_count = 0;    
+    /*Map the device Report Map characteristic*/
+    logic_bluetooth_hid_serv_instances[servinst].hid_dev_report_map_char = &logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index];
+    
+    /* Increment current index */
+    cur_characteristic_index++;
+
+    /*Configure number of HID report*/
+    for(uint16_t id = 0; id < report_num; ++id)
+    {
+        /*Configure HID Report Characteristic : Value related info*/
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.handle = 0;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.uuid.uuid[0] =(uint8_t) HID_UUID_CHAR_REPORT;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.uuid.uuid[1] = (uint8_t)(HID_UUID_CHAR_REPORT >> 8);
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.init_value = ((report_val[id]));
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.len = report_len[id];
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.max_len = report_len[id];
+
+        if(report_type[id] == INPUT_REPORT)
+        {
+            DBG_LOG("input report characteristic: %d", id + cur_characteristic_index);              
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.properties = (AT_BLE_CHAR_READ|AT_BLE_CHAR_NOTIFY);         
+            /* Configure the HID characteristic value permission */
+            if(BLE_PAIR_ENABLE)
+            {
+                if(BLE_MITM_REQ)
+                {
+                    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;
+                }
+                else
+                {
+                    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR;
+                }
+            }
+            else
+            {
+                logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR;
+            }
+            /*Configure HID Report Characteristic : client config descriptor related info */
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].client_config_desc.perm = (AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_NO_AUTHN_NO_AUTHR);
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].client_config_desc.handle = 0;
+        }
+        else if(report_type[id] == OUTPUT_REPORT)
+        {
+            DBG_LOG("output report characteristic: %d", id + cur_characteristic_index);
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.properties = (AT_BLE_CHAR_READ|AT_BLE_CHAR_WRITE_WITHOUT_RESPONSE|AT_BLE_CHAR_WRITE);           
+            /* Configure the HID characteristic value permission */
+            if(BLE_PAIR_ENABLE)
+            {
+                if(BLE_MITM_REQ)
+                {
+                    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);
+                }
+                else
+                {
+                    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_ENC_NO_AUTHN_NO_AUTHR);
+                }
+            }
+            else
+            {
+                logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_NO_AUTHN_NO_AUTHR);
+            }           
+            /*Configure HID Report Characteristic : client config descriptor related info */
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].client_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].client_config_desc.handle = 0;
+        }
+        else if(report_type[id] == FEATURE_REPORT)
+        {
+            DBG_LOG("feature report characteristic: %d", id + cur_characteristic_index);
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.properties = (AT_BLE_CHAR_READ|AT_BLE_CHAR_WRITE);          
+            /* Configure the HID characteristic permission */
+            if(BLE_PAIR_ENABLE)
+            {
+                if(BLE_MITM_REQ)
+                {
+                    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);
+                }
+                else
+                {
+                    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_ENC_NO_AUTHN_NO_AUTHR);
+                }
+            }
+            else
+            {
+                logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_NO_AUTHN_NO_AUTHR);
+            }           
+            /*Configure HID Report Characteristic : client config descriptor related info */
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].client_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].client_config_desc.handle = 0; 
+        }
+ 
+        /*Configure HID Report Characteristic : user descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].user_desc.user_description = NULL;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].user_desc.len = 0;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].user_desc.handle = 0;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].user_desc.permissions = AT_BLE_ATTR_NO_PERMISSIONS;              
+        /*Configure HID Report Characteristic : presentation format related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].presentation_format = NULL;          
+        /*Configure HID Report Map Characteristic : server config descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].server_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].server_config_desc.handle = 0;
+        
+        /* Configure HID Report Reference Descriptor*/
+        logic_bluetooth_hid_gatt_instances[servinst].serv_desc[id].desc_val_length = (sizeof(uint8_t)*2);
+        logic_bluetooth_hid_gatt_instances[servinst].serv_desc[id].desc_val_max_length = (sizeof(uint8_t)*2);
+        logic_bluetooth_hid_gatt_instances[servinst].serv_desc[id].perm = AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_desc[id].uuid.type = AT_BLE_UUID_16;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_desc[id].uuid.uuid[0] =(uint8_t) HID_REPORT_REF_DESC;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_desc[id].uuid.uuid[1] = (uint8_t)(HID_REPORT_REF_DESC >> 8);
+        logic_bluetooth_hid_gatt_instances[servinst].serv_desc[id].handle +=  0;                
+        
+        /*Configure HID Report Characteristic : generic descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].additional_desc_list = &logic_bluetooth_hid_gatt_instances[servinst].serv_desc[id];
+        
+        /*Configure HID Report Characteristic : count of generic descriptor */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].additional_desc_count = 1;
+            
+        /*Map the report characteristic*/
+        logic_bluetooth_hid_serv_instances[servinst].hid_dev_report_val_char[id] = &logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index];     
+    }//End of for loop
+    
+    /* Increment current index */
+    cur_characteristic_index+= report_num;
+    
+    if(device == HID_KEYBOARD_MODE)
+    {
+        DBG_LOG("boot keyboard output characteristic: %d", cur_characteristic_index);        
+        /*Configure HID Boot Keyboard Output Report Characteristic : Value related info*/
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.uuid[0] =(uint8_t) HID_UUID_CHAR_BOOT_KEY_OUTPUT_REPORT;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.uuid[1] = (uint8_t)(HID_UUID_CHAR_BOOT_KEY_OUTPUT_REPORT >> 8);
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.init_value = (uint8_t*)logic_bluetooth_boot_keyb_out_report; 
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.len = sizeof(uint8_t);
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.max_len = sizeof(uint8_t); 
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.properties = (AT_BLE_CHAR_READ|AT_BLE_CHAR_WRITE_WITHOUT_RESPONSE|AT_BLE_CHAR_WRITE);        
+        /* Configure the HID characteristic value permission */
+        if(BLE_PAIR_ENABLE)
+        {
+            if(BLE_MITM_REQ)
+            {
+                logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);
+            }
+            else
+            {
+                logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_ENC_NO_AUTHN_NO_AUTHR);
+            }
+        }
+        else
+        {
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = (AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_NO_AUTHN_NO_AUTHR);
+        }       
+        /*Configure HID Boot Keyboard Output Report Characteristic : user descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.user_description = NULL;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.len = 0;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.handle = 0;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.permissions = AT_BLE_ATTR_NO_PERMISSIONS;       
+        /*Configure HID Boot Keyboard Output Report Characteristic : presentation format related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].presentation_format = NULL;       
+        /*Configure HID Boot Keyboard Output Report Characteristic : client config descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].client_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].client_config_desc.handle = 0;        
+        /*Configure HID Boot Keyboard Output Report Characteristic : server config descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].server_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].server_config_desc.handle = 0;        
+        /*Configure HID Boot Keyboard Output Report Characteristic : generic descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].additional_desc_list = NULL;      
+        /*Configure HID Boot Keyboard Output Report Characteristic : count of generic descriptor */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].additional_desc_count = 0;
+        /*Map the keyboard output report characteristic*/
+        logic_bluetooth_hid_serv_instances[servinst].hid_dev_boot_keyboard_out_report = &logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index];
+         
+        /* Increment current index */
+        cur_characteristic_index++;
+         
+        DBG_LOG("boot keyboard input characteristic: %d", cur_characteristic_index);
+        /*Configure HID Boot Keyboard Input Report Characteristic : Value related info*/
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.uuid[0] =(uint8_t) HID_UUID_CHAR_BOOT_KEY_INPUT_REPORT;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.uuid[1] = (uint8_t)(HID_UUID_CHAR_BOOT_KEY_INPUT_REPORT >> 8);
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.init_value = (uint8_t*)logic_bluetooth_boot_keyb_in_report;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.len = sizeof(logic_bluetooth_boot_keyb_in_report);
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.max_len = sizeof(logic_bluetooth_boot_keyb_in_report); 
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.properties = (AT_BLE_CHAR_READ|AT_BLE_CHAR_NOTIFY);       
+        /* Configure the HID characteristic value permission */
+        if(BLE_PAIR_ENABLE)
+        {
+            if(BLE_MITM_REQ)
+            {
+                logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;
+            }
+            else
+            {
+                logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR;
+            }
+        }
+        else
+        {
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR;
+        }       
+        /*Configure HID Boot Keyboard Input Report Characteristic : user descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.user_description = NULL;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.len = 0;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.handle = 0;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.permissions = AT_BLE_ATTR_NO_PERMISSIONS;        
+        /*Configure HID Boot Keyboard Input Report Characteristic : presentation format related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].presentation_format = NULL;        
+        /*Configure HID Boot Keyboard Input Report Characteristic : client config descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].client_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].client_config_desc.handle = 0;         
+        /*Configure HID Boot Keyboard Input Report Characteristic : server config descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].server_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].server_config_desc.handle = 0;         
+        /*Configure HID Boot Keyboard Input Report Characteristic : generic descriptor related info */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].additional_desc_list = NULL;       
+        /*Configure HID Boot Keyboard Input Report Characteristic : count of generic descriptor */
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].additional_desc_count = 0;         
+        /*Map the keyboard input report characteristic*/
+        logic_bluetooth_hid_serv_instances[servinst].hid_dev_boot_keyboard_in_report = &logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index];
+         
+        /* Increment current index */
+        cur_characteristic_index++;
+    }
+ 
+    DBG_LOG("hid information characteristic: %d", cur_characteristic_index);
+    /*Configure HID Information Characteristic : Value related info*/
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.uuid[0] =(uint8_t) HID_UUID_CHAR_HID_INFORMATION;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.uuid[1] = (uint8_t)(HID_UUID_CHAR_HID_INFORMATION >> 8);
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.init_value = (uint8_t*)info;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.len = sizeof(hid_info_t);
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.max_len = sizeof(hid_info_t);
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.properties = AT_BLE_CHAR_READ;   
+    /* Configure the HID characteristic value permission */
+    if(BLE_PAIR_ENABLE)
+    {
+        if(BLE_MITM_REQ)
+        {
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;
+        }
+        else
+        {
+            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR;
+        }
+    }
+    else
+    {
+        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR;
+    }
+    /*Configure HID Information Characteristic : user descriptor related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.user_description = NULL;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.len = 0;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.handle = 0;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.permissions = AT_BLE_ATTR_NO_PERMISSIONS;    
+    /*Configure HID Information Characteristic : presentation format related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].presentation_format = NULL;    
+    /*Configure HID Information Characteristic : client config descriptor related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].client_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].client_config_desc.handle = 0;    
+    /*Configure HID Information Characteristic : server config descriptor related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].server_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].server_config_desc.handle = 0;    
+    /*Configure HID Information Characteristic : generic descriptor related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].additional_desc_list = NULL;    
+    /*Configure HID Information Characteristic : count of generic descriptor */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].additional_desc_count = 0;    
+    /*Map the HID Information characteristic*/
+    logic_bluetooth_hid_serv_instances[servinst].hid_dev_info = &logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index];
+    
+    /* Increment current index */
+    cur_characteristic_index++;
+    
+    DBG_LOG("hid control characteristic: %d", cur_characteristic_index);
+    /*Configure HID Control Point Characteristic : Value related info*/
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.uuid[0] =(uint8_t) HID_UUID_CHAR_HID_CONTROL_POINT;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.uuid[1] = (uint8_t)(HID_UUID_CHAR_HID_CONTROL_POINT >> 8);
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.init_value = (uint8_t*)logic_bluetooth_ctrl_point;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.len = sizeof(uint8_t);
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.max_len = sizeof(uint8_t);
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.properties = AT_BLE_CHAR_WRITE_WITHOUT_RESPONSE; 
+    /* Configure the HID characteristic value permission */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_WRITABLE_NO_AUTHN_NO_AUTHR;
+    /*Configure HID Control Point Characteristic : user descriptor related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.user_description = NULL;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.len = 0;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.handle = 0;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.permissions = AT_BLE_ATTR_NO_PERMISSIONS;   
+    /*Configure HID Control Point Characteristic : presentation format related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].presentation_format = NULL;   
+    /*Configure HID Control Point Characteristic : client config descriptor related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].client_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].client_config_desc.handle = 0;    
+    /*Configure HID Control Point Characteristic : server config descriptor related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].server_config_desc.perm = AT_BLE_ATTR_NO_PERMISSIONS;
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].server_config_desc.handle = 0;    
+    /*Configure HID Control Point Characteristic : generic descriptor related info */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].additional_desc_list = NULL;  
+    /*Configure HID Control Point Characteristic : count of generic descriptor */
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].additional_desc_count = 0;
+    /*Map the HID Information characteristic*/
+    logic_bluetooth_hid_serv_instances[servinst].hid_control_point = &logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index];    
+    /* Configure HID characteristic list */
+    logic_bluetooth_hid_gatt_instances[servinst].serv.char_list =  logic_bluetooth_hid_gatt_instances[servinst].serv_chars;
+    
+    /* Increment current index */
+    cur_characteristic_index++;
+    
+    /* Configure the HID characteristic count */
+    logic_bluetooth_hid_gatt_instances[servinst].serv.char_count = cur_characteristic_index;    
+}
+
+/*! \fn     logic_bluetooth_start_bluetooth(void)
+*   \brief  Start bluetooth
+*/
+void logic_bluetooth_start_bluetooth(void)
+{
+    DBG_LOG("Starting Bluetooth...");
+    
+    /* Setup Keyboard HID profile data */
+    logic_bluetooth_hid_prf_data.hid_serv_instance = BLE_KEYBOARD_HID_SERVICE_INSTANCE;
+    logic_bluetooth_hid_prf_data.hid_device = HID_KEYBOARD_MODE;
+    logic_bluetooth_hid_prf_data.protocol_mode = HID_REPORT_PROTOCOL_MODE;
+    logic_bluetooth_hid_prf_data.num_of_report = 1;
+    logic_bluetooth_hid_prf_data.report_id[0] = BLE_KEYBOARD_HID_IN_REPORT_NB;
+    logic_bluetooth_hid_prf_data.report_type[0] = INPUT_REPORT;
+    logic_bluetooth_hid_prf_data.report_val[0] = &logic_bluetooth_keyboard_in_report[0];
+    logic_bluetooth_hid_prf_data.report_len[0] = sizeof(logic_bluetooth_keyboard_in_report);
+    logic_bluetooth_hid_prf_data.report_map_info.report_map = logic_bluetooth_keyb_report_map;
+    logic_bluetooth_hid_prf_data.report_map_info.report_map_len = sizeof(logic_bluetooth_keyb_report_map);
+    logic_bluetooth_hid_prf_data.hid_device_info.bcd_hid = 0x0111;
+    logic_bluetooth_hid_prf_data.hid_device_info.bcountry_code = 0x00;
+    logic_bluetooth_hid_prf_data.hid_device_info.flags = 0x02;
+    
+    /* Update HID profile data reference */
+    hid_prf_dataref[BLE_KEYBOARD_HID_SERVICE_INSTANCE] = &logic_bluetooth_hid_prf_data;
+    
+    /* Setup Raw HID profile data */
+    logic_bluetooth_raw_hid_prf_data.hid_serv_instance = BLE_RAW_HID_SERVICE_INSTANCE;
+    logic_bluetooth_raw_hid_prf_data.hid_device = HID_RAW_MODE;
+    logic_bluetooth_raw_hid_prf_data.protocol_mode = HID_REPORT_PROTOCOL_MODE;
+    logic_bluetooth_raw_hid_prf_data.num_of_report = 2;
+    logic_bluetooth_raw_hid_prf_data.report_id[0] = BLE_RAW_HID_IN_REPORT_NB;
+    logic_bluetooth_raw_hid_prf_data.report_type[0] = INPUT_REPORT;
+    logic_bluetooth_raw_hid_prf_data.report_val[0] = &logic_bluetooth_raw_hid_data_out_buf[0];
+    logic_bluetooth_raw_hid_prf_data.report_len[0] = sizeof(logic_bluetooth_raw_hid_data_out_buf);
+    logic_bluetooth_raw_hid_prf_data.report_id[1] = BLE_RAW_HID_OUT_REPORT_NB;
+    logic_bluetooth_raw_hid_prf_data.report_type[1] = OUTPUT_REPORT;
+    logic_bluetooth_raw_hid_prf_data.report_val[1] = &logic_bluetooth_raw_hid_data_in_buf[0];
+    logic_bluetooth_raw_hid_prf_data.report_len[1] = sizeof(logic_bluetooth_raw_hid_data_in_buf);
+    logic_bluetooth_raw_hid_prf_data.report_map_info.report_map = logic_bluetooth_raw_report_map;
+    logic_bluetooth_raw_hid_prf_data.report_map_info.report_map_len = sizeof(logic_bluetooth_raw_report_map);
+    logic_bluetooth_raw_hid_prf_data.hid_device_info.bcd_hid = 0x0111;
+    logic_bluetooth_raw_hid_prf_data.hid_device_info.bcountry_code = 0x00;
+    logic_bluetooth_raw_hid_prf_data.hid_device_info.flags = 0x02;
+    
+    /* Update HID profile data reference */
+    hid_prf_dataref[BLE_RAW_HID_SERVICE_INSTANCE] = &logic_bluetooth_raw_hid_prf_data;
+    
+    /* Initialize the ble chip and set the device mac address */
+    ble_device_init(NULL);    
+    
+    /* Initialize the battery service */
+    bat_init_service(&logic_bluetooth_bas_service_handler, &logic_bluetooth_ble_battery_level);
+    
+    /* Define the primary service in the GATT server database */
+    if(bat_primary_service_define(&logic_bluetooth_bas_service_handler) != AT_BLE_SUCCESS)
+    {
+        DBG_LOG("Defining battery service failed");
+    }
+    
+    /* Initialize HID services */
+    for(uint16_t serv_num = 0; serv_num <= BLE_RAW_HID_SERVICE_INSTANCE; serv_num++)
+    {
+        /* Clear service */
+        memset(&logic_bluetooth_hid_serv_instances[serv_num], 0, sizeof(logic_bluetooth_hid_serv_instances[0]));
+        
+        /* Initialize HID profile based on previously provided input */
+        logic_bluetooth_hid_profile_init(serv_num, hid_prf_dataref[serv_num]->hid_device, &hid_prf_dataref[serv_num]->protocol_mode, hid_prf_dataref[serv_num]->num_of_report, (uint8_t *)&hid_prf_dataref[serv_num]->report_type, &(hid_prf_dataref[serv_num]->report_val[0]), (uint8_t *)&hid_prf_dataref[serv_num]->report_len, &hid_prf_dataref[serv_num]->hid_device_info);
+                
+        /* Map report map with correct characteristic */
+        if (serv_num == BLE_KEYBOARD_HID_SERVICE_INSTANCE)
+        {
+            logic_bluetooth_hid_gatt_instances[serv_num].serv_chars[1].char_val.init_value = hid_prf_dataref[serv_num]->report_map_info.report_map;
+            logic_bluetooth_hid_gatt_instances[serv_num].serv_chars[1].char_val.max_len = hid_prf_dataref[serv_num]->report_map_info.report_map_len;
+            logic_bluetooth_hid_gatt_instances[serv_num].serv_chars[1].char_val.len = hid_prf_dataref[serv_num]->report_map_info.report_map_len;
+        }
+        else
+        {
+            logic_bluetooth_hid_gatt_instances[serv_num].serv_chars[0].char_val.init_value = hid_prf_dataref[serv_num]->report_map_info.report_map;
+            logic_bluetooth_hid_gatt_instances[serv_num].serv_chars[0].char_val.max_len = hid_prf_dataref[serv_num]->report_map_info.report_map_len;
+            logic_bluetooth_hid_gatt_instances[serv_num].serv_chars[0].char_val.len = hid_prf_dataref[serv_num]->report_map_info.report_map_len;
+        }
+        logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_map_char->char_val.init_value = hid_prf_dataref[serv_num]->report_map_info.report_map;
+        logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_map_char->char_val.max_len = hid_prf_dataref[serv_num]->report_map_info.report_map_len;
+        logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_map_char->char_val.len = hid_prf_dataref[serv_num]->report_map_info.report_map_len;        
+        timer_delay_ms(1);
+        
+        /* HID service database registration */
+        if(at_ble_service_define(&logic_bluetooth_hid_gatt_instances[serv_num].serv) == AT_BLE_SUCCESS)
+        {
+            DBG_LOG_DEV("HID Service Handle Value %d", logic_bluetooth_hid_gatt_instances[serv_num].serv.handle);            
+            /* Set report reference descriptor values */
+            for(uint16_t id = 0; id < hid_prf_dataref[serv_num]->num_of_report; id++)
+            {
+                uint8_t descval[2];
+                descval[0] = hid_prf_dataref[serv_num]->report_id[id];
+                descval[1] = hid_prf_dataref[serv_num]->report_type[id];                
+                /* Call to BluSDK */
+                at_ble_status_t status;
+                if((status = at_ble_descriptor_value_set(logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_val_char[id]->additional_desc_list->handle, &descval[0], 2)) == AT_BLE_SUCCESS)
+                {
+                    DBG_LOG_DEV("Report Reference Descriptor Value Set");
+                }
+                else
+                {
+                    DBG_LOG("Report Reference Descriptor Value Set Fail Reason %d",status);
+                }
+            }            
+            /* Store service handle */
+            hid_prf_dataref[serv_num]->serv_handle_info = logic_bluetooth_hid_gatt_instances[serv_num].serv.handle;
+        }
+        else
+        {
+            DBG_LOG_DEV("hid_service_dbreg :: HID Service Registration Fail");
+        }
+    }
+    
+    /* Initialize the device information service */    
+    dis_gatt_service_handler_t device_info_serv;
+    dis_init_service(&device_info_serv);
+    
+    /* Define the primary service in the GATT server database */
+    if(dis_primary_service_define(&device_info_serv) != AT_BLE_SUCCESS)
+    {
+        DBG_LOG("Defining device information service failed");
+    }
+    
+    /*  Set advertisement data from ble_manager */
+    if(!(ble_advertisement_data_set() == AT_BLE_SUCCESS))
+    {
+        DBG_LOG("Fail to set Advertisement data");
+    }
+    
+    /* Callback registering for BLE-GAP Role */
+    ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GAP_EVENT_TYPE, &hid_app_gap_handle);
+    
+    /* Callback registering for BLE-GATT-Server Role */
+    ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GATT_SERVER_EVENT_TYPE, &hid_app_gatt_server_handle);   
+    
+    /* Register callbacks for custom related events */
+    ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_CUSTOM_EVENT_TYPE, &hid_custom_event_cb);
+    
+    /* Start advertising */
+    logic_bluetooth_start_advertising();
+}
+
+/*! \fn     logic_bluetooth_start_advertising(void)
+*   \brief  Start advertising
+*/
+void logic_bluetooth_start_advertising(void)
+{
+    /* Start of advertisement */
+    if(at_ble_adv_start(AT_BLE_ADV_TYPE_UNDIRECTED, AT_BLE_ADV_GEN_DISCOVERABLE, NULL, AT_BLE_ADV_FP_ANY, APP_HID_FAST_ADV, APP_HID_ADV_TIMEOUT, 0) == AT_BLE_SUCCESS)
+    {
+        DBG_LOG("Device Started Advertisement");
+    }
+    else
+    {
+        DBG_LOG("Device Advertisement Failed");
+    }    
+}
+
+/*! \fn     logic_bluetooth_set_battery_level(uint8_t pct)
+*   \brief  Update battery profile advertised battery level
+*   \param  pct Battery percentage
+*/
+void logic_bluetooth_set_battery_level(uint8_t pct)
+{
+    logic_bluetooth_ble_battery_level = pct;
+
+    /* send the notification and Update the battery level  */
+    if(logic_bluetooth_battery_notification_flag)
+    {
+        if(bat_update_char_value(logic_bluetooth_ble_connection_handle,&logic_bluetooth_bas_service_handler, pct, logic_bluetooth_battery_notification_flag) == AT_BLE_SUCCESS)
+        {
+            DBG_LOG("Battery Level:%d%%", pct);
+            logic_bluetooth_battery_notification_flag = FALSE;
+        }
+    }
+}
+
+/*! \fn     logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
+*   \brief  Send raw data through bluetooth
+*   \param  data        Pointer to the data
+*   \param  data_len    Data length
+*/
+void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
+{
+    /* Check that we're actually paired */
+    if (logic_bluetooth_paired != FALSE)
+    {
+        /* Check for overflow */
+        if (data_len > sizeof(logic_bluetooth_raw_hid_data_out_buf))
+        {
+            data_len = sizeof(logic_bluetooth_raw_hid_data_out_buf);
+        }
+        
+        /* Copy data to buffer */
+        memset(logic_bluetooth_raw_hid_data_out_buf, 0, sizeof(logic_bluetooth_raw_hid_data_out_buf));
+        memcpy(logic_bluetooth_raw_hid_data_out_buf, data, data_len);
+        
+        /* Debug */
+        DBG_LOG("BLE send: %02x %02x %02x%02x %02x%02x", logic_bluetooth_raw_hid_data_out_buf[0], logic_bluetooth_raw_hid_data_out_buf[1], logic_bluetooth_raw_hid_data_out_buf[3], logic_bluetooth_raw_hid_data_out_buf[2], logic_bluetooth_raw_hid_data_out_buf[5], logic_bluetooth_raw_hid_data_out_buf[4]);
+        
+        /* Send data */
+        logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_RAW_HID_SERVICE_INSTANCE, BLE_RAW_HID_IN_REPORT_NB, logic_bluetooth_raw_hid_data_out_buf, sizeof(logic_bluetooth_raw_hid_data_out_buf));
+    }
+}
+
+/*! \fn     logic_bluetooth_routine(void)
+*   \brief  Our bluetooth routine
+*/
 void logic_bluetooth_routine(void)
 {
     ble_event_task();
@@ -463,26 +1225,11 @@ void logic_bluetooth_routine(void)
         if ((timer_has_timer_expired(TIMER_BT_TESTS, TRUE) == TIMER_EXPIRED) && false)
         {            
             timer_start_timer(TIMER_BT_TESTS, 5000);            
-            app_keyb_report[2] = 17;
-            hid_prf_report_update(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
+            logic_bluetooth_keyboard_in_report[2] = 17;
+            //logic_bluetooth_update_report(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, logic_bluetooth_keyboard_report, sizeof(logic_bluetooth_keyboard_report));
             timer_delay_ms(20);
-            app_keyb_report[2] = 0x00;
-            hid_prf_report_update(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, app_keyb_report, sizeof(app_keyb_report));
-        }
-    }
-}
-
-void logic_bluetoot_set_battery_level(uint8_t pct)
-{
-    ble_battery_level = pct;
-
-    /* send the notification and Update the battery level  */
-    if(battery_notification_flag)
-    {
-        if(bat_update_char_value(ble_connection_handle,&bas_service_handler, pct, battery_notification_flag) == AT_BLE_SUCCESS)
-        {
-            DBG_LOG("Battery Level:%d%%", pct);
-            battery_notification_flag = FALSE;
+            logic_bluetooth_keyboard_in_report[2] = 0x00;
+            //logic_bluetooth_update_report(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, logic_bluetooth_keyboard_report, sizeof(logic_bluetooth_keyboard_report));
         }
     }
 }

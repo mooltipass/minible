@@ -17,7 +17,6 @@
 #include "ble_manager.h"
 #include "platform_io.h"
 #include "at_ble_api.h"
-#include "hid_device.h"
 #include "ble_utils.h"
 #include "defines.h"
 #include "debug.h"
@@ -372,7 +371,7 @@ void comms_main_mcu_routine(void)
         
         if (comms_main_mcu_ble_msg_answered_using_first_bytes == FALSE)
         {
-            // TBD
+            comms_raw_hid_send_hid_message(BLE_INTERFACE, (aux_mcu_message_t*)&dma_main_mcu_ble_rcv_message);
         }
     }
     if (dma_main_mcu_other_msg_received != FALSE)
@@ -431,7 +430,7 @@ void comms_main_mcu_routine(void)
         }
         else if (comms_main_mcu_temp_message.message_type == AUX_MCU_MSG_TYPE_BLE)
         {
-            // TBD
+            comms_raw_hid_send_hid_message(BLE_INTERFACE, (aux_mcu_message_t*)&comms_main_mcu_temp_message);
         }
         else
         {

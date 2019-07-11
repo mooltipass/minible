@@ -356,7 +356,7 @@ int main(void)
     {
         /* Special card has 0000 CPZ, set 0000 as nonce */
         //dbflash_format_flash(&dbflash_descriptor);
-        //nodemgmt_format_user_profile(100);
+        //nodemgmt_format_user_profile(100, 0, 0);
         cpz_lut_entry_t special_user_profile;
         memset(&special_user_profile, 0, sizeof(special_user_profile));
         special_user_profile.user_id = 100;

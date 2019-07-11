@@ -111,7 +111,7 @@ void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* pac
     } 
     else
     {
-        logic_bluetooth_send((uint8_t*)packet, payload_size);
+        logic_bluetooth_raw_send((uint8_t*)packet, payload_size);
         // TO REMOVE LATER
         comms_raw_hid_packet_being_sent[hid_interface] = FALSE;
     }
