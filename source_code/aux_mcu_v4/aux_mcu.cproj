@@ -816,11 +816,9 @@
     <Folder Include="src\ASF\thirdparty\wireless\" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\ble_profiles\" />
-    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\ble_profiles\hid_device\" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\ble_mgr\" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\device_infomation\" />
-    <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\hid\" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\battery" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\inc\" />
     <Folder Include="src\ASF\thirdparty\wireless\ble_sdk\lib\" />
@@ -1113,9 +1111,6 @@
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\sam0\drivers\sercom\usart\quick_start_callback\qs_usart_callback.h">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\ASF\thirdparty\wireless\ble_sdk\ble_profiles\hid_device\hid_device.h">
       <SubType>compile</SubType>
     </None>
     <None Include="src\ASF\thirdparty\wireless\ble_sdk\lib\cm0p\gcc\libble_sdk.a">
@@ -1433,9 +1428,6 @@
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\instance\pac0.h">
       <SubType>compile</SubType>
     </None>
-    <None Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\hid\hid.h">
-      <SubType>compile</SubType>
-    </None>
     <None Include="src\ASF\sam0\utils\cmsis\samd21\include\instance\eic.h">
       <SubType>compile</SubType>
     </None>
@@ -1610,16 +1602,10 @@
     <Compile Include="src\ASF\sam0\utils\syscalls\gcc\syscalls.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\ASF\thirdparty\wireless\ble_sdk\ble_profiles\hid_device\hid_device.c">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\ble_mgr\ble_manager.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\device_infomation\device_info.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\ASF\thirdparty\wireless\ble_sdk\ble_services\hid\hid.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ASF\thirdparty\wireless\ble_sdk\services\console\sam0\console_serial.c">

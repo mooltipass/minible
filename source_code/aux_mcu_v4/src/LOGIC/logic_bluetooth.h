@@ -11,18 +11,6 @@
 
 #include "at_ble_api.h"
 
-/* ATMEL ugliness */
-/** @brief Maximum text length */
-#define MAX_TEXT_LEN (11)
-/** @brief Represent zero position */
-#define POSITION_ZERO (0)
-/** @brief Represent six position */
-#define POSITION_SIX (6)
-/** @brief Enable caps */
-#define CAPS_ON (2)
-/** @brief Disable caps */
-#define CAPS_OFF (0)
-
 /* Defines */
 #define BLE_KEYBOARD_HID_SERVICE_INSTANCE   0
 #define BLE_RAW_HID_SERVICE_INSTANCE        1
@@ -31,57 +19,8 @@
 #define BLE_RAW_HID_OUT_REPORT_NB           3
 #define BLE_TOTAL_NUMBER_OF_REPORTS         3
 #define BLE_MAX_REPORTS_FOR_GIVEN_SVC       2
-
-
-/****************************************************************************************
-*							        Macros	                                     		*
-****************************************************************************************/
-
-/** @brief Number of Report : Configure by user. */
-//	<o> HID Number of Reports <1-10>
-//	<i> Defines numbers of Reporter available for HID.
-//	<i> Default: 1
-//	<id> hid_num_of_report
-#define HID_NUM_OF_REPORT				(2)
-
-/** @brief HID Service Instance : Configure by user. */
-#define HID_SERV_INST 					(1)
-
-/** @brief HID Max Service Instance. */
-#define HID_MAX_SERV_INST				(2)
-
-/** @brief Number of Report. */
-#define HID_MAX_REPORT_NUM				(10)
-
-/** @brief Default number of characteristic. */
-#define HID_DEFAULT_CHARACTERISITC_NUM	(4)
-
-#ifndef HID_MOUSE_DEVICE
-#ifndef HID_KEYBOARD_DEVICE
-#define HID_KEYBOARD_DEVICE
-#endif
-#endif
-
-/** @brief Number of characteristic for HID. */
-#if defined HID_MOUSE_DEVICE
-/** @brief Enable by user for mouse application : Configure by user. */
-#define ADV_DATA_APPEARANCE_DATA		(0x03C2)  //Mouse
-#if defined BOOT_MODE
-#define HID_CHARACTERISTIC_NUM			(HID_DEFAULT_CHARACTERISITC_NUM + 1)
-#else
-#define HID_CHARACTERISTIC_NUM			(HID_DEFAULT_CHARACTERISITC_NUM + HID_NUM_OF_REPORT + 1)
-#endif
-#endif
-
-#if defined HID_KEYBOARD_DEVICE
-/** @brief Enable by user for keyboard application : Configure by user. */
-#define ADV_DATA_APPEARANCE_DATA 		(0x03C1)    //Keyboard
-#if defined BOOT_MODE
-#define HID_CHARACTERISTIC_NUM			(HID_DEFAULT_CHARACTERISITC_NUM + 2)
-#else
-#define HID_CHARACTERISTIC_NUM			(HID_DEFAULT_CHARACTERISITC_NUM + HID_NUM_OF_REPORT + 2)
-#endif
-#endif
+#define HID_MAX_SERV_INST				    2
+#define HID_MAX_CHARACTERISTIC              7
 
 /** @brief APP_HID_FAST_ADV between 0x0020 and 0x4000 in 0.625 ms units (20ms to 10.24s). */
 //	<o> Fast Advertisement Interval <100-1000:50>
@@ -137,8 +76,8 @@
 typedef struct hid_gatt_serv_handler
 {
     at_ble_service_t		  serv;
-    at_ble_chr_t		      serv_chars[HID_CHARACTERISTIC_NUM];
-    at_ble_generic_att_desc_t serv_desc[HID_NUM_OF_REPORT];   /*Report descriptor*/
+    at_ble_chr_t		      serv_chars[HID_MAX_CHARACTERISTIC];
+    at_ble_generic_att_desc_t serv_desc[BLE_MAX_REPORTS_FOR_GIVEN_SVC];   /*Report descriptor*/
 }hid_gatt_serv_handler_t;
 
 /**@brief HID characteristic
@@ -232,10 +171,10 @@ typedef struct
     uint8_t hid_device;                          /**< Type of HID device. */
     uint8_t protocol_mode;						 /**< Protocol mode selected by user. */
     uint8_t num_of_report;						 /**< Number of report. */
-    uint8_t report_id[HID_MAX_REPORT_NUM];       /**< Report id based on number of report. */
-    uint8_t report_type[HID_MAX_REPORT_NUM];     /**< Report type based on number of report. */
-    uint8_t *report_val[HID_MAX_REPORT_NUM];     /**< Report value based on number of report. */
-    uint8_t report_len[HID_MAX_REPORT_NUM];		 /**< Report Length based on number of report. */
+    uint8_t report_id[BLE_MAX_REPORTS_FOR_GIVEN_SVC];       /**< Report id based on number of report. */
+    uint8_t report_type[BLE_MAX_REPORTS_FOR_GIVEN_SVC];     /**< Report type based on number of report. */
+    uint8_t *report_val[BLE_MAX_REPORTS_FOR_GIVEN_SVC];     /**< Report value based on number of report. */
+    uint8_t report_len[BLE_MAX_REPORTS_FOR_GIVEN_SVC];		 /**< Report Length based on number of report. */
     hid_report_map_t report_map_info;            /**< Report map information based on device. */
     hid_info_t hid_device_info;					 /**< HID information. */
 }hid_prf_info_t;
@@ -245,17 +184,13 @@ typedef struct
 typedef enum
 {
     /// HID Service Registration Failed
-    HID_SERV_FAILED = -1,
-    
+    HID_SERV_FAILED = -1,    
     /// HID Service Operation Pass
-    HID_SERV_SUCESS = 0,
-    
+    HID_SERV_SUCESS = 0,    
     /// HID Service Registration Failed
-    HID_SERV_REG_FAILED,
-    
+    HID_SERV_REG_FAILED,    
     /// HID Report ID Not Found
-    HID_INVALID_INST = 0xFF
-    
+    HID_INVALID_INST = 0xFF    
 }hid_serv_status;
 
 
@@ -264,11 +199,9 @@ typedef enum
 typedef enum
 {
     /// Enable boot protocol mode
-    HID_MOUSE_MODE    = 1,
-    
+    HID_MOUSE_MODE    = 1,    
     /// Enable report protocol mode
-    HID_KEYBOARD_MODE,
-    
+    HID_KEYBOARD_MODE,    
     HID_RAW_MODE
 }hid_dev_type;
 
@@ -277,8 +210,7 @@ typedef enum
 typedef enum
 {
     /// Enable boot protocol mode
-    HID_BOOT_PROTOCOL_MODE    = 0,
-    
+    HID_BOOT_PROTOCOL_MODE    = 0,    
     /// Enable report protocol mode
     HID_REPORT_PROTOCOL_MODE,
 }hid_proto_mode;
@@ -288,8 +220,7 @@ typedef enum
 typedef enum
 {
     /// Enable suspend mode
-    SUSPEND    = 0,
-    
+    SUSPEND    = 0,    
     /// Exit suspend mode
     EXIT_SUSPEND,
 }hid_control_mode;
@@ -299,11 +230,9 @@ typedef enum
 typedef enum
 {
     /// Input report
-    INPUT_REPORT    = 1,
-    
+    INPUT_REPORT    = 1,    
     /// Input report
-    OUTPUT_REPORT,
-    
+    OUTPUT_REPORT,    
     /// Input report
     FEATURE_REPORT,
 }hid_report_type;
@@ -319,7 +248,7 @@ typedef struct hid_serv
     at_ble_uuid_t *hid_dev_serv_uuid;					/**< HID service info (0x1812). */
     at_ble_chr_t *hid_dev_proto_mode_char;				/**< HID protocol mode (0x2A4E). */
     at_ble_chr_t *hid_dev_report_map_char;				/**< HID report map (0x2A4B). */
-    at_ble_chr_t *hid_dev_report_val_char[HID_NUM_OF_REPORT];      /**< HID report value (0x2A4D). */    
+    at_ble_chr_t *hid_dev_report_val_char[BLE_MAX_REPORTS_FOR_GIVEN_SVC];      /**< HID report value (0x2A4D). */    
     at_ble_chr_t *hid_dev_boot_keyboard_in_report;   /**< HID boot keyboard input report (0x2A22). */
     at_ble_chr_t *hid_dev_boot_keyboard_out_report;   /**< HID boot keyboard output report (0x2A32). */    
     at_ble_chr_t *hid_dev_info;						/**< HID information (0x2A4A). */

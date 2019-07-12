@@ -114,7 +114,7 @@ static at_ble_status_t logic_bluetooth_hid_paired_callback(void* param)
     }
     else
     {
-        DBG_LOG("Failed pairing to device");
+        DBG_LOG("ERROR: Failed pairing to device");
     }
     
     return pair_done->status;
@@ -133,7 +133,7 @@ static at_ble_status_t logic_bluetooth_encryption_changed_callback(void *param)
     }
     else
     {
-        DBG_LOG("Enc status changed failed");
+        DBG_LOG("ERROR: Enc status changed failed");
     }
     return encryption_status_changed->status;
 }
@@ -153,15 +153,18 @@ static const ble_gap_event_cb_t hid_app_gap_handle =
 static at_ble_status_t logic_bluetooth_notification_confirmed_callback(void* params)
 {
     // TODO explore for what this is sent... keyboard/hid/battery
-    at_ble_cmd_complete_event_t *notification_status;
-    notification_status = (at_ble_cmd_complete_event_t *)params;
-    DBG_LOG_DEV("Keyboard report send to host status %d", notification_status->status);
+    at_ble_cmd_complete_event_t* notification_status;
+    notification_status = (at_ble_cmd_complete_event_t*) params;
 
     /* From battery service */
-    if(!notification_status->status)
+    if(notification_status->status == AT_BLE_SUCCESS)
     {
         logic_bluetooth_battery_notification_flag = TRUE;
-        DBG_LOG_DEV("sending notification to the peer success");
+        DBG_LOG("sending notification to the peer success");
+    }
+    else
+    {
+        DBG_LOG("ERROR: failed sending notification to peer");
     }
 
     return AT_BLE_SUCCESS;
@@ -176,30 +179,41 @@ at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params)
 
     /* Copy locally the change params */
     memcpy((uint8_t*)&change_params, params, sizeof(at_ble_characteristic_changed_t));
+    DBG_LOG("Characteristic %d changed", change_params.char_handle);
     
-    /* See if this is for the hid service, and if so get the service instance */
-    uint8_t serv_inst = logic_bluetooth_get_hid_serv_instance(change_params.char_handle);
-    DBG_LOG_DEV("hid_prf_char_changed_handler : Service Instance %d", serv_inst);
-    
-    /* Mathieu: if we were not able to find the handle for HID, it means this is meant for battery service */
-    if (serv_inst == 0xFF)
+    /* Check for battery service */
+    if(logic_bluetooth_bas_service_handler.serv_chars.client_config_handle == change_params.char_handle)
     {
-        DBG_LOG_DEV("Couldn't find HID instance, redirecting to device info service");
+        DBG_LOG("Characteristic belongs to battery service");
         at_ble_status_t status = bat_char_changed_event(&logic_bluetooth_bas_service_handler, (at_ble_characteristic_changed_t*)params);
         if(status == AT_BLE_SUCCESS)
         {
             logic_bluetooth_battery_notification_flag = TRUE;
+            DBG_LOG("Battery service: notifications enabled");
         }
         else if (status == AT_BLE_PRF_NTF_DISABLED)
         {
             logic_bluetooth_battery_notification_flag = FALSE;
+            DBG_LOG("Battery service: notifications disabled");
         }
         return status;
     }
     
+    /* See if this is for the hid service, and if so get the service instance */
+    uint8_t serv_inst = logic_bluetooth_get_hid_serv_instance(change_params.char_handle);
+    
+    /* If above function returns 0xFF... it means we don't know which service this characteristics belongs to */
+    if (serv_inst == 0xFF)
+    {
+        DBG_LOG("ERROR: couldn't find service for this characteristic!!!!");
+    }
+    else
+    {
+        DBG_LOG("Characteristic belongs to HID service instance %d", serv_inst);
+    }
+    
     /* Get the kind of notification based on the characteristic handle */
     uint8_t ntf_op = logic_bluetooth_get_notif_instance(serv_inst, change_params.char_handle);
-    DBG_LOG_DEV("hid_prf_char_changed_handler : Notification Operation %d", ntf_op);
     
     switch(ntf_op)
     {
@@ -209,12 +223,13 @@ at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params)
             logic_bluetooth_protocol_mode_value.mode = change_params.char_new_value[0];
             logic_bluetooth_protocol_mode_value.conn_handle = change_params.conn_handle;
             hid_prf_dataref[serv_inst]->protocol_mode = change_params.char_new_value[0];
-            DBG_LOG_DEV("Protocol Mode Notification Callback :: Service Instance %d  New Protocol Mode  %d  Connection Handle %d", serv_inst, logic_bluetooth_protocol_mode_value.mode, change_params.conn_handle);
+            DBG_LOG("Protocol Mode Notification Callback : Service Instance %d  New Protocol Mode  %d  Connection Handle %d", serv_inst, logic_bluetooth_protocol_mode_value.mode, change_params.conn_handle);
         }
         break;
         
         case CHAR_REPORT:
         {
+            DBG_LOG("Report Callback : Service Instance %d Bytes Received %d Connection Handle %d", serv_inst, change_params.char_len, change_params.conn_handle);
             if (serv_inst == BLE_RAW_HID_SERVICE_INSTANCE)
             {
                 uint8_t* recv_buf = comms_raw_hid_get_recv_buffer(BLE_INTERFACE);
@@ -231,13 +246,13 @@ at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params)
             logic_bluetooth_report_ntf_info[report_id].report_ID = report_id;
             logic_bluetooth_report_ntf_info[report_id].conn_handle = change_params.conn_handle;
             logic_bluetooth_report_ntf_info[report_id].ntf_conf = (change_params.char_new_value[1]<<8 | change_params.char_new_value[0]);
-            DBG_LOG_DEV("Report Notification Callback Service Instance %d  Report ID  %d  Notification(Enable/Disable) %d Connection Handle %d", serv_inst, report_id, logic_bluetooth_report_ntf_info[report_id].ntf_conf, change_params.conn_handle);
+            DBG_LOG("Report Notification Callback Service Instance %d  Report ID  %d  Notification(Enable/Disable) %d Connection Handle %d", serv_inst, report_id, logic_bluetooth_report_ntf_info[report_id].ntf_conf, change_params.conn_handle);
         }
         break;
         
         case (BOOT_KEY_INPUT_REPORT):
         {
-            // todo... do something about that
+            DBG_LOG("BOOT_KEY_INPUT_REPORT callback... why is this here?");
         }
         break;
 
@@ -247,7 +262,7 @@ at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params)
             logic_bluetooth_boot_keyboard_report_ntf_info.boot_value = ntf_op;
             logic_bluetooth_boot_keyboard_report_ntf_info.conn_handle = change_params.conn_handle;
             logic_bluetooth_boot_keyboard_report_ntf_info.ntf_conf = (change_params.char_new_value[1]<<8 | change_params.char_new_value[0]);
-            DBG_LOG_DEV("Boot Notification Callback :: Service Instance %d  Boot Value  %d  Notification(Enable/Disable) %d", serv_inst, ntf_op, logic_bluetooth_boot_keyboard_report_ntf_info.ntf_conf);
+            DBG_LOG("Boot Notification Callback :: Service Instance %d  Boot Value  %d  Notification(Enable/Disable) %d", serv_inst, ntf_op, logic_bluetooth_boot_keyboard_report_ntf_info.ntf_conf);
         }
         break;
 
@@ -255,13 +270,13 @@ at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params)
         {
             logic_bluetooth_hid_control_point_value[serv_inst].serv_inst = serv_inst;
             logic_bluetooth_hid_control_point_value[serv_inst].control_value = (change_params.char_new_value[1]<<8 | change_params.char_new_value[0]);
-            DBG_LOG_DEV("Control Point Notification Callback :: Service Instance %d Control Value %d", logic_bluetooth_hid_control_point_value[serv_inst].serv_inst, logic_bluetooth_hid_control_point_value[serv_inst].control_value);
+            DBG_LOG("Control Point Notification Callback :: Service Instance %d Control Value %d", logic_bluetooth_hid_control_point_value[serv_inst].serv_inst, logic_bluetooth_hid_control_point_value[serv_inst].control_value);
         }
         break;
 
         default:
         {
-            DBG_LOG_DEV("Unhandled Notification");
+            DBG_LOG("Unhandled Notification");
         }
         break;
     }
@@ -350,13 +365,13 @@ static uint8_t logic_bluetooth_raw_report_map[] =
 */
 uint8_t logic_bluetooth_get_hid_serv_instance(uint16_t handle)
 {
-    DBG_LOG_DEV("logic_bluetooth_get_hid_serv_instance :: Get service Instance Handle %d", handle);
+    DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_hid_serv_instance :: Get service Instance Handle %d", handle);
     for(uint8_t id = 0; id<HID_MAX_SERV_INST; id++)
     {
-        DBG_LOG_DEV("logic_bluetooth_get_hid_serv_instance :: Service Handle %d  Characteristic Handle %d", *(logic_bluetooth_hid_serv_instances[id].hid_dev_serv_handle), logic_bluetooth_hid_serv_instances[id].hid_control_point->char_val.handle);
+        DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_hid_serv_instance :: Service Handle %d  Characteristic Handle %d", *(logic_bluetooth_hid_serv_instances[id].hid_dev_serv_handle), logic_bluetooth_hid_serv_instances[id].hid_control_point->char_val.handle);
         if((handle > *(logic_bluetooth_hid_serv_instances[id].hid_dev_serv_handle)) && (handle <= logic_bluetooth_hid_serv_instances[id].hid_control_point->char_val.handle))
         {
-            DBG_LOG_DEV("logic_bluetooth_get_hid_serv_instance :: Service Instance %d", id);
+            DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_hid_serv_instance :: Service Instance %d", id);
             return id;
         }
     }
@@ -371,8 +386,8 @@ uint8_t logic_bluetooth_get_hid_serv_instance(uint16_t handle)
 */
 uint8_t logic_bluetooth_get_notif_instance(uint8_t serv_num, uint16_t char_handle)
 {
-    DBG_LOG_DEV("logic_bluetooth_get_notif_instance :: Search Handle %d", char_handle);
-    DBG_LOG_DEV("logic_bluetooth_get_notif_instance :: Protocol Mode Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_dev_proto_mode_char->char_val.handle);
+    DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_notif_instance :: Search Handle %d", char_handle);
+    DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_notif_instance :: Protocol Mode Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_dev_proto_mode_char->char_val.handle);
     
     if(logic_bluetooth_hid_serv_instances[serv_num].hid_dev_proto_mode_char->char_val.handle == char_handle)
     {
@@ -381,31 +396,31 @@ uint8_t logic_bluetooth_get_notif_instance(uint8_t serv_num, uint16_t char_handl
 
     for(uint8_t id = 0; id < hid_prf_dataref[serv_num]->num_of_report; id++)
     {
-        DBG_LOG_DEV("logic_bluetooth_get_notif_instance :: Report Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_val_char[id]->char_val.handle);
+        DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_notif_instance :: Report Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_val_char[id]->char_val.handle);
         if(char_handle == logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_val_char[id]->char_val.handle)
         {
             return CHAR_REPORT;
         }
-        DBG_LOG_DEV("logic_bluetooth_get_notif_instance :: Report CCD Handle %d",logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_val_char[id]->client_config_desc.handle);
+        DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_notif_instance :: Report CCD Handle %d",logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_val_char[id]->client_config_desc.handle);
         if(char_handle == logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_val_char[id]->client_config_desc.handle)
         {
             return CHAR_REPORT_CCD;
         }
     }
     
-    DBG_LOG_DEV("logic_bluetooth_get_notif_instance :: Boot Keyboard Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_dev_boot_keyboard_in_report->char_val.handle);
+    DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_notif_instance :: Boot Keyboard Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_dev_boot_keyboard_in_report->char_val.handle);
     if(logic_bluetooth_hid_serv_instances[serv_num].hid_dev_boot_keyboard_in_report->char_val.handle == char_handle)
     {
         return BOOT_KEY_INPUT_REPORT;
     }
     
-    DBG_LOG_DEV("logic_bluetooth_get_notif_instance :: Boot Keyboard CCD Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_dev_boot_keyboard_in_report->client_config_desc.handle);
+    DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_notif_instance :: Boot Keyboard CCD Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_dev_boot_keyboard_in_report->client_config_desc.handle);
     if(logic_bluetooth_hid_serv_instances[serv_num].hid_dev_boot_keyboard_in_report->client_config_desc.handle == char_handle)
     {
         return BOOT_KEY_INPUT_CCD;
     }
 
-    DBG_LOG_DEV("logic_bluetooth_get_notif_instance :: Control Point Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_control_point->char_val.handle);
+    DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_notif_instance :: Control Point Handle %d", logic_bluetooth_hid_serv_instances[serv_num].hid_control_point->char_val.handle);
     if(logic_bluetooth_hid_serv_instances[serv_num].hid_control_point->char_val.handle == char_handle)
     {
         return CONTROL_POINT;
@@ -430,7 +445,7 @@ void logic_bluetooth_boot_key_report_update(at_ble_handle_t conn_handle, uint8_t
     status = at_ble_characteristic_value_get(logic_bluetooth_hid_serv_instances[serv_inst].hid_dev_boot_keyboard_in_report->client_config_desc.handle, &value, &length);
     if (status != AT_BLE_SUCCESS)
     {
-        DBG_LOG_DEV("logic_bluetooth_boot_key_report_update :: Characteristic value get fail Reason %d", status);
+        DBG_LOG("logic_bluetooth_boot_key_report_update :: Characteristic value get fail Reason %d", status);
     }
     
     //If Notification Enabled
@@ -439,13 +454,13 @@ void logic_bluetooth_boot_key_report_update(at_ble_handle_t conn_handle, uint8_t
         status = at_ble_characteristic_value_set(logic_bluetooth_hid_serv_instances[serv_inst].hid_dev_boot_keyboard_in_report->char_val.handle, bootreport, len);
         if (status != AT_BLE_SUCCESS)
         {
-            DBG_LOG_DEV("logic_bluetooth_boot_key_report_update :: Characteristic value set fail Reason %d", status);
+            DBG_LOG("logic_bluetooth_boot_key_report_update :: Characteristic value set fail Reason %d", status);
         }
         //Need to check for connection handle
         status = at_ble_notification_send(conn_handle, logic_bluetooth_hid_serv_instances[serv_inst].hid_dev_boot_keyboard_in_report->char_val.handle);
         if (status != AT_BLE_SUCCESS)
         {
-            DBG_LOG_DEV("logic_bluetooth_boot_key_report_update :: Notification send failed %d", status);
+            DBG_LOG("logic_bluetooth_boot_key_report_update :: Notification send failed %d", status);
         }
     }
 }
@@ -462,21 +477,21 @@ uint8_t logic_bluetooth_get_reportid(uint8_t serv, uint16_t handle)
     uint8_t id = 0;
     uint8_t status;
     
-    DBG_LOG_DEV("logic_bluetooth_get_reportid :: Report Number %d", hid_prf_dataref[serv]->num_of_report);
+    DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_reportid :: Report Number %d", hid_prf_dataref[serv]->num_of_report);
     for(id = 0; id < hid_prf_dataref[serv]->num_of_report; id++)
     {
-        DBG_LOG_DEV("logic_bluetooth_get_reportid :: id %d Search Handle %d, CCD Handle %d", id, handle, logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->client_config_desc.handle);
+        DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_reportid :: id %d Search Handle %d, CCD Handle %d", id, handle, logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->client_config_desc.handle);
         if(handle == logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->client_config_desc.handle)
         {
-            DBG_LOG_DEV("logic_bluetooth_get_reportid :: Report ID Descriptor Handle %d :: id %d :: serv %d", logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->additional_desc_list->handle, id, serv);
+            DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_reportid :: Report ID Descriptor Handle %d :: id %d :: serv %d", logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->additional_desc_list->handle, id, serv);
             status = at_ble_descriptor_value_get(logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->additional_desc_list->handle, &descval[0], &len);
             if (status != AT_BLE_SUCCESS)
             {
-                DBG_LOG_DEV("logic_bluetooth_get_reportid :: Decriptor value get failed");
+                DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_reportid :: Decriptor value get failed");
             }
             else
             {
-                DBG_LOG_DEV("logic_bluetooth_get_reportid :: Descriptor value Report ID %d Type %d", descval[0], descval[1]);   
+                DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_reportid :: Descriptor value Report ID %d Type %d", descval[0], descval[1]);   
             }
             return descval[0];
         }
@@ -497,27 +512,27 @@ uint8_t logic_bluetooth_get_report_characteristic(uint16_t handle, uint8_t serv,
     uint16_t len = 2;
     uint8_t id = 0;
 
-    DBG_LOG_DEV("logic_bluetooth_get_report_characteristic :: Handle %d Service Instance %d Report ID %d", handle, serv, reportid); 
+    DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_report_characteristic :: Handle %d Service Instance %d Report ID %d", handle, serv, reportid); 
     for(id = 0; id < hid_prf_dataref[serv]->num_of_report; id++)
     {
-        DBG_LOG_DEV("logic_bluetooth_get_report_characteristic :: Report ID Descriptor Handle %d :: id %d :: serv %d", logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->additional_desc_list->handle, id, serv);
+        DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_report_characteristic :: Report ID Descriptor Handle %d :: id %d :: serv %d", logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->additional_desc_list->handle, id, serv);
         status = at_ble_descriptor_value_get(logic_bluetooth_hid_serv_instances[serv].hid_dev_report_val_char[id]->additional_desc_list->handle, &descval[0], &len);
         if (status != AT_BLE_SUCCESS)
         {
-            DBG_LOG_DEV("logic_bluetooth_get_report_characteristic :: Decriptor value get failed Reason %d", status);
+            DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_report_characteristic :: Decriptor value get failed Reason %d", status);
         }
         else
         {
-            DBG_LOG_DEV("logic_bluetooth_get_report_characteristic :: Report Value ID %d Type %d", descval[0], descval[1]); 
+            DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_report_characteristic :: Report Value ID %d Type %d", descval[0], descval[1]); 
         }
         if(descval[0] == reportid)
         {
-            DBG_LOG_DEV("logic_bluetooth_get_report_characteristic :: Report Characteristic ID %d", id);
+            DBG_LOG_LOGIC_BT_AD("logic_bluetooth_get_report_characteristic :: Report Characteristic ID %d", id);
             return id;
         }
     }
     
-    DBG_LOG_DEV("Couldn't find report char!");
+    DBG_LOG_LOGIC_BT_AD("Couldn't find report char!");
     return HID_INVALID_INST;
 }
 
@@ -540,19 +555,18 @@ void logic_bluetooth_update_report(uint16_t conn_handle, uint8_t serv_inst, uint
     
     if(id != HID_INVALID_INST)
     {
-        DBG_LOG_DEV("logic_bluetooth_update_report :: Send report");
         if((status = at_ble_characteristic_value_set(logic_bluetooth_hid_serv_instances[serv_inst].hid_dev_report_val_char[id]->char_val.handle, report, len)) == AT_BLE_SUCCESS)
         {
-            DBG_LOG_DEV("logic_bluetooth_update_report :: Notify Value conn_handle %d", conn_handle);
+            DBG_LOG("Updated characteristic %d for hid instance %d and report id %d: sending %d bytes", id, serv_inst, reportid, len);
             status = at_ble_notification_send(conn_handle, logic_bluetooth_hid_serv_instances[serv_inst].hid_dev_report_val_char[id]->char_val.handle);
             if (status != AT_BLE_SUCCESS)
             {
-                DBG_LOG_DEV("logic_bluetooth_update_report :: Send notification fail Reason %d", status);
+                DBG_LOG("ERROR: Couldn't send notification, reason %d", status);
             }
         }
         else
         {
-            DBG_LOG("logic_bluetooth_update_report :: Characteristic Value Set Failed Reason %d", status);
+            DBG_LOG("ERROR: couldn't update characteristic %d for hid instance %d and report id %d: sending %d bytes", id, serv_inst, reportid, len);
         }
     }
 }
@@ -609,7 +623,7 @@ void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t*
     /* Keyboard / raw hid switch */
     if (device == HID_KEYBOARD_MODE)
     {        
-        DBG_LOG("Protocol mode characteristic: %d", cur_characteristic_index);
+        DBG_LOG_LOGIC_BT_AD("Protocol mode characteristic: %d", cur_characteristic_index);
         /*Configure HID Protocol Mode Characteristic : Value related info*/
         logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
         logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
@@ -645,7 +659,7 @@ void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t*
         cur_characteristic_index++;
     } 
     
-    DBG_LOG("Report map characteristic: %d", cur_characteristic_index);
+    DBG_LOG_LOGIC_BT_AD("Report map characteristic: %d", cur_characteristic_index);
     /*Configure HID Report Map Characteristic : Value related info*/
     logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
     logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
@@ -705,7 +719,7 @@ void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t*
 
         if(report_type[id] == INPUT_REPORT)
         {
-            DBG_LOG("input report characteristic: %d", id + cur_characteristic_index);              
+            DBG_LOG_LOGIC_BT_AD("input report characteristic: %d", id + cur_characteristic_index);              
             logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.properties = (AT_BLE_CHAR_READ|AT_BLE_CHAR_NOTIFY);         
             /* Configure the HID characteristic value permission */
             if(BLE_PAIR_ENABLE)
@@ -729,7 +743,7 @@ void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t*
         }
         else if(report_type[id] == OUTPUT_REPORT)
         {
-            DBG_LOG("output report characteristic: %d", id + cur_characteristic_index);
+            DBG_LOG_LOGIC_BT_AD("output report characteristic: %d", id + cur_characteristic_index);
             logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.properties = (AT_BLE_CHAR_READ|AT_BLE_CHAR_WRITE_WITHOUT_RESPONSE|AT_BLE_CHAR_WRITE);           
             /* Configure the HID characteristic value permission */
             if(BLE_PAIR_ENABLE)
@@ -753,7 +767,7 @@ void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t*
         }
         else if(report_type[id] == FEATURE_REPORT)
         {
-            DBG_LOG("feature report characteristic: %d", id + cur_characteristic_index);
+            DBG_LOG_LOGIC_BT_AD("feature report characteristic: %d", id + cur_characteristic_index);
             logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].char_val.properties = (AT_BLE_CHAR_READ|AT_BLE_CHAR_WRITE);          
             /* Configure the HID characteristic permission */
             if(BLE_PAIR_ENABLE)
@@ -811,7 +825,7 @@ void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t*
     
     if(device == HID_KEYBOARD_MODE)
     {
-        DBG_LOG("boot keyboard output characteristic: %d", cur_characteristic_index);        
+        DBG_LOG_LOGIC_BT_AD("boot keyboard output characteristic: %d", cur_characteristic_index);        
         /*Configure HID Boot Keyboard Output Report Characteristic : Value related info*/
         logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
         logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
@@ -860,7 +874,7 @@ void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t*
         /* Increment current index */
         cur_characteristic_index++;
          
-        DBG_LOG("boot keyboard input characteristic: %d", cur_characteristic_index);
+        DBG_LOG_LOGIC_BT_AD("boot keyboard input characteristic: %d", cur_characteristic_index);
         /*Configure HID Boot Keyboard Input Report Characteristic : Value related info*/
         logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
         logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
@@ -910,7 +924,7 @@ void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t*
         cur_characteristic_index++;
     }
  
-    DBG_LOG("hid information characteristic: %d", cur_characteristic_index);
+    DBG_LOG_LOGIC_BT_AD("hid information characteristic: %d", cur_characteristic_index);
     /*Configure HID Information Characteristic : Value related info*/
     logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
     logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
@@ -959,7 +973,7 @@ void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t*
     /* Increment current index */
     cur_characteristic_index++;
     
-    DBG_LOG("hid control characteristic: %d", cur_characteristic_index);
+    DBG_LOG_LOGIC_BT_AD("hid control characteristic: %d", cur_characteristic_index);
     /*Configure HID Control Point Characteristic : Value related info*/
     logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.handle = 0;
     logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.type = AT_BLE_UUID_16;
@@ -1056,7 +1070,7 @@ void logic_bluetooth_start_bluetooth(void)
     /* Define the primary service in the GATT server database */
     if(bat_primary_service_define(&logic_bluetooth_bas_service_handler) != AT_BLE_SUCCESS)
     {
-        DBG_LOG("Defining battery service failed");
+        DBG_LOG("ERROR: Defining battery service failed");
     }
     
     /* Initialize HID services */
@@ -1089,7 +1103,7 @@ void logic_bluetooth_start_bluetooth(void)
         /* HID service database registration */
         if(at_ble_service_define(&logic_bluetooth_hid_gatt_instances[serv_num].serv) == AT_BLE_SUCCESS)
         {
-            DBG_LOG_DEV("HID Service Handle Value %d", logic_bluetooth_hid_gatt_instances[serv_num].serv.handle);            
+            DBG_LOG_LOGIC_BT_AD("HID Service Handle Value %d", logic_bluetooth_hid_gatt_instances[serv_num].serv.handle);            
             /* Set report reference descriptor values */
             for(uint16_t id = 0; id < hid_prf_dataref[serv_num]->num_of_report; id++)
             {
@@ -1100,11 +1114,11 @@ void logic_bluetooth_start_bluetooth(void)
                 at_ble_status_t status;
                 if((status = at_ble_descriptor_value_set(logic_bluetooth_hid_serv_instances[serv_num].hid_dev_report_val_char[id]->additional_desc_list->handle, &descval[0], 2)) == AT_BLE_SUCCESS)
                 {
-                    DBG_LOG_DEV("Report Reference Descriptor Value Set");
+                    DBG_LOG_LOGIC_BT_AD("Report Reference Descriptor Value Set");
                 }
                 else
                 {
-                    DBG_LOG("Report Reference Descriptor Value Set Fail Reason %d",status);
+                    DBG_LOG_LOGIC_BT_AD("Report Reference Descriptor Value Set Fail Reason %d",status);
                 }
             }            
             /* Store service handle */
@@ -1112,7 +1126,7 @@ void logic_bluetooth_start_bluetooth(void)
         }
         else
         {
-            DBG_LOG_DEV("hid_service_dbreg :: HID Service Registration Fail");
+            DBG_LOG("ERROR: HID Service Registration Fail");
         }
     }
     
@@ -1123,13 +1137,13 @@ void logic_bluetooth_start_bluetooth(void)
     /* Define the primary service in the GATT server database */
     if(dis_primary_service_define(&device_info_serv) != AT_BLE_SUCCESS)
     {
-        DBG_LOG("Defining device information service failed");
+        DBG_LOG("ERROR: Defining device information service failed");
     }
     
     /*  Set advertisement data from ble_manager */
     if(!(ble_advertisement_data_set() == AT_BLE_SUCCESS))
     {
-        DBG_LOG("Fail to set Advertisement data");
+        DBG_LOG("ERROR: Fail to set Advertisement data");
     }
     
     /* Callback registering for BLE-GAP Role */
@@ -1157,7 +1171,7 @@ void logic_bluetooth_start_advertising(void)
     }
     else
     {
-        DBG_LOG("Device Advertisement Failed");
+        DBG_LOG("ERROR: Device Advertisement Failed");
     }    
 }
 
