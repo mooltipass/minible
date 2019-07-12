@@ -9,6 +9,7 @@
 #include "logic_bluetooth.h"
 #include "comms_main_mcu.h"
 #include "comms_raw_hid.h"
+#include "ble_manager.h"
 #include "defines.h"
 #include "usb.h"
 #include "dma.h"
@@ -112,14 +113,18 @@ void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* pac
     else
     {
         logic_bluetooth_raw_send((uint8_t*)packet, payload_size);
-        // TO REMOVE LATER
-        comms_raw_hid_packet_being_sent[hid_interface] = FALSE;
     }
     
     /* If asked, wait */
     if (wait_send != FALSE)
     {
-        while(comms_raw_hid_packet_being_sent[hid_interface] == TRUE);
+        while(comms_raw_hid_packet_being_sent[hid_interface] == TRUE)
+        {
+            if (hid_interface == BLE_INTERFACE)
+            {
+                ble_event_task();
+            }
+        }
     }    
 }
 
@@ -139,7 +144,14 @@ void comms_raw_hid_send_hid_message(hid_interface_te hid_interface, aux_mcu_mess
     while(remaining_payload_to_send > 0)
     {
         /* Wait for a possible previous packet to be sent as we do buffer re-use */
-        while(comms_raw_hid_packet_being_sent[hid_interface] == TRUE);
+        while(comms_raw_hid_packet_being_sent[hid_interface] == TRUE)
+        {
+            /* Bluetooth busy sending previous packet... */
+            if (hid_interface == BLE_INTERFACE)
+            {
+                ble_event_task();
+            }
+        }
         
         /* Generate packet */
         memset((void*)&raw_hid_send_buffer[hid_interface], 0, sizeof(raw_hid_send_buffer[0]));

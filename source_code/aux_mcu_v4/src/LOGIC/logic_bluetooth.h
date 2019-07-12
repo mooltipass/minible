@@ -11,6 +11,9 @@
 
 #include "at_ble_api.h"
 
+/* Typedefs */
+typedef enum    {NONE_NOTIF_SENDING = 0, KEYBOARD_NOTIF_SENDING, RAW_HID_NOTIF_SENDING, BATTERY_NOTIF_SENDING} notif_sending_te;
+
 /* Defines */
 #define BLE_KEYBOARD_HID_SERVICE_INSTANCE   0
 #define BLE_RAW_HID_SERVICE_INSTANCE        1

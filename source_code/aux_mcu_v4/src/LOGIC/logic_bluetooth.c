@@ -19,6 +19,8 @@ hid_control_mode_ntf_t logic_bluetooth_hid_control_point_value[HID_MAX_SERV_INST
 hid_report_ntf_t logic_bluetooth_report_ntf_info[BLE_TOTAL_NUMBER_OF_REPORTS];
 /* HID GATT services instances */
 hid_gatt_serv_handler_t logic_bluetooth_hid_gatt_instances[HID_MAX_SERV_INST];
+/* Notification we're sending */
+notif_sending_te logic_bluetooth_notif_being_sent = NONE_NOTIF_SENDING;
 /* HID service instances */
 hid_serv_t logic_bluetooth_hid_serv_instances[HID_MAX_SERV_INST];
 /* Boot notification structure for keyboard service in boot protocol */
@@ -152,20 +154,37 @@ static const ble_gap_event_cb_t hid_app_gap_handle =
 */
 static at_ble_status_t logic_bluetooth_notification_confirmed_callback(void* params)
 {
-    // TODO explore for what this is sent... keyboard/hid/battery
     at_ble_cmd_complete_event_t* notification_status;
     notification_status = (at_ble_cmd_complete_event_t*) params;
-
-    /* From battery service */
+    
+    /* Debug */
     if(notification_status->status == AT_BLE_SUCCESS)
     {
-        logic_bluetooth_battery_notification_flag = TRUE;
         DBG_LOG("sending notification to the peer success");
     }
     else
     {
         DBG_LOG("ERROR: failed sending notification to peer");
     }
+    
+    if (logic_bluetooth_notif_being_sent == RAW_HID_NOTIF_SENDING)
+    {
+        comms_raw_hid_send_callback(BLE_INTERFACE);
+    }
+    else if (logic_bluetooth_notif_being_sent == KEYBOARD_NOTIF_SENDING)
+    {
+    }
+    else if (logic_bluetooth_notif_being_sent == BATTERY_NOTIF_SENDING)
+    {
+        /* From battery service */
+        if(notification_status->status == AT_BLE_SUCCESS)
+        {
+            logic_bluetooth_battery_notification_flag = TRUE;
+        }
+    }
+    
+    /* Reset flag */
+    logic_bluetooth_notif_being_sent = NONE_NOTIF_SENDING;
 
     return AT_BLE_SUCCESS;
 }
@@ -1190,6 +1209,11 @@ void logic_bluetooth_set_battery_level(uint8_t pct)
         {
             DBG_LOG("Battery Level:%d%%", pct);
             logic_bluetooth_battery_notification_flag = FALSE;
+            logic_bluetooth_notif_being_sent = BATTERY_NOTIF_SENDING;
+        }
+        else
+        {
+            logic_bluetooth_notif_being_sent = NONE_NOTIF_SENDING;            
         }
     }
 }
@@ -1218,6 +1242,7 @@ void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
         DBG_LOG("BLE send: %02x %02x %02x%02x %02x%02x", logic_bluetooth_raw_hid_data_out_buf[0], logic_bluetooth_raw_hid_data_out_buf[1], logic_bluetooth_raw_hid_data_out_buf[3], logic_bluetooth_raw_hid_data_out_buf[2], logic_bluetooth_raw_hid_data_out_buf[5], logic_bluetooth_raw_hid_data_out_buf[4]);
         
         /* Send data */
+        logic_bluetooth_notif_being_sent = RAW_HID_NOTIF_SENDING;
         logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_RAW_HID_SERVICE_INSTANCE, BLE_RAW_HID_IN_REPORT_NB, logic_bluetooth_raw_hid_data_out_buf, sizeof(logic_bluetooth_raw_hid_data_out_buf));
     }
 }
