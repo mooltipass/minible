@@ -444,6 +444,24 @@ void platform_io_disable_vbat_to_oled_stepup(void)
     platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
 }
 
+/*! \fn     platform_io_enable_3v3_to_oled_stepup(void)
+*   \brief  Enable 3V3 to oled stepup
+*/
+void platform_io_enable_3v3_to_oled_stepup(void)
+{
+    PORT->Group[VOLED_3V3_EN_GROUP].OUTSET.reg = VOLED_3V3_EN_MASK; 
+    platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_3V3;
+}
+
+/*! \fn     platform_io_disable_3v3_to_oled_stepup(void)
+*   \brief  Disable 3V3 to oled stepup
+*/
+void platform_io_disable_3v3_to_oled_stepup(void)
+{
+    PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;
+    platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
+}
+
 /*! \fn     platform_io_power_up_oled(BOOL power_3v3)
 *   \brief  OLED powerup routine (3V3, 12V, reset release)
 *   \param  power_3v3   TRUE to use USB 3V3 as source for 12V stepup
