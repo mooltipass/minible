@@ -9,6 +9,8 @@
 #include "driver_clocks.h"
 #include "driver_timer.h"
 #include "platform_io.h"
+/* OLED stepup-power source */
+oled_stepup_pwr_source_te platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
 /* Set when a conversion result is ready */
 volatile BOOL platform_io_voledin_conv_ready = FALSE;
 
@@ -430,6 +432,7 @@ void platform_io_init_oled_ports(void)
 void platform_io_enable_vbat_to_oled_stepup(void)
 {
     PORT->Group[VOLED_1V2_EN_GROUP].OUTSET.reg = VOLED_1V2_EN_MASK; 
+    platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_VBAT;
 }
 
 /*! \fn     platform_io_disable_vbat_to_oled_stepup(void)
@@ -438,6 +441,7 @@ void platform_io_enable_vbat_to_oled_stepup(void)
 void platform_io_disable_vbat_to_oled_stepup(void)
 {
     PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;
+    platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
 }
 
 /*! \fn     platform_io_power_up_oled(BOOL power_3v3)
@@ -452,11 +456,13 @@ void platform_io_power_up_oled(BOOL power_3v3)
     {
         PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;
         PORT->Group[VOLED_1V2_EN_GROUP].OUTSET.reg = VOLED_1V2_EN_MASK; 
+        platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_VBAT;
     }
     else
     {
         PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;
         PORT->Group[VOLED_3V3_EN_GROUP].OUTSET.reg = VOLED_3V3_EN_MASK;
+        platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_3V3;
     }
     
     /* Worst Voled rise time is 30ms when Vbat is at 1.05V */
@@ -476,6 +482,16 @@ void platform_io_power_down_oled(void)
 {
     PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;
     PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;
+    platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
+}
+
+/*! \fn     platform_io_get_voled_stepup_pwr_source(void)
+*   \brief  Get the oled stepup power source
+*   \return The boolean
+*/
+oled_stepup_pwr_source_te platform_io_get_voled_stepup_pwr_source(void)
+{
+    return platform_io_oled_stepup_power_source;
 }
 
 /*! \fn     platform_io_is_usb_3v3_present(void)

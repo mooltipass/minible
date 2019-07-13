@@ -347,7 +347,7 @@ int main(void)
     
     /* TO REMOVE */
     //platform_io_set_no_comms();while(1);
-    platform_io_enable_ble();
+    //platform_io_enable_ble();
     
     /* Special developer features */
     #ifdef SPECIAL_DEVELOPER_CARD_FEATURE
@@ -376,10 +376,7 @@ int main(void)
     #endif
     
     /* Activity detected */
-    logic_device_activity_detected();    
-    
-    /* tests */
-    //main_standby_sleep();
+    logic_device_activity_detected();
     
     #ifndef DEV_SKIP_INTRO_ANIM
     /* Start animation */    
@@ -417,6 +414,8 @@ int main(void)
     {
         /* Power handling routine */
         power_action_te power_action = logic_power_routine();
+        
+        /* If the power routine tells us to power off, provided we are not updating */
         if ((power_action == POWER_ACT_POWER_OFF) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE))
         {
             /* Set flag */

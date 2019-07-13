@@ -12,6 +12,8 @@
 #include "custom_fs.h"
 #include "sh1122.h"
 #include "main.h"
+/* Last seen voled stepup power source */
+oled_stepup_pwr_source_te logic_power_last_seen_voled_stepup_pwr_source = OLED_STEPUP_SOURCE_NONE;
 // Number of ms spent on battery since the last full charge
 volatile uint32_t logic_power_nb_ms_spent_since_last_full_charge = 0;
 /* Current power source */
@@ -20,7 +22,7 @@ power_source_te logic_power_current_power_source;
 uint16_t logic_power_last_vbat_measurement;
 /* Battery charging bool */
 BOOL logic_power_battery_charging = FALSE;
-// Number of ADC conversions since last power change
+/* Number of ADC conversions since last power change */
 uint16_t logic_power_nb_adc_conv_since_last_power_change = 0;
 
 
@@ -140,6 +142,9 @@ void logic_power_register_vbat_adc_measurement(uint16_t adc_val)
 */
 power_action_te logic_power_routine(void)
 {        
+    /* Get current oled power source */
+    oled_stepup_pwr_source_te current_voled_pwr_source = platform_io_get_voled_stepup_pwr_source();
+    
     /* Power supply change */
     if ((logic_power_get_power_source() == BATTERY_POWERED) && (platform_io_is_usb_3v3_present() != FALSE))
     {
@@ -165,6 +170,14 @@ power_action_te logic_power_routine(void)
         logic_device_activity_detected();
         logic_power_nb_adc_conv_since_last_power_change = 0;
     }
+    else if ((logic_power_last_seen_voled_stepup_pwr_source == OLED_STEPUP_SOURCE_NONE) && (current_voled_pwr_source != logic_power_last_seen_voled_stepup_pwr_source))
+    {
+        /* No power source change, but it is possible to have a disabled screen that is now powered on */
+        logic_power_nb_adc_conv_since_last_power_change = 0;
+    }
+    
+    /* Store last seen voled power source */
+    logic_power_last_seen_voled_stepup_pwr_source = current_voled_pwr_source;
     
     /* Battery charging */
     if ((logic_power_get_power_source() == USB_POWERED) && (logic_aux_mcu_is_usb_just_enumerated() != FALSE) && (logic_power_battery_charging == FALSE) && (logic_power_nb_ms_spent_since_last_full_charge > NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
@@ -185,7 +198,7 @@ power_action_te logic_power_routine(void)
         }
         
         /* Store current vbat only if we are battery powered */
-        if ((platform_io_is_usb_3v3_present() == FALSE) && (logic_power_nb_adc_conv_since_last_power_change > 5))
+        if ((platform_io_get_voled_stepup_pwr_source() == OLED_STEPUP_SOURCE_VBAT) && (logic_power_nb_adc_conv_since_last_power_change > 5))
         {
             logic_power_last_vbat_measurement = current_vbat;
         }
