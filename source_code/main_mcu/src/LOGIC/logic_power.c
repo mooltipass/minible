@@ -3,6 +3,7 @@
 *    Created:  29/09/2018
 *    Author:   Mathieu Stephan
 */
+#include "gui_dispatcher.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
@@ -148,25 +149,31 @@ power_action_te logic_power_routine(void)
     /* Power supply change */
     if ((logic_power_get_power_source() == BATTERY_POWERED) && (platform_io_is_usb_3v3_present() != FALSE))
     {
-        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
-        logic_power_set_power_source(USB_POWERED);
         sh1122_oled_off(&plat_oled_descriptor);
+        platform_io_disable_vbat_to_oled_stepup();
+        logic_power_set_power_source(USB_POWERED);
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+        platform_io_assert_oled_reset();
         timer_delay_ms(15);
         platform_io_power_up_oled(TRUE);
-        sh1122_oled_on(&plat_oled_descriptor);
+        sh1122_init_display(&plat_oled_descriptor);
+        gui_dispatcher_get_back_to_current_screen();
         logic_device_activity_detected();
         logic_power_nb_adc_conv_since_last_power_change = 0;
     }
     else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
     {
+        sh1122_oled_off(&plat_oled_descriptor);
+        platform_io_disable_3v3_to_oled_stepup();
+        logic_power_set_power_source(BATTERY_POWERED);
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
         logic_power_set_battery_charging_bool(FALSE, FALSE);
-        logic_power_set_power_source(BATTERY_POWERED);
         logic_aux_mcu_set_usb_enumerated_bool(FALSE);
-        sh1122_oled_off(&plat_oled_descriptor);
+        platform_io_assert_oled_reset();
         timer_delay_ms(15);
         platform_io_power_up_oled(FALSE);
-        sh1122_oled_on(&plat_oled_descriptor);
+        sh1122_init_display(&plat_oled_descriptor);
+        gui_dispatcher_get_back_to_current_screen();
         logic_device_activity_detected();
         logic_power_nb_adc_conv_since_last_power_change = 0;
     }

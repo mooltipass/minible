@@ -319,7 +319,7 @@ typedef struct
 #define DBFLASH_BAUD_DIVIDER        1
 
 /* Reboot timer */
-#define NB_MS_WHEEL_PRESS_FOR_REBOOT    10000
+#define NB_MS_WHEEL_PRESS_FOR_REBOOT    6000
 
 /* PORT defines */
 /* WHEEL ENCODER */

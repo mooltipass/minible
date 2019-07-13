@@ -462,6 +462,15 @@ void platform_io_disable_3v3_to_oled_stepup(void)
     platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
 }
 
+/*! \fn     platform_io_assert_oled_reset(void)
+*   \brief  Assert oled reset
+*/
+void platform_io_assert_oled_reset(void)
+{
+    PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK;
+    DELAYUS(15);    
+}
+
 /*! \fn     platform_io_power_up_oled(BOOL power_3v3)
 *   \brief  OLED powerup routine (3V3, 12V, reset release)
 *   \param  power_3v3   TRUE to use USB 3V3 as source for 12V stepup

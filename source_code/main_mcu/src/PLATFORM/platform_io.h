@@ -36,6 +36,7 @@ void platform_io_set_wheel_click_low(void);
 BOOL platform_io_is_usb_3v3_present(void);
 void platform_io_release_aux_reset(void);
 void platform_io_smc_switch_to_spi(void);
+void platform_io_assert_oled_reset(void);
 void platform_io_disable_aux_comms(void);
 void platform_io_enable_aux_comms(void);
 void platform_io_smc_switch_to_bb(void);
