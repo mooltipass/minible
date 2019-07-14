@@ -259,7 +259,8 @@ void main_platform_init(void)
     #else
     if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) == TRUE)
     #endif
-    {      
+    {
+        custom_fs_settings_set_defaults();      
         functional_testing_start(TRUE);
     }
     
@@ -274,6 +275,13 @@ void main_platform_init(void)
             comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BUNDLE);
         }
     } 
+    
+    /* If the device went through the bootloader: re-initialize device settings and clear bool */
+    if (custom_fs_get_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID) != FALSE)
+    {
+        custom_fs_settings_set_defaults();
+        custom_fs_set_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID, FALSE);
+    }
 }
 
 /*! \fn     main_standby_sleep(void)

@@ -37,7 +37,7 @@
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32
 #define FLAG_SET_BOOL_VALUE                 0x1212
-typedef enum {PWR_OFF_DUE_TO_BATTERY_FLG_ID = 0, NOT_FIRST_BOOT_FLAG_ID = 1} custom_fs_flag_id_te;
+typedef enum {PWR_OFF_DUE_TO_BATTERY_FLG_ID = 0, NOT_FIRST_BOOT_FLAG_ID = 1, DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID = 2} custom_fs_flag_id_te;
 
 /* Typedefs */
 typedef uint32_t custom_fs_file_count_t;
