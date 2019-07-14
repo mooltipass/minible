@@ -106,7 +106,7 @@ void main_platform_init(void)
     custom_fs_settings_init();                                              // Initialize settings filesystem for following call, may fail but in that case following call will return FALSE
 
     /* Check if we previously powered off due to low battery and still haven't charged since then */
-    if (custom_fs_is_powered_off_due_to_battery_voltage() != FALSE)
+    if (custom_fs_get_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID) != FALSE)
     {  
         /* Check if 3V3 is present and if so clear flag */
         if (platform_io_is_usb_3v3_present() == FALSE)
@@ -116,7 +116,7 @@ void main_platform_init(void)
         } 
         else
         {
-            custom_fs_define_powered_off_due_to_battery_voltage(FALSE);
+            custom_fs_set_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID, FALSE);
         }
     }
     
@@ -255,9 +255,9 @@ void main_platform_init(void)
     
     /* Check for first boot, perform functional testing */
     #ifdef DEVELOPER_FEATURES_ENABLED
-    if ((custom_fs_is_first_boot() == TRUE) && (mcu_sp_rh_addresses[1] != 0x0201))
+    if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
     #else
-    if (custom_fs_is_first_boot() == TRUE)
+    if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) == TRUE)
     #endif
     {      
         functional_testing_start(TRUE);
@@ -421,7 +421,7 @@ int main(void)
         if ((power_action == POWER_ACT_POWER_OFF) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE))
         {
             /* Set flag */
-            custom_fs_define_powered_off_due_to_battery_voltage(TRUE);
+            custom_fs_set_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID, TRUE);
             logic_power_power_down_actions();
             
             /* Out of battery! */

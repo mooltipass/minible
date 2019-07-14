@@ -120,7 +120,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     /* Clear flag */
     if (clear_first_boot_flag != FALSE)
     {
-        custom_fs_settings_clear_first_boot_flag();
+        custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
     }
     
     /* We're good! */

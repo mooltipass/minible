@@ -576,15 +576,52 @@ void custom_fs_settings_clear_fw_upgrade_flag(void)
     custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
 }
 
-/*! \fn     custom_fs_settings_clear_first_boot_flag(void)
-*   \brief  Clear the first boot flag inside our settings
+/*! \fn     custom_fs_set_device_flag_value(custom_fs_flag_id_te flag_id, BOOL value)
+*   \brief  Set the boolean value for a given device flag
+*   \param  flag_id     Flag ID (see defines)
+*   \param  value       TRUE or FALSE
 */
-void custom_fs_settings_clear_first_boot_flag(void)
+void custom_fs_set_device_flag_value(custom_fs_flag_id_te flag_id, BOOL value)
 {
     volatile custom_platform_settings_t temp_settings;
-    custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
-    temp_settings.first_boot_flag = 0;
-    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    
+    /* Check for overflow and custom fs init state */
+    if ((custom_fs_platform_settings_p != 0) && (flag_id < ARRAY_SIZE(custom_fs_platform_settings_p->device_flags)))
+    {
+        custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+        if (value == FALSE)
+        {
+            temp_settings.device_flags[flag_id] = 0xFFFF;
+        } 
+        else
+        {
+            temp_settings.device_flags[flag_id] = FLAG_SET_BOOL_VALUE;
+        }
+        custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    }    
+}
+
+/*! \fn     custom_fs_get_device_flag_value(custom_fs_flag_id_te flag_id)
+*   \brief  Get the boolean value for a given device flag
+*   \param  flag_id     Flag ID (see defines)
+*   \return TRUE or FALSE
+*/
+BOOL custom_fs_get_device_flag_value(custom_fs_flag_id_te flag_id)
+{
+    /* Check for overflow and custom fs init state */
+    if ((custom_fs_platform_settings_p != 0) && (flag_id < ARRAY_SIZE(custom_fs_platform_settings_p->device_flags)))
+    {
+        if (custom_fs_platform_settings_p->device_flags[flag_id] == FLAG_SET_BOOL_VALUE)
+        {
+            return TRUE;
+        } 
+        else
+        {
+            return FALSE;
+        }
+    }    
+    
+    return FALSE;
 }
 
 /*! \fn     custom_fs_define_nb_ms_since_last_full_charge(uint32_t nb_ms)
@@ -614,58 +651,6 @@ uint32_t custom_fs_get_nb_ms_since_last_full_charge(void)
     {
         return 0;
     }
-}
-
-/*! \fn     custom_fs_define_powered_off_due_to_battery_voltage(BOOL set_flag)
-*   \brief  Set / clear powered off due to battery voltage flag
-*   \param  set_flag    Set to TRUE to set the flag
-*/
-void custom_fs_define_powered_off_due_to_battery_voltage(BOOL set_flag)
-{
-    volatile custom_platform_settings_t temp_settings;
-    custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
-    if (set_flag == FALSE)
-    {
-        temp_settings.powered_off_due_to_battery_flag = 0;
-    } 
-    else
-    {
-        temp_settings.powered_off_due_to_battery_flag = 0x1212;
-    }
-    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
-    return;    
-}
-
-/*! \fn     custom_fs_is_powered_off_due_to_battery_voltage(void)
-*   \brief  Check if were just powered off due to low battery voltage
-*   \return BOOL containing our answer
-*/
-BOOL custom_fs_is_powered_off_due_to_battery_voltage(void)
-{
-    if ((custom_fs_platform_settings_p != 0) && (custom_fs_platform_settings_p->powered_off_due_to_battery_flag == 0x1212))
-    {
-        return TRUE;
-    }
-    else
-    {
-        return FALSE;
-    }
-}
-
-/*! \fn     custom_fs_is_first_boot(void)
-*   \brief  Check for first boot
-*   \return TRUE for first boot
-*/
-BOOL custom_fs_is_first_boot(void)
-{
-    if ((custom_fs_platform_settings_p != 0) && (custom_fs_platform_settings_p->first_boot_flag == 0xFFFF))
-    {
-        return TRUE;
-    }
-    else
-    {
-        return FALSE;
-    }    
 }
 
 /*! \fn     custom_fs_settings_check_fw_upgrade_flag(void)
