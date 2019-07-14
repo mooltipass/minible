@@ -123,6 +123,7 @@ def serial_read(s, mcu):
 			# Check for valid frame
 			if not is_frame_valid(frame_bis):
 				resync_was_done = True
+				print(str.format('{:02X}', frame_bis[0]))
 				# remove one byte
 				frame = frame[1:]
 				nb_bytes -= 1

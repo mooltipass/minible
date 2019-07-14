@@ -252,12 +252,13 @@ void main_platform_init(void)
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
     } 
-    
+        
+    //custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
     /* Check for first boot, perform functional testing */
     #ifdef DEVELOPER_FEATURES_ENABLED
     if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
     #else
-    if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) == TRUE)
+    if (custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE)
     #endif
     {
         custom_fs_settings_set_defaults();      
