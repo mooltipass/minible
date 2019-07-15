@@ -2031,7 +2031,7 @@ at_ble_status_t ble_event_task(void);
   * \return none.
   *
   */
-void ble_device_init(at_ble_addr_t *addr);
+void ble_device_init(at_ble_addr_t *addr, at_ble_gap_deviceinfo_t* device_info);
 
 /** \brief function handling all the events from the stack, responsible
   * for calling the respective functions initialized for the events.

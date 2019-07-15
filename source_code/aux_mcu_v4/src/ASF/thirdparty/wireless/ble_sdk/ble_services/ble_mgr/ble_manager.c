@@ -223,10 +223,9 @@ at_ble_init_config_t pf_cfg = {
 };
 
 /** @brief BLE device initialization */
-void ble_device_init(at_ble_addr_t *addr)
+void ble_device_init(at_ble_addr_t *addr, at_ble_gap_deviceinfo_t* device_info)
 {
 	uint8_t idx;	
-	char *dev_name = NULL;
 
 #ifdef BTLC_REINIT_SUPPORT
 	static bool btlc1000_initialized = false;
@@ -341,8 +340,13 @@ void ble_device_init(at_ble_addr_t *addr)
 	}
 #endif
 
+    /* Set advanced info */
+    if(at_ble_set_gap_deviceinfo(device_info) != AT_BLE_SUCCESS)
+    {
+        DBG_LOG("ERROR: Couldn't set advanced info");
+    }
 									
-	dev_name = (char *)BLE_DEVICE_NAME;
+	char* dev_name = (char *)BLE_DEVICE_NAME;
 	if (ble_set_device_name((uint8_t *)dev_name, strlen(dev_name)) != AT_BLE_SUCCESS)
 	{
 		DBG_LOG("Device name set failed");
@@ -428,8 +432,8 @@ static void ble_set_dev_config(at_ble_addr_t *addr)
 	/* Attributes */
 	stDevConfig.att_cfg.b2NamePerm = AT_BLE_WRITE_DISABLE;
 	stDevConfig.att_cfg.b2AppearancePerm = AT_BLE_WRITE_DISABLE;
-	stDevConfig.att_cfg.b1EnableSpcs = 0;
-	stDevConfig.att_cfg.b1EnableServiceChanged = 0;
+	stDevConfig.att_cfg.b1EnableSpcs = 1;
+	stDevConfig.att_cfg.b1EnableServiceChanged = 1;
 	stDevConfig.att_cfg.b2Rfu = AT_BLE_WRITE_DISABLE;
 	/* Handles */
 	stDevConfig.gap_start_hdl = AT_BLE_AUTO_ALLOC_HANDLE;

@@ -99,7 +99,7 @@ void bat_init_service(bat_gatt_service_handler_t *battery_serv, uint8_t *battery
 	presentation_format.description = (uint8_t) BAT_CHAR_PRESENTATION_FORMAT_DESCRIPTOR;
 	presentation_format.description = (uint8_t) (BAT_CHAR_PRESENTATION_FORMAT_DESCRIPTOR >> 8);
 	
-	battery_serv->serv_chars.presentation_format = &presentation_format;       /* presentation format */
+	//battery_serv->serv_chars.presentation_format = &presentation_format;       /* presentation format */
 	ALL_UNUSED(battery_value);
 }
 
