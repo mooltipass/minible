@@ -285,6 +285,26 @@ void main_platform_init(void)
     }
 }
 
+/*! \fn     main_reboot(void)
+*   \brief  Reboot
+*/
+void main_reboot(void)
+{
+    /* Wait for accelerometer DMA transfer end */
+    lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor);
+    while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
+    /* Power Off OLED screen */
+    sh1122_oled_off(&plat_oled_descriptor);
+    platform_io_power_down_oled();
+    /* No comms */
+    platform_io_set_no_comms();
+    /* Wait and reboot */
+    timer_delay_ms(100);
+    cpu_irq_disable();
+    NVIC_SystemReset();
+    while(1);
+}
+
 /*! \fn     main_standby_sleep(void)
 *   \brief  Go to sleep
 */

@@ -18,6 +18,7 @@
 /* Prototypes */
 void main_platform_init(void);
 void main_standby_sleep(void);
+void main_reboot(void);
 
 /* Global vars to access descriptors */
 extern sh1122_descriptor_t plat_oled_descriptor;

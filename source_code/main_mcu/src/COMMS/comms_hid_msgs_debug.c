@@ -198,9 +198,7 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
         {
             custom_fs_set_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID, TRUE);
             custom_fs_settings_set_fw_upgrade_flag();
-            cpu_irq_disable();
-            NVIC_SystemReset();
-            while(1);            
+            main_reboot();      
         }
         case HID_CMD_ID_GET_ACC_32_SAMPLES:
         {
