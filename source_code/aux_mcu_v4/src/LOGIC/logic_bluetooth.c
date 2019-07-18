@@ -257,6 +257,7 @@ at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params)
         case CHAR_REPORT:
         {
             DBG_LOG("Report Callback : Service Instance %d Bytes Received %d Connection Handle %d", serv_inst, change_params.char_len, change_params.conn_handle);
+            DBG_LOG("%02x %02x %02x %02x %02x", change_params.char_new_value[0], change_params.char_new_value[1], change_params.char_new_value[2], change_params.char_new_value[3], change_params.char_new_value[4]);
             if (serv_inst == BLE_RAW_HID_SERVICE_INSTANCE)
             {
                 uint8_t* recv_buf = comms_raw_hid_get_recv_buffer(BLE_INTERFACE);
@@ -1307,18 +1308,19 @@ void logic_bluetooth_routine(void)
     if (logic_bluetooth_just_paired != FALSE)
     {
         logic_bluetooth_just_paired = FALSE;
+        timer_start_timer(TIMER_BT_TESTS, 5000);
     }
     
     if (logic_bluetooth_connected != FALSE)
     {
-        if ((timer_has_timer_expired(TIMER_BT_TESTS, TRUE) == TIMER_EXPIRED) && false)
+        if ((timer_has_timer_expired(TIMER_BT_TESTS, TRUE) == TIMER_EXPIRED) && true)
         {            
             timer_start_timer(TIMER_BT_TESTS, 5000);            
             logic_bluetooth_keyboard_in_report[2] = 17;
-            //logic_bluetooth_update_report(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, logic_bluetooth_keyboard_report, sizeof(logic_bluetooth_keyboard_report));
+            logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_KEYBOARD_HID_SERVICE_INSTANCE, BLE_KEYBOARD_HID_IN_REPORT_NB, logic_bluetooth_keyboard_in_report, sizeof(logic_bluetooth_keyboard_in_report));
             timer_delay_ms(20);
             logic_bluetooth_keyboard_in_report[2] = 0x00;
-            //logic_bluetooth_update_report(report_ntf_info.conn_handle, report_ntf_info.serv_inst, 1, logic_bluetooth_keyboard_report, sizeof(logic_bluetooth_keyboard_report));
+            logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_KEYBOARD_HID_SERVICE_INSTANCE, BLE_KEYBOARD_HID_IN_REPORT_NB, logic_bluetooth_keyboard_in_report, sizeof(logic_bluetooth_keyboard_in_report));
         }
     }
 }
