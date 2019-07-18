@@ -21,8 +21,10 @@ typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2
 void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_success);
 void logic_power_register_vbat_adc_measurement(uint16_t adc_val);
 void logic_power_set_power_source(power_source_te power_source);
+BOOL logic_power_is_usb_enumerate_sent_clear_bool(void);
 battery_state_te logic_power_get_battery_state(void);
 power_source_te logic_power_get_power_source(void);
+void logic_power_usb_enumerate_just_sent(void);
 BOOL logic_power_is_battery_charging(void);
 void logic_power_power_down_actions(void);
 power_action_te logic_power_routine(void);

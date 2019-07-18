@@ -1278,6 +1278,8 @@ void logic_bluetooth_set_battery_level(uint8_t pct)
 */
 void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
 {
+    DBG_LOG_LOGIC_BT_AD("Call to raw send");
+    
     /* Check that we're actually paired */
     if (logic_bluetooth_paired != FALSE)
     {
@@ -1315,7 +1317,7 @@ void logic_bluetooth_routine(void)
     
     if (logic_bluetooth_connected != FALSE)
     {
-        if ((timer_has_timer_expired(TIMER_BT_TESTS, TRUE) == TIMER_EXPIRED) && true)
+        if ((timer_has_timer_expired(TIMER_BT_TESTS, TRUE) == TIMER_EXPIRED) && false)
         {            
             timer_start_timer(TIMER_BT_TESTS, 5000);            
             logic_bluetooth_keyboard_in_report[2] = 17;

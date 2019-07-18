@@ -251,6 +251,7 @@ void main_platform_init(void)
     if (platform_io_is_usb_3v3_present() != FALSE)
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+        logic_power_usb_enumerate_just_sent();
     } 
         
     //custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
@@ -401,6 +402,7 @@ int main(void)
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
                 timer_delay_ms(2000);
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+                logic_power_usb_enumerate_just_sent();
             }
         }        
     }

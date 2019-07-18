@@ -25,6 +25,8 @@ uint16_t logic_power_last_vbat_measurement;
 BOOL logic_power_battery_charging = FALSE;
 /* Number of ADC conversions since last power change */
 uint16_t logic_power_nb_adc_conv_since_last_power_change = 0;
+/* If the "enumerate usb" command was just sent */
+BOOL logic_power_enumerate_usb_command_just_sent = FALSE;
 
 
 /*! \fn     logic_power_ms_tick(void)
@@ -137,6 +139,24 @@ void logic_power_register_vbat_adc_measurement(uint16_t adc_val)
     logic_power_last_vbat_measurement = adc_val;
 }
 
+/*! \fn     logic_power_usb_enumerate_just_sent(void)
+*   \brief  Signal that the USB enumerate command was sent
+*/
+void logic_power_usb_enumerate_just_sent(void)
+{
+    logic_power_enumerate_usb_command_just_sent = TRUE;
+}
+
+/*! \fn     logic_power_is_usb_enumerate_sent_clear_bool(void)
+*   \brief  Know if the USB enumerate command was just sent and clear the bool
+*/
+BOOL logic_power_is_usb_enumerate_sent_clear_bool(void)
+{
+    BOOL return_bool = logic_power_enumerate_usb_command_just_sent;
+    logic_power_enumerate_usb_command_just_sent = FALSE;
+    return return_bool;
+}
+
 /*! \fn     logic_power_routine(void)
 *   \brief  Power handling routine
 *   \return An action if needed (see enum)
@@ -153,6 +173,7 @@ power_action_te logic_power_routine(void)
         platform_io_disable_vbat_to_oled_stepup();
         logic_power_set_power_source(USB_POWERED);
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+        logic_power_usb_enumerate_just_sent();
         platform_io_assert_oled_reset();
         timer_delay_ms(15);
         platform_io_power_up_oled(TRUE);
@@ -187,7 +208,7 @@ power_action_te logic_power_routine(void)
     logic_power_last_seen_voled_stepup_pwr_source = current_voled_pwr_source;
     
     /* Battery charging */
-    if ((logic_power_get_power_source() == USB_POWERED) && (logic_aux_mcu_is_usb_just_enumerated() != FALSE) && (logic_power_battery_charging == FALSE) && (logic_power_nb_ms_spent_since_last_full_charge > NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
+    if ((logic_power_get_power_source() == USB_POWERED) && (logic_power_is_usb_enumerate_sent_clear_bool() != FALSE) && (logic_power_battery_charging == FALSE) && (logic_power_nb_ms_spent_since_last_full_charge > NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
         logic_power_battery_charging = TRUE;
