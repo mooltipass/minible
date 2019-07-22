@@ -37,31 +37,39 @@ gui_screen_te gui_dispatcher_get_current_screen(void)
     return gui_dispatcher_current_screen;
 }
 
-/*! \fn     gui_dispatcher_display_battery_bt_overlay(void)
+/*! \fn     gui_dispatcher_display_battery_bt_overlay(BOOL write_to_buffer)
 *   \brief  Display battery / bt overlay in current frame buffer
+*   \param  write_to_buffer Set to TRUE to write to buffer
 */
-void gui_dispatcher_display_battery_bt_overlay(void)
+void gui_dispatcher_display_battery_bt_overlay(BOOL write_to_buffer)
 {    
     /* Charging or not? */
     if (logic_power_is_battery_charging() == FALSE)
     {
         /* Our enum allows us to do so */
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+logic_power_get_battery_state(), TRUE);
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+logic_power_get_battery_state(), write_to_buffer);
     } 
     else
     {
+        /* Animation timer */
+        if (timer_has_timer_expired(TIMER_BATTERY_ANIM, TRUE) == TIMER_EXPIRED)
+        {
+            timer_start_timer(TIMER_BATTERY_ANIM, GUI_BATTERY_ANIM_DELAY_MS);
+            gui_dispatcher_battery_charging_anim_index++;
+        }
+        
         /* Check for end condition */
         if (gui_dispatcher_battery_charging_anim_index > BATTERY_100PCT)
         {
             gui_dispatcher_battery_charging_anim_index = BATTERY_0PCT;
         }
         
-        /* Display and increment */
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+(gui_dispatcher_battery_charging_anim_index++), TRUE);
+        /* Display */
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+(gui_dispatcher_battery_charging_anim_index), write_to_buffer);
     }
     
     /* Bluetooth display */
-    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_TRAY_BT_CONNECTED_ID+logic_bluetooth_get_state(), TRUE);
+    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_TRAY_BT_CONNECTED_ID+logic_bluetooth_get_state(), write_to_buffer);
 }
 
 /*! \fn     gui_dispatcher_set_current_screen(gui_screen_te screen)
@@ -104,7 +112,7 @@ void gui_dispatcher_get_back_to_current_screen(void)
         case GUI_SCREEN_NINSERTED:          {
                                                 sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, GUI_LOCKED_MINI_BITMAP_ID, TRUE);
                                                 timer_start_timer(TIMER_ANIMATIONS, GUI_BATTERY_ANIM_DELAY_MS);
-                                                gui_dispatcher_display_battery_bt_overlay();
+                                                gui_dispatcher_display_battery_bt_overlay(TRUE);
                                                 #ifdef OLED_INTERNAL_FRAME_BUFFER
                                                     sh1122_flush_frame_buffer(&plat_oled_descriptor);
                                                 #endif
@@ -122,7 +130,11 @@ void gui_dispatcher_get_back_to_current_screen(void)
         case GUI_SCREEN_MAIN_MENU:
         case GUI_SCREEN_BT:
         case GUI_SCREEN_OPERATIONS:
-        case GUI_SCREEN_SETTINGS:           gui_menu_event_render(WHEEL_ACTION_NONE);break;
+        case GUI_SCREEN_SETTINGS:           
+                                            {
+                                                gui_menu_event_render(WHEEL_ACTION_NONE);
+                                                break;
+                                            }                                                
         default: break;
     }
 }
@@ -249,15 +261,7 @@ void gui_dispatcher_idle_call(void)
     {
         case GUI_SCREEN_NINSERTED:
         case GUI_SCREEN_INSERTED_LCK:       {
-                                                if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
-                                                {
-                                                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, GUI_LOCKED_MINI_BITMAP_ID, TRUE);
-                                                    timer_start_timer(TIMER_ANIMATIONS, GUI_BATTERY_ANIM_DELAY_MS);
-                                                    gui_dispatcher_display_battery_bt_overlay();
-                                                    #ifdef OLED_INTERNAL_FRAME_BUFFER
-                                                    sh1122_flush_frame_buffer(&plat_oled_descriptor);
-                                                    #endif
-                                                }    
+                                                gui_dispatcher_display_battery_bt_overlay(FALSE);   
                                                 break;                                                
                                             }
         case GUI_SCREEN_LOGIN_NOTIF:        {
@@ -313,7 +317,10 @@ void gui_dispatcher_idle_call(void)
         case GUI_SCREEN_MAIN_MENU:
         case GUI_SCREEN_BT:
         case GUI_SCREEN_OPERATIONS:
-        case GUI_SCREEN_SETTINGS:           break;
+        case GUI_SCREEN_SETTINGS:           {
+                                                gui_dispatcher_display_battery_bt_overlay(FALSE);
+                                                break;
+                                            }                                                
         default: break;
     }    
 

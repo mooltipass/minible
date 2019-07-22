@@ -5,6 +5,7 @@
 */
 #include "platform_defines.h"
 #include "logic_bluetooth.h"
+#include "gui_dispatcher.h"
 #include "gui_carousel.h"
 #include "driver_timer.h"
 #include "logic_power.h"
@@ -127,6 +128,7 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
     custom_fs_get_string_from_file(text_ids[selected_id], &temp_string, TRUE);
     sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
     sh1122_put_string_xy(&plat_oled_descriptor, 0, 46, OLED_ALIGN_CENTER, temp_string, TRUE);
+    gui_dispatcher_display_battery_bt_overlay(TRUE);
     
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     /* Flush */
