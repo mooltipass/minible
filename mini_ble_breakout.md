@@ -23,7 +23,7 @@ The goal of this page is to make a record of all observations regarding the Mini
 | 3          | @raoulh |
 | 4          | uA |
 | 5          | @amro |
-| 6          | uA |
+| 6          | @olav |
 | 7          | @limpkin, no aux MCU |
 | 8          | @Dennis |
 | 9          | @peter & amro |
