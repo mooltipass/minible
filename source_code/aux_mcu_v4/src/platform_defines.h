@@ -108,8 +108,10 @@ typedef uint32_t PIN_ID_T;
 
 /* External interrupts numbers */
 #if defined(PLAT_V3_SETUP)
-    #define NOCOMMS_EXTINT_NUM      2
-    #define NOCOMMS_EIC_SENSE_REG   SENSE2
+    #define NOCOMMS_EXTINT_NUM          2
+    #define NOCOMMS_EIC_SENSE_REG       SENSE2
+    #define BLE_WAKE_IN_EXTINT_NUM      3
+    #define BLE_WAKE_IN_EIC_SENSE_REG   SENSE3
 #endif
 
 /* SERCOM trigger for flash data transfers */
@@ -169,6 +171,17 @@ typedef uint32_t PIN_ID_T;
     #define BLE_WAKE_OUT_PMUXREGID  PMUXO
 #else
     #define BLE_WAKE_OUT_PMUXREGID  PMUXE
+#endif
+
+#if defined(PLAT_V3_SETUP)
+    #define BLE_WAKE_IN_GROUP   PIN_GROUP_0
+    #define BLE_WAKE_IN_PINID   3
+#endif
+#define BLE_WAKE_IN_MASK        (1UL << BLE_WAKE_IN_PINID)
+#if (BLE_WAKE_IN_PINID % 2) == 1
+    #define BLE_WAKE_IN_PMUXREGID  PMUXO
+#else
+    #define BLE_WAKE_IN_PMUXREGID  PMUXE
 #endif
 
 #if defined(PLAT_V3_SETUP)

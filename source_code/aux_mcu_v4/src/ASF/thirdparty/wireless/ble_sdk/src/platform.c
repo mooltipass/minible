@@ -69,12 +69,8 @@ at_ble_status_t platform_init(uint8_t bus_type, uint8_t btlc1000_module_version)
 		ble_configure_control_pin();
 		
 		configure_serial_drv(CONF_UART_BAUDRATE);
-				
-		//btlc1000_host_wakeup_config();
-	
-		//platform_configure_sleep_manager();
 		
-		status =  AT_BLE_SUCCESS;
+		status = AT_BLE_SUCCESS;
 	}
 	else
 	{

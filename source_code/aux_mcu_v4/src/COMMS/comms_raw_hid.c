@@ -332,7 +332,6 @@ void comms_usb_communication_routine(void)
                 comms_raw_hid_temp_mcu_message_to_send[hid_interface].payload_length1 = comms_raw_hid_temp_mcu_message_fill_index[hid_interface];
                 comms_main_mcu_send_message(&comms_raw_hid_temp_mcu_message_to_send[hid_interface], (uint16_t)sizeof(comms_raw_hid_temp_mcu_message_to_send[0]));
                 comms_raw_hid_arm_packet_receive(hid_interface);
-                DBG_LOG_LOGIC_BT_AD("Send to main %04x", comms_raw_hid_temp_mcu_message_to_send[hid_interface].message_type);
                 
                 /* Reset vars */
                 comms_raw_hid_temp_mcu_message_fill_index[hid_interface] = 0;

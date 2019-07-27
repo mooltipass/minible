@@ -9,6 +9,7 @@
 #include "driver_timer.h"
 #include "device_info.h"
 #include "ble_manager.h"
+#include "platform_io.h"
 #include "at_ble_api.h"
 #include "ble_utils.h"
 #include "battery.h"
@@ -1133,6 +1134,9 @@ void logic_bluetooth_start_bluetooth(void)
     /* Update HID profile data reference */
     hid_prf_dataref[BLE_RAW_HID_SERVICE_INSTANCE] = &logic_bluetooth_raw_hid_prf_data;
     
+    /* IO inits for BLE enabling */
+    platform_io_ble_enabled_inits();
+    
     /* Initialize the ble chip and set the device mac address */
     ble_device_init(NULL, &logic_bluetooth_advanced_info);    
     
@@ -1228,7 +1232,7 @@ void logic_bluetooth_start_bluetooth(void)
     ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_CUSTOM_EVENT_TYPE, &hid_custom_event_cb);
     
     /* Start advertising */
-    logic_bluetooth_start_advertising();
+    //logic_bluetooth_start_advertising();
 }
 
 /*! \fn     logic_bluetooth_start_advertising(void)
