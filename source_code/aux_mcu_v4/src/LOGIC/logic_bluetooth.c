@@ -1232,7 +1232,7 @@ void logic_bluetooth_start_bluetooth(void)
     ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_CUSTOM_EVENT_TYPE, &hid_custom_event_cb);
     
     /* Start advertising */
-    //logic_bluetooth_start_advertising();
+    logic_bluetooth_start_advertising();
 }
 
 /*! \fn     logic_bluetooth_start_advertising(void)
