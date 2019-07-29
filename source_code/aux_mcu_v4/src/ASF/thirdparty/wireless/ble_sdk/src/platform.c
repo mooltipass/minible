@@ -126,6 +126,7 @@ void platform_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status)
 		} 
 		else
 		{
+			asm volatile("NOP");
 			#if defined(ENABLE_POWER_SAVE)
 			bool host_pin_status = true;
 			#if (HOST_SLEEP_ENABLE == true)
