@@ -11,6 +11,7 @@
 #include "platform_defines.h"
 //#include "driver_sercom.h"
 #include "driver_clocks.h"
+#include "logic_sleep.h"
 #include "platform_io.h"
 /* Set when a conversion result is ready */
 volatile BOOL platform_cur_sense_conv_ready = FALSE;
@@ -31,6 +32,7 @@ void EIC_Handler(void)
     {
         EIC->INTFLAG.reg = (1 << NOCOMMS_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << NOCOMMS_EXTINT_NUM);
+        logic_sleep_set_awoken_by_no_comms();
     }
     
     /* BLE IN interrupt: ACK and disable interrupt */
@@ -38,6 +40,7 @@ void EIC_Handler(void)
     {
         EIC->INTFLAG.reg = (1 << BLE_WAKE_IN_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << BLE_WAKE_IN_EXTINT_NUM);
+        logic_sleep_set_awoken_by_ble();
     }
 }
 

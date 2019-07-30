@@ -39,6 +39,7 @@
 #include "serial_drv.h"
 #include "serial_fifo.h"
 #include "ble_utils.h"
+#include "logic_sleep.h"
 #include "conf_serialdrv.h"
 #include "timer_hw.h"
 
@@ -122,6 +123,7 @@ void platform_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status)
 	{
 		if (status == AT_BLE_HIGH)
 		{
+            logic_sleep_ble_not_sleeping_between_events();
 			ble_wakeup_pin_set_high();
 		} 
 		else
@@ -217,8 +219,9 @@ void platform_enter_sleep(void)
 	if ((!ble_wakeup_pin_level())
 	&& (!serial_drive_rx_data_count()))
 	{
-		platform_set_hostsleep();
-		platform_restore_from_sleep();
+        logic_sleep_ble_signal_to_sleep();
+		//platform_set_hostsleep();
+		//platform_restore_from_sleep();
 	}
 }
 

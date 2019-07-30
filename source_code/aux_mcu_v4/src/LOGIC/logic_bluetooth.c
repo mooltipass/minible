@@ -10,8 +10,10 @@
 #include "device_info.h"
 #include "ble_manager.h"
 #include "platform_io.h"
+#include "logic_sleep.h"
 #include "at_ble_api.h"
 #include "ble_utils.h"
+#include "platform.h"
 #include "battery.h"
 #include "defines.h"
 // Appearance: 0x03C1 (keyboard)
@@ -1233,6 +1235,9 @@ void logic_bluetooth_start_bluetooth(void)
     
     /* Start advertising */
     logic_bluetooth_start_advertising();
+    
+    /* Enable sleep between events */
+    logic_sleep_set_ble_to_sleep_between_events();
 }
 
 /*! \fn     logic_bluetooth_start_advertising(void)
@@ -1312,6 +1317,7 @@ void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
 void logic_bluetooth_routine(void)
 {
     ble_event_task();
+    logic_sleep_routine_ble_call();
     
     if (logic_bluetooth_just_paired != FALSE)
     {
