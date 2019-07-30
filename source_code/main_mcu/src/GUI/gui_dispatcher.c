@@ -359,15 +359,11 @@ void gui_dispatcher_main_loop(void)
             /* Hack: only disable OLED stepup when battery powered. When USB powered, if 3V3 USB isn't loaded then we can't detect USB disconnection */
             platform_io_power_down_oled();
             
-            // TODO2: sleep strategy when bt enabled
-            if (logic_bluetooth_get_state() == BT_STATE_OFF)
-            {
-                /* Good night */
-                main_standby_sleep();
+            /* Good night */
+            main_standby_sleep();
                 
-                /* We are awake now! */
-                logic_device_activity_detected();
-            }
+            /* We are awake now! */
+            logic_device_activity_detected();
         }
     }
     

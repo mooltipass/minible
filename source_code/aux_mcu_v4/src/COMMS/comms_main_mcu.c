@@ -13,6 +13,7 @@
 #include "comms_raw_hid.h"
 #include "logic_battery.h"
 #include "driver_timer.h"
+#include "logic_sleep.h"
 #include "ble_manager.h"
 #include "ble_manager.h"
 #include "platform_io.h"
@@ -178,8 +179,18 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             case MAIN_MCU_COMMAND_SLEEP:
             {
                 /* Wait for interrupt to clear this flag if set (wait for full packet receive) */
-                while (comms_main_mcu_other_msg_answered_using_first_bytes != FALSE);                
-                main_standby_sleep(FALSE);
+                while (comms_main_mcu_other_msg_answered_using_first_bytes != FALSE);     
+                
+                /* If BLE is disabled, directly go to sleep */
+                if (logic_is_ble_enabled() == FALSE)
+                {
+                    main_standby_sleep(FALSE);
+                }
+                else
+                {
+                    logic_sleep_set_full_platform_sleep_requested();
+                }                    
+                           
                 break;
             }
             case MAIN_MCU_COMMAND_PING:
@@ -209,8 +220,8 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* Enable BLE */
                 if (logic_is_ble_enabled() == FALSE)
                 {
-                    logic_set_ble_enabled();
                     logic_bluetooth_start_bluetooth();
+                    logic_set_ble_enabled();
                 }
                 message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
                 message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;

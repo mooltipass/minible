@@ -190,6 +190,8 @@ void platform_enter_sleep(void)
 		return;
 	}	
 
+    logic_sleep_ble_signal_to_sleep();
+    return;
 #if defined HOST_DEEP_SLEEP_ENABLED	
 	/* When No event and External Interrupt Pin will be High(No Event in Queue) */
 	if ((host_event_data_ready_pin_level()) && (!ble_wakeup_pin_level())

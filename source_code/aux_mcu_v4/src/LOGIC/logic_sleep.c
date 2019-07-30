@@ -5,17 +5,21 @@
  *  Author: limpkin
  */ 
 #include "platform_defines.h"
+#include "conf_serialdrv.h"
 #include "comms_raw_hid.h"
 #include "platform_io.h"
 #include "logic_sleep.h"
+#include "serial_drv.h"
 #include "platform.h"
 #include "defines.h"
+#include "main.h"
 /* Boolean indicating if the ble module is set to sleep between events */
 BOOL logic_sleep_ble_module_sleep_between_events = FALSE;
 /* Booleans indicating what woke us up */
 volatile BOOL logic_sleep_awoken_by_no_comms = FALSE;
 volatile BOOL logic_sleep_awoken_by_ble = FALSE;
-BOOL bla_temp_bool = FALSE;
+/* Full platform sleep requested */
+BOOL logic_sleep_full_platform_sleep_requested = FALSE;
 
 /*! \fn     logic_sleep_set_awoken_by_ble(void)
 *   \brief  Set awoken by ble bool
@@ -38,9 +42,17 @@ void logic_sleep_set_awoken_by_no_comms(void)
 */
 void logic_sleep_set_ble_to_sleep_between_events(void)
 {
-    platform_gpio_set(AT_BLE_EXTERNAL_WAKEUP, AT_BLE_LOW);
-    logic_sleep_ble_module_sleep_between_events = TRUE;
-    DBG_SLP_LOG("ATBTLC to sleep btw events");
+    /* Check that no data needs to be processed */
+    if(host_event_data_ready_pin_level())
+    {
+        ble_wakeup_pin_set_low();
+        DBG_SLP_LOG("ATBTLC to sleep btw events");
+        logic_sleep_ble_module_sleep_between_events = TRUE;
+    }
+    else
+    {
+        DBG_SLP_LOG("Couldn't set ATBTLC to sleep btw events: events to be processed");
+    }
 }
 
 /*! \fn     logic_sleep_ble_not_sleeping_between_events(void)
@@ -57,21 +69,52 @@ void logic_sleep_ble_not_sleeping_between_events(void)
 */
 void logic_sleep_ble_signal_to_sleep(void)
 {
-    if (bla_temp_bool == FALSE)
+    if (logic_sleep_full_platform_sleep_requested != FALSE)
     {
-        DBG_SLP_LOG("going to sleep");
-        platform_io_enable_ble_int();
-        bla_temp_bool = TRUE;
-    }
-    else
-    {
-        if (logic_sleep_awoken_by_ble != FALSE)
+        if (!host_event_data_ready_pin_level())
         {
-            logic_sleep_awoken_by_ble = FALSE;
-            DBG_SLP_LOG("awoken!");
-            bla_temp_bool = FALSE;
+            DBG_SLP_LOG("can't go to sleep: data ready pin low");
+        }
+        if (ble_wakeup_pin_level())
+        {
+            DBG_SLP_LOG("can't go to sleep: wakeup pin high");
         }
     }
+    
+    /* If full platform sleep was requested, if no processing needs to be done, if we enable sleep between events */
+    if ((logic_sleep_full_platform_sleep_requested != FALSE) && (host_event_data_ready_pin_level()) && (!ble_wakeup_pin_level()))
+    {
+        /* Set Host RTS to High */
+        platform_set_ble_rts_high();
+        
+        /* Some processing was requested? Do not go to sleep */    
+        if(!host_event_data_ready_pin_level())
+        {
+            platform_set_ble_rts_low();
+            return;
+        }
+        
+        
+        /* Enable BLE interrupt for wakeup */
+        DBG_SLP_LOG("Going to sleep");
+        platform_io_enable_ble_int();
+        main_standby_sleep(FALSE);
+        
+        /* We just woke up */
+        DBG_SLP_LOG("Waking up");
+        
+        /* Set Host RTS Low to receive the data */
+        platform_set_ble_rts_low();
+    }
+}
+
+/*! \fn     logic_sleep_set_full_platform_sleep_requested(void)
+*   \brief  Called when a full platform sleep is requested
+*/
+void logic_sleep_set_full_platform_sleep_requested(void)
+{
+    logic_sleep_full_platform_sleep_requested = TRUE;
+    DBG_SLP_LOG("full platform sleep requested");
 }
 
 /*! \fn     logic_sleep_routine_ble_call(void)
