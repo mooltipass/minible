@@ -269,6 +269,8 @@ typedef struct
     #define WHEEL_TICKB_EIC_SENSE_REG   SENSE2
     #define USB_3V3_EXTINT_NUM          1
     #define USB_3V3_EIC_SENSE_REG       SENSE1
+    #define AUX_MCU_TX_EXTINT_NUM       7
+    #define AUX_MCU_TX_EIC_SENSE_REG    SENSE7
 #endif
 
 /* User event channels mapping */

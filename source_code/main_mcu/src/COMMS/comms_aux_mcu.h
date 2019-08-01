@@ -45,6 +45,7 @@
 #define AUX_MCU_EVENT_USB_ENUMERATED    0x0005
 #define AUX_MCU_EVENT_CHARGE_DONE       0x0006
 #define AUX_MCU_EVENT_CHARGE_FAIL       0x0007
+#define AUX_MCU_EVENT_SLEEP_RECEIVED    0x0008
 
 /* Typedefs */
 typedef struct

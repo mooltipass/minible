@@ -179,7 +179,14 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             case MAIN_MCU_COMMAND_SLEEP:
             {
                 /* Wait for interrupt to clear this flag if set (wait for full packet receive) */
-                while (comms_main_mcu_other_msg_answered_using_first_bytes != FALSE);     
+                while (comms_main_mcu_other_msg_answered_using_first_bytes != FALSE);   
+                
+                /* Send ACK */
+                comms_main_mcu_send_simple_event(AUX_MCU_EVENT_SLEEP_RECEIVED);                 
+                dma_wait_for_main_mcu_packet_sent();
+                
+                /* Disable main comms */
+                platform_io_disable_main_comms(); 
                 
                 /* If BLE is disabled, directly go to sleep */
                 if (logic_is_ble_enabled() == FALSE)

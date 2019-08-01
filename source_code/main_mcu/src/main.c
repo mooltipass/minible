@@ -310,11 +310,12 @@ void main_reboot(void)
 *   \brief  Go to sleep
 */
 void main_standby_sleep(void)
-{    
-    /* Send a go to sleep message to aux MCU */
+{
+    aux_mcu_message_t* temp_rx_message;
+    
+    /* Send a go to sleep message to aux MCU, wait for ack, leave no comms high (automatically set when receiving the sleep received event) */
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_SLEEP);
-    platform_io_set_no_comms();
-    dma_wait_for_aux_mcu_packet_sent();
+    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_SLEEP_RECEIVED) != RETURN_OK);
     
     /* Disable aux MCU dma transfers */
     dma_aux_mcu_disable_transfer();

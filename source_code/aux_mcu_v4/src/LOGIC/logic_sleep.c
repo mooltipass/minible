@@ -7,6 +7,7 @@
 #include "platform_defines.h"
 #include "conf_serialdrv.h"
 #include "comms_raw_hid.h"
+#include "driver_timer.h"
 #include "platform_io.h"
 #include "logic_sleep.h"
 #include "serial_drv.h"
@@ -19,6 +20,7 @@ BOOL logic_sleep_ble_module_sleep_between_events = FALSE;
 volatile BOOL logic_sleep_awoken_by_no_comms = FALSE;
 volatile BOOL logic_sleep_awoken_by_ble = FALSE;
 /* Full platform sleep requested */
+uint32_t logic_sleep_full_platform_sleep_requested_ts = 0;
 BOOL logic_sleep_full_platform_sleep_requested = FALSE;
 
 /*! \fn     logic_sleep_set_awoken_by_ble(void)
@@ -113,6 +115,7 @@ void logic_sleep_ble_signal_to_sleep(void)
 */
 void logic_sleep_set_full_platform_sleep_requested(void)
 {
+    logic_sleep_full_platform_sleep_requested_ts = timer_get_systick();
     logic_sleep_full_platform_sleep_requested = TRUE;
     DBG_SLP_LOG("full platform sleep requested");
 }

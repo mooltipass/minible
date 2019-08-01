@@ -21,7 +21,7 @@ volatile BOOL platform_io_voledin_conv_ready = FALSE;
 void EIC_Handler(void)
 {
     /* All the interrupts below are used to wake up the platform from sleep. If we detect any of them, we disable all of them */
-    if (((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << USB_3V3_EXTINT_NUM)) != 0))
+    if (((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << USB_3V3_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << AUX_MCU_TX_EXTINT_NUM)) != 0))
     {
         EIC->INTFLAG.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
@@ -29,6 +29,8 @@ void EIC_Handler(void)
         EIC->INTENCLR.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
         EIC->INTFLAG.reg = (1 << USB_3V3_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << USB_3V3_EXTINT_NUM);
+        EIC->INTFLAG.reg = (1 << AUX_MCU_TX_EXTINT_NUM);
+        EIC->INTENCLR.reg = (1 << AUX_MCU_TX_EXTINT_NUM);
     }
 }
 
@@ -178,6 +180,20 @@ void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
     EIC->WAKEUP.reg |= (1 << WHEEL_CLICK_EXTINT_NUM);                                                   // Enable wakeup from ext pin
 }
 
+/*! \fn     platform_io_enable_aux_tx_wakeup_interrupt(void)
+*   \brief  Enable aux MCU TX interrupt
+*/
+void platform_io_enable_aux_tx_wakeup_interrupt(void)
+{
+    /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
+    PORT->Group[AUX_MCU_TX_GROUP].PMUX[AUX_MCU_TX_PINID/2].bit.AUX_MCU_TX_PMUXREGID = PORT_PMUX_PMUXO_A_Val;    // Pin mux to EIC
+    PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 1;                                      // Enable peripheral multiplexer
+    EIC->CONFIG[AUX_MCU_TX_EXTINT_NUM/8].bit.AUX_MCU_TX_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;              // Detect low state
+    EIC->INTFLAG.reg = (1 << AUX_MCU_TX_EXTINT_NUM);                                                            // Clear interrupt just in case
+    EIC->INTENSET.reg = (1 << AUX_MCU_TX_EXTINT_NUM);                                                           // Enable interrupt from ext pin
+    EIC->WAKEUP.reg |= (1 << AUX_MCU_TX_EXTINT_NUM);    
+}
+
 /*! \fn     platform_io_enable_usb_3v3_wakeup_interrupt(void)
 *   \brief  Enable  USB 3V3 external interrupt to wake up platform
 */
@@ -203,6 +219,15 @@ void platform_io_disable_scroll_wheel_wakeup_interrupts(void)
     EIC->CONFIG[WHEEL_CLICK_EXTINT_NUM/8].bit.WHEEL_CLICK_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;   // No detection
     PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.PMUXEN = 0;                                  // Disable peripheral multiplexer
     EIC->WAKEUP.reg &= ~(1 << WHEEL_CLICK_EXTINT_NUM);                                                  // Disable wakeup from ext pin
+}
+
+/*! \fn     platform_io_disable_aux_tx_wakeup_interrupt(void)
+*   \brief  Disable aux MCU TX interrupt
+*/
+void platform_io_disable_aux_tx_wakeup_interrupt(void)
+{
+    PORT->Group[AUX_MCU_TX_GROUP].PMUX[AUX_MCU_TX_PINID/2].bit.AUX_MCU_TX_PMUXREGID = EIC_CONFIG_SENSE0_NONE_Val;   // No detection
+    EIC->WAKEUP.reg &= ~(1 << AUX_MCU_TX_EXTINT_NUM);                                                               // Disable wakeup from ext pin
 }
 
 /*! \fn     platform_io_disable_scroll_wheel_ports(void)
@@ -585,6 +610,7 @@ void platform_io_disable_aux_comms(void)
 void platform_io_enable_aux_comms(void)
 {
     AUXMCU_SERCOM->USART.CTRLA.reg |= SERCOM_USART_CTRLA_ENABLE;                                            // Enable USART
+    PORT->Group[AUX_MCU_TX_GROUP].PMUX[AUX_MCU_TX_PINID/2].bit.AUX_MCU_TX_PMUXREGID = AUX_MCU_TX_PMUX_ID;   // Pin mux to UASRT
     PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 1;                                  // AUX MCU TX, MAIN MCU RX: Enable peripheral multiplexer
     PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 1;                                  // AUX MCU RX, MAIN MCU TX: Enable peripheral multiplexer
     PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PULLEN = 0;                                  // AUX MCU RX, MAIN MCU TX: Pull down disable
@@ -711,6 +737,9 @@ void platform_io_prepare_ports_for_sleep(void)
     /* Disable AUX comms ports */    
     platform_io_disable_aux_comms();
     
+    /* Enable AUX MCU TX interrupt */
+    platform_io_enable_aux_tx_wakeup_interrupt();
+    
     /* Enable wheel interrupt */
     platform_io_enable_scroll_wheel_wakeup_interrupts();
     
@@ -725,6 +754,9 @@ void platform_io_prepare_ports_for_sleep_exit(void)
 {
     /* Disable wheel interrupt */
     platform_io_disable_scroll_wheel_wakeup_interrupts();
+    
+    /* Disable AUX MCU interrupt */
+    platform_io_disable_aux_tx_wakeup_interrupt();
     
     /* Reconfigure wheel port */
     platform_io_init_scroll_wheel_ports();
