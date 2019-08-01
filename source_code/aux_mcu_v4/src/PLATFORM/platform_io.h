@@ -27,6 +27,7 @@ void platform_io_disable_main_comms(void);
 void platform_io_ble_enabled_inits(void);
 void platform_io_enable_main_comms(void);
 void platform_io_disable_step_down(void);
+void platform_io_disable_ble_int(void);
 void platform_io_enable_ble_int(void);
 void platform_io_init_aux_comms(void);
 void platform_io_init_usb_ports(void);

@@ -185,17 +185,19 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 comms_main_mcu_send_simple_event(AUX_MCU_EVENT_SLEEP_RECEIVED);                 
                 dma_wait_for_main_mcu_packet_sent();
                 
-                /* Disable main comms */
-                platform_io_disable_main_comms(); 
-                
-                /* If BLE is disabled, directly go to sleep */
+                /* Different strategies depending on if BLE is enabled */
                 if (logic_is_ble_enabled() == FALSE)
                 {
+                    
+                    /* Disable main comms */
+                    platform_io_disable_main_comms();
+                    
+                    /* BLE disabled, go to sleep directly */
                     main_standby_sleep(FALSE);
                 }
                 else
                 {
-                    logic_sleep_set_full_platform_sleep_requested();
+                    //logic_sleep_set_full_platform_sleep_requested();
                 }                    
                            
                 break;

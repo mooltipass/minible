@@ -345,6 +345,7 @@ void platform_io_enable_ble_int(void)
     PORT->Group[BLE_WAKE_IN_GROUP].PMUX[BLE_WAKE_IN_PINID/2].bit.BLE_WAKE_IN_PMUXREGID = PORT_PMUX_PMUXO_A_Val;             // Pin mux to EIC
     PORT->Group[BLE_WAKE_IN_GROUP].PINCFG[BLE_WAKE_IN_PINID].bit.PMUXEN = 1;                                                // Enable peripheral multiplexer
     EIC->CONFIG[BLE_WAKE_IN_EXTINT_NUM/8].bit.BLE_WAKE_IN_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;                        // Detect low state
+    EIC->INTENCLR.reg = (1 << BLE_WAKE_IN_EXTINT_NUM);                                                                      // Clear interrupt just in case
     EIC->INTENSET.reg = (1 << BLE_WAKE_IN_EXTINT_NUM);                                                                      // Enable interrupt from ext pin
     EIC->WAKEUP.reg |= (1 << BLE_WAKE_IN_EXTINT_NUM);                                                                       // Enable wakeup from ext pin
 }
@@ -357,6 +358,16 @@ void platform_io_disable_no_comms_int(void)
     EIC->CONFIG[NOCOMMS_EXTINT_NUM/8].bit.NOCOMMS_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;               // No detection
     PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;                        // Disable peripheral multiplexer
     EIC->WAKEUP.reg &= ~(1 << NOCOMMS_EXTINT_NUM);                                                          // Disable wakeup from ext pin 
+}
+
+/*! \fn     platform_io_disable_ble_int(void)
+*   \brief  Disable bluetooth interrupt
+*/
+void platform_io_disable_ble_int(void)
+{
+    EIC->CONFIG[BLE_WAKE_IN_EXTINT_NUM/8].bit.BLE_WAKE_IN_EIC_SENSE_REG = EIC_CONFIG_SENSE0_NONE_Val;       // No detection
+    PORT->Group[BLE_WAKE_IN_GROUP].PINCFG[BLE_WAKE_IN_PINID].bit.PMUXEN = 0;                                // Disable peripheral multiplexer
+    EIC->WAKEUP.reg &= ~(1 << BLE_WAKE_IN_EXTINT_NUM);                                                      // Disable wakeup from ext pin
 }
 
 /*! \fn     platform_io_ble_enabled_inits(void)

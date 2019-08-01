@@ -75,17 +75,19 @@ void logic_sleep_ble_signal_to_sleep(void)
     {
         if (!host_event_data_ready_pin_level())
         {
+            asm volatile("NOP");
             DBG_SLP_LOG("can't go to sleep: data ready pin low");
         }
         if (ble_wakeup_pin_level())
         {
+            asm volatile("NOP");
             DBG_SLP_LOG("can't go to sleep: wakeup pin high");
         }
     }
     
     /* If full platform sleep was requested, if no processing needs to be done, if we enable sleep between events */
     if ((logic_sleep_full_platform_sleep_requested != FALSE) && (host_event_data_ready_pin_level()) && (!ble_wakeup_pin_level()))
-    {
+    {//platform_io_enable_main_comms();logic_sleep_full_platform_sleep_requested = FALSE;return;
         /* Set Host RTS to High */
         platform_set_ble_rts_high();
         
@@ -103,10 +105,12 @@ void logic_sleep_ble_signal_to_sleep(void)
         main_standby_sleep(FALSE);
         
         /* We just woke up */
+        platform_io_disable_ble_int();
         DBG_SLP_LOG("Waking up");
         
         /* Set Host RTS Low to receive the data */
         platform_set_ble_rts_low();
+        logic_sleep_full_platform_sleep_requested = FALSE;
     }
 }
 
@@ -118,6 +122,14 @@ void logic_sleep_set_full_platform_sleep_requested(void)
     logic_sleep_full_platform_sleep_requested_ts = timer_get_systick();
     logic_sleep_full_platform_sleep_requested = TRUE;
     DBG_SLP_LOG("full platform sleep requested");
+}
+
+/*! \fn     logic_sleep_is_full_platform_sleep_requested(void)
+*   \brief  Know if full platform sleep was requested
+*/
+BOOL logic_sleep_is_full_platform_sleep_requested(void)
+{
+    return logic_sleep_full_platform_sleep_requested;
 }
 
 /*! \fn     logic_sleep_routine_ble_call(void)

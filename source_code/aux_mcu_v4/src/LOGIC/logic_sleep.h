@@ -9,6 +9,8 @@
 #ifndef LOGIC_SLEEP_H_
 #define LOGIC_SLEEP_H_
 
+#include "defines.h"
+
 /* debug defines */
 #define DEBUG_LOG_DISABLED
 #if defined DEBUG_LOG_DISABLED
@@ -19,6 +21,7 @@
 
 /* Prototypes */
 void logic_sleep_set_full_platform_sleep_requested(void);
+BOOL logic_sleep_is_full_platform_sleep_requested(void);
 void logic_sleep_set_ble_to_sleep_between_events(void);
 void logic_sleep_ble_not_sleeping_between_events(void);
 void logic_sleep_set_awoken_by_no_comms(void);

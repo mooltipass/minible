@@ -8,6 +8,7 @@
 #include "driver_timer.h"
 #include "platform_io.h"
 #include "ble_manager.h"
+#include "logic_sleep.h"
 #include "defines.h"
 #include "logic.h"
 #include "fuses.h"
@@ -156,8 +157,13 @@ int main(void)
     while(TRUE)
     {
         logic_battery_task();
-        comms_main_mcu_routine();
         comms_usb_communication_routine();
+        
+        /* We can only communicate with main MCU when platform sleep isn't requested */
+        if (logic_sleep_is_full_platform_sleep_requested() == FALSE)
+        {
+            comms_main_mcu_routine();
+        }
         
         /* If BLE enabled: deal with events */
         if (logic_is_ble_enabled() != FALSE)
