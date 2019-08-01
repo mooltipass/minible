@@ -730,10 +730,7 @@ void platform_io_init_ports(void)
 *   \brief  Prepare the platform ports for sleep
 */
 void platform_io_prepare_ports_for_sleep(void)
-{    
-    /* Disable BLE */
-    platform_io_disable_ble();
-    
+{        
     /* Disable AUX comms ports */    
     platform_io_disable_aux_comms();
     

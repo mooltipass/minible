@@ -188,7 +188,6 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* Different strategies depending on if BLE is enabled */
                 if (logic_is_ble_enabled() == FALSE)
                 {
-                    
                     /* Disable main comms */
                     platform_io_disable_main_comms();
                     
