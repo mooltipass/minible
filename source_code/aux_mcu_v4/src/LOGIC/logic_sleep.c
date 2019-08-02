@@ -13,6 +13,7 @@
 #include "serial_drv.h"
 #include "platform.h"
 #include "defines.h"
+#include "logic.h"
 #include "main.h"
 /* Boolean indicating if the ble module is set to sleep between events */
 BOOL logic_sleep_ble_module_sleep_between_events = FALSE;
@@ -64,6 +65,7 @@ void logic_sleep_ble_not_sleeping_between_events(void)
 {
     logic_sleep_ble_module_sleep_between_events = FALSE;
     DBG_SLP_LOG("ATBTLC to NOT sleep btw events");    
+    timer_start_timer(TIMER_BT_WAKEUP_ENABLED, BT_NB_MS_BEFORE_DEASSERTING_WAKEUP);
 }
 
 /*! \fn     logic_sleep_ble_signal_to_sleep(void)
@@ -85,9 +87,24 @@ void logic_sleep_ble_signal_to_sleep(void)
         }
     }
     
+    /* If main MCU asserted no comms in the mean time... no point in going to sleep anymore, re-enable comms with main MCU */
+    if (logic_is_no_comms_unavailable() == FALSE)
+    {
+        if ((logic_sleep_full_platform_sleep_requested != FALSE) && (platform_io_is_no_comms_asserted() != RETURN_OK))
+        {
+            logic_sleep_full_platform_sleep_requested = FALSE;
+            platform_io_enable_main_comms();
+            comms_main_init_rx();
+        }
+    }
+    
     /* If full platform sleep was requested, if no processing needs to be done, if we enable sleep between events */
     if ((logic_sleep_full_platform_sleep_requested != FALSE) && (host_event_data_ready_pin_level()) && (!ble_wakeup_pin_level()))
-    {//platform_io_enable_main_comms();logic_sleep_full_platform_sleep_requested = FALSE;return;
+    {
+        /* Clear bools */
+        logic_sleep_awoken_by_no_comms = FALSE;
+        logic_sleep_awoken_by_ble = FALSE;
+        
         /* Set Host RTS to High */
         platform_set_ble_rts_high();
         
@@ -98,11 +115,10 @@ void logic_sleep_ble_signal_to_sleep(void)
             return;
         }
         
-        
         /* Enable BLE interrupt for wakeup */
         DBG_SLP_LOG("Going to sleep");
         platform_io_enable_ble_int();
-        main_standby_sleep(FALSE);
+        main_standby_sleep(FALSE, &logic_sleep_awoken_by_no_comms);
         
         /* We just woke up */
         platform_io_disable_ble_int();
@@ -110,7 +126,12 @@ void logic_sleep_ble_signal_to_sleep(void)
         
         /* Set Host RTS Low to receive the data */
         platform_set_ble_rts_low();
-        logic_sleep_full_platform_sleep_requested = FALSE;
+        
+        /* Check if we were awoken by the main MCU */
+        if(logic_sleep_awoken_by_no_comms != FALSE)
+        {
+            logic_sleep_full_platform_sleep_requested = FALSE;
+        }
     }
 }
 
@@ -138,9 +159,8 @@ BOOL logic_sleep_is_full_platform_sleep_requested(void)
 void logic_sleep_routine_ble_call(void)
 {
     /* BLE module was set to not sleep between events */
-    if (logic_sleep_ble_module_sleep_between_events == FALSE)
+    if ((logic_sleep_ble_module_sleep_between_events == FALSE) && (timer_has_timer_expired(TIMER_BT_WAKEUP_ENABLED, FALSE) == TIMER_EXPIRED))
     {
-        /* Possible improvement: use a timer and not set it directly? */
         logic_sleep_set_ble_to_sleep_between_events();
     }
 }

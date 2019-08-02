@@ -99,6 +99,7 @@ void platform_send_sync(uint8_t *data, uint32_t len)
 
 	if(!platform_wakeup_pin_status())
 	{
+    	logic_sleep_ble_not_sleeping_between_events();
 		ble_wakeup_pin_set_high();
 		delay_ms(5);
 	}					 
@@ -230,6 +231,7 @@ void platform_enter_sleep(void)
 void platform_host_wake_interrupt_handler(void)
 {
 	/* Keep BTLC1000 Wakeup line high */
+	logic_sleep_ble_not_sleeping_between_events();
 	ble_wakeup_pin_set_high();
 }
 
@@ -269,6 +271,7 @@ bool platform_wakeup_pin_status(void)
 
 void plaform_ble_rx_callback(void)
 {
+    logic_sleep_ble_not_sleeping_between_events();
 	ble_wakeup_pin_set_high();
 }
 

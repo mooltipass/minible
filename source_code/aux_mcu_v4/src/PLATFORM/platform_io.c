@@ -476,6 +476,4 @@ void platform_io_prepare_ports_for_sleep(void)
 */
 void platform_io_prepare_ports_for_sleep_exit(void)
 {        
-    /* Enable main comms ports */
-    platform_io_enable_main_comms();
 }   

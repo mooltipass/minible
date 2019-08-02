@@ -11,6 +11,9 @@
 
 #include "defines.h"
 
+/* defines */
+#define BT_NB_MS_BEFORE_DEASSERTING_WAKEUP  10000
+
 /* debug defines */
 #define DEBUG_LOG_DISABLED
 #if defined DEBUG_LOG_DISABLED
