@@ -81,6 +81,7 @@ void main_platform_init(void)
     /* Enable EIC interrupts and no comms input */
     platform_io_enable_eic();
     platform_io_init_no_comms_input();
+    platform_io_init_no_comms_pullup_port();
     
     /* Main MCU boot delay, so it can set the interrupt line high */
     DELAYMS_8M(10);

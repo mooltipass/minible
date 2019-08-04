@@ -785,7 +785,7 @@ void debug_atbtlc_info(void)
     aux_mcu_message_t* temp_tx_message_pt;
     
     /* Enable BLE */
-    logic_aux_mcu_enable_ble(TRUE);
+    logic_aux_mcu_enable_ble(TRUE);return;
     
     /* Generate our packet */
     comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PLAT_DETAILS);

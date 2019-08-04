@@ -11,6 +11,7 @@
 #include "platform_defines.h"
 //#include "driver_sercom.h"
 #include "driver_clocks.h"
+#include "driver_timer.h"
 #include "logic_sleep.h"
 #include "platform_io.h"
 /* Set when a conversion result is ready */
@@ -321,6 +322,26 @@ void platform_io_init_no_comms_input(void)
     PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;          
     PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_MASK;          
     PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.INEN = 1; 
+}
+
+/*! \fn     platform_io_init_no_comms_pullup_port(void)
+*   \brief  Initialize the port dedicated to pulling up the no comms signal
+*/
+void platform_io_init_no_comms_pullup_port(void)
+{
+    PORT->Group[AUX_MCU_NOCOMMS_PULLUP_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_PULLUP_MASK;
+    PORT->Group[AUX_MCU_NOCOMMS_PULLUP_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_PULLUP_MASK;
+    PORT->Group[AUX_MCU_NOCOMMS_PULLUP_GROUP].PINCFG[AUX_MCU_NOCOMMS_PULLUP_PINID].bit.PULLEN = 1;    
+}
+
+/*! \fn     platform_io_generate_no_comms_wakeup_pulse(void)
+*   \brief  Generate a negative pulse on nocomms io to wakeup main MCU
+*/
+void platform_io_generate_no_comms_wakeup_pulse(void)
+{
+    PORT->Group[AUX_MCU_NOCOMMS_PULLUP_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_PULLUP_MASK;
+    DELAYMS(1);
+    PORT->Group[AUX_MCU_NOCOMMS_PULLUP_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_PULLUP_MASK;    
 }
 
 /*! \fn     platform_io_enable_no_comms_int(void)

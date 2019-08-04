@@ -13,10 +13,12 @@
 #include "comms_raw_hid.h"
 #include "logic_battery.h"
 #include "driver_timer.h"
+#include "driver_timer.h"
 #include "logic_sleep.h"
 #include "ble_manager.h"
 #include "ble_manager.h"
 #include "platform_io.h"
+#include "logic_sleep.h"
 #include "at_ble_api.h"
 #include "ble_utils.h"
 #include "defines.h"
@@ -70,7 +72,10 @@ void comms_main_mcu_send_simple_event(uint16_t event_id)
 *   \note   Transfer is done through DMA so data will be accessed after this function returns
 */
 void comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length)
-{    
+{
+    /* Wake-up main MCU if it is currently sleeping */
+    logic_sleep_wakeup_main_mcu_if_needed();
+    
     /* The function below does wait for a previous transfer to finish and does check for no comms */
     dma_main_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)message, sizeof(aux_mcu_message_t));    
 }

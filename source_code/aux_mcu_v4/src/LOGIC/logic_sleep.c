@@ -21,7 +21,6 @@ BOOL logic_sleep_ble_module_sleep_between_events = FALSE;
 volatile BOOL logic_sleep_awoken_by_no_comms = FALSE;
 volatile BOOL logic_sleep_awoken_by_ble = FALSE;
 /* Full platform sleep requested */
-uint32_t logic_sleep_full_platform_sleep_requested_ts = 0;
 BOOL logic_sleep_full_platform_sleep_requested = FALSE;
 
 /*! \fn     logic_sleep_set_awoken_by_ble(void)
@@ -38,6 +37,30 @@ void logic_sleep_set_awoken_by_ble(void)
 void logic_sleep_set_awoken_by_no_comms(void)
 {
     logic_sleep_awoken_by_no_comms = TRUE;
+}
+
+/*! \fn     logic_sleep_wakeup_main_mcu_if_needed(void)
+*   \brief  Wake-up main MCU if needed
+*/
+void logic_sleep_wakeup_main_mcu_if_needed(void)
+{
+    /* First check if main MCU is asleep */
+    if (logic_sleep_full_platform_sleep_requested != FALSE)
+    {
+        // TODO if needed: use a timestamp to make sure we're not generating that pulse just after we've been set to sleep (very unlikely)
+        
+        /* Generate wakeup pulse */
+        platform_io_generate_no_comms_wakeup_pulse();
+        
+        /* Re-enable main comms */
+        platform_io_enable_main_comms();
+        
+        /* Leave some time for correct no comms readout */
+        timer_delay_ms(1);
+        
+        /* Reset bool now that the main MCU is awake */
+        logic_sleep_full_platform_sleep_requested = FALSE;
+    }
 }
 
 /*! \fn     logic_sleep_set_ble_to_sleep_between_events(void)
@@ -115,9 +138,12 @@ void logic_sleep_ble_signal_to_sleep(void)
             return;
         }
         
-        /* Enable BLE interrupt for wakeup */
         DBG_SLP_LOG("Going to sleep");
+        
+        /* Enable BLE interrupt for wakeup */
         platform_io_enable_ble_int();
+        
+        /* Go to sleep, re-enable comms only if we were awoken by the main MCU */
         main_standby_sleep(FALSE, &logic_sleep_awoken_by_no_comms);
         
         /* We just woke up */
@@ -140,7 +166,6 @@ void logic_sleep_ble_signal_to_sleep(void)
 */
 void logic_sleep_set_full_platform_sleep_requested(void)
 {
-    logic_sleep_full_platform_sleep_requested_ts = timer_get_systick();
     logic_sleep_full_platform_sleep_requested = TRUE;
     DBG_SLP_LOG("full platform sleep requested");
 }

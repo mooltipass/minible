@@ -259,18 +259,21 @@ typedef struct
     #define USB_3V3_EXTINT_NUM          15
     #define USB_3V3_EIC_SENSE_REG       SENSE7
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
-    #define ACC_EXTINT_NUM              9
-    #define ACC_EIC_SENSE_REG           SENSE1
-    #define WHEEL_CLICK_EXTINT_NUM      8
-    #define WHEEL_CLICK_EIC_SENSE_REG   SENSE0
-    #define WHEEL_TICKA_EXTINT_NUM      15
-    #define WHEEL_TICKA_EIC_SENSE_REG   SENSE7
-    #define WHEEL_TICKB_EXTINT_NUM      2
-    #define WHEEL_TICKB_EIC_SENSE_REG   SENSE2
-    #define USB_3V3_EXTINT_NUM          1
-    #define USB_3V3_EIC_SENSE_REG       SENSE1
-    #define AUX_MCU_TX_EXTINT_NUM       7
-    #define AUX_MCU_TX_EIC_SENSE_REG    SENSE7
+    #define ACC_EXTINT_NUM                      9
+    #define ACC_EIC_SENSE_REG                   SENSE1
+    #define WHEEL_CLICK_EXTINT_NUM              8
+    #define WHEEL_CLICK_EIC_SENSE_REG           SENSE0
+    #define WHEEL_TICKA_EXTINT_NUM              15
+    #define WHEEL_TICKA_EIC_SENSE_REG           SENSE7
+    #define WHEEL_TICKB_EXTINT_NUM              2
+    #define WHEEL_TICKB_EIC_SENSE_REG           SENSE2
+    #define USB_3V3_EXTINT_NUM                  1
+    #define USB_3V3_EIC_SENSE_REG               SENSE1
+    #define AUX_MCU_TX_EXTINT_NUM               7
+    #define AUX_MCU_TX_EIC_SENSE_REG            SENSE7
+    #define AUX_MCU_NO_COMMS_EXTINT_NUM         10
+    #define AUX_MCU_NO_COMMS_EXTINT_SENSE_REG   SENSE2
+    
 #endif
 
 /* User event channels mapping */
@@ -810,6 +813,11 @@ typedef struct
     #define AUX_MCU_NOCOMMS_GROUP   PIN_GROUP_0
     #define AUX_MCU_NOCOMMS_PINID   30
     #define AUX_MCU_NOCOMMS_MASK    (1UL << AUX_MCU_NOCOMMS_PINID)
+    #if (AUX_MCU_NOCOMMS_PINID % 2) == 1
+        #define AUX_MCU_NOCOMMS_PMUXREGID  PMUXO
+    #else
+        #define AUX_MCU_NOCOMMS_PMUXREGID  PMUXE
+    #endif
 #endif
 
 #endif /* PLATFORM_DEFINES_H_ */

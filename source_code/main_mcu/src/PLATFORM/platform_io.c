@@ -21,7 +21,7 @@ volatile BOOL platform_io_voledin_conv_ready = FALSE;
 void EIC_Handler(void)
 {
     /* All the interrupts below are used to wake up the platform from sleep. If we detect any of them, we disable all of them */
-    if (((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << USB_3V3_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << AUX_MCU_TX_EXTINT_NUM)) != 0))
+    if (((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << USB_3V3_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0))
     {
         EIC->INTFLAG.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
@@ -29,8 +29,8 @@ void EIC_Handler(void)
         EIC->INTENCLR.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
         EIC->INTFLAG.reg = (1 << USB_3V3_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << USB_3V3_EXTINT_NUM);
-        EIC->INTFLAG.reg = (1 << AUX_MCU_TX_EXTINT_NUM);
-        EIC->INTENCLR.reg = (1 << AUX_MCU_TX_EXTINT_NUM);
+        EIC->INTFLAG.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
+        EIC->INTENCLR.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
     }
 }
 
@@ -182,6 +182,7 @@ void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
 
 /*! \fn     platform_io_enable_aux_tx_wakeup_interrupt(void)
 *   \brief  Enable aux MCU TX interrupt
+*   \note   Not used anymore, replaced by bidirectional wakeup on no-comms
 */
 void platform_io_enable_aux_tx_wakeup_interrupt(void)
 {
@@ -223,6 +224,7 @@ void platform_io_disable_scroll_wheel_wakeup_interrupts(void)
 
 /*! \fn     platform_io_disable_aux_tx_wakeup_interrupt(void)
 *   \brief  Disable aux MCU TX interrupt
+*   \note   Not used anymore, replaced by bidirectional wakeup on no-comms
 */
 void platform_io_disable_aux_tx_wakeup_interrupt(void)
 {
@@ -623,7 +625,7 @@ void platform_io_set_no_comms(void)
 {
     /* Platform v3 */
     #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
-        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, disabled by default    
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;               // NO COMMS as an input as it'll be pulled-up by aux MCU
     #endif
 }
 
@@ -634,7 +636,7 @@ void platform_io_clear_no_comms(void)
 {
     /* Platform v3 */
     #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
-        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, disabled by default    
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRSET.reg = AUX_MCU_NOCOMMS_MASK;               // NO COMMS as output, driven low
     #endif
 }
 
@@ -645,10 +647,38 @@ void platform_io_init_no_comms_signal(void)
 {    
     /* Platform v3 */
     #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
-        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;    // Setup NO COMMS, enabled by default
-        PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default
-        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;    // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.INEN = 1;      // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_MASK;               // We enable no comms by simply changing the DIR register...
     #endif    
+}
+
+/*! \fn     platform_io_set_no_comms_as_wakeup_interrupt(void)
+*   \brief  Configure no comms signal as interrupt
+*/
+void platform_io_set_no_comms_as_wakeup_interrupt(void)
+{
+    /* Platform v3 */
+    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
+        /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PMUX[AUX_MCU_NOCOMMS_PINID/2].bit.AUX_MCU_NOCOMMS_PMUXREGID = PORT_PMUX_PMUXO_A_Val; // Pin mux to EIC
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 1;                                        // Enable peripheral multiplexer
+        EIC->CONFIG[AUX_MCU_NO_COMMS_EXTINT_NUM/8].bit.AUX_MCU_NO_COMMS_EXTINT_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;           // Detect low state
+        EIC->INTFLAG.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);                                                                  // Clear interrupt just in case
+        EIC->INTENSET.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);                                                                 // Enable interrupt from ext pin
+        EIC->WAKEUP.reg |= (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);                                                                  // Allow device wakeup
+    #endif
+}
+
+/*! \fn     platform_io_disable_no_comms_as_wakeup_interrupt(void)
+*   \brief  Disable no comms as wakeup interrupt
+*/
+void platform_io_disable_no_comms_as_wakeup_interrupt(void)
+{
+    PORT->Group[AUX_MCU_NOCOMMS_GROUP].PMUX[AUX_MCU_NOCOMMS_PINID/2].bit.AUX_MCU_NOCOMMS_PMUXREGID = EIC_CONFIG_SENSE0_NONE_Val;// No detection
+    PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;                                            // Disable peripheral multiplexer
+    EIC->WAKEUP.reg &= ~(1 << AUX_MCU_NO_COMMS_EXTINT_NUM);                                                                     // Disable wakeup from ext pin
 }
 
 /*! \fn     platform_io_init_aux_comms_ports(void)
@@ -734,14 +764,14 @@ void platform_io_prepare_ports_for_sleep(void)
     /* Disable AUX comms ports */    
     platform_io_disable_aux_comms();
     
-    /* Enable AUX MCU TX interrupt */
-    platform_io_enable_aux_tx_wakeup_interrupt();
+    /* Enable USB 3V3 interrupt */
+    platform_io_enable_usb_3v3_wakeup_interrupt();
+    
+    /* Configure no comms as bidirectional wakeup */
+    platform_io_set_no_comms_as_wakeup_interrupt();
     
     /* Enable wheel interrupt */
     platform_io_enable_scroll_wheel_wakeup_interrupts();
-    
-    /* Enable USB 3V3 interrupt */
-    platform_io_enable_usb_3v3_wakeup_interrupt();
 }
 
 /*! \fn     platform_io_prepare_ports_for_sleep_exit(void)
@@ -752,8 +782,8 @@ void platform_io_prepare_ports_for_sleep_exit(void)
     /* Disable wheel interrupt */
     platform_io_disable_scroll_wheel_wakeup_interrupts();
     
-    /* Disable AUX MCU interrupt */
-    platform_io_disable_aux_tx_wakeup_interrupt();
+    /* Disable AUX MCU through NO COMMS interrupt */
+    platform_io_disable_no_comms_as_wakeup_interrupt();
     
     /* Reconfigure wheel port */
     platform_io_init_scroll_wheel_ports();
