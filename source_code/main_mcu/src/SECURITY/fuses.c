@@ -20,7 +20,7 @@
     #define BOD33_ENABLE	(0x01LU << 14)      // Brownout disabled (1 = enabled)
 #endif
 #define BOD33_ACTION		(0x01LU << 15)      // Brownout action (1 = reset)
-#define RESERVEDC			(0x70LU << 17)      // Reserved
+#define RESERVEDC			(0xFFLU << 17)      // Reserved
 #define WDT_ENABLE			(0x00LU << 25)      // WDT enable (1 = enabled)
 #define WDT_ALWAYS_ON		(0x00LU << 26)      // WDT always on
 #define WDT_PERIOD			(0x0BLU << 27)      // WDT timeout period. 0 = 8clk, 1 = 16clk, 2 = 32clk... until 0xB
@@ -29,17 +29,27 @@
 #define WDT_EWOFFSET		(0x0BLU << 3)       // Number of GCLK_WDT clocks in the offset from the start of the watchdog time-out period to when the Early Warning interrupt is generated
 #define WDT_WEN				(0x00LU << 7)       // WDT Timer Window Mode Enable at power on
 #define BOD33_HYS			(0x00LU << 8)       // BOD33 Hysteresis configuration at power on (0: no hysteresis)
-#define RESERVEDD			(0x00LU << 9)       // Reserved
+#define RESERVEDD			(0x01LU << 9)       // Reserved
 #define RESERVEDE			(0x3FLU << 10)      // Reserved
 #define LOCK				(0xFFFFLU << 16)    // NVM Region Lock Bits.
 
 /* Compose aux word from individual registers */
-#define USER_WORD_0			(WDT_WINDOW_LBIT | WDT_PERIOD | WDT_ALWAYS_ON | WDT_ENABLE | RESERVEDC | BOD33_ACTION | BOD33_ENABLE | BOD33_LEVEL | RESERVEDB | EEPROM | RESERVEDA | BOOTPROT)
-#define USER_WORD_1			(LOCK | RESERVEDE | RESERVEDD | BOD33_HYS | WDT_WEN | WDT_EWOFFSET | WDT_WINDOW_HBITS)
+#define USER_WORD_0			(WDT_WINDOW_LBIT | WDT_PERIOD | WDT_ALWAYS_ON | WDT_ENABLE | BOD33_ACTION | BOD33_ENABLE | BOD33_LEVEL | EEPROM | BOOTPROT)
+#define USER_WORD_0_MASK    (RESERVEDC | RESERVEDB | RESERVEDA)
+#define USER_WORD_1			(LOCK | BOD33_HYS | WDT_WEN | WDT_EWOFFSET | WDT_WINDOW_HBITS)
+#define USER_WORD_1_MASK    (RESERVEDE | RESERVEDD)
 
 /* MASK Lock and Reserve Bits */
 #define USER_MASK_0 0x01FE0088
-#define USER_MASK_1 0xFFFFFE00
+#define USER_MASK_1 0x0000FE00
+
+/* Sanity checks */
+#if USER_MASK_0 != USER_WORD_0_MASK
+    #error "User mask 0 error"
+#endif
+#if USER_MASK_1 != USER_WORD_1_MASK
+    #error "User mask 1 error"
+#endif
 
 /* Command words redefines */
 #define NVM_COMMAND_ERASE_AUX_ROW NVMCTRL_CTRLA_CMD_EAR
@@ -59,9 +69,9 @@ RET_TYPE fuses_check_program(BOOL flash_fuses)
     
     /* Check current words and security bit */
     #ifdef NO_SECURITY_BIT_CHECK
-    if ((userWord0 == USER_WORD_0) && (userWord1 == USER_WORD_1))
+    if (((userWord0 & ~USER_MASK_0) == USER_WORD_0) && ((userWord1 & ~USER_MASK_1) == USER_WORD_1))
     #else
-    if ((userWord0 == USER_WORD_0) && (userWord1 == USER_WORD_1) && (NVMCTRL->STATUS.reg & NVMCTRL_STATUS_SB))
+    if (((userWord0 & ~USER_MASK_0) == USER_WORD_0) && ((userWord1 & ~USER_MASK_1) == USER_WORD_1) && (NVMCTRL->STATUS.reg & NVMCTRL_STATUS_SB))
     #endif
     {
         /* Conf words & security bit ok */
