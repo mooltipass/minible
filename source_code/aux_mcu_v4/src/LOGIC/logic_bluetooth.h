@@ -273,6 +273,7 @@ void logic_bluetooth_boot_key_report_update(at_ble_handle_t conn_handle, uint8_t
 void logic_bluetooth_update_report(uint16_t conn_handle, uint8_t serv_inst, uint8_t reportid, uint8_t* report, uint16_t len);
 uint8_t logic_bluetooth_get_report_characteristic(uint16_t handle, uint8_t serv, uint8_t reportid);
 uint8_t logic_bluetooth_get_notif_instance(uint8_t serv_num, uint16_t char_handle);
+void logic_bluetooth_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status);
 at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params);
 uint8_t logic_bluetooth_get_reportid(uint8_t serv, uint16_t handle);
 void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len);

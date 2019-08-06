@@ -31,17 +31,18 @@ void EIC_Handler(void)
     /* No comms interrupt: ACK and disable interrupt */
     if ((EIC->INTFLAG.reg & (1 << NOCOMMS_EXTINT_NUM)) != 0)
     {
+        logic_sleep_set_awoken_by_no_comms();
         EIC->INTFLAG.reg = (1 << NOCOMMS_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << NOCOMMS_EXTINT_NUM);
-        logic_sleep_set_awoken_by_no_comms();
     }
     
     /* BLE IN interrupt: ACK and disable interrupt */
     if ((EIC->INTFLAG.reg & (1 << BLE_WAKE_IN_EXTINT_NUM)) != 0)
     {
+        platform_io_assert_ble_wakeup();
+        logic_sleep_set_awoken_by_ble();
         EIC->INTFLAG.reg = (1 << BLE_WAKE_IN_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << BLE_WAKE_IN_EXTINT_NUM);
-        logic_sleep_set_awoken_by_ble();
     }
 }
 
@@ -401,6 +402,43 @@ void platform_io_ble_enabled_inits(void)
     PORT->Group[BLE_WAKE_IN_GROUP].OUTSET.reg = BLE_WAKE_IN_MASK;
     PORT->Group[BLE_WAKE_IN_GROUP].PINCFG[BLE_WAKE_IN_PINID].bit.PULLEN = 1;
     PORT->Group[BLE_WAKE_IN_GROUP].PINCFG[BLE_WAKE_IN_PINID].bit.INEN = 1;
+    
+    /* Wait a little then enable bluetooth module */
+    timer_delay_ms(50);
+    platform_io_assert_ble_enable();
+    platform_io_assert_ble_wakeup();
+}
+
+/*! \fn     platform_io_assert_ble_wakeup(void)
+*   \brief  Wakeup BLE module
+*/
+void platform_io_assert_ble_wakeup(void)
+{
+    PORT->Group[BLE_WAKE_OUT_GROUP].OUTSET.reg = BLE_WAKE_OUT_MASK;    
+}
+
+/*! \fn     platform_io_deassert_ble_wakeup(void)
+*   \brief  Allow BLE module to sleep between events
+*/
+void platform_io_deassert_ble_wakeup(void)
+{
+    PORT->Group[BLE_WAKE_OUT_GROUP].OUTCLR.reg = BLE_WAKE_OUT_MASK;    
+}
+
+/*! \fn     platform_io_assert_ble_enable(void)
+*   \brief  Enable BLE module
+*/
+void platform_io_assert_ble_enable(void)
+{
+    PORT->Group[BLE_EN_GROUP].OUTSET.reg = BLE_EN_MASK;
+}
+
+/*! \fn     platform_io_deassert_ble_enable(void)
+*   \brief  Disable BLE module
+*/
+void platform_io_deassert_ble_enable(void)
+{
+    PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
 }
 
 /*! \fn     platform_io_ble_disabled_actions(void)
@@ -443,14 +481,21 @@ void platform_io_enable_main_comms(void)
 */
 void platform_io_init_ble_ports_for_disabled(void)
 {
-    PORT->Group[BLE_WAKE_OUT_GROUP].DIRSET.reg = BLE_WAKE_OUT_MASK;
-    PORT->Group[BLE_WAKE_OUT_GROUP].OUTCLR.reg = BLE_WAKE_OUT_MASK;
     PORT->Group[BLE_EN_GROUP].DIRSET.reg = BLE_EN_MASK;
     PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
     PORT->Group[BLE_UART0_TX_GROUP].DIRSET.reg = BLE_UART0_TX_MASK;
     PORT->Group[BLE_UART0_TX_GROUP].OUTCLR.reg = BLE_UART0_TX_MASK;
     PORT->Group[BLE_UART1_RTS_GROUP].DIRSET.reg = BLE_UART1_RTS_MASK;
-    PORT->Group[BLE_UART1_RTS_GROUP].OUTCLR.reg = BLE_UART1_RTS_MASK;
+    PORT->Group[BLE_UART1_RTS_GROUP].OUTCLR.reg = BLE_UART1_RTS_MASK;    
+    
+    /* Device wakeup: output, set low */
+    PORT->Group[BLE_WAKE_OUT_GROUP].DIRSET.reg = BLE_WAKE_OUT_MASK;
+    PORT->Group[BLE_WAKE_OUT_GROUP].OUTCLR.reg = BLE_WAKE_OUT_MASK;
+    
+    /* Device enable: output, set low */
+    PORT->Group[BLE_EN_GROUP].DIRSET.reg = BLE_EN_MASK;
+    PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
+    
     /* Below: leave disabled, doesn't change anything */
     //PORT->Group[BLE_UART1_TX_GROUP].DIRSET.reg = BLE_UART1_TX_MASK;
     //PORT->Group[BLE_UART1_TX_GROUP].OUTSET.reg = BLE_UART1_TX_MASK;

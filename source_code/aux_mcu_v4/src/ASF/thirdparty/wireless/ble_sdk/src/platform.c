@@ -41,11 +41,11 @@
 #include "ble_utils.h"
 #include "logic_sleep.h"
 #include "conf_serialdrv.h"
+#include "platform_io.h"
 #include "timer_hw.h"
 
 static void (*recv_async_cb)(uint8_t) = NULL;
 static volatile bool platform_timer_used = false;
-static volatile bool host_sleep_flag = false;
 
 static os_signal_t platform_os_signals[MAX_PLATFORM_OS_SIGNAL];
 
@@ -66,8 +66,8 @@ at_ble_status_t platform_init(uint8_t bus_type, uint8_t btlc1000_module_version)
 		platform_signal_set_default();
 		platform_reset_timer();
 		#endif
-				
-		ble_configure_control_pin();
+        
+        delay_init();
 		
 		configure_serial_drv(CONF_UART_BAUDRATE);
 		
@@ -99,53 +99,11 @@ void platform_send_sync(uint8_t *data, uint32_t len)
 
 	if(!platform_wakeup_pin_status())
 	{
-    	logic_sleep_ble_not_sleeping_between_events();
-		ble_wakeup_pin_set_high();
+		platform_io_assert_ble_wakeup();
 		delay_ms(5);
 	}					 
 	serial_drv_send(data, (uint16_t)len);
 
-}
-
-void platform_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status)
-{
-	if (pin == AT_BLE_CHIP_ENABLE)
-	{
-		if (status == AT_BLE_HIGH)
-		{
-			ble_enable_pin_set_high();
-		}
-		else
-		{
-			ble_enable_pin_set_low();
-		}
-	}
-	else if (pin == AT_BLE_EXTERNAL_WAKEUP)
-	{
-		if (status == AT_BLE_HIGH)
-		{
-            logic_sleep_ble_not_sleeping_between_events();
-			ble_wakeup_pin_set_high();
-		} 
-		else
-		{
-			asm volatile("NOP");
-			#if defined(ENABLE_POWER_SAVE)
-			bool host_pin_status = true;
-			#if (HOST_SLEEP_ENABLE == true)
-			host_pin_status = host_event_data_ready_pin_level();
-			#endif
-			if((!serial_drive_rx_data_count()) && (host_pin_status))
-			{
-				ble_wakeup_pin_set_low();
-			}
-			#endif
-		}
-	}
-	else
-	{
-		ble_assert(false);
-	}
 }
 
 void platform_recv_async(void (*recv_async_callback)(uint8_t))
@@ -179,60 +137,10 @@ void platform_configure_hw_fc_uart(uint32_t baudrate)
 	configure_usart_after_patch(baudrate);
 }
 
-void platform_host_set_sleep(bool sleep)
-{
-	host_sleep_flag = sleep;
-}
-
-
-void platform_enter_sleep(void)
-{
-	if (!host_sleep_flag) {
-		return;
-	}	
-
-    logic_sleep_ble_signal_to_sleep();
-    return;
-#if defined HOST_DEEP_SLEEP_ENABLED	
-	/* When No event and External Interrupt Pin will be High(No Event in Queue) */
-	if ((host_event_data_ready_pin_level()) && (!ble_wakeup_pin_level())
-		&& (!serial_drive_rx_data_count()))
-	{
-		/* RTS is Low Set to High */
-		if (!ble_host_rts_pin_level())
-		{
-			/* Set Host RTS to High */
-			platform_set_ble_rts_high();
-			
-			if(!host_event_data_ready_pin_level())
-			{
-				platform_set_ble_rts_low();
-				return;
-			}
-		}
-		platform_set_hostsleep();
-		
-		platform_restore_from_sleep();
-		
-		/* Set Host RTS Low to receive the data */
-		platform_set_ble_rts_low();
-	}
-	else
-#endif
-	if ((!ble_wakeup_pin_level())
-	&& (!serial_drive_rx_data_count()))
-	{
-        logic_sleep_ble_signal_to_sleep();
-		//platform_set_hostsleep();
-		//platform_restore_from_sleep();
-	}
-}
-
 void platform_host_wake_interrupt_handler(void)
 {
 	/* Keep BTLC1000 Wakeup line high */
-	logic_sleep_ble_not_sleeping_between_events();
-	ble_wakeup_pin_set_high();
+	platform_io_assert_ble_wakeup();
 }
 
 void *platform_create_timer(void (*timer_cb)(void *))
@@ -271,8 +179,7 @@ bool platform_wakeup_pin_status(void)
 
 void plaform_ble_rx_callback(void)
 {
-    logic_sleep_ble_not_sleeping_between_events();
-	ble_wakeup_pin_set_high();
+	platform_io_assert_ble_wakeup();
 }
 
 void platform_wait_for_signal(uint32_t count, void **signal_handler_list)
@@ -306,7 +213,7 @@ void platform_wait_for_signal(uint32_t count, void **signal_handler_list)
 				4. Host MCU should not go to deep sleep until BTLC1000 wakeup line goes low (to avoid latencies)
 				5. In RTOS Task can yield until signals are triggered, But Host MCU should meet the above condition 
 					before putting Host MCU to sleep */
-					platform_enter_sleep();
+					logic_sleep_ble_signal_to_sleep();
 			}
 		} while (!signal_presence);
 	}

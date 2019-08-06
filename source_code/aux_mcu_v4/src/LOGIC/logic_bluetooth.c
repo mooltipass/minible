@@ -6,6 +6,7 @@
  */ 
 #include "platform_defines.h"
 #include "logic_bluetooth.h"
+#include "conf_serialdrv.h"
 #include "driver_timer.h"
 #include "device_info.h"
 #include "ble_manager.h"
@@ -1089,6 +1090,40 @@ void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t*
     logic_bluetooth_hid_gatt_instances[servinst].serv.char_count = cur_characteristic_index;    
 }
 
+/*! \fn     logic_bluetooth_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status)
+*   \brief  Function called by library to set GPIOs
+*   \param  pin     The PIN (see enum)
+*   \param  status  high or low (see enum)
+*/
+void logic_bluetooth_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status)
+{
+    if (pin == AT_BLE_CHIP_ENABLE)
+    {
+        if (status == AT_BLE_HIGH)
+        {
+            platform_io_assert_ble_enable();
+        }
+        else
+        {
+            platform_io_deassert_ble_enable();
+        }
+    }
+    else if (pin == AT_BLE_EXTERNAL_WAKEUP)
+    {
+        if (status == AT_BLE_HIGH)
+        {
+            platform_io_assert_ble_wakeup();
+        }
+        else
+        {
+            if (host_event_data_ready_pin_level())
+            {
+                platform_io_deassert_ble_wakeup();
+            }
+        }
+    }
+}
+
 /*! \fn     logic_bluetooth_start_bluetooth(void)
 *   \brief  Start bluetooth
 */
@@ -1235,9 +1270,6 @@ void logic_bluetooth_start_bluetooth(void)
     
     /* Start advertising */
     logic_bluetooth_start_advertising();
-    
-    /* Enable sleep between events */
-    logic_sleep_set_ble_to_sleep_between_events();
 }
 
 /*! \fn     logic_bluetooth_start_advertising(void)

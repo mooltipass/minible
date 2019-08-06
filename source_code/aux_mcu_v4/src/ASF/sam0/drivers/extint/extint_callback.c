@@ -203,20 +203,3 @@ uint8_t extint_get_current_channel(void)
 {
 	return _current_channel;
 }
-
-/** Handler for the EXTINT hardware module interrupt. */
-void EIC_Handler22(void)
-{
-	/* Find any triggered channels, run associated callback handlers */
-	for (_current_channel = 0; _current_channel < EIC_NUMBER_OF_INTERRUPTS ; _current_channel++) {
-		if (extint_chan_is_detected(_current_channel)) {
-			/* Clear flag */
-			extint_chan_clear_detected(_current_channel);
-			/* Find any associated callback entries in the callback table */
-			if (_extint_dev.callbacks[_current_channel] != NULL) {
-				/* Run the registered callback */
-				_extint_dev.callbacks[_current_channel]();
-			}
-		}
-	}
-}

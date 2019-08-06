@@ -38,6 +38,8 @@
 #include <string.h>
 #include "at_ble_api.h"
 #include "at_ble_trace.h"
+#include "driver_timer.h"
+#include "logic_bluetooth.h"
 #include "ble_manager.h"
 #include "ble_utils.h"
 #include "platform.h"
@@ -206,12 +208,12 @@ uint32_t ble_sdk_version(void)
 
 at_ble_init_config_t pf_cfg = {
 	/* Register Platform callback API's */
-	.platform_api_list.at_ble_create_timer = platform_create_timer,
-	.platform_api_list.at_ble_delete_timer = platform_delete_timer,
-	.platform_api_list.at_ble_start_timer = platform_start_timer,
-	.platform_api_list.at_ble_stop_timer = platform_stop_timer,
+	.platform_api_list.at_ble_create_timer = timer_create_callback_timer,
+	.platform_api_list.at_ble_delete_timer = timer_remove_callback_timer,
+	.platform_api_list.at_ble_start_timer = timer_start_callback_timer,
+	.platform_api_list.at_ble_stop_timer = timer_stop_callback_timer,
 	.platform_api_list.at_ble_sleep = platform_sleep,
-	.platform_api_list.at_ble_gpio_set = platform_gpio_set,
+	.platform_api_list.at_ble_gpio_set = logic_bluetooth_gpio_set,
 	.platform_api_list.at_ble_send_sync = platform_send_sync,
 	.platform_api_list.at_ble_recv_async = platform_recv_async,
 	.platform_api_list.at_ble_reconfigure_usart = platform_configure_hw_fc_uart,
@@ -318,8 +320,6 @@ void ble_device_init(at_ble_addr_t *addr, at_ble_gap_deviceinfo_t* device_info)
 	trace_set_level(TRACE_LVL_DISABLE);
 	
 	ble_init(&pf_cfg);
-	
-	platform_host_set_sleep(HOST_SLEEP_ENABLE);
 	
 #ifdef BTLC_REINIT_SUPPORT
 	if(!btlc1000_initialized)

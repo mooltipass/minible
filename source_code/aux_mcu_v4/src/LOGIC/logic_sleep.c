@@ -63,34 +63,6 @@ void logic_sleep_wakeup_main_mcu_if_needed(void)
     }
 }
 
-/*! \fn     logic_sleep_set_ble_to_sleep_between_events(void)
-*   \brief  Allow BLE module to sleep between events
-*/
-void logic_sleep_set_ble_to_sleep_between_events(void)
-{
-    /* Check that no data needs to be processed */
-    if(host_event_data_ready_pin_level())
-    {
-        ble_wakeup_pin_set_low();
-        DBG_SLP_LOG("ATBTLC to sleep btw events");
-        logic_sleep_ble_module_sleep_between_events = TRUE;
-    }
-    else
-    {
-        DBG_SLP_LOG("Couldn't set ATBTLC to sleep btw events: events to be processed");
-    }
-}
-
-/*! \fn     logic_sleep_ble_not_sleeping_between_events(void)
-*   \brief  Indicate that the BLE module is not sleeping between events
-*/
-void logic_sleep_ble_not_sleeping_between_events(void)
-{
-    logic_sleep_ble_module_sleep_between_events = FALSE;
-    DBG_SLP_LOG("ATBTLC to NOT sleep btw events");    
-    timer_start_timer(TIMER_BT_WAKEUP_ENABLED, BT_NB_MS_BEFORE_DEASSERTING_WAKEUP);
-}
-
 /*! \fn     logic_sleep_ble_signal_to_sleep(void)
 *   \brief  Called by BLE to signal the platform it can go to sleep
 */
@@ -183,9 +155,4 @@ BOOL logic_sleep_is_full_platform_sleep_requested(void)
 */
 void logic_sleep_routine_ble_call(void)
 {
-    /* BLE module was set to not sleep between events */
-    if ((logic_sleep_ble_module_sleep_between_events == FALSE) && (timer_has_timer_expired(TIMER_BT_WAKEUP_ENABLED, FALSE) == TIMER_EXPIRED))
-    {
-        logic_sleep_set_ble_to_sleep_between_events();
-    }
 }

@@ -9,8 +9,10 @@
 #include "driver_clocks.h"
 #include "driver_timer.h"
 #include "defines.h"
+/* Callback timer array */
+volatile timer_callback_struct_t callback_timers[TIMER_NB_CALLBACK_TIMERS];
 /* Timer array */
-volatile timerEntry_t context_timers[TOTAL_NUMBER_OF_TIMERS];
+volatile timer_struct_t context_timers[TOTAL_NUMBER_OF_TIMERS];
 /* System tick */
 volatile uint32_t sysTick;
 
@@ -30,6 +32,79 @@ void TCC0_Handler(void)
             timer_ms_tick();
         }
     #endif
+}
+
+/*! \brief  Callback timer creation to match the damn asf lib
+*   \param  timer_cb the callback
+*   \return callback timer ID
+*/
+void* timer_create_callback_timer(void(*timer_cb)(void*))
+{
+    /* Find an available spot */
+    for (uint32_t i = 0; i < TIMER_NB_CALLBACK_TIMERS; i++)
+    {        
+        if (callback_timers[i].timer_enabled == FALSE)
+        {
+            cpu_irq_enter_critical();
+            callback_timers[i].timer_callback = timer_cb;
+            callback_timers[i].timer_enabled = TRUE;
+            callback_timers[i].timer_armed = FALSE;
+            cpu_irq_leave_critical();
+            return (void*)(0x20000000 + i);
+        }
+    }
+    
+    /* We shouldn't be there */
+    while(1);
+}
+
+/*! \brief  Callback timer deletion to match the damn asf lib
+*   \param  timer_id Callback timer_id
+*/
+void timer_remove_callback_timer(void* timer_id)
+{
+    uint32_t callback_timer_id = ((uint32_t)timer_id)-0x20000000;
+    
+    cpu_irq_enter_critical();
+    if (callback_timer_id < TIMER_NB_CALLBACK_TIMERS)
+    {
+        callback_timers[callback_timer_id].timer_enabled = FALSE;
+        callback_timers[callback_timer_id].timer_armed = FALSE;
+    }
+    cpu_irq_leave_critical();
+}
+
+/*! \brief  Callback timer start to match the damn asf lib
+*   \param  timer_id Callback timer_id
+*   \param  ms       Number of ms.... I guess?
+*/
+void timer_start_callback_timer(void* timer_id, uint32_t ms)
+{
+    uint32_t callback_timer_id = ((uint32_t)timer_id)-0x20000000;
+    
+    cpu_irq_enter_critical();
+    if (callback_timer_id < TIMER_NB_CALLBACK_TIMERS)
+    {
+        callback_timers[callback_timer_id].timer_val = ms;
+        callback_timers[callback_timer_id].timer_armed = TRUE;
+        callback_timers[callback_timer_id].timer_set_val = ms;        
+    }
+    cpu_irq_leave_critical();    
+}
+
+/*! \brief  Callback timer stop to match the damn asf lib
+*   \param  timer_id Callback timer_id
+*/
+void timer_stop_callback_timer(void* timer_id)
+{
+    uint32_t callback_timer_id = ((uint32_t)timer_id)-0x20000000;
+    
+    cpu_irq_enter_critical();
+    if (callback_timer_id < TIMER_NB_CALLBACK_TIMERS)
+    {
+        callback_timers[callback_timer_id].timer_armed = FALSE;
+    }
+    cpu_irq_leave_critical();    
 }
 
 /*! \fn     timer_initialize_timebase(void)
@@ -134,6 +209,20 @@ void timer_ms_tick(void)
             if (context_timers[i].timer_val-- == 1)
             {
                 context_timers[i].flag = TIMER_EXPIRED;
+            }
+        }
+    }
+    
+    // Loop through the callback timers
+    for (i = 0; i < TIMER_NB_CALLBACK_TIMERS; i++)
+    {
+        if ((callback_timers[i].timer_armed != FALSE) && (callback_timers[i].timer_enabled != FALSE))
+        {
+            // Post decrement on purpose to add an extra ms
+            if (callback_timers[i].timer_val-- == 0)
+            {
+                callback_timers[i].timer_val = callback_timers[i].timer_set_val;
+                callback_timers[i].timer_callback((void*)i);
             }
         }
     }

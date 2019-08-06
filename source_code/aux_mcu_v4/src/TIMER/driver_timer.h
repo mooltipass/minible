@@ -13,20 +13,33 @@
 #include "defines.h"
 
 /* Defines */
-#define MCU_SYSTICK_MAX_PERIOD  0x00FFFFFFUL
+#define MCU_SYSTICK_MAX_PERIOD      0x00FFFFFFUL
+#define TIMER_NB_CALLBACK_TIMERS    2
+
+/** Type of the callback functions. */
+typedef void (*timer_callback_t)(void* timer_id);
 
 /* Structs */
 typedef struct
 {
     uint32_t timer_val;
     uint32_t flag;
-} timerEntry_t;
+} timer_struct_t;
+
+typedef struct
+{
+    BOOL timer_armed;
+    BOOL timer_enabled;
+    uint32_t timer_val;
+    uint32_t timer_set_val;
+    timer_callback_t timer_callback;
+} timer_callback_struct_t;
 
 /* Typedefs */
 typedef RTC_MODE2_CLOCK_Type calendar_t;
 
 /* Enums */
-typedef enum {TIMER_WAIT_FUNCTS = 0, TIMER_TIMEOUT_FUNCTS = 1, TIMER_BATTERY_TICK = 2, TIMER_BT_TESTS = 3, TIMER_BT_WAKEUP_ENABLED = 4, TOTAL_NUMBER_OF_TIMERS} timer_id_te;
+typedef enum {TIMER_WAIT_FUNCTS = 0, TIMER_TIMEOUT_FUNCTS = 1, TIMER_BATTERY_TICK = 2, TIMER_BT_TESTS = 3, TOTAL_NUMBER_OF_TIMERS} timer_id_te;
 typedef enum {TIMER_EXPIRED = 0, TIMER_RUNNING = 1} timer_flag_te;
     
 /* Macros */
@@ -40,8 +53,12 @@ typedef enum {TIMER_EXPIRED = 0, TIMER_RUNNING = 1} timer_flag_te;
 
 /* Prototypes */
 timer_flag_te timer_has_timer_expired(timer_id_te uid, BOOL clear);
+void timer_start_callback_timer(void* timer_id, uint32_t ms);
+void* timer_create_callback_timer(void(*timer_cb)(void*));
 void timer_start_timer(timer_id_te uid, uint32_t val);
+void timer_remove_callback_timer(void* timer_id);
 void timer_get_calendar(calendar_t* calendar_pt);
+void timer_stop_callback_timer(void* timer_id);
 uint32_t timer_get_timer_val(timer_id_te uid);
 BOOL timer_get_mcu_systick(uint32_t* value);
 void timer_initialize_timebase(void);

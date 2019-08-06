@@ -133,78 +133,20 @@ static inline bool ble_wakeup_pin_level(void)
 	return (port_pin_get_output_level(BTLC1000_WAKEUP_PIN));
 }
 
-/* Set BLE Wakeup pin to be low */
-static inline void ble_wakeup_pin_set_low(void)
-{
-	port_pin_set_output_level(BTLC1000_WAKEUP_PIN, 
-							IOPORT_PIN_LEVEL_LOW);
-}
-
-/* Set wakeup pin to high */
-static inline void ble_wakeup_pin_set_high(void)
-{
-	port_pin_set_output_level(BTLC1000_WAKEUP_PIN, 
-							IOPORT_PIN_LEVEL_HIGH);
-}
-
-/* Set enable pin to Low */
-static inline void ble_enable_pin_set_low(void)
-{
-	port_pin_set_output_level(BTLC1000_CHIP_ENABLE_PIN, 
-							IOPORT_PIN_LEVEL_LOW);
-}
-
-/* Set enable pin to high */
-static inline void ble_enable_pin_set_high(void)
-{
-	port_pin_set_output_level(BTLC1000_CHIP_ENABLE_PIN, 
-							IOPORT_PIN_LEVEL_HIGH);
-}
-
-/* Configure the BTLC1000 control(chip_enable, wakeup) pins */
-static inline void ble_configure_control_pin(void)
-{
-	struct port_config pin_conf;
-	
-	/* initialize the delay before use */
-	delay_init();
-	
-	/* get the default values for port pin configuration */
-	port_get_config_defaults(&pin_conf);
-
-	/* Configure control pins as output */
-	pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
-	pin_conf.input_pull = PORT_PIN_PULL_DOWN;
-	
-	port_pin_set_config(BTLC1000_WAKEUP_PIN, &pin_conf);
-	/* set wakeup pin to low */
-	ble_wakeup_pin_set_high();
-	
-	port_pin_set_config(BTLC1000_CHIP_ENABLE_PIN, &pin_conf);
-	/* set chip enable to low */
-	ble_enable_pin_set_low();
-	
-	/* Delay for 50ms */
-	delay_ms(BTLC1000_RESET_MS);
-	
-	/* set chip enable to high */
-	ble_enable_pin_set_high();
-}
-
 static inline void ble_reset(void)
 {
 	/* BTLC1000 Reset Sequence @Todo */
-	ble_enable_pin_set_high();
-	ble_wakeup_pin_set_high();
-	delay_ms(BTLC1000_RESET_MS);
-	
-	ble_enable_pin_set_low();
-	ble_wakeup_pin_set_low();
-	delay_ms(BTLC1000_RESET_MS);
-	
-	ble_enable_pin_set_high();
-	ble_wakeup_pin_set_high();
-	delay_ms(BTLC1000_RESET_MS);
+	//ble_enable_pin_set_high();
+	//ble_wakeup_pin_set_high();
+	//delay_ms(BTLC1000_RESET_MS);
+	//
+	//ble_enable_pin_set_low();
+	//ble_wakeup_pin_set_low();
+	//delay_ms(BTLC1000_RESET_MS);
+	//
+	//ble_enable_pin_set_high();
+	//ble_wakeup_pin_set_high();
+	//delay_ms(BTLC1000_RESET_MS);
 }
 
 #endif /* CONF_SERIALDRV_H_INCLUDED */
