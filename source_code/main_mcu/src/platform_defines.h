@@ -273,7 +273,6 @@ typedef struct
     #define AUX_MCU_TX_EIC_SENSE_REG            SENSE7
     #define AUX_MCU_NO_COMMS_EXTINT_NUM         10
     #define AUX_MCU_NO_COMMS_EXTINT_SENSE_REG   SENSE2
-    
 #endif
 
 /* User event channels mapping */
