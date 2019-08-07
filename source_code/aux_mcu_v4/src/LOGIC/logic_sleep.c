@@ -15,29 +15,9 @@
 #include "defines.h"
 #include "logic.h"
 #include "main.h"
-/* Boolean indicating if the ble module is set to sleep between events */
-BOOL logic_sleep_ble_module_sleep_between_events = FALSE;
-/* Booleans indicating what woke us up */
-volatile BOOL logic_sleep_awoken_by_no_comms = FALSE;
-volatile BOOL logic_sleep_awoken_by_ble = FALSE;
 /* Full platform sleep requested */
 BOOL logic_sleep_full_platform_sleep_requested = FALSE;
 
-/*! \fn     logic_sleep_set_awoken_by_ble(void)
-*   \brief  Set awoken by ble bool
-*/
-void logic_sleep_set_awoken_by_ble(void)
-{
-    logic_sleep_awoken_by_ble = TRUE;
-}
-
-/*! \fn     logic_sleep_set_awoken_by_no_comms(void)
-*   \brief  Set awoken by no comms bool
-*/
-void logic_sleep_set_awoken_by_no_comms(void)
-{
-    logic_sleep_awoken_by_no_comms = TRUE;
-}
 
 /*! \fn     logic_sleep_wakeup_main_mcu_if_needed(void)
 *   \brief  Wake-up main MCU if needed
@@ -54,6 +34,7 @@ void logic_sleep_wakeup_main_mcu_if_needed(void)
         
         /* Re-enable main comms */
         platform_io_enable_main_comms();
+        comms_main_init_rx();
         
         /* Leave some time for correct no comms readout */
         timer_delay_ms(1);
@@ -70,12 +51,12 @@ void logic_sleep_ble_signal_to_sleep(void)
 {
     if (logic_sleep_full_platform_sleep_requested != FALSE)
     {
-        if (!host_event_data_ready_pin_level())
+        if (platform_io_is_wakeup_in_pin_low() != FALSE)
         {
             asm volatile("NOP");
             DBG_SLP_LOG("can't go to sleep: data ready pin low");
         }
-        if (ble_wakeup_pin_level())
+        if (platform_io_is_ble_wakeup_output_high() != FALSE)
         {
             asm volatile("NOP");
             DBG_SLP_LOG("can't go to sleep: wakeup pin high");
@@ -94,17 +75,13 @@ void logic_sleep_ble_signal_to_sleep(void)
     }
     
     /* If full platform sleep was requested, if no processing needs to be done, if we enable sleep between events */
-    if ((logic_sleep_full_platform_sleep_requested != FALSE) && (host_event_data_ready_pin_level()) && (!ble_wakeup_pin_level()))
-    {
-        /* Clear bools */
-        logic_sleep_awoken_by_no_comms = FALSE;
-        logic_sleep_awoken_by_ble = FALSE;
-        
+    if ((logic_sleep_full_platform_sleep_requested != FALSE) && (platform_io_is_wakeup_in_pin_low() == FALSE) && (platform_io_is_ble_wakeup_output_high() == FALSE))
+    {        
         /* Set Host RTS to High */
         platform_set_ble_rts_high();
         
         /* Some processing was requested? Do not go to sleep */    
-        if(!host_event_data_ready_pin_level())
+        if (platform_io_is_wakeup_in_pin_low() != FALSE)
         {
             platform_set_ble_rts_low();
             return;
@@ -123,7 +100,7 @@ void logic_sleep_ble_signal_to_sleep(void)
         DBG_SLP_LOG("Waking up");
         
         /* Awoken by BLE or main MCU? */
-        if (platform_io_is_no_comms_asserted() != FALSE)
+        if (platform_io_is_no_comms_asserted() == RETURN_OK)
         {
             /* If awoken by BLE, allow processing of events */
             platform_io_assert_ble_wakeup();
@@ -138,6 +115,15 @@ void logic_sleep_ble_signal_to_sleep(void)
         
         /* Set Host RTS Low to receive the data */
         platform_set_ble_rts_low();
+        
+        /* Awoken by BLE: for the moment, wakeup the main MCU */
+        if (platform_io_is_no_comms_asserted() == RETURN_OK)
+        {
+            logic_sleep_full_platform_sleep_requested = FALSE;
+            platform_io_generate_no_comms_wakeup_pulse();
+            platform_io_enable_main_comms();
+            comms_main_init_rx();
+        }            
     }
 }
 

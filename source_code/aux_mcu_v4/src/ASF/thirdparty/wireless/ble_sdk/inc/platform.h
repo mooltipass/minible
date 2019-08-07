@@ -78,7 +78,6 @@ void platform_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status);
 void platform_recv_async(void (*recv_async_callback)(uint8_t));
 
 void platform_sleep(uint32_t ms);
-bool platform_wakeup_pin_status(void);
 void plaform_ble_rx_callback(void);
 
 void *platform_create_timer(void (*timer_cb)(void *));

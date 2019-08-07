@@ -97,7 +97,7 @@ void platform_send_sync(uint8_t *data, uint32_t len)
 	}
 #endif
 
-	if(!platform_wakeup_pin_status())
+	if(platform_io_is_ble_wakeup_output_high() == FALSE)
 	{
 		platform_io_assert_ble_wakeup();
 		delay_ms(5);
@@ -137,12 +137,6 @@ void platform_configure_hw_fc_uart(uint32_t baudrate)
 	configure_usart_after_patch(baudrate);
 }
 
-void platform_host_wake_interrupt_handler(void)
-{
-	/* Keep BTLC1000 Wakeup line high */
-	platform_io_assert_ble_wakeup();
-}
-
 void *platform_create_timer(void (*timer_cb)(void *))
 {
 	return (platform_create_hw_timer(timer_cb));
@@ -170,11 +164,6 @@ void platform_stop_timer(void *timer_handle)
 void platform_sleep(uint32_t ms)
 {
 	delay_ms(ms);
-}
-
-bool platform_wakeup_pin_status(void)
-{
-	return (ble_wakeup_pin_level());
 }
 
 void plaform_ble_rx_callback(void)

@@ -31,7 +31,6 @@ void EIC_Handler(void)
     /* No comms interrupt: ACK and disable interrupt */
     if ((EIC->INTFLAG.reg & (1 << NOCOMMS_EXTINT_NUM)) != 0)
     {
-        logic_sleep_set_awoken_by_no_comms();
         EIC->INTFLAG.reg = (1 << NOCOMMS_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << NOCOMMS_EXTINT_NUM);
     }
@@ -39,8 +38,6 @@ void EIC_Handler(void)
     /* BLE IN interrupt: ACK and disable interrupt */
     if ((EIC->INTFLAG.reg & (1 << BLE_WAKE_IN_EXTINT_NUM)) != 0)
     {
-        platform_io_assert_ble_wakeup();
-        logic_sleep_set_awoken_by_ble();
         EIC->INTFLAG.reg = (1 << BLE_WAKE_IN_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << BLE_WAKE_IN_EXTINT_NUM);
     }
@@ -409,6 +406,22 @@ void platform_io_ble_enabled_inits(void)
     platform_io_assert_ble_wakeup();
 }
 
+/*! \fn     platform_io_is_wakeup_in_pin_low(void)
+*   \brief  Check if the wakeup in pin is low, indicating data to be processed
+*   \return TRUE if pin low
+*/
+BOOL platform_io_is_wakeup_in_pin_low(void)
+{
+    if ((PORT->Group[BLE_WAKE_IN_GROUP].IN.reg & BLE_WAKE_IN_MASK) == 0)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
 /*! \fn     platform_io_assert_ble_wakeup(void)
 *   \brief  Wakeup BLE module
 */
@@ -423,6 +436,22 @@ void platform_io_assert_ble_wakeup(void)
 void platform_io_deassert_ble_wakeup(void)
 {
     PORT->Group[BLE_WAKE_OUT_GROUP].OUTCLR.reg = BLE_WAKE_OUT_MASK;    
+}
+
+/*! \fn     platform_io_is_ble_wakeup_output_high(void)
+*   \brief  Check if we set the wakeup output high
+*   \return TRUE if we set the pin high
+*/
+BOOL platform_io_is_ble_wakeup_output_high(void)
+{
+    if ((PORT->Group[BLE_WAKE_OUT_GROUP].OUT.reg & BLE_WAKE_OUT_MASK) == 0)
+    {
+        return FALSE;
+    }
+    else
+    {
+        return TRUE;
+    }
 }
 
 /*! \fn     platform_io_assert_ble_enable(void)

@@ -85,54 +85,6 @@ void serial_tx_callback(void);
 #define BLE_MAX_RX_PAYLOAD_SIZE 1024
 #define BLE_MAX_TX_PAYLOAD_SIZE 1024
 
-void platform_host_wake_interrupt_handler(void);
-static inline void btlc1000_host_wakeup_config(void);
-static inline void btlc1000_host_wakeup_handler(void);
-
-static inline void btlc1000_host_wakeup_config(void)
-{
-	struct extint_chan_conf eint_chan_conf;
-	extint_chan_get_config_defaults(&eint_chan_conf);
-
-	eint_chan_conf.gpio_pin           = BTLC1000_HOST_WAKEUP_EIC_PIN;
-	eint_chan_conf.gpio_pin_pull      = EXTINT_PULL_UP;
-	eint_chan_conf.gpio_pin_mux       = BTLC1000_HOST_WAKEUP_EIC_MUX;
-	eint_chan_conf.detection_criteria = EXTINT_DETECT_FALLING;
-	eint_chan_conf.filter_input_signal = true;
-	eint_chan_conf.wake_if_sleeping = true;
-	
-	extint_chan_set_config(BTLC1000_HOST_WAKEUP_EIC_LINE, &eint_chan_conf);
-	
-	extint_register_callback(btlc1000_host_wakeup_handler,
-	BTLC1000_HOST_WAKEUP_EIC_LINE,
-	EXTINT_CALLBACK_TYPE_DETECT);
-	
-	extint_chan_enable_callback(BTLC1000_HOST_WAKEUP_EIC_LINE,
-	EXTINT_CALLBACK_TYPE_DETECT);
-	
-}
-
-static inline void btlc1000_host_wakeup_handler(void)
-{
-	platform_host_wake_interrupt_handler();
-}
-
-static inline bool host_event_data_ready_pin_level(void)
-{
-	return (port_pin_get_input_level(BTLC1000_HOST_WAKEUP_PIN));
-}
-
-static inline bool btlc1000_cts_pin_level(void)
-{
-	return (port_pin_get_output_level(BTLC1000_UART_CTS_PIN));
-}
-
-/* Set BLE Wakeup pin to be low */
-static inline bool ble_wakeup_pin_level(void)
-{
-	return (port_pin_get_output_level(BTLC1000_WAKEUP_PIN));
-}
-
 static inline void ble_reset(void)
 {
 	/* BTLC1000 Reset Sequence @Todo */

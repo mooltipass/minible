@@ -26,9 +26,7 @@
 void logic_sleep_set_full_platform_sleep_requested(void);
 BOOL logic_sleep_is_full_platform_sleep_requested(void);
 void logic_sleep_wakeup_main_mcu_if_needed(void);
-void logic_sleep_set_awoken_by_no_comms(void);
 void logic_sleep_ble_signal_to_sleep(void);
-void logic_sleep_set_awoken_by_ble(void);
 void logic_sleep_routine_ble_call(void);
 
 

@@ -1116,7 +1116,8 @@ void logic_bluetooth_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status
         }
         else
         {
-            if (host_event_data_ready_pin_level())
+            /* Sleep between events only if there is no data to be processed */
+            if (platform_io_is_wakeup_in_pin_low() == FALSE)
             {
                 platform_io_deassert_ble_wakeup();
             }
