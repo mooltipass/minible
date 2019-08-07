@@ -13,7 +13,7 @@
 
 
 /* Prototypes */
-void main_standby_sleep(BOOL startup_run, volatile BOOL* reenable_comms);
+void main_standby_sleep(BOOL startup_run);
 void main_set_bootloader_flag(void);
 void main_platform_init(void);
 

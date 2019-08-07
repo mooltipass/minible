@@ -87,8 +87,7 @@ void main_platform_init(void)
     DELAYMS_8M(10);
     
     /* Sleep until main MCU tells us to wake up */
-    volatile BOOL temp_bool = TRUE;
-    main_standby_sleep(TRUE, &temp_bool);
+    main_standby_sleep(TRUE);
     
     /* Check fuses */
     fuses_ok = fuses_check_program(TRUE);                               // Check fuses and program them if incorrectly set
@@ -107,9 +106,8 @@ void main_platform_init(void)
 /*! \fn     main_standby_sleep(BOOL startup_run, volatile BOOL* reenable_comms)
 *   \brief  Go to sleep
 *   \param  startup_run     Set to TRUE when this routine is called at startup
-*   \param  reenable_comms  Pointer to a boolean specifying if we should re-enable communications with main MCU
 */
-void main_standby_sleep(BOOL startup_run, volatile BOOL* reenable_comms)
+void main_standby_sleep(BOOL startup_run)
 {    
     /* Disable DMA transfers */
     if (startup_run == FALSE)
@@ -137,21 +135,8 @@ void main_standby_sleep(BOOL startup_run, volatile BOOL* reenable_comms)
     /* Prepare ports for sleep exit */
     platform_io_prepare_ports_for_sleep_exit();
     
-    /* If specified, re-enable comms */
-    if ((*reenable_comms) != FALSE)
-    {
-        platform_io_enable_main_comms();
-    }
-    
     /* Damn errata... enable interrupts */
     cpu_irq_leave_critical();
-    
-    /* Re-enable DMA transfers */
-    if ((startup_run == FALSE) && ((*reenable_comms) != FALSE))
-    {
-        DELAYMS(1);
-        comms_main_init_rx();
-    }
 }
 
 int main(void)

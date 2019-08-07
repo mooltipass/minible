@@ -197,8 +197,11 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                     platform_io_disable_main_comms();
                     
                     /* BLE disabled, go to sleep directly */
-                    volatile BOOL temp_bool = TRUE;
-                    main_standby_sleep(FALSE, &temp_bool);
+                    main_standby_sleep(FALSE);
+                    
+                    /* We're awake, re-init comms */
+                    platform_io_enable_main_comms();
+                    comms_main_init_rx();
                 }
                 else
                 {

@@ -116,20 +116,28 @@ void logic_sleep_ble_signal_to_sleep(void)
         platform_io_enable_ble_int();
         
         /* Go to sleep, re-enable comms only if we were awoken by the main MCU */
-        main_standby_sleep(FALSE, &logic_sleep_awoken_by_no_comms);
+        main_standby_sleep(FALSE);
         
         /* We just woke up */
         platform_io_disable_ble_int();
         DBG_SLP_LOG("Waking up");
         
+        /* Awoken by BLE or main MCU? */
+        if (platform_io_is_no_comms_asserted() != FALSE)
+        {
+            /* If awoken by BLE, allow processing of events */
+            platform_io_assert_ble_wakeup();
+        }
+        else
+        {
+            /* If awoken by main MCU, enable comms */
+            logic_sleep_full_platform_sleep_requested = FALSE;
+            platform_io_enable_main_comms();
+            comms_main_init_rx();            
+        }
+        
         /* Set Host RTS Low to receive the data */
         platform_set_ble_rts_low();
-        
-        /* Check if we were awoken by the main MCU */
-        if(logic_sleep_awoken_by_no_comms != FALSE)
-        {
-            logic_sleep_full_platform_sleep_requested = FALSE;
-        }
     }
 }
 
