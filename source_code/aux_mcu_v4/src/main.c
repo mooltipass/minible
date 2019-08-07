@@ -130,7 +130,7 @@ void main_standby_sleep(BOOL startup_run)
     __WFI();
     
     /* Small delay */
-    DELAYUS(2);
+    DELAYUS(10);
     
     /* Disable no comms interrupt */
     platform_io_disable_no_comms_int();
