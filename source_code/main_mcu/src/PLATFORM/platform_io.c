@@ -176,6 +176,7 @@ void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
     PORT->Group[WHEEL_SW_GROUP].PMUX[WHEEL_SW_PINID/2].bit.WHEEL_SW_PMUXREGID = PORT_PMUX_PMUXO_A_Val;  // Pin mux to EIC
     PORT->Group[WHEEL_SW_GROUP].PINCFG[WHEEL_SW_PINID].bit.PMUXEN = 1;                                  // Enable peripheral multiplexer
     EIC->CONFIG[WHEEL_CLICK_EXTINT_NUM/8].bit.WHEEL_CLICK_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;    // Detect low state
+    EIC->INTFLAG.reg = (1 << WHEEL_CLICK_EXTINT_NUM);                                                   // Clear interrupt just in case
     EIC->INTENSET.reg = (1 << WHEEL_CLICK_EXTINT_NUM);                                                  // Enable interrupt from ext pin
     EIC->WAKEUP.reg |= (1 << WHEEL_CLICK_EXTINT_NUM);                                                   // Enable wakeup from ext pin
 }
@@ -204,6 +205,7 @@ void platform_io_enable_usb_3v3_wakeup_interrupt(void)
     PORT->Group[USB_3V3_GROUP].PMUX[USB_3V3_PINID/2].bit.USB_3V3_PMUXREGID = PORT_PMUX_PMUXO_A_Val;     // Pin mux to EIC
     PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.PMUXEN = 1;                                    // Enable peripheral multiplexer
     EIC->CONFIG[USB_3V3_EXTINT_NUM/8].bit.USB_3V3_EIC_SENSE_REG = EIC_CONFIG_SENSE0_HIGH_Val;           // Detect high state
+    EIC->INTFLAG.reg = (1 << USB_3V3_EXTINT_NUM);                                                       // Clear interrupt just in case
     EIC->INTENSET.reg = (1 << USB_3V3_EXTINT_NUM);                                                      // Enable interrupt from ext pin
     EIC->WAKEUP.reg |= (1 << USB_3V3_EXTINT_NUM);    
 }

@@ -117,7 +117,7 @@ void logic_sleep_ble_signal_to_sleep(void)
         platform_set_ble_rts_low();
         
         /* Awoken by BLE: for the moment, wakeup the main MCU */
-        if (platform_io_is_no_comms_asserted() == RETURN_OK)
+        if ((platform_io_is_no_comms_asserted() == RETURN_OK) && FALSE)
         {
             logic_sleep_full_platform_sleep_requested = FALSE;
             platform_io_generate_no_comms_wakeup_pulse();
