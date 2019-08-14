@@ -132,7 +132,7 @@ uint16_t nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day)
 RET_TYPE nodemgmt_check_user_perm_from_flags(uint16_t flags)
 {
     // Either the node belongs to us or it is invalid, check that the address is after sector 1 (upper check done at the flashread/write level)
-    if (((nodemgmt_current_handle.currentUserId == userIdFromFlags(flags)) && (correctFlagsBitFromFlags(flags) == NODEMGMT_VBIT_VALID)) || (validBitFromFlags(flags) == NODEMGMT_VBIT_INVALID))
+    if ((nodemgmt_current_handle.currentUserId == userIdFromFlags(flags)) || (validBitFromFlags(flags) == NODEMGMT_VBIT_INVALID))
     {
         return RETURN_OK;
     }
