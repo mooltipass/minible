@@ -103,17 +103,16 @@ void main_platform_init(void)
     platform_io_enable_switch();                                            // Enable switch and 3v3 stepup
     platform_io_init_power_ports();                                         // Init power port, needed to test if we are battery or usb powered
     platform_io_init_no_comms_signal();                                     // Init no comms signal, used later as wakeup for the aux MCU
-    custom_fs_settings_init();                                              // Initialize settings filesystem for following call, may fail but in that case following call will return FALSE
-
-    /* Check if we previously powered off due to low battery and still haven't charged since then */
-    if (custom_fs_get_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID) != FALSE)
-    {  
-        /* Check if 3V3 is present and if so clear flag */
+    
+    /* Check if fuses are correctly programmed (required to read flags), if so initialize our flag system, then finally check if we previously powered off due to low battery and still haven't charged since then */
+    if ((fuses_check_program(FALSE) == RETURN_OK) && (custom_fs_settings_init() == CUSTOM_FS_INIT_OK) && (custom_fs_get_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID) != FALSE))
+    {
+        /* Check if USB 3V3 is present and if so clear flag */
         if (platform_io_is_usb_3v3_present() == FALSE)
         {
             platform_io_disable_switch_and_die();
             while(1);
-        } 
+        }
         else
         {
             custom_fs_set_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID, FALSE);
