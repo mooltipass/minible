@@ -21,6 +21,10 @@ aux_mcu_message_t aux_mcu_receive_message;
 aux_mcu_message_t aux_mcu_send_message;
 /* Flag set if we have treated a message by only looking at its first bytes */
 BOOL aux_mcu_message_answered_using_first_bytes = FALSE;
+/* Flag set for comms_aux_mcu_routine for recursive calls */
+BOOL aux_mcu_comms_aux_mcu_routine_function_called = FALSE;
+/* Flag set to specify that the first aux mcu function call wanted to rearm rx */
+BOOL aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = FALSE;
 
 
 /*! \fn     comms_aux_arm_rx_and_clear_no_comms(void)
@@ -200,7 +204,25 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
 *   \note   The message for which the type of message is return may or may not be valid!
 */
 comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
-{	
+{    
+    /* Recursivity: set function called flag */
+    BOOL function_already_called = FALSE;
+    if (aux_mcu_comms_aux_mcu_routine_function_called == FALSE)
+    {
+        aux_mcu_comms_aux_mcu_routine_function_called = TRUE;
+    }
+    else
+    {
+        function_already_called = TRUE;
+    }
+    
+    /* Recursivity: re-arm rx if previous function call wanted to */
+    if ((function_already_called != FALSE) && (aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx != FALSE))
+    {
+        comms_aux_arm_rx_and_clear_no_comms();
+        aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = FALSE;
+    }
+    
     /* Ongoing RX transfer received bytes */
     uint16_t nb_received_bytes_for_ongoing_transfer = sizeof(aux_mcu_receive_message) - dma_aux_mcu_get_remaining_bytes_for_rx_transfer();
 
@@ -230,12 +252,14 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
                 arm_rx_transfer = TRUE;
                 should_deal_with_packet = TRUE;
                 payload_length = aux_mcu_receive_message.payload_length1;
+                aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = TRUE;
             }
             else if (aux_mcu_receive_message.rx_payload_valid_flag != 0)
             {
                 arm_rx_transfer = TRUE;
                 should_deal_with_packet = TRUE;
-                payload_length = aux_mcu_receive_message.payload_length2;                
+                payload_length = aux_mcu_receive_message.payload_length2;
+                aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = TRUE;           
             }
             else
             {
@@ -265,7 +289,8 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
             else
             {
                 payload_length = aux_mcu_receive_message.payload_length1;
-            }            
+            }          
+            aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = TRUE;  
         }
         else
         {
@@ -280,6 +305,12 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     /* Return if we shouldn't deal with packet, or if payload has the incorrect size */
     if ((should_deal_with_packet == FALSE) || (payload_length > AUX_MCU_MSG_PAYLOAD_LENGTH))
     {
+        /* Recursivity: remove flag */
+        if (function_already_called == FALSE)
+        {
+            aux_mcu_comms_aux_mcu_routine_function_called = FALSE;
+        }
+        
         /* Note: there's a case where we don't rearm DMA if the message is valid but payload is too long... was lazy to implement it */
         return NO_MSG_RCVD;
     }
@@ -357,9 +388,17 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     /* If we need to rearm RX */
     if (arm_rx_transfer != FALSE)
     {
+        aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = FALSE;
         comms_aux_arm_rx_and_clear_no_comms();
     }       
     
+    /* Recursivity: remove flag */
+    if (function_already_called == FALSE)
+    {
+        aux_mcu_comms_aux_mcu_routine_function_called = FALSE;
+    }
+    
+    /* Return type of message received */
     return msg_rcvd;   
 }
 
