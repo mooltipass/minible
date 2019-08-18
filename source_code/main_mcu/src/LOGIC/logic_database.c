@@ -253,6 +253,26 @@ uint16_t logic_database_search_login_in_service(uint16_t parent_addr, cust_char_
     return NODE_ADDR_NULL;
 }
 
+/*! \fn     logic_database_get_login_for_address(uint16_t child_addr, cust_char_t** login)
+*   \brief  Get the login at a given address
+*   \param  child_addr  Child address
+*   \param  login       Where to store the login (check size!)
+*/
+void logic_database_get_login_for_address(uint16_t child_addr, cust_char_t** login)
+{
+    child_cred_node_t* temp_half_cnode_pt;
+    parent_node_t temp_pnode;
+    
+    /* Dirty trick */
+    temp_half_cnode_pt = (child_cred_node_t*)&temp_pnode;
+    
+    /* Read child node */
+    nodemgmt_read_cred_child_node_except_pwd(child_addr, temp_half_cnode_pt);
+    
+    /* Copy string */
+    utils_strncpy(*login, temp_half_cnode_pt->login, MEMBER_ARRAY_SIZE(child_cred_node_t, login));
+}
+
 /*! \fn     logic_database_get_number_of_creds_for_service(uint16_t parent_addr, uint16_t& fnode_addr)
 *   \brief  Get number of credentials for a given service
 *   \param  parent_addr Parent node address

@@ -422,6 +422,21 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
     uint8_t temp_cred_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     BOOL prev_gen_credential_flag = FALSE;
     
+    /* Copy strings locally */
+    cust_char_t service_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)];
+    cust_char_t login_copy[MEMBER_ARRAY_SIZE(child_cred_node_t, login)];
+    utils_strncpy(service_copy, service, MEMBER_ARRAY_SIZE(parent_cred_node_t, service));
+    service_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)-1] = 0;
+    
+    /* Switcheroo */
+    service = service_copy;
+    if (login != 0)
+    {
+        utils_strncpy(login_copy, login, MEMBER_ARRAY_SIZE(child_cred_node_t, login));
+        login_copy[MEMBER_ARRAY_SIZE(child_cred_node_t, login)-1] = 0;
+        login = login_copy;
+    }
+    
     /* Smartcard present and unlocked? */
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
@@ -458,10 +473,13 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
                 timer_delay_ms(3000 + (rng_get_random_uint16_t()&0x0FFF));
                 return -1;
             }
-        }       
-        
-        /* Get prefilled message */
-        uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr, &prev_gen_credential_flag);
+        }
+        else
+        {
+            /* Only one login for current service, fetch it and store it locally */
+            login = login_copy;
+            logic_database_get_login_for_address(child_address, &login);
+        }
         
         /* If user specified to be prompted for login confirmation */
         if ((logic_user_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0)
@@ -469,7 +487,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
             /* Prepare prompt message */
             cust_char_t* three_line_prompt_2;
             custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &three_line_prompt_2, TRUE);
-            confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.login_name_index])};
+            confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=login};
 
             /* Request user approval */
             mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE);
@@ -484,10 +502,10 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
         }
         else
         {
-            /* Prepare notification message */
+            /* Prepare notification message : contents of the TX message aren't accessed after this function return */
             cust_char_t* three_line_notif_2;
             custom_fs_get_string_from_file(LOGGING_WITH_TEXT_ID, &three_line_notif_2, TRUE);
-            confirmationText_t notif_text_3_lines = {.lines[0]=service, .lines[1]=three_line_notif_2, .lines[2]=&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.login_name_index])};
+            confirmationText_t notif_text_3_lines = {.lines[0]=service, .lines[1]=three_line_notif_2, .lines[2]=login};
 
             /* 3 lines notification website / logging you in with / username */
             gui_prompts_display_3line_information_on_screen(&notif_text_3_lines, DISP_MSG_INFO);
@@ -495,6 +513,9 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
             /* Set information screen, do not call get back to current screen as screen is already updated */
             gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);
         }
+        
+        /* Get prefilled message */
+        uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr, &prev_gen_credential_flag);
         
         /* User approved, decrypt password */
         logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);

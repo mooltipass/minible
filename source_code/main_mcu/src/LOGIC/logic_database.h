@@ -23,6 +23,6 @@ uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cus
 uint16_t logic_database_add_service(cust_char_t* service, service_type_te cred_type, uint16_t data_category_id);
 uint16_t logic_database_get_number_of_creds_for_service(uint16_t parent_addr, uint16_t* fnode_addr);
 uint16_t logic_database_search_login_in_service(uint16_t parent_addr, cust_char_t* login);
-
+void logic_database_get_login_for_address(uint16_t child_addr, cust_char_t** login);
 
 #endif /* LOGIC_DATABASE_H_ */
