@@ -1,3 +1,6 @@
 [submodule "source_code/main_mcu/src/BearSSL"]
-	path = source_code/main_mcu/src/BearSSL
-	url = https://www.bearssl.org/git/BearSSL
+    path = source_code/main_mcu/src/BearSSL
+    url = https://www.bearssl.org/git/BearSSL
+[submodule "source_code/aux_mcu_v4/src/tinycbor"]
+	path = source_code/aux_mcu_v4/src/tinycbor
+	url = https://github.com/intel/tinycbor
