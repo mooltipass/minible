@@ -4,17 +4,19 @@
 // http://apache.org/licenses/LICENSE-2.0> or the MIT license <LICENSE-MIT or
 // http://opensource.org/licenses/MIT>, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
+//
+// Modified by MiniBLE developers
+// -Removed code related to U2F
+//
 #include <stdint.h>
 
 #include "cbor.h"
 
 #include "ctap.h"
-#include "u2f.h"
 #include "ctap_parse.h"
 #include "ctap_errors.h"
 #include "cose_key.h"
-#include "util.h"
-#include "log.h"
+#include "solo_compat_layer.h"
 
 extern struct _getAssertionState getAssertionState;
 
@@ -877,6 +879,11 @@ uint8_t ctap_parse_make_credential(CTAP_makeCredential * MC, CborEncoder * encod
     return 0;
 }
 
+/**
+ * Delta from Solo impl:
+ * -Removed U2F support
+ * -Return error on incorrect type of credential.
+ */
 uint8_t parse_credential_descriptor(CborValue * arr, CTAP_credentialDescriptor * cred)
 {
     int ret;
@@ -902,21 +909,13 @@ uint8_t parse_credential_descriptor(CborValue * arr, CTAP_credentialDescriptor *
 
     buflen = sizeof(CredentialId);
     ret = cbor_value_copy_byte_string(&val, (uint8_t*)&cred->credential.id, &buflen, NULL);
-
-    if (buflen == U2F_KEY_HANDLE_SIZE)
-    {
-        printf2(TAG_PARSE,"CTAP1 credential\n");
-        cred->type = PUB_KEY_CRED_CTAP1;
-    }
-    else if (buflen != sizeof(CredentialId))
-    {
-        printf2(TAG_ERR,"Ignoring credential is incorrect length, treating as custom\n");
-        cred->type = PUB_KEY_CRED_CUSTOM;
-        buflen = 256;
-        ret = cbor_value_copy_byte_string(&val, getAssertionState.customCredId, &buflen, NULL);
-        getAssertionState.customCredIdSize = buflen;
-    }
     check_ret(ret);
+
+    if (buflen != sizeof(CredentialId))
+    {
+        printf2(TAG_ERR,"Error, incorrect CredentialID length\n");
+        return CTAP2_ERR_INVALID_CREDENTIAL;
+    }
 
     ret = cbor_value_map_find_value(arr, "type", &val);
     check_ret(ret);
@@ -937,7 +936,6 @@ uint8_t parse_credential_descriptor(CborValue * arr, CTAP_credentialDescriptor *
     {
         check_ret(ret);
     }
-
 
     if (strncmp(type, "public-key",11) == 0)
     {

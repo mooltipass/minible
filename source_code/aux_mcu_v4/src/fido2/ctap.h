@@ -4,6 +4,12 @@
 // http://apache.org/licenses/LICENSE-2.0> or the MIT license <LICENSE-MIT or
 // http://opensource.org/licenses/MIT>, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
+//
+// Modified by MiniBLE developers
+// Modifications:
+// -Removed code related to PIN
+// -Changed message sizes
+//
 #ifndef _CTAP_H
 #define _CTAP_H
 
@@ -19,8 +25,8 @@
 #define CTAP_VENDOR_FIRST           0x40
 #define CTAP_VENDOR_LAST            0xBF
 
-// AAGUID For Solo
-#define CTAP_AAGUID                 ((uint8_t*)"\x88\x76\x63\x1b\xd4\xa0\x42\x7f\x57\x73\x0e\xc7\x1c\x9e\x02\x79")
+// AAGUID for minible
+#define CTAP_AAGUID                   ((uint8_t*)"\x6d\xb0\x42\xd0\x61\xaf\x40\x4c\xa8\x87\xe7\x2e\x09\xba\x7e\xb4")
 
 #define MC_clientDataHash         0x01
 #define MC_rp                     0x02
@@ -96,6 +102,7 @@
 #define MC_requiredMask             (0x0f)
 
 
+#define HID_MESSAGE_SIZE            64
 #define CLIENT_DATA_HASH_SIZE       32  //sha256 hash
 #define DOMAIN_NAME_MAX_SIZE        253
 #define RP_NAME_LIMIT               32  // application limit, name parameter isn't needed.
@@ -103,13 +110,9 @@
 #define USER_NAME_LIMIT             65  // Must be minimum of 64 bytes but can be more.
 #define DISPLAY_NAME_LIMIT          32  // Must be minimum of 64 bytes but can be more.
 #define ICON_LIMIT                  128 // Must be minimum of 64 bytes but can be more.
-#define CTAP_MAX_MESSAGE_SIZE       1200
+#define CTAP_MAX_MESSAGE_SIZE       1024
 
-#define CREDENTIAL_RK_FLASH_PAD     2   // size of RK should be 8-byte aligned to store in flash easily.
-#define CREDENTIAL_TAG_SIZE         16
-#define CREDENTIAL_NONCE_SIZE       (16 + CREDENTIAL_RK_FLASH_PAD)
-#define CREDENTIAL_COUNTER_SIZE     (4)
-#define CREDENTIAL_ENC_SIZE         176  // pad to multiple of 16 bytes
+#define CREDENTIAL_TAG_SIZE         32
 
 #define PUB_KEY_CRED_PUB_KEY        0x01
 #define PUB_KEY_CRED_CTAP1          0x41
@@ -119,14 +122,14 @@
 #define CREDENTIAL_IS_SUPPORTED     1
 #define CREDENTIAL_NOT_SUPPORTED    0
 
-#define ALLOW_LIST_MAX_SIZE         20
+#define ALLOW_LIST_MAX_SIZE         10
 
 #define NEW_PIN_ENC_MAX_SIZE        256     // includes NULL terminator
 #define NEW_PIN_ENC_MIN_SIZE        64
 #define NEW_PIN_MAX_SIZE            64
 #define NEW_PIN_MIN_SIZE            4
 
-#define CTAP_RESPONSE_BUFFER_SIZE   4096
+#define CTAP_RESPONSE_BUFFER_SIZE   1024
 
 #define PIN_LOCKOUT_ATTEMPTS        8       // Number of attempts total
 #define PIN_BOOT_ATTEMPTS           3       // number of attempts per boot
@@ -144,9 +147,6 @@ typedef struct
 
 typedef struct {
     uint8_t tag[CREDENTIAL_TAG_SIZE];
-    uint8_t nonce[CREDENTIAL_NONCE_SIZE];
-    uint8_t rpIdHash[32];
-    uint32_t count;
 }__attribute__((packed)) CredentialId;
 
 struct Credential {
@@ -306,16 +306,8 @@ typedef struct
 
 
 struct _getAssertionState {
-    CTAP_authDataHeader authData;
-    uint8_t clientDataHash[CLIENT_DATA_HASH_SIZE];
+    uint8_t rpID[DOMAIN_NAME_MAX_SIZE + 1];     // extra for NULL termination
     CTAP_credentialDescriptor creds[ALLOW_LIST_MAX_SIZE];
-    uint8_t lastcmd;
-    uint32_t count;
-    uint32_t index;
-    uint32_t time;
-    uint8_t user_verified;
-    uint8_t customCredId[256];
-    uint8_t customCredIdSize;
 };
 
 void ctap_response_init(CTAP_RESPONSE * resp);
@@ -354,10 +346,5 @@ uint16_t ctap_key_len(uint8_t index);
 int8_t ctap_store_key(uint8_t index, uint8_t * key, uint16_t len);
 int8_t ctap_load_key(uint8_t index, uint8_t * key);
 uint16_t ctap_key_len(uint8_t index);
-
-#define PIN_TOKEN_SIZE      16
-extern uint8_t PIN_TOKEN[PIN_TOKEN_SIZE];
-extern uint8_t KEY_AGREEMENT_PUB[64];
-
 
 #endif

@@ -31,6 +31,7 @@
 #include "platform_io.h"
 #include "logic_power.h"
 #include "sh1122.h"
+#include "fido2.h"
 #include "main.h"
 #include "dma.h"
 #include "rng.h"
@@ -68,7 +69,7 @@ aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void)
 *   \note   Transfer is done through DMA so aux_mcu_send_message will be accessed after this function returns if boolean is set to false
 */
 void comms_aux_mcu_send_message(BOOL wait_for_send)
-{    
+{
     /* The function below does wait for a previous transfer to finish */
     dma_aux_mcu_init_tx_transfer(AUXMCU_SERCOM, (void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
     
@@ -112,7 +113,7 @@ void comms_aux_mcu_update_device_status_buffer(void)
     aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.main_mcu_command_message.command) + 4;
     comms_hid_msgs_fill_get_status_message_answer(aux_mcu_send_message.main_mcu_command_message.payload_as_uint16);
     aux_mcu_send_message.main_mcu_command_message.command = MAIN_MCU_COMMAND_UPDT_DEV_STAT;
-    comms_aux_mcu_send_message(FALSE);    
+    comms_aux_mcu_send_message(FALSE);
 }
 
 /*! \fn     comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type)
@@ -124,16 +125,16 @@ void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message
 {
     /* Wait for possible ongoing message to be sent */
     comms_aux_mcu_wait_for_message_sent();
-    
+
     /* Get pointer to our message to be sent buffer */
     aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
-    
+
     /* Clear it */
     memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
-    
+
     /* Populate the fields */
     temp_tx_message_pt->message_type = message_type;
-    
+
     /* Store message pointer */
     *message_pt_pt = temp_tx_message_pt;
 }
@@ -144,29 +145,29 @@ void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message
 void comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void)
 {
     aux_mcu_message_t* temp_tx_message_pt;
-    
+
     /* Set no comms (keep platform in sleep after its reboot) */
     platform_io_set_no_comms();
-    
+
     /* Wait for possible ongoing message to be sent */
     comms_aux_mcu_wait_for_message_sent();
-    
+
     /* Get pointer to our message to be sent buffer */
     temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
-    
+
     /* Fill message with magic 0xFF, send it twice */
     memset((void*)temp_tx_message_pt, 0xFF, sizeof(*temp_tx_message_pt));
     comms_aux_mcu_send_message(TRUE);comms_aux_mcu_send_message(TRUE);
-    
+
     /* Wait for platform to boot */
     timer_delay_ms(100);
-    
+
     /* Reset our comms */
     dma_aux_mcu_disable_transfer();
-    
+
     /* Enable our comms, clear no comms signal */
     comms_aux_arm_rx_and_clear_no_comms();
-    
+
     /* Leave some time to boot before chatting again */
     timer_delay_ms(100);
 }
@@ -176,23 +177,23 @@ void comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void)
 *   \return Success or not
 */
 RET_TYPE comms_aux_mcu_send_receive_ping(void)
-{ 
+{
     aux_mcu_message_t* temp_rx_message_pt;
     aux_mcu_message_t* temp_tx_message_pt;
-    RET_TYPE return_val;    
-    
+    RET_TYPE return_val;
+
     /* Prepare ping message and send it */
     comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PING_WITH_INFO);
     comms_hid_msgs_fill_get_status_message_answer(temp_tx_message_pt->ping_with_info_message.initial_device_status_value);
     temp_tx_message_pt->payload_length1 = sizeof(ping_with_info_message_t);
     comms_aux_mcu_send_message(TRUE);
-    
+
     /* Wait for answer: no need to parse answer as filter is done in comms_aux_mcu_active_wait */
     return_val = comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_IM_HERE);
-    
+
     /* Rearm receive */
     comms_aux_arm_rx_and_clear_no_comms();
-    
+
     return return_val;
 }
 
@@ -201,7 +202,7 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
 *   \param  aux_mcu_receive_message     Pointer to received message
 */
 void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
-{    
+{
     switch(aux_mcu_receive_message.main_mcu_command_message.command)
     {
         case AUX_MCU_EVENT_BLE_ENABLED:
@@ -244,7 +245,112 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
             break;
         }
         default: break;
-    }    
+    }
+}
+
+/*! \fn     comms_aux_mcu_handle_FIDO2_auth_cred_msg(FIDO2_message_t const *received_message, aux_mcu_message_t *send_message)
+*   \brief  routine handling authenticating a credential
+*   \param  received_message The received message
+*   \param  send_message The response message
+*   \return FIDO2_MSG_RCVD
+*/
+static comms_msg_rcvd_te comms_aux_mcu_handle_FIDO2_auth_cred_msg(FIDO2_message_t const *received_message, aux_mcu_message_t *send_message)
+{
+    FIDO2_auth_cred_req_message_t const *incoming_message = &received_message->FIDO2_auth_cred_req_message;
+    FIDO2_auth_cred_rsp_message_t *response = &send_message->FIDO2_message.FIDO2_auth_cred_rsp_message;
+
+    fido2_process_exclude_list_item(incoming_message, response);
+
+    /* Set same message type and payload length. We are using the same message
+     * in both directions
+     */
+    send_message->message_type = AUX_MCU_MSG_TYPE_FIDO2;
+    send_message->FIDO2_message.message_type = AUX_MCU_MSG_TYPE_AUTH_CRED_RSP;
+    send_message->payload_length1 = sizeof(FIDO2_message_t);
+    return FIDO2_MSG_RCVD;
+}
+
+/*! \fn     comms_aux_mcu_handle_FIDO2_make_auth_data_msg(FIDO2_message_t const *received_message, aux_mcu_message_t *send_message)
+*   \brief  routine handling authenticating a credential
+*   \param  received_message The received message
+*   \param  send_message The response message
+*   \return FIDO2_MSG_RCVD
+*/
+static comms_msg_rcvd_te comms_aux_mcu_handle_FIDO2_make_auth_data_msg(FIDO2_message_t const *received_message, aux_mcu_message_t *send_message)
+{
+    FIDO2_make_auth_data_req_message_t const *request = &received_message->FIDO2_make_auth_data_req_message;
+    FIDO2_make_auth_data_rsp_message_t *response = &send_message->FIDO2_message.FIDO2_make_auth_data_rsp_message;
+
+    fido2_process_make_auth_data(request, response);
+
+    send_message->message_type = AUX_MCU_MSG_TYPE_FIDO2;
+    send_message->FIDO2_message.message_type = AUX_MCU_MSG_TYPE_MAD_RSP;
+    send_message->payload_length1 = sizeof(FIDO2_message_t);
+    return FIDO2_MSG_RCVD;
+}
+
+/*! \fn     comms_aux_mcu_handle_FIDO2_GNC_(FIDO2_message_t const *received_message, aux_mcu_message_t *send_message)
+*   \brief  routine handling get next credential message
+*   \param  received_message The received message
+*   \param  send_message The response message
+*   \return FIDO2_MSG_RCVD
+*/
+static comms_msg_rcvd_te comms_aux_mcu_handle_FIDO2_GNC_msg(FIDO2_message_t const *received_message, aux_mcu_message_t *send_message)
+{
+    FIDO2_get_next_credential_req_message_t const *request = &received_message->FIDO2_get_next_credential_req_message;
+    FIDO2_get_next_credential_rsp_message_t *response = &send_message->FIDO2_message.FIDO2_get_next_credential_rsp_message;
+
+    fido2_process_get_next_credential(request, response);
+
+    send_message->message_type = AUX_MCU_MSG_TYPE_FIDO2;
+    send_message->FIDO2_message.message_type = AUX_MCU_MSG_TYPE_GNC_RSP;
+    send_message->payload_length1 = sizeof(FIDO2_message_t);
+    return FIDO2_MSG_RCVD;
+}
+
+/*! \fn     comms_aux_mcu_handle_FIDO2_unknown_msg(FIDO2_message_t const *received_message, aux_mcu_message_t *send_message)
+*   \brief  routine handling unknown FIDO2 messages
+*   \param  received_message The received message
+*   \param  send_message The response message
+*   \return UNKNOW_MSG_RCVD
+*/
+static comms_msg_rcvd_te comms_aux_mcu_handle_FIDO2_unknown_msg(FIDO2_message_t const *received_message, aux_mcu_message_t *send_message)
+{
+    return UNKNOW_MSG_RCVD;
+}
+
+typedef comms_msg_rcvd_te (*handle_FIDO2_msg_t)(FIDO2_message_t const *received_message, aux_mcu_message_t *send_message);
+
+static handle_FIDO2_msg_t FIDO2_message_handlers[] = {
+    comms_aux_mcu_handle_FIDO2_auth_cred_msg,
+    comms_aux_mcu_handle_FIDO2_unknown_msg,        //Auth cred rsp message. Not to be handled by main_mcu
+    comms_aux_mcu_handle_FIDO2_make_auth_data_msg, //MAD_REQ message
+    comms_aux_mcu_handle_FIDO2_unknown_msg,        //MAD_RESP message. Not to be handled by main_mcu
+    comms_aux_mcu_handle_FIDO2_GNC_msg,            //GNC_REQ message
+    comms_aux_mcu_handle_FIDO2_unknown_msg,        //GNC_RESP message. Not to be handled by main_mcu
+};
+
+/*! \fn     comms_aux_mcu_handle_FIDO2_message(FIDO2_message_t *received_message)
+*   \brief  routine dealing with FIDO2 messages
+*   \param  received_message The received message
+*   \return FIDO2_MSG_RCVD or UNKNOW_MSG_RCVD
+*/
+static comms_msg_rcvd_te comms_aux_mcu_handle_FIDO2_message(FIDO2_message_t const *received_message)
+{
+    comms_msg_rcvd_te msg_rcvd = UNKNOW_MSG_RCVD;
+    uint16_t message_type = received_message->message_type;
+
+    if (message_type >= AUX_MCU_MSG_TYPE_FIDO2_START && message_type <= AUX_MCU_MSG_TYPE_FIDO2_END)
+    {
+        uint16_t index = message_type - AUX_MCU_MSG_TYPE_FIDO2_START;
+
+        msg_rcvd = FIDO2_message_handlers[index](received_message, &aux_mcu_send_message);
+    }
+
+    /* Send message */
+    comms_aux_mcu_send_message(FALSE);
+
+    return msg_rcvd;
 }
 
 /*! \fn     comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
@@ -268,29 +374,29 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     {
         function_already_called = TRUE;
     }
-    
+
     /* Recursivity: re-arm rx if previous function call wanted to */
     if ((function_already_called != FALSE) && (aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx != FALSE))
     {
         comms_aux_arm_rx_and_clear_no_comms();
         aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = FALSE;
     }
-    
+
     /* Ongoing RX transfer received bytes */
     uint16_t nb_received_bytes_for_ongoing_transfer = sizeof(aux_mcu_receive_message) - dma_aux_mcu_get_remaining_bytes_for_rx_transfer();
 
     /* For return: type of message received */
     comms_msg_rcvd_te msg_rcvd = NO_MSG_RCVD;
-    
+
     /* Bool to treat packet */
     BOOL should_deal_with_packet = FALSE;
-    
+
     /* Bool to specify if we should rearm RX DMA transfer */
     BOOL arm_rx_transfer = FALSE;
-    
+
     /* Received message payload length */
     uint16_t payload_length;
-    
+
     /* First part of message */
     if ((nb_received_bytes_for_ongoing_transfer >= sizeof(aux_mcu_receive_message.message_type) + sizeof(aux_mcu_receive_message.payload_length1)) && (aux_mcu_message_answered_using_first_bytes == FALSE))
     {
@@ -298,8 +404,8 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
         {
             /* Complete packet receive, treat packet if valid flag is set or payload length #1 != 0 */
-            aux_mcu_message_answered_using_first_bytes = FALSE;            
-            
+            aux_mcu_message_answered_using_first_bytes = FALSE;
+
             if (aux_mcu_receive_message.payload_length1 != 0)
             {
                 arm_rx_transfer = TRUE;
@@ -312,21 +418,21 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
                 arm_rx_transfer = TRUE;
                 should_deal_with_packet = TRUE;
                 payload_length = aux_mcu_receive_message.payload_length2;
-                aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = TRUE;           
+                aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = TRUE;
             }
             else
             {
                 /* Arm next RX DMA transfer */
                 comms_aux_arm_rx_and_clear_no_comms();
             }
-        } 
+        }
         else if ((aux_mcu_receive_message.payload_length1 != 0) && (nb_received_bytes_for_ongoing_transfer >= sizeof(aux_mcu_receive_message.message_type) + sizeof(aux_mcu_receive_message.payload_length1) + aux_mcu_receive_message.payload_length1))
         {
             /* First part receive, payload is small enough so we can answer */
             should_deal_with_packet = TRUE;
             aux_mcu_message_answered_using_first_bytes = TRUE;
             payload_length = aux_mcu_receive_message.payload_length1;
-        } 
+        }
     }
     else if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
     {
@@ -334,27 +440,27 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         if ((aux_mcu_message_answered_using_first_bytes == FALSE) && ((aux_mcu_receive_message.payload_length1 != 0) || ((aux_mcu_receive_message.payload_length1 == 0) && (aux_mcu_receive_message.rx_payload_valid_flag != 0))))
         {
             arm_rx_transfer = TRUE;
-            should_deal_with_packet = TRUE;            
+            should_deal_with_packet = TRUE;
             if (aux_mcu_receive_message.payload_length1 == 0)
             {
                 payload_length = aux_mcu_receive_message.payload_length2;
-            } 
+            }
             else
             {
                 payload_length = aux_mcu_receive_message.payload_length1;
-            }          
-            aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = TRUE;  
+            }
+            aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = TRUE;
         }
         else
         {
             /* Arm next RX DMA transfer */
             comms_aux_arm_rx_and_clear_no_comms();
         }
-        
+
         /* Reset bool */
         aux_mcu_message_answered_using_first_bytes = FALSE;
     }
-    
+
     /* Return if we shouldn't deal with packet, or if payload has the incorrect size */
     if ((should_deal_with_packet == FALSE) || (payload_length > AUX_MCU_MSG_PAYLOAD_LENGTH))
     {
@@ -363,20 +469,20 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         {
             aux_mcu_comms_aux_mcu_routine_function_called = FALSE;
         }
-        
+
         /* Note: there's a case where we don't rearm DMA if the message is valid but payload is too long... was lazy to implement it */
         return NO_MSG_RCVD;
     }
-            
+
     /* USB / BLE Messages */
     if ((aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_USB) || (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BLE))
     {
         /* Cast payloads into correct type */
         int16_t hid_reply_payload_length = -1;
-        
+
         /* Store message type */
         uint16_t receive_message_type = aux_mcu_receive_message.message_type;
-                
+
         /* Clear TX message just in case */
         memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
 
@@ -384,7 +490,7 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         if (aux_mcu_receive_message.hid_message.message_type == HID_CMD_ID_CANCEL_REQ)
         {
             msg_rcvd = HID_CANCEL_MSG_RCVD;
-        } 
+        }
         else if (aux_mcu_receive_message.hid_message.message_type == HID_CMD_ID_REINDEX_BUNDLE)
         {
             msg_rcvd = HID_REINDEX_BUNDLE_RCVD;
@@ -393,7 +499,7 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         {
             msg_rcvd = HID_MSG_RCVD;
         }
-                
+
         /* Parse message */
         #ifndef DEBUG_USB_COMMANDS_ENABLED
         hid_reply_payload_length = comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), &aux_mcu_send_message.hid_message, answer_restrict_type);
@@ -407,23 +513,23 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
             hid_reply_payload_length = comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), &aux_mcu_send_message.hid_message, answer_restrict_type);
         }
         #endif
-                
+
         /* Send reply if needed */
         if (hid_reply_payload_length >= 0)
         {
             /* Set same message type and compute payload size */
             aux_mcu_send_message.message_type = receive_message_type;
             aux_mcu_send_message.payload_length1 = hid_reply_payload_length + sizeof(aux_mcu_receive_message.hid_message.message_type) + sizeof(aux_mcu_receive_message.hid_message.payload_length);
-                    
+
             /* Send message */
             comms_aux_mcu_send_message(FALSE);
         }
-    } 
+    }
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BOOTLOADER)
     {
         msg_rcvd = BL_MSG_RCVD;
         asm("Nop");
-    }   
+    }
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD)
     {
         msg_rcvd = MAIN_MCU_MSG_RCVD;
@@ -432,51 +538,51 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_AUX_MCU_EVENT)
     {
         msg_rcvd = EVENT_MSG_RCVD;
-        
+
         /* Call dedicated function */
         comms_aux_mcu_deal_with_received_event(&aux_mcu_receive_message);
-    }  
+    }
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_RNG_TRANSFER)
     {
         msg_rcvd = RNG_MSG_RCVD;
-        
+
         /* Set same message type and fill with random numbers */
         aux_mcu_send_message.message_type = aux_mcu_receive_message.message_type;
         rng_fill_array(aux_mcu_send_message.payload, 32);
         aux_mcu_send_message.payload_length1 = 32;
-        
+
         /* Send message */
         comms_aux_mcu_send_message(FALSE);
     }
-    else
+    else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_FIDO2)
     {
-        msg_rcvd = UNKNOW_MSG_RCVD;
-        asm("Nop");        
-    } 
-    
+        msg_rcvd = comms_aux_mcu_handle_FIDO2_message(&aux_mcu_receive_message.FIDO2_message);
+        asm("Nop");
+    }
+
     /* If we need to rearm RX */
     if (arm_rx_transfer != FALSE)
     {
         /* Check that a possible recursion didn't already rearm RX for us */
         if ((function_already_called != FALSE) || (aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx != FALSE))
         {
-            aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = FALSE;      
+            aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = FALSE;
             comms_aux_arm_rx_and_clear_no_comms();
         }
-    }       
-    
+    }
+
     /* Recursivity: remove flag */
     if (function_already_called == FALSE)
     {
         aux_mcu_comms_aux_mcu_routine_function_called = FALSE;
     }
-    
+
     /* Return type of message received */
-    return msg_rcvd;   
+    return msg_rcvd;
 }
 
 /*! \fn     comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet, BOOL single_try, int16_t expected_event)
-*   \brief  Active wait for a message from the aux MCU. 
+*   \brief  Active wait for a message from the aux MCU.
 *   \param  rx_message_pt_pt        Pointer to where to store the pointer to the received message
 *   \param  do_not_touch_dma_logic  Set to TRUE to not mess with the DMA flags
 *   \param  expected_packet         Expected packet
@@ -491,22 +597,22 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
 {
     /* Bool for the do{} */
     BOOL reloop = FALSE;
-    
+
     /* Arm timer */
     if (single_try == FALSE)
     {
         timer_start_timer(TIMER_TIMEOUT_FUNCTS, AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS);
-    } 
+    }
     else
     {
         timer_start_timer(TIMER_TIMEOUT_FUNCTS, 0);
     }
-    
+
     do
     {
         /* Do not reloop by default */
         reloop = FALSE;
-        
+
         /* Wait for complete message to be received */
         BOOL dma_check_return = FALSE;
         timer_flag_te timer_flag_return = TIMER_RUNNING;
@@ -514,21 +620,21 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
         {
             if (do_not_touch_dma_flags == FALSE)
             {
-                dma_check_return = dma_aux_mcu_check_and_clear_dma_transfer_flag();                
-            } 
+                dma_check_return = dma_aux_mcu_check_and_clear_dma_transfer_flag();
+            }
             else
             {
                 dma_check_return = dma_aux_mcu_check_dma_transfer_flag();
             }
             timer_flag_return = timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE);
         }
-        
+
         /* Did the timer expire? */
         if (dma_check_return == FALSE)
         {
             return RETURN_NOK;
         }
-        
+
         /* Get payload length */
         uint16_t payload_length;
         if (aux_mcu_receive_message.payload_length1 != 0)
@@ -539,7 +645,7 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
         {
             payload_length = aux_mcu_receive_message.payload_length2;
         }
-        
+
         /* Check if message is invalid */
         if ((payload_length > AUX_MCU_MSG_PAYLOAD_LENGTH) || ((aux_mcu_receive_message.payload_length1 == 0) && (aux_mcu_receive_message.rx_payload_valid_flag == 0)))
         {
@@ -547,8 +653,8 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
             reloop = TRUE;
             dma_aux_mcu_check_and_clear_dma_transfer_flag();
             comms_aux_arm_rx_and_clear_no_comms();
-        }        
-        
+        }
+
         /* Check if received message is the one we expected */
         if ((aux_mcu_receive_message.message_type != expected_packet) || ((expected_event >= 0) && (aux_mcu_receive_message.aux_mcu_event_message.event_id != expected_event)))
         {
@@ -613,10 +719,10 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
             }
         }
     }while (reloop != FALSE);
-        
+
     /* Store pointer to message */
     *rx_message_pt_pt = &aux_mcu_receive_message;
-        
+
     /* Return OK */
     return RETURN_OK;
 }

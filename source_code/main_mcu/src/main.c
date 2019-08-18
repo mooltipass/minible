@@ -26,6 +26,7 @@
 #include "dbflash.h"
 #include "sh1122.h"
 #include "inputs.h"
+#include "crypto.h"
 #include "utils.h"
 #include "fuses.h"
 #include "debug.h"
@@ -315,6 +316,9 @@ void main_platform_init(void)
     }
 #endif
     
+    /* Initialize ecc256 crypto engine. Uses RNG to initialize seed */
+    crypto_ecc256_init();
+
     /* Display error messages if something went wrong during custom fs init and bundle check */
     if ((custom_fs_init_return != RETURN_OK) || (bundle_integrity_check_return != RETURN_OK))
     {
@@ -511,7 +515,7 @@ int main(void)
 {
     /* Initialize our platform */
     main_platform_init();
-    
+
     /* Actions for first user device boot */
     #ifdef DEVELOPER_FEATURES_ENABLED
     if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))

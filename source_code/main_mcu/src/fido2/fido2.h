@@ -1,0 +1,4 @@
+void fido2_process_exclude_list_item(FIDO2_auth_cred_req_message_t const *request, FIDO2_auth_cred_rsp_message_t *response);
+void fido2_process_make_auth_data(FIDO2_make_auth_data_req_message_t const *request, FIDO2_make_auth_data_rsp_message_t *response);
+void fido2_process_get_next_credential(FIDO2_get_next_credential_req_message_t const *request, FIDO2_get_next_credential_rsp_message_t *response);
+

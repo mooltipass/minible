@@ -62,6 +62,15 @@ uint8_t* comms_raw_hid_get_recv_buffer(hid_interface_te hid_interface)
     return (uint8_t*)&(raw_hid_recv_buffer[hid_interface]);
 }
 
+/*! \fn     comms_raw_hid_get_send_buffer(hid_interface_te hid_interface)
+*   \brief  Get the pointer to a send buffer
+*   \param  hid_interface   HID interface
+*/
+uint8_t* comms_raw_hid_get_send_buffer(hid_interface_te hid_interface)
+{
+    return (uint8_t*)&(raw_hid_send_buffer[hid_interface]);
+}
+
 /*! \fn     comms_raw_hid_recv_callback(hid_interface_te hid_interface, uint16_t recv_bytes)
 *   \brief  Function called when a HID packet is received
 *   \param  hid_interface   interface from which we received the packet
@@ -132,7 +141,7 @@ void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* pac
     }
     else if (hid_interface == CTAP_INTERFACE)
     {
-        comms_usb_debug_printf("Send CTAP response: IF: %d size: %d\n", CTAP_INTERFACE, payload_size);
+        //comms_usb_debug_printf("Send CTAP response: IF: %d size: %d\n", CTAP_INTERFACE, payload_size);
         usb_send(USB_CTAP_RX_ENDPOINT, (uint8_t*)packet, payload_size);
     }
     else

@@ -35,6 +35,7 @@ void comms_raw_hid_send_hid_message(hid_interface_te hid_interface, aux_mcu_mess
 void comms_raw_hid_recv_callback(hid_interface_te hid_interface, uint16_t recv_bytes);
 void comms_raw_hid_connection_set_callback(hid_interface_te hid_interface);
 uint8_t* comms_raw_hid_get_recv_buffer(hid_interface_te hid_interface);
+uint8_t* comms_raw_hid_get_send_buffer(hid_interface_te hid_interface);
 void comms_raw_hid_arm_packet_receive(hid_interface_te hid_interface);
 void comms_raw_hid_send_callback(hid_interface_te hid_interface);
 void comms_raw_hid_update_device_status_cache(uint8_t* buffer);

@@ -4,11 +4,17 @@
 // http://apache.org/licenses/LICENSE-2.0> or the MIT license <LICENSE-MIT or
 // http://opensource.org/licenses/MIT>, at your option. This file may not be
 // copied, modified, or distributed except according to those terms.
+//
+// Modified by MiniBLE developers
+// -Decreased CTAPHID_BUFFER SIZE to 1024
+// -Addded capability CAPABILITY_NMSG (MEANING NOT SUPPORTED)
+//
 #ifndef _CTAPHID_H_H
 #define _CTAPHID_H_H
 
-#include "device.h"
+//#include "device.h"
 #include "ctap_errors.h"
+#include "ctap.h"
 
 #define TYPE_INIT               0x80
 #define TYPE_CONT               0x00
@@ -48,14 +54,14 @@
 
 #define CTAPHID_BROADCAST_CID       0xffffffff
 
-#define CTAPHID_BUFFER_SIZE         7609
+#define CTAPHID_BUFFER_SIZE         1024
 
 #define CAPABILITY_WINK             0x01
 #define CAPABILITY_LOCK             0x02
 #define CAPABILITY_CBOR             0x04
 #define CAPABILITY_NMSG             0x08
 
-#define CTAP_CAPABILITIES           (CAPABILITY_WINK | CAPABILITY_CBOR)
+#define CTAP_CAPABILITIES           (CAPABILITY_WINK | CAPABILITY_CBOR | CAPABILITY_NMSG)
 
 typedef struct
 {

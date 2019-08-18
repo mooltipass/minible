@@ -10,10 +10,12 @@
 #include "ble_manager.h"
 #include "logic_sleep.h"
 #include "defines.h"
+#include "ctaphid.h"
 #include "logic.h"
 #include "fuses.h"
 #include "debug.h"
 #include "main.h"
+#include "ctap.h"
 #include "dma.h"
 #include "usb.h"
 #include "udc.h"
@@ -100,6 +102,8 @@ void main_platform_init(void)
     platform_io_init_ports();                                           // Initialize platform IO ports
     comms_main_init_rx();                                               // Initialize communication handling with main MCU    
     usb_init();                                                         // Initialize USB stack
+    ctaphid_init();
+    ctap_init();
     logic_battery_init();                                               // Initialize battery logic code
 }    
 

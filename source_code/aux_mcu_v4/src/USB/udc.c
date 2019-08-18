@@ -450,7 +450,7 @@ void USB_Handler(void)
       else if (i == USB_CTAP_RX_ENDPOINT)
       {
           comms_raw_hid_send_callback(CTAP_INTERFACE);
-          comms_usb_debug_printf("CTAP Packet Sent\n");
+          //comms_usb_debug_printf("CTAP Packet Sent\n");
       }
       //udc_send_callback(i);
     }
