@@ -778,14 +778,15 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     return input_answer;    
 }
 
-/*! \fn     gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen)
+/*! \fn     gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen, BOOL parse_aux_messages)
 *   \brief  Ask for user confirmation for different things
-*   \param  nb_args         Number of text lines (2 to 4)
-*   \param  text_object     Pointer to the text object
-*   \param  flash_screen    Boolean to flash screen
+*   \param  nb_args             Number of text lines (2 to 4)
+*   \param  text_object         Pointer to the text object
+*   \param  flash_screen        Boolean to flash screen
+*   \param  parse_aux_messages  Set to TRUE to continue parsing aux messages
 *   \return See enum
 */
-mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen)
+mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen, BOOL parse_aux_messages)
 {
     BOOL flash_flag = FALSE;
     uint16_t flash_sm = 0;
@@ -901,7 +902,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         }
         
         // Read usb comms as the plugin could ask to cancel the request
-        if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD)
+        if ((parse_aux_messages != FALSE) && (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD))
         {
             /* As this routine may be called by other functions in the firmware.... flash_screen is set to true for ext requests */
             if (flash_screen != FALSE)
