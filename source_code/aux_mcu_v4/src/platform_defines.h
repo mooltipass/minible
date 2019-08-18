@@ -71,6 +71,9 @@
 #define USB_KEYBOARD_SIZE           8                   // Endpoint size for keyboard
 #define USB_WRITE_TIMEOUT   50                          // Timeout for writing in the pipe
 #define USB_READ_TIMEOUT 4                              // Timeout for reading in the pipe
+#define USB_CTAP_INTERFACE          2                   // Interface for CTAP
+#define USB_CTAP_RX_ENDPOINT        4                   // CTAP RX endpoint
+#define USB_CTAP_TX_ENDPOINT        5                   // CTAP TX endpoint
 
 /* Bluetooth defies */
 #define BLE_PLATFORM_NAME           "Mooltipass Mini"

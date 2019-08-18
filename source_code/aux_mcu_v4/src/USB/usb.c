@@ -282,10 +282,15 @@ void usb_handle_standard_request(usb_request_t *request)
           length = LIMIT(length, sizeof(usb_hid_report_descriptor));
           udc_control_send(usb_hid_report_descriptor, length);
       } 
-      else
+      else if (request->wIndex == USB_KEYBOARD_INTERFACE)
       {
           length = LIMIT(length, sizeof(keyboard_hid_report_desc));
           udc_control_send(keyboard_hid_report_desc, length);
+      }
+      else if (request->wIndex == USB_CTAP_INTERFACE)
+      {
+          length = LIMIT(length, sizeof(ctap_hid_report_desc));
+          udc_control_send(ctap_hid_report_desc, length);
       }
 
     } break;
