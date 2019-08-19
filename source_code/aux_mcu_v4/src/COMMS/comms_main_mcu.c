@@ -176,6 +176,13 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             cpu_irq_disable();
             NVIC_SystemReset();
         }
+    }
+    else if (message->message_type == AUX_MCU_MSG_TYPE_PING_WITH_INFO)
+    {
+        message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+        message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_IM_HERE;
+        message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id);
+        comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
     }        
     else if (message->message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD)
     {
@@ -216,7 +223,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             }
             case MAIN_MCU_COMMAND_PING:
             {
-                /* Resend same message */
+                /* Resend same message, not used anymore */
                 comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
                 break;
             }

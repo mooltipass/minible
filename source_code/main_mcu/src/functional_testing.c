@@ -35,8 +35,10 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     platform_io_clear_no_comms();
     
     /* Receive pending ping */
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD, FALSE, -1) != RETURN_OK);
+    sh1122_put_error_string(&plat_oled_descriptor, u"Pinging Aux MCU...");
+    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_IM_HERE) != RETURN_OK);
     comms_aux_arm_rx_and_clear_no_comms();
+    sh1122_clear_current_screen(&plat_oled_descriptor);
     
     /* First boot should be done using battery */
     if (platform_io_is_usb_3v3_present() != FALSE)
@@ -126,4 +128,5 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     /* We're good! */
     sh1122_put_error_string(&plat_oled_descriptor, u"All Good!");    
     timer_delay_ms(4000);
+    sh1122_clear_current_screen(&plat_oled_descriptor);
 }

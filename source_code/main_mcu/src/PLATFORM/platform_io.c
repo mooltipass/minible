@@ -697,9 +697,10 @@ void platform_io_init_aux_comms(void)
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, AUXMCU_GCLK_SERCOM_ID);                                // Map 48MHz to SERCOM unit
     
     /* Sercom init */
-    /* MSB first, USART frame, async, 8x oversampling, internal clock */
+    /* LSB first, USART frame, async, 8x oversampling, internal clock */
     SERCOM_USART_CTRLA_Type temp_ctrla_reg;
     temp_ctrla_reg.reg = 0;
+    temp_ctrla_reg.bit.DORD = 1;
     temp_ctrla_reg.bit.SAMPR = 2;
     temp_ctrla_reg.bit.RXPO = AUXMCU_TX_PAD;
     temp_ctrla_reg.bit.TXPO = AUXMCU_RX_TXPO;

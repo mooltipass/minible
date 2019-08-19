@@ -22,6 +22,7 @@
 #define AUX_MCU_MSG_TYPE_MAIN_MCU_CMD   0x0004
 #define AUX_MCU_MSG_TYPE_AUX_MCU_EVENT  0x0005
 #define AUX_MCU_MSG_TYPE_NIMH_CHARGE    0x0006
+#define AUX_MCU_MSG_TYPE_PING_WITH_INFO 0x0007
 
 // Main MCU commands
 #define MAIN_MCU_COMMAND_SLEEP          0x0001
@@ -46,6 +47,7 @@
 #define AUX_MCU_EVENT_CHARGE_DONE       0x0006
 #define AUX_MCU_EVENT_CHARGE_FAIL       0x0007
 #define AUX_MCU_EVENT_SLEEP_RECEIVED    0x0008
+#define AUX_MCU_EVENT_IM_HERE           0x0009
 
 /* Typedefs */
 typedef struct
@@ -83,6 +85,11 @@ typedef struct
     int16_t charge_current;
 } nimh_charge_message_t;
 
+typedef struct  
+{
+    uint16_t place_holder;
+} ping_with_info_message_t;
+
 typedef struct
 {
     uint16_t message_type;
@@ -92,6 +99,7 @@ typedef struct
         aux_mcu_bootloader_message_t bootloader_message;
         aux_plat_details_message_t aux_details_message;
         main_mcu_command_message_t main_mcu_command_message;
+        ping_with_info_message_t ping_with_info_message;
         aux_mcu_event_message_t aux_mcu_event_message;
         nimh_charge_message_t nimh_charge_message;
         hid_message_t hid_message;

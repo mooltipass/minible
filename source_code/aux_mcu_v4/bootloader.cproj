@@ -104,7 +104,7 @@
       <Value>.bootloader_flag=0x20000000</Value>
     </ListValues>
   </armgcc.linker.memorysettings.Flash>
-  <armgcc.linker.memorysettings.ExternalRAM />
+  <armgcc.linker.memorysettings.ExternalRAM>False</armgcc.linker.memorysettings.ExternalRAM>
   <armgcc.linker.miscellaneous.LinkerFlags>-Tsamd21e18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
   <armgcc.assembler.general.IncludePaths>
     <ListValues>
@@ -169,7 +169,7 @@
       <Value>.bootloader_flag=0x20000000</Value>
     </ListValues>
   </armgcc.linker.memorysettings.Flash>
-  <armgcc.linker.memorysettings.ExternalRAM />
+  <armgcc.linker.memorysettings.ExternalRAM>False</armgcc.linker.memorysettings.ExternalRAM>
   <armgcc.linker.miscellaneous.LinkerFlags>-Tsamd21e18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
   <armgcc.assembler.general.IncludePaths>
     <ListValues>

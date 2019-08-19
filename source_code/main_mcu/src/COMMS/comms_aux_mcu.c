@@ -150,13 +150,13 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
     RET_TYPE return_val;    
     
     /* Prepare ping message and send it */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
-    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->main_mcu_command_message.command);
-    temp_tx_message_pt->main_mcu_command_message.command = MAIN_MCU_COMMAND_PING;
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PING_WITH_INFO);
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ping_with_info_message.place_holder);
+    temp_tx_message_pt->ping_with_info_message.place_holder = 0xBEEF;
     comms_aux_mcu_send_message(TRUE);
     
     /* Wait for answer: no need to parse answer as filter is done in comms_aux_mcu_active_wait */
-    return_val = comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD, FALSE, -1);
+    return_val = comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_IM_HERE);
     
     /* Rearm receive */
     comms_aux_arm_rx_and_clear_no_comms();
@@ -332,6 +332,10 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         {
             msg_rcvd = HID_CANCEL_MSG_RCVD;
         } 
+        else if (aux_mcu_receive_message.hid_message.message_type == HID_CMD_ID_REINDEX_BUNDLE)
+        {
+            msg_rcvd = HID_REINDEX_BUNDLE_RCVD;
+        }
         else
         {
             msg_rcvd = HID_MSG_RCVD;

@@ -14,6 +14,7 @@
 #include "defines.h"
 #include "sh1122.h"
 #include "inputs.h"
+#include "fuses.h"
 #include "main.h"
 #include "dma.h"
 /* Defines for flashing */
@@ -57,6 +58,12 @@ int main(void)
     platform_io_enable_switch();
     platform_io_init_no_comms_signal();
     DELAYMS_8M(100);
+    
+    /* Fuses not programmed, start application */
+    if (fuses_check_program(FALSE) != RETURN_OK)
+    {
+        start_application();
+    }
     
     /* Initialize our settings system */
     custom_fs_settings_init();

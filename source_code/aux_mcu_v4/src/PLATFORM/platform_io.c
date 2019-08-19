@@ -5,14 +5,14 @@
 */
 #ifndef BOOTLOADER
     #include <asf.h>
+    #include "driver_timer.h"
+    #include "logic_sleep.h"
 #else
     #include "sam.h"
 #endif
 #include "platform_defines.h"
 //#include "driver_sercom.h"
 #include "driver_clocks.h"
-#include "driver_timer.h"
-#include "logic_sleep.h"
 #include "platform_io.h"
 /* Set when a conversion result is ready */
 volatile BOOL platform_cur_sense_conv_ready = FALSE;
@@ -260,9 +260,10 @@ void platform_io_init_aux_comms(void)
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, AUXMCU_GCLK_SERCOM_ID);                                // Map 48MHz to SERCOM unit    
     
     /* Sercom init */
-    /* MSB first, USART frame, async, 8x oversampling, internal clock */
+    /* LSB first, USART frame, async, 8x oversampling, internal clock */
     SERCOM_USART_CTRLA_Type temp_ctrla_reg;
     temp_ctrla_reg.reg = 0;
+    temp_ctrla_reg.bit.DORD = 1;
     temp_ctrla_reg.bit.SAMPR = 2;
     temp_ctrla_reg.bit.RXPO = AUXMCU_RX_TXPO;
     temp_ctrla_reg.bit.TXPO = AUXMCU_TX_PAD;
@@ -338,7 +339,9 @@ void platform_io_init_no_comms_pullup_port(void)
 void platform_io_generate_no_comms_wakeup_pulse(void)
 {
     PORT->Group[AUX_MCU_NOCOMMS_PULLUP_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_PULLUP_MASK;
-    DELAYMS(1);
+    #ifndef BOOTLOADER
+        DELAYMS(1);
+    #endif
     PORT->Group[AUX_MCU_NOCOMMS_PULLUP_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_PULLUP_MASK;    
 }
 
@@ -404,7 +407,9 @@ void platform_io_ble_enabled_inits(void)
     PORT->Group[BLE_WAKE_IN_GROUP].PINCFG[BLE_WAKE_IN_PINID].bit.INEN = 1;
     
     /* Wait a little then enable bluetooth module */
-    timer_delay_ms(50);
+    #ifndef BOOTLOADER
+        timer_delay_ms(50);
+    #endif
     platform_io_assert_ble_enable();
     platform_io_assert_ble_wakeup();
 }

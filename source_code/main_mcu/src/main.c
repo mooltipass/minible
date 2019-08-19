@@ -157,10 +157,10 @@ void main_platform_init(void)
     custom_fs_return = custom_fs_settings_init();
     custom_fs_set_dataflash_descriptor(&dataflash_descriptor);
     dataflash_init_return = dataflash_check_presence(&dataflash_descriptor);
-    if (dataflash_init_return != RETURN_NOK)
+    if (dataflash_init_return == RETURN_OK)
     {
         custom_fs_init_return = custom_fs_init();
-        if (custom_fs_init_return != RETURN_NOK)
+        if (custom_fs_init_return == RETURN_OK)
         {
             /* Bundle integrity check */
             bundle_integrity_check_return = custom_fs_compute_and_check_external_bundle_crc32();
@@ -273,7 +273,16 @@ void main_platform_init(void)
         /* Wait to load bundle from USB */
         while(1)
         {
-            comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BUNDLE);
+            /* Check for reindex bundle message */
+            if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BUNDLE) == HID_REINDEX_BUNDLE_RCVD)
+            {
+                /* Try to init our file system */
+                custom_fs_init_return = custom_fs_init();
+                if (custom_fs_init_return == RETURN_OK)
+                {
+                    break;
+                }
+            }
         }
     } 
     

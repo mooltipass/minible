@@ -9,7 +9,7 @@
 #define COMMS_AUX_MCU_DEFINES_H_
 
 // AUX MCU Message payload length
-#define AUX_MCU_MSG_PAYLOAD_LENGTH  536
+#define AUX_MCU_MSG_PAYLOAD_LENGTH  552
 
 // HID payload size
 #define HID_PAYLOAD_SIZE            64

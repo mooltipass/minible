@@ -11,12 +11,13 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    4
+#define FW_MINOR    5
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
 - v0.3: many things.... sleep problems solved
 - v0.4: no comms signal checked (among others)
+- v0.5: aux to main protocol change (requires hard programming for upgrade)
 */
 
 /**************** SETUP DEFINES ****************/
