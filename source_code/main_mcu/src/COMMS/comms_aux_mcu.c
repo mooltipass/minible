@@ -388,8 +388,12 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     /* If we need to rearm RX */
     if (arm_rx_transfer != FALSE)
     {
-        aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = FALSE;
-        comms_aux_arm_rx_and_clear_no_comms();
+        /* Check that a possible recursion didn't already rearm RX for us */
+        if ((function_already_called != FALSE) || (aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx != FALSE))
+        {
+            aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = FALSE;      
+            comms_aux_arm_rx_and_clear_no_comms();
+        }
     }       
     
     /* Recursivity: remove flag */
