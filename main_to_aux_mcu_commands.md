@@ -7,8 +7,8 @@ These commands DO NOT get answers except for the ping (exact same packet replied
 | 0x0004   | 0x0002   | 0x0002   | DNC   | USB Attach |   
 | 0x0004   | 0x0002   | 0x0003   | DNC   | Ping (deprecated) |   
 | 0x0004   | 0x0002   | 0x0004   | DNC   | BLE Enable |   
-| 0x0004   | 0x0002   | 0x0005   | DNC   | NiMH Charge |   
-| 0x0004   | 0x0002   | 0x0006   | DNC   | No Comms Unav. |   
+| 0x0004   | 0x0002   | 0x0005   | DNC   | NiMH Charge Start |   
+| 0x0004   | 0x0002   | 0x0006   | DNC   | No Comms Unavailable |   
 | 0x0004   | 0x0002   | 0x0007   | DNC   | BLE Disable  |   
 | 0x0004   | 0x0002   | 0x0008   | DNC   | USB Detach |   
-| 0x0004   | 0x0002   | 0x0009   | DNC   | Func. Test Start |   
+| 0x0004   | 0x0002   | 0x0009   | DNC   | Functional Test Start |   
