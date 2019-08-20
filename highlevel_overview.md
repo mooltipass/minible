@@ -10,7 +10,7 @@ This design decision was made for several reasons:
 ### [](#header-3)Security Constraints
 - The secure MCU can disable the Bluetooth transceiver through an enable signal
 - The secure MCU may communicate with previous Mooltipass smartcards
-- We aim to not use any libraries on the secure MCU
+- We aim to not use any libraries on the secure MCU (crypto excluded)
 - There are no restrictions on the non-secure MCU
 
 ### [](#header-3)Power Supplies
