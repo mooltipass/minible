@@ -17,7 +17,7 @@ The messages used are a subset of [Aux Mcu <-> Serial Link Specification](aux_ma
 
 From Main MCU:  
 
-| byte 0-1 | byte 2-5 | byte 6-9 | byte 10-535 |
+| byte 0-1 | byte 2-5 | byte 6-9 | byte 10-551 |
 |:-:|:-:|:-:|:-:|
 | 0x0000 | Image Length | Image CRC (not implemented) | DNC |
 
@@ -28,7 +28,7 @@ The Aux MCU bootloader sends the same packet without the image length & crc fiel
   
 From Main MCU:   
   
-| byte 0-1 | byte 2-5 | byte 6-9 | byte 10-13 | byte 14-525 | byte 526-535 |
+| byte 0-1 | byte 2-5 | byte 6-9 | byte 10-13 | byte 14-525 | byte 526-551 |
 |:-:|:-:|:-:|:-:|:-:|:-:|
 | 0x0001 | payload size (512) | payload CRC (not implemented) | write address | 512B payload | DNC |
 
@@ -39,7 +39,7 @@ When receiving this message, the Aux MCU will take care of erasing its rows at t
   
 From Main MCU:   
   
-| byte 0-1 | byte 2-535 |
+| byte 0-1 | byte 2-551 |
 |:-:|:-:|
 | 0x0002 | DNC |
 
