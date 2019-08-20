@@ -337,6 +337,9 @@ Status Byte:
 | 0x08     | Unknown card inserted |
 | 0x10     | Device in management mode |
 
+User Security Preferences:
+See 0x0013
+
 
 
 0x0012: Check Credential
