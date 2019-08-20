@@ -505,7 +505,14 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
         {
             /* Prepare notification message : contents of the TX message aren't accessed after this function return */
             cust_char_t* three_line_notif_2;
-            custom_fs_get_string_from_file(LOGGING_WITH_TEXT_ID, &three_line_notif_2, TRUE);
+            if (logic_security_is_management_mode_set() != FALSE)
+            {                
+                custom_fs_get_string_from_file(ACCESS_TO_TEXT_ID, &three_line_notif_2, TRUE);
+            } 
+            else
+            {
+                custom_fs_get_string_from_file(LOGGING_WITH_TEXT_ID, &three_line_notif_2, TRUE);
+            }
             confirmationText_t notif_text_3_lines = {.lines[0]=service, .lines[1]=three_line_notif_2, .lines[2]=login};
 
             /* 3 lines notification website / logging you in with / username */

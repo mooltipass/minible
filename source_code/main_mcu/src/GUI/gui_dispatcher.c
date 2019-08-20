@@ -6,6 +6,7 @@
 #include "comms_hid_msgs_debug.h"
 #include "logic_smartcard.h"
 #include "logic_bluetooth.h"
+#include "logic_security.h"
 #include "gui_dispatcher.h"
 #include "driver_timer.h"
 #include "gui_carousel.h"
@@ -102,7 +103,14 @@ void gui_dispatcher_get_back_to_current_screen(void)
     if (gui_dispatcher_current_screen == GUI_SCREEN_LOGIN_NOTIF)
     {
         /* We're currently displaying a login notification but were interrupted for another prompt... go to main menu */
-        gui_dispatcher_current_screen = GUI_SCREEN_MAIN_MENU;
+        if (logic_security_is_management_mode_set() != FALSE)
+        {
+            gui_dispatcher_current_screen = GUI_SCREEN_MEMORY_MGMT;
+        }
+        else
+        {
+            gui_dispatcher_current_screen = GUI_SCREEN_MAIN_MENU;
+        }
     }
 
     /* switch to let the compiler optimize instead of function pointer array */
@@ -164,7 +172,7 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
                 if ((platform_io_is_usb_3v3_present() == FALSE) && TRUE)
                 {
                     /* Prompt user */
-                    if (gui_prompts_ask_for_one_line_confirmation(QSWITCH_OFF_DEVICE, FALSE) == MINI_INPUT_RET_YES)
+                    if (gui_prompts_ask_for_one_line_confirmation(QSWITCH_OFF_DEVICE_TEXT_ID, FALSE) == MINI_INPUT_RET_YES)
                     {
                         sh1122_oled_off(&plat_oled_descriptor);     // Display off command
                         platform_io_power_down_oled();              // Switch off stepup
@@ -187,8 +195,16 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
         case GUI_SCREEN_LOGIN_NOTIF:
         {
             /* If action, end animation */
-            gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE, GUI_INTO_MENU_TRANSITION);
-            gui_dispatcher_get_back_to_current_screen();
+            if (logic_security_is_management_mode_set() != FALSE)
+            {
+                gui_dispatcher_set_current_screen(GUI_SCREEN_MEMORY_MGMT, FALSE, GUI_INTO_MENU_TRANSITION);
+                gui_dispatcher_get_back_to_current_screen();
+            }
+            else
+            {
+                gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE, GUI_INTO_MENU_TRANSITION);
+                gui_dispatcher_get_back_to_current_screen();
+            }
             break;
         }
         
@@ -201,7 +217,7 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
                 if ((platform_io_is_usb_3v3_present() == FALSE) && TRUE)
                 {
                     /* Prompt user */
-                    if (gui_prompts_ask_for_one_line_confirmation(QSWITCH_OFF_DEVICE, FALSE) == MINI_INPUT_RET_YES)
+                    if (gui_prompts_ask_for_one_line_confirmation(QSWITCH_OFF_DEVICE_TEXT_ID, FALSE) == MINI_INPUT_RET_YES)
                     {
                         sh1122_oled_off(&plat_oled_descriptor);     // Display off command
                         platform_io_power_down_oled();              // Switch off stepup
@@ -270,8 +286,16 @@ void gui_dispatcher_idle_call(void)
                                                     /* Enough animation loops to go back to main menu */
                                                     if (gui_dispatcher_current_idle_anim_loop == 4)
                                                     {
-                                                        gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE, GUI_INTO_MENU_TRANSITION);
-                                                        gui_dispatcher_get_back_to_current_screen();
+                                                        if (logic_security_is_management_mode_set() != FALSE)
+                                                        {
+                                                            gui_dispatcher_set_current_screen(GUI_SCREEN_MEMORY_MGMT, FALSE, GUI_INTO_MENU_TRANSITION);
+                                                            gui_dispatcher_get_back_to_current_screen();
+                                                        } 
+                                                        else
+                                                        {
+                                                            gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE, GUI_INTO_MENU_TRANSITION);
+                                                            gui_dispatcher_get_back_to_current_screen();
+                                                        }
                                                     } 
                                                     else
                                                     {
