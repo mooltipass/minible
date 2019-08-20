@@ -12,6 +12,8 @@ As with our previous devices, every non-debug / non-test message sent by the com
 Character size is 2 bytes in order to accomodate Unicode BMP.  
 Unless written otherwise, all commands below have been tested on an actual device.  
   
+  
+  
 ## [](#header-2) Mooltipass Commands
 
 0x0001: Ping
@@ -26,6 +28,7 @@ From the PC:
 The device will send back the very same message.  
 
 
+
 0x0002: Please Retry
 --------------------
 
@@ -36,6 +39,7 @@ From the device:
 | 0x0002   | 0                | N/A               |
 
 When the device is busy and can't deal with the message sent by the computer, it will reply a message with a "Please Retry" one, inviting the computer to re-send its packet.  
+
 
 
 0x0003: Get Platform Info
@@ -61,6 +65,7 @@ Device answer:
 | 16->17 | DB memory size |
 
 
+
 0x0004: Set Current Date
 ------------------------
 
@@ -84,6 +89,7 @@ Device Answer:
 | 0x0004   | 1 | 0x01 (indicates command success) |
 
 
+
 0x0005: Cancel Request
 ------------------------
 
@@ -95,7 +101,6 @@ From the PC:
 
 No device answer.
 
-Tested status: NOT tested
 
 
 0x0006: Store Credential
@@ -119,6 +124,7 @@ Device Answer:
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
 | 0x0005   | 1 | 0x01 or 0x00 (success or fail) |
+
 
 
 0x0007: Get Credential
@@ -147,6 +153,7 @@ Device Answer:
 | 12->xxx | all above 0 terminated fields concatenated |
 
 
+
 0x0008: Get 32 Random Bytes
 ---------------------------
 
@@ -161,6 +168,7 @@ Device Answer:
 | byte 0-1 | byte 2-3 | byte 4-35 |
 |:---------|:---------|:----------|
 | 0x0008   | 32       | Random bytes |
+
 
 
 0x0009: Start Memory Management
@@ -179,6 +187,7 @@ Device Answer:
 | 0x0009   | 1 | 0x00 (failure) / 0x01 (success) |
 
 
+
 0x000A: Get User Change Numbers
 -------------------------------
 
@@ -194,7 +203,6 @@ Device Answer:
 |:---------|:----------------------------|:----------|:----------|
 | 0x000A   | 8 | Credential change number | Data change number |
 
-Tested status: NOT tested
 
 
 0x000B: Get Card Protected Zone
@@ -212,7 +220,6 @@ Device Answer:
 |:---------|:----------------------------|:-------------------|
 | 0x000B   | 1 (failure) or 8 | Card CPZ |
 
-Tested status: NOT tested
 
 
 0x000C: Get Device Settings
@@ -235,7 +242,6 @@ Device Answer:
 | 6 | uint8_t | User interaction timeout / 1024 | 7 | 25 |
 | 7 | bool    | Animation during prompt | 0 | N/A |
 
-Tested status: NOT tested
 
 
 0x000D: Set Device Settings
@@ -253,7 +259,6 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x000D   | 1 | 0x00 (failure) / 0x01 (success) |
 
-Tested status: NOT tested
 
 
 0x000E: Reset Unknown Card
@@ -271,7 +276,6 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x000E   | 1 | 0x00 (failure) / 0x01 (success) |
 
-Tested status: NOT tested
 
 
 0x000F: Get Number of Available Users
@@ -289,7 +293,6 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x000F   | 1 | Number of free users |
 
-Tested status: NOT tested
 
 
 0x0010: Lock Device
@@ -307,7 +310,6 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x0010   | 1 | 0x00 (failure) / 0x01 (success) |
 
-Tested status: NOT tested
 
 
 0x0011: Get Status
@@ -335,7 +337,6 @@ Status Byte:
 | 0x08     | Unknown card inserted |
 | 0x10     | Device in management mode |
 
-Tested status: NOT tested
 
 
 0x0012: Check Credential
@@ -358,7 +359,6 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x0012   | 1 | 0x00 (fail), 0x01 (success), 0x02 (timeout protection) |
 
-Tested status: NOT tested
 
 
 0x0013: Get User Settings
@@ -387,7 +387,6 @@ User Security Settings Bitmask:
 | 0x10     | Bluetooth enabled |
 | 0x20     | Credential display prompt |
 
-Tested status: NOT tested
 
 
 0x0014: Get User Categories Strings
@@ -406,7 +405,6 @@ Device Answer:
 |:---------|:---------|:----------|:----------|:----------|:----------|
 | 0x0014   | 264 or 1 | String #1 | String #2 | String #3 | String #4 |
 
-Tested status: NOT tested
 
 
 0x0015: Set User Categories Strings
@@ -424,7 +422,6 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x0015   | 1 | 0x00 (failure) / 0x01 (success) |
 
-Tested status: NOT tested
 
 
 ## [](#header-2) Memory Management Commands
@@ -447,7 +444,6 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x0100   | 34 | Credential start address + 16 data start addresses |
 
-Tested status: NOT tested
 
 
 0x0101: Leave Memory Management
@@ -466,6 +462,7 @@ Device Answer:
 | 0x0101   | 1 | 0x00 (failure) / 0x01 (success) |
 
 
+
 0x0102: Read Memory Node
 ------------------------
 
@@ -481,7 +478,6 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x0102   | 1 or 264 or 528 | 0x00 (failure) or memory node contents |
 
-Tested status: NOT tested
 
 
 0x0103: Set Credential Change Number
@@ -499,7 +495,7 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x0103   | 1 | 0x00 (failure) / 0x01 (success) |
 
-Tested status: NOT tested
+NOT Tested
 
 
 0x0104: Set Data Change Number
@@ -517,7 +513,8 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x0104   | 1 | 0x00 (failure) / 0x01 (success) |
 
-Tested status: NOT tested
+NOT Tested
+
 
 
 0x0105: Set Credential Start Parent
@@ -535,7 +532,8 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x0105   | 1 | 0x00 (failure) / 0x01 (success) |
 
-Tested status: NOT tested
+NOT Tested
+
 
 
 0x0106: Set Data Start Parent
@@ -553,7 +551,8 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x0106   | 1 | 0x00 (failure) / 0x01 (success) |
 
-Tested status: NOT tested
+NOT Tested
+
 
 
 0x0107: Set Start Nodes Addresses
@@ -571,7 +570,8 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x0107   | 1 | 0x00 (failure) / 0x01 (success) |
 
-Tested status: NOT tested
+NOT Tested
+
 
 
 0x0108: Get Free Nodes Addresses
@@ -592,7 +592,8 @@ Device Answer:
 | 4-4+pnodesreqedx2 | available parent nodes addresses and 0 if not enough availability |
 | 4+pnodesreqedx2-4+pnodesreqedx2+cnodesreqedx2      | available child nodes addresses and 0 if not enough availability     |
 
-Tested status: NOT tested
+NOT Tested
+
 
 
 0x0109: Get CTR Value
@@ -610,7 +611,6 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x0109   | 1 or 3 | 0x00 (failure) or CTR values |
 
-Tested status: NOT tested
 
 
 0x010A: Set CTR Value
@@ -628,7 +628,8 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x010A   | 1 | 0x00 (failure) / 0x01 (success) |
 
-Tested status: NOT tested
+NOT Tested
+
 
 
 0x010B: Set Favorite
@@ -646,7 +647,8 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x010A   | 1 | 0x00 (failure) / 0x01 (success) |
 
-Tested status: NOT tested
+NOT Tested
+
 
 
 0x010C: Get Favorite
@@ -664,7 +666,8 @@ Device Answer:
 |:---------|:----------------------------|:---------|:---------|
 | 0x010C   | 1 (failure) or 4 | parent addr | child addr |
 
-Tested status: NOT tested
+NOT Tested
+
 
 
 0x010F: Get Favorites
@@ -683,7 +686,8 @@ Device Answer:
 |:---------|:----------------------------|:-----------|
 | 0x010F   | 1 (failure) or 200 | all favorites concatenated |
 
-Tested status: NOT tested
+NOT Tested
+
 
 
 0x010D: Write Node
@@ -701,7 +705,6 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x010D   | 1 | 0x00 (failure) / 0x01 (success) |
 
-Tested status: NOT tested
 
 
 0x010E: Get Card Protected Zone & CTR Nonce
@@ -719,7 +722,7 @@ Device Answer:
 |:---------|:----------------------------|:-------------------|:-------------------|
 | 0x010E   | 1 (failure) or 24 | Card CPZ | User AES CTR Nonce |
 
-Tested status: NOT tested
+
 
 
   
