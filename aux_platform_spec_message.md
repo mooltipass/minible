@@ -4,9 +4,9 @@
 |:---------------------|:------------|
 | 0-1 (Message type)   | 0x0003      |
 | 2-3 (Payload Length) | 0           |
-| 4-539 (Payload)      | do not care |
-| 540-541 (Not used)   | 0x0000 |
-| 542-543 (Reply request flag) | 0x0001 |
+| 4-555 (Payload)      | do not care |
+| 556-557 (Not used)   | 0x0000 |
+| 558-559 (Not used)   | 0x0000 |
 
 
 ## [](#header-2) Status Message Sent by the Aux MCU 
@@ -27,6 +27,6 @@
 | 38-41 (Payload)      | ATBTLC1000 RF version |
 | 42-45 (Payload)      | ATBTLC1000 chip ID |
 | 46-51 (Payload)      | ATBTLC1000 BD Address |
-| X-539 (Payload)      | do not care |
-| 540-541 (Payload #2) | 0x0000 |
-| 542-543 (Valid flag) | 0x0000 |
+| X-555 (Payload)      | do not care |
+| 556-557 (Payload #2) | 0x0000 |
+| 558-559 (Valid flag) | 0x0000 |
