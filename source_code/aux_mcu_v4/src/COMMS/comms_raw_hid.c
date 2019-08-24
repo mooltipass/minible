@@ -14,6 +14,7 @@
 #include "usb.h"
 #include "udc.h"
 #include "dma.h"
+#include "ctaphid.h"
 
 /* USB comms buffers */
 static __attribute__((aligned(4))) hid_packet_t raw_hid_recv_buffer[NB_HID_INTERFACES];
@@ -21,17 +22,17 @@ static __attribute__((aligned(4))) hid_packet_t raw_hid_send_buffer[NB_HID_INTER
 /* Future message to be sent to MCU */
 aux_mcu_message_t comms_raw_hid_temp_mcu_message_to_send[NB_HID_INTERFACES];
 /* Packet number we're expecting to receive */
-uint16_t comms_raw_hid_expected_packet_number[NB_HID_INTERFACES] = {0,0};
+uint16_t comms_raw_hid_expected_packet_number[NB_HID_INTERFACES] = {0,0,0};
 /* Total number of packets for current message */
 uint16_t comms_raw_hid_total_expected_packets[NB_HID_INTERFACES];
 /* Index in our temp mcu message to send at which to fill data */
-uint16_t comms_raw_hid_temp_mcu_message_fill_index[NB_HID_INTERFACES] = {0,0};
+uint16_t comms_raw_hid_temp_mcu_message_fill_index[NB_HID_INTERFACES] = {0,0,0};
 /* Expected flip bit state */
-BOOL comms_raw_hid_expect_flip_bit_state_set[NB_HID_INTERFACES] = {FALSE, FALSE};
+BOOL comms_raw_hid_expect_flip_bit_state_set[NB_HID_INTERFACES] = {FALSE, FALSE, FALSE};
 /* Set when we received/send a USB message */
-volatile BOOL comms_raw_hid_packet_being_sent[NB_HID_INTERFACES] = {FALSE, FALSE};
-volatile BOOL comms_raw_hid_packet_received[NB_HID_INTERFACES] = {FALSE, FALSE};
-volatile BOOL comms_raw_hid_packet_receive_length[NB_HID_INTERFACES] = {0, 0};
+volatile BOOL comms_raw_hid_packet_being_sent[NB_HID_INTERFACES] = {FALSE, FALSE, FALSE};
+volatile BOOL comms_raw_hid_packet_received[NB_HID_INTERFACES] = {FALSE, FALSE, FALSE};
+volatile BOOL comms_raw_hid_packet_receive_length[NB_HID_INTERFACES] = {0, 0, 0};
 /* Set when we just got enumerated */
 volatile BOOL comms_usb_just_enumerated = FALSE;
 /* Device status cache so we don't need to query main mcu */
@@ -93,7 +94,11 @@ void comms_raw_hid_arm_packet_receive(hid_interface_te hid_interface)
     if (hid_interface == USB_INTERFACE)
     {
         usb_recv(USB_RAWHID_TX_ENDPOINT, (uint8_t*)&raw_hid_recv_buffer[hid_interface], sizeof(raw_hid_recv_buffer[0]));
-    } 
+    }
+    else if (hid_interface == CTAP_INTERFACE)
+    {
+        usb_recv(USB_CTAP_TX_ENDPOINT, (uint8_t*)&raw_hid_recv_buffer[hid_interface], sizeof(raw_hid_recv_buffer[0]));
+    }
     else
     {
     }
@@ -124,7 +129,12 @@ void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* pac
     if (hid_interface == USB_INTERFACE)
     {
         usb_send(USB_RAWHID_RX_ENDPOINT, (uint8_t*)packet, payload_size);
-    } 
+    }
+    else if (hid_interface == CTAP_INTERFACE)
+    {
+        comms_usb_debug_printf("Send CTAP response: IF: %d size: %d\n", CTAP_INTERFACE, payload_size);
+        usb_send(USB_CTAP_RX_ENDPOINT, (uint8_t*)packet, payload_size);
+    }
     else
     {
         logic_bluetooth_raw_send((uint8_t*)packet, payload_size);
@@ -266,6 +276,7 @@ void comms_usb_communication_routine(void)
     {
         comms_main_mcu_send_simple_event(AUX_MCU_EVENT_USB_ENUMERATED);
         comms_raw_hid_arm_packet_receive(USB_INTERFACE);
+        comms_raw_hid_arm_packet_receive(CTAP_INTERFACE);
         comms_usb_just_enumerated = FALSE;
     }
     
@@ -306,7 +317,15 @@ void comms_usb_communication_routine(void)
         {
             /* Reset flag */
             comms_raw_hid_packet_received[hid_interface] = FALSE;
-            
+
+            if (hid_interface == CTAP_INTERFACE)
+            {
+                uint8_t* usb_recast = (uint8_t*)&raw_hid_recv_buffer[hid_interface];
+                ctaphid_handle_packet(usb_recast);
+                comms_raw_hid_arm_packet_receive(hid_interface);
+                return;
+            }
+
             /* Special case: first two bytes set to 0xFF 0xFF, reset flip bit */
             uint8_t* usb_recast = (uint8_t*)&raw_hid_recv_buffer[hid_interface];
             if ((usb_recast[0] == 0xFF) && (usb_recast[1] == 0xFF))
