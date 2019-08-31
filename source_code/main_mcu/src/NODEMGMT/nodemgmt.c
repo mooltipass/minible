@@ -1113,6 +1113,12 @@ uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeAr
                 if (nbParentNodesFound != nbParentNodes)
                 {
                     parentNodeArray[nbParentNodesFound++] = constructAddress(pageItr, nodeItr);
+                    
+                    // check for end
+                    if ((nbChildtNodes == 0) && (nbParentNodesFound == nbParentNodes))
+                    {
+                        return nbChildNodesFound+nbParentNodesFound;
+                    }
                 } 
                 else
                 {
