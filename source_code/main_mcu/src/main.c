@@ -269,12 +269,22 @@ void main_platform_init(void)
     if ((custom_fs_init_return != RETURN_OK) || (bundle_integrity_check_return != RETURN_OK))
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
+        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 10000);
         
         /* Wait to load bundle from USB */
         while(1)
         {
+            /* Communication function */
+            comms_msg_rcvd_te msg_received = comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BUNDLE);
+            
+            /* If we received any message, reset timer */
+            if (msg_received != NO_MSG_RCVD)
+            {
+                timer_start_timer(TIMER_TIMEOUT_FUNCTS, 10000);
+            }            
+            
             /* Check for reindex bundle message */
-            if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BUNDLE) == HID_REINDEX_BUNDLE_RCVD)
+            if (msg_received == HID_REINDEX_BUNDLE_RCVD)
             {
                 /* Try to init our file system */
                 custom_fs_init_return = custom_fs_init();
@@ -282,6 +292,14 @@ void main_platform_init(void)
                 {
                     break;
                 }
+            }
+            
+            /* Timer timeout, switch off platform */
+            if ((timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
+            {
+                /* Switch off OLED, switch off platform */
+                platform_io_power_down_oled(); timer_delay_ms(200);
+                platform_io_disable_switch_and_die();
             }
         }
     } 
