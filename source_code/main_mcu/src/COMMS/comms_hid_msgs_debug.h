@@ -12,7 +12,7 @@
 #include "comms_hid_msgs.h"
 
 /* Defines */
-#define HID_MESSAGE_START_CMD_ID_DBG    0x8000
+#define HID_MESSAGE_START_CMD_ID_DBG        0x8000
 // Command IDs
 #define HID_CMD_ID_DBG_MSG                  0x8000
 #define HID_CMD_ID_OPEN_DISP_BUFFER         0x8001

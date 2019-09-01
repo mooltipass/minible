@@ -16,6 +16,10 @@
 #define HID_1BYTE_ACK       0x01
 #define HID_1BYTE_NA        0x02
 
+// AES GCM stuff
+#define HID_MESSAGE_AES_GCM_BITMASK 0x4000
+#define HID_MESSAGE_GCM_TAG_LGTH    16
+
 /* Command defines */
 #define HID_CMD_ID_PING             0x0001
 #define HID_CMD_ID_RETRY            0x0002

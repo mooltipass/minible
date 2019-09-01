@@ -43,6 +43,20 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         return -1;
     }
     
+    /* Store received message type in case one of the routines below does some communication */
+    uint16_t max_payload_size = MEMBER_ARRAY_SIZE(hid_message_t,payload);
+    uint16_t rcv_message_type = rcv_msg->message_type;
+    BOOL is_aes_gcm_message = FALSE;
+    
+    /* Check if it's a AES-GCM message */
+    if ((rcv_msg->message_type & HID_MESSAGE_AES_GCM_BITMASK) != 0)
+    {
+        /* If so, remove the bitmask, reduce max payload size and set the bool */
+        rcv_msg->message_type &= ~HID_MESSAGE_AES_GCM_BITMASK;
+        max_payload_size-= HID_MESSAGE_GCM_TAG_LGTH;
+        is_aes_gcm_message = TRUE;
+    }
+    
     /* Checks based on restriction type */
     BOOL should_ignore_message = FALSE;
     if ((answer_restrict_type == MSG_RESTRICT_ALL) && (rcv_msg->message_type != HID_CMD_ID_PING))
@@ -63,9 +77,6 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         send_msg->payload_length = 0;
         return 0;
     }
-    
-    /* Store received message type in case one of the routines below does some communication */
-    uint16_t rcv_message_type = rcv_msg->message_type;
     
     /* Check for commands for management mode */
     if ((rcv_msg->message_type >= HID_FIRST_CMD_FOR_MMM) && (rcv_msg->message_type <= HID_LAST_CMD_FOR_MMM) && (logic_security_is_management_mode_set() == FALSE))
@@ -119,8 +130,8 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             /* If user logged in, send user security preferences */
             if (logic_security_is_smc_inserted_unlocked() != FALSE)
             {
-                send_msg->message_type = rcv_message_type;
                 send_msg->payload_as_uint16[1] = logic_user_get_user_security_flags();
+                send_msg->message_type = rcv_message_type;
                 send_msg->payload_length = 4;
                 return 4;
             }
@@ -242,8 +253,8 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             /* Get user security settings */
             if (logic_security_is_smc_inserted_unlocked() != FALSE)
             {
-                send_msg->message_type = rcv_message_type;
                 send_msg->payload_as_uint16[0] = logic_user_get_user_security_flags();
+                send_msg->message_type = rcv_message_type;
                 send_msg->payload_length = 2;
                 return 2;
             } 
@@ -462,7 +473,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         case HID_CMD_GET_FREE_NODES:
         {
             /* Check for correct number of args and that not too many free slots have been requested */
-            if ((rcv_msg->payload_length == 3*sizeof(uint16_t)) && ((rcv_msg->payload_as_uint16[1] + rcv_msg->payload_as_uint16[2]) <= MEMBER_ARRAY_SIZE(hid_message_t,payload_as_uint16)))
+            if ((rcv_msg->payload_length == 3*sizeof(uint16_t)) && (((uint32_t)(rcv_msg->payload_as_uint16[1]) + (uint32_t)(rcv_msg->payload_as_uint16[2])) <= (max_payload_size/sizeof(uint16_t))))
             {
                 uint16_t nb_nodes_found = nodemgmt_find_free_nodes(rcv_msg->payload_as_uint16[1], send_msg->payload_as_uint16, rcv_msg->payload_as_uint16[2], &(send_msg->payload_as_uint16[rcv_msg->payload_as_uint16[1]]), nodemgmt_page_from_address(rcv_msg->payload_as_uint16[0]), nodemgmt_node_from_address(rcv_msg->payload_as_uint16[0]));
                 
@@ -816,7 +827,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             }
             
             /* Max string length */
-            uint16_t max_cust_char_length = (sizeof(rcv_msg->payload) \
+            uint16_t max_cust_char_length = (max_payload_size \
                                             - sizeof(rcv_msg->get_credential_request.service_name_index) \
                                             - sizeof(rcv_msg->get_credential_request.login_name_index))/sizeof(cust_char_t);
             
@@ -876,6 +887,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 else
                 {
                     send_msg->payload_length = payload_length;
+                    send_msg->message_type = rcv_message_type;
                     return payload_length;
                 }
             }
@@ -922,7 +934,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 uint16_t check_indexes[3] = {   rcv_msg->check_credential.service_name_index, \
                                                 rcv_msg->check_credential.login_name_index, \
                                                 rcv_msg->check_credential.password_index};
-                uint16_t max_cust_char_length = (sizeof(rcv_msg->payload) \
+                uint16_t max_cust_char_length = (max_payload_size \
                                                 - sizeof(rcv_msg->check_credential.service_name_index) \
                                                 - sizeof(rcv_msg->check_credential.login_name_index) \
                                                 - sizeof(rcv_msg->check_credential.password_index))/sizeof(cust_char_t);
@@ -1006,7 +1018,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                                             rcv_msg->store_credential.description_index, \
                                             rcv_msg->store_credential.third_field_index, \
                                             rcv_msg->store_credential.password_index};
-            uint16_t max_cust_char_length = (sizeof(rcv_msg->payload) \
+            uint16_t max_cust_char_length = (max_payload_size \
                                             - sizeof(rcv_msg->store_credential.service_name_index) \
                                             - sizeof(rcv_msg->store_credential.login_name_index) \
                                             - sizeof(rcv_msg->store_credential.description_index) \
