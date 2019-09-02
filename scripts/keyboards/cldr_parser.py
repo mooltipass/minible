@@ -12,7 +12,7 @@ import statistics
 import re
 
 # Set the directory that you extract the cldr keyboards zip file here
-CLDR_KEYBOARDS_BASE_PATH = "cldr-keyboards-33.1/keyboards"
+CLDR_KEYBOARDS_BASE_PATH = "cldr-keyboards-35.1/keyboards"
 # the platform filename in the cldr, contains HID code to physical key code LUT
 PLATFORM_FILENAME = "_platform.xml"
 
@@ -166,7 +166,7 @@ class CLDR():
 						# print intervals, debug
 						if False and obj.attrib.get('locale') == "fr-t-k0-windows":
 							print self.get_unicode_intervals(self.layouts[platform_name][layout_name], 100)
-						if True:
+						if False:
 							print len(self.get_unicode_intervals(self.layouts[platform_name][layout_name], 100))
 							print obj.attrib.get('locale'), self.get_unicode_intervals(self.layouts[platform_name][layout_name], 100)
 
@@ -298,22 +298,20 @@ class CLDR():
 			print layouts.keys().index(k), k
 
 
-	def show_lut(self, platform, layout):
-		platform_name = self.layouts.keys()[platform]
+	def show_lut(self, platform_name, layout_name):
 		layouts = self.layouts[platform_name]
-		layout_name = layouts.keys()[layout]
 		layout = layouts[layout_name]
 		table = []
 		table.append(["Glyph", "Unicode", "modifier+keycode", "Description"])
 		for k, v in layout.iteritems():
-			mod, keycode = v
+			mod, keycode, isocode = v
 			try:
 				des = unicodedata.name(unichr(k))
 			except:
 				des = "No Data"
-			table.append([unichr(k), k, mod + " " + keycode, des])
+			table.append([unichr(k), k, "+".join(mod) + " " + str(keycode), des])
 		for row in table:
-			print("{0: <5} {1: >15} {2: >20} {3: >10}".format(*row))
+			print("{0: <5} {1: >15} {2: >20} {3: >40}".format(*row))
 
 
 	def raw_layouts(self):
@@ -364,7 +362,7 @@ cldr.parse_cldr_xml()
 #cldr.show_platforms()
 #cldr.show_layouts(1) # osx
 #
-#cldr.show_lut(1, 30) # German
+cldr.show_lut("windows", "French") # French
 #
 #cldr.show_stats()
 
