@@ -12,6 +12,8 @@
 #include "sh1122.h"
 #include "utils.h"
 #include "main.h"
+/* Device state changed bool */
+BOOL logic_device_state_changed = FALSE;
 
 
 /*! \fn     logic_device_activity_detected(void)
@@ -88,4 +90,23 @@ void logic_device_bundle_update_end(BOOL from_debug_messages)
             // TODO3
         }
     }
+}
+
+/*! \fn     logic_device_set_state_changed(void)
+*   \brief  Function called whenever the device state has changed
+*/
+void logic_device_set_state_changed(void)
+{
+    logic_device_state_changed = TRUE;
+}
+
+
+/*! \fn     logic_device_get_state_changed_and_reset_bool(void)
+*   \brief  Fetch and reset state changed bool
+*/
+BOOL logic_device_get_state_changed_and_reset_bool(void)
+{
+    BOOL return_val = logic_device_state_changed;
+    logic_device_state_changed = FALSE;
+    return return_val;
 }

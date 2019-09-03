@@ -26,6 +26,51 @@
 #include "rng.h"
 
 
+/*! \fn     comms_hid_msgs_fill_get_status_message_answer(uint16_t* msg_array_uint16)
+*   \brief  Fill an array with the answer to the HID get_status message
+*   \param  msg_array_uint16    4 bytes long array where the answer should be stored
+*   \return payload size
+*/
+uint16_t comms_hid_msgs_fill_get_status_message_answer(uint16_t* msg_array_uint16)
+{
+    uint8_t* msg_array_uint8 = (uint8_t*)msg_array_uint16;
+    msg_array_uint16[1] = 0x0000;
+    msg_array_uint16[0] = 0x0000;
+    
+    // Last bit: is card inserted
+    if (smartcard_low_level_is_smc_absent() != RETURN_OK)
+    {
+        msg_array_uint8[0] |= 0x01;
+    }
+    // Unlocking screen 0x02: not implemented on this device
+    // Smartcard unlocked
+    if (logic_security_is_smc_inserted_unlocked() != FALSE)
+    {
+        msg_array_uint8[0] |= 0x04;
+    }
+    // Unknown card
+    if (gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_UNKNOWN)
+    {
+        msg_array_uint8[0] |= 0x08;
+    }
+    // Management mode (useful when dealing with multiple interfaces)
+    if (logic_security_is_management_mode_set() != FALSE)
+    {
+        msg_array_uint8[0] |= 0x10;
+    }
+    
+    /* If user logged in, send user security preferences */
+    if (logic_security_is_smc_inserted_unlocked() != FALSE)
+    {
+        msg_array_uint16[1] = logic_user_get_user_security_flags();
+        return 4;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
 /*! \fn     comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type)
 *   \brief  Parse an incoming message from USB or BLE
 *   \param  rcv_msg                 Received message
@@ -102,46 +147,10 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
 
         case HID_CMD_GET_DEVICE_STATUS:
         {
-            /* Get device status */
-            send_msg->payload[0] = 0x00;
-            
-            // Last bit: is card inserted
-            if (smartcard_low_level_is_smc_absent() != RETURN_OK)
-            {
-                send_msg->payload[0] |= 0x01;
-            }
-            // Unlocking screen 0x02: not implemented on this device
-            // Smartcard unlocked
-            if (logic_security_is_smc_inserted_unlocked() != FALSE)
-            {
-                send_msg->payload[0] |= 0x04;
-            }
-            // Unknown card
-            if (gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_UNKNOWN)
-            {
-                send_msg->payload[0] |= 0x08;
-            }
-            // Management mode (useful when dealing with multiple interfaces)
-            if (logic_security_is_management_mode_set() != FALSE)
-            {
-                send_msg->payload[0] |= 0x10;
-            }
-            
-            /* If user logged in, send user security preferences */
-            if (logic_security_is_smc_inserted_unlocked() != FALSE)
-            {
-                send_msg->payload_as_uint16[1] = logic_user_get_user_security_flags();
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload_length = 4;
-                return 4;
-            }
-            else
-            {
-                /* Send the status */
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload_length = 1;
-                return 1;                
-            }
+            /* Get device status: call dedicated function */
+            send_msg->payload_length = comms_hid_msgs_fill_get_status_message_answer(send_msg->payload_as_uint16);
+            send_msg->message_type = rcv_message_type;
+            return send_msg->payload_length;
         }
         
         case HID_CMD_ID_PLAT_INFO:
@@ -493,9 +502,12 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         }
         
         case HID_CMD_END_MMM:
-        {
+        {            
             if (logic_security_is_management_mode_set() != FALSE)
             {
+                /* Device state is going to change... */
+                logic_device_set_state_changed();
+                
                 /* Clear bool */
                 logic_device_activity_detected();
                 logic_security_clear_management_mode();
@@ -514,13 +526,16 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         }
         
         case HID_CMD_START_MMM:
-        {
+        {            
             /* Smartcard unlocked? */
             if (logic_security_is_smc_inserted_unlocked() != FALSE)
             {                
                 /* Prompt the user */
                 if (gui_prompts_ask_for_one_line_confirmation(ID_STRING_ENTER_MMM, TRUE) == MINI_INPUT_RET_YES)
                 {
+                    /* Device state is going to change... */
+                    logic_device_set_state_changed();
+                    
                     if ((logic_user_get_user_security_flags() & USER_SEC_FLG_PIN_FOR_MMM) != 0)
                     {
                         /* As the following call takes a little while, cheat */

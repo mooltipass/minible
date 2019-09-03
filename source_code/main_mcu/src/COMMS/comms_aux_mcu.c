@@ -83,6 +83,20 @@ void comms_aux_mcu_send_simple_command_message(uint16_t command)
     comms_aux_mcu_send_message(FALSE);
 }
 
+/*! \fn     comms_aux_mcu_update_device_status_buffer(void)
+*   \brief  Update the device status buffer on the aux MCU
+*/
+void comms_aux_mcu_update_device_status_buffer(void)
+{
+    comms_aux_mcu_wait_for_message_sent();
+    memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
+    aux_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;
+    aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.main_mcu_command_message.command) + 4;
+    comms_hid_msgs_fill_get_status_message_answer(aux_mcu_send_message.main_mcu_command_message.payload_as_uint16);
+    aux_mcu_send_message.main_mcu_command_message.command = MAIN_MCU_COMMAND_UPDT_DEV_STAT;
+    comms_aux_mcu_send_message(FALSE);    
+}
+
 /*! \fn     comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type)
 *   \brief  Get an empty message ready to be sent
 *   \param  message_pt_pt           Pointer to where to store message pointer
@@ -151,8 +165,8 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
     
     /* Prepare ping message and send it */
     comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PING_WITH_INFO);
-    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ping_with_info_message.place_holder);
-    temp_tx_message_pt->ping_with_info_message.place_holder = 0xBEEF;
+    comms_hid_msgs_fill_get_status_message_answer(temp_tx_message_pt->ping_with_info_message.initial_device_status_value);
+    temp_tx_message_pt->payload_length1 = sizeof(ping_with_info_message_t);
     comms_aux_mcu_send_message(TRUE);
     
     /* Wait for answer: no need to parse answer as filter is done in comms_aux_mcu_active_wait */

@@ -11,6 +11,7 @@
 #include "gui_dispatcher.h"
 #include "logic_security.h"
 #include "driver_timer.h"
+#include "logic_device.h"
 #include "gui_prompts.h"
 #include "platform_io.h"
 #include "logic_user.h"
@@ -384,7 +385,7 @@ RET_TYPE logic_smartcard_remove_card_and_reauth_user(void)
 *   \return success or not
 */
 RET_TYPE logic_smartcard_clone_card(volatile uint16_t* pincode)
-{
+{    
     // Temp buffers to store AZ1 & AZ2
     uint8_t temp_az1[SMARTCARD_AZ_BIT_LENGTH/8];
     uint8_t temp_az2[SMARTCARD_AZ_BIT_LENGTH/8];    
@@ -419,6 +420,9 @@ RET_TYPE logic_smartcard_clone_card(volatile uint16_t* pincode)
     // Check that we have a blank card
     if (smartcard_highlevel_card_detected_routine() != RETURN_MOOLTIPASS_BLANK)
     {
+        /* Device state has changed */
+        logic_device_set_state_changed();
+        
         return RETURN_NOK;
     }
     

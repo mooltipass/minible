@@ -34,6 +34,7 @@
 #define MAIN_MCU_COMMAND_DISABLE_BLE    0x0007
 #define MAIN_MCU_COMMAND_DETACH_USB     0x0008
 #define MAIN_MCU_COMMAND_FUNC_TEST      0x0009
+#define MAIN_MCU_COMMAND_UPDT_DEV_STAT  0x000A
 
 // Debug MCU commands
 #define MAIN_MCU_COMMAND_TX_SWEEP_SGL   0x1000
@@ -69,7 +70,11 @@ typedef struct
 typedef struct  
 {
     uint16_t command;
-    uint8_t payload[];
+    union
+    {
+        uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)];
+        uint16_t payload_as_uint16[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t))/2];
+    };
 } main_mcu_command_message_t;
 
 typedef struct  
@@ -87,7 +92,7 @@ typedef struct
 
 typedef struct  
 {
-    uint16_t place_holder;
+    uint16_t initial_device_status_value[2];
 } ping_with_info_message_t;
 
 typedef struct
@@ -104,6 +109,7 @@ typedef struct
         nimh_charge_message_t nimh_charge_message;
         hid_message_t hid_message;
         uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH];
+        uint16_t payload_as_uint16[AUX_MCU_MSG_PAYLOAD_LENGTH/2];
         uint32_t payload_as_uint32[AUX_MCU_MSG_PAYLOAD_LENGTH/4];    
     };
     uint16_t payload_length2;
@@ -123,6 +129,7 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
 aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void);
 void comms_aux_mcu_send_simple_command_message(uint16_t command);
 void comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void);
+void comms_aux_mcu_update_device_status_buffer(void);
 void comms_aux_mcu_send_message(BOOL wait_for_send);
 RET_TYPE comms_aux_mcu_send_receive_ping(void);
 void comms_aux_mcu_wait_for_message_sent(void);

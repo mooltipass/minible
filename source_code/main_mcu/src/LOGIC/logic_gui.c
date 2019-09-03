@@ -179,6 +179,9 @@ void logic_gui_change_pin(void)
 */
 void logic_gui_erase_user(void)
 {
+    /* Device state is going to change... */
+    logic_device_set_state_changed();
+    
     /* Delete user profile */
     if ((gui_prompts_ask_for_one_line_confirmation(DELETE_USER_TEXT_ID, FALSE) == MINI_INPUT_RET_YES) && (logic_smartcard_remove_card_and_reauth_user() == RETURN_OK) && (gui_prompts_ask_for_one_line_confirmation(DELETE_USER_CONF_TEXT_ID, FALSE) == MINI_INPUT_RET_YES))
     {

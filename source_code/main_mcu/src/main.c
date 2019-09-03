@@ -498,6 +498,7 @@ int main(void)
             if (card_detection_res == RETURN_JDETECT)
             {
                 /* Light up the Mooltipass and call the dedicated function */
+                logic_device_set_state_changed();
                 logic_device_activity_detected();
                 logic_smartcard_handle_inserted();
             }
@@ -506,6 +507,7 @@ int main(void)
                 /* Light up the Mooltipass and call the dedicated function */
                 logic_device_activity_detected();
                 logic_smartcard_handle_removed();
+                logic_device_set_state_changed();
 
                 /* Lock shortcut, if enabled */
                 /*if ((mp_lock_unlock_shortcuts != FALSE) && ((getMooltipassParameterInEeprom(LOCK_UNLOCK_FEATURE_PARAM) & LF_WIN_L_SEND_MASK) != 0))
@@ -547,6 +549,12 @@ int main(void)
         if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor) != FALSE)
         {
             rng_feed_from_acc_read();
+        }
+        
+        /* Device state changed, inform aux MCU so it can update its buffer */
+        if (logic_device_get_state_changed_and_reset_bool() != FALSE)
+        {
+            comms_aux_mcu_update_device_status_buffer();
         }
         
         /* Get current smartcard detection result */
