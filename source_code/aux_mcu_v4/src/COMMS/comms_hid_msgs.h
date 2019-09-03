@@ -15,7 +15,8 @@
 #define HID_1BYTE_ACK       0x01
 
 /* Command defines */
-#define HID_CMD_ID_PING     0x0001
+#define HID_CMD_ID_PING             0x0001
+#define HID_CMD_GET_DEVICE_STATUS   0x0011
 
 /* Debug command defines */
 #define HID_CMD_ID_DEBUG_MSG    0x8000

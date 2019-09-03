@@ -223,7 +223,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             }
             case MAIN_MCU_COMMAND_PING:
             {
-                /* Resend same message, not used anymore */
+                /* Resend same message, not used anymore, obsolete */
                 comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
                 break;
             }
@@ -378,6 +378,12 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* Send functional test result */
                 comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));      
                 break;          
+            }
+            case MAIN_MCU_COMMAND_UPDT_DEV_STAT:
+            {
+                /* Update device status buffer */
+                comms_raw_hid_update_device_status_cache(message->main_mcu_command_message.payload);
+                break;
             }
             default:
             {

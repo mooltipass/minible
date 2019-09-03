@@ -33,9 +33,20 @@ volatile BOOL comms_raw_hid_packet_received[NB_HID_INTERFACES] = {FALSE, FALSE};
 volatile BOOL comms_raw_hid_packet_receive_length[NB_HID_INTERFACES] = {0, 0};
 /* Set when we just got enumerated */
 volatile BOOL comms_usb_just_enumerated = FALSE;
+/* Device status cache so we don't need to query main mcu */
+uint8_t comms_hid_device_status_cache[4];
 /* Set when we are enumerated */
 BOOL comms_usb_enumerated = FALSE;
 
+
+/*! \fn     comms_raw_hid_update_device_status_cache(uint8_t* buffer)
+*   \brief  Update device status cache
+*   \param  buffer  4 bytes buffer containing device status
+*/
+void comms_raw_hid_update_device_status_cache(uint8_t* buffer)
+{
+    memcpy(comms_hid_device_status_cache, buffer, sizeof(comms_hid_device_status_cache));
+}
 
 /*! \fn     comms_raw_hid_get_recv_buffer(hid_interface_te hid_interface)
 *   \brief  Get the pointer to a receive buffer
@@ -330,7 +341,21 @@ void comms_usb_communication_routine(void)
                 
                 /* Prepare and send message to main MCU */
                 comms_raw_hid_temp_mcu_message_to_send[hid_interface].payload_length1 = comms_raw_hid_temp_mcu_message_fill_index[hid_interface];
-                comms_main_mcu_send_message(&comms_raw_hid_temp_mcu_message_to_send[hid_interface], (uint16_t)sizeof(comms_raw_hid_temp_mcu_message_to_send[0]));
+                
+                /* Check for special case were the device status is requested: send local cache instead */
+                if (comms_raw_hid_temp_mcu_message_to_send[hid_interface].hid_message.message_type == HID_CMD_GET_DEVICE_STATUS)
+                {
+                    comms_raw_hid_temp_mcu_message_to_send[hid_interface].hid_message.payload_length = sizeof(comms_hid_device_status_cache);
+                    memcpy(comms_raw_hid_temp_mcu_message_to_send[hid_interface].hid_message.payload, comms_hid_device_status_cache, sizeof(comms_hid_device_status_cache));
+                    comms_raw_hid_temp_mcu_message_to_send[hid_interface].payload_length1 = sizeof(comms_raw_hid_temp_mcu_message_to_send[hid_interface].hid_message.message_type) + sizeof(comms_raw_hid_temp_mcu_message_to_send[hid_interface].hid_message.payload_length) + comms_raw_hid_temp_mcu_message_to_send[hid_interface].hid_message.payload_length;
+                    comms_raw_hid_send_hid_message(hid_interface, &comms_raw_hid_temp_mcu_message_to_send[hid_interface]);
+                } 
+                else
+                {
+                    comms_main_mcu_send_message(&comms_raw_hid_temp_mcu_message_to_send[hid_interface], (uint16_t)sizeof(comms_raw_hid_temp_mcu_message_to_send[0]));
+                }                
+                
+                /* Rearm hid interface */
                 comms_raw_hid_arm_packet_receive(hid_interface);
                 
                 /* Reset vars */

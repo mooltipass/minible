@@ -38,6 +38,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define MAIN_MCU_COMMAND_DISABLE_BLE    0x0007
 #define MAIN_MCU_COMMAND_DETACH_USB     0x0008
 #define MAIN_MCU_COMMAND_FUNC_TEST      0x0009
+#define MAIN_MCU_COMMAND_UPDT_DEV_STAT  0x000A
 
 // Debug MCU commands
 #define MAIN_MCU_COMMAND_TX_SWEEP_SGL   0x1000
@@ -79,7 +80,11 @@ typedef struct
 typedef struct  
 {
     uint16_t event_id;
-    uint8_t payload[];
+    union
+    {
+        uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)];
+        uint16_t payload_as_uint16[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t))/2];
+    };
 } aux_mcu_event_message_t;
 
 typedef struct  
