@@ -1,18 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import os
-import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
 from lxml import objectify
 from pprint import pprint
 from lxml import etree
 import unicodedata
 import statistics
+import sys
 import re
+import os
 
 # Set the directory that you extract the cldr keyboards zip file here
-CLDR_KEYBOARDS_BASE_PATH = "cldr-keyboards-35.1/keyboards"
+CLDR_KEYBOARDS_BASE_PATH = os.path.join("cldr-keyboards-35.1", "keyboards")
 # the platform filename in the cldr, contains HID code to physical key code LUT
 PLATFORM_FILENAME = "_platform.xml"
 
@@ -27,8 +25,7 @@ keys_map = {'ctrlL': 	1 << 0,
 			'ctrlR':	1 << 4,
 			'shiftR':	1 << 5,
 			'altR':		1 << 6,
-			'cmdR':		1 << 7
-			}
+			'cmdR':		1 << 7}
 
 # This class contains a simple parser for the cldr keyboard files. 
 # The main data structure that we get as a result is 'layouts'
@@ -65,12 +62,13 @@ class CLDR():
 
 			# we know there's the hid map, we open it and check for the hardwareMap keywoard
 			platfile = os.path.join(directory, PLATFORM_FILENAME)
-			pobj = objectify.fromstring(open(platfile, "r").read())
+			pobj = etree.parse(platfile).getroot()
 			map = pobj.find('hardwareMap')
 			
 			if map is not None:
 				# generate iso to keycode LUT
-				iso_to_keycode = {i.attrib.get('iso'): i.attrib.get('keycode') for i in pobj.hardwareMap.getchildren()}
+				iso_to_keycode = {i.attrib.get('iso'): i.attrib.get('keycode') for i in map.getchildren()}
+				#print(iso_to_keycode)
 				
 				# extract platform name
 				platform_name = pobj.attrib.get('id')
@@ -86,16 +84,17 @@ class CLDR():
 					if f != PLATFORM_FILENAME:
 						# open keyboard file
 						keyb_file = os.path.join(directory, f)
-						obj = objectify.fromstring(open(keyb_file, "r").read())
+						obj = etree.parse(keyb_file).getroot()
 						
 						# get layout name
 						layout_name = obj.find('names').find('name').attrib.get('value')
+						#print("Parsing layout " + layout_name + " on platform " + platform_name + ", file " + f)
 
-						# get maps
-						maps = obj.find('keyMap')
-						for m in maps:
+						# Iterate over the keymaps
+						for m in obj.iter("keyMap"):
 							# get modifier keys, check for caps lock
 							caps, mf = self.get_modifier_keys(m.attrib.get('modifiers'))
+							#print(m.attrib.get('modifiers'))
 							
 							# we don't support characters that require caps lock
 							# if some other combination can also yield this key, caps will be false.
@@ -117,9 +116,9 @@ class CLDR():
 									
 								# Debug
 								if False:
-									print "locale", obj.attrib.get('locale')
-									print "modifier", mf
-									print "iso", c.attrib.get('iso')
+									print("locale", obj.attrib.get('locale'))
+									print("modifier", mf)
+									print("iso", c.attrib.get('iso'))
 
 								# Get glyphs and points for the "to" attribute
 								glyphs, points = self.parse_to_attrib(c.attrib.get('to'), obj.attrib.get('locale'), mf, c.attrib.get('iso'))
@@ -131,44 +130,47 @@ class CLDR():
 								#	print ""
 								
 								# Check for a single point: more than one point come from a bad python it seems (arabic, myanmar....)
-								if len(points) == 1:
+								if len(points) == 1 and points[0] > 0x20:
 									if layout_name not in self.layouts[platform_name].keys():
 										self.layouts[platform_name][layout_name] = {} # unicode point -> set(modifier hex byte, keycode hex byte)
 										
 									# check for presence in dictionary 
 									if points[0] in self.layouts[platform_name][layout_name]:
 										if False and obj.attrib.get('locale') == "fr-t-k0-windows":
-											print glyphs, "-", points[0], "mapped to", mf, int(keycode), c.attrib.get('iso'), "already present in our dictionary:", self.layouts[platform_name][layout_name][points[0]][0], self.layouts[platform_name][layout_name][points[0]][1], self.layouts[platform_name][layout_name][points[0]][2]
+											print(glyphs, "-", points[0], "mapped to", mf, int(keycode), c.attrib.get('iso'), "already present in our dictionary:", self.layouts[platform_name][layout_name][points[0]][0], self.layouts[platform_name][layout_name][points[0]][1], self.layouts[platform_name][layout_name][points[0]][2]) 
 									else:
 										self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'))
 								else:
 									if False:
-										print "multiple points"
-										print "locale", obj.attrib.get('locale')
-										print "modifier", mf
-										print "glyphs", glyphs
-										print "points", points
-										print "iso", c.attrib.get('iso')
+										print("multiple points")
+										print("locale", obj.attrib.get('locale'))
+										print("modifier", mf)
+										print("glyphs", glyphs)
+										print("points", points)
+										print("iso", c.attrib.get('iso'))
 										#print "to", unicode(c.attrib.get('to'))
-										print ""
+										print("")
 						
 						# print our LUT, debug
 						if False and obj.attrib.get('locale') == "fr-t-k0-windows":
 							for key in sorted(self.layouts[platform_name][layout_name]):
-								print hex(key)
+								print(hex(key))
 								pprint(self.layouts[platform_name][layout_name][key])
-								print ""
+								print("")
 							#pprint(self.layouts[platform_name][layout_name])
 							#sys.exit(0)
-							print ""
-							print ""
+							print("")
+							print("")
 							
 						# print intervals, debug
 						if False and obj.attrib.get('locale') == "fr-t-k0-windows":
-							print self.get_unicode_intervals(self.layouts[platform_name][layout_name], 100)
+							print(self.get_unicode_intervals(self.layouts[platform_name][layout_name], 100))
 						if False:
-							print len(self.get_unicode_intervals(self.layouts[platform_name][layout_name], 100))
-							print obj.attrib.get('locale'), self.get_unicode_intervals(self.layouts[platform_name][layout_name], 100)
+							print(len(self.get_unicode_intervals(self.layouts[platform_name][layout_name], 100)))
+							print(obj.attrib.get('locale'), self.get_unicode_intervals(self.layouts[platform_name][layout_name], 100))
+							
+						if False:
+							sys.exit(0)
 
 							
 	# print unicode values intervals for a given max interval
@@ -235,59 +237,56 @@ class CLDR():
 		return desc
 
 	def parse_to_attrib(self, glyph, locale, modifier, iso):
-		''' 
-		this just handles the odd formatting in the 'to' attribute on the xml.
-		They mix xmlencoded and actual unicode, and also the code point
-		encoded with a \u{...} notation.
-
-		Returns: list of glyps, list of code point ints
-		'''		
+		# this just handles the odd formatting in the 'to' attribute on the xml.
+		# They mix xmlencoded and actual unicode, and also the code point
+		# encoded with a \u{...} notation.
+        # 
+		# Returns: list of glyps, list of code point ints
+		#print("Dealing with char " + glyph + " with modifier " + " ".join(modifier))
+		
 		# find all the \u{...} notation characters
 		myre = re.compile(r"\\u\{([A-F0-7]*[^\}])", re.UNICODE)
 		matches = myre.findall(glyph)
 		wordlist = []
 		if len(matches):
 			for m in matches:
-				mt = "\u{" + m + "}"
+				mt = "\\u{" + m + "}"
 				m = int(m, 16)
 				loc = glyph.find(mt)
 				if loc > 0:
 					for c in glyph[0:loc]:
 						wordlist.append(c)
 					glyph = glyph[loc:]
-				wordlist.append(unichr(m))
+				wordlist.append(chr(m))
+				glyph_copy = glyph
 				glyph = glyph[len(mt):]
+			#print(glyph_copy + " converted to " + " ".join(wordlist))
 		else:
 			wordlist = [c for c in glyph]
 
 		glyphs = []
 		points = []
-		glyph = unicode(glyph)
 		for c in wordlist:
-			if type(c) == unicode:
+			try:
 				point = ord(c)
-				glyph = unichr(point)	
-			else:
-				glyph = unicode(glyph)
-				try:
-					point = ord(glyph)
-				except:
-					if False:
-						print "error getting ord of", glyph
-						print "main reason: multiple keys"
-						print "locale", locale
-						print "modifier", modifier
-						print "iso", iso
-						print ""
-					point = ord("-")
-			glyphs.append(glyph)
+			except:
+				if True:
+					print("error getting ord of", c)
+					print("main reason: multiple keys")
+					print("locale", locale)
+					print("modifier", modifier)
+					print("iso", iso)
+					print("")
+					sys.exit(0)
+				point = ord("-")
+			glyphs.append(c)
 			points.append(point)
 
 		return glyphs, points
 
 	def show_platforms(self):
 		for k, v in self.layouts.iteritems():
-			print self.layouts.keys().index(k), k
+			print(self.layouts.keys().index(k), k)
 		
 
 	def show_layouts(self, platform):
@@ -295,7 +294,7 @@ class CLDR():
 		layouts = self.layouts[platform_name]
 			
 		for k, v in layouts.iteritems():
-			print layouts.keys().index(k), k
+			print(layouts.keys().index(k), k)
 
 
 	def show_lut(self, platform_name, layout_name):
@@ -303,13 +302,13 @@ class CLDR():
 		layout = layouts[layout_name]
 		table = []
 		table.append(["Glyph", "Unicode", "modifier+keycode", "Description"])
-		for k, v in layout.iteritems():
-			mod, keycode, isocode = v
+		for key in layout:
+			mod, keycode, isocode = layout[key]
 			try:
-				des = unicodedata.name(unichr(k))
+				des = unicodedata.name(chr(key))
 			except:
 				des = "No Data"
-			table.append([unichr(k), k, "+".join(mod) + " " + str(keycode), des])
+			table.append([chr(key), key, "+".join(mod) + " " + str(keycode), des])
 		for row in table:
 			print("{0: <5} {1: >15} {2: >20} {3: >40}".format(*row))
 
@@ -331,29 +330,27 @@ class CLDR():
 	def show_stats(self):
 		layouts, points = self.raw_layouts()
 
-		print "Showing stats for %s layouts." % len(layouts)
-		print "Maximum number of characters in a layout: %s" % max([len(ldict) for ldict in layouts])
-		print "Mean number of characters in a layout: %s" % statistics.mean([len(ldict) for ldict in layouts])
-		print "Median number of characters in a layout: %s" % statistics.median([len(ldict) for ldict in layouts])
-		print "Now... assuming 2 byte for unicode, 2 bytes for hid (modifier+keycode):"
-		print "All maps add up to %s Bytes" % sum([len(ldict) * 4  for ldict in layouts])
-		print "Average map size is %s Bytes" % (statistics.mean([len(ldict) for ldict in layouts]) * 4)
-		print "\nUnique unicode characters is %s" % len(points)
+		print("Showing stats for %s layouts." % len(layouts))
+		print("Maximum number of characters in a layout: %s" % max([len(ldict) for ldict in layouts]))
+		print("Mean number of characters in a layout: %s" % statistics.mean([len(ldict) for ldict in layouts]))
+		print("Median number of characters in a layout: %s" % statistics.median([len(ldict) for ldict in layouts]))
+		print("Now... assuming 2 byte for unicode, 2 bytes for hid (modifier+keycode):")
+		print("All maps add up to %s Bytes" % sum([len(ldict) * 4  for ldict in layouts]))
+		print("Average map size is %s Bytes" % (statistics.mean([len(ldict) for ldict in layouts]) * 4))
+		print("\nUnique unicode characters is %s" % len(points))
 
 		npoints = set()
 		for p in points:
 			npoints = npoints.union(set(unicodedata.normalize('NFKD', unichr(p))))
 
-		print "\nNormalizing those unique unicode characters via "
-		print "the normal form KD (NFKD) will apply the compatibility "
-		print " decomposition.  The code points can be represented with "
-		print " %s unique glyph images." % len(npoints)
+		print("\nNormalizing those unique unicode characters via ")
+		print("the normal form KD (NFKD) will apply the compatibility ")
+		print(" decomposition.  The code points can be represented with ")
+		print(" %s unique glyph images." % len(npoints))
 
 
-
-
-# example usage below.
-
+# First action is to parse...
+print("Parsing CLDR files...")
 cldr = CLDR()
 cldr.parse_cldr_xml()
 
