@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from iso_to_hid_lut import *
 from lxml import objectify
 from pprint import pprint
 from lxml import etree
@@ -14,9 +15,9 @@ CLDR_KEYBOARDS_BASE_PATH = os.path.join("cldr-keyboards-35.1", "keyboards")
 # the platform filename in the cldr, contains HID code to physical key code LUT
 PLATFORM_FILENAME = "_platform.xml"
 
-# These are the HID modifier keys.  We create a single byte value
+# These are the HID modifier keys.	We create a single byte value
 # with the combination of the modifier keys pressed.
-keys_map = {'ctrlL': 	1 << 0,
+keys_map = {'ctrlL':	1 << 0,
 			'shiftL':	1 << 1,
 			'shift':	1 << 1,
 			'atlL':		1 << 2,
@@ -33,11 +34,11 @@ class CLDR():
 	def __init__(self):
 		
 		# The format of the layouts.
-		#     A dictonary:
+		#	  A dictonary:
 		#		Key: Name of the platform
 		#		Value: Layout dictionary
 		#	  Layout Dictonary:
-		#	 	Key: Name of the layout
+		#		Key: Name of the layout
 		#		Value: Unicode to hid dictonary
 		#	  Unicode to hid dictonary:
 		#		Key: unicode point (integer)
@@ -108,6 +109,7 @@ class CLDR():
 
 								# hid keycode
 								keycode = iso_to_keycode.get(c.attrib.get('iso'))
+								hidcode = iso_to_hid_dic[c.attrib.get('iso')]
 
 								# If no keycode can be found, we can't type it, so it gets skipped.
 								# Only known case for this in CLDR 32, is chromeos iso code C12.
@@ -130,16 +132,16 @@ class CLDR():
 								#	print ""
 								
 								# Check for a single point: more than one point come from a bad python it seems (arabic, myanmar....)
-								if len(points) == 1 and points[0] > 0x20:
+								if len(points) == 1 and points[0] >= 0x20:
 									if layout_name not in self.layouts[platform_name].keys():
 										self.layouts[platform_name][layout_name] = {} # unicode point -> set(modifier hex byte, keycode hex byte)
 										
 									# check for presence in dictionary 
-									if points[0] in self.layouts[platform_name][layout_name]:
+									if points[0] in self.layouts[platform_name][layout_name] and len(self.layouts[platform_name][layout_name][points[0]][0]) < len(mf):
 										if False and obj.attrib.get('locale') == "fr-t-k0-windows":
 											print(glyphs, "-", points[0], "mapped to", mf, int(keycode), c.attrib.get('iso'), "already present in our dictionary:", self.layouts[platform_name][layout_name][points[0]][0], self.layouts[platform_name][layout_name][points[0]][1], self.layouts[platform_name][layout_name][points[0]][2]) 
 									else:
-										self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'))
+										self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'), hidcode)
 								else:
 									if False:
 										print("multiple points")
@@ -240,7 +242,7 @@ class CLDR():
 		# this just handles the odd formatting in the 'to' attribute on the xml.
 		# They mix xmlencoded and actual unicode, and also the code point
 		# encoded with a \u{...} notation.
-        # 
+		# 
 		# Returns: list of glyps, list of code point ints
 		#print("Dealing with char " + glyph + " with modifier " + " ".join(modifier))
 		
@@ -297,21 +299,58 @@ class CLDR():
 			print(layouts.keys().index(k), k)
 
 
-	def show_lut(self, platform_name, layout_name):
+	def show_lut(self, platform_name, layout_name, debug_print):
 		layouts = self.layouts[platform_name]
 		layout = layouts[layout_name]
+		sorted_keys = sorted(layout)
 		table = []
-		table.append(["Glyph", "Unicode", "modifier+keycode", "Description"])
-		for key in layout:
-			mod, keycode, isocode = layout[key]
+		glyphs = ""
+		table.append(["Glyph", "Unicode", "HID code", "modifier+isocode", "modifier+scancode", "Description"])
+		for key in sorted_keys:
+			mod, keycode, isocode, hidcode = layout[key]
 			try:
 				des = unicodedata.name(chr(key))
 			except:
 				des = "No Data"
-			table.append([chr(key), key, "+".join(mod) + " " + str(keycode), des])
-		for row in table:
-			print("{0: <5} {1: >15} {2: >20} {3: >40}".format(*row))
-
+			table.append([chr(key), key, f"{hidcode:#0{4}x}", "+".join(mod) + " " + str(isocode),"+".join(mod) + " " + str(keycode), des])
+			glyphs+=chr(key)
+		if debug_print:
+			for row in table:
+				print("{0: >10} {1: >10} {2: >10} {3: >20} {4: >20} {5: >40}".format(*row))			
+			print("\r\nAll glyphs:\r\n" + ''.join(sorted(glyphs)))
+		
+		# Part below is to compare with mooltipass mini storage
+		mini_lut_array_bin = []
+		if debug_print:
+			print("\r\nMooltipass Mini Old LUT:")
+		mini_modifier_map = {	'ctrlL':	0x00,
+								'shiftL':	0x80,
+								'shift':	0x80,
+								'atlL':		0x40,
+								'opt':		0x00,
+								'cmd':		0x00,
+								'ctrlR':	0x00,
+								'shiftR':	0x80,
+								'altR':		0x40,
+								'cmdR':		0x00}	
+		mini_lut = ""
+		for key in sorted_keys:
+			mod, keycode, isocode, hidcode = layout[key]
+			modifier_mask = 0x00
+			for modifier in mod:
+				modifier_mask |= mini_modifier_map[modifier]
+			# Europe key hack
+			if hidcode == 0x64:
+				hidcode = 0x03
+			# Apply modifier mask
+			hidcode |= modifier_mask
+			mini_lut += f"{hidcode:#0{4}x} "
+			mini_lut_array_bin.append(hidcode)
+		if debug_print:
+			print(mini_lut)
+		
+		# Return dictionary
+		return {"mini_lut_bin": mini_lut_array_bin, "covered_glyphs":glyphs}
 
 	def raw_layouts(self):
 		layouts = []
@@ -345,7 +384,7 @@ class CLDR():
 
 		print("\nNormalizing those unique unicode characters via ")
 		print("the normal form KD (NFKD) will apply the compatibility ")
-		print(" decomposition.  The code points can be represented with ")
+		print(" decomposition.	The code points can be represented with ")
 		print(" %s unique glyph images." % len(npoints))
 
 
@@ -359,7 +398,30 @@ cldr.parse_cldr_xml()
 #cldr.show_platforms()
 #cldr.show_layouts(1) # osx
 #
-cldr.show_lut("windows", "French") # French
-#
-#cldr.show_stats()
+
+
+if True:
+	# Test code: compare LUT generated this way to an original file
+	mini_luts = ["18_EN_US_keyb_lut.img", "19_FR_FR_keyb_lut.img", "20_ES_ES_keyb_lut.img", "21_DE_DE_keyb_lut.img", "22_ES_AR_keyb_lut.img", "23_EN_AU_keyb_lut.img", "24_FR_BE_keyb_lut.img", "25_PO_BR_keyb_lut.img", "26_EN_CA_keyb_lut.img", "27_CZ_CZ_keyb_lut.img", "28_DA_DK_keyb_lut.img", "29_FI_FI_keyb_lut.img", "30_HU_HU_keyb_lut.img", "31_IS_IS_keyb_lut.img", "32_IT_IT_keyb_lut.img", "33_NL_NL_keyb_lut.img", "34_NO_NO_keyb_lut.img", "35_PO_PO_keyb_lut.img", "36_RO_RO_keyb_lut.img", "37_SL_SL_keyb_lut.img", "38_FRDE_CH_keyb_lut.img", "39_EN_UK_keyb_lut.img", "45_CA_FR_keyb_lut.img", "49_POR_keyb_lut.img", "51_CZ_QWERTY_keyb_lut.img", "52_EN_DV_keyb_lut.img"]
+	matching_cldr_names = ["US", "French", "Spanish", "German", "Latin American", "US", "Belgian French", "Portuguese (Brazil ABNT)", "Canadian Multilingual Standard", "Czech", "Danish", "Finnish", "Hungarian", "Icelandic", "Italian", "Dutch", "Norwegian", "Polish (Programmers)", "Romanian (Standard)", "Slovenian", "Swiss French", "Canadian Multilingual Standard", "Canadian French", "Portuguese", "Czech (QWERTY)", "United States-Dvorak"]
+
+	for lut, cldr_name in zip(mini_luts, matching_cldr_names):
+		print("\r\nTackling mini LUT " + lut + " with matching cldr name " + cldr_name)
+		output_dict = cldr.show_lut("windows", cldr_name, False)
+		print("Glyphs: " + output_dict["covered_glyphs"])
+		with open(os.path.join("mini_luts", lut), "rb") as f:
+			counter = 0
+			byte = f.read(1)
+			match_bool = True
+			while byte != b"":
+				if ord(byte) != output_dict["mini_lut_bin"][counter]:
+					print("Mismatch for character " + chr(0x20 + counter) + ", ord: " + hex(0x20 + counter) + ", cldr: " + hex(output_dict["mini_lut_bin"][counter]) + " lut: " + hex(ord(byte)))
+					match_bool = False
+				byte = f.read(1)
+				counter += 1
+		if match_bool:
+			print("Match!")
+		else:
+			print("No Match!")
+			#input("Confirm:")
 
