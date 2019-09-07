@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from mini_mooltipass_coms import *
 from iso_to_hid_lut import *
 from lxml import objectify
 from pprint import pprint
@@ -14,6 +15,8 @@ import os
 CLDR_KEYBOARDS_BASE_PATH = os.path.join("cldr-keyboards-35.1", "keyboards")
 # the platform filename in the cldr, contains HID code to physical key code LUT
 PLATFORM_FILENAME = "_platform.xml"
+# keycodes that can't be used in the mooltipass
+forbidden_isocodes = ["B11"]
 
 # These are the HID modifier keys.	We create a single byte value
 # with the combination of the modifier keys pressed.
@@ -114,6 +117,10 @@ class CLDR():
 								# If no keycode can be found, we can't type it, so it gets skipped.
 								# Only known case for this in CLDR 32, is chromeos iso code C12.
 								if keycode is None:
+									continue
+									
+								# Check for forbidden keycode
+								if c.attrib.get('iso') in forbidden_isocodes:
 									continue
 									
 								# Debug
@@ -408,13 +415,14 @@ cldr.parse_cldr_xml()
 if True:
 	# Test code: compare LUT generated this way to an original file
 	mini_luts = ["18_EN_US_keyb_lut.img", "19_FR_FR_keyb_lut.img", "20_ES_ES_keyb_lut.img", "21_DE_DE_keyb_lut.img", "22_ES_AR_keyb_lut.img", "23_EN_AU_keyb_lut.img", "24_FR_BE_keyb_lut.img", "25_PO_BR_keyb_lut.img", "26_EN_CA_keyb_lut.img", "27_CZ_CZ_keyb_lut.img", "28_DA_DK_keyb_lut.img", "29_FI_FI_keyb_lut.img", "30_HU_HU_keyb_lut.img", "31_IS_IS_keyb_lut.img", "32_IT_IT_keyb_lut.img", "33_NL_NL_keyb_lut.img", "34_NO_NO_keyb_lut.img", "35_PO_PO_keyb_lut.img", "36_RO_RO_keyb_lut.img", "37_SL_SL_keyb_lut.img", "38_FRDE_CH_keyb_lut.img", "39_EN_UK_keyb_lut.img", "45_CA_FR_keyb_lut.img", "49_POR_keyb_lut.img", "51_CZ_QWERTY_keyb_lut.img", "52_EN_DV_keyb_lut.img"]
-	matching_cldr_names = ["United States-International", "French", "Spanish", "German", "Latin American", "United States-International", "Belgian French", "Portuguese (Brazil ABNT2)", "Canadian Multilingual Standard", "Czech", "Danish", "Finnish", "Hungarian", "Icelandic", "Italian", "Dutch", "Norwegian", "Polish (Programmers)", "Romanian (Programmers)", "Slovenian", "Swiss French", "United Kingdom Extended", "Canadian French", "Portuguese", "Czech (QWERTY)", "United States-Dvorak"]
+	matching_cldr_names = ["United States-International", "French", "Spanish", "German", "Latin American", "United States-International", "Belgian French", "Portuguese (Brazil ABNT)", "Canadian Multilingual Standard", "Czech", "Danish", "Finnish", "Hungarian", "Icelandic", "Italian", "Dutch", "Norwegian", "Polish (Programmers)", "Romanian (Programmers)", "Slovenian", "Swiss French", "United Kingdom Extended", "Canadian French", "Portuguese", "Czech (QWERTY)", "United States-Dvorak"]
 
 	for lut, cldr_name in zip(mini_luts, matching_cldr_names):
 		print("\r\nTackling mini LUT " + lut + " with matching cldr name " + cldr_name)
 		output_dict = cldr.show_lut("windows", cldr_name, False)
 		print("Glyphs: " + output_dict["covered_glyphs"])
-		with open(os.path.join("mini_luts", lut), "rb") as f:
+		cldr_lut = []
+		with open("..\\..\\..\\mooltipass\\bitmaps\\mini\\" + lut, "rb") as f:
 			counter = 0
 			byte = f.read(1)
 			match_bool = True
@@ -422,11 +430,19 @@ if True:
 				if ord(byte) != output_dict["mini_lut_bin"][counter]:
 					print("Mismatch for character " + chr(0x20 + counter) + ", ord: " + hex(0x20 + counter) + ", cldr: " + hex(output_dict["mini_lut_bin"][counter]) + " lut: " + hex(ord(byte)))
 					match_bool = False
+				cldr_lut.append(output_dict["mini_lut_bin"][counter])
 				byte = f.read(1)
 				counter += 1
 		if match_bool:
 			print("Match!")
 		else:
 			print("No Match!")
+			print(cldr_lut)
 			#input("Confirm:")
+			
+		# Double checking with actual device
+		test_check = [' ','!','"','#','$','%','&','\'','(',')','*','+',',','-','.','/','0','1','2','3','4','5','6','7','8','9',':',';','<','=','>','?','@','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','[','\\',']','^','_','`','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','{','|','}','~']
+		input("Change computer layout and confirm:")		
+		if mini_check_lut(cldr_lut,test_check) == False:
+			print("Check failed!")
 
