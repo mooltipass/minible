@@ -1,5 +1,5 @@
 ## [](#header-1) Unicode Support and Keyboard Layouts  
-USB keyboards do not send characters to the computers they are connected to, but HID key codes. The computer OS is in charge of doing the HID key code to character conversion, depending on the user-selected layout.  
+USB keyboards do not send characters to the computers they are connected to, but HID key codes. The computer OS is in charge of performing HID key code to character conversion, depending on the user-selected layout.  
 The Mooltipass Mini BLE therefore needs to know which HID key codes to send for a given point.  
 This page shows the different supported glyphs for given layouts.
 
