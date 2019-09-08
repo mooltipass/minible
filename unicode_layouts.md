@@ -38,6 +38,28 @@ This page shows the different supported glyphs for given layouts.
 
 | Characteristics        | Contents |
 |:-----------------------|:---------|
+| CLDR file name         | de-t-k0-windows.xml |
+| CLDR layout name       | German |
+| Operating System       | Windows |
+| Matching layout        | German (Germany) |
+| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~§°²³´µÄÖÜßäöüẞ€ |
+| Unicode points         | 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 167 176 178 179 180 181 196 214 220 223 228 246 252 7838 8364 |
+| Glyphs from transforms | ÀÁÂÈÉÊÌÍÎÒÓÔÙÚÛÝàáâèéêìíîòóôùúûý |
+| Unicode points         | 192 193 194 200 201 202 204 205 206 210 211 212 217 218 219 221 224 225 226 232 233 234 236 237 238 242 243 244 249 250 251 253 |
+
+| Characteristics        | Contents |
+|:-----------------------|:---------|
+| CLDR file name         | es-419-t-k0-windows.xml |
+| CLDR layout name       | Latin American |
+| Operating System       | Windows |
+| Matching layout        | Spanish (Latin America) |
+| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~¡¨¬°´¿Ññ |
+| Unicode points         | 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 161 168 172 176 180 191 209 241 |
+| Glyphs from transforms | ÀÁÂÄÈÉÊËÌÍÎÏÒÓÔÖÙÚÛÜÝàáâäèéêëìíîïòóôöùúûüýÿ |
+| Unicode points         | 192 193 194 196 200 201 202 203 204 205 206 207 210 211 212 214 217 218 219 220 221 224 225 226 228 232 233 234 235 236 237 238 239 242 243 244 246 249 250 251 252 253 255 |
+
+| Characteristics        | Contents |
+|:-----------------------|:---------|
 | CLDR file name         |  |
 | CLDR layout name       |  |
 | Operating System       | Windows |
