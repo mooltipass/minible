@@ -39,7 +39,7 @@ def keyboardSend(data1, data2):
 	receiveHidPacket()
 	time.sleep(0.05)
 	
-def keyboardCheck(lut):
+def keyboardCheck(lut, transforms):
 	perfect_match = True
 	sorted_glyphs = sorted(lut)
 	for glyph in sorted_glyphs:
@@ -49,7 +49,22 @@ def keyboardCheck(lut):
 		if typed_glyph != glyph:
 			print(glyph + " doesn't match with typed " + typed_glyph)
 			perfect_match = False
-			input("confirm:")			
+			input("confirm:")		
+
+	print("Tackling transforms")
+	sorted_transforms = sorted(transforms)
+	for transform in sorted_transforms:
+		key_sequence = []
+		for glyph in transforms[transform]:
+			for lut_item in lut[glyph]:
+				# This script allows multiple lut items but the main script doesnt
+				key_sequence.append(lut_item)		
+		print("Transform glyph " + transform)
+		typed_glyph = keyboardTestKey(key_sequence)
+		if typed_glyph != transform:
+			print(transform + " doesn't match with typed " + typed_glyph)
+			perfect_match = False
+			input("confirm:")	
 	return perfect_match
 
 def keyboardTestKey(modifier_key_array):
@@ -272,7 +287,7 @@ def sendHidPacket(cmd, length, data):
 		# send data
 		data_sending_object.write(arraytosend)
 		
-def mini_check_lut(test_lut):
+def mini_check_lut(test_lut, test_transforms):
 	global data_receiving_object
 	global data_sending_object
 	
@@ -326,7 +341,7 @@ def mini_check_lut(test_lut):
 		sys.exit(0)
 	
 	#keyboardTest(data_sending_object)
-	return_val = keyboardCheck(test_lut)
+	return_val = keyboardCheck(test_lut, test_transforms)
 	
 	# Close device
 	if not using_pywinusb:

@@ -50,6 +50,7 @@ class CLDR():
 		# platform name -> {layout -> {unicode point -> HID Bytes (modifier(s), keycode)}
 		#
 		self.layouts = {}
+		self.transforms = {}
 
 		# The hardware map are ISO codes mapped to HID keycodes
 		#
@@ -81,6 +82,7 @@ class CLDR():
 				self.hardware_maps[platform_name] = iso_to_keycode
 				if platform_name not in self.layouts.keys():
 					self.layouts[platform_name] = {}
+					self.transforms[platform_name] = {}
 
 				# process each layout file
 				for f in filenames:
@@ -92,7 +94,34 @@ class CLDR():
 						
 						# get layout name
 						layout_name = obj.find('names').find('name').attrib.get('value')
-						print("Parsing layout " + layout_name + " on platform " + platform_name + ", file " + f)
+						#print("Parsing layout " + layout_name + " on platform " + platform_name + ", file " + f)
+									
+						# Create transform dictionary if not already created
+						if layout_name not in self.transforms[platform_name].keys():
+							self.transforms[platform_name][layout_name] = {}
+								
+						# Deal with transforms first
+						for m in obj.iter("transforms"):
+							transform_type = m.attrib.get('type')							
+							for c in m.getchildren():
+								# todo: figure out why every other node seems blank, xml parser thing?
+								if len(c.attrib) == 0:
+									continue
+									
+								# Extract and transform transformation
+								from_glyphs, to_glyphs = self.transform_from_to_transform(c.attrib.get('from'), c.attrib.get('to'))
+								#print("From " + from_glyphs + " to " + to_glyphs)
+								
+								# For example: deadkey before key transforms into key before deadkey... we skip them as we can still type them by knowing what is a deadkey
+								if len(to_glyphs) > 1:
+									continue
+									
+								# Yep... these exist...
+								if len(to_glyphs) == 0:
+									continue
+									
+								# Add transform
+								self.transforms[platform_name][layout_name][to_glyphs] = from_glyphs
 
 						# Iterate over the keymaps
 						for m in obj.iter("keyMap"):
@@ -148,7 +177,13 @@ class CLDR():
 										if False and obj.attrib.get('locale') == "fr-t-k0-windows":
 											print(glyphs, "-", points[0], "mapped to", mf, int(keycode), c.attrib.get('iso'), "already present in our dictionary:", self.layouts[platform_name][layout_name][points[0]][0], self.layouts[platform_name][layout_name][points[0]][1], self.layouts[platform_name][layout_name][points[0]][2]) 
 									else:
-										self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'), hidcode)
+										# Check for deadkey
+										if chr(points[0]) in self.transforms[platform_name][layout_name].keys():
+											# Found deadkey: remove it from our transform list and add tag it
+											del self.transforms[platform_name][layout_name][chr(points[0])]
+											self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'), hidcode, True)
+										else:
+											self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'), hidcode, False)
 								else:
 									if False:
 										print("multiple points")
@@ -163,24 +198,7 @@ class CLDR():
 						# Check that all basic ASCII codes are present, and fill them if not
 						for i in range(0x20, 0x7F):
 							if i not in self.layouts[platform_name][layout_name]:
-								self.layouts[platform_name][layout_name][i] = ([], 0, "", 0)
-								
-						# Deal with transofrms
-						for m in obj.iter("transforms"):
-							transform_type = m.attrib.get('type')							
-							for c in m.getchildren():
-								# todo: figure out why every other node seems blank, xml parser thing?
-								if len(c.attrib) == 0:
-									continue
-									
-								# Extract and transform transformation
-								from_glyphs, to_glyphs = self.transform_from_to_transform(c.attrib.get('from'), c.attrib.get('to'))
-								print("From " + from_glyphs + " to " + to_glyphs)
-									
-								# Extract transformation
-								from_glyphs = c.attrib.get('from')
-								to_glyphs = c.attrib.get('to')
-								print("From " + from_glyphs + " to " + to_glyphs)
+								self.layouts[platform_name][layout_name][i] = ([], 0, "", 0, False)
 						
 						# print our LUT, debug
 						if False and obj.attrib.get('locale') == "fr-t-k0-windows":
@@ -376,14 +394,13 @@ class CLDR():
 
 
 	def show_lut(self, platform_name, layout_name, debug_print):
-		layouts = self.layouts[platform_name]
-		layout = layouts[layout_name]
+		layout = self.layouts[platform_name][layout_name]
 		sorted_keys = sorted(layout)
 		table = []
 		glyphs = ""
 		table.append(["Glyph", "Unicode", "HID code", "modifier+isocode", "modifier+scancode", "Description"])
 		for key in sorted_keys:
-			mod, keycode, isocode, hidcode = layout[key]
+			mod, keycode, isocode, hidcode, deadkey = layout[key]
 			try:
 				des = unicodedata.name(chr(key))
 			except:
@@ -394,6 +411,13 @@ class CLDR():
 			for row in table:
 				print("{0: >10} {1: >10} {2: >10} {3: >20} {4: >20} {5: >40}".format(*row))			
 			print("\r\nAll glyphs:\r\n" + ''.join(sorted(glyphs)))
+			
+		# Glyphs generated by transforms
+		transforms = self.transforms[platform_name][layout_name] 
+		sorted_transforms = sorted(transforms)
+		glyphs_from_transforms = ""
+		for key in sorted_transforms:
+			glyphs_from_transforms += key
 			
 		# Generate raw HID code + modifier to glyph mapping
 		hid_to_glyph_lut = {}
@@ -408,7 +432,7 @@ class CLDR():
 							'altR':		KEY_RIGHT_ALT,
 							'cmdR':		0x00}	
 		for key in sorted_keys:
-			mod, keycode, isocode, hidcode = layout[key]
+			mod, keycode, isocode, hidcode, deadkey = layout[key]
 			modifier_mask = 0x00
 			for modifier in mod:
 				modifier_mask |= modifier_map[modifier]
@@ -431,7 +455,7 @@ class CLDR():
 								'cmdR':		0x00}	
 		mini_lut = ""
 		for key in sorted_keys:
-			mod, keycode, isocode, hidcode = layout[key]
+			mod, keycode, isocode, hidcode, deadkey = layout[key]
 			modifier_mask = 0x00
 			for modifier in mod:
 				modifier_mask |= mini_modifier_map[modifier]
@@ -446,7 +470,7 @@ class CLDR():
 			print(mini_lut)
 		
 		# Return dictionary
-		return {"mini_lut_bin": mini_lut_array_bin, "covered_glyphs":glyphs, "hid_to_glyph_lut":hid_to_glyph_lut}
+		return {"mini_lut_bin": mini_lut_array_bin, "covered_glyphs":glyphs, "hid_to_glyph_lut":hid_to_glyph_lut, "glyphs_from_transforms":glyphs_from_transforms, "transforms":transforms}
 
 	def raw_layouts(self):
 		layouts = []
@@ -498,13 +522,15 @@ cldr.parse_cldr_xml()
 
 if True:
 	# Test code: compare LUT generated this way to an original file
-	mini_luts = ["18_EN_US_keyb_lut.img", "19_FR_FR_keyb_lut.img", "20_ES_ES_keyb_lut.img", "21_DE_DE_keyb_lut.img", "22_ES_AR_keyb_lut.img", "23_EN_AU_keyb_lut.img", "24_FR_BE_keyb_lut.img", "25_PO_BR_keyb_lut.img", "26_EN_CA_keyb_lut.img", "27_CZ_CZ_keyb_lut.img", "28_DA_DK_keyb_lut.img", "29_FI_FI_keyb_lut.img", "30_HU_HU_keyb_lut.img", "31_IS_IS_keyb_lut.img", "32_IT_IT_keyb_lut.img", "33_NL_NL_keyb_lut.img", "34_NO_NO_keyb_lut.img", "35_PO_PO_keyb_lut.img", "36_RO_RO_keyb_lut.img", "37_SL_SL_keyb_lut.img", "38_FRDE_CH_keyb_lut.img", "39_EN_UK_keyb_lut.img", "45_CA_FR_keyb_lut.img", "49_POR_keyb_lut.img", "51_CZ_QWERTY_keyb_lut.img", "52_EN_DV_keyb_lut.img"]
-	matching_cldr_names = ["US", "French", "Spanish", "German", "Latin American", "United States-International", "Belgian French", "Portuguese (Brazil ABNT)", "Canadian Multilingual Standard", "Czech", "Danish", "Finnish", "Hungarian", "Icelandic", "Italian", "Dutch", "Norwegian", "Polish (Programmers)", "Romanian (Programmers)", "Slovenian", "Swiss French", "United Kingdom Extended", "Canadian French", "Portuguese", "Czech (QWERTY)", "United States-Dvorak"]
+	mini_luts = ["19_FR_FR_keyb_lut.img", "18_EN_US_keyb_lut.img", "20_ES_ES_keyb_lut.img", "21_DE_DE_keyb_lut.img", "22_ES_AR_keyb_lut.img", "23_EN_AU_keyb_lut.img", "24_FR_BE_keyb_lut.img", "25_PO_BR_keyb_lut.img", "26_EN_CA_keyb_lut.img", "27_CZ_CZ_keyb_lut.img", "28_DA_DK_keyb_lut.img", "29_FI_FI_keyb_lut.img", "30_HU_HU_keyb_lut.img", "31_IS_IS_keyb_lut.img", "32_IT_IT_keyb_lut.img", "33_NL_NL_keyb_lut.img", "34_NO_NO_keyb_lut.img", "35_PO_PO_keyb_lut.img", "36_RO_RO_keyb_lut.img", "37_SL_SL_keyb_lut.img", "38_FRDE_CH_keyb_lut.img", "39_EN_UK_keyb_lut.img", "45_CA_FR_keyb_lut.img", "49_POR_keyb_lut.img", "51_CZ_QWERTY_keyb_lut.img", "52_EN_DV_keyb_lut.img"]
+	matching_cldr_names = ["French", "US", "Spanish", "German", "Latin American", "United States-International", "Belgian French", "Portuguese (Brazil ABNT)", "Canadian Multilingual Standard", "Czech", "Danish", "Finnish", "Hungarian", "Icelandic", "Italian", "Dutch", "Norwegian", "Polish (Programmers)", "Romanian (Programmers)", "Slovenian", "Swiss French", "United Kingdom Extended", "Canadian French", "Portuguese", "Czech (QWERTY)", "United States-Dvorak"]
 
 	for lut, cldr_name in zip(mini_luts, matching_cldr_names):
 		print("\r\nTackling mini LUT " + lut + " with matching cldr name " + cldr_name)
 		output_dict = cldr.show_lut("windows", cldr_name, False)
 		print("Glyphs: " + output_dict["covered_glyphs"])
+		print("Glyphs from transforms: " + output_dict["glyphs_from_transforms"])
+		
 		cldr_lut = []
 		with open("..\\..\\..\\mooltipass\\bitmaps\\mini\\" + lut, "rb") as f:
 			counter = 0
@@ -525,6 +551,6 @@ if True:
 			
 		# Double checking with actual device
 		input("Change computer layout and confirm:")		
-		if mini_check_lut(output_dict["hid_to_glyph_lut"]) == False:
+		if mini_check_lut(output_dict["hid_to_glyph_lut"], output_dict["transforms"]) == False:
 			print("Check failed!")
 
