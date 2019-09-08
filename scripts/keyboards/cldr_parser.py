@@ -330,6 +330,26 @@ class CLDR():
 			for row in table:
 				print("{0: >10} {1: >10} {2: >10} {3: >20} {4: >20} {5: >40}".format(*row))			
 			print("\r\nAll glyphs:\r\n" + ''.join(sorted(glyphs)))
+			
+		# Generate raw HID code + modifier to glyph mapping
+		hid_to_glyph_lut = {}
+		modifier_map = {	'ctrlL':	0x00,
+							'shiftL':	KEY_SHIFT,
+							'shift':	KEY_SHIFT,
+							'atlL':		KEY_RIGHT_ALT,
+							'opt':		0x00,
+							'cmd':		0x00,
+							'ctrlR':	0x00,
+							'shiftR':	KEY_SHIFT,
+							'altR':		KEY_RIGHT_ALT,
+							'cmdR':		0x00}	
+		for key in sorted_keys:
+			mod, keycode, isocode, hidcode = layout[key]
+			modifier_mask = 0x00
+			for modifier in mod:
+				modifier_mask |= modifier_map[modifier]
+			hid_to_glyph_lut[chr(key)] = [[modifier_mask,hidcode]]
+		#print(hid_to_glyph_lut)
 		
 		# Part below is to compare with mooltipass mini storage
 		mini_lut_array_bin = []
@@ -362,7 +382,7 @@ class CLDR():
 			print(mini_lut)
 		
 		# Return dictionary
-		return {"mini_lut_bin": mini_lut_array_bin, "covered_glyphs":glyphs}
+		return {"mini_lut_bin": mini_lut_array_bin, "covered_glyphs":glyphs, "hid_to_glyph_lut":hid_to_glyph_lut}
 
 	def raw_layouts(self):
 		layouts = []
@@ -415,7 +435,7 @@ cldr.parse_cldr_xml()
 if True:
 	# Test code: compare LUT generated this way to an original file
 	mini_luts = ["18_EN_US_keyb_lut.img", "19_FR_FR_keyb_lut.img", "20_ES_ES_keyb_lut.img", "21_DE_DE_keyb_lut.img", "22_ES_AR_keyb_lut.img", "23_EN_AU_keyb_lut.img", "24_FR_BE_keyb_lut.img", "25_PO_BR_keyb_lut.img", "26_EN_CA_keyb_lut.img", "27_CZ_CZ_keyb_lut.img", "28_DA_DK_keyb_lut.img", "29_FI_FI_keyb_lut.img", "30_HU_HU_keyb_lut.img", "31_IS_IS_keyb_lut.img", "32_IT_IT_keyb_lut.img", "33_NL_NL_keyb_lut.img", "34_NO_NO_keyb_lut.img", "35_PO_PO_keyb_lut.img", "36_RO_RO_keyb_lut.img", "37_SL_SL_keyb_lut.img", "38_FRDE_CH_keyb_lut.img", "39_EN_UK_keyb_lut.img", "45_CA_FR_keyb_lut.img", "49_POR_keyb_lut.img", "51_CZ_QWERTY_keyb_lut.img", "52_EN_DV_keyb_lut.img"]
-	matching_cldr_names = ["United States-International", "French", "Spanish", "German", "Latin American", "United States-International", "Belgian French", "Portuguese (Brazil ABNT)", "Canadian Multilingual Standard", "Czech", "Danish", "Finnish", "Hungarian", "Icelandic", "Italian", "Dutch", "Norwegian", "Polish (Programmers)", "Romanian (Programmers)", "Slovenian", "Swiss French", "United Kingdom Extended", "Canadian French", "Portuguese", "Czech (QWERTY)", "United States-Dvorak"]
+	matching_cldr_names = ["US", "French", "Spanish", "German", "Latin American", "United States-International", "Belgian French", "Portuguese (Brazil ABNT)", "Canadian Multilingual Standard", "Czech", "Danish", "Finnish", "Hungarian", "Icelandic", "Italian", "Dutch", "Norwegian", "Polish (Programmers)", "Romanian (Programmers)", "Slovenian", "Swiss French", "United Kingdom Extended", "Canadian French", "Portuguese", "Czech (QWERTY)", "United States-Dvorak"]
 
 	for lut, cldr_name in zip(mini_luts, matching_cldr_names):
 		print("\r\nTackling mini LUT " + lut + " with matching cldr name " + cldr_name)
@@ -434,15 +454,13 @@ if True:
 				byte = f.read(1)
 				counter += 1
 		if match_bool:
-			print("Match!")
+			print("Match with Mini LUT!")
 		else:
-			print("No Match!")
-			print(cldr_lut)
+			print("No Match with Mini LUT!")
 			#input("Confirm:")
 			
 		# Double checking with actual device
-		test_check = [' ','!','"','#','$','%','&','\'','(',')','*','+',',','-','.','/','0','1','2','3','4','5','6','7','8','9',':',';','<','=','>','?','@','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','[','\\',']','^','_','`','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','{','|','}','~']
 		input("Change computer layout and confirm:")		
-		if mini_check_lut(cldr_lut,test_check) == False:
+		if mini_check_lut(output_dict["hid_to_glyph_lut"]) == False:
 			print("Check failed!")
 

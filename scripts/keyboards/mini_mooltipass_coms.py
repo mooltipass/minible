@@ -118,21 +118,14 @@ def keyboardSend(data1, data2):
 	receiveHidPacket()
 	time.sleep(0.05)
 	
-def keyboardCheck(lut, glyphs):
+def keyboardCheck(lut):
 	perfect_match = True
-	for hid_code, glyph in zip(lut, glyphs):
-		modifier = 0
-		if hid_code & 0x40 != 0:
-			modifier |= ALTGR_MASK
-		if hid_code & 0x80 != 0:
-			modifier |= KEY_SHIFT
-		hid_code = hid_code & 0x3F
-		if hid_code == KEY_EUROPE_2:
-			hid_code = KEY_EUROPE_2_REAL
-		typed_glyph = keyboardTestKey(hid_code, modifier)
-		if typed_glyph == glyph:
-			print("Match!")
-		else:
+	sorted_glyphs = sorted(lut)
+	for glyph in sorted_glyphs:
+		hid_key_array = lut[glyph]
+		print("Glyph " + glyph + " with modifier " + hex(hid_key_array[0][0]) + " and hid key " + hex(hid_key_array[0][1]))
+		typed_glyph = keyboardTestKey(hid_key_array[0][1], hid_key_array[0][0])
+		if typed_glyph != glyph:
 			print(glyph + " doesn't match with typed " + typed_glyph)
 			perfect_match = False
 			input("confirm:")			
@@ -359,7 +352,7 @@ def sendHidPacket(cmd, length, data):
 		# send data
 		data_sending_object.write(arraytosend)
 		
-def mini_check_lut(test_lut, test_check):
+def mini_check_lut(test_lut):
 	global data_receiving_object
 	global data_sending_object
 	
@@ -413,7 +406,7 @@ def mini_check_lut(test_lut, test_check):
 		sys.exit(0)
 	
 	#keyboardTest(data_sending_object)
-	return_val = keyboardCheck(test_lut, test_check)
+	return_val = keyboardCheck(test_lut)
 	
 	# Close device
 	if not using_pywinusb:
