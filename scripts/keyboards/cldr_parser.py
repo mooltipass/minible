@@ -92,7 +92,7 @@ class CLDR():
 						
 						# get layout name
 						layout_name = obj.find('names').find('name').attrib.get('value')
-						#print("Parsing layout " + layout_name + " on platform " + platform_name + ", file " + f)
+						print("Parsing layout " + layout_name + " on platform " + platform_name + ", file " + f)
 
 						# Iterate over the keymaps
 						for m in obj.iter("keyMap"):
@@ -164,6 +164,23 @@ class CLDR():
 						for i in range(0x20, 0x7F):
 							if i not in self.layouts[platform_name][layout_name]:
 								self.layouts[platform_name][layout_name][i] = ([], 0, "", 0)
+								
+						# Deal with transofrms
+						for m in obj.iter("transforms"):
+							transform_type = m.attrib.get('type')							
+							for c in m.getchildren():
+								# todo: figure out why every other node seems blank, xml parser thing?
+								if len(c.attrib) == 0:
+									continue
+									
+								# Extract and transform transformation
+								from_glyphs, to_glyphs = self.transform_from_to_transform(c.attrib.get('from'), c.attrib.get('to'))
+								print("From " + from_glyphs + " to " + to_glyphs)
+									
+								# Extract transformation
+								from_glyphs = c.attrib.get('from')
+								to_glyphs = c.attrib.get('to')
+								print("From " + from_glyphs + " to " + to_glyphs)
 						
 						# print our LUT, debug
 						if False and obj.attrib.get('locale') == "fr-t-k0-windows":
@@ -249,6 +266,50 @@ class CLDR():
 			desc = "Multiple"
 
 		return desc
+		
+	def transform_from_to_transform(self, from_glyphs, to_glyphs):
+		# find all the \u{...} notation characters
+		myre = re.compile(r"\\u\{([A-F0-7]*[^\}])", re.UNICODE)
+		matches = myre.findall(from_glyphs)
+		return_from_glyphs = ""
+		if len(matches):
+			for m in matches:
+				mt = "\\u{" + m + "}"
+				m = int(m, 16)
+				loc = from_glyphs.find(mt)
+				if loc > 0:
+					for c in from_glyphs[0:loc]:
+						return_from_glyphs += c
+					from_glyphs = from_glyphs[loc:]
+				return_from_glyphs += chr(m)
+				from_glyphs = from_glyphs[len(mt):]
+			if len(from_glyphs) > 0:
+				for glyph in from_glyphs:
+					return_from_glyphs += glyph
+		else:
+			return_from_glyphs = from_glyphs
+			
+		# Do the same for "to"		
+		matches = myre.findall(to_glyphs)
+		return_to_glyphs = ""
+		if len(matches):
+			for m in matches:
+				mt = "\\u{" + m + "}"
+				m = int(m, 16)
+				loc = to_glyphs.find(mt)
+				if loc > 0:
+					for c in to_glyphs[0:loc]:
+						return_to_glyphs += c
+					to_glyphs = to_glyphs[loc:]
+				return_to_glyphs += chr(m)
+				to_glyphs = to_glyphs[len(mt):]
+			if len(to_glyphs) > 0:
+				for glyph in to_glyphs:
+					return_to_glyphs += glyph
+		else:
+			return_to_glyphs = to_glyphs
+			
+		return return_from_glyphs, return_to_glyphs
 
 	def parse_to_attrib(self, glyph, locale, modifier, iso):
 		# this just handles the odd formatting in the 'to' attribute on the xml.
@@ -274,6 +335,9 @@ class CLDR():
 				wordlist.append(chr(m))
 				glyph_copy = glyph
 				glyph = glyph[len(mt):]
+			if len(glyph) > 0:
+				for g in glyph:
+					wordlist.append(g)
 			#print(glyph_copy + " converted to " + " ".join(wordlist))
 		else:
 			wordlist = [c for c in glyph]
