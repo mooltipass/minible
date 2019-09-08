@@ -14,7 +14,7 @@ This page shows the different supported glyphs for given layouts.
 | Glyphs from transforms | ÀÂÃÄÈÊËÌÎÏÑÒÔÕÖÙÛÜâãäêëìîïñòôõöûüÿ |
 | Unicode points         | 192 194 195 196 200 202 203 204 206 207 209 210 212 213 214 217 219 220 226 227 228 234 235 236 238 239 241 242 244 245 246 251 252 255 |
 
- Characteristics        | Contents |
+| Characteristics        | Contents |
 |:-----------------------|:---------|
 | CLDR file name         | file en-t-k0-windows.xml |
 | CLDR layout name       | US |
@@ -25,7 +25,7 @@ This page shows the different supported glyphs for given layouts.
 | Glyphs from transforms | None |
 | Unicode points         | None |
 
- Characteristics        | Contents |
+| Characteristics        | Contents |
 |:-----------------------|:---------|
 | CLDR file name         | es-t-k0-windows.xml |
 | CLDR layout name       | Spanish |
@@ -36,7 +36,7 @@ This page shows the different supported glyphs for given layouts.
 | Glyphs from transforms | ÀÁÂÃÄÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝàáâãäèéêëìíîïòóôõöùúûüýÿ |
 | Unicode points         | 192 193 194 195 196 200 201 202 203 204 205 206 207 210 211 212 213 214 217 218 219 220 221 224 225 226 227 228 232 233 234 235 236 237 238 239 242 243 244 245 246 249 250 251 252 253 255 |
 
- Characteristics        | Contents |
+| Characteristics        | Contents |
 |:-----------------------|:---------|
 | CLDR file name         |  |
 | CLDR layout name       |  |
@@ -47,7 +47,7 @@ This page shows the different supported glyphs for given layouts.
 | Glyphs from transforms |  |
 | Unicode points         |  |
 
- Characteristics        | Contents |
+| Characteristics        | Contents |
 |:-----------------------|:---------|
 | CLDR file name         |  |
 | CLDR layout name       |  |
@@ -58,7 +58,7 @@ This page shows the different supported glyphs for given layouts.
 | Glyphs from transforms |  |
 | Unicode points         |  |
 
- Characteristics        | Contents |
+| Characteristics        | Contents |
 |:-----------------------|:---------|
 | CLDR file name         |  |
 | CLDR layout name       |  |
@@ -69,7 +69,7 @@ This page shows the different supported glyphs for given layouts.
 | Glyphs from transforms |  |
 | Unicode points         |  |
 
- Characteristics        | Contents |
+| Characteristics        | Contents |
 |:-----------------------|:---------|
 | CLDR file name         |  |
 | CLDR layout name       |  |
