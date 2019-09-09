@@ -216,17 +216,6 @@ Below: previously Dutch, but it seems it is an outdated layout now replaced by U
 
 | Characteristics        | Contents |
 |:-----------------------|:---------|
-| CLDR file name         |  |
-| CLDR layout name       |  |
-| Operating System       | Windows |
-| Matching layout        |  |
-| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~ |
-| Unicode points         |  |
-| Glyphs from transforms |  |
-| Unicode points         |  |
-
-| Characteristics        | Contents |
-|:-----------------------|:---------|
 | CLDR file name         | en-GB-t-k0-windows-extended.xml |
 | CLDR layout name       | United Kingdom Extended |
 | Operating System       | Windows |
