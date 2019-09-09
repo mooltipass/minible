@@ -146,16 +146,73 @@ This page shows the different supported glyphs for given layouts.
 | Glyphs from transforms | None |
 | Unicode points         | None |
 
+Below: previously Dutch, but it seems it is an outdated layout now replaced by US International
+
 | Characteristics        | Contents |
 |:-----------------------|:---------|
-| CLDR file name         |  |
-| CLDR layout name       |  |
+| CLDR file name         | en-t-k0-windows-extended.xml |
+| CLDR layout name       | United States-International |
 | Operating System       | Windows |
-| Matching layout        |  |
-| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~ |
-| Unicode points         |  |
-| Glyphs from transforms |  |
-| Unicode points         |  |
+| Matching layout        | English (United States) - International Layout |
+| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~¡¢£¤¥¦§¨©«¬®°²³´µ¶¹»¼½¾¿ÁÄÅÆÇÉÍÐÑÓÖ×ØÚÜÞßáäåæçéíðñóö÷øúüþ‘’€ |
+| Unicode points         | 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 161 162 163 164 165 166 167 168 169 171 172 174 176 178 179 180 181 182 185 187 188 189 190 191 193 196 197 198 199 201 205 208 209 211 214 215 216 218 220 222 223 225 228 229 230 231 233 237 240 241 243 246 247 248 250 252 254 8216 8217 8364 |
+| Glyphs from transforms | ÀÂÃÈÊËÌÎÏÒÔÕÙÛÝàâãèêëìîïòôõùûýÿ |
+| Unicode points         | 192 194 195 200 202 203 204 206 207 210 212 213 217 219 221 224 226 227 232 234 235 236 238 239 242 244 245 249 251 253 255 |
+
+| Characteristics        | Contents |
+|:-----------------------|:---------|
+| CLDR file name         | nb-t-k0-windows.xml |
+| CLDR layout name       | Norwegian |
+| Operating System       | Windows |
+| Matching layout        | Norwegian (Nynorsk) |
+| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~£¤§¨´µÅÆØåæø€ |
+| Unicode points         | 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 163 164 167 168 180 181 197 198 216 229 230 248 8364 |
+| Glyphs from transforms | ÀÁÂÃÄÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäèéêëìíîïñòóôõöùúûüýÿ |
+| Unicode points         | 192 193 194 195 196 200 201 202 203 204 205 206 207 209 210 211 212 213 214 217 218 219 220 221 224 225 226 227 228 232 233 234 235 236 237 238 239 241 242 243 244 245 246 249 250 251 252 253 255 |
+
+| Characteristics        | Contents |
+|:-----------------------|:---------|
+| CLDR file name         | pl-t-k0-windows-extended.xml |
+| CLDR layout name       | Polish (Programmers) |
+| Operating System       | Windows |
+| Matching layout        | Polish |
+| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~ÓóĄąĆćĘęŁłŃńŚśŹźŻż€ |
+| Unicode points         | 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 211 243 260 261 262 263 280 281 321 322 323 324 346 347 377 378 379 380 8364 |
+| Glyphs from transforms | None |
+| Unicode points         | None |
+
+| Characteristics        | Contents |
+|:-----------------------|:---------|
+| CLDR file name         | ro-t-k0-windows.xml |
+| CLDR layout name       | Romanian (Standard) |
+| Operating System       | Windows |
+| Matching layout        | Romanian (Romania) |
+| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~§¨©«°±´¸»ÂÎßâîĂăĐđŁłȘșȚțˇ˘˙˛˝–”„€ |
+| Unicode points         | 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 167 168 169 171 176 177 180 184 187 194 206 223 226 238 258 259 272 273 321 322 536 537 538 539 711 728 729 731 733 8211 8221 8222 8364 |
+| Glyphs from transforms | ·ÀÁÄÇÈÉÊËÌÍÏÒÓÔÖÙÚÛÜÝàáäçèéêëìíïòóôöùúûüýÿĄąĆćČčĎďĘęĚěĹĺĽľŃńŇňŐőŔŕŘřŚśŞşŠšŢţŤťŮůŰűŸŹźŻżŽž |
+| Unicode points         | 183 192 193 196 199 200 201 202 203 204 205 207 210 211 212 214 217 218 219 220 221 224 225 228 231 232 233 234 235 236 237 239 242 243 244 246 249 250 251 252 253 255 260 261 262 263 268 269 270 271 280 281 282 283 313 314 317 318 323 324 327 328 336 337 340 341 344 345 346 347 350 351 352 353 354 355 356 357 366 367 368 369 376 377 378 379 380 381 382 |
+
+| Characteristics        | Contents |
+|:-----------------------|:---------|
+| CLDR file name         | sl-t-k0-windows.xml |
+| CLDR layout name       | Slovenian |
+| Operating System       | Windows |
+| Matching layout        | Slovenian |
+| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~¤§¨°´¸×ß÷ĆćČčĐđŁłŠšŽžˇ˘˙˛˝€ |
+| Unicode points         | 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 164 167 168 176 180 184 215 223 247 262 263 268 269 272 273 321 322 352 353 381 382 711 728 729 731 733 8364 |
+| Glyphs from transforms | ÁÂÄÇÉËÍÎÓÔÖÚÜÝáâäçéëíîóôöúüýĂăĄąĎďĘęĚěĹĺĽľŃńŇňŐőŔŕŘřŚśŞşŤťŮůŰűŹźŻż |
+| Unicode points         | 193 194 196 199 201 203 205 206 211 212 214 218 220 221 225 226 228 231 233 235 237 238 243 244 246 250 252 253 258 259 260 261 270 271 280 281 282 283 313 314 317 318 323 324 327 328 336 337 340 341 344 345 346 347 350 351 356 357 366 367 368 369 377 378 379 380 |
+
+| Characteristics        | Contents |
+|:-----------------------|:---------|
+| CLDR file name         | fr-CH-t-k0-windows.xml |
+| CLDR layout name       | Swiss French |
+| Operating System       | Windows |
+| Matching layout        | French (Switzerland) |
+| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~¢£¦§¨¬°´àäçèéöü€ |
+| Unicode points         | 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 162 163 166 167 168 172 176 180 224 228 231 232 233 246 252 8364 |
+| Glyphs from transforms | ÀÁÂÃÄÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝáâãêëìíîïñòóôõùúûýÿ |
+| Unicode points         | 192 193 194 195 196 200 201 202 203 204 205 206 207 209 210 211 212 213 214 217 218 219 220 221 225 226 227 234 235 236 237 238 239 241 242 243 244 245 249 250 251 253 255 |
 
 | Characteristics        | Contents |
 |:-----------------------|:---------|
@@ -170,22 +227,55 @@ This page shows the different supported glyphs for given layouts.
 
 | Characteristics        | Contents |
 |:-----------------------|:---------|
-| CLDR file name         |  |
-| CLDR layout name       |  |
+| CLDR file name         | en-GB-t-k0-windows-extended.xml |
+| CLDR layout name       | United Kingdom Extended |
 | Operating System       | Windows |
-| Matching layout        |  |
-| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~ |
-| Unicode points         |  |
-| Glyphs from transforms |  |
-| Unicode points         |  |
+| Matching layout        | English (United States) - United Kingdom Extended |
+| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~£¦¨¬´ÁÇÉÍÓÚÝáçéíóúýẂẃ€ |
+| Unicode points         | 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 163 166 168 172 180 193 199 201 205 211 218 221 225 231 233 237 243 250 253 7810 7811 8364 |
+| Glyphs from transforms | ÀÂÃÄÈÊËÌÎÏÑÒÔÕÖÙÛÜàâãäèêëìîïñòôõöùûüÿŴŵŶŷŸẀẁẄẅỲỳ |
+| Unicode points         | 192 194 195 196 200 202 203 204 206 207 209 210 212 213 214 217 219 220 224 226 227 228 232 234 235 236 238 239 241 242 244 245 246 249 251 252 255 372 373 374 375 376 7808 7809 7812 7813 7922 7923 |
 
 | Characteristics        | Contents |
 |:-----------------------|:---------|
-| CLDR file name         |  |
-| CLDR layout name       |  |
+| CLDR file name         | fr-CA-t-k0-windows.xml |
+| CLDR layout name       | Canadian Multilingual Standard |
 | Operating System       | Windows |
-| Matching layout        |  |
+| Matching layout        | French (Canada) |
+| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~ ¤¨«¬°»ÀÇÈÉÙàçèéù€ |
+| Unicode points         | 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 160 164 168 171 172 176 187 192 199 200 201 217 224 231 232 233 249 8364 |
+| Glyphs from transforms | ÂÃÄÊËÌÎÏÑÒÔÕÖÛÜâãäêëìîïñòôõöûüÿĈĉĜĝĤĥĨĩĴĵŜŝŨũŴŵŶŷŸ |
+| Unicode points         | 194 195 196 202 203 204 206 207 209 210 212 213 214 219 220 226 227 228 234 235 236 238 239 241 242 244 245 246 251 252 255 264 265 284 285 292 293 296 297 308 309 348 349 360 361 372 373 374 375 376 |
+
+| Characteristics        | Contents |
+|:-----------------------|:---------|
+| CLDR file name         | pt-PT-t-k0-windows.xml |
+| CLDR layout name       | Portuguese |
+| Operating System       | Windows |
+| Matching layout        | Portuguese (Portugal) |
+| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~£§¨ª«´º»Çç€ |
+| Unicode points         | 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 163 167 168 170 171 180 186 187 199 231 8364 |
+| Glyphs from transforms | ÀÁÂÃÄÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝàáâãäèéêëìíîïñòóôõöùúûüýÿ |
+| Unicode points         | 192 193 194 195 196 200 201 202 203 204 205 206 207 209 210 211 212 213 214 217 218 219 220 221 224 225 226 227 228 232 233 234 235 236 237 238 239 241 242 243 244 245 246 249 250 251 252 253 255 |
+
+| Characteristics        | Contents |
+|:-----------------------|:---------|
+| CLDR file name         | cs-t-k0-windows-qwerty.xml |
+| CLDR layout name       | Czech (QWERTY) |
+| Operating System       | Windows |
+| Matching layout        | Czech - (QWERTY) |
+| Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~¤§¨°´×ßáéí÷úýčěřšůžˇ˝€ |
+| Unicode points         | 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 164 167 168 176 180 215 223 225 233 237 247 250 253 269 283 345 353 367 382 711 733 8364 |
+| Glyphs from transforms | ÁÂÄÅÉÊËÍÎÏÓÔÖÚÛÜÝâäåêëîïóôöûüÿĆćČĎďĚĹĺĽľŃńŇňŐőŔŕŘŚśŠŤťŮŰűŸŹźŽ |
+| Unicode points         | 193 194 196 197 201 202 203 205 206 207 211 212 214 218 219 220 221 226 228 229 234 235 238 239 243 244 246 251 252 255 262 263 268 270 271 282 313 314 317 318 323 324 327 328 336 337 340 341 344 346 347 352 356 357 366 368 369 376 377 378 381 |
+
+| Characteristics        | Contents |
+|:-----------------------|:---------|
+| CLDR file name         | en-t-k0-windows-dvorak.xml |
+| CLDR layout name       | United States-Dvorak |
+| Operating System       | Windows |
+| Matching layout        | English (United States) - DVORAK Keyboard |
 | Glyphs covered         | !"#$%&'()\*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{\|}~ |
-| Unicode points         |  |
-| Glyphs from transforms |  |
-| Unicode points         |  |
+| Unicode points         | 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 |
+| Glyphs from transforms | None |
+| Unicode points         | None |
