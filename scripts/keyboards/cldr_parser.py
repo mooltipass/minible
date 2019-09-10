@@ -18,19 +18,6 @@ PLATFORM_FILENAME = "_platform.xml"
 # keycodes that can't be used in the mooltipass
 forbidden_isocodes = ["B11"]
 
-# These are the HID modifier keys.	We create a single byte value
-# with the combination of the modifier keys pressed.
-keys_map = {'ctrlL':	1 << 0,
-			'shiftL':	1 << 1,
-			'shift':	1 << 1,
-			'atlL':		1 << 2,
-			'opt':		1 << 2,
-			'cmd':		1 << 3,
-			'ctrlR':	1 << 4,
-			'shiftR':	1 << 5,
-			'altR':		1 << 6,
-			'cmdR':		1 << 7}
-
 # This class contains a simple parser for the cldr keyboard files. 
 # The main data structure that we get as a result is 'layouts'
 class CLDR():
@@ -178,7 +165,12 @@ class CLDR():
 											print(glyphs, "-", points[0], "mapped to", mf, int(keycode), c.attrib.get('iso'), "already present in our dictionary:", self.layouts[platform_name][layout_name][points[0]][0], self.layouts[platform_name][layout_name][points[0]][1], self.layouts[platform_name][layout_name][points[0]][2]) 
 									else:
 										# Check for deadkey
-										if chr(points[0]) in self.transforms[platform_name][layout_name].keys():
+										is_dead_key = False
+										for to_transform in self.transforms[platform_name][layout_name]:
+											if to_transform == chr(points[0]) and self.transforms[platform_name][layout_name][to_transform][1] == " ":
+												is_dead_key = True
+										
+										if is_dead_key:
 											# Found deadkey: remove it from our transform list and add tag it
 											del self.transforms[platform_name][layout_name][chr(points[0])]
 											self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'), hidcode, True)
@@ -472,6 +464,66 @@ class CLDR():
 		# Return dictionary
 		return {"mini_lut_bin": mini_lut_array_bin, "covered_glyphs":glyphs, "hid_to_glyph_lut":hid_to_glyph_lut, "glyphs_from_transforms":glyphs_from_transforms, "transforms":transforms}
 
+
+	def generate_mini_ble_lut(self, platform_name, layout_name, debug_print):
+		layout = self.layouts[platform_name][layout_name]
+		sorted_keys = sorted(layout)
+		lut_bin_dict = {}
+		dead_keys = []
+		mini_modifier_map = {	'ctrlL':	0x00,
+								'shiftL':	0x80,
+								'shift':	0x80,
+								'atlL':		0x40,
+								'opt':		0x00,
+								'cmd':		0x00,
+								'ctrlR':	0x00,
+								'shiftR':	0x80,
+								'altR':		0x40,
+								'cmdR':		0x00}
+		# Check for " " as starting key
+		if sorted_keys[0] != ord(" "):
+			print("Incorrect starting key")
+			sys.exit(0)
+			
+		# Start by adding standard keys
+		for key in sorted_keys:
+			mod, keycode, isocode, hidcode, deadkey = layout[key]
+			modifier_mask = 0x00
+			for modifier in mod:
+				modifier_mask |= mini_modifier_map[modifier]
+			# Europe key hack
+			if hidcode == 0x64:
+				hidcode = 0x03
+			# Check for problematic key code
+			if hidcode >= 0x40:
+				print("incorrect hid key code!")
+				sys.exit(0)
+			# Apply modifier mask
+			hidcode |= modifier_mask
+			# Add to our dictionary
+			lut_bin_dict[key] = [hidcode]
+			# If deadkey, add to our array
+			if deadkey == True:
+				dead_keys.append(key)
+				
+		# Now move to the transforms
+		transforms = self.transforms[platform_name][layout_name]
+		sorted_transform_keys = sorted(transforms)
+		for transform in sorted_transform_keys:
+			key_sequence = []
+			for glyph in transforms[transform]:
+				key_sequence.extend(lut_bin_dict[ord(glyph)])	
+			lut_bin_dict[ord(transform)] = key_sequence
+			
+		# Debug prints
+		if debug_print:
+			print(lut_bin_dict)
+			print("Deadkeys: " + " ".join(chr(i) for i in dead_keys))
+			
+		# Return LUT and deadkeys
+		return lut_bin_dict, dead_keys
+
+
 	def raw_layouts(self):
 		layouts = []
 		for platname, plat_dict in self.layouts.iteritems():
@@ -513,6 +565,10 @@ print("Parsing CLDR files...")
 cldr = CLDR()
 cldr.parse_cldr_xml()
 
+lut_bin_dict, dead_keys = cldr.generate_mini_ble_lut("windows", "French", False)
+if mini_check_lut(lut_bin_dict) == False:
+	print("Check failed!")
+			
 # now you can just access cldr.layouts directly if you want..
 
 #cldr.show_platforms()
@@ -520,16 +576,20 @@ cldr.parse_cldr_xml()
 #
 
 
-if True:
+if False:
+	done_mini_luts = ["19_FR_FR_keyb_lut.img", "18_EN_US_keyb_lut.img", "20_ES_ES_keyb_lut.img", "21_DE_DE_keyb_lut.img", "22_ES_AR_keyb_lut.img", "24_FR_BE_keyb_lut.img", "25_PO_BR_keyb_lut.img", "27_CZ_CZ_keyb_lut.img", "28_DA_DK_keyb_lut.img", "29_FI_FI_keyb_lut.img", "30_HU_HU_keyb_lut.img", "31_IS_IS_keyb_lut.img", "32_IT_IT_keyb_lut.img", "33_NL_NL_keyb_lut.img", "34_NO_NO_keyb_lut.img", "35_PO_PO_keyb_lut.img", "36_RO_RO_keyb_lut.img", "37_SL_SL_keyb_lut.img", "38_FRDE_CH_keyb_lut.img", "39_EN_UK_keyb_lut.img", "45_CA_FR_keyb_lut.img", "49_POR_keyb_lut.img", "51_CZ_QWERTY_keyb_lut.img", ]
+	done_matching_cldr_names = ["French", "US", "Spanish", "German", "Latin American", "Belgian French", "Portuguese (Brazil ABNT)", "Czech", "Danish", "Finnish", "Hungarian", "Icelandic", "Italian", "United States-International", "Norwegian", "Polish (Programmers)", "Romanian (Standard)", "Slovenian", "Swiss French", "United Kingdom Extended", "Canadian Multilingual Standard", "Portuguese", "Czech (QWERTY)", ]
 	# Test code: compare LUT generated this way to an original file
-	mini_luts = ["19_FR_FR_keyb_lut.img", "18_EN_US_keyb_lut.img", "20_ES_ES_keyb_lut.img", "21_DE_DE_keyb_lut.img", "22_ES_AR_keyb_lut.img", "23_EN_AU_keyb_lut.img", "24_FR_BE_keyb_lut.img", "25_PO_BR_keyb_lut.img", "26_EN_CA_keyb_lut.img", "27_CZ_CZ_keyb_lut.img", "28_DA_DK_keyb_lut.img", "29_FI_FI_keyb_lut.img", "30_HU_HU_keyb_lut.img", "31_IS_IS_keyb_lut.img", "32_IT_IT_keyb_lut.img", "33_NL_NL_keyb_lut.img", "34_NO_NO_keyb_lut.img", "35_PO_PO_keyb_lut.img", "36_RO_RO_keyb_lut.img", "37_SL_SL_keyb_lut.img", "38_FRDE_CH_keyb_lut.img", "39_EN_UK_keyb_lut.img", "45_CA_FR_keyb_lut.img", "49_POR_keyb_lut.img", "51_CZ_QWERTY_keyb_lut.img", "52_EN_DV_keyb_lut.img"]
-	matching_cldr_names = ["French", "US", "Spanish", "German", "Latin American", "United States-International", "Belgian French", "Portuguese (Brazil ABNT)", "Canadian Multilingual Standard", "Czech", "Danish", "Finnish", "Hungarian", "Icelandic", "Italian", "Dutch", "Norwegian", "Polish (Programmers)", "Romanian (Programmers)", "Slovenian", "Swiss French", "United Kingdom Extended", "Canadian French", "Portuguese", "Czech (QWERTY)", "United States-Dvorak"]
+	mini_luts = ["52_EN_DV_keyb_lut.img"]
+	matching_cldr_names = ["United States-Dvorak"]
 
 	for lut, cldr_name in zip(mini_luts, matching_cldr_names):
 		print("\r\nTackling mini LUT " + lut + " with matching cldr name " + cldr_name)
 		output_dict = cldr.show_lut("windows", cldr_name, False)
 		print("Glyphs: " + output_dict["covered_glyphs"])
+		print("Unicode points: " + " ".join(str(ord(x)) for x in output_dict["covered_glyphs"]))
 		print("Glyphs from transforms: " + output_dict["glyphs_from_transforms"])
+		print("Unicode points: " + " ".join(str(ord(x)) for x in output_dict["glyphs_from_transforms"]))
 		
 		cldr_lut = []
 		with open("..\\..\\..\\mooltipass\\bitmaps\\mini\\" + lut, "rb") as f:
