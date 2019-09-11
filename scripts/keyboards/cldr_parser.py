@@ -518,7 +518,7 @@ class CLDR():
 		# Debug prints
 		if debug_print:
 			print(lut_bin_dict)
-			print("Deadkeys: " + " ".join(chr(i) for i in dead_keys))
+			print("Deadkeys: " + "/".join(chr(i) for i in dead_keys))
 			
 		# Return LUT and deadkeys
 		return lut_bin_dict, dead_keys
@@ -565,8 +565,9 @@ print("Parsing CLDR files...")
 cldr = CLDR()
 cldr.parse_cldr_xml()
 
-lut_bin_dict, dead_keys = cldr.generate_mini_ble_lut("windows", "French", False)
-if mini_check_lut(lut_bin_dict) == False:
+lut_bin_dict, dead_keys = cldr.generate_mini_ble_lut("windows", "French", True)
+#lut_bin_dict, dead_keys = cldr.generate_mini_ble_lut("windows", "Czech", True)
+if mini_check_lut(lut_bin_dict, dead_keys) == False:
 	print("Check failed!")
 			
 # now you can just access cldr.layouts directly if you want..

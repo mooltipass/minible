@@ -39,8 +39,8 @@ def keyboardSend(data1, data2):
 	receiveHidPacket()
 	time.sleep(0.05)
 
-def keyboardTestKey(glyph, encoded_hid_key):
-	for i in range(0,4):
+def keyboardTestKey(glyph, encoded_hid_key, is_dead_key):
+	for i in range(0,1):
 		for item in encoded_hid_key:
 			modifier = 0x00
 			if item & SHIFT_MASK != 0:
@@ -51,23 +51,21 @@ def keyboardTestKey(glyph, encoded_hid_key):
 			if key == KEY_EUROPE_2:
 				key = KEY_EUROPE_2_REAL		
 			keyboardSend(key, modifier)
+			if is_dead_key == True:
+				keyboardSend(KEY_SPACE, 0)
 	keyboardSend(KEY_RETURN, 0)
 	string = input("Testing " + glyph + ": ")
 	if (string == ''):
 		return string
-	elif len(string) < 2:
-		return ''
-	elif string[0] != string[1]:
-		return ''
 	else:	
 		return string[0]
 	
-def keyboardCheck(lut):
+def keyboardCheck(lut, dead_keys):
 	perfect_match = True
 	sorted_glyphs = sorted(lut)
 	for glyph in sorted_glyphs:
 		hid_key_array = lut[glyph]
-		typed_glyph = keyboardTestKey(chr(glyph), hid_key_array)
+		typed_glyph = keyboardTestKey(chr(glyph), hid_key_array, glyph in dead_keys)
 		if typed_glyph != chr(glyph):
 			print(chr(glyph) + " doesn't match with typed " + typed_glyph)
 			perfect_match = False
@@ -130,7 +128,7 @@ def sendHidPacket(cmd, length, data):
 		# send data
 		data_sending_object.write(arraytosend)
 		
-def mini_check_lut(test_lut):
+def mini_check_lut(test_lut, dead_keys):
 	global data_receiving_object
 	global data_sending_object
 	
@@ -184,7 +182,7 @@ def mini_check_lut(test_lut):
 		sys.exit(0)
 	
 	#keyboardTest(data_sending_object)
-	return_val = keyboardCheck(test_lut)
+	return_val = keyboardCheck(test_lut, dead_keys)
 	
 	# Close device
 	if not using_pywinusb:
