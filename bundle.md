@@ -114,10 +114,10 @@ This page explains in details the graphics bundle data structure.
 |:-------------------|:----------|
 | 0->39 | Unicode string of layout description, with terminating 0x0000 |
 | 40->99 | 15x uint16_t (interval_start-interval_end) of unicode chars for which we provide support description |
-| 100->... | Array of uint16_t describing how to type key (see below) |
+| 100->... | Array of uint16_t, each describing how to type a glyph (see below) |
 
 | bits               | description |
 |:-------------------|:----------|
 | 15 | If 14->8 is 0: dead key bitmask |
-| 14->8 | 0: indicates that only one key is required, 0x3f: support not implemented, else: first key to type |
-| 7->0 | HID key to type |
+| 14->8 | 0: only one key is required, 0x3f: not implemented, else: first key to type |
+| 7->0 | HID key to type (0x80: shift bitmask, 0x40: alt bitmask, 0x03: europe key) |
