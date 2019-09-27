@@ -5,6 +5,7 @@ from iso_to_hid_lut import *
 from lxml import objectify
 from pprint import pprint
 from lxml import etree
+from struct import *
 import unicodedata
 import statistics
 import sys
@@ -215,29 +216,39 @@ class CLDR():
 
 							
 	# print unicode values intervals for a given max interval
-	def get_unicode_intervals(self, dictionary, max_interval):
-		# sort dictionary by keys (unicode values)
-		ordered_keys = sorted(dictionary)
+	def get_unicode_intervals(self, platform_name, layout_name, max_interval):
+		# Get and sort direct mappings and transforms
+		layout = self.layouts[platform_name][layout_name]
+		sorted_keys = sorted(layout)
+		transforms = self.transforms[platform_name][layout_name]
+		sorted_transform_keys = sorted(transforms)
+		glyph_ords = []
+		
+		# Add all items
+		for key in sorted_keys:
+			glyph_ords.append(key)
+		for transform in sorted_transform_keys:
+			glyph_ords.append(ord(transform))
 		
 		# get first element
-		start_key = ordered_keys[0]
-		last_key = ordered_keys[0]
+		start_key = glyph_ords[0]
+		last_key = glyph_ords[0]
 		
 		# list of intervals
 		interval_list = []
 		
 		# start looping
-		for key in ordered_keys:
+		for key in sorted(glyph_ords):
 			# check for new interval
 			if key > last_key + max_interval:
-				interval_list.append([hex(start_key), hex(last_key)])
+				interval_list.append([start_key, last_key])
 				start_key = key
 				last_key = key
 			else:
 				last_key = key
 		
 		# add last interval
-		interval_list.append([hex(start_key), hex(last_key)])
+		interval_list.append([start_key, last_key])
 		
 		return interval_list
 
@@ -465,7 +476,7 @@ class CLDR():
 		return {"mini_lut_bin": mini_lut_array_bin, "covered_glyphs":glyphs, "hid_to_glyph_lut":hid_to_glyph_lut, "glyphs_from_transforms":glyphs_from_transforms, "transforms":transforms}
 
 
-	def generate_mini_ble_lut(self, platform_name, layout_name, debug_print):
+	def generate_mini_ble_lut(self, platform_name, layout_name, debug_print, layout_description, export_file_name):
 		layout = self.layouts[platform_name][layout_name]
 		sorted_keys = sorted(layout)
 		lut_bin_dict = {}
@@ -519,6 +530,78 @@ class CLDR():
 		if debug_print:
 			print(lut_bin_dict)
 			print("Deadkeys: " + "/".join(chr(i) for i in dead_keys))
+					
+		# Language description (max 19 chars unicode, then we append 0)
+		language_desc_item = array('B')
+		i = 0
+		for c in layout_description:
+			language_desc_item.frombytes(pack('H', ord(c)))
+			i += 1
+		for remain_i in range(i, 20):
+			language_desc_item.frombytes(pack('H', 0))
+			
+		# Intervals (max 15 intervals, max 20 keys non described)
+		intervals_item = array('B')		
+		start_key = sorted(lut_bin_dict)[0]
+		last_key = start_key
+		intervals_added = 0
+		interval_list = []
+		
+		# start looping
+		for key in sorted(lut_bin_dict):
+			# check for new interval
+			if key > last_key + 20:
+				intervals_item.frombytes(pack('H', start_key))
+				intervals_item.frombytes(pack('H', last_key))
+				interval_list.append([start_key, last_key])
+				intervals_added += 1
+				start_key = key
+				last_key = key
+			else:
+				last_key = key
+		
+		# add last interval
+		intervals_item.frombytes(pack('H', start_key))
+		intervals_item.frombytes(pack('H', last_key))
+		interval_list.append([start_key, last_key])
+		intervals_added += 1
+		
+		# 0 pad interval list
+		for remain_interval in range(intervals_added, 15):
+			intervals_item.frombytes(pack('H', 0xFFFF))
+			intervals_item.frombytes(pack('H', 0xFFFF))
+			
+		# Debug
+		print(interval_list)
+		
+		# All is left is LUT populate
+		lut_item = array('B')		
+		for interval in interval_list:
+			for glyph_ord in range(interval[0], interval[1]+1):
+				# Do we handle this glyph?
+				if glyph_ord not in lut_bin_dict or lut_bin_dict[glyph_ord] == 0:
+					lut_item.frombytes(pack('H', 0xFFFF))
+					#print(glyph_ord)
+				else:
+					# Check for key combination
+					if len(lut_bin_dict[glyph_ord]) == 1:
+						# Check for deadkey
+						if glyph_ord in dead_keys:
+							lut_item.frombytes(pack('H', 0x8000 | lut_bin_dict[glyph_ord][0]))
+							#print(glyph_ord)
+						else:
+							lut_item.frombytes(pack('H', lut_bin_dict[glyph_ord][0]))
+					else:
+						# endianness...
+						lut_item.frombytes(pack('B', lut_bin_dict[glyph_ord][1]))
+						lut_item.frombytes(pack('B', lut_bin_dict[glyph_ord][0]))
+		
+		# Just write the damn file
+		bfd = open(export_file_name, "wb")
+		language_desc_item.tofile(bfd)
+		intervals_item.tofile(bfd)
+		lut_item.tofile(bfd)
+		bfd.close()
 			
 		# Return LUT and deadkeys
 		return lut_bin_dict, dead_keys
@@ -565,17 +648,25 @@ print("Parsing CLDR files...")
 cldr = CLDR()
 cldr.parse_cldr_xml()
 
-lut_bin_dict, dead_keys = cldr.generate_mini_ble_lut("windows", "French", True)
-#lut_bin_dict, dead_keys = cldr.generate_mini_ble_lut("windows", "Czech", True)
-if mini_check_lut(lut_bin_dict, dead_keys) == False:
-	print("Check failed!")
-			
-# now you can just access cldr.layouts directly if you want..
 
-#cldr.show_platforms()
-#cldr.show_layouts(1) # osx
-#
+lut_bin_dict, dead_keys = cldr.generate_mini_ble_lut("windows", "French", True, "French", "_french.img")
 
+if False:
+	nb_intervals_array = []
+	for layout_name in cldr.layouts["windows"]:
+		returned_intervals = cldr.get_unicode_intervals("windows", layout_name, 20)
+		print(layout_name)	
+		print(returned_intervals)
+		nb_intervals_array.append(len(returned_intervals))
+		if len(returned_intervals) > 15:
+			print("\r\n\r\n")
+	print(nb_intervals_array)
+
+if False:
+	lut_bin_dict, dead_keys = cldr.generate_mini_ble_lut("windows", "French", True)
+	#lut_bin_dict, dead_keys = cldr.generate_mini_ble_lut("windows", "Czech", True)
+	if mini_check_lut(lut_bin_dict, dead_keys) == False:
+		print("Check failed!")
 
 if False:
 	done_mini_luts = ["19_FR_FR_keyb_lut.img", "18_EN_US_keyb_lut.img", "20_ES_ES_keyb_lut.img", "21_DE_DE_keyb_lut.img", "22_ES_AR_keyb_lut.img", "24_FR_BE_keyb_lut.img", "25_PO_BR_keyb_lut.img", "27_CZ_CZ_keyb_lut.img", "28_DA_DK_keyb_lut.img", "29_FI_FI_keyb_lut.img", "30_HU_HU_keyb_lut.img", "31_IS_IS_keyb_lut.img", "32_IT_IT_keyb_lut.img", "33_NL_NL_keyb_lut.img", "34_NO_NO_keyb_lut.img", "35_PO_PO_keyb_lut.img", "36_RO_RO_keyb_lut.img", "37_SL_SL_keyb_lut.img", "38_FRDE_CH_keyb_lut.img", "39_EN_UK_keyb_lut.img", "45_CA_FR_keyb_lut.img", "49_POR_keyb_lut.img", "51_CZ_QWERTY_keyb_lut.img", ]
@@ -614,4 +705,3 @@ if False:
 		input("Change computer layout and confirm:")		
 		if mini_check_lut(output_dict["hid_to_glyph_lut"], output_dict["transforms"]) == False:
 			print("Check failed!")
-
