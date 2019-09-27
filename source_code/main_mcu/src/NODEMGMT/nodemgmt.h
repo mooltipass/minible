@@ -49,8 +49,8 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODEMGMT_ADDR_NULL                          0x0000
 #define NODEMGMT_VBIT_VALID                         0
 #define NODEMGMT_VBIT_INVALID                       1
-#define NODEMGMT_CAT_MASK_FINAL                     0x0007
-#define NODEMGMT_CAT_MASK                           0x0007
+#define NODEMGMT_CAT_MASK_FINAL                     0x000F
+#define NODEMGMT_CAT_MASK                           0x000F
 #define NODEMGMT_CAT_BITSHIFT                       0
 
 /* User security settings flags */
