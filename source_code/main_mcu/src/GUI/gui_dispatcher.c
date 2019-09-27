@@ -283,6 +283,10 @@ void gui_dispatcher_idle_call(void)
         case GUI_SCREEN_LOGIN_NOTIF:        {
                                                 if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
                                                 {
+                                                    /* Display new animation frame bitmap, rearm timer with provided value */
+                                                    gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_INFO);
+                                                    timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
+                                                    
                                                     /* Enough animation loops to go back to main menu */
                                                     if (gui_dispatcher_current_idle_anim_loop == 4)
                                                     {
@@ -297,12 +301,6 @@ void gui_dispatcher_idle_call(void)
                                                             gui_dispatcher_get_back_to_current_screen();
                                                         }
                                                     } 
-                                                    else
-                                                    {
-                                                        /* Display new animation frame bitmap, rearm timer with provided value */
-                                                        gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_INFO);
-                                                        timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
-                                                    }
                                                 }
                                                 break;
                                             }
@@ -366,7 +364,7 @@ void gui_dispatcher_main_loop(void)
     wheel_action_ret_te user_action = inputs_get_wheel_action(FALSE, FALSE);
     
     // No activity, turn off screen
-    if (timer_has_timer_expired(TIMER_SCREEN, TRUE) == TIMER_EXPIRED)
+    if  ((gui_dispatcher_get_current_screen() != GUI_SCREEN_MEMORY_MGMT) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_LOGIN_NOTIF) && (timer_has_timer_expired(TIMER_SCREEN, TRUE) == TIMER_EXPIRED))
     {
         /* Display "going to sleep", switch off screen */
         gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO);
