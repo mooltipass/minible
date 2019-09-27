@@ -208,13 +208,14 @@ uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_t
     }    
 }
 
-/*! \fn     logic_database_search_login_in_service(uint16_t parent_addr, cust_char_t* login)
+/*! \fn     logic_database_search_login_in_service(uint16_t parent_addr, cust_char_t* login, BOOL category_filter)
 *   \brief  Find a given login for a given parent
-*   \param  parent_addr Parent node address
-*   \param  login       Login
+*   \param  parent_addr     Parent node address
+*   \param  login           Login
+*   \param  category_filter Set to TRUE to filter categories
 *   \return Address of the found node, NODE_ADDR_NULL otherwise
 */
-uint16_t logic_database_search_login_in_service(uint16_t parent_addr, cust_char_t* login)
+uint16_t logic_database_search_login_in_service(uint16_t parent_addr, cust_char_t* login, BOOL category_filter)
 {
     child_cred_node_t* temp_half_cnode_pt;
     parent_node_t temp_pnode;
@@ -240,7 +241,7 @@ uint16_t logic_database_search_login_in_service(uint16_t parent_addr, cust_char_
         nodemgmt_read_cred_child_node_except_pwd(next_node_addr, temp_half_cnode_pt);
         
         /* Compare login with the provided name */        
-        if ((utils_custchar_strncmp(login, temp_half_cnode_pt->login, ARRAY_SIZE(temp_half_cnode_pt->login)) == 0) && (categoryFromFlags(temp_half_cnode_pt->flags) == nodemgmt_get_current_category_flags()))
+        if ((utils_custchar_strncmp(login, temp_half_cnode_pt->login, ARRAY_SIZE(temp_half_cnode_pt->login)) == 0) && ((category_filter == FALSE) || (categoryFromFlags(temp_half_cnode_pt->flags) == nodemgmt_get_current_category_flags())))
         {
             // CATSEARCHLOGIC
             return next_node_addr;
@@ -273,13 +274,14 @@ void logic_database_get_login_for_address(uint16_t child_addr, cust_char_t** log
     utils_strncpy(*login, temp_half_cnode_pt->login, MEMBER_ARRAY_SIZE(child_cred_node_t, login));
 }
 
-/*! \fn     logic_database_get_number_of_creds_for_service(uint16_t parent_addr, uint16_t& fnode_addr)
+/*! \fn     logic_database_get_number_of_creds_for_service(uint16_t parent_addr, uint16_t* fnode_addr, BOOL category_filter)
 *   \brief  Get number of credentials for a given service
-*   \param  parent_addr Parent node address
-*   \param  fnode_addr  Where to store first node address
+*   \param  parent_addr     Parent node address
+*   \param  fnode_addr      Where to store first node address
+*   \param  category_filter Set to TRUE to filter categories
 *   \return Number of credentials for service
 */
-uint16_t logic_database_get_number_of_creds_for_service(uint16_t parent_addr, uint16_t* fnode_addr)
+uint16_t logic_database_get_number_of_creds_for_service(uint16_t parent_addr, uint16_t* fnode_addr, BOOL category_filter)
 {
     child_cred_node_t* temp_half_cnode_pt;
     parent_node_t temp_pnode;
@@ -307,7 +309,7 @@ uint16_t logic_database_get_number_of_creds_for_service(uint16_t parent_addr, ui
         nodemgmt_read_cred_child_node_except_pwd(next_node_addr, temp_half_cnode_pt);
         
         /* Check for category */
-        if (categoryFromFlags(temp_half_cnode_pt->flags) == nodemgmt_get_current_category_flags())
+        if ((category_filter == FALSE) || (categoryFromFlags(temp_half_cnode_pt->flags) == nodemgmt_get_current_category_flags()))
         {            
             // CATSEARCHLOGIC            
             /* Store first node */

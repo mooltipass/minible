@@ -268,7 +268,7 @@ RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, c
     }
 
     /* Check if child actually exists */
-    uint16_t child_address = logic_database_search_login_in_service(parent_address, login);
+    uint16_t child_address = logic_database_search_login_in_service(parent_address, login, TRUE);
             
     /* Check for existing login */
     if (child_address == NODE_ADDR_NULL)
@@ -330,7 +330,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     /* If service exist, does login exist? */
     if (parent_address != NODE_ADDR_NULL)
     {
-        child_address = logic_database_search_login_in_service(parent_address, login);
+        child_address = logic_database_search_login_in_service(parent_address, login, TRUE);
     }
 
     /* Special case: in MMM and user chose to not be prompted */
@@ -457,7 +457,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
     }    
     
     /* See how many credentials there are for this service */
-    uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &child_address);
+    uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &child_address, !logic_security_is_management_mode_set());
     
     /* Check if wanted login has been specified or if there's only one credential for that service */
     if ((login != 0) || (nb_logins_for_cred == 1))
@@ -465,7 +465,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
         /* Login specified? look for it */
         if (login != 0)
         {
-            child_address = logic_database_search_login_in_service(parent_address, login);
+            child_address = logic_database_search_login_in_service(parent_address, login, !logic_security_is_management_mode_set());
             
             /* Check for existing login */
             if (child_address == NODE_ADDR_NULL)
@@ -623,7 +623,7 @@ void logic_user_manual_select_login(void)
         else if (state_machine == 1)
         {
             /* See how many credentials there are for this service */
-            nb_logins_for_cred = logic_database_get_number_of_creds_for_service(chosen_service_addr, &chosen_login_addr);
+            nb_logins_for_cred = logic_database_get_number_of_creds_for_service(chosen_service_addr, &chosen_login_addr, TRUE);
 
             /* More than one login */
             if (nb_logins_for_cred != 1)
