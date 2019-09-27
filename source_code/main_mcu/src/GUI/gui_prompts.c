@@ -1923,10 +1923,10 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
 int16_t gui_prompts_select_category(void)
 {
     cust_char_t temp_category_text[MEMBER_SUB_ARRAY_SIZE(nodemgmt_user_category_strings_t, category_strings) + 5];
+    int16_t selected_category = nodemgmt_get_current_category();
     BOOL function_just_started = TRUE;
     BOOL first_function_run = TRUE;
     cust_char_t* string_to_display;
-    int16_t selected_category = 0;
     int16_t text_anim_x_offset[5];
     BOOL text_anim_going_right[5];    
     BOOL redraw_needed = TRUE;

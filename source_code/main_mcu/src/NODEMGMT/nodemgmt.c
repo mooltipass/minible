@@ -1174,6 +1174,15 @@ uint16_t nodemgmt_get_current_category_flags(void)
     return nodemgmt_current_handle.currentCategoryFlags;
 }
 
+/*! \fn     nodemgmt_get_current_category(void)
+ *  \brief  Get current selected category ID
+ *  \return The category
+ */
+uint16_t nodemgmt_get_current_category(void)
+{
+    return nodemgmt_current_handle.currentCategoryId;    
+}
+
 /*! \fn     nodemgmt_set_current_category_id(uint16_t catId)
  *  \brief  Set current selected category ID
  *  \param  catId   The category ID

@@ -352,6 +352,7 @@ uint16_t nodemgmt_get_user_sec_preferences(void);
 uint32_t nodemgmt_get_cred_change_number(void);
 uint32_t nodemgmt_get_data_change_number(void);
 void nodemgmt_set_current_date(uint16_t date);
+uint16_t nodemgmt_get_current_category(void);
 uint16_t nodemgmt_get_user_language(void);
 void nodemgmt_read_profile_ctr(void* buf);
 void nodemgmt_set_profile_ctr(void* buf);
