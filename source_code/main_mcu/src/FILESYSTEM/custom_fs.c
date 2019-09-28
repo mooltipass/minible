@@ -34,6 +34,9 @@ BOOL custom_fs_data_bus_opened = FALSE;
 uint16_t custom_fs_temp_string1[128];
 /* Current language id */
 uint8_t custom_fs_cur_language_id = 0;
+/* Current keyboard layout id */
+custom_fs_address_t custom_fs_keyboard_layout_addr = 0;
+uint8_t custom_fs_cur_keyboard_id = 0;
 /* CPZ look up table */
 cpz_lut_entry_t* custom_fs_cpz_lut;
 
@@ -206,6 +209,75 @@ uint8_t custom_fs_get_current_language_id(void)
     return custom_fs_cur_language_id;
 } 
 
+/*! \fn     custom_fs_get_current_layout_id(void)
+*   \brief  Get current keyboard layout ID
+*   \return The current layout ID
+*/
+uint8_t custom_fs_get_current_layout_id(void)
+{
+    return custom_fs_cur_keyboard_id;
+}
+
+/*! \fn     custom_fs_get_number_of_keyb_layouts(void)
+*   \brief  Get total number of supported keyboard layouts
+*   \return Number of keyboard layouts
+*/
+uint32_t custom_fs_get_number_of_keyb_layouts(void)
+{
+    return custom_fs_flash_header.binary_img_file_count;
+}
+
+/*! \fn     custom_fs_get_keyboard_descriptor_string(uint8_t keyboard_id, cust_char_t* string_pt)
+*   \brief  Get the string describing a given keyboard layout
+*   \param  keyboard_id     The keyboard ID
+*   \param  string_pt       Where to store the string (CUSTOM_FS_KEYBOARD_DESC_LGTH long)
+*   \return RETURN_(N)OK
+*/
+ret_type_te custom_fs_get_keyboard_descriptor_string(uint8_t keyboard_id, cust_char_t* string_pt)
+{
+    custom_fs_address_t layout_file_addr;
+    
+    /* Try to fetch layout file address */
+    ret_type_te file_address_found = custom_fs_get_file_address((uint32_t)keyboard_id, &layout_file_addr, CUSTOM_FS_BINARY_TYPE);
+    
+    /* Check for success */
+    if (file_address_found != RETURN_OK)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Load description, 0 terminate it in case */
+    custom_fs_read_from_flash((uint8_t*)string_pt, CUSTOM_FS_FILES_ADDR_OFFSET + layout_file_addr, CUSTOM_FS_KEYBOARD_DESC_LGTH*sizeof(cust_char_t));
+    string_pt[CUSTOM_FS_KEYBOARD_DESC_LGTH-1] = 0;
+    
+    return RETURN_OK;
+}
+
+/*! \fn     custom_fs_set_current_keyboard_id(uint8_t keyboard_id)
+*   \brief  Set current keyboard ID
+*   \param  keyboard_id     Keyboard ID
+*   \return RETURN_(N)OK
+*/
+ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id)
+{
+    custom_fs_address_t layout_file_addr;
+    
+    /* Try to fetch layout file address */
+    ret_type_te file_address_found = custom_fs_get_file_address((uint32_t)keyboard_id, &layout_file_addr, CUSTOM_FS_BINARY_TYPE);
+    
+    /* Check for success */
+    if (file_address_found != RETURN_OK)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Store address and ID */
+    custom_fs_keyboard_layout_addr = layout_file_addr;
+    custom_fs_cur_keyboard_id = keyboard_id;
+    
+    return RETURN_OK;
+}
+
 /*! \fn     custom_fs_set_current_language(uint8_t language_id)
 *   \brief  Set current language
 *   \param  language_id     Language ID
@@ -223,8 +295,9 @@ ret_type_te custom_fs_set_current_language(uint8_t language_id)
     custom_fs_address_t language_map_table_addr;
     custom_fs_read_from_flash((uint8_t*)&language_map_table_addr, CUSTOM_FS_FILES_ADDR_OFFSET + custom_fs_flash_header.language_map_offset, sizeof(language_map_table_addr));
     
-    /* Load language map entry */
+    /* Load language map entry, 0 terminate it in case */
     custom_fs_read_from_flash((uint8_t*)&custom_fs_cur_language_entry, CUSTOM_FS_FILES_ADDR_OFFSET + language_map_table_addr + (language_id*sizeof(custom_fs_cur_language_entry)), sizeof(custom_fs_cur_language_entry));
+    custom_fs_cur_language_entry.language_descr[MEMBER_ARRAY_SIZE(language_map_entry_t,language_descr)-1] = 0;
     
     /* Try to read address and file count of text file for this language */
     if (custom_fs_get_file_address(custom_fs_cur_language_entry.string_file_index, &custom_fs_current_text_file_addr, CUSTOM_FS_STRING_TYPE) != RETURN_NOK)
@@ -236,6 +309,31 @@ ret_type_te custom_fs_set_current_language(uint8_t language_id)
     custom_fs_cur_language_id = language_id;
     
     return RETURN_OK;
+}
+
+/*! \fn     custom_fs_get_language_description(uint8_t language_id, cust_char_t* string_pt)
+*   \brief  Get language description for a given language
+*   \param  language_id     Language ID
+*   \param  string_pt       Pointer to where to store the description
+*   \return RETURN_(N)OK
+*/
+ret_type_te custom_fs_get_language_description(uint8_t language_id, cust_char_t* string_pt)
+{
+    /* Check for valid language id */
+    if ((language_id >= custom_fs_flash_header.language_map_item_count) || (custom_fs_flash_header.language_map_item_count == CUSTOM_FS_MAX_FILE_COUNT))
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Load address to language map table */
+    custom_fs_address_t language_map_table_addr;
+    custom_fs_read_from_flash((uint8_t*)&language_map_table_addr, CUSTOM_FS_FILES_ADDR_OFFSET + custom_fs_flash_header.language_map_offset, sizeof(language_map_table_addr));
+    
+    /* Load language map entry, 0 terminate it in case */
+    custom_fs_read_from_flash((uint8_t*)string_pt, CUSTOM_FS_FILES_ADDR_OFFSET + language_map_table_addr + (language_id*sizeof(custom_fs_cur_language_entry)), MEMBER_SIZE(language_map_entry_t,language_descr));
+    string_pt[MEMBER_ARRAY_SIZE(language_map_entry_t,language_descr)-1] = 0;   
+    
+    return RETURN_OK; 
 }
 
 /*! \fn     custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc)

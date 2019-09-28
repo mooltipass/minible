@@ -2508,14 +2508,34 @@ int16_t gui_prompts_favorite_selection_screen(void)
     return -1;
 }
 
-
-/*! \fn     int16_t gui_prompts_select_language(void)
-*   \brief  select language
+/*! \fn     gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice)
+*   \brief  select language or keyboard layout, depending on the bool
+*   \param  layout_choice TRUE to choose layout, FALSE for language
 */
-void gui_prompts_select_language(void)
+void gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice)
 {    
-    uint8_t cur_language_id = custom_fs_get_current_language_id();
-    uint16_t nb_languages = custom_fs_get_number_of_languages();
+    _Static_assert(CUSTOM_FS_KEYBOARD_DESC_LGTH >= MEMBER_ARRAY_SIZE(language_map_entry_t,language_descr), "Incorrect buffer length");
+    cust_char_t string_buffer[CUSTOM_FS_KEYBOARD_DESC_LGTH + 4];
+    uint8_t cur_item_id;
+    uint16_t nb_items;
+    
+    /* Language / layout logic */
+    if (layout_choice == FALSE)
+    {
+        cur_item_id = custom_fs_get_current_language_id();
+        nb_items = custom_fs_get_number_of_languages();
+    }
+    else
+    {
+        cur_item_id = custom_fs_get_current_layout_id();
+        nb_items = custom_fs_get_number_of_keyb_layouts();
+    }
+    
+    /* Sanity checks */
+    if (cur_item_id >= nb_items)
+    {
+        cur_item_id = 0;
+    }
     
     /* Activity detected */
     logic_device_activity_detected();
@@ -2532,9 +2552,9 @@ void gui_prompts_select_language(void)
     #endif
     
     /* Temp vars for our main loop */
-    int16_t first_language_id_in_list = -1;
-    int16_t last_language_id_in_list = -1;
+    int16_t first_item_id_in_list = ((int16_t)cur_item_id) - 1;
     cust_char_t* select_language_string;
+    int16_t last_item_id_in_list = -1;
     BOOL first_function_run = TRUE;
     int16_t animation_step = 0;
     BOOL redraw_needed = TRUE;
@@ -2552,15 +2572,13 @@ void gui_prompts_select_language(void)
     {
         /* User interaction timeout */
         if (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED)
-        {
-            custom_fs_set_current_language(cur_language_id);
+        {            
             return;
         }
         
         /* Card removed */
         if (smartcard_low_level_is_smc_absent() == RETURN_OK)
         {
-            custom_fs_set_current_language(cur_language_id);
             return;
         }
         
@@ -2571,30 +2589,36 @@ void gui_prompts_select_language(void)
         wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, FALSE);
         if (detect_result == WHEEL_ACTION_SHORT_CLICK)
         {
-            custom_fs_set_current_language(first_language_id_in_list+1);
+            if (layout_choice == FALSE)
+            {
+                custom_fs_set_current_language(first_item_id_in_list+1);
+            }
+            else
+            {
+                custom_fs_set_current_keyboard_id(first_item_id_in_list+1);
+            }
             return;
         }
         else if (detect_result == WHEEL_ACTION_LONG_CLICK)
         {
-            custom_fs_set_current_language(cur_language_id);
             return;
         }
         else if (detect_result == WHEEL_ACTION_DOWN)
         {
-            if ((last_language_id_in_list != -1) && (first_language_id_in_list + 1 != nb_languages-1))
+            if ((last_item_id_in_list != -1) && (first_item_id_in_list + 1 != nb_items-1))
             {
                 animation_step = ((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2;
-                last_language_id_in_list = -1;
-                first_language_id_in_list++;
+                last_item_id_in_list = -1;
+                first_item_id_in_list++;
             }
         }
         else if (detect_result == WHEEL_ACTION_UP)
         {
-            if (first_language_id_in_list != -1)
+            if (first_item_id_in_list != -1)
             {
                 animation_step = -((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2;
-                last_language_id_in_list = -1;
-                first_language_id_in_list--;
+                last_item_id_in_list = -1;
+                first_item_id_in_list--;
             }
         }
         
@@ -2616,22 +2640,43 @@ void gui_prompts_select_language(void)
             
             /* Animation: scrolling down, keeping the first of item displayed & fading out */
             sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
-            if ((animation_step > 0) && (first_language_id_in_list > 0))
-            {                
+            if ((animation_step > 0) && (first_item_id_in_list > 0))
+            {         
                 /* Display fading out language */
-                custom_fs_set_current_language((uint8_t)(first_language_id_in_list-1));
+                if (layout_choice == FALSE)
+                {
+                    custom_fs_get_language_description((uint8_t)(first_item_id_in_list-1), string_buffer);
+                }         
+                else
+                {
+                    custom_fs_get_keyboard_descriptor_string((uint8_t)(first_item_id_in_list-1), string_buffer);
+                }         
                 sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
-                sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_FLINE-(((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2)+animation_step, custom_fs_get_current_language_text_desc(), TRUE);
+                sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_FLINE-(((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2)+animation_step, string_buffer, TRUE);
             }
             sh1122_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Main frame title */
-            sh1122_reset_lim_display_y(&plat_oled_descriptor);            
-            custom_fs_set_current_language(first_language_id_in_list+1);
+            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            if (layout_choice == FALSE)
+            {      
+                custom_fs_set_current_language(first_item_id_in_list+1);
+            }                
             sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
-            custom_fs_get_string_from_file(SELECT_LANGUAGE_TEXT_ID, &select_language_string, TRUE);
+            if (layout_choice == FALSE)
+            {
+                custom_fs_get_string_from_file(SELECT_LANGUAGE_TEXT_ID, &select_language_string, TRUE);
+            }
+            else
+            {
+                custom_fs_get_string_from_file(SELECT_LAYOUT_TEXT_ID, &select_language_string, TRUE);                
+            }
             sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[0], select_language_string, TRUE);
             sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
+            if (layout_choice == FALSE)
+            {
+                custom_fs_set_current_language(cur_item_id);
+            }
             
             /* Bar below the title */
             sh1122_draw_rectangle(&plat_oled_descriptor, 73, LOGIN_SCROLL_Y_BAR, 110, 1, 0xFF, TRUE);
@@ -2640,30 +2685,44 @@ void gui_prompts_select_language(void)
             for (uint16_t i = 0; i < 3; i++)
             {                
                 /* Check if we can display it */
-                if (((first_language_id_in_list + i) < nb_languages) && ((first_language_id_in_list + i) >= 0))
+                if (((first_item_id_in_list + i) < nb_items) && ((first_item_id_in_list + i) >= 0))
                 {
-                    last_language_id_in_list = i + first_language_id_in_list;
-                    custom_fs_set_current_language(first_language_id_in_list+i);
+                    last_item_id_in_list = i + first_item_id_in_list;
+                    if (layout_choice == FALSE)
+                    {
+                        custom_fs_get_language_description((uint8_t)(first_item_id_in_list+i), string_buffer);
+                    }     
+                    else
+                    {
+                        custom_fs_get_keyboard_descriptor_string((uint8_t)(first_item_id_in_list+i), string_buffer);                
+                    }                   
                     sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[i+1]);
                     
                     /* Surround center of list item */
                     if (i == 1)
                     {
-                        utils_surround_text_with_pointers(custom_fs_get_current_language_text_desc(), MEMBER_ARRAY_SIZE(language_map_entry_t, language_descr));
+                        utils_surround_text_with_pointers(string_buffer, ARRAY_SIZE(string_buffer));
                     }
                     
                     /* Display language string */
-                    sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i+1]+animation_step, custom_fs_get_current_language_text_desc(), TRUE);
+                    sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i+1]+animation_step, string_buffer, TRUE);
                     
                     /* Last item & animation scrolling up: display upcoming item */
                     if (i == 2)
                     {
-                        if ((animation_step < 0) && ((last_language_id_in_list + 1) < nb_languages))
+                        if ((animation_step < 0) && ((last_item_id_in_list + 1) < nb_items))
                         {                            
                             /* Display fading out language */
-                            custom_fs_set_current_language(last_language_id_in_list+1);
+                            if (layout_choice == FALSE)
+                            {
+                                custom_fs_get_language_description((uint8_t)(last_item_id_in_list+1), string_buffer);
+                            }
+                            else
+                            {
+                                custom_fs_get_keyboard_descriptor_string((uint8_t)(last_item_id_in_list+1), string_buffer);                     
+                            }
                             sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);                            
-                            sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_TLINE+(((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2)+animation_step, custom_fs_get_current_language_text_desc(), TRUE);
+                            sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_TLINE+(((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2)+animation_step, string_buffer, TRUE);
                         }
                     }
                 }

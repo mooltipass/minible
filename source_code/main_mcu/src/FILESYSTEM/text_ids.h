@@ -98,5 +98,6 @@
 #define ENABLE_SIMPLE_MENU_TEXT_ID      91
 #define QSWITCH_OFF_DEVICE_TEXT_ID      92
 #define ACCESS_TO_TEXT_ID               93
+#define SELECT_LAYOUT_TEXT_ID           94
 
 #endif

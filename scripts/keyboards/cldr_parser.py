@@ -537,6 +537,9 @@ class CLDR():
 		for c in layout_description:
 			language_desc_item.frombytes(pack('H', ord(c)))
 			i += 1
+		if i > 19:
+			print("Language description too long!")
+			sys.exit(0)
 		for remain_i in range(i, 20):
 			language_desc_item.frombytes(pack('H', 0))
 			
@@ -572,7 +575,8 @@ class CLDR():
 			intervals_item.frombytes(pack('H', 0xFFFF))
 			
 		# Debug
-		print(interval_list)
+		if debug_print:
+			print(interval_list)
 		
 		# All is left is LUT populate
 		lut_item = array('B')		
@@ -648,8 +652,39 @@ print("Parsing CLDR files...")
 cldr = CLDR()
 cldr.parse_cldr_xml()
 
+# Generation descriptiona array: platform / layout / description
+keyboard_generation_array = [ \
+								[ "windows", "Belgian French", "Belgium French"],\
+								[ "windows", "Portuguese (Brazil ABNT)", "Brazil"],\
+								[ "windows", "Canadian Multilingual Standard", "Canada"],\
+								[ "windows", "Czech", "Czech"],\
+								[ "windows", "Czech (QWERTY)", "Czech QWERTY"],\
+								[ "windows", "Danish", "Denmark"],\
+								[ "windows", "United States-Dvorak", "Dvorak"],\
+								[ "windows", "French", "France"],\
+								[ "windows", "German", "Germany"],\
+								[ "windows", "Hungarian", "Hungary"],\
+								[ "windows", "Icelandic", "Iceland"],\
+								[ "windows", "Italian", "Italy"],\
+								[ "windows", "Latin American", "Latin America"],\
+								[ "windows", "Norwegian", "Norway"],\
+								[ "windows", "Polish (Programmers)", "Poland"],\
+								[ "windows", "Portuguese", "Portugal"],\
+								[ "windows", "Romanian (Standard)", "Romania"],\
+								[ "windows", "Slovenian", "Slovenia"],\
+								[ "windows", "Spanish", "Spain"],\
+								[ "windows", "Finnish", "Sweden & Finland"],\
+								[ "windows", "Swiss French", "Swiss French"],\
+								[ "windows", "United Kingdom Extended", "UK Extended"],\
+								[ "windows", "US", "USA"],\
+								[ "windows", "United States-International", "US International"],\
+							]
 
-lut_bin_dict, dead_keys = cldr.generate_mini_ble_lut("windows", "French", True, "French", "_french.img")
+counter = 0
+for array_item in keyboard_generation_array:
+	cldr.generate_mini_ble_lut(array_item[0], array_item[1], False, array_item[2], str(counter) + "_" + array_item[0] + "_" + array_item[1].lower() + ".img")
+	print("Generated " + str(counter) + "_" + array_item[0] + "_" + array_item[1].lower() + ".img")
+	counter += 1
 
 if False:
 	nb_intervals_array = []

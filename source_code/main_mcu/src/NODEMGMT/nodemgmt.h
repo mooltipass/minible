@@ -197,7 +197,8 @@ typedef struct
     uint16_t data_start_address[16];
     uint16_t sec_preferences;
     uint16_t language_id;
-    uint8_t reserved[15];
+    uint16_t layout_id;
+    uint8_t reserved[13];
     uint8_t current_ctr[3];
     uint32_t cred_change_number;
     uint32_t data_change_number;    
@@ -301,6 +302,7 @@ static inline uint16_t nodemgmt_node_from_address(uint16_t addr)
 uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode);
 RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress);
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);
+void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout);
 uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_child_addr, uint16_t category_flags);
 void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress);
 void nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress);
@@ -313,7 +315,6 @@ void nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_no
 void nodemgmt_write_parent_node_data_block_to_flash(uint16_t address, parent_node_t* parent_node);
 void nodemgmt_read_child_node_data_block_from_flash(uint16_t address, child_node_t* child_node);
 void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_t* child_node);
-void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage);
 void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean);
 void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId);
 uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr);
@@ -347,6 +348,7 @@ void nodemgmt_store_user_language(uint16_t languageId);
 void nodemgmt_set_current_category_id(uint16_t catId);
 void nodemgmt_delete_current_user_from_flash(void);
 uint16_t nodemgmt_get_current_category_flags(void);
+void nodemgmt_store_user_layout(uint16_t layoutId);
 uint16_t nodemgmt_get_starting_parent_addr(void);
 uint16_t nodemgmt_get_user_sec_preferences(void);
 uint32_t nodemgmt_get_cred_change_number(void);
@@ -356,6 +358,7 @@ uint16_t nodemgmt_get_current_category(void);
 uint16_t nodemgmt_get_user_language(void);
 void nodemgmt_read_profile_ctr(void* buf);
 void nodemgmt_set_profile_ctr(void* buf);
+uint16_t nodemgmt_get_user_layout(void);
 void nodemgmt_scan_node_usage(void);
 
 #endif /* NODEMGMT_H_ */

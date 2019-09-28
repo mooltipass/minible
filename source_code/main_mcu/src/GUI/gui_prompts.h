@@ -106,10 +106,10 @@ void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, disp
 mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen);
 void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type);
 RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID);
+void gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice);
 uint16_t gui_prompts_service_selection_screen(uint16_t start_address);
 uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr);
 int16_t gui_prompts_favorite_selection_screen(void);
 int16_t gui_prompts_select_category(void);
-void gui_prompts_select_language(void);
 
 #endif /* GUI_PROMPTS_H_ */

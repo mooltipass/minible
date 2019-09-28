@@ -22,8 +22,6 @@
 #include "rng.h"
 // User security preferences
 uint16_t logic_user_cur_sec_preferences;
-// User language
-uint16_t logic_user_cur_language;
 
 
 /*! \fn     logic_user_init_context(uint8_t user_id)
@@ -32,9 +30,13 @@ uint16_t logic_user_cur_language;
 */
 void logic_user_init_context(uint8_t user_id)
 {
-    nodemgmt_init_context(user_id, &logic_user_cur_sec_preferences, &logic_user_cur_language);
-    logic_user_cur_language = utils_check_value_for_range(logic_user_cur_language, 0, custom_fs_get_number_of_languages()-1);
-    custom_fs_set_current_language(logic_user_cur_language);
+    uint16_t user_language;
+    uint16_t user_layout;
+    
+    /* Initialize context and fetch user language & keyboard layout */
+    nodemgmt_init_context(user_id, &logic_user_cur_sec_preferences, &user_language, &user_layout);
+    custom_fs_set_current_language(utils_check_value_for_range(user_language, 0, custom_fs_get_number_of_languages()-1));
+    custom_fs_set_current_keyboard_id(utils_check_value_for_range(user_layout, 0, custom_fs_get_number_of_keyb_layouts()-1));
 }
 
 /*! \fn     logic_user_get_user_security_flags(void)
@@ -46,15 +48,6 @@ uint16_t logic_user_get_user_security_flags(void)
     return logic_user_cur_sec_preferences;
 }
 
-/*! \fn     logic_user_get_language(void)
-*   \brief  Get language for current user
-*   \return Language ID
-*/
-uint16_t logic_user_get_language(void)
-{
-    return logic_user_cur_language;   
-}
-
 /*! \fn     logic_user_set_language(uint16_t language_id)
 *   \brief  Set language for current user
 *   \param  language_id User language ID
@@ -62,6 +55,15 @@ uint16_t logic_user_get_language(void)
 void logic_user_set_language(uint16_t language_id)
 {
     nodemgmt_store_user_language(language_id);
+}
+
+/*! \fn     logic_user_set_layout_id(uint16_t layout_id)
+*   \brief  Set layout id for current user
+*   \param  layout_id   User layout ID
+*/
+void logic_user_set_layout_id(uint16_t layout_id)
+{
+    nodemgmt_store_user_layout(layout_id);    
 }
 
 /*! \fn     logic_user_get_current_user_id(void)

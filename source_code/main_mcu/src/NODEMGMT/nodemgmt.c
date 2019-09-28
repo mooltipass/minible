@@ -438,6 +438,18 @@ void nodemgmt_store_user_language(uint16_t languageId)
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.language_id), sizeof(languageId), (void*)&languageId);
 }
 
+/*! \fn     nodemgmt_store_user_layout(uint16_t layoutId)
+ *  \brief  Store user layout
+ *  \param  layoutId    User layout ID
+ */
+void nodemgmt_store_user_layout(uint16_t layoutId)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    
+    // Write data parent address in the user profile page
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.layout_id), sizeof(layoutId), (void*)&layoutId);
+}
+
 /*! \fn     nodemgmt_get_user_language(void)
  *  \brief  Get user language
  *  \return User language ID
@@ -451,6 +463,21 @@ uint16_t nodemgmt_get_user_language(void)
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.language_id), sizeof(language_id), &language_id);
     
     return language_id;
+}
+
+/*! \fn     nodemgmt_get_user_layout(void)
+ *  \brief  Get user layout
+ *  \return User layout ID
+ */
+uint16_t nodemgmt_get_user_layout(void)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    uint16_t layout_id;
+    
+    // Each user profile is within a page, data starting parent node is at the end of the favorites
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.layout_id), sizeof(layout_id), &layout_id);
+    
+    return layout_id;
 }
 
 /*! \fn     nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_child_addr)
@@ -1205,13 +1232,14 @@ void nodemgmt_set_current_category_id(uint16_t catId)
     }
 }
 
-/*! \fn     nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage)
+/*! \fn     nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout)
  *  \brief  Initializes the Node Management Handle, scans memory for the next free node
  *  \param  userIdNum       The user id to initialize the handle for
  *  \param  userSecFlags    Pointer to where to store user security flags
  *  \param  userLanguage    Pointer to where to store user language
+ *  \param  userLayout      Pointer to where to store user keyboard layout
  */
-void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage)
+void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout)
 {
     if(userIdNum >= NB_MAX_USERS)
     {
@@ -1241,6 +1269,7 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
     // Store user security preference and language
     *userSecFlags = nodemgmt_get_user_sec_preferences();
     *userLanguage = nodemgmt_get_user_language();
+    *userLayout = nodemgmt_get_user_layout();
 }
 
 /*! \fn     nodemgmt_user_db_changed_actions(BOOL dataChanged)
