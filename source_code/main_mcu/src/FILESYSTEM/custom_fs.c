@@ -281,7 +281,7 @@ ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id)
 /*! \fn     custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer)
 *   \brief  Get keyboard symbols (not keys) for a given unicode string
 *   \param  string_pt   Pointer to the unicode BMP string
-*   \param  buffer      Where to store the symbols
+*   \param  buffer      Where to store the symbols. Non supported symbols will be stored as 0xFFFF
 *   \return RETURN_(N)OK
 *   \note   Take care of buffer overflows. One symbol will be generated per unicode point
 */
@@ -322,18 +322,12 @@ ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* strin
         /* Check for described point support */
         if (point_support_described == FALSE)
         {
-            *buffer = 0;
+            *buffer = 0xFFFF;
         }
         else
         {
-            /* Fetch keyboard symbol */
-            custom_fs_read_from_flash((uint8_t*)buffer, custom_fs_keyboard_layout_addr + CUSTOM_FS_KEYBOARD_DESC_LGTH*sizeof(cust_char_t) + sizeof(description_intervals) + symbol_desc_pt_offset*sizeof(*string_pt) + (*string_pt - interval_start)*sizeof(*string_pt), sizeof(*buffer));
-
-            /* Check that we know this glyph */
-            if(*buffer == 0xFFFF)
-            {
-                *buffer = 0;
-            }            
+            /* Fetch keyboard symbol: 0xFFFF for "not described" matches with our definition of not described */
+            custom_fs_read_from_flash((uint8_t*)buffer, custom_fs_keyboard_layout_addr + CUSTOM_FS_KEYBOARD_DESC_LGTH*sizeof(cust_char_t) + sizeof(description_intervals) + symbol_desc_pt_offset*sizeof(*string_pt) + (*string_pt - interval_start)*sizeof(*string_pt), sizeof(*buffer));       
         }        
         
         /* Move on to the next point */
