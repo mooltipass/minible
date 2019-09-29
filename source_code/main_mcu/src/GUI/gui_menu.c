@@ -6,6 +6,7 @@
 #include <string.h>
 #include "smartcard_highlevel.h"
 #include "logic_smartcard.h"
+#include "logic_bluetooth.h"
 #include "gui_dispatcher.h"
 #include "comms_aux_mcu.h"
 #include "logic_aux_mcu.h"
@@ -223,8 +224,8 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     /* Load address */
                     nodemgmt_read_favorite_for_current_category(chosen_favorite_index, &chosen_service_addr, &chosen_login_addr);
                     
-                    /* If user enabled that setting, ask to display credential */                    
-                    if ((logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0)
+                    /* If user enabled that setting or if we're not connected to anything, ask to display credential */                    
+                    if (((logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0) || ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE)))
                     {
                         mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_one_line_confirmation(QPROMPT_SNGL_DISP_CRED_TEXT_ID, FALSE);
                         
@@ -242,7 +243,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     }
 
                     /* Ask the user permission to enter login / password, check for back action */
-                    if (logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr) == RETURN_BACK)
+                    if (logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr, 0) == RETURN_BACK)
                     {
                         continue;
                     }

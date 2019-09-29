@@ -6,9 +6,11 @@
 #include <string.h>
 #include "smartcard_highlevel.h"
 #include "logic_encryption.h"
+#include "logic_bluetooth.h"
 #include "logic_security.h"
 #include "logic_database.h"
 #include "gui_dispatcher.h"
+#include "logic_aux_mcu.h"
 #include "bearssl_block.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
@@ -641,7 +643,7 @@ void logic_user_manual_select_login(void)
             }
             else
             {
-                if ((logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0)
+                if (((logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0) || ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE)))
                 {
                     /* Password display prompt */
                     state_machine++;
@@ -700,7 +702,7 @@ void logic_user_manual_select_login(void)
         else if (state_machine == 3)
         {
             // Ask the user permission to enter login / password, check for back action
-            if (logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr) == RETURN_BACK)
+            if (logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr, 0) == RETURN_BACK)
             {
                 /* Depending on number of child nodes, go back in history */
                 if (nb_logins_for_cred == 1)
@@ -738,13 +740,14 @@ void logic_user_manual_select_login(void)
     }
 }
 
-/*! \fn     logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address)
+/*! \fn     logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, uint8_t interface_id)
 *   \brief  Ask the user to enter the login & password of a given service
 *   \param  parent_address  Address of the parent
 *   \param  child_address   Address of the child
-*   \param  RETURN_OK or RETURN_BACK
+*   \param  interface_id    Interface identifier (0 USB 1 BT)
+*   \return  RETURN_OK or RETURN_BACK
 */
-RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address)
+RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, uint8_t interface_id)
 {
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,login), "Can't describe all chars for login");
     child_cred_node_t temp_cnode;
@@ -802,7 +805,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
                         typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.login) + 1)*sizeof(cust_char_t);
                         ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.login, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols);
-                        typing_message_to_be_sent->keyboard_type_message.interface_identifier = 0;
+                        typing_message_to_be_sent->keyboard_type_message.interface_identifier = interface_id;
                         typing_message_to_be_sent->keyboard_type_message.delay_between_types = 5;
                         comms_aux_mcu_send_message(FALSE);
                         
@@ -861,7 +864,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
                     typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.login) + 1)*sizeof(cust_char_t);
                     ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.cust_char_password, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols);
-                    typing_message_to_be_sent->keyboard_type_message.interface_identifier = 0;
+                    typing_message_to_be_sent->keyboard_type_message.interface_identifier = interface_id;
                     typing_message_to_be_sent->keyboard_type_message.delay_between_types = 5;
                     comms_aux_mcu_send_message(TRUE);
                     
