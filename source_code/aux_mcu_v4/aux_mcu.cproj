@@ -921,6 +921,12 @@
     <Compile Include="src\LOGIC\logic_bluetooth.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\LOGIC\logic_keyboard.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\LOGIC\logic_keyboard.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\LOGIC\logic_sleep.c">
       <SubType>compile</SubType>
     </Compile>

@@ -10,6 +10,7 @@
 #include "logic_bluetooth.h"
 #include "comms_hid_msgs.h"
 #include "comms_main_mcu.h"
+#include "logic_keyboard.h"
 #include "comms_raw_hid.h"
 #include "logic_battery.h"
 #include "driver_timer.h"
@@ -183,7 +184,43 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
         message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_IM_HERE;
         message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id);
         comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
-    }        
+    }    
+    else if (message->message_type == AUX_MCU_MSG_TYPE_KEYBOARD_TYPE)
+    {
+        /* Iterate over symbols */
+        uint16_t counter = 0;
+        while(message->keyboard_type_message.keyboard_symbols[counter] != 0)
+        {
+            uint16_t symbol = message->keyboard_type_message.keyboard_symbols[counter];
+            
+            if (symbol == 0xFFFF)
+            {
+                /* Original unicode point can't be typed */
+            }            
+            else if ((symbol & 0x7F00) == 0)
+            {
+                BOOL is_dead_key = FALSE;
+                
+                /* Check for dead key */
+                if ((symbol & 0x8000) != 0)
+                {
+                    is_dead_key = TRUE;
+                }                    
+                
+                /* One key to be typed */
+                logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)symbol, is_dead_key, message->keyboard_type_message.delay_between_types);
+            }
+            else
+            {
+                /* Two keys to be typed */
+                logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)(symbol >> 8), FALSE, message->keyboard_type_message.delay_between_types);
+                logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)symbol, FALSE, message->keyboard_type_message.delay_between_types); 
+            }
+            
+            /* Move on to the next symbol */
+            counter++;
+        }
+    }
     else if (message->message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD)
     {
         switch(message->main_mcu_command_message.command)

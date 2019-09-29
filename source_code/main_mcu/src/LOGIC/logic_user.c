@@ -10,6 +10,7 @@
 #include "logic_database.h"
 #include "gui_dispatcher.h"
 #include "bearssl_block.h"
+#include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "platform_io.h"
 #include "gui_prompts.h"
@@ -745,6 +746,7 @@ void logic_user_manual_select_login(void)
 */
 RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address)
 {
+    _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,login), "Can't describe all chars for login");
     child_cred_node_t* temp_half_cnode_pt;
     parent_node_t temp_half_cnode;
     parent_node_t temp_pnode;
@@ -793,6 +795,13 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
             {
                 if (prompt_return == MINI_INPUT_RET_YES)
                 {
+                    aux_mcu_message_t* typing_message_to_be_sent;
+                    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
+                    typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_half_cnode_pt->login) + 1)*sizeof(cust_char_t);
+                    custom_fs_get_keyboard_symbols_for_unicode_string(temp_half_cnode_pt->login, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols);
+                    typing_message_to_be_sent->keyboard_type_message.interface_identifier = 0;
+                    typing_message_to_be_sent->keyboard_type_message.delay_between_types = 5;
+                    comms_aux_mcu_send_message(FALSE);
                     // TODO2
                 }
 

@@ -23,6 +23,7 @@
 #define AUX_MCU_MSG_TYPE_AUX_MCU_EVENT  0x0005
 #define AUX_MCU_MSG_TYPE_NIMH_CHARGE    0x0006
 #define AUX_MCU_MSG_TYPE_PING_WITH_INFO 0x0007
+#define AUX_MCU_MSG_TYPE_KEYBOARD_TYPE  0x0008
 
 // Main MCU commands
 #define MAIN_MCU_COMMAND_SLEEP          0x0001
@@ -97,6 +98,13 @@ typedef struct
 
 typedef struct
 {
+    uint16_t interface_identifier;
+    uint16_t delay_between_types;
+    uint16_t keyboard_symbols[(AUX_MCU_MSG_PAYLOAD_LENGTH/2)-sizeof(uint16_t)-sizeof(uint16_t)];
+} keyboard_type_message_t;
+
+typedef struct
+{
     uint16_t message_type;
     uint16_t payload_length1;
     union
@@ -106,6 +114,7 @@ typedef struct
         main_mcu_command_message_t main_mcu_command_message;
         ping_with_info_message_t ping_with_info_message;
         aux_mcu_event_message_t aux_mcu_event_message;
+        keyboard_type_message_t keyboard_type_message;
         nimh_charge_message_t nimh_charge_message;
         hid_message_t hid_message;
         uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH];
