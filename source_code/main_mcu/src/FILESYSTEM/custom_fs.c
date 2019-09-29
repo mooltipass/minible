@@ -306,9 +306,9 @@ ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* strin
     while (*string_pt != 0)
     {
         /* Reset vars */
-        uint16_t symbol_desc_pt_offset = 0;
         point_support_described = FALSE;
-        uint16_t interval_start = 0;
+        symbol_desc_pt_offset = 0;
+        interval_start = 0;
         
         /* Check that support for this point is described */
         for (uint16_t i = 0; i < ARRAY_SIZE(description_intervals); i++)

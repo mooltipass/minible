@@ -99,5 +99,6 @@
 #define QSWITCH_OFF_DEVICE_TEXT_ID      92
 #define ACCESS_TO_TEXT_ID               93
 #define SELECT_LAYOUT_TEXT_ID           94
+#define COULDNT_TYPE_CHARS_TEXT_ID      95
 
 #endif

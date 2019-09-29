@@ -747,25 +747,21 @@ void logic_user_manual_select_login(void)
 RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address)
 {
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,login), "Can't describe all chars for login");
-    child_cred_node_t* temp_half_cnode_pt;
-    parent_node_t temp_half_cnode;
+    child_cred_node_t temp_cnode;
     parent_node_t temp_pnode;
-    
-    /* Dirty trick */
-    temp_half_cnode_pt = (child_cred_node_t*)&temp_half_cnode;
 
     /* Read nodes */
     nodemgmt_read_parent_node(parent_address, &temp_pnode, TRUE);
-    nodemgmt_read_cred_child_node_except_pwd(child_address, temp_half_cnode_pt);
+    nodemgmt_read_cred_child_node(child_address, &temp_cnode);
 
     /* Prepare first line display (service / user), store it in the service field. fields are 0 terminated by previous calls */
-    if (utils_strlen(temp_pnode.cred_parent.service) + utils_strlen(temp_half_cnode_pt->login) + 4 <= (uint16_t)MEMBER_ARRAY_SIZE(parent_cred_node_t, service))
+    if (utils_strlen(temp_pnode.cred_parent.service) + utils_strlen(temp_cnode.login) + 4 <= (uint16_t)MEMBER_ARRAY_SIZE(parent_cred_node_t, service))
     {
         uint16_t parent_length = utils_strlen(temp_pnode.cred_parent.service);
         temp_pnode.cred_parent.service[parent_length] = ' ';
         temp_pnode.cred_parent.service[parent_length+1] = '/';
         temp_pnode.cred_parent.service[parent_length+2] = ' ';
-        utils_strcpy(&temp_pnode.cred_parent.service[parent_length+3], temp_half_cnode_pt->login);
+        utils_strcpy(&temp_pnode.cred_parent.service[parent_length+3], temp_cnode.login);
     }
     
     /* Prepare prompt and state machine */
@@ -777,37 +773,50 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
     {
         if (state_machine == 0)
         {
-            /* Ask for login confirmation */
-            custom_fs_get_string_from_file(TYPE_LOGIN_TEXT_ID, &two_line_prompt_2, TRUE);
-            conf_text_2_lines.lines[1] = two_line_prompt_2;
-            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE);
-
-            /* Approved, back, card removed... */
-            if (prompt_return == MINI_INPUT_RET_CARD_REMOVED)
+            /* Check for presence of an actual login */
+            if (temp_cnode.login[0] == 0)
             {
-                return RETURN_OK;
+                state_machine++;
             } 
-            else if (prompt_return == MINI_INPUT_RET_BACK)
-            {
-                return RETURN_BACK;
-            }
             else
             {
-                if (prompt_return == MINI_INPUT_RET_YES)
-                {
-                    aux_mcu_message_t* typing_message_to_be_sent;
-                    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
-                    typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_half_cnode_pt->login) + 1)*sizeof(cust_char_t);
-                    custom_fs_get_keyboard_symbols_for_unicode_string(temp_half_cnode_pt->login, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols);
-                    typing_message_to_be_sent->keyboard_type_message.interface_identifier = 0;
-                    typing_message_to_be_sent->keyboard_type_message.delay_between_types = 5;
-                    comms_aux_mcu_send_message(FALSE);
-                    // TODO2
-                }
+                /* Ask for login confirmation */
+                custom_fs_get_string_from_file(TYPE_LOGIN_TEXT_ID, &two_line_prompt_2, TRUE);
+                conf_text_2_lines.lines[1] = two_line_prompt_2;
+                mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE);
 
-                /* Move on */
-                state_machine++;
-            }
+                /* Approved, back, card removed... */
+                if (prompt_return == MINI_INPUT_RET_CARD_REMOVED)
+                {
+                    return RETURN_OK;
+                }
+                else if (prompt_return == MINI_INPUT_RET_BACK)
+                {
+                    return RETURN_BACK;
+                }
+                else
+                {
+                    if (prompt_return == MINI_INPUT_RET_YES)
+                    {
+                        aux_mcu_message_t* typing_message_to_be_sent;
+                        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
+                        typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.login) + 1)*sizeof(cust_char_t);
+                        ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.login, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols);
+                        typing_message_to_be_sent->keyboard_type_message.interface_identifier = 0;
+                        typing_message_to_be_sent->keyboard_type_message.delay_between_types = 5;
+                        comms_aux_mcu_send_message(FALSE);
+                        
+                        /* Display warning if some chars were missing */
+                        if (string_to_key_points_transform_success != RETURN_OK)
+                        {
+                            gui_prompts_display_information_on_screen_and_wait(COULDNT_TYPE_CHARS_TEXT_ID, DISP_MSG_WARNING);
+                        }
+                    }
+
+                    /* Move on */
+                    state_machine++;
+                }
+            }            
         } 
         else if (state_machine == 1)
         {
@@ -829,7 +838,42 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
             {
                 if (prompt_return == MINI_INPUT_RET_YES)
                 {
-                    // TODO2
+                    BOOL prev_gen_credential_flag = FALSE;
+                    
+                    /* Check for previous generation password */
+                    if ((temp_cnode.flags & NODEMGMT_PREVGEN_BIT_BITMASK) != 0)
+                    {
+                        prev_gen_credential_flag = TRUE;
+                    }
+                    
+                    /* Decrypt password. The field just after it is 0 */
+                    logic_encryption_ctr_decrypt((uint8_t*)temp_cnode.password, temp_cnode.ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
+                    
+                    /* If old generation password, convert it to unicode */
+                    if (prev_gen_credential_flag != FALSE)
+                    {
+                        _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
+                        utils_ascii_to_unicode((uint8_t*)temp_cnode.password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+                    }
+                    
+                    /* Prepare packet to be sent */
+                    aux_mcu_message_t* typing_message_to_be_sent;
+                    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
+                    typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.login) + 1)*sizeof(cust_char_t);
+                    ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.cust_char_password, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols);
+                    typing_message_to_be_sent->keyboard_type_message.interface_identifier = 0;
+                    typing_message_to_be_sent->keyboard_type_message.delay_between_types = 5;
+                    comms_aux_mcu_send_message(TRUE);
+                    
+                    /* Message is sent, clear everything */
+                    memset(typing_message_to_be_sent, 0, sizeof(aux_mcu_message_t));
+                    memset(&temp_cnode, 0, sizeof(temp_cnode));
+                    
+                    /* Display warning if some chars were missing */
+                    if (string_to_key_points_transform_success != RETURN_OK)
+                    {
+                        gui_prompts_display_information_on_screen_and_wait(COULDNT_TYPE_CHARS_TEXT_ID, DISP_MSG_WARNING);
+                    }
                 }
 
                 /* Move on */
