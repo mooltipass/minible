@@ -278,6 +278,72 @@ ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id)
     return RETURN_OK;
 }
 
+/*! \fn     custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer)
+*   \brief  Get keyboard symbols (not keys) for a given unicode string
+*   \param  string_pt   Pointer to the unicode BMP string
+*   \param  buffer      Where to store the symbols
+*   \return RETURN_(N)OK
+*   \note   Take care of buffer overflows. One symbol will be generated per unicode point
+*/
+ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer)
+{
+    unicode_interval_desc_t description_intervals[CUSTOM_FS_KEYB_NB_INT_DESCRIBED];
+    BOOL point_support_described = FALSE;
+    uint16_t symbol_desc_pt_offset = 0;
+    uint16_t interval_start = 0;
+    
+    /* Check for correctly setup keyboard layout */
+    if (custom_fs_keyboard_layout_addr == 0)
+    {
+        return RETURN_NOK;
+    }   
+    
+    /* Load the description intervals */
+    custom_fs_read_from_flash((uint8_t*)description_intervals, custom_fs_keyboard_layout_addr + CUSTOM_FS_KEYBOARD_DESC_LGTH*sizeof(cust_char_t), sizeof(description_intervals));
+    
+    /* Iterate over string */
+    while (*string_pt != 0)
+    {
+        /* Check that support for this point is described */
+        for (uint16_t i = 0; i < ARRAY_SIZE(description_intervals); i++)
+        {
+            /* Check if char is within this interval */
+            if ((description_intervals[i].interval_start != 0xFFFF) && (description_intervals[i].interval_start <= *string_pt) && (description_intervals[i].interval_end >= *string_pt))
+            {
+                interval_start = description_intervals[i].interval_start;
+                point_support_described = TRUE;
+                break;
+            }
+            
+            /* Add offset to descriptor */
+            symbol_desc_pt_offset += description_intervals[i].interval_end - description_intervals[i].interval_start + 1;
+        }
+        
+        /* Check for described point support */
+        if (point_support_described == FALSE)
+        {
+            *buffer = 0;
+        }
+        else
+        {
+            /* Fetch keyboard symbol */
+            custom_fs_read_from_flash((uint8_t*)buffer, custom_fs_keyboard_layout_addr + CUSTOM_FS_KEYBOARD_DESC_LGTH*sizeof(cust_char_t) + sizeof(description_intervals) + symbol_desc_pt_offset*sizeof(*string_pt) + (*string_pt - interval_start)*sizeof(*string_pt), sizeof(*buffer));
+
+            /* Check that we know this glyph */
+            if(*buffer == 0xFFFF)
+            {
+                *buffer = 0;
+            }            
+        }        
+        
+        /* Move on to the next point */
+        string_pt++;
+        buffer++;
+    }
+    
+    return RETURN_OK;
+}    
+
 /*! \fn     custom_fs_set_current_language(uint8_t language_id)
 *   \brief  Set current language
 *   \param  language_id     Language ID
