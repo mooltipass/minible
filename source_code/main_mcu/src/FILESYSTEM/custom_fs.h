@@ -26,6 +26,10 @@
 // Flag to use provisioned key
 #define  CUSTOM_FS_PROV_KEY_FLAG            0x91
 
+/* HID defines */
+#define KEY_RETURN                          0x28
+#define KEY_TAB                             0x2B
+
 /* Fields sizes */
 #define CUSTOM_FS_KEYBOARD_DESC_LGTH        20
 #define CUSTOM_FS_KEYB_NB_INT_DESCRIBED     15
@@ -37,6 +41,8 @@
 #define SETTING_USER_INTERACTION_TIMEOUT_ID 2
 #define SETTING_FLASH_SCREEN_ID             3
 #define SETTING_DEVICE_DEFAULT_LANGUAGE     4
+#define SETTINGS_CHAR_AFTER_LOGIN_PRESS     5
+#define SETTINGS_CHAR_AFTER_PASS_PRESS      6
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32

@@ -17,7 +17,7 @@
 #include "dma.h"
 
 /* Default device settings */
-const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = {0,FALSE,SETTING_DFT_USER_INTERACTION_TIMEOUT,TRUE,0};
+const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = {0,FALSE,SETTING_DFT_USER_INTERACTION_TIMEOUT,TRUE,0,0x09,0x0A};
 /* Current selected language entry */
 language_map_entry_t custom_fs_cur_language_entry = {.starting_bitmap = 0, .starting_font = 0, .string_file_index = 0};
 /* Temp values to speed up string files reading */
@@ -338,8 +338,20 @@ ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* strin
         /* Check for described point support */
         if (point_support_described == FALSE)
         {
-            all_points_described = FALSE;
-            *buffer = 0xFFFF;
+            /* Check for tab or return */
+            if (*string_pt == 0x09)
+            {
+                *buffer = KEY_TAB;
+            } 
+            else if (*string_pt == 0x0A)
+            {
+                *buffer = KEY_RETURN;
+            } 
+            else
+            {
+                all_points_described = FALSE;
+                *buffer = 0xFFFF;
+            }
         }
         else
         {

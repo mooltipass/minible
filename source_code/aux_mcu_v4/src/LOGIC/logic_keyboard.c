@@ -51,59 +51,46 @@ void logic_keyboard_type_key_with_modifier(uint8_t key, uint8_t modifier, uint16
 */
 void logic_keyboard_type_symbol(hid_interface_te interface, uint8_t symbol, BOOL is_dead_key, uint16_t delay_between_types)
 {
-    /*if (symbol == 0x0A)
-    {
-        // New line
-        return usbKeyboardPress(KEY_RETURN, 0);
-    }
-    else if (symbol == 0x09)
-    {
-        // TAB
-        return usbKeyboardPress(KEY_TAB, 0);
-    }
-    else*/
-    {
-        uint8_t masked_key = symbol & (SHIFT_MASK|ALTGR_MASK);
+    uint8_t masked_key = symbol & (SHIFT_MASK|ALTGR_MASK);
         
-        if ((symbol & 0x3F) == KEY_EUROPE_2)
-        {
-            // Because of a redefine of KEY_EUROPE_2 for storage purposes we need to do that
-            uint8_t mod_tbs = 0;
+    if ((symbol & 0x3F) == KEY_EUROPE_2)
+    {
+        // Because of a redefine of KEY_EUROPE_2 for storage purposes we need to do that
+        uint8_t mod_tbs = 0;
             
-            if (masked_key == (SHIFT_MASK|ALTGR_MASK))
-            {
-                mod_tbs = KEY_SHIFT|KEY_RIGHT_ALT;
-            }
-            else if (masked_key == SHIFT_MASK)
-            {
-                mod_tbs = KEY_SHIFT;
-            }
-            else if (masked_key == ALTGR_MASK)
-            {
-                mod_tbs = KEY_RIGHT_ALT;
-            }
-            
-            // Send the correct KEY_EUROPE_2 with the correct modifier
-            logic_keyboard_type_key_with_modifier(KEY_EUROPE_2_REAL, mod_tbs, delay_between_types);
-        }
-        else if (masked_key == (SHIFT_MASK|ALTGR_MASK))
+        if (masked_key == (SHIFT_MASK|ALTGR_MASK))
         {
-            logic_keyboard_type_key_with_modifier(symbol & ~(SHIFT_MASK|ALTGR_MASK), KEY_SHIFT|KEY_RIGHT_ALT, delay_between_types);
+            mod_tbs = KEY_SHIFT|KEY_RIGHT_ALT;
         }
         else if (masked_key == SHIFT_MASK)
         {
-            // If we need shift
-            logic_keyboard_type_key_with_modifier(symbol & ~SHIFT_MASK, KEY_SHIFT, delay_between_types);
+            mod_tbs = KEY_SHIFT;
         }
         else if (masked_key == ALTGR_MASK)
         {
-            // We need altgr for the numbered keys, only possible because we don't use the numerical keypad
-            logic_keyboard_type_key_with_modifier(symbol & ~ALTGR_MASK, KEY_RIGHT_ALT, delay_between_types);
+            mod_tbs = KEY_RIGHT_ALT;
         }
-        else
-        {
-            logic_keyboard_type_key_with_modifier(symbol, 0, delay_between_types);
-        }
+            
+        // Send the correct KEY_EUROPE_2 with the correct modifier
+        logic_keyboard_type_key_with_modifier(KEY_EUROPE_2_REAL, mod_tbs, delay_between_types);
+    }
+    else if (masked_key == (SHIFT_MASK|ALTGR_MASK))
+    {
+        logic_keyboard_type_key_with_modifier(symbol & ~(SHIFT_MASK|ALTGR_MASK), KEY_SHIFT|KEY_RIGHT_ALT, delay_between_types);
+    }
+    else if (masked_key == SHIFT_MASK)
+    {
+        // If we need shift
+        logic_keyboard_type_key_with_modifier(symbol & ~SHIFT_MASK, KEY_SHIFT, delay_between_types);
+    }
+    else if (masked_key == ALTGR_MASK)
+    {
+        // We need altgr for the numbered keys, only possible because we don't use the numerical keypad
+        logic_keyboard_type_key_with_modifier(symbol & ~ALTGR_MASK, KEY_RIGHT_ALT, delay_between_types);
+    }
+    else
+    {
+        logic_keyboard_type_key_with_modifier(symbol, 0, delay_between_types);
     }
     
     /* Add space if typed character is a dead key */
