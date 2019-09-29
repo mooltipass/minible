@@ -374,8 +374,9 @@ void nodemgmt_get_user_category_names_starting_offset(uint16_t uid, uint16_t *pa
  *  \param  uid             The id of the user to format profile memory
  *  \param  secPreferences  User security preferences
  *  \param  languageId      User language
+ *  \param  keyboardId      Keyboard ID
  */
-void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId)
+void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId, uint16_t keyboardId)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
 
@@ -397,6 +398,7 @@ void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_
     dbflash_write_data_pattern_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmt_userprofile_t), 0x00);
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)&(dirty_address_finding_trick->main_data.sec_preferences), sizeof(secPreferences), (void*)&secPreferences);
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)&(dirty_address_finding_trick->main_data.language_id), sizeof(languageId), (void*)&languageId);
+    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)&(dirty_address_finding_trick->main_data.layout_id), sizeof(keyboardId), (void*)&keyboardId);
 }
 
 /*! \fn     nodemgmt_store_user_sec_preferences(uint16_t sec_preferences)
@@ -1317,7 +1319,7 @@ void nodemgmt_delete_current_user_from_flash(void)
     _Static_assert(sizeof(temp_buffer) >= ((size_t)&(child_node_san_checks->nextChildAddress)) + sizeof(child_node_san_checks->nextChildAddress), "Buffer not long enough to store first bytes");
         
     // Delete user profile memory
-    nodemgmt_format_user_profile(nodemgmt_current_handle.currentUserId, 0, 0);
+    nodemgmt_format_user_profile(nodemgmt_current_handle.currentUserId, 0, 0, 0);
     
     // Then browse through all the credentials to delete them
     for (uint16_t i = 0; i < 1 + (sizeof(nodemgmt_current_handle.firstDataParentNode)/sizeof(nodemgmt_current_handle.firstDataParentNode[0])); i++)

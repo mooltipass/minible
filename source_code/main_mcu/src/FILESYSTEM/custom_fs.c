@@ -13,6 +13,7 @@
 #include "logic_device.h"
 #include "custom_fs.h"
 #include "dataflash.h"
+#include "utils.h"
 #include "dma.h"
 
 /* Default device settings */
@@ -216,6 +217,15 @@ uint8_t custom_fs_get_current_language_id(void)
 uint8_t custom_fs_get_current_layout_id(void)
 {
     return custom_fs_cur_keyboard_id;
+}
+
+/*! \fn     custom_fs_get_recommended_layout_for_current_language(void)
+*   \brief  Get the recommended keyboard layout id for the language currently set
+*   \return The recommended layout ID
+*/
+uint8_t custom_fs_get_recommended_layout_for_current_language(void)
+{
+    return (uint8_t)utils_check_value_for_range(custom_fs_cur_language_entry.keyboard_layout_id, 0, custom_fs_get_number_of_keyb_layouts()-1);
 }
 
 /*! \fn     custom_fs_get_number_of_keyb_layouts(void)
@@ -443,7 +453,7 @@ ret_type_te custom_fs_init(void)
     }
     
     /* Set default language */
-    return custom_fs_set_current_language(0);
+    return custom_fs_set_current_language(utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1));
 }
 
 /*! \fn     custom_fs_get_string_from_file(uint32_t text_file_id, uint32_t string_id, char* string_pt, BOOL lock_on_fail)

@@ -159,11 +159,11 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* pro
     /* Setup user profile in external flash */
     if (simple_mode == FALSE)
     {
-        nodemgmt_format_user_profile(new_user_id, 0xFFFF & (~USER_SEC_FLG_BLE_ENABLED), utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1));
+        nodemgmt_format_user_profile(new_user_id, 0xFFFF & (~USER_SEC_FLG_BLE_ENABLED), custom_fs_get_current_language_id(), custom_fs_get_recommended_layout_for_current_language());
     }
     else
     {
-        nodemgmt_format_user_profile(new_user_id, 0, utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1));
+        nodemgmt_format_user_profile(new_user_id, 0, custom_fs_get_current_language_id(), custom_fs_get_recommended_layout_for_current_language());
     }
     
     /* Initialize nodemgmt context */
