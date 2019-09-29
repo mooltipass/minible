@@ -282,7 +282,7 @@ ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id)
 *   \brief  Get keyboard symbols (not keys) for a given unicode string
 *   \param  string_pt   Pointer to the unicode BMP string
 *   \param  buffer      Where to store the symbols. Non supported symbols will be stored as 0xFFFF
-*   \return RETURN_(N)OK
+*   \return RETURN_(N)OK depending on if we were able to "translate" the complete string
 *   \note   Take care of buffer overflows. One symbol will be generated per unicode point
 */
 ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer)
@@ -290,6 +290,7 @@ ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* strin
     unicode_interval_desc_t description_intervals[CUSTOM_FS_KEYB_NB_INT_DESCRIBED];
     BOOL point_support_described = FALSE;
     uint16_t symbol_desc_pt_offset = 0;
+    BOOL all_points_described = TRUE;
     uint16_t interval_start = 0;
     
     /* Check for correctly setup keyboard layout */
@@ -322,12 +323,19 @@ ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* strin
         /* Check for described point support */
         if (point_support_described == FALSE)
         {
+            all_points_described = FALSE;
             *buffer = 0xFFFF;
         }
         else
         {
-            /* Fetch keyboard symbol: 0xFFFF for "not described" matches with our definition of not described */
+            /* Fetch keyboard symbol: 0xFFFF for "not supported" matches with our definition of not described */
             custom_fs_read_from_flash((uint8_t*)buffer, custom_fs_keyboard_layout_addr + CUSTOM_FS_KEYBOARD_DESC_LGTH*sizeof(cust_char_t) + sizeof(description_intervals) + symbol_desc_pt_offset*sizeof(*string_pt) + (*string_pt - interval_start)*sizeof(*string_pt), sizeof(*buffer));       
+            
+            /* Is this symbol supported? */
+            if (*buffer == 0xFFFF)
+            {
+                all_points_described = FALSE;
+            }
         }        
         
         /* Move on to the next point */
@@ -335,7 +343,15 @@ ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* strin
         buffer++;
     }
     
-    return RETURN_OK;
+    /* Return depending on if we were able to translate all the string */
+    if (all_points_described == FALSE)
+    {
+        return RETURN_NOK;
+    } 
+    else
+    {
+        return RETURN_OK;
+    }
 }    
 
 /*! \fn     custom_fs_set_current_language(uint8_t language_id)
