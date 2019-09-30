@@ -4,14 +4,13 @@ This website aims to provide contributors and Moooltipass enthusiasts with all r
 ## [](#header-2)Device Technical Details
 You'll find below different pages detailing our selected architecture.
 * [High Level Device Overview](highlevel_overview)
-* [WIP - Graphics Bundle Composition](bundle)
-* [WIP - Aux-Main MCU Protocol](aux_main_mcu_protocol)
-* [WIP - Bootloader Protocol](aux_bootloader_protocol)
-* [WIP - Message Protocol](protocol)
-* [WIP - Database Model](database_model)
-* [WIP - RAM Consumers](ram_consumers)
 * [USB Raw HID Protocol](usb_hid_protocol)
+* [Aux-Main MCU Protocol](aux_main_mcu_protocol)
+* [WIP - Message Protocol](protocol)
+* [Graphics Bundle Composition](bundle)
 * [Keyboard Layouts and Unicode](unicode_layouts)
+* [Bootloader Protocol](aux_bootloader_protocol)
+* [Database Model](database_model)
 * [Device Permissions and Modes](device_modes)
 
 ## [](#header-2)Test Reports
@@ -29,11 +28,9 @@ Interested in joining our team? For this new project, we are using <a href="http
 You'll find below the available tasks, grouped by category.
 ### [](#header-3)Firmware:
 Do not forget to review our [contributors guidelines and coding rules](coding_rules).
-* [Unicode Plane 0 Support Implementation (HID)](task_unicode_hid)
 * [Aux MCU USB Communications - OUT report](task_aux_mcu_usb)
 * [Secure Bootloader Implementation](task_bootloader)
 * [Create a Visual Virtual Device](task_picture_grabbing)
-* [Webauthn Implementation](task_u2f)
 * [RNG Characterization](task_rng)
 * OTP Implementation
 
