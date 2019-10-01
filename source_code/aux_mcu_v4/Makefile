@@ -104,7 +104,9 @@ src/DMA/dma.c \
 src/LOGIC/logic.c \
 src/LOGIC/logic_battery.c \
 src/LOGIC/logic_bluetooth.c \
+src/LOGIC/logic_keyboard.c \
 src/LOGIC/logic_sleep.c \
+src/LOGIC/logic_rng.c \
 src/main.c \
 src/PLATFORM/platform_io.c \
 src/SECURITY/fuses.c \
