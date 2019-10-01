@@ -253,12 +253,12 @@ void main_platform_init(void)
         logic_power_usb_enumerate_just_sent();
     } 
         
-    //custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
+    //custom_fs_set_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID, TRUE);
     /* Check for first boot, perform functional testing */
     #ifdef DEVELOPER_FEATURES_ENABLED
-    if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
+    if ((custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
     #else
-    if (custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE)
+    if (custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE)
     #endif
     {
         custom_fs_settings_set_defaults();      

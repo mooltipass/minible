@@ -23,8 +23,9 @@ language_map_entry_t custom_fs_cur_language_entry = {.starting_bitmap = 0, .star
 /* Temp values to speed up string files reading */
 custom_fs_string_count_t custom_fs_current_text_file_string_count = 0;
 custom_fs_address_t custom_fs_current_text_file_addr = 0;
-/* Our platform settings array, in internal NVM */
+/* Our platform settings & flags array, in internal NVM */
 custom_platform_settings_t* custom_fs_platform_settings_p = 0;
+custom_platform_flags_t* custom_fs_platform_flags_p = 0;
 /* dataflash port descriptor */
 spi_flash_descriptor_t* custom_fs_dataflash_desc = 0;
 /* Flash header */
@@ -168,6 +169,8 @@ custom_fs_init_ret_type_te custom_fs_settings_init(void)
         custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_addr;
         flash_addr = custom_fs_get_custom_storage_slot_addr(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT);
         custom_fs_cpz_lut = (cpz_lut_entry_t*)flash_addr;
+        flash_addr = custom_fs_get_custom_storage_slot_addr(FLAGS_STORAGE_SLOT);
+        custom_fs_platform_flags_p = (custom_platform_flags_t*)flash_addr;
         
         /* Quick sanity check on memory boundary */
         if ((uint32_t)&custom_fs_cpz_lut[MAX_NUMBER_OF_USERS] != FLASH_ADDR + FLASH_SIZE)
@@ -784,21 +787,21 @@ void custom_fs_settings_clear_fw_upgrade_flag(void)
 */
 void custom_fs_set_device_flag_value(custom_fs_flag_id_te flag_id, BOOL value)
 {
-    volatile custom_platform_settings_t temp_settings;
+    volatile custom_platform_flags_t temp_flags;
     
     /* Check for overflow and custom fs init state */
-    if ((custom_fs_platform_settings_p != 0) && (flag_id < ARRAY_SIZE(custom_fs_platform_settings_p->device_flags)))
+    if ((custom_fs_platform_flags_p != 0) && (flag_id < ARRAY_SIZE(custom_fs_platform_flags_p->device_flags)))
     {
-        custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+        custom_fs_read_256B_at_internal_custom_storage_slot(FLAGS_STORAGE_SLOT, (void*)&temp_flags);
         if (value == FALSE)
         {
-            temp_settings.device_flags[flag_id] = 0xFFFF;
+            temp_flags.device_flags[flag_id] = 0xFFFF;
         } 
         else
         {
-            temp_settings.device_flags[flag_id] = FLAG_SET_BOOL_VALUE;
+            temp_flags.device_flags[flag_id] = FLAG_SET_BOOL_VALUE;
         }
-        custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+        custom_fs_write_256B_at_internal_custom_storage_slot(FLAGS_STORAGE_SLOT, (void*)&temp_flags);
     }    
 }
 
@@ -810,9 +813,9 @@ void custom_fs_set_device_flag_value(custom_fs_flag_id_te flag_id, BOOL value)
 BOOL custom_fs_get_device_flag_value(custom_fs_flag_id_te flag_id)
 {
     /* Check for overflow and custom fs init state */
-    if ((custom_fs_platform_settings_p != 0) && (flag_id < ARRAY_SIZE(custom_fs_platform_settings_p->device_flags)))
+    if ((custom_fs_platform_flags_p != 0) && (flag_id < ARRAY_SIZE(custom_fs_platform_flags_p->device_flags)))
     {
-        if (custom_fs_platform_settings_p->device_flags[flag_id] == FLAG_SET_BOOL_VALUE)
+        if (custom_fs_platform_flags_p->device_flags[flag_id] == FLAG_SET_BOOL_VALUE)
         {
             return TRUE;
         } 

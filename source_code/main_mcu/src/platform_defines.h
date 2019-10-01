@@ -104,6 +104,7 @@ typedef struct
 #define APP_START_ADDR (0x2000)
 /* Internal storage slot for settings storage */
 #define SETTINGS_STORAGE_SLOT               0
+#define FLAGS_STORAGE_SLOT                  1
 #define FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT    4
 
 /**********************/

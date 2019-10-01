@@ -47,7 +47,7 @@
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32
 #define FLAG_SET_BOOL_VALUE                 0x1212
-typedef enum {PWR_OFF_DUE_TO_BATTERY_FLG_ID = 0, NOT_FIRST_BOOT_FLAG_ID = 1, DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID = 2} custom_fs_flag_id_te;
+typedef enum {PWR_OFF_DUE_TO_BATTERY_FLG_ID = 0, FUNCTIONAL_TEST_PASSED_FLAG_ID = 1, DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID = 2} custom_fs_flag_id_te;
 
 /* Typedefs */
 typedef uint32_t custom_fs_file_count_t;
@@ -100,10 +100,17 @@ typedef struct
 {
     uint8_t device_settings[NB_DEVICE_SETTINGS];
     uint32_t nb_ms_since_last_full_charge;
-    uint8_t reserved[120];
-    uint16_t device_flags[NB_DEVICE_FLAGS];
+    uint8_t reserved[184];
     uint32_t start_upgrade_flag;
 } custom_platform_settings_t;
+
+// Platform flags
+typedef struct
+{
+    uint16_t device_flags[NB_DEVICE_FLAGS];
+    uint8_t reserved[192];
+} custom_platform_flags_t;
+
 
 // Bitmap header
 typedef struct
