@@ -261,7 +261,6 @@ void main_platform_init(void)
     if (custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE)
     #endif
     {
-        custom_fs_settings_set_defaults();      
         functional_testing_start(TRUE);
     }
     
@@ -307,9 +306,11 @@ void main_platform_init(void)
     /* If the device went through the bootloader: re-initialize device settings and clear bool */
     if (custom_fs_get_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID) != FALSE)
     {
-        custom_fs_settings_set_defaults();
         custom_fs_set_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID, FALSE);
     }
+    
+    /* Set settings that may not have been set to an initial value */
+    custom_fs_set_undefined_settings();
 }
 
 /*! \fn     main_reboot(void)
@@ -423,7 +424,6 @@ int main(void)
         /* When developping on a newly flashed board: reset USB connection and reset defaults */
         if (custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id) == RETURN_OK)
         {
-            custom_fs_settings_set_defaults();
             if (platform_io_is_usb_3v3_present() != FALSE)
             {
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);

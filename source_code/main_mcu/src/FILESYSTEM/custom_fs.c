@@ -921,16 +921,45 @@ void custom_fs_settings_store_dump(uint8_t* settings_buffer)
         /* Copy settings structure stored in flash into ram, overwrite relevant settings part, flash again */
         memcpy(&platform_settings_copy, custom_fs_platform_settings_p, sizeof(custom_platform_settings_t));
         memcpy(platform_settings_copy.device_settings, settings_buffer, sizeof(platform_settings_copy.device_settings));
+        platform_settings_copy.nb_settings_last_covered = SETTINGS_NB_USED;
         custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&platform_settings_copy);
     }
 }
 
-/*! \fn     custom_fs_settings_set_defaults(void)
-*   \brief  Set default settings for device
+/*! \fn     custom_fs_hard_reset_settings(void)
+*   \brief  Force reset all settings
 */
-void custom_fs_settings_set_defaults(void)
+void custom_fs_hard_reset_settings(void)
 {
     custom_fs_settings_store_dump((uint8_t*)custom_fs_default_device_settings);
+}
+
+/*! \fn     custom_fs_set_undefined_settings(void)
+*   \brief  Set settings that may not have been set to a default value
+*/
+void custom_fs_set_undefined_settings(void)
+{
+    uint8_t temp_device_settings[NB_DEVICE_SETTINGS];
+    
+    if (custom_fs_platform_settings_p == 0)
+    {
+        /* Custom fs not initalized (shouldn't happen) */
+        return;
+    }
+    else if (custom_fs_platform_settings_p->nb_settings_last_covered != SETTINGS_NB_USED)
+    {
+        /* Check for blank memory */
+        if (custom_fs_platform_settings_p->nb_settings_last_covered >= NB_DEVICE_SETTINGS)
+        {
+            custom_fs_platform_settings_p->nb_settings_last_covered = 0;
+        }
+        
+        /* Only update the non defined ones */
+        memcpy(&temp_device_settings[custom_fs_platform_settings_p->nb_settings_last_covered], &custom_fs_default_device_settings[custom_fs_platform_settings_p->nb_settings_last_covered], NB_DEVICE_SETTINGS-custom_fs_platform_settings_p->nb_settings_last_covered);
+        
+        /* Store updated part */
+        custom_fs_settings_store_dump(temp_device_settings);
+    }
 }
 
 /*! \fn     custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_pt)

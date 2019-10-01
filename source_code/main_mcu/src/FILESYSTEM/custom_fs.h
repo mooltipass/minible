@@ -43,6 +43,8 @@
 #define SETTING_DEVICE_DEFAULT_LANGUAGE     4
 #define SETTINGS_CHAR_AFTER_LOGIN_PRESS     5
 #define SETTINGS_CHAR_AFTER_PASS_PRESS      6
+/* Set to define the number of settings used */
+#define SETTINGS_NB_USED                    7
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32
@@ -100,6 +102,7 @@ typedef struct
 {
     uint8_t device_settings[NB_DEVICE_SETTINGS];
     uint32_t nb_ms_since_last_full_charge;
+    uint32_t nb_settings_last_covered;
     uint8_t reserved[184];
     uint32_t start_upgrade_flag;
 } custom_platform_settings_t;
@@ -211,7 +214,8 @@ void custom_fs_settings_set_fw_upgrade_flag(void);
 uint32_t custom_fs_get_number_of_languages(void);
 uint8_t custom_fs_get_current_language_id(void);
 uint8_t custom_fs_get_current_layout_id(void);
-void custom_fs_settings_set_defaults(void);
+void custom_fs_set_undefined_settings(void);
+void custom_fs_hard_reset_settings(void);
 ret_type_te custom_fs_init(void);
 
 /* Global vars, for debug only */
