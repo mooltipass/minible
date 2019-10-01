@@ -311,7 +311,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             /* Settings menu */
             case GUI_LANGUAGE_SWITCH_ICON_ID:
             {
-                gui_prompts_select_language_or_keyboard_layout(FALSE);
+                gui_prompts_select_language_or_keyboard_layout(FALSE, FALSE, FALSE);
                 logic_user_set_language(custom_fs_get_current_language_id());
                 return TRUE;
             }
@@ -343,7 +343,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             }
             case GUI_KEYB_LAYOUT_CHANGE_ICON_ID:
             {
-                gui_prompts_select_language_or_keyboard_layout(TRUE);
+                gui_prompts_select_language_or_keyboard_layout(TRUE, FALSE, FALSE);
                 logic_user_set_layout_id(custom_fs_get_current_layout_id());
                 return TRUE;
             }

@@ -51,7 +51,7 @@ uint16_t logic_user_get_user_security_flags(void)
     return logic_user_cur_sec_preferences;
 }
 
-/*! \fn     logic_user_set_language(uint16_t language_id)
+/*! \fn     logic_user_'nguage(uint16_t language_id)
 *   \brief  Set language for current user
 *   \param  language_id User language ID
 */

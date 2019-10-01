@@ -467,8 +467,17 @@ ret_type_te custom_fs_init(void)
         return RETURN_NOK;
     }
     
+    /* Fetch default language (if set) */
+    uint8_t default_device_language = custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE);
+    
+    /* If not valid (preferences not set, etc...) reset to english (0) */
+    if (default_device_language >= custom_fs_get_number_of_languages())
+    {
+        default_device_language = 0;
+    }    
+    
     /* Set default language */
-    return custom_fs_set_current_language(utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1));
+    return custom_fs_set_current_language(default_device_language);
 }
 
 /*! \fn     custom_fs_get_string_from_file(uint32_t text_file_id, uint32_t string_id, char* string_pt, BOOL lock_on_fail)
@@ -932,6 +941,18 @@ void custom_fs_settings_store_dump(uint8_t* settings_buffer)
 void custom_fs_hard_reset_settings(void)
 {
     custom_fs_settings_store_dump((uint8_t*)custom_fs_default_device_settings);
+}
+
+/*! \fn     custom_fs_set_device_default_language(uint8_t language_id)
+*   \brief  Set device default language
+*   \param  language_id The default language id
+*/
+void custom_fs_set_device_default_language(uint8_t language_id)
+{
+    uint8_t temp_device_settings[NB_DEVICE_SETTINGS];
+    memcpy(temp_device_settings, custom_fs_platform_settings_p->device_settings, sizeof(temp_device_settings));
+    temp_device_settings[SETTING_DEVICE_DEFAULT_LANGUAGE] = language_id;
+    custom_fs_settings_store_dump(temp_device_settings);    
 }
 
 /*! \fn     custom_fs_set_undefined_settings(void)

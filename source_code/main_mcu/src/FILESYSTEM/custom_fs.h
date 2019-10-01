@@ -49,7 +49,7 @@
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32
 #define FLAG_SET_BOOL_VALUE                 0x1212
-typedef enum {PWR_OFF_DUE_TO_BATTERY_FLG_ID = 0, FUNCTIONAL_TEST_PASSED_FLAG_ID = 1, DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID = 2} custom_fs_flag_id_te;
+typedef enum {PWR_OFF_DUE_TO_BATTERY_FLG_ID = 0, FUNCTIONAL_TEST_PASSED_FLAG_ID = 1, DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID = 2, NOT_FIRST_BOOT_FLAG_ID = 3} custom_fs_flag_id_te;
 
 /* Typedefs */
 typedef uint32_t custom_fs_file_count_t;
@@ -200,6 +200,7 @@ ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id);
 uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id);
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void);
 ret_type_te custom_fs_set_current_language(uint8_t language_id);
+void custom_fs_set_device_default_language(uint8_t language_id);
 void custom_fs_settings_store_dump(uint8_t* settings_buffer);
 cust_char_t* custom_fs_get_current_language_text_desc(void);
 uint16_t custom_fs_settings_get_dump(uint8_t* dump_buffer);

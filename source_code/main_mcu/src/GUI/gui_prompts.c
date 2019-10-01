@@ -9,6 +9,7 @@
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "logic_device.h"
+#include "platform_io.h"
 #include "gui_prompts.h"
 #include "custom_fs.h"
 #include "nodemgmt.h"
@@ -2508,11 +2509,14 @@ int16_t gui_prompts_favorite_selection_screen(void)
     return -1;
 }
 
-/*! \fn     gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice)
+/*! \fn     gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, BOOL ignore_timeout_if_usb_powered, BOOL ignore_card_removal)
 *   \brief  select language or keyboard layout, depending on the bool
-*   \param  layout_choice TRUE to choose layout, FALSE for language
+*   \param  layout_choice                   TRUE to choose layout, FALSE for language
+*   \param  ignore_timeout_if_usb_powered   TRUE to discard timeout if we are usb powered
+*   \param  ignore_card_removal             TRUE to ignore card removal
+*   \return RETURN_OK if it was a choice, NOK if timeout or card removal
 */
-void gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice)
+ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, BOOL ignore_timeout_if_usb_powered, BOOL ignore_card_removal)
 {    
     _Static_assert(CUSTOM_FS_KEYBOARD_DESC_LGTH >= MEMBER_ARRAY_SIZE(language_map_entry_t,language_descr), "Incorrect buffer length");
     cust_char_t string_buffer[CUSTOM_FS_KEYBOARD_DESC_LGTH + 4];
@@ -2558,7 +2562,6 @@ void gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice)
     BOOL first_function_run = TRUE;
     int16_t animation_step = 0;
     BOOL redraw_needed = TRUE;
-    BOOL action_taken = FALSE;
     
     /* Lines display settings */
     uint16_t fonts_to_be_used[4] = {FONT_UBUNTU_REGULAR_16_ID, FONT_UBUNTU_REGULAR_13_ID, FONT_UBUNTU_MEDIUM_15_ID, FONT_UBUNTU_REGULAR_13_ID};
@@ -2568,18 +2571,26 @@ void gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice)
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
     
     /* Loop until something has been done */
-    while (action_taken == FALSE)
+    while (TRUE)
     {
         /* User interaction timeout */
         if (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED)
-        {            
-            return;
+        {
+            if ((ignore_timeout_if_usb_powered != FALSE) && (platform_io_is_usb_3v3_present() != FALSE))
+            {
+                /* Just rearm timer */
+                logic_device_activity_detected();
+            }
+            else
+            {
+                return RETURN_NOK;
+            }                
         }
         
         /* Card removed */
-        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        if ((smartcard_low_level_is_smc_absent() == RETURN_OK) && (ignore_card_removal == FALSE))
         {
-            return;
+            return RETURN_NOK;
         }
         
         /* Deal with simple messages */
@@ -2597,11 +2608,11 @@ void gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice)
             {
                 custom_fs_set_current_keyboard_id(first_item_id_in_list+1);
             }
-            return;
+            return RETURN_OK;
         }
         else if (detect_result == WHEEL_ACTION_LONG_CLICK)
         {
-            return;
+            return RETURN_NOK;
         }
         else if (detect_result == WHEEL_ACTION_DOWN)
         {

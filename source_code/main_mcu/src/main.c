@@ -254,7 +254,7 @@ void main_platform_init(void)
     } 
         
     //custom_fs_set_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID, TRUE);
-    /* Check for first boot, perform functional testing */
+    /* Check for functional testing passed */
     #ifdef DEVELOPER_FEATURES_ENABLED
     if ((custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
     #else
@@ -404,6 +404,31 @@ int main(void)
 {
     /* Initialize our platform */
     main_platform_init();
+    
+    /* Actions for first user device boot */
+    #ifdef DEVELOPER_FEATURES_ENABLED
+    if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
+    #else
+    if (custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE)
+    #endif
+    {
+        /* Select language and store it as default */
+        if (gui_prompts_select_language_or_keyboard_layout(FALSE, TRUE, TRUE) != RETURN_OK)
+        {
+            /* We're battery powered, the user didn't select anything, switch off device */
+            sh1122_oled_off(&plat_oled_descriptor);
+            platform_io_power_down_oled();
+            timer_delay_ms(100);
+            platform_io_disable_switch_and_die();
+            while(1);            
+        }
+        
+        /* Store set language as device default one */
+        custom_fs_set_device_default_language(custom_fs_get_current_language_id());
+        
+        /* Set flag */
+        custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
+    }
     
     /* TO REMOVE */
     //platform_io_set_no_comms();while(1);
