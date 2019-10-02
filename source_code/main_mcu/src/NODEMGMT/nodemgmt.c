@@ -1021,7 +1021,7 @@ int16_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId)
 uint16_t nodemgmt_get_favorites(uint16_t* addresses_array)
 {
     nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)dirty_address_finding_trick->category_favorites, MEMBER_SIZE(nodemgmt_userprofile_t,category_favorites), (void*)&addresses_array);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)dirty_address_finding_trick->category_favorites, MEMBER_SIZE(nodemgmt_userprofile_t,category_favorites), (void*)addresses_array);
     return MEMBER_SIZE(nodemgmt_userprofile_t,category_favorites)/sizeof(favorite_addr_t);
 }
 
