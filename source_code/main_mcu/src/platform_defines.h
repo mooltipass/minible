@@ -820,4 +820,8 @@ typedef struct
     #endif
 #endif
 
+#if defined(EMULATOR_BUILD)
+#undef DEBUG_MENU_ENABLED
+#endif
+
 #endif /* PLATFORM_DEFINES_H_ */

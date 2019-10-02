@@ -754,6 +754,14 @@ void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void*
     memcpy(array, (const void*)flash_addr, NVMCTRL_ROW_SIZE);
 #endif
 }
+
+#else
+
+uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id) { return 0; }
+void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id) {}
+void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array){}
+void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array){}
+
 #endif
 
 /*! \fn     custom_fs_settings_set_fw_upgrade_flag(void)

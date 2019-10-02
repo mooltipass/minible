@@ -7,6 +7,8 @@
 #ifndef PLATFORM_IO_H_
 #define PLATFORM_IO_H_
 
+#include "defines.h"
+
 /* Prototypes */
 uint16_t platform_io_get_voledinmv_conversion_result_and_trigger_conversion(void);
 uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void);

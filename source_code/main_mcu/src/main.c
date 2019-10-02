@@ -259,6 +259,7 @@ void main_platform_init(void)
         
     //custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
     /* Check for first boot, perform functional testing */
+#ifndef EMULATOR_BUILD
     #ifdef DEVELOPER_FEATURES_ENABLED
     if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
     #else
@@ -268,7 +269,8 @@ void main_platform_init(void)
         custom_fs_settings_set_defaults();      
         functional_testing_start(TRUE);
     }
-    
+#endif
+
     /* Display error messages if something went wrong during custom fs init and bundle check */
     if ((custom_fs_init_return != RETURN_OK) || (bundle_integrity_check_return != RETURN_OK))
     {

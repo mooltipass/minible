@@ -14,14 +14,14 @@ typedef struct {} RTC_MODE2_CLOCK_Type;
 #define FLASH_SIZE (1024*1024)
 #define NVMCTRL_ROW_SIZE (256)
 
-void cpu_irq_enter_critical(void);
-void cpu_irq_leave_critical(void);
+static inline void cpu_irq_enter_critical(void) {}
+static inline void cpu_irq_leave_critical(void) {}
 
 static inline uint16_t swap16(uint16_t v) {
 	return (v<<8)|(v>>8);
 }
 
-extern struct {
+extern struct emu_port_t {
 	struct {
 		struct {
 			uint32_t reg;
