@@ -702,7 +702,7 @@ void logic_user_manual_select_login(void)
         else if (state_machine == 3)
         {
             // Ask the user permission to enter login / password, check for back action
-            if (logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr, 0) == RETURN_BACK)
+            if (logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr) == RETURN_BACK)
             {
                 /* Depending on number of child nodes, go back in history */
                 if (nb_logins_for_cred == 1)
@@ -740,19 +740,42 @@ void logic_user_manual_select_login(void)
     }
 }
 
-/*! \fn     logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, uint8_t interface_id)
+/*! \fn     logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address)
 *   \brief  Ask the user to enter the login & password of a given service
 *   \param  parent_address  Address of the parent
 *   \param  child_address   Address of the child
-*   \param  interface_id    Interface identifier (0 USB 1 BT)
 *   \return  RETURN_OK or RETURN_BACK
 */
-RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, uint8_t interface_id)
+RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address)
 {
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,login)+1, "Can't describe all chars for login");
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,password)+1+1, "Can't describe all chars for password");
     child_cred_node_t temp_cnode;
+    uint16_t interface_id = 0;
     parent_node_t temp_pnode;
+    
+    /* Are we at least connected to anything? */
+    if ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE))
+    {
+        return RETURN_OK;
+    }
+    
+    /* How many interfaces connected? */
+    if ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() != FALSE))
+    {
+        // TODO2 : ask user to select interface
+        return RETURN_OK;
+    }
+    else if (logic_bluetooth_get_state() == BT_STATE_CONNECTED)
+    {
+        /* Magic numbers FTW */
+        interface_id = 1;
+    }
+    else
+    {
+        /* USB connected */
+        interface_id = 0;
+    }
 
     /* Read nodes */
     nodemgmt_read_parent_node(parent_address, &temp_pnode, TRUE);

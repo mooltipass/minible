@@ -243,7 +243,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     }
 
                     /* Ask the user permission to enter login / password, check for back action */
-                    if (logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr, 0) == RETURN_BACK)
+                    if (logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr) == RETURN_BACK)
                     {
                         continue;
                     }
