@@ -7,6 +7,7 @@
 #define DEFINES_H_
 
 #include <stdio.h>
+#include <inttypes.h>
 #include "defines.h"
 
 /* Defines */

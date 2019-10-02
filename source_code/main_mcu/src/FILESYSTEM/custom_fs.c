@@ -165,7 +165,7 @@ custom_fs_init_ret_type_te custom_fs_settings_init(void)
     uint32_t flash_addr = custom_fs_get_custom_storage_slot_addr(SETTINGS_STORAGE_SLOT);
     if (flash_addr != 0)
     {
-        custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_addr;
+        custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_addr; // FIXME this will fail badly on emu
         flash_addr = custom_fs_get_custom_storage_slot_addr(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT);
         custom_fs_cpz_lut = (cpz_lut_entry_t*)flash_addr;
         
@@ -615,6 +615,7 @@ RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* addre
     return RETURN_OK;
 }
 
+#ifndef EMULATOR_BUILD
 /*! \fn     custom_fs_get_custom_storage_slot_addr(uint32_t slot_id)
 *   \brief  Get the internal flash address for a given storage slot id
 *   \param  slot_id     slot ID
@@ -753,6 +754,7 @@ void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void*
     memcpy(array, (const void*)flash_addr, NVMCTRL_ROW_SIZE);
 #endif
 }
+#endif
 
 /*! \fn     custom_fs_settings_set_fw_upgrade_flag(void)
 *   \brief  Set the fw upgrade flag inside our settings
