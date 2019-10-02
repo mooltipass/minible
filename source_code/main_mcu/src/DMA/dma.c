@@ -376,14 +376,15 @@ void dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag(void)
     dma_aux_mcu_packet_received = FALSE;
 }
 
-/*! \fn     dma_custom_fs_init_transfer(void* spi_data_p, void* datap, uint16_t size)
+/*! \fn     dma_custom_fs_init_transfer(Sercom* sercom, void* datap, uint16_t size)
 *   \brief  Initialize a DMA transfer from the flash bus to the array
-*   \param  spi_data_p  Pointer to the SPI data register
+*   \param  sercom      Pointer to a sercom module
 *   \param  datap       Pointer to where to store the data
 *   \param  size        Number of bytes to transfer
 */
-void dma_custom_fs_init_transfer(void* spi_data_p, void* datap, uint16_t size)
+void dma_custom_fs_init_transfer(Sercom* sercom, void* datap, uint16_t size)
 {
+    volatile void *spi_data_p = &sercom->SPI.DATA.reg;
     cpu_irq_enter_critical();
     
     /* SPI RX DMA TRANSFER */
@@ -413,15 +414,16 @@ void dma_custom_fs_init_transfer(void* spi_data_p, void* datap, uint16_t size)
     cpu_irq_leave_critical();
 }
 
-/*! \fn     dma_compute_crc32_from_spi(void* spi_data_p, uint32_t size)
+/*! \fn     dma_compute_crc32_from_spi(Sercom* sercom, uint32_t size)
 *   \brief  Use the DMA controller to compute a CRC32 from a spi transfer
-*   \param  spi_data_p  Pointer to the SPI data register
+*   \param  sercom      Pointer to a sercom module
 *   \param  size        Number of bytes to transfer
 *   \return the crc32
 *   \note   DMA controller must be disabled and reset before calling this function!
 */
-uint32_t dma_compute_crc32_from_spi(void* spi_data_p, uint32_t size)
+uint32_t dma_compute_crc32_from_spi(Sercom* sercom, uint32_t size)
 {
+    volatile void *spi_data_p = &sercom->SPI.DATA.reg;
     /* The byte that will be used to read/write spi data */
     volatile uint8_t temp_src_dst_reg = 0;
     
@@ -536,15 +538,16 @@ uint32_t dma_compute_crc32_from_spi(void* spi_data_p, uint32_t size)
     return DMAC->CRCCHKSUM.reg;
 }
 
-/*! \fn     dma_oled_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint16_t dma_trigger)
+/*! \fn     dma_oled_init_transfer(Sercom* sercom, void* datap, uint16_t size, uint16_t dma_trigger)
 *   \brief  Initialize a DMA transfer from an array to the oled spi bus
-*   \param  spi_data_p  Pointer to the SPI data register
+*   \param  sercom      Pointer to a sercom module
 *   \param  datap       Pointer to where to store the data
 *   \param  size        Number of bytes to transfer
 *   \param  dma_trigger DMA trigger ID
 */
-void dma_oled_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint16_t dma_trigger)
+void dma_oled_init_transfer(Sercom* sercom, void* datap, uint16_t size, uint16_t dma_trigger)
 {
+    volatile void *spi_data_p = &sercom->SPI.DATA.reg;
     cpu_irq_enter_critical();
     
     /* SPI TX DMA TRANSFER */
@@ -589,15 +592,16 @@ void dma_acc_disable_transfer(void)
     cpu_irq_leave_critical();    
 }
 
-/*! \fn     dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t* read_cmd)
+/*! \fn     dma_acc_init_transfer(Sercom* sercom, void* datap, uint16_t size, uint8_t* read_cmd)
 *   \brief  Initialize a DMA transfer from the accelerometer bus to the array
-*   \param  spi_data_p  Pointer to the SPI data register
+*   \param  sercom      Pointer to a sercom module
 *   \param  datap       Pointer to where to store the data
 *   \param  size        Number of bytes to transfer
 *   \param  read_cmd    Pointer to where the read data command is stored
 */
-void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t* read_cmd)
+void dma_acc_init_transfer(Sercom *sercom, void* datap, uint16_t size, uint8_t* read_cmd)
 {    
+    volatile void *spi_data_p = &sercom->SPI.DATA.reg;
     /* First, make sure we don't have an ongoing transfer */
     //dma_acc_disable_transfer();
     
@@ -640,14 +644,15 @@ void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t
     cpu_irq_leave_critical();
 }
 
-/*! \fn     dma_aux_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
+/*! \fn     dma_aux_mcu_init_tx_transfer(Sercom* sercom, void* datap, uint16_t size)
 *   \brief  Initialize a DMA transfer to the AUX MCU
-*   \param  spi_data_p  Pointer to the SPI data register
+*   \param  sercom      Pointer to a sercom module
 *   \param  datap       Pointer to the data
 *   \param  size        Number of bytes to transfer
 */
-void dma_aux_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
+void dma_aux_mcu_init_tx_transfer(Sercom* sercom, void* datap, uint16_t size)
 {
+    volatile void *spi_data_p = &sercom->SPI.DATA.reg;
     /* Wait for previous transfer to be done */
     while (dma_aux_mcu_packet_sent == FALSE);
     
@@ -697,14 +702,15 @@ void dma_aux_mcu_disable_transfer(void)
     cpu_irq_leave_critical();    
 }
 
-/*! \fn     void dma_aux_mcu_init_rx_transfer(void* spi_data_p, void* datap, uint16_t size)
+/*! \fn     void dma_aux_mcu_init_rx_transfer(Sercom* sercom, void* datap, uint16_t size)
 *   \brief  Initialize a DMA transfer from the AUX MCU
-*   \param  spi_data_p  Pointer to the SPI data register
+*   \param  sercom      Pointer to a sercom module
 *   \param  datap       Pointer to where to store the data
 *   \param  size        Number of bytes for transfer
 */
-void dma_aux_mcu_init_rx_transfer(void* spi_data_p, void* datap, uint16_t size)
+void dma_aux_mcu_init_rx_transfer(Sercom* sercom, void* datap, uint16_t size)
 {
+    volatile void *spi_data_p = &sercom->SPI.DATA.reg;
     cpu_irq_enter_critical();
     
     /* Setup transfer size */

@@ -98,7 +98,7 @@ RET_TYPE custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_
         if (use_dma != FALSE)
         {
             /* Arm DMA transfer */
-            dma_custom_fs_init_transfer((void*)&custom_fs_dataflash_desc->sercom_pt->SPI.DATA.reg, (void*)datap, size);
+            dma_custom_fs_init_transfer(custom_fs_dataflash_desc->sercom_pt, (void*)datap, size);
         }
         else
         {
@@ -125,7 +125,7 @@ RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void)
     #endif
 
     /* Use the DMA controller to compute the crc32 */
-    uint32_t crc32 = dma_compute_crc32_from_spi((void*)&custom_fs_dataflash_desc->sercom_pt->SPI.DATA.reg, custom_fs_flash_header.total_size - sizeof(custom_fs_flash_header.magic_header) - sizeof(custom_fs_flash_header.total_size) - sizeof(custom_fs_flash_header.crc32));
+    uint32_t crc32 = dma_compute_crc32_from_spi(custom_fs_dataflash_desc->sercom_pt, custom_fs_flash_header.total_size - sizeof(custom_fs_flash_header.magic_header) - sizeof(custom_fs_flash_header.total_size) - sizeof(custom_fs_flash_header.crc32));
     
     /* Stop transfer */
     dataflash_stop_ongoing_transfer(custom_fs_dataflash_desc);

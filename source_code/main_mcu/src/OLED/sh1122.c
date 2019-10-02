@@ -507,7 +507,7 @@ void sh1122_flush_frame_buffer_y_window(sh1122_descriptor_t* oled_descriptor, ui
     sh1122_start_data_sending(oled_descriptor);
     
     /* Send buffer! */
-    dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)&oled_descriptor->frame_buffer[ystart][0], (yend-ystart)*SH1122_OLED_WIDTH/2, oled_descriptor->dma_trigger_id);
+    dma_oled_init_transfer(oled_descriptor->sercom_pt, (void*)&oled_descriptor->frame_buffer[ystart][0], (yend-ystart)*SH1122_OLED_WIDTH/2, oled_descriptor->dma_trigger_id);
     oled_descriptor->frame_buffer_flush_in_progress = TRUE;
 }
 
@@ -530,7 +530,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
         sh1122_start_data_sending(oled_descriptor);
         
         /* Send buffer! */
-        dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)&oled_descriptor->frame_buffer[0][0], sizeof(oled_descriptor->frame_buffer), oled_descriptor->dma_trigger_id);
+        dma_oled_init_transfer(oled_descriptor->sercom_pt, (void*)&oled_descriptor->frame_buffer[0][0], sizeof(oled_descriptor->frame_buffer), oled_descriptor->dma_trigger_id);
         oled_descriptor->frame_buffer_flush_in_progress = TRUE;
     }
     else if (oled_descriptor->loaded_transition == OLED_LEFT_RIGHT_TRANS)
@@ -1207,7 +1207,7 @@ void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_desc
         
         /* Get things going: start first transfer then enter the for(), as we need to wait for OLED DMA after inside the loop */
         bitstream_bitmap_array_read(bitstream, pixel_buffer[buffer_sel], sizeof(pixel_buffer[0])*2);
-        dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)pixel_buffer[buffer_sel], sizeof(pixel_buffer[0]), oled_descriptor->dma_trigger_id);
+        dma_oled_init_transfer(oled_descriptor->sercom_pt, (void*)pixel_buffer[buffer_sel], sizeof(pixel_buffer[0]), oled_descriptor->dma_trigger_id);
         
         for (uint32_t i = 0; i < (SH1122_OLED_WIDTH*SH1122_OLED_HEIGHT) - sizeof(pixel_buffer[0])*2; i+=sizeof(pixel_buffer[0])*2)
         {            
@@ -1219,7 +1219,7 @@ void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_desc
             
             /* Init DMA transfer */
             buffer_sel = (buffer_sel+1) & 0x01;
-            dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)pixel_buffer[buffer_sel], sizeof(pixel_buffer[0]), oled_descriptor->dma_trigger_id);
+            dma_oled_init_transfer(oled_descriptor->sercom_pt, (void*)pixel_buffer[buffer_sel], sizeof(pixel_buffer[0]), oled_descriptor->dma_trigger_id);
         }
         
         /* Wait for data to be transferred */
@@ -1378,7 +1378,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
                 sh1122_start_data_sending(oled_descriptor);
                 
                 /* Trigger DMA transfer for the complete width */
-                dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)&pixel_buffer[buffer_sel][pixel_array_offset], nb_pixels_to_send/2, oled_descriptor->dma_trigger_id);
+                dma_oled_init_transfer(oled_descriptor->sercom_pt, (void*)&pixel_buffer[buffer_sel][pixel_array_offset], nb_pixels_to_send/2, oled_descriptor->dma_trigger_id);
             }
                 
             /* Flip buffer, start fetching next line while the transfer is happening */
