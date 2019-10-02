@@ -187,7 +187,7 @@ BOOL custom_fs_get_device_flag_value(custom_fs_flag_id_te flag_id);
 uint8_t custom_fs_settings_get_device_setting(uint16_t setting_id);
 void custom_fs_define_nb_ms_since_last_full_charge(uint32_t nb_ms);
 ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id);
-uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id);
+void* custom_fs_get_custom_storage_slot_ptr(uint32_t slot_id);
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void);
 ret_type_te custom_fs_set_current_language(uint8_t language_id);
 void custom_fs_settings_store_dump(uint8_t* settings_buffer);

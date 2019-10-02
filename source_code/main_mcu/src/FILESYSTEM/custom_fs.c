@@ -162,15 +162,15 @@ void custom_fs_stop_continuous_read_from_flash(void)
 custom_fs_init_ret_type_te custom_fs_settings_init(void)
 {        
     /* Initialize platform settings pointer, located in slot 0 of internal storage */
-    uint32_t flash_addr = custom_fs_get_custom_storage_slot_addr(SETTINGS_STORAGE_SLOT);
-    if (flash_addr != 0)
+    void* flash_ptr = custom_fs_get_custom_storage_slot_ptr(SETTINGS_STORAGE_SLOT);
+    if (flash_ptr != 0)
     {
-        custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_addr; // FIXME this will fail badly on emu
-        flash_addr = custom_fs_get_custom_storage_slot_addr(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT);
-        custom_fs_cpz_lut = (cpz_lut_entry_t*)flash_addr;
+        custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_ptr;
+        flash_ptr = custom_fs_get_custom_storage_slot_ptr(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT);
+        custom_fs_cpz_lut = (cpz_lut_entry_t*)flash_ptr;
         
         /* Quick sanity check on memory boundary */
-        if ((uint32_t)&custom_fs_cpz_lut[MAX_NUMBER_OF_USERS] != FLASH_ADDR + FLASH_SIZE)
+        if ((uintptr_t)&custom_fs_cpz_lut[MAX_NUMBER_OF_USERS] != FLASH_ADDR + FLASH_SIZE)
         {
             while(1);
         }
@@ -616,12 +616,12 @@ RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* addre
 }
 
 #ifndef EMULATOR_BUILD
-/*! \fn     custom_fs_get_custom_storage_slot_addr(uint32_t slot_id)
+/*! \fn     custom_fs_get_custom_storage_slot_ptr(uint32_t slot_id)
 *   \brief  Get the internal flash address for a given storage slot id
 *   \param  slot_id     slot ID
 *   \return 0 if the slot_id is not valid, otherwise the address
 */
-uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id)
+void* custom_fs_get_custom_storage_slot_ptr(uint32_t slot_id)
 {
     uint32_t emulated_eeprom_size = 0;
     
@@ -650,7 +650,7 @@ uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id)
     }
     
     /* Compute address of where we want to write data */
-    return (FLASH_ADDR + FLASH_SIZE - emulated_eeprom_size + slot_id*NVMCTRL_ROW_SIZE);
+    return (void*)(FLASH_ADDR + FLASH_SIZE - emulated_eeprom_size + slot_id*NVMCTRL_ROW_SIZE);
 }
 
 /*! \fn     custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id)
@@ -663,7 +663,8 @@ void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id)
 {
 #ifndef FEATURE_NVM_RWWEE    
     /* Compute address of where we want to write data */
-    uint32_t flash_addr = custom_fs_get_custom_storage_slot_addr(slot_id);
+    void *flash_ptr = custom_fs_get_custom_storage_slot_ptr(slot_id);
+    uint32_t flash_addr = (uint32_t)flash_ptr;
     
     /* Check if we were successful */
     if (flash_addr == 0)
@@ -697,7 +698,8 @@ void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void
 {
 #ifndef FEATURE_NVM_RWWEE    
     /* Compute address of where we want to write data */
-    uint32_t flash_addr = custom_fs_get_custom_storage_slot_addr(slot_id);
+    void *flash_ptr = custom_fs_get_custom_storage_slot_ptr(slot_id);
+    uint32_t flash_addr = (uint32_t)flash_ptr;
     
     /* Check if we were successful */
     if (flash_addr == 0)
@@ -742,7 +744,7 @@ void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void*
 {
 #ifndef FEATURE_NVM_RWWEE
     /* Compute address of where we want to read data */
-    uint32_t flash_addr = custom_fs_get_custom_storage_slot_addr(slot_id);
+    void* flash_addr = custom_fs_get_custom_storage_slot_ptr(slot_id);
     
     /* Check if we were successful */
     if (flash_addr == 0)
@@ -757,7 +759,7 @@ void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void*
 
 #else
 
-uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id) { return 0; }
+void* custom_fs_get_custom_storage_slot_ptr(uint32_t slot_id) { return 0; }
 void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id) {}
 void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array){}
 void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array){}
