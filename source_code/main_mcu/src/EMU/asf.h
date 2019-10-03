@@ -10,8 +10,6 @@ typedef struct {} RTC_MODE2_CLOCK_Type;
 #define SERCOM3 (0)
 #define SERCOM4 (0)
 #define SERCOM5 (0)
-#define FLASH_ADDR (0)
-#define FLASH_SIZE (1024*1024)
 #define NVMCTRL_ROW_SIZE (256)
 
 static inline void cpu_irq_enter_critical(void) {}

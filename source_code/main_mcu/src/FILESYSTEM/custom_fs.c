@@ -168,12 +168,14 @@ custom_fs_init_ret_type_te custom_fs_settings_init(void)
         custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_ptr;
         flash_ptr = custom_fs_get_custom_storage_slot_ptr(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT);
         custom_fs_cpz_lut = (cpz_lut_entry_t*)flash_ptr;
-        
+       
+#ifndef EMULATOR_BUILD
         /* Quick sanity check on memory boundary */
         if ((uintptr_t)&custom_fs_cpz_lut[MAX_NUMBER_OF_USERS] != FLASH_ADDR + FLASH_SIZE)
         {
             while(1);
         }
+#endif
         
         return CUSTOM_FS_INIT_OK;
     }    
@@ -759,10 +761,39 @@ void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void*
 
 #else
 
-void* custom_fs_get_custom_storage_slot_ptr(uint32_t slot_id) { return 0; }
-void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id) {}
-void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array){}
-void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array){}
+static uint8_t eeprom[256 * 16];
+
+void* custom_fs_get_custom_storage_slot_ptr(uint32_t slot_id)
+{
+    if(slot_id * 256 > sizeof(eeprom))
+        return 0;
+
+    return &eeprom[slot_id * 256];
+}
+
+void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id) 
+{
+    if(slot_id * 256 > sizeof(eeprom))
+        return;
+
+    memset(eeprom + slot_id * 256, 0xff, 256);
+}
+
+void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array)
+{
+    if(slot_id * 256 > sizeof(eeprom))
+        return;
+
+    memcpy(eeprom + slot_id * 256, array, 256);
+}
+
+void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array)
+{
+    if(slot_id * 256 > sizeof(eeprom))
+        return;
+
+    memcpy(array, eeprom + slot_id * 256, 256);
+}
 
 #endif
 
