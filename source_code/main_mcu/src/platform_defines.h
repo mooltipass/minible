@@ -821,7 +821,9 @@ typedef struct
 #endif
 
 #if defined(EMULATOR_BUILD)
-#undef DEBUG_MENU_ENABLED
+    #undef DEBUG_MENU_ENABLED
+    #undef FLASH_DMA_FETCHES
+    #undef OLED_DMA_TRANSFER
 #endif
 
 #endif /* PLATFORM_DEFINES_H_ */

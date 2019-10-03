@@ -4,12 +4,14 @@
 typedef struct {} Sercom;
 typedef struct {} RTC_MODE2_CLOCK_Type;
 
-#define SERCOM0 (0)
-#define SERCOM1 (0)
-#define SERCOM2 (0)
-#define SERCOM3 (0)
-#define SERCOM4 (0)
-#define SERCOM5 (0)
+extern Sercom sercom_array[6];
+
+#define SERCOM0 (&sercom_array[0])
+#define SERCOM1 (&sercom_array[1])
+#define SERCOM2 (&sercom_array[2])
+#define SERCOM3 (&sercom_array[3])
+#define SERCOM4 (&sercom_array[4])
+#define SERCOM5 (&sercom_array[5])
 #define NVMCTRL_ROW_SIZE (256)
 
 static inline void cpu_irq_enter_critical(void) {}
@@ -24,5 +26,5 @@ extern struct emu_port_t {
 		struct {
 			uint32_t reg;
 		} OUTCLR, OUTSET;
-	} Group[1];
+	} Group[2];
 } *PORT;
