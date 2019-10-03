@@ -119,8 +119,7 @@ OBJS := $(C_SRCS:.c=.o)
 OBJS :=  $(addprefix $(OUTPUT_DIR)/,$(OBJS))
 OBJ_DIRS := $(sort $(dir $(OBJS)))
 
-C_DEPS := $(C_SRCS:.c=.d)
-C_DEPS :=  $(addprefix $(OUTPUT_DIR)/,$(C_DEPS))
+C_DEPS := $(C_SRCS:%.c=$(OUTPUT_DIR)/%.d)
 
 TARGET := $(OUTPUT_DIR)/mini_ble.elf
 TARGET_BIN := $(TARGET:.elf=.bin)
@@ -137,21 +136,15 @@ TARGET_EEP := $(TARGET:.elf=.eep)
 
 #.PHONY: $(OBJ_DIRS)
 
-$(OUTPUT_DIR)/%.o: %.c
+# All Target
+all: $(TARGET)
+
+$(OUTPUT_DIR)/%.o: %.c $(OUTPUT_DIR)/%.d
 	@echo Building file: $@
 	@echo Invoking: GNU C Compiler
 	@$(call create_dir,$(dir $@))
-	$(CC) $(C_FLAGS) $(C_DEFINES) $(INC_DIRS) -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<"
+	$(CC) $(C_FLAGS) $(C_DEFINES) $(INC_DIRS) -MD -MP -MF "$(@:%.o=%.d)" -MT "$@" -o "$@" "$<"
 	@echo Finished building: $@
-
-#ifneq ($(MAKECMDGOALS),clean)
-#ifneq ($(strip $(C_DEPS)),)
-#-include $(C_DEPS)
-#endif
-#endif
-
-# All Target
-all: $(TARGET)
 
 $(TARGET): $(OBJS) $(LIB_DEP)
 	@echo Building target: $@
@@ -167,5 +160,8 @@ clean:
 wipe:
 	$(RM) $(OUTPUT_DIR)
 
-flash: $(TARGET)
-	edbg -b -t samd21 -p -f $(TARGET_BIN)
+$(C_DEPS):
+
+ifneq ($(MAKECMDGOALS),clean)
+-include $(C_DEPS)
+endif
