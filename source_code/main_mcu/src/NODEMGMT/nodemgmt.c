@@ -5,6 +5,7 @@
 */
 #include <assert.h>
 #include <string.h>
+#include <stddef.h>
 #include "comms_hid_msgs_debug.h"
 #include "nodemgmt.h"
 #include "dbflash.h"
@@ -489,15 +490,14 @@ uint16_t nodemgmt_get_user_layout(void)
  */
 uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_child_addr)
 {
-    child_cred_node_t* const cdirty_address_finding_trick = (child_cred_node_t*)0;
     uint16_t prev_child_node_addr_to_scan = search_start_child_addr;
     uint16_t child_read_buffer[4];
     
     /* Sanity check for this hack */
-    _Static_assert(0 == (size_t)&(cdirty_address_finding_trick->flags), "Incorrect buffer for flags & addr read");
-    _Static_assert(2 == (size_t)&(cdirty_address_finding_trick->prevChildAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(4 == (size_t)&(cdirty_address_finding_trick->nextChildAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(6 == (size_t)&(cdirty_address_finding_trick->mirroredChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(0 == offsetof(child_cred_node_t, flags), "Incorrect buffer for flags & addr read");
+    _Static_assert(2 == offsetof(child_cred_node_t, prevChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(4 == offsetof(child_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(6 == offsetof(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
     _Static_assert(sizeof(child_read_buffer) == MEMBER_SIZE(child_cred_node_t, flags) + MEMBER_SIZE(child_cred_node_t, prevChildAddress) + MEMBER_SIZE(child_cred_node_t, nextChildAddress) + MEMBER_SIZE(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
     
     /* Hack to read flags & prev / next address */
@@ -541,14 +541,13 @@ uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_chi
 uint16_t nodemgmt_get_next_child_node_for_cur_category(uint16_t search_start_child_addr)
 {
     /* We already have a function that does that, but the address it takes is inclusive...*/
-    child_cred_node_t* const cdirty_address_finding_trick = (child_cred_node_t*)0;
     uint16_t child_read_buffer[4];
         
     /* Sanity check for this hack */
-    _Static_assert(0 == (size_t)&(cdirty_address_finding_trick->flags), "Incorrect buffer for flags & addr read");
-    _Static_assert(2 == (size_t)&(cdirty_address_finding_trick->prevChildAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(4 == (size_t)&(cdirty_address_finding_trick->nextChildAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(6 == (size_t)&(cdirty_address_finding_trick->mirroredChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(0 == offsetof(child_cred_node_t, flags), "Incorrect buffer for flags & addr read");
+    _Static_assert(2 == offsetof(child_cred_node_t, prevChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(4 == offsetof(child_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(6 == offsetof(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
     _Static_assert(sizeof(child_read_buffer) == MEMBER_SIZE(child_cred_node_t, flags) + MEMBER_SIZE(child_cred_node_t, prevChildAddress) + MEMBER_SIZE(child_cred_node_t, nextChildAddress) + MEMBER_SIZE(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
         
     /* Hack to read flags & prev / next address */
@@ -570,15 +569,14 @@ uint16_t nodemgmt_get_next_child_node_for_cur_category(uint16_t search_start_chi
  */
 uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_child_addr, uint16_t category_flags)
 {
-    child_cred_node_t* const cdirty_address_finding_trick = (child_cred_node_t*)0;
     uint16_t next_child_node_addr_to_scan = start_child_addr;
     uint16_t child_read_buffer[4];
     
     /* Sanity check for this hack */
-    _Static_assert(0 == (size_t)&(cdirty_address_finding_trick->flags), "Incorrect buffer for flags & addr read");
-    _Static_assert(2 == (size_t)&(cdirty_address_finding_trick->prevChildAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(4 == (size_t)&(cdirty_address_finding_trick->nextChildAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(6 == (size_t)&(cdirty_address_finding_trick->mirroredChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(0 == offsetof(child_cred_node_t, flags), "Incorrect buffer for flags & addr read");
+    _Static_assert(2 == offsetof(child_cred_node_t, prevChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(4 == offsetof(child_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(6 == offsetof(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
     _Static_assert(sizeof(child_read_buffer) == MEMBER_SIZE(child_cred_node_t, flags) + MEMBER_SIZE(child_cred_node_t, prevChildAddress) + MEMBER_SIZE(child_cred_node_t, nextChildAddress) + MEMBER_SIZE(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
     
     /* Hack to read flags & prev / next address */
@@ -612,14 +610,13 @@ uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_c
 uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr)
 {
     uint16_t prev_parent_node_addr_to_scan = nodemgmt_current_handle.firstParentNode;
-    parent_cred_node_t* const dirty_address_finding_trick = (parent_cred_node_t*)0;
     uint16_t parent_read_buffer[4];
     
     /* Sanity check for this hack */
-    _Static_assert(0 == (size_t)&(dirty_address_finding_trick->flags), "Incorrect buffer for flags & addr read");
-    _Static_assert(2 == (size_t)&(dirty_address_finding_trick->prevParentAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(4 == (size_t)&(dirty_address_finding_trick->nextParentAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(6 == (size_t)&(dirty_address_finding_trick->nextChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(0 == offsetof(parent_cred_node_t, flags), "Incorrect buffer for flags & addr read");
+    _Static_assert(2 == offsetof(parent_cred_node_t, prevParentAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(4 == offsetof(parent_cred_node_t, nextParentAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(6 == offsetof(parent_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
     _Static_assert(sizeof(parent_read_buffer) == MEMBER_SIZE(parent_cred_node_t, flags) + MEMBER_SIZE(parent_cred_node_t, prevParentAddress) + MEMBER_SIZE(parent_cred_node_t, nextParentAddress) + MEMBER_SIZE(parent_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
     
     /* Hack to read flags & prev / next address */
@@ -662,14 +659,13 @@ uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_pa
 uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr)
 {
     uint16_t next_parent_node_addr_to_scan = nodemgmt_current_handle.firstParentNode;
-    parent_cred_node_t* const dirty_address_finding_trick = (parent_cred_node_t*)0;
     uint16_t parent_read_buffer[4];
     
     /* Sanity check for this hack */
-    _Static_assert(0 == (size_t)&(dirty_address_finding_trick->flags), "Incorrect buffer for flags & addr read");
-    _Static_assert(2 == (size_t)&(dirty_address_finding_trick->prevParentAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(4 == (size_t)&(dirty_address_finding_trick->nextParentAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(6 == (size_t)&(dirty_address_finding_trick->nextChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(0 == offsetof(parent_cred_node_t, flags), "Incorrect buffer for flags & addr read");
+    _Static_assert(2 == offsetof(parent_cred_node_t, prevParentAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(4 == offsetof(parent_cred_node_t, nextParentAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(6 == offsetof(parent_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
     _Static_assert(sizeof(parent_read_buffer) == MEMBER_SIZE(parent_cred_node_t, flags) + MEMBER_SIZE(parent_cred_node_t, prevParentAddress) + MEMBER_SIZE(parent_cred_node_t, nextParentAddress) + MEMBER_SIZE(parent_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
     
     /* Hack to read flags & prev / next address */
@@ -717,11 +713,10 @@ uint16_t nodemgmt_get_starting_parent_addr_for_category(void)
  */
 uint16_t nodemgmt_get_starting_parent_addr(void)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     uint16_t temp_address;
     
     // Each user profile is within a page, data starting parent node is at the end of the favorites
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_start_address), sizeof(temp_address), &temp_address);    
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + offsetof(nodemgmt_userprofile_t, main_data.cred_start_address), sizeof(temp_address), &temp_address);    
     
     return temp_address;
 }
@@ -1313,10 +1308,8 @@ void nodemgmt_delete_current_user_from_flash(void)
     child_cred_node_t* child_node_pt = (child_cred_node_t*)temp_buffer;
     
     /* Boundary checks for the buffer we'll use to store start of node data */
-    parent_data_node_t* const parent_node_san_checks = 0;
-    _Static_assert(sizeof(temp_buffer) >= ((size_t)&(parent_node_san_checks->nextChildAddress)) + sizeof(parent_node_san_checks->nextChildAddress), "Buffer not long enough to store first bytes");
-    child_cred_node_t* const child_node_san_checks = 0;
-    _Static_assert(sizeof(temp_buffer) >= ((size_t)&(child_node_san_checks->nextChildAddress)) + sizeof(child_node_san_checks->nextChildAddress), "Buffer not long enough to store first bytes");
+    _Static_assert(sizeof(temp_buffer) >= offsetof(parent_data_node_t, nextChildAddress) + sizeof(parent_node_pt->nextChildAddress), "Buffer not long enough to store first bytes");
+    _Static_assert(sizeof(temp_buffer) >= offsetof(child_cred_node_t, nextChildAddress) + sizeof(child_node_pt->nextChildAddress), "Buffer not long enough to store first bytes");
         
     // Delete user profile memory
     nodemgmt_format_user_profile(nodemgmt_current_handle.currentUserId, 0, 0, 0);
@@ -1393,13 +1386,10 @@ void nodemgmt_delete_current_user_from_flash(void)
 RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress)
 {
     /* Sanity checks */
-    parent_cred_node_t* const parent_cred_node_san_checks = 0;
-    parent_data_node_t* const parent_data_node_san_checks = 0;
-    child_cred_node_t* const child_cred_node_san_checks = 0;
-    _Static_assert(&(parent_cred_node_san_checks->prevParentAddress) == &(parent_data_node_san_checks->prevParentAddress), "Next / Prev fields do not match across parent & child nodes");
-    _Static_assert(&(parent_cred_node_san_checks->prevParentAddress) == &(child_cred_node_san_checks->prevChildAddress), "Next / Prev fields do not match across parent & child nodes");
-    _Static_assert(&(parent_cred_node_san_checks->nextParentAddress) == &(parent_data_node_san_checks->nextParentAddress), "Next / Prev fields do not match across parent & child nodes");
-    _Static_assert(&(parent_cred_node_san_checks->nextParentAddress) == &(child_cred_node_san_checks->nextChildAddress), "Next / Prev fields do not match across parent & child nodes");
+    _Static_assert(offsetof(parent_cred_node_t, prevParentAddress) == offsetof(parent_data_node_t, prevParentAddress), "Next / Prev fields do not match across parent & child nodes");
+    _Static_assert(offsetof(parent_cred_node_t, prevParentAddress) == offsetof(child_cred_node_t, prevChildAddress), "Next / Prev fields do not match across parent & child nodes");
+    _Static_assert(offsetof(parent_cred_node_t, nextParentAddress) == offsetof(parent_data_node_t, nextParentAddress), "Next / Prev fields do not match across parent & child nodes");
+    _Static_assert(offsetof(parent_cred_node_t, nextParentAddress) == offsetof(child_cred_node_t, nextChildAddress), "Next / Prev fields do not match across parent & child nodes");
         
     // Local vars
     node_common_first_three_fields_t* temp_first_three_fields_pt = (node_common_first_three_fields_t*)&nodemgmt_current_handle.temp_parent_node;
