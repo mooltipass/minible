@@ -1,6 +1,8 @@
 #include "platform_io.h"
-uint16_t platform_io_get_voledinmv_conversion_result_and_trigger_conversion(void){}
-uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void){}
+#include <stdlib.h>
+
+uint16_t platform_io_get_voledinmv_conversion_result_and_trigger_conversion(void){ return 0;}
+uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void){ return 0;}
 oled_stepup_pwr_source_te platform_io_get_voled_stepup_pwr_source(void){return OLED_STEPUP_SOURCE_NONE; }
 void platform_io_disable_scroll_wheel_wakeup_interrupts(void){}
 void platform_io_enable_scroll_wheel_wakeup_interrupts(void){}
@@ -23,7 +25,7 @@ void platform_io_init_accelerometer_ports(void){}
 void platform_io_prepare_ports_for_sleep(void){}
 void platform_io_init_scroll_wheel_ports(void){}
 void platform_io_power_up_oled(BOOL power_3v3){}
-void platform_io_disable_switch_and_die(void){}
+void platform_io_disable_switch_and_die(void){ abort(); }
 void platform_io_smc_inserted_function(void){}
 void platform_io_init_no_comms_signal(void){}
 void platform_io_smc_remove_function(void){}
