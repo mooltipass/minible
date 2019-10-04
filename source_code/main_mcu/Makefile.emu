@@ -57,6 +57,11 @@ else
 INC_DIRS +=
 endif
 
+INC_DIRS += $(shell pkg-config --cflags Qt5Core Qt5Gui Qt5Widgets)
+LIB_DIRS += $(shell pkg-config --libs Qt5Core Qt5Gui Qt5Widgets)
+MOC = moc
+
+
 C_SRCS +=  \
 src/EMU/lis2hh12.c \
 src/BearSSL/src/symcipher/aes_ct.c \
@@ -96,45 +101,36 @@ src/EMU/fuses.c \
 src/EMU/driver_sercom.c \
 src/EMU/smartcard_highlevel.c \
 src/EMU/smartcard_lowlevel.c \
-src/EMU/driver_timer.c \
+src/TIMER/driver_timer.c \
 src/utils.c \
 src/main.c \
-src/EMU/emulator.c
+src/EMU/emu_oled.c 
+
+CPP_SRCS = src/EMU/emulator.cpp
+MOC_SRCS =
 
 ifeq ($(DEBUG), 1)
-    C_FLAGS += -DDEBUG -g3 -O1
+    FLAGS += -DDEBUG -g3 -O0
     OUTPUT_DIR := Debug-emu
 else
-    C_FLAGS += -DNDEBUG -Os
+    FLAGS += -DNDEBUG -Os
     OUTPUT_DIR := Release-emu
 endif
 
-C_FLAGS += -fdata-sections -ffunction-sections -Wall -c -pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align -Wlogical-op -Wjump-misses-init
+FLAGS += -fdata-sections -ffunction-sections -Wall -c -pipe -fno-strict-aliasing -Werror-implicit-function-declaration -Wpointer-arith -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wundef -Wshadow -Wwrite-strings -Wsign-compare -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wunreachable-code -Wcast-align -Wlogical-op -fPIC
 
-C_DEFINES := -DBR_BE_UNALIGNED=0 -DBR_CT_MUL15=0 -DBR_ENABLE_INTRINSICS=0 -DBR_CT_MUL31=0 -DBR_LE_UNALIGNED=0 -DBR_NO_ARITH_SHIFT=0 -DBR_POWER_ASM_MACROS=0 -D_ARCH_PWR8=0 -D_MSC_VER=0 -D__clang__=0 -DBR_POWER8=0
+C_FLAGS += -Wstrict-prototypes -Wmissing-prototypes -Wimplicit-int -Wbad-function-cast -Wnested-externs -Wjump-misses-init -Wlong-long -Wfloat-equal -Waggregate-return -std=gnu99
+CPP_FLAGS += -std=gnu++11
+
+C_DEFINES := -DBR_BE_UNALIGNED=0 -DBR_CT_MUL15=0 -DBR_ENABLE_INTRINSICS=0 -DBR_CT_MUL31=0 -DBR_LE_UNALIGNED=0 -DBR_NO_ARITH_SHIFT=0 -DBR_POWER_ASM_MACROS=0 -D_ARCH_PWR8=0 -DBR_POWER8=0
 
 C_DEFINES += -DEMULATOR_BUILD
 
-OBJS := $(C_SRCS:.c=.o)
-OBJS :=  $(addprefix $(OUTPUT_DIR)/,$(OBJS))
-OBJ_DIRS := $(sort $(dir $(OBJS)))
+OBJS := $(C_SRCS:%.c=$(OUTPUT_DIR)/%.o) $(CPP_SRCS:%.cpp=$(OUTPUT_DIR)/%.o) $(MOC_SRCS:%.h=$(OUTPUT_DIR)/%.moc.o)
 
-C_DEPS := $(C_SRCS:%.c=$(OUTPUT_DIR)/%.d)
+C_DEPS := $(OBJS:%.o=%.d)
 
 TARGET := $(OUTPUT_DIR)/mini_ble.elf
-TARGET_BIN := $(TARGET:.elf=.bin)
-TARGET_HEX := $(TARGET:.elf=.hex)
-TARGET_LSS := $(TARGET:.elf=.lss)
-TARGET_MAP := $(TARGET:.elf=.map)
-TARGET_SREC := $(TARGET:.elf=.srec)
-TARGET_EEP := $(TARGET:.elf=.eep)
-
-#OUTPUT_FILE_DEP:= ../makedep.mk
-
-#$(OUTPUT_DIR):
-#	$(MKDIR) $(OBJ_DIRS)
-
-#.PHONY: $(OBJ_DIRS)
 
 # All Target
 all: $(TARGET)
@@ -143,20 +139,38 @@ $(OUTPUT_DIR)/%.o: %.c $(OUTPUT_DIR)/%.d
 	@echo Building file: $@
 	@echo Invoking: GNU C Compiler
 	@$(call create_dir,$(dir $@))
-	$(CC) $(C_FLAGS) $(C_DEFINES) $(INC_DIRS) -MD -MP -MF "$(@:%.o=%.d)" -MT "$@" -o "$@" "$<"
+	$(CC) $(FLAGS) $(C_FLAGS) $(C_DEFINES) $(INC_DIRS) -MD -MP -MF "$(@:%.o=%.d)" -MT "$@" -o "$@" "$<"
 	@echo Finished building: $@
+
+$(OUTPUT_DIR)/%.o: %.cpp $(OUTPUT_DIR)/%.d
+	@echo Building file: $@
+	@echo Invoking: GNU C++ Compiler
+	@$(call create_dir,$(dir $@))
+	$(CPP) $(FLAGS) $(CPP_FLAGS) $(C_DEFINES) $(INC_DIRS) -MD -MP -MF "$(@:%.o=%.d)" -MT "$@" -o "$@" "$<"
+	@echo Finished building: $@
+
+$(OUTPUT_DIR)/%.o: $(OUTPUT_DIR)/%.cpp $(OUTPUT_DIR)/%.d
+	@echo Building file: $@
+	@echo Invoking: GNU C++ Compiler
+	@$(call create_dir,$(dir $@))
+	$(CPP) $(FLAGS) $(CPP_FLAGS) $(C_DEFINES) $(INC_DIRS) -MD -MP -MF "$(@:%.o=%.d)" -MT "$@" -o "$@" "$<"
+	@echo Finished building: $@
+
+$(OUTPUT_DIR)/%.moc.cpp: %.h
+	$(MOC) $(INC_DIRS) $< -o $@
 
 $(TARGET): $(OBJS) $(LIB_DEP)
 	@echo Building target: $@
 	@echo Invoking: GNU Linker
-	$(CC) -o$(TARGET) $(OBJS) $(LIBS) -lm $(LIB_DIRS) -Wl,--gc-sections
+	$(CPP) -o$(TARGET) $(OBJS) $(LIBS) -lm $(LIB_DIRS) -Wl,--gc-sections
 	@echo Finished building target: $@
 
 # Other Targets
 clean:
 	$(RM) $(OBJS)
 	$(RM) $(C_DEPS)
-	rm -rf $(TARGET) $(TARGET_BIN) $(TARGET_HEX) $(TARGET_LSS) $(TARGET_EEP) $(TARGET_MAP) $(TARGET_SREC)
+	rm -rf $(TARGET)
+
 wipe:
 	$(RM) $(OUTPUT_DIR)
 

@@ -411,7 +411,13 @@ void main_standby_sleep(void)
 /*! \fn     main(void)
 *   \brief  Program Main
 */
+#ifdef EMULATOR_BUILD
+int minible_main(void);
+
+int minible_main(void)
+#else
 int main(void)
+#endif
 {
     /* Initialize our platform */
     main_platform_init();
