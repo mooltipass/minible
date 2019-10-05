@@ -10,21 +10,26 @@
 #include "platform_io.h"
 #include "inputs.h"
 
+#if !defined(PLAT_V5_SETUP)
 // Wheel machine states
 uint16_t inputs_wheel_sm_states[] = {0b011, 0b001, 0b000, 0b010};
+// Boot to know if we allow next increment
+volatile BOOL inputs_wheel_increment_armed_up = FALSE;
+volatile BOOL inputs_wheel_increment_armed_down = FALSE;
+// Last wheel state machine index
+volatile uint16_t inputs_last_wheel_sm;
+#else
+volatile BOOL inputs_last_a_state_on = FALSE;
+volatile BOOL inputs_last_b_state_on = FALSE;
+#endif
 // Wheel pressed duration counter
 volatile uint16_t inputs_wheel_click_duration_counter;
 // Current wheel click return
 volatile det_ret_type_te inputs_wheel_click_return;
 // Wheel click counter
 volatile uint16_t inputs_wheel_click_counter;
-// Boot to know if we allow next increment
-volatile BOOL inputs_wheel_increment_armed_up = FALSE;
-volatile BOOL inputs_wheel_increment_armed_down = FALSE;
 // Wheel current increment for caller
 volatile int16_t inputs_wheel_cur_increment;
-// Last wheel state machine index
-volatile uint16_t inputs_last_wheel_sm;
 // To get wheel action, discard release event
 BOOL inputs_discard_release_event = FALSE;
 // Wheel direction reverse bool
@@ -40,7 +45,8 @@ volatile uint16_t inputs_force_reboot_timer = 0;
 *   \brief  Wheel debounce called by 1ms interrupt
 */
 void inputs_scan(void)
-{    
+{
+    #if !defined(PLAT_V5_SETUP)
     uint16_t wheel_state, wheel_sm = 0;
     
     // Wheel encoder    
@@ -96,6 +102,67 @@ void inputs_scan(void)
         }
         inputs_last_wheel_sm = wheel_sm;
     }
+    #else
+        BOOL cur_switch_a_state = (((PORT->Group[WHEEL_A_GROUP].IN.reg & WHEEL_A_MASK) >> WHEEL_A_PINID) == 0)? FALSE:TRUE;
+        BOOL cur_switch_b_state = (((PORT->Group[WHEEL_B_GROUP].IN.reg & WHEEL_B_MASK) >> WHEEL_B_PINID) == 0)? FALSE:TRUE;
+        
+        if (cur_switch_a_state != inputs_last_a_state_on)
+        {
+            if (inputs_last_a_state_on == FALSE)
+            {
+                if (inputs_last_b_state_on == FALSE)
+                {
+                    if (cur_switch_b_state == FALSE)
+                    {
+                        inputs_wheel_cur_increment--;
+                    } 
+                    else
+                    {
+                        inputs_wheel_cur_increment++;
+                    }
+                } 
+                else
+                {
+                    if (cur_switch_b_state == FALSE)
+                    {
+                        inputs_wheel_cur_increment--;
+                    }
+                    else
+                    {
+                        inputs_wheel_cur_increment++;
+                    }
+                }
+            } 
+            else
+            {
+                if (inputs_last_b_state_on == FALSE)
+                {
+                    if (cur_switch_b_state == FALSE)
+                    {
+                        inputs_wheel_cur_increment++;
+                    }
+                    else
+                    {
+                        inputs_wheel_cur_increment--;
+                    }
+                }
+                else
+                {
+                    if (cur_switch_b_state == FALSE)
+                    {
+                        inputs_wheel_cur_increment++;
+                    }
+                    else
+                    {
+                        inputs_wheel_cur_increment--;
+                    }
+                }
+            }
+            
+            inputs_last_a_state_on = cur_switch_a_state;
+            inputs_last_b_state_on = cur_switch_b_state;
+        }
+    #endif
     
     // Wheel click
     if ((PORT->Group[WHEEL_SW_GROUP].IN.reg & WHEEL_SW_MASK) == 0)
@@ -217,8 +284,10 @@ void inputs_clear_detections(void)
 {
     cpu_irq_enter_critical();
     inputs_last_detection_type_ret = WHEEL_ACTION_NONE;
+    #if !defined(PLAT_V5_SETUP)
     inputs_wheel_increment_armed_down = FALSE;
     inputs_wheel_increment_armed_up = FALSE;
+    #endif
     inputs_wheel_click_duration_counter = 0;
     inputs_wheel_click_return = RETURN_REL;
     inputs_wheel_cur_increment = 0;
