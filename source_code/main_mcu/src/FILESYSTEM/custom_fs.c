@@ -17,7 +17,7 @@
 #include "dma.h"
 
 /* Default device settings */
-const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = {0,FALSE,SETTING_DFT_USER_INTERACTION_TIMEOUT,TRUE,0,0x09,0x0A};
+const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = {0,FALSE,SETTING_DFT_USER_INTERACTION_TIMEOUT,TRUE,0,0x09,0x0A,5};
 /* Current selected language entry */
 language_map_entry_t custom_fs_cur_language_entry = {.starting_bitmap = 0, .starting_font = 0, .string_file_index = 0};
 /* Temp values to speed up string files reading */
