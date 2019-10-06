@@ -10,6 +10,7 @@
 #define DRIVER_TIMER_H_
 
 #include <asf.h>
+#include "platform_defines.h"
 #include "defines.h"
 
 /* Defines */

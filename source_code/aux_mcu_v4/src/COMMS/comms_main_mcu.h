@@ -75,7 +75,11 @@ typedef struct
 typedef struct  
 {
     uint16_t command;
-    uint8_t payload[];
+    union
+    {
+        uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)];
+        uint16_t payload_as_uint16[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t))/2];
+    };
 } main_mcu_command_message_t;
 
 typedef struct  

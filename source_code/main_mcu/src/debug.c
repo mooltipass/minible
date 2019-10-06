@@ -739,21 +739,107 @@ void debug_mcu_and_aux_info(void)
 */
 void debug_rf_freq_sweep(void)
 {
+    aux_mcu_message_t* sweep_message_to_be_sent;
     aux_mcu_message_t* temp_rx_message;
+    int16_t frequency_index = -1;
+    uint16_t payload_type = 0;
     uint16_t run_number = 0;
     
     /* Enable BLE */
     logic_aux_mcu_enable_ble(TRUE);
     
-    /* Start single sweep */
-    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_TX_SWEEP_SGL);
-    comms_aux_mcu_wait_for_message_sent();
+    /* Frequency index choice */
+    while(TRUE)
+    {        
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        if (frequency_index < 0)
+        {
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Frequency Index: Sweep");
+        } 
+        else
+        {
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Frequency Index: %d", frequency_index);
+        }
+        
+        wheel_action_ret_te action_ret = inputs_get_wheel_action(TRUE, FALSE);
+        if (action_ret == WHEEL_ACTION_UP)
+        {
+            if (frequency_index++ == 39)
+            {
+                frequency_index = -1;
+            } 
+        }
+        else if (action_ret == WHEEL_ACTION_DOWN)
+        {
+            if (frequency_index-- == -1)
+            {
+                frequency_index = 39;
+            }
+        }
+        else if (action_ret == WHEEL_ACTION_SHORT_CLICK)
+        {
+            break;
+        }
+    }
+    
+    /* Payload type */
+    while(TRUE)
+    {
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        switch (payload_type)
+        {
+            case 0: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_PSEUDO_RAND_9"); break;
+            case 1: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_11110000"); break;
+            case 2: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_10101010"); break;
+            case 3: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_PSEUDO_RAND_15"); break;
+            case 4: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_ALL_1"); break;
+            case 5: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_ALL_0"); break;
+            case 6: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_00001111"); break;
+            case 7: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_01010101"); break;
+            default: break;
+        }
+        
+        wheel_action_ret_te action_ret = inputs_get_wheel_action(TRUE, FALSE);
+        if (action_ret == WHEEL_ACTION_UP)
+        {
+            if (payload_type++ == 7)
+            {
+                payload_type = 0;
+            }
+        }
+        else if (action_ret == WHEEL_ACTION_DOWN)
+        {
+            if (payload_type-- == 0)
+            {
+                payload_type = 7;
+            }
+        }
+        else if (action_ret == WHEEL_ACTION_SHORT_CLICK)
+        {
+            break;
+        }
+    }    
+    
+    /* Current frequency index beeing sent */
+    uint16_t cur_frequency_index = (uint16_t)frequency_index;
+    if (frequency_index < 0)
+    {
+        cur_frequency_index = 0;
+    }
  
     while (TRUE)
-    {       
+    {        
+        /* Start single sweep */
+        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&sweep_message_to_be_sent, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+        sweep_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint16_t) + sizeof(uint16_t);
+        sweep_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TX_SWEEP_SGL;
+        sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[0] = cur_frequency_index;
+        sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[1] = payload_type;
+        comms_aux_mcu_send_message(FALSE);
+        
         /* Plot run numbers */
         sh1122_clear_current_screen(&plat_oled_descriptor);
-        sh1122_printf_xy(&plat_oled_descriptor, 100, 20, OLED_ALIGN_LEFT, FALSE, "Run #%d", run_number);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Run #%d, freq #%d, payload #%d", run_number, cur_frequency_index, payload_type);
         
         /* Wait for end of sweep */
         while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_TX_SWEEP_DONE) != RETURN_OK);
@@ -761,9 +847,14 @@ void debug_rf_freq_sweep(void)
         /* Rearm RX */
         comms_aux_arm_rx_and_clear_no_comms();
         
-        /* Start other sweep */
-        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_TX_SWEEP_SGL);
-        comms_aux_mcu_wait_for_message_sent();
+        /* Sweep if required */
+        if (frequency_index < 0)
+        {
+            if (cur_frequency_index++ == 39)
+            {
+                cur_frequency_index = 0;
+            }
+        }
         
         /* Click for return */
         if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)

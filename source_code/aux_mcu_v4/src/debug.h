@@ -9,7 +9,7 @@
 #ifndef DEBUG_H_
 #define DEBUG_H_
 
-void debug_tx_sweep_start(void);
+void debug_tx_sweep_start(uint16_t frequency_index, uint16_t payload_type);
 
 
 #endif /* DEBUG_H_ */
