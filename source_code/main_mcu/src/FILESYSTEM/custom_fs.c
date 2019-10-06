@@ -457,7 +457,10 @@ void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc)
 *   \return RETURN_(N)OK
 */
 ret_type_te custom_fs_init(void)
-{    
+{
+    _Static_assert(sizeof(custom_platform_settings_t) == NVMCTRL_ROW_SIZE, "Platform settings isn't a page long");
+    _Static_assert(sizeof(custom_platform_flags_t) == NVMCTRL_ROW_SIZE, "Platform flags isn't a page long");   
+    
     /* Read flash header */
     custom_fs_read_from_flash((uint8_t*)&custom_fs_flash_header, CUSTOM_FS_FILES_ADDR_OFFSET, sizeof(custom_fs_flash_header));
     
@@ -467,17 +470,21 @@ ret_type_te custom_fs_init(void)
         return RETURN_NOK;
     }
     
-    /* Fetch default language (if set) */
-    uint8_t default_device_language = custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE);
+    #ifdef BOOTLOADER
+        return RETURN_OK;
+    #else
+        /* Fetch default language (if set) */
+        uint8_t default_device_language = custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE);
     
-    /* If not valid (preferences not set, etc...) reset to english (0) */
-    if (default_device_language >= custom_fs_get_number_of_languages())
-    {
-        default_device_language = 0;
-    }    
+        /* If not valid (preferences not set, etc...) reset to english (0) */
+        if (default_device_language >= custom_fs_get_number_of_languages())
+        {
+            default_device_language = 0;
+        }    
     
-    /* Set default language */
-    return custom_fs_set_current_language(default_device_language);
+        /* Set default language */
+        return custom_fs_set_current_language(default_device_language);
+    #endif
 }
 
 /*! \fn     custom_fs_get_string_from_file(uint32_t text_file_id, uint32_t string_id, char* string_pt, BOOL lock_on_fail)

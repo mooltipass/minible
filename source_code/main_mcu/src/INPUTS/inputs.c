@@ -19,6 +19,7 @@ volatile BOOL inputs_wheel_increment_armed_down = FALSE;
 // Last wheel state machine index
 volatile uint16_t inputs_last_wheel_sm;
 #else
+volatile uint16_t inputs_pending_a_state_counter = 0;
 volatile BOOL inputs_last_a_state_on = FALSE;
 volatile BOOL inputs_last_b_state_on = FALSE;
 #endif
@@ -106,61 +107,71 @@ void inputs_scan(void)
         BOOL cur_switch_a_state = (((PORT->Group[WHEEL_A_GROUP].IN.reg & WHEEL_A_MASK) >> WHEEL_A_PINID) == 0)? FALSE:TRUE;
         BOOL cur_switch_b_state = (((PORT->Group[WHEEL_B_GROUP].IN.reg & WHEEL_B_MASK) >> WHEEL_B_PINID) == 0)? FALSE:TRUE;
         
+        /* Detect A channel transitions */
         if (cur_switch_a_state != inputs_last_a_state_on)
         {
-            if (inputs_last_a_state_on == FALSE)
+            /* Debouncing */
+            if (inputs_pending_a_state_counter++ == 5)
             {
-                if (inputs_last_b_state_on == FALSE)
+                if (inputs_last_a_state_on == FALSE)
                 {
-                    if (cur_switch_b_state == FALSE)
+                    if (inputs_last_b_state_on == FALSE)
                     {
-                        inputs_wheel_cur_increment--;
+                        if (cur_switch_b_state == FALSE)
+                        {
+                            inputs_wheel_cur_increment--;
+                        } 
+                        else
+                        {
+                            inputs_wheel_cur_increment++;
+                        }
                     } 
                     else
                     {
-                        inputs_wheel_cur_increment++;
+                        if (cur_switch_b_state == FALSE)
+                        {
+                            inputs_wheel_cur_increment--;
+                        }
+                        else
+                        {
+                            inputs_wheel_cur_increment++;
+                        }
                     }
                 } 
                 else
                 {
-                    if (cur_switch_b_state == FALSE)
+                    if (inputs_last_b_state_on == FALSE)
                     {
-                        inputs_wheel_cur_increment--;
+                        if (cur_switch_b_state == FALSE)
+                        {
+                            inputs_wheel_cur_increment++;
+                        }
+                        else
+                        {
+                            inputs_wheel_cur_increment--;
+                        }
                     }
                     else
                     {
-                        inputs_wheel_cur_increment++;
+                        if (cur_switch_b_state == FALSE)
+                        {
+                            inputs_wheel_cur_increment++;
+                        }
+                        else
+                        {
+                            inputs_wheel_cur_increment--;
+                        }
                     }
                 }
-            } 
-            else
-            {
-                if (inputs_last_b_state_on == FALSE)
-                {
-                    if (cur_switch_b_state == FALSE)
-                    {
-                        inputs_wheel_cur_increment++;
-                    }
-                    else
-                    {
-                        inputs_wheel_cur_increment--;
-                    }
-                }
-                else
-                {
-                    if (cur_switch_b_state == FALSE)
-                    {
-                        inputs_wheel_cur_increment++;
-                    }
-                    else
-                    {
-                        inputs_wheel_cur_increment--;
-                    }
-                }
-            }
             
-            inputs_last_a_state_on = cur_switch_a_state;
-            inputs_last_b_state_on = cur_switch_b_state;
+                inputs_last_a_state_on = cur_switch_a_state;
+                inputs_last_b_state_on = cur_switch_b_state;
+                inputs_pending_a_state_counter = 0;
+            }
+        }
+        else
+        {
+            inputs_pending_a_state_counter = 0;
         }
     #endif
     

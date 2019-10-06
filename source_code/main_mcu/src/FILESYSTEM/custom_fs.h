@@ -103,7 +103,7 @@ typedef struct
     uint8_t device_settings[NB_DEVICE_SETTINGS];
     uint32_t nb_ms_since_last_full_charge;
     uint32_t nb_settings_last_covered;
-    uint8_t reserved[184];
+    uint8_t reserved[180];
     uint32_t start_upgrade_flag;
 } custom_platform_settings_t;
 
@@ -113,7 +113,6 @@ typedef struct
     uint16_t device_flags[NB_DEVICE_FLAGS];
     uint8_t reserved[192];
 } custom_platform_flags_t;
-
 
 // Bitmap header
 typedef struct

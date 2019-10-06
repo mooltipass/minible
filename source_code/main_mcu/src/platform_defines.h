@@ -11,13 +11,14 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    5
+#define FW_MINOR    6
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
 - v0.3: many things.... sleep problems solved
 - v0.4: no comms signal checked (among others)
 - v0.5: aux to main protocol change (requires hard programming for upgrade)
+- v0.6: firmware shipped to beta testers
 */
 
 /**************** SETUP DEFINES ****************/
@@ -45,7 +46,7 @@
  * => 50 prototype units produced for beta testers, 01/10/2019
  * - exact same layout as PLAT_V4_SETUP, except external pullup on SMC detect & new scroll wheel
  */
- #define PLAT_V4_SETUP 
+ #define PLAT_V5_SETUP 
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)

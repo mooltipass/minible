@@ -20,7 +20,7 @@ BOOL debug_tx_test_cb_set = FALSE;
 
 static at_ble_status_t debug_tx_sweep_inc(void *param)
 {
-    if (debug_inner_loop++ < 30)
+    if (debug_inner_loop++ < 100)
     {
         /* Continue on this freq */
         DELAYUS(10);
