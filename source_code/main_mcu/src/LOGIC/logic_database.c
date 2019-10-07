@@ -367,7 +367,7 @@ uint16_t logic_database_add_service(cust_char_t* service, service_type_te cred_t
 *   \param  desc        Pointer to description string, or 0 if not specified
 *   \param  third       Pointer to arbitrary third field, or 0 if not specified
 *   \param  password    Pointer to encrypted password, or 0 if not specified
-*   \param  ctr             CTR value
+*   \param  ctr         CTR value
 */
 void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr)
 {
@@ -389,6 +389,8 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
     {
         memcpy(temp_cnode.ctr, ctr, MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr));
         memcpy(temp_cnode.password, password, sizeof(temp_cnode.password));
+        temp_cnode.fakeFlags &= ~NODEMGMT_PREVGEN_BIT_BITMASK;
+        temp_cnode.flags &= ~NODEMGMT_PREVGEN_BIT_BITMASK;
     }
     
     /* Then write back to flash at same address */
