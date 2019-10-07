@@ -831,10 +831,12 @@ void debug_rf_freq_sweep(void)
     {        
         /* Start single sweep */
         comms_aux_mcu_get_empty_packet_ready_to_be_sent(&sweep_message_to_be_sent, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
-        sweep_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint16_t) + sizeof(uint16_t);
+        sweep_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
         sweep_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TX_SWEEP_SGL;
-        sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[0] = cur_frequency_index;
-        sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[1] = payload_type;
+        sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[0] = cur_frequency_index;  // Frequency index, up to 39
+        sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[1] = payload_type;         // Payload type, up to 7
+        sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[2] = 36;                   // Payload length, up to 36
+        sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[3] = 100;                  // How many times this sweep should be repeated
         comms_aux_mcu_send_message(FALSE);
         
         /* Plot run numbers */

@@ -13,6 +13,8 @@
 #include "defines.h"
 #include "debug.h"
 uint8_t debug_current_freq_set = 0;
+uint16_t debug_inner_loop_goal = 0;
+uint8_t debug_payload_length = 0;
 uint16_t debug_inner_loop = 0;
 uint8_t debug_payload_set = 0;
 BOOL debug_tx_test_cb_set = FALSE;
@@ -20,12 +22,12 @@ BOOL debug_tx_test_cb_set = FALSE;
 
 static at_ble_status_t debug_tx_sweep_inc(void *param)
 {
-    if (debug_inner_loop++ < 100)
+    if (debug_inner_loop++ < debug_inner_loop_goal)
     {
         /* Continue on this freq */
         DELAYUS(10);
         DBG_LOG_DEV("Inner %d, Freq %d", debug_inner_loop, debug_current_freq_set);
-        while(at_ble_dtm_tx_test_start(debug_current_freq_set, 36, debug_payload_set) != AT_BLE_SUCCESS);
+        while(at_ble_dtm_tx_test_start(debug_current_freq_set, debug_payload_length, debug_payload_set) != AT_BLE_SUCCESS);
     }
     else
     {
@@ -43,15 +45,17 @@ static const ble_dtm_event_cb_t dtm_custom_event_cb = {
     .le_test_status = debug_tx_sweep_inc
 };
 
-void debug_tx_sweep_start(uint16_t frequency_index, uint16_t payload_type)
+void debug_tx_sweep_start(uint16_t frequency_index, uint16_t payload_type, uint16_t payload_length, uint16_t nb_inner_loops)
 {
     debug_inner_loop = 0;
+    debug_inner_loop_goal = nb_inner_loops;
     debug_payload_set = (uint8_t)payload_type;
+    debug_payload_length = (uint8_t)payload_length;
     debug_current_freq_set = (uint8_t)frequency_index;
     if (debug_tx_test_cb_set == FALSE)
     {
         ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_DTM_EVENT_TYPE, &dtm_custom_event_cb);
         debug_tx_test_cb_set = TRUE;
     }
-    while(at_ble_dtm_tx_test_start(debug_current_freq_set, 36, debug_payload_set) != AT_BLE_SUCCESS);
+    while(at_ble_dtm_tx_test_start(debug_current_freq_set, debug_payload_length, debug_payload_set) != AT_BLE_SUCCESS);
 }
