@@ -116,6 +116,7 @@ RET_TYPE custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_
 */
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void)
 {
+#ifndef EMULATOR_BUILD
     /* Start a read on external flash */
     dataflash_read_data_array_start(custom_fs_dataflash_desc, CUSTOM_FS_FILES_ADDR_OFFSET + sizeof(custom_fs_flash_header.magic_header) + sizeof(custom_fs_flash_header.total_size) + sizeof(custom_fs_flash_header.crc32));
 
@@ -144,6 +145,11 @@ RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void)
     {
         return RETURN_NOK;
     }
+
+#else
+    /* We don't emulate the DMA controller, and don't bother with reimplementing the crc32 routines */
+    return RETURN_OK;
+#endif
 }
 
 /*! \fn     custom_fs_stop_continuous_read_from_flash(void)
