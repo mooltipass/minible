@@ -73,6 +73,10 @@
      #define DBFLASH_CHIP_8M
 #endif
 
+#if defined(EMULATOR_BUILD)
+    #undef DEVELOPER_FEATURES_ENABLED
+#endif
+
 /* Developer features */
 #ifdef DEVELOPER_FEATURES_ENABLED
     #define DEV_SKIP_INTRO_ANIM

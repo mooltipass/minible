@@ -9,6 +9,7 @@ extern "C" {
 #include <QTimer>
 #include <QWidget>
 #include <QPainter>
+#include <QSemaphore>
 
 #include "qt_metacall_helper.h"
 
@@ -55,10 +56,19 @@ public:
 };
 
 static OLEDWidget *oled;
+
+// we need to limit the number of "framebuffer update" events between the threads
+// otherwise the process quickly exhausts all RAM
+QSemaphore display_queue(3);
+
 void emu_update_display(uint8_t *fb)
 {
     QByteArray fb_copy(reinterpret_cast<const char*>(fb), 256*64);
-    postToObject([=]() { oled->update_display(reinterpret_cast<const uint8_t*>(fb_copy.constData())); }, oled);
+    display_queue.acquire();
+    postToObject([=]() {
+        oled->update_display(reinterpret_cast<const uint8_t*>(fb_copy.constData())); 
+        display_queue.release();
+    }, oled);
 }
 
 int main(int ac, char ** av)
