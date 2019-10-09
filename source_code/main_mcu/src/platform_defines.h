@@ -280,6 +280,8 @@ typedef struct
     #define AUX_MCU_TX_EIC_SENSE_REG            SENSE7
     #define AUX_MCU_NO_COMMS_EXTINT_NUM         10
     #define AUX_MCU_NO_COMMS_EXTINT_SENSE_REG   SENSE2
+    #define SMC_DET_EXTINT_NUM                  3
+    #define SMC_DET_EXTINT_SENSE_REG            SENSE3
 #endif
 
 /* User event channels mapping */
@@ -783,6 +785,11 @@ typedef struct
     #define SMC_DET_PINID          3
 #endif
 #define SMC_DET_MASK           (1UL << SMC_DET_PINID)
+#if (SMC_DET_PINID % 2) == 1
+    #define SMC_DET_PMUXREGID  PMUXO
+#else
+    #define SMC_DET_PMUXREGID  PMUXE
+#endif
 
 /* AUX MCU COMMS */
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)

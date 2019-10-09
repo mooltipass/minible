@@ -21,7 +21,7 @@ volatile BOOL platform_io_voledin_conv_ready = FALSE;
 void EIC_Handler(void)
 {
     /* All the interrupts below are used to wake up the platform from sleep. If we detect any of them, we disable all of them */
-    if (((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << USB_3V3_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0))
+    if (((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << USB_3V3_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << SMC_DET_EXTINT_NUM)) != 0))
     {
         EIC->INTFLAG.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
@@ -31,6 +31,8 @@ void EIC_Handler(void)
         EIC->INTENCLR.reg = (1 << USB_3V3_EXTINT_NUM);
         EIC->INTFLAG.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
+        EIC->INTFLAG.reg = (1 << SMC_DET_EXTINT_NUM);
+        EIC->INTENCLR.reg = (1 << SMC_DET_EXTINT_NUM);
     }
 }
 
@@ -181,6 +183,45 @@ void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
     EIC->WAKEUP.reg |= (1 << WHEEL_CLICK_EXTINT_NUM);                                                   // Enable wakeup from ext pin
 }
 
+/*! \fn     platform_io_enable_smartcard_interrupt(void)
+*   \brief  Enable smartcard insert/remove interrupt
+*/
+void platform_io_enable_smartcard_interrupt(void)
+{
+    BOOL is_smc_inserted = FALSE;
+    
+    /* Check for smc inserted state to later setup correct interrupt */
+    if ((PORT->Group[SMC_DET_GROUP].IN.reg & SMC_DET_MASK) == 0)
+    {
+        is_smc_inserted = TRUE;
+    }
+    
+    /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
+    PORT->Group[SMC_DET_GROUP].PMUX[SMC_DET_PINID/2].bit.SMC_DET_PMUXREGID = PORT_PMUX_PMUXO_A_Val;     // Pin mux to EIC
+    PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PMUXEN = 1;                                    // Enable peripheral multiplexer
+    if (is_smc_inserted == FALSE)
+    {
+        EIC->CONFIG[SMC_DET_EXTINT_NUM/8].bit.SMC_DET_EXTINT_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;     // Detect low state
+    } 
+    else
+    {
+        EIC->CONFIG[SMC_DET_EXTINT_NUM/8].bit.SMC_DET_EXTINT_SENSE_REG = EIC_CONFIG_SENSE0_HIGH_Val;    // Detect high state
+    }
+    EIC->INTFLAG.reg = (1 << SMC_DET_EXTINT_NUM);                                                       // Clear interrupt just in case
+    EIC->INTENSET.reg = (1 << SMC_DET_EXTINT_NUM);                                                      // Enable interrupt from ext pin
+    EIC->WAKEUP.reg |= (1 << SMC_DET_EXTINT_NUM);                                                       // Enable wakeup from ext pin
+}
+
+/*! \fn     platform_io_disable_smartcard_interrupt(void)
+*   \brief  Disable smartcard insert/remove interrupt
+*/
+void platform_io_disable_smartcard_interrupt(void)
+{
+    PORT->Group[SMC_DET_GROUP].PMUX[AUX_MCU_NOCOMMS_PINID/2].bit.SMC_DET_PMUXREGID = EIC_CONFIG_SENSE0_NONE_Val;    // No detection
+    PORT->Group[SMC_DET_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;                                        // Disable peripheral multiplexer
+    EIC->WAKEUP.reg &= ~(1 << SMC_DET_EXTINT_NUM);                                                                  // Disable wakeup from ext pin
+}
+
 /*! \fn     platform_io_enable_aux_tx_wakeup_interrupt(void)
 *   \brief  Enable aux MCU TX interrupt
 *   \note   Not used anymore, replaced by bidirectional wakeup on no-comms
@@ -193,7 +234,7 @@ void platform_io_enable_aux_tx_wakeup_interrupt(void)
     EIC->CONFIG[AUX_MCU_TX_EXTINT_NUM/8].bit.AUX_MCU_TX_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;              // Detect low state
     EIC->INTFLAG.reg = (1 << AUX_MCU_TX_EXTINT_NUM);                                                            // Clear interrupt just in case
     EIC->INTENSET.reg = (1 << AUX_MCU_TX_EXTINT_NUM);                                                           // Enable interrupt from ext pin
-    EIC->WAKEUP.reg |= (1 << AUX_MCU_TX_EXTINT_NUM);    
+    EIC->WAKEUP.reg |= (1 << AUX_MCU_TX_EXTINT_NUM);                                                            // Enable wakeup from ext pin
 }
 
 /*! \fn     platform_io_enable_usb_3v3_wakeup_interrupt(void)
@@ -777,6 +818,9 @@ void platform_io_prepare_ports_for_sleep(void)
     
     /* Enable wheel interrupt */
     platform_io_enable_scroll_wheel_wakeup_interrupts();
+    
+    /* Enable smartcard interrupt */
+    platform_io_enable_smartcard_interrupt();
 }
 
 /*! \fn     platform_io_prepare_ports_for_sleep_exit(void)
@@ -784,6 +828,9 @@ void platform_io_prepare_ports_for_sleep(void)
 */
 void platform_io_prepare_ports_for_sleep_exit(void)
 {
+    /* Disable smartcard interrupt */
+    platform_io_disable_smartcard_interrupt();
+    
     /* Disable wheel interrupt */
     platform_io_disable_scroll_wheel_wakeup_interrupts();
     
