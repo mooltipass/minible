@@ -13,6 +13,7 @@
 #include "logic_aux_mcu.h"
 #include "bearssl_block.h"
 #include "comms_aux_mcu.h"
+#include "logic_device.h"
 #include "driver_timer.h"
 #include "platform_io.h"
 #include "gui_prompts.h"
@@ -108,6 +109,7 @@ void logic_user_get_user_cards_cpz(uint8_t* buffer)
 */
 void logic_user_set_user_security_flag(uint16_t bitmask)
 {
+    logic_device_set_state_changed();
     logic_user_cur_sec_preferences |= bitmask;
     nodemgmt_store_user_sec_preferences(logic_user_cur_sec_preferences);
 }
@@ -118,6 +120,7 @@ void logic_user_set_user_security_flag(uint16_t bitmask)
 */
 void logic_user_clear_user_security_flag(uint16_t bitmask)
 {
+    logic_device_set_state_changed();
     logic_user_cur_sec_preferences &= ~bitmask;
     nodemgmt_store_user_sec_preferences(logic_user_cur_sec_preferences);
 }
