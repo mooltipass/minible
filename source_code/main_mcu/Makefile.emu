@@ -99,7 +99,7 @@ src/EMU/platform_io.c \
 src/RNG/rng.c \
 src/EMU/fuses.c \
 src/EMU/driver_sercom.c \
-src/EMU/smartcard_highlevel.c \
+src/SMARTCARD/smartcard_highlevel.c \
 src/EMU/smartcard_lowlevel.c \
 src/TIMER/driver_timer.c \
 src/utils.c \
