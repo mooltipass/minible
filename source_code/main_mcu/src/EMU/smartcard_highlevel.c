@@ -1,7 +1,7 @@
 #include "smartcard_highlevel.h"
 
 RET_TYPE smartcard_highlevel_write_to_appzone_and_check(uint16_t addr, uint16_t nb_bits, uint8_t* buffer, uint8_t* temp_buffer){ return RETURN_OK; }
-mooltipass_card_detect_return_te smartcard_high_level_mooltipass_card_detected_routine(volatile uint16_t* pin_code){ return RETURN_MOOLTIPASS_INVALID;}
+mooltipass_card_detect_return_te smartcard_high_level_mooltipass_card_detected_routine(volatile uint16_t* pin_code){ return RETURN_MOOLTIPASS_4_TRIES_LEFT;}
 RET_TYPE smartcard_highlevel_check_hidden_aes_key_contents(void){return RETURN_OK; }
 RET_TYPE smartcard_highlevel_check_security_mode2(void){return RETURN_OK; }
 RET_TYPE smartcard_highlevel_check_authenticated_readwrite_to_zone12(void){return RETURN_OK; }
@@ -18,7 +18,7 @@ uint8_t smartcard_highlevel_get_nb_sec_tries_left(void){}
 RET_TYPE smartcard_highlevel_write_second_aes_key(uint8_t* buffer){return RETURN_OK; }
 RET_TYPE smartcard_highlevel_write_aes_key(uint8_t* buffer){return RETURN_OK; }
 uint8_t smartcard_highlevel_get_nb_az2_writes_left(void){}
-mooltipass_card_detect_return_te smartcard_highlevel_card_detected_routine(void){return RETURN_MOOLTIPASS_INVALID;}
+mooltipass_card_detect_return_te smartcard_highlevel_card_detected_routine(void){return RETURN_MOOLTIPASS_BLANK;}
 void printSMCDebugInfoToUSB(void){}
 uint16_t smartcard_highlevel_read_security_code(void){}
 void smartcard_highlevel_erase_smartcard(void){}

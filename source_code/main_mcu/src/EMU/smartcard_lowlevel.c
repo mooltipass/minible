@@ -4,14 +4,19 @@ uint8_t* smartcard_lowlevel_read_smc(uint16_t nb_bytes_total_read, uint16_t star
 void smartcard_lowlevel_write_smc(uint16_t start_index_bit, uint16_t nb_bits, uint8_t* data_to_write){}
 pin_check_return_te smartcard_lowlevel_validate_code(volatile uint16_t* code){ return RETURN_PIN_OK; }
 void smartcard_lowlevel_erase_application_zone1_nzone2(BOOL zone1_nzone2){}
-card_detect_return_te smartcard_lowlevel_first_detect_function(void){ return RETURN_CARD_NDET; }
+card_detect_return_te smartcard_lowlevel_first_detect_function(void){ return RETURN_CARD_4_TRIES_LEFT; }
 void smartcard_lowlevel_blow_fuse(card_fuse_type_te fuse_name){}
-det_ret_type_te smartcard_lowlevel_is_card_plugged(void){ return RETURN_REL;}
+det_ret_type_te smartcard_lowlevel_is_card_plugged(void){
+    static int first = 1;
+    det_ret_type_te ret = first ? RETURN_JDETECT : RETURN_DET;
+    first = 0;
+    return ret;
+}
 void smartcard_lowlevel_write_nerase(BOOL is_write){}
 void smartcard_lowlevel_inverted_clock_pulse(void){}
 void smartcard_lowlevel_clear_pgmrst_signals(void){}
 void smartcard_lowlevel_set_pgmrst_signals(void){}
-RET_TYPE smartcard_low_level_is_smc_absent(void){return RETURN_OK; }
+RET_TYPE smartcard_low_level_is_smc_absent(void){return RETURN_NOK; }
 void smartcard_lowlevel_hpulse_delay(void){}
 void smartcard_lowlevel_clock_pulse(void){}
 void smartcard_lowlevel_detect(void){}
