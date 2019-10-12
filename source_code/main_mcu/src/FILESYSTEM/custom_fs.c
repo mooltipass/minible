@@ -457,12 +457,17 @@ void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc)
     custom_fs_dataflash_desc = desc;    
 }
 
+static void custom_fs_init_custom_storage_slots(void);
+
 /*! \fn     custom_fs_init(void)
 *   \brief  Initialize our custom file system... system
 *   \return RETURN_(N)OK
 */
+
 ret_type_te custom_fs_init(void)
 {    
+    custom_fs_init_custom_storage_slots();
+
     /* Read flash header */
     custom_fs_read_from_flash((uint8_t*)&custom_fs_flash_header, CUSTOM_FS_FILES_ADDR_OFFSET, sizeof(custom_fs_flash_header));
     
@@ -624,6 +629,15 @@ RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* addre
 }
 
 #ifndef EMULATOR_BUILD
+
+/*! \fn     custom_fs_init_custom_storage_slots(void)
+*   \brief  Initialize custom slots storage
+*/
+static void custom_fs_init_custom_storage_slots(void)
+{
+    /* this is non-empty in the emulator version */
+}
+
 /*! \fn     custom_fs_get_custom_storage_slot_ptr(uint32_t slot_id)
 *   \brief  Get the internal flash address for a given storage slot id
 *   \param  slot_id     slot ID
@@ -768,6 +782,11 @@ void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void*
 #else
 
 static uint8_t eeprom[256 * 16];
+
+static void custom_fs_init_custom_storage_slots(void)
+{
+    memset(eeprom, 0xff, sizeof(eeprom));
+}
 
 void* custom_fs_get_custom_storage_slot_ptr(uint32_t slot_id)
 {
