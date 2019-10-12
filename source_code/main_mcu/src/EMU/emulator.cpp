@@ -2,6 +2,7 @@ extern "C" {
 #include "asf.h"
 #include "driver_timer.h"
 #include "emulator.h"
+#include "inputs.h"
 }
 
 #include <QApplication>
@@ -10,11 +11,48 @@ extern "C" {
 #include <QWidget>
 #include <QPainter>
 #include <QSemaphore>
+#include <QWheelEvent>
+#include <QMouseEvent>
+#include <QMutex>
 
 #include "qt_metacall_helper.h"
 
 static struct emu_port_t _PORT;
 struct emu_port_t *PORT=&_PORT;
+
+QMutex irq_mutex;
+
+void cpu_irq_enter_critical(void)
+{
+    irq_mutex.lock();
+}
+
+void cpu_irq_leave_critical(void)
+{
+    irq_mutex.unlock();
+}
+
+// see INPUTS/inputs.c
+extern volatile int16_t inputs_wheel_cur_increment;
+extern volatile uint16_t inputs_wheel_click_duration_counter;
+extern volatile det_ret_type_te inputs_wheel_click_return;
+
+static void pseudo_irq(void)
+{
+    irq_mutex.lock();
+    timer_ms_tick();
+
+    /* Smartcard detect */
+//            smartcard_lowlevel_detect();
+
+    /* Scan buttons */
+    inputs_scan();
+    
+    /* Power logic */
+//            logic_power_ms_tick();
+
+    irq_mutex.unlock();
+}
 
 class OLEDWidget: public QWidget {
 public:
@@ -39,6 +77,27 @@ protected:
     virtual void paintEvent(QPaintEvent *) {
         QPainter painter(this);
         painter.drawImage(0, 0, display);
+    }
+
+    virtual void wheelEvent(QWheelEvent *event) {
+        int delta = event->angleDelta().y()/120;
+        irq_mutex.lock();
+        inputs_wheel_cur_increment += delta;
+        irq_mutex.unlock();
+    }
+
+    virtual void mousePressEvent(QMouseEvent *event) {
+        irq_mutex.lock();
+        if (inputs_wheel_click_return != RETURN_JRELEASED)
+            inputs_wheel_click_return = RETURN_JDETECT;
+        irq_mutex.unlock();
+    }
+
+    virtual void mouseReleaseEvent(QMouseEvent *event) {
+        irq_mutex.lock();
+        if (inputs_wheel_click_return == RETURN_DET)
+            inputs_wheel_click_return = RETURN_JRELEASED;
+        irq_mutex.unlock();
     }
 };
 
@@ -81,20 +140,8 @@ int main(int ac, char ** av)
     ms_timer.setInterval(1);
     ms_timer.start();
 
-    QObject::connect(&ms_timer, &QTimer::timeout, []() {
-        // this will likely miss some ticks, FIXME later
-        timer_ms_tick();
-
-        /* Smartcard detect */
-//            smartcard_lowlevel_detect();
-    
-        /* Scan buttons */
-//            inputs_scan();
-        
-        /* Power logic */
-//            logic_power_ms_tick();
-
-    });
+    // this will likely miss some ticks, FIXME later
+    QObject::connect(&ms_timer, &QTimer::timeout, pseudo_irq);
 
     oled = new OLEDWidget;
     oled->show();

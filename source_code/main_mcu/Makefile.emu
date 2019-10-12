@@ -81,7 +81,7 @@ src/GUI/gui_carousel.c \
 src/GUI/gui_dispatcher.c \
 src/GUI/gui_menu.c \
 src/GUI/gui_prompts.c \
-src/EMU/inputs.c \
+src/INPUTS/inputs.c \
 src/LOGIC/logic_aux_mcu.c \
 src/LOGIC/logic_bluetooth.c \
 src/LOGIC/logic_database.c \

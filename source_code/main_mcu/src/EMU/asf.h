@@ -14,8 +14,8 @@ extern Sercom sercom_array[6];
 #define SERCOM5 (&sercom_array[5])
 #define NVMCTRL_ROW_SIZE (256)
 
-static inline void cpu_irq_enter_critical(void) {}
-static inline void cpu_irq_leave_critical(void) {}
+void cpu_irq_enter_critical(void);
+void cpu_irq_leave_critical(void);
 
 static inline uint16_t swap16(uint16_t v) {
 	return (v<<8)|(v>>8);
