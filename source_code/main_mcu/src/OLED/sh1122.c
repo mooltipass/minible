@@ -162,9 +162,8 @@ void sh1122_set_row_address(sh1122_descriptor_t* oled_descriptor, uint8_t start)
 *   \param  offset              Y offset for shift
 */
 void sh1122_move_display_start_line(sh1122_descriptor_t* oled_descriptor, int16_t offset)
-{    
-    sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_START_LINE);
-    sh1122_write_single_data(oled_descriptor, (uint8_t)offset);   
+{   
+    sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_START_LINE | (uint8_t)offset);
 }
 
 /*! \fn     sh1122_is_oled_on(sh1122_descriptor_t* oled_descriptor)
