@@ -61,6 +61,11 @@ public:
         setMinimumSize(display.size());
         setMaximumSize(display.size());
     }
+    ~OLEDWidget() {
+	// deliver the update events before they cause us trouble
+	// in the QWidget destructor
+	QApplication::removePostedEvents(this);
+    }
 
     void update_display(const uint8_t *fb) {
         uint8_t *optr = display.bits();
@@ -150,7 +155,9 @@ QSemaphore display_queue(3);
 void emu_update_display(uint8_t *fb)
 {
     QByteArray fb_copy(reinterpret_cast<const char*>(fb), 256*64);
-    display_queue.acquire();
+    while(!display_queue.tryAcquire(1, 100)) 
+        emu_appexit_test();
+
     postToObject([=]() {
         oled->update_display(reinterpret_cast<const uint8_t*>(fb_copy.constData())); 
         display_queue.release();
