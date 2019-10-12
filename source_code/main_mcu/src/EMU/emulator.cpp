@@ -64,6 +64,7 @@ public:
 
     void update_display(const uint8_t *fb) {
         uint8_t *optr = display.bits();
+
         for(int y=0;y<64;y++)
             for(int x=0;x<256;x++) {
                 optr[0] = optr[1] = optr[2] = *fb++;
@@ -105,14 +106,40 @@ extern "C" void minible_main();
 
 class AppThread: public QThread {
 private:
+    QMutex appexit_mutex;
+    bool app_exiting = false;
+    QSemaphore app_thread_blocked;
+
 
 public:
     void run() {
         minible_main();
     }
 
+    void stop() {
+        appexit_mutex.lock();
+        app_exiting = true;
+        appexit_mutex.unlock();
+        app_thread_blocked.acquire();
+    }
 
+    void test_stop(void) {
+        appexit_mutex.lock();
+        if(app_exiting) {
+            appexit_mutex.unlock();
+            app_thread_blocked.release();
+            for(;;);
+        }
+
+        appexit_mutex.unlock();
+    }
 };
+
+AppThread app_thread;
+
+void emu_appexit_test(void) {
+    app_thread.test_stop();
+}
 
 static OLEDWidget *oled;
 
@@ -146,10 +173,11 @@ int main(int ac, char ** av)
     oled = new OLEDWidget;
     oled->show();
 
-    AppThread app_thread;
     app_thread.start();
 
     app.exec();
+
+    app_thread.stop();
 
     delete oled;
     return 0;
