@@ -158,5 +158,8 @@ void gui_carousel_render_animation(uint16_t nb_elements, const uint16_t* pic_ids
         {
             gui_carousel_render(nb_elements, pic_ids, text_ids, selected_id, i);
         }
+#ifdef EMULATOR_BUILD
+        DELAYMS(16);
+#endif
     }
 }
