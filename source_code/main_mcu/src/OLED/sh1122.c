@@ -13,6 +13,12 @@
 #include "sh1122.h"
 #include "dma.h"
 
+#ifdef EMULATOR_BUILD
+#include "../EMU/emu_oled.h"
+#else
+static void emu_oled_flush(void) {}
+#endif
+
 /* SH1122 initialization sequence */
 static const uint8_t sh1122_init_sequence[] = 
 {
@@ -507,8 +513,17 @@ void sh1122_flush_frame_buffer_y_window(sh1122_descriptor_t* oled_descriptor, ui
     sh1122_start_data_sending(oled_descriptor);
     
     /* Send buffer! */
-    dma_oled_init_transfer(oled_descriptor->sercom_pt, (void*)&oled_descriptor->frame_buffer[ystart][0], (yend-ystart)*SH1122_OLED_WIDTH/2, oled_descriptor->dma_trigger_id);
-    oled_descriptor->frame_buffer_flush_in_progress = TRUE;
+    #ifdef OLED_DMA_TRANSFER        
+        dma_oled_init_transfer(oled_descriptor->sercom_pt, (void*)&oled_descriptor->frame_buffer[ystart][0], (yend-ystart)*SH1122_OLED_WIDTH/2, oled_descriptor->dma_trigger_id);
+        oled_descriptor->frame_buffer_flush_in_progress = TRUE;
+    #else
+        for (uint32_t y = ystart; y < yend; y++) 
+        {
+            for (uint32_t x = 0; x < SH1122_OLED_WIDTH/2; x++) {
+                sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, oled_descriptor->frame_buffer[y][x]);
+            }
+        }
+    #endif
 }
 
 /*! \fn     sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
@@ -530,8 +545,17 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
         sh1122_start_data_sending(oled_descriptor);
         
         /* Send buffer! */
-        dma_oled_init_transfer(oled_descriptor->sercom_pt, (void*)&oled_descriptor->frame_buffer[0][0], sizeof(oled_descriptor->frame_buffer), oled_descriptor->dma_trigger_id);
-        oled_descriptor->frame_buffer_flush_in_progress = TRUE;
+        #ifdef OLED_DMA_TRANSFER        
+            dma_oled_init_transfer(oled_descriptor->sercom_pt, (void*)&oled_descriptor->frame_buffer[0][0], sizeof(oled_descriptor->frame_buffer), oled_descriptor->dma_trigger_id);
+            oled_descriptor->frame_buffer_flush_in_progress = TRUE;
+        #else
+            for (uint32_t y = 0; y < SH1122_OLED_HEIGHT; y++) 
+            {
+                for (uint32_t x = 0; x < SH1122_OLED_WIDTH/2; x++) {
+                    sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, oled_descriptor->frame_buffer[y][x]);
+                }
+            }
+        #endif
     }
     else if (oled_descriptor->loaded_transition == OLED_LEFT_RIGHT_TRANS)
     {
@@ -554,6 +578,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
                     sh1122_display_horizontal_pixel_line(oled_descriptor, x*2, y, 2, pixel_data, FALSE);                    
                 }
             }
+            emu_oled_flush();
         }
     }
     else if (oled_descriptor->loaded_transition == OLED_RIGHT_LEFT_TRANS)
@@ -577,6 +602,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
                     sh1122_display_horizontal_pixel_line(oled_descriptor, x*2 + 2, y, 2, pixel_data+1, FALSE);
                 }
             }
+            emu_oled_flush();
         }
     }
     else if (oled_descriptor->loaded_transition == OLED_TOP_BOT_TRANS)
@@ -590,6 +616,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
                 /* Dotted line */
                 sh1122_draw_rectangle(oled_descriptor, 0, y+2, SH1122_OLED_WIDTH, 1, SH1122_TRANSITION_PIXEL, FALSE);
             }
+            emu_oled_flush();
             DELAYMS(2);
         }
     }
@@ -604,6 +631,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
                 /* Dotted line */
                 sh1122_draw_rectangle(oled_descriptor, 0, y-2, SH1122_OLED_WIDTH, 1, SH1122_TRANSITION_PIXEL, FALSE);
             }
+            emu_oled_flush();
             DELAYMS(2);
         }
     }
@@ -630,6 +658,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
                 low_y--;
                 high_y++;
             }
+            emu_oled_flush();
         }
     }
     else if (oled_descriptor->loaded_transition == OLED_OUT_IN_TRANS)
@@ -655,11 +684,13 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
                 low_y++;
                 high_y--;
             }
+            emu_oled_flush();
         }
     }
     
     /* Reset transition */
     oled_descriptor->loaded_transition = OLED_TRANS_NONE;
+    emu_oled_flush();
 }
 #endif
 
