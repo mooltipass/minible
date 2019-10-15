@@ -247,11 +247,11 @@ void debug_debug_menu(void)
             else if (selected_item == 14)
             {
                 /* Check for USB power */
-                if (platform_io_is_usb_3v3_present() != FALSE)
+                if (platform_io_is_usb_3v3_present_raw() != FALSE)
                 {
                     sh1122_clear_current_screen(&plat_oled_descriptor);
                     sh1122_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"Remove USB cable", FALSE);
-                    while((platform_io_is_usb_3v3_present() != FALSE));
+                    while((platform_io_is_usb_3v3_present_raw() != FALSE));
                 }
                 sh1122_oled_off(&plat_oled_descriptor);     // Display off command    
                 platform_io_power_down_oled();              // Switch off stepup            

@@ -108,7 +108,7 @@ void main_platform_init(void)
     if ((fuses_check_program(FALSE) == RETURN_OK) && (custom_fs_settings_init() == CUSTOM_FS_INIT_OK) && (custom_fs_get_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID) != FALSE))
     {
         /* Check if USB 3V3 is present and if so clear flag */
-        if (platform_io_is_usb_3v3_present() == FALSE)
+        if (platform_io_is_usb_3v3_present_raw() == FALSE)
         {
             platform_io_disable_switch_and_die();
             while(1);
@@ -128,7 +128,7 @@ void main_platform_init(void)
     /* Check if battery powered and under-voltage */
     uint16_t battery_voltage = platform_io_get_voledin_conversion_result_and_trigger_conversion();
     logic_power_register_vbat_adc_measurement(battery_voltage);
-    if ((platform_io_is_usb_3v3_present() == FALSE) && (battery_voltage < BATTERY_ADC_OUT_CUTOUT))
+    if ((platform_io_is_usb_3v3_present_raw() == FALSE) && (battery_voltage < BATTERY_ADC_OUT_CUTOUT))
     {
         platform_io_disable_switch_and_die();
         while(1);
@@ -176,7 +176,7 @@ void main_platform_init(void)
     platform_io_init_bat_adc_measurements();
     
     /* Initialize OLED screen */
-    if (platform_io_is_usb_3v3_present() == FALSE)
+    if (platform_io_is_usb_3v3_present_raw() == FALSE)
     {
         logic_power_set_power_source(BATTERY_POWERED);
         platform_io_power_up_oled(FALSE);
@@ -247,7 +247,7 @@ void main_platform_init(void)
     }    
     
     /* If USB present, send USB attach message */
-    if (platform_io_is_usb_3v3_present() != FALSE)
+    if (platform_io_is_usb_3v3_present_raw() != FALSE)
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
         logic_power_usb_enumerate_just_sent();
@@ -382,7 +382,7 @@ void main_standby_sleep(void)
     cpu_irq_leave_critical();    
     
     /* Switch on OLED */    
-    platform_io_power_up_oled(platform_io_is_usb_3v3_present());
+    platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
     sh1122_oled_on(&plat_oled_descriptor);
     
     /* Dataflash power up */
@@ -453,7 +453,7 @@ int main(void)
         /* When developping on a newly flashed board: reset USB connection and reset defaults */
         if (custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id) == RETURN_OK)
         {
-            if (platform_io_is_usb_3v3_present() != FALSE)
+            if (platform_io_is_usb_3v3_present_raw() != FALSE)
             {
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
                 timer_delay_ms(2000);

@@ -13,6 +13,9 @@
 oled_stepup_pwr_source_te platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
 /* Set when a conversion result is ready */
 volatile BOOL platform_io_voledin_conv_ready = FALSE;
+/* 3v3 detected counter & state */
+volatile BOOL platform_io_debounced_3v3_present = FALSE;
+volatile uint16_t platform_io_3v3_detected_counter = 0;
 
 
 /*! \fn     EIC_Handler(void)
@@ -34,6 +37,29 @@ void EIC_Handler(void)
         EIC->INTFLAG.reg = (1 << SMC_DET_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << SMC_DET_EXTINT_NUM);
     }
+}
+
+/*! \fn     platform_io_scan_3v3(void)
+*   \brief  Scan 3v3 presence for debouncing purposes
+*/
+void platform_io_scan_3v3(void)
+{
+    if ((PORT->Group[USB_3V3_GROUP].IN.reg & USB_3V3_MASK) == 0)
+    {
+        platform_io_debounced_3v3_present = FALSE;
+        platform_io_3v3_detected_counter = 0;
+    }
+    else
+    {
+        if (platform_io_3v3_detected_counter == 50)
+        {
+            platform_io_debounced_3v3_present = TRUE;
+        }
+        if (platform_io_3v3_detected_counter != UINT16_MAX)
+        {
+            platform_io_3v3_detected_counter++;
+        }
+    }    
 }
 
 /*! \fn     platform_io_enable_switch(void)
@@ -597,12 +623,11 @@ oled_stepup_pwr_source_te platform_io_get_voled_stepup_pwr_source(void)
     return platform_io_oled_stepup_power_source;
 }
 
-/*! \fn     platform_io_is_usb_3v3_present(void)
-*   \brief  Check if the USB 3V3 is present
+/*! \fn     platform_io_is_usb_3v3_present_raw(void)
+*   \brief  Check if the USB 3V3 is present (not debounced)
 *   \return TRUE or FALSE
-*   \note   No low pass filter has been implemented as the oled DC/DC can work at 1V2
 */
-BOOL platform_io_is_usb_3v3_present(void)
+BOOL platform_io_is_usb_3v3_present_raw(void)
 {
     if ((PORT->Group[USB_3V3_GROUP].IN.reg & USB_3V3_MASK) == 0)
     {
@@ -612,6 +637,15 @@ BOOL platform_io_is_usb_3v3_present(void)
     {
         return TRUE;
     }
+}
+
+/*! \fn     platform_io_is_usb_3v3_present(void)
+*   \brief  Check if the USB 3V3 is present (debounced)
+*   \return TRUE or FALSE
+*/
+BOOL platform_io_is_usb_3v3_present(void)
+{
+    return platform_io_debounced_3v3_present;
 }
 
 /*! \fn     platform_io_init_power_ports(void)

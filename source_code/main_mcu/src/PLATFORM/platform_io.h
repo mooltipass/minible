@@ -34,6 +34,7 @@ void platform_io_init_accelerometer_ports(void);
 void platform_io_prepare_ports_for_sleep(void);
 void platform_io_init_scroll_wheel_ports(void);
 void platform_io_power_up_oled(BOOL power_3v3);
+BOOL platform_io_is_usb_3v3_present_raw(void);
 void platform_io_disable_switch_and_die(void);
 void platform_io_smc_inserted_function(void);
 void platform_io_init_no_comms_signal(void);
@@ -58,5 +59,6 @@ void platform_io_set_no_comms(void);
 void platform_io_disable_ble(void);
 void platform_io_init_ports(void);
 void platform_io_enable_ble(void);
+void platform_io_scan_3v3(void);
 
 #endif /* PLATFORM_IO_H_ */
