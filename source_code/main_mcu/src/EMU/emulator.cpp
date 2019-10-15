@@ -14,6 +14,7 @@ extern "C" {
 #include <QWheelEvent>
 #include <QMouseEvent>
 #include <QMutex>
+#include <QTime>
 
 #include "qt_metacall_helper.h"
 
@@ -174,8 +175,13 @@ int main(int ac, char ** av)
     ms_timer.setInterval(1);
     ms_timer.start();
 
-    // this will likely miss some ticks, FIXME later
-    QObject::connect(&ms_timer, &QTimer::timeout, pseudo_irq);
+    QObject::connect(&ms_timer, &QTimer::timeout, [] () {
+        // the OS will most likely not schedule our timer with 1ms frequency,
+        // so we correct for this by running the "irq" function several times if needed
+        static QTime timer = QTime::currentTime();
+        for(int msPassed = timer.restart(); msPassed >= 0; --msPassed) 
+            pseudo_irq();
+    });
 
     oled = new OLEDWidget;
     oled->show();
