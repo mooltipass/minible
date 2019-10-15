@@ -49,6 +49,7 @@ void gui_dispatcher_display_battery_bt_overlay(BOOL write_to_buffer)
     {
         /* Our enum allows us to do so */
         sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+logic_power_get_battery_state(), write_to_buffer);
+        gui_dispatcher_battery_charging_anim_index = logic_power_get_battery_state();
     } 
     else
     {

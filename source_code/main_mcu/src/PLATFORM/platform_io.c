@@ -51,7 +51,7 @@ void platform_io_scan_3v3(void)
     }
     else
     {
-        if (platform_io_3v3_detected_counter == 50)
+        if (platform_io_3v3_detected_counter == 250)
         {
             platform_io_debounced_3v3_present = TRUE;
         }

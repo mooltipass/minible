@@ -516,8 +516,18 @@ int main(void)
             sh1122_oled_off(&plat_oled_descriptor);
             platform_io_power_down_oled();
             timer_delay_ms(100);
-            platform_io_disable_switch_and_die();
-            while(1);
+            
+            /* It may not be impossible that the user connected the device in the meantime */
+            if (platform_io_is_usb_3v3_present() == FALSE)
+            {
+                platform_io_disable_switch_and_die();
+                while(1);
+            } 
+            else
+            {
+                /* Call the power routine that will take care of power switch */
+                logic_power_routine();
+            }                
         }
         
         /* Do not do anything if we're uploading new graphics contents */

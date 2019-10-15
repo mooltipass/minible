@@ -174,10 +174,8 @@ power_action_te logic_power_routine(void)
         logic_power_set_power_source(USB_POWERED);
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
         logic_power_usb_enumerate_just_sent();
-        platform_io_assert_oled_reset();
-        timer_delay_ms(15);
         platform_io_power_up_oled(TRUE);
-        sh1122_init_display(&plat_oled_descriptor);
+        sh1122_oled_on(&plat_oled_descriptor);
         gui_dispatcher_get_back_to_current_screen();
         logic_device_activity_detected();
         logic_power_nb_adc_conv_since_last_power_change = 0;
@@ -190,10 +188,8 @@ power_action_te logic_power_routine(void)
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
         logic_power_set_battery_charging_bool(FALSE, FALSE);
         logic_aux_mcu_set_usb_enumerated_bool(FALSE);
-        platform_io_assert_oled_reset();
-        timer_delay_ms(15);
         platform_io_power_up_oled(FALSE);
-        sh1122_init_display(&plat_oled_descriptor);
+        sh1122_oled_on(&plat_oled_descriptor);
         gui_dispatcher_get_back_to_current_screen();
         logic_device_activity_detected();
         logic_power_nb_adc_conv_since_last_power_change = 0;
@@ -229,16 +225,16 @@ power_action_te logic_power_routine(void)
         if ((platform_io_get_voled_stepup_pwr_source() == OLED_STEPUP_SOURCE_VBAT) && (logic_power_nb_adc_conv_since_last_power_change > 5))
         {
             logic_power_last_vbat_measurement = current_vbat;
+            
+            /* Low battery, need to power off? */
+            if ((logic_power_get_power_source() == BATTERY_POWERED) && (logic_power_last_vbat_measurement < BATTERY_ADC_OUT_CUTOUT) && (platform_io_is_usb_3v3_present_raw() == FALSE))
+            {
+                /* platform_io_is_usb_3v3_present_raw() call is here to prevent erroneous measurements */
+                return POWER_ACT_POWER_OFF;
+            }
         }
     }
     
-    /* Action based on battery measurement */
-    if ((logic_power_get_power_source() == BATTERY_POWERED) && (logic_power_last_vbat_measurement < BATTERY_ADC_OUT_CUTOUT))
-    {
-        return POWER_ACT_POWER_OFF;
-    }
-    else
-    {
-        return POWER_ACT_NONE;
-    }
+    /* Nothing to do */
+    return POWER_ACT_NONE;
 }

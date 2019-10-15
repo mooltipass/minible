@@ -188,7 +188,6 @@ void sh1122_oled_on(sh1122_descriptor_t* oled_descriptor)
 {
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_ON);
     oled_descriptor->oled_on = TRUE;
-    timer_delay_ms(100);
 }
 
 /*! \fn     sh1122_load_transition(sh1122_descriptor_t* oled_descriptor, oled_transition_te transition)
