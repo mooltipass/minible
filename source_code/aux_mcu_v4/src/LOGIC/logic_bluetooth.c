@@ -62,6 +62,7 @@ uint8_t logic_bluetooth_boot_keyb_in_report[8];
 uint8_t logic_bluetooth_keyboard_in_report[8];
 uint8_t logic_bluetooth_ctrl_point[1];
 /* Bluetooth connection bools */
+BOOL logic_bluetooth_advertising = FALSE;
 BOOL logic_bluetooth_just_paired = FALSE;
 BOOL logic_bluetooth_connected = FALSE;
 BOOL logic_bluetooth_paired = FALSE;
@@ -1282,11 +1283,38 @@ void logic_bluetooth_start_advertising(void)
     if(at_ble_adv_start(AT_BLE_ADV_TYPE_UNDIRECTED, AT_BLE_ADV_GEN_DISCOVERABLE, NULL, AT_BLE_ADV_FP_ANY, APP_HID_FAST_ADV, APP_HID_ADV_TIMEOUT, 0) == AT_BLE_SUCCESS)
     {
         DBG_LOG("Device Started Advertisement");
+        logic_bluetooth_advertising = TRUE;
     }
     else
     {
         DBG_LOG("ERROR: Device Advertisement Failed");
+        logic_bluetooth_advertising = FALSE;
     }    
+}
+
+/*! \fn     logic_bluetooth_stop_advertising(void)
+*   \brief  Stop advertising
+*/
+ret_type_te logic_bluetooth_stop_advertising(void)
+{
+    if (logic_bluetooth_advertising != FALSE)
+    {
+        if(at_ble_adv_stop() == AT_BLE_SUCCESS)
+        {
+            logic_bluetooth_advertising = FALSE;
+            DBG_LOG("Advertising stopped");
+            return RETURN_OK;
+        }
+        else
+        {
+            DBG_LOG("ERROR: Couldn't stop advertising");
+            return RETURN_NOK;
+        }
+    } 
+    else
+    {
+        return RETURN_OK;
+    }
 }
 
 /*! \fn     logic_bluetooth_set_battery_level(uint8_t pct)

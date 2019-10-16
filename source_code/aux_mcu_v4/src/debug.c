@@ -14,23 +14,31 @@
 #include "debug.h"
 uint8_t debug_current_freq_set = 0;
 uint16_t debug_inner_loop_goal = 0;
+BOOL debug_tx_test_cb_set = FALSE;
 uint8_t debug_payload_length = 0;
 uint16_t debug_inner_loop = 0;
 uint8_t debug_payload_set = 0;
-BOOL debug_tx_test_cb_set = FALSE;
 
 
 static at_ble_status_t debug_tx_sweep_inc(void *param)
-{
-    if (debug_inner_loop++ < debug_inner_loop_goal)
+{    
+    if (++debug_inner_loop < debug_inner_loop_goal)
     {
         /* Continue on this freq */
-        DELAYUS(10);
         DBG_LOG_DEV("Inner %d, Freq %d", debug_inner_loop, debug_current_freq_set);
-        while(at_ble_dtm_tx_test_start(debug_current_freq_set, debug_payload_length, debug_payload_set) != AT_BLE_SUCCESS);
+        while(at_ble_dtm_tx_test_start(debug_current_freq_set, debug_payload_length, debug_payload_set) != AT_BLE_SUCCESS)
+        {
+            DBG_LOG("ERROR: couldn't start DTM TX");
+        }
     }
     else
     {
+        while(at_ble_dtm_stop_test() != AT_BLE_SUCCESS)
+        {
+            DBG_LOG("ERROR: couldn't stop DTM test");
+        }
+        DBG_LOG("DTM test stopped");
+        
         debug_inner_loop = 0;
         aux_mcu_message_t message;
         message.message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
@@ -41,21 +49,36 @@ static at_ble_status_t debug_tx_sweep_inc(void *param)
     return AT_BLE_SUCCESS;
 }
 
+static at_ble_status_t debug_tx_sweep_report(void *param)
+{
+    DBG_LOG_DEV("Test report received, sweep done");    
+    return AT_BLE_SUCCESS;
+}
+
 static const ble_dtm_event_cb_t dtm_custom_event_cb = {
-    .le_test_status = debug_tx_sweep_inc
+    .le_test_status = debug_tx_sweep_inc,
+    .le_packet_report = debug_tx_sweep_report
 };
 
 void debug_tx_sweep_start(uint16_t frequency_index, uint16_t payload_type, uint16_t payload_length, uint16_t nb_inner_loops)
 {
+    DBG_LOG_DEV("TX sweep start, freq %d, payload type %d, payload length %d, inner loops %d", frequency_index, payload_type, payload_length, nb_inner_loops);
     debug_inner_loop = 0;
     debug_inner_loop_goal = nb_inner_loops;
     debug_payload_set = (uint8_t)payload_type;
     debug_payload_length = (uint8_t)payload_length;
     debug_current_freq_set = (uint8_t)frequency_index;
+    while(logic_bluetooth_stop_advertising() != RETURN_OK);
+    
     if (debug_tx_test_cb_set == FALSE)
     {
         ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_DTM_EVENT_TYPE, &dtm_custom_event_cb);
         debug_tx_test_cb_set = TRUE;
     }
-    while(at_ble_dtm_tx_test_start(debug_current_freq_set, debug_payload_length, debug_payload_set) != AT_BLE_SUCCESS);
+    
+    while(at_ble_dtm_tx_test_start(debug_current_freq_set, debug_payload_length, debug_payload_set) != AT_BLE_SUCCESS)
+    {
+        DBG_LOG("ERROR: couldn't start DTM TX");
+    }
+    DBG_LOG("DTM test started");
 }

@@ -741,8 +741,20 @@ void debug_rf_freq_sweep(void)
 {
     aux_mcu_message_t* sweep_message_to_be_sent;
     aux_mcu_message_t* temp_rx_message;
+    
+    /* Parameters to be sent to aux mcu */
+    int16_t payload_length = 36;
     int16_t frequency_index = -1;
-    uint16_t payload_type = 0;
+    int16_t screen_contents = 0;
+    int16_t payload_type = 0;
+    int16_t inner_loop = 100;
+    
+    /* Logic */
+    int16_t* values_pts[] = {&frequency_index, &payload_type, &payload_length, &inner_loop, &screen_contents};
+    int16_t upper_bounds[] = {39, 7, 36, 100, 2};
+    int16_t lower_bounds[] = {-1, 0, 0, 1, 0};
+    uint16_t selected_item = 0;
+    BOOL redraw_needed = TRUE;
     uint16_t run_number = 0;
     
     /* Enable BLE */
@@ -751,80 +763,101 @@ void debug_rf_freq_sweep(void)
     /* Frequency index choice */
     while(TRUE)
     {        
-        sh1122_clear_current_screen(&plat_oled_descriptor);
-        if (frequency_index < 0)
+        if (redraw_needed != FALSE)
         {
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Frequency Index: Sweep");
-        } 
-        else
-        {
-            sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Frequency Index: %d", frequency_index);
+            sh1122_clear_current_screen(&plat_oled_descriptor);
+            
+            /* Line 1: frequency index */
+            if (frequency_index < 0)
+                sh1122_printf_xy(&plat_oled_descriptor, 10, 0, OLED_ALIGN_LEFT, FALSE, "Frequency Index: Sweep");
+            else
+                sh1122_printf_xy(&plat_oled_descriptor, 10, 0, OLED_ALIGN_LEFT, FALSE, "Frequency Index: %d", frequency_index);
+                
+            /* Line 2: payload type */
+            switch (payload_type)
+            {
+                case 0: sh1122_printf_xy(&plat_oled_descriptor, 10, 11, OLED_ALIGN_LEFT, FALSE, "Payload: PAYL_PSEUDO_RAND_9"); break;
+                case 1: sh1122_printf_xy(&plat_oled_descriptor, 10, 11, OLED_ALIGN_LEFT, FALSE, "Payload: PAYL_11110000"); break;
+                case 2: sh1122_printf_xy(&plat_oled_descriptor, 10, 11, OLED_ALIGN_LEFT, FALSE, "Payload: PAYL_10101010"); break;
+                case 3: sh1122_printf_xy(&plat_oled_descriptor, 10, 11, OLED_ALIGN_LEFT, FALSE, "Payload: PAYL_PSEUDO_RAND_15"); break;
+                case 4: sh1122_printf_xy(&plat_oled_descriptor, 10, 11, OLED_ALIGN_LEFT, FALSE, "Payload: PAYL_ALL_1"); break;
+                case 5: sh1122_printf_xy(&plat_oled_descriptor, 10, 11, OLED_ALIGN_LEFT, FALSE, "Payload: PAYL_ALL_0"); break;
+                case 6: sh1122_printf_xy(&plat_oled_descriptor, 10, 11, OLED_ALIGN_LEFT, FALSE, "Payload: PAYL_00001111"); break;
+                case 7: sh1122_printf_xy(&plat_oled_descriptor, 10, 11, OLED_ALIGN_LEFT, FALSE, "Payload: PAYL_01010101"); break;
+                default: break;
+            }
+            
+            /* Line 3: payload length */
+            sh1122_printf_xy(&plat_oled_descriptor, 10, 22, OLED_ALIGN_LEFT, FALSE, "Payload length: %d", payload_length);
+            
+            /* Line 4: inner repeating loop */
+            sh1122_printf_xy(&plat_oled_descriptor, 10, 33, OLED_ALIGN_LEFT, FALSE, "Inner loop: %d", inner_loop);
+            
+            /* Line 5: screen contents */
+            switch (screen_contents)
+            {
+                case 0: sh1122_printf_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, FALSE, "Screen contents: standard"); break;
+                case 1: sh1122_printf_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, FALSE, "Screen contents: empty"); break;
+                case 2: sh1122_printf_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, FALSE, "Screen contents: off"); break;
+                default: break;
+            }            
+            
+            /* Selected line */
+            sh1122_printf_xy(&plat_oled_descriptor, 0, selected_item*11, OLED_ALIGN_LEFT, FALSE, "-");
+            
+            redraw_needed = FALSE;
         }
         
         wheel_action_ret_te action_ret = inputs_get_wheel_action(TRUE, FALSE);
         if (action_ret == WHEEL_ACTION_UP)
         {
-            if (frequency_index++ == 39)
-            {
-                frequency_index = -1;
-            } 
+            if ((*values_pts[selected_item])++ == upper_bounds[selected_item])
+                *values_pts[selected_item] = lower_bounds[selected_item];
+            redraw_needed = TRUE;
         }
         else if (action_ret == WHEEL_ACTION_DOWN)
         {
-            if (frequency_index-- == -1)
-            {
-                frequency_index = 39;
-            }
+            if ((*values_pts[selected_item])-- == lower_bounds[selected_item])
+                *values_pts[selected_item] = upper_bounds[selected_item];
+            redraw_needed = TRUE;
         }
         else if (action_ret == WHEEL_ACTION_SHORT_CLICK)
         {
-            break;
+            if (selected_item++ == 4)
+                break;
+            redraw_needed = TRUE;
+        }
+        else if (action_ret == WHEEL_ACTION_LONG_CLICK)
+        {
+            if (selected_item-- == 0)
+                return;
+            redraw_needed = TRUE;
         }
     }
-    
-    /* Payload type */
-    while(TRUE)
-    {
-        sh1122_clear_current_screen(&plat_oled_descriptor);
-        switch (payload_type)
-        {
-            case 0: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_PSEUDO_RAND_9"); break;
-            case 1: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_11110000"); break;
-            case 2: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_10101010"); break;
-            case 3: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_PSEUDO_RAND_15"); break;
-            case 4: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_ALL_1"); break;
-            case 5: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_ALL_0"); break;
-            case 6: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_00001111"); break;
-            case 7: sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Payload: PAYL_01010101"); break;
-            default: break;
-        }
-        
-        wheel_action_ret_te action_ret = inputs_get_wheel_action(TRUE, FALSE);
-        if (action_ret == WHEEL_ACTION_UP)
-        {
-            if (payload_type++ == 7)
-            {
-                payload_type = 0;
-            }
-        }
-        else if (action_ret == WHEEL_ACTION_DOWN)
-        {
-            if (payload_type-- == 0)
-            {
-                payload_type = 7;
-            }
-        }
-        else if (action_ret == WHEEL_ACTION_SHORT_CLICK)
-        {
-            break;
-        }
-    }    
     
     /* Current frequency index beeing sent */
     uint16_t cur_frequency_index = (uint16_t)frequency_index;
     if (frequency_index < 0)
     {
         cur_frequency_index = 0;
+    }
+    
+    /* Depending on display options */
+    if (screen_contents == 0)
+    {
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Currently sweeping...");
+    } 
+    else if (screen_contents == 1)
+    {
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        sh1122_oled_off(&plat_oled_descriptor);
+    }
+    else if (screen_contents == 2)
+    {
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        sh1122_oled_off(&plat_oled_descriptor);
+        platform_io_power_down_oled();
     }
  
     while (TRUE)
@@ -835,13 +868,13 @@ void debug_rf_freq_sweep(void)
         sweep_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TX_SWEEP_SGL;
         sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[0] = cur_frequency_index;  // Frequency index, up to 39
         sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[1] = payload_type;         // Payload type, up to 7
-        sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[2] = 36;                   // Payload length, up to 36
-        sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[3] = 100;                  // How many times this sweep should be repeated
+        sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[2] = payload_length;       // Payload length, up to 36
+        sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[3] = inner_loop;           // How many times this sweep should be repeated
         comms_aux_mcu_send_message(FALSE);
         
         /* Plot run numbers */
-        sh1122_clear_current_screen(&plat_oled_descriptor);
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Run #%d, freq #%d, payload #%d", run_number, cur_frequency_index, payload_type);
+        //sh1122_clear_current_screen(&plat_oled_descriptor);
+        //sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Run #%d, freq #%d, payload #%d", run_number, cur_frequency_index, payload_type);
         
         /* Wait for end of sweep */
         while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_TX_SWEEP_DONE) != RETURN_OK);
@@ -861,6 +894,15 @@ void debug_rf_freq_sweep(void)
         /* Click for return */
         if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
         {
+            if (screen_contents == 1)
+            {
+                sh1122_oled_on(&plat_oled_descriptor);
+            }
+            else if (screen_contents == 2)
+            {
+                platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
+                sh1122_oled_on(&plat_oled_descriptor);
+            }
             return;
         }
         
