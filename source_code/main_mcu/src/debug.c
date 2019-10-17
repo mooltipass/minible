@@ -747,12 +747,12 @@ void debug_rf_freq_sweep(void)
     int16_t frequency_index = -1;
     int16_t screen_contents = 0;
     int16_t payload_type = 0;
-    int16_t inner_loop = 100;
+    int16_t nb_loops = -1;
     
     /* Logic */
-    int16_t* values_pts[] = {&frequency_index, &payload_type, &payload_length, &inner_loop, &screen_contents};
+    int16_t* values_pts[] = {&frequency_index, &payload_type, &payload_length, &nb_loops, &screen_contents};
     int16_t upper_bounds[] = {39, 7, 36, 100, 2};
-    int16_t lower_bounds[] = {-1, 0, 0, 1, 0};
+    int16_t lower_bounds[] = {-1, 0, 0, -1, 0};
     uint16_t selected_item = 0;
     BOOL redraw_needed = TRUE;
     uint16_t run_number = 0;
@@ -790,8 +790,11 @@ void debug_rf_freq_sweep(void)
             /* Line 3: payload length */
             sh1122_printf_xy(&plat_oled_descriptor, 10, 22, OLED_ALIGN_LEFT, FALSE, "Payload length: %d", payload_length);
             
-            /* Line 4: inner repeating loop */
-            sh1122_printf_xy(&plat_oled_descriptor, 10, 33, OLED_ALIGN_LEFT, FALSE, "Inner loop: %d", inner_loop);
+            /* Line 4: number of loops */
+            if (nb_loops < 0)
+                sh1122_printf_xy(&plat_oled_descriptor, 10, 33, OLED_ALIGN_LEFT, FALSE, "NB loops: continuous");
+            else
+                sh1122_printf_xy(&plat_oled_descriptor, 10, 33, OLED_ALIGN_LEFT, FALSE, "NB loops: %d", nb_loops);
             
             /* Line 5: screen contents */
             switch (screen_contents)
@@ -864,12 +867,11 @@ void debug_rf_freq_sweep(void)
     {        
         /* Start single sweep */
         comms_aux_mcu_get_empty_packet_ready_to_be_sent(&sweep_message_to_be_sent, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
-        sweep_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
+        sweep_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
         sweep_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TX_SWEEP_SGL;
         sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[0] = cur_frequency_index;  // Frequency index, up to 39
         sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[1] = payload_type;         // Payload type, up to 7
         sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[2] = payload_length;       // Payload length, up to 36
-        sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[3] = inner_loop;           // How many times this sweep should be repeated
         comms_aux_mcu_send_message(FALSE);
         
         /* Plot run numbers */
@@ -908,6 +910,12 @@ void debug_rf_freq_sweep(void)
         
         /* Increment run number */
         run_number++;
+        
+        /* Exit condition */
+        if ((nb_loops > 0) && (run_number >= nb_loops))
+        {
+            break;
+        }
     }   
 }
 
