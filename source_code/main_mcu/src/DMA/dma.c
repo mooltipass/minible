@@ -652,7 +652,7 @@ void dma_acc_init_transfer(Sercom *sercom, void* datap, uint16_t size, uint8_t* 
 */
 void dma_aux_mcu_init_tx_transfer(Sercom* sercom, void* datap, uint16_t size)
 {
-    volatile void *spi_data_p = &sercom->SPI.DATA.reg;
+    volatile void *usart_data_p = &sercom->USART.DATA.reg;
     /* Wait for previous transfer to be done */
     while (dma_aux_mcu_packet_sent == FALSE);
     
@@ -664,7 +664,7 @@ void dma_aux_mcu_init_tx_transfer(Sercom* sercom, void* datap, uint16_t size)
     /* Setup transfer size */
     dma_descriptors[DMA_DESCID_TX_COMMS].BTCNT.bit.BTCNT = (uint16_t)size;
     /* Source address: DATA register from SPI */
-    dma_descriptors[DMA_DESCID_TX_COMMS].DSTADDR.reg = (uint32_t)spi_data_p;
+    dma_descriptors[DMA_DESCID_TX_COMMS].DSTADDR.reg = (uint32_t)usart_data_p;
     /* Destination address: given value */
     dma_descriptors[DMA_DESCID_TX_COMMS].SRCADDR.reg = (uint32_t)datap + size;
     
@@ -710,7 +710,7 @@ void dma_aux_mcu_disable_transfer(void)
 */
 void dma_aux_mcu_init_rx_transfer(Sercom* sercom, void* datap, uint16_t size)
 {
-    volatile void *spi_data_p = &sercom->SPI.DATA.reg;
+    volatile void *usart_data_p = &sercom->USART.DATA.reg;
     cpu_irq_enter_critical();
     
     /* Setup transfer size */
@@ -718,7 +718,7 @@ void dma_aux_mcu_init_rx_transfer(Sercom* sercom, void* datap, uint16_t size)
     /* Source address: DATA register from SPI */
     dma_descriptors[DMA_DESCID_RX_COMMS].DSTADDR.reg = (uint32_t)datap + size;
     /* Destination address: given value */
-    dma_descriptors[DMA_DESCID_RX_COMMS].SRCADDR.reg = (uint32_t)spi_data_p;
+    dma_descriptors[DMA_DESCID_RX_COMMS].SRCADDR.reg = (uint32_t)usart_data_p;
     
     /* Resume DMA channel operation */
     DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_RX_COMMS);
