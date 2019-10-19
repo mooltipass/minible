@@ -751,7 +751,7 @@ void debug_rf_freq_sweep(void)
     
     /* Logic */
     int16_t* values_pts[] = {&frequency_index, &payload_type, &payload_length, &nb_loops, &screen_contents};
-    int16_t upper_bounds[] = {39, 7, 36, 100, 2};
+    int16_t upper_bounds[] = {39, 7, 36, 100, 3};
     int16_t lower_bounds[] = {-1, 0, 0, -1, 0};
     uint16_t selected_item = 0;
     BOOL redraw_needed = TRUE;
@@ -799,9 +799,10 @@ void debug_rf_freq_sweep(void)
             /* Line 5: screen contents */
             switch (screen_contents)
             {
-                case 0: sh1122_printf_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, FALSE, "Screen contents: standard"); break;
+                case 0: sh1122_printf_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, FALSE, "Screen contents: static"); break;
                 case 1: sh1122_printf_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, FALSE, "Screen contents: empty"); break;
                 case 2: sh1122_printf_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, FALSE, "Screen contents: off"); break;
+                case 3: sh1122_printf_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, FALSE, "Screen contents: dynamic"); break;
                 default: break;
             }            
             
@@ -864,7 +865,13 @@ void debug_rf_freq_sweep(void)
     }
  
     while (TRUE)
-    {        
+    {
+        /* Dynamic screen contents */
+        if (screen_contents == 3)
+        {
+            sh1122_clear_current_screen(&plat_oled_descriptor);
+        }
+        
         /* Start single sweep */
         comms_aux_mcu_get_empty_packet_ready_to_be_sent(&sweep_message_to_be_sent, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
         sweep_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
@@ -874,9 +881,11 @@ void debug_rf_freq_sweep(void)
         sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[2] = payload_length;       // Payload length, up to 36
         comms_aux_mcu_send_message(FALSE);
         
-        /* Plot run numbers */
-        //sh1122_clear_current_screen(&plat_oled_descriptor);
-        //sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Run #%d, freq #%d, payload #%d", run_number, cur_frequency_index, payload_type);
+        /* Dynamic screen contents */
+        if (screen_contents == 3)
+        {
+            sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Run #%d, freq #%d, payload #%d", run_number, cur_frequency_index, payload_type);
+        }
         
         /* Wait for end of sweep */
         while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_TX_SWEEP_DONE) != RETURN_OK);
