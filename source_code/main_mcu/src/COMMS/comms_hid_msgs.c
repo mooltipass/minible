@@ -1108,6 +1108,62 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             return 1;
         }
         
+        case HID_CMD_GET_DEVICE_LANG_ID:
+        {
+            /* Get device default language */
+            send_msg->payload[0] = custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE);
+            send_msg->message_type = rcv_message_type;
+            return 1;
+        }
+        
+        case HID_CMD_GET_USER_LANG_ID:
+        {
+            /* Get user language, device default language returned if no user logged in */
+            if (logic_security_is_smc_inserted_unlocked() == FALSE)
+            {
+                send_msg->payload[0] = custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE);
+                send_msg->message_type = rcv_message_type;
+                return 1;               
+            }
+            else
+            {
+                send_msg->payload[0] = custom_fs_get_current_language_id();
+                send_msg->message_type = rcv_message_type;
+                return 1;                
+            }
+        }
+        
+        case HID_CMD_GET_USER_KEYB_ID:
+        {
+            /* Get user keyboard id */
+            if (logic_security_is_smc_inserted_unlocked() == FALSE)
+            {
+                send_msg->message_type = rcv_message_type;
+                send_msg->payload[0] = 0;
+                return 1;
+            } 
+            else
+            {
+                send_msg->payload[0] = custom_fs_get_current_layout_id();
+                send_msg->message_type = rcv_message_type;
+                return 1;
+            }
+        }
+        
+        case HID_CMD_GET_NB_LANGUAGES:
+        {
+            send_msg->payload_as_uint16[0] = (uint16_t)custom_fs_get_number_of_languages();
+            send_msg->message_type = rcv_message_type;
+            return sizeof(uint16_t);            
+        }
+        
+        case HID_CMD_GET_NB_LAYOUTS:
+        {
+            send_msg->payload_as_uint16[0] = (uint16_t)custom_fs_get_number_of_keyb_layouts();
+            send_msg->message_type = rcv_message_type;
+            return sizeof(uint16_t);            
+        }
+        
         default: break;
     }
     
