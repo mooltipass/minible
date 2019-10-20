@@ -767,16 +767,16 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor)
     memset((void*)oled_descriptor->frame_buffer, 0x00, sizeof(oled_descriptor->frame_buffer));
     oled_descriptor->frame_buffer_flush_in_progress = FALSE;
     #endif
-
-    /* Switch screen on */    
-    sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_ON);
-    oled_descriptor->oled_on = TRUE;
     
     /* Set emergency font by default */
     sh1122_set_emergency_font(oled_descriptor);
     
     /* From datasheet : wait 100ms */
     timer_delay_ms(100);
+
+    /* Switch screen on */
+    sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_ON);
+    oled_descriptor->oled_on = TRUE;
 }
 
 /*! \fn     sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, uint8_t color, BOOL write_to_buffer)
