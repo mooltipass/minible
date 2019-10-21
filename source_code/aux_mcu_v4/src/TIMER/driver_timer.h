@@ -40,7 +40,7 @@ typedef struct
 typedef RTC_MODE2_CLOCK_Type calendar_t;
 
 /* Enums */
-typedef enum {TIMER_WAIT_FUNCTS = 0, TIMER_TIMEOUT_FUNCTS = 1, TIMER_BATTERY_TICK = 2, TIMER_BT_TESTS = 3, TOTAL_NUMBER_OF_TIMERS} timer_id_te;
+typedef enum {TIMER_WAIT_FUNCTS = 0, TIMER_TIMEOUT_FUNCTS = 1, TIMER_BATTERY_TICK = 2, TIMER_BT_TYPING_TIMEOUT = 3, TIMER_BT_TESTS = 4, TOTAL_NUMBER_OF_TIMERS} timer_id_te;
 typedef enum {TIMER_EXPIRED = 0, TIMER_RUNNING = 1} timer_flag_te;
     
 /* Macros */

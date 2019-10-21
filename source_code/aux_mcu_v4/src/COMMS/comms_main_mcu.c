@@ -187,6 +187,8 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
     }    
     else if (message->message_type == AUX_MCU_MSG_TYPE_KEYBOARD_TYPE)
     {
+        BOOL typing_success_bool = TRUE;
+        
         /* Iterate over symbols */
         uint16_t counter = 0;
         while(message->keyboard_type_message.keyboard_symbols[counter] != 0)
@@ -208,18 +210,37 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 }                    
                 
                 /* One key to be typed */
-                logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)symbol, is_dead_key, message->keyboard_type_message.delay_between_types);
+                if (logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)symbol, is_dead_key, message->keyboard_type_message.delay_between_types) != RETURN_OK)
+                {
+                    typing_success_bool = FALSE;
+                    break;
+                }
             }
             else
             {
                 /* Two keys to be typed */
-                logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)(symbol >> 8), FALSE, message->keyboard_type_message.delay_between_types);
-                logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)symbol, FALSE, message->keyboard_type_message.delay_between_types); 
+                if (logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)(symbol >> 8), FALSE, message->keyboard_type_message.delay_between_types) != RETURN_OK)
+                {
+                    typing_success_bool = FALSE;
+                    break;
+                }
+                if (logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)symbol, FALSE, message->keyboard_type_message.delay_between_types) != RETURN_OK)
+                {
+                    typing_success_bool = FALSE;
+                    break;
+                }
             }
             
             /* Move on to the next symbol */
             counter++;
         }
+            
+        /* Send success status */
+        memset((void*)message, 0x00, sizeof(aux_mcu_message_t));
+        message->message_type = AUX_MCU_MSG_TYPE_KEYBOARD_TYPE;
+        message->payload_as_uint16[0] = (uint16_t)typing_success_bool;
+        message->payload_length1 = sizeof(uint16_t);
+        comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
     }
     else if (message->message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD)
     {

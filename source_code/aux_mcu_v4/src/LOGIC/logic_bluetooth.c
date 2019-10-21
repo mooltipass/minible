@@ -61,6 +61,7 @@ uint8_t logic_bluetooth_boot_keyb_out_report[1];
 uint8_t logic_bluetooth_boot_keyb_in_report[8];
 uint8_t logic_bluetooth_keyboard_in_report[8];
 uint8_t logic_bluetooth_ctrl_point[1];
+BOOL logic_bluetooth_typed_report_sent = FALSE;
 /* Bluetooth connection bools */
 BOOL logic_bluetooth_advertising = FALSE;
 BOOL logic_bluetooth_just_paired = FALSE;
@@ -186,6 +187,7 @@ static at_ble_status_t logic_bluetooth_notification_confirmed_callback(void* par
     }
     else if (logic_bluetooth_notif_being_sent == KEYBOARD_NOTIF_SENDING)
     {
+        logic_bluetooth_typed_report_sent = TRUE;
     }
     else if (logic_bluetooth_notif_being_sent == BATTERY_NOTIF_SENDING)
     {
@@ -1369,6 +1371,46 @@ void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
         /* Send data */
         logic_bluetooth_notif_being_sent = RAW_HID_NOTIF_SENDING;
         logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_RAW_HID_SERVICE_INSTANCE, BLE_RAW_HID_IN_REPORT_NB, logic_bluetooth_raw_hid_data_out_buf, sizeof(logic_bluetooth_raw_hid_data_out_buf));
+    }
+}
+
+/*! \fn     logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key)
+*   \brief  Send modifier and key through keyboard link
+*   \param  modifier    HID modifier
+*   \param  key         HID key
+*   \return If we were able to correctly type
+*/
+ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key)
+{
+    if (logic_bluetooth_connected != FALSE)
+    {
+        logic_bluetooth_notif_being_sent = KEYBOARD_NOTIF_SENDING;
+        logic_bluetooth_keyboard_in_report[0] = modifier;
+        logic_bluetooth_keyboard_in_report[2] = key;
+        logic_bluetooth_typed_report_sent = FALSE;
+        logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_KEYBOARD_HID_SERVICE_INSTANCE, BLE_KEYBOARD_HID_IN_REPORT_NB, logic_bluetooth_keyboard_in_report, sizeof(logic_bluetooth_keyboard_in_report));
+        
+        /* OK I'm still not sure about this one... but I think it should be OK. Stack trace is main > comms_main_mcu_routine > comms_main_mcu_deal_with_non_usb_non_ble_message > logic_keyboard_type_symbol > logic_keyboard_type_key_with_modifier to here */
+        timer_start_timer(TIMER_BT_TYPING_TIMEOUT, 1000);
+        while ((timer_has_timer_expired(TIMER_BT_TYPING_TIMEOUT, FALSE) == TIMER_RUNNING) && (logic_bluetooth_typed_report_sent == FALSE))
+        {
+            ble_event_task();
+        }
+        
+        /* Report sent? */
+        if (logic_bluetooth_typed_report_sent == FALSE)
+        {
+            DBG_LOG("Couldn't send modifier in key as notification in time!");
+            return RETURN_NOK;
+        } 
+        else
+        {
+            return RETURN_OK;
+        }
+    }
+    else
+    {
+        return RETURN_NOK;
     }
 }
 

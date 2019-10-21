@@ -6,18 +6,21 @@
  */ 
 #include <string.h>
 #include "platform_defines.h"
+#include "logic_bluetooth.h"
 #include "logic_keyboard.h"
 #include "driver_timer.h"
 #include "usb.h"
 
 
-/*! \fn     logic_keyboard_type_key_with_modifier(uint8_t key, uint8_t modifier, uint16_t delay_between_types)
+/*! \fn     logic_keyboard_type_key_with_modifier(hid_interface_te interface, uint8_t key, uint8_t modifier, uint16_t delay_between_types)
 *   \brief  Perform a single keystroke
+*   \param  interface           HID interface on which to type the keystroke
 *   \param  key                 Key to send
 *   \param  modifier            Modifier (alt, shift...)
 *   \param  delay_between_types Delay between types in ms
+*   \return If we were able to type the key
 */
-void logic_keyboard_type_key_with_modifier(uint8_t key, uint8_t modifier, uint16_t delay_between_types)
+ret_type_te logic_keyboard_type_key_with_modifier(hid_interface_te interface, uint8_t key, uint8_t modifier, uint16_t delay_between_types)
 {    
     uint8_t hid_packet_to_be_sent[8];
     memset(hid_packet_to_be_sent, 0, sizeof(hid_packet_to_be_sent));
@@ -25,21 +28,53 @@ void logic_keyboard_type_key_with_modifier(uint8_t key, uint8_t modifier, uint16
     // Send modifier
     if (modifier != 0)
     {
-        hid_packet_to_be_sent[0] = modifier;
-        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
+        if (interface == USB_INTERFACE)
+        {
+            hid_packet_to_be_sent[0] = modifier;
+            usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
+        } 
+        else
+        {
+            if (logic_bluetooth_send_modifier_and_key(modifier, 0) != RETURN_OK)
+            {
+                return RETURN_NOK;
+            }
+        }
         timer_delay_ms(delay_between_types);
     }
     
     // Send modifier + key
-    hid_packet_to_be_sent[2] = key;
-    usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
+    if (interface == USB_INTERFACE)
+    {
+        hid_packet_to_be_sent[2] = key;
+        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
+    }
+    else
+    {
+        if (logic_bluetooth_send_modifier_and_key(modifier, key) != RETURN_OK)
+        {
+            return RETURN_NOK;
+        }
+    }
     timer_delay_ms(delay_between_types);
     
     // Release all
-    hid_packet_to_be_sent[0] = 0;
-    hid_packet_to_be_sent[2] = 0;
-    usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
-    timer_delay_ms(delay_between_types);     
+    if (interface == USB_INTERFACE)
+    {
+        hid_packet_to_be_sent[0] = 0;
+        hid_packet_to_be_sent[2] = 0;
+        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
+    }
+    else
+    {
+        if (logic_bluetooth_send_modifier_and_key(0, 0) != RETURN_OK)
+        {
+            return RETURN_NOK;
+        }
+    }
+    timer_delay_ms(delay_between_types);    
+    
+    return RETURN_OK; 
 }
 
 /*! \fn     logic_keyboard_type_symbol(hid_interface_te interface, uint8_t symbol, BOOL is_dead_key, uint16_t delay_between_types)
@@ -48,10 +83,12 @@ void logic_keyboard_type_key_with_modifier(uint8_t key, uint8_t modifier, uint16
 *   \param  symbol              The symbol
 *   \param  is_dead_key         Is the symbol a dead key?
 *   \param  delay_between_types Delay between key presses
+*   \return If we were able to type the symbol
 */
-void logic_keyboard_type_symbol(hid_interface_te interface, uint8_t symbol, BOOL is_dead_key, uint16_t delay_between_types)
+ret_type_te logic_keyboard_type_symbol(hid_interface_te interface, uint8_t symbol, BOOL is_dead_key, uint16_t delay_between_types)
 {
     uint8_t masked_key = symbol & (SHIFT_MASK|ALTGR_MASK);
+    ret_type_te return_val;
         
     if ((symbol & 0x3F) == KEY_EUROPE_2)
     {
@@ -72,30 +109,32 @@ void logic_keyboard_type_symbol(hid_interface_te interface, uint8_t symbol, BOOL
         }
             
         // Send the correct KEY_EUROPE_2 with the correct modifier
-        logic_keyboard_type_key_with_modifier(KEY_EUROPE_2_REAL, mod_tbs, delay_between_types);
+        return_val = logic_keyboard_type_key_with_modifier(interface, KEY_EUROPE_2_REAL, mod_tbs, delay_between_types);
     }
     else if (masked_key == (SHIFT_MASK|ALTGR_MASK))
     {
-        logic_keyboard_type_key_with_modifier(symbol & ~(SHIFT_MASK|ALTGR_MASK), KEY_SHIFT|KEY_RIGHT_ALT, delay_between_types);
+        return_val = logic_keyboard_type_key_with_modifier(interface, symbol & ~(SHIFT_MASK|ALTGR_MASK), KEY_SHIFT|KEY_RIGHT_ALT, delay_between_types);
     }
     else if (masked_key == SHIFT_MASK)
     {
         // If we need shift
-        logic_keyboard_type_key_with_modifier(symbol & ~SHIFT_MASK, KEY_SHIFT, delay_between_types);
+        return_val = logic_keyboard_type_key_with_modifier(interface, symbol & ~SHIFT_MASK, KEY_SHIFT, delay_between_types);
     }
     else if (masked_key == ALTGR_MASK)
     {
         // We need altgr for the numbered keys, only possible because we don't use the numerical keypad
-        logic_keyboard_type_key_with_modifier(symbol & ~ALTGR_MASK, KEY_RIGHT_ALT, delay_between_types);
+        return_val = logic_keyboard_type_key_with_modifier(interface, symbol & ~ALTGR_MASK, KEY_RIGHT_ALT, delay_between_types);
     }
     else
     {
-        logic_keyboard_type_key_with_modifier(symbol, 0, delay_between_types);
+        return_val = logic_keyboard_type_key_with_modifier(interface, symbol, 0, delay_between_types);
     }
     
     /* Add space if typed character is a dead key */
-    if (is_dead_key != FALSE)
+    if ((is_dead_key != FALSE) && (return_val == RETURN_OK))
     {
-        logic_keyboard_type_key_with_modifier(KEY_SPACE, 0, delay_between_types);        
+        return_val = logic_keyboard_type_key_with_modifier(interface, KEY_SPACE, 0, delay_between_types);        
     }
+    
+    return return_val;
 }

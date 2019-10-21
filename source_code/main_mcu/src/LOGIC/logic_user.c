@@ -753,7 +753,9 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
 {
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,login)+1, "Can't describe all chars for login");
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,password)+1+1, "Can't describe all chars for password");
+    aux_mcu_message_t* temp_rx_message;
     child_cred_node_t temp_cnode;
+    BOOL could_type_all_symbols;
     uint16_t interface_id = 0;
     parent_node_t temp_pnode;
     
@@ -767,7 +769,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
     if ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() != FALSE))
     {
         // TODO2 : ask user to select interface
-        return RETURN_OK;
+        interface_id = 1;
     }
     else if (logic_bluetooth_get_state() == BT_STATE_CONNECTED)
     {
@@ -844,10 +846,17 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)]);
                         typing_message_to_be_sent->keyboard_type_message.delay_between_types = custom_fs_settings_get_device_setting(SETTINGS_DELAY_BETWEEN_PRESSES);
                         typing_message_to_be_sent->keyboard_type_message.interface_identifier = interface_id;
-                        comms_aux_mcu_send_message(FALSE);
+                        comms_aux_mcu_send_message(TRUE);
+                        
+                        /* Wait for typing status */
+                        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
+                        could_type_all_symbols = (BOOL)temp_rx_message->payload_as_uint16[0];
+                            
+                        /* Rearm DMA RX */
+                        comms_aux_arm_rx_and_clear_no_comms();
                         
                         /* Display warning if some chars were missing */
-                        if (string_to_key_points_transform_success != RETURN_OK)
+                        if ((string_to_key_points_transform_success != RETURN_OK) || (could_type_all_symbols == FALSE))
                         {
                             gui_prompts_display_information_on_screen_and_wait(COULDNT_TYPE_CHARS_TEXT_ID, DISP_MSG_WARNING);
                         }
@@ -919,8 +928,15 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     memset(typing_message_to_be_sent, 0, sizeof(aux_mcu_message_t));
                     memset(&temp_cnode, 0, sizeof(temp_cnode));
                     
+                    /* Wait for typing status */
+                    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
+                    could_type_all_symbols = (BOOL)temp_rx_message->payload_as_uint16[0];
+                    
+                    /* Rearm DMA RX */
+                    comms_aux_arm_rx_and_clear_no_comms();
+                    
                     /* Display warning if some chars were missing */
-                    if (string_to_key_points_transform_success != RETURN_OK)
+                    if ((string_to_key_points_transform_success != RETURN_OK) || (could_type_all_symbols == FALSE))
                     {
                         gui_prompts_display_information_on_screen_and_wait(COULDNT_TYPE_CHARS_TEXT_ID, DISP_MSG_WARNING);
                     }
