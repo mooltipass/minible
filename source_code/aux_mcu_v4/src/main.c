@@ -146,7 +146,7 @@ int main(void)
 {
     /* Initialize our platform */
     main_platform_init();
-            
+    
     //udc_attach();
     //logic_battery_start_charging(NIMH_12C_CHARGING);
     #define bla
@@ -159,7 +159,7 @@ int main(void)
         /* We can only communicate with main MCU when platform sleep isn't requested */
         if (logic_sleep_is_full_platform_sleep_requested() == FALSE)
         {
-            comms_main_mcu_routine();
+            comms_main_mcu_routine(FALSE, 0);
         }
         
         /* If BLE enabled: deal with events */
@@ -175,7 +175,7 @@ int main(void)
     timer_start_timer(TIMER_TIMEOUT_FUNCTS, 5000);
     while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING)
     {
-        comms_main_mcu_routine();
+        comms_main_mcu_routine(FALSE, 0);
         comms_usb_communication_routine();
     }    
     logic_bluetooth_start_bluetooth();
@@ -191,7 +191,7 @@ int main(void)
     while(TRUE)
     {
         //mini_ble_task();
-        comms_main_mcu_routine();
+        comms_main_mcu_routine(FALSE, 0);
         comms_usb_communication_routine();
     }
     timer_start_timer(TIMER_TIMEOUT_FUNCTS, 2000);
@@ -202,13 +202,13 @@ int main(void)
             comms_usb_debug_printf("Hello %i, %i, %i", 1,2,3);
             timer_start_timer(TIMER_TIMEOUT_FUNCTS, 2000);
         }
-        comms_main_mcu_routine();
+        comms_main_mcu_routine(FALSE, 0);
         comms_usb_communication_routine();
     }
     
     while(1)
     {
-        comms_main_mcu_routine();
+        comms_main_mcu_routine(FALSE, 0);
         comms_usb_communication_routine();
     }
 	system_init();

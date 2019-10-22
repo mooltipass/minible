@@ -16,6 +16,7 @@
 #include "sh1122.h"
 #include "main.h"
 #include "dma.h"
+#include "rng.h"
 /* Received and sent MCU messages */
 aux_mcu_message_t aux_mcu_receive_message;
 aux_mcu_message_t aux_mcu_send_message;
@@ -397,6 +398,18 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         /* Call dedicated function */
         comms_aux_mcu_deal_with_received_event(&aux_mcu_receive_message);
     }  
+    else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_RNG_TRANSFER)
+    {
+        msg_rcvd = RNG_MSG_RCVD;
+        
+        /* Set same message type and fill with random numbers */
+        aux_mcu_send_message.message_type = aux_mcu_receive_message.message_type;
+        rng_fill_array(aux_mcu_send_message.payload, 32);
+        aux_mcu_send_message.payload_length1 = 32;
+        
+        /* Send message */
+        comms_aux_mcu_send_message(FALSE);
+    }
     else
     {
         msg_rcvd = UNKNOW_MSG_RCVD;

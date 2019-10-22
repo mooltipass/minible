@@ -29,6 +29,8 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define AUX_MCU_MSG_TYPE_PING_WITH_INFO 0x0007
 #define AUX_MCU_MSG_TYPE_KEYBOARD_TYPE  0x0008
 
+#define AUX_MCU_MSG_TYPE_RNG_TRANSFER   0x000A
+
 // Main MCU commands
 #define MAIN_MCU_COMMAND_SLEEP          0x0001
 #define MAIN_MCU_COMMAND_ATTACH_USB     0x0002
@@ -138,12 +140,15 @@ typedef struct
 } aux_mcu_message_t;
 
 /* Prototypes */
+ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buffer, uint16_t expected_message_type);
+void comms_main_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type);
 void comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length);
 BOOL comms_aux_mcu_get_received_packet(aux_mcu_message_t** message, BOOL arm_new_rx);
 void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message);
 aux_mcu_message_t* comms_main_mcu_get_temp_tx_message_object_pt(void);
+aux_mcu_message_t* comms_main_mcu_get_temp_rx_message_object_pt(void);
+void comms_main_mcu_get_32_rng_bytes_from_main_mcu(uint8_t* buffer);
 void comms_main_mcu_send_simple_event(uint16_t event_id);
-void comms_main_mcu_routine(void);
 void comms_main_init_rx(void);
 
 
