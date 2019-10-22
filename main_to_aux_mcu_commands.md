@@ -12,3 +12,4 @@ These commands DO NOT get answers except for the ping (exact same packet replied
 | 0x0004   | 0x0002   | 0x0007   | DNC   | BLE Disable  |   
 | 0x0004   | 0x0002   | 0x0008   | DNC   | USB Detach |   
 | 0x0004   | 0x0002   | 0x0009   | DNC   | Functional Test Start |   
+| 0x0004   | 0x0004   | 0x000A   | 2B status   | Main Status Cache Update |   
