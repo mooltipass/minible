@@ -57,8 +57,8 @@ else
 INC_DIRS +=
 endif
 
-INC_DIRS += $(shell pkg-config --cflags Qt5Core Qt5Gui Qt5Widgets)
-LIB_DIRS += $(shell pkg-config --libs Qt5Core Qt5Gui Qt5Widgets)
+INC_DIRS += $(shell pkg-config --cflags Qt5Core Qt5Gui Qt5Widgets Qt5Network)
+LIB_DIRS += $(shell pkg-config --libs Qt5Core Qt5Gui Qt5Widgets Qt5Network)
 MOC = moc
 
 
@@ -68,7 +68,7 @@ src/BearSSL/src/symcipher/aes_ct.c \
 src/BearSSL/src/symcipher/aes_ct_ctr.c \
 src/BearSSL/src/symcipher/aes_ct_ctrcbc.c \
 src/BearSSL/src/symcipher/aes_ct_enc.c \
-src/EMU/comms_aux_mcu.c \
+src/COMMS/comms_aux_mcu.c \
 src/COMMS/comms_hid_msgs.c \
 src/COMMS/comms_hid_msgs_debug.c \
 src/EMU/dma.c \

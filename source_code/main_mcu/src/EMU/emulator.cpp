@@ -15,6 +15,7 @@ extern "C" {
 #include <QMouseEvent>
 #include <QMutex>
 #include <QTime>
+#include <QLocalSocket>
 
 #include "qt_metacall_helper.h"
 
@@ -116,9 +117,20 @@ private:
     bool app_exiting = false;
     QSemaphore app_thread_blocked;
 
+    QLocalSocket *aux;
+
+    bool reconnect_aux() {
+        if(aux->state() != QLocalSocket::ConnectedState) {
+            aux->connectToServer("moolticuted_local_dev");
+            aux->waitForConnected(10);
+        }
+        
+        return aux->state() == QLocalSocket::ConnectedState;
+    }
 
 public:
     void run() {
+        aux = new QLocalSocket;
         minible_main();
     }
 
@@ -138,6 +150,33 @@ public:
         }
 
         appexit_mutex.unlock();
+    }
+
+    void send_aux(char *data, int size) {
+        if(!reconnect_aux())
+            return;
+
+        while(size > 0) {
+            int nb = aux->write(data, size);
+            if(nb <= 0)
+                break;
+
+            data += nb;
+            size -= nb;
+
+            if(size > 0)
+                aux->waitForBytesWritten();
+        }
+    }
+
+    int rcv_aux(char *data, int size) {
+        test_stop();
+        if(!reconnect_aux())
+            return 0;
+
+        aux->waitForReadyRead(0);
+        int nb = aux->read(data, size);
+        return nb > 0 ? nb : 0;
     }
 };
 
@@ -163,6 +202,16 @@ void emu_update_display(uint8_t *fb)
         oled->update_display(reinterpret_cast<const uint8_t*>(fb_copy.constData())); 
         display_queue.release();
     }, oled);
+}
+
+void emu_send_aux(char *data, int size)
+{
+    app_thread.send_aux(data, size);
+}
+
+int emu_rcv_aux(char *data, int size)
+{
+    return app_thread.rcv_aux(data, size);
 }
 
 int main(int ac, char ** av)
