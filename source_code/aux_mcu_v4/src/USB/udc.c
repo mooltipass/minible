@@ -334,6 +334,8 @@ void USB_Handler(void)
       udc_reset_endpoint(i, USB_IN_ENDPOINT);
       udc_reset_endpoint(i, USB_OUT_ENDPOINT);
     }
+    
+    usb_reset_config();
 
     USB->DEVICE.DeviceEndpoint[0].EPCFG.reg =
         USB_DEVICE_EPCFG_EPTYPE0(USB_DEVICE_EPCFG_EPTYPE_CONTROL) |

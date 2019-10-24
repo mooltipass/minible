@@ -599,7 +599,6 @@ ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buf
 */
 void comms_main_mcu_get_32_rng_bytes_from_main_mcu(uint8_t* buffer)
 {
-    /* WIP!!!! */
     aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
     aux_mcu_message_t* temp_tx_message_pt;
     

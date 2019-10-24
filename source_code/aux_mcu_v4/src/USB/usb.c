@@ -66,6 +66,16 @@ void usb_init(void)
   udc_init();
 }
 
+int usb_get_config(void)
+{
+    return usb_config;
+}
+
+void usb_reset_config(void)
+{
+    usb_config = 0;
+}
+
 //-----------------------------------------------------------------------------
 void usb_send(int ep, uint8_t *data, int size)
 {

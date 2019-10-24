@@ -207,6 +207,8 @@ typedef struct PACK
 
 /*- Prototypes --------------------------------------------------------------*/
 void usb_init(void);
+int usb_get_config(void);
+void usb_reset_config(void);
 void usb_send(int ep, uint8_t *data, int size);
 void usb_recv(int ep, uint8_t *data, int size);
 void usb_handle_standard_request(usb_request_t *request);

@@ -135,6 +135,12 @@ void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* pac
             {
                 ble_event_task();
             }
+            
+            /* Check for usb disconnection */
+            if ((hid_interface == USB_INTERFACE) && (usb_get_config() == 0))
+            {
+                return;
+            }
         }
     }    
 }
@@ -161,6 +167,12 @@ void comms_raw_hid_send_hid_message(hid_interface_te hid_interface, aux_mcu_mess
             if (hid_interface == BLE_INTERFACE)
             {
                 ble_event_task();
+            }
+            
+            /* Check for usb disconnection */
+            if ((hid_interface == USB_INTERFACE) && (usb_get_config() == 0))
+            {
+                return;
             }
         }
         
