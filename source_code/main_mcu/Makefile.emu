@@ -104,7 +104,8 @@ src/EMU/smartcard_lowlevel.c \
 src/TIMER/driver_timer.c \
 src/utils.c \
 src/main.c \
-src/EMU/emu_oled.c 
+src/EMU/emu_oled.c \
+src/EMU/emu_aux_mcu.c 
 
 CPP_SRCS = src/EMU/emulator.cpp
 MOC_SRCS =

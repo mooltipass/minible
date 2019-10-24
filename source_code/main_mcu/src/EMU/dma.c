@@ -1,5 +1,5 @@
 #include "dma.h"
-#include "emulator.h"
+#include "emu_aux_mcu.h"
 
 void dma_oled_init_transfer(Sercom* sercom, void* datap, uint16_t size, uint16_t dma_trigger){}
 void dma_acc_init_transfer(Sercom* sercom, void* datap, uint16_t size, uint8_t* read_cmd){}

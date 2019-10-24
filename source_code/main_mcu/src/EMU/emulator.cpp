@@ -117,20 +117,20 @@ private:
     bool app_exiting = false;
     QSemaphore app_thread_blocked;
 
-    QLocalSocket *aux;
+    QLocalSocket *hid;
 
-    bool reconnect_aux() {
-        if(aux->state() != QLocalSocket::ConnectedState) {
-            aux->connectToServer("moolticuted_local_dev");
-            aux->waitForConnected(10);
+    bool reconnect_hid() {
+        if(hid->state() != QLocalSocket::ConnectedState) {
+            hid->connectToServer("moolticuted_local_dev");
+            hid->waitForConnected(10);
         }
         
-        return aux->state() == QLocalSocket::ConnectedState;
+        return hid->state() == QLocalSocket::ConnectedState;
     }
 
 public:
     void run() {
-        aux = new QLocalSocket;
+        hid = new QLocalSocket;
         minible_main();
     }
 
@@ -152,12 +152,12 @@ public:
         appexit_mutex.unlock();
     }
 
-    void send_aux(char *data, int size) {
-        if(!reconnect_aux())
+    void send_hid(char *data, int size) {
+        if(!reconnect_hid())
             return;
 
         while(size > 0) {
-            int nb = aux->write(data, size);
+            int nb = hid->write(data, size);
             if(nb <= 0)
                 break;
 
@@ -165,17 +165,17 @@ public:
             size -= nb;
 
             if(size > 0)
-                aux->waitForBytesWritten();
+                hid->waitForBytesWritten();
         }
     }
 
-    int rcv_aux(char *data, int size) {
+    int rcv_hid(char *data, int size) {
         test_stop();
-        if(!reconnect_aux())
-            return 0;
+        if(!reconnect_hid())
+            return -1;
 
-        aux->waitForReadyRead(0);
-        int nb = aux->read(data, size);
+        hid->waitForReadyRead(0);
+        int nb = hid->read(data, size);
         return nb > 0 ? nb : 0;
     }
 };
@@ -204,14 +204,14 @@ void emu_update_display(uint8_t *fb)
     }, oled);
 }
 
-void emu_send_aux(char *data, int size)
+void emu_send_hid(char *data, int size)
 {
-    app_thread.send_aux(data, size);
+    app_thread.send_hid(data, size);
 }
 
-int emu_rcv_aux(char *data, int size)
+int emu_rcv_hid(char *data, int size)
 {
-    return app_thread.rcv_aux(data, size);
+    return app_thread.rcv_hid(data, size);
 }
 
 int main(int ac, char ** av)
