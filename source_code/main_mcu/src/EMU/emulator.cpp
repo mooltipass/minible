@@ -17,6 +17,8 @@ extern "C" {
 #include <QTime>
 #include <QLocalSocket>
 
+#include "emulator_ui.h"
+
 #include "qt_metacall_helper.h"
 
 static struct emu_port_t _PORT;
@@ -64,9 +66,9 @@ public:
         setMaximumSize(display.size());
     }
     ~OLEDWidget() {
-	// deliver the update events before they cause us trouble
-	// in the QWidget destructor
-	QApplication::removePostedEvents(this);
+        // deliver the update events before they cause us trouble
+        // in the QWidget destructor
+        QApplication::removePostedEvents(this);
     }
 
     void update_display(const uint8_t *fb) {
@@ -234,6 +236,9 @@ int main(int ac, char ** av)
 
     oled = new OLEDWidget;
     oled->show();
+
+    EmuWindow emu_window;
+    emu_window.show();
 
     app_thread.start();
 

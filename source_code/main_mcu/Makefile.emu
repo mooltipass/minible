@@ -107,7 +107,7 @@ src/main.c \
 src/EMU/emu_oled.c \
 src/EMU/emu_aux_mcu.c 
 
-CPP_SRCS = src/EMU/emulator.cpp
+CPP_SRCS = src/EMU/emulator.cpp src/EMU/emulator_ui.cpp
 MOC_SRCS =
 
 ifeq ($(DEBUG), 1)
