@@ -10,6 +10,7 @@ static BOOL response_valid;
 static aux_mcu_message_t response;
 
 static void send_hid_message(aux_mcu_message_t *msg);
+static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *response);
 
 void emu_send_aux(char *data, int size)
 {
@@ -46,6 +47,8 @@ void emu_send_aux(char *data, int size)
             break;
 
         case AUX_MCU_MSG_TYPE_MAIN_MCU_CMD:
+            memset(&response, 0, sizeof(response));
+            response_valid = process_main_cmd(msg, &response);
             break;
 
         case AUX_MCU_MSG_TYPE_NIMH_CHARGE:
@@ -66,6 +69,32 @@ void emu_send_aux(char *data, int size)
             response_valid = TRUE;
             break;
     }
+}
+
+static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *response)
+{
+    switch(msg->main_mcu_command_message.command) {
+        case MAIN_MCU_COMMAND_SLEEP:
+            break;
+
+        case MAIN_MCU_COMMAND_PING:
+            memcpy(response, msg, sizeof(*response));
+            return TRUE;
+
+        case MAIN_MCU_COMMAND_ENABLE_BLE:
+            response->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+            response->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
+            response->payload_length1 = sizeof(response->aux_mcu_event_message.event_id);
+            return TRUE;
+
+        case MAIN_MCU_COMMAND_DISABLE_BLE:
+            response->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+            response->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISABLED;
+            response->payload_length1 = sizeof(response->aux_mcu_event_message.event_id);
+            return TRUE;
+    }
+
+    return FALSE;
 }
  
 static int emu_rcv_aux_hid(aux_mcu_message_t *msg);
