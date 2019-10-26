@@ -1,6 +1,6 @@
 #include "smartcard_lowlevel.h"
 #include "smartcard_highlevel.h"
-#include "emulator.h"
+#include "emu_smartcard.h"
 #include <string.h>
 
 static det_ret_type_te smartcard_status = RETURN_REL;
@@ -156,6 +156,3 @@ RET_TYPE smartcard_low_level_is_smc_absent(void) {
     emu_close_smartcard(FALSE);
     return r;
 }
-
-void smartcard_lowlevel_detect(void){}
-

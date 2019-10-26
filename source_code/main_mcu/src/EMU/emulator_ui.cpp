@@ -9,76 +9,7 @@
 #include <QMutex>
 #include <QMutexLocker>
 
-#include "emulator.h"
-
-// TODO this should not be in the UI file ?
-static QMutex smc_mutex;
-static emu_smartcard_t card;
-static bool card_present;
-static QFile smartcardFile;
-
-struct emu_smartcard_t *emu_open_smartcard()
-{
-    smc_mutex.lock();
-    if(card_present) {
-        return &card;
-
-    } else {
-        smc_mutex.unlock();
-        return NULL;
-    }
-}
-
-void emu_close_smartcard(BOOL written)
-{
-    if(written) {
-        smartcardFile.seek(0);
-        smartcardFile.write((char*)&card, sizeof(card));
-    }
-    smc_mutex.unlock();
-}
-
-static bool openSmartcard(QString filePath, bool createNew = false)
-{
-    QMutexLocker locker(&smc_mutex);
-    smartcardFile.close();
-
-    if(filePath.isEmpty()) {
-        card_present = true;
-        emu_init_smartcard(&card, EMU_SMARTCARD_INVALID);
-
-    } else if(filePath == "!broken") {
-        card_present = true;
-        emu_init_smartcard(&card, EMU_SMARTCARD_BROKEN);
-
-    } else {
-        smartcardFile.close();
-        smartcardFile.setFileName(filePath);
-        if(createNew) {
-            if(!smartcardFile.open(QIODevice::ReadWrite))
-                return false;
-
-            emu_init_smartcard(&card, EMU_SMARTCARD_BLANK);
-            smartcardFile.write((char*)&card, sizeof(card));
-            card_present = true;
-
-        } else {
-            if(!smartcardFile.exists() || !smartcardFile.open(QIODevice::ReadWrite))
-                return false;
-
-            smartcardFile.read((char*)&card, sizeof(card));
-            card_present = true;
-        }
-    }
-
-    return true;
-}
-
-static void closeSmartcard() {
-    QMutexLocker locker(&smc_mutex);
-    smartcardFile.close();
-    card_present = false;
-}
+#include "emu_smartcard.h"
 
 EmuWindow::EmuWindow()
 {
@@ -99,12 +30,15 @@ QWidget *EmuWindow::createSmartcardUi()
 
     auto btn_insert = new QPushButton("Insert");
     auto btn_remove = new QPushButton("Remove");
-    btn_remove->setEnabled(false);
+    if(emu_is_smartcard_inserted())
+        btn_insert->setEnabled(false);
+    else
+        btn_remove->setEnabled(false);
 
     auto btn_insert_menu = new QMenu();
     auto act_invalid = btn_insert_menu->addAction("Invalid");
     QObject::connect(act_invalid, &QAction::triggered, this, [=]() {
-        if(openSmartcard(QString())) {
+        if(emu_insert_smartcard(QString())) {
             btn_remove->setEnabled(true);
             btn_insert->setEnabled(false);
         }
@@ -112,7 +46,7 @@ QWidget *EmuWindow::createSmartcardUi()
 
     auto act_broken = btn_insert_menu->addAction("Broken");
     QObject::connect(act_broken, &QAction::triggered, this, [=]() {
-        if(openSmartcard("!broken")) {
+        if(emu_insert_smartcard("!broken")) {
             btn_remove->setEnabled(true);
             btn_insert->setEnabled(false);
         }
@@ -122,7 +56,7 @@ QWidget *EmuWindow::createSmartcardUi()
     auto act_new = btn_insert_menu->addAction("New (blank)");
     QObject::connect(act_new, &QAction::triggered, this, [=]() {
         auto fileName = QFileDialog::getSaveFileName(this, "Create smartcard file", "", "Smartcard Image Files (*.smc)");
-        if(openSmartcard(fileName, true)) {
+        if(emu_insert_smartcard(fileName, true)) {
             btn_remove->setEnabled(true);
             btn_insert->setEnabled(false);
         }
@@ -131,7 +65,7 @@ QWidget *EmuWindow::createSmartcardUi()
     auto act_existing = btn_insert_menu->addAction("Existing");
     QObject::connect(act_existing, &QAction::triggered, this, [=]() {
         auto fileName = QFileDialog::getOpenFileName(this, "Select smartcard file", "", "Smartcard Image Files (*.smc)");
-        if(openSmartcard(fileName)) {
+        if(emu_insert_smartcard(fileName)) {
             btn_remove->setEnabled(true);
             btn_insert->setEnabled(false);
         }
@@ -140,7 +74,7 @@ QWidget *EmuWindow::createSmartcardUi()
     btn_insert->setMenu(btn_insert_menu);
 
     QObject::connect(btn_remove, &QPushButton::clicked, this, [=]() {
-        closeSmartcard();
+        emu_remove_smartcard();
         btn_remove->setEnabled(false);
         btn_insert->setEnabled(true);
     });
