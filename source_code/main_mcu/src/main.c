@@ -61,7 +61,8 @@ uint32_t* mcu_sp_rh_addresses = 0;
 /* - adding --undefined=jump_to_application_function_addr to linker option  */
 /*                                                                          */
 /* To move the application address, change APP_START_ADDR & .text           */
-/* What I don't understand: why the "+1" in the second array element        */
+/* The "+1" in the second array element indicates that MCU starts in Thumb  */
+/* mode (the only mode supported by Cortex M0)                              */
 /****************************************************************************/
 #ifndef EMULATOR_BUILD
 const uint32_t jump_to_application_function_addr[2] __attribute__((used,section (".flash_start_addr"))) = {HMCRAMC0_ADDR+100,0x200+1};
