@@ -26,6 +26,7 @@ void emu_close_smartcard(BOOL written)
     if(written) {
         smartcardFile.seek(0);
         smartcardFile.write((char*)&card, sizeof(card));
+        smartcardFile.flush();
     }
     smc_mutex.unlock();
 }
@@ -52,6 +53,7 @@ bool emu_insert_smartcard(QString filePath, bool createNew)
 
             emu_init_smartcard(&card, EMU_SMARTCARD_BLANK);
             smartcardFile.write((char*)&card, sizeof(card));
+            smartcardFile.flush();
             card_present = true;
 
         } else {

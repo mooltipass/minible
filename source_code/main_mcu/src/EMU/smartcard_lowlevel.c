@@ -12,8 +12,11 @@ void emu_init_smartcard(struct emu_smartcard_t *blank, int type)
 
     else {
         memset(blank->smc, 0xff, sizeof(blank->smc));
-        blank->smc[0] = 0x0f;
+        blank->smc[0] = 0x0f; // fabrication zone
         blank->smc[1] = 0x0f;
+
+        blank->smc[10] = 0xf0; // factory pin
+        blank->smc[11] = 0xf0;
         memset(blank->fuses, 0, sizeof(blank->fuses));
     }
 
