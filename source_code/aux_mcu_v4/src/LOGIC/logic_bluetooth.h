@@ -31,7 +31,7 @@ typedef enum    {NONE_NOTIF_SENDING = 0, KEYBOARD_NOTIF_SENDING, RAW_HID_NOTIF_S
 //	<i> Defines interval of Fast advertisement in ms.
 //	<i> Default: 100
 //	<id> hid_fast_adv
-#define APP_HID_FAST_ADV				(160) //100 ms
+#define APP_HID_FAST_ADV				(800) //500 ms
 
 /** @brief APP_HID_ADV_TIMEOUT Advertising time-out between 0x0001 and 0x028F in seconds, 0x0000 disables time-out.*/
 //	<o> Advertisement Timeout <1-655>
@@ -285,6 +285,7 @@ void logic_bluetooth_set_battery_level(uint8_t pct);
 ret_type_te logic_bluetooth_stop_advertising(void);
 void logic_bluetooth_start_advertising(void);
 void logic_bluetooth_start_bluetooth(void);
+void logic_bluetooth_stop_bluetooth(void);
 void logic_bluetooth_routine(void);
 
 

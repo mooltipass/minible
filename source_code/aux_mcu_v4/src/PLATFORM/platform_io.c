@@ -7,6 +7,7 @@
     #include <stdarg.h>
     #include <string.h>
     #include <asf.h>
+    #include "conf_serialdrv.h"
     #include "driver_timer.h"
     #include "logic_sleep.h"
 #else
@@ -549,6 +550,15 @@ void platform_io_enable_main_comms(void)
     PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PULLEN = 0;                                  // AUX MCU RX, MAIN MCU TX: Pull up disable
 }
 
+/*! \fn     platform_io_reset_ble_uarts(void)
+*   \brief  Reset UARTs used by the BLE module
+*/
+void platform_io_reset_ble_uarts(void)
+{
+    /* No need to wait for sync as there's no reason for back to back BLE disable / enable */
+    CONF_BLE_USART_MODULE->USART.CTRLA.bit.SWRST = 1;
+    CONF_FLCR_BLE_USART_MODULE->USART.CTRLA.bit.SWRST = 1;
+}
 
 /*! \fn     platform_io_init_ble_ports_for_disabled(void)
 *   \brief  Initialize the platform BLE ports for a disabled BTLC1000
@@ -560,7 +570,14 @@ void platform_io_init_ble_ports_for_disabled(void)
     PORT->Group[BLE_UART0_TX_GROUP].DIRSET.reg = BLE_UART0_TX_MASK;
     PORT->Group[BLE_UART0_TX_GROUP].OUTCLR.reg = BLE_UART0_TX_MASK;
     PORT->Group[BLE_UART1_RTS_GROUP].DIRSET.reg = BLE_UART1_RTS_MASK;
-    PORT->Group[BLE_UART1_RTS_GROUP].OUTCLR.reg = BLE_UART1_RTS_MASK;    
+    PORT->Group[BLE_UART1_RTS_GROUP].OUTCLR.reg = BLE_UART1_RTS_MASK;
+    PORT->Group[BLE_UART0_TX_GROUP].PINCFG[BLE_UART0_TX_PINID].bit.PMUXEN = 0;
+    PORT->Group[BLE_UART1_TX_GROUP].PINCFG[BLE_UART1_TX_PINID].bit.PMUXEN = 0;
+    PORT->Group[BLE_UART1_TX_GROUP].PINCFG[BLE_UART1_TX_PINID].bit.PULLEN = 0;
+    PORT->Group[BLE_UART1_RTS_GROUP].PINCFG[BLE_UART1_RTS_PINID].bit.PMUXEN = 0;
+    PORT->Group[BLE_UART1_CTS_GROUP].PINCFG[BLE_UART1_CTS_PINID].bit.PMUXEN = 0;
+    PORT->Group[BLE_UART1_CTS_GROUP].PINCFG[BLE_UART1_CTS_PINID].bit.PULLEN = 0;
+    PORT->Group[BLE_UART1_CTS_GROUP].PINCFG[BLE_UART1_CTS_PINID].bit.INEN = 0;
     
     /* Device wakeup: output, set low */
     PORT->Group[BLE_WAKE_OUT_GROUP].DIRSET.reg = BLE_WAKE_OUT_MASK;
@@ -569,6 +586,11 @@ void platform_io_init_ble_ports_for_disabled(void)
     /* Device enable: output, set low */
     PORT->Group[BLE_EN_GROUP].DIRSET.reg = BLE_EN_MASK;
     PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
+    
+    /* Host wakeup: disable pullup */
+    PORT->Group[BLE_WAKE_IN_GROUP].PINCFG[BLE_WAKE_IN_PINID].bit.INEN = 0;
+    PORT->Group[BLE_WAKE_IN_GROUP].PINCFG[BLE_WAKE_IN_PINID].bit.PULLEN = 0;
+    PORT->Group[BLE_WAKE_IN_GROUP].PINCFG[BLE_WAKE_IN_PINID].bit.PMUXEN = 0;
     
     /* Below: leave disabled, doesn't change anything */
     //PORT->Group[BLE_UART1_TX_GROUP].DIRSET.reg = BLE_UART1_TX_MASK;

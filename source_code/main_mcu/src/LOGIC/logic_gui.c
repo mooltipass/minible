@@ -31,7 +31,7 @@ void logic_gui_disable_bluetooth(void)
 {
     if (logic_aux_mcu_is_ble_enabled() != FALSE)
     {
-        /* Send message to the Aux MCU to enable bluetooth, don't wait for it to be enabled */
+        /* Send message to the Aux MCU to disable bluetooth, wait for the answer */
         logic_aux_mcu_disable_ble(TRUE);
         
         /* Display information message */

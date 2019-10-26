@@ -37,6 +37,7 @@ void platform_io_enable_main_comms(void);
 void platform_io_disable_step_down(void);
 void platform_io_assert_ble_wakeup(void);
 void platform_io_enable_debug_uart(void);
+void platform_io_reset_ble_uarts(void);
 void platform_io_disable_ble_int(void);
 void platform_io_enable_ble_int(void);
 void platform_io_init_aux_comms(void);

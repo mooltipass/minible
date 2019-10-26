@@ -259,6 +259,17 @@ typedef uint32_t PIN_ID_T;
     #define BLE_UART1_RTS_PMUXREGID  PMUXE
 #endif
 
+#if defined(PLAT_V3_SETUP)
+    #define BLE_UART1_CTS_GROUP   PIN_GROUP_0
+    #define BLE_UART1_CTS_PINID   7
+#endif
+#define BLE_UART1_CTS_MASK        (1UL << BLE_UART1_CTS_PINID)
+#if (BLE_UART1_CTS_PINID % 2) == 1
+    #define BLE_UART1_CTS_PMUXREGID  PMUXO
+#else
+    #define BLE_UART1_CTS_PMUXREGID  PMUXE
+#endif
+
 /* NiMH charging */
 #if defined(PLAT_V3_SETUP)
     #define CHARGE_EN_GROUP   PIN_GROUP_0

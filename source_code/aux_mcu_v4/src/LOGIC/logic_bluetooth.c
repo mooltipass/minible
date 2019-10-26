@@ -1128,6 +1128,24 @@ void logic_bluetooth_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status
     }
 }
 
+/*! \fn     logic_bluetooth_stop_bluetooth(void)
+*   \brief  Stop bluetooth
+*/
+void logic_bluetooth_stop_bluetooth(void)
+{
+    /* Should we stop advertising? */
+    if (logic_bluetooth_advertising != FALSE)
+    {
+        logic_bluetooth_stop_advertising();
+    }
+    
+    /* Reset UARTs */
+    platform_io_reset_ble_uarts();
+    
+    /* Reset IOs */
+    platform_io_init_ble_ports_for_disabled();
+}
+
 /*! \fn     logic_bluetooth_start_bluetooth(void)
 *   \brief  Start bluetooth
 */
