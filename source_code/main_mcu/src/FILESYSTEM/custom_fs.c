@@ -16,6 +16,10 @@
 #include "utils.h"
 #include "dma.h"
 
+#ifdef EMULATOR_BUILD
+#include "emu_storage.h"
+#endif
+
 /* Default device settings */
 const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = {0,FALSE,SETTING_DFT_USER_INTERACTION_TIMEOUT,TRUE,0,0x09,0x0A};
 /* Current selected language entry */
@@ -785,7 +789,7 @@ static uint8_t eeprom[256 * 16];
 
 static void custom_fs_init_custom_storage_slots(void)
 {
-    memset(eeprom, 0xff, sizeof(eeprom));
+    emu_eeprom_read(0, eeprom, sizeof(eeprom));
 }
 
 void* custom_fs_get_custom_storage_slot_ptr(uint32_t slot_id)
@@ -802,6 +806,7 @@ void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id)
         return;
 
     memset(eeprom + slot_id * 256, 0xff, 256);
+    emu_eeprom_write(slot_id * 256, eeprom + slot_id * 256, 256);
 }
 
 void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array)
@@ -809,7 +814,8 @@ void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void
     if(slot_id * 256 > sizeof(eeprom))
         return;
 
-    memcpy(eeprom + slot_id * 256, array, 256);
+    memcpy(eeprom+slot_id*256, array, 256);
+    emu_eeprom_write(slot_id * 256, eeprom + slot_id * 256, 256);
 }
 
 void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array)

@@ -110,6 +110,7 @@ CPP_SRCS = \
            src/EMU/emulator.cpp \
            src/EMU/emu_oled.cpp \
            src/EMU/emu_smartcard.cpp \
+           src/EMU/emu_storage.cpp \
            src/EMU/emulator_ui.cpp
 
 MOC_SRCS =
