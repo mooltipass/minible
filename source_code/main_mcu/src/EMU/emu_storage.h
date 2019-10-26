@@ -9,6 +9,9 @@ extern "C" {
 void emu_eeprom_read(int offset, uint8_t *buf, int length);
 void emu_eeprom_write(int offset, uint8_t *buf, int length);
 
+void emu_dbflash_read(int offset, uint8_t *buf, int length);
+void emu_dbflash_write(int offset, uint8_t *buf, int length);
+
 #ifdef __cplusplus
 }
 #endif
