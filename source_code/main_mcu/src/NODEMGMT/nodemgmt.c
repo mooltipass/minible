@@ -379,8 +379,6 @@ void nodemgmt_get_user_category_names_starting_offset(uint16_t uid, uint16_t *pa
  */
 void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId, uint16_t keyboardId)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-
     /* Page & offset for this UID */
     uint16_t temp_page, temp_offset;
     
@@ -397,9 +395,9 @@ void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_
     // Set buffer to all 0's.
     nodemgmt_get_user_profile_starting_offset(uid, &temp_page, &temp_offset);
     dbflash_write_data_pattern_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmt_userprofile_t), 0x00);
-    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)&(dirty_address_finding_trick->main_data.sec_preferences), sizeof(secPreferences), (void*)&secPreferences);
-    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)&(dirty_address_finding_trick->main_data.language_id), sizeof(languageId), (void*)&languageId);
-    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)&(dirty_address_finding_trick->main_data.layout_id), sizeof(keyboardId), (void*)&keyboardId);
+    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.sec_preferences), sizeof(secPreferences), (void*)&secPreferences);
+    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.language_id), sizeof(languageId), (void*)&languageId);
+    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.layout_id), sizeof(keyboardId), (void*)&keyboardId);
 }
 
 /*! \fn     nodemgmt_store_user_sec_preferences(uint16_t sec_preferences)
@@ -408,10 +406,8 @@ void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_
  */
 void nodemgmt_store_user_sec_preferences(uint16_t sec_preferences)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-    
     // Write data parent address in the user profile page
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.sec_preferences), sizeof(sec_preferences), (void*)&sec_preferences);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.sec_preferences), sizeof(sec_preferences), (void*)&sec_preferences);
 }
 
 /*! \fn     nodemgmt_get_user_sec_preferences(void)
@@ -420,11 +416,10 @@ void nodemgmt_store_user_sec_preferences(uint16_t sec_preferences)
  */
 uint16_t nodemgmt_get_user_sec_preferences(void)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     uint16_t user_sec_flags;
     
     // Each user profile is within a page, data starting parent node is at the end of the favorites
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.sec_preferences), sizeof(user_sec_flags), &user_sec_flags);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.sec_preferences), sizeof(user_sec_flags), &user_sec_flags);
     
     return user_sec_flags;
 }
@@ -435,10 +430,8 @@ uint16_t nodemgmt_get_user_sec_preferences(void)
  */
 void nodemgmt_store_user_language(uint16_t languageId)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-    
     // Write data parent address in the user profile page
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.language_id), sizeof(languageId), (void*)&languageId);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.language_id), sizeof(languageId), (void*)&languageId);
 }
 
 /*! \fn     nodemgmt_store_user_layout(uint16_t layoutId)
@@ -447,10 +440,8 @@ void nodemgmt_store_user_language(uint16_t languageId)
  */
 void nodemgmt_store_user_layout(uint16_t layoutId)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-    
     // Write data parent address in the user profile page
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.layout_id), sizeof(layoutId), (void*)&layoutId);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.layout_id), sizeof(layoutId), (void*)&layoutId);
 }
 
 /*! \fn     nodemgmt_get_user_language(void)
@@ -459,11 +450,10 @@ void nodemgmt_store_user_layout(uint16_t layoutId)
  */
 uint16_t nodemgmt_get_user_language(void)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     uint16_t language_id;
     
     // Each user profile is within a page, data starting parent node is at the end of the favorites
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.language_id), sizeof(language_id), &language_id);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.language_id), sizeof(language_id), &language_id);
     
     return language_id;
 }
@@ -474,11 +464,10 @@ uint16_t nodemgmt_get_user_language(void)
  */
 uint16_t nodemgmt_get_user_layout(void)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     uint16_t layout_id;
     
     // Each user profile is within a page, data starting parent node is at the end of the favorites
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.layout_id), sizeof(layout_id), &layout_id);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.layout_id), sizeof(layout_id), &layout_id);
     
     return layout_id;
 }
@@ -728,17 +717,16 @@ uint16_t nodemgmt_get_starting_parent_addr(void)
  */
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     uint16_t temp_address;
     
     // type id check
-    if (typeId >= (sizeof(dirty_address_finding_trick->main_data.data_start_address)/sizeof(dirty_address_finding_trick->main_data.data_start_address[0])))
+    if (typeId >= (MEMBER_SIZE(nodemgmt_userprofile_t, main_data.data_start_address)/MEMBER_SIZE(nodemgmt_userprofile_t, main_data.data_start_address[0])))
     {
         return NODE_ADDR_NULL;
     }
     
     // Each user profile is within a page, data starting parent node is at the end of the favorites
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_start_address[typeId]), sizeof(temp_address), &temp_address);    
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.data_start_address[typeId]), sizeof(temp_address), &temp_address);    
     
     return temp_address;
 }
@@ -749,10 +737,8 @@ uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId)
  */
 uint16_t nodemgmt_get_start_addresses(uint16_t* addresses_array)
 {    
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-
     // Write addresses in the user profile page. Possible as the credential start address & data start addresses are contiguous in memory
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_start_address), sizeof(uint16_t) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address), addresses_array);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.cred_start_address), sizeof(uint16_t) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address), addresses_array);
 
     return 1 + MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, data_start_address);
 }
@@ -763,11 +749,10 @@ uint16_t nodemgmt_get_start_addresses(uint16_t* addresses_array)
  */
 uint32_t nodemgmt_get_cred_change_number(void)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     uint32_t change_number;
     
     // Each user profile is within a page, data starting parent node is at the end of the favorites
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_change_number), sizeof(change_number), (void*)&change_number);    
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.cred_change_number), sizeof(change_number), (void*)&change_number);    
     
     return change_number;
 }
@@ -778,11 +763,10 @@ uint32_t nodemgmt_get_cred_change_number(void)
  */
 uint32_t nodemgmt_get_data_change_number(void)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     uint32_t change_number;
     
     // Each user profile is within a page, data starting parent node is at the end of the favorites
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_change_number), sizeof(change_number), (void*)&change_number);    
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.data_change_number), sizeof(change_number), (void*)&change_number);    
     
     return change_number;
 }
@@ -793,13 +777,11 @@ uint32_t nodemgmt_get_data_change_number(void)
  */
 void nodemgmt_set_cred_start_address(uint16_t parentAddress)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-    
     // update handle
     nodemgmt_current_handle.firstParentNode = parentAddress;
     
     // Write parent address in the user profile page
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_start_address), sizeof(parentAddress), &parentAddress);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.cred_start_address), sizeof(parentAddress), &parentAddress);
 }
 
 /*! \fn     nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId)
@@ -809,10 +791,8 @@ void nodemgmt_set_cred_start_address(uint16_t parentAddress)
  */
 void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-    
     // type id check
-    if (typeId >= (sizeof(dirty_address_finding_trick->main_data.data_start_address)/sizeof(dirty_address_finding_trick->main_data.data_start_address[0])))
+    if (typeId >= (MEMBER_SIZE(nodemgmt_userprofile_t, main_data.data_start_address)/MEMBER_SIZE(nodemgmt_userprofile_t, main_data.data_start_address[0])))
     {
         return;
     }
@@ -821,7 +801,7 @@ void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId
     nodemgmt_current_handle.firstDataParentNode[typeId] = dataParentAddress;
     
     // Write data parent address in the user profile page
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_start_address[typeId]), sizeof(dataParentAddress), &dataParentAddress);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.data_start_address[typeId]), sizeof(dataParentAddress), &dataParentAddress);
 }
 
 /*! \fn     nodemgmt_set_start_addresses(uint16_t* addresses_array)
@@ -830,14 +810,12 @@ void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId
  */
 void nodemgmt_set_start_addresses(uint16_t* addresses_array)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-
     // update handle    
     nodemgmt_current_handle.firstParentNode = addresses_array[0];
     memcpy(nodemgmt_current_handle.firstDataParentNode, &(addresses_array[1]), MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address));
 
     // Write addresses in the user profile page. Possible as the credential start address & data start addresses are contiguous in memory
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_start_address), sizeof(uint16_t) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address), addresses_array);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.cred_start_address), sizeof(uint16_t) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address), addresses_array);
 }
 
 /*! \fn     nodemgmt_set_cred_change_number(uint32_t changeNumber)
@@ -846,10 +824,8 @@ void nodemgmt_set_start_addresses(uint16_t* addresses_array)
  */
 void nodemgmt_set_cred_change_number(uint32_t changeNumber)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-    
     // Write data parent address in the user profile page
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.cred_change_number), sizeof(changeNumber), (void*)&changeNumber);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.cred_change_number), sizeof(changeNumber), (void*)&changeNumber);
 }
 
 /*! \fn     nodemgmt_set_data_change_number(uint32_t changeNumber)
@@ -858,10 +834,8 @@ void nodemgmt_set_cred_change_number(uint32_t changeNumber)
  */
 void nodemgmt_set_data_change_number(uint32_t changeNumber)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-    
     // Write data parent address in the user profile page
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.data_change_number), sizeof(changeNumber), (void*)&changeNumber);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.data_change_number), sizeof(changeNumber), (void*)&changeNumber);
 }
 
 /*! \fn     nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress)
@@ -873,21 +847,20 @@ void nodemgmt_set_data_change_number(uint32_t changeNumber)
  */
 void nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     favorite_addr_t favorite = {parentAddress, childAddress};
     
-    if (categoryId >= (sizeof(dirty_address_finding_trick->category_favorites)/sizeof(dirty_address_finding_trick->category_favorites[0])))
+    if (categoryId >= (MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites)/MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0])))
     {
         while(1);
     }
     
-    if(favId >= (sizeof(dirty_address_finding_trick->category_favorites[0].favorite)/sizeof(dirty_address_finding_trick->category_favorites[0].favorite[0])))
+    if(favId >= (MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)/MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite[0])))
     {
         while(1);
     }
 
     // Write to flash    
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->category_favorites[categoryId].favorite[favId]), sizeof(favorite), (void*)&favorite);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, category_favorites[categoryId].favorite[favId]), sizeof(favorite), (void*)&favorite);
 }
 
 /*! \fn     nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress)
@@ -899,21 +872,20 @@ void nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentA
  */
 void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     favorite_addr_t favorite;
         
-    if (categoryId >= (sizeof(dirty_address_finding_trick->category_favorites)/sizeof(dirty_address_finding_trick->category_favorites[0])))
+    if (categoryId >= (MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites)/MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0])))
     {
         while(1);
     }
     
-    if(favId >= (sizeof(dirty_address_finding_trick->category_favorites[0].favorite)/sizeof(dirty_address_finding_trick->category_favorites[0].favorite[0])))
+    if(favId >= (MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)/MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite[0])))
     {
         while(1);
     }
     
     // Read from flash
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->category_favorites[categoryId].favorite[favId]), sizeof(favorite), (void*)&favorite);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, category_favorites[categoryId].favorite[favId]), sizeof(favorite), (void*)&favorite);
     
     // return values to user
     *parentAddress = favorite.parent_addr;
@@ -928,16 +900,15 @@ void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* paren
  */
 void nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     favorite_addr_t favorite;
     
-    if(favId >= (sizeof(dirty_address_finding_trick->category_favorites[0].favorite)/sizeof(dirty_address_finding_trick->category_favorites[0].favorite[0])))
+    if(favId >= (MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)/MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite[0])))
     {
         while(1);
     }
     
     // Read from flash
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->category_favorites[nodemgmt_current_handle.currentCategoryId].favorite[favId]), sizeof(favorite), (void*)&favorite);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, category_favorites[nodemgmt_current_handle.currentCategoryId].favorite[favId]), sizeof(favorite), (void*)&favorite);
     
     // return values to user
     *parentAddress = favorite.parent_addr;
@@ -951,11 +922,10 @@ void nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* paren
  */
 int16_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     favorite_addr_t favorite;
     
     /* Sanity checks */
-    if(favId >= (sizeof(dirty_address_finding_trick->category_favorites[0].favorite)/sizeof(dirty_address_finding_trick->category_favorites[0].favorite[0])))
+    if(favId >= (MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)/MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite[0])))
     {
         return -1;
     }
@@ -964,7 +934,7 @@ int16_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId)
     for (uint16_t i = favId; i < MEMBER_ARRAY_SIZE(favorites_for_category_t, favorite); i++)
     {
         // Read from flash
-        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->category_favorites[nodemgmt_current_handle.currentCategoryId].favorite[i]), sizeof(favorite), (void*)&favorite);
+        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, category_favorites[nodemgmt_current_handle.currentCategoryId].favorite[i]), sizeof(favorite), (void*)&favorite);
 
         // Valid favorite?
         if ((favorite.child_addr != NODE_ADDR_NULL) && (favorite.parent_addr != NODE_ADDR_NULL))
@@ -983,11 +953,10 @@ int16_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId)
  */
 int16_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
     favorite_addr_t favorite;
     
     /* Sanity checks */
-    if(favId >= (sizeof(dirty_address_finding_trick->category_favorites[0].favorite)/sizeof(dirty_address_finding_trick->category_favorites[0].favorite[0])))
+    if(favId >= (MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)/MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite[0])))
     {
         return -1;
     }
@@ -996,7 +965,7 @@ int16_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId)
     for (int16_t i = favId; i >= 0; i--)
     {
         // Read from flash
-        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->category_favorites[nodemgmt_current_handle.currentCategoryId].favorite[i]), sizeof(favorite), (void*)&favorite);
+        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, category_favorites[nodemgmt_current_handle.currentCategoryId].favorite[i]), sizeof(favorite), (void*)&favorite);
 
         // Valid favorite?
         if ((favorite.child_addr != NODE_ADDR_NULL) && (favorite.parent_addr != NODE_ADDR_NULL))
@@ -1015,8 +984,7 @@ int16_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId)
  */
 uint16_t nodemgmt_get_favorites(uint16_t* addresses_array)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)dirty_address_finding_trick->category_favorites, MEMBER_SIZE(nodemgmt_userprofile_t,category_favorites), (void*)&addresses_array);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, category_favorites), MEMBER_SIZE(nodemgmt_userprofile_t,category_favorites), (void*)&addresses_array);
     return MEMBER_SIZE(nodemgmt_userprofile_t,category_favorites)/sizeof(favorite_addr_t);
 }
 
@@ -1026,8 +994,7 @@ uint16_t nodemgmt_get_favorites(uint16_t* addresses_array)
  */
 void nodemgmt_read_profile_ctr(void* buf)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.current_ctr), sizeof(dirty_address_finding_trick->main_data.current_ctr), buf);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.current_ctr), MEMBER_SIZE(nodemgmt_userprofile_t, main_data.current_ctr), buf);
 }
 
 /*! \fn     nodemgmt_set_profile_ctr(void* buf)
@@ -1036,8 +1003,7 @@ void nodemgmt_read_profile_ctr(void* buf)
  */
 void nodemgmt_set_profile_ctr(void* buf)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.current_ctr), sizeof(dirty_address_finding_trick->main_data.current_ctr), buf);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.current_ctr), MEMBER_SIZE(nodemgmt_userprofile_t, main_data.current_ctr), buf);
 }
 
 /*! \fn     nodemgmt_get_category_strings(nodemgmt_user_category_strings_t* strings_pt)
@@ -1074,8 +1040,7 @@ void nodemgmt_get_category_string(uint16_t category_id, cust_char_t* string_pt)
         return;
     }
     
-    nodemgmt_user_category_strings_t* const dirty_address_finding_trick = (nodemgmt_user_category_strings_t*)0;
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserCategoryStrings, nodemgmt_current_handle.offsetUserCategoryStrings + (size_t)&(dirty_address_finding_trick->category_strings[category_id]), sizeof(dirty_address_finding_trick->category_strings[0]), string_pt);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserCategoryStrings, nodemgmt_current_handle.offsetUserCategoryStrings + (size_t)offsetof(nodemgmt_user_category_strings_t, category_strings[category_id]), MEMBER_SIZE(nodemgmt_user_category_strings_t, category_strings[0]), string_pt);
     string_pt[MEMBER_SUB_ARRAY_SIZE(nodemgmt_user_category_strings_t, category_strings)-1] = 0;
 }
 
@@ -1092,8 +1057,7 @@ void nodemgmt_set_category_string(uint16_t category_id, cust_char_t* string_pt)
         return;
     }
     
-    nodemgmt_user_category_strings_t* const dirty_address_finding_trick = (nodemgmt_user_category_strings_t*)0;
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserCategoryStrings, nodemgmt_current_handle.offsetUserCategoryStrings + (size_t)&(dirty_address_finding_trick->category_strings[category_id]), sizeof(dirty_address_finding_trick->category_strings[0]), string_pt);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserCategoryStrings, nodemgmt_current_handle.offsetUserCategoryStrings + (size_t)offsetof(nodemgmt_user_category_strings_t, category_strings[category_id]), MEMBER_SIZE(nodemgmt_user_category_strings_t, category_strings[0]), string_pt);
 }
 
 /*! \fn     nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode)
