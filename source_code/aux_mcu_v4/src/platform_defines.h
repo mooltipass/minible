@@ -238,6 +238,11 @@ typedef uint32_t PIN_ID_T;
 #endif
 
 #if defined(PLAT_V3_SETUP)
+    #define BLE_UART0_RX_GROUP   PIN_GROUP_0
+    #define BLE_UART0_RX_PINID   9
+#endif
+
+#if defined(PLAT_V3_SETUP)
     #define BLE_UART1_TX_GROUP   PIN_GROUP_0
     #define BLE_UART1_TX_PINID   4
 #endif
@@ -246,6 +251,11 @@ typedef uint32_t PIN_ID_T;
     #define BLE_UART1_TX_PMUXREGID  PMUXO
 #else
     #define BLE_UART1_TX_PMUXREGID  PMUXE
+#endif
+
+#if defined(PLAT_V3_SETUP)
+    #define BLE_UART1_RX_GROUP   PIN_GROUP_0
+    #define BLE_UART1_RX_PINID   5
 #endif
 
 #if defined(PLAT_V3_SETUP)
