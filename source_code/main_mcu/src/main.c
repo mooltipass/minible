@@ -417,7 +417,7 @@ int main(void)
     #endif
     {
         /* Select language and store it as default */
-        if (gui_prompts_select_language_or_keyboard_layout(FALSE, TRUE, TRUE) != RETURN_OK)
+        if (gui_prompts_select_language_or_keyboard_layout(FALSE, TRUE, TRUE, FALSE) != RETURN_OK)
         {
             /* We're battery powered, the user didn't select anything, switch off device */
             sh1122_oled_off(&plat_oled_descriptor);
@@ -471,7 +471,7 @@ int main(void)
     /* Start animation */    
     for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
     {
-        timer_start_timer(TIMER_WAIT_FUNCTS, 20);
+        timer_start_timer(TIMER_WAIT_FUNCTS, 28);
         sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
         while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
         {
@@ -480,11 +480,11 @@ int main(void)
     }    
     
     /* End of animation: freeze on image, perform long time taking inits... */
-    timer_start_timer(TIMER_WAIT_FUNCTS, 1500);
+    /*timer_start_timer(TIMER_WAIT_FUNCTS, 1500);
     while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
     {
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
-    }
+    }*/
     #endif
     
     /* Get current smartcard detection result */

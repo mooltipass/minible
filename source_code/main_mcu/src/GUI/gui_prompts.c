@@ -596,18 +596,28 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     return ret_val;
 }
 
-/*! \fn     gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen)
+/*! \fn     gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt)
 *   \brief  Ask for user confirmation for different things
 *   \param  string_id       String ID
 *   \param  flash_screen    Boolean to flash screen
+*   \param  usb_ble_prompt  Set to TRUE to get BLE/USB icons, FALSE for yes/no
 *   \return See enum
 */
-mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen)
+mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt)
 {
+    uint16_t bitmap_yes_no_array[8] = {BITMAP_POPUP_2LINES_Y, BITMAP_POPUP_2LINES_N, BITMAP_2LINES_PRESS_Y, BITMAP_2LINES_PRESS_N, BITMAP_2LINES_SEL_Y, BITMAP_2LINES_SEL_N, BITMAP_2LINES_IDLE_Y, BITMAP_2LINES_IDLE_N};
+    uint16_t bitmap_usb_ble_array[8] = {BITMAP_POPUP_USB, BITMAP_POPUP_BLE, BITMAP_USB_PRESS, BITMAP_BLE_PRESS, BITMAP_USB_SELECT, BITMAP_BLE_SELECT, BITMAP_USB_IDLE, BITMAP_BLE_IDLE};
     cust_char_t* string_to_display;
     BOOL approve_selected = TRUE;
     BOOL flash_flag = FALSE;
     uint16_t flash_sm = 0;
+    
+    /* Set array pointer depending on prompt type */
+    uint16_t* bitmap_array_pt = &bitmap_yes_no_array[0];
+    if (usb_ble_prompt != FALSE)
+    {
+        bitmap_array_pt = &bitmap_usb_ble_array[0];
+    }
     
     /* Try to fetch the string to display */
     custom_fs_get_string_from_file(string_id, &string_to_display, TRUE);
@@ -645,10 +655,10 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
     {
         /* Write both in frame buffer and display */
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_Y+i, FALSE);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_Y+i, TRUE);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_N+i, FALSE);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_N+i, TRUE);            
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, FALSE);
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, TRUE);
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, FALSE);
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, TRUE);            
         timer_delay_ms(15);
     }
     
@@ -696,7 +706,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
                 input_answer = MINI_INPUT_RET_YES;
                 for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_PRESS_Y+i, FALSE);
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[2]+i, FALSE);
                     timer_delay_ms(10);
                 }
             }
@@ -705,7 +715,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
                 input_answer = MINI_INPUT_RET_NO;
                 for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_PRESS_N+i, FALSE);
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[3]+i, FALSE);
                     timer_delay_ms(10);
                 }
             }
@@ -731,8 +741,8 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
             {
                 for (uint16_t i = 0; i < CONF_2LINES_SEL_AN_LGTH; i++)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_Y+i, FALSE);
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_N+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4]+i, FALSE);
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5]+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
                     timer_delay_ms(10);
                 }
             }
@@ -740,8 +750,8 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
             {
                 for (uint16_t i = 0; i < CONF_2LINES_SEL_AN_LGTH; i++)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_N+i, FALSE);
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_Y+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5]+i, FALSE);
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4]+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
                     timer_delay_ms(10);
                 }
             }                
@@ -757,11 +767,11 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
         {
             if (approve_selected == FALSE)
             {
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_IDLE_N+flash_sm, FALSE);
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[7]+flash_sm, FALSE);
             }
             else
             {
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_IDLE_Y+flash_sm, FALSE);
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[6]+flash_sm, FALSE);
             }
             
             /* Rearm timer */
@@ -2509,14 +2519,15 @@ int16_t gui_prompts_favorite_selection_screen(void)
     return -1;
 }
 
-/*! \fn     gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, BOOL ignore_timeout_if_usb_powered, BOOL ignore_card_removal)
+/*! \fn     gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, BOOL ignore_timeout_if_usb_powered, BOOL ignore_card_removal, BOOL usb_layout_choice)
 *   \brief  select language or keyboard layout, depending on the bool
 *   \param  layout_choice                   TRUE to choose layout, FALSE for language
 *   \param  ignore_timeout_if_usb_powered   TRUE to discard timeout if we are usb powered
 *   \param  ignore_card_removal             TRUE to ignore card removal
+*   \param  usb_layout_choice               If layout_choice is TRUE, selects either usb or ble layout choice
 *   \return RETURN_OK if it was a choice, NOK if timeout or card removal
 */
-ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, BOOL ignore_timeout_if_usb_powered, BOOL ignore_card_removal)
+ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, BOOL ignore_timeout_if_usb_powered, BOOL ignore_card_removal, BOOL usb_layout_choice)
 {    
     _Static_assert(CUSTOM_FS_KEYBOARD_DESC_LGTH >= MEMBER_ARRAY_SIZE(language_map_entry_t,language_descr), "Incorrect buffer length");
     cust_char_t string_buffer[CUSTOM_FS_KEYBOARD_DESC_LGTH + 4];
@@ -2531,7 +2542,7 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
     }
     else
     {
-        cur_item_id = custom_fs_get_current_layout_id();
+        cur_item_id = custom_fs_get_current_layout_id(usb_layout_choice);
         nb_items = custom_fs_get_number_of_keyb_layouts();
     }
     
@@ -2606,7 +2617,7 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
             }
             else
             {
-                custom_fs_set_current_keyboard_id(first_item_id_in_list+1);
+                custom_fs_set_current_keyboard_id(first_item_id_in_list+1, usb_layout_choice);
             }
             return RETURN_OK;
         }

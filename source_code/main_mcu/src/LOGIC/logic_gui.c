@@ -183,7 +183,7 @@ void logic_gui_erase_user(void)
     logic_device_set_state_changed();
     
     /* Delete user profile */
-    if ((gui_prompts_ask_for_one_line_confirmation(DELETE_USER_TEXT_ID, FALSE) == MINI_INPUT_RET_YES) && (logic_smartcard_remove_card_and_reauth_user() == RETURN_OK) && (gui_prompts_ask_for_one_line_confirmation(DELETE_USER_CONF_TEXT_ID, FALSE) == MINI_INPUT_RET_YES))
+    if ((gui_prompts_ask_for_one_line_confirmation(DELETE_USER_TEXT_ID, FALSE, FALSE) == MINI_INPUT_RET_YES) && (logic_smartcard_remove_card_and_reauth_user() == RETURN_OK) && (gui_prompts_ask_for_one_line_confirmation(DELETE_USER_CONF_TEXT_ID, FALSE, FALSE) == MINI_INPUT_RET_YES))
     {
         uint8_t current_user_id = logic_user_get_current_user_id();
         gui_prompts_display_information_on_screen(PROCESSING_TEXT_ID, DISP_MSG_INFO);
@@ -192,14 +192,14 @@ void logic_gui_erase_user(void)
         nodemgmt_delete_current_user_from_flash();
         
         /* Ask if user wants to erase the card */
-        if (gui_prompts_ask_for_one_line_confirmation(ERASE_CARD_TEXT_ID, FALSE) == MINI_INPUT_RET_YES)
+        if (gui_prompts_ask_for_one_line_confirmation(ERASE_CARD_TEXT_ID, FALSE, FALSE) == MINI_INPUT_RET_YES)
         {
             /* Erase smartcard */
             gui_prompts_display_information_on_screen(PROCESSING_TEXT_ID, DISP_MSG_INFO);
             smartcard_highlevel_erase_smartcard();
             
             /* Erase other smartcards */
-            while (gui_prompts_ask_for_one_line_confirmation(ERASE_OTHER_CARD_TEXT_ID, FALSE) == MINI_INPUT_RET_YES)
+            while (gui_prompts_ask_for_one_line_confirmation(ERASE_OTHER_CARD_TEXT_ID, FALSE, FALSE) == MINI_INPUT_RET_YES)
             {
                 // Ask the user to insert other smartcards
                 gui_prompts_display_information_on_screen_and_wait(REMOVE_CARD_TEXT_ID, DISP_MSG_ACTION);

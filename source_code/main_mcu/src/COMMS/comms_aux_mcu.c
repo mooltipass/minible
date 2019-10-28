@@ -520,6 +520,11 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
             comms_aux_arm_rx_and_clear_no_comms();
             
             // TODO2: take necessary action in case we received an unwanted message
+            if ((aux_mcu_receive_message.message_type == expected_packet) && (aux_mcu_receive_message.aux_mcu_event_message.event_id != expected_event))
+            {
+                /* Received another event... deal with it (doesn't generate answers */
+                comms_aux_mcu_deal_with_received_event(&aux_mcu_receive_message);
+            }
         }
     }while (reloop != FALSE);
         

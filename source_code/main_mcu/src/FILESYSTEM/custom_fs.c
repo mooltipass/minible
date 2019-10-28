@@ -37,8 +37,10 @@ uint16_t custom_fs_temp_string1[128];
 /* Current language id */
 uint8_t custom_fs_cur_language_id = 0;
 /* Current keyboard layout id */
-custom_fs_address_t custom_fs_keyboard_layout_addr = 0;
-uint8_t custom_fs_cur_keyboard_id = 0;
+custom_fs_address_t custom_fs_usb_keyboard_layout_addr = 0;
+uint8_t custom_fs_cur_usb_keyboard_id = 0;
+custom_fs_address_t custom_fs_ble_keyboard_layout_addr = 0;
+uint8_t custom_fs_cur_ble_keyboard_id = 0;
 /* CPZ look up table */
 cpz_lut_entry_t* custom_fs_cpz_lut;
 
@@ -213,13 +215,21 @@ uint8_t custom_fs_get_current_language_id(void)
     return custom_fs_cur_language_id;
 } 
 
-/*! \fn     custom_fs_get_current_layout_id(void)
+/*! \fn     custom_fs_get_current_layout_id(BOOL usb_layout)
 *   \brief  Get current keyboard layout ID
+*   \param  usb_layout FALSE for BLE layout, otherwise TRUE
 *   \return The current layout ID
 */
-uint8_t custom_fs_get_current_layout_id(void)
+uint8_t custom_fs_get_current_layout_id(BOOL usb_layout)
 {
-    return custom_fs_cur_keyboard_id;
+    if (usb_layout == FALSE)
+    {
+        return custom_fs_cur_ble_keyboard_id;
+    } 
+    else
+    {
+        return custom_fs_cur_usb_keyboard_id;
+    }
 }
 
 /*! \fn     custom_fs_get_recommended_layout_for_current_language(void)
@@ -266,12 +276,13 @@ ret_type_te custom_fs_get_keyboard_descriptor_string(uint8_t keyboard_id, cust_c
     return RETURN_OK;
 }
 
-/*! \fn     custom_fs_set_current_keyboard_id(uint8_t keyboard_id)
+/*! \fn     custom_fs_set_current_keyboard_id(uint8_t keyboard_id, BOOL usb_layout)
 *   \brief  Set current keyboard ID
 *   \param  keyboard_id     Keyboard ID
+*   \param  usb_layout      Bool for USB/BLE layout
 *   \return RETURN_(N)OK
 */
-ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id)
+ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id, BOOL usb_layout)
 {
     custom_fs_address_t layout_file_addr;
     
@@ -285,35 +296,51 @@ ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id)
     }
     
     /* Store address and ID */
-    custom_fs_keyboard_layout_addr = layout_file_addr;
-    custom_fs_cur_keyboard_id = keyboard_id;
+    if (usb_layout == FALSE)
+    {
+        custom_fs_ble_keyboard_layout_addr = layout_file_addr;
+        custom_fs_cur_ble_keyboard_id = keyboard_id;
+    } 
+    else
+    {
+        custom_fs_usb_keyboard_layout_addr = layout_file_addr;
+        custom_fs_cur_usb_keyboard_id = keyboard_id;
+    }
     
     return RETURN_OK;
 }
 
-/*! \fn     custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer)
+/*! \fn     custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer, BOOL usb_layout)
 *   \brief  Get keyboard symbols (not keys) for a given unicode string
 *   \param  string_pt   Pointer to the unicode BMP string
 *   \param  buffer      Where to store the symbols. Non supported symbols will be stored as 0xFFFF
+*   \param  usb_layout  Set to TRUE to use USB layout mapping, FALSE for BLE layout mapping
 *   \return RETURN_(N)OK depending on if we were able to "translate" the complete string
 *   \note   Take care of buffer overflows. One symbol will be generated per unicode point
 */
-ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer)
+ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer, BOOL usb_layout)
 {
     unicode_interval_desc_t description_intervals[CUSTOM_FS_KEYB_NB_INT_DESCRIBED];
+    custom_fs_address_t layout_address = custom_fs_usb_keyboard_layout_addr;
     BOOL point_support_described = FALSE;
     uint16_t symbol_desc_pt_offset = 0;
     BOOL all_points_described = TRUE;
     uint16_t interval_start = 0;
     
     /* Check for correctly setup keyboard layout */
-    if (custom_fs_keyboard_layout_addr == 0)
+    if ((custom_fs_usb_keyboard_layout_addr == 0) || (custom_fs_ble_keyboard_layout_addr == 0))
     {
         return RETURN_NOK;
     }   
     
+    /* Mapping address based on layout selection */
+    if (usb_layout == FALSE)
+    {
+        layout_address = custom_fs_ble_keyboard_layout_addr;
+    }
+    
     /* Load the description intervals */
-    custom_fs_read_from_flash((uint8_t*)description_intervals, custom_fs_keyboard_layout_addr + CUSTOM_FS_KEYBOARD_DESC_LGTH*sizeof(cust_char_t), sizeof(description_intervals));
+    custom_fs_read_from_flash((uint8_t*)description_intervals, layout_address + CUSTOM_FS_KEYBOARD_DESC_LGTH*sizeof(cust_char_t), sizeof(description_intervals));
     
     /* Iterate over string */
     while (*string_pt != 0)
@@ -359,7 +386,7 @@ ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* strin
         else
         {
             /* Fetch keyboard symbol: 0xFFFF for "not supported" matches with our definition of not described */
-            custom_fs_read_from_flash((uint8_t*)buffer, custom_fs_keyboard_layout_addr + CUSTOM_FS_KEYBOARD_DESC_LGTH*sizeof(cust_char_t) + sizeof(description_intervals) + symbol_desc_pt_offset*sizeof(*string_pt) + (*string_pt - interval_start)*sizeof(*string_pt), sizeof(*buffer));       
+            custom_fs_read_from_flash((uint8_t*)buffer, layout_address + CUSTOM_FS_KEYBOARD_DESC_LGTH*sizeof(cust_char_t) + sizeof(description_intervals) + symbol_desc_pt_offset*sizeof(*string_pt) + (*string_pt - interval_start)*sizeof(*string_pt), sizeof(*buffer));       
             
             /* Is this symbol supported? */
             if (*buffer == 0xFFFF)
