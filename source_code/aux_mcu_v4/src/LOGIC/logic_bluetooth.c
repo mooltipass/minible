@@ -88,6 +88,9 @@ static at_ble_status_t logic_bluetooth_hid_connected_callback(void* params)
     /* Store connection handle */
     at_ble_connected_t* connected = (at_ble_connected_t*)params;
     logic_bluetooth_ble_connection_handle = connected->handle;
+    
+    /* Inform main MCU */    
+    comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_CONNECTED);
 
     return AT_BLE_SUCCESS;
 }
@@ -109,6 +112,9 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
     
     /* Start advertising again */
     logic_bluetooth_start_advertising();
+    
+    /* Inform main MCU */
+    comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_DISCONNECTED);
 
     return AT_BLE_SUCCESS;
 }

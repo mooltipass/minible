@@ -7,6 +7,7 @@
 #include <asf.h>
 #include "comms_hid_msgs_debug.h"
 #include "platform_defines.h"
+#include "logic_bluetooth.h"
 #include "comms_hid_msgs.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
@@ -206,6 +207,16 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
         case AUX_MCU_EVENT_CHARGE_FAIL:
         {
             logic_power_set_battery_charging_bool(FALSE, FALSE);
+            break;
+        }
+        case AUX_MCU_EVENT_BLE_CONNECTED:
+        {
+            logic_bluetooth_set_connected_state(TRUE);
+            break;
+        }
+        case AUX_MCU_EVENT_BLE_DISCONNECTED:
+        {
+            logic_bluetooth_set_connected_state(FALSE);
             break;
         }
         default: break;
