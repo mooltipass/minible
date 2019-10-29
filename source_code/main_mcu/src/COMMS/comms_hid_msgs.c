@@ -1207,6 +1207,78 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             }
         }
         
+        case HID_CMD_SET_USER_KEYB_ID:
+        {
+            BOOL is_usb_interface_wanted = (BOOL)rcv_msg->payload[0];
+            uint8_t desired_layout_id = rcv_msg->payload[1];
+            
+            /* user logged in, id valid? */
+            if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (desired_layout_id < custom_fs_get_number_of_keyb_layouts()))
+            {
+                custom_fs_set_current_keyboard_id(desired_layout_id, is_usb_interface_wanted);
+                logic_user_set_layout_id(desired_layout_id, is_usb_interface_wanted);
+                
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+
+            send_msg->message_type = rcv_message_type;
+            send_msg->payload_length = 1;
+            return 1;
+        }
+        
+        case HID_CMD_SET_USER_LANG_ID:
+        {
+            uint8_t desired_lang_id = rcv_msg->payload[0];
+            
+            /* user logged in, id valid? */
+            if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (desired_lang_id < custom_fs_get_number_of_languages()))
+            {
+                custom_fs_set_current_language(desired_lang_id);
+                logic_user_set_language(desired_lang_id);
+                
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+
+            send_msg->message_type = rcv_message_type;
+            send_msg->payload_length = 1;
+            return 1;            
+        }
+        
+        case HID_CMD_SET_DEVICE_LANG_ID:
+        {
+            uint8_t desired_lang_id = rcv_msg->payload[0];
+            
+            /* user logged in, id valid? */
+            if (desired_lang_id < custom_fs_get_number_of_languages())
+            {
+                custom_fs_set_device_default_language(desired_lang_id);
+                
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+
+            send_msg->message_type = rcv_message_type;
+            send_msg->payload_length = 1;
+            return 1;            
+        }
+        
         default: break;
     }
     

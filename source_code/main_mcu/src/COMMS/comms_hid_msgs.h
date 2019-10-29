@@ -49,6 +49,9 @@
 #define HID_CMD_GET_NB_LAYOUTS      0x001A
 #define HID_CMD_GET_LANGUAGE_DESC   0x001B
 #define HID_CMD_GET_LAYOUT_DESC     0x001C
+#define HID_CMD_SET_USER_KEYB_ID    0x001D
+#define HID_CMD_SET_USER_LANG_ID    0x001E
+#define HID_CMD_SET_DEVICE_LANG_ID  0x001F
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101
