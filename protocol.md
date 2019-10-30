@@ -519,6 +519,91 @@ Device Answer:
 
 
 
+0x001B: Get Language Description
+--------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3     | byte 4    | byte 5-X     |
+|:---------|:-------------|:----------|:-------------|
+| 0x001B   |        1     | language ID  |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4-x                        |
+|:---------|:----------------------------|:--------------------------------|
+| 0x001B   | N/A | 0 terminated string |
+
+
+
+0x001C: Get Layout Description
+--------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3     | byte 4    | byte 5-X     |
+|:---------|:-------------|:----------|:-------------|
+| 0x001C   |        1     | layout ID  |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4-x                        |
+|:---------|:----------------------------|:--------------------------------|
+| 0x001C   | N/A | 0 terminated string |
+
+
+
+0x001D: Set User Keyboard Layout ID
+-----------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3     | byte 4    | byte 5 |
+|:---------|:-------------|:----------|:-------|
+| 0x001D   |        1     | 0 for BLE, other for USB  | layout ID |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x001D   | 1 | 0x00 (failure) / 0x01 (success) |
+
+
+
+0x001E: Set User Language ID
+----------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3     | byte 4    |
+|:---------|:-------------|:----------|
+| 0x001E   |        1     | Language ID |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x001E   | 1 | 0x00 (failure) / 0x01 (success) |
+
+
+
+0x001F: Set Device Language ID
+------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3     | byte 4    |
+|:---------|:-------------|:----------|
+| 0x001F   |        1     | Language ID |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x001F   | 1 | 0x00 (failure) / 0x01 (success) |
+
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
