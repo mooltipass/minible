@@ -434,6 +434,91 @@ Device Answer:
 
 
 
+0x0016: Get User Language
+-------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0016   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0016   | 1 | (if logged in) user language ID |
+
+
+
+0x0017: Get Device Language
+---------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0017   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0017   | 1 | device default language ID |
+
+
+
+0x0018: Get User Keyboard Layout ID
+-----------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3     | byte 4    | byte 5-X     |
+|:---------|:-------------|:----------|:-------------|
+| 0x0018   |        1     | 0 for BLE, other for USB  |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0018   | 1 | BLE or USB keyboard layout ID |
+
+
+
+0x0019: Get Number of Languages
+-------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0019   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4-5                        |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0019   | 2 | number of languages supported |
+
+
+
+0x001A: Get Number of Keyboard Layouts
+--------------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x001A   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4-5                        |
+|:---------|:----------------------------|:--------------------------------|
+| 0x001A   | 2 | number of layouts supported |
+
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
