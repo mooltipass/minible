@@ -241,7 +241,14 @@ Device Answer:
 | 5 | bool    | Random PIN | 0 | N/A |
 | 6 | uint8_t | User interaction timeout / 1024 | 7 | 25 |
 | 7 | bool    | Animation during prompt | 0 | N/A |
+| 8 | uint8_t | Device default language | 0 | WIP |
+| 9 | uint8_t | Default char after login | 0 | 255 |
+| 10 | uint8_t | Default char after pass | 0 | 255 |
+| 11 | uint8_t | Delay between key presses | 0 | 255 |
 
+Notes:  
+
+- char after login/press: for example, 0x09 for tab, 0x0A for enter
 
 
 0x000D: Set Device Settings
