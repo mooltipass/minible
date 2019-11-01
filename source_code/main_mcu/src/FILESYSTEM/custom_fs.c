@@ -785,7 +785,7 @@ void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void*
 
 #else
 
-static uint8_t eeprom[256 * 16];
+static uint8_t eeprom[256 * 128];
 
 static void custom_fs_init_custom_storage_slots(void)
 {
