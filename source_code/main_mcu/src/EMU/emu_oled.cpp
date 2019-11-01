@@ -13,6 +13,7 @@ extern "C" {
 #include <QPainter>
 #include <QWheelEvent>
 #include <QMouseEvent>
+#include <QThread>
 
 #define FB_WIDTH (256)
 #define FB_HEIGHT (64)
@@ -79,20 +80,37 @@ void emu_oled_byte(uint8_t data)
     }
 }
 
-// we need to limit the number of "framebuffer update" events between the threads
-// otherwise the process quickly exhausts all RAM
-QSemaphore display_queue(3);
+static QMutex fb_update;
+static uint8_t framebuffers[2][256*64];
+static int fb_next=0, fb_pending=-1;
 
 void emu_oled_flush(void)
 {
-    QByteArray fb_copy(reinterpret_cast<const char*>(oled_fb), 256*64);
-    while(!display_queue.tryAcquire(1, 100)) 
-        emu_appexit_test();
+    QThread::usleep(1); // release the CPU for a short while
 
-    postToObject([=]() {
-        oled->update_display(reinterpret_cast<const uint8_t*>(fb_copy.constData())); 
-        display_queue.release();
-    }, oled);
+    emu_appexit_test();
+    fb_update.lock();
+    if(fb_pending >= 0) {
+        // an update is queued, just replace the contents
+        memcpy(framebuffers[fb_pending], oled_fb, 256*64);
+
+    } else {
+        // request an update
+        int fb_req = fb_next;
+        memcpy(framebuffers[fb_next], oled_fb, 256*64);
+        fb_pending = fb_req;
+        fb_next = (fb_next+1)%2;
+
+        postToObject([fb_req]() {
+            fb_update.lock();
+            if(fb_req == fb_pending)
+                fb_pending = -1;
+            fb_update.unlock();
+            oled->update_display(framebuffers[fb_req]);
+        }, oled);
+    }
+
+    fb_update.unlock();
 }
 
 OLEDWidget::OLEDWidget(): display(256, 64, QImage::Format_RGB888) {
