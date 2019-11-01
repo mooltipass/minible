@@ -1,34 +1,34 @@
 #include "emu_storage.h"
 
+#include <stdlib.h>
 #include <QDebug>
 #include <QFile>
 
 static QFile eeprom("eeprom.bin");
 static QFile dbflash("dbflash.bin");
-static void emu_open_flash(QFile & flashFile)
+static bool emu_open_flash(QFile & flashFile)
 {
-    if(!flashFile.isOpen() && !flashFile.fileName().isEmpty()) {
-        if(!flashFile.open(QIODevice::ReadWrite)) {
-            qWarning() << "Failed to open emulated flash" << flashFile.fileName();
-            flashFile.setFileName(QString()); // mark the file as unusable
-        }
+    if(!flashFile.open(QIODevice::ReadWrite)) {
+        qWarning() << "Failed to open emulated flash" << flashFile.fileName();
+        abort();
     }
+
+    return flashFile.size() > 0;
 }
 
 static void emu_extend_flash(QFile & flashFile, int size)
 {
-    flashFile.seek(flashFile.size());
-
-    while(flashFile.size() < size) 
-        flashFile.putChar('\xff');
+    if(flashFile.size() < size) {
+        flashFile.seek(flashFile.size());
+        int extend_size = size - flashFile.size();
+        flashFile.write(QByteArray(extend_size, '\xff'));
+    }
     
     flashFile.flush();
 }
 
 static void emu_flash_read(QFile & flashFile, int offset, uint8_t *buf, int length) 
 {
-    emu_open_flash(flashFile);
-
     if(flashFile.isOpen()) {
         emu_extend_flash(flashFile, offset+length);
         flashFile.seek(offset);
@@ -49,6 +49,11 @@ static void emu_flash_write(QFile & flashFile, int offset, uint8_t *buf, int len
     }
 }
 
+BOOL emu_eeprom_open()
+{
+    return emu_open_flash(eeprom);
+}
+
 void emu_eeprom_read(int offset, uint8_t *buf, int length)
 {
     return emu_flash_read(eeprom, offset, buf, length);
@@ -57,6 +62,11 @@ void emu_eeprom_read(int offset, uint8_t *buf, int length)
 void emu_eeprom_write(int offset, uint8_t *buf, int length)
 {
     return emu_flash_write(eeprom, offset, buf, length);
+}
+
+BOOL emu_dbflash_open()
+{
+    return emu_open_flash(dbflash);
 }
 
 void emu_dbflash_read(int offset, uint8_t *buf, int length)

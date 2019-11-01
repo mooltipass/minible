@@ -789,6 +789,9 @@ static uint8_t eeprom[256 * 16];
 
 static void custom_fs_init_custom_storage_slots(void)
 {
+    if(!emu_eeprom_open())
+        custom_fs_settings_set_defaults();
+
     emu_eeprom_read(0, eeprom, sizeof(eeprom));
 }
 

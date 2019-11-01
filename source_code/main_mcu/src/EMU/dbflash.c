@@ -22,7 +22,14 @@ void dbflash_write_data_to_flash(spi_flash_descriptor_t* descriptor_pt, uint16_t
     emu_dbflash_write(pageNumber * BYTES_PER_PAGE + offset, data, dataSize);
 }
 
+static BOOL initialized = FALSE;
+
 RET_TYPE dbflash_check_presence(spi_flash_descriptor_t* descriptor_pt)
-{
+{   
+    if(!initialized) {
+        initialized = TRUE;
+        emu_dbflash_open();
+    }
+
     return RETURN_OK;
 }
