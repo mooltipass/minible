@@ -17,9 +17,11 @@ public:
 
 protected:
     virtual void paintEvent(QPaintEvent *);
-    virtual void wheelEvent(QWheelEvent *event);
-    virtual void mousePressEvent(QMouseEvent *event);
-    virtual void mouseReleaseEvent(QMouseEvent *event);
+    virtual void wheelEvent(QWheelEvent *evt);
+    virtual void mousePressEvent(QMouseEvent *evt);
+    virtual void mouseReleaseEvent(QMouseEvent *evt);
+    virtual void keyPressEvent(QKeyEvent *evt);
+    virtual void keyReleaseEvent(QKeyEvent *evt);
 };
 
 extern "C" {

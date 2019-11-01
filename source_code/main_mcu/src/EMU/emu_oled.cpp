@@ -13,6 +13,7 @@ extern "C" {
 #include <QPainter>
 #include <QWheelEvent>
 #include <QMouseEvent>
+#include <QKeyEvent>
 #include <QThread>
 
 #define FB_WIDTH (256)
@@ -147,23 +148,57 @@ extern "C" volatile uint16_t inputs_wheel_click_duration_counter;
 extern "C" volatile det_ret_type_te inputs_wheel_click_return;
 
 
-void OLEDWidget::wheelEvent(QWheelEvent *event) {
-    int delta = event->angleDelta().y()/120;
+void OLEDWidget::wheelEvent(QWheelEvent *evt) {
+    int delta = evt->angleDelta().y()/120;
     irq_mutex.lock();
     inputs_wheel_cur_increment += delta;
     irq_mutex.unlock();
 }
 
-void OLEDWidget::mousePressEvent(QMouseEvent *event) {
+void OLEDWidget::mousePressEvent(QMouseEvent *evt) {
     irq_mutex.lock();
     if (inputs_wheel_click_return != RETURN_JRELEASED)
         inputs_wheel_click_return = RETURN_JDETECT;
     irq_mutex.unlock();
 }
 
-void OLEDWidget::mouseReleaseEvent(QMouseEvent *event) {
+void OLEDWidget::mouseReleaseEvent(QMouseEvent *evt) {
     irq_mutex.lock();
     if (inputs_wheel_click_return == RETURN_DET)
         inputs_wheel_click_return = RETURN_JRELEASED;
     irq_mutex.unlock();
+}
+
+void OLEDWidget::keyPressEvent(QKeyEvent *evt) {
+    irq_mutex.lock();
+    switch(evt->key()) {
+    case Qt::Key_Up:
+        inputs_wheel_cur_increment--;
+        break;
+    case Qt::Key_Down:
+        inputs_wheel_cur_increment++;
+        break;
+    case Qt::Key_Left:
+        if (inputs_wheel_click_return != RETURN_JRELEASED)
+            inputs_wheel_click_return = RETURN_JDETECT;
+        break;
+    case Qt::Key_Right:
+        inputs_wheel_click_duration_counter=3000;
+        break;
+    }
+    irq_mutex.unlock();
+}
+
+void OLEDWidget::keyReleaseEvent(QKeyEvent *evt) {
+    irq_mutex.lock();
+    switch(evt->key()) {
+    case Qt::Key_Left:
+        if (inputs_wheel_click_return == RETURN_DET)
+            inputs_wheel_click_return = RETURN_JRELEASED;
+        break;
+    case Qt::Key_Right:
+        break;
+    }
+    irq_mutex.unlock();
+
 }
