@@ -9,6 +9,8 @@ public:
 
 private:
     QWidget *createSmartcardUi();
+    QWidget *createBatteryUi();
+    QWidget *createChargerUi();
 };
 
 #endif
