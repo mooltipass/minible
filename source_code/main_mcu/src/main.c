@@ -434,10 +434,6 @@ int main(void)
         custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
     }
     
-    /* TO REMOVE */
-    //platform_io_set_no_comms();while(1);
-    platform_io_enable_ble();
-    
     /* Special developer features */
     #ifdef SPECIAL_DEVELOPER_CARD_FEATURE
     /* Check if this is running on a device without bootloader, add CPZ entry for special card */

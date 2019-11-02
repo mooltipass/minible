@@ -1176,7 +1176,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             /* This function checks for out of boundary conditions... */
             if (custom_fs_get_language_description(rcv_msg->payload[0], (cust_char_t*)send_msg->payload_as_uint16) == RETURN_OK)
             {
-                send_msg->payload_length = utils_strlen((cust_char_t*)send_msg->payload_as_uint16);
+                send_msg->payload_length = utils_strlen((cust_char_t*)send_msg->payload_as_uint16)*sizeof(uint16_t) + sizeof(uint16_t);
                 send_msg->message_type = rcv_message_type;
                 return send_msg->payload_length;
             } 
@@ -1194,7 +1194,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             /* This function checks for out of boundary conditions... */
             if (custom_fs_get_keyboard_descriptor_string(rcv_msg->payload[0], (cust_char_t*)send_msg->payload_as_uint16) == RETURN_OK)
             {
-                send_msg->payload_length = utils_strlen((cust_char_t*)send_msg->payload_as_uint16);
+                send_msg->payload_length = utils_strlen((cust_char_t*)send_msg->payload_as_uint16)*sizeof(uint16_t) + sizeof(uint16_t);
                 send_msg->message_type = rcv_message_type;
                 return send_msg->payload_length;
             }
