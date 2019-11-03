@@ -245,6 +245,7 @@ Device Answer:
 | 9 | uint8_t | Default char after login | 0 | 255 |
 | 10 | uint8_t | Default char after pass | 0 | 255 |
 | 11 | uint8_t | Delay between key presses | 0 | 255 |
+| 12 | bool    | Boot Animation | 0 | N/A |
 
 Notes:  
 
