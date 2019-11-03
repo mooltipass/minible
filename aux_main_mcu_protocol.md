@@ -27,7 +27,11 @@ from main MCU:
 - 0x0006: [NiMH Charge Status Message Request/Answer from/to Main MCU](nimh_charge_message)  
 - 0x0007: [Ping Request with Information from Main MCU](ping_with_info_message)  
 - 0x0008: [Keyboard typing message](keyboard_typing_message)  
-  
+
+- 0x000B: [FIDO2 Authenticate Credential] (Authenticate a FIDO2 credential)
+- 0x000C: [FIDO2 Make Authenicator Data AUX Request] (Create authenticator data request from AUX MCU to Main MCU for FIDO2 credential)
+- 0x000D: [FIDO2 Make Authenicator Data] (Create authenticator data response from MAIN MCU to AUX MCU for FIDO2 credential)
+
 **From Main MCU: Payload Length Field**  
 Total payload length.  
 
