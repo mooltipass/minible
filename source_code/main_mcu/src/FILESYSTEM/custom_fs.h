@@ -44,8 +44,9 @@
 #define SETTINGS_CHAR_AFTER_LOGIN_PRESS     5
 #define SETTINGS_CHAR_AFTER_PASS_PRESS      6
 #define SETTINGS_DELAY_BETWEEN_PRESSES      7
+#define SETTINGS_BOOT_ANIMATION             8
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    8
+#define SETTINGS_NB_USED                    9
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32

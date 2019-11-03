@@ -463,25 +463,19 @@ int main(void)
     /* Activity detected */
     logic_device_activity_detected();
     
-    #ifndef DEV_SKIP_INTRO_ANIM
     /* Start animation */    
-    for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
+    if ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_BOOT_ANIMATION) != FALSE)
     {
-        timer_start_timer(TIMER_WAIT_FUNCTS, 28);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
-        while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
+        for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
         {
-            comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+            timer_start_timer(TIMER_WAIT_FUNCTS, 28);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
+            while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
+            {
+                comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+            }
         }
-    }    
-    
-    /* End of animation: freeze on image, perform long time taking inits... */
-    /*timer_start_timer(TIMER_WAIT_FUNCTS, 1500);
-    while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
-    {
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
-    }*/
-    #endif
+    }  
     
     /* Get current smartcard detection result */
     det_ret_type_te card_detection_res = smartcard_lowlevel_is_card_plugged();
