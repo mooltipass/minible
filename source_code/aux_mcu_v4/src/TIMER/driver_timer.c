@@ -74,6 +74,19 @@ void timer_remove_callback_timer(void* timer_id)
     cpu_irq_leave_critical();
 }
 
+/*! \brief  Reset all callback timers
+*/
+void timer_reset_callback_timers(void)
+{
+    for (uint32_t i = 0; i < TIMER_NB_CALLBACK_TIMERS; i++)
+    {
+        cpu_irq_enter_critical();
+        callback_timers[i].timer_enabled = FALSE;
+        callback_timers[i].timer_armed = FALSE;
+        cpu_irq_leave_critical();
+    }
+}
+
 /*! \brief  Callback timer start to match the damn asf lib
 *   \param  timer_id Callback timer_id
 *   \param  ms       Number of ms.... I guess?

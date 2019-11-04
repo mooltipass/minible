@@ -327,6 +327,7 @@
       <Value>USART_CALLBACK_MODE=true</Value>
       <Value>HID_GATT_SERVER</Value>
       <Value>BATTERY_SERVICE</Value>
+      <Value>BTLC_REINIT_SUPPORT</Value>
       <Value>NDEBUG</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
@@ -553,6 +554,7 @@
       <Value>USART_CALLBACK_MODE=true</Value>
       <Value>HID_GATT_SERVER</Value>
       <Value>BATTERY_SERVICE</Value>
+      <Value>BTLC_REINIT_SUPPORT</Value>
       <Value>DEBUG</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
