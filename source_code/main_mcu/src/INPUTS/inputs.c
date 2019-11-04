@@ -192,7 +192,8 @@ void inputs_scan(void)
         }
         #endif
         
-        if ((inputs_wheel_click_counter == 50) && (inputs_wheel_click_return != RETURN_JRELEASED))
+        /* Was previously 50, decreased to 5 as we have hardware debouncing */
+        if ((inputs_wheel_click_counter == 5) && (inputs_wheel_click_return != RETURN_JRELEASED))
         {
             inputs_wheel_click_return = RETURN_JDETECT;
         }
