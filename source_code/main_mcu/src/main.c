@@ -432,6 +432,9 @@ int main(void)
         
         /* Set flag */
         custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
+        
+        /* Clear frame buffer */
+        sh1122_fade_into_darkness(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     }
     
     /* Special developer features */
