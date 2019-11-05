@@ -205,19 +205,19 @@ void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, disp
 {
     uint16_t i = 0;
     
+    // Store current smartcard inserted state
+    ret_type_te card_absent = smartcard_low_level_is_smc_absent();
+    
     // Display string 
     gui_prompts_display_information_on_screen(string_id, message_type);
     
     // Clear current detections
     inputs_clear_detections();
     
-    // Store current smartcard inserted state
-    ret_type_te card_absent = smartcard_low_level_is_smc_absent();
-    
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
     timer_start_timer(TIMER_WAIT_FUNCTS, 3000);
-    while ((timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK) && (card_absent == smartcard_low_level_is_smc_absent()))
+    while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
     {
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);        
         
@@ -233,6 +233,12 @@ void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, disp
             
             /* Animation depending on message type */
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+i, FALSE);                 
+        }
+        
+        /* Click to exit or card removed */
+        if ((inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK) || (card_absent != smartcard_low_level_is_smc_absent()))
+        {
+            return;
         }
     }
 }
@@ -1146,7 +1152,7 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
     /* Check if there are stored credentials */
     if (first_child_address == NODE_ADDR_NULL)
     {
-        gui_prompts_display_information_on_screen(NO_CREDS_TEXT_ID, DISP_MSG_INFO);
+        gui_prompts_display_information_on_screen_and_wait(NO_CREDS_TEXT_ID, DISP_MSG_INFO);
         return NODE_ADDR_NULL;
     }
     
