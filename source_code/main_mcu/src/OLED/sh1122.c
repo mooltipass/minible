@@ -25,24 +25,23 @@ static const uint8_t sh1122_init_sequence[] =
     // 5) VSL set by displaying greyscale picture and getting nice gamma >> moved to 1 (might want to change back if there's a problem in the future)
     // 6) readjusted contrast current using 1)
     SH1122_CMD_SET_DISPLAY_OFF,                 0,                      // Set Display Off
-    SH1122_CMD_SET_ROW_ADDR,                    1, 0x00,                // Row Address Mode Setting
-    SH1122_CMD_SET_HIGH_COLUMN_ADDR,            0,                      // Set Higher Column Address
-    SH1122_CMD_SET_LOW_COLUMN_ADDR,             0,                      // Set Lower Column Address
     SH1122_CMD_SET_CLOCK_DIVIDER,               1, 0x50,                // Set Display Clock Divide Ratio / Oscillator Frequency: default fosc (512khz) and divide ratio of 1 > Fframe = 512 / 64 / 64 / 1 = 125Hz
-    SS1122_CMD_SET_DISCHARGE_PRECHARGE_PERIOD,  1, 0x22,                // Set Discharge/Precharge Period: 2DCLK & 2DCLK (default)
-    SH1122_CMD_SET_DISPLAY_START_LINE | 32,     0,                      // Set Display Start Line To 32 (not sure why, but it's the right value when flipping the display...)
-    SH1122_CMD_SET_CONTRAST_CURRENT,            1, 0x80,                // Contrast Control Mode Set (up to 0xFF)
+    SH1122_CMD_SET_MULTIPLEX_RATIO,             1, 0x3F,                // Mutiplex Ratio To 64
+    SH1122_CMD_SET_DISPLAY_OFFSET,              1, 0x00,                // No Display Offset
+    SH1122_CMD_SET_ROW_ADDR,                    1, 0x00,                // Row Address Mode Setting
+    SH1122_CMD_SET_DISPLAY_START_LINE | 32,     0,                      // Set Display Start Line To 32
+    SH1122_CMD_SET_DISCHARGE_VSL_LEVEL | 0x01,  0,                      // VSL = 0.1*Vref
+    SH1122_CMD_SET_DCDC_SETTING,                1, 0x80,                // Start Configuring Onboard DCDC
     SH1122_CMD_SET_SEGMENT_REMAP | 0x01,        0,                      // Set Segment Re-map to Reverse Direction
     SH1122_CMD_SET_SCAN_DIRECTION | 0x08,       0,                      // Scam from COM0 to COM[N-1]
-    SH1122_CMD_SET_DISPLAY_OFF_ON | 0x00,       0,                      // Normal Display Status, Not Forced to ON
-    SH1122_CMD_SET_NORMAL_DISPLAY,              0,                      // Display Bits Normally Interpreted
-    SH1122_CMD_SET_MULTIPLEX_RATIO,             1, 0x3F,                // Mutiplex Ratio To 64
-    SH1122_CMD_SET_DCDC_SETTING,                0,                      // Start Configuring Onboard DCDC
-    SH1122_CMD_SET_DCDC_DISABLE,                0,                      // Disable DCDC
-    SH1122_CMD_SET_DISPLAY_OFFSET,              1, 0x00,                // No Display Offset
+    SH1122_CMD_SET_CONTRAST_CURRENT,            1, 0x80,                // Contrast Control Mode Set (up to 0xFF)
+    SS1122_CMD_SET_DISCHARGE_PRECHARGE_PERIOD,  1, 0x76,                // Set Discharge/Precharge Period: 7DCLK & 6DCLK
     SH1122_CMD_SET_VCOM_DESELECT_LEVEL,         1, 0x30,                // VCOMH = (0.430+ A[7:0] X 0.006415) X VREF
     SH1122_CMD_SET_VSEGM_LEVEL,                 1, 0x00,                // VSEGM = (0.430+ A[7:0] X 0.006415) X VREF
-    SH1122_CMD_SET_DISCHARGE_VSL_LEVEL | 0x01,  0                       // VSL = 0.1*Vref
+    SH1122_CMD_SET_NORMAL_DISPLAY,              0,                      // Display Bits Normally Interpreted
+    SH1122_CMD_SET_HIGH_COLUMN_ADDR,            0,                      // Set Higher Column Address
+    SH1122_CMD_SET_LOW_COLUMN_ADDR,             0,                      // Set Lower Column Address
+    SH1122_CMD_SET_DISPLAY_OFF_ON | 0x00,       0                       // Normal Display Status, Not Forced to ON
 };
 
 

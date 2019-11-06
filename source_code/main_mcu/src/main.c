@@ -318,6 +318,7 @@ void main_platform_init(void)
     
     /* Set screen brightness */
     sh1122_set_contrast_current(&plat_oled_descriptor, custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT));
+    debug_test_pattern_display();
 }
 
 /*! \fn     main_reboot(void)

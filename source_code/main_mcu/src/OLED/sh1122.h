@@ -31,7 +31,6 @@
 #define SH1122_CMD_SET_REVERSE_DISPLAY                  0xA7
 #define SH1122_CMD_SET_MULTIPLEX_RATIO                  0xA8
 #define SH1122_CMD_SET_DCDC_SETTING                     0xAD
-#define SH1122_CMD_SET_DCDC_DISABLE                     0x80
 #define SH1122_CMD_SET_DISPLAY_OFFSET                   0xD3
 #define SH1122_CMD_SET_VCOM_DESELECT_LEVEL              0xDB
 #define SH1122_CMD_SET_VSEGM_LEVEL                      0xDC
