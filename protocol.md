@@ -246,6 +246,7 @@ Device Answer:
 | 10 | uint8_t | Default char after pass | 0 | 255 |
 | 11 | uint8_t | Delay between key presses | 0 | 255 |
 | 12 | bool    | Boot Animation | 0 | N/A |
+| 13 | uint8_t | Screen brightness | 0 | 255 |
 
 Notes:  
 
