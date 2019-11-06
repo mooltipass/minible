@@ -90,6 +90,9 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
     #endif
     
+    /* Clear current detections, allowing user to skip just after intro animation */
+    inputs_clear_detections();
+    
     /* Animation depending on message type */
     for (uint16_t i = 0; i < gui_prompts_notif_popup_anim_length[message_type]; i++)
     {
@@ -162,6 +165,9 @@ void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_li
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
     #endif
     
+    /* Clear current detections, allowing user to skip just after intro animation */
+    inputs_clear_detections();
+    
     /* Animation depending on message type */
     for (uint16_t i = 0; i < gui_prompts_notif_popup_anim_length[message_type]; i++)
     {
@@ -211,13 +217,10 @@ void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, disp
     // Display string 
     gui_prompts_display_information_on_screen(string_id, message_type);
     
-    // Clear current detections
-    inputs_clear_detections();
-    
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
     timer_start_timer(TIMER_WAIT_FUNCTS, 3000);
-    while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
+    while ((timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK) && (card_absent == smartcard_low_level_is_smc_absent()))
     {
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);        
         
@@ -234,12 +237,6 @@ void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, disp
             /* Animation depending on message type */
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+i, FALSE);                 
         }
-        
-        /* Click to exit or card removed */
-        if ((inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK) || (card_absent != smartcard_low_level_is_smc_absent()))
-        {
-            return;
-        }
     }
 }
 
@@ -254,9 +251,6 @@ void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
     
     // Display string
     gui_prompts_display_3line_information_on_screen(text_lines, message_type);
-    
-    // Clear current detections
-    inputs_clear_detections();
     
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
@@ -657,6 +651,9 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     #endif
     
+    /* Clear possible remaining detection */
+    inputs_clear_detections();
+    
     /* Transition the action bitmap */
     for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
     {
@@ -671,9 +668,6 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     /* Wait for user input */
     mini_input_yes_no_ret_te input_answer = MINI_INPUT_RET_NONE;
     wheel_action_ret_te detect_result;
-    
-    /* Clear possible remaining detection */
-    inputs_clear_detections();
 
     /* Arm timer for flashing */
     timer_start_timer(TIMER_ANIMATIONS, 1000);
