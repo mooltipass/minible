@@ -139,7 +139,7 @@ void debug_debug_menu(void)
             {
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Display All Fonts Glyphs", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Setup Developper Card", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Language Switch Test", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Test Pattern Display", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Reset Device", TRUE);            
             }
             else if (selected_item < 12)
@@ -211,7 +211,7 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 6)
             {
-                debug_language_test();
+                debug_test_pattern_display();
             }
             else if (selected_item == 7)
             {
@@ -270,6 +270,14 @@ void debug_debug_menu(void)
     }
 }
 
+/*! \fn     debug_test_pattern_display(void)
+*   \brief  Display test pattern
+*/
+void debug_test_pattern_display(void)
+{
+    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, TEST_PATTERN__BITMAP_ID, FALSE);
+    while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK);
+}
 
 /*! \fn     debug_reset_device(void)
 *   \brief  Reset device: erase all flash memories
