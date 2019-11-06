@@ -315,6 +315,9 @@ void main_platform_init(void)
     
     /* Set settings that may not have been set to an initial value */
     custom_fs_set_undefined_settings();
+    
+    /* Set screen brightness */
+    sh1122_set_contrast_current(&plat_oled_descriptor, custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT));
 }
 
 /*! \fn     main_reboot(void)

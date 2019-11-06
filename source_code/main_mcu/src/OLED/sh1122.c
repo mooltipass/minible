@@ -113,18 +113,7 @@ void sh1122_stop_data_sending(sh1122_descriptor_t* oled_descriptor)
 void sh1122_set_contrast_current(sh1122_descriptor_t* oled_descriptor, uint8_t contrast_current)
 {
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_CONTRAST_CURRENT);
-    sh1122_write_single_data(oled_descriptor, contrast_current);    
-}
-
-/*! \fn     sh1122_set_master_current(sh1122_descriptor_t* oled_descriptor, uint8_t contrast_current)
-*   \brief  Set master current for display
-*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
-*   \param  master_current      Master current (up to 0x0F)
-*/
-void sh1122_set_master_current(sh1122_descriptor_t* oled_descriptor, uint8_t master_current)
-{
-    sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_CONTRAST_CURRENT);
-    sh1122_write_single_data(oled_descriptor, master_current & 0x0F);    
+    sh1122_write_single_command(oled_descriptor, contrast_current);    
 }
 
 /*! \fn     sh1122_set_column_address(sh1122_descriptor_t* oled_descriptor, uint8_t start)

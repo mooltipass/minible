@@ -275,8 +275,28 @@ void debug_debug_menu(void)
 */
 void debug_test_pattern_display(void)
 {
+    wheel_action_ret_te action_ret = WHEEL_ACTION_NONE;
+    uint8_t master_current = custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT);
     sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, TEST_PATTERN__BITMAP_ID, FALSE);
-    while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK);
+    
+    while (action_ret != WHEEL_ACTION_SHORT_CLICK)
+    {
+        action_ret = inputs_get_wheel_action(FALSE, FALSE);
+        if (action_ret == WHEEL_ACTION_UP)
+        {
+            master_current++;
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, TEST_PATTERN__BITMAP_ID, FALSE);
+            sh1122_printf_xy(&plat_oled_descriptor, 40, 5, OLED_ALIGN_LEFT, FALSE, "0x%02x", master_current);
+            sh1122_set_contrast_current(&plat_oled_descriptor, master_current);
+        }
+        else if (action_ret == WHEEL_ACTION_DOWN)
+        {
+            master_current--;
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, TEST_PATTERN__BITMAP_ID, FALSE);
+            sh1122_printf_xy(&plat_oled_descriptor, 40, 5, OLED_ALIGN_LEFT, FALSE, "0x%02x", master_current);
+            sh1122_set_contrast_current(&plat_oled_descriptor, master_current);
+        }
+    }
 }
 
 /*! \fn     debug_reset_device(void)
