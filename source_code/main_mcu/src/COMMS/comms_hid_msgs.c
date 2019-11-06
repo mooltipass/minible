@@ -250,6 +250,9 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             /* Store all settings */
             custom_fs_settings_store_dump(rcv_msg->payload);
             
+            /* Actions run when settings are updated */
+            sh1122_set_contrast_current(&plat_oled_descriptor, custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT));
+            
             /* Set ack, leave same command id */
             send_msg->message_type = rcv_message_type;
             send_msg->payload[0] = HID_1BYTE_ACK;
