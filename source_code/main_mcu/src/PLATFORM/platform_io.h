@@ -23,10 +23,12 @@ void platform_io_disable_aux_tx_wakeup_interrupt(void);
 void platform_io_enable_usb_3v3_wakeup_interrupt(void);
 void platform_io_enable_aux_tx_wakeup_interrupt(void);
 void platform_io_prepare_ports_for_sleep_exit(void);
+void platform_io_disable_smartcard_interrupt(void);
 void platform_io_disable_vbat_to_oled_stepup(void);
 void platform_io_disable_scroll_wheel_ports(void);
 void platform_io_enable_vbat_to_oled_stepup(void);
 void platform_io_disable_3v3_to_oled_stepup(void);
+void platform_io_enable_smartcard_interrupt(void);
 void platform_io_enable_3v3_to_oled_stepup(void);
 void platform_io_init_bat_adc_measurements(void);
 void platform_io_set_wheel_click_pull_down(void);
@@ -34,6 +36,7 @@ void platform_io_init_accelerometer_ports(void);
 void platform_io_prepare_ports_for_sleep(void);
 void platform_io_init_scroll_wheel_ports(void);
 void platform_io_power_up_oled(BOOL power_3v3);
+BOOL platform_io_is_usb_3v3_present_raw(void);
 void platform_io_disable_switch_and_die(void);
 void platform_io_smc_inserted_function(void);
 void platform_io_init_no_comms_signal(void);
@@ -58,5 +61,6 @@ void platform_io_set_no_comms(void);
 void platform_io_disable_ble(void);
 void platform_io_init_ports(void);
 void platform_io_enable_ble(void);
+void platform_io_scan_3v3(void);
 
 #endif /* PLATFORM_IO_H_ */

@@ -194,6 +194,34 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             send_msg->payload_length = 1;
             return 1;
         }
+        case HID_CMD_ID_SET_OLED_PARAMS:
+        {
+            /* vcomh change requires oled on / off */
+            uint8_t vcomh = rcv_msg->payload[1];
+            
+            /* Do required actions */
+            if (vcomh != 0xFF)
+            {
+                sh1122_oled_off(&plat_oled_descriptor);
+            }
+            sh1122_set_contrast_current(&plat_oled_descriptor, rcv_msg->payload[0]);
+            if (vcomh != 0xFF)
+            {
+                sh1122_set_vcomh_level(&plat_oled_descriptor, vcomh);
+            }
+            sh1122_set_vsegm_level(&plat_oled_descriptor, rcv_msg->payload[2]);
+            sh1122_set_discharge_charge_periods(&plat_oled_descriptor, rcv_msg->payload[3] | (rcv_msg->payload[4] << 4));
+            sh1122_set_discharge_vsl_level(&plat_oled_descriptor, rcv_msg->payload[5]);
+            if (vcomh != 0xFF)
+            {
+                sh1122_oled_on(&plat_oled_descriptor);
+            }
+            
+            /* Set ack, leave same command id */
+            send_msg->payload[0] = HID_1BYTE_ACK;
+            send_msg->payload_length = 1;
+            return 1;
+        }
         case HID_CMD_ID_START_BOOTLOADER:
         {
             custom_fs_set_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID, TRUE);

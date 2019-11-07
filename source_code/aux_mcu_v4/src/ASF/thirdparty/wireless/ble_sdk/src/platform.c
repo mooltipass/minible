@@ -41,6 +41,7 @@
 #include "ble_utils.h"
 #include "logic_sleep.h"
 #include "conf_serialdrv.h"
+#include "driver_timer.h"
 #include "platform_io.h"
 #include "timer_hw.h"
 
@@ -64,7 +65,7 @@ at_ble_status_t platform_init(uint8_t bus_type, uint8_t btlc1000_module_version)
 	{	
 		#ifdef BTLC_REINIT_SUPPORT	
 		platform_signal_set_default();
-		platform_reset_timer();
+		timer_reset_callback_timers();
 		#endif
         
         delay_init();

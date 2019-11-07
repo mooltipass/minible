@@ -9,6 +9,7 @@
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "logic_device.h"
+#include "platform_io.h"
 #include "gui_prompts.h"
 #include "custom_fs.h"
 #include "nodemgmt.h"
@@ -89,6 +90,9 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
     #endif
     
+    /* Clear current detections, allowing user to skip just after intro animation */
+    inputs_clear_detections();
+    
     /* Animation depending on message type */
     for (uint16_t i = 0; i < gui_prompts_notif_popup_anim_length[message_type]; i++)
     {
@@ -161,6 +165,9 @@ void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_li
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
     #endif
     
+    /* Clear current detections, allowing user to skip just after intro animation */
+    inputs_clear_detections();
+    
     /* Animation depending on message type */
     for (uint16_t i = 0; i < gui_prompts_notif_popup_anim_length[message_type]; i++)
     {
@@ -204,14 +211,11 @@ void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, disp
 {
     uint16_t i = 0;
     
-    // Display string 
-    gui_prompts_display_information_on_screen(string_id, message_type);
-    
-    // Clear current detections
-    inputs_clear_detections();
-    
     // Store current smartcard inserted state
     ret_type_te card_absent = smartcard_low_level_is_smc_absent();
+    
+    // Display string 
+    gui_prompts_display_information_on_screen(string_id, message_type);
     
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
@@ -247,9 +251,6 @@ void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
     
     // Display string
     gui_prompts_display_3line_information_on_screen(text_lines, message_type);
-    
-    // Clear current detections
-    inputs_clear_detections();
     
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
@@ -595,18 +596,28 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     return ret_val;
 }
 
-/*! \fn     gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen)
+/*! \fn     gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt)
 *   \brief  Ask for user confirmation for different things
 *   \param  string_id       String ID
 *   \param  flash_screen    Boolean to flash screen
+*   \param  usb_ble_prompt  Set to TRUE to get BLE/USB icons, FALSE for yes/no
 *   \return See enum
 */
-mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen)
+mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt)
 {
+    uint16_t bitmap_yes_no_array[8] = {BITMAP_POPUP_2LINES_Y, BITMAP_POPUP_2LINES_N, BITMAP_2LINES_PRESS_Y, BITMAP_2LINES_PRESS_N, BITMAP_2LINES_SEL_Y, BITMAP_2LINES_SEL_N, BITMAP_2LINES_IDLE_Y, BITMAP_2LINES_IDLE_N};
+    uint16_t bitmap_usb_ble_array[8] = {BITMAP_POPUP_USB, BITMAP_POPUP_BLE, BITMAP_USB_PRESS, BITMAP_BLE_PRESS, BITMAP_USB_SELECT, BITMAP_BLE_SELECT, BITMAP_USB_IDLE, BITMAP_BLE_IDLE};
     cust_char_t* string_to_display;
     BOOL approve_selected = TRUE;
     BOOL flash_flag = FALSE;
     uint16_t flash_sm = 0;
+    
+    /* Set array pointer depending on prompt type */
+    uint16_t* bitmap_array_pt = &bitmap_yes_no_array[0];
+    if (usb_ble_prompt != FALSE)
+    {
+        bitmap_array_pt = &bitmap_usb_ble_array[0];
+    }
     
     /* Try to fetch the string to display */
     custom_fs_get_string_from_file(string_id, &string_to_display, TRUE);
@@ -640,23 +651,23 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     #endif
     
+    /* Clear possible remaining detection */
+    inputs_clear_detections();
+    
     /* Transition the action bitmap */
     for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
     {
         /* Write both in frame buffer and display */
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_Y+i, FALSE);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_Y+i, TRUE);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_N+i, FALSE);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_2LINES_N+i, TRUE);            
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, FALSE);
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, TRUE);
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, FALSE);
+        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, TRUE);            
         timer_delay_ms(15);
     }
     
     /* Wait for user input */
     mini_input_yes_no_ret_te input_answer = MINI_INPUT_RET_NONE;
     wheel_action_ret_te detect_result;
-    
-    /* Clear possible remaining detection */
-    inputs_clear_detections();
 
     /* Arm timer for flashing */
     timer_start_timer(TIMER_ANIMATIONS, 1000);
@@ -695,7 +706,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
                 input_answer = MINI_INPUT_RET_YES;
                 for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_PRESS_Y+i, FALSE);
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[2]+i, FALSE);
                     timer_delay_ms(10);
                 }
             }
@@ -704,7 +715,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
                 input_answer = MINI_INPUT_RET_NO;
                 for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_PRESS_N+i, FALSE);
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[3]+i, FALSE);
                     timer_delay_ms(10);
                 }
             }
@@ -730,8 +741,8 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
             {
                 for (uint16_t i = 0; i < CONF_2LINES_SEL_AN_LGTH; i++)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_Y+i, FALSE);
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_N+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4]+i, FALSE);
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5]+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
                     timer_delay_ms(10);
                 }
             }
@@ -739,8 +750,8 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
             {
                 for (uint16_t i = 0; i < CONF_2LINES_SEL_AN_LGTH; i++)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_N+i, FALSE);
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_SEL_Y+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5]+i, FALSE);
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4]+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
                     timer_delay_ms(10);
                 }
             }                
@@ -756,11 +767,11 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
         {
             if (approve_selected == FALSE)
             {
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_IDLE_N+flash_sm, FALSE);
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[7]+flash_sm, FALSE);
             }
             else
             {
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_2LINES_IDLE_Y+flash_sm, FALSE);
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[6]+flash_sm, FALSE);
             }
             
             /* Rearm timer */
@@ -1135,7 +1146,7 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
     /* Check if there are stored credentials */
     if (first_child_address == NODE_ADDR_NULL)
     {
-        gui_prompts_display_information_on_screen(NO_CREDS_TEXT_ID, DISP_MSG_INFO);
+        gui_prompts_display_information_on_screen_and_wait(NO_CREDS_TEXT_ID, DISP_MSG_INFO);
         return NODE_ADDR_NULL;
     }
     
@@ -2508,11 +2519,15 @@ int16_t gui_prompts_favorite_selection_screen(void)
     return -1;
 }
 
-/*! \fn     gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice)
+/*! \fn     gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, BOOL ignore_timeout_if_usb_powered, BOOL ignore_card_removal, BOOL usb_layout_choice)
 *   \brief  select language or keyboard layout, depending on the bool
-*   \param  layout_choice TRUE to choose layout, FALSE for language
+*   \param  layout_choice                   TRUE to choose layout, FALSE for language
+*   \param  ignore_timeout_if_usb_powered   TRUE to discard timeout if we are usb powered
+*   \param  ignore_card_removal             TRUE to ignore card removal
+*   \param  usb_layout_choice               If layout_choice is TRUE, selects either usb or ble layout choice
+*   \return RETURN_OK if it was a choice, NOK if timeout or card removal
 */
-void gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice)
+ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, BOOL ignore_timeout_if_usb_powered, BOOL ignore_card_removal, BOOL usb_layout_choice)
 {    
     _Static_assert(CUSTOM_FS_KEYBOARD_DESC_LGTH >= MEMBER_ARRAY_SIZE(language_map_entry_t,language_descr), "Incorrect buffer length");
     cust_char_t string_buffer[CUSTOM_FS_KEYBOARD_DESC_LGTH + 4];
@@ -2527,7 +2542,7 @@ void gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice)
     }
     else
     {
-        cur_item_id = custom_fs_get_current_layout_id();
+        cur_item_id = custom_fs_get_current_layout_id(usb_layout_choice);
         nb_items = custom_fs_get_number_of_keyb_layouts();
     }
     
@@ -2558,7 +2573,6 @@ void gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice)
     BOOL first_function_run = TRUE;
     int16_t animation_step = 0;
     BOOL redraw_needed = TRUE;
-    BOOL action_taken = FALSE;
     
     /* Lines display settings */
     uint16_t fonts_to_be_used[4] = {FONT_UBUNTU_REGULAR_16_ID, FONT_UBUNTU_REGULAR_13_ID, FONT_UBUNTU_MEDIUM_15_ID, FONT_UBUNTU_REGULAR_13_ID};
@@ -2568,18 +2582,26 @@ void gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice)
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
     
     /* Loop until something has been done */
-    while (action_taken == FALSE)
+    while (TRUE)
     {
         /* User interaction timeout */
         if (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED)
-        {            
-            return;
+        {
+            if ((ignore_timeout_if_usb_powered != FALSE) && (platform_io_is_usb_3v3_present() != FALSE))
+            {
+                /* Just rearm timer */
+                logic_device_activity_detected();
+            }
+            else
+            {
+                return RETURN_NOK;
+            }                
         }
         
         /* Card removed */
-        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        if ((smartcard_low_level_is_smc_absent() == RETURN_OK) && (ignore_card_removal == FALSE))
         {
-            return;
+            return RETURN_NOK;
         }
         
         /* Deal with simple messages */
@@ -2595,13 +2617,13 @@ void gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice)
             }
             else
             {
-                custom_fs_set_current_keyboard_id(first_item_id_in_list+1);
+                custom_fs_set_current_keyboard_id(first_item_id_in_list+1, usb_layout_choice);
             }
-            return;
+            return RETURN_OK;
         }
         else if (detect_result == WHEEL_ACTION_LONG_CLICK)
         {
-            return;
+            return RETURN_NOK;
         }
         else if (detect_result == WHEEL_ACTION_DOWN)
         {

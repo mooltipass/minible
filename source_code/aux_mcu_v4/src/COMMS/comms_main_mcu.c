@@ -53,6 +53,37 @@ aux_mcu_message_t* comms_main_mcu_get_temp_tx_message_object_pt(void)
     return (aux_mcu_message_t*)&main_mcu_send_message;
 }
 
+/*! \fn     comms_main_mcu_get_temp_rx_message_object_pt(void)
+*   \brief  Get a pointer to our temporary rx message object
+*/
+aux_mcu_message_t* comms_main_mcu_get_temp_rx_message_object_pt(void)
+{
+    return (aux_mcu_message_t*)&comms_main_mcu_temp_message;
+}
+
+/*! \fn     comms_main_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type)
+*   \brief  Get an empty message ready to be sent
+*   \param  message_pt_pt           Pointer to where to store message pointer
+*   \param  message_type            Message type
+*/
+void comms_main_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type)
+{
+    /* Wait for possible ongoing message to be sent */
+    dma_wait_for_main_mcu_packet_sent();
+    
+    /* Get pointer to our message to be sent buffer */
+    aux_mcu_message_t* temp_tx_message_pt = &main_mcu_send_message;
+    
+    /* Clear it */
+    memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
+    
+    /* Populate the fields */
+    temp_tx_message_pt->message_type = message_type;
+    
+    /* Store message pointer */
+    *message_pt_pt = temp_tx_message_pt;
+}
+
 /*! \fn     comms_main_mcu_send_simple_event(uint16_t event_id)
 *   \brief  Send a simple event to main MCU
 *   \param  event_id    The event ID
@@ -187,6 +218,8 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
     }    
     else if (message->message_type == AUX_MCU_MSG_TYPE_KEYBOARD_TYPE)
     {
+        BOOL typing_success_bool = TRUE;
+        
         /* Iterate over symbols */
         uint16_t counter = 0;
         while(message->keyboard_type_message.keyboard_symbols[counter] != 0)
@@ -208,18 +241,37 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 }                    
                 
                 /* One key to be typed */
-                logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)symbol, is_dead_key, message->keyboard_type_message.delay_between_types);
+                if (logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)symbol, is_dead_key, message->keyboard_type_message.delay_between_types) != RETURN_OK)
+                {
+                    typing_success_bool = FALSE;
+                    break;
+                }
             }
             else
             {
                 /* Two keys to be typed */
-                logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)(symbol >> 8), FALSE, message->keyboard_type_message.delay_between_types);
-                logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)symbol, FALSE, message->keyboard_type_message.delay_between_types); 
+                if (logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)(symbol >> 8), FALSE, message->keyboard_type_message.delay_between_types) != RETURN_OK)
+                {
+                    typing_success_bool = FALSE;
+                    break;
+                }
+                if (logic_keyboard_type_symbol((hid_interface_te)message->keyboard_type_message.interface_identifier, (uint8_t)symbol, FALSE, message->keyboard_type_message.delay_between_types) != RETURN_OK)
+                {
+                    typing_success_bool = FALSE;
+                    break;
+                }
             }
             
             /* Move on to the next symbol */
             counter++;
         }
+            
+        /* Send success status */
+        memset((void*)message, 0x00, sizeof(aux_mcu_message_t));
+        message->message_type = AUX_MCU_MSG_TYPE_KEYBOARD_TYPE;
+        message->payload_as_uint16[0] = (uint16_t)typing_success_bool;
+        message->payload_length1 = sizeof(uint16_t);
+        comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
     }
     else if (message->message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD)
     {
@@ -281,7 +333,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 break;
             }
             case MAIN_MCU_COMMAND_ENABLE_BLE:
-            {
+            {                
                 /* Enable BLE */
                 if (logic_is_ble_enabled() == FALSE)
                 {
@@ -299,7 +351,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* Enable BLE */
                 if (logic_is_ble_enabled() != FALSE)
                 {
-                    // TODO: implement calls to the BLE api
+                    logic_bluetooth_stop_bluetooth();
                     logic_set_ble_disabled();
                 }
                 message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
@@ -323,7 +375,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             case MAIN_MCU_COMMAND_TX_SWEEP_SGL:
             {
                 /* ble_manager will send the event to main MCU */
-                debug_tx_sweep_start();
+                debug_tx_band_send(message->main_mcu_command_message.payload_as_uint16[0], message->main_mcu_command_message.payload_as_uint16[1], message->main_mcu_command_message.payload_as_uint16[2]);
                 break;
             }
             case MAIN_MCU_COMMAND_FUNC_TEST:
@@ -430,10 +482,13 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
     }
 }
 
-/*! \fn     comms_main_mcu_routine(void)
+/*! \fn     comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buffer, uint16_t expected_message_type)
 *   \brief  Routine dealing with main mcu comms
+*   \param  filter_and_force_use_of_temp_receive_buffer     Set to TRUE to force all received messages to be stored in the temp buffer and to not parse message if it matches expected_message_type
+*   \param  expected_message_type                           If filter_and_force_use_of_temp_receive_buffer is set to TRUE, expected message type to return RETURN_OK (NOT AUX_MCU_MSG_TYPE_USB & AUX_MCU_MSG_TYPE_BLE)
+*   \return RETURN_OK if filter_and_force_use_of_temp_receive_buffer is set to TRUE and received message type is of type expected_message_type, otherwise RETURN_NOK
 */
-void comms_main_mcu_routine(void)
+ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buffer, uint16_t expected_message_type)
 {	
     /* First: deal with fully received messages */
     if (dma_main_mcu_usb_msg_received != FALSE)
@@ -463,7 +518,15 @@ void comms_main_mcu_routine(void)
         
         if (comms_main_mcu_other_msg_answered_using_first_bytes == FALSE)
         {
-            comms_main_mcu_deal_with_non_usb_non_ble_message((aux_mcu_message_t*)&dma_main_mcu_other_message);
+            if ((filter_and_force_use_of_temp_receive_buffer != FALSE) && (dma_main_mcu_other_message.message_type == expected_message_type))
+            {
+                memcpy((void*)&comms_main_mcu_temp_message, (void*)&dma_main_mcu_other_message, sizeof(comms_main_mcu_temp_message));
+                return RETURN_OK;
+            } 
+            else
+            {
+                comms_main_mcu_deal_with_non_usb_non_ble_message((aux_mcu_message_t*)&dma_main_mcu_other_message);
+            }
         }
     }
     
@@ -516,7 +579,41 @@ void comms_main_mcu_routine(void)
         }
         else
         {
-            comms_main_mcu_deal_with_non_usb_non_ble_message((aux_mcu_message_t*)&comms_main_mcu_temp_message);  
+            if ((filter_and_force_use_of_temp_receive_buffer != FALSE) && (comms_main_mcu_temp_message.message_type == expected_message_type))
+            {
+                return RETURN_OK;
+            }
+            else
+            {
+                comms_main_mcu_deal_with_non_usb_non_ble_message((aux_mcu_message_t*)&comms_main_mcu_temp_message);  
+            }                
         }
     }
+    
+    return RETURN_NOK;
+}
+
+/*! \fn     comms_main_mcu_get_32_rng_bytes_from_main_mcu(uint8_t* buffer)
+*   \brief  Get 32 random bytes from main MCU
+*   \param  buffer  Where to store the random bytes
+*/
+void comms_main_mcu_get_32_rng_bytes_from_main_mcu(uint8_t* buffer)
+{
+    aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
+    aux_mcu_message_t* temp_tx_message_pt;
+    
+    /* Generate our packet */
+    comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_RNG_TRANSFER);   
+    
+    /* Set random payload size, as it doesn't matter */
+    temp_tx_message_pt->payload_length1 = 1;
+    
+    /* Send packet */
+    comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
+    
+    /* Wait for message from main MCU */
+    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_RNG_TRANSFER) != RETURN_OK);
+    
+    /* Received message is in temporary buffer */
+    memcpy((void*)buffer, (void*)temp_rx_message_pt->payload_as_uint16, 32);
 }

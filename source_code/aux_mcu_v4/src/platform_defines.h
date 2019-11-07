@@ -102,6 +102,13 @@ typedef uint32_t PIN_ID_T;
     #define AUXMCU_TX_PAD               0
 #endif
 
+#if defined(PLAT_V3_SETUP)
+    #define DBG_UART_GCLK_SERCOM_ID     GCLK_CLKCTRL_ID_SERCOM1_CORE_Val
+    #define DBG_UART_APB_SERCOM_BIT     SERCOM1_
+    #define DBG_UART_SERCOM             SERCOM1
+    #define DBG_UART_TX_PAD             0
+#endif
+
 /* DMA channel descriptors */
 #define DMA_DESCID_RX_COMMS         0
 #define DMA_DESCID_TX_COMMS         1
@@ -172,6 +179,19 @@ typedef uint32_t PIN_ID_T;
     #define AUX_MCU_NOCOMMS_PULLUP_PMUXREGID  PMUXE
 #endif
 
+/* DEBUG UART */
+#if defined(PLAT_V3_SETUP)
+    #define DBG_UART_TX_GROUP        PIN_GROUP_0
+    #define DBG_UART_TX_PINID        0
+#endif
+#define DBG_UART_TX_MASK             (1UL << DBG_UART_TX_PINID)
+#define DBG_UART_TX_PMUX_ID          PORT_PMUX_PMUXO_D_Val
+#if (DBG_UART_TX_PINID % 2) == 1
+    #define DBG_UART_TX_PMUXREGID  PMUXO
+#else
+    #define DBG_UART_TX_PMUXREGID  PMUXE
+#endif
+
 /* BLE */
 #if defined(PLAT_V3_SETUP)
     #define BLE_WAKE_OUT_GROUP   PIN_GROUP_0
@@ -218,6 +238,11 @@ typedef uint32_t PIN_ID_T;
 #endif
 
 #if defined(PLAT_V3_SETUP)
+    #define BLE_UART0_RX_GROUP   PIN_GROUP_0
+    #define BLE_UART0_RX_PINID   9
+#endif
+
+#if defined(PLAT_V3_SETUP)
     #define BLE_UART1_TX_GROUP   PIN_GROUP_0
     #define BLE_UART1_TX_PINID   4
 #endif
@@ -229,6 +254,11 @@ typedef uint32_t PIN_ID_T;
 #endif
 
 #if defined(PLAT_V3_SETUP)
+    #define BLE_UART1_RX_GROUP   PIN_GROUP_0
+    #define BLE_UART1_RX_PINID   5
+#endif
+
+#if defined(PLAT_V3_SETUP)
     #define BLE_UART1_RTS_GROUP   PIN_GROUP_0
     #define BLE_UART1_RTS_PINID   6
 #endif
@@ -237,6 +267,17 @@ typedef uint32_t PIN_ID_T;
     #define BLE_UART1_RTS_PMUXREGID  PMUXO
 #else
     #define BLE_UART1_RTS_PMUXREGID  PMUXE
+#endif
+
+#if defined(PLAT_V3_SETUP)
+    #define BLE_UART1_CTS_GROUP   PIN_GROUP_0
+    #define BLE_UART1_CTS_PINID   7
+#endif
+#define BLE_UART1_CTS_MASK        (1UL << BLE_UART1_CTS_PINID)
+#if (BLE_UART1_CTS_PINID % 2) == 1
+    #define BLE_UART1_CTS_PMUXREGID  PMUXO
+#else
+    #define BLE_UART1_CTS_PMUXREGID  PMUXE
 #endif
 
 /* NiMH charging */

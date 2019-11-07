@@ -49,6 +49,7 @@ void gui_dispatcher_display_battery_bt_overlay(BOOL write_to_buffer)
     {
         /* Our enum allows us to do so */
         sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+logic_power_get_battery_state(), write_to_buffer);
+        gui_dispatcher_battery_charging_anim_index = logic_power_get_battery_state();
     } 
     else
     {
@@ -217,7 +218,7 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
                 if ((platform_io_is_usb_3v3_present() == FALSE) && TRUE)
                 {
                     /* Prompt user */
-                    if (gui_prompts_ask_for_one_line_confirmation(QSWITCH_OFF_DEVICE_TEXT_ID, FALSE) == MINI_INPUT_RET_YES)
+                    if (gui_prompts_ask_for_one_line_confirmation(QSWITCH_OFF_DEVICE_TEXT_ID, FALSE, FALSE) == MINI_INPUT_RET_YES)
                     {
                         sh1122_oled_off(&plat_oled_descriptor);     // Display off command
                         platform_io_power_down_oled();              // Switch off stepup

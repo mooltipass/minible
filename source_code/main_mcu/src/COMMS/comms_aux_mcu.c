@@ -7,6 +7,7 @@
 #include <asf.h>
 #include "comms_hid_msgs_debug.h"
 #include "platform_defines.h"
+#include "logic_bluetooth.h"
 #include "comms_hid_msgs.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
@@ -16,6 +17,7 @@
 #include "sh1122.h"
 #include "main.h"
 #include "dma.h"
+#include "rng.h"
 /* Received and sent MCU messages */
 aux_mcu_message_t aux_mcu_receive_message;
 aux_mcu_message_t aux_mcu_send_message;
@@ -205,6 +207,16 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
         case AUX_MCU_EVENT_CHARGE_FAIL:
         {
             logic_power_set_battery_charging_bool(FALSE, FALSE);
+            break;
+        }
+        case AUX_MCU_EVENT_BLE_CONNECTED:
+        {
+            logic_bluetooth_set_connected_state(TRUE);
+            break;
+        }
+        case AUX_MCU_EVENT_BLE_DISCONNECTED:
+        {
+            logic_bluetooth_set_connected_state(FALSE);
             break;
         }
         default: break;
@@ -400,6 +412,18 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         /* Call dedicated function */
         comms_aux_mcu_deal_with_received_event(&aux_mcu_receive_message);
     }  
+    else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_RNG_TRANSFER)
+    {
+        msg_rcvd = RNG_MSG_RCVD;
+        
+        /* Set same message type and fill with random numbers */
+        aux_mcu_send_message.message_type = aux_mcu_receive_message.message_type;
+        rng_fill_array(aux_mcu_send_message.payload, 32);
+        aux_mcu_send_message.payload_length1 = 32;
+        
+        /* Send message */
+        comms_aux_mcu_send_message(FALSE);
+    }
     else
     {
         msg_rcvd = UNKNOW_MSG_RCVD;
@@ -510,6 +534,11 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
             comms_aux_arm_rx_and_clear_no_comms();
             
             // TODO2: take necessary action in case we received an unwanted message
+            if ((aux_mcu_receive_message.message_type == expected_packet) && (aux_mcu_receive_message.aux_mcu_event_message.event_id != expected_event))
+            {
+                /* Received another event... deal with it (doesn't generate answers */
+                comms_aux_mcu_deal_with_received_event(&aux_mcu_receive_message);
+            }
         }
     }while (reloop != FALSE);
         

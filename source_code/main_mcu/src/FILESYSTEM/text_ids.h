@@ -100,5 +100,7 @@
 #define ACCESS_TO_TEXT_ID               93
 #define SELECT_LAYOUT_TEXT_ID           94
 #define COULDNT_TYPE_CHARS_TEXT_ID      95
+#define SELECT_OUT_INTEFACE_TEXT_ID     96
+#define SELECT_KEYBOARD_TYPE_TEXT_ID    97
 
 #endif

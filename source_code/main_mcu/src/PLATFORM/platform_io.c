@@ -13,6 +13,9 @@
 oled_stepup_pwr_source_te platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
 /* Set when a conversion result is ready */
 volatile BOOL platform_io_voledin_conv_ready = FALSE;
+/* 3v3 detected counter & state */
+volatile BOOL platform_io_debounced_3v3_present = FALSE;
+volatile uint16_t platform_io_3v3_detected_counter = 0;
 
 
 /*! \fn     EIC_Handler(void)
@@ -21,7 +24,7 @@ volatile BOOL platform_io_voledin_conv_ready = FALSE;
 void EIC_Handler(void)
 {
     /* All the interrupts below are used to wake up the platform from sleep. If we detect any of them, we disable all of them */
-    if (((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << USB_3V3_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0))
+    if (((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << USB_3V3_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << SMC_DET_EXTINT_NUM)) != 0))
     {
         EIC->INTFLAG.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
@@ -31,7 +34,32 @@ void EIC_Handler(void)
         EIC->INTENCLR.reg = (1 << USB_3V3_EXTINT_NUM);
         EIC->INTFLAG.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
+        EIC->INTFLAG.reg = (1 << SMC_DET_EXTINT_NUM);
+        EIC->INTENCLR.reg = (1 << SMC_DET_EXTINT_NUM);
     }
+}
+
+/*! \fn     platform_io_scan_3v3(void)
+*   \brief  Scan 3v3 presence for debouncing purposes
+*/
+void platform_io_scan_3v3(void)
+{
+    if ((PORT->Group[USB_3V3_GROUP].IN.reg & USB_3V3_MASK) == 0)
+    {
+        platform_io_debounced_3v3_present = FALSE;
+        platform_io_3v3_detected_counter = 0;
+    }
+    else
+    {
+        if (platform_io_3v3_detected_counter == 250)
+        {
+            platform_io_debounced_3v3_present = TRUE;
+        }
+        if (platform_io_3v3_detected_counter != UINT16_MAX)
+        {
+            platform_io_3v3_detected_counter++;
+        }
+    }    
 }
 
 /*! \fn     platform_io_enable_switch(void)
@@ -181,6 +209,45 @@ void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
     EIC->WAKEUP.reg |= (1 << WHEEL_CLICK_EXTINT_NUM);                                                   // Enable wakeup from ext pin
 }
 
+/*! \fn     platform_io_enable_smartcard_interrupt(void)
+*   \brief  Enable smartcard insert/remove interrupt
+*/
+void platform_io_enable_smartcard_interrupt(void)
+{
+    BOOL is_smc_inserted = FALSE;
+    
+    /* Check for smc inserted state to later setup correct interrupt */
+    if ((PORT->Group[SMC_DET_GROUP].IN.reg & SMC_DET_MASK) == 0)
+    {
+        is_smc_inserted = TRUE;
+    }
+    
+    /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
+    PORT->Group[SMC_DET_GROUP].PMUX[SMC_DET_PINID/2].bit.SMC_DET_PMUXREGID = PORT_PMUX_PMUXO_A_Val;     // Pin mux to EIC
+    PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PMUXEN = 1;                                    // Enable peripheral multiplexer
+    if (is_smc_inserted == FALSE)
+    {
+        EIC->CONFIG[SMC_DET_EXTINT_NUM/8].bit.SMC_DET_EXTINT_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;     // Detect low state
+    } 
+    else
+    {
+        EIC->CONFIG[SMC_DET_EXTINT_NUM/8].bit.SMC_DET_EXTINT_SENSE_REG = EIC_CONFIG_SENSE0_HIGH_Val;    // Detect high state
+    }
+    EIC->INTFLAG.reg = (1 << SMC_DET_EXTINT_NUM);                                                       // Clear interrupt just in case
+    EIC->INTENSET.reg = (1 << SMC_DET_EXTINT_NUM);                                                      // Enable interrupt from ext pin
+    EIC->WAKEUP.reg |= (1 << SMC_DET_EXTINT_NUM);                                                       // Enable wakeup from ext pin
+}
+
+/*! \fn     platform_io_disable_smartcard_interrupt(void)
+*   \brief  Disable smartcard insert/remove interrupt
+*/
+void platform_io_disable_smartcard_interrupt(void)
+{
+    PORT->Group[SMC_DET_GROUP].PMUX[AUX_MCU_NOCOMMS_PINID/2].bit.SMC_DET_PMUXREGID = EIC_CONFIG_SENSE0_NONE_Val;    // No detection
+    PORT->Group[SMC_DET_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;                                        // Disable peripheral multiplexer
+    EIC->WAKEUP.reg &= ~(1 << SMC_DET_EXTINT_NUM);                                                                  // Disable wakeup from ext pin
+}
+
 /*! \fn     platform_io_enable_aux_tx_wakeup_interrupt(void)
 *   \brief  Enable aux MCU TX interrupt
 *   \note   Not used anymore, replaced by bidirectional wakeup on no-comms
@@ -193,7 +260,7 @@ void platform_io_enable_aux_tx_wakeup_interrupt(void)
     EIC->CONFIG[AUX_MCU_TX_EXTINT_NUM/8].bit.AUX_MCU_TX_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;              // Detect low state
     EIC->INTFLAG.reg = (1 << AUX_MCU_TX_EXTINT_NUM);                                                            // Clear interrupt just in case
     EIC->INTENSET.reg = (1 << AUX_MCU_TX_EXTINT_NUM);                                                           // Enable interrupt from ext pin
-    EIC->WAKEUP.reg |= (1 << AUX_MCU_TX_EXTINT_NUM);    
+    EIC->WAKEUP.reg |= (1 << AUX_MCU_TX_EXTINT_NUM);                                                            // Enable wakeup from ext pin
 }
 
 /*! \fn     platform_io_enable_usb_3v3_wakeup_interrupt(void)
@@ -286,10 +353,10 @@ void platform_io_set_wheel_click_low(void)
 */
 void platform_io_init_smc_ports(void)
 {
-    PORT->Group[SMC_DET_GROUP].DIRCLR.reg = SMC_DET_MASK;                           // Setup card detection input with pull-up
+    PORT->Group[SMC_DET_GROUP].DIRCLR.reg = SMC_DET_MASK;                           // Setup card detection input (with pull-up)
+    PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.INEN = 1;                  // Setup card detection input (with pull-up)
     PORT->Group[SMC_DET_GROUP].OUTSET.reg = SMC_DET_MASK;                           // Setup card detection input with pull-up    
     PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 1;                // Setup card detection input with pull-up
-    PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.INEN = 1;                  // Setup card detection input with pull-up
     PORT->Group[SMC_POW_NEN_GROUP].PINCFG[SMC_POW_NEN_PINID].bit.PMUXEN = 0;        // Setup power enable, disabled by default
     PORT->Group[SMC_POW_NEN_GROUP].DIRSET.reg = SMC_POW_NEN_MASK;                   // Setup power enable, disabled by default
     PORT->Group[SMC_POW_NEN_GROUP].OUTSET.reg = SMC_POW_NEN_MASK;                   // Setup power enable, disabled by default
@@ -305,6 +372,9 @@ void platform_io_init_smc_ports(void)
 */
 void platform_io_smc_remove_function(void)
 {
+    #if defined(PLAT_V5_SETUP)
+        PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 1;            // Card removed: use internal "low" impedance pull-up
+    #endif
     PORT->Group[SMC_POW_NEN_GROUP].OUTSET.reg = SMC_POW_NEN_MASK;                   // Deactivate power to the smart card
     PORT->Group[SMC_PGM_GROUP].DIRCLR.reg = SMC_PGM_MASK;                           // Setup all output pins as tri-state
     PORT->Group[SMC_RST_GROUP].DIRCLR.reg = SMC_RST_MASK;                           // Setup all output pins as tri-state
@@ -321,6 +391,9 @@ void platform_io_smc_remove_function(void)
 */
 void platform_io_smc_inserted_function(void)
 {
+    #if defined(PLAT_V5_SETUP)
+        PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 0;            // Card inserted: rely on external pull-up!
+    #endif
     PORT->Group[SMC_POW_NEN_GROUP].OUTCLR.reg = SMC_POW_NEN_MASK;                   // Enable power to the smart card
     PORT->Group[SMC_PGM_GROUP].DIRSET.reg = SMC_PGM_MASK;                           // PGM to 0
     PORT->Group[SMC_PGM_GROUP].OUTCLR.reg = SMC_PGM_MASK;                           // PGM to 0
@@ -550,12 +623,11 @@ oled_stepup_pwr_source_te platform_io_get_voled_stepup_pwr_source(void)
     return platform_io_oled_stepup_power_source;
 }
 
-/*! \fn     platform_io_is_usb_3v3_present(void)
-*   \brief  Check if the USB 3V3 is present
+/*! \fn     platform_io_is_usb_3v3_present_raw(void)
+*   \brief  Check if the USB 3V3 is present (not debounced)
 *   \return TRUE or FALSE
-*   \note   No low pass filter has been implemented as the oled DC/DC can work at 1V2
 */
-BOOL platform_io_is_usb_3v3_present(void)
+BOOL platform_io_is_usb_3v3_present_raw(void)
 {
     if ((PORT->Group[USB_3V3_GROUP].IN.reg & USB_3V3_MASK) == 0)
     {
@@ -567,13 +639,22 @@ BOOL platform_io_is_usb_3v3_present(void)
     }
 }
 
+/*! \fn     platform_io_is_usb_3v3_present(void)
+*   \brief  Check if the USB 3V3 is present (debounced)
+*   \return TRUE or FALSE
+*/
+BOOL platform_io_is_usb_3v3_present(void)
+{
+    return platform_io_debounced_3v3_present;
+}
+
 /*! \fn     platform_io_init_power_ports(void)
 *   \brief  Initialize the platform power ports
 */
 void platform_io_init_power_ports(void)
 {
     /* Configure analog input */
-#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
+#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
     PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 1;
     PORT->Group[VOLED_VIN_GROUP].PMUX[VOLED_VIN_PINID/2].bit.VOLED_VIN_PMUXREGID = VOLED_VIN_PMUX_ID;
@@ -626,7 +707,7 @@ void platform_io_enable_aux_comms(void)
 void platform_io_set_no_comms(void)
 {
     /* Platform v3 */
-    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
+    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;               // NO COMMS as an input as it'll be pulled-up by aux MCU
     #endif
 }
@@ -637,7 +718,7 @@ void platform_io_set_no_comms(void)
 void platform_io_clear_no_comms(void)
 {
     /* Platform v3 */
-    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
+    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRSET.reg = AUX_MCU_NOCOMMS_MASK;               // NO COMMS as output, driven low
     #endif
 }
@@ -648,7 +729,7 @@ void platform_io_clear_no_comms(void)
 void platform_io_init_no_comms_signal(void)
 {    
     /* Platform v3 */
-    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
+    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;    // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.INEN = 1;      // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
@@ -662,7 +743,7 @@ void platform_io_init_no_comms_signal(void)
 void platform_io_set_no_comms_as_wakeup_interrupt(void)
 {
     /* Platform v3 */
-    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP)
+    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
         /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].PMUX[AUX_MCU_NOCOMMS_PINID/2].bit.AUX_MCU_NOCOMMS_PMUXREGID = PORT_PMUX_PMUXO_A_Val; // Pin mux to EIC
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 1;                                        // Enable peripheral multiplexer
@@ -775,6 +856,9 @@ void platform_io_prepare_ports_for_sleep(void)
     
     /* Enable wheel interrupt */
     platform_io_enable_scroll_wheel_wakeup_interrupts();
+    
+    /* Enable smartcard interrupt */
+    platform_io_enable_smartcard_interrupt();
 }
 
 /*! \fn     platform_io_prepare_ports_for_sleep_exit(void)
@@ -782,6 +866,9 @@ void platform_io_prepare_ports_for_sleep(void)
 */
 void platform_io_prepare_ports_for_sleep_exit(void)
 {
+    /* Disable smartcard interrupt */
+    platform_io_disable_smartcard_interrupt();
+    
     /* Disable wheel interrupt */
     platform_io_disable_scroll_wheel_wakeup_interrupts();
     

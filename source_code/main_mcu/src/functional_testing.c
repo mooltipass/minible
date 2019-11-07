@@ -41,7 +41,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     sh1122_clear_current_screen(&plat_oled_descriptor);
     
     /* First boot should be done using battery */
-    if (platform_io_is_usb_3v3_present() != FALSE)
+    if (platform_io_is_usb_3v3_present_raw() != FALSE)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Power using battery first!");
         while(1);
@@ -67,7 +67,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     
     /* Ask to connect USB to test USB LDO + LDO 3V3 to 8V  */
     sh1122_put_error_string(&plat_oled_descriptor, u"connect USB");
-    while (platform_io_is_usb_3v3_present() == FALSE);
+    while (platform_io_is_usb_3v3_present_raw() == FALSE);
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
     
     /* Wait for enumeration */
@@ -122,7 +122,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     /* Clear flag */
     if (clear_first_boot_flag != FALSE)
     {
-        custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
+        custom_fs_set_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID, TRUE);
     }
     
     /* We're good! */

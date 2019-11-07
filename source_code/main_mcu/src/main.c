@@ -111,7 +111,7 @@ void main_platform_init(void)
     if ((fuses_check_program(FALSE) == RETURN_OK) && (custom_fs_settings_init() == CUSTOM_FS_INIT_OK) && (custom_fs_get_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID) != FALSE))
     {
         /* Check if USB 3V3 is present and if so clear flag */
-        if (platform_io_is_usb_3v3_present() == FALSE)
+        if (platform_io_is_usb_3v3_present_raw() == FALSE)
         {
             platform_io_disable_switch_and_die();
             while(1);
@@ -131,7 +131,7 @@ void main_platform_init(void)
     /* Check if battery powered and under-voltage */
     uint16_t battery_voltage = platform_io_get_voledin_conversion_result_and_trigger_conversion();
     logic_power_register_vbat_adc_measurement(battery_voltage);
-    if ((platform_io_is_usb_3v3_present() == FALSE) && (battery_voltage < BATTERY_ADC_OUT_CUTOUT))
+    if ((platform_io_is_usb_3v3_present_raw() == FALSE) && (battery_voltage < BATTERY_ADC_OUT_CUTOUT))
     {
         platform_io_disable_switch_and_die();
         while(1);
@@ -181,7 +181,7 @@ void main_platform_init(void)
     platform_io_init_bat_adc_measurements();
     
     /* Initialize OLED screen */
-    if (platform_io_is_usb_3v3_present() == FALSE)
+    if (platform_io_is_usb_3v3_present_raw() == FALSE)
     {
         logic_power_set_power_source(BATTERY_POWERED);
         platform_io_power_up_oled(FALSE);
@@ -223,7 +223,7 @@ void main_platform_init(void)
         sh1122_put_error_string(&plat_oled_descriptor, u"No Accelerometer");
         while(1);
     }
-
+    
     /* Is Aux MCU present? */
     if (comms_aux_mcu_send_receive_ping() != RETURN_OK)
     {
@@ -252,26 +252,29 @@ void main_platform_init(void)
     }    
     
     /* If USB present, send USB attach message */
-    if (platform_io_is_usb_3v3_present() != FALSE)
+    if (platform_io_is_usb_3v3_present_raw() != FALSE)
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
         logic_power_usb_enumerate_just_sent();
     } 
         
-    //custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
-    /* Check for first boot, perform functional testing */
+    // TO REMOVE
+    if (custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE)
+    {
+        custom_fs_set_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID, TRUE);
+    }
+    /* Check for functional testing passed */
 #ifndef EMULATOR_BUILD
     #ifdef DEVELOPER_FEATURES_ENABLED
-    if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
+    if ((custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
     #else
-    if (custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE)
+    if (custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE)
     #endif
     {
-        custom_fs_settings_set_defaults();      
         functional_testing_start(TRUE);
     }
 #endif
-
+    
     /* Display error messages if something went wrong during custom fs init and bundle check */
     if ((custom_fs_init_return != RETURN_OK) || (bundle_integrity_check_return != RETURN_OK))
     {
@@ -314,9 +317,14 @@ void main_platform_init(void)
     /* If the device went through the bootloader: re-initialize device settings and clear bool */
     if (custom_fs_get_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID) != FALSE)
     {
-        custom_fs_settings_set_defaults();
         custom_fs_set_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID, FALSE);
     }
+    
+    /* Set settings that may not have been set to an initial value */
+    custom_fs_set_undefined_settings();
+    
+    /* Set screen brightness */
+    sh1122_set_contrast_current(&plat_oled_descriptor, custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT));
 }
 
 /*! \fn     main_reboot(void)
@@ -389,7 +397,7 @@ void main_standby_sleep(void)
     cpu_irq_leave_critical();    
     
     /* Switch on OLED */    
-    platform_io_power_up_oled(platform_io_is_usb_3v3_present());
+    platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
     sh1122_oled_on(&plat_oled_descriptor);
     
     /* Dataflash power up */
@@ -423,9 +431,33 @@ int main(void)
     /* Initialize our platform */
     main_platform_init();
     
-    /* TO REMOVE */
-    //platform_io_set_no_comms();while(1);
-    platform_io_enable_ble();
+    /* Actions for first user device boot */
+    #ifdef DEVELOPER_FEATURES_ENABLED
+    if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
+    #else
+    if (custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE)
+    #endif
+    {
+        /* Select language and store it as default */
+        if (gui_prompts_select_language_or_keyboard_layout(FALSE, TRUE, TRUE, FALSE) != RETURN_OK)
+        {
+            /* We're battery powered, the user didn't select anything, switch off device */
+            sh1122_oled_off(&plat_oled_descriptor);
+            platform_io_power_down_oled();
+            timer_delay_ms(100);
+            platform_io_disable_switch_and_die();
+            while(1);            
+        }
+        
+        /* Store set language as device default one */
+        custom_fs_set_device_default_language(custom_fs_get_current_language_id());
+        
+        /* Set flag */
+        custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
+        
+        /* Clear frame buffer */
+        sh1122_fade_into_darkness(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    }
     
     /* Special developer features */
     #ifdef SPECIAL_DEVELOPER_CARD_FEATURE
@@ -442,8 +474,7 @@ int main(void)
         /* When developping on a newly flashed board: reset USB connection and reset defaults */
         if (custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id) == RETURN_OK)
         {
-            custom_fs_settings_set_defaults();
-            if (platform_io_is_usb_3v3_present() != FALSE)
+            if (platform_io_is_usb_3v3_present_raw() != FALSE)
             {
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
                 timer_delay_ms(2000);
@@ -457,25 +488,26 @@ int main(void)
     /* Activity detected */
     logic_device_activity_detected();
     
-    #ifndef DEV_SKIP_INTRO_ANIM
     /* Start animation */    
+    if ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_BOOT_ANIMATION) != FALSE)
+    {
     for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
     {
-        timer_start_timer(TIMER_WAIT_FUNCTS, 20);
+            timer_start_timer(TIMER_WAIT_FUNCTS, 28);
         sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
         while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
         {
             comms_aux_mcu_routine(MSG_RESTRICT_ALL);
-        }
-    }    
     
-    /* End of animation: freeze on image, perform long time taking inits... */
-    timer_start_timer(TIMER_WAIT_FUNCTS, 1500);
-    while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
+                /* Click to exit animation */
+                if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
     {
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+                    i = 0x1234;
+                    break;
     }
-    #endif
+            }
+        }
+    }  
     
     /* Get current smartcard detection result */
     det_ret_type_te card_detection_res = smartcard_lowlevel_is_card_plugged();
@@ -506,8 +538,18 @@ int main(void)
             sh1122_oled_off(&plat_oled_descriptor);
             platform_io_power_down_oled();
             timer_delay_ms(100);
+            
+            /* It may not be impossible that the user connected the device in the meantime */
+            if (platform_io_is_usb_3v3_present() == FALSE)
+            {
             platform_io_disable_switch_and_die();
             while(1);
+            } 
+            else
+            {
+                /* Call the power routine that will take care of power switch */
+                logic_power_routine();
+            }                
         }
         
         /* Do not do anything if we're uploading new graphics contents */

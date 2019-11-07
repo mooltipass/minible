@@ -34,7 +34,7 @@ AUX_MCU_EVENT_CHARGE_FAIL		= 0x0007
 # UARTs
 uart_main_mcu = "COM7"
 uart_aux_mcu = "COM8"
-link_frame_bytes = 544
+link_frame_bytes = 560
 
 # Queue for sync
 queue = Queue.Queue(1000)
@@ -87,13 +87,15 @@ def is_frame_valid(frame):
 		else:
 			return False
 	elif message_type == AUX_MCU_MSG_TYPE_AUX_MCU_EVENT:
-		if command >= 0x0001 and command <= 0x0007:
+		if command >= 0x0001 and command <= 0x000A:
 			return True
 		else:
 			return False
 	elif message_type == AUX_MCU_MSG_TYPE_NIMH_CHARGE:
 		return True
 	elif message_type == 0xFFFF:
+		return True
+	elif message_type <= 10:
 		return True
 	else:
 		return False
@@ -115,15 +117,11 @@ def serial_read(s, mcu):
 				frame_bis = bytearray(frame)
 			else:
 				frame_bis = frame
-				
-			# To possibly be changed later: change bit order
-			for i in range(0, link_frame_bytes):
-				frame_bis[i] = reverse_mask(frame_bis[i])
 			
 			# Check for valid frame
 			if not is_frame_valid(frame_bis):
 				resync_was_done = True
-				print(str.format('{:02X}', frame_bis[0]))
+				print(mcu + ": " + str.format('{:02X}', frame_bis[0]))
 				# remove one byte
 				frame = frame[1:]
 				nb_bytes -= 1

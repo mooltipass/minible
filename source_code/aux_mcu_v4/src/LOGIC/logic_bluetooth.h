@@ -10,6 +10,7 @@
 #define LOGIC_BLUETOOTH_H_
 
 #include "at_ble_api.h"
+#include "defines.h"
 
 /* Typedefs */
 typedef enum    {NONE_NOTIF_SENDING = 0, KEYBOARD_NOTIF_SENDING, RAW_HID_NOTIF_SENDING, BATTERY_NOTIF_SENDING} notif_sending_te;
@@ -30,7 +31,7 @@ typedef enum    {NONE_NOTIF_SENDING = 0, KEYBOARD_NOTIF_SENDING, RAW_HID_NOTIF_S
 //	<i> Defines interval of Fast advertisement in ms.
 //	<i> Default: 100
 //	<id> hid_fast_adv
-#define APP_HID_FAST_ADV				(160) //100 ms
+#define APP_HID_FAST_ADV				(500) //312 ms
 
 /** @brief APP_HID_ADV_TIMEOUT Advertising time-out between 0x0001 and 0x028F in seconds, 0x0000 disables time-out.*/
 //	<o> Advertisement Timeout <1-655>
@@ -274,14 +275,17 @@ void logic_bluetooth_update_report(uint16_t conn_handle, uint8_t serv_inst, uint
 uint8_t logic_bluetooth_get_report_characteristic(uint16_t handle, uint8_t serv, uint8_t reportid);
 uint8_t logic_bluetooth_get_notif_instance(uint8_t serv_num, uint16_t char_handle);
 void logic_bluetooth_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status);
+ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key);
 at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params);
 uint8_t logic_bluetooth_get_reportid(uint8_t serv, uint16_t handle);
 void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len);
 uint8_t logic_bluetooth_get_hid_serv_instance(uint16_t handle);
 at_ble_status_t ble_char_changed_app_event(void* param);
 void logic_bluetooth_set_battery_level(uint8_t pct);
+ret_type_te logic_bluetooth_stop_advertising(void);
 void logic_bluetooth_start_advertising(void);
 void logic_bluetooth_start_bluetooth(void);
+void logic_bluetooth_stop_bluetooth(void);
 void logic_bluetooth_routine(void);
 
 

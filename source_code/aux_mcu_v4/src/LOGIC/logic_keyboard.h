@@ -134,8 +134,7 @@
 #define KEY_WIN_L              0xE3
 
 /* Prototypes */
-void logic_keyboard_type_symbol(hid_interface_te interface, uint8_t symbol, BOOL is_dead_key, uint16_t delay_between_types);
-void logic_keyboard_type_key_with_modifier(uint8_t key, uint8_t modifier, uint16_t delay_between_types);
-
+ret_type_te logic_keyboard_type_key_with_modifier(hid_interface_te interface, uint8_t key, uint8_t modifier, uint16_t delay_between_types);
+ret_type_te logic_keyboard_type_symbol(hid_interface_te interface, uint8_t symbol, BOOL is_dead_key, uint16_t delay_between_types);
 
 #endif /* LOGIC_KEYBOARD_H_ */

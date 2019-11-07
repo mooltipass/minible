@@ -43,11 +43,16 @@
 #define SETTING_DEVICE_DEFAULT_LANGUAGE     4
 #define SETTINGS_CHAR_AFTER_LOGIN_PRESS     5
 #define SETTINGS_CHAR_AFTER_PASS_PRESS      6
+#define SETTINGS_DELAY_BETWEEN_PRESSES      7
+#define SETTINGS_BOOT_ANIMATION             8
+#define SETTINGS_MASTER_CURRENT             9
+/* Set to define the number of settings used */
+#define SETTINGS_NB_USED                    10
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32
 #define FLAG_SET_BOOL_VALUE                 0x1212
-typedef enum {PWR_OFF_DUE_TO_BATTERY_FLG_ID = 0, NOT_FIRST_BOOT_FLAG_ID = 1, DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID = 2} custom_fs_flag_id_te;
+typedef enum {PWR_OFF_DUE_TO_BATTERY_FLG_ID = 0, FUNCTIONAL_TEST_PASSED_FLAG_ID = 1, DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID = 2, NOT_FIRST_BOOT_FLAG_ID = 3} custom_fs_flag_id_te;
 
 /* Typedefs */
 typedef uint32_t custom_fs_file_count_t;
@@ -100,10 +105,17 @@ typedef struct
 {
     uint8_t device_settings[NB_DEVICE_SETTINGS];
     uint32_t nb_ms_since_last_full_charge;
-    uint8_t reserved[120];
-    uint16_t device_flags[NB_DEVICE_FLAGS];
+    uint32_t nb_settings_last_covered;
+    uint8_t reserved[180];
     uint32_t start_upgrade_flag;
 } custom_platform_settings_t;
+
+// Platform flags
+typedef struct
+{
+    uint16_t device_flags[NB_DEVICE_FLAGS];
+    uint8_t reserved[192];
+} custom_platform_flags_t;
 
 // Bitmap header
 typedef struct
@@ -166,15 +178,16 @@ typedef struct
 } cpz_lut_entry_t;
 
 /* Prototypes */
+ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer, BOOL usb_layout);
 RET_TYPE custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size, BOOL use_dma);
 RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* address, custom_fs_file_type_te file_type);
 RET_TYPE custom_fs_get_string_from_file(uint32_t string_id, cust_char_t** string_pt, BOOL lock_on_fail);
-ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer);
 ret_type_te custom_fs_get_keyboard_descriptor_string(uint8_t keyboard_id, cust_char_t* string_pt);
 RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size);
 ret_type_te custom_fs_get_language_description(uint8_t language_id, cust_char_t* string_pt);
 void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
 void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
+ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id, BOOL usb_layout);
 RET_TYPE custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_pt);
 uint16_t custom_fs_get_nb_free_cpz_lut_entries(uint8_t* first_available_user_id);
 RET_TYPE custom_fs_update_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id);
@@ -186,16 +199,17 @@ uint8_t custom_fs_get_recommended_layout_for_current_language(void);
 BOOL custom_fs_get_device_flag_value(custom_fs_flag_id_te flag_id);
 uint8_t custom_fs_settings_get_device_setting(uint16_t setting_id);
 void custom_fs_define_nb_ms_since_last_full_charge(uint32_t nb_ms);
-ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id);
 void* custom_fs_get_custom_storage_slot_ptr(uint32_t slot_id);
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void);
 ret_type_te custom_fs_set_current_language(uint8_t language_id);
+void custom_fs_set_device_default_language(uint8_t language_id);
 void custom_fs_settings_store_dump(uint8_t* settings_buffer);
 cust_char_t* custom_fs_get_current_language_text_desc(void);
 uint16_t custom_fs_settings_get_dump(uint8_t* dump_buffer);
 void custom_fs_detele_user_cpz_lut_entry(uint8_t user_id);
 uint32_t custom_fs_get_nb_ms_since_last_full_charge(void);
 custom_fs_init_ret_type_te custom_fs_settings_init(void);
+uint8_t custom_fs_get_current_layout_id(BOOL usb_layout);
 void custom_fs_stop_continuous_read_from_flash(void);
 BOOL custom_fs_settings_check_fw_upgrade_flag(void);
 void custom_fs_settings_clear_fw_upgrade_flag(void);
@@ -203,8 +217,8 @@ uint32_t custom_fs_get_number_of_keyb_layouts(void);
 void custom_fs_settings_set_fw_upgrade_flag(void);
 uint32_t custom_fs_get_number_of_languages(void);
 uint8_t custom_fs_get_current_language_id(void);
-uint8_t custom_fs_get_current_layout_id(void);
-void custom_fs_settings_set_defaults(void);
+void custom_fs_set_undefined_settings(void);
+void custom_fs_hard_reset_settings(void);
 ret_type_te custom_fs_init(void);
 
 /* Global vars, for debug only */

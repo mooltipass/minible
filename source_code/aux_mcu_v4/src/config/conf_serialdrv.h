@@ -65,7 +65,6 @@
 #define BTLC1000_UART_CTS_PIN           (BLE_UART_CTS_PIN)
 #define HOST_SYSTEM_SLEEP_MODE          (SYSTEM_SLEEPMODE_IDLE_2)
 
-
 /* BTLC1000 50ms Reset Duration */
 #define BTLC1000_RESET_MS			(50)
 

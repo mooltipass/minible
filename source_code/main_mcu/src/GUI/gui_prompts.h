@@ -33,6 +33,14 @@
 #define CONF_3LINES_IDLE_AN_LGT 12
 #define BITMAP_3LINES_IDLE_Y    478
 #define BITMAP_3LINES_IDLE_N    490
+#define BITMAP_POPUP_USB        746
+#define BITMAP_POPUP_BLE        698
+#define BITMAP_USB_PRESS        760
+#define BITMAP_BLE_PRESS        712
+#define BITMAP_USB_SELECT       786
+#define BITMAP_BLE_SELECT       738
+#define BITMAP_USB_IDLE         774
+#define BITMAP_BLE_IDLE         726
 
 // PIN prompt
 #define PIN_PROMPT_ARROW_MOV_LGTH       7
@@ -97,16 +105,16 @@ typedef struct
 } confirmationText_t;
 
 /* Prototypes */
+ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, BOOL ignore_timeout_if_usb_powered, BOOL ignore_card_removal, BOOL usb_layout_choice);
 void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t vert_anim_direction, int16_t hor_anim_direction);
 mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen, BOOL parse_aux_messages);
 void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame_id, uint16_t* timer_timeout, display_message_te message_type);
 void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type);
+mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt);
 void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type);
 void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type);
-mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen);
 void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type);
 RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID);
-void gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice);
 uint16_t gui_prompts_service_selection_screen(uint16_t start_address);
 uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr);
 int16_t gui_prompts_favorite_selection_screen(void);

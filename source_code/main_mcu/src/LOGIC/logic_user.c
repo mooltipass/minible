@@ -13,6 +13,7 @@
 #include "logic_aux_mcu.h"
 #include "bearssl_block.h"
 #include "comms_aux_mcu.h"
+#include "logic_device.h"
 #include "driver_timer.h"
 #include "platform_io.h"
 #include "gui_prompts.h"
@@ -34,12 +35,14 @@ uint16_t logic_user_cur_sec_preferences;
 void logic_user_init_context(uint8_t user_id)
 {
     uint16_t user_language;
-    uint16_t user_layout;
+    uint16_t user_usb_layout;
+    uint16_t user_ble_layout;
     
     /* Initialize context and fetch user language & keyboard layout */
-    nodemgmt_init_context(user_id, &logic_user_cur_sec_preferences, &user_language, &user_layout);
+    nodemgmt_init_context(user_id, &logic_user_cur_sec_preferences, &user_language, &user_usb_layout, &user_ble_layout);
     custom_fs_set_current_language(utils_check_value_for_range(user_language, 0, custom_fs_get_number_of_languages()-1));
-    custom_fs_set_current_keyboard_id(utils_check_value_for_range(user_layout, 0, custom_fs_get_number_of_keyb_layouts()-1));
+    custom_fs_set_current_keyboard_id(utils_check_value_for_range(user_usb_layout, 0, custom_fs_get_number_of_keyb_layouts()-1), TRUE);
+    custom_fs_set_current_keyboard_id(utils_check_value_for_range(user_ble_layout, 0, custom_fs_get_number_of_keyb_layouts()-1), FALSE);
 }
 
 /*! \fn     logic_user_get_user_security_flags(void)
@@ -60,13 +63,21 @@ void logic_user_set_language(uint16_t language_id)
     nodemgmt_store_user_language(language_id);
 }
 
-/*! \fn     logic_user_set_layout_id(uint16_t layout_id)
+/*! \fn     logic_user_set_layout_id(uint16_t layout_id, BOOL usb_layout)
 *   \brief  Set layout id for current user
 *   \param  layout_id   User layout ID
+*   \param  usb_layout  Set to TRUE to set USB layout
 */
-void logic_user_set_layout_id(uint16_t layout_id)
+void logic_user_set_layout_id(uint16_t layout_id, BOOL usb_layout)
 {
-    nodemgmt_store_user_layout(layout_id);    
+    if (usb_layout == FALSE)
+    {
+        nodemgmt_store_user_ble_layout(layout_id);
+    } 
+    else
+    {
+        nodemgmt_store_user_layout(layout_id);
+    }
 }
 
 /*! \fn     logic_user_get_current_user_id(void)
@@ -108,6 +119,7 @@ void logic_user_get_user_cards_cpz(uint8_t* buffer)
 */
 void logic_user_set_user_security_flag(uint16_t bitmask)
 {
+    logic_device_set_state_changed();
     logic_user_cur_sec_preferences |= bitmask;
     nodemgmt_store_user_sec_preferences(logic_user_cur_sec_preferences);
 }
@@ -118,6 +130,7 @@ void logic_user_set_user_security_flag(uint16_t bitmask)
 */
 void logic_user_clear_user_security_flag(uint16_t bitmask)
 {
+    logic_device_set_state_changed();
     logic_user_cur_sec_preferences &= ~bitmask;
     nodemgmt_store_user_sec_preferences(logic_user_cur_sec_preferences);
 }
@@ -702,7 +715,7 @@ void logic_user_manual_select_login(void)
         else if (state_machine == 3)
         {
             // Ask the user permission to enter login / password, check for back action
-            if (logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr, 0) == RETURN_BACK)
+            if (logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr) == RETURN_BACK)
             {
                 /* Depending on number of child nodes, go back in history */
                 if (nb_logins_for_cred == 1)
@@ -740,19 +753,66 @@ void logic_user_manual_select_login(void)
     }
 }
 
-/*! \fn     logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, uint8_t interface_id)
+/*! \fn     logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address)
 *   \brief  Ask the user to enter the login & password of a given service
 *   \param  parent_address  Address of the parent
 *   \param  child_address   Address of the child
-*   \param  interface_id    Interface identifier (0 USB 1 BT)
 *   \return  RETURN_OK or RETURN_BACK
 */
-RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, uint8_t interface_id)
+RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address)
 {
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,login)+1, "Can't describe all chars for login");
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,password)+1+1, "Can't describe all chars for password");
+    BOOL usb_interface_selected = TRUE;
+    aux_mcu_message_t* temp_rx_message;
     child_cred_node_t temp_cnode;
+    BOOL could_type_all_symbols;
+    uint16_t interface_id = 0;
     parent_node_t temp_pnode;
+    
+    /* Are we at least connected to anything? */
+    if ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE))
+    {
+        return RETURN_OK;
+    }
+    
+    /* How many interfaces connected? */
+    if ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() != FALSE))
+    {
+        /* Both interface connected, ask user for selection */
+        mini_input_yes_no_ret_te select_inteface_prompt_return = gui_prompts_ask_for_one_line_confirmation(SELECT_OUT_INTEFACE_TEXT_ID, FALSE, TRUE);
+        
+        if (select_inteface_prompt_return == MINI_INPUT_RET_BACK)
+        {
+            return RETURN_BACK;
+        }
+        else if (select_inteface_prompt_return == MINI_INPUT_RET_YES)
+        {
+            usb_interface_selected = TRUE;
+            interface_id = 0;
+        }
+        else if (select_inteface_prompt_return == MINI_INPUT_RET_NO)
+        {
+            usb_interface_selected = FALSE;
+            interface_id = 1;
+        }
+        else
+        {
+            return RETURN_OK;
+        }
+    }
+    else if (logic_bluetooth_get_state() == BT_STATE_CONNECTED)
+    {
+        /* Magic numbers FTW */
+        usb_interface_selected = FALSE;
+        interface_id = 1;
+    }
+    else
+    {
+        /* USB connected */
+        usb_interface_selected = TRUE;
+        interface_id = 0;
+    }
 
     /* Read nodes */
     nodemgmt_read_parent_node(parent_address, &temp_pnode, TRUE);
@@ -805,7 +865,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         aux_mcu_message_t* typing_message_to_be_sent;
                         comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
                         typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.login) + 1 + 1)*sizeof(cust_char_t);
-                        ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.login, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols);
+                        ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.login, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, usb_interface_selected);
                         if (temp_cnode.keyAfterLogin == 0xFFFF)
                         {
                             /* Use default device key press: login is 0 terminated by read function, _Static_asserts guarantees enough space, message is initialized at 0s */
@@ -815,13 +875,20 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         {
                             typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)] = temp_cnode.keyAfterLogin;
                         }
-                        custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)]);
+                        custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)], usb_interface_selected);
+                        typing_message_to_be_sent->keyboard_type_message.delay_between_types = custom_fs_settings_get_device_setting(SETTINGS_DELAY_BETWEEN_PRESSES);
                         typing_message_to_be_sent->keyboard_type_message.interface_identifier = interface_id;
-                        typing_message_to_be_sent->keyboard_type_message.delay_between_types = 5;
-                        comms_aux_mcu_send_message(FALSE);
+                        comms_aux_mcu_send_message(TRUE);
+                        
+                        /* Wait for typing status */
+                        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
+                        could_type_all_symbols = (BOOL)temp_rx_message->payload_as_uint16[0];
+                            
+                        /* Rearm DMA RX */
+                        comms_aux_arm_rx_and_clear_no_comms();
                         
                         /* Display warning if some chars were missing */
-                        if (string_to_key_points_transform_success != RETURN_OK)
+                        if ((string_to_key_points_transform_success != RETURN_OK) || (could_type_all_symbols == FALSE))
                         {
                             gui_prompts_display_information_on_screen_and_wait(COULDNT_TYPE_CHARS_TEXT_ID, DISP_MSG_WARNING);
                         }
@@ -874,7 +941,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     aux_mcu_message_t* typing_message_to_be_sent;
                     comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
                     typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.cust_char_password) + 1 + 1)*sizeof(cust_char_t);
-                    ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.cust_char_password, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols);
+                    ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.cust_char_password, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, usb_interface_selected);
                     if (temp_cnode.keyAfterPassword == 0xFFFF)
                     {
                         /* Use default device key press: password is 0 terminated by read function, _Static_asserts guarantees enough space, message is initialized at 0s */
@@ -884,17 +951,24 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     {
                         typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)] = temp_cnode.keyAfterPassword;
                     }
-                    custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)]);
+                    custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)], usb_interface_selected);
+                    typing_message_to_be_sent->keyboard_type_message.delay_between_types = custom_fs_settings_get_device_setting(SETTINGS_DELAY_BETWEEN_PRESSES);
                     typing_message_to_be_sent->keyboard_type_message.interface_identifier = interface_id;
-                    typing_message_to_be_sent->keyboard_type_message.delay_between_types = 5;
                     comms_aux_mcu_send_message(TRUE);
                     
                     /* Message is sent, clear everything */
                     memset(typing_message_to_be_sent, 0, sizeof(aux_mcu_message_t));
                     memset(&temp_cnode, 0, sizeof(temp_cnode));
                     
+                    /* Wait for typing status */
+                    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
+                    could_type_all_symbols = (BOOL)temp_rx_message->payload_as_uint16[0];
+                    
+                    /* Rearm DMA RX */
+                    comms_aux_arm_rx_and_clear_no_comms();
+                    
                     /* Display warning if some chars were missing */
-                    if (string_to_key_points_transform_success != RETURN_OK)
+                    if ((string_to_key_points_transform_success != RETURN_OK) || (could_type_all_symbols == FALSE))
                     {
                         gui_prompts_display_information_on_screen_and_wait(COULDNT_TYPE_CHARS_TEXT_ID, DISP_MSG_WARNING);
                     }

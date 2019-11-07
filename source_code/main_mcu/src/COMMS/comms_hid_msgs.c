@@ -250,6 +250,9 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             /* Store all settings */
             custom_fs_settings_store_dump(rcv_msg->payload);
             
+            /* Actions run when settings are updated */
+            sh1122_set_contrast_current(&plat_oled_descriptor, custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT));
+            
             /* Set ack, leave same command id */
             send_msg->message_type = rcv_message_type;
             send_msg->payload[0] = HID_1BYTE_ACK;
@@ -305,7 +308,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             /* Set user categories strings */
             if ((rcv_msg->payload_length == sizeof(nodemgmt_user_category_strings_t)) && (logic_security_is_smc_inserted_unlocked() != FALSE))
             {
-                if ((logic_security_is_management_mode_set() != FALSE) || (gui_prompts_ask_for_one_line_confirmation(SET_CAT_STRINGS_TEXT_ID, TRUE) == MINI_INPUT_RET_YES))
+                if ((logic_security_is_management_mode_set() != FALSE) || (gui_prompts_ask_for_one_line_confirmation(SET_CAT_STRINGS_TEXT_ID, TRUE, FALSE) == MINI_INPUT_RET_YES))
                 {
                     /* Store category strings */
                     nodemgmt_set_category_strings((nodemgmt_user_category_strings_t*)&rcv_msg->get_set_cat_strings);
@@ -531,7 +534,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             if (logic_security_is_smc_inserted_unlocked() != FALSE)
             {                
                 /* Prompt the user */
-                if (gui_prompts_ask_for_one_line_confirmation(ID_STRING_ENTER_MMM, TRUE) == MINI_INPUT_RET_YES)
+                if (gui_prompts_ask_for_one_line_confirmation(ID_STRING_ENTER_MMM, TRUE, FALSE) == MINI_INPUT_RET_YES)
                 {
                     /* Device state is going to change... */
                     logic_device_set_state_changed();
@@ -1106,6 +1109,177 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             }
             
             return 1;
+        }
+        
+        case HID_CMD_GET_DEVICE_LANG_ID:
+        {
+            /* Get device default language */
+            send_msg->payload[0] = custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE);
+            send_msg->message_type = rcv_message_type;
+            send_msg->payload_length = 1;
+            return 1;
+        }
+        
+        case HID_CMD_GET_USER_LANG_ID:
+        {
+            /* Get user language, device default language returned if no user logged in */
+            if (logic_security_is_smc_inserted_unlocked() == FALSE)
+            {
+                send_msg->payload[0] = custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE);
+                send_msg->message_type = rcv_message_type;
+                send_msg->payload_length = 1;
+                return 1;               
+            }
+            else
+            {
+                send_msg->payload[0] = custom_fs_get_current_language_id();
+                send_msg->message_type = rcv_message_type;
+                send_msg->payload_length = 1;
+                return 1;                
+            }
+        }
+        
+        case HID_CMD_GET_USER_KEYB_ID:
+        {
+            /* Get user keyboard id */
+            if (logic_security_is_smc_inserted_unlocked() == FALSE)
+            {
+                send_msg->message_type = rcv_message_type;
+                send_msg->payload_length = 1;
+                send_msg->payload[0] = 0;
+                return 1;
+            } 
+            else
+            {
+                send_msg->payload[0] = custom_fs_get_current_layout_id(rcv_msg->payload_as_uint16[0]);
+                send_msg->message_type = rcv_message_type;
+                send_msg->payload_length = 1;
+                return 1;
+            }
+        }
+        
+        case HID_CMD_GET_NB_LANGUAGES:
+        {
+            send_msg->payload_as_uint16[0] = (uint16_t)custom_fs_get_number_of_languages();
+            send_msg->payload_length = sizeof(uint16_t);
+            send_msg->message_type = rcv_message_type;
+            return sizeof(uint16_t);            
+        }
+        
+        case HID_CMD_GET_NB_LAYOUTS:
+        {
+            send_msg->payload_as_uint16[0] = (uint16_t)custom_fs_get_number_of_keyb_layouts();
+            send_msg->payload_length = sizeof(uint16_t);
+            send_msg->message_type = rcv_message_type;
+            return sizeof(uint16_t);            
+        }
+        
+        case HID_CMD_GET_LANGUAGE_DESC:
+        {
+            /* This function checks for out of boundary conditions... */
+            if (custom_fs_get_language_description(rcv_msg->payload[0], (cust_char_t*)send_msg->payload_as_uint16) == RETURN_OK)
+            {
+                send_msg->payload_length = utils_strlen((cust_char_t*)send_msg->payload_as_uint16)*sizeof(uint16_t) + sizeof(uint16_t);
+                send_msg->message_type = rcv_message_type;
+                return send_msg->payload_length;
+            } 
+            else
+            {
+                send_msg->payload_length = sizeof(uint16_t);
+                send_msg->message_type = rcv_message_type;
+                send_msg->payload_as_uint16[0] = 0;
+                return sizeof(uint16_t);
+            }
+        }
+        
+        case HID_CMD_GET_LAYOUT_DESC:
+        {
+            /* This function checks for out of boundary conditions... */
+            if (custom_fs_get_keyboard_descriptor_string(rcv_msg->payload[0], (cust_char_t*)send_msg->payload_as_uint16) == RETURN_OK)
+            {
+                send_msg->payload_length = utils_strlen((cust_char_t*)send_msg->payload_as_uint16)*sizeof(uint16_t) + sizeof(uint16_t);
+                send_msg->message_type = rcv_message_type;
+                return send_msg->payload_length;
+            }
+            else
+            {
+                send_msg->payload_length = sizeof(uint16_t);
+                send_msg->message_type = rcv_message_type;
+                send_msg->payload_as_uint16[0] = 0;
+                return sizeof(uint16_t);
+            }
+        }
+        
+        case HID_CMD_SET_USER_KEYB_ID:
+        {
+            BOOL is_usb_interface_wanted = (BOOL)rcv_msg->payload[0];
+            uint8_t desired_layout_id = rcv_msg->payload[1];
+            
+            /* user logged in, id valid? */
+            if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (desired_layout_id < custom_fs_get_number_of_keyb_layouts()))
+            {
+                custom_fs_set_current_keyboard_id(desired_layout_id, is_usb_interface_wanted);
+                logic_user_set_layout_id(desired_layout_id, is_usb_interface_wanted);
+                
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+
+            send_msg->message_type = rcv_message_type;
+            send_msg->payload_length = 1;
+            return 1;
+        }
+        
+        case HID_CMD_SET_USER_LANG_ID:
+        {
+            uint8_t desired_lang_id = rcv_msg->payload[0];
+            
+            /* user logged in, id valid? */
+            if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (desired_lang_id < custom_fs_get_number_of_languages()))
+            {
+                custom_fs_set_current_language(desired_lang_id);
+                logic_user_set_language(desired_lang_id);
+                
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+
+            send_msg->message_type = rcv_message_type;
+            send_msg->payload_length = 1;
+            return 1;            
+        }
+        
+        case HID_CMD_SET_DEVICE_LANG_ID:
+        {
+            uint8_t desired_lang_id = rcv_msg->payload[0];
+            
+            /* user logged in, id valid? */
+            if (desired_lang_id < custom_fs_get_number_of_languages())
+            {
+                custom_fs_set_device_default_language(desired_lang_id);
+                
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+
+            send_msg->message_type = rcv_message_type;
+            send_msg->payload_length = 1;
+            return 1;            
         }
         
         default: break;

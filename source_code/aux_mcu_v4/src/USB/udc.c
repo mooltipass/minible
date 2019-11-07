@@ -286,7 +286,7 @@ void udc_control_send_zlp(void)
   USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRCPT1;
   USB->DEVICE.DeviceEndpoint[0].EPSTATUSSET.bit.BK1RDY = 1;
 
-  while (0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRCPT1);
+  while ((0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRCPT1) && (0 == USB->DEVICE.INTFLAG.bit.EORST));
 }
 
 //-----------------------------------------------------------------------------
@@ -316,7 +316,7 @@ void udc_control_send(uint8_t *data, int size)
   USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRCPT1;
   USB->DEVICE.DeviceEndpoint[0].EPSTATUSSET.bit.BK1RDY = 1;
 
-  while (0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRCPT1);
+  while ((0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRCPT1) && (0 == USB->DEVICE.INTFLAG.bit.EORST));
 }
 
 //-----------------------------------------------------------------------------
@@ -334,6 +334,8 @@ void USB_Handler(void)
       udc_reset_endpoint(i, USB_IN_ENDPOINT);
       udc_reset_endpoint(i, USB_OUT_ENDPOINT);
     }
+    
+    usb_reset_config();
 
     USB->DEVICE.DeviceEndpoint[0].EPCFG.reg =
         USB_DEVICE_EPCFG_EPTYPE0(USB_DEVICE_EPCFG_EPTYPE_CONTROL) |

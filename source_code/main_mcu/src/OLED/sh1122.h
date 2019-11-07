@@ -31,7 +31,6 @@
 #define SH1122_CMD_SET_REVERSE_DISPLAY                  0xA7
 #define SH1122_CMD_SET_MULTIPLEX_RATIO                  0xA8
 #define SH1122_CMD_SET_DCDC_SETTING                     0xAD
-#define SH1122_CMD_SET_DCDC_DISABLE                     0x80
 #define SH1122_CMD_SET_DISPLAY_OFFSET                   0xD3
 #define SH1122_CMD_SET_VCOM_DESELECT_LEVEL              0xDB
 #define SH1122_CMD_SET_VSEGM_LEVEL                      0xDC
@@ -123,8 +122,9 @@ int16_t sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, BO
 uint16_t sh1122_put_error_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string);
 void sh1122_set_contrast_current(sh1122_descriptor_t* oled_descriptor, uint8_t contrast_current);
 void sh1122_load_transition(sh1122_descriptor_t* oled_descriptor, oled_transition_te transition);
+void sh1122_set_discharge_charge_periods(sh1122_descriptor_t* oled_descriptor, uint8_t periods);
 uint16_t sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str);
-void sh1122_set_master_current(sh1122_descriptor_t* oled_descriptor, uint8_t master_current);
+void sh1122_set_discharge_vsl_level(sh1122_descriptor_t* oled_descriptor, uint8_t vsl_level);
 void sh1122_move_display_start_line(sh1122_descriptor_t* oled_descriptor, int16_t offset);
 RET_TYPE sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor, uint16_t font_id);
 void sh1122_write_single_command(sh1122_descriptor_t* oled_descriptor, uint8_t reg);
@@ -132,6 +132,8 @@ void sh1122_set_column_address(sh1122_descriptor_t* oled_descriptor, uint8_t sta
 void sh1122_write_single_word(sh1122_descriptor_t* oled_descriptor, uint16_t data);
 void sh1122_write_single_data(sh1122_descriptor_t* oled_descriptor, uint8_t data);
 void sh1122_set_row_address(sh1122_descriptor_t* oled_descriptor, uint8_t start);
+void sh1122_set_vsegm_level(sh1122_descriptor_t* oled_descriptor, uint8_t vsegm);
+void sh1122_set_vcomh_level(sh1122_descriptor_t* oled_descriptor, uint8_t vcomh);
 void sh1122_set_max_display_y(sh1122_descriptor_t* oled_descriptor, uint16_t y);
 void sh1122_set_min_display_y(sh1122_descriptor_t* oled_descriptor, uint16_t y);
 void sh1122_set_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y);

@@ -4,7 +4,10 @@
 *    Author:   Mathieu Stephan
 */
 #ifndef BOOTLOADER
+    #include <stdarg.h>
+    #include <string.h>
     #include <asf.h>
+    #include "conf_serialdrv.h"
     #include "driver_timer.h"
     #include "logic_sleep.h"
 #else
@@ -284,6 +287,41 @@ void platform_io_init_aux_comms(void)
     AUXMCU_SERCOM->USART.CTRLA = temp_ctrla_reg;
 }
 
+/*! \fn     platform_io_enable_debug_uart(void)
+*   \brief  Initialize debug uart at 3Mb/s
+*/
+void platform_io_enable_debug_uart(void)
+{
+    /* Port init */
+    PORT->Group[DBG_UART_TX_GROUP].PINCFG[DBG_UART_TX_PINID].bit.PMUXEN = 1;                                    // Enable peripheral multiplexer
+    PORT->Group[DBG_UART_TX_GROUP].PMUX[DBG_UART_TX_PINID/2].bit.DBG_UART_TX_PMUXREGID = DBG_UART_TX_PMUX_ID;   // Debug uart TX
+    PM->APBCMASK.bit.DBG_UART_APB_SERCOM_BIT = 1;                                                               // Enable SERCOM APB Clock Enable
+    clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, DBG_UART_GCLK_SERCOM_ID);                                  // Map 48MHz to SERCOM unit
+    
+    /* Sercom init */
+    /* LSB first, USART frame, async, 16x oversampling, internal clock */
+    SERCOM_USART_CTRLA_Type temp_ctrla_reg;
+    temp_ctrla_reg.reg = 0;
+    temp_ctrla_reg.bit.DORD = 1;
+    temp_ctrla_reg.bit.SAMPR = 0;
+    temp_ctrla_reg.bit.TXPO = DBG_UART_TX_PAD;
+    temp_ctrla_reg.bit.MODE = SERCOM_USART_CTRLA_MODE_USART_INT_CLK_Val;
+    DBG_UART_SERCOM->USART.CTRLA = temp_ctrla_reg;
+    /* TX & RX en, 8bits */
+    SERCOM_USART_CTRLB_Type temp_ctrlb_reg;
+    temp_ctrlb_reg.reg = 0;
+    temp_ctrlb_reg.bit.RXEN = 0;
+    temp_ctrlb_reg.bit.TXEN = 1;
+    while ((DBG_UART_SERCOM->USART.SYNCBUSY.reg & SERCOM_USART_SYNCBUSY_CTRLB) != 0);
+    DBG_UART_SERCOM->USART.CTRLB = temp_ctrlb_reg;
+    /* Set max baud rate */
+    DBG_UART_SERCOM->USART.BAUD.reg = 0;
+    /* Enable sercom */
+    temp_ctrla_reg.reg |= SERCOM_USART_CTRLA_ENABLE;
+    while ((DBG_UART_SERCOM->USART.SYNCBUSY.reg & SERCOM_USART_SYNCBUSY_ENABLE) != 0);
+    DBG_UART_SERCOM->USART.CTRLA = temp_ctrla_reg;
+}
+
 /*! \fn     platform_io_enable_eic(void)
 *   \brief  Initialize interrupt controller
 */
@@ -512,6 +550,15 @@ void platform_io_enable_main_comms(void)
     PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PULLEN = 0;                                  // AUX MCU RX, MAIN MCU TX: Pull up disable
 }
 
+/*! \fn     platform_io_reset_ble_uarts(void)
+*   \brief  Reset UARTs used by the BLE module
+*/
+void platform_io_reset_ble_uarts(void)
+{
+    /* No need to wait for sync as there's no reason for back to back BLE disable / enable */
+    CONF_BLE_USART_MODULE->USART.CTRLA.bit.SWRST = 1;
+    CONF_FLCR_BLE_USART_MODULE->USART.CTRLA.bit.SWRST = 1;
+}
 
 /*! \fn     platform_io_init_ble_ports_for_disabled(void)
 *   \brief  Initialize the platform BLE ports for a disabled BTLC1000
@@ -523,7 +570,18 @@ void platform_io_init_ble_ports_for_disabled(void)
     PORT->Group[BLE_UART0_TX_GROUP].DIRSET.reg = BLE_UART0_TX_MASK;
     PORT->Group[BLE_UART0_TX_GROUP].OUTCLR.reg = BLE_UART0_TX_MASK;
     PORT->Group[BLE_UART1_RTS_GROUP].DIRSET.reg = BLE_UART1_RTS_MASK;
-    PORT->Group[BLE_UART1_RTS_GROUP].OUTCLR.reg = BLE_UART1_RTS_MASK;    
+    PORT->Group[BLE_UART1_RTS_GROUP].OUTCLR.reg = BLE_UART1_RTS_MASK;
+    PORT->Group[BLE_UART0_TX_GROUP].PINCFG[BLE_UART0_TX_PINID].bit.PMUXEN = 0;
+    PORT->Group[BLE_UART0_RX_GROUP].PINCFG[BLE_UART0_RX_PINID].bit.PMUXEN = 0;
+    PORT->Group[BLE_UART0_RX_GROUP].PINCFG[BLE_UART0_RX_PINID].bit.INEN = 0;
+    PORT->Group[BLE_UART1_TX_GROUP].PINCFG[BLE_UART1_TX_PINID].bit.PMUXEN = 0;
+    PORT->Group[BLE_UART1_TX_GROUP].PINCFG[BLE_UART1_TX_PINID].bit.PULLEN = 0;
+    PORT->Group[BLE_UART1_RX_GROUP].PINCFG[BLE_UART1_RX_PINID].bit.PMUXEN = 0;
+    PORT->Group[BLE_UART1_RX_GROUP].PINCFG[BLE_UART1_RX_PINID].bit.INEN = 0;
+    PORT->Group[BLE_UART1_RTS_GROUP].PINCFG[BLE_UART1_RTS_PINID].bit.PMUXEN = 0;
+    PORT->Group[BLE_UART1_CTS_GROUP].PINCFG[BLE_UART1_CTS_PINID].bit.PMUXEN = 0;
+    PORT->Group[BLE_UART1_CTS_GROUP].PINCFG[BLE_UART1_CTS_PINID].bit.PULLEN = 0;
+    PORT->Group[BLE_UART1_CTS_GROUP].PINCFG[BLE_UART1_CTS_PINID].bit.INEN = 0;
     
     /* Device wakeup: output, set low */
     PORT->Group[BLE_WAKE_OUT_GROUP].DIRSET.reg = BLE_WAKE_OUT_MASK;
@@ -532,6 +590,11 @@ void platform_io_init_ble_ports_for_disabled(void)
     /* Device enable: output, set low */
     PORT->Group[BLE_EN_GROUP].DIRSET.reg = BLE_EN_MASK;
     PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
+    
+    /* Host wakeup: disable pullup */
+    PORT->Group[BLE_WAKE_IN_GROUP].PINCFG[BLE_WAKE_IN_PINID].bit.INEN = 0;
+    PORT->Group[BLE_WAKE_IN_GROUP].PINCFG[BLE_WAKE_IN_PINID].bit.PULLEN = 0;
+    PORT->Group[BLE_WAKE_IN_GROUP].PINCFG[BLE_WAKE_IN_PINID].bit.PMUXEN = 0;
     
     /* Below: leave disabled, doesn't change anything */
     //PORT->Group[BLE_UART1_TX_GROUP].DIRSET.reg = BLE_UART1_TX_MASK;
@@ -565,6 +628,9 @@ void platform_io_init_ports(void)
     
     /* BLE */
     platform_io_init_ble_ports_for_disabled();
+    
+    /* Debug UART */
+    platform_io_enable_debug_uart();
 }    
 
 /*! \fn     platform_io_prepare_ports_for_sleep(void)
@@ -580,3 +646,34 @@ void platform_io_prepare_ports_for_sleep(void)
 void platform_io_prepare_ports_for_sleep_exit(void)
 {        
 }   
+
+#ifndef BOOTLOADER
+/*! \fn     platform_io_uart_debug_printf(const char *fmt, ...)
+*   \brief  Output debug string to USB
+*/
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsuggest-attribute=format"
+void platform_io_uart_debug_printf(const char *fmt, ...)
+{
+    char buf[128];
+    va_list ap;
+    va_start(ap, fmt);
+
+    /* Print into our temporary buffer */
+    int16_t hypothetical_nb_chars = vsnprintf(buf, sizeof(buf), fmt, ap);
+    
+    for (int16_t i = 0; i < hypothetical_nb_chars; i++)
+    {
+        while((DBG_UART_SERCOM->USART.INTFLAG.reg & SERCOM_USART_INTFLAG_DRE) == 0);
+        DBG_UART_SERCOM->USART.DATA.reg = buf[i];
+    }    
+    
+    while((DBG_UART_SERCOM->USART.INTFLAG.reg & SERCOM_USART_INTFLAG_DRE) == 0);
+    DBG_UART_SERCOM->USART.DATA.reg = '\r';
+    while((DBG_UART_SERCOM->USART.INTFLAG.reg & SERCOM_USART_INTFLAG_DRE) == 0);
+    DBG_UART_SERCOM->USART.DATA.reg = '\n';
+    
+    va_end(ap);
+}
+#pragma GCC diagnostic pop
+#endif

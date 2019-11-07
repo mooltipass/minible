@@ -444,6 +444,18 @@ void nodemgmt_store_user_layout(uint16_t layoutId)
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.layout_id), sizeof(layoutId), (void*)&layoutId);
 }
 
+/*! \fn     nodemgmt_store_user_ble_layout(uint16_t layoutId)
+ *  \brief  Store user BLE layout
+ *  \param  layoutId    User layout ID
+ */
+void nodemgmt_store_user_ble_layout(uint16_t layoutId)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    
+    // Write data parent address in the user profile page
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.ble_layout_id), sizeof(layoutId), (void*)&layoutId);
+}
+
 /*! \fn     nodemgmt_get_user_language(void)
  *  \brief  Get user language
  *  \return User language ID
@@ -468,6 +480,21 @@ uint16_t nodemgmt_get_user_layout(void)
     
     // Each user profile is within a page, data starting parent node is at the end of the favorites
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.layout_id), sizeof(layout_id), &layout_id);
+    
+    return layout_id;
+}
+
+/*! \fn     nodemgmt_get_user_ble_layout(void)
+ *  \brief  Get user BLE layout
+ *  \return User layout ID
+ */
+uint16_t nodemgmt_get_user_ble_layout(void)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    uint16_t layout_id;
+    
+    // Each user profile is within a page, data starting parent node is at the end of the favorites
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.ble_layout_id), sizeof(layout_id), &layout_id);
     
     return layout_id;
 }
@@ -984,7 +1011,7 @@ int16_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId)
  */
 uint16_t nodemgmt_get_favorites(uint16_t* addresses_array)
 {
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, category_favorites), MEMBER_SIZE(nodemgmt_userprofile_t,category_favorites), (void*)&addresses_array);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, category_favorites), MEMBER_SIZE(nodemgmt_userprofile_t,category_favorites), (void*)addresses_array);
     return MEMBER_SIZE(nodemgmt_userprofile_t,category_favorites)/sizeof(favorite_addr_t);
 }
 
@@ -1193,14 +1220,15 @@ void nodemgmt_set_current_category_id(uint16_t catId)
     }
 }
 
-/*! \fn     nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout)
+/*! \fn     nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout, uint16_t* userBLELayout)
  *  \brief  Initializes the Node Management Handle, scans memory for the next free node
  *  \param  userIdNum       The user id to initialize the handle for
  *  \param  userSecFlags    Pointer to where to store user security flags
  *  \param  userLanguage    Pointer to where to store user language
  *  \param  userLayout      Pointer to where to store user keyboard layout
+ *  \param  userBLELayout   Pointer to where to store user BLE keyboard layout
  */
-void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout)
+void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout, uint16_t* userBLELayout)
 {
     if(userIdNum >= NB_MAX_USERS)
     {
@@ -1229,6 +1257,7 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
 
     // Store user security preference and language
     *userSecFlags = nodemgmt_get_user_sec_preferences();
+    *userBLELayout = nodemgmt_get_user_ble_layout();
     *userLanguage = nodemgmt_get_user_language();
     *userLayout = nodemgmt_get_user_layout();
 }

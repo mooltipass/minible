@@ -21,14 +21,15 @@
 #endif
 
 /* Default device settings */
-const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = {0,FALSE,SETTING_DFT_USER_INTERACTION_TIMEOUT,TRUE,0,0x09,0x0A};
+const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = {0,FALSE,SETTING_DFT_USER_INTERACTION_TIMEOUT,TRUE,0,0x09,0x0A,5,TRUE,0x90};
 /* Current selected language entry */
 language_map_entry_t custom_fs_cur_language_entry = {.starting_bitmap = 0, .starting_font = 0, .string_file_index = 0};
 /* Temp values to speed up string files reading */
 custom_fs_string_count_t custom_fs_current_text_file_string_count = 0;
 custom_fs_address_t custom_fs_current_text_file_addr = 0;
-/* Our platform settings array, in internal NVM */
+/* Our platform settings & flags array, in internal NVM */
 custom_platform_settings_t* custom_fs_platform_settings_p = 0;
+custom_platform_flags_t* custom_fs_platform_flags_p = 0;
 /* dataflash port descriptor */
 spi_flash_descriptor_t* custom_fs_dataflash_desc = 0;
 /* Flash header */
@@ -40,8 +41,10 @@ uint16_t custom_fs_temp_string1[128];
 /* Current language id */
 uint8_t custom_fs_cur_language_id = 0;
 /* Current keyboard layout id */
-custom_fs_address_t custom_fs_keyboard_layout_addr = 0;
-uint8_t custom_fs_cur_keyboard_id = 0;
+custom_fs_address_t custom_fs_usb_keyboard_layout_addr = 0;
+uint8_t custom_fs_cur_usb_keyboard_id = 0;
+custom_fs_address_t custom_fs_ble_keyboard_layout_addr = 0;
+uint8_t custom_fs_cur_ble_keyboard_id = 0;
 /* CPZ look up table */
 cpz_lut_entry_t* custom_fs_cpz_lut;
 
@@ -178,7 +181,9 @@ custom_fs_init_ret_type_te custom_fs_settings_init(void)
         custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_ptr;
         flash_ptr = custom_fs_get_custom_storage_slot_ptr(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT);
         custom_fs_cpz_lut = (cpz_lut_entry_t*)flash_ptr;
-       
+        flash_ptr = custom_fs_get_custom_storage_slot_ptr(FLAGS_STORAGE_SLOT);
+        custom_fs_platform_flags_p = (custom_platform_flags_t*)flash_ptr;
+        
 #ifndef EMULATOR_BUILD
         /* Quick sanity check on memory boundary */
         if ((uintptr_t)&custom_fs_cpz_lut[MAX_NUMBER_OF_USERS] != FLASH_ADDR + FLASH_SIZE)
@@ -222,13 +227,21 @@ uint8_t custom_fs_get_current_language_id(void)
     return custom_fs_cur_language_id;
 } 
 
-/*! \fn     custom_fs_get_current_layout_id(void)
+/*! \fn     custom_fs_get_current_layout_id(BOOL usb_layout)
 *   \brief  Get current keyboard layout ID
+*   \param  usb_layout FALSE for BLE layout, otherwise TRUE
 *   \return The current layout ID
 */
-uint8_t custom_fs_get_current_layout_id(void)
+uint8_t custom_fs_get_current_layout_id(BOOL usb_layout)
 {
-    return custom_fs_cur_keyboard_id;
+    if (usb_layout == FALSE)
+    {
+        return custom_fs_cur_ble_keyboard_id;
+    } 
+    else
+    {
+        return custom_fs_cur_usb_keyboard_id;
+    }
 }
 
 /*! \fn     custom_fs_get_recommended_layout_for_current_language(void)
@@ -275,12 +288,13 @@ ret_type_te custom_fs_get_keyboard_descriptor_string(uint8_t keyboard_id, cust_c
     return RETURN_OK;
 }
 
-/*! \fn     custom_fs_set_current_keyboard_id(uint8_t keyboard_id)
+/*! \fn     custom_fs_set_current_keyboard_id(uint8_t keyboard_id, BOOL usb_layout)
 *   \brief  Set current keyboard ID
 *   \param  keyboard_id     Keyboard ID
+*   \param  usb_layout      Bool for USB/BLE layout
 *   \return RETURN_(N)OK
 */
-ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id)
+ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id, BOOL usb_layout)
 {
     custom_fs_address_t layout_file_addr;
     
@@ -294,35 +308,51 @@ ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id)
     }
     
     /* Store address and ID */
-    custom_fs_keyboard_layout_addr = layout_file_addr;
-    custom_fs_cur_keyboard_id = keyboard_id;
+    if (usb_layout == FALSE)
+    {
+        custom_fs_ble_keyboard_layout_addr = layout_file_addr;
+        custom_fs_cur_ble_keyboard_id = keyboard_id;
+    } 
+    else
+    {
+        custom_fs_usb_keyboard_layout_addr = layout_file_addr;
+        custom_fs_cur_usb_keyboard_id = keyboard_id;
+    }
     
     return RETURN_OK;
 }
 
-/*! \fn     custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer)
+/*! \fn     custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer, BOOL usb_layout)
 *   \brief  Get keyboard symbols (not keys) for a given unicode string
 *   \param  string_pt   Pointer to the unicode BMP string
 *   \param  buffer      Where to store the symbols. Non supported symbols will be stored as 0xFFFF
+*   \param  usb_layout  Set to TRUE to use USB layout mapping, FALSE for BLE layout mapping
 *   \return RETURN_(N)OK depending on if we were able to "translate" the complete string
 *   \note   Take care of buffer overflows. One symbol will be generated per unicode point
 */
-ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer)
+ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer, BOOL usb_layout)
 {
     unicode_interval_desc_t description_intervals[CUSTOM_FS_KEYB_NB_INT_DESCRIBED];
+    custom_fs_address_t layout_address = custom_fs_usb_keyboard_layout_addr;
     BOOL point_support_described = FALSE;
     uint16_t symbol_desc_pt_offset = 0;
     BOOL all_points_described = TRUE;
     uint16_t interval_start = 0;
     
     /* Check for correctly setup keyboard layout */
-    if (custom_fs_keyboard_layout_addr == 0)
+    if ((custom_fs_usb_keyboard_layout_addr == 0) || (custom_fs_ble_keyboard_layout_addr == 0))
     {
         return RETURN_NOK;
     }   
     
+    /* Mapping address based on layout selection */
+    if (usb_layout == FALSE)
+    {
+        layout_address = custom_fs_ble_keyboard_layout_addr;
+    }
+    
     /* Load the description intervals */
-    custom_fs_read_from_flash((uint8_t*)description_intervals, custom_fs_keyboard_layout_addr + CUSTOM_FS_KEYBOARD_DESC_LGTH*sizeof(cust_char_t), sizeof(description_intervals));
+    custom_fs_read_from_flash((uint8_t*)description_intervals, layout_address + CUSTOM_FS_KEYBOARD_DESC_LGTH*sizeof(cust_char_t), sizeof(description_intervals));
     
     /* Iterate over string */
     while (*string_pt != 0)
@@ -368,7 +398,7 @@ ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* strin
         else
         {
             /* Fetch keyboard symbol: 0xFFFF for "not supported" matches with our definition of not described */
-            custom_fs_read_from_flash((uint8_t*)buffer, custom_fs_keyboard_layout_addr + CUSTOM_FS_KEYBOARD_DESC_LGTH*sizeof(cust_char_t) + sizeof(description_intervals) + symbol_desc_pt_offset*sizeof(*string_pt) + (*string_pt - interval_start)*sizeof(*string_pt), sizeof(*buffer));       
+            custom_fs_read_from_flash((uint8_t*)buffer, layout_address + CUSTOM_FS_KEYBOARD_DESC_LGTH*sizeof(cust_char_t) + sizeof(description_intervals) + symbol_desc_pt_offset*sizeof(*string_pt) + (*string_pt - interval_start)*sizeof(*string_pt), sizeof(*buffer));       
             
             /* Is this symbol supported? */
             if (*buffer == 0xFFFF)
@@ -470,8 +500,11 @@ static void custom_fs_init_custom_storage_slots(void);
 
 ret_type_te custom_fs_init(void)
 {    
-    custom_fs_init_custom_storage_slots();
+    _Static_assert(sizeof(custom_platform_settings_t) == NVMCTRL_ROW_SIZE, "Platform settings isn't a page long");
+    _Static_assert(sizeof(custom_platform_flags_t) == NVMCTRL_ROW_SIZE, "Platform flags isn't a page long");
 
+    custom_fs_init_custom_storage_slots();
+    
     /* Read flash header */
     custom_fs_read_from_flash((uint8_t*)&custom_fs_flash_header, CUSTOM_FS_FILES_ADDR_OFFSET, sizeof(custom_fs_flash_header));
     
@@ -481,8 +514,21 @@ ret_type_te custom_fs_init(void)
         return RETURN_NOK;
     }
     
+    #ifdef BOOTLOADER
+        return RETURN_OK;
+    #else
+        /* Fetch default language (if set) */
+        uint8_t default_device_language = custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE);
+    
+        /* If not valid (preferences not set, etc...) reset to english (0) */
+        if (default_device_language >= custom_fs_get_number_of_languages())
+        {
+            default_device_language = 0;
+        }    
+    
     /* Set default language */
-    return custom_fs_set_current_language(utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1));
+        return custom_fs_set_current_language(default_device_language);
+    #endif
 }
 
 /*! \fn     custom_fs_get_string_from_file(uint32_t text_file_id, uint32_t string_id, char* string_pt, BOOL lock_on_fail)
@@ -790,7 +836,7 @@ static uint8_t eeprom[256 * 128];
 static void custom_fs_init_custom_storage_slots(void)
 {
     if(!emu_eeprom_open())
-        custom_fs_settings_set_defaults();
+        custom_fs_hard_reset_settings();
 
     emu_eeprom_read(0, eeprom, sizeof(eeprom));
 }
@@ -861,21 +907,21 @@ void custom_fs_settings_clear_fw_upgrade_flag(void)
 */
 void custom_fs_set_device_flag_value(custom_fs_flag_id_te flag_id, BOOL value)
 {
-    volatile custom_platform_settings_t temp_settings;
+    volatile custom_platform_flags_t temp_flags;
     
     /* Check for overflow and custom fs init state */
-    if ((custom_fs_platform_settings_p != 0) && (flag_id < ARRAY_SIZE(custom_fs_platform_settings_p->device_flags)))
+    if ((custom_fs_platform_flags_p != 0) && (flag_id < ARRAY_SIZE(custom_fs_platform_flags_p->device_flags)))
     {
-        custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+        custom_fs_read_256B_at_internal_custom_storage_slot(FLAGS_STORAGE_SLOT, (void*)&temp_flags);
         if (value == FALSE)
         {
-            temp_settings.device_flags[flag_id] = 0xFFFF;
+            temp_flags.device_flags[flag_id] = 0xFFFF;
         } 
         else
         {
-            temp_settings.device_flags[flag_id] = FLAG_SET_BOOL_VALUE;
+            temp_flags.device_flags[flag_id] = FLAG_SET_BOOL_VALUE;
         }
-        custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+        custom_fs_write_256B_at_internal_custom_storage_slot(FLAGS_STORAGE_SLOT, (void*)&temp_flags);
     }    
 }
 
@@ -887,9 +933,9 @@ void custom_fs_set_device_flag_value(custom_fs_flag_id_te flag_id, BOOL value)
 BOOL custom_fs_get_device_flag_value(custom_fs_flag_id_te flag_id)
 {
     /* Check for overflow and custom fs init state */
-    if ((custom_fs_platform_settings_p != 0) && (flag_id < ARRAY_SIZE(custom_fs_platform_settings_p->device_flags)))
+    if ((custom_fs_platform_flags_p != 0) && (flag_id < ARRAY_SIZE(custom_fs_platform_flags_p->device_flags)))
     {
-        if (custom_fs_platform_settings_p->device_flags[flag_id] == FLAG_SET_BOOL_VALUE)
+        if (custom_fs_platform_flags_p->device_flags[flag_id] == FLAG_SET_BOOL_VALUE)
         {
             return TRUE;
         } 
@@ -995,16 +1041,62 @@ void custom_fs_settings_store_dump(uint8_t* settings_buffer)
         /* Copy settings structure stored in flash into ram, overwrite relevant settings part, flash again */
         memcpy(&platform_settings_copy, custom_fs_platform_settings_p, sizeof(custom_platform_settings_t));
         memcpy(platform_settings_copy.device_settings, settings_buffer, sizeof(platform_settings_copy.device_settings));
+        platform_settings_copy.nb_settings_last_covered = SETTINGS_NB_USED;
         custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&platform_settings_copy);
     }
 }
 
-/*! \fn     custom_fs_settings_set_defaults(void)
-*   \brief  Set default settings for device
+/*! \fn     custom_fs_hard_reset_settings(void)
+*   \brief  Force reset all settings
 */
-void custom_fs_settings_set_defaults(void)
+void custom_fs_hard_reset_settings(void)
 {
     custom_fs_settings_store_dump((uint8_t*)custom_fs_default_device_settings);
+}
+
+/*! \fn     custom_fs_set_device_default_language(uint8_t language_id)
+*   \brief  Set device default language
+*   \param  language_id The default language id
+*/
+void custom_fs_set_device_default_language(uint8_t language_id)
+{
+    uint8_t temp_device_settings[NB_DEVICE_SETTINGS];
+    memcpy(temp_device_settings, custom_fs_platform_settings_p->device_settings, sizeof(temp_device_settings));
+    temp_device_settings[SETTING_DEVICE_DEFAULT_LANGUAGE] = language_id;
+    custom_fs_settings_store_dump(temp_device_settings);    
+}
+
+/*! \fn     custom_fs_set_undefined_settings(void)
+*   \brief  Set settings that may not have been set to a default value
+*/
+void custom_fs_set_undefined_settings(void)
+{
+    uint8_t temp_device_settings[NB_DEVICE_SETTINGS];
+    
+    if (custom_fs_platform_settings_p == 0)
+    {
+        /* Custom fs not initalized (shouldn't happen) */
+        return;
+    }
+    else if (custom_fs_platform_settings_p->nb_settings_last_covered != SETTINGS_NB_USED)
+    {
+        uint32_t nb_settings_last_covered = custom_fs_platform_settings_p->nb_settings_last_covered;
+
+        /* Check for blank memory & overflow */
+        if (custom_fs_platform_settings_p->nb_settings_last_covered >= NB_DEVICE_SETTINGS)
+        {
+            nb_settings_last_covered = 0;
+        }
+
+        /* Copy the current settings */
+        memcpy(temp_device_settings, custom_fs_platform_settings_p->device_settings, nb_settings_last_covered);
+        
+        /* Only update the non defined ones */
+        memcpy(&temp_device_settings[nb_settings_last_covered], &custom_fs_default_device_settings[nb_settings_last_covered], NB_DEVICE_SETTINGS-nb_settings_last_covered);
+        
+        /* Store updated part */
+        custom_fs_settings_store_dump(temp_device_settings);
+    }
 }
 
 /*! \fn     custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_pt)

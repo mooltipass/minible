@@ -39,6 +39,7 @@
 
 #include <asf.h>
 #include "comms_raw_hid.h"
+#include "platform_io.h"
 
 /* Supported BLE Modules */
 #define BTLC1000_MR		0x00
@@ -94,7 +95,7 @@
 #define ALL_UNUSED_IMPL(nargs) ALL_UNUSED_IMPL_(nargs)
 #define ALL_UNUSED(...) ALL_UNUSED_IMPL( VA_NUM_ARGS(__VA_ARGS__))(__VA_ARGS__ )
 
-#define DEBUG_LOG_DISABLED
+//#define DEBUG_LOG_DISABLED
 #if defined DEBUG_LOG_DISABLED
 	#define DBG_LOG_CONT	    ALL_UNUSED
 	#define DBG_LOG		        ALL_UNUSED
@@ -104,15 +105,27 @@
 	#define DBG_LOG_PTS			ALL_UNUSED
     #define DBG_LOG_LOGIC_BT_AD ALL_UNUSED
 #else
-    #define DBG_LOG_CONT	    comms_usb_debug_printf
-    #define DBG_LOG		        comms_usb_debug_printf
-    #define DBG_LOG_ADV	        comms_usb_debug_printf
-	#define DBG_LOG_DEV			comms_usb_debug_printf
-	#define DBG_LOG_CONT_DEV	comms_usb_debug_printf
-	#define DBG_LOG_LOGIC_BT_AD comms_usb_debug_printf
-    //#define ENABLE_PTS
-	//#define DBG_LOG_PTS			DBG_LOG
-	#define DBG_LOG_PTS			ALL_UNUSED
+    #ifndef USB_PRINTF
+        #define DBG_LOG_CONT	    platform_io_uart_debug_printf
+        #define DBG_LOG		        platform_io_uart_debug_printf
+        #define DBG_LOG_ADV	        platform_io_uart_debug_printf
+	    #define DBG_LOG_DEV			platform_io_uart_debug_printf
+	    #define DBG_LOG_CONT_DEV	platform_io_uart_debug_printf
+	    #define DBG_LOG_LOGIC_BT_AD platform_io_uart_debug_printf
+        //#define ENABLE_PTS
+	    //#define DBG_LOG_PTS			DBG_LOG
+	    #define DBG_LOG_PTS			ALL_UNUSED
+    #else
+        #define DBG_LOG_CONT	    comms_usb_debug_printf
+        #define DBG_LOG		        comms_usb_debug_printf
+        #define DBG_LOG_ADV	        comms_usb_debug_printf
+	    #define DBG_LOG_DEV			comms_usb_debug_printf
+	    #define DBG_LOG_CONT_DEV	comms_usb_debug_printf
+	    #define DBG_LOG_LOGIC_BT_AD comms_usb_debug_printf
+        //#define ENABLE_PTS
+	    //#define DBG_LOG_PTS			DBG_LOG
+	    #define DBG_LOG_PTS			ALL_UNUSED
+    #endif
 #endif
 
 
