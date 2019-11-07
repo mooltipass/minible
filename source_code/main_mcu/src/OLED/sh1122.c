@@ -115,6 +115,50 @@ void sh1122_set_contrast_current(sh1122_descriptor_t* oled_descriptor, uint8_t c
     sh1122_write_single_command(oled_descriptor, contrast_current);    
 }
 
+/*! \fn     sh1122_set_vcomh_level(sh1122_descriptor_t* oled_descriptor, uint8_t vcomh)
+*   \brief  Set vcomh level
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  vcomh               VCOMH level (up to 0xFF)
+*/
+void sh1122_set_vcomh_level(sh1122_descriptor_t* oled_descriptor, uint8_t vcomh)
+{
+    sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_VCOM_DESELECT_LEVEL);
+    sh1122_write_single_command(oled_descriptor, vcomh);    
+}
+
+/*! \fn     sh1122_set_vsegm_level(sh1122_descriptor_t* oled_descriptor, uint8_t vsegm)
+*   \brief  Set vsegm level
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  vsegm               VSEGM level (up to 0xFF)
+*/
+void sh1122_set_vsegm_level(sh1122_descriptor_t* oled_descriptor, uint8_t vsegm)
+{
+    sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_VSEGM_LEVEL);
+    sh1122_write_single_command(oled_descriptor, vsegm);    
+}
+
+/*! \fn     sh1122_set_discharge_charge_periods(sh1122_descriptor_t* oled_descriptor, uint8_t periods)
+*   \brief  Set discharge & charge periods
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  periods             4 bits for discharge, 4 bits for charge
+*/
+void sh1122_set_discharge_charge_periods(sh1122_descriptor_t* oled_descriptor, uint8_t periods)
+{
+    sh1122_write_single_command(oled_descriptor, SS1122_CMD_SET_DISCHARGE_PRECHARGE_PERIOD);
+    sh1122_write_single_command(oled_descriptor, periods);    
+}
+
+/*! \fn     sh1122_set_discharge_vsl_level(sh1122_descriptor_t* oled_descriptor, uint8_t vsl_level)
+*   \brief  Set discharge vsl level
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  vsl_level           Discharge VSL level (4 bits max)
+*/
+void sh1122_set_discharge_vsl_level(sh1122_descriptor_t* oled_descriptor, uint8_t vsl_level)
+{
+    sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISCHARGE_VSL_LEVEL);
+    sh1122_write_single_command(oled_descriptor, vsl_level);    
+}
+
 /*! \fn     sh1122_set_column_address(sh1122_descriptor_t* oled_descriptor, uint8_t start)
 *   \brief  Set a selected column address range
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
