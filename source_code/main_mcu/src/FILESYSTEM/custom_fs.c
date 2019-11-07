@@ -1003,14 +1003,22 @@ void custom_fs_set_undefined_settings(void)
     }
     else if (custom_fs_platform_settings_p->nb_settings_last_covered != SETTINGS_NB_USED)
     {
+        uint32_t nb_settings_last_covered = custom_fs_platform_settings_p->nb_settings_last_covered;
+
         /* Check for blank memory */
         if (custom_fs_platform_settings_p->nb_settings_last_covered >= NB_DEVICE_SETTINGS)
         {
             custom_fs_platform_settings_p->nb_settings_last_covered = 0;
         }
 
+        /* Check for overflow */
+        if (nb_settings_last_covered > NB_DEVICE_SETTINGS)
+        {
+            nb_settings_last_covered = NB_DEVICE_SETTINGS;
+        }
+
         /* Copy the current settings */
-        memcpy(temp_device_settings, custom_fs_platform_settings_p->device_settings, custom_fs_platform_settings_p->nb_settings_last_covered);
+        memcpy(temp_device_settings, custom_fs_platform_settings_p->device_settings, nb_settings_last_covered);
         
         /* Only update the non defined ones */
         memcpy(&temp_device_settings[custom_fs_platform_settings_p->nb_settings_last_covered], &custom_fs_default_device_settings[custom_fs_platform_settings_p->nb_settings_last_covered], NB_DEVICE_SETTINGS-custom_fs_platform_settings_p->nb_settings_last_covered);
