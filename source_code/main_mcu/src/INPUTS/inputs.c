@@ -146,18 +146,6 @@ void inputs_scan(void)
         inputs_wheel_click_counter = 0;
     }
 }
-#else
-
-void inputs_scan(void)
-{
-        if ((inputs_wheel_click_return == RETURN_DET) || (inputs_wheel_click_return == RETURN_JDETECT))
-        {
-            inputs_wheel_click_duration_counter++;
-        } else {
-            inputs_wheel_click_duration_counter = 0;
-        }
-}
-
 #endif
 
 /*! \fn     inputs_get_wheel_increment(void)
