@@ -282,6 +282,7 @@ void debug_test_pattern_display(void)
     while (action_ret != WHEEL_ACTION_SHORT_CLICK)
     {
         action_ret = inputs_get_wheel_action(FALSE, FALSE);
+        comms_aux_mcu_routine(MSG_NO_RESTRICT);
         if (action_ret == WHEEL_ACTION_UP)
         {
             master_current++;

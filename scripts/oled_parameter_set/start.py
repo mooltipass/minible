@@ -1,8 +1,13 @@
 from mooltipass_hid_device import *
-from tkinter import font as tkfont
-import tkinter.ttk as ttk
 from time import sleep
-import tkinter as tk
+try:
+	import tkFont as tkfont
+	import Tkinter as tk
+	import ttk
+except ImportError:
+	from tkinter import font as tkfont
+	import tkinter.ttk as ttk
+	import tkinter as tk
 import cmath
 import math
 import time
@@ -20,6 +25,12 @@ class OledControlApp(tk.Tk):
 		precharge_per_val = int(self.precharge_period_var.get())
 		discharge_per_val = int(self.discharge_period_var.get())
 		discharge_val = int(self.discharge_level_var.get())
+		
+		# If vcomh doesn't change, send 0xFF so the MCU doesn't use display on & off
+		if self.last_vcomh == vcomh_val:
+			vcomh_val = 0xFF
+		else:
+			self.last_vcomh = vcomh_val
 		
 		# Log output
 		self.log_output_text.insert("end", "cur " + hex(contrast_val) + " vcomh " + hex(vcomh_val) + " vsegm " + hex(vsegm_val) + " pre_per " + hex(precharge_per_val) + " dis_per " + hex(discharge_per_val) + " dis " + hex(discharge_val) + "\r\n")
@@ -53,6 +64,7 @@ class OledControlApp(tk.Tk):
 		vcomh_scale = tk.Scale(self, variable=self.vcomh_var, command=lambda x:[self.value_changed_callback()], from_=0, to=255, length=300, orient=tk.HORIZONTAL, relief="flat", bd=2, bg="LightSteelBlue2", highlightbackground="LightSteelBlue2")  
 		vcomh_scale.grid(row=1, column=1, pady=2, padx = 5)
 		self.vcomh_var.set(0x30)
+		self.last_vcomh = 0x30
 		
 		# VSEGM
 		vsegm_label = tk.Label(self, text="VSEGM level :", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12), anchor="e")

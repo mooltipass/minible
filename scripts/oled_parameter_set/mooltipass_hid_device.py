@@ -1,6 +1,5 @@
 from __future__ import print_function
 from os.path import isfile, join, isdir
-from resizeimage import resizeimage
 from mooltipass_defines import *
 from generic_hid_device import *
 from pprint import pprint
