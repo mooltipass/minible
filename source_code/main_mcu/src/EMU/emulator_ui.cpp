@@ -58,13 +58,16 @@ QWidget *EmuWindow::createSmartcardUi()
 
     auto act_new = btn_insert_menu->addAction("New (blank)");
     QObject::connect(act_new, &QAction::triggered, this, [=]() {
-        auto fileName = QFileDialog::getSaveFileName(this, "Create smartcard file", "", "Smartcard Image Files (*.smc)");
-        if(fileName.isEmpty())
-            return;
+        QFileDialog dialog(this, "Create smartcard file", QDir::currentPath(), "Smartcard Image Files (*.smc)");
+        dialog.setAcceptMode(QFileDialog::AcceptSave);
+        dialog.setDefaultSuffix(".smc");
 
-        if(emu_insert_smartcard(fileName, true)) {
-            btn_remove->setEnabled(true);
-            btn_insert->setEnabled(false);
+        if (dialog.exec() == QDialog::Accepted) {
+            auto fileName = dialog.selectedFiles().value(0);
+            if(emu_insert_smartcard(fileName, true)) {
+                btn_remove->setEnabled(true);
+                btn_insert->setEnabled(false);
+            }
         }
     });
 
