@@ -1008,6 +1008,9 @@ void custom_fs_set_undefined_settings(void)
         {
             custom_fs_platform_settings_p->nb_settings_last_covered = 0;
         }
+
+        /* Copy the current settings */
+        memcpy(temp_device_settings, custom_fs_platform_settings_p, custom_fs_platform_settings_p->nb_settings_last_covered);
         
         /* Only update the non defined ones */
         memcpy(&temp_device_settings[custom_fs_platform_settings_p->nb_settings_last_covered], &custom_fs_default_device_settings[custom_fs_platform_settings_p->nb_settings_last_covered], NB_DEVICE_SETTINGS-custom_fs_platform_settings_p->nb_settings_last_covered);
