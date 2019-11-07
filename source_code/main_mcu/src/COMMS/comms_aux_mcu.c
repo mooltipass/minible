@@ -219,6 +219,9 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
 */
 comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
 {    
+#ifdef EMULATOR_BUILD
+    DELAYMS(1);
+#endif
     /* Recursivity: set function called flag */
     BOOL function_already_called = FALSE;
     if (aux_mcu_comms_aux_mcu_routine_function_called == FALSE)

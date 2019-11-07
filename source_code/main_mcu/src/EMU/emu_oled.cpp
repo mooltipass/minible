@@ -87,8 +87,6 @@ static int fb_next=0, fb_pending=-1;
 
 void emu_oled_flush(void)
 {
-    QThread::usleep(1); // release the CPU for a short while
-
     emu_appexit_test();
     fb_update.lock();
     if(fb_pending >= 0) {
