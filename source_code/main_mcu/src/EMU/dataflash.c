@@ -8,6 +8,8 @@ static void emu_dataflash_init(void)
 {
     if(bundle_fd < 0)
         bundle_fd = open("../../scripts/python_framework/bundle.img", O_RDONLY);
+    if(bundle_fd < 0)
+        bundle_fd = open("bundle.img", O_RDONLY);
 }
 
 void dataflash_write_array_to_memory(spi_flash_descriptor_t* descriptor_pt, uint32_t address, uint8_t* data, uint32_t length){}
