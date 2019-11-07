@@ -72,7 +72,7 @@ class OledControlApp(tk.Tk):
 		self.vsegm_var = tk.DoubleVar()
 		vsegm_scale = tk.Scale(self, variable=self.vsegm_var, command=lambda x:[self.value_changed_callback()], from_=0, to=255, length=300, orient=tk.HORIZONTAL, relief="flat", bd=2, bg="LightSteelBlue2", highlightbackground="LightSteelBlue2")  
 		vsegm_scale.grid(row=2, column=1, pady=2, padx = 5)
-		self.vsegm_var.set(0x00)
+		self.vsegm_var.set(0x1e)
 		
 		# Precharge period
 		precharge_period_label = tk.Label(self, text="Precharge period :", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12), anchor="e")
@@ -80,7 +80,7 @@ class OledControlApp(tk.Tk):
 		self.precharge_period_var = tk.DoubleVar()
 		precharge_period_scale = tk.Scale(self, variable=self.precharge_period_var, command=lambda x:[self.value_changed_callback()], from_=0, to=8, sliderlength=100, length=300, orient=tk.HORIZONTAL, relief="flat", bd=2, bg="LightSteelBlue2", highlightbackground="LightSteelBlue2")  
 		precharge_period_scale.grid(row=3, column=1, pady=2, padx = 5)
-		self.precharge_period_var.set(6)
+		self.precharge_period_var.set(8)
 		
 		# Discharge period
 		dishcharge_period_label = tk.Label(self, text="Discharge period :", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12), anchor="e")
@@ -88,7 +88,7 @@ class OledControlApp(tk.Tk):
 		self.discharge_period_var = tk.DoubleVar()
 		discharge_period_scale = tk.Scale(self, variable=self.discharge_period_var, command=lambda x:[self.value_changed_callback()], from_=0, to=8, sliderlength=100, length=300, orient=tk.HORIZONTAL, relief="flat", bd=2, bg="LightSteelBlue2", highlightbackground="LightSteelBlue2")  
 		discharge_period_scale.grid(row=4, column=1, pady=2, padx = 5)
-		self.discharge_period_var.set(7)
+		self.discharge_period_var.set(2)
 		
 		# Discharge level
 		discharge_level_label = tk.Label(self, text="Discharge level :", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12), anchor="e")
@@ -96,7 +96,7 @@ class OledControlApp(tk.Tk):
 		self.discharge_level_var = tk.DoubleVar()
 		discharge_level_scale = tk.Scale(self, variable=self.discharge_level_var, command=lambda x:[self.value_changed_callback()], from_=0, to=3, sliderlength=100, length=300, orient=tk.HORIZONTAL, relief="flat", bd=2, bg="LightSteelBlue2", highlightbackground="LightSteelBlue2")  
 		discharge_level_scale.grid(row=5, column=1, pady=2, padx = 5)
-		self.discharge_level_var.set(1)
+		self.discharge_level_var.set(0)
 		
 		# Log output
 		self.log_output_text = tk.Text(self, width=70, height=8, wrap=tk.WORD)
