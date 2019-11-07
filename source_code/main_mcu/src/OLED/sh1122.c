@@ -155,8 +155,7 @@ void sh1122_set_discharge_charge_periods(sh1122_descriptor_t* oled_descriptor, u
 */
 void sh1122_set_discharge_vsl_level(sh1122_descriptor_t* oled_descriptor, uint8_t vsl_level)
 {
-    sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISCHARGE_VSL_LEVEL);
-    sh1122_write_single_command(oled_descriptor, vsl_level);    
+    sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISCHARGE_VSL_LEVEL | vsl_level);
 }
 
 /*! \fn     sh1122_set_column_address(sh1122_descriptor_t* oled_descriptor, uint8_t start)
