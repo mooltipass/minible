@@ -1115,3 +1115,20 @@ Device Answer:
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
 | 0x800B   | 1 | 0x01 (indicates command success) |
+
+
+
+0x800C: Set OLED parameters
+---------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3 | byte 4            | byte 5 | byte 6 | byte 7 | byte 8 | byte 9 |
+|:---------|:---------|:------------------|:-------|:-------|:-------|:-------|:-------|
+| 0x800C   | 6        | contrast current  | vcomh  | vsegm  | precharge period  | discharge period  | vsl  |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x800C   | 1 | 0x01 (indicates command success) |
