@@ -52,6 +52,7 @@ void platform_io_init_no_comms_signal(void){}
 void platform_io_smc_remove_function(void){}
 void platform_io_set_wheel_click_low(void){}
 BOOL platform_io_is_usb_3v3_present(void){ return emu_get_usb_charging(); }
+BOOL platform_io_is_usb_3v3_present_raw(void){ return emu_get_usb_charging(); }
 void platform_io_release_aux_reset(void){}
 void platform_io_assert_oled_reset(void){}
 void platform_io_init_flash_ports(void){}
