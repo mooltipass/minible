@@ -1005,16 +1005,10 @@ void custom_fs_set_undefined_settings(void)
     {
         uint32_t nb_settings_last_covered = custom_fs_platform_settings_p->nb_settings_last_covered;
 
-        /* Check for blank memory */
+        /* Check for blank memory & overflow */
         if (custom_fs_platform_settings_p->nb_settings_last_covered >= NB_DEVICE_SETTINGS)
         {
-            custom_fs_platform_settings_p->nb_settings_last_covered = 0;
-        }
-
-        /* Check for overflow */
-        if (nb_settings_last_covered > NB_DEVICE_SETTINGS)
-        {
-            nb_settings_last_covered = NB_DEVICE_SETTINGS;
+            nb_settings_last_covered = 0;
         }
 
         /* Copy the current settings */
