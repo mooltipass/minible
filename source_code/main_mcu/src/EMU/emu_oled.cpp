@@ -115,8 +115,8 @@ void emu_oled_flush(void)
 }
 
 OLEDWidget::OLEDWidget(): display(256, 64, QImage::Format_RGB888) {
-    setMinimumSize(display.size());
-    setMaximumSize(display.size());
+    setMinimumSize(display.size()*2);
+    setMaximumSize(display.size()*2);
 }
 
 OLEDWidget::~OLEDWidget() {
@@ -139,7 +139,7 @@ void OLEDWidget::update_display(const uint8_t *fb) {
 
 void OLEDWidget::paintEvent(QPaintEvent *) {
     QPainter painter(this);
-    painter.drawImage(0, 0, display);
+    painter.drawImage(QRect(0, 0, width(), height()), display, QRect(0, 0, display.width(), display.height()));
 }
 
 // see INPUTS/inputs.c
