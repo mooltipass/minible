@@ -747,7 +747,7 @@ uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId)
     uint16_t temp_address;
     
     // type id check
-    if (typeId >= (MEMBER_SIZE(nodemgmt_userprofile_t, main_data.data_start_address)/MEMBER_SIZE(nodemgmt_userprofile_t, main_data.data_start_address[0])))
+    if (typeId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, main_data.data_start_address)))
     {
         return NODE_ADDR_NULL;
     }
@@ -819,7 +819,7 @@ void nodemgmt_set_cred_start_address(uint16_t parentAddress)
 void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId)
 {
     // type id check
-    if (typeId >= (MEMBER_SIZE(nodemgmt_userprofile_t, main_data.data_start_address)/MEMBER_SIZE(nodemgmt_userprofile_t, main_data.data_start_address[0])))
+    if (typeId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, main_data.data_start_address)))
     {
         return;
     }
@@ -876,12 +876,12 @@ void nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentA
 {
     favorite_addr_t favorite = {parentAddress, childAddress};
     
-    if (categoryId >= (MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites)/MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0])))
+    if (categoryId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites)))
     {
         while(1);
     }
     
-    if(favId >= (MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)/MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite[0])))
+    if(favId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)))
     {
         while(1);
     }
@@ -901,12 +901,12 @@ void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* paren
 {
     favorite_addr_t favorite;
         
-    if (categoryId >= (MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites)/MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0])))
+    if (categoryId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites)))
     {
         while(1);
     }
     
-    if(favId >= (MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)/MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite[0])))
+    if(favId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)))
     {
         while(1);
     }
@@ -929,7 +929,7 @@ void nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* paren
 {
     favorite_addr_t favorite;
     
-    if(favId >= (MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)/MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite[0])))
+    if(favId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)))
     {
         while(1);
     }
@@ -952,7 +952,7 @@ int16_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId)
     favorite_addr_t favorite;
     
     /* Sanity checks */
-    if(favId >= (MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)/MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite[0])))
+    if(favId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)))
     {
         return -1;
     }
@@ -983,7 +983,7 @@ int16_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId)
     favorite_addr_t favorite;
     
     /* Sanity checks */
-    if(favId >= (MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)/MEMBER_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite[0])))
+    if(favId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)))
     {
         return -1;
     }
@@ -1012,7 +1012,7 @@ int16_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId)
 uint16_t nodemgmt_get_favorites(uint16_t* addresses_array)
 {
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, category_favorites), MEMBER_SIZE(nodemgmt_userprofile_t,category_favorites), (void*)addresses_array);
-    return MEMBER_SIZE(nodemgmt_userprofile_t,category_favorites)/sizeof(favorite_addr_t);
+    return MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t,category_favorites);
 }
 
 /*! \fn     nodemgmt_read_profile_ctr(void* buf)
