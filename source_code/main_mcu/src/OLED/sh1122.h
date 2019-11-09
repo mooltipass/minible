@@ -39,7 +39,7 @@
 
 /* Screen defines */
 #define SH1122_OLED_Shift           0x1C
-#define SH1122_OLED_Max_Column      0x3F     // 256/4-1
+#define SH1122_OLED_Max_Column      0x7F     // 256/2-1
 #define SH1122_OLED_Max_Row         0x3F     // 64-1
 #define SH1122_OLED_Brightness      0x05     // Up to 0x0F
 #define SH1122_OLED_Contrast        0xFF     // Up to 0xFF

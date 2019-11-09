@@ -16,6 +16,10 @@
 #include "utils.h"
 #include "dma.h"
 
+#ifdef EMULATOR_BUILD
+#include "emu_storage.h"
+#endif
+
 /* Default device settings */
 const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = {0,FALSE,SETTING_DFT_USER_INTERACTION_TIMEOUT,TRUE,0,0x09,0x0A,5,TRUE,0x90};
 /* Current selected language entry */
@@ -101,7 +105,7 @@ RET_TYPE custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_
         if (use_dma != FALSE)
         {
             /* Arm DMA transfer */
-            dma_custom_fs_init_transfer((void*)&custom_fs_dataflash_desc->sercom_pt->SPI.DATA.reg, (void*)datap, size);
+            dma_custom_fs_init_transfer(custom_fs_dataflash_desc->sercom_pt, (void*)datap, size);
         }
         else
         {
@@ -119,6 +123,7 @@ RET_TYPE custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_
 */
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void)
 {
+#ifndef EMULATOR_BUILD
     /* Start a read on external flash */
     dataflash_read_data_array_start(custom_fs_dataflash_desc, CUSTOM_FS_FILES_ADDR_OFFSET + sizeof(custom_fs_flash_header.magic_header) + sizeof(custom_fs_flash_header.total_size) + sizeof(custom_fs_flash_header.crc32));
 
@@ -128,7 +133,7 @@ RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void)
     #endif
 
     /* Use the DMA controller to compute the crc32 */
-    uint32_t crc32 = dma_compute_crc32_from_spi((void*)&custom_fs_dataflash_desc->sercom_pt->SPI.DATA.reg, custom_fs_flash_header.total_size - sizeof(custom_fs_flash_header.magic_header) - sizeof(custom_fs_flash_header.total_size) - sizeof(custom_fs_flash_header.crc32));
+    uint32_t crc32 = dma_compute_crc32_from_spi(custom_fs_dataflash_desc->sercom_pt, custom_fs_flash_header.total_size - sizeof(custom_fs_flash_header.magic_header) - sizeof(custom_fs_flash_header.total_size) - sizeof(custom_fs_flash_header.crc32));
     
     /* Stop transfer */
     dataflash_stop_ongoing_transfer(custom_fs_dataflash_desc);
@@ -147,6 +152,11 @@ RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void)
     {
         return RETURN_NOK;
     }
+
+#else
+    /* We don't emulate the DMA controller, and don't bother with reimplementing the crc32 routines */
+    return RETURN_OK;
+#endif
 }
 
 /*! \fn     custom_fs_stop_continuous_read_from_flash(void)
@@ -165,20 +175,22 @@ void custom_fs_stop_continuous_read_from_flash(void)
 custom_fs_init_ret_type_te custom_fs_settings_init(void)
 {        
     /* Initialize platform settings pointer, located in slot 0 of internal storage */
-    uint32_t flash_addr = custom_fs_get_custom_storage_slot_addr(SETTINGS_STORAGE_SLOT);
-    if (flash_addr != 0)
+    void* flash_ptr = custom_fs_get_custom_storage_slot_ptr(SETTINGS_STORAGE_SLOT);
+    if (flash_ptr != 0)
     {
-        custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_addr;
-        flash_addr = custom_fs_get_custom_storage_slot_addr(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT);
-        custom_fs_cpz_lut = (cpz_lut_entry_t*)flash_addr;
-        flash_addr = custom_fs_get_custom_storage_slot_addr(FLAGS_STORAGE_SLOT);
-        custom_fs_platform_flags_p = (custom_platform_flags_t*)flash_addr;
+        custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_ptr;
+        flash_ptr = custom_fs_get_custom_storage_slot_ptr(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT);
+        custom_fs_cpz_lut = (cpz_lut_entry_t*)flash_ptr;
+        flash_ptr = custom_fs_get_custom_storage_slot_ptr(FLAGS_STORAGE_SLOT);
+        custom_fs_platform_flags_p = (custom_platform_flags_t*)flash_ptr;
         
+#ifndef EMULATOR_BUILD
         /* Quick sanity check on memory boundary */
-        if ((uint32_t)&custom_fs_cpz_lut[MAX_NUMBER_OF_USERS] != FLASH_ADDR + FLASH_SIZE)
+        if ((uintptr_t)&custom_fs_cpz_lut[MAX_NUMBER_OF_USERS] != FLASH_ADDR + FLASH_SIZE)
         {
             while(1);
         }
+#endif
         
         return CUSTOM_FS_INIT_OK;
     }    
@@ -479,14 +491,21 @@ void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc)
     custom_fs_dataflash_desc = desc;    
 }
 
+static void custom_fs_init_custom_storage_slots(void);
+
 /*! \fn     custom_fs_init(void)
 *   \brief  Initialize our custom file system... system
 *   \return RETURN_(N)OK
 */
+
 ret_type_te custom_fs_init(void)
-{
+{    
     _Static_assert(sizeof(custom_platform_settings_t) == NVMCTRL_ROW_SIZE, "Platform settings isn't a page long");
-    _Static_assert(sizeof(custom_platform_flags_t) == NVMCTRL_ROW_SIZE, "Platform flags isn't a page long");   
+    _Static_assert(sizeof(custom_platform_flags_t) == NVMCTRL_ROW_SIZE, "Platform flags isn't a page long");
+
+    /* Initialize internal data structures responsible for "custom storage slots".
+     * At the moment this doesn't do anything on the regular, non-emulator build. */
+    custom_fs_init_custom_storage_slots();
     
     /* Read flash header */
     custom_fs_read_from_flash((uint8_t*)&custom_fs_flash_header, CUSTOM_FS_FILES_ADDR_OFFSET, sizeof(custom_fs_flash_header));
@@ -509,7 +528,7 @@ ret_type_te custom_fs_init(void)
             default_device_language = 0;
         }    
     
-        /* Set default language */
+    /* Set default language */
         return custom_fs_set_current_language(default_device_language);
     #endif
 }
@@ -661,12 +680,22 @@ RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* addre
     return RETURN_OK;
 }
 
-/*! \fn     custom_fs_get_custom_storage_slot_addr(uint32_t slot_id)
+#ifndef EMULATOR_BUILD
+
+/*! \fn     custom_fs_init_custom_storage_slots(void)
+*   \brief  Initialize custom slots storage
+*/
+static void custom_fs_init_custom_storage_slots(void)
+{
+    /* this is non-empty in the emulator version */
+}
+
+/*! \fn     custom_fs_get_custom_storage_slot_ptr(uint32_t slot_id)
 *   \brief  Get the internal flash address for a given storage slot id
 *   \param  slot_id     slot ID
 *   \return 0 if the slot_id is not valid, otherwise the address
 */
-uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id)
+void* custom_fs_get_custom_storage_slot_ptr(uint32_t slot_id)
 {
     uint32_t emulated_eeprom_size = 0;
     
@@ -695,7 +724,7 @@ uint32_t custom_fs_get_custom_storage_slot_addr(uint32_t slot_id)
     }
     
     /* Compute address of where we want to write data */
-    return (FLASH_ADDR + FLASH_SIZE - emulated_eeprom_size + slot_id*NVMCTRL_ROW_SIZE);
+    return (void*)(FLASH_ADDR + FLASH_SIZE - emulated_eeprom_size + slot_id*NVMCTRL_ROW_SIZE);
 }
 
 /*! \fn     custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id)
@@ -708,7 +737,8 @@ void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id)
 {
 #ifndef FEATURE_NVM_RWWEE    
     /* Compute address of where we want to write data */
-    uint32_t flash_addr = custom_fs_get_custom_storage_slot_addr(slot_id);
+    void *flash_ptr = custom_fs_get_custom_storage_slot_ptr(slot_id);
+    uint32_t flash_addr = (uint32_t)flash_ptr;
     
     /* Check if we were successful */
     if (flash_addr == 0)
@@ -742,7 +772,8 @@ void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void
 {
 #ifndef FEATURE_NVM_RWWEE    
     /* Compute address of where we want to write data */
-    uint32_t flash_addr = custom_fs_get_custom_storage_slot_addr(slot_id);
+    void *flash_ptr = custom_fs_get_custom_storage_slot_ptr(slot_id);
+    uint32_t flash_addr = (uint32_t)flash_ptr;
     
     /* Check if we were successful */
     if (flash_addr == 0)
@@ -787,7 +818,7 @@ void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void*
 {
 #ifndef FEATURE_NVM_RWWEE
     /* Compute address of where we want to read data */
-    uint32_t flash_addr = custom_fs_get_custom_storage_slot_addr(slot_id);
+    void* flash_addr = custom_fs_get_custom_storage_slot_ptr(slot_id);
     
     /* Check if we were successful */
     if (flash_addr == 0)
@@ -799,6 +830,56 @@ void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void*
     memcpy(array, (const void*)flash_addr, NVMCTRL_ROW_SIZE);
 #endif
 }
+
+#else
+
+/* This part is used on the emulator build */
+
+static uint8_t eeprom[256 * 128];
+
+static void custom_fs_init_custom_storage_slots(void)
+{
+    if(!emu_eeprom_open())
+        custom_fs_hard_reset_settings();
+
+    emu_eeprom_read(0, eeprom, sizeof(eeprom));
+}
+
+void* custom_fs_get_custom_storage_slot_ptr(uint32_t slot_id)
+{
+    if(slot_id * 256 > sizeof(eeprom))
+        return 0;
+
+    return &eeprom[slot_id * 256];
+}
+
+void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id) 
+{
+    if(slot_id * 256 > sizeof(eeprom))
+        return;
+
+    memset(eeprom + slot_id * 256, 0xff, 256);
+    emu_eeprom_write(slot_id * 256, eeprom + slot_id * 256, 256);
+}
+
+void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array)
+{
+    if(slot_id * 256 > sizeof(eeprom))
+        return;
+
+    memcpy(eeprom+slot_id*256, array, 256);
+    emu_eeprom_write(slot_id * 256, eeprom + slot_id * 256, 256);
+}
+
+void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array)
+{
+    if(slot_id * 256 > sizeof(eeprom))
+        return;
+
+    memcpy(array, eeprom + slot_id * 256, 256);
+}
+
+#endif
 
 /*! \fn     custom_fs_settings_set_fw_upgrade_flag(void)
 *   \brief  Set the fw upgrade flag inside our settings

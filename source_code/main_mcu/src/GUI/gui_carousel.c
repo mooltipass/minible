@@ -11,6 +11,7 @@
 #include "logic_power.h"
 #include "sh1122.h"
 #include "main.h"
+#include <stdlib.h>
 /* Carousel spacing depending on number of elemnts */
 const uint16_t gui_carousel_x_anim_steps[] = {0,0,0,CAROUSEL_X_STEP_ANIM(3),CAROUSEL_X_STEP_ANIM(4),CAROUSEL_X_STEP_ANIM(5),CAROUSEL_X_STEP_ANIM(6),CAROUSEL_X_STEP_ANIM(7),CAROUSEL_X_STEP_ANIM(8)};
 const uint16_t gui_carousel_inter_icon_spacing[] = {0,0,0,CAROUSEL_IS_SM(3),CAROUSEL_IS_SM(4),CAROUSEL_IS_SM(5),CAROUSEL_IS_SM(6),CAROUSEL_IS_SM(7),CAROUSEL_IS_SM(8)};
@@ -157,5 +158,8 @@ void gui_carousel_render_animation(uint16_t nb_elements, const uint16_t* pic_ids
         {
             gui_carousel_render(nb_elements, pic_ids, text_ids, selected_id, i);
         }
+#ifdef EMULATOR_BUILD
+        DELAYMS(16);
+#endif
     }
 }

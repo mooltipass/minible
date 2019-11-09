@@ -42,6 +42,7 @@ volatile uint16_t inputs_force_reboot_timer = 0;
 #endif
 
 
+#ifndef EMULATOR_BUILD
 /*! \fn     inputs_scan(void)
 *   \brief  Wheel debounce called by 1ms interrupt
 */
@@ -224,6 +225,7 @@ void inputs_scan(void)
         inputs_wheel_click_counter = 0;
     }
 }
+#endif
 
 /*! \fn     inputs_get_wheel_increment(void)
 *   \brief  Fetch the current increment/decrement for the wheel
@@ -252,6 +254,7 @@ int16_t inputs_get_wheel_increment(void)
 */
 BOOL inputs_raw_is_wheel_released(void)
 {
+#ifndef EMULATOR_BUILD
     if ((PORT->Group[WHEEL_SW_GROUP].IN.reg & WHEEL_SW_MASK) == 0)
     {
         return FALSE;
@@ -260,6 +263,9 @@ BOOL inputs_raw_is_wheel_released(void)
     {
         return TRUE;
     }
+#else
+    return FALSE;
+#endif
 }
 
 /*! \fn     inputs_is_wheel_clicked(void)

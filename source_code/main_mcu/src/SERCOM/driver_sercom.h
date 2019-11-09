@@ -7,6 +7,7 @@
 #define DRIVER_SERCOM_H_
 
 #include "defines.h"
+#include "asf.h"
 
 /* Enums */
 typedef enum {SPI_HSS_DISABLE = 0, SPI_HSS_ENABLE = 1} spi_hss_te;

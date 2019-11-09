@@ -610,3 +610,22 @@ RET_TYPE smartcard_lowlevel_check_for_const_val_in_smc_array(uint16_t nb_bytes_t
     /* If we got there it means the comparison was OK */
     return RETURN_OK;
 }
+
+/*! \fn     smartcard_low_level_is_smc_absent(void)
+*   \brief  Function used to check if the smartcard is absent
+*   \note   This function should only be used to check if the smartcard is absent. It works because scanSMCDectect reports the
+*           smartcard absent when it is not here during only one tick. It also works because the smartcard is always reported
+*           released via isCardPlugged
+*   \return RETURN_OK if absent
+*/
+RET_TYPE smartcard_low_level_is_smc_absent(void)
+{    
+    if ((PORT->Group[SMC_DET_GROUP].IN.reg & SMC_DET_MASK) == 0)
+    {
+        return RETURN_NOK;
+    }
+    else
+    {
+        return RETURN_OK;
+    }
+}

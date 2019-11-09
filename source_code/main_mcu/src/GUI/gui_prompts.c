@@ -590,7 +590,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     *pin_code = (uint16_t)(((uint16_t)(current_pin[0]) << 12) | (((uint16_t)current_pin[1]) << 8) | (current_pin[2] << 4) | current_pin[3]);
     
     // Set current pin to 0000 & set default font
-    memset((void*)current_pin, 0, sizeof(pin_code));
+    memset((void*)current_pin, 0, sizeof(current_pin));
     
     // Return success status
     return ret_val;
