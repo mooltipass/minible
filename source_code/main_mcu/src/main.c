@@ -257,7 +257,7 @@ void main_platform_init(void)
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
         logic_power_usb_enumerate_just_sent();
     } 
-        
+    
     // TO REMOVE
     if (custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE)
     {
@@ -491,20 +491,20 @@ int main(void)
     /* Start animation */    
     if ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_BOOT_ANIMATION) != FALSE)
     {
-    for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
-    {
-            timer_start_timer(TIMER_WAIT_FUNCTS, 28);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
-        while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
+        for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
         {
-            comms_aux_mcu_routine(MSG_RESTRICT_ALL);
-    
+            timer_start_timer(TIMER_WAIT_FUNCTS, 28);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
+            while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
+            {
+                comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+                
                 /* Click to exit animation */
                 if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
-    {
+                {
                     i = 0x1234;
                     break;
-    }
+                }
             }
         }
     }  
@@ -542,8 +542,8 @@ int main(void)
             /* It may not be impossible that the user connected the device in the meantime */
             if (platform_io_is_usb_3v3_present() == FALSE)
             {
-            platform_io_disable_switch_and_die();
-            while(1);
+                platform_io_disable_switch_and_die();
+                while(1);
             } 
             else
             {
