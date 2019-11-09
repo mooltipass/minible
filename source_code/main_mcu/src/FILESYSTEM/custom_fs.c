@@ -503,6 +503,8 @@ ret_type_te custom_fs_init(void)
     _Static_assert(sizeof(custom_platform_settings_t) == NVMCTRL_ROW_SIZE, "Platform settings isn't a page long");
     _Static_assert(sizeof(custom_platform_flags_t) == NVMCTRL_ROW_SIZE, "Platform flags isn't a page long");
 
+    /* Initialize internal data structures responsible for "custom storage slots".
+     * At the moment this doesn't do anything on the regular, non-emulator build. */
     custom_fs_init_custom_storage_slots();
     
     /* Read flash header */
@@ -830,6 +832,8 @@ void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void*
 }
 
 #else
+
+/* This part is used on the emulator build */
 
 static uint8_t eeprom[256 * 128];
 
