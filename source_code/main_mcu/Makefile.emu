@@ -1,0 +1,187 @@
+ifeq ($(OS),Windows_NT)
+SHELL := cmd.exe
+MKDIR := mkdir
+
+define create_dir
+	@if not exist "$(1)" $(MKDIR) "$(1)"
+endef
+
+SHELL := sh
+
+else
+
+MKDIR := mkdir -p
+
+define create_dir
+	@$(MKDIR) $(1)
+endef
+endif
+
+RM := rm -rf
+
+CC    := gcc
+CPP   := g++
+ASM   := as
+LINK  := gcc
+
+INC_DIRS := \
+-I"src/EMU" \
+-I"src" \
+-I"src/config" \
+-I"src/PLATFORM" \
+-I"src/CLOCKS" \
+-I"src/SERCOM" \
+-I"src/FLASH" \
+-I"src/FILESYSTEM" \
+-I"src/DMA" \
+-I"src/TIMER" \
+-I"src/SMARTCARD" \
+-I"src/OLED" \
+-I"src/ACCELEROMETER" \
+-I"src/INPUTS" \
+-I"src/COMMS" \
+-I"src/LOGIC" \
+-I"src/SECURITY" \
+-I"src/GUI" \
+-I"src/NODEMGMT" \
+-I"src/RNG" \
+-I"src/BearSSL/src" \
+-I"src/BearSSL/inc"
+
+LIB_DIRS := 
+
+
+ifeq ($(OS),Windows_NT)
+INC_DIRS +=
+else
+INC_DIRS +=
+endif
+
+INC_DIRS += $(shell pkg-config --cflags Qt5Core Qt5Gui Qt5Widgets Qt5Network)
+LIB_DIRS += $(shell pkg-config --libs Qt5Core Qt5Gui Qt5Widgets Qt5Network)
+MOC = moc
+
+
+C_SRCS +=  \
+src/EMU/lis2hh12.c \
+src/BearSSL/src/symcipher/aes_ct.c \
+src/BearSSL/src/symcipher/aes_ct_ctr.c \
+src/BearSSL/src/symcipher/aes_ct_ctrcbc.c \
+src/BearSSL/src/symcipher/aes_ct_enc.c \
+src/COMMS/comms_aux_mcu.c \
+src/COMMS/comms_hid_msgs.c \
+src/COMMS/comms_hid_msgs_debug.c \
+src/EMU/dma.c \
+src/FILESYSTEM/custom_bitstream.c \
+src/FILESYSTEM/custom_fs.c \
+src/FILESYSTEM/custom_fs_emergency_font.c \
+src/EMU/dataflash.c \
+src/EMU/dbflash.c \
+src/GUI/gui_carousel.c \
+src/GUI/gui_dispatcher.c \
+src/GUI/gui_menu.c \
+src/GUI/gui_prompts.c \
+src/INPUTS/inputs.c \
+src/LOGIC/logic_aux_mcu.c \
+src/LOGIC/logic_bluetooth.c \
+src/LOGIC/logic_database.c \
+src/LOGIC/logic_device.c \
+src/LOGIC/logic_encryption.c \
+src/LOGIC/logic_gui.c \
+src/LOGIC/logic_power.c \
+src/LOGIC/logic_security.c \
+src/LOGIC/logic_smartcard.c \
+src/LOGIC/logic_user.c \
+src/NODEMGMT/nodemgmt.c \
+src/OLED/mooltipass_graphics_bundle.c \
+src/OLED/sh1122.c \
+src/EMU/platform_io.c \
+src/RNG/rng.c \
+src/EMU/fuses.c \
+src/EMU/driver_sercom.c \
+src/SMARTCARD/smartcard_highlevel.c \
+src/EMU/smartcard_lowlevel.c \
+src/TIMER/driver_timer.c \
+src/utils.c \
+src/main.c \
+src/EMU/emu_aux_mcu.c 
+
+CPP_SRCS = \
+           src/EMU/emulator.cpp \
+           src/EMU/emu_oled.cpp \
+           src/EMU/emu_smartcard.cpp \
+           src/EMU/emu_storage.cpp \
+           src/EMU/emulator_ui.cpp
+
+MOC_SRCS =
+
+ifeq ($(DEBUG), 1)
+    FLAGS += -DDEBUG -g3 -O0
+    OUTPUT_DIR := Debug-emu
+else
+    FLAGS += -DNDEBUG -Os
+    OUTPUT_DIR := Release-emu
+endif
+
+FLAGS += -fdata-sections -ffunction-sections -Wall -c -pipe -fno-strict-aliasing -Werror-implicit-function-declaration -Wpointer-arith -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wundef -Wshadow -Wwrite-strings -Wsign-compare -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wunreachable-code -Wcast-align -Wlogical-op -fPIC
+
+C_FLAGS += -Wstrict-prototypes -Wmissing-prototypes -Wimplicit-int -Wbad-function-cast -Wnested-externs -Wjump-misses-init -Wlong-long -Wfloat-equal -Waggregate-return -std=gnu99
+CPP_FLAGS += -std=gnu++11
+
+C_DEFINES := -DBR_BE_UNALIGNED=0 -DBR_CT_MUL15=0 -DBR_ENABLE_INTRINSICS=0 -DBR_CT_MUL31=0 -DBR_LE_UNALIGNED=0 -DBR_NO_ARITH_SHIFT=0 -DBR_POWER_ASM_MACROS=0 -D_ARCH_PWR8=0 -DBR_POWER8=0
+
+C_DEFINES += -DEMULATOR_BUILD
+
+OBJS := $(C_SRCS:%.c=$(OUTPUT_DIR)/%.o) $(CPP_SRCS:%.cpp=$(OUTPUT_DIR)/%.o) $(MOC_SRCS:%.h=$(OUTPUT_DIR)/%.moc.o)
+
+C_DEPS := $(OBJS:%.o=%.d)
+
+TARGET := $(OUTPUT_DIR)/mini_ble.elf
+
+# All Target
+all: $(TARGET)
+
+$(OUTPUT_DIR)/%.o: %.c $(OUTPUT_DIR)/%.d
+	@echo Building file: $@
+	@echo Invoking: GNU C Compiler
+	@$(call create_dir,$(dir $@))
+	$(CC) $(FLAGS) $(C_FLAGS) $(C_DEFINES) $(INC_DIRS) -MD -MP -MF "$(@:%.o=%.d)" -MT "$@" -o "$@" "$<"
+	@echo Finished building: $@
+
+$(OUTPUT_DIR)/%.o: %.cpp $(OUTPUT_DIR)/%.d
+	@echo Building file: $@
+	@echo Invoking: GNU C++ Compiler
+	@$(call create_dir,$(dir $@))
+	$(CPP) $(FLAGS) $(CPP_FLAGS) $(C_DEFINES) $(INC_DIRS) -MD -MP -MF "$(@:%.o=%.d)" -MT "$@" -o "$@" "$<"
+	@echo Finished building: $@
+
+$(OUTPUT_DIR)/%.o: $(OUTPUT_DIR)/%.cpp $(OUTPUT_DIR)/%.d
+	@echo Building file: $@
+	@echo Invoking: GNU C++ Compiler
+	@$(call create_dir,$(dir $@))
+	$(CPP) $(FLAGS) $(CPP_FLAGS) $(C_DEFINES) $(INC_DIRS) -MD -MP -MF "$(@:%.o=%.d)" -MT "$@" -o "$@" "$<"
+	@echo Finished building: $@
+
+$(OUTPUT_DIR)/%.moc.cpp: %.h
+	$(MOC) $(INC_DIRS) $< -o $@
+
+$(TARGET): $(OBJS) $(LIB_DEP)
+	@echo Building target: $@
+	@echo Invoking: GNU Linker
+	$(CPP) -o$(TARGET) $(OBJS) $(LIBS) -lm $(LIB_DIRS) -Wl,--gc-sections
+	@echo Finished building target: $@
+
+# Other Targets
+clean:
+	$(RM) $(OBJS)
+	$(RM) $(C_DEPS)
+	rm -rf $(TARGET)
+
+wipe:
+	$(RM) $(OUTPUT_DIR)
+
+$(C_DEPS):
+
+ifneq ($(MAKECMDGOALS),clean)
+-include $(C_DEPS)
+endif

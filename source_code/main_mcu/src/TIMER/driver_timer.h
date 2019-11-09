@@ -27,6 +27,13 @@ typedef enum {TIMER_WAIT_FUNCTS = 0, TIMER_TIMEOUT_FUNCTS = 1, TIMER_USER_INTERA
 typedef enum {TIMER_EXPIRED = 0, TIMER_RUNNING = 1} timer_flag_te;
     
 /* Macros */
+#ifdef EMULATOR_BUILD
+#include <unistd.h>
+#define DELAYUS(us)                 usleep(us)
+#define DELAYMS(ms)                 usleep((ms)*1000)
+#define DELAYMS_8M(ms)              usleep((ms)*1000)
+#else
+
 #define CYCLES_IN_DLYTICKS_FUNC     8
 #define US_TO_DLYTICKS(us)          (uint32_t)((CPU_SPEED_HF / 1000000UL) * us / CYCLES_IN_DLYTICKS_FUNC)
 #define DELAYTICKS(ticks)           {volatile uint32_t n=ticks; while(n--);}                    //takes 8 cycles
@@ -34,6 +41,8 @@ typedef enum {TIMER_EXPIRED = 0, TIMER_RUNNING = 1} timer_flag_te;
 #define DELAYMS(ms)                 DELAYTICKS(US_TO_DLYTICKS(ms*1000))                         //uses 20bytes
 #define US_TO_DLYTICKS_8M(us)       (uint32_t)((CPU_SPEED_MF / 1000000UL) * us / CYCLES_IN_DLYTICKS_FUNC)
 #define DELAYMS_8M(ms)              DELAYTICKS(US_TO_DLYTICKS_8M(ms*1000))                      //uses 20bytes
+
+#endif
 
 /* Prototypes */
 void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second);

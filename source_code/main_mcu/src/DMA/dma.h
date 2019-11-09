@@ -13,12 +13,12 @@
 #include "defines.h"
 
 /* Prototypes */
-void dma_oled_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint16_t dma_trigger);
-void dma_acc_init_transfer(void* spi_data_p, void* datap, uint16_t size, uint8_t* read_cmd);
-uint32_t dma_compute_crc32_from_spi(void* spi_data_p, uint32_t size);
-void dma_aux_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size);
-void dma_aux_mcu_init_rx_transfer(void* spi_data_p, void* datap, uint16_t size);
-void dma_custom_fs_init_transfer(void* spi_data_p, void* datap, uint16_t size);
+void dma_oled_init_transfer(Sercom* sercom, void* datap, uint16_t size, uint16_t dma_trigger);
+void dma_acc_init_transfer(Sercom* sercom, void* datap, uint16_t size, uint8_t* read_cmd);
+uint32_t dma_compute_crc32_from_spi(Sercom* sercom, uint32_t size);
+void dma_aux_mcu_init_tx_transfer(Sercom* sercom, void* datap, uint16_t size);
+void dma_aux_mcu_init_rx_transfer(Sercom* sercom, void* datap, uint16_t size);
+void dma_custom_fs_init_transfer(Sercom* sercom, void* datap, uint16_t size);
 void dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag(void);
 uint16_t dma_aux_mcu_get_remaining_bytes_for_rx_transfer(void);
 BOOL dma_custom_fs_check_and_clear_dma_transfer_flag(void);

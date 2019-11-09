@@ -34,7 +34,7 @@ BOOL aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = FALSE;
 */
 void comms_aux_arm_rx_and_clear_no_comms(void)
 {
-    dma_aux_mcu_init_rx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+    dma_aux_mcu_init_rx_transfer(AUXMCU_SERCOM, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
     platform_io_clear_no_comms();
 }
 
@@ -54,7 +54,7 @@ aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void)
 void comms_aux_mcu_send_message(BOOL wait_for_send)
 {    
     /* The function below does wait for a previous transfer to finish */
-    dma_aux_mcu_init_tx_transfer((void*)&AUXMCU_SERCOM->USART.DATA.reg, (void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
+    dma_aux_mcu_init_tx_transfer(AUXMCU_SERCOM, (void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
     
     /* If asked, wait for message sent */
     if (wait_for_send != FALSE)
@@ -231,6 +231,9 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
 */
 comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
 {    
+#ifdef EMULATOR_BUILD
+    DELAYMS(1);
+#endif
     /* Recursivity: set function called flag */
     BOOL function_already_called = FALSE;
     if (aux_mcu_comms_aux_mcu_routine_function_called == FALSE)

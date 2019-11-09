@@ -17,7 +17,7 @@ volatile timerEntry_t context_timers[TOTAL_NUMBER_OF_TIMERS];
 /* System tick */
 volatile uint32_t sysTick;
 
-
+#ifndef EMULATOR_BUILD
 /*! \fn     TCC0_Handler(void)
 *   \brief  Called every ms by interrupt
 */
@@ -47,12 +47,15 @@ void TCC0_Handler(void)
     #endif
 }
 
+#endif
+
 /*! \fn     timer_initialize_timebase(void)
 *   \brief  Initialize the platform time base
 *   \note   Will use GCLK3 for a 1.024KHz and uses the RTC module in calendar mode
 */
 void timer_initialize_timebase(void)
 {
+#ifndef EMULATOR_BUILD
     /* Enable MCU systick with max value period */
     SysTick->LOAD = 0x00FFFFFF;
     SysTick->CTRL = 1;
@@ -119,6 +122,7 @@ void timer_initialize_timebase(void)
     TCC0->CTRLA = tcc_ctrl_reg;                                         // Write register
     TCC0->INTENSET.reg = TCC_INTENSET_OVF;                              // Enable overflow interrupt
     NVIC_EnableIRQ(TCC0_IRQn);                                          // Enable int
+#endif
 }
 
 /*!	\fn		timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
@@ -132,6 +136,7 @@ void timer_initialize_timebase(void)
 */
 void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
 {
+#ifndef EMULATOR_BUILD
     calendar_t new_date;
     new_date.bit.YEAR = year-2000;
     new_date.bit.MONTH = month;
@@ -141,6 +146,9 @@ void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t ho
     new_date.bit.SECOND = second;
     while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
     RTC->MODE2.CLOCK = new_date;
+#else
+    // FIXME
+#endif
 }
 
 /*!	\fn		timer_get_calendar(calendar_t* calendar_pt)
@@ -149,10 +157,14 @@ void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t ho
 */
 void timer_get_calendar(calendar_t* calendar_pt)
 {
+#ifndef EMULATOR_BUILD
     while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
     RTC->MODE2.READREQ.reg |= RTC_READREQ_RREQ;                         // Trigger read request
     while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
     *calendar_pt = RTC->MODE2.CLOCK;                                    // Store current time
+#else
+    // FIXME
+#endif
 }
 
 /*!	\fn		timer_ms_tick(void)
@@ -183,6 +195,7 @@ void timer_ms_tick(void)
 */
 BOOL timer_get_mcu_systick(uint32_t* value)
 {
+#ifndef EMULATOR_BUILD
     *value = SysTick->VAL & 0x00FFFFFF;
     
     if ((SysTick->CTRL & 0x10000) != 0)
@@ -193,6 +206,10 @@ BOOL timer_get_mcu_systick(uint32_t* value)
     {
         return FALSE;
     }
+#else
+    // FIXME
+    return FALSE;
+#endif
 }
 
 /*!	\fn		timer_get_systick(void)

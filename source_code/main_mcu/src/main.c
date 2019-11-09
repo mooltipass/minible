@@ -61,8 +61,10 @@ uint32_t* mcu_sp_rh_addresses = 0;
 /* - adding --undefined=jump_to_application_function_addr to linker option  */
 /*                                                                          */
 /* To move the application address, change APP_START_ADDR & .text           */
-/* What I don't understand: why the "+1" in the second array element        */
+/* The "+1" in the second array element indicates that MCU starts in Thumb  */
+/* mode (the only mode supported by Cortex M0)                              */
 /****************************************************************************/
+#ifndef EMULATOR_BUILD
 const uint32_t jump_to_application_function_addr[2] __attribute__((used,section (".flash_start_addr"))) = {HMCRAMC0_ADDR+100,0x200+1};
 void jump_to_application_function(void) __attribute__((used,section (".start_app_function_addr")));
 void jump_to_application_function(void)
@@ -85,6 +87,7 @@ void jump_to_application_function(void)
     /* Jump to user Reset Handler in the application */
     application_code_entry();
 }
+#endif
 
 /*! \fn     main_platform_init(void)
 *   \brief  Initialize our platform
@@ -138,6 +141,7 @@ void main_platform_init(void)
     fuses_ok = fuses_check_program(TRUE);
     while(fuses_ok != RETURN_OK);
     
+#ifndef EMULATOR_BUILD
     /* Check if debugger present */
     if (DSU->STATUSB.bit.DBGPRES != 0)
     {
@@ -151,6 +155,7 @@ void main_platform_init(void)
     
     /* Switch to 48MHz */
     clocks_start_48MDFLL();
+#endif
     
     /* Second custom FS init (as fuses may have been programmed since the first), check for data flash, absence of bundle and bundle integrity */
     platform_io_init_flash_ports();
@@ -259,6 +264,7 @@ void main_platform_init(void)
         custom_fs_set_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID, TRUE);
     }
     /* Check for functional testing passed */
+#ifndef EMULATOR_BUILD
     #ifdef DEVELOPER_FEATURES_ENABLED
     if ((custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
     #else
@@ -267,6 +273,7 @@ void main_platform_init(void)
     {
         functional_testing_start(TRUE);
     }
+#endif
     
     /* Display error messages if something went wrong during custom fs init and bundle check */
     if ((custom_fs_init_return != RETURN_OK) || (bundle_integrity_check_return != RETURN_OK))
@@ -325,6 +332,7 @@ void main_platform_init(void)
 */
 void main_reboot(void)
 {
+#ifndef EMULATOR_BUILD
     /* Wait for accelerometer DMA transfer end */
     lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor);
     while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
@@ -338,6 +346,9 @@ void main_reboot(void)
     cpu_irq_disable();
     NVIC_SystemReset();
     while(1);
+#else
+    exit(0);
+#endif
 }
 
 /*! \fn     main_standby_sleep(void)
@@ -345,6 +356,7 @@ void main_reboot(void)
 */
 void main_standby_sleep(void)
 {
+#ifndef EMULATOR_BUILD
     aux_mcu_message_t* temp_rx_message;
     
     /* Send a go to sleep message to aux MCU, wait for ack, leave no comms high (automatically set when receiving the sleep received event) */
@@ -402,12 +414,19 @@ void main_standby_sleep(void)
     
     /* Clear wheel detection */
     inputs_clear_detections();
+#endif
 }
 
 /*! \fn     main(void)
 *   \brief  Program Main
 */
+#ifdef EMULATOR_BUILD
+int minible_main(void);
+
+int minible_main(void)
+#else
 int main(void)
+#endif
 {
     /* Initialize our platform */
     main_platform_init();

@@ -78,6 +78,10 @@
      #define DBFLASH_CHIP_8M
 #endif
 
+#if defined(EMULATOR_BUILD)
+    #undef DEVELOPER_FEATURES_ENABLED
+#endif
+
 /* Developer features */
 #ifdef DEVELOPER_FEATURES_ENABLED
     #define DEV_SKIP_INTRO_ANIM
@@ -831,6 +835,12 @@ typedef struct
     #else
         #define AUX_MCU_NOCOMMS_PMUXREGID  PMUXE
     #endif
+#endif
+
+#if defined(EMULATOR_BUILD)
+    #undef DEBUG_MENU_ENABLED
+    #undef FLASH_DMA_FETCHES
+    #undef OLED_DMA_TRANSFER
 #endif
 
 #endif /* PLATFORM_DEFINES_H_ */

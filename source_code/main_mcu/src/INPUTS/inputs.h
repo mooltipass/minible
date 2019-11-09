@@ -7,6 +7,7 @@
 
 #ifndef INPUTS_H_
 #define INPUTS_H_
+#include "defines.h"
 
 /* Defines */
 // How many ms is considered as a long press

@@ -13,6 +13,12 @@
 #include "sh1122.h"
 #include "dma.h"
 
+#ifdef EMULATOR_BUILD
+#include "../EMU/emu_oled.h"
+#else
+static void emu_oled_flush(void) {}
+#endif
+
 /* SH1122 initialization sequence */
 static const uint8_t sh1122_init_sequence[] = 
 {
@@ -187,9 +193,8 @@ void sh1122_set_row_address(sh1122_descriptor_t* oled_descriptor, uint8_t start)
 *   \param  offset              Y offset for shift
 */
 void sh1122_move_display_start_line(sh1122_descriptor_t* oled_descriptor, int16_t offset)
-{    
-    sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_START_LINE);
-    sh1122_write_single_data(oled_descriptor, (uint8_t)offset);   
+{   
+    sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_START_LINE | (uint8_t)offset);
 }
 
 /*! \fn     sh1122_is_oled_on(sh1122_descriptor_t* oled_descriptor)
@@ -537,8 +542,17 @@ void sh1122_flush_frame_buffer_y_window(sh1122_descriptor_t* oled_descriptor, ui
     sh1122_start_data_sending(oled_descriptor);
     
     /* Send buffer! */
-    dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)&oled_descriptor->frame_buffer[ystart][0], (yend-ystart)*SH1122_OLED_WIDTH/2, oled_descriptor->dma_trigger_id);
-    oled_descriptor->frame_buffer_flush_in_progress = TRUE;
+    #ifdef OLED_DMA_TRANSFER        
+        dma_oled_init_transfer(oled_descriptor->sercom_pt, (void*)&oled_descriptor->frame_buffer[ystart][0], (yend-ystart)*SH1122_OLED_WIDTH/2, oled_descriptor->dma_trigger_id);
+        oled_descriptor->frame_buffer_flush_in_progress = TRUE;
+    #else
+        for (uint32_t y = ystart; y < yend; y++) 
+        {
+            for (uint32_t x = 0; x < SH1122_OLED_WIDTH/2; x++) {
+                sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, oled_descriptor->frame_buffer[y][x]);
+            }
+        }
+    #endif
 }
 
 /*! \fn     sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
@@ -560,8 +574,17 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
         sh1122_start_data_sending(oled_descriptor);
         
         /* Send buffer! */
-        dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)&oled_descriptor->frame_buffer[0][0], sizeof(oled_descriptor->frame_buffer), oled_descriptor->dma_trigger_id);
-        oled_descriptor->frame_buffer_flush_in_progress = TRUE;
+        #ifdef OLED_DMA_TRANSFER        
+            dma_oled_init_transfer(oled_descriptor->sercom_pt, (void*)&oled_descriptor->frame_buffer[0][0], sizeof(oled_descriptor->frame_buffer), oled_descriptor->dma_trigger_id);
+            oled_descriptor->frame_buffer_flush_in_progress = TRUE;
+        #else
+            for (uint32_t y = 0; y < SH1122_OLED_HEIGHT; y++) 
+            {
+                for (uint32_t x = 0; x < SH1122_OLED_WIDTH/2; x++) {
+                    sercom_spi_send_single_byte_without_receive_wait(oled_descriptor->sercom_pt, oled_descriptor->frame_buffer[y][x]);
+                }
+            }
+        #endif
     }
     else if (oled_descriptor->loaded_transition == OLED_LEFT_RIGHT_TRANS)
     {
@@ -584,6 +607,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
                     sh1122_display_horizontal_pixel_line(oled_descriptor, x*2, y, 2, pixel_data, FALSE);                    
                 }
             }
+            emu_oled_flush();
         }
     }
     else if (oled_descriptor->loaded_transition == OLED_RIGHT_LEFT_TRANS)
@@ -607,6 +631,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
                     sh1122_display_horizontal_pixel_line(oled_descriptor, x*2 + 2, y, 2, pixel_data+1, FALSE);
                 }
             }
+            emu_oled_flush();
         }
     }
     else if (oled_descriptor->loaded_transition == OLED_TOP_BOT_TRANS)
@@ -620,6 +645,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
                 /* Dotted line */
                 sh1122_draw_rectangle(oled_descriptor, 0, y+2, SH1122_OLED_WIDTH, 1, SH1122_TRANSITION_PIXEL, FALSE);
             }
+            emu_oled_flush();
             DELAYMS(2);
         }
     }
@@ -634,6 +660,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
                 /* Dotted line */
                 sh1122_draw_rectangle(oled_descriptor, 0, y-2, SH1122_OLED_WIDTH, 1, SH1122_TRANSITION_PIXEL, FALSE);
             }
+            emu_oled_flush();
             DELAYMS(2);
         }
     }
@@ -660,6 +687,7 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
                 low_y--;
                 high_y++;
             }
+            emu_oled_flush();
         }
     }
     else if (oled_descriptor->loaded_transition == OLED_OUT_IN_TRANS)
@@ -685,11 +713,13 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
                 low_y++;
                 high_y--;
             }
+            emu_oled_flush();
         }
     }
     
     /* Reset transition */
     oled_descriptor->loaded_transition = OLED_TRANS_NONE;
+    emu_oled_flush();
 }
 #endif
 
@@ -1237,7 +1267,7 @@ void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_desc
         
         /* Get things going: start first transfer then enter the for(), as we need to wait for OLED DMA after inside the loop */
         bitstream_bitmap_array_read(bitstream, pixel_buffer[buffer_sel], sizeof(pixel_buffer[0])*2);
-        dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)pixel_buffer[buffer_sel], sizeof(pixel_buffer[0]), oled_descriptor->dma_trigger_id);
+        dma_oled_init_transfer(oled_descriptor->sercom_pt, (void*)pixel_buffer[buffer_sel], sizeof(pixel_buffer[0]), oled_descriptor->dma_trigger_id);
         
         for (uint32_t i = 0; i < (SH1122_OLED_WIDTH*SH1122_OLED_HEIGHT) - sizeof(pixel_buffer[0])*2; i+=sizeof(pixel_buffer[0])*2)
         {            
@@ -1249,7 +1279,7 @@ void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_desc
             
             /* Init DMA transfer */
             buffer_sel = (buffer_sel+1) & 0x01;
-            dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)pixel_buffer[buffer_sel], sizeof(pixel_buffer[0]), oled_descriptor->dma_trigger_id);
+            dma_oled_init_transfer(oled_descriptor->sercom_pt, (void*)pixel_buffer[buffer_sel], sizeof(pixel_buffer[0]), oled_descriptor->dma_trigger_id);
         }
         
         /* Wait for data to be transferred */
@@ -1408,7 +1438,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
                 sh1122_start_data_sending(oled_descriptor);
                 
                 /* Trigger DMA transfer for the complete width */
-                dma_oled_init_transfer((void*)&oled_descriptor->sercom_pt->SPI.DATA.reg, (void*)&pixel_buffer[buffer_sel][pixel_array_offset], nb_pixels_to_send/2, oled_descriptor->dma_trigger_id);
+                dma_oled_init_transfer(oled_descriptor->sercom_pt, (void*)&pixel_buffer[buffer_sel][pixel_array_offset], nb_pixels_to_send/2, oled_descriptor->dma_trigger_id);
             }
                 
             /* Flip buffer, start fetching next line while the transfer is happening */
