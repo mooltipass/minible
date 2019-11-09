@@ -38,7 +38,7 @@ typedef enum    {NONE_NOTIF_SENDING = 0, KEYBOARD_NOTIF_SENDING, RAW_HID_NOTIF_S
 //	<i> Defines interval at which advertisement timeout in sec.
 //	<i> Default: 655
 //	<id> hid_adv_timeout
-#define APP_HID_ADV_TIMEOUT				(655) // 10 min
+#define APP_HID_ADV_TIMEOUT				(0) // no timeout!
 
 /** @brief scan_resp_len is the length of the scan response data */
 //	<o> Scan Response Buffer <1-20>

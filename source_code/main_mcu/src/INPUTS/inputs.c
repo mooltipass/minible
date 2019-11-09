@@ -183,7 +183,6 @@ void inputs_scan(void)
         if (inputs_force_reboot_timer++ == NB_MS_WHEEL_PRESS_FOR_REBOOT)
         {
             /* Switch off screen wait for user to release button */
-            while (platform_io_is_usb_3v3_present_raw() != FALSE);
             platform_io_power_down_oled();
             while ((PORT->Group[WHEEL_SW_GROUP].IN.reg & WHEEL_SW_MASK) == 0);
             DELAYMS(200);
