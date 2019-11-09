@@ -13,9 +13,11 @@ extern "C" {
 #include <QMutex>
 #include <QTime>
 #include <QLocalSocket>
+#include <QCommandLineParser>
 
 #include "emu_oled.h"
 #include "emu_smartcard.h"
+#include "emu_dataflash.h"
 #include "emulator_ui.h"
 
 static struct emu_port_t _PORT;
@@ -142,6 +144,14 @@ int main(int ac, char ** av)
     // (1) to ensure responsiveness when the main code blocks
     // (2) to have our input behave in an interrupt-like manner
     QApplication app(ac, av);
+
+    QCommandLineParser parser;
+    parser.addHelpOption();
+
+    parser.addOption(QCommandLineOption("smartcard", "Smartcard file to be used at startup", "smartcard"));
+    parser.addOption(QCommandLineOption("bundle", "Specify path to bundle.img file", "bundle"));
+    parser.process(app);
+
     QTimer ms_timer;
     ms_timer.setInterval(1);
     ms_timer.start();
@@ -156,8 +166,10 @@ int main(int ac, char ** av)
 
     oled = new OLEDWidget;
 
-    if(av[1])
-        emu_insert_smartcard(av[1]);
+    if(parser.isSet("smartcard"))
+        emu_insert_smartcard(parser.value("smartcard"));
+
+    emu_dataflash_init(parser.value("bundle").toUtf8().constData());
 
     EmuWindow emu_window;
     emu_window.show();

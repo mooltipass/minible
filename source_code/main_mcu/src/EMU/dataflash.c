@@ -1,21 +1,41 @@
 #include "dataflash.h"
+#include "emu_dataflash.h"
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdio.h>
 
 static int bundle_fd = -1;
 
-static void emu_dataflash_init(void)
+void emu_dataflash_init(const char *path)
 {
-    if(bundle_fd < 0)
-        bundle_fd = open("../../scripts/python_framework/bundle.img", O_RDONLY);
-    if(bundle_fd < 0)
-        bundle_fd = open("bundle.img", O_RDONLY);
+    int i;
+    const char *bundle_paths[] = {
+        "../../scripts/python_framework/bundle.img",
+        "bundle.img",
+        NULL
+    };
+
+
+    if(path && *path) {
+        bundle_paths[0] = path;
+        bundle_paths[1] = NULL;
+    }
+
+    for(i = 0; bundle_paths[i] != NULL;i++) {
+        bundle_fd = open(bundle_paths[i], O_RDONLY);
+        if(bundle_fd >= 0)
+            return;
+    }
+
+    fprintf(stderr, "Failed to open bundle file, tried:\n");
+    for(i = 0; bundle_paths[i] != NULL;i++)
+        fprintf(stderr, "\t%s\n", bundle_paths[i]);
+
 }
 
 void dataflash_write_array_to_memory(spi_flash_descriptor_t* descriptor_pt, uint32_t address, uint8_t* data, uint32_t length){}
 void dataflash_read_data_array(spi_flash_descriptor_t* descriptor_pt, uint32_t address, uint8_t* data, uint32_t length) 
 {
-    emu_dataflash_init();
     lseek(bundle_fd, address, SEEK_SET);
     read(bundle_fd, data, length);
 }
@@ -27,7 +47,6 @@ void dataflash_read_bytes_from_opened_transfer(spi_flash_descriptor_t* descripto
 void dataflash_send_command(spi_flash_descriptor_t* descriptor_pt, uint8_t* data, uint32_t length){}
 void dataflash_send_single_byte_command(spi_flash_descriptor_t* descriptor_pt, uint8_t command){}
 void dataflash_read_data_array_start(spi_flash_descriptor_t* descriptor_pt, uint32_t address) {
-    emu_dataflash_init();
     lseek(bundle_fd, address, SEEK_SET);
 }
 
