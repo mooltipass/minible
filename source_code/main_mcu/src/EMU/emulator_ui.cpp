@@ -8,7 +8,7 @@
 #include <QFileDialog>
 #include <QCheckBox>
 #include <QMutex>
-#include <QMutexLocker>
+#include <QTimer>
 
 #include "emulator.h"
 #include "emu_smartcard.h"
@@ -99,7 +99,8 @@ QWidget *EmuWindow::createSmartcardUi()
 
 static QMutex ui_mutex;
 static int battery_level = 75;
-static bool usb_charging = true;
+static bool usb_powered = true;
+static bool usb_charging = false;
 
 int emu_get_battery_level() 
 {
@@ -112,9 +113,16 @@ int emu_get_battery_level()
 BOOL emu_get_usb_charging() 
 {
     ui_mutex.lock();
-    bool ret = usb_charging;
+    bool ret = usb_powered;
     ui_mutex.unlock();
     return ret;
+}
+
+void emu_charger_enable(BOOL en)
+{
+    ui_mutex.lock();
+    usb_charging = en;
+    ui_mutex.unlock();
 }
 
 QWidget *EmuWindow::createBatteryUi() 
@@ -122,6 +130,17 @@ QWidget *EmuWindow::createBatteryUi()
     auto slider = new QSlider(Qt::Horizontal);
     slider->setMaximum(100);
     slider->setValue(battery_level);
+
+    auto charger = new QTimer(this);
+    QObject::connect(charger, &QTimer::timeout, this, [slider]() {
+        ui_mutex.lock();
+        bool charge = usb_charging && usb_powered;
+        ui_mutex.unlock();
+
+        if(charge)
+            slider->setValue(slider->value() + 5);
+    });
+    charger->start(500);
 
     QObject::connect(slider, &QSlider::valueChanged, this, [](int value) {
         ui_mutex.lock();
@@ -133,11 +152,11 @@ QWidget *EmuWindow::createBatteryUi()
 
 QWidget *EmuWindow::createChargerUi()
 {
-    auto checkbox = new QCheckBox("charging");
-    checkbox->setCheckState(usb_charging ? Qt::Checked : Qt::Unchecked);
+    auto checkbox = new QCheckBox("powered");
+    checkbox->setCheckState(usb_powered ? Qt::Checked : Qt::Unchecked);
     QObject::connect(checkbox, &QCheckBox::stateChanged, this, [=](int state) {
         ui_mutex.lock();
-        usb_charging = state == Qt::Checked;
+        usb_powered = state == Qt::Checked;
         ui_mutex.unlock();
     });
     return checkbox;

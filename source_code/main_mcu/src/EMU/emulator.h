@@ -20,6 +20,7 @@ int emu_rcv_hid(char *data, int size);
 
 int emu_get_battery_level(void);
 BOOL emu_get_usb_charging(void);
+void emu_charger_enable(BOOL en);
 
 
 #ifdef __cplusplus

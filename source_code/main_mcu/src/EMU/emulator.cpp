@@ -3,6 +3,7 @@ extern "C" {
 #include "driver_timer.h"
 #include "emulator.h"
 #include "inputs.h"
+#include "logic_power.h"
 }
 
 #include <QApplication>
@@ -44,7 +45,7 @@ static void pseudo_irq(void)
     inputs_scan();
     
     /* Power logic */
-//            logic_power_ms_tick();
+    logic_power_ms_tick();
 
     irq_mutex.unlock();
 }
