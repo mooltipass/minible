@@ -1,5 +1,5 @@
 ## [](#header-2)Thanks for Testing our New Device!  
-Thanks for embarking with us in this adventure. The device you have in your hands is the fruit of 2 years of hard labor and only **you** can help us make sure that it is ready to be sent to other Mooltipass enthusiasts!  
+Thanks for embarking with us in this adventure. The device you have in your hands is the fruit of 2 years of hard labour and only **you** can help us make sure that it is ready to be sent to other Mooltipass enthusiasts!  
 Your mission, if you choose to accept it, is to share with us your experience with your Mooltipass Mini BLE:
 - what do you like?  
 - what frustrates you?  
@@ -19,11 +19,11 @@ Then install the latest version of Moolticute, which can be found <a href="https
    
 The device you received is fully functional. It will allow you to:  
 - store and recall website credentials using our browser extensions  
-- manually recall credentials through USB and Bluetooth using the login & favorite menus   
+- manually recall credentials through USB and Bluetooth using the login & favourite menus   
 - fully manage your credentials in Moolticute  
 - show your credentials on the display  
   
-To speed-up development efforts, we unfortunately didn't write (yet) any user manual. We however believe this may be a good thing, as we expect you to try the Mooltipass BLE in a way that feels intuitive to you, and then tell us if it is not the case.  
+To speed-up development efforts, we unfortunately haven't written a user manual (yet). We however believe this may be a good thing, as we expect you to try the Mooltipass BLE in a way that feels intuitive to you, and then tell us if it is not the case.  
   
   
   
@@ -57,9 +57,9 @@ This is an odd one that we hope to fix soon. Please let us know if you experienc
 After creating a new user, the Mooltipass Mini BLE will prompt you to enable simple mode.  
 If you deny this prompt, the device will then allow you to configure the following settings:  
 - prompt you whenever you want to login to a website  
-- ask for your PIN when going in management mode  
-- prompt to show credentials when using the login or favorites menu  
-- prompt to save credentials when exitting management mode  
+- ask for your PIN when switching to management mode
+- prompt to show credentials when using the login or favourites menu  
+- prompt to save credentials when exiting management mode  
 - change the device language for the current user  
 - change the keyboard layouts for the current user  
 
