@@ -69,5 +69,5 @@ You may still switch between simple and advanced mode by going into the operatio
   
   
 ### [](#header-3)Should my Device be Considered Secure?  
-**No**.  
-However, we will soon release a firmware update that will only allow firmware updates when you insert your card inside the mini BLE the wrong way around. This will guarantee that your device can't be modified without someone having physical access to it.  
+**Kind of**.  
+We will soon release a firmware update that will only allow firmware updates when you insert your card inside the mini BLE the wrong way around. This will guarantee that your device can't be modified without someone having physical access to it.  
