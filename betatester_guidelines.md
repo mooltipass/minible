@@ -77,7 +77,7 @@ We will soon release a firmware update that will only allow firmware updates whe
 ### [](#header-3)How to Report Bugs  
 You will inevitably find bugs on the device you received... it's part of the hardware/firmware development process after all!  
 To make sure the development team is able to efficiently fix them, please follow these guidelines:  
-- device a 'recipe' that others may follow to replicate your issue  
+- devise a 'recipe' that others may follow to replicate your issue  
 - if the bug is software (moolticute) related, report it <a href="https://github.com/mooltipass/moolticute/issues/new">here</a>  
 - if the bug is hardware related, report it <a href="https://github.com/mooltipass/minible/issues/new">there</a>  
 - if you want to report a broader issue (non-intuitive user interface, odd general device behavior), please use our <a href="https://groups.google.com/forum/#!forum/mooltipass-ble-beta-testers">google group</a>  
