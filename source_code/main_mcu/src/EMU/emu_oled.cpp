@@ -220,15 +220,19 @@ void OLEDWidget::keyPressEvent(QKeyEvent *evt) {
     irq_mutex.lock();
     switch(evt->key()) {
     case Qt::Key_Up:
+    case Qt::Key_Left:
         inputs_wheel_cur_increment--;
         break;
     case Qt::Key_Down:
+    case Qt::Key_Right:
         inputs_wheel_cur_increment++;
         break;
-    case Qt::Key_Right:
+    case Qt::Key_Space:
+    case Qt::Key_Enter:
+    case Qt::Key_Return:
         set_emulated_wheel_state(true);
         break;
-    case Qt::Key_Left:
+    case Qt::Key_Backspace:
         inputs_wheel_click_duration_counter=3000;
         break;
     }
@@ -238,10 +242,10 @@ void OLEDWidget::keyPressEvent(QKeyEvent *evt) {
 void OLEDWidget::keyReleaseEvent(QKeyEvent *evt) {
     irq_mutex.lock();
     switch(evt->key()) {
-    case Qt::Key_Right:
+    case Qt::Key_Space:
+    case Qt::Key_Enter:
+    case Qt::Key_Return:
         set_emulated_wheel_state(false);
-        break;
-    case Qt::Key_Left:
         break;
     }
     irq_mutex.unlock();
