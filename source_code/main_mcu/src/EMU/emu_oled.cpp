@@ -113,8 +113,8 @@ void emu_oled_flush(void)
 }
 
 OLEDWidget::OLEDWidget(): display(256, 64, QImage::Format_RGB888) {
-    setMinimumSize(display.size()*2);
-    setMaximumSize(display.size()*2);
+    setMinimumSize(display.size());
+    setMaximumSize(display.size());
 }
 
 OLEDWidget::~OLEDWidget() {
