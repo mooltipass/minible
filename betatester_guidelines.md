@@ -85,3 +85,10 @@ To make sure the development team is able to efficiently fix them, please follow
 Please make sure you have the full developper log feature enabled in moolticute. To enable it, simply head to the settings tab, scroll down to tick the "Enable Debug Log" checkbox and then restart moolticute by closing it (right click on the moolticute icon in the task bar, "quit") and launching it again.  
 
 
+
+### [](#header-3)Updating Moolticute  
+Your computer should notify you whenever we release a moolticute update. If that's not the case, you may simply click the "check for Updates" button in moolticute's "About" tab:  
+![](https://github.com/mooltipass/minible/blob/gh-pages/images/moolticute_update_guide/check_for_update.PNG?raw=true)  
+If everything goes well, you'll see a prompt for update at the bottom of the window:
+![](https://github.com/mooltipass/minible/blob/gh-pages/images/moolticute_update_guide/update_message.PNG?raw=true)  
+Simply click yes and go through the update process.  
