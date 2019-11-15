@@ -13,34 +13,36 @@
 /* Defines */
 
 // Bitmap ID defines
-#define BITMAP_POPUP_3LINES_ID  309
-#define BITMAP_YES_PRESS_ID     338
-#define BITMAP_NO_PRESS_ID      323
-#define BITMAP_NY_DOWN_ID       353
-#define BITMAP_NY_UP_ID         367
-#define POPUP_3LINES_ANIM_LGTH  14
-#define BITMAP_POPUP_2LINES_Y   381
-#define BITMAP_POPUP_2LINES_N   395
-#define POPUP_2LINES_ANIM_LGTH  14
-#define BITMAP_2LINES_SEL_Y     409
-#define BITMAP_2LINES_SEL_N     417
-#define CONF_2LINES_SEL_AN_LGTH 8
-#define BITMAP_2LINES_PRESS_Y   425
-#define BITMAP_2LINES_PRESS_N   439
-#define CONF_2LINES_IDLE_AN_LGT 12
-#define BITMAP_2LINES_IDLE_Y    454
-#define BITMAP_2LINES_IDLE_N    466
-#define CONF_3LINES_IDLE_AN_LGT 12
-#define BITMAP_3LINES_IDLE_Y    478
-#define BITMAP_3LINES_IDLE_N    490
-#define BITMAP_POPUP_USB        746
-#define BITMAP_POPUP_BLE        698
-#define BITMAP_USB_PRESS        760
-#define BITMAP_BLE_PRESS        712
-#define BITMAP_USB_SELECT       786
-#define BITMAP_BLE_SELECT       738
-#define BITMAP_USB_IDLE         774
-#define BITMAP_BLE_IDLE         726
+#define BITMAP_POPUP_3LINES_ID          309
+#define BITMAP_YES_PRESS_ID             338
+#define BITMAP_NO_PRESS_ID              323
+#define BITMAP_NY_DOWN_ID               353
+#define BITMAP_NY_UP_ID                 367
+#define POPUP_3LINES_ANIM_LGTH          14
+#define BITMAP_POPUP_2LINES_Y           381
+#define BITMAP_POPUP_2LINES_N           395
+#define BITMAP_POPUP_2LINES_Y_DESEL     795
+#define BITMAP_POPUP_2LINES_N_SELEC     809
+#define POPUP_2LINES_ANIM_LGTH          14
+#define BITMAP_2LINES_SEL_Y             409
+#define BITMAP_2LINES_SEL_N             417
+#define CONF_2LINES_SEL_AN_LGTH         8
+#define BITMAP_2LINES_PRESS_Y           425
+#define BITMAP_2LINES_PRESS_N           439
+#define CONF_2LINES_IDLE_AN_LGT         12
+#define BITMAP_2LINES_IDLE_Y            454
+#define BITMAP_2LINES_IDLE_N            466
+#define CONF_3LINES_IDLE_AN_LGT         12
+#define BITMAP_3LINES_IDLE_Y            478
+#define BITMAP_3LINES_IDLE_N            490
+#define BITMAP_POPUP_USB                746
+#define BITMAP_POPUP_BLE                698
+#define BITMAP_USB_PRESS                760
+#define BITMAP_BLE_PRESS                712
+#define BITMAP_USB_SELECT               786
+#define BITMAP_BLE_SELECT               738
+#define BITMAP_USB_IDLE                 774
+#define BITMAP_BLE_IDLE                 726
 
 // PIN prompt
 #define PIN_PROMPT_ARROW_MOV_LGTH       7
@@ -108,9 +110,9 @@ typedef struct
 ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, BOOL ignore_timeout_if_usb_powered, BOOL ignore_card_removal, BOOL usb_layout_choice);
 void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t vert_anim_direction, int16_t hor_anim_direction);
 mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen, BOOL parse_aux_messages);
+mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt, BOOL first_item_selected);
 void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame_id, uint16_t* timer_timeout, display_message_te message_type);
 void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type);
-mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt);
 void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type);
 void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type);
 void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type);

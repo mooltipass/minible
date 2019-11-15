@@ -596,19 +596,20 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     return ret_val;
 }
 
-/*! \fn     gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt)
+/*! \fn     gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt, BOOL first_item_selected)
 *   \brief  Ask for user confirmation for different things
-*   \param  string_id       String ID
-*   \param  flash_screen    Boolean to flash screen
-*   \param  usb_ble_prompt  Set to TRUE to get BLE/USB icons, FALSE for yes/no
+*   \param  string_id               String ID
+*   \param  flash_screen            Boolean to flash screen
+*   \param  usb_ble_prompt          Set to TRUE to get BLE/USB icons, FALSE for yes/no
+*   \param  first_item_selected     Set to TRUE to select first option by default
 *   \return See enum
 */
-mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt)
+mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt, BOOL first_item_selected)
 {
-    uint16_t bitmap_yes_no_array[8] = {BITMAP_POPUP_2LINES_Y, BITMAP_POPUP_2LINES_N, BITMAP_2LINES_PRESS_Y, BITMAP_2LINES_PRESS_N, BITMAP_2LINES_SEL_Y, BITMAP_2LINES_SEL_N, BITMAP_2LINES_IDLE_Y, BITMAP_2LINES_IDLE_N};
-    uint16_t bitmap_usb_ble_array[8] = {BITMAP_POPUP_USB, BITMAP_POPUP_BLE, BITMAP_USB_PRESS, BITMAP_BLE_PRESS, BITMAP_USB_SELECT, BITMAP_BLE_SELECT, BITMAP_USB_IDLE, BITMAP_BLE_IDLE};
+    uint16_t bitmap_yes_no_array[10] = {BITMAP_POPUP_2LINES_Y, BITMAP_POPUP_2LINES_N, BITMAP_2LINES_PRESS_Y, BITMAP_2LINES_PRESS_N, BITMAP_2LINES_SEL_Y, BITMAP_2LINES_SEL_N, BITMAP_2LINES_IDLE_Y, BITMAP_2LINES_IDLE_N, BITMAP_POPUP_2LINES_Y_DESEL, BITMAP_POPUP_2LINES_N_SELEC};
+    uint16_t bitmap_usb_ble_array[10] = {BITMAP_POPUP_USB, BITMAP_POPUP_BLE, BITMAP_USB_PRESS, BITMAP_BLE_PRESS, BITMAP_USB_SELECT, BITMAP_BLE_SELECT, BITMAP_USB_IDLE, BITMAP_BLE_IDLE, BITMAP_POPUP_USB, BITMAP_POPUP_BLE};
+    BOOL approve_selected = first_item_selected;
     cust_char_t* string_to_display;
-    BOOL approve_selected = TRUE;
     BOOL flash_flag = FALSE;
     uint16_t flash_sm = 0;
     
@@ -658,10 +659,20 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
     {
         /* Write both in frame buffer and display */
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, FALSE);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, TRUE);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, FALSE);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, TRUE);            
+        if (first_item_selected != FALSE)
+        {
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, FALSE);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, TRUE);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, FALSE);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, TRUE);
+        } 
+        else
+        {
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[8]+i, FALSE);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[8]+i, TRUE);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[9]+i, FALSE);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[9]+i, TRUE);
+        }          
         timer_delay_ms(15);
     }
     

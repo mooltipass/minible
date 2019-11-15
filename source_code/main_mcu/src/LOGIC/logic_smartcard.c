@@ -95,7 +95,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     else if (detection_result == RETURN_MOOLTIPASS_BLANK)
     {
         // This is a user free card, we can ask the user to create a new user inside the Mooltipass
-        mini_input_yes_no_ret_te prompt_answer = gui_prompts_ask_for_one_line_confirmation(CREATE_NEW_USER_TEXT_ID, FALSE, FALSE);
+        mini_input_yes_no_ret_te prompt_answer = gui_prompts_ask_for_one_line_confirmation(CREATE_NEW_USER_TEXT_ID, FALSE, FALSE, TRUE);
         
         if (prompt_answer == MINI_INPUT_RET_YES)
         {
@@ -106,7 +106,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
             {
                 /* Check user for simple or advanced mode */
                 BOOL use_simple_mode = FALSE;
-                if (gui_prompts_ask_for_one_line_confirmation(USE_SIMPLE_MODE_TEXT_ID, FALSE, FALSE) == MINI_INPUT_RET_YES)
+                if (gui_prompts_ask_for_one_line_confirmation(USE_SIMPLE_MODE_TEXT_ID, FALSE, FALSE, TRUE) == MINI_INPUT_RET_YES)
                 {
                     use_simple_mode = TRUE;
                 }

@@ -55,7 +55,7 @@ void debug_test_prompts(void)
     custom_fs_set_current_language(0);
     
     /* One line prompt */
-    gui_prompts_ask_for_one_line_confirmation(CREATE_NEW_USER_TEXT_ID, TRUE, FALSE);
+    gui_prompts_ask_for_one_line_confirmation(CREATE_NEW_USER_TEXT_ID, TRUE, FALSE, TRUE);
         
     /* 2 lines prompt */
     cust_char_t* two_line_prompt_1 = (cust_char_t*)u"Delete Service?";
