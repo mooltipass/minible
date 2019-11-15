@@ -545,7 +545,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                         sh1122_fade_into_darkness(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
                         
                         /* Require user to reauth himself */
-                        if (logic_smartcard_remove_card_and_reauth_user() == RETURN_OK)
+                        if (logic_smartcard_remove_card_and_reauth_user(FALSE) == RETURN_OK)
                         {
                             /* Approved, set next screen */
                             gui_dispatcher_set_current_screen(GUI_SCREEN_MEMORY_MGMT, TRUE, GUI_INTO_MENU_TRANSITION);

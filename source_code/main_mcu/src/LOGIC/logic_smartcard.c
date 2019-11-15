@@ -338,11 +338,12 @@ RET_TYPE logic_smartcard_user_unlock_process(void)
     }
 }
 
-/*! \fn     logic_smartcard_remove_card_and_reauth_user(void)
+/*! \fn     logic_smartcard_remove_card_and_reauth_user(BOOL display_notification)
 *   \brief  Re-authentication process
+*   \param  display_notification    Boolean to specify if the "authenticate yourself" notification should be shown
 *   \return success or not
 */
-RET_TYPE logic_smartcard_remove_card_and_reauth_user(void)
+RET_TYPE logic_smartcard_remove_card_and_reauth_user(BOOL display_notification)
 {
     uint8_t temp_cpz1[SMARTCARD_CPZ_LENGTH];
     uint8_t temp_cpz2[SMARTCARD_CPZ_LENGTH];
@@ -354,7 +355,10 @@ RET_TYPE logic_smartcard_remove_card_and_reauth_user(void)
     logic_smartcard_handle_removed();
     
     // Here we cheat: we display a prompt to hide the power off / on
-    gui_prompts_display_information_on_screen_and_wait(PLEASE_REAUTH_TEXT_ID, DISP_MSG_WARNING);
+    if (display_notification != FALSE)
+    {
+        gui_prompts_display_information_on_screen_and_wait(PLEASE_REAUTH_TEXT_ID, DISP_MSG_WARNING);
+    }
     
     // Launch Unlocking process
     if ((smartcard_highlevel_card_detected_routine() == RETURN_MOOLTIPASS_USER) && (logic_smartcard_valid_card_unlock(FALSE, TRUE) == RETURN_VCARD_OK))

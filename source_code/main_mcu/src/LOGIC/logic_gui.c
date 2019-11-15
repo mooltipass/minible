@@ -104,7 +104,7 @@ void logic_gui_clone_card(void)
     volatile uint16_t pin_code;
     
     /* Reauth user */
-    if (logic_smartcard_remove_card_and_reauth_user() == RETURN_OK)
+    if (logic_smartcard_remove_card_and_reauth_user(TRUE) == RETURN_OK)
     {
         /* Ask for new pin */
         temp_rettype = logic_smartcard_ask_for_new_pin(&pin_code, NEW_CARD_PIN_TEXT_ID);
@@ -148,7 +148,7 @@ void logic_gui_clone_card(void)
 void logic_gui_change_pin(void)
 {
     /* User wants to change PIN */
-    if (logic_smartcard_remove_card_and_reauth_user() == RETURN_OK)
+    if (logic_smartcard_remove_card_and_reauth_user(TRUE) == RETURN_OK)
     {
         /* User approved his pin, ask his new one */
         volatile uint16_t pin_code;
@@ -183,7 +183,7 @@ void logic_gui_erase_user(void)
     logic_device_set_state_changed();
     
     /* Delete user profile */
-    if ((gui_prompts_ask_for_one_line_confirmation(DELETE_USER_TEXT_ID, FALSE, FALSE) == MINI_INPUT_RET_YES) && (logic_smartcard_remove_card_and_reauth_user() == RETURN_OK) && (gui_prompts_ask_for_one_line_confirmation(DELETE_USER_CONF_TEXT_ID, FALSE, FALSE) == MINI_INPUT_RET_YES))
+    if ((gui_prompts_ask_for_one_line_confirmation(DELETE_USER_TEXT_ID, FALSE, FALSE) == MINI_INPUT_RET_YES) && (logic_smartcard_remove_card_and_reauth_user(TRUE) == RETURN_OK) && (gui_prompts_ask_for_one_line_confirmation(DELETE_USER_CONF_TEXT_ID, FALSE, FALSE) == MINI_INPUT_RET_YES))
     {
         uint8_t current_user_id = logic_user_get_current_user_id();
         gui_prompts_display_information_on_screen(PROCESSING_TEXT_ID, DISP_MSG_INFO);
