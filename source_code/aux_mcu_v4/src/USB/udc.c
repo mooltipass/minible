@@ -126,6 +126,7 @@ void udc_attach(void)
 void udc_detach(void)
 {
   USB->DEVICE.CTRLB.bit.DETACH = 1;
+  usb_reset_config();
 }
 
 //-----------------------------------------------------------------------------
@@ -284,9 +285,10 @@ void udc_control_send_zlp(void)
 {
   udc_mem[0].in.PCKSIZE.bit.BYTE_COUNT = 0;
   USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRCPT1;
+  USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRFAIL1;
   USB->DEVICE.DeviceEndpoint[0].EPSTATUSSET.bit.BK1RDY = 1;
 
-  while ((0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRCPT1) && (0 == USB->DEVICE.INTFLAG.bit.EORST));
+  while ((0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRCPT1) && (0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRFAIL1) && (0 == USB->DEVICE.INTFLAG.bit.EORST));
 }
 
 //-----------------------------------------------------------------------------
@@ -314,9 +316,10 @@ void udc_control_send(uint8_t *data, int size)
   udc_mem[0].in.PCKSIZE.bit.MULTI_PACKET_SIZE = 0;
 
   USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRCPT1;
+  USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRFAIL1;
   USB->DEVICE.DeviceEndpoint[0].EPSTATUSSET.bit.BK1RDY = 1;
 
-  while ((0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRCPT1) && (0 == USB->DEVICE.INTFLAG.bit.EORST));
+  while ((0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRCPT1) && (0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRFAIL1) && (0 == USB->DEVICE.INTFLAG.bit.EORST));
 }
 
 //-----------------------------------------------------------------------------
