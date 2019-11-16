@@ -70,7 +70,7 @@ You may still switch between simple and advanced mode by going into the operatio
   
 ### [](#header-3)Should my Device be Considered Secure?  
 **Kind of**.  
-We will soon release a firmware update that will only allow firmware updates when you insert your card inside the mini BLE the wrong way around. This will guarantee that your device can't be modified without someone having physical access to it.  
+Starting from main MCU firmware v0.7 firmware updates are only allowed when you insert your card inside the mini BLE the wrong way around. This will guarantee that your device can't be modified without someone having physical access to it.  
   
   
   
@@ -96,6 +96,7 @@ Simply click yes and go through the update process.
 
 
 ### [](#header-3)Updating your Device  
+Insert your smarcard **the wrong way around** inside the device.  
 Connect your device to your computer **using USB**, make sure Bluetooth connectivity is disabled.  
 In moolticute, press CTRL-SHIFT-F3 in such a way that all 3 keys are pressed at the end of the shortcut. The BLE Dev tab will appear:  
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/ble_dev_tab.PNG?raw=true)  
