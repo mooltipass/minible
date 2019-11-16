@@ -97,12 +97,15 @@ RET_TYPE logic_smartcard_handle_inserted(void)
         // This is a user free card, we can ask the user to create a new user inside the Mooltipass
         mini_input_yes_no_ret_te prompt_answer = gui_prompts_ask_for_one_line_confirmation(CREATE_NEW_USER_TEXT_ID, FALSE, FALSE, TRUE);
         
+        /* Create a new user with his new smart card */
         if (prompt_answer == MINI_INPUT_RET_YES)
         {
             volatile uint16_t pin_code;
             
-            /* Create a new user with his new smart card */
-            if (logic_smartcard_ask_for_new_pin(&pin_code, NEW_CARD_PIN_TEXT_ID) == RETURN_NEW_PIN_OK)
+            /* Ask user for new PIN */
+            new_pinreturn_type_te new_pin_return = logic_smartcard_ask_for_new_pin(&pin_code, NEW_CARD_PIN_TEXT_ID);
+            
+            if (new_pin_return == RETURN_NEW_PIN_OK)
             {
                 /* Check user for simple or advanced mode */
                 BOOL use_simple_mode = FALSE;
@@ -129,7 +132,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
                     gui_prompts_display_information_on_screen_and_wait(COULDNT_ADD_USER_TEXT_ID, DISP_MSG_WARNING);                    
                 }
             } 
-            else if (smartcard_low_level_is_smc_absent() != RETURN_OK)
+            else if (new_pin_return == RETURN_NEW_PIN_DIFF)
             {
                 gui_prompts_display_information_on_screen_and_wait(DIFFERENT_PINS_TEXT_ID, DISP_MSG_WARNING);
             }
