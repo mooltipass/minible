@@ -189,6 +189,9 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             /* Do required actions */
             logic_device_bundle_update_end(TRUE);
             
+            /* Call activity detected to prevent going to sleep directly after */
+            logic_device_activity_detected();
+            
             /* Set ack, leave same command id */
             send_msg->payload[0] = HID_1BYTE_ACK;
             send_msg->payload_length = 1;

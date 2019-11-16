@@ -343,7 +343,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             {
                 /* Prompt user to unlock the card */
                 logic_device_activity_detected();
-                if (logic_smartcard_user_unlock_process() == RETURN_OK)
+                if (logic_smartcard_user_unlock_process() == UNLOCK_OK_RET)
                 {
                     /* Erase card! */
                     smartcard_highlevel_erase_smartcard();

@@ -140,7 +140,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     }
     else if (detection_result == RETURN_MOOLTIPASS_USER)
     {
-        // Call valid card detection function
+        /* Call valid card detection function */
         valid_card_det_return_te temp_return = logic_smartcard_valid_card_unlock(TRUE, FALSE);
         
         /* This a valid user smart card, we call a dedicated function for the user to unlock the card */
@@ -162,8 +162,13 @@ RET_TYPE logic_smartcard_handle_inserted(void)
         }
         else if (temp_return == RETURN_VCARD_UNKNOWN)
         {
-            // Unknown card, go to dedicated screen
+            /* Unknown card, go to dedicated screen */
             next_screen = GUI_SCREEN_INSERTED_UNKNOWN;
+        }
+        else if (temp_return == RETURN_VCARD_BACK)
+        {
+            /* User chose to not answer his PIN */
+            next_screen = GUI_SCREEN_INSERTED_LCK;
         }
         else
         {
@@ -224,7 +229,10 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
         }
         
         /* Ask the user to enter his PIN and check it */
-        if (logic_smartcard_user_unlock_process() == RETURN_OK)
+        unlock_ret_type_te unlock_return = logic_smartcard_user_unlock_process();
+        
+        /* Depending on unlock process result */
+        if (unlock_return == UNLOCK_OK_RET)
         {
             /* Unlocking succeeded */
             smartcard_highlevel_read_aes_key(temp_buffer);
@@ -252,9 +260,14 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
             /* Return success */
             return RETURN_VCARD_OK;
         }
+        else if (unlock_return == UNLOCK_BACK_RET)
+        {
+            /* User simply chose to not answer his PIN */
+            return RETURN_VCARD_BACK;
+        }
         else
         {
-            // Unlocking failed
+            /* Unlocking failed */
             return RETURN_VCARD_NOK;
         }
     }
@@ -267,9 +280,9 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
 
 /*! \fn     logic_smartcard_user_unlock_process(void)
 *   \brief  Function called for the user to unlock his smartcard
-*   \return success status
+*   \return success status, see enum
 */
-RET_TYPE logic_smartcard_user_unlock_process(void)
+unlock_ret_type_te logic_smartcard_user_unlock_process(void)
 {
     mooltipass_card_detect_return_te temp_rettype;
     BOOL warning_displayed = FALSE;
@@ -295,12 +308,12 @@ RET_TYPE logic_smartcard_user_unlock_process(void)
                 {
                     // Smartcard unlocked
                     temp_pin = 0x0000;
-                    return RETURN_OK;
+                    return UNLOCK_OK_RET;
                 }
                 case RETURN_MOOLTIPASS_0_TRIES_LEFT :
                 {
                     gui_prompts_display_information_on_screen_and_wait(CARD_BLOCKED_TEXT_ID, DISP_MSG_WARNING);
-                    return RETURN_NOK;
+                    return UNLOCK_BLOCKED_RET;
                 }
                 case RETURN_MOOLTIPASS_1_TRIES_LEFT :
                 {
@@ -314,13 +327,13 @@ RET_TYPE logic_smartcard_user_unlock_process(void)
                         // Wait for the user to remove his smart card
                         while(smartcard_low_level_is_smc_absent() != RETURN_OK);
                         
-                        return RETURN_NOK;
+                        return UNLOCK_CARD_REMOVED_RET;
                     }
                 }
                 case RETURN_MOOLTIPASS_PB :
                 {
                     gui_prompts_display_information_on_screen_and_wait(PB_CARD_TEXT_ID, DISP_MSG_WARNING);
-                    return RETURN_NOK;
+                    return UNLOCK_CARD_ISSUE_RET;
                 }
                 default :
                 {
@@ -332,8 +345,15 @@ RET_TYPE logic_smartcard_user_unlock_process(void)
         }
         else
         {
-            // User cancelled the request
-            return RETURN_NOK;
+            // User cancelled the request or card removed
+            if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+            {
+                return UNLOCK_CARD_REMOVED_RET;
+            } 
+            else
+            {
+                return UNLOCK_BACK_RET;
+            }
         }
     }
 }
