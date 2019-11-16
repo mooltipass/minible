@@ -98,7 +98,7 @@ Simply click yes and go through the update process.
 ### [](#header-3)Updating your Device  
 Insert your smarcard **the wrong way around** inside the device.  
 Connect your device to your computer **using USB**, make sure Bluetooth connectivity is disabled.  
-In moolticute, press CTRL-SHIFT-F3 in such a way that all 3 keys are pressed at the end of the shortcut. The BLE Dev tab will appear:  
+In moolticute, press CTRL-SHIFT-F3 (SHIFT-Command-F3 on Mac) in such a way that all 3 keys are pressed at the end of the shortcut. The BLE Dev tab will appear:  
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/ble_dev_tab.PNG?raw=true)  
 Click on the "Select Bundle File" button and select the bundle file we sent you by email. Then click on the "Flash Aux MCU" and/or "Flash Main MCU" **according to the update instructions you will have received with the bundle file**.  
 Please make sure to allow some time to passs (15 to 20 seconds) after pressing any of the "Flash" buttons.  
