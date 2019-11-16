@@ -17,7 +17,7 @@
 #define SETTING_MAX_USER_INTERACTION_TIMOUT     25
 
 /* Prototypes */
-void logic_device_bundle_update_start(BOOL from_debug_messages);
+ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages);
 void logic_device_bundle_update_end(BOOL from_debug_messages);
 BOOL logic_device_get_state_changed_and_reset_bool(void);
 void logic_device_set_state_changed(void);

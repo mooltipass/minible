@@ -46,24 +46,39 @@ void logic_device_activity_detected(void)
 /*! \fn     logic_device_bundle_update_start(BOOL from_debug_messages)
 *   \brief  Function called when start updating the device graphics memory
 *   \param  from_debug_messages Set to TRUE if this function was called from debug messages
+*   \return RETURN_OK if we are allowed to start bundle update
 */
-void logic_device_bundle_update_start(BOOL from_debug_messages)
+ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages)
 {
     logic_device_activity_detected();
     
-    /* If we are in invalid screen, it means we don't have a bundle */
-    if (gui_dispatcher_get_current_screen() != GUI_SCREEN_INVALID)
+    /* Function called from HID debug messages? */
+    if (from_debug_messages != FALSE)
     {
-        if (from_debug_messages != FALSE)
+        gui_screen_te current_screen = gui_dispatcher_get_current_screen();
+        
+        /* Depending on the mode we're currently in */
+        if (current_screen == GUI_SCREEN_INVALID)        
         {
-            /* Go to dedicated screen */
+            /* If we are in invalid screen (variable not set), it means we don't have a bundle */
+            return RETURN_OK;
+        }
+        else if (current_screen == GUI_SCREEN_INSERTED_INVALID)
+        {
+            /* Card inserted invalid: allow update and display notification */
             gui_dispatcher_set_current_screen(GUI_SCREEN_FW_FILE_UPDATE, TRUE, GUI_OUTOF_MENU_TRANSITION);
             gui_dispatcher_get_back_to_current_screen();
+            return RETURN_OK;
         }
         else
         {
-            // TODO3
+            return RETURN_NOK;
         }
+    } 
+    else
+    {
+        // TODO3
+        return RETURN_OK;
     }
 }
 

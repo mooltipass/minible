@@ -11,7 +11,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    6
+#define FW_MINOR    7
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -19,6 +19,7 @@
 - v0.4: no comms signal checked (among others)
 - v0.5: aux to main protocol change (requires hard programming for upgrade)
 - v0.6: firmware shipped to beta testers
+- v0.7: firmware upload on card inverted, settings enable/disable default selection set to current setting, pressing back when creating new user message fix
 */
 
 /**************** SETUP DEFINES ****************/

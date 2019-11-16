@@ -17,6 +17,8 @@
 #include "sh1122.h"
 #include "main.h"
 #include "dma.h"
+/* Variable to know if we're allowing bundle upload */
+BOOL comms_hid_msgs_debug_upload_allowed = FALSE;
 
 
 #ifdef DEBUG_USB_PRINTF_ENABLED
@@ -146,15 +148,26 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
         case HID_CMD_ID_ERASE_DATA_FLASH:
         {
             /* Required actions when we start dealing with graphics memory */
-            logic_device_bundle_update_start(TRUE);
-            
-            /* Erase data flash */
-            dataflash_bulk_erase_without_wait(&dataflash_descriptor);
-            
-            /* Set ack, leave same command id */
-            send_msg->payload[0] = HID_1BYTE_ACK;
-            send_msg->payload_length = 1;
-            return 1;            
+            if (logic_device_bundle_update_start(TRUE) == RETURN_OK)
+            {
+                /* Set upload allowed boolean */
+                comms_hid_msgs_debug_upload_allowed = TRUE;
+                
+                /* Erase data flash */
+                dataflash_bulk_erase_without_wait(&dataflash_descriptor);
+                
+                /* Set ack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+                send_msg->payload_length = 1;
+                return 1;
+            }
+            else
+            {
+                /* Set ack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
+                return 1;               
+            }                     
         }
         case HID_CMD_ID_IS_DATA_FLASH_READY:
         {
@@ -175,27 +188,50 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
         }
         case HID_CMD_ID_DATAFLASH_WRITE_256B:
         {
-            /* First 4 bytes is the write address, remaining 256 bytes is the payload */
-            uint32_t* write_address = (uint32_t*)&rcv_msg->payload_as_uint32[0];
-            dataflash_write_array_to_memory(&dataflash_descriptor, *write_address, &rcv_msg->payload[4], 256);
-            
-            /* Set ack, leave same command id */
-            send_msg->payload[0] = HID_1BYTE_ACK;
-            send_msg->payload_length = 1;
-            return 1;
+            if (comms_hid_msgs_debug_upload_allowed != FALSE)
+            {
+                /* First 4 bytes is the write address, remaining 256 bytes is the payload */
+                uint32_t* write_address = (uint32_t*)&rcv_msg->payload_as_uint32[0];
+                dataflash_write_array_to_memory(&dataflash_descriptor, *write_address, &rcv_msg->payload[4], 256);
+                
+                /* Set ack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+                send_msg->payload_length = 1;
+                return 1;
+            } 
+            else
+            {
+                /* Set nack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
+                return 1;
+            }
         }
         case HID_CMD_ID_REINDEX_BUNDLE:
-        {            
-            /* Do required actions */
-            logic_device_bundle_update_end(TRUE);
-            
-            /* Call activity detected to prevent going to sleep directly after */
-            logic_device_activity_detected();
-            
-            /* Set ack, leave same command id */
-            send_msg->payload[0] = HID_1BYTE_ACK;
-            send_msg->payload_length = 1;
-            return 1;
+        {        
+            if (comms_hid_msgs_debug_upload_allowed != FALSE)
+            {
+                /* Do required actions */
+                logic_device_bundle_update_end(TRUE);
+                
+                /* Call activity detected to prevent going to sleep directly after */
+                logic_device_activity_detected();
+                
+                /* Reset boolean */
+                comms_hid_msgs_debug_upload_allowed = FALSE;
+                
+                /* Set ack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+                send_msg->payload_length = 1;
+                return 1;
+            } 
+            else
+            {
+                /* Set nack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
+                return 1;
+            }                
         }
         case HID_CMD_ID_SET_OLED_PARAMS:
         {
