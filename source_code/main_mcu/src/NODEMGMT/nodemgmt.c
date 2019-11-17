@@ -552,7 +552,7 @@ uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_chi
         dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(prev_child_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(prev_child_node_addr_to_scan), sizeof(child_read_buffer), &child_read_buffer);
 
         /* Check if it is of the current selected category */
-        if (categoryFromFlags(child_node_pt->flags) == nodemgmt_current_handle.currentCategoryFlags)
+        if ((nodemgmt_current_handle.currentCategoryFlags == 0) || (categoryFromFlags(child_node_pt->flags) == nodemgmt_current_handle.currentCategoryFlags))
         {
             // CATSEARCHLOGIC
             return prev_child_node_addr_to_scan;
@@ -621,7 +621,7 @@ uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_c
         dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_child_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(next_child_node_addr_to_scan), sizeof(child_read_buffer), &child_read_buffer);
         
         /* Check if it is of the current selected category */
-        if (categoryFromFlags(child_node_pt->flags) == category_flags)
+        if ((category_flags == 0) || (categoryFromFlags(child_node_pt->flags) == category_flags))
         {
             // CATSEARCHLOGIC
             return next_child_node_addr_to_scan;
