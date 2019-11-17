@@ -36,7 +36,8 @@
 - v0.5: aux to main protocol change (requires hard programming for upgrade)
 - v0.6: firmware shipped to beta testers
 - v0.7: firmware upload on card inverted, settings enable/disable default selection set to current setting, pressing back when creating new user message fix
-- v0.8: not switching on screen when aux mcu wakes up main mcu
+- v0.8: - not switching on screen when aux mcu wakes up main mcu
+        - charge safety: allow charge whenever battery is below 60pct
 */
 
 /**************** SETUP DEFINES ****************/
