@@ -237,6 +237,7 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
             else
             {
                 logic_smartcard_handle_inserted();
+                logic_device_set_state_changed();
             }            
             break;
         }            

@@ -382,6 +382,10 @@ RET_TYPE logic_smartcard_remove_card_and_reauth_user(BOOL display_notification)
     {
         gui_prompts_display_information_on_screen_and_wait(PLEASE_REAUTH_TEXT_ID, DISP_MSG_WARNING);
     }
+    else
+    {
+        timer_delay_ms(500);
+    }
     
     // Launch Unlocking process
     if ((smartcard_highlevel_card_detected_routine() == RETURN_MOOLTIPASS_USER) && (logic_smartcard_valid_card_unlock(FALSE, TRUE) == RETURN_VCARD_OK))
@@ -396,11 +400,13 @@ RET_TYPE logic_smartcard_remove_card_and_reauth_user(BOOL display_notification)
         }
         else
         {
+            logic_device_set_state_changed();
             return RETURN_NOK;
         }
     }
     else
     {
+        logic_device_set_state_changed();
         return RETURN_NOK;
     }
 }
