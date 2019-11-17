@@ -385,9 +385,12 @@ void gui_dispatcher_main_loop(void)
     if  ((gui_dispatcher_get_current_screen() != GUI_SCREEN_MEMORY_MGMT) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_LOGIN_NOTIF) && (timer_has_timer_expired(TIMER_SCREEN, TRUE) == TIMER_EXPIRED))
     {
         /* Display "going to sleep", switch off screen */
-        gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO);
-        sh1122_oled_off(&plat_oled_descriptor);
-        gui_dispatcher_get_back_to_current_screen();
+        if (sh1122_is_oled_on(&plat_oled_descriptor) != FALSE)
+        {
+            gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO);
+            sh1122_oled_off(&plat_oled_descriptor);
+            gui_dispatcher_get_back_to_current_screen();            
+        }
         
         /* The notification display routine calls the activity detected routine */
         timer_start_timer(TIMER_SCREEN, 0);
@@ -403,7 +406,6 @@ void gui_dispatcher_main_loop(void)
             main_standby_sleep();
                 
             /* We are awake now! */
-            logic_device_activity_detected();
         }
     }
     

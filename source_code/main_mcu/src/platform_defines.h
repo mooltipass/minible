@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    7
+#define FW_MINOR    8
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -36,6 +36,7 @@
 - v0.5: aux to main protocol change (requires hard programming for upgrade)
 - v0.6: firmware shipped to beta testers
 - v0.7: firmware upload on card inverted, settings enable/disable default selection set to current setting, pressing back when creating new user message fix
+- v0.8: not switching on screen when aux mcu wakes up main mcu
 */
 
 /**************** SETUP DEFINES ****************/
@@ -142,6 +143,11 @@ typedef struct
 /* Settings defines */
 /********************/
 #define FIRMWARE_UPGRADE_FLAG   0x5478ABAA
+
+/********************/
+/* Timeout defines  */
+/********************/
+#define SCREEN_TIMEOUT_MS       15000
 
 /********************/
 /* Voltage cutout   */

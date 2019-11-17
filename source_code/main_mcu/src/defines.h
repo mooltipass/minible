@@ -62,6 +62,7 @@ typedef enum    {MSG_NO_RESTRICT, MSG_RESTRICT_ALL, MSG_RESTRICT_ALLBUT_BUNDLE, 
 typedef enum    {RETURN_PIN_OK = 0, RETURN_PIN_NOK_3, RETURN_PIN_NOK_2, RETURN_PIN_NOK_1, RETURN_PIN_NOK_0} pin_check_return_te;
 typedef enum    {OLED_STEPUP_SOURCE_NONE = 0, OLED_STEPUP_SOURCE_VBAT, OLED_STEPUP_SOURCE_3V3} oled_stepup_pwr_source_te;
 typedef enum    {RETURN_NEW_PIN_NOK = -1, RETURN_NEW_PIN_OK = 0, RETURN_NEW_PIN_DIFF = 1} new_pinreturn_type_te;
+typedef enum    {WAKEUP_REASON_NONE = 0, WAKEUP_REASON_AUX_MCU, WAKEUP_REASON_OTHER} platform_wakeup_reason_te;
 typedef enum    {GUI_SEL_FAVORITE, GUI_SEL_SERVICE, GUI_SEL_DATA_SERVICE, GUI_SEL_CRED } gui_sel_item_te;
 typedef enum    {DISP_MSG_INFO = 0, DISP_MSG_WARNING = 1, DISP_MSG_ACTION = 2} display_message_te;
 typedef enum    {RETURN_REL = 0, RETURN_DET, RETURN_JDETECT, RETURN_JRELEASED} det_ret_type_te;

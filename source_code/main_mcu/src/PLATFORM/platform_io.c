@@ -27,6 +27,8 @@
 #include "platform_io.h"
 /* OLED stepup-power source */
 oled_stepup_pwr_source_te platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
+/* Platform wakeup reason */
+volatile platform_wakeup_reason_te platform_io_wakeup_reason = WAKEUP_REASON_NONE;
 /* Set when a conversion result is ready */
 volatile BOOL platform_io_voledin_conv_ready = FALSE;
 /* 3v3 detected counter & state */
@@ -39,6 +41,19 @@ volatile uint16_t platform_io_3v3_detected_counter = 0;
 */
 void EIC_Handler(void)
 {
+    /* Identify wakeup reason */
+    if (platform_io_wakeup_reason == WAKEUP_REASON_NONE)
+    {
+        if ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0)
+        {
+            platform_io_wakeup_reason = WAKEUP_REASON_AUX_MCU;
+        }
+        else
+        {
+            platform_io_wakeup_reason = WAKEUP_REASON_OTHER;
+        }
+    }
+    
     /* All the interrupts below are used to wake up the platform from sleep. If we detect any of them, we disable all of them */
     if (((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << USB_3V3_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << SMC_DET_EXTINT_NUM)) != 0))
     {
@@ -53,6 +68,23 @@ void EIC_Handler(void)
         EIC->INTFLAG.reg = (1 << SMC_DET_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << SMC_DET_EXTINT_NUM);
     }
+}
+
+/*! \fn     platform_io_clear_wakeup_reason(void)
+*   \brief  Clear the current platform wakeup reason
+*/
+void platform_io_clear_wakeup_reason(void)
+{
+    platform_io_wakeup_reason = WAKEUP_REASON_NONE;
+}
+
+/*! \fn     platform_io_get_wakeup_reason(void)
+*   \brief  Get the reason why the platform woke up
+*   \return The wakeup reason
+*/
+platform_wakeup_reason_te platform_io_get_wakeup_reason(void)
+{
+    return platform_io_wakeup_reason;
 }
 
 /*! \fn     platform_io_scan_3v3(void)

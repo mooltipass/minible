@@ -385,6 +385,9 @@ void main_standby_sleep(void)
     /* Prepare the ports for sleep */
     platform_io_prepare_ports_for_sleep();
     
+    /* Clear wakeup reason */
+    platform_io_clear_wakeup_reason();
+    
     /* Enter deep sleep */
     SCB->SCR = SCB_SCR_SLEEPDEEP_Msk;
     __DSB();
@@ -395,10 +398,6 @@ void main_standby_sleep(void)
     
     /* Damn errata... enable interrupts */
     cpu_irq_leave_critical();    
-    
-    /* Switch on OLED */    
-    platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
-    sh1122_oled_on(&plat_oled_descriptor);
     
     /* Dataflash power up */
     dataflash_exit_power_down(&dataflash_descriptor);
@@ -411,6 +410,19 @@ void main_standby_sleep(void)
     
     /* Resume accelerometer processing */
     lis2hh12_sleep_exit_and_dma_arm(&plat_acc_descriptor);
+    
+    /* Switch on OLED if required */
+    if (platform_io_get_wakeup_reason() != WAKEUP_REASON_AUX_MCU)
+    {
+        platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
+        sh1122_oled_on(&plat_oled_descriptor);
+        logic_device_activity_detected();
+    }
+    else
+    {
+        /* OLED is off, but still arm the timeout timer to a small value so he can deal with the incoming packet */        
+        timer_start_timer(TIMER_SCREEN, 3000);
+    }
     
     /* Clear wheel detection */
     inputs_clear_detections();
