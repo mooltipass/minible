@@ -15,6 +15,7 @@ extern "C" {
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QThread>
+#include <QTimer>
 
 #define FB_WIDTH (256)
 #define FB_HEIGHT (64)
@@ -100,13 +101,14 @@ void emu_oled_flush(void)
         fb_pending = fb_req;
         fb_next = (fb_next+1)%2;
 
-        postToObject([fb_req]() {
+        // use a timer to coalesce multiple repaints 
+        QTimer::singleShot(2, oled, [fb_req]() {
             fb_update.lock();
             if(fb_req == fb_pending)
                 fb_pending = -1;
             fb_update.unlock();
             oled->update_display(framebuffers[fb_req]);
-        }, oled);
+        });
     }
 
     fb_update.unlock();
