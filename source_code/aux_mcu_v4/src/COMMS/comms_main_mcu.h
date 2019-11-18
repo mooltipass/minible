@@ -44,7 +44,9 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define MAIN_MCU_COMMAND_UPDT_DEV_STAT  0x000A
 
 // Debug MCU commands
-#define MAIN_MCU_COMMAND_TX_SWEEP_SGL   0x1000
+#define MAIN_MCU_COMMAND_TX_SWEEP_SGL       0x1000
+#define MAIN_MCU_COMMAND_TX_TONE_CONT       0x1001
+#define MAIN_MCU_COMMAND_TX_TONE_CONT_STOP  0x1002
 
 // Aux MCU events
 #define AUX_MCU_EVENT_BLE_ENABLED       0x0001

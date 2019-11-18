@@ -375,7 +375,18 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             case MAIN_MCU_COMMAND_TX_SWEEP_SGL:
             {
                 /* ble_manager will send the event to main MCU */
-                debug_tx_band_send(message->main_mcu_command_message.payload_as_uint16[0], message->main_mcu_command_message.payload_as_uint16[1], message->main_mcu_command_message.payload_as_uint16[2]);
+                debug_tx_band_send(message->main_mcu_command_message.payload_as_uint16[0], message->main_mcu_command_message.payload_as_uint16[1], message->main_mcu_command_message.payload_as_uint16[2], FALSE);
+                break;
+            }
+            case MAIN_MCU_COMMAND_TX_TONE_CONT:
+            {
+                /* ble_manager will send the event to main MCU */
+                debug_tx_band_send(message->main_mcu_command_message.payload_as_uint16[0], message->main_mcu_command_message.payload_as_uint16[1], message->main_mcu_command_message.payload_as_uint16[2], TRUE);
+                break;
+            }
+            case MAIN_MCU_COMMAND_TX_TONE_CONT_STOP:
+            {
+                debug_tx_stop_continuous_tone();
                 break;
             }
             case MAIN_MCU_COMMAND_FUNC_TEST:
