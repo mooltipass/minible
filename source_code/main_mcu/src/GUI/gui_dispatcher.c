@@ -191,6 +191,7 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
                     /* Prompt user */
                     if (gui_prompts_ask_for_one_line_confirmation(QSWITCH_OFF_DEVICE_TEXT_ID, FALSE, FALSE) == MINI_INPUT_RET_YES)
                     {
+                        logic_power_power_down_actions();           // Power down actions
                         sh1122_oled_off(&plat_oled_descriptor);     // Display off command
                         platform_io_power_down_oled();              // Switch off stepup
                         platform_io_set_wheel_click_pull_down();    // Pull down on wheel click to slowly discharge capacitor
