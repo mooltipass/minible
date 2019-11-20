@@ -2,7 +2,18 @@
 #include <inttypes.h>
 
 typedef struct {} Sercom;
-typedef struct {} RTC_MODE2_CLOCK_Type;
+typedef union {
+    struct {
+        uint32_t SECOND:6;
+        uint32_t MINUTE:6;
+        uint32_t HOUR:5;
+        uint32_t DAY:5;
+        uint32_t MONTH:4;
+        uint32_t YEAR:6;
+    } bit;
+
+    uint32_t reg;
+} RTC_MODE2_CLOCK_Type;
 
 extern Sercom sercom_array[6];
 

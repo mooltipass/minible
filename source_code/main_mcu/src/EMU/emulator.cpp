@@ -146,6 +146,9 @@ int main(int ac, char ** av)
     // (2) to have our input behave in an interrupt-like manner
     QApplication app(ac, av);
 
+    // ensure that the calendar works in UTC, so that time doesn't shift unpredictably
+    qputenv("TZ", "");
+
     QCommandLineParser parser;
     parser.addHelpOption();
 
