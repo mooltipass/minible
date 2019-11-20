@@ -14,6 +14,7 @@
 #include "inputs.h"
 
 #ifdef EMULATOR_BUILD
+#include "emulator.h"
 #include <time.h>
 /* Difference between system time and emulated RTC
  * rtc_time = time(NULL) + rtc_offset
@@ -234,8 +235,8 @@ BOOL timer_get_mcu_systick(uint32_t* value)
         return FALSE;
     }
 #else
-    // FIXME
-    return FALSE;
+    /* for portability, use qt's timers */
+    return emu_get_systick(&value);
 #endif
 }
 

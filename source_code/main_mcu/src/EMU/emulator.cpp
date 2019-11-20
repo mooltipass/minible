@@ -15,6 +15,7 @@ extern "C" {
 #include <QTime>
 #include <QLocalSocket>
 #include <QCommandLineParser>
+#include <QElapsedTimer>
 
 #include "emu_oled.h"
 #include "emu_smartcard.h"
@@ -139,6 +140,26 @@ int emu_rcv_hid(char *data, int size)
     return app_thread.rcv_hid(data, size);
 }
 
+static QElapsedTimer systick_timer;
+static QMutex systick_mutex;
+static uint64_t last_systick;
+
+BOOL emu_get_systick(uint32_t *value)
+{
+    systick_mutex.lock();
+    // milliseconds to 48MHz ticks
+    uint64_t systick = systick_timer.elapsed() * (uint64_t)48000;
+    BOOL wrapped = FALSE;
+    if((systick & 0xffffff) != (last_systick & 0xffffff))
+        wrapped = TRUE;
+
+    *value = systick & 0xffffff;
+    last_systick = systick;
+
+    systick_mutex.unlock();
+    return wrapped;
+}
+
 int main(int ac, char ** av)
 {
     // Qt needs to run on the main thread. We run the application code on a separate thread
@@ -148,6 +169,8 @@ int main(int ac, char ** av)
 
     // ensure that the calendar works in UTC, so that time doesn't shift unpredictably
     qputenv("TZ", "");
+
+    systick_timer.start();
 
     QCommandLineParser parser;
     parser.addHelpOption();
