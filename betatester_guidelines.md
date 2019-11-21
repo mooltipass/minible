@@ -16,6 +16,7 @@ To get started, install the Mooltipass extension for the browsers you may be usi
 - <a href="https://addons.opera.com/en/extensions/details/mooltipass-extension/">Opera</a>  
   
 Then install the latest version of Moolticute, which can be found <a href="https://betas.themooltipass.com/">here</a>.  
+For ubuntu, you may use https://launchpad.net/~mooltipass/+archive/ubuntu/moolticute-beta  
    
 The device you received is fully functional. It will allow you to:  
 - store and recall website credentials using our browser extensions  
