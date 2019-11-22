@@ -689,29 +689,29 @@ keyboard_generation_array = [ \
 								[ "windows", "United Kingdom Extended", "UK Extended"],\
 								[ "windows", "US", "USA"],\
 								[ "windows", "United States-International", "US International"],\
-								[ "osx", "Belgian", "MacOS - Belgium"],\
-								[ "osx", "Brazilian", "MacOS - Brazil"],\
-								[ "osx", "Canadian", "MacOS - Canada"],\
-								[ "osx", "Czech", "MacOS - Czech"],\
-								[ "osx", "Czech-QWERTY", "MacOS - Czech QWERT"],\
-								[ "osx", "Danish", "MacOS - Denmark"],\
-								[ "osx", "Dvorak", "MacOS - Dvorak"],\
-								[ "osx", "French", "MacOS - French"],\
-								[ "osx", "German", "MacOS - German"],\
-								[ "osx", "Hungarian", "MacOS - Hungarian"],\
-								[ "osx", "Icelandic", "MacOS - Iceland"],\
-								[ "osx", "Italian", "MacOS - Italy"],\
-								[ "osx", "Norwegian", "MacOS - Norway"],\
-								[ "osx", "Polish", "MacOS - Polish"],\
-								[ "osx", "Portuguese", "MacOS - Portugal"],\
-								[ "osx", "Romanian", "MacOS - Romania"],\
-								[ "osx", "Slovenian", "MacOS - Slovenia"],\
-								[ "osx", "Spanish", "MacOS - Spain"],\
-								[ "osx", "Finnish", "MacOS - Swed/Fin"],\
-								[ "osx", "Swiss French", "MacOS - Swiss FR"],\
-								[ "osx", "British", "MacOS - UK"],\
-								[ "osx", "U.S.", "MacOS - USA"],\
-								[ "osx", "US Extended", "MacOS - US Extended"],\
+								[ "osx", "Belgian", "Belgium (MacOS)"],\
+								[ "osx", "Brazilian", "Brazil (MacOS)"],\
+								[ "osx", "Canadian", "Canada (MacOS)"],\
+								[ "osx", "Czech", "Czech (MacOS)"],\
+								[ "osx", "Czech-QWERTY", "Czech QWERT (MacOS)"],\
+								[ "osx", "Danish", "Denmark (MacOS)"],\
+								[ "osx", "Dvorak", "Dvorak (MacOS)"],\
+								[ "osx", "French", "French (MacOS)"],\
+								[ "osx", "German", "German (MacOS)"],\
+								[ "osx", "Hungarian", "Hungarian (MacOS)"],\
+								[ "osx", "Icelandic", "Iceland (MacOS)"],\
+								[ "osx", "Italian", "Italy (MacOS)"],\
+								[ "osx", "Norwegian", "Norway (MacOS)"],\
+								[ "osx", "Polish", "Polish (MacOS)"],\
+								[ "osx", "Portuguese", "Portugal (MacOS)"],\
+								[ "osx", "Romanian", "Romania (MacOS)"],\
+								[ "osx", "Slovenian", "Slovenia (MacOS)"],\
+								[ "osx", "Spanish", "Spain (MacOS)"],\
+								[ "osx", "Finnish", "Sweden/Fin (MacOS)"],\
+								[ "osx", "Swiss French", "Swiss FR (MacOS)"],\
+								[ "osx", "British", "UK (MacOS)"],\
+								[ "osx", "U.S.", "USA (MacOS)"],\
+								[ "osx", "US Extended", "US Extended (MacOS)"],\
 							]
 
 counter = 0
