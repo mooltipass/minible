@@ -103,4 +103,4 @@ In Moolticute, press CTRL-SHIFT-F3 (SHIFT-Command-F3 on Mac) in such a way that 
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/ble_dev_tab.PNG?raw=true)  
 Click on the "Select Bundle File" button and select the bundle file we sent you by email, the upload will start automatically.  
 Once the upload is performed, **click the Flash button for the Aux MCU**. The BLE Dev tab will then disappear and you'll hear the device disconnecting and reconnecting from USB.   
-Press the CTRL-SHIFT-F3 (SHIFT-Command-F3 on Mac) shortcut again, head to the BLE Dev tab and this time press the **Flash button for the Main MCU**. If everything goes well, you'll see the device reboot.  
+Press the CTRL-SHIFT-F3 (SHIFT-Command-F3 on Mac) shortcut again, head to the BLE Dev tab and this time press the **Flash button for the Main MCU**. If everything goes well, you'll see the device reboot after a 10 to 20 seconds.  
