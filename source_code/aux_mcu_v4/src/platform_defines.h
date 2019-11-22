@@ -13,16 +13,18 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    8
+#define FW_MINOR    9
 
 /* Changelog:
-v0.2: added padding to USB comms 64B packet
-v0.3: sleep problems solved
-v0.4: discarding USB messages having the incorrect flip bit
-v0.5: no comms signal handling
-v0.6: dummy release
-v0.7: brand new solution with ble task handling
-v0.8: aux to main mcu protocol change (requires hard programming)
+- v0.2: added padding to USB comms 64B packet
+- v0.3: sleep problems solved
+- v0.4: discarding USB messages having the incorrect flip bit
+- v0.5: no comms signal handling
+- v0.6: dummy release
+- v0.7: brand new solution with ble task handling
+- v0.8: aux to main mcu protocol change (requires hard programming)
+- v0.9: - detecting USB frames to check for USB timeout
+        - delay before first battery charging action
 */
 
 /**************** SETUP DEFINES ****************/

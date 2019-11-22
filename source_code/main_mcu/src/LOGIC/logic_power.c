@@ -240,6 +240,12 @@ power_action_te logic_power_routine(void)
     {
         uint16_t current_vbat = platform_io_get_voledin_conversion_result_and_trigger_conversion();
         
+        /* Measurements taken when USB 3V3 is present are invalid */
+        if (platform_io_is_usb_3v3_present() != FALSE)
+        {
+            current_vbat = logic_power_last_vbat_measurement;
+        }
+        
         /* Var increment */
         if (logic_power_nb_adc_conv_since_last_power_change != UINT16_MAX)
         {
