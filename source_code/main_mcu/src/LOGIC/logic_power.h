@@ -26,6 +26,7 @@
 
 /* Defines */
 #define NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE     (5UL * 60UL * 1000UL)
+#define NB_CONVERSIONS_BEFORE_POWER_ACTIONS             5                       // Around 150ms
 
 /* Enums */
 typedef enum    {USB_POWERED, BATTERY_POWERED} power_source_te;

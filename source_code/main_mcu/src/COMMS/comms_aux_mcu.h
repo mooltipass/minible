@@ -72,6 +72,7 @@
 #define AUX_MCU_EVENT_IM_HERE           0x0009
 #define AUX_MCU_EVENT_BLE_CONNECTED     0x000A
 #define AUX_MCU_EVENT_BLE_DISCONNECTED  0x000B
+#define AUX_MCU_EVENT_USB_DETACHED      0x000C
 
 /* Typedefs */
 typedef struct

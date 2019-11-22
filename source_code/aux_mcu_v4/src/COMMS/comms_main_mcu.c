@@ -330,6 +330,9 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 
                 /* Stop charging if we are */
                 logic_battery_stop_charging();
+
+                /* Inform main MCU */
+                comms_main_mcu_send_simple_event(AUX_MCU_EVENT_USB_DETACHED);
                 break;
             }
             case MAIN_MCU_COMMAND_ENABLE_BLE:

@@ -201,6 +201,7 @@ power_action_te logic_power_routine(void)
     }
     else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
     {
+        aux_mcu_message_t* temp_rx_message_pt;
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
         comms_aux_mcu_wait_for_message_sent();
         sh1122_oled_off(&plat_oled_descriptor);
@@ -215,6 +216,8 @@ power_action_te logic_power_routine(void)
         gui_dispatcher_get_back_to_current_screen();
         logic_device_activity_detected();
         logic_power_nb_adc_conv_since_last_power_change = 0;
+        while(comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_USB_DETACHED) != RETURN_OK);
+        comms_aux_arm_rx_and_clear_no_comms();
     }
     else if ((logic_power_last_seen_voled_stepup_pwr_source == OLED_STEPUP_SOURCE_NONE) && (current_voled_pwr_source != logic_power_last_seen_voled_stepup_pwr_source))
     {

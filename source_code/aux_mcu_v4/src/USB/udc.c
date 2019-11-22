@@ -76,8 +76,42 @@ typedef union
 static volatile udc_mem_t udc_mem[USB_EPT_NUM];
 static volatile uint32_t udc_ctrl_in_buf[16];
 static volatile uint32_t udc_ctrl_out_buf[16];
+volatile uint16_t udc_nb_ms_without_sof_change;
+volatile uint16_t udc_last_mfnum_register;
+volatile uint16_t udc_last_fnum_register;
+volatile BOOL udc_usb_attached = FALSE;
 
 /*- Implementations ---------------------------------------------------------*/
+
+//-----------------------------------------------------------------------------
+void udc_checks(void)
+{
+    if (udc_usb_attached == FALSE)
+    {
+        udc_nb_ms_without_sof_change = UINT16_MAX;
+    } 
+    else
+    {
+        if ((USB->DEVICE.FNUM.bit.FNUM == udc_last_fnum_register) && (USB->DEVICE.FNUM.bit.MFNUM == udc_last_mfnum_register))
+        {
+            if (udc_nb_ms_without_sof_change != UINT16_MAX)
+            {
+                udc_nb_ms_without_sof_change++;
+            }
+        }
+        else
+        {
+            udc_nb_ms_without_sof_change = 0;
+            udc_last_fnum_register = USB->DEVICE.FNUM.bit.FNUM;
+            udc_last_mfnum_register = USB->DEVICE.FNUM.bit.MFNUM;
+        }
+    }
+}
+
+uint16_t udc_get_nb_ms_before_last_usb_activity(void)
+{
+    return udc_nb_ms_without_sof_change;
+}
 
 //-----------------------------------------------------------------------------
 void udc_init(void)
@@ -120,12 +154,14 @@ void udc_init(void)
 void udc_attach(void)
 {
   USB->DEVICE.CTRLB.bit.DETACH = 0;
+  udc_usb_attached = TRUE;
 }
 
 //-----------------------------------------------------------------------------
 void udc_detach(void)
 {
   USB->DEVICE.CTRLB.bit.DETACH = 1;
+  udc_usb_attached = FALSE;
   usb_reset_config();
 }
 
