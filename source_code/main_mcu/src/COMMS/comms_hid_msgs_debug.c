@@ -29,6 +29,7 @@
 #include "driver_sercom.h"
 #include "logic_device.h"
 #include "platform_io.h"
+#include "logic_power.h"
 #include "dataflash.h"
 #include "sh1122.h"
 #include "main.h"
@@ -327,6 +328,44 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             comms_aux_arm_rx_and_clear_no_comms();
             
             return sizeof(send_msg->detailed_platform_info);
+        }
+        case HID_CMD_ID_GET_BATTERY_STATUS:
+        {
+            aux_mcu_message_t* temp_rx_message;
+            aux_mcu_message_t* temp_tx_message_pt;
+            
+            /* Generate our packet */
+            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE);
+            
+            /* Wait for current packet reception and arm reception */
+            dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
+            comms_aux_arm_rx_and_clear_no_comms();
+            
+            /* Send message */
+            comms_aux_mcu_send_message(TRUE);
+            
+            /* Get ADC value for current conversion */
+            while (platform_io_is_voledin_conversion_result_ready() == FALSE);
+            uint16_t bat_adc_result = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+            
+            /* Wait for message from aux MCU */
+            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE, -1) != RETURN_OK){}
+                
+            /* Prepare packet to send back */
+            memset(send_msg, 0x00, sizeof(hid_message_t));
+            send_msg->battery_status.power_source = logic_power_get_power_source();
+            send_msg->battery_status.platform_charging = logic_power_is_battery_charging();
+            send_msg->battery_status.main_adc_battery_value = bat_adc_result;
+            send_msg->battery_status.aux_charge_status = temp_rx_message->nimh_charge_message.charge_status;
+            send_msg->battery_status.aux_battery_voltage = temp_rx_message->nimh_charge_message.battery_voltage;
+            send_msg->battery_status.aux_charge_current = temp_rx_message->nimh_charge_message.charge_current;
+            send_msg->payload_length = sizeof(send_msg->battery_status);
+            send_msg->message_type = rcv_message_type;
+            
+            /* Rearm receive */
+            comms_aux_arm_rx_and_clear_no_comms();
+            
+            return sizeof(send_msg->battery_status);
         }
         default: break;
     }

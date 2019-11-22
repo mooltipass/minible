@@ -148,6 +148,16 @@ typedef struct
 
 typedef struct
 {
+    uint32_t power_source;
+    uint32_t platform_charging;
+    uint16_t main_adc_battery_value;
+    uint16_t aux_charge_status;
+    uint16_t aux_battery_voltage;
+    int16_t aux_charge_current;
+} hid_message_get_battery_status_t;
+
+typedef struct
+{
     uint16_t message_type;
     uint16_t payload_length;
     union
@@ -160,6 +170,7 @@ typedef struct
         hid_message_plat_info_t platform_info;
         hid_message_store_cred_t store_credential;
         hid_message_check_cred_req_t check_credential;
+        hid_message_get_battery_status_t battery_status;
         hid_message_get_cred_req_t get_credential_request;
         hid_message_get_cred_answer_t get_credential_answer;
         hid_message_get_set_category_strings_t get_set_cat_strings;
