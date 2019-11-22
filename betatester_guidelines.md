@@ -79,16 +79,16 @@ Starting from main MCU firmware v0.7 firmware updates are only allowed when you 
 You will inevitably find bugs on the device you received... it's part of the hardware/firmware development process after all!  
 To make sure the development team is able to efficiently fix them, please follow these guidelines:  
 - devise a 'recipe' that others may follow to replicate your issue  
-- if the bug is software (moolticute) related, report it <a href="https://github.com/mooltipass/moolticute/issues/new">here</a>  
+- if the bug is software (Moolticute) related, report it <a href="https://github.com/mooltipass/moolticute/issues/new">here</a>  
 - if the bug is hardware related, report it <a href="https://github.com/mooltipass/minible/issues/new">there</a>  
 - if you want to report a broader issue (non-intuitive user interface, odd general device behavior), please use our <a href="https://groups.google.com/forum/#!forum/mooltipass-ble-beta-testers">google group</a>  
 
-Please make sure you have the full developper log feature enabled in moolticute. To enable it, simply head to the settings tab, scroll down to tick the "Enable Debug Log" checkbox and then restart moolticute by closing it (right click on the moolticute icon in the task bar, "quit") and launching it again.  
+Please make sure you have the full developper log feature enabled in Moolticute. To enable it, simply head to the settings tab, scroll down to tick the "Enable Debug Log" checkbox and then restart Moolticute by closing it (right click on the Moolticute icon in the task bar, "quit") and launching it again.  
 
 
 
 ### [](#header-3)Updating Moolticute  
-Your computer should notify you whenever we release a moolticute update. If that's not the case, you may simply click the "check for Updates" button in moolticute's "About" tab:  
+Your computer should notify you whenever we release a Moolticute update. If that's not the case, you may simply click the "check for Updates" button in Moolticute's "About" tab:  
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/moolticute_update_guide/check_for_update.PNG?raw=true)  
 If everything goes well, you'll see a prompt for update at the bottom of the window:
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/moolticute_update_guide/update_message.PNG?raw=true)  
@@ -99,8 +99,8 @@ Simply click yes and go through the update process.
 ### [](#header-3)Updating your Device  
 Insert your smarcard **the wrong way around** inside the device.  
 Connect your device to your computer **using USB**, make sure Bluetooth connectivity is disabled.  
-In moolticute, press CTRL-SHIFT-F3 (SHIFT-Command-F3 on Mac) in such a way that all 3 keys are pressed at the end of the shortcut. The BLE Dev tab will appear:  
+In Moolticute, press CTRL-SHIFT-F3 (SHIFT-Command-F3 on Mac) in such a way that all 3 keys are pressed at the end of the shortcut. The BLE Dev tab will appear:  
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/ble_dev_tab.PNG?raw=true)  
-Click on the "Select Bundle File" button and select the bundle file we sent you by email. Then click on the "Flash Aux MCU" and/or "Flash Main MCU" **according to the update instructions you will have received with the bundle file**.  
-Please make sure to allow some time to passs (15 to 20 seconds) after pressing any of the "Flash" buttons.  
-
+Click on the "Select Bundle File" button and select the bundle file we sent you by email, the upload will start automatically.  
+Once the upload is performed, **click the Flash button for the Aux MCU**. The BLE Dev tab will then disappear and you'll hear the device disconnecting and reconnecting from USB.   
+Press the CTRL-SHIFT-F3 (SHIFT-Command-F3 on Mac) shortcut again, head to the BLE Dev tab and this time press the **Flash button for the Main MCU**. If everything goes well, you'll see the device reboot.  
