@@ -232,9 +232,12 @@ void platform_io_init_bat_adc_measurements(void)
     ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(VBAT_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND;  // 1x gain, one channel set to voled in
     ADC->INTENSET.reg = ADC_INTENSET_RESRDY;                                                    // Enable in result ready interrupt
     NVIC_EnableIRQ(ADC_IRQn);                                                                   // Enable int
-    uint16_t calib_val = ((*((uint32_t *)ADC_FUSES_LINEARITY_1_ADDR)) & 0x3F) << 5;             // Fetch calibration value
-    calib_val |=  ((*((uint32_t *)ADC_FUSES_LINEARITY_0_ADDR)) & ADC_FUSES_LINEARITY_0_Msk) >> ADC_FUSES_LINEARITY_0_Pos;
-    ADC->CALIB.reg = calib_val;                                                                 // Store calibration value
+    ADC_CALIB_Type calib_register;                                                              // Create our calibration register values
+    calib_register.reg = 0x0000;                                                                // Clear it
+    calib_register.bit.LINEARITY_CAL = (((*((uint32_t *)ADC_FUSES_LINEARITY_1_ADDR)) & ADC_FUSES_LINEARITY_1_Msk) >> ADC_FUSES_LINEARITY_1_Pos) << 5;   // Fetch & recompose linearity_cal
+    calib_register.bit.LINEARITY_CAL |=  ((*((uint32_t *)ADC_FUSES_LINEARITY_0_ADDR)) & ADC_FUSES_LINEARITY_0_Msk) >> ADC_FUSES_LINEARITY_0_Pos;        // Fetch & recompose linearity_cal
+    calib_register.bit.BIAS_CAL = ((*((uint32_t *)ADC_FUSES_BIASCAL_ADDR)) & ADC_FUSES_BIASCAL_Msk) >> ADC_FUSES_BIASCAL_Pos;                           // Fetch & recompose bias cal
+    ADC->CALIB = calib_register;                                                                // Store calibration values
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                       // Wait for sync
     ADC->CTRLA.reg = ADC_CTRLA_ENABLE;                                                          // And enable ADC
 }
