@@ -130,15 +130,14 @@ if __name__ == "__main__":
 	while True:
 		packet = mooltipass_device.getBatteryStatus()
 		
-		print("")
-		print("Battery Status")
-		print("Power Source:", struct.unpack('I', packet["data"][0:4])[0])
-		print("Charging Bool:", struct.unpack('I', packet["data"][4:8])[0])
-		print("Main ADC Val:", struct.unpack('H', packet["data"][8:10])[0])
-		print("Aux Charge Status:", struct.unpack('H', packet["data"][10:12])[0])
-		print("Aux Battery Voltage:", struct.unpack('H', packet["data"][12:14])[0])
-		print("Aux Charge Current:", struct.unpack('H', packet["data"][14:16])[0])
-		
+		if packet["cmd"] != CMD_ID_RETRY:
+			sys.stdout.write("Power Source:" + str(struct.unpack('I', packet["data"][0:4])[0]))
+			sys.stdout.write(" Charging Bool:" + str(struct.unpack('I', packet["data"][4:8])[0]))
+			sys.stdout.write(" Main ADC Val:" + str(struct.unpack('H', packet["data"][8:10])[0]))
+			sys.stdout.write(" Aux Charge Status:" + str(struct.unpack('H', packet["data"][10:12])[0]))
+			sys.stdout.write(" Aux Battery Voltage:" + str((struct.unpack('H', packet["data"][12:14])[0]*103)>>8))
+			sys.stdout.write(" Aux Charge Current:" + str(struct.unpack('H', packet["data"][14:16])[0]) + "\r\n")
+			sys.stdout.flush()		
 		time.sleep(1)
 		
 		

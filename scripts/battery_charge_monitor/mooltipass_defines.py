@@ -33,6 +33,7 @@ CMD_HID_NACK				= 0x00
 
 # New Command IDs
 CMD_PING                	= 0x0001
+CMD_ID_RETRY				= 0x0002
 
 # New Debug Command IDs
 CMD_DBG_MESSAGE					= 0x8000

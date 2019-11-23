@@ -331,8 +331,9 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
         }
         case HID_CMD_ID_GET_BATTERY_STATUS:
         {
-            aux_mcu_message_t* temp_rx_message;
             aux_mcu_message_t* temp_tx_message_pt;
+            aux_mcu_message_t* temp_rx_message;
+            uint16_t bat_adc_result;
             
             /* Generate our packet */
             comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE);
@@ -346,10 +347,10 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             
             /* Get ADC value for current conversion */
             while (platform_io_is_voledin_conversion_result_ready() == FALSE);
-            uint16_t bat_adc_result = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+            bat_adc_result = platform_io_get_voledin_conversion_result_and_trigger_conversion();
             
             /* Wait for message from aux MCU */
-            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE, -1) != RETURN_OK){}
+            while(comms_aux_mcu_active_wait(&temp_rx_message, TRUE, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE, -1) != RETURN_OK){}
                 
             /* Prepare packet to send back */
             memset(send_msg, 0x00, sizeof(hid_message_t));
