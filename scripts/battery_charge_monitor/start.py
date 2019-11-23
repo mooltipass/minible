@@ -133,7 +133,7 @@ if __name__ == "__main__":
 		if packet["cmd"] != CMD_ID_RETRY:
 			sys.stdout.write("Power Source:" + str(struct.unpack('I', packet["data"][0:4])[0]))
 			sys.stdout.write(" Charging Bool:" + str(struct.unpack('I', packet["data"][4:8])[0]))
-			sys.stdout.write(" Main ADC Val:" + str(struct.unpack('H', packet["data"][8:10])[0]))
+			sys.stdout.write(" Main ADC Val:" + str((struct.unpack('H', packet["data"][8:10])[0]*199)>>9))
 			sys.stdout.write(" Aux Charge Status:" + str(struct.unpack('H', packet["data"][10:12])[0]))
 			sys.stdout.write(" Aux Battery Voltage:" + str((struct.unpack('H', packet["data"][12:14])[0]*103)>>8))
 			sys.stdout.write(" Aux Charge Current:" + str(struct.unpack('H', packet["data"][14:16])[0]) + "\r\n")
