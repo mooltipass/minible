@@ -42,6 +42,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define MAIN_MCU_COMMAND_DETACH_USB     0x0008
 #define MAIN_MCU_COMMAND_FUNC_TEST      0x0009
 #define MAIN_MCU_COMMAND_UPDT_DEV_STAT  0x000A
+#define MAIN_MCU_COMMAND_STOP_CHARGE    0x000B
 
 // Debug MCU commands
 #define MAIN_MCU_COMMAND_TX_SWEEP_SGL       0x1000

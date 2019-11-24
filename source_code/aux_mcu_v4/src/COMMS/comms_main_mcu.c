@@ -369,6 +369,12 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 logic_battery_start_charging(NIMH_12C_CHARGING);
                 break;
             }
+            case MAIN_MCU_COMMAND_STOP_CHARGE:
+            {
+                /* Stop charging battery */
+                logic_battery_stop_charging();
+                break;
+            }
             case MAIN_MCU_COMMAND_NO_COMMS_UNAV:
             {
                 /* No comms signal unavailable */

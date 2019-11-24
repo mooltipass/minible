@@ -73,7 +73,11 @@ class mooltipass_hid_device:
 	def createPingPacket(self):	
 		return self.getPacketForCommand(CMD_PING, [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)])
 		
-	def getBatteryStatus(self):
-		return self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_GET_BATTERY_STATUS, None))	
+	def getBatteryStatus(self, start_charging, stop_charging, switch_to_usb_screen_power, switch_to_battery_screen_power):
+		start_charging_var = 1 if start_charging else 0;
+		stop_charging_var = 1 if stop_charging else 0;
+		switch_to_usb_screen_power_var = 1 if switch_to_usb_screen_power else 0;
+		switch_to_battery_screen_power_var = 1 if switch_to_battery_screen_power else 0;
+		return self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_GET_BATTERY_STATUS, [start_charging_var, stop_charging_var, switch_to_usb_screen_power_var, switch_to_battery_screen_power_var]))	
 		
 	

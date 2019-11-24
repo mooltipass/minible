@@ -127,8 +127,12 @@ if __name__ == "__main__":
 	if mooltipass_device.connect(True) == False:
 		sys.exit(0)
 		
+	#mooltipass_device.getBatteryStatus(False, True, False, True)
+	mooltipass_device.getBatteryStatus(False, True, False, False)
+	mooltipass_device.getBatteryStatus(False, False, False, True)
+		
 	while True:
-		packet = mooltipass_device.getBatteryStatus()
+		packet = mooltipass_device.getBatteryStatus(False, False, False, False)
 		
 		if packet["cmd"] != CMD_ID_RETRY:
 			sys.stdout.write("Power Source:" + str(struct.unpack('I', packet["data"][0:4])[0]))

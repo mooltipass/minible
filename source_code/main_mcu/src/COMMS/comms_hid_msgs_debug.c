@@ -24,10 +24,12 @@
 #include <asf.h>
 #include "comms_hid_msgs_debug.h"
 #include "comms_hid_msgs.h"
+#include "gui_dispatcher.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
 #include "driver_sercom.h"
 #include "logic_device.h"
+#include "driver_timer.h"
 #include "platform_io.h"
 #include "logic_power.h"
 #include "dataflash.h"
@@ -335,12 +337,55 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             aux_mcu_message_t* temp_rx_message;
             uint16_t bat_adc_result;
             
-            /* Generate our packet */
-            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE);
+            /* Keep screen on in case we're testing power consumption */
+            logic_device_activity_detected();        
             
             /* Wait for current packet reception and arm reception */
             dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
             comms_aux_arm_rx_and_clear_no_comms();
+            
+            /* Start charging? */
+            if (rcv_msg->payload[0] != 0)
+            {
+                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
+                logic_power_set_battery_charging_bool(TRUE, FALSE);
+                comms_aux_mcu_wait_for_message_sent();
+            }
+            
+            /* Stop charging? */
+            if (rcv_msg->payload[1] != 0)
+            {
+                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_CHARGE);
+                logic_power_set_battery_charging_bool(FALSE, FALSE);
+                comms_aux_mcu_wait_for_message_sent();
+            }
+            
+            /* Use USB to power the screen? */
+            if (rcv_msg->payload[2] != 0)
+            {
+                sh1122_oled_off(&plat_oled_descriptor);
+                platform_io_disable_vbat_to_oled_stepup();
+                platform_io_assert_oled_reset();
+                timer_delay_ms(15);
+                platform_io_power_up_oled(TRUE);
+                sh1122_init_display(&plat_oled_descriptor);
+                gui_dispatcher_get_back_to_current_screen();
+            }
+            
+            /* Use battery to power the screen? */
+            if (rcv_msg->payload[3] != 0)
+            {
+                sh1122_oled_off(&plat_oled_descriptor);
+                platform_io_disable_3v3_to_oled_stepup();
+                platform_io_assert_oled_reset();
+                timer_delay_ms(15);
+                platform_io_power_up_oled(FALSE);
+                sh1122_init_display(&plat_oled_descriptor);
+                gui_dispatcher_get_back_to_current_screen();
+            }   
+            
+            /* Generate our get battery charge status packet */
+            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE);
             
             /* Send message */
             comms_aux_mcu_send_message(TRUE);
