@@ -130,7 +130,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
 void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame_id, uint16_t* timer_timeout, display_message_te message_type);
 void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type);
 void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type);
-void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type);
+BOOL gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type);
 void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type);
 RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID);
 uint16_t gui_prompts_service_selection_screen(uint16_t start_address);

@@ -388,9 +388,18 @@ void gui_dispatcher_main_loop(void)
         /* Display "going to sleep", switch off screen */
         if (sh1122_is_oled_on(&plat_oled_descriptor) != FALSE)
         {
-            gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO);
-            sh1122_oled_off(&plat_oled_descriptor);
-            gui_dispatcher_get_back_to_current_screen();            
+            if (gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO) == FALSE)
+            {
+                /* Uninterrupted animation */
+                sh1122_oled_off(&plat_oled_descriptor);
+                gui_dispatcher_get_back_to_current_screen();
+            }
+            else
+            {
+                /* Interrupted animation */
+                gui_dispatcher_get_back_to_current_screen();
+                return;     
+            }        
         }
         
         /* The notification display routine calls the activity detected routine */

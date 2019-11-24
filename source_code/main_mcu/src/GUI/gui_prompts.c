@@ -222,23 +222,36 @@ void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame
 *   \brief  Display text information on screen
 *   \param  string_id       String ID to display
 *   \param  message_type    Message type (see enum)
+*   \return Something else than FALSE if the animation was interrupted by user action
 */
-void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type)
+BOOL gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type)
 {
     uint16_t i = 0;
     
-    // Store current smartcard inserted state
+    /* Store current smartcard inserted state */
     ret_type_te card_absent = smartcard_low_level_is_smc_absent();
     
-    // Display string 
+    /* Display string */
     gui_prompts_display_information_on_screen(string_id, message_type);
     
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
     timer_start_timer(TIMER_WAIT_FUNCTS, 3000);
-    while ((timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK) && (card_absent == smartcard_low_level_is_smc_absent()))
+    while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
     {
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);        
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);      
+        
+        /* Click to interrupt */  
+        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+        {
+            return TRUE;
+        }
+        
+        /* Card insertion status change */
+        if (card_absent != smartcard_low_level_is_smc_absent())
+        {
+            return TRUE;
+        }
         
         /* Animation timer */
         if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
@@ -254,6 +267,9 @@ void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, disp
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+i, FALSE);                 
         }
     }
+    
+    /* Normal animation timeout */
+    return FALSE;
 }
 
 /*! \fn     gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type
