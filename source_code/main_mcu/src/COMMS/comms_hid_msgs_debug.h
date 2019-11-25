@@ -44,6 +44,7 @@
 #define HID_CMD_ID_REINDEX_BUNDLE           0x800B
 #define HID_CMD_ID_SET_OLED_PARAMS          0x800C
 #define HID_CMD_ID_GET_BATTERY_STATUS       0x800D
+#define HID_CMD_ID_FLASH_AUX_AND_MAIN       0x800E
 
 /* Prototypes */
 int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type);

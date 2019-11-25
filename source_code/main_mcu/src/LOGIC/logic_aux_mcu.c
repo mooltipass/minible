@@ -178,11 +178,12 @@ uint32_t logic_aux_mcu_get_ble_chip_id(void)
     }
 }
 
-/*! \fn     logic_aux_mcu_flash_firmware_update(void)
+/*! \fn     logic_aux_mcu_flash_firmware_update(BOOL connect_to_usb_if_needed)
 *   \brief  Flash update firmware for aux MCU
+*   \param  connect_to_usb_if_needed    Connect to USB after flash procedure if needed
 *   \return something >= 0 if an answer needs to be sent, otherwise -1
 */
-RET_TYPE logic_aux_mcu_flash_firmware_update(void)
+RET_TYPE logic_aux_mcu_flash_firmware_update(BOOL connect_to_usb_if_needed)
 {
     aux_mcu_message_t* temp_rx_message;
     aux_mcu_message_t* temp_tx_message_pt;
@@ -268,7 +269,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(void)
     timer_delay_ms(1000);
     
     /* If USB present, send USB attach message */
-    if (platform_io_is_usb_3v3_present() != FALSE)
+    if ((platform_io_is_usb_3v3_present() != FALSE) && (connect_to_usb_if_needed != FALSE))
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
     }

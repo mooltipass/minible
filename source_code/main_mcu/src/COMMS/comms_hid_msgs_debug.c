@@ -298,8 +298,22 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             /* Wait for current packet reception and arm reception */
             dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
             comms_aux_arm_rx_and_clear_no_comms();            
-            logic_aux_mcu_flash_firmware_update();            
+            logic_aux_mcu_flash_firmware_update(TRUE);            
             return -1;
+        }
+        case HID_CMD_ID_FLASH_AUX_AND_MAIN:
+        {
+            /* Wait for current packet reception and arm reception */
+            dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
+            comms_aux_arm_rx_and_clear_no_comms();
+            
+            /* Start by flashing aux */
+            logic_aux_mcu_flash_firmware_update(FALSE);
+            
+            /* Then move on to main */
+            custom_fs_set_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID, TRUE);
+            custom_fs_settings_set_fw_upgrade_flag();
+            main_reboot();            
         }
         case HID_CMD_ID_GET_DBG_PLAT_INFO:
         {

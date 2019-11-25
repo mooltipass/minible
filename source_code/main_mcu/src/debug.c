@@ -249,7 +249,7 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 11)
             {
-                logic_aux_mcu_flash_firmware_update();
+                logic_aux_mcu_flash_firmware_update(TRUE);
             }
             else if (selected_item == 12)
             {
