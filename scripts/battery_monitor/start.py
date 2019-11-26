@@ -74,7 +74,8 @@ class BatteryMonitorApp(tk.Tk):
 			self.log_file_fd.write(strftime("%Y-%m-%d_%H:%M:%S", localtime()) + ",")
 			self.log_file_fd.write(str((main_adc_val*199)>>9) + ",")
 			self.log_file_fd.write(str((aux_battery_voltage*103)>>8) + ",")
-			self.log_file_fd.write(str(int(aux_charge_current*0.4)))
+			self.log_file_fd.write(str(int(aux_charge_current*0.4)) + ",")
+			self.log_file_fd.write(str(aux_charge_status))
 			self.log_file_fd.write("\r")
 			self.log_file_fd.flush()
 			self.log_counter+=1
