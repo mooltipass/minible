@@ -419,6 +419,8 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             send_msg->battery_status.aux_charge_status = temp_rx_message->nimh_charge_message.charge_status;
             send_msg->battery_status.aux_battery_voltage = temp_rx_message->nimh_charge_message.battery_voltage;
             send_msg->battery_status.aux_charge_current = temp_rx_message->nimh_charge_message.charge_current;
+            send_msg->battery_status.aux_stepdown_voltage = temp_rx_message->nimh_charge_message.stepdown_voltage;
+            send_msg->battery_status.aux_dac_register_val = temp_rx_message->nimh_charge_message.dac_data_reg;
             send_msg->payload_length = sizeof(send_msg->battery_status);
             send_msg->message_type = rcv_message_type;
             

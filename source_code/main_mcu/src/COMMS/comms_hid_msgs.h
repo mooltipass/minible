@@ -154,6 +154,8 @@ typedef struct
     uint16_t aux_charge_status;
     uint16_t aux_battery_voltage;
     int16_t aux_charge_current;
+    uint16_t aux_stepdown_voltage;
+    uint16_t aux_dac_register_val;
 } hid_message_get_battery_status_t;
 
 typedef struct

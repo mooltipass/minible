@@ -59,6 +59,15 @@ int16_t logic_battery_get_charging_current(void)
     return logic_battery_diag_current_cur;
 }
 
+/*! \fn     logic_battery_get_stepdown_voltage(void)
+*   \brief  Get current stepdown voltage set
+*   \return The stepdown voltage set
+*/
+uint16_t logic_battery_get_stepdown_voltage(void)
+{
+    return logic_battery_charge_voltage;
+}
+
 /*! \fn     logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
 *   \brief  Called to start battery charge
 *   \param  charging_type Charging scheme

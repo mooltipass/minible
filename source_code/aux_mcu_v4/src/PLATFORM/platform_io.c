@@ -24,6 +24,9 @@ volatile BOOL platform_io_measuring_lcursense = FALSE;
 /* Current measured values for high & low current */
 volatile uint16_t platform_io_high_cur_val;
 volatile uint16_t platform_io_low_cur_val;
+/* For debug purposes: voltage set for stepdown and matching DATA register value */
+uint16_t platform_io_stepdown_voltage_set = 0;
+uint16_t platform_io_dac_data_register_set = 0;
 
 
 /*! \fn     EIC_Handler(void)
@@ -98,6 +101,14 @@ void ADC_Handler(void)
 BOOL platform_io_is_current_sense_conversion_result_ready(void)
 {
     return platform_cur_sense_conv_ready;
+}
+
+/*! \fn     platform_io_get_dac_data_register_set(void)
+*   \brief  Get the last value set in the DAC data register
+*/
+uint16_t platform_io_get_dac_data_register_set(void)
+{
+    return platform_io_dac_data_register_set;
 }
 
 /*! \fn     platform_io_get_cursense_conversion_result(BOOL trigger_conversion)
@@ -201,6 +212,10 @@ void platform_io_update_step_down_voltage(uint16_t voltage)
     complicated_math = 698 - complicated_math;                                                      // DAC val from voltage to output
     while ((DAC->STATUS.reg & DAC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
     DAC->DATA.reg = (uint16_t)complicated_math;                                                     // Write value    
+    
+    /* Store debug values */
+    platform_io_stepdown_voltage_set = voltage;
+    platform_io_dac_data_register_set = complicated_math;
 }
 
 /*! \fn     platform_io_enable_battery_charging_ports(void)

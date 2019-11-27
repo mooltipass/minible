@@ -105,6 +105,8 @@ typedef struct
     uint16_t charge_status;
     uint16_t battery_voltage;
     int16_t charge_current;
+    uint16_t stepdown_voltage;
+    uint16_t dac_data_reg;
 } nimh_charge_message_t;
 
 typedef struct  

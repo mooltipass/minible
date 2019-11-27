@@ -196,6 +196,8 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
         main_mcu_send_message.nimh_charge_message.charge_status = logic_battery_get_charging_status();
         main_mcu_send_message.nimh_charge_message.battery_voltage = logic_battery_get_vbat();
         main_mcu_send_message.nimh_charge_message.charge_current = logic_battery_get_charging_current();
+        main_mcu_send_message.nimh_charge_message.dac_data_reg = platform_io_get_dac_data_register_set();
+        main_mcu_send_message.nimh_charge_message.stepdown_voltage = logic_battery_get_stepdown_voltage();
         
         /* Send message */
         comms_main_mcu_send_message((void*)&main_mcu_send_message, (uint16_t)sizeof(main_mcu_send_message));

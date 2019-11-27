@@ -46,6 +46,8 @@ class BatteryMonitorApp(tk.Tk):
 			aux_charge_status = struct.unpack('H', packet["data"][10:12])[0]
 			aux_battery_voltage = struct.unpack('H', packet["data"][12:14])[0]
 			aux_charge_current = struct.unpack('H', packet["data"][14:16])[0]
+			aux_stepdown_voltage = struct.unpack('H', packet["data"][16:18])[0]
+			aux_dac_data_reg = struct.unpack('H', packet["data"][18:20])[0]
 			
 			if power_source == 0:
 				self.power_source_value.config(text='USB')
@@ -59,9 +61,11 @@ class BatteryMonitorApp(tk.Tk):
 			self.aux_adc_voltage_value.config(text=str((aux_battery_voltage*103)>>8) + "mV")
 			self.aux_charge_status_value.config(text=str(aux_charge_status))
 			self.aux_charge_current_value.config(text=str(int(aux_charge_current*0.4))+"mA")
+			self.aux_stepdown_voltage_value.config(text=str(aux_stepdown_voltage))
+			self.aux_data_register_value.config(text=str(aux_dac_data_reg))
 		
 			# Log output
-			self.log_output_text.insert("end", strftime("%Y-%m-%d %H:%M:%S", localtime()) + ": " + str(power_source) + "/" + str(charging_bool) + "/" + str(aux_charge_status) + "/" + str(main_adc_val) + "/" + str(aux_battery_voltage) + "/" + str(aux_charge_current) + "\r\n")
+			self.log_output_text.insert("end", strftime("%Y-%m-%d %H:%M:%S", localtime()) + ": " + str(power_source) + "/" + str(charging_bool) + "/" + str(aux_charge_status) + "/" + str(main_adc_val) + "/" + str(aux_battery_voltage) + "/" + str(aux_charge_current) + "/" + str(aux_stepdown_voltage) + "/" + str(aux_dac_data_reg)  + "\r\n")
 			self.log_output_text.see(tk.END)
 			
 			# Create log file if needed
@@ -75,7 +79,9 @@ class BatteryMonitorApp(tk.Tk):
 			self.log_file_fd.write(str((main_adc_val*199)>>9) + ",")
 			self.log_file_fd.write(str((aux_battery_voltage*103)>>8) + ",")
 			self.log_file_fd.write(str(int(aux_charge_current*0.4)) + ",")
-			self.log_file_fd.write(str(aux_charge_status))
+			self.log_file_fd.write(str(aux_charge_status) + ",")
+			self.log_file_fd.write(str(aux_stepdown_voltage) + ",")
+			self.log_file_fd.write(str(aux_dac_data_reg))
 			self.log_file_fd.write("\r")
 			self.log_file_fd.flush()
 			self.log_counter+=1
@@ -135,25 +141,39 @@ class BatteryMonitorApp(tk.Tk):
 		self.aux_charge_current_value = tk.Label(self, text="2", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12, weight=tkfont.BOLD))
 		self.aux_charge_current_value.grid(row=2, column=3, pady=(0,2), padx=5)
 		
+		
+		
+		# Aux Stepdown Voltage
+		self.aux_stepdown_voltage_label = tk.Label(self, text="Aux Stepdown Voltage :", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12), anchor="e")
+		self.aux_stepdown_voltage_label.grid(sticky="e", row=3, column=0, pady=(0,2), padx=5)
+		self.aux_stepdown_voltage_value = tk.Label(self, text="2", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12, weight=tkfont.BOLD))
+		self.aux_stepdown_voltage_value.grid(row=3, column=1, pady=(0,2), padx=5)
+		
+		# Aux DAC data register value
+		self.aux_data_register_label = tk.Label(self, text="Aux DAC DATA :", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12), anchor="e")
+		self.aux_data_register_label.grid(sticky="e", row=3, column=2, pady=(0,2), padx=5)
+		self.aux_data_register_value = tk.Label(self, text="2", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12, weight=tkfont.BOLD))
+		self.aux_data_register_value.grid(row=3, column=3, pady=(0,2), padx=5)
+		
 		# Action Buttons
 		self.platform_connect_button = tk.Button(self, text="Start Charge", font=tkfont.Font(family='Helvetica', size=9), width="18", command=lambda:[self.action_button(True, False, False, False)])
-		self.platform_connect_button.grid(row=3, column=0, pady=(5,2), padx=5)
+		self.platform_connect_button.grid(row=4, column=0, pady=(5,2), padx=5)
 		self.platform_connect_button = tk.Button(self, text="Stop Charge", font=tkfont.Font(family='Helvetica', size=9), width="18", command=lambda:[self.action_button(False, True, False, False)])
-		self.platform_connect_button.grid(row=3, column=1, pady=(5,2), padx=5)
+		self.platform_connect_button.grid(row=4, column=1, pady=(5,2), padx=5)
 		self.platform_connect_button = tk.Button(self, text="Screen Power: USB", font=tkfont.Font(family='Helvetica', size=9), width="18", command=lambda:[self.action_button(False, False, True, False)])
-		self.platform_connect_button.grid(row=3, column=2, pady=(5,2), padx=5)
+		self.platform_connect_button.grid(row=4, column=2, pady=(5,2), padx=5)
 		self.platform_connect_button = tk.Button(self, text="Screen Power: Battery", font=tkfont.Font(family='Helvetica', size=9), width="18", command=lambda:[self.action_button(False, False, False, True)])
-		self.platform_connect_button.grid(row=3, column=3, pady=(5,2), padx=5)
+		self.platform_connect_button.grid(row=4, column=3, pady=(5,2), padx=5)
 		
 		# Log output
 		self.log_output_text = tk.Text(self, width=80, height=8, wrap=tk.WORD)
-		self.log_output_text.grid(row=4, column=0, columnspan=4, pady=(20,2), padx = 20)
+		self.log_output_text.grid(row=5, column=0, columnspan=4, pady=(20,2), padx = 20)
 		
 		# Monitor Button
 		self.empty_label = tk.Label(self, text="", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12), anchor="e")
-		self.empty_label.grid(sticky="e", row=5, column=0, pady=(0,2), padx=5)
+		self.empty_label.grid(sticky="e", row=6, column=0, pady=(0,2), padx=5)
 		self.monitor_button = tk.Button(self, text="Start Battery Monitoring", font=tkfont.Font(family='Helvetica', size=9), width="40", command=lambda:[self.monitor_button_action()])
-		self.monitor_button.grid(row=5, column=1, columnspan=2, pady=(5,20), padx=5)
+		self.monitor_button.grid(row=6, column=1, columnspan=2, pady=(5,20), padx=5)
 		
 		# Device connection
 		self.mooltipass_device = mooltipass_hid_device()	
