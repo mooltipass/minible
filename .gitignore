@@ -11,3 +11,5 @@ source_code/main_mcu/Release/
 *Thumbs.db
 *~
 *.pyc
+source_code/main_mcu/minible_emu.pro.user
+source_code/build-*

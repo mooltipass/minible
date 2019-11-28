@@ -1,0 +1,28 @@
+sudo: required
+services:
+  - docker
+dist: trusty
+os:
+- linux
+#- osx
+language: cpp
+
+before_install:
+  - git fetch --tags && git fetch
+  - ./scripts/ci/$TRAVIS_OS_NAME/before_install.sh
+
+install:
+  - ./scripts/ci/$TRAVIS_OS_NAME/install.sh
+
+script:
+  - ./scripts/ci/$TRAVIS_OS_NAME/script.sh
+
+after_success:
+  - ./scripts/ci/$TRAVIS_OS_NAME/after_success.sh
+
+#only watch master and tagged release
+branches:
+  only:
+    - /^v.*$/
+    - master
+    - /^testing-v.*$/
