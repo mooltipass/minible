@@ -190,6 +190,10 @@ uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
     platform_io_voledin_conv_ready = FALSE;
     uint16_t return_val = ADC->RESULT.reg;
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+    ADC->SWTRIG.reg = ADC_SWTRIG_FLUSH;
+    while ((ADC->SWTRIG.reg & ADC_SWTRIG_FLUSH) != 0);
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
     ADC->SWTRIG.reg = ADC_SWTRIG_START;
     return return_val;
 }
@@ -203,6 +207,10 @@ uint16_t platform_io_get_voledinmv_conversion_result_and_trigger_conversion(void
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
     platform_io_voledin_conv_ready = FALSE;
     uint32_t return_val = ADC->RESULT.reg;
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+    ADC->SWTRIG.reg = ADC_SWTRIG_FLUSH;
+    while ((ADC->SWTRIG.reg & ADC_SWTRIG_FLUSH) != 0);
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
     ADC->SWTRIG.reg = ADC_SWTRIG_START;
     #ifdef PLAT_V3_SETUP
     return_val = (return_val*103) >> 8;

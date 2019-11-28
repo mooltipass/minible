@@ -54,7 +54,10 @@ void EIC_Handler(void)
 */
 #ifndef BOOTLOADER
 void ADC_Handler(void)
-{
+{    
+    /* Clear interrupt */
+    ADC->INTFLAG.reg = ADC_INTFLAG_RESRDY;
+    
     if (platform_io_measuring_lcursense == FALSE)
     {        
         /* Switch bool */
@@ -69,6 +72,9 @@ void ADC_Handler(void)
         ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(LCURSENSE_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND;
         
         /* Start conversion */
+        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+        ADC->SWTRIG.reg = ADC_SWTRIG_FLUSH;
+        while ((ADC->SWTRIG.reg & ADC_SWTRIG_FLUSH) != 0);
         while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
         ADC->SWTRIG.reg = ADC_SWTRIG_START;
     } 
@@ -88,9 +94,6 @@ void ADC_Handler(void)
         /* Set conv ready bool */
         platform_cur_sense_conv_ready = TRUE;
     }
-    
-    /* Clear interrupt */
-    ADC->INTFLAG.reg = ADC_INTFLAG_RESRDY;
 }
 #endif
 
@@ -124,6 +127,9 @@ uint32_t platform_io_get_cursense_conversion_result(BOOL trigger_conversion)
     /* Trigger new conversion (mux is already set at the right input in the interrupt */
     if (trigger_conversion != FALSE)
     {
+        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+        ADC->SWTRIG.reg = ADC_SWTRIG_FLUSH;
+        while ((ADC->SWTRIG.reg & ADC_SWTRIG_FLUSH) != 0);
         while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
         ADC->SWTRIG.reg = ADC_SWTRIG_START;
     }

@@ -8,6 +8,7 @@ source_code/aux_mcu_v4/Debug/
 source_code/aux_mcu_v4/Release/
 source_code/main_mcu/Debug/
 source_code/main_mcu/Release/
+scripts/battery_monitor/*.txt
 *Thumbs.db
 *~
 *.pyc
