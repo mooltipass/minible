@@ -397,6 +397,26 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
                 sh1122_init_display(&plat_oled_descriptor);
                 gui_dispatcher_get_back_to_current_screen();
             }   
+
+            /* Force charge voltage ? */
+            if (rcv_msg->payload_as_uint16[2] != 0)
+            {
+                /* Generate our force charge voltage packet */
+                comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+                temp_tx_message_pt->main_mcu_command_message.command = MAIN_MCU_COMMAND_FORCE_CHARGE_VOLT;
+                temp_tx_message_pt->main_mcu_command_message.payload_as_uint16[0] = rcv_msg->payload_as_uint16[2];
+                temp_tx_message_pt->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + MEMBER_SIZE(main_mcu_command_message_t, payload_as_uint16[0]);
+                
+                /* Send message */
+                comms_aux_mcu_send_message(TRUE);
+            }
+
+            /* Stop force charge? */
+            if (rcv_msg->payload[6] != 0)
+            {
+                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_FORCE_CHARGE);
+                comms_aux_mcu_wait_for_message_sent();
+            }
             
             /* Generate our get battery charge status packet */
             comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE);
