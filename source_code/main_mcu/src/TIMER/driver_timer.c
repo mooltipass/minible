@@ -252,7 +252,7 @@ BOOL timer_get_mcu_systick(uint32_t* value)
     }
 #else
     /* for portability, use qt's timers */
-    return emu_get_systick(&value);
+    return emu_get_systick(value);
 #endif
 }
 
