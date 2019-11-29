@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     logic_power.c
 *    \brief    Power logic
 *    Created:  29/09/2018
@@ -185,6 +201,7 @@ power_action_te logic_power_routine(void)
     }
     else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
     {
+        aux_mcu_message_t* temp_rx_message_pt;
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
         comms_aux_mcu_wait_for_message_sent();
         sh1122_oled_off(&plat_oled_descriptor);
@@ -199,6 +216,8 @@ power_action_te logic_power_routine(void)
         gui_dispatcher_get_back_to_current_screen();
         logic_device_activity_detected();
         logic_power_nb_adc_conv_since_last_power_change = 0;
+        while(comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_USB_DETACHED) != RETURN_OK);
+        comms_aux_arm_rx_and_clear_no_comms();
     }
     else if ((logic_power_last_seen_voled_stepup_pwr_source == OLED_STEPUP_SOURCE_NONE) && (current_voled_pwr_source != logic_power_last_seen_voled_stepup_pwr_source))
     {
@@ -210,7 +229,7 @@ power_action_te logic_power_routine(void)
     logic_power_last_seen_voled_stepup_pwr_source = current_voled_pwr_source;
     
     /* Battery charging */
-    if ((logic_power_get_power_source() == USB_POWERED) && (logic_power_is_usb_enumerate_sent_clear_bool() != FALSE) && (logic_power_battery_charging == FALSE) && (logic_power_nb_ms_spent_since_last_full_charge > NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
+    if ((logic_power_get_power_source() == USB_POWERED) && (logic_power_is_usb_enumerate_sent_clear_bool() != FALSE) && (logic_power_battery_charging == FALSE) && (logic_power_nb_ms_spent_since_last_full_charge >= NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
         logic_power_battery_charging = TRUE;
@@ -220,6 +239,12 @@ power_action_te logic_power_routine(void)
     if (platform_io_is_voledin_conversion_result_ready() != FALSE)
     {
         uint16_t current_vbat = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+        
+        /* Measurements taken when USB 3V3 is present are invalid */
+        if (platform_io_is_usb_3v3_present() != FALSE)
+        {
+            current_vbat = logic_power_last_vbat_measurement;
+        }
         
         /* Var increment */
         if (logic_power_nb_adc_conv_since_last_power_change != UINT16_MAX)
@@ -231,6 +256,14 @@ power_action_te logic_power_routine(void)
         if ((platform_io_get_voled_stepup_pwr_source() == OLED_STEPUP_SOURCE_VBAT) && (logic_power_nb_adc_conv_since_last_power_change > 5))
         {
             logic_power_last_vbat_measurement = current_vbat;
+            
+            /* Safety: if the voltage is low enough, we override logic_power_nb_ms_spent_since_last_full_charge */
+            if ((logic_power_last_vbat_measurement < BATTERY_ADC_60PCT_VOLTAGE) && (logic_power_nb_ms_spent_since_last_full_charge < NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
+            {
+                cpu_irq_enter_critical();
+                logic_power_nb_ms_spent_since_last_full_charge = NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE;
+                cpu_irq_leave_critical();
+            }
             
             /* Low battery, need to power off? */
             if ((logic_power_get_power_source() == BATTERY_POWERED) && (logic_power_last_vbat_measurement < BATTERY_ADC_OUT_CUTOUT) && (platform_io_is_usb_3v3_present_raw() == FALSE))

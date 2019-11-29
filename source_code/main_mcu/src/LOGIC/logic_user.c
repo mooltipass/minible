@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     logic_user.c
 *    \brief    General logic for user operations
 *    Created:  16/02/2019
@@ -780,7 +796,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
     if ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() != FALSE))
     {
         /* Both interface connected, ask user for selection */
-        mini_input_yes_no_ret_te select_inteface_prompt_return = gui_prompts_ask_for_one_line_confirmation(SELECT_OUT_INTEFACE_TEXT_ID, FALSE, TRUE);
+        mini_input_yes_no_ret_te select_inteface_prompt_return = gui_prompts_ask_for_one_line_confirmation(SELECT_OUT_INTEFACE_TEXT_ID, FALSE, TRUE, TRUE);
         
         if (select_inteface_prompt_return == MINI_INPUT_RET_BACK)
         {

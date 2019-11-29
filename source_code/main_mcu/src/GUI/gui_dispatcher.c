@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     gui_dispatcher.c
 *    \brief    GUI functions dispatcher
 *    Created:  16/11/2018
@@ -173,8 +189,9 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
                 if ((platform_io_is_usb_3v3_present() == FALSE) && TRUE)
                 {
                     /* Prompt user */
-                    if (gui_prompts_ask_for_one_line_confirmation(QSWITCH_OFF_DEVICE_TEXT_ID, FALSE, FALSE) == MINI_INPUT_RET_YES)
+                    if (gui_prompts_ask_for_one_line_confirmation(QSWITCH_OFF_DEVICE_TEXT_ID, FALSE, FALSE, TRUE) == MINI_INPUT_RET_YES)
                     {
+                        logic_power_power_down_actions();           // Power down actions
                         sh1122_oled_off(&plat_oled_descriptor);     // Display off command
                         platform_io_power_down_oled();              // Switch off stepup
                         platform_io_set_wheel_click_pull_down();    // Pull down on wheel click to slowly discharge capacitor
@@ -218,7 +235,7 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
                 if ((platform_io_is_usb_3v3_present() == FALSE) && TRUE)
                 {
                     /* Prompt user */
-                    if (gui_prompts_ask_for_one_line_confirmation(QSWITCH_OFF_DEVICE_TEXT_ID, FALSE, FALSE) == MINI_INPUT_RET_YES)
+                    if (gui_prompts_ask_for_one_line_confirmation(QSWITCH_OFF_DEVICE_TEXT_ID, FALSE, FALSE, TRUE) == MINI_INPUT_RET_YES)
                     {
                         sh1122_oled_off(&plat_oled_descriptor);     // Display off command
                         platform_io_power_down_oled();              // Switch off stepup
@@ -237,6 +254,7 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
             else
             {
                 logic_smartcard_handle_inserted();
+                logic_device_set_state_changed();
             }            
             break;
         }            
@@ -368,9 +386,21 @@ void gui_dispatcher_main_loop(void)
     if  ((gui_dispatcher_get_current_screen() != GUI_SCREEN_MEMORY_MGMT) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_LOGIN_NOTIF) && (timer_has_timer_expired(TIMER_SCREEN, TRUE) == TIMER_EXPIRED))
     {
         /* Display "going to sleep", switch off screen */
-        gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO);
-        sh1122_oled_off(&plat_oled_descriptor);
-        gui_dispatcher_get_back_to_current_screen();
+        if (sh1122_is_oled_on(&plat_oled_descriptor) != FALSE)
+        {
+            if (gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO) == FALSE)
+            {
+                /* Uninterrupted animation */
+                sh1122_oled_off(&plat_oled_descriptor);
+                gui_dispatcher_get_back_to_current_screen();
+            }
+            else
+            {
+                /* Interrupted animation */
+                gui_dispatcher_get_back_to_current_screen();
+                return;     
+            }        
+        }
         
         /* The notification display routine calls the activity detected routine */
         timer_start_timer(TIMER_SCREEN, 0);
@@ -386,7 +416,6 @@ void gui_dispatcher_main_loop(void)
             main_standby_sleep();
                 
             /* We are awake now! */
-            logic_device_activity_detected();
         }
     }
     

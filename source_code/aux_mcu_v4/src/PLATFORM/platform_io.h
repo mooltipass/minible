@@ -13,6 +13,7 @@ BOOL platform_io_is_current_sense_conversion_result_ready(void);
 void platform_io_update_step_down_voltage(uint16_t voltage);
 void platform_io_uart_debug_printf(const char *fmt, ...);
 void platform_io_generate_no_comms_wakeup_pulse(void);
+uint16_t platform_io_get_dac_data_register_set(void);
 void platform_io_enable_battery_charging_ports(void);
 void platform_io_prepare_ports_for_sleep_exit(void);
 void platform_io_enable_step_down(uint16_t voltage);

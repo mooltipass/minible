@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     logic_smartcard.c
 *    \brief    General logic for smartcard operations
 *    Created:  16/02/2019
@@ -95,18 +111,21 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     else if (detection_result == RETURN_MOOLTIPASS_BLANK)
     {
         // This is a user free card, we can ask the user to create a new user inside the Mooltipass
-        mini_input_yes_no_ret_te prompt_answer = gui_prompts_ask_for_one_line_confirmation(CREATE_NEW_USER_TEXT_ID, FALSE, FALSE);
+        mini_input_yes_no_ret_te prompt_answer = gui_prompts_ask_for_one_line_confirmation(CREATE_NEW_USER_TEXT_ID, FALSE, FALSE, TRUE);
         
+        /* Create a new user with his new smart card */
         if (prompt_answer == MINI_INPUT_RET_YES)
         {
             volatile uint16_t pin_code;
             
-            /* Create a new user with his new smart card */
-            if (logic_smartcard_ask_for_new_pin(&pin_code, NEW_CARD_PIN_TEXT_ID) == RETURN_NEW_PIN_OK)
+            /* Ask user for new PIN */
+            new_pinreturn_type_te new_pin_return = logic_smartcard_ask_for_new_pin(&pin_code, NEW_CARD_PIN_TEXT_ID);
+            
+            if (new_pin_return == RETURN_NEW_PIN_OK)
             {
                 /* Check user for simple or advanced mode */
                 BOOL use_simple_mode = FALSE;
-                if (gui_prompts_ask_for_one_line_confirmation(USE_SIMPLE_MODE_TEXT_ID, FALSE, FALSE) == MINI_INPUT_RET_YES)
+                if (gui_prompts_ask_for_one_line_confirmation(USE_SIMPLE_MODE_TEXT_ID, FALSE, FALSE, TRUE) == MINI_INPUT_RET_YES)
                 {
                     use_simple_mode = TRUE;
                 }
@@ -129,7 +148,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
                     gui_prompts_display_information_on_screen_and_wait(COULDNT_ADD_USER_TEXT_ID, DISP_MSG_WARNING);                    
                 }
             } 
-            else if (smartcard_low_level_is_smc_absent() != RETURN_OK)
+            else if (new_pin_return == RETURN_NEW_PIN_DIFF)
             {
                 gui_prompts_display_information_on_screen_and_wait(DIFFERENT_PINS_TEXT_ID, DISP_MSG_WARNING);
             }
@@ -140,7 +159,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     }
     else if (detection_result == RETURN_MOOLTIPASS_USER)
     {
-        // Call valid card detection function
+        /* Call valid card detection function */
         valid_card_det_return_te temp_return = logic_smartcard_valid_card_unlock(TRUE, FALSE);
         
         /* This a valid user smart card, we call a dedicated function for the user to unlock the card */
@@ -162,8 +181,13 @@ RET_TYPE logic_smartcard_handle_inserted(void)
         }
         else if (temp_return == RETURN_VCARD_UNKNOWN)
         {
-            // Unknown card, go to dedicated screen
+            /* Unknown card, go to dedicated screen */
             next_screen = GUI_SCREEN_INSERTED_UNKNOWN;
+        }
+        else if (temp_return == RETURN_VCARD_BACK)
+        {
+            /* User chose to not answer his PIN */
+            next_screen = GUI_SCREEN_INSERTED_LCK;
         }
         else
         {
@@ -224,7 +248,10 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
         }
         
         /* Ask the user to enter his PIN and check it */
-        if (logic_smartcard_user_unlock_process() == RETURN_OK)
+        unlock_ret_type_te unlock_return = logic_smartcard_user_unlock_process();
+        
+        /* Depending on unlock process result */
+        if (unlock_return == UNLOCK_OK_RET)
         {
             /* Unlocking succeeded */
             smartcard_highlevel_read_aes_key(temp_buffer);
@@ -252,9 +279,14 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
             /* Return success */
             return RETURN_VCARD_OK;
         }
+        else if (unlock_return == UNLOCK_BACK_RET)
+        {
+            /* User simply chose to not answer his PIN */
+            return RETURN_VCARD_BACK;
+        }
         else
         {
-            // Unlocking failed
+            /* Unlocking failed */
             return RETURN_VCARD_NOK;
         }
     }
@@ -267,9 +299,9 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
 
 /*! \fn     logic_smartcard_user_unlock_process(void)
 *   \brief  Function called for the user to unlock his smartcard
-*   \return success status
+*   \return success status, see enum
 */
-RET_TYPE logic_smartcard_user_unlock_process(void)
+unlock_ret_type_te logic_smartcard_user_unlock_process(void)
 {
     mooltipass_card_detect_return_te temp_rettype;
     BOOL warning_displayed = FALSE;
@@ -295,12 +327,12 @@ RET_TYPE logic_smartcard_user_unlock_process(void)
                 {
                     // Smartcard unlocked
                     temp_pin = 0x0000;
-                    return RETURN_OK;
+                    return UNLOCK_OK_RET;
                 }
                 case RETURN_MOOLTIPASS_0_TRIES_LEFT :
                 {
                     gui_prompts_display_information_on_screen_and_wait(CARD_BLOCKED_TEXT_ID, DISP_MSG_WARNING);
-                    return RETURN_NOK;
+                    return UNLOCK_BLOCKED_RET;
                 }
                 case RETURN_MOOLTIPASS_1_TRIES_LEFT :
                 {
@@ -314,13 +346,13 @@ RET_TYPE logic_smartcard_user_unlock_process(void)
                         // Wait for the user to remove his smart card
                         while(smartcard_low_level_is_smc_absent() != RETURN_OK);
                         
-                        return RETURN_NOK;
+                        return UNLOCK_CARD_REMOVED_RET;
                     }
                 }
                 case RETURN_MOOLTIPASS_PB :
                 {
                     gui_prompts_display_information_on_screen_and_wait(PB_CARD_TEXT_ID, DISP_MSG_WARNING);
-                    return RETURN_NOK;
+                    return UNLOCK_CARD_ISSUE_RET;
                 }
                 default :
                 {
@@ -332,17 +364,25 @@ RET_TYPE logic_smartcard_user_unlock_process(void)
         }
         else
         {
-            // User cancelled the request
-            return RETURN_NOK;
+            // User cancelled the request or card removed
+            if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+            {
+                return UNLOCK_CARD_REMOVED_RET;
+            } 
+            else
+            {
+                return UNLOCK_BACK_RET;
+            }
         }
     }
 }
 
-/*! \fn     logic_smartcard_remove_card_and_reauth_user(void)
+/*! \fn     logic_smartcard_remove_card_and_reauth_user(BOOL display_notification)
 *   \brief  Re-authentication process
+*   \param  display_notification    Boolean to specify if the "authenticate yourself" notification should be shown
 *   \return success or not
 */
-RET_TYPE logic_smartcard_remove_card_and_reauth_user(void)
+RET_TYPE logic_smartcard_remove_card_and_reauth_user(BOOL display_notification)
 {
     uint8_t temp_cpz1[SMARTCARD_CPZ_LENGTH];
     uint8_t temp_cpz2[SMARTCARD_CPZ_LENGTH];
@@ -354,7 +394,14 @@ RET_TYPE logic_smartcard_remove_card_and_reauth_user(void)
     logic_smartcard_handle_removed();
     
     // Here we cheat: we display a prompt to hide the power off / on
-    gui_prompts_display_information_on_screen_and_wait(PLEASE_REAUTH_TEXT_ID, DISP_MSG_WARNING);
+    if (display_notification != FALSE)
+    {
+        gui_prompts_display_information_on_screen_and_wait(PLEASE_REAUTH_TEXT_ID, DISP_MSG_WARNING);
+    }
+    else
+    {
+        timer_delay_ms(500);
+    }
     
     // Launch Unlocking process
     if ((smartcard_highlevel_card_detected_routine() == RETURN_MOOLTIPASS_USER) && (logic_smartcard_valid_card_unlock(FALSE, TRUE) == RETURN_VCARD_OK))
@@ -369,11 +416,13 @@ RET_TYPE logic_smartcard_remove_card_and_reauth_user(void)
         }
         else
         {
+            logic_device_set_state_changed();
             return RETURN_NOK;
         }
     }
     else
     {
+        logic_device_set_state_changed();
         return RETURN_NOK;
     }
 }

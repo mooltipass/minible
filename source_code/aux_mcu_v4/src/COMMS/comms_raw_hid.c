@@ -12,6 +12,7 @@
 #include "ble_manager.h"
 #include "defines.h"
 #include "usb.h"
+#include "udc.h"
 #include "dma.h"
 
 /* USB comms buffers */
@@ -137,7 +138,7 @@ void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* pac
             }
             
             /* Check for usb disconnection */
-            if ((hid_interface == USB_INTERFACE) && (usb_get_config() == 0))
+            if ((hid_interface == USB_INTERFACE) && ((usb_get_config() == 0) || (udc_get_nb_ms_before_last_usb_activity() > 100)))
             {
                 return;
             }
@@ -170,7 +171,7 @@ void comms_raw_hid_send_hid_message(hid_interface_te hid_interface, aux_mcu_mess
             }
             
             /* Check for usb disconnection */
-            if ((hid_interface == USB_INTERFACE) && (usb_get_config() == 0))
+            if ((hid_interface == USB_INTERFACE) && ((usb_get_config() == 0) || (udc_get_nb_ms_before_last_usb_activity() > 100)))
             {
                 return;
             }
@@ -249,6 +250,7 @@ void comms_raw_hid_connection_set_callback(hid_interface_te hid_interface)
     comms_raw_hid_expect_flip_bit_state_set[hid_interface] = FALSE;
     comms_raw_hid_temp_mcu_message_fill_index[hid_interface] = 0;
     comms_raw_hid_expected_packet_number[hid_interface] = 0;
+    comms_raw_hid_packet_being_sent[hid_interface] = FALSE;
 } 
 
 /*! \fn     comms_usb_communication_routine(void)

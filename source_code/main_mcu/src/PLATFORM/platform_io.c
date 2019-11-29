@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     platform_io.c
 *    \brief    Platform IO related functions
 *    Created:  10/11/2017
@@ -11,6 +27,8 @@
 #include "platform_io.h"
 /* OLED stepup-power source */
 oled_stepup_pwr_source_te platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
+/* Platform wakeup reason */
+volatile platform_wakeup_reason_te platform_io_wakeup_reason = WAKEUP_REASON_NONE;
 /* Set when a conversion result is ready */
 volatile BOOL platform_io_voledin_conv_ready = FALSE;
 /* 3v3 detected counter & state */
@@ -23,6 +41,19 @@ volatile uint16_t platform_io_3v3_detected_counter = 0;
 */
 void EIC_Handler(void)
 {
+    /* Identify wakeup reason */
+    if (platform_io_wakeup_reason == WAKEUP_REASON_NONE)
+    {
+        if ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0)
+        {
+            platform_io_wakeup_reason = WAKEUP_REASON_AUX_MCU;
+        }
+        else
+        {
+            platform_io_wakeup_reason = WAKEUP_REASON_OTHER;
+        }
+    }
+    
     /* All the interrupts below are used to wake up the platform from sleep. If we detect any of them, we disable all of them */
     if (((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << USB_3V3_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << SMC_DET_EXTINT_NUM)) != 0))
     {
@@ -37,6 +68,23 @@ void EIC_Handler(void)
         EIC->INTFLAG.reg = (1 << SMC_DET_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << SMC_DET_EXTINT_NUM);
     }
+}
+
+/*! \fn     platform_io_clear_wakeup_reason(void)
+*   \brief  Clear the current platform wakeup reason
+*/
+void platform_io_clear_wakeup_reason(void)
+{
+    platform_io_wakeup_reason = WAKEUP_REASON_NONE;
+}
+
+/*! \fn     platform_io_get_wakeup_reason(void)
+*   \brief  Get the reason why the platform woke up
+*   \return The wakeup reason
+*/
+platform_wakeup_reason_te platform_io_get_wakeup_reason(void)
+{
+    return platform_io_wakeup_reason;
 }
 
 /*! \fn     platform_io_scan_3v3(void)
@@ -142,6 +190,10 @@ uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
     platform_io_voledin_conv_ready = FALSE;
     uint16_t return_val = ADC->RESULT.reg;
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+    ADC->SWTRIG.reg = ADC_SWTRIG_FLUSH;
+    while ((ADC->SWTRIG.reg & ADC_SWTRIG_FLUSH) != 0);
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
     ADC->SWTRIG.reg = ADC_SWTRIG_START;
     return return_val;
 }
@@ -155,6 +207,10 @@ uint16_t platform_io_get_voledinmv_conversion_result_and_trigger_conversion(void
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
     platform_io_voledin_conv_ready = FALSE;
     uint32_t return_val = ADC->RESULT.reg;
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+    ADC->SWTRIG.reg = ADC_SWTRIG_FLUSH;
+    while ((ADC->SWTRIG.reg & ADC_SWTRIG_FLUSH) != 0);
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
     ADC->SWTRIG.reg = ADC_SWTRIG_START;
     #ifdef PLAT_V3_SETUP
     return_val = (return_val*103) >> 8;
@@ -184,9 +240,12 @@ void platform_io_init_bat_adc_measurements(void)
     ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(VBAT_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND;  // 1x gain, one channel set to voled in
     ADC->INTENSET.reg = ADC_INTENSET_RESRDY;                                                    // Enable in result ready interrupt
     NVIC_EnableIRQ(ADC_IRQn);                                                                   // Enable int
-    uint16_t calib_val = ((*((uint32_t *)ADC_FUSES_LINEARITY_1_ADDR)) & 0x3F) << 5;             // Fetch calibration value
-    calib_val |=  ((*((uint32_t *)ADC_FUSES_LINEARITY_0_ADDR)) & ADC_FUSES_LINEARITY_0_Msk) >> ADC_FUSES_LINEARITY_0_Pos;
-    ADC->CALIB.reg = calib_val;                                                                 // Store calibration value
+    ADC_CALIB_Type calib_register;                                                              // Create our calibration register values
+    calib_register.reg = 0x0000;                                                                // Clear it
+    calib_register.bit.LINEARITY_CAL = (((*((uint32_t *)ADC_FUSES_LINEARITY_1_ADDR)) & ADC_FUSES_LINEARITY_1_Msk) >> ADC_FUSES_LINEARITY_1_Pos) << 5;   // Fetch & recompose linearity_cal
+    calib_register.bit.LINEARITY_CAL |=  ((*((uint32_t *)ADC_FUSES_LINEARITY_0_ADDR)) & ADC_FUSES_LINEARITY_0_Msk) >> ADC_FUSES_LINEARITY_0_Pos;        // Fetch & recompose linearity_cal
+    calib_register.bit.BIAS_CAL = ((*((uint32_t *)ADC_FUSES_BIASCAL_ADDR)) & ADC_FUSES_BIASCAL_Msk) >> ADC_FUSES_BIASCAL_Pos;                           // Fetch & recompose bias cal
+    ADC->CALIB = calib_register;                                                                // Store calibration values
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                       // Wait for sync
     ADC->CTRLA.reg = ADC_CTRLA_ENABLE;                                                          // And enable ADC
 }

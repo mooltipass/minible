@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     platform_io.h
 *    \brief    Platform IO related functions
 *    Created:  10/11/2017
@@ -13,6 +29,7 @@
 uint16_t platform_io_get_voledinmv_conversion_result_and_trigger_conversion(void);
 uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void);
 oled_stepup_pwr_source_te platform_io_get_voled_stepup_pwr_source(void);
+platform_wakeup_reason_te platform_io_get_wakeup_reason(void);
 void platform_io_disable_scroll_wheel_wakeup_interrupts(void);
 void platform_io_enable_scroll_wheel_wakeup_interrupts(void);
 void platform_io_disable_no_comms_as_wakeup_interrupt(void);
@@ -40,6 +57,7 @@ BOOL platform_io_is_usb_3v3_present_raw(void);
 void platform_io_disable_switch_and_die(void);
 void platform_io_smc_inserted_function(void);
 void platform_io_init_no_comms_signal(void);
+void platform_io_clear_wakeup_reason(void);
 void platform_io_smc_remove_function(void);
 void platform_io_set_wheel_click_low(void);
 BOOL platform_io_is_usb_3v3_present(void);

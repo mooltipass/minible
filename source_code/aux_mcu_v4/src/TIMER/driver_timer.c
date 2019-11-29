@@ -9,6 +9,7 @@
 #include "driver_clocks.h"
 #include "driver_timer.h"
 #include "defines.h"
+#include "udc.h"
 /* Callback timer array */
 volatile timer_callback_struct_t callback_timers[TIMER_NB_CALLBACK_TIMERS];
 /* Timer array */
@@ -30,6 +31,9 @@ void TCC0_Handler(void)
         
             /* Timer ms tick */
             timer_ms_tick();
+
+            /* USB checks tick */
+            udc_checks();
         }
     #endif
 }

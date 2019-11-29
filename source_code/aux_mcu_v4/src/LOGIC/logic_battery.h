@@ -24,6 +24,7 @@ typedef enum    {NIMH_12C_CHARGING} lb_nimh_charge_scheme_te;
 #define LOGIC_BATTERY_BAT_START_CHG_V_INC   10      // Voltage increments for charge
 #define LOGIC_BATTERY_CUR_FOR_ST_RAMP_END   100     // ADC value different between high & low cursense to stop the initial ramping: 1LSB = 0.4mA
 #define LOGIC_BATTERY_MAX_V_FOR_ST_RAMP     3975    // Voltage at which we consider that something is wrong during initial ramp (around 1.6V)
+#define LOGIC_BATTERY_START_CHARGE_DELAY    100     // Delay before taking the first decision in our charging algorithm
 // Charging current reaching: after quick ramp up, trying to reach the targeted charging current
 #define LOGIC_BATTERY_CUR_REACH_TICK        5       // Time intervals between decisions
 #define LOGIC_BATTERY_BAT_CUR_REACH_V_INC   1       // Voltage increments for charge
@@ -36,8 +37,11 @@ typedef enum    {NIMH_12C_CHARGING} lb_nimh_charge_scheme_te;
 
 /* Prototypes */
 void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type);
+void logic_battery_debug_force_charge_voltage(uint16_t charge_voltage);
 lb_state_machine_te logic_battery_get_charging_status(void);
+uint16_t logic_battery_get_stepdown_voltage(void);
 int16_t logic_battery_get_charging_current(void);
+void logic_battery_debug_stop_charge(void);
 void logic_battery_stop_charging(void);
 uint16_t logic_battery_get_vbat(void);
 void logic_battery_init(void);

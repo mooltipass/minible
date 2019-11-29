@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     logic_database.c
 *    \brief    General logic for database operations
 *    Created:  17/03/2019
@@ -241,7 +257,7 @@ uint16_t logic_database_search_login_in_service(uint16_t parent_addr, cust_char_
         nodemgmt_read_cred_child_node_except_pwd(next_node_addr, temp_half_cnode_pt);
         
         /* Compare login with the provided name */        
-        if ((utils_custchar_strncmp(login, temp_half_cnode_pt->login, ARRAY_SIZE(temp_half_cnode_pt->login)) == 0) && ((category_filter == FALSE) || (categoryFromFlags(temp_half_cnode_pt->flags) == nodemgmt_get_current_category_flags())))
+        if ((utils_custchar_strncmp(login, temp_half_cnode_pt->login, ARRAY_SIZE(temp_half_cnode_pt->login)) == 0) && ((category_filter == FALSE) || (nodemgmt_get_current_category_flags() == 0) || (categoryFromFlags(temp_half_cnode_pt->flags) == nodemgmt_get_current_category_flags())))
         {
             // CATSEARCHLOGIC
             return next_node_addr;
@@ -309,7 +325,7 @@ uint16_t logic_database_get_number_of_creds_for_service(uint16_t parent_addr, ui
         nodemgmt_read_cred_child_node_except_pwd(next_node_addr, temp_half_cnode_pt);
         
         /* Check for category */
-        if ((category_filter == FALSE) || (categoryFromFlags(temp_half_cnode_pt->flags) == nodemgmt_get_current_category_flags()))
+        if ((category_filter == FALSE) || (nodemgmt_get_current_category_flags() == 0) || (categoryFromFlags(temp_half_cnode_pt->flags) == nodemgmt_get_current_category_flags()))
         {            
             // CATSEARCHLOGIC            
             /* Store first node */

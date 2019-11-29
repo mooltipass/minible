@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     comms_hid_msgs_debug.c
 *    \brief    HID debug communications
 *    Created:  06/03/2018
@@ -8,15 +24,20 @@
 #include <asf.h>
 #include "comms_hid_msgs_debug.h"
 #include "comms_hid_msgs.h"
+#include "gui_dispatcher.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
 #include "driver_sercom.h"
 #include "logic_device.h"
+#include "driver_timer.h"
 #include "platform_io.h"
+#include "logic_power.h"
 #include "dataflash.h"
 #include "sh1122.h"
 #include "main.h"
 #include "dma.h"
+/* Variable to know if we're allowing bundle upload */
+BOOL comms_hid_msgs_debug_upload_allowed = FALSE;
 
 
 #ifdef DEBUG_USB_PRINTF_ENABLED
@@ -146,15 +167,26 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
         case HID_CMD_ID_ERASE_DATA_FLASH:
         {
             /* Required actions when we start dealing with graphics memory */
-            logic_device_bundle_update_start(TRUE);
-            
-            /* Erase data flash */
-            dataflash_bulk_erase_without_wait(&dataflash_descriptor);
-            
-            /* Set ack, leave same command id */
-            send_msg->payload[0] = HID_1BYTE_ACK;
-            send_msg->payload_length = 1;
-            return 1;            
+            if (logic_device_bundle_update_start(TRUE) == RETURN_OK)
+            {
+                /* Set upload allowed boolean */
+                comms_hid_msgs_debug_upload_allowed = TRUE;
+                
+                /* Erase data flash */
+                dataflash_bulk_erase_without_wait(&dataflash_descriptor);
+                
+                /* Set ack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+                send_msg->payload_length = 1;
+                return 1;
+            }
+            else
+            {
+                /* Set ack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
+                return 1;               
+            }                     
         }
         case HID_CMD_ID_IS_DATA_FLASH_READY:
         {
@@ -175,24 +207,50 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
         }
         case HID_CMD_ID_DATAFLASH_WRITE_256B:
         {
-            /* First 4 bytes is the write address, remaining 256 bytes is the payload */
-            uint32_t* write_address = (uint32_t*)&rcv_msg->payload_as_uint32[0];
-            dataflash_write_array_to_memory(&dataflash_descriptor, *write_address, &rcv_msg->payload[4], 256);
-            
-            /* Set ack, leave same command id */
-            send_msg->payload[0] = HID_1BYTE_ACK;
-            send_msg->payload_length = 1;
-            return 1;
+            if (comms_hid_msgs_debug_upload_allowed != FALSE)
+            {
+                /* First 4 bytes is the write address, remaining 256 bytes is the payload */
+                uint32_t* write_address = (uint32_t*)&rcv_msg->payload_as_uint32[0];
+                dataflash_write_array_to_memory(&dataflash_descriptor, *write_address, &rcv_msg->payload[4], 256);
+                
+                /* Set ack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+                send_msg->payload_length = 1;
+                return 1;
+            } 
+            else
+            {
+                /* Set nack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
+                return 1;
+            }
         }
         case HID_CMD_ID_REINDEX_BUNDLE:
-        {            
-            /* Do required actions */
-            logic_device_bundle_update_end(TRUE);
-            
-            /* Set ack, leave same command id */
-            send_msg->payload[0] = HID_1BYTE_ACK;
-            send_msg->payload_length = 1;
-            return 1;
+        {        
+            if (comms_hid_msgs_debug_upload_allowed != FALSE)
+            {
+                /* Do required actions */
+                logic_device_bundle_update_end(TRUE);
+                
+                /* Call activity detected to prevent going to sleep directly after */
+                logic_device_activity_detected();
+                
+                /* Reset boolean */
+                comms_hid_msgs_debug_upload_allowed = FALSE;
+                
+                /* Set ack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+                send_msg->payload_length = 1;
+                return 1;
+            } 
+            else
+            {
+                /* Set nack, leave same command id */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
+                return 1;
+            }                
         }
         case HID_CMD_ID_SET_OLED_PARAMS:
         {
@@ -240,8 +298,22 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             /* Wait for current packet reception and arm reception */
             dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
             comms_aux_arm_rx_and_clear_no_comms();            
-            logic_aux_mcu_flash_firmware_update();            
+            logic_aux_mcu_flash_firmware_update(TRUE);            
             return -1;
+        }
+        case HID_CMD_ID_FLASH_AUX_AND_MAIN:
+        {
+            /* Wait for current packet reception and arm reception */
+            dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
+            comms_aux_arm_rx_and_clear_no_comms();
+            
+            /* Start by flashing aux */
+            logic_aux_mcu_flash_firmware_update(FALSE);
+            
+            /* Then move on to main */
+            custom_fs_set_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID, TRUE);
+            custom_fs_settings_set_fw_upgrade_flag();
+            main_reboot();            
         }
         case HID_CMD_ID_GET_DBG_PLAT_INFO:
         {
@@ -272,6 +344,110 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             comms_aux_arm_rx_and_clear_no_comms();
             
             return sizeof(send_msg->detailed_platform_info);
+        }
+        case HID_CMD_ID_GET_BATTERY_STATUS:
+        {
+            aux_mcu_message_t* temp_tx_message_pt;
+            aux_mcu_message_t* temp_rx_message;
+            uint16_t bat_adc_result;
+            
+            /* Keep screen on in case we're testing power consumption */
+            logic_device_activity_detected();        
+            
+            /* Wait for current packet reception and arm reception */
+            dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
+            comms_aux_arm_rx_and_clear_no_comms();
+            
+            /* Start charging? */
+            if (rcv_msg->payload[0] != 0)
+            {
+                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
+                logic_power_set_battery_charging_bool(TRUE, FALSE);
+                comms_aux_mcu_wait_for_message_sent();
+            }
+            
+            /* Stop charging? */
+            if (rcv_msg->payload[1] != 0)
+            {
+                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_CHARGE);
+                logic_power_set_battery_charging_bool(FALSE, FALSE);
+                comms_aux_mcu_wait_for_message_sent();
+            }
+            
+            /* Use USB to power the screen? */
+            if (rcv_msg->payload[2] != 0)
+            {
+                sh1122_oled_off(&plat_oled_descriptor);
+                platform_io_disable_vbat_to_oled_stepup();
+                platform_io_assert_oled_reset();
+                timer_delay_ms(15);
+                platform_io_power_up_oled(TRUE);
+                sh1122_init_display(&plat_oled_descriptor);
+                gui_dispatcher_get_back_to_current_screen();
+            }
+            
+            /* Use battery to power the screen? */
+            if (rcv_msg->payload[3] != 0)
+            {
+                sh1122_oled_off(&plat_oled_descriptor);
+                platform_io_disable_3v3_to_oled_stepup();
+                platform_io_assert_oled_reset();
+                timer_delay_ms(15);
+                platform_io_power_up_oled(FALSE);
+                sh1122_init_display(&plat_oled_descriptor);
+                gui_dispatcher_get_back_to_current_screen();
+            }   
+
+            /* Force charge voltage ? */
+            if (rcv_msg->payload_as_uint16[2] != 0)
+            {
+                /* Generate our force charge voltage packet */
+                comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+                temp_tx_message_pt->main_mcu_command_message.command = MAIN_MCU_COMMAND_FORCE_CHARGE_VOLT;
+                temp_tx_message_pt->main_mcu_command_message.payload_as_uint16[0] = rcv_msg->payload_as_uint16[2];
+                temp_tx_message_pt->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + MEMBER_SIZE(main_mcu_command_message_t, payload_as_uint16[0]);
+                
+                /* Send message */
+                comms_aux_mcu_send_message(TRUE);
+            }
+
+            /* Stop force charge? */
+            if (rcv_msg->payload[6] != 0)
+            {
+                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_FORCE_CHARGE);
+                comms_aux_mcu_wait_for_message_sent();
+            }
+            
+            /* Generate our get battery charge status packet */
+            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE);
+            
+            /* Send message */
+            comms_aux_mcu_send_message(TRUE);
+            
+            /* Get ADC value for current conversion */
+            while (platform_io_is_voledin_conversion_result_ready() == FALSE);
+            bat_adc_result = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+            
+            /* Wait for message from aux MCU */
+            while(comms_aux_mcu_active_wait(&temp_rx_message, TRUE, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE, -1) != RETURN_OK){}
+                
+            /* Prepare packet to send back */
+            memset(send_msg, 0x00, sizeof(hid_message_t));
+            send_msg->battery_status.power_source = logic_power_get_power_source();
+            send_msg->battery_status.platform_charging = logic_power_is_battery_charging();
+            send_msg->battery_status.main_adc_battery_value = bat_adc_result;
+            send_msg->battery_status.aux_charge_status = temp_rx_message->nimh_charge_message.charge_status;
+            send_msg->battery_status.aux_battery_voltage = temp_rx_message->nimh_charge_message.battery_voltage;
+            send_msg->battery_status.aux_charge_current = temp_rx_message->nimh_charge_message.charge_current;
+            send_msg->battery_status.aux_stepdown_voltage = temp_rx_message->nimh_charge_message.stepdown_voltage;
+            send_msg->battery_status.aux_dac_register_val = temp_rx_message->nimh_charge_message.dac_data_reg;
+            send_msg->payload_length = sizeof(send_msg->battery_status);
+            send_msg->message_type = rcv_message_type;
+            
+            /* Rearm receive */
+            comms_aux_arm_rx_and_clear_no_comms();
+            
+            return sizeof(send_msg->battery_status);
         }
         default: break;
     }

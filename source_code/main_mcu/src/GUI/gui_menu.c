@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     gui_menu.c
 *    \brief    Standardized code to handle our menus
 *    Created:  17/11/2018
@@ -227,7 +243,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     /* If user enabled that setting or if we're not connected to anything, ask to display credential */                    
                     if (((logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0) || ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE)))
                     {
-                        mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_one_line_confirmation(QPROMPT_SNGL_DISP_CRED_TEXT_ID, FALSE, FALSE);
+                        mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_one_line_confirmation(QPROMPT_SNGL_DISP_CRED_TEXT_ID, FALSE, FALSE, TRUE);
                         
                         if (display_prompt_return == MINI_INPUT_RET_BACK)
                         {
@@ -317,7 +333,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             }
             case GUI_MMM_STORAGE_CONF_ICON_ID:
             {
-                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QCONF_FOR_MMM_STORAGE_TEXT_ID, FALSE, FALSE);
+                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QCONF_FOR_MMM_STORAGE_TEXT_ID, FALSE, FALSE, (logic_user_get_user_security_flags() & USER_SEC_FLG_CRED_SAVE_PROMPT_MMM) != 0);
                 if (user_input == MINI_INPUT_RET_YES)
                 {
                     logic_user_set_user_security_flag(USER_SEC_FLG_CRED_SAVE_PROMPT_MMM);
@@ -330,7 +346,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             }
             case GUI_PIN_FOR_MMM_ICON_ID:
             {
-                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPIN_FOR_MMM_TEXT_ID, FALSE, FALSE);
+                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPIN_FOR_MMM_TEXT_ID, FALSE, FALSE, (logic_user_get_user_security_flags() & USER_SEC_FLG_PIN_FOR_MMM) != 0);
                 if (user_input == MINI_INPUT_RET_YES)
                 {
                     logic_user_set_user_security_flag(USER_SEC_FLG_PIN_FOR_MMM);
@@ -344,7 +360,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             case GUI_KEYB_LAYOUT_CHANGE_ICON_ID:
             {
                 /* Ask for keyboard type selection */
-                mini_input_yes_no_ret_te select_inteface_prompt_return = gui_prompts_ask_for_one_line_confirmation(SELECT_KEYBOARD_TYPE_TEXT_ID, FALSE, TRUE);
+                mini_input_yes_no_ret_te select_inteface_prompt_return = gui_prompts_ask_for_one_line_confirmation(SELECT_KEYBOARD_TYPE_TEXT_ID, FALSE, TRUE, TRUE);
                 BOOL usb_interface_selected = FALSE;
                 
                 if (select_inteface_prompt_return == MINI_INPUT_RET_BACK)
@@ -373,7 +389,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             }
             case GUI_CRED_PROMPT_CHANGE_ICON_ID:
             {
-                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPROMPT_FOR_LOGIN_TEXT_ID, FALSE, FALSE);
+                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPROMPT_FOR_LOGIN_TEXT_ID, FALSE, FALSE, (logic_user_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0);
                 if (user_input == MINI_INPUT_RET_YES)
                 {
                     logic_user_set_user_security_flag(USER_SEC_FLG_LOGIN_CONF);
@@ -386,7 +402,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             }
             case GUI_PWD_DISP_CHANGE_ICON_ID:
             {
-                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPROMPT_PWD_DISPLAY_TEXT_ID, FALSE, FALSE);
+                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPROMPT_PWD_DISPLAY_TEXT_ID, FALSE, FALSE, (logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0);
                 if (user_input == MINI_INPUT_RET_YES)
                 {
                     logic_user_set_user_security_flag(USER_SEC_FLG_PWD_DISPLAY_PROMPT);

@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     comms_hid_msgs_debug.h
 *    \brief    HID debug communications
 *    Created:  06/03/2018
@@ -27,6 +43,8 @@
 #define HID_CMD_ID_GET_DBG_PLAT_INFO        0x800A
 #define HID_CMD_ID_REINDEX_BUNDLE           0x800B
 #define HID_CMD_ID_SET_OLED_PARAMS          0x800C
+#define HID_CMD_ID_GET_BATTERY_STATUS       0x800D
+#define HID_CMD_ID_FLASH_AUX_AND_MAIN       0x800E
 
 /* Prototypes */
 int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type);

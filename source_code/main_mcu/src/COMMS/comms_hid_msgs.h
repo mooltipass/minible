@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     comms_hid_msgs.h
 *    \brief    HID communications
 *    Created:  06/03/2018
@@ -132,6 +148,18 @@ typedef struct
 
 typedef struct
 {
+    uint32_t power_source;
+    uint32_t platform_charging;
+    uint16_t main_adc_battery_value;
+    uint16_t aux_charge_status;
+    uint16_t aux_battery_voltage;
+    int16_t aux_charge_current;
+    uint16_t aux_stepdown_voltage;
+    uint16_t aux_dac_register_val;
+} hid_message_get_battery_status_t;
+
+typedef struct
+{
     uint16_t message_type;
     uint16_t payload_length;
     union
@@ -144,6 +172,7 @@ typedef struct
         hid_message_plat_info_t platform_info;
         hid_message_store_cred_t store_credential;
         hid_message_check_cred_req_t check_credential;
+        hid_message_get_battery_status_t battery_status;
         hid_message_get_cred_req_t get_credential_request;
         hid_message_get_cred_answer_t get_credential_answer;
         hid_message_get_set_category_strings_t get_set_cat_strings;

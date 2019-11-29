@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     comms_aux_mcu.c
 *    \brief    Communications with aux MCU
 *    Created:  03/03/2018
@@ -533,11 +549,47 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
             dma_aux_mcu_check_and_clear_dma_transfer_flag();
             comms_aux_arm_rx_and_clear_no_comms();
             
-            // TODO2: take necessary action in case we received an unwanted message
+            // TODO2: take necessary action in case we received an unwanted message (left to be implemented: reqs from aux MCU */
             if ((aux_mcu_receive_message.message_type == expected_packet) && (aux_mcu_receive_message.aux_mcu_event_message.event_id != expected_event))
             {
                 /* Received another event... deal with it (doesn't generate answers */
                 comms_aux_mcu_deal_with_received_event(&aux_mcu_receive_message);
+            }
+            else if ((aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_USB) || (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BLE))
+            {
+                /* Cast payloads into correct type */
+                int16_t hid_reply_payload_length = -1;
+                
+                /* Store message type */
+                uint16_t receive_message_type = aux_mcu_receive_message.message_type;
+                
+                /* Clear TX message just in case */
+                memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
+                
+                /* Parse message */
+                #ifndef DEBUG_USB_COMMANDS_ENABLED
+                hid_reply_payload_length = comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), &aux_mcu_send_message.hid_message, MSG_RESTRICT_ALL);
+                #else
+                if (aux_mcu_receive_message.hid_message.message_type >= HID_MESSAGE_START_CMD_ID_DBG)
+                {
+                    hid_reply_payload_length = comms_hid_msgs_parse_debug(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), &aux_mcu_send_message.hid_message, MSG_RESTRICT_ALL);
+                }
+                else
+                {
+                    hid_reply_payload_length = comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), &aux_mcu_send_message.hid_message, MSG_RESTRICT_ALL);
+                }
+                #endif
+                
+                /* Send reply if needed */
+                if (hid_reply_payload_length >= 0)
+                {
+                    /* Set same message type and compute payload size */
+                    aux_mcu_send_message.message_type = receive_message_type;
+                    aux_mcu_send_message.payload_length1 = hid_reply_payload_length + sizeof(aux_mcu_receive_message.hid_message.message_type) + sizeof(aux_mcu_receive_message.hid_message.payload_length);
+                    
+                    /* Send message */
+                    comms_aux_mcu_send_message(FALSE);
+                }
             }
         }
     }while (reloop != FALSE);

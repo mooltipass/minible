@@ -24,6 +24,9 @@ volatile BOOL platform_io_measuring_lcursense = FALSE;
 /* Current measured values for high & low current */
 volatile uint16_t platform_io_high_cur_val;
 volatile uint16_t platform_io_low_cur_val;
+/* For debug purposes: voltage set for stepdown and matching DATA register value */
+uint16_t platform_io_stepdown_voltage_set = 0;
+uint16_t platform_io_dac_data_register_set = 0;
 
 
 /*! \fn     EIC_Handler(void)
@@ -51,7 +54,10 @@ void EIC_Handler(void)
 */
 #ifndef BOOTLOADER
 void ADC_Handler(void)
-{
+{    
+    /* Clear interrupt */
+    ADC->INTFLAG.reg = ADC_INTFLAG_RESRDY;
+    
     if (platform_io_measuring_lcursense == FALSE)
     {        
         /* Switch bool */
@@ -66,6 +72,9 @@ void ADC_Handler(void)
         ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(LCURSENSE_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND;
         
         /* Start conversion */
+        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+        ADC->SWTRIG.reg = ADC_SWTRIG_FLUSH;
+        while ((ADC->SWTRIG.reg & ADC_SWTRIG_FLUSH) != 0);
         while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
         ADC->SWTRIG.reg = ADC_SWTRIG_START;
     } 
@@ -85,9 +94,6 @@ void ADC_Handler(void)
         /* Set conv ready bool */
         platform_cur_sense_conv_ready = TRUE;
     }
-    
-    /* Clear interrupt */
-    ADC->INTFLAG.reg = ADC_INTFLAG_RESRDY;
 }
 #endif
 
@@ -98,6 +104,14 @@ void ADC_Handler(void)
 BOOL platform_io_is_current_sense_conversion_result_ready(void)
 {
     return platform_cur_sense_conv_ready;
+}
+
+/*! \fn     platform_io_get_dac_data_register_set(void)
+*   \brief  Get the last value set in the DAC data register
+*/
+uint16_t platform_io_get_dac_data_register_set(void)
+{
+    return platform_io_dac_data_register_set;
 }
 
 /*! \fn     platform_io_get_cursense_conversion_result(BOOL trigger_conversion)
@@ -113,6 +127,9 @@ uint32_t platform_io_get_cursense_conversion_result(BOOL trigger_conversion)
     /* Trigger new conversion (mux is already set at the right input in the interrupt */
     if (trigger_conversion != FALSE)
     {
+        while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+        ADC->SWTRIG.reg = ADC_SWTRIG_FLUSH;
+        while ((ADC->SWTRIG.reg & ADC_SWTRIG_FLUSH) != 0);
         while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
         ADC->SWTRIG.reg = ADC_SWTRIG_START;
     }
@@ -201,6 +218,10 @@ void platform_io_update_step_down_voltage(uint16_t voltage)
     complicated_math = 698 - complicated_math;                                                      // DAC val from voltage to output
     while ((DAC->STATUS.reg & DAC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
     DAC->DATA.reg = (uint16_t)complicated_math;                                                     // Write value    
+    
+    /* Store debug values */
+    platform_io_stepdown_voltage_set = voltage;
+    platform_io_dac_data_register_set = complicated_math;
 }
 
 /*! \fn     platform_io_enable_battery_charging_ports(void)
@@ -239,9 +260,12 @@ void platform_io_enable_battery_charging_ports(void)
     ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(HCURSENSE_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND; // 1x gain, one channel set to high cur sense
     ADC->INTENSET.reg = ADC_INTENSET_RESRDY;                                                        // Enable in result ready interrupt
     NVIC_EnableIRQ(ADC_IRQn);                                                                       // Enable int
-    uint16_t calib_val = ((*((uint32_t *)ADC_FUSES_LINEARITY_1_ADDR)) & 0x3F) << 5;                 // Fetch calibration value
-    calib_val |=  ((*((uint32_t *)ADC_FUSES_LINEARITY_0_ADDR)) & ADC_FUSES_LINEARITY_0_Msk) >> ADC_FUSES_LINEARITY_0_Pos;
-    ADC->CALIB.reg = calib_val;                                                                     // Store calibration value
+    ADC_CALIB_Type calib_register;                                                                  // Create our calibration register values
+    calib_register.reg = 0x0000;                                                                    // Clear it
+    calib_register.bit.LINEARITY_CAL = (((*((uint32_t *)ADC_FUSES_LINEARITY_1_ADDR)) & ADC_FUSES_LINEARITY_1_Msk) >> ADC_FUSES_LINEARITY_1_Pos) << 5;   // Fetch & recompose linearity_cal
+    calib_register.bit.LINEARITY_CAL |=  ((*((uint32_t *)ADC_FUSES_LINEARITY_0_ADDR)) & ADC_FUSES_LINEARITY_0_Msk) >> ADC_FUSES_LINEARITY_0_Pos;        // Fetch & recompose linearity_cal
+    calib_register.bit.BIAS_CAL = ((*((uint32_t *)ADC_FUSES_BIASCAL_ADDR)) & ADC_FUSES_BIASCAL_Msk) >> ADC_FUSES_BIASCAL_Pos;                           // Fetch & recompose bias cal
+    ADC->CALIB = calib_register;                                                                    // Store calibration values
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
     ADC->CTRLA.reg = ADC_CTRLA_ENABLE;                                                              // And enable ADC
 }

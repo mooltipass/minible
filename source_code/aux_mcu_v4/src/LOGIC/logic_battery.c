@@ -19,6 +19,7 @@ uint16_t logic_battery_peak_voltage = 0;
 /* Number of ticks since we saw the peak voltage */
 uint32_t logic_battery_nb_ticks_since_peak = 0;
 /* Diagnostic values */
+BOOL logic_battery_diag_charging_forced = FALSE;
 uint16_t logic_battery_diag_current_vbat = 0;
 int16_t logic_battery_diag_current_cur = 0;
 
@@ -59,6 +60,58 @@ int16_t logic_battery_get_charging_current(void)
     return logic_battery_diag_current_cur;
 }
 
+/*! \fn     logic_battery_get_stepdown_voltage(void)
+*   \brief  Get current stepdown voltage set
+*   \return The stepdown voltage set
+*/
+uint16_t logic_battery_get_stepdown_voltage(void)
+{
+    return logic_battery_charge_voltage;
+}
+
+/*! \fn     logic_battery_debug_force_charge_voltage(uint16_t charge_voltage)
+*   \brief  Debug function to force a given charge voltage - use with care!!!!
+*   \param  charge_voltage  Charge voltage to be set
+*/
+void logic_battery_debug_force_charge_voltage(uint16_t charge_voltage)
+{
+    if (logic_battery_diag_charging_forced == FALSE)
+    {
+        /* Enable stepdown at provided voltage */
+        platform_io_enable_step_down(logic_battery_charge_voltage);
+        
+        /* Leave a little time for step down voltage to stabilize */
+        timer_delay_ms(1);
+        
+        /* Enable charge mosfets */
+        platform_io_enable_charge_mosfets();
+
+        /* Set boolean */
+        logic_battery_diag_charging_forced = TRUE;
+    }
+    else
+    {
+        /* Increment voltage */
+        platform_io_update_step_down_voltage(logic_battery_charge_voltage);
+    }
+}
+
+/*! \fn     logic_battery_debug_stop_charge(void)
+*   \brief  Debug function to stop the charge
+*/
+void logic_battery_debug_stop_charge(void)
+{
+    /* Disable charging */
+    platform_io_disable_charge_mosfets();
+    timer_delay_ms(1);
+    
+    /* Disable step-down */
+    platform_io_disable_step_down();
+
+    /* Reset bool */
+    logic_battery_diag_charging_forced = FALSE;
+}
+
 /*! \fn     logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
 *   \brief  Called to start battery charge
 *   \param  charging_type Charging scheme
@@ -82,10 +135,9 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
     
     /* Enable charge mosfets */
     platform_io_enable_charge_mosfets();
-    
-    /* Discard first measurement */
-    while (platform_io_is_current_sense_conversion_result_ready() == FALSE);
-    platform_io_get_cursense_conversion_result(TRUE); 
+
+    /* Timer before starting our charging algorithm */
+    timer_start_timer(TIMER_BATTERY_TICK, LOGIC_BATTERY_START_CHARGE_DELAY);
 }
 
 /*! \fn     logic_battery_stop_charging(void)
@@ -129,43 +181,46 @@ void logic_battery_task(void)
         {
             /* Quick current ramp */
             case LB_CHARGE_START_RAMPING:
-            {                
-                /* Is enough current flowing into the battery? */
-                if ((high_voltage - low_voltage) > LOGIC_BATTERY_CUR_FOR_ST_RAMP_END)
+            {
+                if (timer_has_timer_expired(TIMER_BATTERY_TICK, FALSE) == TIMER_EXPIRED)
                 {
-                    /* Change state machine */
-                    logic_battery_state = LB_CHARGING_REACH;
-                    
-                    /* Arm decision timer */
-                    timer_start_timer(TIMER_BATTERY_TICK, LOGIC_BATTERY_CUR_REACH_TICK);
-                }
-                else
-                {
-                    /* Increase charge voltage */
-                    logic_battery_charge_voltage += LOGIC_BATTERY_BAT_START_CHG_V_INC;
-                    
-                    /* Check for over voltage - may be caused by disconnected discharge path */
-                    if (low_voltage >= LOGIC_BATTERY_MAX_V_FOR_ST_RAMP)
+                    /* Is enough current flowing into the battery? */
+                    if ((high_voltage - low_voltage) > LOGIC_BATTERY_CUR_FOR_ST_RAMP_END)
                     {
-                        /* Error state */
-                        logic_battery_state = LB_ERROR_ST_RAMPING;
+                        /* Change state machine */
+                        logic_battery_state = LB_CHARGING_REACH;
                         
-                        /* Disable charging */
-                        platform_io_disable_charge_mosfets();
-                        timer_delay_ms(1);
-                        
-                        /* Disable step-down */
-                        platform_io_disable_step_down();
-                                                
-                        /* Inform main MCU */
-                        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_FAIL);
+                        /* Arm decision timer */
+                        timer_start_timer(TIMER_BATTERY_TICK, LOGIC_BATTERY_CUR_REACH_TICK);
                     }
                     else
                     {
-                        /* Increment voltage */
-                        platform_io_update_step_down_voltage(logic_battery_charge_voltage);
+                        /* Increase charge voltage */
+                        logic_battery_charge_voltage += LOGIC_BATTERY_BAT_START_CHG_V_INC;
+                        
+                        /* Check for over voltage - may be caused by disconnected discharge path */
+                        if (low_voltage >= LOGIC_BATTERY_MAX_V_FOR_ST_RAMP)
+                        {
+                            /* Error state */
+                            logic_battery_state = LB_ERROR_ST_RAMPING;
+                            
+                            /* Disable charging */
+                            platform_io_disable_charge_mosfets();
+                            timer_delay_ms(1);
+                            
+                            /* Disable step-down */
+                            platform_io_disable_step_down();
+                            
+                            /* Inform main MCU */
+                            comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_FAIL);
+                        }
+                        else
+                        {
+                            /* Increment voltage */
+                            platform_io_update_step_down_voltage(logic_battery_charge_voltage);
+                        }
                     }
-                }                
+                }                            
                 break;
             }
             

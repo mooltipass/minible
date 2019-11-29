@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     comms_hid_msgs.h
 *    \brief    HID communications
 *    Created:  06/03/2018
@@ -308,7 +324,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             /* Set user categories strings */
             if ((rcv_msg->payload_length == sizeof(nodemgmt_user_category_strings_t)) && (logic_security_is_smc_inserted_unlocked() != FALSE))
             {
-                if ((logic_security_is_management_mode_set() != FALSE) || (gui_prompts_ask_for_one_line_confirmation(SET_CAT_STRINGS_TEXT_ID, TRUE, FALSE) == MINI_INPUT_RET_YES))
+                if ((logic_security_is_management_mode_set() != FALSE) || (gui_prompts_ask_for_one_line_confirmation(SET_CAT_STRINGS_TEXT_ID, TRUE, FALSE, TRUE) == MINI_INPUT_RET_YES))
                 {
                     /* Store category strings */
                     nodemgmt_set_category_strings((nodemgmt_user_category_strings_t*)&rcv_msg->get_set_cat_strings);
@@ -343,7 +359,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             {
                 /* Prompt user to unlock the card */
                 logic_device_activity_detected();
-                if (logic_smartcard_user_unlock_process() == RETURN_OK)
+                if (logic_smartcard_user_unlock_process() == UNLOCK_OK_RET)
                 {
                     /* Erase card! */
                     smartcard_highlevel_erase_smartcard();
@@ -534,7 +550,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             if (logic_security_is_smc_inserted_unlocked() != FALSE)
             {                
                 /* Prompt the user */
-                if (gui_prompts_ask_for_one_line_confirmation(ID_STRING_ENTER_MMM, TRUE, FALSE) == MINI_INPUT_RET_YES)
+                if (gui_prompts_ask_for_one_line_confirmation(ID_STRING_ENTER_MMM, TRUE, FALSE, TRUE) == MINI_INPUT_RET_YES)
                 {
                     /* Device state is going to change... */
                     logic_device_set_state_changed();
@@ -545,7 +561,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                         sh1122_fade_into_darkness(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
                         
                         /* Require user to reauth himself */
-                        if (logic_smartcard_remove_card_and_reauth_user() == RETURN_OK)
+                        if (logic_smartcard_remove_card_and_reauth_user(FALSE) == RETURN_OK)
                         {
                             /* Approved, set next screen */
                             gui_dispatcher_set_current_screen(GUI_SCREEN_MEMORY_MGMT, TRUE, GUI_INTO_MENU_TRANSITION);

@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     platform_defines.h
 *    \brief    Defines specific to our platform: SERCOMs, GPIOs...
 *    Created:  10/11/2017
@@ -11,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    6
+#define FW_MINOR    9
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -19,6 +35,12 @@
 - v0.4: no comms signal checked (among others)
 - v0.5: aux to main protocol change (requires hard programming for upgrade)
 - v0.6: firmware shipped to beta testers
+- v0.7: firmware upload on card inverted, settings enable/disable default selection set to current setting, pressing back when creating new user message fix
+- v0.8: - not switching on screen when aux mcu wakes up main mcu
+        - charge safety: allow charge whenever battery is below 60pct
+        - logic change: now using an "all categories" filter instead of "default category"
+- v0.9: - waiting for aux MCU confirmation when detaching USB
+        - taking into account battery measurements only when USB isn't present
 */
 
 /**************** SETUP DEFINES ****************/
@@ -127,6 +149,11 @@ typedef struct
 #define FIRMWARE_UPGRADE_FLAG   0x5478ABAA
 
 /********************/
+/* Timeout defines  */
+/********************/
+#define SCREEN_TIMEOUT_MS       15000
+
+/********************/
 /* Voltage cutout   */
 /********************/
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP)
@@ -137,12 +164,17 @@ typedef struct
     #define BATTERY_ADC_40PCT_VOLTAGE   (1200*273/110)
     #define BATTERY_ADC_20PCT_VOLTAGE   (1180*273/110)
 #elif defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
-    #define BATTERY_ADC_OUT_CUTOUT      (1140*8192/3188)
     #define BATTERY_ADC_OVER_VOLTAGE    (1600*8192/3188)
-    #define BATTERY_ADC_80PCT_VOLTAGE   (1250*8192/3188)
-    #define BATTERY_ADC_60PCT_VOLTAGE   (1220*8192/3188)
-    #define BATTERY_ADC_40PCT_VOLTAGE   (1200*8192/3188)
-    #define BATTERY_ADC_20PCT_VOLTAGE   (1180*8192/3188)
+    #define BATTERY_ADC_90PCT_VOLTAGE   (3393)
+    #define BATTERY_ADC_80PCT_VOLTAGE   (3361)
+    #define BATTERY_ADC_70PCT_VOLTAGE   (3337)
+    #define BATTERY_ADC_60PCT_VOLTAGE   (3307)
+    #define BATTERY_ADC_50PCT_VOLTAGE   (3276)
+    #define BATTERY_ADC_40PCT_VOLTAGE   (3244)
+    #define BATTERY_ADC_30PCT_VOLTAGE   (3217)
+    #define BATTERY_ADC_20PCT_VOLTAGE   (3188)
+    #define BATTERY_ADC_10PCT_VOLTAGE   (3143)
+    #define BATTERY_ADC_OUT_CUTOUT      (3076)
 #endif
 
 /********************/

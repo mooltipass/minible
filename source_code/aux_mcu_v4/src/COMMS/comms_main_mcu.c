@@ -196,6 +196,8 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
         main_mcu_send_message.nimh_charge_message.charge_status = logic_battery_get_charging_status();
         main_mcu_send_message.nimh_charge_message.battery_voltage = logic_battery_get_vbat();
         main_mcu_send_message.nimh_charge_message.charge_current = logic_battery_get_charging_current();
+        main_mcu_send_message.nimh_charge_message.dac_data_reg = platform_io_get_dac_data_register_set();
+        main_mcu_send_message.nimh_charge_message.stepdown_voltage = logic_battery_get_stepdown_voltage();
         
         /* Send message */
         comms_main_mcu_send_message((void*)&main_mcu_send_message, (uint16_t)sizeof(main_mcu_send_message));
@@ -330,6 +332,9 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 
                 /* Stop charging if we are */
                 logic_battery_stop_charging();
+
+                /* Inform main MCU */
+                comms_main_mcu_send_simple_event(AUX_MCU_EVENT_USB_DETACHED);
                 break;
             }
             case MAIN_MCU_COMMAND_ENABLE_BLE:
@@ -366,6 +371,12 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 logic_battery_start_charging(NIMH_12C_CHARGING);
                 break;
             }
+            case MAIN_MCU_COMMAND_STOP_CHARGE:
+            {
+                /* Stop charging battery */
+                logic_battery_stop_charging();
+                break;
+            }
             case MAIN_MCU_COMMAND_NO_COMMS_UNAV:
             {
                 /* No comms signal unavailable */
@@ -375,7 +386,28 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             case MAIN_MCU_COMMAND_TX_SWEEP_SGL:
             {
                 /* ble_manager will send the event to main MCU */
-                debug_tx_band_send(message->main_mcu_command_message.payload_as_uint16[0], message->main_mcu_command_message.payload_as_uint16[1], message->main_mcu_command_message.payload_as_uint16[2]);
+                debug_tx_band_send(message->main_mcu_command_message.payload_as_uint16[0], message->main_mcu_command_message.payload_as_uint16[1], message->main_mcu_command_message.payload_as_uint16[2], FALSE);
+                break;
+            }
+            case MAIN_MCU_COMMAND_TX_TONE_CONT:
+            {
+                /* ble_manager will send the event to main MCU */
+                debug_tx_band_send(message->main_mcu_command_message.payload_as_uint16[0], message->main_mcu_command_message.payload_as_uint16[1], message->main_mcu_command_message.payload_as_uint16[2], TRUE);
+                break;
+            }
+            case MAIN_MCU_COMMAND_TX_TONE_CONT_STOP:
+            {
+                debug_tx_stop_continuous_tone();
+                break;
+            }
+            case MAIN_MCU_COMMAND_FORCE_CHARGE_VOLT:
+            {
+                logic_battery_debug_force_charge_voltage(message->main_mcu_command_message.payload_as_uint16[0]);
+                break;
+            }
+            case MAIN_MCU_COMMAND_STOP_FORCE_CHARGE:
+            {
+                logic_battery_debug_stop_charge();
                 break;
             }
             case MAIN_MCU_COMMAND_FUNC_TEST:

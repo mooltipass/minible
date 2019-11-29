@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     gui_prompts.c
 *    \brief    Code dedicated to prompts and notifications
 *    Created:  27/01/2019
@@ -206,23 +222,36 @@ void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame
 *   \brief  Display text information on screen
 *   \param  string_id       String ID to display
 *   \param  message_type    Message type (see enum)
+*   \return Something else than FALSE if the animation was interrupted by user action
 */
-void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type)
+BOOL gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type)
 {
     uint16_t i = 0;
     
-    // Store current smartcard inserted state
+    /* Store current smartcard inserted state */
     ret_type_te card_absent = smartcard_low_level_is_smc_absent();
     
-    // Display string 
+    /* Display string */
     gui_prompts_display_information_on_screen(string_id, message_type);
     
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
     timer_start_timer(TIMER_WAIT_FUNCTS, 3000);
-    while ((timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK) && (card_absent == smartcard_low_level_is_smc_absent()))
+    while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
     {
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);        
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);      
+        
+        /* Click to interrupt */  
+        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+        {
+            return TRUE;
+        }
+        
+        /* Card insertion status change */
+        if (card_absent != smartcard_low_level_is_smc_absent())
+        {
+            return TRUE;
+        }
         
         /* Animation timer */
         if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
@@ -238,6 +267,9 @@ void gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, disp
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+i, FALSE);                 
         }
     }
+    
+    /* Normal animation timeout */
+    return FALSE;
 }
 
 /*! \fn     gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type
@@ -282,9 +314,11 @@ void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
 *   \param  stringID            String ID for text query
 *   \param  vert_anim_direction Vertical anim direction (wheel up or down)
 *   \param  hor_anim_direction  Horizontal anim direction (next/previous digit)
+*   \return A wheel action if there was one during the animation
 */
-void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t vert_anim_direction, int16_t hor_anim_direction)
+wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t vert_anim_direction, int16_t hor_anim_direction)
 {
+    wheel_action_ret_te wheel_action_ret = WHEEL_ACTION_NONE;
     cust_char_t* string_to_display;
     
     /* Try to fetch the string to display */
@@ -319,6 +353,9 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
     {
         nb_animation_steps = 1;
     }
+    
+    /* Clear detections */
+    inputs_clear_detections();
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
@@ -358,6 +395,12 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
         
         for (uint16_t i = 0; i < PIN_PROMPT_ARROW_MOV_LGTH; i++)
         {
+            /* Skip animation if desired */
+            wheel_action_ret = inputs_get_wheel_action(FALSE, FALSE);
+            if (wheel_action_ret != WHEEL_ACTION_NONE)
+            {
+                return wheel_action_ret;
+            }           
             sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
             sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
             sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*(selected_digit-hor_anim_direction) + PIN_PROMPT_ARROW_HOR_ANIM_STEP*i*hor_anim_direction, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_MOVE_ID+i, TRUE);
@@ -438,6 +481,13 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
         {
             sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, 2*PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT);
         }
+        
+        /* Skip animation if desired */
+        wheel_action_ret = inputs_get_wheel_action(FALSE, FALSE);
+        if (wheel_action_ret != WHEEL_ACTION_NONE)
+        {
+            return wheel_action_ret;
+        }
         #endif
     }
         
@@ -454,6 +504,8 @@ void gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected
             timer_delay_ms(30);
         }
     }    
+    
+    return wheel_action_ret;
 }
 
 
@@ -474,6 +526,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     #endif
     
     BOOL random_pin_feature_enabled = (BOOL)custom_fs_settings_get_device_setting(SETTING_RANDOM_PIN_ID);
+    wheel_action_ret_te detection_during_animation = WHEEL_ACTION_NONE;
     wheel_action_ret_te detection_result = WHEEL_ACTION_NONE;
     RET_TYPE ret_val = RETURN_NOK;
     uint16_t selected_digit = 0;
@@ -515,26 +568,30 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
         // detection result
         detection_result = inputs_get_wheel_action(FALSE, FALSE);
         
+        // was there a detection during the animation?
+        if (detection_during_animation != WHEEL_ACTION_NONE)
+        {
+            detection_result = detection_during_animation;
+        }
+        
         // Position increment / decrement
         if ((detection_result == WHEEL_ACTION_UP) || (detection_result == WHEEL_ACTION_DOWN))
         {
             if (detection_result == WHEEL_ACTION_UP)
             {
-                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 1, 0);
+                detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 1, 0);
                 if (current_pin[selected_digit]++ == 0x0F)
                 {
                     current_pin[selected_digit] = 0;
                 }
-                //gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 0);
             }
             else
             {
-                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, -1, 0);
+                detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, -1, 0);
                 if (current_pin[selected_digit]-- == 0)
                 {
                     current_pin[selected_digit] = 0x0F;
                 }
-                //gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 0);
             }
         }
         
@@ -563,7 +620,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
                     current_pin[selected_digit] &= 0x0F;
                     current_pin[--selected_digit] &= 0x0F;
                 }
-                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, -1);
+                detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, -1);
             }
             else
             {
@@ -576,7 +633,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
             if (selected_digit < 3)
             {
                 selected_digit++;
-                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 1);
+                detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 1);
             }
             else
             {
@@ -596,19 +653,20 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     return ret_val;
 }
 
-/*! \fn     gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt)
+/*! \fn     gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt, BOOL first_item_selected)
 *   \brief  Ask for user confirmation for different things
-*   \param  string_id       String ID
-*   \param  flash_screen    Boolean to flash screen
-*   \param  usb_ble_prompt  Set to TRUE to get BLE/USB icons, FALSE for yes/no
+*   \param  string_id               String ID
+*   \param  flash_screen            Boolean to flash screen
+*   \param  usb_ble_prompt          Set to TRUE to get BLE/USB icons, FALSE for yes/no
+*   \param  first_item_selected     Set to TRUE to select first option by default
 *   \return See enum
 */
-mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt)
+mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt, BOOL first_item_selected)
 {
-    uint16_t bitmap_yes_no_array[8] = {BITMAP_POPUP_2LINES_Y, BITMAP_POPUP_2LINES_N, BITMAP_2LINES_PRESS_Y, BITMAP_2LINES_PRESS_N, BITMAP_2LINES_SEL_Y, BITMAP_2LINES_SEL_N, BITMAP_2LINES_IDLE_Y, BITMAP_2LINES_IDLE_N};
-    uint16_t bitmap_usb_ble_array[8] = {BITMAP_POPUP_USB, BITMAP_POPUP_BLE, BITMAP_USB_PRESS, BITMAP_BLE_PRESS, BITMAP_USB_SELECT, BITMAP_BLE_SELECT, BITMAP_USB_IDLE, BITMAP_BLE_IDLE};
+    uint16_t bitmap_yes_no_array[10] = {BITMAP_POPUP_2LINES_Y, BITMAP_POPUP_2LINES_N, BITMAP_2LINES_PRESS_Y, BITMAP_2LINES_PRESS_N, BITMAP_2LINES_SEL_Y, BITMAP_2LINES_SEL_N, BITMAP_2LINES_IDLE_Y, BITMAP_2LINES_IDLE_N, BITMAP_POPUP_2LINES_Y_DESEL, BITMAP_POPUP_2LINES_N_SELEC};
+    uint16_t bitmap_usb_ble_array[10] = {BITMAP_POPUP_USB, BITMAP_POPUP_BLE, BITMAP_USB_PRESS, BITMAP_BLE_PRESS, BITMAP_USB_SELECT, BITMAP_BLE_SELECT, BITMAP_USB_IDLE, BITMAP_BLE_IDLE, BITMAP_POPUP_USB, BITMAP_POPUP_BLE};
+    BOOL approve_selected = first_item_selected;
     cust_char_t* string_to_display;
-    BOOL approve_selected = TRUE;
     BOOL flash_flag = FALSE;
     uint16_t flash_sm = 0;
     
@@ -658,10 +716,20 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
     {
         /* Write both in frame buffer and display */
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, FALSE);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, TRUE);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, FALSE);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, TRUE);            
+        if (first_item_selected != FALSE)
+        {
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, FALSE);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, TRUE);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, FALSE);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, TRUE);
+        } 
+        else
+        {
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[8]+i, FALSE);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[8]+i, TRUE);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[9]+i, FALSE);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[9]+i, TRUE);
+        }          
         timer_delay_ms(15);
     }
     

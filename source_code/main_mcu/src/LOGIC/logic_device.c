@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the Mooltipass Project (https://github.com/mooltipass).
+ * Copyright (c) 2019 Stephan Mathieu
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 /*!  \file     logic_device.c
 *    \brief    General logic for device
 *    Created:  27/01/2019
@@ -22,7 +38,7 @@ BOOL logic_device_state_changed = FALSE;
 void logic_device_activity_detected(void)
 {
     /* User interaction timer */
-    timer_start_timer(TIMER_SCREEN, 15000);
+    timer_start_timer(TIMER_SCREEN, SCREEN_TIMEOUT_MS);
     timer_start_timer(TIMER_USER_INTERACTION, utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_USER_INTERACTION_TIMEOUT_ID), SETTING_MIN_USER_INTERACTION_TIMEOUT, SETTING_MAX_USER_INTERACTION_TIMOUT) << 10);
     
     /* Check for screen off, switch it on if so */
@@ -46,24 +62,39 @@ void logic_device_activity_detected(void)
 /*! \fn     logic_device_bundle_update_start(BOOL from_debug_messages)
 *   \brief  Function called when start updating the device graphics memory
 *   \param  from_debug_messages Set to TRUE if this function was called from debug messages
+*   \return RETURN_OK if we are allowed to start bundle update
 */
-void logic_device_bundle_update_start(BOOL from_debug_messages)
+ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages)
 {
     logic_device_activity_detected();
     
-    /* If we are in invalid screen, it means we don't have a bundle */
-    if (gui_dispatcher_get_current_screen() != GUI_SCREEN_INVALID)
+    /* Function called from HID debug messages? */
+    if (from_debug_messages != FALSE)
     {
-        if (from_debug_messages != FALSE)
+        gui_screen_te current_screen = gui_dispatcher_get_current_screen();
+        
+        /* Depending on the mode we're currently in */
+        if (current_screen == GUI_SCREEN_INVALID)        
         {
-            /* Go to dedicated screen */
+            /* If we are in invalid screen (variable not set), it means we don't have a bundle */
+            return RETURN_OK;
+        }
+        else if (current_screen == GUI_SCREEN_INSERTED_INVALID)
+        {
+            /* Card inserted invalid: allow update and display notification */
             gui_dispatcher_set_current_screen(GUI_SCREEN_FW_FILE_UPDATE, TRUE, GUI_OUTOF_MENU_TRANSITION);
             gui_dispatcher_get_back_to_current_screen();
+            return RETURN_OK;
         }
         else
         {
-            // TODO3
+            return RETURN_NOK;
         }
+    } 
+    else
+    {
+        // TODO3
+        return RETURN_OK;
     }
 }
 

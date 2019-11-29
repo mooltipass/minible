@@ -482,14 +482,17 @@ class CLDR():
 		lut_bin_dict = {}
 		dead_keys = []
 		mini_modifier_map = {	'ctrlL':	0x00,
+								'ctrl':		0x00,
 								'shiftL':	0x80,
 								'shift':	0x80,
 								'atlL':		0x40,
+								'optL':		0x40,
 								'opt':		0x00,
 								'cmd':		0x00,
 								'ctrlR':	0x00,
 								'shiftR':	0x80,
 								'altR':		0x40,
+								'optR':		0x40,
 								'cmdR':		0x00}
 		# Check for " " as starting key
 		if sorted_keys[0] != ord(" "):
@@ -523,7 +526,15 @@ class CLDR():
 		for transform in sorted_transform_keys:
 			key_sequence = []
 			for glyph in transforms[transform]:
-				key_sequence.extend(lut_bin_dict[ord(glyph)])	
+				key_of_interest = 0
+				if ord(glyph) not in lut_bin_dict:
+					# This is not important as the transform that may error will have another that will be ok
+					print("Transform for: \"" + transform + "\" couldn't find \"" + glyph + "\" (ord " + str(ord(glyph)) + ") in lut dic - likely unimportant")
+					key_of_interest = lut_bin_dict[ord('a')]
+				else:
+					key_of_interest = lut_bin_dict[ord(glyph)]
+				
+				key_sequence.extend(key_of_interest)	
 			lut_bin_dict[ord(transform)] = key_sequence
 			
 		# Debug prints
@@ -678,6 +689,29 @@ keyboard_generation_array = [ \
 								[ "windows", "United Kingdom Extended", "UK Extended"],\
 								[ "windows", "US", "USA"],\
 								[ "windows", "United States-International", "US International"],\
+								[ "osx", "Belgian", "Belgium (MacOS)"],\
+								[ "osx", "Brazilian", "Brazil (MacOS)"],\
+								[ "osx", "Canadian", "Canada (MacOS)"],\
+								[ "osx", "Czech", "Czech (MacOS)"],\
+								[ "osx", "Czech-QWERTY", "Czech QWERT (MacOS)"],\
+								[ "osx", "Danish", "Denmark (MacOS)"],\
+								[ "osx", "Dvorak", "Dvorak (MacOS)"],\
+								[ "osx", "French", "French (MacOS)"],\
+								[ "osx", "German", "German (MacOS)"],\
+								[ "osx", "Hungarian", "Hungarian (MacOS)"],\
+								[ "osx", "Icelandic", "Iceland (MacOS)"],\
+								[ "osx", "Italian", "Italy (MacOS)"],\
+								[ "osx", "Norwegian", "Norway (MacOS)"],\
+								[ "osx", "Polish", "Polish (MacOS)"],\
+								[ "osx", "Portuguese", "Portugal (MacOS)"],\
+								[ "osx", "Romanian", "Romania (MacOS)"],\
+								[ "osx", "Slovenian", "Slovenia (MacOS)"],\
+								[ "osx", "Spanish", "Spain (MacOS)"],\
+								[ "osx", "Finnish", "Sweden/Fin (MacOS)"],\
+								[ "osx", "Swiss French", "Swiss FR (MacOS)"],\
+								[ "osx", "British", "UK (MacOS)"],\
+								[ "osx", "U.S.", "USA (MacOS)"],\
+								[ "osx", "US Extended", "US Extended (MacOS)"],\
 							]
 
 counter = 0

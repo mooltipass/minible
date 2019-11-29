@@ -42,9 +42,14 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define MAIN_MCU_COMMAND_DETACH_USB     0x0008
 #define MAIN_MCU_COMMAND_FUNC_TEST      0x0009
 #define MAIN_MCU_COMMAND_UPDT_DEV_STAT  0x000A
+#define MAIN_MCU_COMMAND_STOP_CHARGE    0x000B
 
 // Debug MCU commands
-#define MAIN_MCU_COMMAND_TX_SWEEP_SGL   0x1000
+#define MAIN_MCU_COMMAND_TX_SWEEP_SGL       0x1000
+#define MAIN_MCU_COMMAND_TX_TONE_CONT       0x1001
+#define MAIN_MCU_COMMAND_TX_TONE_CONT_STOP  0x1002
+#define MAIN_MCU_COMMAND_FORCE_CHARGE_VOLT  0x1003
+#define MAIN_MCU_COMMAND_STOP_FORCE_CHARGE  0x1004
 
 // Aux MCU events
 #define AUX_MCU_EVENT_BLE_ENABLED       0x0001
@@ -58,6 +63,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define AUX_MCU_EVENT_IM_HERE           0x0009
 #define AUX_MCU_EVENT_BLE_CONNECTED     0x000A
 #define AUX_MCU_EVENT_BLE_DISCONNECTED  0x000B
+#define AUX_MCU_EVENT_USB_DETACHED      0x000C
 
 /* Typedefs */
 typedef struct
@@ -101,6 +107,8 @@ typedef struct
     uint16_t charge_status;
     uint16_t battery_voltage;
     int16_t charge_current;
+    uint16_t stepdown_voltage;
+    uint16_t dac_data_reg;
 } nimh_charge_message_t;
 
 typedef struct  
