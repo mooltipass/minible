@@ -32,12 +32,12 @@ class BatteryMonitorApp(tk.Tk):
 	def monitoring_routine(self):
 		# Continue Monitoring
 		if self.monitoring_bool:
-			self.action_button(False,False,False,False)
+			self.action_button(False,False,False,False,0,False)
 			self.after(1000, self.monitoring_routine)		
 
-	def action_button(self, start_charging, stop_charging, switch_to_usb_screen_power, switch_to_battery_screen_power):
+	def action_button(self, start_charging, stop_charging, switch_to_usb_screen_power, switch_to_battery_screen_power, force_charge_voltage, stop_force_charge):
 		# Send action to device
-		packet = self.mooltipass_device.getBatteryStatus(start_charging, stop_charging, switch_to_usb_screen_power, switch_to_battery_screen_power)
+		packet = self.mooltipass_device.getBatteryStatus(start_charging, stop_charging, switch_to_usb_screen_power, switch_to_battery_screen_power, force_charge_voltage, stop_force_charge)
 		
 		if packet["cmd"] != CMD_ID_RETRY:
 			power_source = struct.unpack('I', packet["data"][0:4])[0]
@@ -141,8 +141,6 @@ class BatteryMonitorApp(tk.Tk):
 		self.aux_charge_current_value = tk.Label(self, text="2", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12, weight=tkfont.BOLD))
 		self.aux_charge_current_value.grid(row=2, column=3, pady=(0,2), padx=5)
 		
-		
-		
 		# Aux Stepdown Voltage
 		self.aux_stepdown_voltage_label = tk.Label(self, text="Aux Stepdown Voltage :", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12), anchor="e")
 		self.aux_stepdown_voltage_label.grid(sticky="e", row=3, column=0, pady=(0,2), padx=5)
@@ -156,24 +154,39 @@ class BatteryMonitorApp(tk.Tk):
 		self.aux_data_register_value.grid(row=3, column=3, pady=(0,2), padx=5)
 		
 		# Action Buttons
-		self.platform_connect_button = tk.Button(self, text="Start Charge", font=tkfont.Font(family='Helvetica', size=9), width="18", command=lambda:[self.action_button(True, False, False, False)])
+		self.platform_connect_button = tk.Button(self, text="Start Charge", font=tkfont.Font(family='Helvetica', size=9), width="18", command=lambda:[self.action_button(True, False, False, False, 0, False)])
 		self.platform_connect_button.grid(row=4, column=0, pady=(5,2), padx=5)
-		self.platform_connect_button = tk.Button(self, text="Stop Charge", font=tkfont.Font(family='Helvetica', size=9), width="18", command=lambda:[self.action_button(False, True, False, False)])
+		self.platform_connect_button = tk.Button(self, text="Stop Charge", font=tkfont.Font(family='Helvetica', size=9), width="18", command=lambda:[self.action_button(False, True, False, False, 0, False)])
 		self.platform_connect_button.grid(row=4, column=1, pady=(5,2), padx=5)
-		self.platform_connect_button = tk.Button(self, text="Screen Power: USB", font=tkfont.Font(family='Helvetica', size=9), width="18", command=lambda:[self.action_button(False, False, True, False)])
+		self.platform_connect_button = tk.Button(self, text="Screen Power: USB", font=tkfont.Font(family='Helvetica', size=9), width="18", command=lambda:[self.action_button(False, False, True, False, 0, False)])
 		self.platform_connect_button.grid(row=4, column=2, pady=(5,2), padx=5)
-		self.platform_connect_button = tk.Button(self, text="Screen Power: Battery", font=tkfont.Font(family='Helvetica', size=9), width="18", command=lambda:[self.action_button(False, False, False, True)])
+		self.platform_connect_button = tk.Button(self, text="Screen Power: Battery", font=tkfont.Font(family='Helvetica', size=9), width="18", command=lambda:[self.action_button(False, False, False, True, 0, False)])
 		self.platform_connect_button.grid(row=4, column=3, pady=(5,2), padx=5)
 		
 		# Log output
 		self.log_output_text = tk.Text(self, width=80, height=8, wrap=tk.WORD)
-		self.log_output_text.grid(row=5, column=0, columnspan=4, pady=(20,2), padx = 20)
+		self.log_output_text.grid(row=5, column=0, columnspan=4, pady=(15,2), padx = 20)
 		
 		# Monitor Button
 		self.empty_label = tk.Label(self, text="", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12), anchor="e")
-		self.empty_label.grid(sticky="e", row=6, column=0, pady=(0,2), padx=5)
+		self.empty_label.grid(sticky="e", row=6, column=0, pady=(5,2), padx=5)
 		self.monitor_button = tk.Button(self, text="Start Battery Monitoring", font=tkfont.Font(family='Helvetica', size=9), width="40", command=lambda:[self.monitor_button_action()])
-		self.monitor_button.grid(row=6, column=1, columnspan=2, pady=(5,20), padx=5)
+		self.monitor_button.grid(row=6, column=1, columnspan=2, pady=(5,2), padx=5)
+		
+		# Force Charge Voltage Row
+		self.force_charge_voltage_label = tk.Label(self, text="Force Charge Voltage :", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12), anchor="e")
+		self.force_charge_voltage_label.grid(sticky="e", row=7, column=0, pady=(25,15), padx=5)
+		self.frame_mv = tk.Frame(self, background="LightSteelBlue2")
+		self.force_charge_voltage_text_var = tk.IntVar()
+		self.force_charge_voltage_text = tk.Entry(self.frame_mv, width=10, justify='center', textvariable=self.force_charge_voltage_text_var)
+		self.force_charge_voltage_text.pack(side=tk.LEFT,pady=(0,0),padx=(0,0))
+		self.force_charge_voltage_label_mv = tk.Label(self.frame_mv, text=" mV", background="LightSteelBlue2", font=tkfont.Font(family='Helvetica', size=12))
+		self.force_charge_voltage_label_mv.pack(side=tk.LEFT,pady=(0,0),padx=(0,0))
+		self.frame_mv.grid(row=7, column=1, pady=(25,15), padx=5)
+		self.platform_connect_button = tk.Button(self, text="Force Charge Voltage", font=tkfont.Font(family='Helvetica', size=9), width="18", command=lambda:[self.action_button(False, False, False, False, self.force_charge_voltage_text_var.get(), False)])
+		self.platform_connect_button.grid(row=7, column=2, pady=(25,15), padx=5)
+		self.platform_connect_button = tk.Button(self, text="Stop Force Charge", font=tkfont.Font(family='Helvetica', size=9), width="18", command=lambda:[self.action_button(False, False, False, False, 0, True)])
+		self.platform_connect_button.grid(row=7, column=3, pady=(25,15), padx=5)
 		
 		# Device connection
 		self.mooltipass_device = mooltipass_hid_device()	
@@ -191,7 +204,7 @@ class BatteryMonitorApp(tk.Tk):
 		self.update()
 		
 		# Initial value fetch
-		self.after(500, self.action_button(False,False,False,False))
+		self.after(500, self.action_button(False,False,False,False,0,False))
 
 
 if __name__ == "__main__":
