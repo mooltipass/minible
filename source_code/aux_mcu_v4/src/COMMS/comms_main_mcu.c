@@ -400,6 +400,16 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 debug_tx_stop_continuous_tone();
                 break;
             }
+            case MAIN_MCU_COMMAND_FORCE_CHARGE_VOLT:
+            {
+                logic_battery_debug_force_charge_voltage(message->main_mcu_command_message.payload_as_uint16[0]);
+                break;
+            }
+            case MAIN_MCU_COMMAND_STOP_FORCE_CHARGE:
+            {
+                logic_battery_debug_stop_charge();
+                break;
+            }
             case MAIN_MCU_COMMAND_FUNC_TEST:
             {
                 /* Functional test: prepare answer message */
