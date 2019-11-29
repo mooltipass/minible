@@ -19,6 +19,7 @@ uint16_t logic_battery_peak_voltage = 0;
 /* Number of ticks since we saw the peak voltage */
 uint32_t logic_battery_nb_ticks_since_peak = 0;
 /* Diagnostic values */
+BOOL logic_battery_diag_charging_forced = FALSE;
 uint16_t logic_battery_diag_current_vbat = 0;
 int16_t logic_battery_diag_current_cur = 0;
 
@@ -66,6 +67,49 @@ int16_t logic_battery_get_charging_current(void)
 uint16_t logic_battery_get_stepdown_voltage(void)
 {
     return logic_battery_charge_voltage;
+}
+
+/*! \fn     logic_battery_debug_force_charge_voltage(uint16_t charge_voltage)
+*   \brief  Debug function to force a given charge voltage - use with care!!!!
+*   \param  charge_voltage  Charge voltage to be set
+*/
+void logic_battery_debug_force_charge_voltage(uint16_t charge_voltage)
+{
+    if (logic_battery_diag_charging_forced == FALSE)
+    {
+        /* Enable stepdown at provided voltage */
+        platform_io_enable_step_down(logic_battery_charge_voltage);
+        
+        /* Leave a little time for step down voltage to stabilize */
+        timer_delay_ms(1);
+        
+        /* Enable charge mosfets */
+        platform_io_enable_charge_mosfets();
+
+        /* Set boolean */
+        logic_battery_diag_charging_forced = TRUE;
+    }
+    else
+    {
+        /* Increment voltage */
+        platform_io_update_step_down_voltage(logic_battery_charge_voltage);
+    }
+}
+
+/*! \fn     logic_battery_debug_stop_charge(void)
+*   \brief  Debug function to stop the charge
+*/
+void logic_battery_debug_stop_charge(void)
+{
+    /* Disable charging */
+    platform_io_disable_charge_mosfets();
+    timer_delay_ms(1);
+    
+    /* Disable step-down */
+    platform_io_disable_step_down();
+
+    /* Reset bool */
+    logic_battery_diag_charging_forced = FALSE;
 }
 
 /*! \fn     logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
