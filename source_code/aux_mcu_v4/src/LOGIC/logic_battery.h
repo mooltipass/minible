@@ -37,9 +37,11 @@ typedef enum    {NIMH_12C_CHARGING} lb_nimh_charge_scheme_te;
 
 /* Prototypes */
 void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type);
+void logic_battery_debug_force_charge_voltage(uint16_t charge_voltage);
 lb_state_machine_te logic_battery_get_charging_status(void);
 uint16_t logic_battery_get_stepdown_voltage(void);
 int16_t logic_battery_get_charging_current(void);
+void logic_battery_debug_stop_charge(void);
 void logic_battery_stop_charging(void);
 uint16_t logic_battery_get_vbat(void);
 void logic_battery_init(void);
