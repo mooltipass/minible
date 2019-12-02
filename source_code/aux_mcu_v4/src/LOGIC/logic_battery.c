@@ -78,7 +78,7 @@ void logic_battery_debug_force_charge_voltage(uint16_t charge_voltage)
     if (logic_battery_diag_charging_forced == FALSE)
     {
         /* Enable stepdown at provided voltage */
-        platform_io_enable_step_down(logic_battery_charge_voltage);
+        platform_io_enable_step_down(charge_voltage);
         
         /* Leave a little time for step down voltage to stabilize */
         timer_delay_ms(1);
@@ -92,7 +92,7 @@ void logic_battery_debug_force_charge_voltage(uint16_t charge_voltage)
     else
     {
         /* Increment voltage */
-        platform_io_update_step_down_voltage(logic_battery_charge_voltage);
+        platform_io_update_step_down_voltage(charge_voltage);
     }
 }
 
