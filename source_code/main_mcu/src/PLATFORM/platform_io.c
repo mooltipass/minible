@@ -233,7 +233,7 @@ void platform_io_init_bat_adc_measurements(void)
     ADC_CTRLB_Type temp_adc_ctrb_reg;                                                           // Temp register
     temp_adc_ctrb_reg.reg = 0;                                                                  // Set to 0
     temp_adc_ctrb_reg.bit.RESSEL = ADC_CTRLB_RESSEL_16BIT_Val;                                  // Set to 16bit result to allow averaging mode
-    temp_adc_ctrb_reg.bit.PRESCALER = ADC_CTRLB_PRESCALER_DIV128_Val;                           // Set fclk_adc to 48M / 128 = 375kHz (or 62.5kHz)
+    temp_adc_ctrb_reg.bit.PRESCALER = ADC_CTRLB_PRESCALER_DIV32_Val;                            // Set fclk_adc to 48M / 32 = 1.5MHz (or 250kHz)
     ADC->CTRLB = temp_adc_ctrb_reg;                                                             // Write ctrlb
     ADC->AVGCTRL.reg = ADC_AVGCTRL_ADJRES(4) | ADC_AVGCTRL_SAMPLENUM_1024;                      // Average on 1024 samples. Expected time for avg: 375k/(12-1)/1024 = 33.3Hz = 30ms (or 180ms). Single conversion mode, single ended, 12bit
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                       // Wait for sync
