@@ -340,7 +340,10 @@ void logic_battery_task(void)
                         uint16_t current_to_compensate = voltage_diff_goal - (high_voltage - low_voltage);
                         
                         /* 1LSB is 0.4mA, R shunt is 1R, so adding 1mV increases the current by 2.5LSB */
-                        logic_battery_charge_voltage += (current_to_compensate * 51) >> 7;
+                        if (logic_battery_charge_voltage < 3000)
+                        {
+                            logic_battery_charge_voltage += (current_to_compensate * 51) >> 7;
+                        }
                         
                         /* Check for over voltage - may be caused by disconnected discharge path */
                         if (low_voltage >= LOGIC_BATTERY_MAX_V_FOR_CUR_REACH)
