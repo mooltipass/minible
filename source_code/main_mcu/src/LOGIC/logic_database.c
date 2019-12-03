@@ -410,7 +410,7 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
     }
     
     /* Then write back to flash at same address */
-    nodemgmt_write_child_node_block_to_flash(child_addr, (child_node_t*)&temp_cnode, TRUE);
+    nodemgmt_write_child_node_block_to_flash(child_addr, (child_node_t*)&temp_cnode, FALSE);
     nodemgmt_user_db_changed_actions(FALSE);
 }    
 
