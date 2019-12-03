@@ -150,6 +150,21 @@ void timer_initialize_timebase(void)
     genctrl.bit.RUNSTDBY = 1;                                           // Run in standby
     while ((GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) != 0);             // Wait for sync
     GCLK->GENCTRL = genctrl;                                            // Write register
+
+    /* Assign 48M to GCLK7, divide it by 240 to get 200kHz */
+    gendiv_reg.bit.ID = GCLK_CLKCTRL_GEN_GCLK7_Val;                     // Select gclk7
+    gendiv_reg.bit.DIV = 240;                                           // Divide by 240
+    while ((GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) != 0);             // Wait for sync
+    GCLK->GENDIV = gendiv_reg;                                          // Write register
+    genctrl.reg = 0;                                                    // Reset temp var
+    genctrl.bit.ID = GCLK_CLKCTRL_GEN_GCLK7_Val;                        // Select gclk3
+    genctrl.bit.SRC = GCLK_GENCTRL_SRC_DFLL48M_Val;                     // Assign 48MHz
+    genctrl.bit.GENEN = 1;                                              // Enable generator
+    genctrl.bit.DIVSEL = 0;                                             // Divide clock by gendiv.div
+    genctrl.bit.OE = 1;                                                 // Do not output clock
+    genctrl.bit.RUNSTDBY = 1;                                           // Run in standby
+    while ((GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) != 0);             // Wait for sync
+    GCLK->GENCTRL = genctrl;                                            // Write register
     
     /* Set GCLK Multiplexer 4 (for GCLK_RTC) to 1kHz GCLK3 */
     GCLK_CLKCTRL_Type clkctrl;                                          // Clkctrl struct
