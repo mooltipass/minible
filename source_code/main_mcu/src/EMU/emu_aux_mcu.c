@@ -12,6 +12,10 @@ static aux_mcu_message_t response;
 static void send_hid_message(aux_mcu_message_t *msg);
 static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *response);
 
+/* copied from aux mcu/src/LOGIC/logic_battery.h */
+typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7} lb_state_machine_te;
+static lb_state_machine_te emu_charger_status;
+
 void emu_send_aux(char *data, int size)
 {
     aux_mcu_message_t *msg = (aux_mcu_message_t*)data;
@@ -55,7 +59,7 @@ void emu_send_aux(char *data, int size)
             memset(&response, 0, sizeof(response));
             response.message_type = msg->message_type;
             response.payload_length1 = sizeof(nimh_charge_message_t);
-            response.nimh_charge_message.charge_status = 0;
+            response.nimh_charge_message.charge_status = emu_charger_status;
             response.nimh_charge_message.battery_voltage = 1;
             response.nimh_charge_message.charge_current = 2;
             response_valid = TRUE;
@@ -71,27 +75,37 @@ void emu_send_aux(char *data, int size)
     }
 }
 
-static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *response)
+static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *resp)
 {
     switch(msg->main_mcu_command_message.command) {
         case MAIN_MCU_COMMAND_SLEEP:
             break;
 
         case MAIN_MCU_COMMAND_PING:
-            memcpy(response, msg, sizeof(*response));
+            memcpy(resp, msg, sizeof(*resp));
             return TRUE;
 
         case MAIN_MCU_COMMAND_ENABLE_BLE:
-            response->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-            response->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
-            response->payload_length1 = sizeof(response->aux_mcu_event_message.event_id);
+            resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+            resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
+            resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
             return TRUE;
 
         case MAIN_MCU_COMMAND_DISABLE_BLE:
-            response->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-            response->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISABLED;
-            response->payload_length1 = sizeof(response->aux_mcu_event_message.event_id);
+            resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+            resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISABLED;
+            resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
             return TRUE;
+
+        case MAIN_MCU_COMMAND_NIMH_CHARGE:
+            emu_charger_status = LB_CHARGE_START_RAMPING;
+            emu_charger_enable(TRUE);
+            return FALSE;
+
+        case MAIN_MCU_COMMAND_DETACH_USB:
+            emu_charger_status = LB_IDLE;
+            emu_charger_enable(FALSE);
+            return FALSE;
     }
 
     return FALSE;
@@ -110,6 +124,20 @@ int emu_rcv_aux(char *data, int size)
         memcpy(data, &response, sizeof(response));
         response_valid = FALSE;
         return sizeof(response);
+    }
+
+    /* generate "charging done" message */
+    if(emu_charger_status == LB_CHARGE_START_RAMPING) {
+        if(emu_get_battery_level() == 100) {
+            emu_charger_enable(FALSE);
+            emu_charger_status = LB_CHARGING_DONE;
+            memset(&response, 0, sizeof(response));
+            response.message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+            response.payload_length1 = sizeof(response.aux_mcu_event_message.event_id);
+            response.aux_mcu_event_message.event_id = AUX_MCU_EVENT_CHARGE_DONE;
+            memcpy(data, &response, sizeof(response));
+            return sizeof(response);
+        }
     }
 
     return emu_rcv_aux_hid((aux_mcu_message_t*)data);

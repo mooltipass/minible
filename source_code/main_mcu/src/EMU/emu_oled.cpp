@@ -15,6 +15,7 @@ extern "C" {
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QThread>
+#include <QTimer>
 
 #define FB_WIDTH (256)
 #define FB_HEIGHT (64)
@@ -100,21 +101,22 @@ void emu_oled_flush(void)
         fb_pending = fb_req;
         fb_next = (fb_next+1)%2;
 
-        postToObject([fb_req]() {
+        // use a timer to coalesce multiple repaints 
+        QTimer::singleShot(2, oled, [fb_req]() {
             fb_update.lock();
             if(fb_req == fb_pending)
                 fb_pending = -1;
             fb_update.unlock();
             oled->update_display(framebuffers[fb_req]);
-        }, oled);
+        });
     }
 
     fb_update.unlock();
 }
 
 OLEDWidget::OLEDWidget(): display(256, 64, QImage::Format_RGB888) {
-    setMinimumSize(display.size()*2);
-    setMaximumSize(display.size()*2);
+    setMinimumSize(display.size());
+    setMaximumSize(display.size());
 }
 
 OLEDWidget::~OLEDWidget() {
@@ -220,15 +222,19 @@ void OLEDWidget::keyPressEvent(QKeyEvent *evt) {
     irq_mutex.lock();
     switch(evt->key()) {
     case Qt::Key_Up:
+    case Qt::Key_Left:
         inputs_wheel_cur_increment--;
         break;
     case Qt::Key_Down:
+    case Qt::Key_Right:
         inputs_wheel_cur_increment++;
         break;
-    case Qt::Key_Right:
+    case Qt::Key_Space:
+    case Qt::Key_Enter:
+    case Qt::Key_Return:
         set_emulated_wheel_state(true);
         break;
-    case Qt::Key_Left:
+    case Qt::Key_Backspace:
         inputs_wheel_click_duration_counter=3000;
         break;
     }
@@ -238,10 +244,10 @@ void OLEDWidget::keyPressEvent(QKeyEvent *evt) {
 void OLEDWidget::keyReleaseEvent(QKeyEvent *evt) {
     irq_mutex.lock();
     switch(evt->key()) {
-    case Qt::Key_Right:
+    case Qt::Key_Space:
+    case Qt::Key_Enter:
+    case Qt::Key_Return:
         set_emulated_wheel_state(false);
-        break;
-    case Qt::Key_Left:
         break;
     }
     irq_mutex.unlock();

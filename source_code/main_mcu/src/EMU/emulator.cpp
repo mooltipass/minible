@@ -3,6 +3,7 @@ extern "C" {
 #include "driver_timer.h"
 #include "emulator.h"
 #include "inputs.h"
+#include "logic_power.h"
 }
 
 #include <QApplication>
@@ -13,9 +14,12 @@ extern "C" {
 #include <QMutex>
 #include <QTime>
 #include <QLocalSocket>
+#include <QCommandLineParser>
+#include <QElapsedTimer>
 
 #include "emu_oled.h"
 #include "emu_smartcard.h"
+#include "emu_dataflash.h"
 #include "emulator_ui.h"
 
 static struct emu_port_t _PORT;
@@ -42,7 +46,7 @@ static void pseudo_irq(void)
     inputs_scan();
     
     /* Power logic */
-//            logic_power_ms_tick();
+    logic_power_ms_tick();
 
     irq_mutex.unlock();
 }
@@ -136,12 +140,45 @@ int emu_rcv_hid(char *data, int size)
     return app_thread.rcv_hid(data, size);
 }
 
+static QElapsedTimer systick_timer;
+static QMutex systick_mutex;
+static uint64_t last_systick;
+
+BOOL emu_get_systick(uint32_t *value)
+{
+    systick_mutex.lock();
+    // milliseconds to 48MHz ticks
+    uint64_t systick = systick_timer.elapsed() * (uint64_t)48000;
+    BOOL wrapped = FALSE;
+    if((systick & 0xffffff) != (last_systick & 0xffffff))
+        wrapped = TRUE;
+
+    *value = systick & 0xffffff;
+    last_systick = systick;
+
+    systick_mutex.unlock();
+    return wrapped;
+}
+
 int main(int ac, char ** av)
 {
     // Qt needs to run on the main thread. We run the application code on a separate thread
     // (1) to ensure responsiveness when the main code blocks
     // (2) to have our input behave in an interrupt-like manner
     QApplication app(ac, av);
+
+    // ensure that the calendar works in UTC, so that time doesn't shift unpredictably
+    qputenv("TZ", "");
+
+    systick_timer.start();
+
+    QCommandLineParser parser;
+    parser.addHelpOption();
+
+    parser.addOption(QCommandLineOption("smartcard", "Smartcard file to be used at startup", "smartcard"));
+    parser.addOption(QCommandLineOption("bundle", "Specify path to bundle.img file", "bundle"));
+    parser.process(app);
+
     QTimer ms_timer;
     ms_timer.setInterval(1);
     ms_timer.start();
@@ -156,8 +193,10 @@ int main(int ac, char ** av)
 
     oled = new OLEDWidget;
 
-    if(av[1])
-        emu_insert_smartcard(av[1]);
+    if(parser.isSet("smartcard"))
+        emu_insert_smartcard(parser.value("smartcard"));
+
+    emu_dataflash_init(parser.value("bundle").toUtf8().constData());
 
     EmuWindow emu_window;
     emu_window.show();

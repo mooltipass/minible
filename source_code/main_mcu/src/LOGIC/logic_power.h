@@ -25,7 +25,13 @@
 #define LOGIC_POWER_H_
 
 /* Defines */
+#ifdef EMULATOR_BUILD
+/* Reduce the wait to 5 seconds on emulator */
+#define NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE     (5UL * 1000UL)
+#else
 #define NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE     (5UL * 60UL * 1000UL)
+#endif
+
 #define NB_CONVERSIONS_BEFORE_POWER_ACTIONS             5                       // Around 150ms
 
 /* Enums */

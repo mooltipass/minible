@@ -28,6 +28,16 @@
 #include "logic_power.h"
 #include "platform_io.h"
 #include "inputs.h"
+
+#ifdef EMULATOR_BUILD
+#include "emulator.h"
+#include <time.h>
+/* Difference between system time and emulated RTC
+ * rtc_time = time(NULL) + rtc_offset
+ */
+static int rtc_offset;
+#endif
+
 /* Timer array */
 volatile timerEntry_t context_timers[TOTAL_NUMBER_OF_TIMERS];
 /* System tick */
@@ -163,7 +173,18 @@ void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t ho
     while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
     RTC->MODE2.CLOCK = new_date;
 #else
-    // FIXME
+    struct tm date;
+    time_t rtc_time;
+    date.tm_sec = second;
+    date.tm_min = minute;
+    date.tm_hour = hour;
+    date.tm_mday = day;
+    date.tm_mon = month-1;
+    date.tm_year = year-1900;
+    date.tm_isdst = 0;
+
+    rtc_time = mktime(&date);
+    rtc_offset = (int)rtc_time - (int)time(NULL);
 #endif
 }
 
@@ -179,7 +200,14 @@ void timer_get_calendar(calendar_t* calendar_pt)
     while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
     *calendar_pt = RTC->MODE2.CLOCK;                                    // Store current time
 #else
-    // FIXME
+    time_t rtc_time = time(NULL) + rtc_offset;
+    struct tm *date = gmtime(&rtc_time);
+    calendar_pt->bit.YEAR = date->tm_year + 1900 - 2000;
+    calendar_pt->bit.MONTH = date->tm_mon + 1;
+    calendar_pt->bit.DAY = date->tm_mday;
+    calendar_pt->bit.HOUR = date->tm_hour;
+    calendar_pt->bit.MINUTE = date->tm_min;
+    calendar_pt->bit.SECOND = date->tm_sec;
 #endif
 }
 
@@ -223,8 +251,8 @@ BOOL timer_get_mcu_systick(uint32_t* value)
         return FALSE;
     }
 #else
-    // FIXME
-    return FALSE;
+    /* for portability, use qt's timers */
+    return emu_get_systick(value);
 #endif
 }
 
