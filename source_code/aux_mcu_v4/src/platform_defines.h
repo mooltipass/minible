@@ -88,6 +88,7 @@ typedef uint32_t PIN_ID_T;
 /* GCLK ID defines */
 #define GCLK_ID_48M             GCLK_CLKCTRL_GEN_GCLK0_Val
 #define GCLK_ID_32K             GCLK_CLKCTRL_GEN_GCLK3_Val
+#define GCLK_ID_200K            GCLK_CLKCTRL_GEN_GCLK7_Val
 
 /* ADC defines */
 #if defined(PLAT_V3_SETUP)
