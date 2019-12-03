@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    9
+#define FW_MINOR    10
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -25,6 +25,8 @@
 - v0.8: aux to main mcu protocol change (requires hard programming)
 - v0.9: - detecting USB frames to check for USB timeout
         - delay before first battery charging action
+- v0.10:- improved USB performance
+        - faster battery charging
 */
 
 /**************** SETUP DEFINES ****************/

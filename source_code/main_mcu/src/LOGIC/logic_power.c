@@ -104,6 +104,7 @@ void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_su
     if ((battery_charging == FALSE) && (charge_success != FALSE))
     {
         logic_power_nb_ms_spent_since_last_full_charge = 0;
+        logic_power_last_vbat_measurement =BATTERY_ADC_80PCT_VOLTAGE + 1;
         custom_fs_define_nb_ms_since_last_full_charge(logic_power_nb_ms_spent_since_last_full_charge);
     }
 }

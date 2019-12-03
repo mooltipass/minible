@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    9
+#define FW_MINOR    10
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -41,6 +41,8 @@
         - logic change: now using an "all categories" filter instead of "default category"
 - v0.9: - waiting for aux MCU confirmation when detaching USB
         - taking into account battery measurements only when USB isn't present
+- v0.10:- faster UI
+        - improved battery charging algorithm
 */
 
 /**************** SETUP DEFINES ****************/

@@ -33,7 +33,7 @@ class BatteryMonitorApp(tk.Tk):
 		# Continue Monitoring
 		if self.monitoring_bool:
 			self.action_button(False,False,False,False,0,False)
-			self.after(1000, self.monitoring_routine)		
+			self.after(100, self.monitoring_routine)		
 
 	def action_button(self, start_charging, stop_charging, switch_to_usb_screen_power, switch_to_battery_screen_power, force_charge_voltage, stop_force_charge):
 		# Send action to device
