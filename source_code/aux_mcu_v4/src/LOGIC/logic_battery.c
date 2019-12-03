@@ -306,6 +306,12 @@ void logic_battery_task(void)
                         voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_12C;
                     }
                     
+                    /* Sanity checks on measured voltages (due to slow interrupt) */
+                    if (high_voltage < low_voltage)
+                    {
+                        high_voltage = low_voltage;
+                    }
+                    
                     /* End of charge detection here */
                     if ((logic_battery_peak_voltage - low_voltage) > LOGIC_BATTERY_END_OF_CHARGE_NEG_V)
                     {
@@ -330,8 +336,11 @@ void logic_battery_task(void)
                     }                        
                     else if ((high_voltage - low_voltage) < voltage_diff_goal - 2)
                     {
-                        /* Increase charge voltage */
-                        logic_battery_charge_voltage += LOGIC_BATTERY_BAT_CUR_REACH_V_INC;
+                        /* Do some math to compute by how much we need to raise the charge voltage */
+                        uint16_t current_to_compensate = voltage_diff_goal - (high_voltage - low_voltage);
+                        
+                        /* 1LSB is 0.4mA, R shunt is 1R, so adding 1mV increases the current by 2.5LSB */
+                        logic_battery_charge_voltage += (current_to_compensate * 51) >> 7;
                         
                         /* Check for over voltage - may be caused by disconnected discharge path */
                         if (low_voltage >= LOGIC_BATTERY_MAX_V_FOR_CUR_REACH)
