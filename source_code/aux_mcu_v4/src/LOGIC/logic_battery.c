@@ -138,6 +138,10 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
 
     /* Timer before starting our charging algorithm */
     timer_start_timer(TIMER_BATTERY_TICK, LOGIC_BATTERY_START_CHARGE_DELAY);
+
+    /* Reset vars */
+    logic_battery_nb_ticks_since_peak = 0;
+    logic_battery_peak_voltage = 0;
 }
 
 /*! \fn     logic_battery_stop_charging(void)
