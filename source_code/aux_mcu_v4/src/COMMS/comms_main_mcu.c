@@ -368,7 +368,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             case MAIN_MCU_COMMAND_NIMH_CHARGE:
             {
                 /* Charge NiMH battery */
-                logic_battery_start_charging(NIMH_12C_CHARGING);
+                logic_battery_start_charging(NIMH_23C_CHARGING);
                 break;
             }
             case MAIN_MCU_COMMAND_STOP_CHARGE:

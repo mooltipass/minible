@@ -240,6 +240,10 @@ void logic_battery_task(void)
                     {
                         voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_12C;
                     } 
+                    else if (logic_battery_charging_type == NIMH_23C_CHARGING)
+                    {
+                        voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_23C;
+                    }
                     
                     /* Is enough current flowing into the battery? */
                     if ((high_voltage - low_voltage) > voltage_diff_goal)
@@ -308,6 +312,10 @@ void logic_battery_task(void)
                     if (logic_battery_charging_type == NIMH_12C_CHARGING)
                     {
                         voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_12C;
+                    }
+                    else if (logic_battery_charging_type == NIMH_23C_CHARGING)
+                    {
+                        voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_23C;
                     }
                     
                     /* Sanity checks on measured voltages (due to slow interrupt) */

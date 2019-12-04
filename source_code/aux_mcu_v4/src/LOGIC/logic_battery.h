@@ -11,7 +11,7 @@
 
 /* Enums */
 typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7} lb_state_machine_te;
-typedef enum    {NIMH_12C_CHARGING} lb_nimh_charge_scheme_te;
+typedef enum    {NIMH_12C_CHARGING, NIMH_23C_CHARGING} lb_nimh_charge_scheme_te;
 
     
 /* Defines */
@@ -29,11 +29,12 @@ typedef enum    {NIMH_12C_CHARGING} lb_nimh_charge_scheme_te;
 #define LOGIC_BATTERY_CUR_REACH_TICK        5       // Time intervals between decisions
 #define LOGIC_BATTERY_BAT_CUR_REACH_V_INC   1       // Voltage increments for charge
 #define LOGIC_BATTERY_CUR_FOR_REACH_END_12C 275     // ADC value different between high & low cursense to stop current reach ramping: 1LSB = 0.5445mA
+#define LOGIC_BATTERY_CUR_FOR_REACH_END_23C 367     // ADC value different between high & low cursense to stop current reach ramping: 1LSB = 0.5445mA
 #define LOGIC_BATTERY_MAX_V_FOR_CUR_REACH   2938    // Voltage at which we consider that something is wrong (around 1.6V)
 /* Charging current maintaining */
 #define LOGIC_BATTERY_CUR_MAINTAIN_TICK     10      // Time intervals between decisions
 /* End of charge detection */
-#define LOGIC_BATTERY_END_OF_CHARGE_NEG_V   5      // Decrease in ADC value during charging (around 2mV)
+#define LOGIC_BATTERY_END_OF_CHARGE_NEG_V   2      // Decrease in ADC value during charging (around 1.5mV)
 
 /* Prototypes */
 void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type);

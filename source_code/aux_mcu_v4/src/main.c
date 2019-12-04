@@ -148,7 +148,7 @@ int main(void)
     main_platform_init();
     
     //udc_attach();
-    //logic_battery_start_charging(NIMH_12C_CHARGING);
+    //logic_battery_start_charging(NIMH_23C_CHARGING);
     #define bla
     #ifdef bla
     while(TRUE)
