@@ -1352,7 +1352,7 @@ void logic_bluetooth_set_battery_level(uint8_t pct)
     logic_bluetooth_ble_battery_level = pct;
 
     /* send the notification and Update the battery level  */
-    if(logic_bluetooth_battery_notification_flag)
+    if ((logic_bluetooth_battery_notification_flag != FALSE) && (logic_bluetooth_paired != FALSE))
     {
         if(bat_update_char_value(logic_bluetooth_ble_connection_handle,&logic_bluetooth_bas_service_handler, pct, logic_bluetooth_battery_notification_flag) == AT_BLE_SUCCESS)
         {
@@ -1406,7 +1406,7 @@ void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
 */
 ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key)
 {
-    if (logic_bluetooth_connected != FALSE)
+    if (logic_bluetooth_paired != FALSE)
     {
         logic_bluetooth_notif_being_sent = KEYBOARD_NOTIF_SENDING;
         logic_bluetooth_keyboard_in_report[0] = modifier;

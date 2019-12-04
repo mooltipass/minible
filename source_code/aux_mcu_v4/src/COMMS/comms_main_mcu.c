@@ -377,6 +377,12 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 logic_battery_stop_charging();
                 break;
             }
+            case MAIN_MCU_COMMAND_SET_BATTERYLVL:
+            {
+                /* Set battery level on bluetooth service */
+                logic_bluetooth_set_battery_level(message->main_mcu_command_message.payload[0]);
+                break;
+            }
             case MAIN_MCU_COMMAND_NO_COMMS_UNAV:
             {
                 /* No comms signal unavailable */
