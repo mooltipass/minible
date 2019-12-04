@@ -58,9 +58,9 @@ class BatteryMonitorApp(tk.Tk):
 			else:
 				self.charging_state_value.config(text='Charging')
 			self.main_adc_voltage_value.config(text=str((main_adc_val*199)>>9) + "mV")
-			self.aux_adc_voltage_value.config(text=str((aux_battery_voltage*103)>>8) + "mV")
+			self.aux_adc_voltage_value.config(text=str(round(aux_battery_voltage*0.5445)) + "mV")
 			self.aux_charge_status_value.config(text=str(aux_charge_status))
-			self.aux_charge_current_value.config(text=str(int(aux_charge_current*0.4))+"mA")
+			self.aux_charge_current_value.config(text=str(int(aux_charge_current*0.5445))+"mA")
 			self.aux_stepdown_voltage_value.config(text=str(aux_stepdown_voltage))
 			self.aux_data_register_value.config(text=str(aux_dac_data_reg))
 		
@@ -77,8 +77,8 @@ class BatteryMonitorApp(tk.Tk):
 			self.log_file_fd.write(str(self.log_counter) + ",")
 			self.log_file_fd.write(strftime("%Y-%m-%d_%H:%M:%S", localtime()) + ",")
 			self.log_file_fd.write(str((main_adc_val*199)>>9) + ",")
-			self.log_file_fd.write(str((aux_battery_voltage*103)>>8) + ",")
-			self.log_file_fd.write(str(int(aux_charge_current*0.4)) + ",")
+			self.log_file_fd.write(str(round(aux_battery_voltage*0.5445)) + ",")
+			self.log_file_fd.write(str(int(aux_charge_current*0.5445)) + ",")
 			self.log_file_fd.write(str(aux_charge_status) + ",")
 			self.log_file_fd.write(str(aux_stepdown_voltage) + ",")
 			self.log_file_fd.write(str(aux_dac_data_reg))
