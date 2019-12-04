@@ -27,6 +27,7 @@
         - delay before first battery charging action
 - v0.10:- improved USB performance
         - faster battery charging
+        - battery charging fixed
 */
 
 /**************** SETUP DEFINES ****************/

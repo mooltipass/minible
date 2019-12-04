@@ -248,12 +248,12 @@ void platform_io_enable_battery_charging_ports(void)
     /* Setup ADC */
     PM->APBCMASK.bit.ADC_ = 1;                                                                      // Enable ADC bus clock
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, GCLK_CLKCTRL_ID_ADC_Val);                      // Map 48MHz to ADC unit
-    ADC->REFCTRL.reg = ADC_REFCTRL_REFSEL(ADC_REFCTRL_REFSEL_INTVCC1_Val);                          // Set VCC/2 as a reference
+    ADC->REFCTRL.reg = ADC_REFCTRL_REFSEL(ADC_REFCTRL_REFSEL_INTVCC0_Val);                          // Set VCC/1.48 as a reference
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
     ADC_CTRLB_Type temp_adc_ctrb_reg;                                                               // Temp register
     temp_adc_ctrb_reg.reg = 0;                                                                      // Set to 0
     temp_adc_ctrb_reg.bit.RESSEL = ADC_CTRLB_RESSEL_16BIT_Val;                                      // Set to 16bit result to allow averaging mode
-    temp_adc_ctrb_reg.bit.PRESCALER = ADC_CTRLB_PRESCALER_DIV32_Val;                               // Set fclk_adc to 48M / 32 = 1.5MHz
+    temp_adc_ctrb_reg.bit.PRESCALER = ADC_CTRLB_PRESCALER_DIV32_Val;                                // Set fclk_adc to 48M / 32 = 1.5MHz
     ADC->CTRLB = temp_adc_ctrb_reg;                                                                 // Write ctrlb
     ADC->AVGCTRL.reg = ADC_AVGCTRL_ADJRES(4) | ADC_AVGCTRL_SAMPLENUM_1024;                          // Average on 1024 samples. Expected time for avg: 1.5M/(12-1)/1024 = 133Hz = 7.5ms. Single conversion mode, single ended, 12bit
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
