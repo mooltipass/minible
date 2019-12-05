@@ -29,6 +29,10 @@
 #include "custom_fs.h"
 #include "sh1122.h"
 #include "main.h"
+/* Array mapping battery levels with adc readouts */
+uint16_t logic_power_battery_level_mapping[10] = {BATTERY_ADC_OUT_CUTOUT, BATTERY_ADC_10PCT_VOLTAGE, BATTERY_ADC_20PCT_VOLTAGE, BATTERY_ADC_30PCT_VOLTAGE, BATTERY_ADC_40PCT_VOLTAGE, BATTERY_ADC_50PCT_VOLTAGE, BATTERY_ADC_60PCT_VOLTAGE, BATTERY_ADC_70PCT_VOLTAGE, BATTERY_ADC_80PCT_VOLTAGE, BATTERY_ADC_90PCT_VOLTAGE};
+/* Current battery level in percent tenth */
+uint16_t logic_power_current_battery_level = 10;
 /* Last seen voled stepup power source */
 oled_stepup_pwr_source_te logic_power_last_seen_voled_stepup_pwr_source = OLED_STEPUP_SOURCE_NONE;
 // Number of ms spent on battery since the last full charge
@@ -80,7 +84,9 @@ power_source_te logic_power_get_power_source(void)
 */
 void logic_power_init(void)
 {
+    cpu_irq_enter_critical();
     logic_power_nb_ms_spent_since_last_full_charge = custom_fs_get_nb_ms_since_last_full_charge();
+    cpu_irq_leave_critical();
 }
 
 /*! \fn     logic_power_power_down_actions(void)
@@ -88,7 +94,8 @@ void logic_power_init(void)
 */
 void logic_power_power_down_actions(void)
 {
-    custom_fs_define_nb_ms_since_last_full_charge(logic_power_nb_ms_spent_since_last_full_charge);
+    volatile uint32_t nb_ms_since_charge_copy = logic_power_nb_ms_spent_since_last_full_charge;
+    custom_fs_define_nb_ms_since_last_full_charge(nb_ms_since_charge_copy);
 }
 
 /*! \fn     logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_success)
@@ -103,9 +110,11 @@ void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_su
     /* In case of charge success, reset our counter */
     if ((battery_charging == FALSE) && (charge_success != FALSE))
     {
+        cpu_irq_enter_critical();
         logic_power_nb_ms_spent_since_last_full_charge = 0;
-        logic_power_last_vbat_measurement =BATTERY_ADC_80PCT_VOLTAGE + 1;
-        custom_fs_define_nb_ms_since_last_full_charge(logic_power_nb_ms_spent_since_last_full_charge);
+        cpu_irq_leave_critical();
+        logic_power_last_vbat_measurement = BATTERY_ADC_80PCT_VOLTAGE + 1;
+        custom_fs_define_nb_ms_since_last_full_charge(0);
     }
 }
 
@@ -180,6 +189,8 @@ BOOL logic_power_is_usb_enumerate_sent_clear_bool(void)
 */
 power_action_te logic_power_routine(void)
 {        
+    volatile uint32_t nb_ms_since_full_charge_copy = logic_power_nb_ms_spent_since_last_full_charge;
+    
     /* Get current oled power source */
     oled_stepup_pwr_source_te current_voled_pwr_source = platform_io_get_voled_stepup_pwr_source();
     
@@ -230,7 +241,7 @@ power_action_te logic_power_routine(void)
     logic_power_last_seen_voled_stepup_pwr_source = current_voled_pwr_source;
     
     /* Battery charging */
-    if ((logic_power_get_power_source() == USB_POWERED) && (logic_power_is_usb_enumerate_sent_clear_bool() != FALSE) && (logic_power_battery_charging == FALSE) && (logic_power_nb_ms_spent_since_last_full_charge >= NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
+    if ((logic_power_get_power_source() == USB_POWERED) && (logic_power_is_usb_enumerate_sent_clear_bool() != FALSE) && (logic_power_battery_charging == FALSE) && (nb_ms_since_full_charge_copy >= NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
         logic_power_battery_charging = TRUE;
@@ -259,7 +270,7 @@ power_action_te logic_power_routine(void)
             logic_power_last_vbat_measurement = current_vbat;
             
             /* Safety: if the voltage is low enough, we override logic_power_nb_ms_spent_since_last_full_charge */
-            if ((logic_power_last_vbat_measurement < BATTERY_ADC_60PCT_VOLTAGE) && (logic_power_nb_ms_spent_since_last_full_charge < NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
+            if ((logic_power_last_vbat_measurement < BATTERY_ADC_60PCT_VOLTAGE) && (nb_ms_since_full_charge_copy < NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
             {
                 cpu_irq_enter_critical();
                 logic_power_nb_ms_spent_since_last_full_charge = NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE;
