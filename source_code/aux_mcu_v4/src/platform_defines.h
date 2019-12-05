@@ -28,6 +28,7 @@
 - v0.10:- improved USB performance
         - faster battery charging
         - battery charging fixed
+        - correct BLE battery readout
 */
 
 /**************** SETUP DEFINES ****************/

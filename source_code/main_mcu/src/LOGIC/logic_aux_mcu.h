@@ -26,6 +26,7 @@
 #include "defines.h"
 
 /* Prototypes */
+void logic_aux_mcu_update_aux_mcu_of_new_battery_level(uint16_t battery_level_pct);
 RET_TYPE logic_aux_mcu_flash_firmware_update(BOOL connect_to_usb_if_needed);
 void logic_aux_mcu_set_usb_enumerated_bool(BOOL usb_enumerated);
 void logic_aux_mcu_set_ble_enabled_bool(BOOL ble_enabled);

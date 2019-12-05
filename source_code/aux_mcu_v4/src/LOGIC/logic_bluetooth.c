@@ -46,6 +46,7 @@ BOOL logic_bluetooth_battery_notification_flag = TRUE;
 /* Bluetooth connection handle */
 at_ble_handle_t logic_bluetooth_ble_connection_handle;
 /* Battery level advertised */
+uint8_t logic_bluetooth_pending_battery_level = UINT8_MAX;
 uint8_t logic_bluetooth_ble_battery_level = 33;
 /* Array of pointers to keyboard & raw hid profiles */
 hid_prf_info_t* hid_prf_dataref[HID_MAX_SERV_INST];
@@ -1349,21 +1350,14 @@ ret_type_te logic_bluetooth_stop_advertising(void)
 */
 void logic_bluetooth_set_battery_level(uint8_t pct)
 {
-    logic_bluetooth_ble_battery_level = pct;
-
-    /* send the notification and Update the battery level  */
-    if ((logic_bluetooth_battery_notification_flag != FALSE) && (logic_bluetooth_paired != FALSE))
+    DBG_LOG("battery level:%d%%", pct);
+    if (logic_bluetooth_paired == FALSE)
     {
-        if(bat_update_char_value(logic_bluetooth_ble_connection_handle,&logic_bluetooth_bas_service_handler, pct, logic_bluetooth_battery_notification_flag) == AT_BLE_SUCCESS)
-        {
-            DBG_LOG("Battery Level:%d%%", pct);
-            logic_bluetooth_battery_notification_flag = FALSE;
-            logic_bluetooth_notif_being_sent = BATTERY_NOTIF_SENDING;
-        }
-        else
-        {
-            logic_bluetooth_notif_being_sent = NONE_NOTIF_SENDING;            
-        }
+        logic_bluetooth_ble_battery_level = pct;
+    } 
+    else
+    {
+        logic_bluetooth_pending_battery_level = pct;
     }
 }
 
@@ -1443,6 +1437,28 @@ ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key)
 */
 void logic_bluetooth_routine(void)
 {
+    /* Update battery pct if needed */
+    if (logic_bluetooth_pending_battery_level != UINT8_MAX)
+    {
+        logic_bluetooth_ble_battery_level = logic_bluetooth_pending_battery_level;
+        logic_bluetooth_pending_battery_level = UINT8_MAX;
+
+        /* send the notification and Update the battery level  */
+        if ((logic_bluetooth_battery_notification_flag != FALSE) && (logic_bluetooth_paired != FALSE))
+        {
+            if(bat_update_char_value(logic_bluetooth_ble_connection_handle,&logic_bluetooth_bas_service_handler, logic_bluetooth_ble_battery_level, logic_bluetooth_battery_notification_flag) == AT_BLE_SUCCESS)
+            {
+                DBG_LOG("Notif battery level:%d%%", logic_bluetooth_ble_battery_level);
+                logic_bluetooth_battery_notification_flag = FALSE;
+                logic_bluetooth_notif_being_sent = BATTERY_NOTIF_SENDING;
+            }
+            else
+            {
+                logic_bluetooth_notif_being_sent = NONE_NOTIF_SENDING;
+            }
+        }
+    }
+    
     ble_event_task();
     logic_sleep_routine_ble_call();
     

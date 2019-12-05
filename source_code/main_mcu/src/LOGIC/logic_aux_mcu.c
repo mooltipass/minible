@@ -142,6 +142,24 @@ void logic_aux_mcu_disable_ble(BOOL wait_for_disabled)
     }
 }
 
+/*! \fn     logic_power_update_aux_mcu_of_new_battery_level(uint16_t battery_level_pct)
+*   \brief  Let the aux mcu know about the new battery level
+*   \param  battery_level_pct   Battery level in pcts
+*/
+void logic_aux_mcu_update_aux_mcu_of_new_battery_level(uint16_t battery_level_pct)
+{
+    aux_mcu_message_t* temp_tx_message_pt;
+    
+    /* Prepare message */
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+    temp_tx_message_pt->main_mcu_command_message.command = MAIN_MCU_COMMAND_SET_BATTERYLVL;
+    temp_tx_message_pt->main_mcu_command_message.payload[0] = (uint8_t)battery_level_pct;
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->main_mcu_command_message.command) + sizeof(temp_tx_message_pt->main_mcu_command_message.payload[0]);
+    
+    /* Send message */
+    comms_aux_mcu_send_message(TRUE);
+}
+
 /*! \fn     comms_aux_mcu_get_ble_chip_id(void)
 *   \brief  Get ATBTLC1000 chip ID
 *   \return uint32_t of chipID, 0 if error

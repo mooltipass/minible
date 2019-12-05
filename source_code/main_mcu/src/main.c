@@ -129,12 +129,23 @@ void main_platform_init(void)
     while(platform_io_is_voledin_conversion_result_ready() == FALSE);       // Do measurement even if we are USB powered, to leave exactly 180ms for platform boot
     
     /* Check if battery powered and under-voltage */
-    uint16_t battery_voltage = platform_io_get_voledin_conversion_result_and_trigger_conversion();
-    logic_power_register_vbat_adc_measurement(battery_voltage);
+    uint32_t battery_voltage = platform_io_get_voledin_conversion_result_and_trigger_conversion();
     if ((platform_io_is_usb_3v3_present_raw() == FALSE) && (battery_voltage < BATTERY_ADC_OUT_CUTOUT))
     {
         platform_io_disable_switch_and_die();
         while(1);
+    }
+    
+    /* Register vbat measurement and adjust it if we are USB powered */
+    if (platform_io_is_usb_3v3_present_raw() == FALSE)
+    {
+        logic_power_register_vbat_adc_measurement((uint16_t)battery_voltage);
+    } 
+    else
+    {
+        /* Real ratio is 3300 / 3188 */
+        battery_voltage = (battery_voltage*33) >> 5;
+        logic_power_register_vbat_adc_measurement((uint16_t)battery_voltage);
     }
     
     /* Check fuses, program them if incorrectly set */
@@ -568,6 +579,10 @@ int main(void)
                 /* Call the power routine that will take care of power switch */
                 logic_power_routine();
             }                
+        }
+        else if (power_action == POWER_ACT_NEW_BAT_LEVEL)
+        {
+            logic_aux_mcu_update_aux_mcu_of_new_battery_level(logic_power_get_and_ack_new_battery_level()*10);
         }
         
         /* Do not do anything if we're uploading new graphics contents */
