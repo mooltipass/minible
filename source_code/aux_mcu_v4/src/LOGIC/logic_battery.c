@@ -17,7 +17,8 @@ uint16_t logic_battery_charge_voltage = 0;
 /* Peak voltage at the battery */
 uint16_t logic_battery_peak_voltage = 0;
 /* Number of ticks since we saw the peak voltage */
-uint32_t logic_battery_nb_ticks_since_peak = 0;
+uint32_t logic_battery_nb_secs_since_peak = 0;
+uint16_t logic_battery_last_second_seen = 0;
 /* Diagnostic values */
 BOOL logic_battery_diag_charging_forced = FALSE;
 uint16_t logic_battery_diag_current_vbat = 0;
@@ -140,7 +141,7 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
     timer_start_timer(TIMER_BATTERY_TICK, LOGIC_BATTERY_START_CHARGE_DELAY);
 
     /* Reset vars */
-    logic_battery_nb_ticks_since_peak = 0;
+    logic_battery_nb_secs_since_peak = 0;
     logic_battery_peak_voltage = 0;
 }
 
@@ -250,7 +251,7 @@ void logic_battery_task(void)
                     {
                         /* Change state machine */
                         logic_battery_state = LB_CUR_MAINTAIN;
-                        logic_battery_nb_ticks_since_peak = 0;
+                        logic_battery_nb_secs_since_peak = 0;
                         logic_battery_peak_voltage = low_voltage;
                         
                         /* Arm decision timer */
@@ -296,15 +297,20 @@ void logic_battery_task(void)
                 /* Check for decision timer tick */
                 if (timer_has_timer_expired(TIMER_BATTERY_TICK, TRUE) == TIMER_EXPIRED)
                 {
+                    /* Get current calendar */
+                    calendar_t current_calendar;
+                    timer_get_calendar(&current_calendar);
+                    
                     /* Update peak vars if required */
                     if (low_voltage > logic_battery_peak_voltage)
                     {
                         logic_battery_peak_voltage = low_voltage;
-                        logic_battery_nb_ticks_since_peak = 0;
+                        logic_battery_nb_secs_since_peak = 0;
                     }
-                    else
+                    else if (logic_battery_last_second_seen != current_calendar.bit.SECOND)
                     {
-                        logic_battery_nb_ticks_since_peak++;
+                        logic_battery_last_second_seen = current_calendar.bit.SECOND;
+                        logic_battery_nb_secs_since_peak++;
                     }
                     
                     /* Set voltage difference depending on charging scheme */
@@ -378,6 +384,21 @@ void logic_battery_task(void)
                             /* Increment voltage */
                             platform_io_update_step_down_voltage(logic_battery_charge_voltage);
                         }
+                    }
+                    else if (logic_battery_nb_secs_since_peak >= LOGIC_BATTERY_NB_SECS_AFTER_PEAK)
+                    {
+                        /* Error state */
+                        logic_battery_state = LB_ERROR_CUR_MAINTAIN;
+                        
+                        /* Disable charging */
+                        platform_io_disable_charge_mosfets();
+                        timer_delay_ms(1);
+                        
+                        /* Disable step-down */
+                        platform_io_disable_step_down();
+                        
+                        /* Inform main MCU */
+                        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_FAIL);
                     }
                     
                     /* Rearm timer */
