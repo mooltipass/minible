@@ -1132,3 +1132,44 @@ Device Answer:
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
 | 0x800C   | 1 | 0x01 (indicates command success) |
+
+
+
+0x800D: Get Battery Status
+--------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | bytes 4-X                          |
+|:---------|:----------------------------|:-----------------------------------|
+| 0x800D   | 0 | Nothing |
+
+Device Answer:
+
+| bytes  | value  |
+|:-------|:-------|
+| 0->1   | 0x800D |
+| 2->3   | 20     |
+| 4->7   | Power source: 0 for USB, else battery |
+| 8->11  | Charging status: 0 for false, else true |
+| 12->13 | Main MCU ADC value (valid when battery powered) |
+| 14->15 | Aux MCU charging state machine ID |
+| 16->17 | Aux MCU ADC value (valid when charging) |
+| 18->19 | Aux MCU charging current |
+| 20->21 | Aux MCU step-down voltage |
+| 22->23 | Aux MCU DAC DATA register value |
+
+
+
+0x800E: Update Main & Aux MCU From Bundle
+-----------------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                    | bytes 4-X                          |
+|:---------|:----------------------------|:-----------------------------------|
+| 0x800D   | 0 | Nothing |
+
+Device Answer:
+
+**None**. Device will disconnect from USB & Bluetooth and will reconnect just after.
