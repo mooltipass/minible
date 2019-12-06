@@ -2759,7 +2759,14 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
             }
             else
             {
-                custom_fs_get_string_from_file(SELECT_LAYOUT_TEXT_ID, &select_language_string, TRUE);                
+                if (usb_layout_choice == FALSE)
+                {
+                    custom_fs_get_string_from_file(SELECT_BLE_LAYOUT_TEXT_ID, &select_language_string, TRUE);
+                } 
+                else
+                {
+                    custom_fs_get_string_from_file(SELECT_USB_LAYOUT_TEXT_ID, &select_language_string, TRUE);
+                }             
             }
             sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[0], select_language_string, TRUE);
             sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
