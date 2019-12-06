@@ -43,6 +43,8 @@
         - taking into account battery measurements only when USB isn't present
 - v0.10:- faster UI
         - improved battery charging algorithm
+- v0.11:- lock device on usb disconnect
+        - prompts for credentials display after prompts for typing
 */
 
 /**************** SETUP DEFINES ****************/
@@ -70,7 +72,7 @@
  * => 50 prototype units produced for beta testers, 01/10/2019
  * - exact same layout as PLAT_V4_SETUP, except external pullup on SMC detect & new scroll wheel
  */
- #define PLAT_V4_SETUP 
+ #define PLAT_V5_SETUP 
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)

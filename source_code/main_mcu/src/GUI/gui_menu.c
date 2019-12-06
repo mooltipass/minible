@@ -239,29 +239,38 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     
                     /* Load address */
                     nodemgmt_read_favorite_for_current_category(chosen_favorite_index, &chosen_service_addr, &chosen_login_addr);
-                    
-                    /* If user enabled that setting or if we're not connected to anything, ask to display credential */                    
-                    if (((logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0) || ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE)))
-                    {
-                        mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_one_line_confirmation(QPROMPT_SNGL_DISP_CRED_TEXT_ID, FALSE, FALSE, TRUE);
-                        
-                        if (display_prompt_return == MINI_INPUT_RET_BACK)
-                        {
-                            continue;
-                        }
-                        else if (display_prompt_return == MINI_INPUT_RET_YES)
-                        {
-                            nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
-                            logic_gui_display_login_password((child_cred_node_t*)&temp_cnode);
-                            memset(&temp_cnode, 0, sizeof(temp_cnode));
-                            return TRUE;
-                        }                            
-                    }
 
                     /* Ask the user permission to enter login / password, check for back action */
-                    if (logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr) == RETURN_BACK)
+                    ret_type_te user_prompt_return = logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr);
+                    
+                    /* Check for back, and deny of both prompts */
+                    if (user_prompt_return == RETURN_BACK)
                     {
                         continue;
+                    }
+                    else if (user_prompt_return == RETURN_NOK)
+                    {
+                        /* If user enabled that setting or if we're not connected to anything, ask to display credential */
+                        if (((logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0) || ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE)))
+                        {
+                            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_one_line_confirmation(QPROMPT_SNGL_DISP_CRED_TEXT_ID, FALSE, FALSE, TRUE);
+                            
+                            if (display_prompt_return == MINI_INPUT_RET_BACK)
+                            {
+                                continue;
+                            }
+                            else if (display_prompt_return == MINI_INPUT_RET_YES)
+                            {
+                                nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
+                                logic_gui_display_login_password((child_cred_node_t*)&temp_cnode);
+                                memset(&temp_cnode, 0, sizeof(temp_cnode));
+                                return TRUE;
+                            }
+                        }
+                        else
+                        {
+                            return TRUE;
+                        }
                     }
                     else
                     {
