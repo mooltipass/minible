@@ -266,6 +266,10 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                                 memset(&temp_cnode, 0, sizeof(temp_cnode));
                                 return TRUE;
                             }
+                            else
+                            {
+                                return TRUE;
+                            }
                         }
                         else
                         {
@@ -302,12 +306,12 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 /* Main menu, long click to switch between simple / advanced menu */
                 if ((logic_user_get_user_security_flags() & USER_SEC_FLG_ADVANCED_MENU) != 0)
                 {
-                    logic_user_clear_user_security_flag(USER_SEC_FLG_ADVANCED_MENU);
+                    logic_user_clear_user_security_flag(0xFFFF & (~USER_SEC_FLG_BLE_ENABLED));
                     gui_prompts_display_information_on_screen_and_wait(SIMPLE_MENU_ENABLED_TEXT_ID, DISP_MSG_INFO);
                 }
                 else
                 {
-                    logic_user_set_user_security_flag(USER_SEC_FLG_ADVANCED_MENU);
+                    logic_user_set_user_security_flag(0xFFFF & (~USER_SEC_FLG_BLE_ENABLED));
                     gui_prompts_display_information_on_screen_and_wait(ADVANCED_MENU_ENABLED_TEXT_ID, DISP_MSG_INFO);
                 }
                 
