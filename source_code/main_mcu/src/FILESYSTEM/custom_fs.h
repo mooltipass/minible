@@ -62,8 +62,9 @@
 #define SETTINGS_DELAY_BETWEEN_PRESSES      7
 #define SETTINGS_BOOT_ANIMATION             8
 #define SETTINGS_MASTER_CURRENT             9
+#define SETTINGS_LOCK_ON_DISCONNECT         10
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    10
+#define SETTINGS_NB_USED                    11
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32
