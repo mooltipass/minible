@@ -30,6 +30,7 @@
 #include "platform_io.h"
 #include "custom_fs.h"
 #include "sh1122.h"
+#include "inputs.h"
 #include "main.h"
 /* Array mapping battery levels with adc readouts */
 uint16_t logic_power_battery_level_mapping[11] = {BATTERY_ADC_OUT_CUTOUT, BATTERY_ADC_10PCT_VOLTAGE, BATTERY_ADC_20PCT_VOLTAGE, BATTERY_ADC_30PCT_VOLTAGE, BATTERY_ADC_40PCT_VOLTAGE, BATTERY_ADC_50PCT_VOLTAGE, BATTERY_ADC_60PCT_VOLTAGE, BATTERY_ADC_70PCT_VOLTAGE, BATTERY_ADC_80PCT_VOLTAGE, BATTERY_ADC_90PCT_VOLTAGE, BATTERY_ADC_100PCT_VOLTAGE};
@@ -257,8 +258,9 @@ power_action_te logic_power_routine(void)
     }
     else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
     {
-        /* Tell the aux MCU to detach USB, change power supply for OLED, wait for ACK from aux MCU */
         aux_mcu_message_t* temp_rx_message_pt;
+        
+        /* Tell the aux MCU to detach USB, change power supply for OLED */
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
         comms_aux_mcu_wait_for_message_sent();
         sh1122_oled_off(&plat_oled_descriptor);
@@ -273,16 +275,28 @@ power_action_te logic_power_routine(void)
         gui_dispatcher_get_back_to_current_screen();
         logic_device_activity_detected();
         logic_power_nb_adc_conv_since_last_power_change = 0;
-        while(comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_USB_DETACHED) != RETURN_OK);
-        comms_aux_arm_rx_and_clear_no_comms();
-        
+                
         /* If user selected to, lock device */
         if ((logic_security_is_smc_inserted_unlocked() != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_LOCK_ON_DISCONNECT) != FALSE))
         {
             gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
             gui_dispatcher_get_back_to_current_screen();
             logic_smartcard_handle_removed();
+            timer_start_timer(TIMER_WAIT_FUNCTS, 250);
         }
+        
+        /* Wait for detach ACK from aux MCU */
+        while(comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_USB_DETACHED) != RETURN_OK);
+        comms_aux_arm_rx_and_clear_no_comms();
+        
+        /* Wait for timer timeout to make sure card is unpowered */
+        if ((logic_security_is_smc_inserted_unlocked() != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_LOCK_ON_DISCONNECT) != FALSE))
+        {
+            while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED);
+        }
+        
+        /* Clear inputs in case user move the wheel not on purpose */
+        inputs_clear_detections();
     }
     else if ((logic_power_last_seen_voled_stepup_pwr_source == OLED_STEPUP_SOURCE_NONE) && (current_voled_pwr_source != logic_power_last_seen_voled_stepup_pwr_source))
     {
