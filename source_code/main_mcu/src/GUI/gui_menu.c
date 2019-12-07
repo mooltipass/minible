@@ -291,14 +291,13 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                         
                         if (display_prompt_return == MINI_INPUT_RET_BACK)
                         {
-                            only_password_prompt = TRUE;
-                            
                             if ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE))
                             {
                                 state_machine_index = 0;
                             }
                             else
                             {
+                                only_password_prompt = TRUE;
                                 state_machine_index--;
                             }
                         }

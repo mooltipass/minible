@@ -1179,12 +1179,13 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     return input_answer;
 }
 
-/*! \fn     gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
+/*! \fn     gui_prompts_ask_for_login_select(uint16_t parent_node_addr, uint16_t* chosen_child_node_addr)
 *   \brief  Ask for user login selection / approval
-*   \param  parent_node_addr   Address of the parent node
-*   \return Valid child node address or NODE_ADDR_NULL otherwise
+*   \param  parent_node_addr        Address of the parent node
+*   \param  chosen_child_node_addr  Address of the selected child node by default (or NODE_ADDR_NULL), then populated with selected child node if return is MINI_INPUT_RET_YES
+*   \return MINI_INPUT_RET_YES on correct selection, otherwise see enum
 */
-uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
+mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_addr, uint16_t* chosen_child_node_addr)
 {
     child_cred_node_t* temp_half_cnode_pt;
     cust_char_t* select_login_string;
@@ -1249,6 +1250,13 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
     cust_char_t* strings_to_be_displayed[4] = {temp_pnode.cred_parent.service, temp_half_cnode_pt->login, temp_half_cnode_pt->login, temp_half_cnode_pt->login};
     uint16_t fonts_to_be_used[4] = {FONT_UBUNTU_REGULAR_16_ID, FONT_UBUNTU_REGULAR_13_ID, FONT_UBUNTU_MEDIUM_15_ID, FONT_UBUNTU_REGULAR_13_ID};
     uint16_t strings_y_positions[4] = {0, LOGIN_SCROLL_Y_FLINE, LOGIN_SCROLL_Y_SLINE, LOGIN_SCROLL_Y_TLINE};
+        
+    /* If the selected login was specified */
+    if (*chosen_child_node_addr != NODE_ADDR_NULL)
+    {
+        top_of_list_child_addr = nodemgmt_get_prev_child_node_for_cur_category(*chosen_child_node_addr);
+        before_top_of_list_child_addr = nodemgmt_get_prev_child_node_for_cur_category(top_of_list_child_addr);
+    }
     
     /* Reset temp vars */
     memset(text_anim_going_right, FALSE, sizeof(text_anim_going_right));
@@ -1273,30 +1281,31 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
         /* User interaction timeout */
         if (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED)
         {
-            return NODE_ADDR_NULL;
+            return MINI_INPUT_RET_TIMEOUT;
         }
         
         /* Card removed */
         if (smartcard_low_level_is_smc_absent() == RETURN_OK)
         {
-            return NODE_ADDR_NULL;
+            return MINI_INPUT_RET_CARD_REMOVED;
         }
         
         /* Read usb comms as the plugin could ask to cancel the request */
         if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD)
         {
-            return NODE_ADDR_NULL;
+            return MINI_INPUT_RET_CANCELED;
         }
         
         /* Check if something has been pressed */
         wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, FALSE);
         if (detect_result == WHEEL_ACTION_SHORT_CLICK)
         { 
-            return center_list_child_addr;
+            *chosen_child_node_addr = center_list_child_addr;
+            return MINI_INPUT_RET_YES;
         }
         else if (detect_result == WHEEL_ACTION_LONG_CLICK)
         {
-            return NODE_ADDR_NULL;
+            return MINI_INPUT_RET_BACK;
         }
         else if (detect_result == WHEEL_ACTION_DOWN)
         {
@@ -1537,7 +1546,7 @@ uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr)
         }        
     }
     
-    return NODE_ADDR_NULL;
+    return MINI_INPUT_RET_NO;
 }
 
 /*! \fn     gui_prompts_service_selection_screen(uint16_t start_address)

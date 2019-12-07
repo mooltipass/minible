@@ -131,12 +131,12 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
 mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt, BOOL first_item_selected);
 void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame_id, uint16_t* timer_timeout, display_message_te message_type);
 void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type);
+mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_addr, uint16_t* chosen_child_node_addr);
 void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type);
 BOOL gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type);
 void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type);
 RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID);
 uint16_t gui_prompts_service_selection_screen(uint16_t start_address);
-uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr);
 int16_t gui_prompts_favorite_selection_screen(int16_t start_favid);
 int16_t gui_prompts_select_category(void);
 

@@ -590,19 +590,25 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
         }
         else
         {
-            /* 2 or more, as 1 is tackled in the previous if */
-            uint16_t selected_child_addr = gui_prompts_ask_for_login_select(parent_address);
+            /* 2 children or more, as 1 is tackled in the previous if */
+            
+            /* Here chosen_login_addr already is populated with the first node... isn't that pretty? */
+            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &child_address);
+            if (display_prompt_return != MINI_INPUT_RET_YES)
+            {
+                child_address = NODE_ADDR_NULL;
+            }
             gui_dispatcher_get_back_to_current_screen();
             
             /* So.... what did the user select? */
-            if (selected_child_addr == NODE_ADDR_NULL)
+            if (child_address == NODE_ADDR_NULL)
             {
                 return -1;
             }
             else
             {
                 /* Get prefilled message */
-                uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(selected_child_addr, send_msg, temp_cred_ctr, &prev_gen_credential_flag);
+                uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr, &prev_gen_credential_flag);
                 
                 /* User approved, decrypt password */
                 logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
@@ -635,6 +641,8 @@ void logic_user_manual_select_login(void)
 {
     uint16_t chosen_service_addr = nodemgmt_get_starting_parent_addr_for_category();
     uint16_t chosen_login_addr = NODE_ADDR_NULL;
+    BOOL only_password_prompt = FALSE;
+    BOOL usb_interface_output = TRUE;
     uint16_t nb_logins_for_cred = 0;
     uint16_t state_machine = 0;
 
@@ -652,47 +660,67 @@ void logic_user_manual_select_login(void)
             }
 
             /* Continue */
+            nb_logins_for_cred = UINT16_MAX;
             state_machine++;
         }
         else if (state_machine == 1)
         {
-            /* See how many credentials there are for this service */
-            nb_logins_for_cred = logic_database_get_number_of_creds_for_service(chosen_service_addr, &chosen_login_addr, TRUE);
+            /* See how many credentials there are for this service, only if we haven't done this before (we may be walking back...) */
+            if (nb_logins_for_cred == UINT16_MAX)
+            {
+                nb_logins_for_cred = logic_database_get_number_of_creds_for_service(chosen_service_addr, &chosen_login_addr, TRUE);
+            }
 
             /* More than one login */
             if (nb_logins_for_cred != 1)
             {
-                chosen_login_addr = gui_prompts_ask_for_login_select(chosen_service_addr);
-            }
-
-            /* Card removed, user going back... exit */
-            if (chosen_login_addr == NODE_ADDR_NULL)
-            {
-                return;
+                /* Here chosen_login_addr is populated with the first node... isn't that pretty? */
+                mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(chosen_service_addr, &chosen_login_addr);
+                if (display_prompt_return == MINI_INPUT_RET_BACK)
+                {
+                    state_machine--;
+                }
+                else if (display_prompt_return == MINI_INPUT_RET_YES)
+                {
+                    state_machine++;
+                }
+                else
+                {
+                    return;
+                }
             }
             else
             {
-                state_machine++;
+                /* Card removed, user going back... exit */
+                if (chosen_login_addr == NODE_ADDR_NULL)
+                {
+                    return;
+                }
+                else
+                {
+                    state_machine++;
+                }                
             }
         }
         else if (state_machine == 2)
         {
-            BOOL bla;
             /* Ask the user permission to enter login / password, check for back action */
-            ret_type_te user_prompt_return = logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr, FALSE, &bla);            
+            ret_type_te user_prompt_return = logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr, only_password_prompt, &usb_interface_output);  
             
-            // Ask the user permission to enter login / password, check for back action
+            /* Ask the user permission to enter login / password, check for back action */
             if (user_prompt_return == RETURN_BACK)
             {
                 /* Depending on number of child nodes, go back in history */
                 if (nb_logins_for_cred == 1)
                 {
                     /* Go back to service selection */
+                    only_password_prompt = FALSE;
                     state_machine = 0;
                 } 
                 else
                 {
                     /* Go back to login selection */
+                    only_password_prompt = FALSE;
                     state_machine--;
                 }
             }
@@ -701,51 +729,11 @@ void logic_user_manual_select_login(void)
                 /* Denied prompts to type credential or device isn't connected to anything */
                 if (((logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0) || ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE)))
                 {
-                    // Fetch parent node to prepare prompt text
-                    _Static_assert(sizeof(child_node_t) >= sizeof(parent_node_t), "Invalid buffer reuse");
-                    child_node_t temp_cnode;
-                    parent_node_t* temp_pnode_pt = (parent_node_t*)&temp_cnode;
-                    nodemgmt_read_parent_node(chosen_service_addr, temp_pnode_pt, TRUE);
-                    
-                    // Ask the user if he wants to display credentials on screen
-                    cust_char_t* display_cred_prompt_text;
-                    custom_fs_get_string_from_file(QPROMPT_SNGL_DISP_CRED_TEXT_ID, &display_cred_prompt_text, TRUE);
-                    confirmationText_t prompt_object = {.lines[0] = temp_pnode_pt->cred_parent.service, .lines[1] = display_cred_prompt_text};
-                    mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_confirmation(2, &prompt_object, FALSE, TRUE);
-                    
-                    if (display_prompt_return == MINI_INPUT_RET_BACK)
-                    {
-                        /* If we aren't connected to anything, don't ask to type again and go back in history */
-                        if ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE))
-                        {
-                            /* Depending on number of child nodes, go back in history */
-                            if (nb_logins_for_cred == 1)
-                            {
-                                /* Go back to service selection */
-                                state_machine = 0;
-                            }
-                            else
-                            {
-                                /* Go back to login selection */
-                                state_machine--;
-                            }
-                        }
-                        else
-                        {
-                            /* Otherwise stay in the same state machine id to prompt for typing */
-                        }
-                    }
-                    else if (display_prompt_return == MINI_INPUT_RET_YES)
-                    {
-                        nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
-                        logic_gui_display_login_password((child_cred_node_t*)&temp_cnode);
-                        memset(&temp_cnode, 0, sizeof(temp_cnode));
-                        return;
-                    }
-                    else
-                    {
-                        return;
-                    }
+                    state_machine++;
+                }
+                else
+                {
+                    return;
                 }
             }
             else
@@ -753,6 +741,56 @@ void logic_user_manual_select_login(void)
                 return;
             }
         }
+        else if (state_machine == 3)
+        {
+            // Fetch parent node to prepare prompt text
+            _Static_assert(sizeof(child_node_t) >= sizeof(parent_node_t), "Invalid buffer reuse");
+            child_node_t temp_cnode;
+            parent_node_t* temp_pnode_pt = (parent_node_t*)&temp_cnode;
+            nodemgmt_read_parent_node(chosen_service_addr, temp_pnode_pt, TRUE);
+            
+            // Ask the user if he wants to display credentials on screen
+            cust_char_t* display_cred_prompt_text;
+            custom_fs_get_string_from_file(QPROMPT_SNGL_DISP_CRED_TEXT_ID, &display_cred_prompt_text, TRUE);
+            confirmationText_t prompt_object = {.lines[0] = temp_pnode_pt->cred_parent.service, .lines[1] = display_cred_prompt_text};
+            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_confirmation(2, &prompt_object, FALSE, TRUE);
+            
+            if (display_prompt_return == MINI_INPUT_RET_BACK)
+            {
+                /* If we aren't connected to anything, don't ask to type again and go back in history */
+                if ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE))
+                {
+                    /* Depending on number of child nodes, go back in history */
+                    if (nb_logins_for_cred == 1)
+                    {
+                        /* Go back to service selection */
+                        state_machine = 0;
+                    }
+                    else
+                    {
+                        /* Go back to login selection */
+                        state_machine = 1;
+                    }
+                }
+                else
+                {
+                    /* Otherwise go back to ask to type password */
+                    only_password_prompt = TRUE;
+                    state_machine--;
+                }
+            }
+            else if (display_prompt_return == MINI_INPUT_RET_YES)
+            {
+                nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
+                logic_gui_display_login_password((child_cred_node_t*)&temp_cnode);
+                memset(&temp_cnode, 0, sizeof(temp_cnode));
+                return;
+            }
+            else
+            {
+                return;
+            }
+        }            
     }
 }
 
