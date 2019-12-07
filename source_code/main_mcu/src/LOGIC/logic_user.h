@@ -31,11 +31,11 @@
 #define CHECK_PASSWORD_TIMER_VAL    4000
 
 /* Prototypes */
+RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL only_pwd_prompt, BOOL* usb_selected);
 RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password);
 ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key, BOOL simple_mode);
 int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, hid_message_t* send_msg);
 RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, cust_char_t* password);
-RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address);
 void logic_user_set_layout_id(uint16_t layout_id, BOOL usb_layout);
 void logic_user_clear_user_security_flag(uint16_t bitmask);
 void logic_user_set_user_security_flag(uint16_t bitmask);

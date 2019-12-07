@@ -59,6 +59,8 @@
 #define BITMAP_BLE_SELECT               738
 #define BITMAP_USB_IDLE                 774
 #define BITMAP_BLE_IDLE                 726
+#define BITMAP_POPUP_USB_DESEL          837
+#define BITMAP_POPUP_BLE_SEL            823
 
 // PIN prompt
 #define PIN_PROMPT_ARROW_MOV_LGTH       7
@@ -135,7 +137,7 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
 RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID);
 uint16_t gui_prompts_service_selection_screen(uint16_t start_address);
 uint16_t gui_prompts_ask_for_login_select(uint16_t parent_node_addr);
-int16_t gui_prompts_favorite_selection_screen(void);
+int16_t gui_prompts_favorite_selection_screen(int16_t start_favid);
 int16_t gui_prompts_select_category(void);
 
 #endif /* GUI_PROMPTS_H_ */

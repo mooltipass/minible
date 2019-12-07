@@ -677,8 +677,9 @@ void logic_user_manual_select_login(void)
         }
         else if (state_machine == 2)
         {
+            BOOL bla;
             /* Ask the user permission to enter login / password, check for back action */
-            ret_type_te user_prompt_return = logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr);            
+            ret_type_te user_prompt_return = logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr, FALSE, &bla);            
             
             // Ask the user permission to enter login / password, check for back action
             if (user_prompt_return == RETURN_BACK)
@@ -755,66 +756,29 @@ void logic_user_manual_select_login(void)
     }
 }
 
-/*! \fn     logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address)
+/*! \fn     logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL only_pwd_prompt, BOOL* usb_selected)
 *   \brief  Ask the user to enter the login & password of a given service
 *   \param  parent_address  Address of the parent
 *   \param  child_address   Address of the child
+*   \param  only_pwd_prompt Boolean to set if we only want the password prompt (used in case of going back)
+*   \param  usb_selected    Pointer to a boolean, used internally to know if the user selected USB interface
 *   \return RETURN_OK if a login or password was typed or if the card was removed, RETURN_BACK if the user wants to come back, RETURN_NOK if the user denied both typing prompts or device isn't connected to anything
 */
-RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address)
+RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL only_pwd_prompt, BOOL* usb_selected)
 {
-    _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,login)+1, "Can't describe all chars for login");
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,password)+1+1, "Can't describe all chars for password");
+    _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,login)+1, "Can't describe all chars for login");
+    uint16_t interface_id = (*usb_selected == FALSE)? 1:0;
     BOOL login_or_password_typed = FALSE;
-    BOOL usb_interface_selected = TRUE;
     aux_mcu_message_t* temp_rx_message;
     child_cred_node_t temp_cnode;
     BOOL could_type_all_symbols;
-    uint16_t interface_id = 0;
     parent_node_t temp_pnode;
     
     /* Are we at least connected to anything? */
     if ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE))
     {
         return RETURN_NOK;
-    }
-    
-    /* How many interfaces connected? */
-    if ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() != FALSE))
-    {
-        /* Both interface connected, ask user for selection */
-        mini_input_yes_no_ret_te select_inteface_prompt_return = gui_prompts_ask_for_one_line_confirmation(SELECT_OUT_INTEFACE_TEXT_ID, FALSE, TRUE, TRUE);
-        
-        if (select_inteface_prompt_return == MINI_INPUT_RET_BACK)
-        {
-            return RETURN_BACK;
-        }
-        else if (select_inteface_prompt_return == MINI_INPUT_RET_YES)
-        {
-            usb_interface_selected = TRUE;
-            interface_id = 0;
-        }
-        else if (select_inteface_prompt_return == MINI_INPUT_RET_NO)
-        {
-            usb_interface_selected = FALSE;
-            interface_id = 1;
-        }
-        else
-        {
-            return RETURN_OK;
-        }
-    }
-    else if (logic_bluetooth_get_state() == BT_STATE_CONNECTED)
-    {
-        /* Magic numbers FTW */
-        usb_interface_selected = FALSE;
-        interface_id = 1;
-    }
-    else
-    {
-        /* USB connected */
-        usb_interface_selected = TRUE;
-        interface_id = 0;
     }
 
     /* Read nodes */
@@ -835,10 +799,59 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
     uint16_t state_machine = 0;
     cust_char_t* two_line_prompt_2;
     confirmationText_t conf_text_2_lines = {.lines[0]=temp_pnode.cred_parent.service, .lines[1]=two_line_prompt_2};
+        
+    /* If only password prompt was queried, go to dedicated state machine */
+    if (only_pwd_prompt != FALSE)
+    {
+        state_machine = 2;
+    }
     
     while (TRUE)
     {
         if (state_machine == 0)
+        {
+            /* How many interfaces connected? */
+            if ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() != FALSE))
+            {
+                /* Both interface connected, ask user for selection */
+                mini_input_yes_no_ret_te select_inteface_prompt_return = gui_prompts_ask_for_one_line_confirmation(SELECT_OUT_INTEFACE_TEXT_ID, FALSE, TRUE, *usb_selected);
+                
+                if (select_inteface_prompt_return == MINI_INPUT_RET_BACK)
+                {
+                    return RETURN_BACK;
+                }
+                else if (select_inteface_prompt_return == MINI_INPUT_RET_YES)
+                {
+                    *usb_selected = TRUE;
+                    interface_id = 0;
+                }
+                else if (select_inteface_prompt_return == MINI_INPUT_RET_NO)
+                {
+                    *usb_selected = FALSE;
+                    interface_id = 1;
+                }
+                else
+                {
+                    return RETURN_OK;
+                }
+            }
+            else if (logic_bluetooth_get_state() == BT_STATE_CONNECTED)
+            {
+                /* Magic numbers FTW */
+                *usb_selected = FALSE;
+                interface_id = 1;
+            }
+            else
+            {
+                /* USB connected */
+                *usb_selected = TRUE;
+                interface_id = 0;
+            }
+            
+            /* Move to next state */
+            state_machine++;
+        }
+        else if (state_machine == 1)
         {
             /* Check for presence of an actual login */
             if (temp_cnode.login[0] == 0)
@@ -859,7 +872,16 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                 }
                 else if (prompt_return == MINI_INPUT_RET_BACK)
                 {
-                    return RETURN_BACK;
+                    /* Check for multiple interfaces connected */
+                    if ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() != FALSE))
+                    {
+                        state_machine = 0;
+                    }
+                    else
+                    {
+                        /* No multiple interfaces connected, leave function */
+                        return RETURN_BACK;
+                    }
                 }
                 else
                 {
@@ -868,7 +890,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         aux_mcu_message_t* typing_message_to_be_sent;
                         comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
                         typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.login) + 1 + 1)*sizeof(cust_char_t);
-                        ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.login, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, usb_interface_selected);
+                        ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.login, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, *usb_selected);
                         if (temp_cnode.keyAfterLogin == 0xFFFF)
                         {
                             /* Use default device key press: login is 0 terminated by read function, _Static_asserts guarantees enough space, message is initialized at 0s */
@@ -878,7 +900,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         {
                             typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)] = temp_cnode.keyAfterLogin;
                         }
-                        custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)], usb_interface_selected);
+                        custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)], *usb_selected);
                         typing_message_to_be_sent->keyboard_type_message.delay_between_types = custom_fs_settings_get_device_setting(SETTINGS_DELAY_BETWEEN_PRESSES);
                         typing_message_to_be_sent->keyboard_type_message.interface_identifier = interface_id;
                         comms_aux_mcu_send_message(TRUE);
@@ -905,7 +927,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                 }
             }            
         } 
-        else if (state_machine == 1)
+        else if (state_machine == 2)
         {
             /* Ask for password confirmation */
             custom_fs_get_string_from_file(TYPE_PASSWORD_TEXT_ID, &two_line_prompt_2, TRUE);
@@ -919,9 +941,19 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
             }
             else if (prompt_return == MINI_INPUT_RET_BACK)
             {
+                /* Check for no login */
                 if (temp_cnode.login[0] == 0)
                 {
-                    return RETURN_BACK;                    
+                    /* Check for multiple interfaces connected */
+                    if ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() != FALSE))
+                    {
+                        state_machine = 0;
+                    }
+                    else
+                    {
+                        /* No login, no multiple interfaces connected, leave function */
+                        return RETURN_BACK;                        
+                    }                 
                 }
                 else
                 {
@@ -954,7 +986,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     aux_mcu_message_t* typing_message_to_be_sent;
                     comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
                     typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.cust_char_password) + 1 + 1)*sizeof(cust_char_t);
-                    ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.cust_char_password, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, usb_interface_selected);
+                    ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.cust_char_password, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, *usb_selected);
                     if (temp_cnode.keyAfterPassword == 0xFFFF)
                     {
                         /* Use default device key press: password is 0 terminated by read function, _Static_asserts guarantees enough space, message is initialized at 0s */
@@ -964,7 +996,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     {
                         typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)] = temp_cnode.keyAfterPassword;
                     }
-                    custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)], usb_interface_selected);
+                    custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)], *usb_selected);
                     typing_message_to_be_sent->keyboard_type_message.delay_between_types = custom_fs_settings_get_device_setting(SETTINGS_DELAY_BETWEEN_PRESSES);
                     typing_message_to_be_sent->keyboard_type_message.interface_identifier = interface_id;
                     comms_aux_mcu_send_message(TRUE);

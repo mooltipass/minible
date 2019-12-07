@@ -40,6 +40,7 @@ void logic_bluetooth_set_connected_state(BOOL state)
 */
 bt_state_te logic_bluetooth_get_state(void)
 {
+    return BT_STATE_CONNECTED;
     if (logic_aux_mcu_is_ble_enabled() == FALSE)
     {
         return BT_STATE_OFF;

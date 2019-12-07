@@ -664,7 +664,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
 mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt, BOOL first_item_selected)
 {
     uint16_t bitmap_yes_no_array[10] = {BITMAP_POPUP_2LINES_Y, BITMAP_POPUP_2LINES_N, BITMAP_2LINES_PRESS_Y, BITMAP_2LINES_PRESS_N, BITMAP_2LINES_SEL_Y, BITMAP_2LINES_SEL_N, BITMAP_2LINES_IDLE_Y, BITMAP_2LINES_IDLE_N, BITMAP_POPUP_2LINES_Y_DESEL, BITMAP_POPUP_2LINES_N_SELEC};
-    uint16_t bitmap_usb_ble_array[10] = {BITMAP_POPUP_USB, BITMAP_POPUP_BLE, BITMAP_USB_PRESS, BITMAP_BLE_PRESS, BITMAP_USB_SELECT, BITMAP_BLE_SELECT, BITMAP_USB_IDLE, BITMAP_BLE_IDLE, BITMAP_POPUP_USB, BITMAP_POPUP_BLE};
+    uint16_t bitmap_usb_ble_array[10] = {BITMAP_POPUP_USB, BITMAP_POPUP_BLE, BITMAP_USB_PRESS, BITMAP_BLE_PRESS, BITMAP_USB_SELECT, BITMAP_BLE_SELECT, BITMAP_USB_IDLE, BITMAP_BLE_IDLE, BITMAP_POPUP_USB_DESEL, BITMAP_POPUP_BLE_SEL};
     BOOL approve_selected = first_item_selected;
     cust_char_t* string_to_display;
     BOOL flash_flag = FALSE;
@@ -2224,11 +2224,12 @@ int16_t gui_prompts_select_category(void)
     return -1;
 }
 
-/*! \fn     int16_t gui_prompts_favorite_selection_screen(void)
+/*! \fn     int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
 *   \brief  Favorites selection screen
+*   \param  start_favid     If different than -1, select this favID by default
 *   \return -1 when no choice / no credential, otherwise favorite ID
 */
-int16_t gui_prompts_favorite_selection_screen(void)
+int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
 {
     child_cred_node_t* temp_half_cnode_pt;
     cust_char_t* select_login_string;
@@ -2274,6 +2275,15 @@ int16_t gui_prompts_favorite_selection_screen(void)
     memset(text_anim_going_right, FALSE, sizeof(text_anim_going_right));
     memset(text_anim_x_offset, 0, sizeof(text_anim_x_offset));
     memset(scrolling_needed, FALSE, sizeof(scrolling_needed));
+    
+    /* If favorite start id was specified, populate our vars */
+    if (start_favid != -1)
+    {
+        /* Each function call checks for out of bounds */
+        center_list_child_index = start_favid;
+        top_of_list_child_index = nodemgmt_get_next_non_null_favorite_before_index(start_favid-1);
+        before_top_of_list_child_index = nodemgmt_get_next_non_null_favorite_before_index(top_of_list_child_index-1);
+    }
     
     /* "Select login" string */
     custom_fs_get_string_from_file(SELECT_CREDENTIAL_TEXT_ID, &select_login_string, TRUE);
