@@ -325,7 +325,7 @@ BOOL dma_oled_check_and_clear_dma_transfer_flag(void)
 }
 
 /*! \fn     dma_acc_check_and_clear_dma_transfer_flag(void)
-*   \brief  Check if a DMA transfer that we requested for led transfer is done
+*   \brief  Check if a DMA transfer that we requested for acc transfer is done
 *   \note   If the flag is true, flag will be cleared to false
 *   \return TRUE or FALSE
 */
@@ -338,6 +338,15 @@ BOOL dma_acc_check_and_clear_dma_transfer_flag(void)
         return TRUE;
     }
     return FALSE;
+}
+
+/*! \fn     dma_acc_check_dma_transfer_flag(void)
+*   \brief  Check if a DMA transfer that we requested for acc transfer is done
+*   \return TRUE or FALSE
+*/
+BOOL dma_acc_check_dma_transfer_flag(void)
+{
+    return dma_acc_transfer_done;
 }
 
 /*! \fn     dma_aux_mcu_get_remaining_bytes_for_rx_transfer(void)

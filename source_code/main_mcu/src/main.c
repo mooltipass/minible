@@ -348,7 +348,7 @@ void main_reboot(void)
     logic_power_power_down_actions();
     
     /* Wait for accelerometer DMA transfer end */
-    lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor);
+    lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
     while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
     
     /* Power Off OLED screen */
@@ -384,7 +384,7 @@ void main_standby_sleep(void)
     dma_aux_mcu_disable_transfer();
     
     /* Wait for accelerometer DMA transfer end and put it to sleep */
-    lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor);
+    lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
     while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
     lis2hh12_deassert_ncs_and_go_to_sleep(&plat_acc_descriptor);
     
@@ -640,9 +640,10 @@ int main(void)
         }
         
         /* Accelerometer interrupt */
-        if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor) != FALSE)
+        if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, FALSE) != FALSE)
         {
             rng_feed_from_acc_read();
+            lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
         }
         
         /* Device state changed, inform aux MCU so it can update its buffer */
