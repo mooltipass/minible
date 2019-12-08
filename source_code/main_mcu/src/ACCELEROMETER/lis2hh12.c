@@ -214,8 +214,9 @@ void lis2hh12_deassert_ncs_and_go_to_sleep(accelerometer_descriptor_t* descripto
 }
 
 /*! \fn     lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_descriptor_t* descriptor_pt, BOOL arm_other_transfer)
-*   \brief  Check if received accelerometer data, and if so arm next transfer
-*   \param  descriptor_pt   Pointer to lis2hh12 descriptor
+*   \brief  Check if received accelerometer data, and arm next transfer is specified
+*   \param  descriptor_pt       Pointer to lis2hh12 descriptor
+*   \param  arm_other_transfer  Set to TRUE to arm new transfer
 *   \return TRUE if we received new data
 */
 BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_descriptor_t* descriptor_pt, BOOL arm_other_transfer)
@@ -228,8 +229,9 @@ BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_desc
     {
         if (dma_acc_check_and_clear_dma_transfer_flag() != FALSE)
         {
-            /* Deasset nCS : done through the DMA interrupt */
+            /* Deassert nCS : done through the DMA interrupt */
             //PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
+            
             /* Arm next DMA transfer */
             dma_acc_init_transfer(descriptor_pt->sercom_pt, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd));
                 

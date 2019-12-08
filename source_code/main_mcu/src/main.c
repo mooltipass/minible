@@ -2,6 +2,7 @@
 #include <asf.h>
 #include "mooltipass_graphics_bundle.h"
 #include "smartcard_highlevel.h"
+#include "logic_accelerometer.h"
 #include "functional_testing.h"
 #include "smartcard_lowlevel.h"
 #include "platform_defines.h"
@@ -639,12 +640,8 @@ int main(void)
             comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BUNDLE);            
         }
         
-        /* Accelerometer interrupt */
-        if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, FALSE) != FALSE)
-        {
-            rng_feed_from_acc_read();
-            lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
-        }
+        /* Accelerometer routine */
+        logic_accelerometer_routine();
         
         /* Device state changed, inform aux MCU so it can update its buffer */
         if (logic_device_get_state_changed_and_reset_bool() != FALSE)

@@ -19,6 +19,7 @@
 *    Created:  27/01/2019
 *    Author:   Mathieu Stephan
 */
+#include "logic_accelerometer.h"
 #include "main.h"
 #include "rng.h"
 /* Current available random numbers */
@@ -38,11 +39,8 @@ uint8_t rng_get_random_uint8_t(void)
     /* Enough bytes available? */
     while(rng_acc_feed_available_bytes_in_pool == 0)
     {
-        if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, FALSE) != FALSE)
-        {
-            rng_feed_from_acc_read();
-            lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
-        }
+        /* Accelerometer routine takes care of everything */
+        logic_accelerometer_routine();
     }
     
     /* Fill byte */

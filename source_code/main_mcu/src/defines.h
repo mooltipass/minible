@@ -68,8 +68,10 @@ typedef enum    {DISP_MSG_INFO = 0, DISP_MSG_WARNING = 1, DISP_MSG_ACTION = 2} d
 typedef enum    {RETURN_REL = 0, RETURN_DET, RETURN_JDETECT, RETURN_JRELEASED} det_ret_type_te;
 typedef enum    {CUSTOM_FS_INIT_OK = 0, CUSTOM_FS_INIT_NO_RWEE = 1} custom_fs_init_ret_type_te;
 typedef enum    {COMPARE_MODE_MATCH = 0, COMPARE_MODE_COMPARE = 1} service_compare_mode_te;
+typedef enum    {ACC_DET_NOTHING, ACC_DET_MOVEMENT, ACC_DET_KNOCK} acc_detection_te;
 typedef enum    {RETURN_BACK = -2, RETURN_NOK = -1, RETURN_OK = 0} ret_type_te;
 typedef enum    {SERVICE_CRED_TYPE, SERVICE_DATA_TYPE} service_type_te;
+    
 
 /* Typedefs */
 typedef void (*void_function_ptr_type_t)(void);

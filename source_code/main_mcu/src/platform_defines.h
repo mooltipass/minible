@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    11
+#define FW_MINOR    12
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -47,6 +47,8 @@
         - prompts for credentials display after prompts for typing
         - switching menus: set default security options associated with each mode
         - full walk back implemented for favorite & login menus
+- v0.12:- accelerometer used to wake up device when USB plugged
+        - double know to approve
 */
 
 /**************** SETUP DEFINES ****************/

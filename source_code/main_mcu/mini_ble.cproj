@@ -754,6 +754,12 @@
     <Compile Include="src\INPUTS\inputs.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\LOGIC\logic_accelerometer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\LOGIC\logic_accelerometer.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\LOGIC\logic_aux_mcu.c">
       <SubType>compile</SubType>
     </Compile>

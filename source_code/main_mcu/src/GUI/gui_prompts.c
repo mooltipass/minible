@@ -20,6 +20,7 @@
 *    Author:   Mathieu Stephan
 */
 #include <string.h>
+#include "logic_accelerometer.h"
 #include "smartcard_lowlevel.h"
 #include "logic_database.h"
 #include "comms_aux_mcu.h"
@@ -935,6 +936,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     
     /* Wait for user input */
     mini_input_yes_no_ret_te input_answer = MINI_INPUT_RET_NONE;
+    acc_detection_te knock_detect_result;
     wheel_action_ret_te detect_result;
     
     /* Activity detected */
@@ -990,9 +992,10 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             }
         }
         
-        // Check if something has been pressed
+        // Check if something has been pressed or for double knock
         detect_result = inputs_get_wheel_action(FALSE, TRUE);
-        if (detect_result == WHEEL_ACTION_SHORT_CLICK)
+        knock_detect_result = logic_accelerometer_routine();
+        if ((detect_result == WHEEL_ACTION_SHORT_CLICK) || ((flash_screen != FALSE) && (knock_detect_result == ACC_DET_KNOCK)))
         { 
             if (approve_selected != FALSE)
             {
