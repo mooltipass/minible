@@ -372,15 +372,22 @@ void gui_dispatcher_idle_call(void)
     }
 }
 
-/*! \fn     gui_dispatcher_main_loop(void)
+/*! \fn     gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
 *   \brief  GUI main loop
+*   \param  wheel_action    A wheel action to pass to the internal logic in case no real wheel action is detected
 */
-void gui_dispatcher_main_loop(void)
+void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
 {
     BOOL is_screen_on_copy = sh1122_is_oled_on(&plat_oled_descriptor);
     
     // Get user action
     wheel_action_ret_te user_action = inputs_get_wheel_action(FALSE, FALSE);
+    
+    // In case of no action, accept overrid
+    if (user_action == WHEEL_ACTION_NONE)
+    {
+        user_action = wheel_action;
+    }
     
     // No activity, turn off screen
     if  ((gui_dispatcher_get_current_screen() != GUI_SCREEN_MEMORY_MGMT) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_LOGIN_NOTIF) && (timer_has_timer_expired(TIMER_SCREEN, TRUE) == TIMER_EXPIRED))

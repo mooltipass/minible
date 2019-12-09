@@ -48,7 +48,7 @@
         - switching menus: set default security options associated with each mode
         - full walk back implemented for favorite & login menus
 - v0.12:- accelerometer used to wake up device when USB plugged
-        - double know to approve
+        - double knock to approve
 */
 
 /**************** SETUP DEFINES ****************/

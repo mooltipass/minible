@@ -38,6 +38,8 @@ accelerometer_descriptor_t plat_acc_descriptor = {.sercom_pt = ACC_SERCOM, .cs_p
 sh1122_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigger_id = OLED_DMA_SERCOM_TX_TRIG, .sh1122_cs_pin_group = OLED_nCS_GROUP, .sh1122_cs_pin_mask = OLED_nCS_MASK, .sh1122_cd_pin_group = OLED_CD_GROUP, .sh1122_cd_pin_mask = OLED_CD_MASK};
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
+/* A wheel action that may be used to pass to our GUI routine */
+wheel_action_ret_te virtual_wheel_action = WHEEL_ACTION_NONE;
 
 /* Used to know if there is no bootloader and if the special card is inserted*/
 #ifdef DEVELOPER_FEATURES_ENABLED
@@ -617,8 +619,9 @@ int main(void)
                 gui_dispatcher_get_back_to_current_screen();
             }
         
-            /* GUI main loop */
-            gui_dispatcher_main_loop();            
+            /* GUI main loop, pass a possible virtual wheel action and reset it */
+            gui_dispatcher_main_loop(virtual_wheel_action);
+            virtual_wheel_action = WHEEL_ACTION_NONE;      
         }
         
         /* test code */
@@ -641,7 +644,16 @@ int main(void)
         }
         
         /* Accelerometer routine */
-        logic_accelerometer_routine();
+        acc_detection_te accelerometer_routine_return = logic_accelerometer_routine();
+        if (accelerometer_routine_return == ACC_DET_MOVEMENT)
+        {
+            /* Movement was detected by the accelerometer routine */
+            if (gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_LCK)
+            {
+                /* Card inserted and device locked, simulate wheel action to prompt PIN entering */
+                virtual_wheel_action = WHEEL_ACTION_VIRTUAL;
+            }
+        }
         
         /* Device state changed, inform aux MCU so it can update its buffer */
         if (logic_device_get_state_changed_and_reset_bool() != FALSE)
