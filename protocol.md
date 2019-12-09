@@ -248,6 +248,7 @@ Device Answer:
 | 12 | bool    | Boot Animation | 0 | N/A |
 | 13 | uint8_t | Screen brightness | 0 | 255 |
 | 14 | bool    | Device lock on USB disconnect | 0 | N/A |
+| 15 | uint8_t | Knock detection sensitivity | 0 | 255 |
 
 Notes:  
 
@@ -398,7 +399,7 @@ User Security Settings Bitmask:
 | 0x04     | Storage prompts during MMM |
 | 0x08     | Advanced menu |
 | 0x10     | Bluetooth enabled |
-| 0x20     | Credential display prompt |
+| 0x20     | Knock detection disabled |
 
 
 
