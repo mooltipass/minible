@@ -127,13 +127,13 @@ typedef struct
 /* Prototypes */
 wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t vert_anim_direction, int16_t hor_anim_direction);
 ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, BOOL ignore_timeout_if_usb_powered, BOOL ignore_card_removal, BOOL usb_layout_choice);
+gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type, BOOL allow_scroll_to_interrupt);
 mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen, BOOL parse_aux_messages);
 mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt, BOOL first_item_selected);
 void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame_id, uint16_t* timer_timeout, display_message_te message_type);
 void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type);
 mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_addr, uint16_t* chosen_child_node_addr);
 void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type);
-BOOL gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type);
 void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type);
 RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID);
 uint16_t gui_prompts_service_selection_screen(uint16_t start_address);

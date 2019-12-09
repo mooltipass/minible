@@ -202,7 +202,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 } 
                 else
                 {
-                    gui_prompts_display_information_on_screen_and_wait(NO_CREDS_TEXT_ID, DISP_MSG_INFO);
+                    gui_prompts_display_information_on_screen_and_wait(NO_CREDS_TEXT_ID, DISP_MSG_INFO, FALSE);
                 }
                 return TRUE;
             }
@@ -333,12 +333,12 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 if ((logic_user_get_user_security_flags() & USER_SEC_FLG_ADVANCED_MENU) != 0)
                 {
                     logic_user_clear_user_security_flag(0xFFFF & (~USER_SEC_FLG_BLE_ENABLED));
-                    gui_prompts_display_information_on_screen_and_wait(SIMPLE_MENU_ENABLED_TEXT_ID, DISP_MSG_INFO);
+                    gui_prompts_display_information_on_screen_and_wait(SIMPLE_MENU_ENABLED_TEXT_ID, DISP_MSG_INFO, FALSE);
                 }
                 else
                 {
                     logic_user_set_user_security_flag(0xFFFF & (~USER_SEC_FLG_BLE_ENABLED));
-                    gui_prompts_display_information_on_screen_and_wait(ADVANCED_MENU_ENABLED_TEXT_ID, DISP_MSG_INFO);
+                    gui_prompts_display_information_on_screen_and_wait(ADVANCED_MENU_ENABLED_TEXT_ID, DISP_MSG_INFO, FALSE);
                 }
                 
                 /* Update menu */

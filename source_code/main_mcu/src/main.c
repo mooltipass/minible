@@ -566,7 +566,7 @@ int main(void)
             logic_power_power_down_actions();
             
             /* Out of battery! */
-            gui_prompts_display_information_on_screen_and_wait(BATTERY_EMPTY_TEXT_ID, DISP_MSG_WARNING);
+            gui_prompts_display_information_on_screen_and_wait(BATTERY_EMPTY_TEXT_ID, DISP_MSG_WARNING, FALSE);
             sh1122_oled_off(&plat_oled_descriptor);
             platform_io_power_down_oled();
             timer_delay_ms(100);
@@ -614,7 +614,7 @@ int main(void)
                 }*/
             
                 /* Set correct screen */
-                gui_prompts_display_information_on_screen_and_wait(CARD_REMOVED_TEXT_ID, DISP_MSG_INFO);
+                gui_prompts_display_information_on_screen_and_wait(CARD_REMOVED_TEXT_ID, DISP_MSG_INFO, FALSE);
                 gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_INTO_MENU_TRANSITION);
                 gui_dispatcher_get_back_to_current_screen();
             }

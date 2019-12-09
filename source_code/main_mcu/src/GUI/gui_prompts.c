@@ -219,14 +219,16 @@ void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame
     *timer_timeout = 50;    
 }
 
-/*! \fn     gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type)
+/*! \fn     gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type, BOOL allow_scroll_to_interrupt)
 *   \brief  Display text information on screen
-*   \param  string_id       String ID to display
-*   \param  message_type    Message type (see enum)
-*   \return Something else than FALSE if the animation was interrupted by user action
+*   \param  string_id                   String ID to display
+*   \param  message_type                Message type (see enum)
+*   \param  allow_scroll_to_interrupt   Boolean to allow scrolling to interrupt the notification
+*   \return What caused the function to return (see enum)
 */
-BOOL gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type)
+gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type, BOOL allow_scroll_to_interrupt)
 {
+    wheel_action_ret_te wheel_return;
     uint16_t i = 0;
     
     /* Store current smartcard inserted state */
@@ -243,15 +245,20 @@ BOOL gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, disp
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);      
         
         /* Click to interrupt */  
-        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+        wheel_return = inputs_get_wheel_action(FALSE, FALSE);
+        if (wheel_return == WHEEL_ACTION_SHORT_CLICK)
         {
-            return TRUE;
+            return GUI_INFO_DISP_RET_CLICK;
+        }
+        else if ((allow_scroll_to_interrupt != FALSE) && ((wheel_return == WHEEL_ACTION_UP) || (wheel_return == WHEEL_ACTION_DOWN)))
+        {
+            return GUI_INFO_DISP_RET_SCROLL;
         }
         
         /* Card insertion status change */
         if (card_absent != smartcard_low_level_is_smc_absent())
         {
-            return TRUE;
+            return GUI_INFO_DISP_RET_CARD_CHANGE;
         }
         
         /* Animation timer */
@@ -270,7 +277,7 @@ BOOL gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, disp
     }
     
     /* Normal animation timeout */
-    return FALSE;
+    return GUI_INFO_DISP_RET_OK;
 }
 
 /*! \fn     gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type
@@ -1218,7 +1225,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
     /* Check if there are stored credentials */
     if (first_child_address == NODE_ADDR_NULL)
     {
-        gui_prompts_display_information_on_screen_and_wait(NO_CREDS_TEXT_ID, DISP_MSG_INFO);
+        gui_prompts_display_information_on_screen_and_wait(NO_CREDS_TEXT_ID, DISP_MSG_INFO, FALSE);
         return NODE_ADDR_NULL;
     }
     
@@ -2549,7 +2556,7 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
                             sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
                             sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
                             sh1122_reset_lim_display_y(&plat_oled_descriptor);
-                            gui_prompts_display_information_on_screen_and_wait(NO_FAVORITES_TEXT_ID, DISP_MSG_INFO);
+                            gui_prompts_display_information_on_screen_and_wait(NO_FAVORITES_TEXT_ID, DISP_MSG_INFO, FALSE);
                             return -1;
                         }
                     }

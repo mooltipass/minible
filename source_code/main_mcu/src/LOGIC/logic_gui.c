@@ -51,7 +51,7 @@ void logic_gui_disable_bluetooth(void)
         logic_aux_mcu_disable_ble(TRUE);
         
         /* Display information message */
-        gui_prompts_display_information_on_screen_and_wait(BLUETOOTH_DISABLED_TEXT_ID, DISP_MSG_INFO);
+        gui_prompts_display_information_on_screen_and_wait(BLUETOOTH_DISABLED_TEXT_ID, DISP_MSG_INFO, FALSE);
         
         /* Set BLE enabled bool */
         logic_aux_mcu_set_ble_enabled_bool(FALSE);
@@ -100,7 +100,7 @@ void logic_gui_enable_bluetooth(void)
         comms_aux_arm_rx_and_clear_no_comms();
         
         /* Display information message */
-        gui_prompts_display_information_on_screen_and_wait(BLUETOOTH_ENABLED_TEXT_ID, DISP_MSG_INFO);
+        gui_prompts_display_information_on_screen_and_wait(BLUETOOTH_ENABLED_TEXT_ID, DISP_MSG_INFO, FALSE);
         
         /* Set BLE enabled bool */
         logic_aux_mcu_set_ble_enabled_bool(TRUE);
@@ -136,14 +136,14 @@ void logic_gui_clone_card(void)
             {
                 /* Card wasn't blank */
                 gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_INVALID, TRUE, GUI_OUTOF_MENU_TRANSITION);
-                gui_prompts_display_information_on_screen_and_wait(CARD_NOT_BLANK_TEXT_ID, DISP_MSG_WARNING);
+                gui_prompts_display_information_on_screen_and_wait(CARD_NOT_BLANK_TEXT_ID, DISP_MSG_WARNING, FALSE);
             }
             pin_code = 0x0000;
         }
         else if (temp_rettype == RETURN_NEW_PIN_DIFF)
         {
             /* Display that the PINs were different */
-            gui_prompts_display_information_on_screen_and_wait(PIN_DIFFERENT_TEXT_ID, DISP_MSG_WARNING);
+            gui_prompts_display_information_on_screen_and_wait(PIN_DIFFERENT_TEXT_ID, DISP_MSG_WARNING, FALSE);
         }
         else
         {
@@ -175,12 +175,12 @@ void logic_gui_change_pin(void)
             smartcard_highlevel_write_security_code(&pin_code);
 
             /* Inform user */
-            gui_prompts_display_information_on_screen_and_wait(PIN_CHANGED_TEXT_ID, DISP_MSG_INFO);
+            gui_prompts_display_information_on_screen_and_wait(PIN_CHANGED_TEXT_ID, DISP_MSG_INFO, FALSE);
         }
         else
         {
             /* Inform user */
-            gui_prompts_display_information_on_screen_and_wait(PIN_NOT_CHANGED_TEXT_ID, DISP_MSG_WARNING);
+            gui_prompts_display_information_on_screen_and_wait(PIN_NOT_CHANGED_TEXT_ID, DISP_MSG_WARNING, FALSE);
         }
         pin_code = 0x0000;
     }
@@ -218,13 +218,13 @@ void logic_gui_erase_user(void)
             while (gui_prompts_ask_for_one_line_confirmation(ERASE_OTHER_CARD_TEXT_ID, FALSE, FALSE, TRUE) == MINI_INPUT_RET_YES)
             {
                 // Ask the user to insert other smartcards
-                gui_prompts_display_information_on_screen_and_wait(REMOVE_CARD_TEXT_ID, DISP_MSG_ACTION);
+                gui_prompts_display_information_on_screen_and_wait(REMOVE_CARD_TEXT_ID, DISP_MSG_ACTION, FALSE);
                 
                 // Wait for the user to remove and enter another smartcard
                 while (smartcard_lowlevel_is_card_plugged() != RETURN_JRELEASED);
                 
                 // Ask the user to insert other smartcards
-                gui_prompts_display_information_on_screen_and_wait(INSERT_OTHER_CARD_TEXT_ID, DISP_MSG_ACTION);
+                gui_prompts_display_information_on_screen_and_wait(INSERT_OTHER_CARD_TEXT_ID, DISP_MSG_ACTION, FALSE);
                 
                 // Wait for the user to insert a new smart card
                 while (smartcard_lowlevel_is_card_plugged() != RETURN_JDETECT);

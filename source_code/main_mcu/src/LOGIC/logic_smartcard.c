@@ -99,13 +99,13 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     if ((detection_result == RETURN_MOOLTIPASS_PB) || (detection_result == RETURN_MOOLTIPASS_INVALID))
     {
         // Either it is not a card or our Manufacturer Test Zone write/read test failed
-        gui_prompts_display_information_on_screen_and_wait(PB_CARD_TEXT_ID, DISP_MSG_WARNING);
+        gui_prompts_display_information_on_screen_and_wait(PB_CARD_TEXT_ID, DISP_MSG_WARNING, FALSE);
         platform_io_smc_remove_function();
     }
     else if (detection_result == RETURN_MOOLTIPASS_BLOCKED)
     {
         // The card is blocked, no pin code tries are remaining
-        gui_prompts_display_information_on_screen_and_wait(CARD_BLOCKED_TEXT_ID, DISP_MSG_WARNING);
+        gui_prompts_display_information_on_screen_and_wait(CARD_BLOCKED_TEXT_ID, DISP_MSG_WARNING, FALSE);
         platform_io_smc_remove_function();
     }
     else if (detection_result == RETURN_MOOLTIPASS_BLANK)
@@ -137,7 +137,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
                 if (logic_user_create_new_user(&pin_code, (uint8_t*)0, use_simple_mode) == RETURN_OK)
                 {
                     /* PINs match, new user added to memories */
-                    gui_prompts_display_information_on_screen_and_wait(NEW_USER_ADDED_TEXT_ID, DISP_MSG_INFO);
+                    gui_prompts_display_information_on_screen_and_wait(NEW_USER_ADDED_TEXT_ID, DISP_MSG_INFO, FALSE);
                     logic_security_smartcard_unlocked_actions();
                     next_screen = GUI_SCREEN_MAIN_MENU;
                     return_value = RETURN_OK;
@@ -145,12 +145,12 @@ RET_TYPE logic_smartcard_handle_inserted(void)
                 else
                 {
                     // Something went wrong, user wasn't added
-                    gui_prompts_display_information_on_screen_and_wait(COULDNT_ADD_USER_TEXT_ID, DISP_MSG_WARNING);                    
+                    gui_prompts_display_information_on_screen_and_wait(COULDNT_ADD_USER_TEXT_ID, DISP_MSG_WARNING, FALSE);                    
                 }
             } 
             else if (new_pin_return == RETURN_NEW_PIN_DIFF)
             {
-                gui_prompts_display_information_on_screen_and_wait(DIFFERENT_PINS_TEXT_ID, DISP_MSG_WARNING);
+                gui_prompts_display_information_on_screen_and_wait(DIFFERENT_PINS_TEXT_ID, DISP_MSG_WARNING, FALSE);
             }
             
             /* Reset PIN code */
@@ -244,7 +244,7 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
         /* Check for defective card, check always done on initial unlock */
         if ((fast_mode == FALSE) && (smartcard_highlevel_check_hidden_aes_key_contents() != RETURN_OK))
         {
-            gui_prompts_display_information_on_screen_and_wait(CARD_FAILING_TEXT_ID, DISP_MSG_WARNING);
+            gui_prompts_display_information_on_screen_and_wait(CARD_FAILING_TEXT_ID, DISP_MSG_WARNING, FALSE);
         }
         
         /* Ask the user to enter his PIN and check it */
@@ -310,7 +310,7 @@ unlock_ret_type_te logic_smartcard_user_unlock_process(void)
     /* Display warning if only one security try left */
     if (smartcard_highlevel_get_nb_sec_tries_left() == 1)
     {
-        gui_prompts_display_information_on_screen_and_wait(LAST_PIN_TRY_TEXT_ID, DISP_MSG_INFO);
+        gui_prompts_display_information_on_screen_and_wait(LAST_PIN_TRY_TEXT_ID, DISP_MSG_INFO, FALSE);
         warning_displayed = TRUE;
     }
     
@@ -331,13 +331,13 @@ unlock_ret_type_te logic_smartcard_user_unlock_process(void)
                 }
                 case RETURN_MOOLTIPASS_0_TRIES_LEFT :
                 {
-                    gui_prompts_display_information_on_screen_and_wait(CARD_BLOCKED_TEXT_ID, DISP_MSG_WARNING);
+                    gui_prompts_display_information_on_screen_and_wait(CARD_BLOCKED_TEXT_ID, DISP_MSG_WARNING, FALSE);
                     return UNLOCK_BLOCKED_RET;
                 }
                 case RETURN_MOOLTIPASS_1_TRIES_LEFT :
                 {
                     /* If after a wrong try there's only one try left, ask user to remove his card as a security */
-                    gui_prompts_display_information_on_screen_and_wait(WRONGPIN1LEFT_TEXT_ID, DISP_MSG_INFO);
+                    gui_prompts_display_information_on_screen_and_wait(WRONGPIN1LEFT_TEXT_ID, DISP_MSG_INFO, FALSE);
                     if(warning_displayed == FALSE)
                     {
                         // Inform the user to remove his smart card
@@ -351,13 +351,13 @@ unlock_ret_type_te logic_smartcard_user_unlock_process(void)
                 }
                 case RETURN_MOOLTIPASS_PB :
                 {
-                    gui_prompts_display_information_on_screen_and_wait(PB_CARD_TEXT_ID, DISP_MSG_WARNING);
+                    gui_prompts_display_information_on_screen_and_wait(PB_CARD_TEXT_ID, DISP_MSG_WARNING, FALSE);
                     return UNLOCK_CARD_ISSUE_RET;
                 }
                 default :
                 {
                     // Both the enum and the defines allow us to do that
-                    gui_prompts_display_information_on_screen_and_wait(WRONGPIN1LEFT_TEXT_ID + temp_rettype - RETURN_MOOLTIPASS_1_TRIES_LEFT, DISP_MSG_INFO);
+                    gui_prompts_display_information_on_screen_and_wait(WRONGPIN1LEFT_TEXT_ID + temp_rettype - RETURN_MOOLTIPASS_1_TRIES_LEFT, DISP_MSG_INFO, FALSE);
                     break;
                 }
             }
@@ -396,7 +396,7 @@ RET_TYPE logic_smartcard_remove_card_and_reauth_user(BOOL display_notification)
     // Here we cheat: we display a prompt to hide the power off / on
     if (display_notification != FALSE)
     {
-        gui_prompts_display_information_on_screen_and_wait(PLEASE_REAUTH_TEXT_ID, DISP_MSG_WARNING);
+        gui_prompts_display_information_on_screen_and_wait(PLEASE_REAUTH_TEXT_ID, DISP_MSG_WARNING, FALSE);
     }
     else
     {
@@ -454,13 +454,13 @@ RET_TYPE logic_smartcard_clone_card(volatile uint16_t* pincode)
     smartcard_highlevel_read_application_zone2(temp_az2);
     
     // Inform the user to remove his smart card
-    gui_prompts_display_information_on_screen_and_wait(REMOVE_CARD_TEXT_ID, DISP_MSG_ACTION);
+    gui_prompts_display_information_on_screen_and_wait(REMOVE_CARD_TEXT_ID, DISP_MSG_ACTION, FALSE);
     
     // Wait for the user to remove his smart card
     while (smartcard_lowlevel_is_card_plugged() != RETURN_JRELEASED);
     
     // Inform the user to insert a blank smart card
-    gui_prompts_display_information_on_screen_and_wait(INSERT_NEW_CARD_TEXT_ID, DISP_MSG_ACTION);
+    gui_prompts_display_information_on_screen_and_wait(INSERT_NEW_CARD_TEXT_ID, DISP_MSG_ACTION, FALSE);
     
     // Wait for the user to insert a blank smart card
     while (smartcard_lowlevel_is_card_plugged() != RETURN_JDETECT);
@@ -491,7 +491,7 @@ RET_TYPE logic_smartcard_clone_card(volatile uint16_t* pincode)
     logic_security_smartcard_unlocked_actions();
     
     // Inform the user that it is done
-    gui_prompts_display_information_on_screen_and_wait(CARD_CLONED_TEXT_ID, DISP_MSG_INFO);
+    gui_prompts_display_information_on_screen_and_wait(CARD_CLONED_TEXT_ID, DISP_MSG_INFO, FALSE);
     
     return RETURN_OK;
 }

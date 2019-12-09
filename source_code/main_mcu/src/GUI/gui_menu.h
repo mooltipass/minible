@@ -53,7 +53,7 @@
 /* Settings picture & text IDs */
 #define GUI_KEYB_LAYOUT_CHANGE_ICON_ID  219
 #define GUI_CRED_PROMPT_CHANGE_ICON_ID  300
-#define KNOCK_DETECTION_ICON_ID     228
+#define KNOCK_DETECTION_ICON_ID         228
 #define GUI_WHEEL_ROT_FLIP_ICON_ID      237
 #define GUI_LANGUAGE_SWITCH_ICON_ID     246
 #define GUI_PIN_FOR_MMM_ICON_ID         671

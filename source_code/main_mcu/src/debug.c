@@ -95,9 +95,9 @@ void debug_test_prompts(void)
     gui_prompts_ask_for_confirmation(4, &conf_text_4_lines, TRUE, TRUE);
     
     /* Notifications */
-    gui_prompts_display_information_on_screen_and_wait(35, DISP_MSG_INFO);
-    gui_prompts_display_information_on_screen_and_wait(35, DISP_MSG_ACTION);
-    gui_prompts_display_information_on_screen_and_wait(35, DISP_MSG_WARNING);
+    gui_prompts_display_information_on_screen_and_wait(35, DISP_MSG_INFO, FALSE);
+    gui_prompts_display_information_on_screen_and_wait(35, DISP_MSG_ACTION, FALSE);
+    gui_prompts_display_information_on_screen_and_wait(35, DISP_MSG_WARNING, FALSE);
     
     /* Pin get */
     gui_prompts_get_user_pin(&pinpin, 32);    

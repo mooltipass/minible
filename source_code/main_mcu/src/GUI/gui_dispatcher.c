@@ -395,7 +395,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
         /* Display "going to sleep", switch off screen */
         if (sh1122_is_oled_on(&plat_oled_descriptor) != FALSE)
         {
-            if (gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO) == FALSE)
+            if (gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO, TRUE) == GUI_INFO_DISP_RET_OK)
             {
                 /* Uninterrupted animation */
                 sh1122_oled_off(&plat_oled_descriptor);
