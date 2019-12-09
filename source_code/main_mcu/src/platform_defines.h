@@ -47,8 +47,10 @@
         - prompts for credentials display after prompts for typing
         - switching menus: set default security options associated with each mode
         - full walk back implemented for favorite & login menus
-- v0.12:- accelerometer used to wake up device when USB plugged
-        - double knock to approve
+- v0.12:- accelerometer used to wake up device when USB plugged, will prompt user for PIN if device is locked
+        - double knock to approve storage and recall prompts, for advanced menu only
+        - credentials display setting removed, will prompt whenever device isn't connected to anything or if user denied typing prompts
+        - knock detection enabled as a user settings through the device settings menu
 */
 
 /**************** SETUP DEFINES ****************/

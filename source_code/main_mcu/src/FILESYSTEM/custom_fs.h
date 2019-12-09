@@ -63,10 +63,9 @@
 #define SETTINGS_BOOT_ANIMATION             8
 #define SETTINGS_MASTER_CURRENT             9
 #define SETTINGS_LOCK_ON_DISCONNECT         10
-#define SETTINGS_KNOCK_DETECT_ENABLED       11
-#define SETTINGS_KNOCK_DETECT_SENSITIVITY   12
+#define SETTINGS_KNOCK_DETECT_SENSITIVITY   11
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    13
+#define SETTINGS_NB_USED                    12
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32

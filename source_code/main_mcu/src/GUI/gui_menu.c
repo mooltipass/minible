@@ -51,8 +51,8 @@ const uint16_t operations_menu_pic_ids[] = {GUI_ERASE_USER_ICON_ID, GUI_CHANGE_P
 const uint16_t operations_simple_menu_text_ids[] = {ERASE_USER_TEXT_ID, CHANGE_PIN_TEXT_ID, CLONE_TEXT_ID, ENABLE_ADV_MENU_TEXT_ID, BACK_TEXT_ID};
 const uint16_t operations_advanced_menu_text_ids[] = {ERASE_USER_TEXT_ID, CHANGE_PIN_TEXT_ID, CLONE_TEXT_ID, ENABLE_SIMPLE_MENU_TEXT_ID, BACK_TEXT_ID};
 /* Settings Menu */
-const uint16_t operations_settings_pic_ids[] = {GUI_LANGUAGE_SWITCH_ICON_ID, GUI_MMM_STORAGE_CONF_ICON_ID, GUI_PIN_FOR_MMM_ICON_ID, GUI_KEYB_LAYOUT_CHANGE_ICON_ID, GUI_CRED_PROMPT_CHANGE_ICON_ID, GUI_PWD_DISP_CHANGE_ICON_ID, GUI_BACK_ICON_ID};
-const uint16_t operations_settings_text_ids[] = {LANGUAGE_SWITCH_TEXT_ID, CONF_FOR_MMM_STORAGE_TEXT_ID, PIN_FOR_MMM_TEXT_ID, KEYB_LAYOUT_CHANGE_TEXT_ID, CRED_PROMPT_CHANGE_TEXT_ID, PWD_DISP_CHANGE_TEXT_ID, BACK_TEXT_ID};
+const uint16_t operations_settings_pic_ids[] = {GUI_LANGUAGE_SWITCH_ICON_ID, GUI_MMM_STORAGE_CONF_ICON_ID, GUI_PIN_FOR_MMM_ICON_ID, GUI_KEYB_LAYOUT_CHANGE_ICON_ID, GUI_CRED_PROMPT_CHANGE_ICON_ID, KNOCK_DETECTION_ICON_ID, GUI_BACK_ICON_ID};
+const uint16_t operations_settings_text_ids[] = {LANGUAGE_SWITCH_TEXT_ID, CONF_FOR_MMM_STORAGE_TEXT_ID, PIN_FOR_MMM_TEXT_ID, KEYB_LAYOUT_CHANGE_TEXT_ID, CRED_PROMPT_CHANGE_TEXT_ID, KNOCK_DETECTION_TEXT_ID, BACK_TEXT_ID};
 /* Array of pointers to the menus pics & texts */
 const uint16_t* gui_menu_menus_pics_ids[NB_MENUS] = {simple_menu_pic_ids, bluetooth_off_menu_pic_ids, operations_menu_pic_ids, operations_settings_pic_ids};
 const uint16_t* gui_menu_menus_text_ids[NB_MENUS] = {simple_menu_text_ids, bluetooth_off_menu_text_ids, operations_simple_menu_text_ids, operations_settings_text_ids};
@@ -261,15 +261,8 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                         }
                         else if (user_prompt_return == RETURN_NOK)
                         {
-                            /* If user enabled that setting or if we're not connected to anything, ask to display credential */
-                            if (((logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0) || ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE)))
-                            {
-                                state_machine_index++;
-                            }
-                            else
-                            {
-                                return TRUE;
-                            }
+                            /* We're either not connected to anything or user denied prompts to type credentials... ask him for credentials display */
+                            state_machine_index++;
                         }
                         else
                         {
@@ -446,16 +439,16 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 }
                 return TRUE;                
             }
-            case GUI_PWD_DISP_CHANGE_ICON_ID:
+            case KNOCK_DETECTION_ICON_ID:
             {
-                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPROMPT_PWD_DISPLAY_TEXT_ID, FALSE, FALSE, (logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0);
+                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPROMPT_KNOCK_ENABLE_TEXT_ID, FALSE, FALSE, (logic_user_get_user_security_flags() & USER_SEC_FLG_KNOCK_DET_DISABLED) == 0);
                 if (user_input == MINI_INPUT_RET_YES)
                 {
-                    logic_user_set_user_security_flag(USER_SEC_FLG_PWD_DISPLAY_PROMPT);
+                    logic_user_clear_user_security_flag(USER_SEC_FLG_KNOCK_DET_DISABLED);
                 }
                 else if (user_input == MINI_INPUT_RET_NO)
                 {
-                    logic_user_clear_user_security_flag(USER_SEC_FLG_PWD_DISPLAY_PROMPT);
+                    logic_user_set_user_security_flag(USER_SEC_FLG_KNOCK_DET_DISABLED);
                 }
                 return TRUE;
             }

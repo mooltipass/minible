@@ -20,9 +20,12 @@
 *    Author:   Mathieu Stephan
 */ 
 #include "logic_accelerometer.h"
+#include "logic_security.h"
 #include "logic_device.h"
+#include "logic_user.h"
 #include "custom_fs.h"
 #include "lis2hh12.h"
+#include "nodemgmt.h"
 #include "main.h"
 #include "rng.h"
 // z added value
@@ -176,7 +179,7 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
             if (z_cor_data_val > custom_fs_settings_get_device_setting(SETTINGS_KNOCK_DETECT_SENSITIVITY))
             {
                 /* If silence period is respected */
-                if (((logic_accelerometer_knock_detect_counter - logic_accelerometer_knock_last_det_counter) > ACC_Z_SECOND_KNOCK_MIN_NBS) && (logic_accelerometer_z_tap_detect_enabled != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_KNOCK_DETECT_ENABLED) != FALSE))
+                if (((logic_accelerometer_knock_detect_counter - logic_accelerometer_knock_last_det_counter) > ACC_Z_SECOND_KNOCK_MIN_NBS) && (logic_accelerometer_z_tap_detect_enabled != FALSE) && (logic_security_is_smc_inserted_unlocked() != FALSE) && ((logic_user_get_user_security_flags() & USER_SEC_FLG_KNOCK_DET_DISABLED) == 0))
                 {
                     /* Return success */
                     logic_accelerometer_knock_last_det_counter = 0;

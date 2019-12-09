@@ -28,7 +28,7 @@
 #define BT_NEW_PAIR_TEXT_ID             15
 #define KEYB_LAYOUT_CHANGE_TEXT_ID      16
 #define CRED_PROMPT_CHANGE_TEXT_ID      17
-#define PWD_DISP_CHANGE_TEXT_ID         18
+#define KNOCK_DETECTION_TEXT_ID         18
 #define WHEEL_ROT_FLIP_TEXT_ID          19
 #define LANGUAGE_SWITCH_TEXT_ID         20
 #define PB_CARD_TEXT_ID                 21
@@ -90,7 +90,7 @@
 #define QCONF_FOR_MMM_STORAGE_TEXT_ID   83
 #define QPIN_FOR_MMM_TEXT_ID            84
 #define QPROMPT_FOR_LOGIN_TEXT_ID       85
-#define QPROMPT_PWD_DISPLAY_TEXT_ID     86
+#define QPROMPT_KNOCK_ENABLE_TEXT_ID    86
 #define SELECT_LANGUAGE_TEXT_ID         87
 #define QPROMPT_SNGL_DISP_CRED_TEXT_ID  88
 #define BATTERY_EMPTY_TEXT_ID           89

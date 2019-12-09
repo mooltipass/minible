@@ -726,15 +726,8 @@ void logic_user_manual_select_login(void)
             }
             else if (user_prompt_return == RETURN_NOK)
             {
-                /* Denied prompts to type credential or device isn't connected to anything */
-                if (((logic_user_get_user_security_flags() & USER_SEC_FLG_PWD_DISPLAY_PROMPT) != 0) || ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE)))
-                {
-                    state_machine++;
-                }
-                else
-                {
-                    return;
-                }
+                /* We're either not connected to anything or user denied prompts to type credentials... ask him for credentials display */
+                state_machine++;
             }
             else
             {

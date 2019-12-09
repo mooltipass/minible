@@ -383,7 +383,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
     // Get user action
     wheel_action_ret_te user_action = inputs_get_wheel_action(FALSE, FALSE);
     
-    // In case of no action, accept overrid
+    // In case of no action, accept override
     if (user_action == WHEEL_ACTION_NONE)
     {
         user_action = wheel_action;
