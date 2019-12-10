@@ -2056,6 +2056,34 @@ void sh1122_set_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y)
     oled_descriptor->cur_text_y = y;
 }
 
+/*! \fn     sh1122_get_number_of_printable_characters_for_string(sh1122_descriptor_t* oled_descriptor, int16_t x, const cust_char_t* string) 
+*   \brief  Get the number of characters of a given string that can be printed on the screen
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  x                   Starting x
+*   \param  string              Null terminated string
+*   \return Number of characters that can be printed
+*/
+uint16_t sh1122_get_number_of_printable_characters_for_string(sh1122_descriptor_t* oled_descriptor, int16_t x, const cust_char_t* string) 
+{
+    uint16_t nb_characters = 0;
+    uint16_t temp_uint16 = 0;
+    
+    for (nat_type_t ind=0; (string[ind] != 0) && (string[ind] != '\r'); ind++)
+    {
+        x += sh1122_get_glyph_width(oled_descriptor, string[ind], &temp_uint16);
+        if (x >= oled_descriptor->max_text_x)
+        {
+            return nb_characters;
+        }
+        else
+        {
+            nb_characters++;
+        }
+    }
+    
+    return nb_characters;
+}
+
 /*! \fn     sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, oled_align_te justify, const char* string, BOOL write_to_buffer) 
 *   \brief  Display a string on the screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct

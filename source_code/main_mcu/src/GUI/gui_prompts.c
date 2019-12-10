@@ -142,18 +142,21 @@ void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_li
 
         /* Get string length */
         uint16_t string_length = utils_strlen(text_lines->lines[i]);
-
-        /* Display string */
-        uint16_t nb_chars_printed = sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[2][i], text_lines->lines[i], TRUE);
+        
+        /* Get how many characters can be printed */
+        uint16_t nb_printable_chars = sh1122_get_number_of_printable_characters_for_string(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type], text_lines->lines[i]);
 
         /* String too long, truncate it with "..." */
-        if (string_length != nb_chars_printed)
+        if ((string_length != nb_printable_chars) && (nb_printable_chars > 2))
         {
-            text_lines->lines[i][nb_chars_printed] = 0;
-            text_lines->lines[i][nb_chars_printed-1] = '.';
-            text_lines->lines[i][nb_chars_printed-2] = '.';
-            text_lines->lines[i][nb_chars_printed-3] = '.';
+            text_lines->lines[i][nb_printable_chars] = 0;
+            text_lines->lines[i][nb_printable_chars-1] = '.';
+            text_lines->lines[i][nb_printable_chars-2] = '.';
+            text_lines->lines[i][nb_printable_chars-3] = '.';
         }
+
+        /* Display string */
+        sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[2][i], text_lines->lines[i], TRUE);
     }
     sh1122_reset_min_text_x(&plat_oled_descriptor);
 

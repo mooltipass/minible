@@ -52,6 +52,7 @@
         - credentials display setting removed, will prompt whenever device isn't connected to anything or if user denied typing prompts
         - knock detection enabled as a user settings through the device settings menu
         - scrolling to allow dismissing going to sleep message
+        - memory corruption bug fix for 3 lines notifications
 */
 
 /**************** SETUP DEFINES ****************/

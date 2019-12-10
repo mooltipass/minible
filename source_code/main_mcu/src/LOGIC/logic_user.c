@@ -462,6 +462,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
     cust_char_t login_copy[MEMBER_ARRAY_SIZE(child_cred_node_t, login)];
     utils_strncpy(service_copy, service, MEMBER_ARRAY_SIZE(parent_cred_node_t, service));
     service_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)-1] = 0;
+    memset(login_copy, 0, sizeof(login_copy));
     
     /* Switcheroo */
     service = service_copy;
