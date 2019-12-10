@@ -9,6 +9,10 @@ Use one of the two templates below and delete the other. All issues not followin
 
 ### Moolticute Version - If Involved
 
+### Firmware Version
+AUX MCU version:  
+Main MCU version:  
+
 ### Operating System
 Mention if you are using either:
 - Windows 7/10
