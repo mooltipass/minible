@@ -402,13 +402,7 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
         #endif
         
         for (uint16_t i = 0; i < PIN_PROMPT_ARROW_MOV_LGTH; i++)
-        {
-            /* Skip animation if desired */
-            wheel_action_ret = inputs_get_wheel_action(FALSE, FALSE);
-            if (wheel_action_ret != WHEEL_ACTION_NONE)
-            {
-                return wheel_action_ret;
-            }           
+        {        
             sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
             sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
             sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*(selected_digit-hor_anim_direction) + PIN_PROMPT_ARROW_HOR_ANIM_STEP*i*hor_anim_direction, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_MOVE_ID+i, TRUE);
@@ -494,6 +488,7 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
         wheel_action_ret = inputs_get_wheel_action(FALSE, FALSE);
         if (wheel_action_ret != WHEEL_ACTION_NONE)
         {
+            sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
             return wheel_action_ret;
         }
         #endif
@@ -580,6 +575,13 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
         if (detection_during_animation != WHEEL_ACTION_NONE)
         {
             detection_result = detection_during_animation;
+            detection_during_animation = WHEEL_ACTION_NONE;
+        }
+
+        /* Transform click up / click down to click */
+        if ((detection_result == WHEEL_ACTION_CLICK_UP) || (detection_result == WHEEL_ACTION_CLICK_DOWN))
+        {
+            detection_result = WHEEL_ACTION_SHORT_CLICK;
         }
         
         // Position increment / decrement
@@ -641,7 +643,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
             if (selected_digit < 3)
             {
                 selected_digit++;
-                detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 1);
+                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 1);
             }
             else
             {
