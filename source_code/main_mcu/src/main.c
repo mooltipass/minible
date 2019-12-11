@@ -644,11 +644,12 @@ int main(void)
         }
         
         /* Accelerometer routine */
+        BOOL is_screen_on_copy = sh1122_is_oled_on(&plat_oled_descriptor);
         acc_detection_te accelerometer_routine_return = logic_accelerometer_routine();
         if (accelerometer_routine_return == ACC_DET_MOVEMENT)
         {
             /* Movement was detected by the accelerometer routine */
-            if (gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_LCK)
+            if ((gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_LCK) && (is_screen_on_copy == FALSE))
             {
                 /* Card inserted and device locked, simulate wheel action to prompt PIN entering */
                 virtual_wheel_action = WHEEL_ACTION_VIRTUAL;
