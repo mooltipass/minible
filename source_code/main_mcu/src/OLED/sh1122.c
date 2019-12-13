@@ -387,6 +387,38 @@ void sh1122_allow_partial_text_x_draw(sh1122_descriptor_t* oled_descriptor)
     oled_descriptor->allow_text_partial_x_draw = TRUE;
 }
 
+/*! \fn     sh1122_is_screen_inverted(sh1122_descriptor_t* oled_descriptor)
+*   \brief  Know if the screen is inverted
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \return The right boolean
+*/
+BOOL sh1122_is_screen_inverted(sh1122_descriptor_t* oled_descriptor)
+{
+    return oled_descriptor->screen_inverted;
+}
+
+/*! \fn     sh1122_set_screen_invert(sh1122_descriptor_t* oled_descriptor, BOOL screen_inverted)
+*   \brief  Invert the screen
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  screen_inverted     Boolean to invert or not the screen
+*/
+void sh1122_set_screen_invert(sh1122_descriptor_t* oled_descriptor, BOOL screen_inverted)
+{
+    if (screen_inverted == FALSE)
+    {
+        sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_START_LINE | 32);
+        sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_SEGMENT_REMAP | 0x01);
+        sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_SCAN_DIRECTION | 0x08);
+    } 
+    else
+    {
+        sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_START_LINE);
+        sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_SEGMENT_REMAP);
+        sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_SCAN_DIRECTION);
+    }
+    oled_descriptor->screen_inverted = screen_inverted;
+}
+
 /*! \fn     sh1122_prevent_partial_text_y_draw(sh1122_descriptor_t* oled_descriptor)
 *   \brief  Prevent partial drawing of text in Y
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
@@ -837,6 +869,9 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor)
         PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTSET.reg = oled_descriptor->sh1122_cs_pin_mask;
         asm("NOP");asm("NOP");
     }
+    
+    /* Invert or not display */
+    sh1122_set_screen_invert(oled_descriptor, oled_descriptor->screen_inverted);
 
     /* Clear display */
     sh1122_clear_current_screen(oled_descriptor);

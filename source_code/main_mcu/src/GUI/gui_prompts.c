@@ -678,6 +678,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
 {
     uint16_t bitmap_yes_no_array[10] = {BITMAP_POPUP_2LINES_Y, BITMAP_POPUP_2LINES_N, BITMAP_2LINES_PRESS_Y, BITMAP_2LINES_PRESS_N, BITMAP_2LINES_SEL_Y, BITMAP_2LINES_SEL_N, BITMAP_2LINES_IDLE_Y, BITMAP_2LINES_IDLE_N, BITMAP_POPUP_2LINES_Y_DESEL, BITMAP_POPUP_2LINES_N_SELEC};
     uint16_t bitmap_usb_ble_array[10] = {BITMAP_POPUP_USB, BITMAP_POPUP_BLE, BITMAP_USB_PRESS, BITMAP_BLE_PRESS, BITMAP_USB_SELECT, BITMAP_BLE_SELECT, BITMAP_USB_IDLE, BITMAP_BLE_IDLE, BITMAP_POPUP_USB_DESEL, BITMAP_POPUP_BLE_SEL};
+    ret_type_te current_card_insertion_status = smartcard_low_level_is_smc_absent();
     BOOL approve_selected = first_item_selected;
     cust_char_t* string_to_display;
     BOOL flash_flag = FALSE;
@@ -762,8 +763,8 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
             input_answer = MINI_INPUT_RET_TIMEOUT;
         }
         
-        // Card removed
-        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        // Escape the prompt if the function was entered with a smartcard inserted and the smartcard got removed
+        if ((smartcard_low_level_is_smc_absent() != current_card_insertion_status) && (smartcard_low_level_is_smc_absent() == RETURN_OK))
         {
             input_answer = MINI_INPUT_RET_CARD_REMOVED;
         }

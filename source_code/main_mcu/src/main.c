@@ -337,6 +337,10 @@ void main_platform_init(void)
     /* Set settings that may not have been set to an initial value */
     custom_fs_set_undefined_settings();
     
+    /* Apply possible screen inversion */
+    BOOL screen_inverted = logic_power_get_power_source() == BATTERY_POWERED?(BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_BATTERY):(BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_USB);
+    sh1122_set_screen_invert(&plat_oled_descriptor, screen_inverted);
+    
     /* Set screen brightness */
     sh1122_set_contrast_current(&plat_oled_descriptor, custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT));
 }
@@ -585,6 +589,7 @@ int main(void)
         }
         else if (power_action == POWER_ACT_NEW_BAT_LEVEL)
         {
+            /* New battery level, inform aux MCU */
             logic_aux_mcu_update_aux_mcu_of_new_battery_level(logic_power_get_and_ack_new_battery_level()*10);
         }
         
@@ -654,6 +659,39 @@ int main(void)
                 /* Card inserted and device locked, simulate wheel action to prompt PIN entering */
                 virtual_wheel_action = WHEEL_ACTION_VIRTUAL;
             }
+        }
+        else if ((accelerometer_routine_return == ACC_INVERT_SCREEN) || (accelerometer_routine_return == ACC_NINVERT_SCREEN))
+        {
+            uint16_t prompt_id = accelerometer_routine_return == ACC_INVERT_SCREEN? QPROMPT_LEFT_HAND_MODE_TEXT_ID:QPROMPT_RIGHT_HAND_MODE_TEXT_ID;
+            BOOL invert_bool = accelerometer_routine_return == ACC_INVERT_SCREEN? TRUE:FALSE;
+            
+            /* Make sure we're not harassing the user */
+            if (timer_has_timer_expired(TIMER_HANDED_MODE_CHANGE, FALSE) == TIMER_EXPIRED)
+            {
+                if (gui_prompts_ask_for_one_line_confirmation(prompt_id, FALSE, FALSE, TRUE) == MINI_INPUT_RET_YES)
+                {
+                    /* Invert screen and inputs */
+                    sh1122_set_screen_invert(&plat_oled_descriptor, invert_bool);
+                    inputs_set_inputs_invert_bool(invert_bool);
+                    
+                    /* Store settings */
+                    if (logic_power_get_power_source() == BATTERY_POWERED)
+                        custom_fs_set_settings_value(SETTINGS_LEFT_HANDED_ON_BATTERY, (uint8_t)invert_bool);
+                    else
+                        custom_fs_set_settings_value(SETTINGS_LEFT_HANDED_ON_USB, (uint8_t)invert_bool);
+                }
+                else
+                {
+                    /* Wait before asking again */
+                    timer_start_timer(TIMER_HANDED_MODE_CHANGE, 30000);
+                }
+                gui_dispatcher_get_back_to_current_screen();
+            } 
+            else
+            {
+                /* Routine wants to rotate the screen but we already asked the user not long ago, rearm the timer */
+                timer_start_timer(TIMER_HANDED_MODE_CHANGE, 30000);
+            }            
         }
         
         /* Device state changed, inform aux MCU so it can update its buffer */

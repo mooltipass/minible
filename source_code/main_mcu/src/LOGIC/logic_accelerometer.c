@@ -26,6 +26,7 @@
 #include "custom_fs.h"
 #include "lis2hh12.h"
 #include "nodemgmt.h"
+#include "sh1122.h"
 #include "main.h"
 #include "rng.h"
 // z added value
@@ -47,7 +48,7 @@ uint16_t logic_accelerometer_knock_last_det_counter;
 // first knock width
 uint16_t logic_accelerometer_first_knock_width;
 // accumulation for y axis
-int16_t logic_accelerometer_y_cumulated;
+int16_t logic_accelerometer_x_cumulated;
 
 
 /*! \fn     logic_accelerometer_routine(void)
@@ -112,24 +113,22 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
 
         /* Average calculations */
         logic_accelerometer_z_added += z_data_val;
-        logic_accelerometer_y_cumulated += plat_acc_descriptor.fifo_read.acc_data_array[i].acc_x >> 8;
+        logic_accelerometer_x_cumulated += plat_acc_descriptor.fifo_read.acc_data_array[i].acc_x >> 8;
         
         /* Logic done every X samples */
         if (++logic_accelerometer_z_avg_counter == ACC_Z_AVG_NB_SAMPLES)
         {
             /* Check if we need to reverse the screen */
-            /*if ((logic_accelerometer_y_cumulated > ACC_Y_TOTAL_NREVERSE) && (miniOledIsDisplayReversed() != FALSE))
+            if ((logic_accelerometer_x_cumulated > ACC_Y_TOTAL_NREVERSE) && (sh1122_is_screen_inverted(&plat_oled_descriptor) == FALSE))
             {
-                miniOledUnReverseDisplay();
-                wheel_reverse_bool = FALSE;
-                setMooltipassParameterInEeprom(INVERTED_SCREEN_AT_BOOT_PARAM, FALSE);
+                /* May be overwritten after but that's alright */
+                return_val = ACC_INVERT_SCREEN;
             }
-            else if ((logic_accelerometer_y_cumulated < ACC_Y_TOTAL_REVERSE) && (miniOledIsDisplayReversed() == FALSE))
+            else if ((logic_accelerometer_x_cumulated < ACC_Y_TOTAL_REVERSE) && (sh1122_is_screen_inverted(&plat_oled_descriptor) != FALSE))
             {
-                miniOledReverseDisplay();
-                wheel_reverse_bool = TRUE;
-                setMooltipassParameterInEeprom(INVERTED_SCREEN_AT_BOOT_PARAM, TRUE);
-            }*/
+                /* May be overwritten after but that's alright */
+                return_val = ACC_NINVERT_SCREEN;
+            }
 
             /* Compute average  */
             logic_accelerometer_z_average = logic_accelerometer_z_added / ACC_Z_AVG_NB_SAMPLES;
@@ -146,7 +145,7 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
             
             /* Reset vars */
             logic_accelerometer_z_added = 0;
-            logic_accelerometer_y_cumulated = 0;
+            logic_accelerometer_x_cumulated = 0;
             logic_accelerometer_z_avg_counter = 0;
             logic_accelerometer_z_cum_diff_avg = 0;
         }
@@ -228,7 +227,15 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
         }
         else
         {
-            return ACC_DET_NOTHING;
+            /* Check for screen inversion */
+            if (return_val != ACC_DET_NOTHING)
+            {
+                return return_val;
+            }
+            else
+            {
+                return ACC_DET_NOTHING;
+            }
         }
     }
 }

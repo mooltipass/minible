@@ -37,7 +37,7 @@
 #endif
 
 /* Default device settings */
-const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = {0,FALSE,SETTING_DFT_USER_INTERACTION_TIMEOUT,TRUE,0,0x09,0x0A,25,TRUE,0x90,TRUE,9};
+const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = {0,FALSE,SETTING_DFT_USER_INTERACTION_TIMEOUT,TRUE,0,0x09,0x0A,25,TRUE,0x90,TRUE,9,FALSE,FALSE};
 /* Current selected language entry */
 language_map_entry_t custom_fs_cur_language_entry = {.starting_bitmap = 0, .starting_font = 0, .string_file_index = 0};
 /* Temp values to speed up string files reading */
@@ -1084,6 +1084,23 @@ void custom_fs_set_device_default_language(uint8_t language_id)
     memcpy(temp_device_settings, custom_fs_platform_settings_p->device_settings, sizeof(temp_device_settings));
     temp_device_settings[SETTING_DEVICE_DEFAULT_LANGUAGE] = language_id;
     custom_fs_settings_store_dump(temp_device_settings);    
+}
+
+/*! \fn     custom_fs_set_settings_value(uint8_t settings_id, uint8_t setting_value)
+*   \brief  Set a given settings ID to a given value
+*   \param  settings_id     The settings ID
+*   \param  setting_value   The settings value
+*/
+void custom_fs_set_settings_value(uint8_t settings_id, uint8_t setting_value)
+{
+    /* Check for invalid settings ID */
+    if (settings_id < NB_DEVICE_SETTINGS)
+    {
+        uint8_t temp_device_settings[NB_DEVICE_SETTINGS];
+        memcpy(temp_device_settings, custom_fs_platform_settings_p->device_settings, sizeof(temp_device_settings));
+        temp_device_settings[settings_id] = setting_value;
+        custom_fs_settings_store_dump(temp_device_settings);
+    }
 }
 
 /*! \fn     custom_fs_set_undefined_settings(void)

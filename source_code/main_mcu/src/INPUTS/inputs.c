@@ -242,6 +242,15 @@ void inputs_scan(void)
 }
 #endif
 
+/*! \fn     inputs_set_inputs_invert_bool(BOOL invert_bool)
+*   \brief  Set bool to invert input logic
+*   \param  invert_bool     The inversion boolean
+*/
+void inputs_set_inputs_invert_bool(BOOL invert_bool)
+{
+    inputs_wheel_reverse_bool = invert_bool;
+}
+
 /*! \fn     inputs_get_wheel_increment(void)
 *   \brief  Fetch the current increment/decrement for the wheel
 *   \return positive or negative depending on the scrolling

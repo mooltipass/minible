@@ -31,6 +31,7 @@
 
 /* Prototypes */
 wheel_action_ret_te inputs_get_wheel_action(BOOL wait_for_action, BOOL ignore_incdec);
+void inputs_set_inputs_invert_bool(BOOL invert_bool);
 RET_TYPE inputs_get_last_returned_action(void);
 det_ret_type_te inputs_is_wheel_clicked(void);
 int16_t inputs_get_wheel_increment(void);

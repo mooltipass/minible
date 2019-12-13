@@ -104,6 +104,7 @@ typedef struct
     BOOL line_feed_allowed;                             // If we are allowing \n
     BOOL allow_text_partial_y_draw;                     // Allow drawing of text if they go over max Y
     BOOL allow_text_partial_x_draw;                     // Allow drawing of text if they go over max X
+    BOOL screen_inverted;                               // If the screen is inverted
     uint16_t min_disp_y;                                // Min display Y
     uint16_t max_disp_y;                                // Max display Y
     uint16_t max_disp_x;                                // Max display X
@@ -142,6 +143,7 @@ void sh1122_load_transition(sh1122_descriptor_t* oled_descriptor, oled_transitio
 void sh1122_set_discharge_charge_periods(sh1122_descriptor_t* oled_descriptor, uint8_t periods);
 uint16_t sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str);
 void sh1122_set_discharge_vsl_level(sh1122_descriptor_t* oled_descriptor, uint8_t vsl_level);
+void sh1122_set_screen_invert(sh1122_descriptor_t* oled_descriptor, BOOL screen_inverted);
 void sh1122_move_display_start_line(sh1122_descriptor_t* oled_descriptor, int16_t offset);
 RET_TYPE sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor, uint16_t font_id);
 void sh1122_write_single_command(sh1122_descriptor_t* oled_descriptor, uint8_t reg);
@@ -166,6 +168,7 @@ void sh1122_clear_current_screen(sh1122_descriptor_t* oled_descriptor);
 void sh1122_reset_lim_display_y(sh1122_descriptor_t* oled_descriptor);
 void sh1122_set_emergency_font(sh1122_descriptor_t* oled_descriptor);
 void sh1122_start_data_sending(sh1122_descriptor_t* oled_descriptor);
+BOOL sh1122_is_screen_inverted(sh1122_descriptor_t* oled_descriptor);
 void sh1122_prevent_line_feed(sh1122_descriptor_t* oled_descriptor);
 void sh1122_stop_data_sending(sh1122_descriptor_t* oled_descriptor);
 void sh1122_reset_max_text_x(sh1122_descriptor_t* oled_descriptor);

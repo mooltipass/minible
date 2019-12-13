@@ -31,6 +31,7 @@
 #include "driver_timer.h"
 #include "logic_device.h"
 #include "gui_prompts.h"
+#include "logic_power.h"
 #include "logic_user.h"
 #include "custom_fs.h"
 #include "text_ids.h"
@@ -268,6 +269,10 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             
             /* Actions run when settings are updated */
             sh1122_set_contrast_current(&plat_oled_descriptor, custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT));
+            
+            /* Apply possible screen inversion */
+            BOOL screen_inverted = logic_power_get_power_source() == BATTERY_POWERED?(BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_BATTERY):(BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_USB);
+            sh1122_set_screen_invert(&plat_oled_descriptor, screen_inverted);
             
             /* Set ack, leave same command id */
             send_msg->message_type = rcv_message_type;

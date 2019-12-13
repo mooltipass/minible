@@ -64,8 +64,10 @@
 #define SETTINGS_MASTER_CURRENT             9
 #define SETTINGS_LOCK_ON_DISCONNECT         10
 #define SETTINGS_KNOCK_DETECT_SENSITIVITY   11
+#define SETTINGS_LEFT_HANDED_ON_BATTERY     12
+#define SETTINGS_LEFT_HANDED_ON_USB         13
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    12
+#define SETTINGS_NB_USED                    14
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32
@@ -211,6 +213,7 @@ uint16_t custom_fs_get_nb_free_cpz_lut_entries(uint8_t* first_available_user_id)
 RET_TYPE custom_fs_update_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id);
 RET_TYPE custom_fs_store_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id);
 void custom_fs_set_device_flag_value(custom_fs_flag_id_te flag_id, BOOL value);
+void custom_fs_set_settings_value(uint8_t settings_id, uint8_t setting_value);
 void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id);
 void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc);
 uint8_t custom_fs_get_recommended_layout_for_current_language(void);
