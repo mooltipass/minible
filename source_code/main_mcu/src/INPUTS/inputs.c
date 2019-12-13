@@ -136,22 +136,50 @@ void inputs_scan(void)
                     {
                         if (cur_switch_b_state == FALSE)
                         {
-                            inputs_wheel_cur_increment--;
+                            if (inputs_wheel_reverse_bool != FALSE)
+                            {
+                                inputs_wheel_cur_increment--;
+                            }
+                            else
+                            {
+                                inputs_wheel_cur_increment++;
+                            }
                         } 
                         else
                         {
-                            inputs_wheel_cur_increment++;
+                            if (inputs_wheel_reverse_bool != FALSE)
+                            {
+                                inputs_wheel_cur_increment++;
+                            }
+                            else
+                            {
+                                inputs_wheel_cur_increment--;
+                            }
                         }
                     } 
                     else
                     {
                         if (cur_switch_b_state == FALSE)
                         {
-                            inputs_wheel_cur_increment--;
+                            if (inputs_wheel_reverse_bool != FALSE)
+                            {
+                                inputs_wheel_cur_increment--;
+                            }
+                            else
+                            {
+                                inputs_wheel_cur_increment++;
+                            }
                         }
                         else
                         {
-                            inputs_wheel_cur_increment++;
+                            if (inputs_wheel_reverse_bool != FALSE)
+                            {
+                                inputs_wheel_cur_increment++;
+                            }
+                            else
+                            {
+                                inputs_wheel_cur_increment--;
+                            }
                         }
                     }
                 } 
@@ -161,22 +189,50 @@ void inputs_scan(void)
                     {
                         if (cur_switch_b_state == FALSE)
                         {
-                            inputs_wheel_cur_increment++;
+                            if (inputs_wheel_reverse_bool != FALSE)
+                            {
+                                inputs_wheel_cur_increment++;
+                            }
+                            else
+                            {
+                                inputs_wheel_cur_increment--;
+                            }
                         }
                         else
                         {
-                            inputs_wheel_cur_increment--;
+                            if (inputs_wheel_reverse_bool != FALSE)
+                            {
+                                inputs_wheel_cur_increment--;
+                            }
+                            else
+                            {
+                                inputs_wheel_cur_increment++;
+                            }
                         }
                     }
                     else
                     {
                         if (cur_switch_b_state == FALSE)
                         {
-                            inputs_wheel_cur_increment++;
+                            if (inputs_wheel_reverse_bool != FALSE)
+                            {
+                                inputs_wheel_cur_increment++;
+                            }
+                            else
+                            {
+                                inputs_wheel_cur_increment--;
+                            }
                         }
                         else
                         {
-                            inputs_wheel_cur_increment--;
+                            if (inputs_wheel_reverse_bool != FALSE)
+                            {
+                                inputs_wheel_cur_increment--;
+                            }
+                            else
+                            {
+                                inputs_wheel_cur_increment++;
+                            }
                         }
                     }
                 }

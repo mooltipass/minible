@@ -242,6 +242,9 @@ power_action_te logic_power_routine(void)
     /* Power supply change */
     if ((logic_power_get_power_source() == BATTERY_POWERED) && (platform_io_is_usb_3v3_present() != FALSE))
     {
+        /* Set inversion bool */
+        plat_oled_descriptor.screen_inverted = (BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_USB);
+        
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
         comms_aux_mcu_wait_for_message_sent();
         sh1122_oled_off(&plat_oled_descriptor);
@@ -255,13 +258,13 @@ power_action_te logic_power_routine(void)
         gui_dispatcher_get_back_to_current_screen();
         logic_device_activity_detected();
         logic_power_nb_adc_conv_since_last_power_change = 0;
-        
-        /* Apply possible screen inversion */
-        sh1122_set_screen_invert(&plat_oled_descriptor, (BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_USB));
     }
     else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
     {
         aux_mcu_message_t* temp_rx_message_pt;
+        
+        /* Set inversion bool */
+        plat_oled_descriptor.screen_inverted = (BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_BATTERY);
         
         /* Tell the aux MCU to detach USB, change power supply for OLED */
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
@@ -278,9 +281,6 @@ power_action_te logic_power_routine(void)
         gui_dispatcher_get_back_to_current_screen();
         logic_device_activity_detected();
         logic_power_nb_adc_conv_since_last_power_change = 0;
-        
-        /* Apply possible screen inversion */
-        sh1122_set_screen_invert(&plat_oled_descriptor, (BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_BATTERY));
                 
         /* If user selected to, lock device */
         if ((logic_security_is_smc_inserted_unlocked() != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_LOCK_ON_DISCONNECT) != FALSE))

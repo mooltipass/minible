@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    12
+#define FW_MINOR    13
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -53,6 +53,7 @@
         - knock detection enabled as a user settings through the device settings menu
         - scrolling to allow dismissing going to sleep message
         - memory corruption bug fix for 3 lines notifications
+- v0.13:- left handed mode when usb and battery connected: prompt when device is steadily held
 */
 
 /**************** SETUP DEFINES ****************/

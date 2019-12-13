@@ -668,6 +668,8 @@ int main(void)
             /* Make sure we're not harassing the user */
             if (timer_has_timer_expired(TIMER_HANDED_MODE_CHANGE, FALSE) == TIMER_EXPIRED)
             {
+                sh1122_set_screen_invert(&plat_oled_descriptor, invert_bool);
+                inputs_set_inputs_invert_bool(invert_bool);
                 if (gui_prompts_ask_for_one_line_confirmation(prompt_id, FALSE, FALSE, TRUE) == MINI_INPUT_RET_YES)
                 {
                     /* Invert screen and inputs */
@@ -684,6 +686,8 @@ int main(void)
                 {
                     /* Wait before asking again */
                     timer_start_timer(TIMER_HANDED_MODE_CHANGE, 30000);
+                    sh1122_set_screen_invert(&plat_oled_descriptor, !invert_bool);
+                    inputs_set_inputs_invert_bool(!invert_bool);
                 }
                 gui_dispatcher_get_back_to_current_screen();
             } 
