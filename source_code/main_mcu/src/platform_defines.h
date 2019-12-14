@@ -54,8 +54,9 @@
         - scrolling to allow dismissing going to sleep message
         - memory corruption bug fix for 3 lines notifications
 - v0.13:- left handed mode when usb and battery connected: prompt when device is steadily held
-        - correct knock detection icon
         - accelerometer routine called in long functions
+        - battery charge failed displayed on screen
+        - correct knock detection icon
 */
 
 /**************** SETUP DEFINES ****************/

@@ -49,6 +49,8 @@ power_source_te logic_power_current_power_source;
 uint16_t logic_power_last_vbat_measurement;
 /* Battery charging bool */
 BOOL logic_power_battery_charging = FALSE;
+/* Error with battery flag */
+BOOL logic_power_error_with_battery = FALSE;
 /* Number of ADC conversions since last power change */
 uint16_t logic_power_nb_adc_conv_since_last_power_change = 0;
 /* If the "enumerate usb" command was just sent */
@@ -146,6 +148,14 @@ BOOL logic_power_is_battery_charging(void)
     return logic_power_battery_charging;
 }
 
+/*! \fn     logic_power_signal_battery_error(void)
+*   \brief  Signal an error with the battery
+*/
+void logic_power_signal_battery_error(void)
+{
+    logic_power_error_with_battery = TRUE;
+}
+
 /*! \fn     logic_power_get_battery_state(void)
 *   \brief  Get current battery state
 *   \return Current battery state (see enum)
@@ -178,25 +188,32 @@ battery_state_te logic_power_get_battery_state(void)
     }
     else
     {
-        if (logic_power_current_battery_level < 2)
+        if (logic_power_error_with_battery == FALSE)
         {
-            return BATTERY_0PCT;
-        }
-        else if (logic_power_current_battery_level < 4)
-        {
-            return BATTERY_25PCT;
-        }
-        else if (logic_power_current_battery_level < 6)
-        {
-            return BATTERY_50PCT;
-        }
-        else if (logic_power_current_battery_level < 8)
-        {
-            return BATTERY_75PCT;
-        }
+            if (logic_power_current_battery_level < 2)
+            {
+                return BATTERY_0PCT;
+            }
+            else if (logic_power_current_battery_level < 4)
+            {
+                return BATTERY_25PCT;
+            }
+            else if (logic_power_current_battery_level < 6)
+            {
+                return BATTERY_50PCT;
+            }
+            else if (logic_power_current_battery_level < 8)
+            {
+                return BATTERY_75PCT;
+            }
+            else
+            {
+                return BATTERY_100PCT;
+            }
+        } 
         else
         {
-            return BATTERY_100PCT;
+            return BATTERY_ERROR;
         }
     }
 }

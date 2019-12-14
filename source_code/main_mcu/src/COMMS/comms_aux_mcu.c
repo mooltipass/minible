@@ -223,6 +223,7 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
         case AUX_MCU_EVENT_CHARGE_FAIL:
         {
             logic_power_set_battery_charging_bool(FALSE, FALSE);
+            logic_power_signal_battery_error();
             break;
         }
         case AUX_MCU_EVENT_BLE_CONNECTED:
