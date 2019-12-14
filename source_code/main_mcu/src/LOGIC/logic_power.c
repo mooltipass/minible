@@ -261,6 +261,7 @@ power_action_te logic_power_routine(void)
     {
         /* Set inversion bool */
         plat_oled_descriptor.screen_inverted = (BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_USB);
+        inputs_set_inputs_invert_bool(plat_oled_descriptor.screen_inverted);
         
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
         comms_aux_mcu_wait_for_message_sent();
@@ -282,6 +283,7 @@ power_action_te logic_power_routine(void)
         
         /* Set inversion bool */
         plat_oled_descriptor.screen_inverted = (BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_BATTERY);
+        inputs_set_inputs_invert_bool(plat_oled_descriptor.screen_inverted);
         
         /* Tell the aux MCU to detach USB, change power supply for OLED */
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);

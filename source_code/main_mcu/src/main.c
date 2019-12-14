@@ -339,7 +339,8 @@ void main_platform_init(void)
     
     /* Apply possible screen inversion */
     BOOL screen_inverted = logic_power_get_power_source() == BATTERY_POWERED?(BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_BATTERY):(BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_USB);
-    sh1122_set_screen_invert(&plat_oled_descriptor, screen_inverted);
+    sh1122_set_screen_invert(&plat_oled_descriptor, screen_inverted);    
+    inputs_set_inputs_invert_bool(screen_inverted);
     
     /* Set screen brightness */
     sh1122_set_contrast_current(&plat_oled_descriptor, custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT));

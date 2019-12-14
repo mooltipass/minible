@@ -136,7 +136,7 @@ void inputs_scan(void)
                     {
                         if (cur_switch_b_state == FALSE)
                         {
-                            if (inputs_wheel_reverse_bool != FALSE)
+                            if (inputs_wheel_reverse_bool == FALSE)
                             {
                                 inputs_wheel_cur_increment--;
                             }
@@ -147,7 +147,7 @@ void inputs_scan(void)
                         } 
                         else
                         {
-                            if (inputs_wheel_reverse_bool != FALSE)
+                            if (inputs_wheel_reverse_bool == FALSE)
                             {
                                 inputs_wheel_cur_increment++;
                             }
@@ -161,7 +161,7 @@ void inputs_scan(void)
                     {
                         if (cur_switch_b_state == FALSE)
                         {
-                            if (inputs_wheel_reverse_bool != FALSE)
+                            if (inputs_wheel_reverse_bool == FALSE)
                             {
                                 inputs_wheel_cur_increment--;
                             }
@@ -172,7 +172,7 @@ void inputs_scan(void)
                         }
                         else
                         {
-                            if (inputs_wheel_reverse_bool != FALSE)
+                            if (inputs_wheel_reverse_bool == FALSE)
                             {
                                 inputs_wheel_cur_increment++;
                             }
@@ -189,7 +189,7 @@ void inputs_scan(void)
                     {
                         if (cur_switch_b_state == FALSE)
                         {
-                            if (inputs_wheel_reverse_bool != FALSE)
+                            if (inputs_wheel_reverse_bool == FALSE)
                             {
                                 inputs_wheel_cur_increment++;
                             }
@@ -200,7 +200,7 @@ void inputs_scan(void)
                         }
                         else
                         {
-                            if (inputs_wheel_reverse_bool != FALSE)
+                            if (inputs_wheel_reverse_bool == FALSE)
                             {
                                 inputs_wheel_cur_increment--;
                             }
@@ -214,7 +214,7 @@ void inputs_scan(void)
                     {
                         if (cur_switch_b_state == FALSE)
                         {
-                            if (inputs_wheel_reverse_bool != FALSE)
+                            if (inputs_wheel_reverse_bool == FALSE)
                             {
                                 inputs_wheel_cur_increment++;
                             }
@@ -225,7 +225,7 @@ void inputs_scan(void)
                         }
                         else
                         {
-                            if (inputs_wheel_reverse_bool != FALSE)
+                            if (inputs_wheel_reverse_bool == FALSE)
                             {
                                 inputs_wheel_cur_increment--;
                             }
