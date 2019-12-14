@@ -245,7 +245,8 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
     timer_start_timer(TIMER_WAIT_FUNCTS, 3000);
     while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
     {
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);      
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL); 
+        logic_accelerometer_routine();     
         
         /* Click to interrupt */  
         wheel_return = inputs_get_wheel_action(FALSE, FALSE);
@@ -301,6 +302,7 @@ void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
     while ((timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK))
     {
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        logic_accelerometer_routine();
         
         /* Animation timer */
         if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
@@ -570,6 +572,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     {
         // Still process the USB commands, reply with please retries
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        logic_accelerometer_routine();
         
         // detection result
         detection_result = inputs_get_wheel_action(FALSE, FALSE);
@@ -768,6 +771,9 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
         {
             input_answer = MINI_INPUT_RET_CARD_REMOVED;
         }
+        
+        // Call accelerometer routine for (among others) RNG stuff
+        logic_accelerometer_routine();
         
         // Read usb comms as the plugin could ask to cancel the request
         if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD)
@@ -994,6 +1000,9 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         {
             input_answer = MINI_INPUT_RET_CARD_REMOVED;
         }
+        
+        // Call accelerometer routine for (among others) RNG stuff
+        logic_accelerometer_routine();
         
         // Read usb comms as the plugin could ask to cancel the request
         if ((parse_aux_messages != FALSE) && (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD))
@@ -1305,6 +1314,9 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
         {
             return MINI_INPUT_RET_CARD_REMOVED;
         }
+        
+        // Call accelerometer routine for (among others) RNG stuff
+        logic_accelerometer_routine();
         
         /* Read usb comms as the plugin could ask to cancel the request */
         if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD)
@@ -1653,6 +1665,9 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
         {
             return NODE_ADDR_NULL;
         }
+        
+        /* Call accelerometer routine for (among others) RNG stuff */
+        logic_accelerometer_routine();
         
         /* Read usb comms as the plugin could ask to cancel the request */
         if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD)
@@ -2071,6 +2086,9 @@ int16_t gui_prompts_select_category(void)
             return -1;
         }
         
+        /* Call accelerometer routine for (among others) RNG stuff */
+        logic_accelerometer_routine();
+        
         /* Deal with simple messages */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         
@@ -2337,6 +2355,9 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
         {
             return -1;
         }
+        
+        /* Call accelerometer routine for (among others) RNG stuff */
+        logic_accelerometer_routine();
         
         /* Deal with simple messages */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
@@ -2706,6 +2727,9 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
         {
             return RETURN_NOK;
         }
+        
+        /* Call accelerometer routine for (among others) RNG stuff */
+        logic_accelerometer_routine();
         
         /* Deal with simple messages */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);

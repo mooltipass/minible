@@ -534,6 +534,7 @@ int main(void)
             while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
             {
                 comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+                logic_accelerometer_routine();
                 
                 /* Click to exit animation */
                 if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)

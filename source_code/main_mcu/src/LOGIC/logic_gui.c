@@ -21,6 +21,7 @@
 */
 #include <string.h>
 #include "smartcard_highlevel.h"
+#include "logic_accelerometer.h"
 #include "smartcard_lowlevel.h"
 #include "logic_encryption.h"
 #include "logic_smartcard.h"
@@ -319,6 +320,9 @@ void logic_gui_display_login_password(child_cred_node_t* child_node)
     {
         /* Deal with ping messages only */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        
+        /* Call accelerometer routine for (among others) RNG stuff */
+        logic_accelerometer_routine();
         
         /* User interaction timeout */
         if (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED)
