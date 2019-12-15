@@ -254,6 +254,10 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
         {
             return GUI_INFO_DISP_RET_CLICK;
         }
+        else if (wheel_return == WHEEL_ACTION_LONG_CLICK)
+        {
+            return GUI_INFO_DISP_RET_LONG_CLICK;
+        }
         else if ((allow_scroll_to_interrupt != FALSE) && ((wheel_return == WHEEL_ACTION_UP) || (wheel_return == WHEEL_ACTION_DOWN)))
         {
             return GUI_INFO_DISP_RET_SCROLL;

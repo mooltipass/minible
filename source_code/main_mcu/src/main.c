@@ -655,7 +655,15 @@ int main(void)
         acc_detection_te accelerometer_routine_return = logic_accelerometer_routine();
         if (accelerometer_routine_return == ACC_FAILING)
         {
-            gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_001_TEXT_ID, DISP_MSG_WARNING, FALSE);
+            /* Accelerometer failing */
+            if (gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_001_TEXT_ID, DISP_MSG_WARNING, FALSE) == GUI_INFO_DISP_RET_LONG_CLICK)
+            {
+                /* Trick to not brick the device: long click still allows comms */
+                while (TRUE)
+                {
+                    comms_aux_mcu_routine(MSG_NO_RESTRICT);
+                }
+            }
             gui_dispatcher_get_back_to_current_screen();
         }
         else if (accelerometer_routine_return == ACC_DET_MOVEMENT)
