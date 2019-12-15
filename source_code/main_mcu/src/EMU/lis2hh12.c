@@ -4,8 +4,9 @@
 
 static int urandom = -1;
 
-BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_descriptor_t* descriptor_pt)
+BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_descriptor_t* descriptor_pt, BOOL arm_other_transfer)
 {
+    (void)arm_other_transfer;
     if(urandom < 0)
         urandom = open("/dev/urandom", O_RDONLY);
     read(urandom, &descriptor_pt->fifo_read.acc_data_array, sizeof(descriptor_pt->fifo_read.acc_data_array));
