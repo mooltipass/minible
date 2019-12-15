@@ -929,6 +929,12 @@
     <Compile Include="src\LOGIC\logic_keyboard.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\LOGIC\logic_rng.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\LOGIC\logic_rng.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\LOGIC\logic_sleep.c">
       <SubType>compile</SubType>
     </Compile>

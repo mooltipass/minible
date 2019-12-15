@@ -42,6 +42,7 @@
 #include "logic_bluetooth.h"
 #include "ble_manager.h"
 #include "ble_utils.h"
+#include "logic_rng.h"
 #include "platform.h"
 
 #if defined PDS_SERVICE
@@ -1440,16 +1441,16 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
 			/* Generate LTK */
 			for(i=0; i<8; i++)
 			{
-				ble_dev_info[idx].host_ltk.key[i] = rand()&0x0f;
-				ble_dev_info[idx].host_ltk.nb[i] = rand()&0x0f;
+				ble_dev_info[idx].host_ltk.key[i] = logic_rng_get_uint8();
+				ble_dev_info[idx].host_ltk.nb[i] = logic_rng_get_uint8();
 			}
 			
 			for(i=8 ; i<16 ;i++)
 			{
-				ble_dev_info[idx].host_ltk.key[i] = rand()&0x0f;
+				ble_dev_info[idx].host_ltk.key[i] = logic_rng_get_uint8();
 			}
 			
-			ble_dev_info[idx].host_ltk.ediv = rand()&0xffff;
+			ble_dev_info[idx].host_ltk.ediv = logic_rng_get_uint16();
 			ble_dev_info[idx].host_ltk.key_size = 16;
 		}else{
 			/* Bonding information already exists */			
@@ -1511,13 +1512,13 @@ at_ble_status_t ble_pair_request_handler(void *params)
 			/* Generate LTK */
 			for(i=0; i<8; i++)
 			{
-				ble_dev_info[idx].host_ltk.key[i] = rand()&0x0f;
-				ble_dev_info[idx].host_ltk.nb[i] = rand()&0x0f;
+				ble_dev_info[idx].host_ltk.key[i] = logic_rng_get_uint8();
+				ble_dev_info[idx].host_ltk.nb[i] = logic_rng_get_uint8();
 			}
 			
 			for(i=8 ; i<16 ;i++)
 			{
-				ble_dev_info[idx].host_ltk.key[i] = rand()&0x0f;
+				ble_dev_info[idx].host_ltk.key[i] = logic_rng_get_uint8();
 			}
 			DBG_LOG_DEV("Generated LTK: ");
 			for (i = 0; i < 16; i++)
@@ -1525,7 +1526,7 @@ at_ble_status_t ble_pair_request_handler(void *params)
 				DBG_LOG_CONT_DEV("0x%02X ", ble_dev_info[idx].host_ltk.key[i]);
 			}
 			
-			ble_dev_info[idx].host_ltk.ediv = rand()&0xffff;
+			ble_dev_info[idx].host_ltk.ediv = logic_rng_get_uint16();
 			ble_dev_info[idx].host_ltk.key_size = 16;
 			}else{
 			/* Bonding information already exists */
