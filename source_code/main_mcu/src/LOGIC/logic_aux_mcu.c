@@ -21,6 +21,8 @@
 */
 #include <string.h>
 #include <asf.h>
+#include "logic_accelerometer.h"
+#include "logic_bluetooth.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
@@ -90,17 +92,29 @@ void logic_aux_mcu_enable_ble(BOOL wait_for_enabled)
 {
     if (logic_aux_mcu_ble_enabled == FALSE)
     {
+        aux_mcu_message_t* temp_tx_message_pt;
         aux_mcu_message_t* temp_rx_message;
         
-        /* Enable BLE */
+        /* Enable BLE line */
         platform_io_enable_ble();
-        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ENABLE_BLE);
+        
+        /* Prepare packet to send to AUX, specify bluetooth mac */
+        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+        temp_tx_message_pt->main_mcu_command_message.command = MAIN_MCU_COMMAND_ENABLE_BLE;
+        logic_bluetooth_get_unit_mac_address(temp_tx_message_pt->main_mcu_command_message.payload);
+        temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->main_mcu_command_message.command) + 6;
+        
+        /* Send message */
+        comms_aux_mcu_send_message(FALSE);
         
         if (wait_for_enabled != FALSE)
         {
             /* wait for BLE to bootup */
             comms_aux_mcu_wait_for_message_sent();
-            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_BLE_ENABLED) != RETURN_OK){}
+            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_BLE_ENABLED) != RETURN_OK)
+            {
+                logic_accelerometer_routine();
+            }
             
             /* Rearm DMA RX */
             comms_aux_arm_rx_and_clear_no_comms();

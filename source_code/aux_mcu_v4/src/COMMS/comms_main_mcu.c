@@ -342,7 +342,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* Enable BLE */
                 if (logic_is_ble_enabled() == FALSE)
                 {
-                    logic_bluetooth_start_bluetooth();
+                    logic_bluetooth_start_bluetooth(message->main_mcu_command_message.payload);
                     logic_set_ble_enabled();
                 }
                 message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
@@ -425,7 +425,8 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id) + sizeof(uint8_t);
                 
                 /* Functional test: start by turning on bluetooth */
-                logic_bluetooth_start_bluetooth();
+                uint8_t temp_mac_address[6] = {0xDE, 0xAD, 0xBE, 0xEF, 0x12, 0x13};
+                logic_bluetooth_start_bluetooth(temp_mac_address);
                 if (ble_sdk_version() == 0)
                 {
                     message->aux_mcu_event_message.payload[0] = 1;

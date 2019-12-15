@@ -51,3 +51,16 @@ uint8_t logic_rng_get_uint8(void)
     logic_rng_bytes_available--;
     return return_val;
 }
+
+/*! \fn     logic_rng_get_random_bytes(uint8_t* buffer, uint16_t nb_bytes)
+*   \brief  Get random bytes
+*   \param  buffer      Buffer where to store the random bytes
+*   \param  nb_bytes    Number of bytes to store
+*/
+void logic_rng_get_random_bytes(uint8_t* buffer, uint16_t nb_bytes)
+{
+    for (uint16_t i = 0; i < nb_bytes; i++)
+    {
+        buffer[i] = logic_rng_get_uint8();
+    }
+}

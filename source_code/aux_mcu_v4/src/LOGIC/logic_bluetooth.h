@@ -278,13 +278,13 @@ void logic_bluetooth_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status
 ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key);
 at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params);
 uint8_t logic_bluetooth_get_reportid(uint8_t serv, uint16_t handle);
+void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address);
 void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len);
 uint8_t logic_bluetooth_get_hid_serv_instance(uint16_t handle);
 at_ble_status_t ble_char_changed_app_event(void* param);
 void logic_bluetooth_set_battery_level(uint8_t pct);
 ret_type_te logic_bluetooth_stop_advertising(void);
 void logic_bluetooth_start_advertising(void);
-void logic_bluetooth_start_bluetooth(void);
 void logic_bluetooth_stop_bluetooth(void);
 void logic_bluetooth_routine(void);
 

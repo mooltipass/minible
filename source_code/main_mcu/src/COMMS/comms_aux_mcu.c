@@ -592,6 +592,18 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
                     comms_aux_mcu_send_message(FALSE);
                 }
             }
+            else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_RNG_TRANSFER)
+            {                
+                /* Clear TX message just in case */
+                memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
+                
+                aux_mcu_send_message.message_type = aux_mcu_receive_message.message_type;
+                rng_fill_array(aux_mcu_send_message.payload, 32);
+                aux_mcu_send_message.payload_length1 = 32;
+                
+                /* Send message */
+                comms_aux_mcu_send_message(FALSE);
+            }
         }
     }while (reloop != FALSE);
         

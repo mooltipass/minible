@@ -171,7 +171,7 @@ int main(void)
     #endif
     
     /* Test code: remove later */
-    udc_attach();
+    /*udc_attach();
     timer_start_timer(TIMER_TIMEOUT_FUNCTS, 5000);
     while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING)
     {
@@ -182,7 +182,7 @@ int main(void)
     while(TRUE)
     {
         logic_bluetooth_routine();
-    }
+    }*/
     
     //ble_device_init(NULL);
     //hid_prf_init(NULL);

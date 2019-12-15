@@ -13,6 +13,7 @@
 #include "platform_io.h"
 #include "logic_sleep.h"
 #include "at_ble_api.h"
+#include "logic_rng.h"
 #include "ble_utils.h"
 #include "platform.h"
 #include "battery.h"
@@ -1153,10 +1154,11 @@ void logic_bluetooth_stop_bluetooth(void)
     platform_io_init_ble_ports_for_disabled();
 }
 
-/*! \fn     logic_bluetooth_start_bluetooth(void)
+/*! \fn     logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
 *   \brief  Start bluetooth
+*   \param  unit_mac_address    6 bytes unit mac address
 */
-void logic_bluetooth_start_bluetooth(void)
+void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
 {
     DBG_LOG("Starting Bluetooth...");
     
@@ -1203,8 +1205,13 @@ void logic_bluetooth_start_bluetooth(void)
     /* IO inits for BLE enabling */
     platform_io_ble_enabled_inits();
     
+    /* Generate random mac address :D */
+    at_ble_addr_t mac_address;
+    mac_address.type = AT_BLE_ADDRESS_PUBLIC;
+    memcpy(mac_address.addr, unit_mac_address, AT_BLE_ADDR_LEN);
+    
     /* Initialize the ble chip and set the device mac address */
-    ble_device_init(NULL, &logic_bluetooth_advanced_info);    
+    ble_device_init(&mac_address, &logic_bluetooth_advanced_info);    
     
     /* Initialize the battery service */
     bat_init_service(&logic_bluetooth_bas_service_handler, &logic_bluetooth_ble_battery_level);
