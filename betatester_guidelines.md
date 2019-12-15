@@ -83,7 +83,7 @@ To make sure the development team is able to efficiently fix them, please follow
 - if the bug is hardware related, report it <a href="https://github.com/mooltipass/minible/issues/new">there</a>  
 - if you want to report a broader issue (non-intuitive user interface, odd general device behavior), please use our <a href="https://groups.google.com/forum/#!forum/mooltipass-ble-beta-testers">google group</a>  
 
-Please make sure you have the full developper log feature enabled in Moolticute. To enable it, simply head to the settings tab, scroll down to tick the "Enable Debug Log" checkbox and then restart Moolticute by closing it (right click on the Moolticute icon in the task bar, "quit") and launching it again.  
+Please make sure you have the full developper log feature enabled in Moolticute. To enable it, simply head to the settings tab, scroll down to tick the "Enable Debug Log" checkbox and then restart Moolticute by closing it (right click on the Moolticute icon in the task bar, "quit") and launching it again. The logs can then be found by clicking the "View" button in Moolticute's settings tab.  
 
 
 
