@@ -1001,9 +1001,6 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             input_answer = MINI_INPUT_RET_CARD_REMOVED;
         }
         
-        // Call accelerometer routine for (among others) RNG stuff
-        logic_accelerometer_routine();
-        
         // Read usb comms as the plugin could ask to cancel the request
         if ((parse_aux_messages != FALSE) && (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD))
         {
@@ -1042,14 +1039,6 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         {
             input_answer = MINI_INPUT_RET_BACK;
         }
-
-        // Knock to approve
-        #if defined(HARDWARE_MINI_CLICK_V2) && !defined(NO_ACCELEROMETER_FUNCTIONALITIES)
-        if ((scanAndGetDoubleZTap(FALSE) == ACC_RET_KNOCK) && (flash_flag_set != FALSE))
-        {
-            input_answer = MINI_INPUT_RET_YES;
-        }
-        #endif
         
         /* Text scrolling animation */
         if (timer_has_timer_expired(TIMER_SCROLLING, FALSE) == TIMER_EXPIRED)

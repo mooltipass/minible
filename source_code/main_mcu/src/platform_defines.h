@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    13
+#define FW_MINOR    14
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -57,6 +57,7 @@
         - accelerometer routine called in long functions
         - battery charge failed displayed on screen
         - correct knock detection icon
+- v0.14:- Detecting failed accelerometer (values stuck)
 */
 
 /**************** SETUP DEFINES ****************/

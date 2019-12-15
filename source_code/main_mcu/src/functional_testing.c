@@ -19,8 +19,9 @@
 *    Created:  18/05/2019
 *    Author:   Mathieu Stephan
 */
-#include "functional_testing.h"
 #include "smartcard_highlevel.h"
+#include "logic_accelerometer.h"
+#include "functional_testing.h"
 #include "smartcard_lowlevel.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
@@ -123,6 +124,17 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     
     /* Re-disable bluetooth */
     platform_io_disable_ble();
+    
+    /* Test accelerometer */
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 2000);
+    while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) != TIMER_EXPIRED)
+    {
+        if (logic_accelerometer_routine() == ACC_FAILING)
+        {
+            sh1122_put_error_string(&plat_oled_descriptor, u"LIS2HH12 failed!");
+            while(1);
+        }
+    }
     
     /* Ask for card, tests all SMC related signals */
     sh1122_put_error_string(&plat_oled_descriptor, u"insert card");

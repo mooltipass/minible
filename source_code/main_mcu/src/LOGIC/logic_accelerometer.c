@@ -29,14 +29,20 @@
 #include "sh1122.h"
 #include "main.h"
 #include "rng.h"
-// z added value
-int16_t logic_accelerometer_z_added;
-// z average value
+// xyz added value
+int32_t logic_accelerometer_x_added;
+int32_t logic_accelerometer_y_added;
+int32_t logic_accelerometer_z_added;
+// xyz average value
+int16_t logic_accelerometer_x_average;
+int16_t logic_accelerometer_y_average;
 int16_t logic_accelerometer_z_average;
-// z counter for average
-uint16_t logic_accelerometer_z_avg_counter;
+// counter for average
+uint16_t logic_accelerometer_avg_counter;
 // sum of the differences with the average
-uint16_t logic_accelerometer_z_cum_diff_avg;
+uint32_t logic_accelerometer_x_cum_diff_avg;
+uint32_t logic_accelerometer_y_cum_diff_avg;
+uint32_t logic_accelerometer_z_cum_diff_avg;
 // boolean to know if we should do the tap detection
 BOOL logic_accelerometer_z_tap_detect_enabled = FALSE;
 // knock detection sm
@@ -47,9 +53,6 @@ uint16_t logic_accelerometer_knock_detect_counter;
 uint16_t logic_accelerometer_knock_last_det_counter;
 // first knock width
 uint16_t logic_accelerometer_first_knock_width;
-// accumulation for y axis
-int16_t logic_accelerometer_x_cumulated;
-
 
 /*! \fn     logic_accelerometer_routine(void)
 *   \brief  Accelerometer routine
@@ -60,14 +63,14 @@ acc_detection_te logic_accelerometer_routine(void)
     /* Accelerometer interrupt */
     if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, FALSE) != FALSE)
     {
+        /* Use accelerometer data to detect movement & knock, check for working accelerometer as well */
+        acc_detection_te return_val = logic_accelerometer_scan_for_action_in_acc_read();
+        
         /* Use accelerometer data to feed our RNG */
         rng_feed_from_acc_read();
         
         /* Arm next data receive */
         lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
-        
-        /* Use (potentially corrupted) accelerometer data to detect movement & knock */
-        acc_detection_te return_val = logic_accelerometer_scan_for_action_in_acc_read();
         
         /* If some movement, wakeup device */
         if (return_val == ACC_DET_MOVEMENT)
@@ -94,11 +97,41 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
     /* Loop through all the received values */
     for (uint16_t i = 0; i < ARRAY_SIZE(plat_acc_descriptor.fifo_read.acc_data_array); i++)
     {
-        /* Get z data acceleration value, use 8MSbs */
-        int16_t z_data_val = plat_acc_descriptor.fifo_read.acc_data_array[i].acc_z >> 8;
+        /* Get xyz data acceleration values */
+        int16_t x_data_val = plat_acc_descriptor.fifo_read.acc_data_array[i].acc_x;
+        int16_t y_data_val = plat_acc_descriptor.fifo_read.acc_data_array[i].acc_y;
+        int16_t z_data_val = plat_acc_descriptor.fifo_read.acc_data_array[i].acc_z;
 
         /* Make sure we're not getting an overflow */
-        if (logic_accelerometer_z_cum_diff_avg < (UINT16_MAX - UINT8_MAX))
+        if (logic_accelerometer_x_cum_diff_avg < (UINT32_MAX - UINT16_MAX))
+        {
+            // Sum of the differences with the average
+            if (x_data_val > logic_accelerometer_x_average)
+            {
+                logic_accelerometer_x_cum_diff_avg += (x_data_val - logic_accelerometer_x_average);
+            }
+            else
+            {
+                logic_accelerometer_x_cum_diff_avg += (logic_accelerometer_x_average - x_data_val);
+            }
+        }
+
+        /* Make sure we're not getting an overflow */
+        if (logic_accelerometer_y_cum_diff_avg < (UINT32_MAX - UINT16_MAX))
+        {
+            // Sum of the differences with the average
+            if (y_data_val > logic_accelerometer_y_average)
+            {
+                logic_accelerometer_y_cum_diff_avg += (y_data_val - logic_accelerometer_y_average);
+            }
+            else
+            {
+                logic_accelerometer_y_cum_diff_avg += (logic_accelerometer_y_average - y_data_val);
+            }
+        }
+
+        /* Make sure we're not getting an overflow */
+        if (logic_accelerometer_z_cum_diff_avg < (UINT32_MAX - UINT16_MAX))
         {
             // Sum of the differences with the average
             if (z_data_val > logic_accelerometer_z_average)
@@ -112,29 +145,38 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
         }
 
         /* Average calculations */
+        logic_accelerometer_x_added += x_data_val;
+        logic_accelerometer_y_added += y_data_val;
         logic_accelerometer_z_added += z_data_val;
-        logic_accelerometer_x_cumulated += plat_acc_descriptor.fifo_read.acc_data_array[i].acc_x >> 8;
         
         /* Logic done every X samples */
-        if (++logic_accelerometer_z_avg_counter == ACC_Z_AVG_NB_SAMPLES)
+        if (++logic_accelerometer_avg_counter == ACC_Z_AVG_NB_SAMPLES)
         {
             /* Check if we need to reverse the screen */
-            if ((logic_accelerometer_x_cumulated > ACC_Y_TOTAL_NREVERSE) && (sh1122_is_screen_inverted(&plat_oled_descriptor) == FALSE))
+            if (((logic_accelerometer_x_added >> 8) > ACC_Y_TOTAL_NREVERSE) && (sh1122_is_screen_inverted(&plat_oled_descriptor) == FALSE))
             {
                 /* May be overwritten after but that's alright */
                 return_val = ACC_INVERT_SCREEN;
             }
-            else if ((logic_accelerometer_x_cumulated < ACC_Y_TOTAL_REVERSE) && (sh1122_is_screen_inverted(&plat_oled_descriptor) != FALSE))
+            else if (((logic_accelerometer_x_added >> 8) < ACC_Y_TOTAL_REVERSE) && (sh1122_is_screen_inverted(&plat_oled_descriptor) != FALSE))
             {
                 /* May be overwritten after but that's alright */
                 return_val = ACC_NINVERT_SCREEN;
             }
+            
+            /* Check for failing accelerometer */
+            if ((logic_accelerometer_x_cum_diff_avg + logic_accelerometer_y_cum_diff_avg + logic_accelerometer_z_cum_diff_avg) < ACC_AVG_SUM_DIFF_FOR_FAIL)
+            {
+                return_val = ACC_FAILING;
+            }
 
-            /* Compute average  */
+            /* Compute average */
+            logic_accelerometer_x_average = logic_accelerometer_x_added / ACC_Z_AVG_NB_SAMPLES;
+            logic_accelerometer_y_average = logic_accelerometer_y_added / ACC_Z_AVG_NB_SAMPLES;
             logic_accelerometer_z_average = logic_accelerometer_z_added / ACC_Z_AVG_NB_SAMPLES;
 
             /* Depending on the sum of the difference with avg, allow algo or not */
-            if (logic_accelerometer_z_cum_diff_avg > ACC_Z_MAX_AVG_SUM_DIFF)
+            if ((logic_accelerometer_z_cum_diff_avg >> 8) > ACC_Z_MAX_AVG_SUM_DIFF)
             {
                 logic_accelerometer_z_tap_detect_enabled = FALSE;
             }
@@ -144,9 +186,12 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
             }
             
             /* Reset vars */
+            logic_accelerometer_x_added = 0;
+            logic_accelerometer_y_added = 0;
             logic_accelerometer_z_added = 0;
-            logic_accelerometer_x_cumulated = 0;
-            logic_accelerometer_z_avg_counter = 0;
+            logic_accelerometer_avg_counter = 0;
+            logic_accelerometer_x_cum_diff_avg = 0;
+            logic_accelerometer_y_cum_diff_avg = 0;
             logic_accelerometer_z_cum_diff_avg = 0;
         }
 
@@ -160,6 +205,9 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
         {
             z_cor_data_val = logic_accelerometer_z_average - z_data_val;
         }
+        
+        /* The algorithm below works on the Z corrected value MSB */
+        z_cor_data_val >>= 8;
 
         /* Knock detection algo */
         if (logic_accelerometer_knock_detect_sm == 0)
@@ -183,7 +231,10 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
                     /* Return success */
                     logic_accelerometer_knock_last_det_counter = 0;
                     logic_accelerometer_knock_detect_sm++;
-                    return_val = ACC_DET_KNOCK;
+                    if (return_val != ACC_FAILING)
+                    {
+                        return_val = ACC_DET_KNOCK;
+                    }
                 }
                 else
                 {
@@ -213,15 +264,15 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
         }
     }
 
-    /* If our previous loop detected a knock, it gets priority */
-    if (return_val == ACC_DET_KNOCK)
+    /* If our previous loop detected a knock or a failing accelerometer, it gets priority */
+    if ((return_val == ACC_DET_KNOCK) || (return_val == ACC_FAILING))
     {
         return return_val;
     } 
     else
     {
         /* Depending on the threshold, return movement or nothing */
-        if (logic_accelerometer_z_cum_diff_avg > ACC_Z_MOVEMENT_AVG_SUM_DIFF)
+        if ((logic_accelerometer_z_cum_diff_avg >> 8) > ACC_Z_MOVEMENT_AVG_SUM_DIFF)
         {
             return ACC_DET_MOVEMENT;
         }

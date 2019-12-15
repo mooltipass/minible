@@ -653,7 +653,12 @@ int main(void)
         /* Accelerometer routine */
         BOOL is_screen_on_copy = sh1122_is_oled_on(&plat_oled_descriptor);
         acc_detection_te accelerometer_routine_return = logic_accelerometer_routine();
-        if (accelerometer_routine_return == ACC_DET_MOVEMENT)
+        if (accelerometer_routine_return == ACC_FAILING)
+        {
+            gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_001_TEXT_ID, DISP_MSG_WARNING, FALSE);
+            gui_dispatcher_get_back_to_current_screen();
+        }
+        else if (accelerometer_routine_return == ACC_DET_MOVEMENT)
         {
             /* Movement was detected by the accelerometer routine */
             if ((gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_LCK) && (is_screen_on_copy == FALSE))
