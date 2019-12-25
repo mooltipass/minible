@@ -696,13 +696,13 @@ keyboard_generation_array = [ \
 								[ "osx", "Czech-QWERTY", "Czech QWERT (MacOS)"],\
 								[ "osx", "Danish", "Denmark (MacOS)"],\
 								[ "osx", "Dvorak", "Dvorak (MacOS)"],\
-								[ "osx", "French", "French (MacOS)"],\
-								[ "osx", "German", "German (MacOS)"],\
-								[ "osx", "Hungarian", "Hungarian (MacOS)"],\
+								[ "osx", "French", "France (MacOS)"],\
+								[ "osx", "German", "Germany (MacOS)"],\
+								[ "osx", "Hungarian", "Hungary (MacOS)"],\
 								[ "osx", "Icelandic", "Iceland (MacOS)"],\
 								[ "osx", "Italian", "Italy (MacOS)"],\
 								[ "osx", "Norwegian", "Norway (MacOS)"],\
-								[ "osx", "Polish", "Polish (MacOS)"],\
+								[ "osx", "Polish", "Poland (MacOS)"],\
 								[ "osx", "Portuguese", "Portugal (MacOS)"],\
 								[ "osx", "Romanian", "Romania (MacOS)"],\
 								[ "osx", "Slovenian", "Slovenia (MacOS)"],\

@@ -11,5 +11,6 @@
 
 void debug_tx_band_send(uint16_t frequency_index, uint16_t payload_type, uint16_t payload_length, BOOL continuous_tone);
 void debug_tx_stop_continuous_tone(void);
+void debug_init_trace_buffer(void);
 
 #endif /* DEBUG_H_ */

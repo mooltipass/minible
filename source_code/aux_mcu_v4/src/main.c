@@ -144,6 +144,9 @@ void main_standby_sleep(BOOL startup_run)
 
 int main(void)
 {
+    /* Enable trace buffer */
+    //debug_init_trace_buffer();
+    
     /* Initialize our platform */
     main_platform_init();
     

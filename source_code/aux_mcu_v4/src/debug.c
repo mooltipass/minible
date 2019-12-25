@@ -22,6 +22,24 @@ BOOL debug_tx_test_cb_set = FALSE;
 uint8_t debug_payload_length = 0;
 uint8_t debug_payload_set = 0;
 
+/*#define IS_MTB_ENABLED REG_MTB_MASTER & MTB_MASTER_EN
+#define DISABLE_MTB REG_MTB_MASTER = REG_MTB_MASTER & ~MTB_MASTER_EN
+#define ENABLE_MTB REG_MTB_MASTER = REG_MTB_MASTER | MTB_MASTER_EN
+__attribute__((aligned(1024))) volatile char __tracebuffer__[1024];
+volatile int __tracebuffersize__ = sizeof(__tracebuffer__);
+void debug_init_trace_buffer(void)
+{
+    int index = 0;
+    uint32_t mtbEnabled = IS_MTB_ENABLED;
+    DISABLE_MTB;
+    for(index =0; index<1024; index++)
+    {
+        __tracebuffer__[index];
+        __tracebuffersize__;
+    }
+    if(mtbEnabled)
+    ENABLE_MTB;
+}*/
 
 static at_ble_status_t debug_dtm_test_status(void *param)
 {
