@@ -25,6 +25,7 @@
 #include "platform_defines.h"
 #include "driver_clocks.h"
 #include "driver_timer.h"
+#include "logic_device.h"
 #include "logic_power.h"
 #include "platform_io.h"
 #include "inputs.h"
@@ -71,6 +72,23 @@ void TCC0_Handler(void)
             logic_power_ms_tick();
         }
     #endif
+}
+
+/*! \fn     TCC2_Handler(void)
+*   \brief  Called every 20minutes by interrupt
+*/
+void TCC2_Handler(void)
+{
+    #ifndef BOOTLOADER
+    if (TCC2->INTFLAG.reg & TCC_INTFLAG_OVF)
+    {
+        /* Overflow interrupt: clear flag */
+        TCC2->INTFLAG.reg = TCC_INTFLAG_OVF;
+        
+        /* In case this wakes up device, setup the flag */
+        logic_device_set_wakeup_reason(WAKEUP_REASON_20M_TIMER);
+    }
+    #endif    
 }
 
 #endif
@@ -136,6 +154,9 @@ void timer_initialize_timebase(void)
     /* Set GCLK Multiplexer 0x1A (for GCLK_TCC0) to 48MHz GCLK0 */
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, GCLK_CLKCTRL_ID_TCC0_TCC1_Val);
     
+    /* Set GCLK 0x1B (for GCLK_TCC2) to 1kHz GCLK3 */
+    clocks_map_gclk_to_peripheral_clock(GCLK_ID_32K, GCLK_CLKCTRL_ID_TCC2_TC3_Val);
+    
     /* Setup TCC0 for 1ms interrupt */
     PM->APBCMASK.bit.TCC0_ = 1;                                         // Enable APBC clock for TCC0
     while(TCC0->SYNCBUSY.reg & TCC_SYNCBUSY_PER);                       // Wait for sync
@@ -148,6 +169,18 @@ void timer_initialize_timebase(void)
     TCC0->CTRLA = tcc_ctrl_reg;                                         // Write register
     TCC0->INTENSET.reg = TCC_INTENSET_OVF;                              // Enable overflow interrupt
     NVIC_EnableIRQ(TCC0_IRQn);                                          // Enable int
+    
+    /* Setup TCC2 for 20 minutes (!) interrupt */
+    PM->APBCMASK.bit.TCC2_ = 1;                                         // Enable APBC clock for TCC2
+    while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_PER);                       // Wait for sync
+    TCC2->PER.reg = TCC_PER_PER((60*20)-1);                             // Set period to be 1024/1024/60/20 = 20mins
+    tcc_ctrl_reg.reg = TCC_CTRLA_ENABLE;                                // Enable tcc0
+    tcc_ctrl_reg.bit.RUNSTDBY = 1;                                      // Run during standby
+    tcc_ctrl_reg.bit.PRESCALER = TCC_CTRLA_PRESCALER_DIV1024_Val;       // 1024 prescaling to have a 1sec tick
+    while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_ENABLE);                    // Wait for sync
+    TCC2->CTRLA = tcc_ctrl_reg;                                         // Write register
+    TCC2->INTENSET.reg = TCC_INTENSET_OVF;                              // Enable overflow interrupt
+    NVIC_EnableIRQ(TCC2_IRQn);                                          // Enable int
 #endif
 }
 

@@ -28,9 +28,40 @@
 #include "sh1122.h"
 #include "utils.h"
 #include "main.h"
+/* Platform wakeup reason */
+volatile platform_wakeup_reason_te logic_device_wakeup_reason = WAKEUP_REASON_NONE;
 /* Device state changed bool */
 BOOL logic_device_state_changed = FALSE;
 
+
+/*! \fn     logic_device_set_wakeup_reason(platform_wakeup_reason_te reason)
+*   \brief  Set device wakeup reason
+*   \param  reason  wakeup reason
+*/
+void logic_device_set_wakeup_reason(platform_wakeup_reason_te reason)
+{
+    if (logic_device_wakeup_reason == WAKEUP_REASON_NONE)
+    {
+        logic_device_wakeup_reason = reason;
+    }
+}
+
+/*! \fn     logic_device_clear_wakeup_reason(void)
+*   \brief  Clear current wakeup reason
+*/
+void logic_device_clear_wakeup_reason(void)
+{
+    logic_device_wakeup_reason = WAKEUP_REASON_NONE;
+}
+
+/*! \fn     logic_device_get_wakeup_reason(void)
+*   \brief  Get device wakeup reason
+*   \return wakeup reason
+*/
+platform_wakeup_reason_te logic_device_get_wakeup_reason(void)
+{
+    return logic_device_wakeup_reason;
+}
 
 /*! \fn     logic_device_activity_detected(void)
 *   \brief  Function called whenever some activity is detected
@@ -56,6 +87,9 @@ void logic_device_activity_detected(void)
         }
         
         sh1122_oled_on(&plat_oled_descriptor);
+        
+        /* Battery measurements are done when the oled screen is powered, discard measurement that may have taken place */
+        logic_power_set_discard_next_measurement();
     }
 }
 

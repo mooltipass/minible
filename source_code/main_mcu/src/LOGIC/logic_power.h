@@ -47,6 +47,7 @@ void logic_power_set_power_source(power_source_te power_source);
 uint16_t logic_power_get_and_ack_new_battery_level(void);
 BOOL logic_power_is_usb_enumerate_sent_clear_bool(void);
 battery_state_te logic_power_get_battery_state(void);
+void logic_power_set_discard_next_measurement(void);
 power_source_te logic_power_get_power_source(void);
 void logic_power_usb_enumerate_just_sent(void);
 void logic_power_signal_battery_error(void);

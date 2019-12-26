@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    14
+#define FW_MINOR    15
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -58,6 +58,8 @@
         - battery charge failed displayed on screen
         - correct knock detection icon
 - v0.14:- Detecting failed accelerometer (values stuck)
+- v0.15:- Periodic main MCU wakeup to check battery level
+        - Using main MCU internal pullup to limit OLED stepup inrush current
 */
 
 /**************** SETUP DEFINES ****************/

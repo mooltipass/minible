@@ -23,12 +23,11 @@
 #include "platform_defines.h"
 #include "driver_sercom.h"
 #include "driver_clocks.h"
+#include "logic_device.h"
 #include "driver_timer.h"
 #include "platform_io.h"
 /* OLED stepup-power source */
 oled_stepup_pwr_source_te platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
-/* Platform wakeup reason */
-volatile platform_wakeup_reason_te platform_io_wakeup_reason = WAKEUP_REASON_NONE;
 /* Set when a conversion result is ready */
 volatile BOOL platform_io_voledin_conv_ready = FALSE;
 /* 3v3 detected counter & state */
@@ -42,16 +41,13 @@ volatile uint16_t platform_io_3v3_detected_counter = 0;
 void EIC_Handler(void)
 {
     /* Identify wakeup reason */
-    if (platform_io_wakeup_reason == WAKEUP_REASON_NONE)
+    if ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0)
     {
-        if ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0)
-        {
-            platform_io_wakeup_reason = WAKEUP_REASON_AUX_MCU;
-        }
-        else
-        {
-            platform_io_wakeup_reason = WAKEUP_REASON_OTHER;
-        }
+        logic_device_set_wakeup_reason(WAKEUP_REASON_AUX_MCU);
+    }
+    else
+    {
+        logic_device_set_wakeup_reason(WAKEUP_REASON_OTHER);
     }
     
     /* All the interrupts below are used to wake up the platform from sleep. If we detect any of them, we disable all of them */
@@ -68,23 +64,6 @@ void EIC_Handler(void)
         EIC->INTFLAG.reg = (1 << SMC_DET_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << SMC_DET_EXTINT_NUM);
     }
-}
-
-/*! \fn     platform_io_clear_wakeup_reason(void)
-*   \brief  Clear the current platform wakeup reason
-*/
-void platform_io_clear_wakeup_reason(void)
-{
-    platform_io_wakeup_reason = WAKEUP_REASON_NONE;
-}
-
-/*! \fn     platform_io_get_wakeup_reason(void)
-*   \brief  Get the reason why the platform woke up
-*   \return The wakeup reason
-*/
-platform_wakeup_reason_te platform_io_get_wakeup_reason(void)
-{
-    return platform_io_wakeup_reason;
 }
 
 /*! \fn     platform_io_scan_3v3(void)
@@ -635,10 +614,19 @@ void platform_io_assert_oled_reset(void)
 /*! \fn     platform_io_power_up_oled(BOOL power_3v3)
 *   \brief  OLED powerup routine (3V3, 12V, reset release)
 *   \param  power_3v3   TRUE to use USB 3V3 as source for 12V stepup
-*   \note   1v2 is already present at the stepup input when this function is called
+*   \note   1v2 is already present at the stepup input when this function is called at boot
 */
 void platform_io_power_up_oled(BOOL power_3v3)
 {
+    /* Limit inrush to the OLED caps: drive VBAT NMOSFETs with the MCU pullup then switch to push pull stage */
+    PORT->Group[VOLED_1V2_EN_GROUP].DIRCLR.reg = VOLED_1V2_EN_MASK;
+    PORT->Group[VOLED_1V2_EN_GROUP].OUTSET.reg = VOLED_1V2_EN_MASK;
+    PORT->Group[VOLED_1V2_EN_GROUP].PINCFG[VOLED_1V2_EN_PINID].bit.PULLEN = 1;
+    timer_delay_ms(1);
+    PORT->Group[VOLED_1V2_EN_GROUP].PINCFG[VOLED_1V2_EN_PINID].bit.PULLEN = 0;
+    PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;
+    PORT->Group[VOLED_1V2_EN_GROUP].DIRSET.reg = VOLED_1V2_EN_MASK;
+    
     /* 3V3 is already there when arriving here, just enable the 12V */
     if (power_3v3 == FALSE)
     {

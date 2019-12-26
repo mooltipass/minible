@@ -55,6 +55,8 @@ BOOL logic_power_error_with_battery = FALSE;
 uint16_t logic_power_nb_adc_conv_since_last_power_change = 0;
 /* If the "enumerate usb" command was just sent */
 BOOL logic_power_enumerate_usb_command_just_sent = FALSE;
+/* Bool set to discard next measurement */
+BOOL logic_power_discard_next_measurement = FALSE;
 /* Bool set for device boot */
 BOOL logic_power_device_boot_flag_for_initial_battery_level_notif = TRUE;
 
@@ -97,6 +99,14 @@ void logic_power_init(void)
     cpu_irq_enter_critical();
     logic_power_nb_ms_spent_since_last_full_charge = custom_fs_get_nb_ms_since_last_full_charge();
     cpu_irq_leave_critical();
+}
+
+/*! \fn     logic_power_set_discard_next_measurement(void)
+*   \brief  Called to discard next power measurement
+*/
+void logic_power_set_discard_next_measurement(void)
+{
+    logic_power_discard_next_measurement = TRUE;
 }
 
 /*! \fn     logic_power_power_down_actions(void)
@@ -346,7 +356,7 @@ power_action_te logic_power_routine(void)
         uint16_t current_vbat = platform_io_get_voledin_conversion_result_and_trigger_conversion();
         
         /* Measurements taken when USB 3V3 is present are invalid */
-        if (platform_io_is_usb_3v3_present() != FALSE)
+        if ((platform_io_is_usb_3v3_present() != FALSE) || (logic_power_discard_next_measurement != FALSE))
         {
             current_vbat = logic_power_last_vbat_measurement;
         }
@@ -356,6 +366,9 @@ power_action_te logic_power_routine(void)
         {
             logic_power_nb_adc_conv_since_last_power_change++;
         }
+        
+        /* Boolean clear */
+        logic_power_discard_next_measurement = FALSE;
         
         /* Store current vbat only if we are battery powered */
         if ((platform_io_get_voled_stepup_pwr_source() == OLED_STEPUP_SOURCE_VBAT) && (logic_power_nb_adc_conv_since_last_power_change > 5))
