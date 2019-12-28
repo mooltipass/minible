@@ -147,7 +147,7 @@ src/ASF/thirdparty/wireless/ble_sdk/src/platform.c
 C_FLAGS := -mthumb
 
 ifeq ($(DEBUG), 1)
-    C_FLAGS += -DDEBUG -g3 -O1
+    C_FLAGS += -DDEBUG -g3 -O1 -fstack-usage
     OUTPUT_DIR := Debug
 else
     C_FLAGS += -DNDEBUG -Os
