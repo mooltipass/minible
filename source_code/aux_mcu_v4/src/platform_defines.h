@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    10
+#define FW_MINOR    11
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -29,6 +29,8 @@
         - faster battery charging
         - battery charging fixed
         - correct BLE battery readout
+- v0.11:- delay between two main MCU messages increased to 5ms in case debugger is connected
+        - sending battery level update to main mcu during charge
 */
 
 /**************** SETUP DEFINES ****************/

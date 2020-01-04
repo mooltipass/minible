@@ -8,6 +8,10 @@
 #include "logic_battery.h"
 #include "driver_timer.h"
 #include "platform_io.h"
+/* Array mapping battery levels with adc readouts */
+uint16_t logic_battery_battery_level_mapping[11] = {BATTERY_ADC_OUT_CUTOUT, BATTERY_ADC_10PCT_VOLTAGE, BATTERY_ADC_20PCT_VOLTAGE, BATTERY_ADC_30PCT_VOLTAGE, BATTERY_ADC_40PCT_VOLTAGE, BATTERY_ADC_50PCT_VOLTAGE, BATTERY_ADC_60PCT_VOLTAGE, BATTERY_ADC_70PCT_VOLTAGE, BATTERY_ADC_80PCT_VOLTAGE, BATTERY_ADC_90PCT_VOLTAGE, BATTERY_ADC_100PCT_VOLTAGE};
+/* Current battery level in percent tenth */
+uint16_t logic_battery_current_battery_level = 0;
 /* Current charging type / speed */
 lb_nimh_charge_scheme_te logic_battery_charging_type = NIMH_12C_CHARGING;
 /* Current state machine */
@@ -127,6 +131,9 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
     
     /* Type of charging storage */
     logic_battery_charging_type = charging_type;
+
+    /* Allow battery status updates */
+    logic_battery_current_battery_level = 0;
     
     /* Enable stepdown at provided voltage */
     platform_io_enable_step_down(logic_battery_charge_voltage);
@@ -165,10 +172,13 @@ void logic_battery_stop_charging(void)
 }
 
 /*! \fn     logic_battery_task(void)
-*   \brief  Function regularly called by main()
+*   \brief  Deal with battery related tasks such as charging
+*   \return Any action that may be needed
 */
-void logic_battery_task(void)
+battery_action_te logic_battery_task(void)
 {
+    battery_action_te return_value = BAT_ACT_NONE;
+
     /* Did we get current measurements? */
     if (platform_io_is_current_sense_conversion_result_ready() != FALSE)
     {
@@ -218,6 +228,7 @@ void logic_battery_task(void)
                             
                             /* Inform main MCU */
                             comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_FAIL);
+                            return_value = BAT_ACT_CHARGE_FAIL;
                         }
                         else
                         {
@@ -277,6 +288,7 @@ void logic_battery_task(void)
                             
                             /* Inform main MCU */
                             comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_FAIL);
+                            return_value = BAT_ACT_CHARGE_FAIL;
                         }
                         else
                         {
@@ -297,6 +309,8 @@ void logic_battery_task(void)
                 /* Check for decision timer tick */
                 if (timer_has_timer_expired(TIMER_BATTERY_TICK, TRUE) == TIMER_EXPIRED)
                 {
+                    BOOL status_message_sent_to_main_mcu = FALSE;
+
                     /* Get current calendar */
                     calendar_t current_calendar;
                     timer_get_calendar(&current_calendar);
@@ -345,6 +359,8 @@ void logic_battery_task(void)
                         
                         /* Inform main MCU */
                         comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_DONE);
+                        status_message_sent_to_main_mcu = TRUE;
+                        return_value = BAT_ACT_CHARGE_DONE;
                     }
                     else if ((high_voltage - low_voltage) > voltage_diff_goal + 4)
                     {
@@ -378,6 +394,8 @@ void logic_battery_task(void)
                             
                             /* Inform main MCU */
                             comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_FAIL);
+                            status_message_sent_to_main_mcu = TRUE;
+                            return_value = BAT_ACT_CHARGE_FAIL;
                         }
                         else
                         {
@@ -399,6 +417,35 @@ void logic_battery_task(void)
                         
                         /* Inform main MCU */
                         comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_FAIL);
+                        status_message_sent_to_main_mcu = TRUE;
+                        return_value = BAT_ACT_CHARGE_FAIL;
+                    }
+
+                    /* Check for new battery level */
+                    uint16_t possible_new_battery_level = 0;
+                    for (uint16_t i = 0; i < ARRAY_SIZE(logic_battery_battery_level_mapping); i++)
+                    {
+                        if (low_voltage > logic_battery_battery_level_mapping[i])
+                        {
+                            possible_new_battery_level = i;
+                        }
+                    }
+                    
+                    /* Only allow increase in voltage */
+                    if ((possible_new_battery_level > logic_battery_current_battery_level) && (status_message_sent_to_main_mcu == FALSE))
+                    {
+                        aux_mcu_message_t* temp_tx_message_pt;
+
+                        /* Update main MCU with new battery level */
+                        comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT);
+                        temp_tx_message_pt->aux_mcu_event_message.event_id = AUX_MCU_EVENT_CHARGE_LVL_UPDATE;
+                        temp_tx_message_pt->aux_mcu_event_message.payload[0] = possible_new_battery_level;
+                        temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->aux_mcu_event_message.event_id) + sizeof(uint8_t);
+                        comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
+
+                        /* Store new level */
+                        logic_battery_current_battery_level = possible_new_battery_level;
+                        return_value = BAT_ACT_NEW_BAT_LEVEL;
                     }
                     
                     /* Rearm timer */
@@ -413,4 +460,6 @@ void logic_battery_task(void)
         /* Trigger new conversion */
         platform_io_get_cursense_conversion_result(TRUE);
     }
+
+    return return_value;
 }

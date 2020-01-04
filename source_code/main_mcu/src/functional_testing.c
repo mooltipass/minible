@@ -34,6 +34,33 @@
 #include "main.h"
 
 
+/*! \fn     functional_rf_testing_start(void)
+*   \brief  RF functional testing start
+*/
+void functional_rf_testing_start(void)
+{
+    aux_mcu_message_t* sweep_message_to_be_sent;
+
+    /* Debug */
+    sh1122_put_error_string(&plat_oled_descriptor, u"Starting RF testing...");
+
+    /* Enable BLE */
+    logic_aux_mcu_enable_ble(TRUE);
+    
+    /* Sweep message send */
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&sweep_message_to_be_sent, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+    sweep_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
+    sweep_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TX_TONE_CONT;
+    sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[0] = 0;        // Frequency index, up to 39
+    sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[1] = 7;        // Payload type, up to 7
+    sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[2] = 36;       // Payload length, up to 36
+    comms_aux_mcu_send_message(FALSE);
+
+    /* Debug */
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_put_error_string(&plat_oled_descriptor, u"Check for power ONLY between bands");
+}
+
 /*! \fn     functional_testing_start(BOOL clear_first_boot_flag)
 *   \brief  Functional testing function
 *   \param  clear_first_boot_flag   Set to TRUE to clear first boot flag on successful test

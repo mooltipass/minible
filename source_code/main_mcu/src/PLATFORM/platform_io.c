@@ -410,7 +410,7 @@ void platform_io_init_smc_ports(void)
 */
 void platform_io_smc_remove_function(void)
 {
-    #if defined(PLAT_V5_SETUP)
+    #if defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
         PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 1;            // Card removed: use internal "low" impedance pull-up
     #endif
     PORT->Group[SMC_POW_NEN_GROUP].OUTSET.reg = SMC_POW_NEN_MASK;                   // Deactivate power to the smart card
@@ -429,7 +429,7 @@ void platform_io_smc_remove_function(void)
 */
 void platform_io_smc_inserted_function(void)
 {
-    #if defined(PLAT_V5_SETUP)
+    #if defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
         PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 0;            // Card inserted: rely on external pull-up!
     #endif
     PORT->Group[SMC_POW_NEN_GROUP].OUTCLR.reg = SMC_POW_NEN_MASK;                   // Enable power to the smart card
@@ -701,7 +701,7 @@ BOOL platform_io_is_usb_3v3_present(void)
 void platform_io_init_power_ports(void)
 {
     /* Configure analog input */
-#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
+#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
     PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 1;
     PORT->Group[VOLED_VIN_GROUP].PMUX[VOLED_VIN_PINID/2].bit.VOLED_VIN_PMUXREGID = VOLED_VIN_PMUX_ID;
@@ -754,7 +754,7 @@ void platform_io_enable_aux_comms(void)
 void platform_io_set_no_comms(void)
 {
     /* Platform v3 */
-    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
+    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;               // NO COMMS as an input as it'll be pulled-up by aux MCU
     #endif
 }
@@ -765,7 +765,7 @@ void platform_io_set_no_comms(void)
 void platform_io_clear_no_comms(void)
 {
     /* Platform v3 */
-    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
+    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRSET.reg = AUX_MCU_NOCOMMS_MASK;               // NO COMMS as output, driven low
     #endif
 }
@@ -776,7 +776,7 @@ void platform_io_clear_no_comms(void)
 void platform_io_init_no_comms_signal(void)
 {    
     /* Platform v3 */
-    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
+    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;    // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.INEN = 1;      // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
@@ -790,7 +790,7 @@ void platform_io_init_no_comms_signal(void)
 void platform_io_set_no_comms_as_wakeup_interrupt(void)
 {
     /* Platform v3 */
-    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
+    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
         /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].PMUX[AUX_MCU_NOCOMMS_PINID/2].bit.AUX_MCU_NOCOMMS_PMUXREGID = PORT_PMUX_PMUXO_A_Val; // Pin mux to EIC
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 1;                                        // Enable peripheral multiplexer

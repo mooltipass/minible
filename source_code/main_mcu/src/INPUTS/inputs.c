@@ -26,7 +26,7 @@
 #include "platform_io.h"
 #include "inputs.h"
 
-#if !defined(PLAT_V5_SETUP)
+#if !defined(PLAT_V5_SETUP) && !defined(PLAT_V6_SETUP)
 // Wheel machine states
 uint16_t inputs_wheel_sm_states[] = {0b011, 0b001, 0b000, 0b010};
 // Boot to know if we allow next increment
@@ -64,7 +64,7 @@ volatile uint16_t inputs_force_reboot_timer = 0;
 */
 void inputs_scan(void)
 {
-    #if !defined(PLAT_V5_SETUP)
+    #if !defined(PLAT_V5_SETUP) && !defined(PLAT_V6_SETUP)
     uint16_t wheel_state, wheel_sm = 0;
     
     // Wheel encoder    
@@ -382,7 +382,7 @@ void inputs_clear_detections(void)
 {
     cpu_irq_enter_critical();
     inputs_last_detection_type_ret = WHEEL_ACTION_NONE;
-    #if !defined(PLAT_V5_SETUP)
+    #if !defined(PLAT_V5_SETUP) && !defined(PLAT_V6_SETUP)
     inputs_wheel_increment_armed_down = FALSE;
     inputs_wheel_increment_armed_up = FALSE;
     #endif

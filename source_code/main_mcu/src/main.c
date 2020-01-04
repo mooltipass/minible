@@ -40,6 +40,8 @@ spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .c
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 /* A wheel action that may be used to pass to our GUI routine */
 wheel_action_ret_te virtual_wheel_action = WHEEL_ACTION_NONE;
+/* Know if debugger is present */
+BOOL debugger_present = FALSE;
 
 /* Used to know if there is no bootloader and if the special card is inserted*/
 #ifdef DEVELOPER_FEATURES_ENABLED
@@ -103,7 +105,6 @@ void main_platform_init(void)
     RET_TYPE custom_fs_init_return = RETURN_NOK;
     RET_TYPE dataflash_init_return = RETURN_NOK;
     RET_TYPE fuses_ok = RETURN_NOK;
-    BOOL debugger_present = FALSE;
     
     /* Low level port initializations for power supplies */
     platform_io_enable_switch();                                            // Enable switch and 3v3 stepup
@@ -272,13 +273,8 @@ void main_platform_init(void)
         logic_power_usb_enumerate_just_sent();
     } 
     
-    // TO REMOVE
-    if (custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE)
-    {
-        custom_fs_set_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID, TRUE);
-    }
-    /* Check for functional testing passed */
 #ifndef EMULATOR_BUILD
+    /* Check for non-RF functional testing passed */
     #ifdef DEVELOPER_FEATURES_ENABLED
     if ((custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
     #else
@@ -287,13 +283,37 @@ void main_platform_init(void)
     {
         functional_testing_start(TRUE);
     }
+
+    /* Check for RF functional testing passed */
+    #ifdef DEVELOPER_FEATURES_ENABLED
+    if ((custom_fs_get_device_flag_value(RF_TESTING_PASSED_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
+    #else
+    if (custom_fs_get_device_flag_value(RF_TESTING_PASSED_FLAG_ID) == FALSE)
+    #endif
+    {
+        /* Start continuous tone, wait for test to press long click or timeout to die */
+        functional_rf_testing_start();
+        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 30000);
+        while (inputs_get_wheel_action(TRUE, FALSE) != WHEEL_ACTION_LONG_CLICK)
+        {
+            /* Timer timeout, switch off platform */
+            if ((timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
+            {
+                /* Switch off OLED, switch off platform */
+                platform_io_power_down_oled(); timer_delay_ms(200);
+                platform_io_disable_switch_and_die();
+            }
+        }
+        custom_fs_set_device_flag_value(RF_TESTING_PASSED_FLAG_ID, TRUE);
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+    }
 #endif
     
     /* Display error messages if something went wrong during custom fs init and bundle check */
     if ((custom_fs_init_return != RETURN_OK) || (bundle_integrity_check_return != RETURN_OK))
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
-        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 10000);
+        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 30000);
         
         /* Wait to load bundle from USB */
         while(1)
@@ -304,7 +324,7 @@ void main_platform_init(void)
             /* If we received any message, reset timer */
             if (msg_received != NO_MSG_RCVD)
             {
-                timer_start_timer(TIMER_TIMEOUT_FUNCTS, 10000);
+                timer_start_timer(TIMER_TIMEOUT_FUNCTS, 30000);
             }            
             
             /* Check for reindex bundle message */
@@ -319,7 +339,7 @@ void main_platform_init(void)
             }
             
             /* Timer timeout, switch off platform */
-            if ((timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
+            if ((timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
             {
                 /* Switch off OLED, switch off platform */
                 platform_io_power_down_oled(); timer_delay_ms(200);
@@ -382,93 +402,96 @@ void main_reboot(void)
 void main_standby_sleep(void)
 {
 #ifndef EMULATOR_BUILD
-    aux_mcu_message_t* temp_rx_message;
-    
-    /* Send a go to sleep message to aux MCU, wait for ack, leave no comms high (automatically set when receiving the sleep received event) */
-    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_SLEEP);
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_SLEEP_RECEIVED) != RETURN_OK);
-    
-    /* Disable aux MCU dma transfers */
-    dma_aux_mcu_disable_transfer();
-    
-    /* Wait for accelerometer DMA transfer end and put it to sleep */
-    lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
-    while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
-    lis2hh12_deassert_ncs_and_go_to_sleep(&plat_acc_descriptor);
-    
-    /* DB & Dataflash power down */
-    dbflash_enter_ultra_deep_power_down(&dbflash_descriptor);
-    dataflash_power_down(&dataflash_descriptor);
-    
-    /* Switch off OLED */
-    sh1122_oled_off(&plat_oled_descriptor);
-    platform_io_power_down_oled();
-    
-    /* Errata 10416: disable interrupt routines */
-    cpu_irq_enter_critical();
-        
-    /* Prepare the ports for sleep */
-    platform_io_prepare_ports_for_sleep();
-    
-    /* Clear wakeup reason */
-    logic_device_clear_wakeup_reason();
-    
-    /* Enter deep sleep */
-    SCB->SCR = SCB_SCR_SLEEPDEEP_Msk;
-    __DSB();
-    __WFI();
-    
-    /* Damn errata... enable interrupts */
-    cpu_irq_leave_critical();
-    
-    /* Prepare ports for sleep exit */
-    platform_io_prepare_ports_for_sleep_exit();
-    
-    /* Dataflash power up */
-    dataflash_exit_power_down(&dataflash_descriptor);
-    
-    /* Send any command to DB flash to wake it up (required in case of going to sleep twice) */
-    dbflash_check_presence(&dbflash_descriptor);
-    
-    /* Re-enable AUX comms */
-    comms_aux_arm_rx_and_clear_no_comms();
-    
-    /* Resume accelerometer processing */
-    lis2hh12_sleep_exit_and_dma_arm(&plat_acc_descriptor);
-    
-    /* Get wakeup reason */
-    platform_wakeup_reason_te wakeup_reason = logic_device_get_wakeup_reason();
-    
-    /* Switch on OLED depending on wakeup reason */
-    if (wakeup_reason == WAKEUP_REASON_20M_TIMER)
+    if (debugger_present == FALSE)
     {
-        /* Timer whose sole purpose is to periodically wakeup device to check battery level */
-        platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
-        
-        /* Battery measurements are done when the oled screen is powered, discard measurement that may have taken place */
-        logic_power_set_discard_next_measurement();
-        
-        /* 100ms to measure battery's voltage, after enabling OLED stepup */
-        timer_start_timer(TIMER_SCREEN, 100);
-    }
-    else if (wakeup_reason == WAKEUP_REASON_AUX_MCU)
-    {
-        /* AUX MCU woke up our device, set a sleep timer to a low value so we can deal with the incoming packet */
-        timer_start_timer(TIMER_SCREEN, 3000);
-    }
-    else
-    {
-        /* User action: switch on OLED screen */
-        platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
-        sh1122_oled_on(&plat_oled_descriptor);
-        logic_device_activity_detected();
-        
-        /* Battery measurements are done when the oled screen is powered, discard measurement that may have taken place */
-        logic_power_set_discard_next_measurement();    
-    }
+        aux_mcu_message_t* temp_rx_message;
     
-    /* Clear wheel detection */
-    inputs_clear_detections();
+        /* Send a go to sleep message to aux MCU, wait for ack, leave no comms high (automatically set when receiving the sleep received event) */
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_SLEEP);
+        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_SLEEP_RECEIVED) != RETURN_OK);
+    
+        /* Disable aux MCU dma transfers */
+        dma_aux_mcu_disable_transfer();
+    
+        /* Wait for accelerometer DMA transfer end and put it to sleep */
+        lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
+        while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
+        lis2hh12_deassert_ncs_and_go_to_sleep(&plat_acc_descriptor);
+    
+        /* DB & Dataflash power down */
+        dbflash_enter_ultra_deep_power_down(&dbflash_descriptor);
+        dataflash_power_down(&dataflash_descriptor);
+    
+        /* Switch off OLED */
+        sh1122_oled_off(&plat_oled_descriptor);
+        platform_io_power_down_oled();
+    
+        /* Errata 10416: disable interrupt routines */
+        cpu_irq_enter_critical();
+        
+        /* Prepare the ports for sleep */
+        platform_io_prepare_ports_for_sleep();
+    
+        /* Clear wakeup reason */
+        logic_device_clear_wakeup_reason();
+    
+        /* Enter deep sleep */
+        SCB->SCR = SCB_SCR_SLEEPDEEP_Msk;
+        __DSB();
+        __WFI();
+    
+        /* Damn errata... enable interrupts */
+        cpu_irq_leave_critical();
+    
+        /* Prepare ports for sleep exit */
+        platform_io_prepare_ports_for_sleep_exit();
+    
+        /* Dataflash power up */
+        dataflash_exit_power_down(&dataflash_descriptor);
+    
+        /* Send any command to DB flash to wake it up (required in case of going to sleep twice) */
+        dbflash_check_presence(&dbflash_descriptor);
+    
+        /* Re-enable AUX comms */
+        comms_aux_arm_rx_and_clear_no_comms();
+    
+        /* Resume accelerometer processing */
+        lis2hh12_sleep_exit_and_dma_arm(&plat_acc_descriptor);
+    
+        /* Get wakeup reason */
+        platform_wakeup_reason_te wakeup_reason = logic_device_get_wakeup_reason();
+    
+        /* Switch on OLED depending on wakeup reason */
+        if (wakeup_reason == WAKEUP_REASON_20M_TIMER)
+        {
+            /* Timer whose sole purpose is to periodically wakeup device to check battery level */
+            platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
+        
+            /* Battery measurements are done when the oled screen is powered, discard measurement that may have taken place */
+            logic_power_set_discard_next_measurement();
+        
+            /* 100ms to measure battery's voltage, after enabling OLED stepup */
+            timer_start_timer(TIMER_SCREEN, 100);
+        }
+        else if (wakeup_reason == WAKEUP_REASON_AUX_MCU)
+        {
+            /* AUX MCU woke up our device, set a sleep timer to a low value so we can deal with the incoming packet */
+            timer_start_timer(TIMER_SCREEN, 3000);
+        }
+        else
+        {
+            /* User action: switch on OLED screen */
+            platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
+            sh1122_oled_on(&plat_oled_descriptor);
+            logic_device_activity_detected();
+        
+            /* Battery measurements are done when the oled screen is powered, discard measurement that may have taken place */
+            logic_power_set_discard_next_measurement();    
+        }
+    
+        /* Clear wheel detection */
+        inputs_clear_detections();
+    }
 #endif
 }
 

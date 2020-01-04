@@ -79,7 +79,8 @@ void gui_dispatcher_display_battery_bt_overlay(BOOL write_to_buffer)
         /* Check for end condition */
         if (gui_dispatcher_battery_charging_anim_index > BATTERY_100PCT)
         {
-            gui_dispatcher_battery_charging_anim_index = BATTERY_0PCT;
+            /* Animation starts from current state (updated when charging) */
+            gui_dispatcher_battery_charging_anim_index = logic_power_get_battery_state();
         }
         
         /* Display */

@@ -42,9 +42,7 @@ const uint16_t advanced_menu_pic_ids[] = {GUI_BT_ICON_ID, GUI_CAT_ICON_ID, GUI_F
 const uint16_t simple_menu_text_ids[] = {BT_TEXT_ID, FAV_TEXT_ID, LOGIN_TEXT_ID, LOCK_TEXT_ID, OPR_TEXT_ID};
 const uint16_t advanced_menu_text_ids[] = {BT_TEXT_ID, CAT_TEXT_ID, FAV_TEXT_ID, LOGIN_TEXT_ID, LOCK_TEXT_ID, OPR_TEXT_ID, SETTINGS_TEXT_ID};
 /* Bluetooth Menu */
-const uint16_t bluetooth_off_menu_pic_ids[] = {GUI_BT_ENABLE_ICON_ID, GUI_BT_UNPAIR_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BACK_ICON_ID};
 const uint16_t bluetooth_on_menu_pic_ids[] = {GUI_BT_DISABLE_ICON_ID, GUI_BT_UNPAIR_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BACK_ICON_ID};
-const uint16_t bluetooth_off_menu_text_ids[] = {BT_ENABLE_TEXT_ID, BT_UNPAIR_DEV_TEXT_ID, BT_NEW_PAIR_TEXT_ID, BACK_TEXT_ID};
 const uint16_t bluetooth_on_menu_text_ids[] = {BT_DISABLE_TEXT_ID, BT_UNPAIR_DEV_TEXT_ID, BT_NEW_PAIR_TEXT_ID, BACK_TEXT_ID};
 /* Operations Menu */
 const uint16_t operations_menu_pic_ids[] = {GUI_ERASE_USER_ICON_ID, GUI_CHANGE_PIN_ICON_ID, GUI_CLONE_ICON_ID, GUI_SIMPLE_ADV_ICON_ID, GUI_BACK_ICON_ID};
@@ -54,10 +52,10 @@ const uint16_t operations_advanced_menu_text_ids[] = {ERASE_USER_TEXT_ID, CHANGE
 const uint16_t operations_settings_pic_ids[] = {GUI_LANGUAGE_SWITCH_ICON_ID, GUI_MMM_STORAGE_CONF_ICON_ID, GUI_PIN_FOR_MMM_ICON_ID, GUI_KEYB_LAYOUT_CHANGE_ICON_ID, GUI_CRED_PROMPT_CHANGE_ICON_ID, KNOCK_DETECTION_ICON_ID, GUI_BACK_ICON_ID};
 const uint16_t operations_settings_text_ids[] = {LANGUAGE_SWITCH_TEXT_ID, CONF_FOR_MMM_STORAGE_TEXT_ID, PIN_FOR_MMM_TEXT_ID, KEYB_LAYOUT_CHANGE_TEXT_ID, CRED_PROMPT_CHANGE_TEXT_ID, KNOCK_DETECTION_TEXT_ID, BACK_TEXT_ID};
 /* Array of pointers to the menus pics & texts */
-const uint16_t* gui_menu_menus_pics_ids[NB_MENUS] = {simple_menu_pic_ids, bluetooth_off_menu_pic_ids, operations_menu_pic_ids, operations_settings_pic_ids};
-const uint16_t* gui_menu_menus_text_ids[NB_MENUS] = {simple_menu_text_ids, bluetooth_off_menu_text_ids, operations_simple_menu_text_ids, operations_settings_text_ids};
+const uint16_t* gui_menu_menus_pics_ids[NB_MENUS] = {simple_menu_pic_ids, bluetooth_on_menu_pic_ids, operations_menu_pic_ids, operations_settings_pic_ids};
+const uint16_t* gui_menu_menus_text_ids[NB_MENUS] = {simple_menu_text_ids, bluetooth_on_menu_text_ids, operations_simple_menu_text_ids, operations_settings_text_ids};
 /* Number of menu items */
-uint16_t gui_menu_menus_nb_items[NB_MENUS] = {ARRAY_SIZE(simple_menu_pic_ids), ARRAY_SIZE(bluetooth_off_menu_pic_ids), ARRAY_SIZE(operations_simple_menu_text_ids), ARRAY_SIZE(operations_settings_pic_ids)};
+uint16_t gui_menu_menus_nb_items[NB_MENUS] = {ARRAY_SIZE(simple_menu_pic_ids), ARRAY_SIZE(bluetooth_on_menu_pic_ids), ARRAY_SIZE(operations_simple_menu_text_ids), ARRAY_SIZE(operations_settings_pic_ids)};
 /* Selected items in menus */
 uint16_t gui_menu_selected_menu_items[NB_MENUS] = {0,0,0,0};
 /* Selected Menu */
@@ -114,18 +112,6 @@ void gui_menu_update_menus(void)
         gui_menu_menus_text_ids[MAIN_MENU] = simple_menu_text_ids;
         gui_menu_menus_nb_items[MAIN_MENU] = ARRAY_SIZE(simple_menu_pic_ids);
         gui_menu_menus_text_ids[OPERATION_MENU] = operations_simple_menu_text_ids;
-    }
-
-    /* Bluetooth menu: BT enabled or not? */
-    if (logic_aux_mcu_is_ble_enabled() != FALSE)
-    {
-        gui_menu_menus_pics_ids[BT_MENU] = bluetooth_on_menu_pic_ids;
-        gui_menu_menus_text_ids[BT_MENU] = bluetooth_on_menu_text_ids;
-    }
-    else
-    {
-        gui_menu_menus_pics_ids[BT_MENU] = bluetooth_off_menu_pic_ids;
-        gui_menu_menus_text_ids[BT_MENU] = bluetooth_off_menu_text_ids;
     }
 }
 
@@ -308,21 +294,40 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     }
                 }
             }
+            case GUI_BT_ICON_ID:
+            {
+                /* Bluetooth menu: BT enabled or not? */
+                if (logic_aux_mcu_is_ble_enabled() != FALSE)
+                {
+                    /* Bluetooth enabled, go to Bluetooth menu */
+                    gui_dispatcher_set_current_screen(GUI_SCREEN_BT, FALSE, GUI_INTO_MENU_TRANSITION);
+                    return TRUE;
+                }
+                else
+                {
+                    /* Bluetooth disabled, ask user to enable Bluetooth */
+                    if (gui_prompts_ask_for_one_line_confirmation(BT_ENABLE_TEXT_ID, FALSE, FALSE, TRUE) == MINI_INPUT_RET_YES)
+                    {
+                        logic_gui_enable_bluetooth();
+                        logic_user_set_user_security_flag(USER_SEC_FLG_BLE_ENABLED);
+                        gui_dispatcher_set_current_screen(GUI_SCREEN_BT, FALSE, GUI_INTO_MENU_TRANSITION);
+                        return TRUE;
+                    } 
+                    else
+                    {
+                        return TRUE;
+                    }
+                }
+            }
             case GUI_OPR_ICON_ID:           gui_dispatcher_set_current_screen(GUI_SCREEN_OPERATIONS, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;
             case GUI_SETTINGS_ICON_ID:      gui_dispatcher_set_current_screen(GUI_SCREEN_SETTINGS, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;
-            case GUI_BT_ICON_ID:            gui_dispatcher_set_current_screen(GUI_SCREEN_BT, FALSE, GUI_INTO_MENU_TRANSITION); return TRUE;
             
-            /* Bluetooth Menu */
-            case GUI_BT_ENABLE_ICON_ID:
-            {
-                logic_gui_enable_bluetooth();
-                logic_user_set_user_security_flag(USER_SEC_FLG_BLE_ENABLED);
-                return TRUE;       
-            }            
+            /* Bluetooth Menu */          
             case GUI_BT_DISABLE_ICON_ID:
             {                
                 logic_gui_disable_bluetooth();
                 logic_user_clear_user_security_flag(USER_SEC_FLG_BLE_ENABLED);
+                gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE, GUI_OUTOF_MENU_TRANSITION);
                 return TRUE;       
             }
             

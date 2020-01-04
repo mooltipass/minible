@@ -579,9 +579,11 @@ void platform_io_enable_main_comms(void)
 */
 void platform_io_reset_ble_uarts(void)
 {
+    #ifndef BOOTLOADER
     /* No need to wait for sync as there's no reason for back to back BLE disable / enable */
     CONF_BLE_USART_MODULE->USART.CTRLA.bit.SWRST = 1;
     CONF_FLCR_BLE_USART_MODULE->USART.CTRLA.bit.SWRST = 1;
+    #endif
 }
 
 /*! \fn     platform_io_init_ble_ports_for_disabled(void)

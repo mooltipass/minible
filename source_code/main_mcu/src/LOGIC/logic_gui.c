@@ -56,9 +56,6 @@ void logic_gui_disable_bluetooth(void)
         
         /* Set BLE enabled bool */
         logic_aux_mcu_set_ble_enabled_bool(FALSE);
-        
-        /* Refresh menus */
-        gui_menu_update_menus();
     }
 }
 
@@ -105,9 +102,6 @@ void logic_gui_enable_bluetooth(void)
         
         /* Set BLE enabled bool */
         logic_aux_mcu_set_ble_enabled_bool(TRUE);
-        
-        /* Refresh menus */
-        gui_menu_update_menus();
     }
 }
 

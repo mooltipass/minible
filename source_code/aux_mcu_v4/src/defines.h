@@ -9,8 +9,12 @@
 #include <stdio.h>
 
 /* Macros */
-#define XSTR(x) STR(x)
-#define STR(x) #x
+#define XSTR(x)                             STR(x)
+#define STR(x)                              #x
+#define ARRAY_SIZE(x)                       (sizeof((x)) / sizeof((x)[0]))
+#define MEMBER_SIZE(type, member)           sizeof(((type*)0)->member)
+#define MEMBER_ARRAY_SIZE(type, member)     (sizeof(((type*)0)->member) / sizeof(((type*)0)->member[0]))
+#define MEMBER_SUB_ARRAY_SIZE(type, member) (sizeof(((type*)0)->member[0]) / sizeof(((type*)0)->member[0][0]))
 
 /* Standard defines */
 #define FALSE                   0

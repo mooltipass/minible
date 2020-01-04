@@ -65,6 +65,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define AUX_MCU_EVENT_BLE_CONNECTED     0x000A
 #define AUX_MCU_EVENT_BLE_DISCONNECTED  0x000B
 #define AUX_MCU_EVENT_USB_DETACHED      0x000C
+#define AUX_MCU_EVENT_CHARGE_LVL_UPDATE 0x000D
 
 /* Typedefs */
 typedef struct

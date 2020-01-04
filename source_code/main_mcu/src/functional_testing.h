@@ -29,7 +29,7 @@
 
 /* Prototypes */
 void functional_testing_start(BOOL clear_first_boot_flag);
-
+void functional_rf_testing_start(void);
 
 
 #endif /* FUNCTIONAL_TESTING_H_ */

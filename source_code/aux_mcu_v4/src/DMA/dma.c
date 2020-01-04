@@ -295,7 +295,7 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
     else
     {
         /* No access to no comms signal, add non negotiable delay */
-        DELAYMS(1);
+        DELAYMS(5);
     }
     #else
     (void)went_through_loop_below;
