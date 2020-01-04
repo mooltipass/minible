@@ -437,8 +437,16 @@ power_action_te logic_power_routine(void)
     /* New battery level reported by aux MCU */
     if (logic_power_aux_mcu_battery_level_update != 0)
     {
-        logic_power_battery_level_to_be_acked = logic_power_aux_mcu_battery_level_update;
-        return POWER_ACT_NEW_BAT_LEVEL;
+        /* Only allow it if above our current one */
+        if (logic_power_aux_mcu_battery_level_update >= logic_power_current_battery_level)
+        {
+            logic_power_battery_level_to_be_acked = logic_power_aux_mcu_battery_level_update;
+            return POWER_ACT_NEW_BAT_LEVEL;
+        } 
+        else
+        {
+            logic_power_aux_mcu_battery_level_update = 0;
+        }
     }
     
     /* Nothing to do */
