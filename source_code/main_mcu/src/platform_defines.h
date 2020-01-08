@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    16
+#define FW_MINOR    17
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -64,6 +64,7 @@
         - Do not go to sleep when battery powered and debugger is connected
         - Main menu, bluetooth icon: if Bluetooth is disabled prompt to enable it. If Bluetooth enabled then go to menu
         - Reporting battery level during charge, animation changed accordingly
+- v0.17:- Changed battery measurement logic to include a measurement queue to discard effects of USB plugging
 */
 
 /**************** SETUP DEFINES ****************/

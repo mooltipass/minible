@@ -1368,6 +1368,15 @@ void logic_bluetooth_set_battery_level(uint8_t pct)
     }
 }
 
+/*! \fn     logic_bluetooth_is_paired(void)
+*   \brief  Know if we are paired
+*   \return Paired status
+*/
+BOOL logic_bluetooth_is_paired(void)
+{
+    return logic_bluetooth_paired;
+}
+
 /*! \fn     logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
 *   \brief  Send raw data through bluetooth
 *   \param  data        Pointer to the data

@@ -38,6 +38,8 @@ volatile BOOL comms_usb_just_enumerated = FALSE;
 uint8_t comms_hid_device_status_cache[4];
 /* Set when we are enumerated */
 BOOL comms_usb_enumerated = FALSE;
+/* Set when we received a new device status */
+BOOL comms_raw_hid_new_device_status_received = FALSE;
 
 
 /*! \fn     comms_raw_hid_update_device_status_cache(uint8_t* buffer)
@@ -47,6 +49,7 @@ BOOL comms_usb_enumerated = FALSE;
 void comms_raw_hid_update_device_status_cache(uint8_t* buffer)
 {
     memcpy(comms_hid_device_status_cache, buffer, sizeof(comms_hid_device_status_cache));
+    comms_raw_hid_new_device_status_received = TRUE;
 }
 
 /*! \fn     comms_raw_hid_get_recv_buffer(hid_interface_te hid_interface)
@@ -264,6 +267,35 @@ void comms_usb_communication_routine(void)
         comms_main_mcu_send_simple_event(AUX_MCU_EVENT_USB_ENUMERATED);
         comms_raw_hid_arm_packet_receive(USB_INTERFACE);
         comms_usb_just_enumerated = FALSE;
+    }
+    
+    /* We received a new device status, push it to the host */
+    if (comms_raw_hid_new_device_status_received != FALSE)
+    {
+        /* Temporary buffer, where we cheat */
+        uint32_t shorter_aux_mcu_message[USB_RAWHID_RX_SIZE/sizeof(uint32_t)];
+        aux_mcu_message_t* temp_message_pt = (aux_mcu_message_t*)shorter_aux_mcu_message;
+        
+        /* Prepare message to be sent */
+        temp_message_pt->hid_message.message_type = HID_CMD_GET_DEVICE_STATUS;
+        temp_message_pt->hid_message.payload_length = sizeof(comms_hid_device_status_cache);
+        memcpy(temp_message_pt->hid_message.payload, comms_hid_device_status_cache, sizeof(comms_hid_device_status_cache));
+        temp_message_pt->payload_length1 = sizeof(temp_message_pt->hid_message.message_type) + sizeof(temp_message_pt->hid_message.payload_length) + temp_message_pt->hid_message.payload_length;
+        
+        /* Can send to USB? */
+        if (comms_usb_enumerated != FALSE)
+        {
+            comms_raw_hid_send_hid_message(USB_INTERFACE, temp_message_pt);
+        }
+        
+        /* Can send to bluetooth? */
+        if (logic_bluetooth_is_paired() != FALSE)
+        {
+            comms_raw_hid_send_hid_message(BLE_INTERFACE, temp_message_pt);
+        }
+        
+        /* Clear Bool */
+        comms_raw_hid_new_device_status_received = FALSE;
     }
     
     /* Packet processing logic for all interfaces */

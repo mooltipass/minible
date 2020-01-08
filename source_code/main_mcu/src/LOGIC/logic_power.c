@@ -54,8 +54,8 @@ BOOL logic_power_battery_charging = FALSE;
 BOOL logic_power_error_with_battery = FALSE;
 /* If the "enumerate usb" command was just sent */
 BOOL logic_power_enumerate_usb_command_just_sent = FALSE;
-/* Bool set to discard next measurement */
-BOOL logic_power_discard_next_measurement = FALSE;
+/* Number of measurements left to discard */
+uint16_t logic_power_discard_measurement_counter = 0;
 /* Bool set for device boot */
 BOOL logic_power_device_boot_flag_for_initial_battery_level_notif = TRUE;
 /* Number of times we still can skip the queue logic when taking into account an adc measurement */
@@ -159,7 +159,7 @@ void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_su
         logic_power_nb_ms_spent_since_last_full_charge = 0;
         cpu_irq_leave_critical();
         custom_fs_define_nb_ms_since_last_full_charge(0);
-        utils_fill_uint16_array_with_value(logic_power_last_vbat_measurements, ARRAY_SIZE(logic_power_last_vbat_measurements), BATTERY_ADC_80PCT_VOLTAGE + 1);
+        utils_fill_uint16_array_with_value(logic_power_last_vbat_measurements, ARRAY_SIZE(logic_power_last_vbat_measurements), BATTERY_ADC_100PCT_VOLTAGE);
     }
 }
 
@@ -304,9 +304,6 @@ power_action_te logic_power_routine(void)
         sh1122_init_display(&plat_oled_descriptor);
         gui_dispatcher_get_back_to_current_screen();
         logic_device_activity_detected();
-        
-        /* Discard next measurement */
-        logic_power_discard_next_measurement = TRUE;
     }
     else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
     {
@@ -331,8 +328,8 @@ power_action_te logic_power_routine(void)
         gui_dispatcher_get_back_to_current_screen();
         logic_device_activity_detected();
         
-        /* Discard next measurement */
-        logic_power_discard_next_measurement = TRUE;
+        /* Discard next 10 measurement */
+        logic_power_discard_measurement_counter = 10;
                 
         /* If user selected to, lock device */
         if ((logic_security_is_smc_inserted_unlocked() != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_LOCK_ON_DISCONNECT) != FALSE))
@@ -357,9 +354,18 @@ power_action_te logic_power_routine(void)
         inputs_clear_detections();
     }
     else if ((logic_power_last_seen_voled_stepup_pwr_source == OLED_STEPUP_SOURCE_NONE) && (current_voled_pwr_source != logic_power_last_seen_voled_stepup_pwr_source))
-    {        
-        /* Discard next measurement */
-        logic_power_discard_next_measurement = TRUE;
+    {
+        /* If we have been told to bypass queue logic it means we want a quick measurement */
+        if (logic_power_nb_times_to_skip_adc_measurement_queue != 0)
+        {
+            /* Device quick wake up every 20 minutes for 100ms */
+            logic_power_discard_measurement_counter = 1;
+        } 
+        else
+        {
+            /* Device power-on or wakeup */
+            logic_power_discard_measurement_counter = 5;
+        }
     }
     
     /* Store last seen voled power source */
@@ -386,7 +392,7 @@ power_action_te logic_power_routine(void)
         }
         
         /* Store current vbat only if we are battery powered, if it has been a while since we changed power sources, and if we haven't been instructed to skip next measurement */
-        if ((platform_io_get_voled_stepup_pwr_source() == OLED_STEPUP_SOURCE_VBAT) && (logic_power_discard_next_measurement == FALSE) && (should_deal_with_measurement != FALSE))
+        if ((platform_io_get_voled_stepup_pwr_source() == OLED_STEPUP_SOURCE_VBAT) && (logic_power_discard_measurement_counter == 0) && (should_deal_with_measurement != FALSE))
         {
             /* Should we skip the queue logic? */
             if (logic_power_nb_times_to_skip_adc_measurement_queue != 0)
@@ -442,8 +448,11 @@ power_action_te logic_power_routine(void)
             }
         }
         
-        /* Boolean clear */
-        logic_power_discard_next_measurement = FALSE;
+        /* Counter decrement */
+        if (logic_power_discard_measurement_counter != 0)
+        {
+            logic_power_discard_measurement_counter--;
+        }
     }
     
     /* First device boot, flag is reset in the ack function */
