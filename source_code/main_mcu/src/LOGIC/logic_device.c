@@ -87,9 +87,6 @@ void logic_device_activity_detected(void)
         }
         
         sh1122_oled_on(&plat_oled_descriptor);
-        
-        /* Battery measurements are done when the oled screen is powered, discard measurement that may have taken place */
-        logic_power_set_discard_next_measurement();
     }
 }
 

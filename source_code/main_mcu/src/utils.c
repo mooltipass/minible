@@ -220,3 +220,17 @@ void utils_concatenate_strings_with_slash(cust_char_t* string1, cust_char_t* str
         utils_strcpy(&string1[string1_length+1], string2);
     }    
 }
+
+/*! \fn     utils_fill_uint16_array_with_value(uint16_t* array, uint16_t size, uint16_t value)
+*   \brief  Fill a uint16_t array with a given value
+*   \param  array           Pointer to array
+*   \param  size            Size of array
+*   \param  value           Value to fill the array with
+*/
+void utils_fill_uint16_array_with_value(uint16_t* array, uint16_t size, uint16_t value)
+{
+    for (uint16_t i = 0; i < size; i++)
+    {
+        array[i] = value;
+    }
+}

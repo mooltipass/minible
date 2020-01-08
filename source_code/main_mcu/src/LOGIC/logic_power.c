@@ -31,6 +31,7 @@
 #include "custom_fs.h"
 #include "sh1122.h"
 #include "inputs.h"
+#include "utils.h"
 #include "main.h"
 /* Array mapping battery levels with adc readouts */
 uint16_t logic_power_battery_level_mapping[11] = {BATTERY_ADC_OUT_CUTOUT, BATTERY_ADC_10PCT_VOLTAGE, BATTERY_ADC_20PCT_VOLTAGE, BATTERY_ADC_30PCT_VOLTAGE, BATTERY_ADC_40PCT_VOLTAGE, BATTERY_ADC_50PCT_VOLTAGE, BATTERY_ADC_60PCT_VOLTAGE, BATTERY_ADC_70PCT_VOLTAGE, BATTERY_ADC_80PCT_VOLTAGE, BATTERY_ADC_90PCT_VOLTAGE, BATTERY_ADC_100PCT_VOLTAGE};
@@ -45,20 +46,22 @@ oled_stepup_pwr_source_te logic_power_last_seen_voled_stepup_pwr_source = OLED_S
 volatile uint32_t logic_power_nb_ms_spent_since_last_full_charge = 0;
 /* Current power source */
 power_source_te logic_power_current_power_source;
-/* Last Vbat measured ADC value */
-uint16_t logic_power_last_vbat_measurement;
+/* Last Vbat measured ADC values */
+uint16_t logic_power_last_vbat_measurements[LAST_VOLTAGE_CONV_BUFF_SIZE];
 /* Battery charging bool */
 BOOL logic_power_battery_charging = FALSE;
 /* Error with battery flag */
 BOOL logic_power_error_with_battery = FALSE;
-/* Number of ADC conversions since last power change */
-uint16_t logic_power_nb_adc_conv_since_last_power_change = 0;
 /* If the "enumerate usb" command was just sent */
 BOOL logic_power_enumerate_usb_command_just_sent = FALSE;
 /* Bool set to discard next measurement */
 BOOL logic_power_discard_next_measurement = FALSE;
 /* Bool set for device boot */
 BOOL logic_power_device_boot_flag_for_initial_battery_level_notif = TRUE;
+/* Number of times we still can skip the queue logic when taking into account an adc measurement */
+uint16_t logic_power_nb_times_to_skip_adc_measurement_queue = 0;
+/* ADC measurement counter */
+uint16_t logic_power_adc_measurement_counter = 0;
 
 
 /*! \fn     logic_power_ms_tick(void)
@@ -82,6 +85,15 @@ void logic_power_set_power_source(power_source_te power_source)
     logic_power_current_power_source = power_source;
 }
 
+/*! \fn     logic_power_skip_queue_logic_for_upcoming_adc_measurement(void)
+*   \brief  Signal our internal logic to skip the queue logic for the upcoming measurement
+*   \note   This is used when the main MCU is sleeping and only waking up every 20 minutes
+*/
+void logic_power_skip_queue_logic_for_upcoming_adc_measurements(void)
+{
+    logic_power_nb_times_to_skip_adc_measurement_queue = 3;
+}
+
 /*! \fn     logic_power_get_power_source(void)
 *   \brief  Get current power source
 *   \return Current power source (see enum)
@@ -99,14 +111,6 @@ void logic_power_init(void)
     cpu_irq_enter_critical();
     logic_power_nb_ms_spent_since_last_full_charge = custom_fs_get_nb_ms_since_last_full_charge();
     cpu_irq_leave_critical();
-}
-
-/*! \fn     logic_power_set_discard_next_measurement(void)
-*   \brief  Called to discard next power measurement
-*/
-void logic_power_set_discard_next_measurement(void)
-{
-    logic_power_discard_next_measurement = TRUE;
 }
 
 /*! \fn     logic_power_power_down_actions(void)
@@ -154,8 +158,8 @@ void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_su
         cpu_irq_enter_critical();
         logic_power_nb_ms_spent_since_last_full_charge = 0;
         cpu_irq_leave_critical();
-        logic_power_last_vbat_measurement = BATTERY_ADC_80PCT_VOLTAGE + 1;
         custom_fs_define_nb_ms_since_last_full_charge(0);
+        utils_fill_uint16_array_with_value(logic_power_last_vbat_measurements, ARRAY_SIZE(logic_power_last_vbat_measurements), BATTERY_ADC_80PCT_VOLTAGE + 1);
     }
 }
 
@@ -182,22 +186,24 @@ void logic_power_signal_battery_error(void)
 */
 battery_state_te logic_power_get_battery_state(void)
 {
+    uint16_t vbat_measurement_from_a_bit_ago = logic_power_last_vbat_measurements[0];
+    
     /* In case we haven't had the time to properly select a battery level, use raw adc value (this occurs at device boot) */
     if (logic_power_current_battery_level >= ARRAY_SIZE(logic_power_battery_level_mapping))
     {
-        if (logic_power_last_vbat_measurement < BATTERY_ADC_20PCT_VOLTAGE)
+        if (vbat_measurement_from_a_bit_ago < BATTERY_ADC_20PCT_VOLTAGE)
         {
             return BATTERY_0PCT;
         }
-        else if (logic_power_last_vbat_measurement < BATTERY_ADC_40PCT_VOLTAGE)
+        else if (vbat_measurement_from_a_bit_ago < BATTERY_ADC_40PCT_VOLTAGE)
         {
             return BATTERY_25PCT;
         }
-        else if (logic_power_last_vbat_measurement < BATTERY_ADC_60PCT_VOLTAGE)
+        else if (vbat_measurement_from_a_bit_ago < BATTERY_ADC_60PCT_VOLTAGE)
         {
             return BATTERY_50PCT;
         }
-        else if (logic_power_last_vbat_measurement < BATTERY_ADC_80PCT_VOLTAGE)
+        else if (vbat_measurement_from_a_bit_ago < BATTERY_ADC_80PCT_VOLTAGE)
         {
             return BATTERY_75PCT;
         }
@@ -244,7 +250,7 @@ battery_state_te logic_power_get_battery_state(void)
 */
 void logic_power_register_vbat_adc_measurement(uint16_t adc_val)
 {
-    logic_power_last_vbat_measurement = adc_val;
+    utils_fill_uint16_array_with_value(logic_power_last_vbat_measurements, ARRAY_SIZE(logic_power_last_vbat_measurements), adc_val);
 }
 
 /*! \fn     logic_power_usb_enumerate_just_sent(void)
@@ -283,6 +289,9 @@ power_action_te logic_power_routine(void)
         plat_oled_descriptor.screen_inverted = (BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_USB);
         inputs_set_inputs_invert_bool(plat_oled_descriptor.screen_inverted);
         
+        /* Overwrite all last battery measurements with the one from a while back in order to discard potential perturbation from ADC plugging */
+        utils_fill_uint16_array_with_value(logic_power_last_vbat_measurements, ARRAY_SIZE(logic_power_last_vbat_measurements), logic_power_last_vbat_measurements[0]);
+        
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
         comms_aux_mcu_wait_for_message_sent();
         sh1122_oled_off(&plat_oled_descriptor);
@@ -295,7 +304,9 @@ power_action_te logic_power_routine(void)
         sh1122_init_display(&plat_oled_descriptor);
         gui_dispatcher_get_back_to_current_screen();
         logic_device_activity_detected();
-        logic_power_nb_adc_conv_since_last_power_change = 0;
+        
+        /* Discard next measurement */
+        logic_power_discard_next_measurement = TRUE;
     }
     else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
     {
@@ -319,7 +330,9 @@ power_action_te logic_power_routine(void)
         sh1122_init_display(&plat_oled_descriptor);
         gui_dispatcher_get_back_to_current_screen();
         logic_device_activity_detected();
-        logic_power_nb_adc_conv_since_last_power_change = 0;
+        
+        /* Discard next measurement */
+        logic_power_discard_next_measurement = TRUE;
                 
         /* If user selected to, lock device */
         if ((logic_security_is_smc_inserted_unlocked() != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_LOCK_ON_DISCONNECT) != FALSE))
@@ -334,7 +347,7 @@ power_action_te logic_power_routine(void)
         while(comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_USB_DETACHED) != RETURN_OK);
         comms_aux_arm_rx_and_clear_no_comms();
         
-        /* Wait for timer timeout to make sure card is unpowered */
+        /* Wait for timer timeout to make sure card is not powered */
         if ((logic_security_is_smc_inserted_unlocked() != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_LOCK_ON_DISCONNECT) != FALSE))
         {
             while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED);
@@ -344,15 +357,15 @@ power_action_te logic_power_routine(void)
         inputs_clear_detections();
     }
     else if ((logic_power_last_seen_voled_stepup_pwr_source == OLED_STEPUP_SOURCE_NONE) && (current_voled_pwr_source != logic_power_last_seen_voled_stepup_pwr_source))
-    {
-        /* No power source change, but it is possible to have a disabled screen that is now powered on */
-        logic_power_nb_adc_conv_since_last_power_change = 0;
+    {        
+        /* Discard next measurement */
+        logic_power_discard_next_measurement = TRUE;
     }
     
     /* Store last seen voled power source */
     logic_power_last_seen_voled_stepup_pwr_source = current_voled_pwr_source;
     
-    /* Battery charging */
+    /* Battery charging start logic */
     if ((logic_power_get_power_source() == USB_POWERED) && (logic_power_is_usb_enumerate_sent_clear_bool() != FALSE) && (logic_power_battery_charging == FALSE) && (nb_ms_since_full_charge_copy >= NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
@@ -364,28 +377,40 @@ power_action_te logic_power_routine(void)
     {
         uint16_t current_vbat = platform_io_get_voledin_conversion_result_and_trigger_conversion();
         
-        /* Measurements taken when USB 3V3 is present are invalid */
-        if ((platform_io_is_usb_3v3_present() != FALSE) || (logic_power_discard_next_measurement != FALSE))
+        /* Take one measurement every 8, or not if we have been told to skip queue logic */
+        BOOL should_deal_with_measurement = FALSE;
+        logic_power_adc_measurement_counter++;
+        if (((logic_power_adc_measurement_counter & 0x0007) == 0) || (logic_power_nb_times_to_skip_adc_measurement_queue != 0))
         {
-            current_vbat = logic_power_last_vbat_measurement;
+            should_deal_with_measurement = TRUE;
         }
         
-        /* Var increment */
-        if (logic_power_nb_adc_conv_since_last_power_change != UINT16_MAX)
+        /* Store current vbat only if we are battery powered, if it has been a while since we changed power sources, and if we haven't been instructed to skip next measurement */
+        if ((platform_io_get_voled_stepup_pwr_source() == OLED_STEPUP_SOURCE_VBAT) && (logic_power_discard_next_measurement == FALSE) && (should_deal_with_measurement != FALSE))
         {
-            logic_power_nb_adc_conv_since_last_power_change++;
-        }
-        
-        /* Boolean clear */
-        logic_power_discard_next_measurement = FALSE;
-        
-        /* Store current vbat only if we are battery powered */
-        if ((platform_io_get_voled_stepup_pwr_source() == OLED_STEPUP_SOURCE_VBAT) && (logic_power_nb_adc_conv_since_last_power_change > 5))
-        {
-            logic_power_last_vbat_measurement = current_vbat;
+            /* Should we skip the queue logic? */
+            if (logic_power_nb_times_to_skip_adc_measurement_queue != 0)
+            {
+                utils_fill_uint16_array_with_value(logic_power_last_vbat_measurements, ARRAY_SIZE(logic_power_last_vbat_measurements), current_vbat);
+                logic_power_nb_times_to_skip_adc_measurement_queue--;
+            } 
+            else
+            {
+                /* Shift our last measured vbat values array */
+                for (uint16_t i = 0; i < ARRAY_SIZE(logic_power_last_vbat_measurements)-1; i++)
+                {
+                    logic_power_last_vbat_measurements[i] = logic_power_last_vbat_measurements[i+1];
+                }
+                
+                /* Store the latest measurement at the end of this buffer */
+                logic_power_last_vbat_measurements[ARRAY_SIZE(logic_power_last_vbat_measurements)-1] = current_vbat;
+            }
+            
+            /* Logic deals with with the vbat measured a while back in order to prevent a non registered USB plug to perturbate ADC measurements */
+            uint16_t vbat_measurement_from_a_bit_ago = logic_power_last_vbat_measurements[0];
             
             /* Safety: if the voltage is low enough, we override logic_power_nb_ms_spent_since_last_full_charge */
-            if ((logic_power_last_vbat_measurement < BATTERY_ADC_60PCT_VOLTAGE) && (nb_ms_since_full_charge_copy < NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
+            if ((vbat_measurement_from_a_bit_ago < BATTERY_ADC_60PCT_VOLTAGE) && (nb_ms_since_full_charge_copy < NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE))
             {
                 cpu_irq_enter_critical();
                 logic_power_nb_ms_spent_since_last_full_charge = NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE;
@@ -393,7 +418,7 @@ power_action_te logic_power_routine(void)
             }
             
             /* Low battery, need to power off? */
-            if ((logic_power_get_power_source() == BATTERY_POWERED) && (logic_power_last_vbat_measurement < BATTERY_ADC_OUT_CUTOUT) && (platform_io_is_usb_3v3_present_raw() == FALSE))
+            if ((logic_power_get_power_source() == BATTERY_POWERED) && (vbat_measurement_from_a_bit_ago < BATTERY_ADC_OUT_CUTOUT) && (platform_io_is_usb_3v3_present_raw() == FALSE))
             {
                 /* platform_io_is_usb_3v3_present_raw() call is here to prevent erroneous measurements */
                 return POWER_ACT_POWER_OFF;
@@ -403,7 +428,7 @@ power_action_te logic_power_routine(void)
             uint16_t possible_new_battery_level = 0;
             for (uint16_t i = 0; i < ARRAY_SIZE(logic_power_battery_level_mapping); i++)
             {
-                if (logic_power_last_vbat_measurement > logic_power_battery_level_mapping[i])
+                if (vbat_measurement_from_a_bit_ago > logic_power_battery_level_mapping[i])
                 {
                     possible_new_battery_level = i;
                 }
@@ -416,6 +441,9 @@ power_action_te logic_power_routine(void)
                 return POWER_ACT_NEW_BAT_LEVEL;
             }
         }
+        
+        /* Boolean clear */
+        logic_power_discard_next_measurement = FALSE;
     }
     
     /* First device boot, flag is reset in the ack function */
@@ -424,7 +452,7 @@ power_action_te logic_power_routine(void)
         /* Get device battery level */
         for (uint16_t i = 0; i < ARRAY_SIZE(logic_power_battery_level_mapping); i++)
         {
-            if (logic_power_last_vbat_measurement > logic_power_battery_level_mapping[i])
+            if (logic_power_last_vbat_measurements[0] > logic_power_battery_level_mapping[i])
             {
                 logic_power_battery_level_to_be_acked = i;
             }
@@ -440,6 +468,13 @@ power_action_te logic_power_routine(void)
         /* Only allow it if above our current one */
         if (logic_power_aux_mcu_battery_level_update >= logic_power_current_battery_level)
         {
+            /* Spoof measured voltage so if the device is unplugged the reported level is still correct */
+            if (logic_power_aux_mcu_battery_level_update < ARRAY_SIZE(logic_power_battery_level_mapping))
+            {
+                utils_fill_uint16_array_with_value(logic_power_last_vbat_measurements, ARRAY_SIZE(logic_power_last_vbat_measurements), logic_power_battery_level_mapping[logic_power_aux_mcu_battery_level_update]);
+            }
+            
+            /* Set new level to be acked */
             logic_power_battery_level_to_be_acked = logic_power_aux_mcu_battery_level_update;
             return POWER_ACT_NEW_BAT_LEVEL;
         } 

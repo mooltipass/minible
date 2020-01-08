@@ -31,8 +31,8 @@
 #else
 #define NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE     (5UL * 60UL * 1000UL)
 #endif
-
-#define NB_CONVERSIONS_BEFORE_POWER_ACTIONS             5                       // Around 150ms
+/* Size of the buffer of last ADC conversions */
+#define LAST_VOLTAGE_CONV_BUFF_SIZE         10
 
 /* Enums */
 typedef enum    {USB_POWERED, BATTERY_POWERED} power_source_te;
@@ -43,12 +43,12 @@ typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2
 /* Prototypes */
 void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_success);
 void logic_power_set_battery_level_update_from_aux(uint8_t battery_level);
+void logic_power_skip_queue_logic_for_upcoming_adc_measurements(void);
 void logic_power_register_vbat_adc_measurement(uint16_t adc_val);
 void logic_power_set_power_source(power_source_te power_source);
 uint16_t logic_power_get_and_ack_new_battery_level(void);
 BOOL logic_power_is_usb_enumerate_sent_clear_bool(void);
 battery_state_te logic_power_get_battery_state(void);
-void logic_power_set_discard_next_measurement(void);
 power_source_te logic_power_get_power_source(void);
 void logic_power_usb_enumerate_just_sent(void);
 void logic_power_signal_battery_error(void);

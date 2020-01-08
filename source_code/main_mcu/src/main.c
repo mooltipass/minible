@@ -473,11 +473,11 @@ void main_standby_sleep(void)
             /* Timer whose sole purpose is to periodically wakeup device to check battery level */
             platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
         
-            /* Battery measurements are done when the oled screen is powered, discard measurement that may have taken place */
-            logic_power_set_discard_next_measurement();
-        
             /* 100ms to measure battery's voltage, after enabling OLED stepup */
             timer_start_timer(TIMER_SCREEN, 100);
+            
+            /* As the platform won't be awake for long, skip the battery measurement queue logic */
+            logic_power_skip_queue_logic_for_upcoming_adc_measurements();
         }
         else if (wakeup_reason == WAKEUP_REASON_AUX_MCU)
         {
@@ -490,9 +490,6 @@ void main_standby_sleep(void)
             platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
             sh1122_oled_on(&plat_oled_descriptor);
             logic_device_activity_detected();
-        
-            /* Battery measurements are done when the oled screen is powered, discard measurement that may have taken place */
-            logic_power_set_discard_next_measurement();    
         }
     
         /* Clear wheel detection */

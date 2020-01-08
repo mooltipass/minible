@@ -420,6 +420,9 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
             /* Hack: only disable OLED stepup when battery powered. When USB powered, if 3V3 USB isn't loaded then we can't detect USB disconnection */
             platform_io_power_down_oled();
             
+            /* Call power routine so it registers we powered down the oled screen */
+            logic_power_routine();
+            
             /* Good night */
             main_standby_sleep();
                 
