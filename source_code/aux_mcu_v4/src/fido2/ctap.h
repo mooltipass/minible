@@ -106,13 +106,13 @@
 #define CLIENT_DATA_HASH_SIZE       32  //sha256 hash
 #define DOMAIN_NAME_MAX_SIZE        253
 #define RP_NAME_LIMIT               32  // application limit, name parameter isn't needed.
-#define USER_ID_MAX_SIZE            64
+#define USER_ID_MAX_SIZE            65
 #define USER_NAME_LIMIT             65  // Must be minimum of 64 bytes but can be more.
-#define DISPLAY_NAME_LIMIT          32  // Must be minimum of 64 bytes but can be more.
+#define DISPLAY_NAME_LIMIT          65  // Must be minimum of 64 bytes but can be more.
 #define ICON_LIMIT                  128 // Must be minimum of 64 bytes but can be more.
 #define CTAP_MAX_MESSAGE_SIZE       1024
 
-#define CREDENTIAL_TAG_SIZE         32
+#define CREDENTIAL_TAG_SIZE         16
 
 #define PUB_KEY_CRED_PUB_KEY        0x01
 #define PUB_KEY_CRED_CTAP1          0x41
@@ -135,6 +135,15 @@
 #define PIN_BOOT_ATTEMPTS           3       // number of attempts per boot
 
 #define CTAP2_UP_DELAY_MS           5000
+
+enum ErrorCode
+{
+    SUCCESS = 0,
+    OPERATION_DENIED = 1,
+    USER_NOT_PRESENT = 2,
+    STORAGE_EXHAUSTED = 3,
+    NO_CREDENTIALS = 4,
+};
 
 typedef struct
 {

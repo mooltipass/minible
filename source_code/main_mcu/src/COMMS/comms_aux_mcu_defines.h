@@ -30,20 +30,22 @@
 // HID payload size
 #define HID_PAYLOAD_SIZE            64
 
+#define SHA256_OUTPUT_LENGTH 32
+
 //FIDO2 related lengths/sizes
-#define RPID_LEN 252
-#define USER_ID_LEN 65
-#define USER_NAME_LEN 65
-#define DISPLAY_NAME_LEN 32
-#define CLIENT_DATA_HASH_LEN 32
-#define RPID_HASH_LEN 32
-#define TAG_LEN 32
-#define PUB_KEY_X_LEN 32
-#define PUB_KEY_Y_LEN 32
-#define ATTEST_SIG_LEN 64
-#define AAGUID_LEN 16
-#define CRED_ID_LEN (TAG_LEN)
-#define ENC_PUB_KEY_LEN 100
-#define PRIV_KEY_LEN 32
+#define FIDO2_RPID_LEN 252                                      //RP ID length
+#define FIDO2_USER_ID_LEN 65                                    //User id length
+#define FIDO2_USER_NAME_LEN 65                                  //User name length
+#define FIDO2_DISPLAY_NAME_LEN 65                               //Display name length
+#define FIDO2_CLIENT_DATA_HASH_LEN (SHA256_OUTPUT_LENGTH)       //Client data hash length
+#define FIDO2_RPID_HASH_LEN (SHA256_OUTPUT_LENGTH)              //RP ID hash length
+#define FIDO2_TAG_LEN 16                                        //TAG length
+#define FIDO2_PUB_KEY_X_LEN 32                                  //Public key X part length
+#define FIDO2_PUB_KEY_Y_LEN 32                                  //Public key Y part length
+#define FIDO2_ATTEST_SIG_LEN 64                                 //Attested signature length
+#define FIDO2_AAGUID_LEN 16                                     //AAGUID length
+#define FIDO2_CRED_ID_LEN (FIDO2_TAG_LEN)                       //Credential ID length (Should be TAG length)
+#define FIDO2_ENC_PUB_KEY_LEN 100                               //Encryped public key length
+#define FIDO2_PRIV_KEY_LEN 32                                   //Private key length
 
 #endif /* COMMS_AUX_MCU_DEFINES_H_ */

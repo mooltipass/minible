@@ -24,14 +24,6 @@
 #include "solo_compat_layer.h"
 #include "comms_main_mcu.h"
 
-enum ErrorCode
-{
-    SUCCESS = 0,
-    OPERATION_DENIED = 1,
-    USER_NOT_PRESENT = 2,
-    STORAGE_EXHAUSTED = 3,
-};
-
 struct _getAssertionState getAssertionState;
 
 uint8_t ctap_get_info(CborEncoder * encoder)
@@ -119,7 +111,7 @@ uint8_t ctap_get_info(CborEncoder * encoder)
     return CTAP1_ERR_SUCCESS;
 }
 
-static int ctap_add_cose_key(CborEncoder * cose_key, uint8_t * x, uint8_t * y, uint8_t credtype, int32_t algtype)
+static int ctap_add_cose_key(CborEncoder * cose_key, uint8_t * x, uint8_t * y)
 {
     int ret;
     CborEncoder map;
@@ -138,7 +130,7 @@ static int ctap_add_cose_key(CborEncoder * cose_key, uint8_t * x, uint8_t * y, u
     {
         ret = cbor_encode_int(&map, COSE_KEY_LABEL_ALG);
         check_ret(ret);
-        ret = cbor_encode_int(&map, algtype);
+        ret = cbor_encode_int(&map, COSE_ALG_ES256);
         check_ret(ret);
     }
 
@@ -179,35 +171,34 @@ static unsigned int get_credential_id_size(CTAP_credentialDescriptor * cred)
     return sizeof(CredentialId);
 }
 
-static void _ctap_MAD_aux_comm(uint8_t *rpID, uint32_t index, CTAP_credInfo * credInfo, uint8_t const *clientDataHash, FIDO2_make_auth_data_rsp_message_t *resp_msg, bool new_cred)
+static void _ctap_MAD_aux_comm(uint8_t *rpID, CTAP_credInfo * credInfo, uint8_t const *clientDataHash, fido2_make_auth_data_rsp_message_t *resp_msg, bool new_cred)
 {
     aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
     aux_mcu_message_t* temp_tx_message_pt;
-    FIDO2_make_auth_data_req_message_t *req_msg;
+    fido2_make_auth_data_req_message_t *req_msg;
 
     /* Create message to make authentication data */
     comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_FIDO2);
 
-    req_msg = &temp_tx_message_pt->FIDO2_message.FIDO2_make_auth_data_req_message;
+    req_msg = &temp_tx_message_pt->fido2_message.fido2_make_auth_data_req_message;
 
     /* Fill message */
     memset(req_msg, 0, sizeof(*req_msg));
-    memcpy(req_msg->rpID, rpID, RPID_LEN);
-    if (credInfo && new_cred)
+    memcpy(req_msg->rpID, rpID, FIDO2_RPID_LEN);
+    if (new_cred)
     {
-        memcpy(req_msg->user_ID, credInfo->user.id, USER_ID_LEN);
-        memcpy(req_msg->user_name, credInfo->user.name, USER_NAME_LEN);
-        memcpy(req_msg->display_name, credInfo->user.displayName, DISPLAY_NAME_LEN);
+        memcpy(req_msg->user_ID, credInfo->user.id, FIDO2_USER_ID_LEN);
+        memcpy(req_msg->user_name, credInfo->user.name, FIDO2_USER_NAME_LEN);
+        memcpy(req_msg->display_name, credInfo->user.displayName, FIDO2_DISPLAY_NAME_LEN);
     }
-    memcpy(req_msg->client_data_hash, clientDataHash, CLIENT_DATA_HASH_LEN);
-    req_msg->index = index;
+    memcpy(req_msg->client_data_hash, clientDataHash, FIDO2_CLIENT_DATA_HASH_LEN);
     req_msg->new_cred = (new_cred) ? 1 : 0;
 
     /* Set length of message */
-    temp_tx_message_pt->payload_length1 = sizeof(FIDO2_message_t);
+    temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
 
     /* Set message subtype */
-    temp_tx_message_pt->FIDO2_message.message_type = AUX_MCU_MSG_TYPE_MAD_REQ;
+    temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_MAD_REQ;
 
     /* Send packet */
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
@@ -216,13 +207,17 @@ static void _ctap_MAD_aux_comm(uint8_t *rpID, uint32_t index, CTAP_credInfo * cr
     while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2) != RETURN_OK);
 
     /* Received message is in temporary buffer */
-    memcpy(resp_msg, &temp_rx_message_pt->FIDO2_message.FIDO2_make_auth_data_rsp_message, sizeof(*resp_msg));
-
+    memcpy(resp_msg, &temp_rx_message_pt->fido2_message.fido2_make_auth_data_rsp_message, sizeof(*resp_msg));
+    if (!new_cred)
+    {
+        memcpy(credInfo->user.id, resp_msg->user_ID, FIDO2_USER_ID_LEN);
+        credInfo->user.id_size = FIDO2_USER_ID_LEN;
+    }
 }
 
-static int ctap_make_auth_data(uint8_t *rpID, uint32_t index, uint8_t * auth_data_buf, uint32_t * len, CTAP_credInfo * credInfo, uint8_t const *clientDataHash, uint8_t *sigbuf, bool new_cred)
+static int ctap_make_auth_data(uint8_t *rpID, uint8_t * auth_data_buf, uint32_t * len, CTAP_userEntity * credInfo, uint8_t const *clientDataHash, uint8_t *sigbuf, bool new_cred)
 {
-    FIDO2_make_auth_data_rsp_message_t resp_msg;
+    fido2_make_auth_data_rsp_message_t resp_msg;
     CborEncoder cose_key;
     unsigned int auth_data_sz = sizeof(CTAP_authDataHeader);
     CTAP_authData * authData = (CTAP_authData *)auth_data_buf;
@@ -235,7 +230,7 @@ static int ctap_make_auth_data(uint8_t *rpID, uint32_t index, uint8_t * auth_dat
         exit(1);
     }
 
-    _ctap_MAD_aux_comm(rpID, index, credInfo, clientDataHash, &resp_msg, new_cred);
+    _ctap_MAD_aux_comm(rpID, credInfo, clientDataHash, &resp_msg, new_cred);
 
     if (resp_msg.error_code != SUCCESS)
     {
@@ -247,6 +242,8 @@ static int ctap_make_auth_data(uint8_t *rpID, uint32_t index, uint8_t * auth_dat
                 return CTAP2_ERR_USER_ACTION_TIMEOUT;
             case STORAGE_EXHAUSTED:
                 return CTAP2_ERR_KEY_STORE_FULL;
+            case NO_CREDENTIALS:
+                return CTAP2_ERR_NO_CREDENTIALS;
             default:
                 return CTAP2_ERR_NOT_ALLOWED; //TOOD:?
         };
@@ -262,12 +259,12 @@ static int ctap_make_auth_data(uint8_t *rpID, uint32_t index, uint8_t * auth_dat
 
     memcpy(authData->attest.id.tag, resp_msg.tag, sizeof(authData->attest.id.tag));
 
-    memcpy(sigbuf, resp_msg.attest_sig, ATTEST_SIG_LEN); //Used in calling function
+    memcpy(sigbuf, resp_msg.attest_sig, FIDO2_ATTEST_SIG_LEN); //Used in calling function
     if (credInfo && new_cred)
     {
         cbor_encoder_init(&cose_key, cose_key_buf, *len - sizeof(CTAP_authData), 0);
 
-        ret = ctap_add_cose_key(&cose_key, resp_msg.pub_key_x, resp_msg.pub_key_y, credInfo->publicKeyCredentialType, credInfo->COSEAlgorithmIdentifier);
+        ret = ctap_add_cose_key(&cose_key, resp_msg.pub_key_x, resp_msg.pub_key_y);
         check_ret(ret);
 
         auth_data_sz = sizeof(CTAP_authData) + cbor_encoder_get_buffer_size(&cose_key, cose_key_buf);
@@ -330,7 +327,6 @@ uint8_t ctap_add_attest_statement(CborEncoder * map, uint8_t * sigder, int len)
     int ret;
 
     CborEncoder stmtmap;
-    CborEncoder x5carr;
 
 
     ret = cbor_encode_int(map,RESP_attStmt);
@@ -362,24 +358,24 @@ int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * d
 {
     aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
     aux_mcu_message_t* temp_tx_message_pt;
-    FIDO2_auth_cred_req_message_t* msg;
-    FIDO2_auth_cred_rsp_message_t* rsp_msg;
+    fido2_auth_cred_req_message_t* msg;
+    fido2_auth_cred_rsp_message_t* rsp_msg;
 
     /* Create message to authenticate a credential */
     comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_FIDO2);
 
-    msg = &temp_tx_message_pt->FIDO2_message.FIDO2_auth_cred_req_message;
+    msg = &temp_tx_message_pt->fido2_message.fido2_auth_cred_req_message;
 
     /* Fill message */
     memset(msg, 0, sizeof(*msg));
-    memcpy(msg->rpID, rp->id, RPID_LEN);
-    memcpy(msg->cred_ID.tag, desc->credential.id.tag, TAG_LEN);
+    memcpy(msg->rpID, rp->id, FIDO2_RPID_LEN);
+    memcpy(msg->cred_ID.tag, desc->credential.id.tag, FIDO2_TAG_LEN);
 
     /* Set length of message */
-    temp_tx_message_pt->payload_length1 = sizeof(FIDO2_message_t);
+    temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
 
     /* Set message subtype */
-    temp_tx_message_pt->FIDO2_message.message_type = AUX_MCU_MSG_TYPE_AUTH_CRED_REQ;
+    temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_REQ;
 
     /* Send packet */
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
@@ -388,10 +384,10 @@ int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * d
     while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2) != RETURN_OK);
 
     /* Received message is in temporary buffer */
-    rsp_msg = &temp_rx_message_pt->FIDO2_message.FIDO2_auth_cred_rsp_message;
+    rsp_msg = &temp_rx_message_pt->fido2_message.fido2_auth_cred_rsp_message;
     if (user_ID != NULL)
     {
-        memcpy(user_ID, rsp_msg->user_ID, USER_ID_LEN);
+        memcpy(user_ID, rsp_msg->user_ID, FIDO2_USER_ID_LEN);
     }
     return rsp_msg->result;
 }
@@ -472,7 +468,7 @@ uint8_t ctap_make_credential(CborEncoder * encoder, uint8_t * request, int lengt
 
     uint32_t auth_data_sz = sizeof(auth_data_buf);
 
-    ret = ctap_make_auth_data(MC.rp.id, 0, auth_data_buf, &auth_data_sz,
+    ret = ctap_make_auth_data(MC.rp.id, auth_data_buf, &auth_data_sz,
             &MC.credInfo, MC.clientDataHash, sigbuf, true);
     check_retr(ret);
 
@@ -567,110 +563,6 @@ uint8_t ctap_add_user_entity(CborEncoder * map, CTAP_userEntity * user)
     return 0;
 }
 
-static int cred_cmp_func(const void * _a, const void * _b)
-{
-    CTAP_credentialDescriptor * a = (CTAP_credentialDescriptor * )_a;
-    CTAP_credentialDescriptor * b = (CTAP_credentialDescriptor * )_b;
-    return 1;
-    //TODO
-    //return b->credential.id.count - a->credential.id.count;
-}
-
-static bool ctap_get_next_credential(uint32_t index, struct Credential *cred)
-{
-    aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
-    aux_mcu_message_t* temp_tx_message_pt;
-    FIDO2_get_next_credential_req_message_t *req_msg;
-    FIDO2_get_next_credential_rsp_message_t *rsp_msg;
-
-    /* Create message to make authentication data */
-    comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_FIDO2);
-
-    req_msg = &temp_tx_message_pt->FIDO2_message.FIDO2_get_next_credential_req_message;
-
-    /* Fill message */
-    memset(req_msg, 0, sizeof(*req_msg));
-    memcpy(req_msg->rpID, getAssertionState.rpID, RPID_LEN);
-    req_msg->index = index;
-
-    /* Set length of message */
-    temp_tx_message_pt->payload_length1 = sizeof(FIDO2_message_t);
-
-    /* Set message subtype */
-    temp_tx_message_pt->FIDO2_message.message_type = AUX_MCU_MSG_TYPE_GNC_REQ;
-
-    /* Send packet */
-    comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
-
-    /* Wait for message from main MCU */
-    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2) != RETURN_OK);
-
-    rsp_msg = &temp_rx_message_pt->FIDO2_message.FIDO2_get_next_credential_rsp_message;
-    bool found = (rsp_msg->result) ? true : false;
-
-    if (found)
-    {
-        memcpy(cred->id.tag, rsp_msg->tag, CREDENTIAL_TAG_SIZE);
-        memcpy(cred->user.id, rsp_msg->user_ID, USER_ID_LEN);
-        cred->user.id_size = strlen(rsp_msg->user_ID);
-    }
-    return found;
-}
-
-// @return the number of valid credentials
-// sorts the credentials.  Most recent creds will be first, invalid ones last.
-int ctap_filter_invalid_credentials(CTAP_getAssertion * GA)
-{
-    int i;
-    int count = 0;
-    uint8_t user_ID[USER_ID_LEN];
-
-    for (i = 0; i < GA->credLen; i++)
-    {
-        if (! ctap_authenticate_credential(&GA->rp, &GA->creds[i], user_ID))
-        {
-            printf1(TAG_GA, "CRED is invalid\n");
-            memset(GA->creds[i].credential.id.tag, 0, sizeof(GA->creds[i].credential.id.tag));      // invalidate
-        }
-        else
-        {
-            // add user info if it exists
-            memmove(GA->creds[i].credential.user.id, user_ID, USER_ID_LEN);
-            GA->creds[i].credential.user.id_size = strlen(user_ID);
-            count++;
-        }
-    }
-
-    // No allowList, so use all matching RK's matching rpId
-    if (!GA->credLen)
-    {
-        struct Credential cred;
-        bool found = false;
-
-        memset(&cred, 0, sizeof(cred));
-        found = ctap_get_next_credential(count, &cred);
-
-        while (found)
-        {
-            if (count == ALLOW_LIST_MAX_SIZE-1)
-            {
-                printf2(TAG_ERR, "not enough ram allocated for matching RK's (%d).  Skipping.\r\n", count);
-                break;
-            }
-            GA->creds[count].type = PUB_KEY_CRED_PUB_KEY;
-            memmove(&(GA->creds[count].credential), &cred, sizeof(GA->creds[count].credential));
-            count++;
-
-            found = ctap_get_next_credential(count, &cred);
-        }
-        GA->credLen = count;
-    }
-
-    printf1(TAG_GA, "qsort length: %d\n", GA->credLen);
-    qsort(GA->creds, GA->credLen, sizeof(CTAP_credentialDescriptor), cred_cmp_func);
-    return count;
-}
-
 // adds 2 to map, or 3 if add_user is true
 static uint8_t ctap_end_get_assertion(CborEncoder * map, CTAP_credentialDescriptor * cred, uint8_t * auth_data_buf, unsigned int auth_data_buf_sz, uint8_t * sigbuf)
 {
@@ -678,6 +570,7 @@ static uint8_t ctap_end_get_assertion(CborEncoder * map, CTAP_credentialDescript
     uint8_t sigder[72];
     int sigder_sz;
 
+    _Static_assert(sizeof(sigder) >= 72, "sigder buffer must be 72 bytes or more");
     ret = ctap_add_credential_descriptor(map, cred);  // 1
     check_retr(ret);
 
@@ -709,7 +602,8 @@ uint8_t ctap_get_assertion(CborEncoder * encoder, uint8_t * request, int length)
 {
     CTAP_getAssertion GA;
     uint8_t sigbuf[64];
-    uint32_t index = 0; //TODO
+
+    _Static_assert(sizeof(sigbuf) >= 64, "sigbuf must be 64 bytes or greater");
 
     uint8_t auth_data_buf[sizeof(CTAP_authDataHeader) + 80];
     int ret = ctap_parse_get_assertion(&GA,request,length);
@@ -738,41 +632,25 @@ uint8_t ctap_get_assertion(CborEncoder * encoder, uint8_t * request, int length)
     int map_size = 3;
 
     printf1(TAG_GA, "ALLOW_LIST has %d creds\n", GA.credLen);
-    int validCredCount = ctap_filter_invalid_credentials(&GA);
-
-    if (validCredCount == 0)
-    {
-        printf2(TAG_ERR,"Error, no authentic credential\n");
-        return CTAP2_ERR_NO_CREDENTIALS;
-    }
-    else if (validCredCount > 1)
-    {
-       map_size += 1;
-    }
 
     map_size += 1;
 
     ret = cbor_encoder_create_map(encoder, &map, map_size);
     check_ret(ret);
 
-    printf1(TAG_GA,"resulting order of creds:\n");
-    int j;
-    for (j = 0; j < GA.credLen; j++)
-    {
-        //printf1(TAG_GA,"CRED ID (# %d)\n", GA.creds[j].credential.id.count);
-    }
-
-    CTAP_credentialDescriptor * cred = &GA.creds[validCredCount - 1];
+    //TODO: For now always use 1st credential
+    CTAP_credentialDescriptor * cred = &GA.creds[0];
 
     uint32_t auth_data_buf_sz = sizeof(auth_data_buf);
 
     {
-        //TODO: Index
-        ret = ctap_make_auth_data(GA.rp.id, index, auth_data_buf, &auth_data_buf_sz, NULL, GA.clientDataHash, sigbuf, false);
+        ret = ctap_make_auth_data(GA.rp.id, auth_data_buf, &auth_data_buf_sz, &cred->credential.user, GA.clientDataHash, sigbuf, false);
+        CTAP_authData * authData = (CTAP_authData *)auth_data_buf;
+        memcpy(&cred->credential.id, authData->attest.id.tag, FIDO2_TAG_LEN);
         check_retr(ret);
     }
 
-    memmove(getAssertionState.rpID, GA.rp.id, RPID_LEN); //Save RPID for get_next_assertion
+    memmove(getAssertionState.rpID, GA.rp.id, FIDO2_RPID_LEN); //Save RPID for get_next_assertion
 
     ret = ctap_end_get_assertion(&map, cred, auth_data_buf, auth_data_buf_sz, sigbuf);  // 1,2,3,4
     check_retr(ret);

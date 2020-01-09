@@ -71,15 +71,13 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 /* FIDO2 messages start */
 // Keep FIDO2 messages monotonically increasing
 // See comms_msg_rcvd_te handle_FIDO2_message() in comms_aux_mcu.c
-#define AUX_MCU_MSG_TYPE_FIDO2_START    0x0001
-#define AUX_MCU_MSG_TYPE_AUTH_CRED_REQ  AUX_MCU_MSG_TYPE_FIDO2_START
-#define AUX_MCU_MSG_TYPE_AUTH_CRED_RSP  0x0002
+#define AUX_MCU_MSG_TYPE_FIDO2_START 0x0001
+#define AUX_MCU_FIDO2_AUTH_CRED_REQ  AUX_MCU_MSG_TYPE_FIDO2_START
+#define AUX_MCU_FIDO2_AUTH_CRED_RSP  0x0002
 //MAD = MAKE_AUTH_DATA
-#define AUX_MCU_MSG_TYPE_MAD_REQ        0x0003
-#define AUX_MCU_MSG_TYPE_MAD_RSP        0x0004
-#define AUX_MCU_MSG_TYPE_GNC_REQ        0x0005
-#define AUX_MCU_MSG_TYPE_GNC_RSP        0x0006
-#define AUX_MCU_MSG_TYPE_FIDO2_END      AUX_MCU_MSG_TYPE_MAD_RSP
+#define AUX_MCU_FIDO2_MAD_REQ        0x0003
+#define AUX_MCU_FIDO2_MAD_RSP        0x0004
+#define AUX_MCU_MSG_TYPE_FIDO2_END   AUX_MCU_FIDO2_MAD_RSP
 /* FIDO2 messages end */
 
 /* Typedefs */
@@ -141,74 +139,59 @@ typedef struct
 } keyboard_type_message_t;
 
 typedef struct credential_ID_s {
-    uint8_t tag[TAG_LEN];
-}__attribute__((packed)) credential_ID_t;
+    uint8_t tag[FIDO2_TAG_LEN];
+}__attribute__((packed)) fido2_credential_ID_t;
 
-typedef struct FIDO2_auth_cred_req_message_s
+typedef struct fido2_auth_cred_req_message_s
 {
-    uint8_t rpID[RPID_LEN];
-    credential_ID_t cred_ID;
-} FIDO2_auth_cred_req_message_t;
+    uint8_t rpID[FIDO2_RPID_LEN];
+    fido2_credential_ID_t cred_ID;
+} fido2_auth_cred_req_message_t;
 
-typedef struct FIDO2_auth_cred_rsp_message_s
+typedef struct fido2_auth_cred_rsp_message_s
 {
-    credential_ID_t cred_ID;
-    uint8_t user_ID[USER_ID_LEN];
+    fido2_credential_ID_t cred_ID;
+    uint8_t user_ID[FIDO2_USER_ID_LEN];
     uint8_t result;
-} FIDO2_auth_cred_rsp_message_t;
+} fido2_auth_cred_rsp_message_t;
 
-typedef struct FIDO2_make_auth_data_s
+typedef struct fido2_make_auth_data_s
 {
-    uint8_t rpID[RPID_LEN];
-    uint8_t user_ID[USER_ID_LEN];
-    uint8_t user_name[USER_NAME_LEN];
-    uint8_t display_name[DISPLAY_NAME_LEN];
-    uint8_t client_data_hash[CLIENT_DATA_HASH_LEN];
-    uint8_t index; //Index of credential to get for this rpID
+    uint8_t rpID[FIDO2_RPID_LEN];
+    uint8_t user_ID[FIDO2_USER_ID_LEN];
+    uint8_t user_name[FIDO2_USER_NAME_LEN];
+    uint8_t display_name[FIDO2_DISPLAY_NAME_LEN];
+    uint8_t client_data_hash[FIDO2_CLIENT_DATA_HASH_LEN];
     uint8_t new_cred; //0 - We are asserting a current credential, 1 = Existing
-} FIDO2_make_auth_data_req_message_t;
+} fido2_make_auth_data_req_message_t;
 
-typedef struct FIDO2_make_auth_data_rsp_s
+typedef struct fido2_make_auth_data_rsp_s
 {
-    uint8_t tag[TAG_LEN];
-    uint8_t rpID_hash[RPID_HASH_LEN];
+    uint8_t tag[FIDO2_TAG_LEN];
+    uint8_t user_ID[FIDO2_USER_ID_LEN];
+    uint8_t rpID_hash[FIDO2_RPID_HASH_LEN];
     uint32_t count_BE;
     uint32_t flags;
-    uint8_t pub_key_x[PUB_KEY_X_LEN];
-    uint8_t pub_key_y[PUB_KEY_Y_LEN];
-    uint8_t attest_sig[ATTEST_SIG_LEN];
-    uint8_t aaguid[AAGUID_LEN];
+    uint8_t pub_key_x[FIDO2_PUB_KEY_X_LEN];
+    uint8_t pub_key_y[FIDO2_PUB_KEY_Y_LEN];
+    uint8_t attest_sig[FIDO2_ATTEST_SIG_LEN];
+    uint8_t aaguid[FIDO2_AAGUID_LEN];
     uint32_t cred_ID_len;
     uint8_t error_code;
-} FIDO2_make_auth_data_rsp_message_t;
+} fido2_make_auth_data_rsp_message_t;
 
-typedef struct FIDO2_get_next_credential_req_message_s
-{
-    uint8_t rpID[RPID_LEN];
-    uint8_t index;
-} FIDO2_get_next_credential_req_message_t;
-
-typedef struct FIDO2_get_next_credential_rsp_message_s
-{
-    uint8_t tag[TAG_LEN];
-    uint8_t user_ID[USER_ID_LEN];
-    uint8_t result;
-} FIDO2_get_next_credential_rsp_message_t;
-
-typedef struct FIDO2_message_s
+typedef struct fido2_message_s
 {
     uint16_t message_type;
     uint16_t reserved;
     union
     {
-        FIDO2_auth_cred_req_message_t FIDO2_auth_cred_req_message;
-        FIDO2_auth_cred_rsp_message_t FIDO2_auth_cred_rsp_message;
-        FIDO2_make_auth_data_req_message_t FIDO2_make_auth_data_req_message;
-        FIDO2_make_auth_data_rsp_message_t FIDO2_make_auth_data_rsp_message;
-        FIDO2_get_next_credential_req_message_t FIDO2_get_next_credential_req_message;
-        FIDO2_get_next_credential_rsp_message_t FIDO2_get_next_credential_rsp_message;
+        fido2_auth_cred_req_message_t fido2_auth_cred_req_message;
+        fido2_auth_cred_rsp_message_t fido2_auth_cred_rsp_message;
+        fido2_make_auth_data_req_message_t fido2_make_auth_data_req_message;
+        fido2_make_auth_data_rsp_message_t fido2_make_auth_data_rsp_message;
     };
-} FIDO2_message_t;
+} fido2_message_t;
 
 typedef struct
 {
@@ -224,7 +207,7 @@ typedef struct
         keyboard_type_message_t keyboard_type_message;
         nimh_charge_message_t nimh_charge_message;
         hid_message_t hid_message;
-        FIDO2_message_t FIDO2_message;
+        fido2_message_t fido2_message;
         uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH];
         uint16_t payload_as_uint16[AUX_MCU_MSG_PAYLOAD_LENGTH/2];
         uint32_t payload_as_uint32[AUX_MCU_MSG_PAYLOAD_LENGTH/4];    

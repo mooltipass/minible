@@ -26,6 +26,7 @@
 
 #include "defines.h"
 
+#define FIDO2_CBOR_CONTAINER_START 0xA0
 
 /* Prototypes */
 void utils_concatenate_strings_with_slash(cust_char_t* string1, cust_char_t* string2, uint16_t storage_length);
@@ -39,5 +40,7 @@ void utils_ascii_to_unicode(uint8_t* string, uint16_t nb_chars);
 uint16_t utils_strnlen(cust_char_t* string, uint16_t maxlen);
 uint16_t utils_get_nb_lines(const cust_char_t* string);
 uint16_t utils_strlen(cust_char_t* string);
+uint8_t utils_get_cbor_encoded_value_for_val_btw_m24_p23(int8_t value);
+uint8_t utils_cbor_encode_32byte_bytestring(uint8_t* source, uint8_t* destination);
 
 #endif /* UTILS_H_ */

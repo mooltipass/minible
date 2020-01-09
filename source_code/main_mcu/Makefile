@@ -171,8 +171,6 @@ src/ASF/sam0/utils/cmsis/samd21/source/gcc/startup_samd21.c \
 src/ASF/sam0/utils/cmsis/samd21/source/system_samd21.c \
 src/ASF/sam0/utils/syscalls/gcc/syscalls.c \
 src/main.c \
-src/fido2/cborencoder.c \
-src/fido2/crypto.c \
 src/fido2/fido2.c
 
 C_FLAGS := -mthumb
@@ -181,7 +179,7 @@ ifeq ($(DEBUG), 1)
     C_FLAGS += -DDEBUG -g3 -O1
     OUTPUT_DIR := Debug
 else
-    C_FLAGS += -DNDEBUG -Os
+    C_FLAGS += -DDEBUG_LOG_DISABLED -DNDEBUG -Os
     OUTPUT_DIR := Release
 endif
 

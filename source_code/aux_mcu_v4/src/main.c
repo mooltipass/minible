@@ -102,8 +102,8 @@ void main_platform_init(void)
     platform_io_init_ports();                                           // Initialize platform IO ports
     comms_main_init_rx();                                               // Initialize communication handling with main MCU    
     usb_init();                                                         // Initialize USB stack
-    ctaphid_init();
-    ctap_init();
+    ctaphid_init();                                                     // Initialize CTAP HID communucation layer
+    ctap_init();                                                        // Initialize CTAP layer
     logic_battery_init();                                               // Initialize battery logic code
 }    
 

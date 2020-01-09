@@ -26,7 +26,6 @@
 #include "dbflash.h"
 #include "sh1122.h"
 #include "inputs.h"
-#include "crypto.h"
 #include "utils.h"
 #include "fuses.h"
 #include "debug.h"
@@ -316,9 +315,6 @@ void main_platform_init(void)
     }
 #endif
     
-    /* Initialize ecc256 crypto engine. Uses RNG to initialize seed */
-    crypto_ecc256_init();
-
     /* Display error messages if something went wrong during custom fs init and bundle check */
     if ((custom_fs_init_return != RETURN_OK) || (bundle_integrity_check_return != RETURN_OK))
     {

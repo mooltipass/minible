@@ -162,7 +162,7 @@ ifeq ($(DEBUG), 1)
     C_FLAGS += -DDEBUG -g3 -O1 -fstack-usage
     OUTPUT_DIR := Debug
 else
-    C_FLAGS += -DNDEBUG -Os
+    C_FLAGS += -DDEBUG_LOG_DISABLED -DNDEBUG -Os
     OUTPUT_DIR := Release
 endif
 

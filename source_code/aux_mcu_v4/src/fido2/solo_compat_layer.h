@@ -14,7 +14,7 @@ int timestamp(void);
 void dump_hex(uint8_t * buf, int size);
 #define dump_hex1(tag,data,len) dump_hex(data, len);
 
-#ifdef DEBUG
+#if !defined DEBUG_LOG_DISABLED
 void comms_usb_debug_printf(const char *fmt, ...);
 #define printf1(tag,fmt, ...) comms_usb_debug_printf(fmt, ##__VA_ARGS__)
 #define printf2(tag,fmt, ...) comms_usb_debug_printf(fmt, ##__VA_ARGS__)

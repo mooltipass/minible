@@ -20,7 +20,7 @@ void usbhid_send(uint8_t * msg)
     //comms_usb_debug_printf("0x%02x 0x%02x 0x%02x 0x%02x\n", msg[8], msg[9], msg[10], msg[11]);
     //comms_usb_debug_printf("0x%02x 0x%02x 0x%02x 0x%02x\n", msg[12], msg[13], msg[14], msg[15]);
 
-    comms_raw_hid_send_packet(CTAP_INTERFACE, (hid_packet_t *) send_buf_ptr, true, USB_RAWHID_RX_SIZE);
+    comms_raw_hid_send_packet(CTAP_INTERFACE, (hid_packet_t *) send_buf_ptr, TRUE, USB_RAWHID_RX_SIZE);
 }
 
 void ctaphid_write_block(uint8_t * data)
@@ -33,6 +33,8 @@ void device_wink()
     //TODO: 0x0ptr
     //main_mcu message to flash something on display?
 }
+
+#if !defined DEBUG_LOG_DISABLED
 
 void dump_hex(uint8_t * buf, int size)
 {
@@ -56,9 +58,10 @@ void dump_hex(uint8_t * buf, int size)
     comms_usb_debug_printf("[%03X]: %s\n", byteno, tmp);
 }
 
+#endif
+
 int timestamp(void)
 {
-    //TODO: 0x0ptr
-	return 0;
+    return millis();
 }
 
