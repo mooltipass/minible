@@ -62,6 +62,8 @@ uint16_t logic_battery_get_stepdown_voltage(void);
 int16_t logic_battery_get_charging_current(void);
 void logic_battery_debug_stop_charge(void);
 battery_action_te logic_battery_task(void);
+void logic_battery_start_using_adc(void);
+void logic_battery_stop_using_adc(void);
 void logic_battery_stop_charging(void);
 uint16_t logic_battery_get_vbat(void);
 void logic_battery_init(void);

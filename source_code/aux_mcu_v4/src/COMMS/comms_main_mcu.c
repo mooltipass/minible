@@ -320,6 +320,9 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             }
             case MAIN_MCU_COMMAND_ATTACH_USB:
             {
+                /* Start ADC conversions for when we're later asked to charge battery */
+                logic_battery_start_using_adc();
+                
                 /* Attach USB resistors */
                 udc_attach();
                 break;
@@ -332,6 +335,9 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 
                 /* Stop charging if we are */
                 logic_battery_stop_charging();
+                
+                /* Stop using the ADC */
+                logic_battery_stop_using_adc();
 
                 /* Inform main MCU */
                 comms_main_mcu_send_simple_event(AUX_MCU_EVENT_USB_DETACHED);

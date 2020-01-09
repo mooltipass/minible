@@ -23,6 +23,9 @@ uint16_t logic_battery_peak_voltage = 0;
 /* Number of ticks since we saw the peak voltage */
 uint32_t logic_battery_nb_secs_since_peak = 0;
 uint16_t logic_battery_last_second_seen = 0;
+/* Flag to stop using the ADC */
+BOOL logic_battery_start_using_adc_flag = FALSE;
+BOOL logic_battery_stop_using_adc_flag = FALSE;
 /* Diagnostic values */
 BOOL logic_battery_diag_charging_forced = FALSE;
 uint16_t logic_battery_diag_current_vbat = 0;
@@ -34,8 +37,6 @@ int16_t logic_battery_diag_current_cur = 0;
 */
 void logic_battery_init(void)
 {    
-    /* Start current sense measurements */
-    platform_io_get_cursense_conversion_result(TRUE); 
 }
 
 /*! \fn     logic_battery_get_charging_status(void)
@@ -171,6 +172,22 @@ void logic_battery_stop_charging(void)
     }
 }
 
+/*! \fn     logic_battery_stop_using_adc(void)
+*   \brief  Stop using the ADC
+*/
+void logic_battery_stop_using_adc(void)
+{
+    logic_battery_stop_using_adc_flag = TRUE;
+}
+
+/*! \fn     logic_battery_start_using_adc(void)
+*   \brief  Start using the ADC
+*/
+void logic_battery_start_using_adc(void)
+{
+    logic_battery_start_using_adc_flag = TRUE;
+}
+
 /*! \fn     logic_battery_task(void)
 *   \brief  Deal with battery related tasks such as charging
 *   \return Any action that may be needed
@@ -178,6 +195,18 @@ void logic_battery_stop_charging(void)
 battery_action_te logic_battery_task(void)
 {
     battery_action_te return_value = BAT_ACT_NONE;
+    
+    /* Wait if we've been instructed to */
+    if (logic_battery_stop_using_adc_flag != FALSE)
+    {
+        while(platform_io_is_current_sense_conversion_result_ready() == FALSE);
+    }
+    
+    /* If we've been told to, arm ADC */
+    if (logic_battery_start_using_adc_flag != FALSE)
+    {
+        platform_io_get_cursense_conversion_result(TRUE);
+    }
 
     /* Did we get current measurements? */
     if (platform_io_is_current_sense_conversion_result_ready() != FALSE)
@@ -457,9 +486,16 @@ battery_action_te logic_battery_task(void)
             default: break;
         }
             
-        /* Trigger new conversion */
-        platform_io_get_cursense_conversion_result(TRUE);
+        /* Trigger new conversion if not specified otherwise */
+        if (logic_battery_stop_using_adc_flag == FALSE)
+        {
+            platform_io_get_cursense_conversion_result(TRUE);
+        }
     }
+    
+    /* Clear flag */
+    logic_battery_start_using_adc_flag = FALSE;
+    logic_battery_stop_using_adc_flag = FALSE;
 
     return return_value;
 }
