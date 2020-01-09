@@ -160,6 +160,16 @@ BOOL platform_io_is_voledin_conversion_result_ready(void)
     return platform_io_voledin_conv_ready;
 }
 
+/*! \fn     platform_io_get_voledin_conversion_result(void)
+*   \brief  Fetch voled conversion result
+*   \return 12 bit conversion result
+*/
+uint16_t platform_io_get_voledin_conversion_result(void)
+{
+    while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
+    return ADC->RESULT.reg;
+}
+
 /*! \fn     platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
 *   \brief  Fetch voled conversion result and trigger new conversion
 *   \return 12 bit conversion result

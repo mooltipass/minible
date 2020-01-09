@@ -606,7 +606,7 @@ int main(void)
     while(TRUE)
     {
         /* Power handling routine */
-        power_action_te power_action = logic_power_routine();
+        power_action_te power_action = logic_power_routine(FALSE);
         
         /* If the power routine tells us to power off, provided we are not updating */
         if ((power_action == POWER_ACT_POWER_OFF) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE))
@@ -630,7 +630,7 @@ int main(void)
             else
             {
                 /* Call the power routine that will take care of power switch */
-                logic_power_routine();
+                logic_power_routine(FALSE);
             }                
         }
         else if (power_action == POWER_ACT_NEW_BAT_LEVEL)

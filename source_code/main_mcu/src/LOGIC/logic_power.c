@@ -271,11 +271,12 @@ BOOL logic_power_is_usb_enumerate_sent_clear_bool(void)
     return return_bool;
 }
 
-/*! \fn     logic_power_routine(void)
+/*! \fn     logic_power_routine(BOOL wait_for_adc_conversion_and_dont_start_another)
 *   \brief  Power handling routine
+*   \param  wait_for_adc_conversion_and_dont_start_another  Set to TRUE to do what it says
 *   \return An action if needed (see enum)
 */
-power_action_te logic_power_routine(void)
+power_action_te logic_power_routine(BOOL wait_for_adc_conversion_and_dont_start_another)
 {        
     volatile uint32_t nb_ms_since_full_charge_copy = logic_power_nb_ms_spent_since_last_full_charge;
     
@@ -378,10 +379,24 @@ power_action_te logic_power_routine(void)
         logic_power_battery_charging = TRUE;
     }
     
+    /* Wait if we've been instructed to */
+    if (wait_for_adc_conversion_and_dont_start_another != FALSE)
+    {
+        while(platform_io_is_voledin_conversion_result_ready() == FALSE);
+    }
+    
     /* Battery measurement */
     if (platform_io_is_voledin_conversion_result_ready() != FALSE)
     {
-        uint16_t current_vbat = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+        uint16_t current_vbat;
+        if (wait_for_adc_conversion_and_dont_start_another == FALSE)
+        {
+            current_vbat = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+        } 
+        else
+        {
+            current_vbat = platform_io_get_voledin_conversion_result();
+        }
         
         /* Take one measurement every 8, or not if we have been told to skip queue logic */
         BOOL should_deal_with_measurement = FALSE;

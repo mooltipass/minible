@@ -421,12 +421,15 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
             platform_io_power_down_oled();
             
             /* Call power routine so it registers we powered down the oled screen */
-            logic_power_routine();
+            logic_power_routine(TRUE);
             
             /* Good night */
             main_standby_sleep();
                 
             /* We are awake now! */
+            
+            /* Restart ADC conversions */
+            platform_io_get_voledin_conversion_result_and_trigger_conversion();
         }
     }
     

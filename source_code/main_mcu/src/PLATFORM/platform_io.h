@@ -33,6 +33,7 @@ void platform_io_disable_scroll_wheel_wakeup_interrupts(void);
 void platform_io_enable_scroll_wheel_wakeup_interrupts(void);
 void platform_io_disable_no_comms_as_wakeup_interrupt(void);
 BOOL platform_io_is_voledin_conversion_result_ready(void);
+uint16_t platform_io_get_voledin_conversion_result(void);
 void platform_io_prepare_acc_ports_for_sleep_exit(void);
 void platform_io_set_no_comms_as_wakeup_interrupt(void);
 void platform_io_disable_aux_tx_wakeup_interrupt(void);

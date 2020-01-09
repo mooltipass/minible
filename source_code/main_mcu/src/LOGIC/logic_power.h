@@ -41,6 +41,7 @@ typedef enum    {BATTERY_0PCT = 0, BATTERY_25PCT, BATTERY_50PCT, BATTERY_75PCT, 
 typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7} lb_state_machine_te;
 
 /* Prototypes */
+power_action_te logic_power_routine(BOOL wait_for_adc_conversion_and_dont_start_another);
 void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_success);
 void logic_power_set_battery_level_update_from_aux(uint8_t battery_level);
 void logic_power_skip_queue_logic_for_upcoming_adc_measurements(void);
@@ -54,7 +55,6 @@ void logic_power_usb_enumerate_just_sent(void);
 void logic_power_signal_battery_error(void);
 BOOL logic_power_is_battery_charging(void);
 void logic_power_power_down_actions(void);
-power_action_te logic_power_routine(void);
 void logic_power_ms_tick(void);
 void logic_power_init(void);
 
