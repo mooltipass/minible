@@ -29,7 +29,7 @@ RET_TYPE security_code_validation(uint16_t code)
 - 4 spaces, no tabs
 - snake case naming for functions and global variables
 - defines in uppercase
-- function names should be prepended by the file name it is in
+- function names and global variables should be prepended by the file name it is in
 - 80 chars limit is *not* needed (we're not in 1980 anymore!)
 - a given function should not be more than 100 lines long (exceptions may happen)
 - **comment your code**
