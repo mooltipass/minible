@@ -88,6 +88,7 @@ static at_ble_status_t logic_bluetooth_hid_connected_callback(void* params)
     
     /* Set booleans */
     logic_bluetooth_just_connected = TRUE;
+    logic_bluetooth_advertising = FALSE;
     logic_bluetooth_connected = TRUE;
     
     /* Store connection handle */
@@ -1184,6 +1185,14 @@ void logic_bluetooth_stop_bluetooth(void)
         logic_bluetooth_stop_advertising();
     }
     
+    /* Set booleans */
+    logic_bluetooth_can_communicate_with_host = FALSE;
+    logic_bluetooth_advertising = FALSE;
+    logic_bluetooth_just_connected = FALSE;
+    logic_bluetooth_just_paired = FALSE;
+    logic_bluetooth_connected = FALSE;
+    logic_bluetooth_paired = FALSE;
+    
     /* Reset UARTs */
     platform_io_reset_ble_uarts();
     
@@ -1420,9 +1429,7 @@ BOOL logic_bluetooth_can_talk_to_host(void)
 *   \param  data_len    Data length
 */
 void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
-{
-    DBG_LOG_LOGIC_BT_AD("Call to raw send");
-    
+{    
     /* Check that we're actually paired */
     if (logic_bluetooth_can_communicate_with_host != FALSE)
     {
@@ -1442,6 +1449,10 @@ void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
         /* Send data */
         logic_bluetooth_notif_being_sent = RAW_HID_NOTIF_SENDING;
         logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_RAW_HID_SERVICE_INSTANCE, BLE_RAW_HID_IN_REPORT_NB, logic_bluetooth_raw_hid_data_out_buf, sizeof(logic_bluetooth_raw_hid_data_out_buf));
+    }
+    else
+    {
+        DBG_LOG("BLE Call to raw send but device not connected");
     }
 }
 
