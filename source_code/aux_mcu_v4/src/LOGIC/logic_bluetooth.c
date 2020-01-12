@@ -65,7 +65,9 @@ uint8_t logic_bluetooth_keyboard_in_report[8];
 uint8_t logic_bluetooth_ctrl_point[1];
 BOOL logic_bluetooth_typed_report_sent = FALSE;
 /* Bluetooth connection bools */
+BOOL logic_bluetooth_can_communicate_with_host = FALSE;
 BOOL logic_bluetooth_advertising = FALSE;
+BOOL logic_bluetooth_just_connected = FALSE;
 BOOL logic_bluetooth_just_paired = FALSE;
 BOOL logic_bluetooth_connected = FALSE;
 BOOL logic_bluetooth_paired = FALSE;
@@ -85,14 +87,12 @@ static at_ble_status_t logic_bluetooth_hid_connected_callback(void* params)
     DBG_LOG("Connected to device");
     
     /* Set booleans */
+    logic_bluetooth_just_connected = TRUE;
     logic_bluetooth_connected = TRUE;
     
     /* Store connection handle */
     at_ble_connected_t* connected = (at_ble_connected_t*)params;
     logic_bluetooth_ble_connection_handle = connected->handle;
-    
-    /* Inform main MCU */    
-    comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_CONNECTED);
 
     return AT_BLE_SUCCESS;
 }
@@ -105,6 +105,8 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
     DBG_LOG("Disconnected from device");
     
     /* Set booleans */
+    logic_bluetooth_can_communicate_with_host = FALSE;
+    logic_bluetooth_just_connected = FALSE;
     logic_bluetooth_just_paired = FALSE;
     logic_bluetooth_connected = FALSE;
     logic_bluetooth_paired = FALSE;
@@ -126,22 +128,50 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
 */
 static at_ble_status_t logic_bluetooth_hid_paired_callback(void* param)
 {
-    at_ble_pair_done_t* pair_done = (at_ble_pair_done_t*)param;
+    at_ble_pair_done_t* pairing_params = (at_ble_pair_done_t*)param;
     
-    if(pair_done->status == AT_BLE_SUCCESS)
+    if(pairing_params->status == AT_BLE_SUCCESS)
     {
         DBG_LOG("Paired to device");
         
         /* Set booleans */
+        logic_bluetooth_can_communicate_with_host = TRUE;
         logic_bluetooth_just_paired = TRUE;
         logic_bluetooth_paired = TRUE;
+        
+        /* Inform main MCU */
+        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_PAIRED);
     }
     else
     {
         DBG_LOG("ERROR: Failed pairing to device");
     }
     
-    return pair_done->status;
+    switch (pairing_params->auth)
+    {
+        case AT_BLE_AUTH_NO_MITM_NO_BOND: DBG_LOG("No Man In The Middle protection(MITM) , No Bonding");break;
+        case AT_BLE_AUTH_NO_MITM_BOND: DBG_LOG("No MITM, Bonding");break;
+        case AT_BLE_AUTH_MITM_NO_BOND: DBG_LOG("MITM, No Bonding");break;
+        case AT_BLE_AUTH_MITM_BOND: DBG_LOG("MITM and Bonding");break;
+    	default: break;
+    }
+    
+    DBG_LOG("LTK Key (%dB): %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", pairing_params->peer_ltk.key_size,pairing_params->peer_ltk.key[0],pairing_params->peer_ltk.key[1],pairing_params->peer_ltk.key[2],pairing_params->peer_ltk.key[3],pairing_params->peer_ltk.key[4],pairing_params->peer_ltk.key[5],pairing_params->peer_ltk.key[6],pairing_params->peer_ltk.key[7],pairing_params->peer_ltk.key[8],pairing_params->peer_ltk.key[9],pairing_params->peer_ltk.key[10],pairing_params->peer_ltk.key[11],pairing_params->peer_ltk.key[12],pairing_params->peer_ltk.key[13],pairing_params->peer_ltk.key[14],pairing_params->peer_ltk.key[15]);
+    DBG_LOG("LTK ediv: %04x, RNG: %02x%02x%02x%02x%02x%02x%02x%02x", pairing_params->peer_ltk.ediv, pairing_params->peer_ltk.nb[0],pairing_params->peer_ltk.nb[1],pairing_params->peer_ltk.nb[2],pairing_params->peer_ltk.nb[3],pairing_params->peer_ltk.nb[4],pairing_params->peer_ltk.nb[5],pairing_params->peer_ltk.nb[6],pairing_params->peer_ltk.nb[7]);
+    DBG_LOG("CSRK: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",pairing_params->peer_csrk.key[0],pairing_params->peer_csrk.key[1],pairing_params->peer_csrk.key[2],pairing_params->peer_csrk.key[3],pairing_params->peer_csrk.key[4],pairing_params->peer_csrk.key[5],pairing_params->peer_csrk.key[6],pairing_params->peer_csrk.key[7],pairing_params->peer_csrk.key[8],pairing_params->peer_csrk.key[9],pairing_params->peer_csrk.key[10],pairing_params->peer_csrk.key[11],pairing_params->peer_csrk.key[12],pairing_params->peer_csrk.key[13],pairing_params->peer_csrk.key[14],pairing_params->peer_csrk.key[15]);
+    DBG_LOG("IRK: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",pairing_params->peer_irk.key[0],pairing_params->peer_irk.key[1],pairing_params->peer_irk.key[2],pairing_params->peer_irk.key[3],pairing_params->peer_irk.key[4],pairing_params->peer_irk.key[5],pairing_params->peer_irk.key[6],pairing_params->peer_irk.key[7],pairing_params->peer_irk.key[8],pairing_params->peer_irk.key[9],pairing_params->peer_irk.key[10],pairing_params->peer_irk.key[11],pairing_params->peer_irk.key[12],pairing_params->peer_irk.key[13],pairing_params->peer_irk.key[14],pairing_params->peer_irk.key[15]);
+    
+    switch(pairing_params->peer_irk.addr.type)
+    {
+        case(AT_BLE_ADDRESS_PUBLIC): DBG_LOG("Public IRK addr");break;
+        case(AT_BLE_ADDRESS_RANDOM_STATIC): DBG_LOG("Random static IRK addr");break;
+        case(AT_BLE_ADDRESS_RANDOM_PRIVATE_RESOLVABLE): DBG_LOG("Random private resolvable IRK addr");break;
+        case(AT_BLE_ADDRESS_RANDOM_PRIVATE_NON_RESOLVABLE): DBG_LOG("Random private non resolvable IRK addr");break;
+        default: break;
+    }
+    DBG_LOG("IRK addr: %02x%02x%02x%02x%02x%02x",pairing_params->peer_irk.addr.addr[0],pairing_params->peer_irk.addr.addr[1],pairing_params->peer_irk.addr.addr[2],pairing_params->peer_irk.addr.addr[3],pairing_params->peer_irk.addr.addr[4],pairing_params->peer_irk.addr.addr[5]);
+    
+    return pairing_params->status;
 }
 
 /*! \fn     logic_bluetooth_encryption_changed_callback(void* params)
@@ -153,6 +183,13 @@ static at_ble_status_t logic_bluetooth_encryption_changed_callback(void *param)
     if(encryption_status_changed->status == AT_BLE_SUCCESS)
     {
         DBG_LOG("Enc status changed success");
+        
+        /* Inform main MCU */
+        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_CONNECTED);
+        
+        /* Set boolean */
+        logic_bluetooth_can_communicate_with_host = TRUE;
+        
         return encryption_status_changed->status;
     }
     else
@@ -272,7 +309,7 @@ at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params)
         case CHAR_REPORT:
         {
             DBG_LOG("Report Callback : Service Instance %d Bytes Received %d Connection Handle %d", serv_inst, change_params.char_len, change_params.conn_handle);
-            DBG_LOG("%02x %02x %02x %02x %02x", change_params.char_new_value[0], change_params.char_new_value[1], change_params.char_new_value[2], change_params.char_new_value[3], change_params.char_new_value[4]);
+            DBG_LOG("BLE receive: %02x %02x %02x%02x %02x%02x", change_params.char_new_value[0], change_params.char_new_value[1], change_params.char_new_value[2], change_params.char_new_value[3], change_params.char_new_value[4], change_params.char_new_value[5]);
             if (serv_inst == BLE_RAW_HID_SERVICE_INSTANCE)
             {
                 uint8_t* recv_buf = comms_raw_hid_get_recv_buffer(BLE_INTERFACE);
@@ -1358,7 +1395,7 @@ ret_type_te logic_bluetooth_stop_advertising(void)
 void logic_bluetooth_set_battery_level(uint8_t pct)
 {
     DBG_LOG("battery level:%d%%", pct);
-    if (logic_bluetooth_paired == FALSE)
+    if (logic_bluetooth_can_communicate_with_host == FALSE)
     {
         logic_bluetooth_ble_battery_level = pct;
     } 
@@ -1368,13 +1405,13 @@ void logic_bluetooth_set_battery_level(uint8_t pct)
     }
 }
 
-/*! \fn     logic_bluetooth_is_paired(void)
+/*! \fn     logic_bluetooth_can_talk_to_host(void)
 *   \brief  Know if we are paired
 *   \return Paired status
 */
-BOOL logic_bluetooth_is_paired(void)
+BOOL logic_bluetooth_can_talk_to_host(void)
 {
-    return logic_bluetooth_paired;
+    return logic_bluetooth_can_communicate_with_host;
 }
 
 /*! \fn     logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
@@ -1387,7 +1424,7 @@ void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
     DBG_LOG_LOGIC_BT_AD("Call to raw send");
     
     /* Check that we're actually paired */
-    if (logic_bluetooth_paired != FALSE)
+    if (logic_bluetooth_can_communicate_with_host != FALSE)
     {
         /* Check for overflow */
         if (data_len > sizeof(logic_bluetooth_raw_hid_data_out_buf))
@@ -1400,7 +1437,7 @@ void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
         memcpy(logic_bluetooth_raw_hid_data_out_buf, data, data_len);
         
         /* Debug */
-        DBG_LOG("BLE send: %02x %02x %02x%02x %02x%02x", logic_bluetooth_raw_hid_data_out_buf[0], logic_bluetooth_raw_hid_data_out_buf[1], logic_bluetooth_raw_hid_data_out_buf[3], logic_bluetooth_raw_hid_data_out_buf[2], logic_bluetooth_raw_hid_data_out_buf[5], logic_bluetooth_raw_hid_data_out_buf[4]);
+        DBG_LOG("BLE send: %02x %02x %02x%02x %02x%02x", logic_bluetooth_raw_hid_data_out_buf[0], logic_bluetooth_raw_hid_data_out_buf[1], logic_bluetooth_raw_hid_data_out_buf[2], logic_bluetooth_raw_hid_data_out_buf[3], logic_bluetooth_raw_hid_data_out_buf[4], logic_bluetooth_raw_hid_data_out_buf[5]);
         
         /* Send data */
         logic_bluetooth_notif_being_sent = RAW_HID_NOTIF_SENDING;
@@ -1416,7 +1453,7 @@ void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
 */
 ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key)
 {
-    if (logic_bluetooth_paired != FALSE)
+    if (logic_bluetooth_can_communicate_with_host != FALSE)
     {
         logic_bluetooth_notif_being_sent = KEYBOARD_NOTIF_SENDING;
         logic_bluetooth_keyboard_in_report[0] = modifier;
@@ -1460,7 +1497,7 @@ void logic_bluetooth_routine(void)
         logic_bluetooth_pending_battery_level = UINT8_MAX;
 
         /* send the notification and Update the battery level  */
-        if ((logic_bluetooth_battery_notification_flag != FALSE) && (logic_bluetooth_paired != FALSE))
+        if ((logic_bluetooth_battery_notification_flag != FALSE) && (logic_bluetooth_can_communicate_with_host != FALSE))
         {
             if(bat_update_char_value(logic_bluetooth_ble_connection_handle,&logic_bluetooth_bas_service_handler, logic_bluetooth_ble_battery_level, logic_bluetooth_battery_notification_flag) == AT_BLE_SUCCESS)
             {

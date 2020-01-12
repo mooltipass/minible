@@ -26,6 +26,7 @@
 #include "gui_dispatcher.h"
 #include "comms_aux_mcu.h"
 #include "logic_aux_mcu.h"
+#include "logic_device.h"
 #include "gui_carousel.h"
 #include "driver_timer.h"
 #include "gui_prompts.h"
@@ -156,6 +157,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             /* Lock device */
             gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
             logic_smartcard_handle_removed();
+            logic_device_set_state_changed();
             
             /* Re-render menu */
             return TRUE;

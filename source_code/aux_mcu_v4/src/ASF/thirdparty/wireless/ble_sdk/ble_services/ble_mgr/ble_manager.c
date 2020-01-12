@@ -1655,8 +1655,7 @@ at_ble_status_t ble_pair_done_handler(void *params)
 				ble_store_bonding_info(&ble_dev_info[idx]);
 			#endif
 			
-			
-			DBG_LOG_DEV("LTK: ");
+			/*DBG_LOG_DEV("LTK: ");
 			for (idx = 0; idx < 16; idx++)
 			{
 				DBG_LOG_CONT_DEV("0x%02X, ", pairing_params->peer_ltk.key[idx]);
@@ -1673,7 +1672,7 @@ at_ble_status_t ble_pair_done_handler(void *params)
 			{
 				DBG_LOG_CONT_DEV("0x%02X, ", pairing_params->peer_irk.key[idx]);
 				
-			}
+			}*/
 		}
 		else
 		{

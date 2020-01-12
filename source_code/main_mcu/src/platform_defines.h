@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    17
+#define FW_MINOR    18
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -65,6 +65,7 @@
         - Main menu, bluetooth icon: if Bluetooth is disabled prompt to enable it. If Bluetooth enabled then go to menu
         - Reporting battery level during charge, animation changed accordingly
 - v0.17:- Changed battery measurement logic to include a measurement queue to discard effects of USB plugging
+- v0.18:- Handling both Bluetooth pair and connect messages
 */
 
 /**************** SETUP DEFINES ****************/

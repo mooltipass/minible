@@ -289,7 +289,7 @@ void comms_usb_communication_routine(void)
         }
         
         /* Can send to bluetooth? */
-        if (logic_bluetooth_is_paired() != FALSE)
+        if (logic_bluetooth_can_talk_to_host() != FALSE)
         {
             comms_raw_hid_send_hid_message(BLE_INTERFACE, temp_message_pt);
         }
