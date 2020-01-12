@@ -112,7 +112,7 @@ The # of data nodes is meant for information only, not for actual size (capped a
 ## [](#header-2) User Profile and DB Flash Layout
 
 As with the previous mini device, sector 0a/b of the DB flash is reserved for user profiles.  
-For the new mini, it can store up to 128 user profiles. Each user profile is composed of two contiguous 264B blocks whose contents are shown in the table below. As a result, the first 65kB of each DB flash are reserved for user profiles. For information, 8Mb/16Mb/32Mb/64Mb DB flashes respectively contain 65kB/131kB/65kB/262kB in their sector 0.  
+For the new mini, it can store up to 128 user profiles (actually 112, see below). Each user profile is composed of two contiguous 264B blocks whose contents are shown in the table below. As a result, the first 65kB of each DB flash are reserved for user profiles. For information, 8Mb/16Mb/32Mb/64Mb DB flashes respectively contain 65kB/131kB/65kB/262kB in their sector 0.  
 Compared to our previous device, the number of favorites has been reduced to 10 (instead of 14) as users seem to not use more.  
 
 **User Profile - First Block**
