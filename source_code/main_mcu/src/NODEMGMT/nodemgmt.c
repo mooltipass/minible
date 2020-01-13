@@ -390,10 +390,10 @@ void nodemgmt_get_bluetooth_bonding_info_starting_offset(uint16_t uid, uint16_t 
     /* Then add from there */
     #if BYTES_PER_PAGE == NODEMGMT_USER_PROFILE_SIZE
         *page += uid >> 1;
-        *pageOffset += uid & 0x0001;
+        *pageOffset += (uid & 0x0001)*sizeof(nodemgmt_bluetooth_bonding_information_t);
     #elif BYTES_PER_PAGE == 2*NODEMGMT_USER_PROFILE_SIZE
         *page += uid >> 2;
-        *pageOffset += uid & 0x0003;
+        *pageOffset += (uid & 0x0003)*sizeof(nodemgmt_bluetooth_bonding_information_t);
     #else
         #error "User profile isn't a multiple of page size"
     #endif
@@ -483,7 +483,7 @@ RET_TYPE nodemgmt_store_bluetooth_bonding_information(nodemgmt_bluetooth_bonding
         dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, zero_to_be_valid), sizeof(zero_to_be_valid_read_from_flash), &zero_to_be_valid_read_from_flash);
         
         /* Empty? */
-        if (zero_to_be_valid_read_from_flash == 0x0000)
+        if (zero_to_be_valid_read_from_flash != 0x0000)
         {
             found_empty_slot = TRUE;
             break;
