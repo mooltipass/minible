@@ -816,14 +816,6 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
         {
             input_answer = MINI_INPUT_RET_BACK;
         }
-
-        // TODO3: Knock to approve
-        #if defined(HARDWARE_MINI_CLICK_V2) && !defined(NO_ACCELEROMETER_FUNCTIONALITIES)
-        if ((scanAndGetDoubleZTap(FALSE) == ACC_RET_KNOCK) && (flash_flag_set != FALSE))
-        {
-            input_answer = MINI_INPUT_RET_YES;
-        }
-        #endif
         
         // Approve / deny display change
         int16_t wheel_increments = inputs_get_wheel_increment();

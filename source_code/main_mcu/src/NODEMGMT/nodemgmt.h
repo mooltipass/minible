@@ -24,6 +24,7 @@
 #ifndef NODEMGMT_H_
 #define NODEMGMT_H_
 
+#include "platform_defines.h"
 #include "defines.h"
 #include "dbflash.h"
 
@@ -34,8 +35,8 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH           32
 
 /* Defines */
+#define NB_MAX_USERS                                MAX_NUMBER_OF_USERS
 #define NODE_ADDR_NULL                              0x0000
-#define NB_MAX_USERS                                128
 #define BASE_NODE_SIZE                              264
 #define NODEMGMT_NB_MAX_CATEGORIES                  5
 #define NODEMGMT_USER_PROFILE_SIZE                  264
@@ -76,6 +77,13 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define USER_SEC_FLG_ADVANCED_MENU          0x08
 #define USER_SEC_FLG_BLE_ENABLED            0x10
 #define USER_SEC_FLG_KNOCK_DET_DISABLED     0x20
+
+/*  The user limit is set to something smaller than what our DB can actually store.              */
+/*  We use the space freed by these non-used user profile to store bluetooth bonding information */
+#define NODEMGMT_BTBONDINFO_VUSER_SLOT_START        MAX_NUMBER_OF_USERS
+#define NODEMGMT_BTBONDINFO_VUSER_SLOT_STOP         128
+#define NODEMGMT_BTBONDINFO_SIZE                    (NODEMGMT_USER_PROFILE_SIZE/2)
+#define NB_MAX_BONDING_INFORMATION                  (NODEMGMT_BTBONDINFO_VUSER_SLOT_STOP-NODEMGMT_BTBONDINFO_VUSER_SLOT_START)*2*2  // For each user, we have one profile + user category names
 
 
 /* Structs */
@@ -234,6 +242,29 @@ typedef struct
     cust_char_t category_strings[4][33];
 } nodemgmt_user_category_strings_t;
 
+// Bluetooth bonding information
+typedef struct
+{
+    uint16_t zero_to_be_valid;
+    uint8_t address_resolv_type;
+    uint8_t mac_address[6];
+    uint8_t auth_type;
+    uint8_t peer_ltk_key[16];
+    uint16_t peer_ltk_ediv;
+    uint8_t peer_ltk_random_nb[8];
+    uint16_t peer_ltk_key_size;
+    uint8_t peer_csrk_key[16];
+    uint8_t peer_irk_key[16];
+    uint8_t peer_irk_resolv_type;
+    uint8_t peer_irk_address[6];
+    uint8_t peer_irk_reserved;
+    uint8_t host_ltk_key[16];
+    uint16_t host_ltk_ediv;
+    uint8_t host_ltk_random_nb[8];
+    uint16_t host_ltk_key_size;
+    uint8_t reserved[26];
+} nodemgmt_bluetooth_bonding_information_t;
+
 // Node management handle
 typedef struct
 {
@@ -318,14 +349,17 @@ static inline uint16_t nodemgmt_node_from_address(uint16_t addr)
 /* Prototypes */
 uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode);
 RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress);
+RET_TYPE nodemgmt_get_bluetooth_bonding_information_for_mac_addr(uint8_t* mac_address, nodemgmt_bluetooth_bonding_information_t* bonding_information);
 void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout, uint16_t* userBLELayout);
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);
+RET_TYPE nodemgmt_store_bluetooth_bonding_information(nodemgmt_bluetooth_bonding_information_t* bonding_information);
 uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_child_addr, uint16_t category_flags);
 void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId, uint16_t keyboardId);
 void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress);
 void nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress);
 void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node, BOOL write_category);
 void nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress);
+void nodemgmt_get_bluetooth_bonding_info_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 void nodemgmt_get_user_category_names_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 void nodemgmt_get_user_profile_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 RET_TYPE nodemgmt_create_child_node(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedAddress);

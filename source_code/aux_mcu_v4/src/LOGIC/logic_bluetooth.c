@@ -71,6 +71,8 @@ BOOL logic_bluetooth_just_connected = FALSE;
 BOOL logic_bluetooth_just_paired = FALSE;
 BOOL logic_bluetooth_connected = FALSE;
 BOOL logic_bluetooth_paired = FALSE;
+/* Bool to specify if we setup the callbacks */
+BOOL logic_bluetooth_callbacks_set = FALSE;
 
 
 static at_ble_status_t hid_custom_event(void *param)
@@ -1341,14 +1343,20 @@ void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
         DBG_LOG("ERROR: Fail to set Advertisement data");
     }
     
-    /* Callback registering for BLE-GAP Role */
-    ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GAP_EVENT_TYPE, &hid_app_gap_handle);
-    
-    /* Callback registering for BLE-GATT-Server Role */
-    ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GATT_SERVER_EVENT_TYPE, &hid_app_gatt_server_handle);   
-    
-    /* Register callbacks for custom related events */
-    ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_CUSTOM_EVENT_TYPE, &hid_custom_event_cb);
+    /* Set callbacks if we haven't already */
+    if (logic_bluetooth_callbacks_set == FALSE)
+    {
+        /* Callback registering for BLE-GAP Role */
+        ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GAP_EVENT_TYPE, &hid_app_gap_handle);
+        
+        /* Callback registering for BLE-GATT-Server Role */
+        ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_GATT_SERVER_EVENT_TYPE, &hid_app_gatt_server_handle);
+        
+        /* Register callbacks for custom related events */
+        ble_mgr_events_callback_handler(REGISTER_CALL_BACK, BLE_CUSTOM_EVENT_TYPE, &hid_custom_event_cb);
+        
+        logic_bluetooth_callbacks_set = TRUE;
+    }
     
     /* Start advertising */
     logic_bluetooth_start_advertising();

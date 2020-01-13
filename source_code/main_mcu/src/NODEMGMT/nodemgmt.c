@@ -340,7 +340,7 @@ void nodemgmt_get_user_profile_starting_offset(uint16_t uid, uint16_t *page, uin
 {
     if(uid >= NB_MAX_USERS)
     {
-        /* No debug... no reason it should get stuck here as the data format doesn't allow such values */
+        /* No debug... no reason it should get stuck here as the rest of the code shouldn't allow this */
         while(1);
     }
 
@@ -353,6 +353,47 @@ void nodemgmt_get_user_profile_starting_offset(uint16_t uid, uint16_t *page, uin
     #elif BYTES_PER_PAGE == 2*NODEMGMT_USER_PROFILE_SIZE
         *page = uid;
         *pageOffset = 0;
+    #else
+        #error "User profile isn't a multiple of page size"
+    #endif
+}
+
+/*! \fn     nodemgmt_get_bluetooth_bonding_info_starting_offset(uint8_t uid, uint16_t *page, uint16_t *pageOffset)
+    \brief  Obtains page and page offset for a bonding information id
+    \param  uid             The id of the bonding information to perform that profile page and offset calculation
+    \param  page            The page containing the bonding information
+    \param  pageOffset      The offset of the page that indicates the start of the bonding information
+ */
+void nodemgmt_get_bluetooth_bonding_info_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset)
+{
+    if(uid >= NB_MAX_BONDING_INFORMATION)
+    {
+        /* No debug... no reason it should get stuck here as the rest of the code shouldn't allow this */
+        while(1);
+    }
+
+    /* Check for bad surprises */
+    _Static_assert(NODEMGMT_USER_PROFILE_SIZE == sizeof(nodemgmt_userprofile_t), "User profile isn't the right size");
+    _Static_assert(NODEMGMT_USER_PROFILE_SIZE == 2*sizeof(nodemgmt_bluetooth_bonding_information_t), "Bluetooth bonding information isn't the right size");
+    
+    /* Compute the offset: after the last user profile */
+    #if BYTES_PER_PAGE == NODEMGMT_USER_PROFILE_SIZE
+        *page = NODEMGMT_BTBONDINFO_VUSER_SLOT_START*2;
+        *pageOffset = 0;
+    #elif BYTES_PER_PAGE == 2*NODEMGMT_USER_PROFILE_SIZE
+        *page = NODEMGMT_BTBONDINFO_VUSER_SLOT_START;
+        *pageOffset = 0;
+    #else
+        #error "User profile isn't a multiple of page size"
+    #endif
+    
+    /* Then add from there */
+    #if BYTES_PER_PAGE == NODEMGMT_USER_PROFILE_SIZE
+        *page += uid >> 1;
+        *pageOffset += uid & 0x0001;
+    #elif BYTES_PER_PAGE == 2*NODEMGMT_USER_PROFILE_SIZE
+        *page += uid >> 2;
+        *pageOffset += uid & 0x0003;
     #else
         #error "User profile isn't a multiple of page size"
     #endif
@@ -414,6 +455,88 @@ void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.sec_preferences), sizeof(secPreferences), (void*)&secPreferences);
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.language_id), sizeof(languageId), (void*)&languageId);
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.layout_id), sizeof(keyboardId), (void*)&keyboardId);
+}
+
+/*! \fn     nodemgmt_store_bluetooth_bonding_information(nodemgmt_bluetooth_bonding_information_t* bonding_information)
+ *  \brief  Store bluetooth bonding information
+ *  \param  bonding_information Pointer to a bonding information struct
+ *  \return RETURN_OK if we could store bonding information
+ */
+RET_TYPE nodemgmt_store_bluetooth_bonding_information(nodemgmt_bluetooth_bonding_information_t* bonding_information)
+{
+    bonding_information->zero_to_be_valid = 0x0000;
+    uint16_t zero_to_be_valid_read_from_flash;
+    uint16_t temp_page, temp_page_offset;
+    BOOL found_empty_slot = FALSE;
+    uint16_t temp_uid;
+    
+    /* Check for bad surprises */
+    _Static_assert(BASE_NODE_SIZE == 2*sizeof(nodemgmt_bluetooth_bonding_information_t), "Bonding information struct isn't the right size");
+    
+    /* Find an available slot */
+    for (temp_uid = 0; temp_uid < NB_MAX_BONDING_INFORMATION; temp_uid++)
+    {
+        /* Get page and offset */
+        nodemgmt_get_bluetooth_bonding_info_starting_offset(temp_uid, &temp_page, &temp_page_offset);
+        
+        /* Check for empty slot */
+        dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, zero_to_be_valid), sizeof(zero_to_be_valid_read_from_flash), &zero_to_be_valid_read_from_flash);
+        
+        /* Empty? */
+        if (zero_to_be_valid_read_from_flash == 0x0000)
+        {
+            found_empty_slot = TRUE;
+            break;
+        }
+    }
+    
+    /* Did we find a slot? */
+    if (found_empty_slot == FALSE)
+    {
+        return RETURN_NOK;
+    } 
+    else
+    {
+        /* Then store the bonding information */
+        dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_page_offset, sizeof(nodemgmt_bluetooth_bonding_information_t), (void*)bonding_information);
+        return RETURN_OK;
+    }    
+}
+
+/*! \fn     nodemgmt_get_bluetooth_bonding_information_for_mac_addr(uint8_t* mac_address, nodemgmt_bluetooth_bonding_information_t* bonding_information)
+ *  \brief  Get a possible bluetooth bonding information for a given mac address
+ *  \param  bonding_information Pointer to a where to store bonding information struct if found
+ *  \return RETURN_OK if we found bonding information
+ */
+RET_TYPE nodemgmt_get_bluetooth_bonding_information_for_mac_addr(uint8_t* mac_address, nodemgmt_bluetooth_bonding_information_t* bonding_information)
+{
+    uint8_t mac_address_read[MEMBER_ARRAY_SIZE(nodemgmt_bluetooth_bonding_information_t, mac_address)];
+    uint16_t zero_to_be_valid_read_from_flash;
+    uint16_t temp_page, temp_page_offset;
+    uint16_t temp_uid;
+    
+    /* Find an available slot */
+    for (temp_uid = 0; temp_uid < NB_MAX_BONDING_INFORMATION; temp_uid++)
+    {
+        /* Get page and offset */
+        nodemgmt_get_bluetooth_bonding_info_starting_offset(temp_uid, &temp_page, &temp_page_offset);
+        
+        /* Check for filled slot */
+        dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, zero_to_be_valid), sizeof(zero_to_be_valid_read_from_flash), &zero_to_be_valid_read_from_flash);
+        
+        /* Read mac address */
+        dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, mac_address), sizeof(mac_address_read), mac_address_read);
+        
+        /* Found it? */
+        if ((zero_to_be_valid_read_from_flash == 0x0000) && (memcmp(mac_address_read, mac_address, sizeof(mac_address_read)) == 0))
+        {
+            dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset, sizeof(nodemgmt_bluetooth_bonding_information_t), (void*)bonding_information);
+            return RETURN_OK;
+        }
+    }
+    
+    /* Didn't find what we were looking for */
+    return RETURN_NOK;   
 }
 
 /*! \fn     nodemgmt_store_user_sec_preferences(uint16_t sec_preferences)
