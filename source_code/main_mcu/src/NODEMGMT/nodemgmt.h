@@ -387,6 +387,7 @@ void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags);
 uint16_t nodemgmt_get_start_addresses(uint16_t* addresses_array);
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);
 uint16_t nodemgmt_get_starting_parent_addr_for_category(void);
+void nodemgmt_delete_all_bluetooth_bonding_information(void);
 RET_TYPE nodemgmt_check_user_perm_from_flags(uint16_t flags);
 void nodemgmt_set_start_addresses(uint16_t* addresses_array);
 void nodemgmt_set_cred_start_address(uint16_t parentAddress);

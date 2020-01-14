@@ -457,6 +457,31 @@ void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.layout_id), sizeof(keyboardId), (void*)&keyboardId);
 }
 
+/*! \fn     nodemgmt_delete_all_bluetooth_bonding_information(void)
+ *  \brief  Delete all bonding information stored
+ */
+void nodemgmt_delete_all_bluetooth_bonding_information(void)
+{
+    uint16_t starting_page, stop_page;
+    
+     /* Compute the offset: after the last user profile */
+    #if BYTES_PER_PAGE == NODEMGMT_USER_PROFILE_SIZE
+        starting_page = NODEMGMT_BTBONDINFO_VUSER_SLOT_START*2;
+        stop_page = NODEMGMT_BTBONDINFO_VUSER_SLOT_STOP*2;
+    #elif BYTES_PER_PAGE == 2*NODEMGMT_USER_PROFILE_SIZE
+        starting_page = NODEMGMT_BTBONDINFO_VUSER_SLOT_START;
+        stop_page = NODEMGMT_BTBONDINFO_VUSER_SLOT_STOP;
+    #else
+        #error "User profile isn't a multiple of page size"
+    #endif
+    
+    /* Erase pages one after the other */
+    for (uint16_t page = starting_page; page < stop_page; page++)
+    {
+        dbflash_page_erase(&dbflash_descriptor, page);
+    }
+}
+
 /*! \fn     nodemgmt_store_bluetooth_bonding_information(nodemgmt_bluetooth_bonding_information_t* bonding_information)
  *  \brief  Store bluetooth bonding information
  *  \param  bonding_information Pointer to a bonding information struct
