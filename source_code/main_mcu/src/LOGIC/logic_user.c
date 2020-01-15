@@ -923,7 +923,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
                         typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.login) + 1 + 1)*sizeof(cust_char_t);
                         ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.login, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, *usb_selected);
-                        if (temp_cnode.keyAfterLogin == 0xFFFF)
+                        if ((temp_cnode.keyAfterLogin == 0xFFFF) || ((logic_user_get_user_security_flags() & USER_SEC_FLG_ADVANCED_MENU) == 0))
                         {
                             /* Use default device key press: login is 0 terminated by read function, _Static_asserts guarantees enough space, message is initialized at 0s */
                             typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)] = custom_fs_settings_get_device_setting(SETTINGS_CHAR_AFTER_LOGIN_PRESS);
