@@ -782,15 +782,22 @@ uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_c
     return NODE_ADDR_NULL;
 }
 
-/*! \fn     nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr)
+/*! \fn     nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id)
  *  \brief  Gets the prev parent node for the current category
  *  \param  search_start_parent_addr    The parent address from which to start looking.
+ *  \param  credential_type_id          Credential type ID
  *  \return The address or NODE_ADDR_NULL
  */
-uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr)
+uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id)
 {
-    uint16_t prev_parent_node_addr_to_scan = nodemgmt_current_handle.firstParentNode;
+    uint16_t prev_parent_node_addr_to_scan = nodemgmt_current_handle.firstCredParentNodes[credential_type_id];
     uint16_t parent_read_buffer[4];
+    
+    /* Boundary checks */
+    if (credential_type_id >= MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes))
+    {
+        return NODE_ADDR_NULL;
+    }
     
     /* Sanity check for this hack */
     _Static_assert(0 == offsetof(parent_cred_node_t, flags), "Incorrect buffer for flags & addr read");
@@ -831,15 +838,22 @@ uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_pa
     return NODE_ADDR_NULL;
 }
 
-/*! \fn     nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr)
+/*! \fn     nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id)
  *  \brief  Gets the next parent node for the current category
  *  \param  search_start_parent_addr    The parent address from which to start looking. Use NODE_ADDR_NULL to start from the beginning
+ *  \param  credential_type_id          Credential type ID
  *  \return The address or NODE_ADDR_NULL
  */
-uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr)
+uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id)
 {
-    uint16_t next_parent_node_addr_to_scan = nodemgmt_current_handle.firstParentNode;
+    uint16_t next_parent_node_addr_to_scan = nodemgmt_current_handle.firstCredParentNodes[credential_type_id];
     uint16_t parent_read_buffer[4];
+    
+    /* Boundary checks */
+    if (credential_type_id >= MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes))
+    {
+        return NODE_ADDR_NULL;
+    }
     
     /* Sanity check for this hack */
     _Static_assert(0 == offsetof(parent_cred_node_t, flags), "Incorrect buffer for flags & addr read");
@@ -878,25 +892,32 @@ uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_pa
     return NODE_ADDR_NULL;
 }
 
-/*! \fn     nodemgmt_get_starting_parent_addr_for_category(void)
+/*! \fn     nodemgmt_get_starting_parent_addr_for_category(uint16_t credential_type_id)
  *  \brief  Gets the users starting parent node for the current category
+ *  \param  credential_type_id          Credential type ID
  *  \return The address
  */
-uint16_t nodemgmt_get_starting_parent_addr_for_category(void)
+uint16_t nodemgmt_get_starting_parent_addr_for_category(uint16_t credential_type_id)
 {
-    return nodemgmt_get_next_parent_node_for_cur_category(NODE_ADDR_NULL);
+    return nodemgmt_get_next_parent_node_for_cur_category(NODE_ADDR_NULL, credential_type_id);
 }
 
-/*! \fn     nodemgmt_get_starting_parent_addr(void)
+/*! \fn     nodemgmt_get_starting_parent_addr(uint16_t credential_type_id)
  *  \brief  Gets the users starting parent node from the user profile memory portion of flash
  *  \return The address
  */
-uint16_t nodemgmt_get_starting_parent_addr(void)
+uint16_t nodemgmt_get_starting_parent_addr(uint16_t credential_type_id)
 {
     uint16_t temp_address;
     
+    /* Boundary checks */
+    if (credential_type_id >= MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, cred_start_addresses))
+    {
+        return NODE_ADDR_NULL;
+    }
+    
     // Each user profile is within a page, data starting parent node is at the end of the favorites
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + offsetof(nodemgmt_userprofile_t, main_data.cred_start_address), sizeof(temp_address), &temp_address);    
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + offsetof(nodemgmt_userprofile_t, main_data.cred_start_addresses[credential_type_id]), sizeof(temp_address), &temp_address);    
     
     return temp_address;
 }
@@ -911,13 +932,13 @@ uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId)
     uint16_t temp_address;
     
     // type id check
-    if (typeId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, main_data.data_start_address)))
+    if (typeId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, main_data.data_start_addresses)))
     {
         return NODE_ADDR_NULL;
     }
     
     // Each user profile is within a page, data starting parent node is at the end of the favorites
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.data_start_address[typeId]), sizeof(temp_address), &temp_address);    
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.data_start_addresses[typeId]), sizeof(temp_address), &temp_address);    
     
     return temp_address;
 }
@@ -929,9 +950,9 @@ uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId)
 uint16_t nodemgmt_get_start_addresses(uint16_t* addresses_array)
 {    
     // Write addresses in the user profile page. Possible as the credential start address & data start addresses are contiguous in memory
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.cred_start_address), sizeof(uint16_t) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address), addresses_array);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.cred_start_addresses), MEMBER_SIZE(nodemgmt_profile_main_data_t, cred_start_addresses) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_addresses), addresses_array);
 
-    return 1 + MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, data_start_address);
+    return MEMBER_SIZE(nodemgmt_profile_main_data_t, cred_start_addresses) + MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, data_start_addresses);
 }
 
 /*! \fn     nodemgmt_get_cred_change_number(void)
@@ -962,17 +983,23 @@ uint32_t nodemgmt_get_data_change_number(void)
     return change_number;
 }
 
-/*! \fn     nodemgmt_set_cred_start_address(uint16_t parentAddress)
+/*! \fn     nodemgmt_set_cred_start_address(uint16_t parentAddress, uint16_t credential_type_id)
  *  \brief  Sets the users starting parent node both in the handle and user profile memory portion of flash
  *  \param  parentAddress   The constructed address of the users starting parent node
  */
-void nodemgmt_set_cred_start_address(uint16_t parentAddress)
+void nodemgmt_set_cred_start_address(uint16_t parentAddress, uint16_t credential_type_id)
 {
-    // update handle
-    nodemgmt_current_handle.firstParentNode = parentAddress;
+    /* Boundary checks */
+    if (credential_type_id >= MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes))
+    {
+        return;
+    }
+    
+    // Update handle
+    nodemgmt_current_handle.firstCredParentNodes[credential_type_id] = parentAddress;
     
     // Write parent address in the user profile page
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.cred_start_address), sizeof(parentAddress), &parentAddress);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.cred_start_addresses[credential_type_id]), sizeof(parentAddress), &parentAddress);
 }
 
 /*! \fn     nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId)
@@ -983,16 +1010,16 @@ void nodemgmt_set_cred_start_address(uint16_t parentAddress)
 void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId)
 {
     // type id check
-    if (typeId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, main_data.data_start_address)))
+    if (typeId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, main_data.data_start_addresses)))
     {
         return;
     }
     
     // update handle
-    nodemgmt_current_handle.firstDataParentNode[typeId] = dataParentAddress;
+    nodemgmt_current_handle.firstDataParentNodes[typeId] = dataParentAddress;
     
     // Write data parent address in the user profile page
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.data_start_address[typeId]), sizeof(dataParentAddress), &dataParentAddress);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.data_start_addresses[typeId]), sizeof(dataParentAddress), &dataParentAddress);
 }
 
 /*! \fn     nodemgmt_set_start_addresses(uint16_t* addresses_array)
@@ -1001,12 +1028,12 @@ void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId
  */
 void nodemgmt_set_start_addresses(uint16_t* addresses_array)
 {
-    // update handle    
-    nodemgmt_current_handle.firstParentNode = addresses_array[0];
-    memcpy(nodemgmt_current_handle.firstDataParentNode, &(addresses_array[1]), MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address));
+    // Update handle    
+    memcpy(nodemgmt_current_handle.firstCredParentNodes, addresses_array, MEMBER_SIZE(nodemgmt_profile_main_data_t, cred_start_addresses));
+    memcpy(nodemgmt_current_handle.firstDataParentNodes, &(addresses_array[MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, cred_start_addresses)]), MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_addresses));
 
     // Write addresses in the user profile page. Possible as the credential start address & data start addresses are contiguous in memory
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.cred_start_address), sizeof(uint16_t) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address), addresses_array);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.cred_start_addresses), MEMBER_SIZE(nodemgmt_profile_main_data_t, cred_start_addresses) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_addresses), addresses_array);
 }
 
 /*! \fn     nodemgmt_set_cred_change_number(uint32_t changeNumber)
@@ -1399,21 +1426,30 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
         /* No debug... no reason it should get stuck here as the data format doesn't allow such values */
         while(1);
     }
+    
+    /* Sanity checks */
+    _Static_assert(MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes) == MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, cred_start_addresses), "Cred start addresses array incorrect size");
+    _Static_assert(MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstDataParentNodes) == MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, data_start_addresses), "Data start addresses array incorrect size");
             
     // fill current user id, first parent node address, user profile page & offset
     nodemgmt_get_user_category_names_starting_offset(userIdNum, &nodemgmt_current_handle.pageUserCategoryStrings, &nodemgmt_current_handle.offsetUserCategoryStrings);
     nodemgmt_get_user_profile_starting_offset(userIdNum, &nodemgmt_current_handle.pageUserProfile, &nodemgmt_current_handle.offsetUserProfile);
-    nodemgmt_current_handle.firstParentNode = nodemgmt_get_starting_parent_addr();
     nodemgmt_current_handle.currentUserId = userIdNum;
     nodemgmt_current_handle.currentCategoryFlags = 0;
     nodemgmt_current_handle.currentCategoryId = 0;
     nodemgmt_current_handle.datadbChanged = FALSE;
     nodemgmt_current_handle.dbChanged = FALSE;
     
+    // Get starting cred parents
+    for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes); i++)
+    {
+        nodemgmt_current_handle.firstCredParentNodes[i] = nodemgmt_get_starting_parent_addr(i);
+    }
+    
     // Get starting data parents
-    for (uint16_t i = 0; i < (sizeof(nodemgmt_current_handle.firstDataParentNode)/sizeof(nodemgmt_current_handle.firstDataParentNode[0])); i++)
+    for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstDataParentNodes); i++)
     {        
-        nodemgmt_current_handle.firstDataParentNode[i] = nodemgmt_get_starting_data_parent_addr(i);
+        nodemgmt_current_handle.firstDataParentNodes[i] = nodemgmt_get_starting_data_parent_addr(i);
     }
     
     // scan for next free parent and child nodes from the start of the memory
@@ -1457,7 +1493,7 @@ void nodemgmt_user_db_changed_actions(BOOL dataChanged)
 */
 void nodemgmt_delete_current_user_from_flash(void)
 {
-    uint16_t next_parent_addr = nodemgmt_current_handle.firstParentNode;
+    uint16_t next_parent_addr = NODE_ADDR_NULL;
     uint16_t next_child_addr;
     uint16_t temp_buffer[4];
     uint16_t temp_address;
@@ -1472,8 +1508,18 @@ void nodemgmt_delete_current_user_from_flash(void)
     nodemgmt_format_user_profile(nodemgmt_current_handle.currentUserId, 0, 0, 0);
     
     // Then browse through all the credentials to delete them
-    for (uint16_t i = 0; i < 1 + (sizeof(nodemgmt_current_handle.firstDataParentNode)/sizeof(nodemgmt_current_handle.firstDataParentNode[0])); i++)
+    for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes) + MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstDataParentNodes); i++)
     {
+        // Logic depending if we're tackling credential or data nodes
+        if (i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes))
+        {
+            next_parent_addr = nodemgmt_current_handle.firstCredParentNodes[i];
+        }
+        else
+        {
+            next_parent_addr = nodemgmt_current_handle.firstDataParentNodes[i-MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes)];            
+        }
+        
         while (next_parent_addr != NODE_ADDR_NULL)
         {
             // Read current parent node
@@ -1519,12 +1565,6 @@ void nodemgmt_delete_current_user_from_flash(void)
             
             // Set correct next address
             next_parent_addr = temp_address;
-        }
-        
-        // First loop done, remove data nodes
-        if (i < (sizeof(nodemgmt_current_handle.firstDataParentNode)/sizeof(nodemgmt_current_handle.firstDataParentNode[0])))
-        {
-            next_parent_addr = nodemgmt_current_handle.firstDataParentNode[i];
         }
     }
 }
@@ -1737,7 +1777,7 @@ RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type,
  *  \param  p               The parent node to write to memory (nextFreeParentNode)
  *  \param  type            Type of context (data or credential)
  *  \param  storedAddress   Where to store the address at which the node was stored
- *  \param  typeId          In case of data parent, typeId
+ *  \param  typeId          Credential / Data Type ID
  *  \return success status
  *  \note   Handles necessary doubly linked list management
  */
@@ -1749,11 +1789,21 @@ RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uin
     // Set the first parent address depending on the type
     if (type == SERVICE_CRED_TYPE)
     {
-        first_parent_addr = nodemgmt_current_handle.firstParentNode;
+        /* Boundary checks */
+        if (typeId >= MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes))
+        {
+            return RETURN_NOK;
+        }
+        first_parent_addr = nodemgmt_current_handle.firstCredParentNodes[typeId];
     } 
     else
     {
-        first_parent_addr = nodemgmt_current_handle.firstDataParentNode[typeId];
+        /* Boundary checks */
+        if (typeId >= MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstDataParentNodes))
+        {
+            return RETURN_NOK;
+        }
+        first_parent_addr = nodemgmt_current_handle.firstDataParentNodes[typeId];
     }
     
     // This is particular to parent nodes...
@@ -1774,7 +1824,7 @@ RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uin
     {
         if (type == SERVICE_CRED_TYPE)
         {
-            nodemgmt_set_cred_start_address(temp_address);
+            nodemgmt_set_cred_start_address(temp_address, typeId);
         }
         else
         {

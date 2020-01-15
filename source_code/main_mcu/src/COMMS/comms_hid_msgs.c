@@ -440,10 +440,10 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         case HID_CMD_SET_CRED_ST_PARENT:
         {
             /* Check address length */
-            if (rcv_msg->payload_length == sizeof(uint16_t))
+            if (rcv_msg->payload_length == 2*sizeof(uint16_t))
             {
                 /* Store new address */
-                nodemgmt_set_cred_start_address(rcv_msg->payload_as_uint16[0]);
+                nodemgmt_set_cred_start_address(rcv_msg->payload_as_uint16[1], rcv_msg->payload_as_uint16[0]);
 
                 /* Set success byte */
                 send_msg->payload[0] = HID_1BYTE_ACK;
@@ -484,7 +484,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         case HID_CMD_SET_START_PARENTS:
         {
             /* Check address length */
-            if (rcv_msg->payload_length == (sizeof(uint16_t) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_address)))
+            if (rcv_msg->payload_length == (sizeof(uint16_t) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_addresses)))
             {
                 /* Store new addresses */
                 nodemgmt_set_start_addresses(rcv_msg->payload_as_uint16);

@@ -85,6 +85,8 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODEMGMT_BTBONDINFO_SIZE                    (NODEMGMT_USER_PROFILE_SIZE/2)
 #define NB_MAX_BONDING_INFORMATION                  (NODEMGMT_BTBONDINFO_VUSER_SLOT_STOP-NODEMGMT_BTBONDINFO_VUSER_SLOT_START)*2*2  // For each user, we have one profile + user category names
 
+/* Credential types IDs */
+#define NODEMGMT_STANDARD_CRED_TYPE_ID      0
 
 /* Structs */
 // Parent node, see: https://mooltipass.github.io/minible/database_model
@@ -217,8 +219,8 @@ typedef struct
 // User profile main data
 typedef struct
 {
-    uint16_t cred_start_address;
-    uint16_t data_start_address[16];
+    uint16_t cred_start_addresses[10];
+    uint16_t data_start_addresses[7];
     uint16_t sec_preferences;
     uint16_t language_id;
     uint16_t layout_id;
@@ -275,8 +277,8 @@ typedef struct
     uint16_t offsetUserProfile;             // The offset of the user profile
     uint16_t pageUserCategoryStrings;       // The page of the user favorite strings
     uint16_t offsetUserCategoryStrings;     // The offset of the user favorite strings
-    uint16_t firstParentNode;               // The address of the users first parent node (read from flash. eg cache)
-    uint16_t firstDataParentNode[16];       // The addresses of the users first data parent nodes (read from flash. eg cache)
+    uint16_t firstCredParentNodes[10];      // The address of the users first cred parent node (read from flash. eg cache)
+    uint16_t firstDataParentNodes[7];       // The addresses of the users first data parent nodes (read from flash. eg cache)
     uint16_t nextParentFreeNode;            // The address of the next free parent node
     uint16_t nextChildFreeNode;             // The address of the next free child node
     parent_node_t temp_parent_node;         // Temp parent node to be used when needed
@@ -351,6 +353,8 @@ uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeAr
 RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress);
 RET_TYPE nodemgmt_get_bluetooth_bonding_information_for_mac_addr(uint8_t* mac_address, nodemgmt_bluetooth_bonding_information_t* bonding_information);
 void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout, uint16_t* userBLELayout);
+uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
+uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);
 RET_TYPE nodemgmt_store_bluetooth_bonding_information(nodemgmt_bluetooth_bonding_information_t* bonding_information);
 uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_child_addr, uint16_t category_flags);
@@ -368,10 +372,10 @@ void nodemgmt_write_parent_node_data_block_to_flash(uint16_t address, parent_nod
 void nodemgmt_read_child_node_data_block_from_flash(uint16_t address, child_node_t* child_node);
 void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean);
-uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr);
-uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr);
+void nodemgmt_set_cred_start_address(uint16_t parentAddress, uint16_t credential_type_id);
 uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_child_addr);
 uint16_t nodemgmt_get_next_child_node_for_cur_category(uint16_t search_start_child_addr);
+uint16_t nodemgmt_get_starting_parent_addr_for_category(uint16_t credential_type_id);
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId);
@@ -382,15 +386,14 @@ void nodemgmt_set_category_string(uint16_t category_id, cust_char_t* string_pt);
 uint16_t nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day);
 int16_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId);
 int16_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId);
+uint16_t nodemgmt_get_starting_parent_addr(uint16_t credential_type_id);
 void nodemgmt_store_user_sec_preferences(uint16_t sec_preferences);
 void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags);
 uint16_t nodemgmt_get_start_addresses(uint16_t* addresses_array);
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);
-uint16_t nodemgmt_get_starting_parent_addr_for_category(void);
 void nodemgmt_delete_all_bluetooth_bonding_information(void);
 RET_TYPE nodemgmt_check_user_perm_from_flags(uint16_t flags);
 void nodemgmt_set_start_addresses(uint16_t* addresses_array);
-void nodemgmt_set_cred_start_address(uint16_t parentAddress);
 void nodemgmt_set_data_change_number(uint32_t changeNumber);
 void nodemgmt_set_cred_change_number(uint32_t changeNumber);
 uint16_t nodemgmt_get_favorites(uint16_t* addresses_array);
@@ -402,7 +405,6 @@ void nodemgmt_set_current_category_id(uint16_t catId);
 void nodemgmt_delete_current_user_from_flash(void);
 uint16_t nodemgmt_get_current_category_flags(void);
 void nodemgmt_store_user_layout(uint16_t layoutId);
-uint16_t nodemgmt_get_starting_parent_addr(void);
 uint16_t nodemgmt_get_user_sec_preferences(void);
 uint32_t nodemgmt_get_cred_change_number(void);
 uint32_t nodemgmt_get_data_change_number(void);

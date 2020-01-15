@@ -151,15 +151,15 @@ uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cus
     return return_value;
 }
 
-/*! \fn     logic_database_search_service(cust_char_t* name, service_compare_mode_te compare_type, BOOL cred_type, uint16_t data_category_id)
+/*! \fn     logic_database_search_service(cust_char_t* name, service_compare_mode_te compare_type, BOOL cred_type, uint16_t category_id)
 *   \brief  Find a given service name
 *   \param  name                    Name of the service / website
 *   \param  compare_type            Mode of comparison (see enum)
 *   \param  cred_type               set to TRUE to search for credential, FALSE for data 
-*   \param  data_category_id        If cred_type is set to FALSE, the data category ID
+*   \param  category_id             Credential/Data category ID
 *   \return Address of the found node, NODE_ADDR_NULL otherwise
 */
-uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_te compare_type, BOOL cred_type, uint16_t data_category_id)
+uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_te compare_type, BOOL cred_type, uint16_t category_id)
 {
     parent_node_t temp_pnode;
     uint16_t next_node_addr;
@@ -168,11 +168,11 @@ uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_t
     /* Get start node */
     if (cred_type != FALSE)
     {
-        next_node_addr = nodemgmt_get_starting_parent_addr();
+        next_node_addr = nodemgmt_get_starting_parent_addr(category_id);
     }
     else
     {
-        next_node_addr = nodemgmt_get_starting_data_parent_addr(data_category_id);
+        next_node_addr = nodemgmt_get_starting_data_parent_addr(category_id);
     }
     
     /* Check for presence of at least one parent node */
@@ -215,7 +215,7 @@ uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_t
         if ((cred_type != FALSE) && (compare_type == COMPARE_MODE_COMPARE))
         {
             /* We didn't find the service, return first node */
-            return nodemgmt_get_starting_parent_addr();
+            return nodemgmt_get_starting_parent_addr(category_id);
         }
         else
         {

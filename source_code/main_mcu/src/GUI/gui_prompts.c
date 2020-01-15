@@ -1593,7 +1593,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     #endif
     
     /* Temp vars for our main loop */
-    uint16_t top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(start_address);
+    uint16_t top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(start_address, NODEMGMT_STANDARD_CRED_TYPE_ID);
     uint16_t before_top_of_list_parent_addr = NODE_ADDR_NULL;
     uint16_t center_of_list_parent_addr = start_address;
     uint16_t bottom_of_list_parent_addr = NODE_ADDR_NULL;
@@ -1708,7 +1708,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                 fchar_array[0] = cur_fchar;
                 displaying_service_fchars = TRUE;
                 center_of_list_parent_addr = next_diff_fletter_node_addr;
-                top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(center_of_list_parent_addr);
+                top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(center_of_list_parent_addr, NODEMGMT_STANDARD_CRED_TYPE_ID);
                 animation_just_started = TRUE;
             }     
             else
@@ -1733,7 +1733,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                 fchar_array[2] = cur_fchar;
                 displaying_service_fchars = TRUE;
                 center_of_list_parent_addr = prev_diff_fletter_node_addr;
-                top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(center_of_list_parent_addr);
+                top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(center_of_list_parent_addr, NODEMGMT_STANDARD_CRED_TYPE_ID);
                 animation_just_started = TRUE;
             }
             else
@@ -1849,7 +1849,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                     /* First address: store the "before top address */
                     if (i == 1)
                     {
-                        before_top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(top_of_list_parent_addr);
+                        before_top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(top_of_list_parent_addr, NODEMGMT_STANDARD_CRED_TYPE_ID);
                     }
                     
                     /* Last address: store correct bool */
@@ -1945,7 +1945,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                     if (i > 0)
                     {
                         /* Array has an extra element */
-                        *(address_to_check_to_display[i+1]) = nodemgmt_get_next_parent_node_for_cur_category(*(address_to_check_to_display[i]));
+                        *(address_to_check_to_display[i+1]) = nodemgmt_get_next_parent_node_for_cur_category(*(address_to_check_to_display[i]), NODEMGMT_STANDARD_CRED_TYPE_ID);
                     }
                     
                     /* Last item & animation scrolling up: display upcoming item */
