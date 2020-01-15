@@ -484,7 +484,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
         case HID_CMD_SET_START_PARENTS:
         {
             /* Check address length */
-            if (rcv_msg->payload_length == (sizeof(uint16_t) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_addresses)))
+            if (rcv_msg->payload_length == (MEMBER_SIZE(nodemgmt_profile_main_data_t, cred_start_addresses) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_addresses)))
             {
                 /* Store new addresses */
                 nodemgmt_set_start_addresses(rcv_msg->payload_as_uint16);

@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    18
+#define FW_MINOR    19
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -66,6 +66,7 @@
         - Reporting battery level during charge, animation changed accordingly
 - v0.17:- Changed battery measurement logic to include a measurement queue to discard effects of USB plugging
 - v0.18:- Handling both Bluetooth pair and connect messages
+- v0.19:- Database model rework to include multiple standard credential types
 */
 
 /**************** SETUP DEFINES ****************/

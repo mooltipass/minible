@@ -985,7 +985,8 @@ uint32_t nodemgmt_get_data_change_number(void)
 
 /*! \fn     nodemgmt_set_cred_start_address(uint16_t parentAddress, uint16_t credential_type_id)
  *  \brief  Sets the users starting parent node both in the handle and user profile memory portion of flash
- *  \param  parentAddress   The constructed address of the users starting parent node
+ *  \param  parentAddress           The constructed address of the users starting parent node
+ *  \param  credential_type_id      Credential type ID
  */
 void nodemgmt_set_cred_start_address(uint16_t parentAddress, uint16_t credential_type_id)
 {
