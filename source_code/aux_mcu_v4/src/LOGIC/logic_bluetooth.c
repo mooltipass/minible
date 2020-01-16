@@ -159,10 +159,12 @@ static at_ble_status_t logic_bluetooth_hid_paired_callback(void* param)
     	default: break;
     }
     
+    #ifndef DEBUG_LOG_DISABLED
     DBG_LOG("LTK Key (%dB): %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", pairing_params->peer_ltk.key_size,pairing_params->peer_ltk.key[0],pairing_params->peer_ltk.key[1],pairing_params->peer_ltk.key[2],pairing_params->peer_ltk.key[3],pairing_params->peer_ltk.key[4],pairing_params->peer_ltk.key[5],pairing_params->peer_ltk.key[6],pairing_params->peer_ltk.key[7],pairing_params->peer_ltk.key[8],pairing_params->peer_ltk.key[9],pairing_params->peer_ltk.key[10],pairing_params->peer_ltk.key[11],pairing_params->peer_ltk.key[12],pairing_params->peer_ltk.key[13],pairing_params->peer_ltk.key[14],pairing_params->peer_ltk.key[15]);
     DBG_LOG("LTK ediv: %04x, RNG: %02x%02x%02x%02x%02x%02x%02x%02x", pairing_params->peer_ltk.ediv, pairing_params->peer_ltk.nb[0],pairing_params->peer_ltk.nb[1],pairing_params->peer_ltk.nb[2],pairing_params->peer_ltk.nb[3],pairing_params->peer_ltk.nb[4],pairing_params->peer_ltk.nb[5],pairing_params->peer_ltk.nb[6],pairing_params->peer_ltk.nb[7]);
     DBG_LOG("CSRK: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",pairing_params->peer_csrk.key[0],pairing_params->peer_csrk.key[1],pairing_params->peer_csrk.key[2],pairing_params->peer_csrk.key[3],pairing_params->peer_csrk.key[4],pairing_params->peer_csrk.key[5],pairing_params->peer_csrk.key[6],pairing_params->peer_csrk.key[7],pairing_params->peer_csrk.key[8],pairing_params->peer_csrk.key[9],pairing_params->peer_csrk.key[10],pairing_params->peer_csrk.key[11],pairing_params->peer_csrk.key[12],pairing_params->peer_csrk.key[13],pairing_params->peer_csrk.key[14],pairing_params->peer_csrk.key[15]);
     DBG_LOG("IRK: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",pairing_params->peer_irk.key[0],pairing_params->peer_irk.key[1],pairing_params->peer_irk.key[2],pairing_params->peer_irk.key[3],pairing_params->peer_irk.key[4],pairing_params->peer_irk.key[5],pairing_params->peer_irk.key[6],pairing_params->peer_irk.key[7],pairing_params->peer_irk.key[8],pairing_params->peer_irk.key[9],pairing_params->peer_irk.key[10],pairing_params->peer_irk.key[11],pairing_params->peer_irk.key[12],pairing_params->peer_irk.key[13],pairing_params->peer_irk.key[14],pairing_params->peer_irk.key[15]);
+    #endif
     
     switch(pairing_params->peer_irk.addr.type)
     {
