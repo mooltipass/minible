@@ -1431,6 +1431,7 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
     /* Sanity checks */
     _Static_assert(MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes) == MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, cred_start_addresses), "Cred start addresses array incorrect size");
     _Static_assert(MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstDataParentNodes) == MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, data_start_addresses), "Data start addresses array incorrect size");
+    _Static_assert(sizeof(generic_node_t) == 2*BASE_NODE_SIZE, "Invalid Node Sizes");
             
     // fill current user id, first parent node address, user profile page & offset
     nodemgmt_get_user_category_names_starting_offset(userIdNum, &nodemgmt_current_handle.pageUserCategoryStrings, &nodemgmt_current_handle.offsetUserCategoryStrings);
