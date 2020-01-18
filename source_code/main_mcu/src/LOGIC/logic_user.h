@@ -31,6 +31,7 @@
 #define CHECK_PASSWORD_TIMER_VAL    4000
 
 /* Prototypes */
+RET_TYPE logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key);
 RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL only_pwd_prompt, BOOL* usb_selected);
 RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password);
 ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key, BOOL simple_mode);

@@ -414,6 +414,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
                 gui_dispatcher_get_back_to_current_screen();
                 logic_smartcard_handle_removed();
+                logic_device_set_state_changed();
 
                 /* Set success byte */
                 send_msg->payload[0] = HID_1BYTE_ACK;

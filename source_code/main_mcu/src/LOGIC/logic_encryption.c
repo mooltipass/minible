@@ -206,7 +206,7 @@ void logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length, uint8_t* 
         uint8_t credential_ctr[AES256_CTR_LENGTH/8];
         
         /* Pre CTR encryption tasks */
-        logic_encryption_pre_ctr_tasks((data_length + AES256_CTR_LENGTH - 1)/AES256_CTR_LENGTH);
+        logic_encryption_pre_ctr_tasks((data_length*8 + AES256_CTR_LENGTH - 1)/AES256_CTR_LENGTH);
         
         /* Copy CTR value used for that credential */
         memcpy(ctr_val_used, logic_encryption_next_ctr_val, sizeof(logic_encryption_next_ctr_val));
@@ -222,7 +222,7 @@ void logic_encryption_ctr_encrypt(uint8_t* data, uint16_t data_length, uint8_t* 
         memset(credential_ctr, 0, sizeof(credential_ctr));
         
         /* Post CTR encryption tasks */
-       logic_encryption_post_ctr_tasks((data_length + AES256_CTR_LENGTH - 1)/AES256_CTR_LENGTH);    
+       logic_encryption_post_ctr_tasks((data_length*8 + AES256_CTR_LENGTH - 1)/AES256_CTR_LENGTH);    
 }
 
 /*! \fn     logic_encryption_ctr_decrypt(uint8_t* data, uint8_t* cred_ctr, uint16_t data_length, BOOL old_gen_decrypt)

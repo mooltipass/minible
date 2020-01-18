@@ -87,6 +87,7 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 
 /* Credential types IDs */
 #define NODEMGMT_STANDARD_CRED_TYPE_ID      0
+#define NODEMGMT_WEBAUTHN_CRED_TYPE_ID      1
 
 /* Structs */
 // Parent node, see: https://mooltipass.github.io/minible/database_model
@@ -398,6 +399,7 @@ uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_c
 void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId, uint16_t keyboardId);
 void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress);
 void nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress);
+void nodemgmt_read_webauthn_child_node_except_display_name(uint16_t address, child_webauthn_node_t* child_node);
 void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node, BOOL write_category);
 void nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress);
 void nodemgmt_get_bluetooth_bonding_info_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);

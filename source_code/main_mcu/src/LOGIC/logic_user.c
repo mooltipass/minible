@@ -336,6 +336,79 @@ RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, c
     }
 }
 
+/*! \fn     logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key)
+*   \brief  Generate and store new webauthn credential
+*   \param  rp_id           Pointer to relying party string
+*   \param  user_handle     Opaque byte sequence of 64 bytes.
+*   \param  user_name       Pointer to user name string
+*   \param  display_name    Pointer to display name string
+*   \param  private_key     32 bytes private key
+*   \return success or not
+*/
+RET_TYPE logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key)
+{
+    uint8_t encrypted_private_key[MEMBER_SIZE(child_webauthn_node_t, private_key)];
+    uint8_t temp_cred_ctr_val[MEMBER_SIZE(child_webauthn_node_t, ctr)];
+    cust_char_t* three_line_prompt_2;
+    
+    /* Smartcard present and unlocked? */
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Does service already exist? */
+    uint16_t parent_address = logic_database_search_service(rp_id, COMPARE_MODE_MATCH, TRUE, NODEMGMT_WEBAUTHN_CRED_TYPE_ID);
+    uint16_t child_address = NODE_ADDR_NULL;
+    
+    /* If service exist, does user_handle exist? */
+    if (parent_address != NODE_ADDR_NULL)
+    {
+        child_address = logic_database_search_webauthn_userhandle_in_service(parent_address, user_handle);
+        
+        /* If it does, don't overwrite it... */
+        if (child_address != NODE_ADDR_NULL)
+        {
+            return RETURN_NOK;
+        }
+    }
+
+    /* Prepare prompt text */
+    custom_fs_get_string_from_file(ADD_CRED_TEXT_ID, &three_line_prompt_2, TRUE);
+    confirmationText_t conf_text_3_lines = {.lines[0]=rp_id, .lines[1]=three_line_prompt_2, .lines[2]=user_name};
+        
+    /* Request user approval */
+    mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, FALSE);
+    gui_dispatcher_get_back_to_current_screen();
+        
+    /* Did the user approve? */
+    if (prompt_return != MINI_INPUT_RET_YES)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* If needed, add service */
+    if (parent_address == NODE_ADDR_NULL)
+    {
+        parent_address = logic_database_add_service(rp_id, SERVICE_CRED_TYPE, NODEMGMT_WEBAUTHN_CRED_TYPE_ID);
+        
+        /* Check for operation success */
+        if (parent_address == NODE_ADDR_NULL)
+        {
+            return RETURN_NOK;
+        }
+    }
+    
+    /* Copy private key into array */
+    memcpy(encrypted_private_key, private_key, sizeof(encrypted_private_key));
+        
+    /* CTR encrypt key */
+    logic_encryption_ctr_encrypt(encrypted_private_key, sizeof(encrypted_private_key), temp_cred_ctr_val);
+    
+    /* Create new webauthn credential */
+    return logic_database_add_webauthn_credential_for_service(parent_address, user_handle, user_name, display_name, encrypted_private_key, temp_cred_ctr_val);
+}
+
 /*! \fn     logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
 *   \brief  Store new credential
 *   \param  service     Pointer to service string
@@ -358,7 +431,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     }
     
     /* Does service already exist? */
-    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, TRUE, 0);
+    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, TRUE, NODEMGMT_STANDARD_CRED_TYPE_ID);
     uint16_t child_address = NODE_ADDR_NULL;
     
     /* If service exist, does login exist? */
@@ -396,7 +469,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     /* If needed, add service */
     if (parent_address == NODE_ADDR_NULL)
     {
-        parent_address = logic_database_add_service(service, SERVICE_CRED_TYPE, 0);
+        parent_address = logic_database_add_service(service, SERVICE_CRED_TYPE, NODEMGMT_STANDARD_CRED_TYPE_ID);
         
         /* Check for operation success */
         if (parent_address == NODE_ADDR_NULL)

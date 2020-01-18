@@ -224,6 +224,52 @@ uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_t
     }    
 }
 
+/*! \fn     logic_database_search_webauthn_userhandle_in_service(uint16_t parent_addr, uint8_t* user_handle)
+*   \brief  Find a given userhandle for a given parent
+*   \param  parent_addr Parent node address
+*   \param  user_handle User handle (64B)
+*   \return Address of the found node, NODE_ADDR_NULL otherwise
+*/
+uint16_t logic_database_search_webauthn_userhandle_in_service(uint16_t parent_addr, uint8_t* user_handle)
+{
+    child_webauthn_node_t* temp_half_cnode_pt;
+    parent_node_t temp_pnode;
+    uint16_t next_node_addr;
+    
+    /* Dirty trick */
+    temp_half_cnode_pt = (child_webauthn_node_t*)&temp_pnode;
+    
+    /* Read parent node and get first child address */
+    nodemgmt_read_parent_node(parent_addr, &temp_pnode, TRUE);
+    next_node_addr = temp_pnode.cred_parent.nextChildAddress;
+    
+    /* Check that there's actually a child node */
+    if (next_node_addr == NODE_ADDR_NULL)
+    {
+        return NODE_ADDR_NULL;
+    }
+    
+    /* Start going through the nodes */
+    do
+    {
+        /* Read child node */
+        nodemgmt_read_webauthn_child_node_except_display_name(next_node_addr, temp_half_cnode_pt);
+        
+        /* Compare with provided user handle */
+        if (memcmp(temp_half_cnode_pt->user_handle, user_handle, MEMBER_SIZE(child_webauthn_node_t, user_handle)) == 0)
+        {
+            return next_node_addr;
+        }
+        
+        /* Go to next one */
+        next_node_addr = temp_half_cnode_pt->nextChildAddress;
+    }
+    while (next_node_addr != NODE_ADDR_NULL);
+    
+    /* We didn't find the userhandle */
+    return NODE_ADDR_NULL;
+}
+
 /*! \fn     logic_database_search_login_in_service(uint16_t parent_addr, cust_char_t* login, BOOL category_filter)
 *   \brief  Find a given login for a given parent
 *   \param  parent_addr     Parent node address
@@ -413,6 +459,42 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
     nodemgmt_write_child_node_block_to_flash(child_addr, (child_node_t*)&temp_cnode, FALSE);
     nodemgmt_user_db_changed_actions(FALSE);
 }    
+
+/*! \fn     logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr)
+*   \brief  Add a new webauthn credential for a given service to our database
+*   \param  service_addr    Service address
+*   \param  user_handle     64 bytes user handle
+*   \param  user_name       Pointer to user name string
+*   \param  display_name    Pointer to display name sstring
+*   \param  private_key     Pointer to encrypted private key
+*   \param  ctr             CTR value
+*   \return Success status
+*/
+RET_TYPE logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr)
+{
+    uint16_t storage_addr = NODE_ADDR_NULL;
+    child_webauthn_node_t temp_cnode;
+    
+    /* Clear node */
+    memset((void*)&temp_cnode, 0, sizeof(temp_cnode));
+    
+    /* Copy everything */
+    memcpy(temp_cnode.user_handle, user_handle, sizeof(temp_cnode.user_handle));
+    utils_strncpy(temp_cnode.user_name, user_name, MEMBER_ARRAY_SIZE(child_webauthn_node_t, user_name));
+    utils_strncpy(temp_cnode.display_name, display_name, MEMBER_ARRAY_SIZE(child_webauthn_node_t, display_name));
+    memcpy(temp_cnode.private_key, private_key, sizeof(temp_cnode.private_key));
+    memcpy(temp_cnode.ctr, ctr, sizeof(temp_cnode.ctr));
+
+    /* Then create node */
+    ret_type_te ret_val = nodemgmt_create_child_node(service_addr, (child_cred_node_t*)&temp_cnode, &storage_addr);
+    if (ret_val == RETURN_OK)
+    {
+        nodemgmt_user_db_changed_actions(FALSE);
+    }
+
+    /* Return success status */
+    return ret_val;    
+}
 
 /*! \fn     logic_database_add_credential_for_service(uint16_t service_addr, cust_char_t* login, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr)
 *   \brief  Add a new credential for a given service to our database

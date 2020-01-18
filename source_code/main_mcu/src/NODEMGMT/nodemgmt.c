@@ -330,6 +330,20 @@ void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_
     child_node->description[(sizeof(child_node->description)/sizeof(child_node->description[0]))-1] = 0;
 }
 
+/*! \fn     nodemgmt_read_webauthn_child_node_except_display_name(uint16_t address, child_webauthn_node_t* child_node)
+*   \brief  Read a webauthn child node but not the display name field
+*   \param  address     Where to read
+*   \param  child_node  Pointer to the node
+*/
+void nodemgmt_read_webauthn_child_node_except_display_name(uint16_t address, child_webauthn_node_t* child_node)
+{
+    nodemgmt_read_parent_node_data_block_from_flash(address, (parent_node_t*)child_node);
+    nodemgmt_check_user_perm_from_flags_and_lock(child_node->flags);
+    
+    // String cleaning
+    child_node->user_name_t0 = 0;
+}
+
 /*! \fn     nodemgmt_get_user_profile_starting_offset(uint8_t uid, uint16_t *page, uint16_t *pageOffset)
     \brief  Obtains page and page offset for a given user id
     \param  uid             The id of the user to perform that profile page and offset calculation (0 up to NODE_MAX_UID)
@@ -1841,7 +1855,7 @@ RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uin
  *  \brief  Writes a child node to memory (next free via handle) (in alphabetical order)
  *  \param  pAddr           The parent node address of the child
  *  \param  c               The child node to write to memory (nextFreeChildNode)
- *  \param  storedAddress           Where to store the address at which the node was stored
+ *  \param  storedAddress   Where to store the address at which the node was stored
  *  \return success status
  *  \note   Handles necessary doubly linked list management
  */
