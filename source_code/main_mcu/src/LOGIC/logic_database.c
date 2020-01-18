@@ -460,7 +460,7 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
     nodemgmt_user_db_changed_actions(FALSE);
 }    
 
-/*! \fn     logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr)
+/*! \fn     logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id)
 *   \brief  Add a new webauthn credential for a given service to our database
 *   \param  service_addr    Service address
 *   \param  user_handle     64 bytes user handle
@@ -468,9 +468,10 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
 *   \param  display_name    Pointer to display name sstring
 *   \param  private_key     Pointer to encrypted private key
 *   \param  ctr             CTR value
+*   \param  credential_id   Pointer credential_id
 *   \return Success status
 */
-RET_TYPE logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr)
+RET_TYPE logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id)
 {
     uint16_t storage_addr = NODE_ADDR_NULL;
     child_webauthn_node_t temp_cnode;
@@ -484,6 +485,7 @@ RET_TYPE logic_database_add_webauthn_credential_for_service(uint16_t service_add
     utils_strncpy(temp_cnode.display_name, display_name, MEMBER_ARRAY_SIZE(child_webauthn_node_t, display_name));
     memcpy(temp_cnode.private_key, private_key, sizeof(temp_cnode.private_key));
     memcpy(temp_cnode.ctr, ctr, sizeof(temp_cnode.ctr));
+    memcpy(temp_cnode.credential_id, credential_id, sizeof(temp_cnode.credential_id));
 
     /* Then create node */
     ret_type_te ret_val = nodemgmt_create_child_node(service_addr, (child_cred_node_t*)&temp_cnode, &storage_addr);

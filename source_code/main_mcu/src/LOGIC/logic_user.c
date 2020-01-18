@@ -336,16 +336,17 @@ RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, c
     }
 }
 
-/*! \fn     logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key)
+/*! \fn     logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key, uint8_t* credential_id)
 *   \brief  Generate and store new webauthn credential
 *   \param  rp_id           Pointer to relying party string
 *   \param  user_handle     Opaque byte sequence of 64 bytes.
 *   \param  user_name       Pointer to user name string
 *   \param  display_name    Pointer to display name string
 *   \param  private_key     32 bytes private key
+*   \param  credential_id   Pointer to a 16B buffer where to store the generated credential id in case of credential creation success
 *   \return success or not
 */
-RET_TYPE logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key)
+RET_TYPE logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key, uint8_t* credential_id)
 {
     uint8_t encrypted_private_key[MEMBER_SIZE(child_webauthn_node_t, private_key)];
     uint8_t temp_cred_ctr_val[MEMBER_SIZE(child_webauthn_node_t, ctr)];
@@ -405,8 +406,11 @@ RET_TYPE logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_
     /* CTR encrypt key */
     logic_encryption_ctr_encrypt(encrypted_private_key, sizeof(encrypted_private_key), temp_cred_ctr_val);
     
+    /* Generate random credential id */
+    rng_fill_array(credential_id, MEMBER_SIZE(child_webauthn_node_t, credential_id));
+    
     /* Create new webauthn credential */
-    return logic_database_add_webauthn_credential_for_service(parent_address, user_handle, user_name, display_name, encrypted_private_key, temp_cred_ctr_val);
+    return logic_database_add_webauthn_credential_for_service(parent_address, user_handle, user_name, display_name, encrypted_private_key, temp_cred_ctr_val, credential_id);
 }
 
 /*! \fn     logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
