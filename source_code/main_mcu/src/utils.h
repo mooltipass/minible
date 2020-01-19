@@ -26,8 +26,6 @@
 
 #include "defines.h"
 
-#define FIDO2_CBOR_CONTAINER_START 0xA0
-
 /* Prototypes */
 void utils_concatenate_strings_with_slash(cust_char_t* string1, cust_char_t* string2, uint16_t storage_length);
 int16_t utils_custchar_strncmp(cust_char_t* f_string, cust_char_t* sec_string, uint16_t nb_chars);

@@ -335,7 +335,10 @@ static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_message(fido2_message_t cons
         };
 
         /* Send reply */
-        comms_aux_mcu_send_message(FALSE);
+        if (msg_rcvd != UNKNOW_MSG_RCVD)
+        {
+            comms_aux_mcu_send_message(FALSE);
+        }
     }
 
     return msg_rcvd;

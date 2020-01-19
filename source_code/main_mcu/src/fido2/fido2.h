@@ -13,6 +13,8 @@ enum fido2_ErrorCode
 #define FIDO2_AT_BIT (1 << 6) //Attested Credential Data Included
 #define FIDO2_ED_BIT (1 << 7) //Extension Data Included
 
+#define FIDO2_CBOR_CONTAINER_START 0xA0
+
 #define FIDO2_CREDENTIAL_EXISTS 1
 #define FIDO2_NEW_CREDENTIAL 1
 
