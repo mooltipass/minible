@@ -147,7 +147,8 @@ typedef struct
     uint16_t keyboard_symbols[(AUX_MCU_MSG_PAYLOAD_LENGTH/2)-sizeof(uint16_t)-sizeof(uint16_t)];
 } keyboard_type_message_t;
 
-typedef struct fido2_credential_ID_s {
+typedef struct fido2_credential_ID_s 
+{
     uint8_t tag[FIDO2_TAG_LEN];
 } fido2_credential_ID_t;
 
