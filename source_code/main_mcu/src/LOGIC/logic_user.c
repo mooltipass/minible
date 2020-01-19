@@ -522,6 +522,154 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     }
 }
 
+/*! \fn     logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t** credential_id_allow_list, uint16_t credential_id_allow_list_length)
+*   \brief  Get credential private key for a possible credential for a relying party
+*   \param  rp_id                           Pointer to relying party string
+*   \param  credential_id                   16B buffer to where to store the credential id
+*   \param  private_key                     32B buffer to where to store the private key
+*   \param  count                           Pointer to uint32_t to store authentication count
+*   \param  credential_id_allow_list        If credential_id_allow_list_length != 0, list of credential ids we allow
+*   \param  credential_id_allow_list_length Length of the credential allow list
+*   \return success status
+*/
+RET_TYPE logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t** credential_id_allow_list, uint16_t credential_id_allow_list_length)
+{
+    uint8_t temp_cred_ctr[MEMBER_SIZE(child_webauthn_node_t, ctr)];
+    
+    /* TODO2: allow an allow list that has more than 1, which requires extra code on the GUI as it isn't as simple as listing all children nodes */
+    /* However, I'm not sure why this would happen, as the RP would need to keep track of all aliases of a given user... */
+    
+    /* Copy strings locally */
+    cust_char_t rp_id_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)];
+    cust_char_t temp_user_name[MEMBER_ARRAY_SIZE(child_webauthn_node_t, user_name)+1];
+    utils_strncpy(rp_id_copy, rp_id, MEMBER_ARRAY_SIZE(parent_cred_node_t, service));
+    rp_id_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)-1] = 0;
+    memset(temp_user_name, 0, sizeof(temp_user_name));
+    
+    /* Switcheroo */
+    rp_id = rp_id_copy;
+    
+    /* Smartcard present and unlocked? */
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
+    {
+        return -1;
+    }
+    
+    /* Does service already exist? */
+    uint16_t parent_address = logic_database_search_service(rp_id, COMPARE_MODE_MATCH, TRUE, NODEMGMT_WEBAUTHN_CRED_TYPE_ID);
+    uint16_t child_address = NODE_ADDR_NULL;
+    
+    /* Service doesn't exist, deny request with a variable timeout for privacy concerns */
+    if (parent_address == NODE_ADDR_NULL)
+    {
+        /* From 1s to 3s */
+        timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
+        return RETURN_NOK;
+    }
+    
+    /* See how many credentials there are for this service */
+    uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &child_address, FALSE);
+    
+    /* Check if wanted credential id has been specified or if there's only one credential for that service */
+    if ((credential_id_allow_list_length == 1) || (nb_logins_for_cred == 1))
+    {
+        /* Login specified? look for it */
+        if (credential_id_allow_list_length != 0)
+        {
+            child_address = logic_database_search_webauthn_credential_id_in_service(parent_address, credential_id_allow_list[0]);
+            
+            /* Check for existing login */
+            if (child_address == NODE_ADDR_NULL)
+            {
+                /* From 3s to 7s */
+                timer_delay_ms(3000 + (rng_get_random_uint16_t()&0x0FFF));
+                return RETURN_NOK;
+            }
+        }
+        
+        /* Fetch username for that credential id, username is already 0 terminated by code above */
+        logic_database_get_webauthn_username_for_address(child_address, temp_user_name);
+        
+        /* If user specified to be prompted for login confirmation */
+        if ((logic_user_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0)
+        {
+            /* Prepare prompt message */
+            cust_char_t* three_line_prompt_2;
+            custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &three_line_prompt_2, TRUE);
+            confirmationText_t conf_text_3_lines = {.lines[0]=rp_id, .lines[1]=three_line_prompt_2, .lines[2]=temp_user_name};
+
+            /* Request user approval */
+            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, TRUE);
+            gui_dispatcher_get_back_to_current_screen();
+
+            /* Did the user approve? */
+            if (prompt_return != MINI_INPUT_RET_YES)
+            {
+                return RETURN_NOK;
+            }
+        }
+        else
+        {
+            /* Prepare notification message */
+            cust_char_t* three_line_notif_2;
+            custom_fs_get_string_from_file(LOGGING_WITH_TEXT_ID, &three_line_notif_2, TRUE);
+            confirmationText_t notif_text_3_lines = {.lines[0]=rp_id, .lines[1]=three_line_notif_2, .lines[2]=temp_user_name};
+
+            /* 3 lines notification website / logging you in with / username */
+            gui_prompts_display_3line_information_on_screen(&notif_text_3_lines, DISP_MSG_INFO);
+
+            /* Set information screen, do not call get back to current screen as screen is already updated */
+            gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);
+        }
+        
+        /* Fetch webauthn data */
+        logic_database_get_webauthn_data_for_address(child_address, credential_id, private_key, count, temp_cred_ctr);
+        
+        /* User approved, decrypt key */
+        logic_encryption_ctr_decrypt(private_key, temp_cred_ctr, MEMBER_SIZE(child_webauthn_node_t, private_key), FALSE);
+        
+        return RETURN_OK;
+    }
+    else
+    {
+        /* 3 cases: no login, 1 login, several logins */
+        if (nb_logins_for_cred == 0)
+        {
+            /* From 1s to 3s */
+            timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
+            return RETURN_NOK;
+        }
+        else
+        {
+            /* 2 children or more, as 1 is tackled in the previous if */
+            
+            /* Here chosen_login_addr already is populated with the first node... isn't that pretty? */
+            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &child_address);
+            if (display_prompt_return != MINI_INPUT_RET_YES)
+            {
+                child_address = NODE_ADDR_NULL;
+            }
+            gui_dispatcher_get_back_to_current_screen();
+            
+            /* So.... what did the user select? */
+            if (child_address == NODE_ADDR_NULL)
+            {
+                return RETURN_NOK;
+            }
+            else
+            {
+                /* Fetch webauthn data */
+                logic_database_get_webauthn_data_for_address(child_address, credential_id, private_key, count, temp_cred_ctr);
+                
+                /* User approved, decrypt key */
+                logic_encryption_ctr_decrypt(private_key, temp_cred_ctr, MEMBER_SIZE(child_webauthn_node_t, private_key), FALSE);
+                
+                return RETURN_OK;
+            }
+        }
+    }    
+}
+
 /*! \fn     logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, hid_message_t* send_msg)
 *   \brief  Get credential for service
 *   \param  service     Pointer to service string
@@ -557,7 +705,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
     }
     
     /* Does service already exist? */
-    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, TRUE, 0);
+    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, TRUE, NODEMGMT_STANDARD_CRED_TYPE_ID);
     uint16_t child_address = NODE_ADDR_NULL;
     
     /* Service doesn't exist, deny request with a variable timeout for privacy concerns */

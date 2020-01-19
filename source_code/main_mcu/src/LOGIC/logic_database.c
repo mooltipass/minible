@@ -270,6 +270,52 @@ uint16_t logic_database_search_webauthn_userhandle_in_service(uint16_t parent_ad
     return NODE_ADDR_NULL;
 }
 
+/*! \fn     logic_database_search_webauthn_credential_id_in_service(uint16_t parent_addr, uint8_t* credential_id)
+*   \brief  Find a given credential id for a given parent
+*   \param  parent_addr Parent node address
+*   \param  user_handle User handle (16B)
+*   \return Address of the found node, NODE_ADDR_NULL otherwise
+*/
+uint16_t logic_database_search_webauthn_credential_id_in_service(uint16_t parent_addr, uint8_t* credential_id)
+{
+    child_webauthn_node_t* temp_half_cnode_pt;
+    parent_node_t temp_pnode;
+    uint16_t next_node_addr;
+    
+    /* Dirty trick */
+    temp_half_cnode_pt = (child_webauthn_node_t*)&temp_pnode;
+    
+    /* Read parent node and get first child address */
+    nodemgmt_read_parent_node(parent_addr, &temp_pnode, TRUE);
+    next_node_addr = temp_pnode.cred_parent.nextChildAddress;
+    
+    /* Check that there's actually a child node */
+    if (next_node_addr == NODE_ADDR_NULL)
+    {
+        return NODE_ADDR_NULL;
+    }
+    
+    /* Start going through the nodes */
+    do
+    {
+        /* Read child node */
+        nodemgmt_read_webauthn_child_node_except_display_name(next_node_addr, temp_half_cnode_pt);
+        
+        /* Compare with provided user handle */
+        if (memcmp(temp_half_cnode_pt->credential_id, credential_id, MEMBER_SIZE(child_webauthn_node_t, credential_id)) == 0)
+        {
+            return next_node_addr;
+        }
+        
+        /* Go to next one */
+        next_node_addr = temp_half_cnode_pt->nextChildAddress;
+    }
+    while (next_node_addr != NODE_ADDR_NULL);
+    
+    /* We didn't find the userhandle */
+    return NODE_ADDR_NULL;
+}
+
 /*! \fn     logic_database_search_login_in_service(uint16_t parent_addr, cust_char_t* login, BOOL category_filter)
 *   \brief  Find a given login for a given parent
 *   \param  parent_addr     Parent node address
@@ -334,6 +380,59 @@ void logic_database_get_login_for_address(uint16_t child_addr, cust_char_t** log
     
     /* Copy string */
     utils_strncpy(*login, temp_half_cnode_pt->login, MEMBER_ARRAY_SIZE(child_cred_node_t, login));
+}
+
+/*! \fn     logic_database_get_webauthn_username_for_address(uint16_t child_addr, cust_char_t* user_name)
+*   \brief  Get the user_name at a given address
+*   \param  child_addr  Child address
+*   \param  user_name   Where to store the username
+*/
+void logic_database_get_webauthn_username_for_address(uint16_t child_addr, cust_char_t* user_name)
+{
+    child_webauthn_node_t* temp_half_cnode_pt;
+    parent_node_t temp_pnode;
+    
+    /* Dirty trick */
+    temp_half_cnode_pt = (child_webauthn_node_t*)&temp_pnode;
+    
+    /* Read child node */
+    nodemgmt_read_webauthn_child_node_except_display_name(child_addr, temp_half_cnode_pt);
+    
+    /* Copy string */
+    utils_strncpy(user_name, temp_half_cnode_pt->user_name, MEMBER_ARRAY_SIZE(child_webauthn_node_t, user_name));
+}
+
+/*! \fn     logic_database_get_webauthn_data_for_address(uint16_t child_addr, uint8_t* credential_id, uint8_t* key, uint32_t* count, uint8_t* ctr)
+*   \brief  Get the webauthn data for given address
+*   \param  child_addr  Child address
+*   \param  key         Where to store the fetched key
+*   \param  count       Where to store the sign count
+*   \param  ctr         Where to store the ctr value
+*/
+void logic_database_get_webauthn_data_for_address(uint16_t child_addr, uint8_t* credential_id, uint8_t* key, uint32_t* count, uint8_t* ctr)
+{
+    child_webauthn_node_t* temp_half_cnode_pt;
+    parent_node_t temp_pnode;
+    
+    /* Dirty trick */
+    temp_half_cnode_pt = (child_webauthn_node_t*)&temp_pnode;
+    
+    /* Read child node */
+    nodemgmt_read_webauthn_child_node_except_display_name(child_addr, temp_half_cnode_pt);
+    
+    /* Copy credential id */
+    memcpy(credential_id, temp_half_cnode_pt->credential_id, MEMBER_SIZE(child_webauthn_node_t, credential_id));
+    
+    /* Copy key */
+    memcpy(key, temp_half_cnode_pt->private_key, MEMBER_SIZE(child_webauthn_node_t, private_key));
+    
+    /* Copy CTR */
+    memcpy(ctr, temp_half_cnode_pt->ctr, MEMBER_SIZE(child_webauthn_node_t, ctr));
+    
+    /* Store signature count */
+    *count = temp_half_cnode_pt->signature_counter_msb;
+    *count = (*count << 16) & 0xFFFF0000;
+    *count += temp_half_cnode_pt->signature_counter_lsb;
 }
 
 /*! \fn     logic_database_get_number_of_creds_for_service(uint16_t parent_addr, uint16_t* fnode_addr, BOOL category_filter)
@@ -468,7 +567,7 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
 *   \param  display_name    Pointer to display name sstring
 *   \param  private_key     Pointer to encrypted private key
 *   \param  ctr             CTR value
-*   \param  credential_id   Pointer credential_id
+*   \param  credential_id   Pointer to credential_id buffer
 *   \return Success status
 */
 RET_TYPE logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id)
