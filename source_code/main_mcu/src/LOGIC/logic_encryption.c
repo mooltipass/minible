@@ -36,18 +36,25 @@ uint8_t logic_encryption_next_ctr_val[MEMBER_SIZE(nodemgmt_profile_main_data_t, 
 br_aes_ct_ctrcbc_keys logic_encryption_cur_aes_context;
 // Current user CPZ user entry
 cpz_lut_entry_t* logic_encryption_cur_cpz_entry;
-
-static br_sha256_context logic_encryption_sha256_ctx;                       //Context used by the SHA256 engine for FIDO2
-static br_sha512_context logic_encryption_sha512_ctx;                       //Same but for SHA512 for FIDO2
-static br_hmac_key_context logic_encryption_hmac_kc;                        //Key context used by the HMAC engine for FIDO2
-static br_hmac_context logic_encryption_hmac_ctx;                           //Context for the HMAC engine for FIDO2
-static br_ec_impl const *logic_encryption_br_ec_algo = &br_ec_p256_m15;     //Selected algortihm that we use for FIDO2
-static int logic_encryption_br_ec_algo_id = BR_EC_secp256r1;                //Selected subalgorithm in use for FIDO2
-static br_hmac_drbg_context logic_encryption_hmac_drbg_ctx;                 //Context for the HMAC DRBG engine
-
-static br_ec_private_key logic_encryption_fido2_signing_key;                      //Private signing key for signing during FIDO2 operation
-                                                                            //This key is set every time a signing operation is performed and cleard afterwards
-static uint8_t logic_encryption_fido2_priv_key_buf[FIDO2_PRIV_KEY_LEN];           //Private key buffer. Above has a pointer to this buffer
+// Context used by the SHA256 engine for FIDO2
+static br_sha256_context logic_encryption_sha256_ctx;
+// Same but for SHA512 for FIDO2
+static br_sha512_context logic_encryption_sha512_ctx;
+// Key context used by the HMAC engine for FIDO2          
+static br_hmac_key_context logic_encryption_hmac_kc;   
+// Context for the HMAC engine for FIDO2                     
+static br_hmac_context logic_encryption_hmac_ctx;
+// Selected algortihm that we use for FIDO2
+static br_ec_impl const *logic_encryption_br_ec_algo = &br_ec_p256_m15;
+// Selected subalgorithm in use for FIDO2
+static int logic_encryption_br_ec_algo_id = BR_EC_secp256r1;  
+// Context for the HMAC DRBG engine              
+static br_hmac_drbg_context logic_encryption_hmac_drbg_ctx;                 
+// Private signing key for signing during FIDO2 operation, set every time a signing operation is performed and cleard afterwards
+static br_ec_private_key logic_encryption_fido2_signing_key;
+// Private key buffer. Above has a pointer to this buffer
+static uint8_t logic_encryption_fido2_priv_key_buf[FIDO2_PRIV_KEY_LEN];     
+      
 
 /*! \fn     logic_encryption_get_cur_cpz_lut_entry(void)
 *   \brief  Get current user CPZ entry
@@ -161,6 +168,7 @@ void logic_encryption_init_context(uint8_t* card_aes_key, cpz_lut_entry_t* cpz_u
         br_aes_ct_ctrcbc_init(&logic_encryption_cur_aes_context, card_aes_key, AES_KEY_LENGTH/8);
         nodemgmt_read_profile_ctr((void*)logic_encryption_next_ctr_val);
     }
+    
     /* Initialize ecc256 crypto engine. Uses RNG to initialize seed */
     logic_encryption_ecc256_init();
 }
@@ -365,10 +373,9 @@ void logic_encryption_ecc256_init(void)
 {
     uint8_t seed[ECC256_SEED_LENGTH];
 
+    rng_fill_array(seed, ECC256_SEED_LENGTH);
     logic_encryption_br_ec_algo = &br_ec_p256_m15;
     logic_encryption_br_ec_algo_id = BR_EC_secp256r1;
-
-    rng_fill_array(seed, ECC256_SEED_LENGTH);
     br_hmac_drbg_init(&logic_encryption_hmac_drbg_ctx, &br_sha256_vtable, seed, ECC256_SEED_LENGTH);
 }
 
@@ -387,7 +394,8 @@ void logic_encryption_ecc256_sign(uint8_t const *data, int len, uint8_t * sig)
         //TODO: Log(TAG_ERR, "error, signing failed!\n");
         while(1);
     }
-    //Clear private key used to limit leaking
+    
+    // Clear private key used to limit leaking
     memset(logic_encryption_fido2_priv_key_buf, 0, sizeof(logic_encryption_fido2_priv_key_buf));
 }
 

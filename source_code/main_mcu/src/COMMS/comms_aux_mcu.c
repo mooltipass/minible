@@ -328,7 +328,7 @@ static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_message(fido2_message_t cons
                 break;
         };
 
-        /* Send message */
+        /* Send reply */
         comms_aux_mcu_send_message(FALSE);
     }
 
@@ -539,7 +539,6 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_FIDO2)
     {
         msg_rcvd = comms_aux_mcu_handle_fido2_message(&aux_mcu_receive_message.fido2_message);
-        asm("Nop");
     }
     else
     {

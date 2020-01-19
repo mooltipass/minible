@@ -19,7 +19,7 @@
 *    Created:  02/01/2019
 *    Author:   Mathieu Stephan
 */
-#include <string.h> //For memcpy
+#include <string.h>
 #include "utils.h"
 
 /*! \fn     utils_strlen(cust_char_t* string)

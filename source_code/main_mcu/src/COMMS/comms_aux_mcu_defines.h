@@ -30,7 +30,7 @@
 // HID payload size
 #define HID_PAYLOAD_SIZE            64
 
-#define SHA256_OUTPUT_LENGTH 32
+#define SHA256_OUTPUT_LENGTH        32
 
 //FIDO2 related lengths/sizes
 #define FIDO2_RPID_LEN 252                                      //RP ID length

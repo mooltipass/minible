@@ -84,13 +84,13 @@
 /* FIDO2 messages start */
 // Keep FIDO2 messages monotonically increasing
 // See comms_msg_rcvd_te handle_FIDO2_message() in comms_aux_mcu.c
-#define AUX_MCU_MSG_TYPE_FIDO2_START 0x0001
-#define AUX_MCU_FIDO2_AUTH_CRED_REQ  AUX_MCU_MSG_TYPE_FIDO2_START
-#define AUX_MCU_FIDO2_AUTH_CRED_RSP  0x0002
-//MAD = MAKE_AUTH_DATA
-#define AUX_MCU_FIDO2_MAD_REQ        0x0003
-#define AUX_MCU_FIDO2_MAD_RSP        0x0004
-#define AUX_MCU_MSG_TYPE_FIDO2_END   AUX_MCU_FIDO2_MAD_RSP
+// MAD = MAKE_AUTH_DATA
+#define AUX_MCU_MSG_TYPE_FIDO2_START    0x0001
+#define AUX_MCU_FIDO2_AUTH_CRED_REQ     AUX_MCU_MSG_TYPE_FIDO2_START
+#define AUX_MCU_FIDO2_AUTH_CRED_RSP     0x0002
+#define AUX_MCU_FIDO2_MAD_REQ           0x0003
+#define AUX_MCU_FIDO2_MAD_RSP           0x0004
+#define AUX_MCU_MSG_TYPE_FIDO2_END      AUX_MCU_FIDO2_MAD_RSP
 /* FIDO2 messages end */
 
 /* Typedefs */
@@ -149,7 +149,7 @@ typedef struct
 
 typedef struct fido2_credential_ID_s {
     uint8_t tag[FIDO2_TAG_LEN];
-}__attribute__((packed)) fido2_credential_ID_t;
+} fido2_credential_ID_t;
 
 typedef struct fido2_auth_cred_req_message_s
 {

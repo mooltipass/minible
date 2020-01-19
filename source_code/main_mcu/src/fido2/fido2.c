@@ -29,7 +29,7 @@ typedef struct attest_header_s
     uint8_t aaguid[FIDO2_AAGUID_LEN];
     uint8_t cred_len_h;
     uint8_t cred_len_l;
-} __attribute__((packed)) attest_header_t;
+} attest_header_t;
 
 typedef struct attested_data_s
 {
@@ -142,9 +142,9 @@ static uint32_t fido2_cbor_encode_public_key(uint8_t *buf, uint32_t bufLen, ecc2
     buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_LABEL_CRV);
     buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_CRV_P256);
     buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_LABEL_X);
-    output_data_length+= utils_cbor_encode_32byte_bytestring(pub_key->x, &buf[output_data_length]);
+    output_data_length+= utils_cbor_encode_32byte_bytestring((uint8_t*)pub_key->x, &buf[output_data_length]);
     buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_LABEL_Y);
-    output_data_length+= utils_cbor_encode_32byte_bytestring(pub_key->y, &buf[output_data_length]);
+    output_data_length+= utils_cbor_encode_32byte_bytestring((uint8_t*)pub_key->y, &buf[output_data_length]);
 
     return output_data_length;
 }

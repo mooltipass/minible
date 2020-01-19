@@ -234,188 +234,47 @@
   <armgcc.common.outputfiles.eep>True</armgcc.common.outputfiles.eep>
   <armgcc.common.outputfiles.bin>True</armgcc.common.outputfiles.bin>
   <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
-  <armgcc.compiler.symbols.DefSymbols>
-    <ListValues>
-      <Value>BOARD=USER_BOARD</Value>
-      <Value>ARM_MATH_CM0PLUS=true</Value>
-      <Value>__CORTEX_SC=0</Value>
-      <Value>BR_ARMEL_CORTEXM_GCC=1</Value>
-      <Value>BR_amd64=0</Value>
-      <Value>BR_BE_UNALIGNED=0</Value>
-      <Value>BR_CT_MUL15=0</Value>
-      <Value>BR_ENABLE_INTRINSICS=0</Value>
-      <Value>BR_CT_MUL31=0</Value>
-      <Value>BR_i386=0</Value>
-      <Value>BR_LE_UNALIGNED=0</Value>
-      <Value>BR_NO_ARITH_SHIFT=0</Value>
-      <Value>BR_POWER_ASM_MACROS=0</Value>
-      <Value>_ARCH_PWR8=0</Value>
-      <Value>_MSC_VER=0</Value>
-      <Value>_M_IX86=0</Value>
-      <Value>_M_X64=0</Value>
-      <Value>__clang__=0</Value>
-      <Value>BR_POWER8=0</Value>
-      <Value>NDEBUG</Value>
-    </ListValues>
-  </armgcc.compiler.symbols.DefSymbols>
-  <armgcc.compiler.directories.IncludePaths>
-    <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>../src/PLATFORM</Value>
-      <Value>../src/CLOCKS</Value>
-      <Value>../src/SERCOM</Value>
-      <Value>../src/FLASH</Value>
-      <Value>../src/FILESYSTEM</Value>
-      <Value>../src/DMA</Value>
-      <Value>../src/TIMER</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-      <Value>../src/SMARTCARD</Value>
-      <Value>../src/OLED</Value>
-      <Value>../src/ACCELEROMETER</Value>
-      <Value>../src/INPUTS</Value>
-      <Value>../src/COMMS</Value>
-      <Value>../src/LOGIC</Value>
-      <Value>../src/SECURITY</Value>
-      <Value>../src/GUI</Value>
-      <Value>../src/NODEMGMT</Value>
-      <Value>../src/RNG</Value>
-      <Value>../src/BearSSL/src</Value>
-      <Value>../src/BearSSL/inc</Value>
-    </ListValues>
-  </armgcc.compiler.directories.IncludePaths>
-  <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
+  <armgcc.compiler.symbols.DefSymbols><ListValues>
+  <Value>BOARD=USER_BOARD</Value>
+  <Value>ARM_MATH_CM0PLUS=true</Value>
+  <Value>__CORTEX_SC=0</Value>
+  <Value>BR_ARMEL_CORTEXM_GCC=1</Value>
+  <Value>BR_amd64=0</Value>
+  <Value>BR_BE_UNALIGNED=0</Value>
+  <Value>BR_CT_MUL15=0</Value>
+  <Value>BR_ENABLE_INTRINSICS=0</Value>
+  <Value>BR_CT_MUL31=0</Value>
+  <Value>BR_i386=0</Value>
+  <Value>BR_LE_UNALIGNED=0</Value>
+  <Value>BR_NO_ARITH_SHIFT=0</Value>
+  <Value>BR_POWER_ASM_MACROS=0</Value>
+  <Value>_ARCH_PWR8=0</Value>
+  <Value>_MSC_VER=0</Value>
+  <Value>_M_IX86=0</Value>
+  <Value>_M_X64=0</Value>
+  <Value>__clang__=0</Value>
+  <Value>BR_POWER8=0</Value>
+  <Value>BR_SLOW_MUL15=0</Value>
+  <Value>NDEBUG</Value>
+</ListValues></armgcc.compiler.symbols.DefSymbols>
+  <armgcc.compiler.directories.IncludePaths><ListValues><Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value><Value>../src/ASF/common/boards</Value><Value>../src/ASF/sam0/utils</Value><Value>../src/ASF/sam0/utils/header_files</Value><Value>../src/ASF/sam0/utils/preprocessor</Value><Value>../src/ASF/thirdparty/CMSIS/Include</Value><Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value><Value>../src/ASF/common/utils</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value><Value>../src/ASF/sam0/drivers/system</Value><Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value><Value>../src/ASF/sam0/drivers/system/clock</Value><Value>../src/ASF/sam0/drivers/system/interrupt</Value><Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value><Value>../src/ASF/sam0/drivers/system/pinmux</Value><Value>../src/ASF/sam0/drivers/system/power</Value><Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value><Value>../src/ASF/sam0/drivers/system/reset</Value><Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value><Value>../src/ASF/common2/boards/user_board</Value><Value>../src</Value><Value>../src/config</Value><Value>../src/PLATFORM</Value><Value>../src/CLOCKS</Value><Value>../src/SERCOM</Value><Value>../src/FLASH</Value><Value>../src/FILESYSTEM</Value><Value>../src/DMA</Value><Value>../src/TIMER</Value><Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value><Value>../src/SMARTCARD</Value><Value>../src/OLED</Value><Value>../src/ACCELEROMETER</Value><Value>../src/INPUTS</Value><Value>../src/COMMS</Value><Value>../src/LOGIC</Value><Value>../src/SECURITY</Value><Value>../src/GUI</Value><Value>../src/NODEMGMT</Value><Value>../src/RNG</Value><Value>../src/BearSSL/src</Value><Value>../src/BearSSL/inc</Value><Value>../src/fido2</Value></ListValues></armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.OtherFlags>-fdata-sections</armgcc.compiler.optimization.OtherFlags>
   <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
   <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
   <armgcc.compiler.miscellaneous.OtherFlags>-pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wjump-misses-init -fstack-usage</armgcc.compiler.miscellaneous.OtherFlags>
   <armgcc.linker.general.UseNewlibNano>True</armgcc.linker.general.UseNewlibNano>
-  <armgcc.linker.libraries.Libraries>
-    <ListValues>
-      <Value>libarm_cortexM0l_math</Value>
-      <Value>libm</Value>
-    </ListValues>
-  </armgcc.linker.libraries.Libraries>
-  <armgcc.linker.libraries.LibrarySearchPaths>
-    <ListValues>
-      <Value>..\src\ASF\thirdparty\CMSIS\Lib\GCC</Value>
-      <Value>%24(ProjectDir)\Device_Startup</Value>
-    </ListValues>
-  </armgcc.linker.libraries.LibrarySearchPaths>
+  <armgcc.linker.libraries.Libraries><ListValues><Value>libarm_cortexM0l_math</Value><Value>libm</Value></ListValues></armgcc.linker.libraries.Libraries>
+  <armgcc.linker.libraries.LibrarySearchPaths><ListValues><Value>..\src\ASF\thirdparty\CMSIS\Lib\GCC</Value><Value>%24(ProjectDir)\Device_Startup</Value></ListValues></armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
-  <armgcc.linker.memorysettings.Flash>
-    <ListValues>
-      <Value>.start_app_function_addr=0x200</Value>
-      <Value>.flash_start_addr=0x0</Value>
-      <Value>.text=0x2000</Value>
-    </ListValues>
-  </armgcc.linker.memorysettings.Flash>
+  <armgcc.linker.memorysettings.Flash><ListValues><Value>.start_app_function_addr=0x200</Value><Value>.flash_start_addr=0x0</Value><Value>.text=0x2000</Value></ListValues></armgcc.linker.memorysettings.Flash>
   <armgcc.linker.memorysettings.ExternalRAM>False</armgcc.linker.memorysettings.ExternalRAM>
   <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
-  <armgcc.linker.miscellaneous.OtherOptions>
-    <ListValues>
-      <Value>--undefined=jump_to_application_function_addr</Value>
-      <Value>--undefined=jump_to_application_function</Value>
-    </ListValues>
-  </armgcc.linker.miscellaneous.OtherOptions>
-  <armgcc.assembler.general.IncludePaths>
-    <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-    </ListValues>
-  </armgcc.assembler.general.IncludePaths>
+  <armgcc.linker.miscellaneous.OtherOptions><ListValues><Value>--undefined=jump_to_application_function_addr</Value><Value>--undefined=jump_to_application_function</Value></ListValues></armgcc.linker.miscellaneous.OtherOptions>
+  <armgcc.assembler.general.IncludePaths><ListValues><Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value><Value>../src/ASF/common/boards</Value><Value>../src/ASF/sam0/utils</Value><Value>../src/ASF/sam0/utils/header_files</Value><Value>../src/ASF/sam0/utils/preprocessor</Value><Value>../src/ASF/thirdparty/CMSIS/Include</Value><Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value><Value>../src/ASF/common/utils</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value><Value>../src/ASF/sam0/drivers/system</Value><Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value><Value>../src/ASF/sam0/drivers/system/clock</Value><Value>../src/ASF/sam0/drivers/system/interrupt</Value><Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value><Value>../src/ASF/sam0/drivers/system/pinmux</Value><Value>../src/ASF/sam0/drivers/system/power</Value><Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value><Value>../src/ASF/sam0/drivers/system/reset</Value><Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value><Value>../src/ASF/common2/boards/user_board</Value><Value>../src</Value><Value>../src/config</Value><Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value></ListValues></armgcc.assembler.general.IncludePaths>
   <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD</armgcc.preprocessingassembler.general.AssemblerFlags>
-  <armgcc.preprocessingassembler.general.IncludePaths>
-    <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-    </ListValues>
-  </armgcc.preprocessingassembler.general.IncludePaths>
-  <armgcc.preprocessingassembler.symbols.DefSymbols>
-    <ListValues>
-      <Value>BR_ARMEL_CORTEXM_GCC=1</Value>
-      <Value>BR_amd64=0</Value>
-      <Value>BR_BE_UNALIGNED=0</Value>
-      <Value>BR_CT_MUL15=0</Value>
-      <Value>BR_ENABLE_INTRINSICS=0</Value>
-      <Value>BR_CT_MUL31=0</Value>
-      <Value>BR_i386=0</Value>
-      <Value>BR_LE_UNALIGNED=0</Value>
-      <Value>BR_NO_ARITH_SHIFT=0</Value>
-      <Value>BR_POWER8=0</Value>
-      <Value>BR_POWER_ASM_MACROS=0</Value>
-      <Value>_ARCH_PWR8=0</Value>
-      <Value>_MSC_VER=0</Value>
-      <Value>_M_IX86=0</Value>
-      <Value>_M_X64=0</Value>
-      <Value>__clang__=0</Value>
-    </ListValues>
-  </armgcc.preprocessingassembler.symbols.DefSymbols>
+  <armgcc.preprocessingassembler.general.IncludePaths><ListValues><Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value><Value>../src/ASF/common/boards</Value><Value>../src/ASF/sam0/utils</Value><Value>../src/ASF/sam0/utils/header_files</Value><Value>../src/ASF/sam0/utils/preprocessor</Value><Value>../src/ASF/thirdparty/CMSIS/Include</Value><Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value><Value>../src/ASF/common/utils</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value><Value>../src/ASF/sam0/drivers/system</Value><Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value><Value>../src/ASF/sam0/drivers/system/clock</Value><Value>../src/ASF/sam0/drivers/system/interrupt</Value><Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value><Value>../src/ASF/sam0/drivers/system/pinmux</Value><Value>../src/ASF/sam0/drivers/system/power</Value><Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value><Value>../src/ASF/sam0/drivers/system/reset</Value><Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value><Value>../src/ASF/common2/boards/user_board</Value><Value>../src</Value><Value>../src/config</Value><Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value></ListValues></armgcc.preprocessingassembler.general.IncludePaths>
+  <armgcc.preprocessingassembler.symbols.DefSymbols><ListValues><Value>BR_ARMEL_CORTEXM_GCC=1</Value><Value>BR_amd64=0</Value><Value>BR_BE_UNALIGNED=0</Value><Value>BR_CT_MUL15=0</Value><Value>BR_ENABLE_INTRINSICS=0</Value><Value>BR_CT_MUL31=0</Value><Value>BR_i386=0</Value><Value>BR_LE_UNALIGNED=0</Value><Value>BR_NO_ARITH_SHIFT=0</Value><Value>BR_POWER8=0</Value><Value>BR_POWER_ASM_MACROS=0</Value><Value>_ARCH_PWR8=0</Value><Value>_MSC_VER=0</Value><Value>_M_IX86=0</Value><Value>_M_X64=0</Value><Value>__clang__=0</Value><Value>BR_SLOW_MUL15=0</Value></ListValues></armgcc.preprocessingassembler.symbols.DefSymbols>
+  <armgcc.compiler.optimization.level>Optimize for size (-Os)</armgcc.compiler.optimization.level>
 </ArmGcc>
     </ToolchainSettings>
   </PropertyGroup>
@@ -427,190 +286,49 @@
   <armgcc.common.outputfiles.eep>True</armgcc.common.outputfiles.eep>
   <armgcc.common.outputfiles.bin>True</armgcc.common.outputfiles.bin>
   <armgcc.common.outputfiles.srec>True</armgcc.common.outputfiles.srec>
-  <armgcc.compiler.symbols.DefSymbols>
-    <ListValues>
-      <Value>BOARD=USER_BOARD</Value>
-      <Value>ARM_MATH_CM0PLUS=true</Value>
-      <Value>__CORTEX_SC=0</Value>
-      <Value>BR_ARMEL_CORTEXM_GCC=1</Value>
-      <Value>BR_amd64=0</Value>
-      <Value>BR_BE_UNALIGNED=0</Value>
-      <Value>BR_CT_MUL15=0</Value>
-      <Value>BR_ENABLE_INTRINSICS=0</Value>
-      <Value>BR_CT_MUL31=0</Value>
-      <Value>BR_i386=0</Value>
-      <Value>BR_LE_UNALIGNED=0</Value>
-      <Value>BR_NO_ARITH_SHIFT=0</Value>
-      <Value>BR_POWER_ASM_MACROS=0</Value>
-      <Value>_ARCH_PWR8=0</Value>
-      <Value>_MSC_VER=0</Value>
-      <Value>_M_IX86=0</Value>
-      <Value>_M_X64=0</Value>
-      <Value>__clang__=0</Value>
-      <Value>BR_POWER8=0</Value>
-      <Value>DEBUG</Value>
-    </ListValues>
-  </armgcc.compiler.symbols.DefSymbols>
-  <armgcc.compiler.directories.IncludePaths>
-    <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>../src/PLATFORM</Value>
-      <Value>../src/CLOCKS</Value>
-      <Value>../src/SERCOM</Value>
-      <Value>../src/FLASH</Value>
-      <Value>../src/FILESYSTEM</Value>
-      <Value>../src/DMA</Value>
-      <Value>../src/TIMER</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-      <Value>../src/SMARTCARD</Value>
-      <Value>../src/OLED</Value>
-      <Value>../src/ACCELEROMETER</Value>
-      <Value>../src/INPUTS</Value>
-      <Value>../src/COMMS</Value>
-      <Value>../src/LOGIC</Value>
-      <Value>../src/SECURITY</Value>
-      <Value>../src/GUI</Value>
-      <Value>../src/NODEMGMT</Value>
-      <Value>../src/RNG</Value>
-      <Value>../src/BearSSL/src</Value>
-      <Value>../src/BearSSL/inc</Value>
-    </ListValues>
-  </armgcc.compiler.directories.IncludePaths>
-  <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
+  <armgcc.compiler.symbols.DefSymbols><ListValues>
+  <Value>BOARD=USER_BOARD</Value>
+  <Value>ARM_MATH_CM0PLUS=true</Value>
+  <Value>__CORTEX_SC=0</Value>
+  <Value>BR_ARMEL_CORTEXM_GCC=1</Value>
+  <Value>BR_amd64=0</Value>
+  <Value>BR_BE_UNALIGNED=0</Value>
+  <Value>BR_CT_MUL15=0</Value>
+  <Value>BR_ENABLE_INTRINSICS=0</Value>
+  <Value>BR_CT_MUL31=0</Value>
+  <Value>BR_i386=0</Value>
+  <Value>BR_LE_UNALIGNED=0</Value>
+  <Value>BR_NO_ARITH_SHIFT=0</Value>
+  <Value>BR_POWER_ASM_MACROS=0</Value>
+  <Value>_ARCH_PWR8=0</Value>
+  <Value>_MSC_VER=0</Value>
+  <Value>_M_IX86=0</Value>
+  <Value>_M_X64=0</Value>
+  <Value>__clang__=0</Value>
+  <Value>BR_POWER8=0</Value>
+  <Value>BR_SLOW_MUL15=0</Value>
+  <Value>DEBUG</Value>
+</ListValues></armgcc.compiler.symbols.DefSymbols>
+  <armgcc.compiler.directories.IncludePaths><ListValues><Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value><Value>../src/ASF/common/boards</Value><Value>../src/ASF/sam0/utils</Value><Value>../src/ASF/sam0/utils/header_files</Value><Value>../src/ASF/sam0/utils/preprocessor</Value><Value>../src/ASF/thirdparty/CMSIS/Include</Value><Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value><Value>../src/ASF/common/utils</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value><Value>../src/ASF/sam0/drivers/system</Value><Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value><Value>../src/ASF/sam0/drivers/system/clock</Value><Value>../src/ASF/sam0/drivers/system/interrupt</Value><Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value><Value>../src/ASF/sam0/drivers/system/pinmux</Value><Value>../src/ASF/sam0/drivers/system/power</Value><Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value><Value>../src/ASF/sam0/drivers/system/reset</Value><Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value><Value>../src/ASF/common2/boards/user_board</Value><Value>../src</Value><Value>../src/config</Value><Value>../src/PLATFORM</Value><Value>../src/CLOCKS</Value><Value>../src/SERCOM</Value><Value>../src/FLASH</Value><Value>../src/FILESYSTEM</Value><Value>../src/DMA</Value><Value>../src/TIMER</Value><Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value><Value>../src/SMARTCARD</Value><Value>../src/OLED</Value><Value>../src/ACCELEROMETER</Value><Value>../src/INPUTS</Value><Value>../src/COMMS</Value><Value>../src/LOGIC</Value><Value>../src/SECURITY</Value><Value>../src/GUI</Value><Value>../src/NODEMGMT</Value><Value>../src/RNG</Value><Value>../src/BearSSL/src</Value><Value>../src/BearSSL/inc</Value><Value>../src/fido2</Value></ListValues></armgcc.compiler.directories.IncludePaths>
   <armgcc.compiler.optimization.OtherFlags>-fdata-sections</armgcc.compiler.optimization.OtherFlags>
   <armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>True</armgcc.compiler.optimization.PrepareFunctionsForGarbageCollection>
-  <armgcc.compiler.optimization.DebugLevel>Maximum (-g3)</armgcc.compiler.optimization.DebugLevel>
   <armgcc.compiler.warnings.AllWarnings>True</armgcc.compiler.warnings.AllWarnings>
   <armgcc.compiler.miscellaneous.OtherFlags>-pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wjump-misses-init -fstack-usage</armgcc.compiler.miscellaneous.OtherFlags>
   <armgcc.linker.general.UseNewlibNano>True</armgcc.linker.general.UseNewlibNano>
-  <armgcc.linker.libraries.Libraries>
-    <ListValues>
-      <Value>libarm_cortexM0l_math</Value>
-      <Value>libm</Value>
-    </ListValues>
-  </armgcc.linker.libraries.Libraries>
-  <armgcc.linker.libraries.LibrarySearchPaths>
-    <ListValues>
-      <Value>..\src\ASF\thirdparty\CMSIS\Lib\GCC</Value>
-      <Value>%24(ProjectDir)\Device_Startup</Value>
-    </ListValues>
-  </armgcc.linker.libraries.LibrarySearchPaths>
+  <armgcc.linker.libraries.Libraries><ListValues><Value>libarm_cortexM0l_math</Value><Value>libm</Value></ListValues></armgcc.linker.libraries.Libraries>
+  <armgcc.linker.libraries.LibrarySearchPaths><ListValues><Value>..\src\ASF\thirdparty\CMSIS\Lib\GCC</Value><Value>%24(ProjectDir)\Device_Startup</Value></ListValues></armgcc.linker.libraries.LibrarySearchPaths>
   <armgcc.linker.optimization.GarbageCollectUnusedSections>True</armgcc.linker.optimization.GarbageCollectUnusedSections>
-  <armgcc.linker.memorysettings.Flash>
-    <ListValues>
-      <Value>.start_app_function_addr=0x200</Value>
-      <Value>.flash_start_addr=0x0</Value>
-      <Value>.text=0x2000</Value>
-    </ListValues>
-  </armgcc.linker.memorysettings.Flash>
-  <armgcc.linker.memorysettings.ExternalRAM />
+  <armgcc.linker.memorysettings.Flash><ListValues><Value>.start_app_function_addr=0x200</Value><Value>.flash_start_addr=0x0</Value><Value>.text=0x2000</Value></ListValues></armgcc.linker.memorysettings.Flash>
+  <armgcc.linker.memorysettings.ExternalRAM></armgcc.linker.memorysettings.ExternalRAM>
   <armgcc.linker.miscellaneous.LinkerFlags>-Wl,--entry=Reset_Handler -Wl,--cref -mthumb -T../src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld</armgcc.linker.miscellaneous.LinkerFlags>
-  <armgcc.linker.miscellaneous.OtherOptions>
-    <ListValues>
-      <Value>--undefined=jump_to_application_function_addr</Value>
-      <Value>--undefined=jump_to_application_function</Value>
-    </ListValues>
-  </armgcc.linker.miscellaneous.OtherOptions>
-  <armgcc.assembler.general.IncludePaths>
-    <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-    </ListValues>
-  </armgcc.assembler.general.IncludePaths>
-  <armgcc.assembler.debugging.DebugLevel>Default (-g)</armgcc.assembler.debugging.DebugLevel>
+  <armgcc.linker.miscellaneous.OtherOptions><ListValues><Value>--undefined=jump_to_application_function_addr</Value><Value>--undefined=jump_to_application_function</Value></ListValues></armgcc.linker.miscellaneous.OtherOptions>
+  <armgcc.assembler.general.IncludePaths><ListValues><Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value><Value>../src/ASF/common/boards</Value><Value>../src/ASF/sam0/utils</Value><Value>../src/ASF/sam0/utils/header_files</Value><Value>../src/ASF/sam0/utils/preprocessor</Value><Value>../src/ASF/thirdparty/CMSIS/Include</Value><Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value><Value>../src/ASF/common/utils</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value><Value>../src/ASF/sam0/drivers/system</Value><Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value><Value>../src/ASF/sam0/drivers/system/clock</Value><Value>../src/ASF/sam0/drivers/system/interrupt</Value><Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value><Value>../src/ASF/sam0/drivers/system/pinmux</Value><Value>../src/ASF/sam0/drivers/system/power</Value><Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value><Value>../src/ASF/sam0/drivers/system/reset</Value><Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value><Value>../src/ASF/common2/boards/user_board</Value><Value>../src</Value><Value>../src/config</Value><Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value></ListValues></armgcc.assembler.general.IncludePaths>
   <armgcc.preprocessingassembler.general.AssemblerFlags>-DARM_MATH_CM0PLUS=true -DBOARD=USER_BOARD</armgcc.preprocessingassembler.general.AssemblerFlags>
-  <armgcc.preprocessingassembler.general.IncludePaths>
-    <ListValues>
-      <Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value>
-      <Value>../src/ASF/common/boards</Value>
-      <Value>../src/ASF/sam0/utils</Value>
-      <Value>../src/ASF/sam0/utils/header_files</Value>
-      <Value>../src/ASF/sam0/utils/preprocessor</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Include</Value>
-      <Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value>
-      <Value>../src/ASF/common/utils</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value>
-      <Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value>
-      <Value>../src/ASF/sam0/drivers/system</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value>
-      <Value>../src/ASF/sam0/drivers/system/clock</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt</Value>
-      <Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value>
-      <Value>../src/ASF/sam0/drivers/system/pinmux</Value>
-      <Value>../src/ASF/sam0/drivers/system/power</Value>
-      <Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset</Value>
-      <Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value>
-      <Value>../src/ASF/common2/boards/user_board</Value>
-      <Value>../src</Value>
-      <Value>../src/config</Value>
-      <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-    </ListValues>
-  </armgcc.preprocessingassembler.general.IncludePaths>
-  <armgcc.preprocessingassembler.symbols.DefSymbols>
-    <ListValues>
-      <Value>BR_ARMEL_CORTEXM_GCC=1</Value>
-      <Value>BR_amd64=0</Value>
-      <Value>BR_BE_UNALIGNED=0</Value>
-      <Value>BR_CT_MUL15=0</Value>
-      <Value>BR_ENABLE_INTRINSICS=0</Value>
-      <Value>BR_CT_MUL31=0</Value>
-      <Value>BR_i386=0</Value>
-      <Value>BR_LE_UNALIGNED=0</Value>
-      <Value>BR_NO_ARITH_SHIFT=0</Value>
-      <Value>BR_POWER8=0</Value>
-      <Value>BR_POWER_ASM_MACROS=0</Value>
-      <Value>_ARCH_PWR8=0</Value>
-      <Value>_MSC_VER=0</Value>
-      <Value>_M_IX86=0</Value>
-      <Value>_M_X64=0</Value>
-      <Value>__clang__=0</Value>
-    </ListValues>
-  </armgcc.preprocessingassembler.symbols.DefSymbols>
+  <armgcc.preprocessingassembler.general.IncludePaths><ListValues><Value>%24(PackRepoDir)\arm\CMSIS\4.2.0\CMSIS\Include\</Value><Value>../src/ASF/common/boards</Value><Value>../src/ASF/sam0/utils</Value><Value>../src/ASF/sam0/utils/header_files</Value><Value>../src/ASF/sam0/utils/preprocessor</Value><Value>../src/ASF/thirdparty/CMSIS/Include</Value><Value>../src/ASF/thirdparty/CMSIS/Lib/GCC</Value><Value>../src/ASF/common/utils</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/include</Value><Value>../src/ASF/sam0/utils/cmsis/samd21/source</Value><Value>../src/ASF/sam0/drivers/system</Value><Value>../src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1</Value><Value>../src/ASF/sam0/drivers/system/clock</Value><Value>../src/ASF/sam0/drivers/system/interrupt</Value><Value>../src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21</Value><Value>../src/ASF/sam0/drivers/system/pinmux</Value><Value>../src/ASF/sam0/drivers/system/power</Value><Value>../src/ASF/sam0/drivers/system/power/power_sam_d_r_h</Value><Value>../src/ASF/sam0/drivers/system/reset</Value><Value>../src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h</Value><Value>../src/ASF/common2/boards/user_board</Value><Value>../src</Value><Value>../src/config</Value><Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value></ListValues></armgcc.preprocessingassembler.general.IncludePaths>
+  <armgcc.preprocessingassembler.symbols.DefSymbols><ListValues><Value>BR_ARMEL_CORTEXM_GCC=1</Value><Value>BR_amd64=0</Value><Value>BR_BE_UNALIGNED=0</Value><Value>BR_CT_MUL15=0</Value><Value>BR_ENABLE_INTRINSICS=0</Value><Value>BR_CT_MUL31=0</Value><Value>BR_i386=0</Value><Value>BR_LE_UNALIGNED=0</Value><Value>BR_NO_ARITH_SHIFT=0</Value><Value>BR_POWER8=0</Value><Value>BR_POWER_ASM_MACROS=0</Value><Value>_ARCH_PWR8=0</Value><Value>_MSC_VER=0</Value><Value>_M_IX86=0</Value><Value>_M_X64=0</Value><Value>__clang__=0</Value><Value>BR_SLOW_MUL15=0</Value></ListValues></armgcc.preprocessingassembler.symbols.DefSymbols>
+  <armgcc.compiler.optimization.level>Optimize (-O1)</armgcc.compiler.optimization.level>
+  <armgcc.compiler.optimization.DebugLevel>Maximum (-g3)</armgcc.compiler.optimization.DebugLevel>
+  <armgcc.assembler.debugging.DebugLevel>Default (-g)</armgcc.assembler.debugging.DebugLevel>
   <armgcc.preprocessingassembler.debugging.DebugLevel>Default (-Wa,-g)</armgcc.preprocessingassembler.debugging.DebugLevel>
 </ArmGcc>
     </ToolchainSettings>
@@ -628,7 +346,106 @@
     <Compile Include="src\BearSSL\inc\bearssl_block.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\BearSSL\src\codec\ccopy.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\codec\dec32be.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\codec\enc32be.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\ec\ecdsa_i15_bits.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\ec\ecdsa_i15_sign_raw.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\ec\ec_keygen.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\ec\ec_p256_m15.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\ec\ec_pubkey.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\ec\ec_secp256r1.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\ec\ec_secp384r1.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\ec\ec_secp521r1.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\hash\sha2small.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\BearSSL\src\inner.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_add.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_bitlen.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_decmod.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_decode.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_decred.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_encode.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_fmont.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_iszero.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_moddiv.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_modpow.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_modpow2.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_montmul.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_mulacc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_muladd.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_ninv15.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_reduce.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_rshift.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_sub.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\int\i15_tmont.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\mac\hmac.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\BearSSL\src\rand\hmac_drbg.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\BearSSL\src\symcipher\aes_ct.c">
@@ -683,6 +500,15 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\DMA\dma.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\fido2\cose_key.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\fido2\fido2.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\fido2\fido2.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\FILESYSTEM\custom_bitstream.c">
@@ -1453,6 +1279,7 @@
     <Folder Include="src\LOGIC" />
     <Folder Include="src\GUI" />
     <Folder Include="src\BearSSL" />
+    <Folder Include="src\fido2" />
     <Folder Include="src\NODEMGMT" />
     <Folder Include="src\RNG\" />
     <Folder Include="src\SECURITY" />
