@@ -261,9 +261,9 @@ static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_auth_cred_msg(fido2_message_
 
     fido2_process_exclude_list_item(incoming_message, response);
 
-    send_message->message_type = AUX_MCU_MSG_TYPE_FIDO2;
     send_message->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
     send_message->payload_length1 = sizeof(fido2_message_t);
+    send_message->message_type = AUX_MCU_MSG_TYPE_FIDO2;
     return FIDO2_MSG_RCVD;
 }
 
@@ -280,9 +280,9 @@ static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_make_auth_data_msg(fido2_mes
 
     fido2_process_make_auth_data(request, response);
 
-    send_message->message_type = AUX_MCU_MSG_TYPE_FIDO2;
     send_message->fido2_message.message_type = AUX_MCU_FIDO2_MAD_RSP;
     send_message->payload_length1 = sizeof(fido2_message_t);
+    send_message->message_type = AUX_MCU_MSG_TYPE_FIDO2;
     return FIDO2_MSG_RCVD;
 }
 

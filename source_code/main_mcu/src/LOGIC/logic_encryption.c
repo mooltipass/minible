@@ -379,14 +379,14 @@ void logic_encryption_ecc256_init(void)
     br_hmac_drbg_init(&logic_encryption_hmac_drbg_ctx, &br_sha256_vtable, seed, ECC256_SEED_LENGTH);
 }
 
-/*! \fn     logic_encryption_ecc256_sign(uint8_t const *data, int len, uint8_t * sig)
+/*! \fn     logic_encryption_ecc256_sign(uint8_t const *data, int len, uint8_t *sig)
 *   \brief  Cryptographically sign input data and return the signature in arg.
 *   \param  data    data to sign
 *   \param  len     length of data to sign
 *   \param  sig     output signature
-*   \note   The encryption key will be cleared after this functionc all
+*   \note   The encryption key will be cleared after this function call
 */
-void logic_encryption_ecc256_sign(uint8_t const *data, int len, uint8_t * sig)
+void logic_encryption_ecc256_sign(uint8_t const *data, int len, uint8_t *sig)
 {
     size_t result = br_ecdsa_i15_sign_raw(logic_encryption_br_ec_algo, logic_encryption_sha256_ctx.vtable, data, &logic_encryption_fido2_signing_key, sig);
 

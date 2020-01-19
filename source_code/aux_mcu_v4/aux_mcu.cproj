@@ -659,6 +659,51 @@
     <Compile Include="src\TIMER\driver_timer.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\tinycbor\src\cbor.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\tinycbor\src\cborencoder.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\tinycbor\src\cborencoder_close_container_checked.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\tinycbor\src\cborerrorstrings.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\tinycbor\src\cborinternal_p.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\tinycbor\src\cborjson.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\tinycbor\src\cborparser.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\tinycbor\src\cborparser_dup_string.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\tinycbor\src\cborpretty.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\tinycbor\src\cborpretty_stdio.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\tinycbor\src\cbortojson.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\tinycbor\src\cborvalidation.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\tinycbor\src\compilersupport_p.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\tinycbor\src\tinycbor-version.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\tinycbor\src\utf8_p.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\USB\udc.c">
       <SubType>compile</SubType>
     </Compile>
