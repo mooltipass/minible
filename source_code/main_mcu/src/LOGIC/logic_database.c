@@ -301,7 +301,7 @@ uint16_t logic_database_search_webauthn_credential_id_in_service(uint16_t parent
         /* Read child node */
         nodemgmt_read_webauthn_child_node_except_display_name(next_node_addr, temp_half_cnode_pt);
         
-        /* Compare with provided user handle */
+        /* Compare with provided credential id */
         if (memcmp(temp_half_cnode_pt->credential_id, credential_id, MEMBER_SIZE(child_webauthn_node_t, credential_id)) == 0)
         {
             return next_node_addr;
@@ -312,7 +312,7 @@ uint16_t logic_database_search_webauthn_credential_id_in_service(uint16_t parent
     }
     while (next_node_addr != NODE_ADDR_NULL);
     
-    /* We didn't find the userhandle */
+    /* We didn't find the credential id */
     return NODE_ADDR_NULL;
 }
 
