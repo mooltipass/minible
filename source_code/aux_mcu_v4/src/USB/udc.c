@@ -426,6 +426,11 @@ void USB_Handler(void)
           /* Our comms code will rearm usb receive */
           comms_raw_hid_recv_callback(USB_INTERFACE, udc_mem[i].out.PCKSIZE.bit.BYTE_COUNT);
       }
+      else if (i == USB_CTAP_TX_ENDPOINT)
+      {
+          /* Our comms code will rearm usb receive */
+          comms_raw_hid_recv_callback(CTAP_INTERFACE, udc_mem[i].out.PCKSIZE.bit.BYTE_COUNT);
+      }
       else
       {
           USB->DEVICE.DeviceEndpoint[i].EPSTATUSSET.bit.BK0RDY = 1;          
@@ -441,6 +446,11 @@ void USB_Handler(void)
       if (i == USB_RAWHID_RX_ENDPOINT)
       {
           comms_raw_hid_send_callback(USB_INTERFACE);
+      }
+      else if (i == USB_CTAP_RX_ENDPOINT)
+      {
+          comms_raw_hid_send_callback(CTAP_INTERFACE);
+          //comms_usb_debug_printf("CTAP Packet Sent\n");
       }
       //udc_send_callback(i);
     }

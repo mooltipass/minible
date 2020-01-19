@@ -75,6 +75,10 @@ typedef struct PACK
   usb_interface_descriptor_t      keyb_interface;
   usb_hid_descriptor_t            keyb_hid;
   usb_endpoint_descriptor_t       keyb_ep_in;
+  usb_interface_descriptor_t      ctap_interface;
+  usb_hid_descriptor_t            ctap_hid;
+  usb_endpoint_descriptor_t       ctap_ep_out;
+  usb_endpoint_descriptor_t       ctap_ep_in;
 } usb_configuration_hierarchy_t;
 #pragma GCC diagnostic pop
 
@@ -86,6 +90,7 @@ extern usb_string_descriptor_zero_t usb_string_descriptor_zero;
 extern const char *usb_strings[];
 extern uint8_t usb_string_descriptor_buffer[64];
 extern uint8_t keyboard_hid_report_desc[63];
+extern uint8_t ctap_hid_report_desc[34];
 
 #endif // _USB_DESCRIPTORS_H_
 

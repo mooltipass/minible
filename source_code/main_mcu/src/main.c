@@ -511,7 +511,7 @@ int main(void)
 {
     /* Initialize our platform */
     main_platform_init();
-    
+
     /* Actions for first user device boot */
     #ifdef DEVELOPER_FEATURES_ENABLED
     if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))

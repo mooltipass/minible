@@ -81,11 +81,19 @@ INC_DIRS := \
 -I"src/PLATFORM" \
 -I"src/SECURITY" \
 -I"src/TIMER" \
--I"src/USB"
+-I"src/USB" \
+-I"src/fido2" \
+-I"src/tinycbor/src"
+
+LIBCBOR := tinycbor
 
 LIB_DIRS := \
 -L"src/ASF/thirdparty/wireless/ble_sdk/lib/cm0p/gcc" \
--L"src/ASF/thirdparty/CMSIS/Lib/GCC"
+-L"src/ASF/thirdparty/CMSIS/Lib/GCC" \
+-L"src/tinycbor/lib"
+
+LIB_DEP := \
+$(LIBCBOR)
 
 ifeq ($(OS),Windows_NT)
 INC_DIRS +=
@@ -104,7 +112,9 @@ src/DMA/dma.c \
 src/LOGIC/logic.c \
 src/LOGIC/logic_battery.c \
 src/LOGIC/logic_bluetooth.c \
+src/LOGIC/logic_keyboard.c \
 src/LOGIC/logic_sleep.c \
+src/LOGIC/logic_rng.c \
 src/main.c \
 src/PLATFORM/platform_io.c \
 src/SECURITY/fuses.c \
@@ -112,6 +122,10 @@ src/TIMER/driver_timer.c \
 src/USB/udc.c \
 src/USB/usb.c \
 src/USB/usb_descriptors.c \
+src/fido2/ctaphid.c \
+src/fido2/ctap.c \
+src/fido2/solo_compat_layer.c \
+src/fido2/ctap_parse.c \
 src/ASF/common2/services/delay/sam0/systick_counter.c \
 src/ASF/common/utils/interrupt/interrupt_sam_nvic.c \
 src/ASF/sam0/boards/samd21_xplained_pro/board_init.c \
@@ -145,14 +159,14 @@ src/ASF/thirdparty/wireless/ble_sdk/src/platform.c
 C_FLAGS := -mthumb
 
 ifeq ($(DEBUG), 1)
-    C_FLAGS += -DDEBUG -g3 -O1
+    C_FLAGS += -DDEBUG -g3 -O1 -fstack-usage
     OUTPUT_DIR := Debug
 else
-    C_FLAGS += -DNDEBUG -Os
+    C_FLAGS += -DDEBUG_LOG_DISABLED -DNDEBUG -Os
     OUTPUT_DIR := Release
 endif
 
-C_FLAGS += -fdata-sections -ffunction-sections -mlong-calls -Wall -mcpu=cortex-m0plus -c -pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500
+C_FLAGS += -fdata-sections -ffunction-sections -mlong-calls -Wall -mcpu=cortex-m0plus -c -pipe -fno-strict-aliasing -Wall -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500
 
 C_DEFINES := -D__SAMD21E18A__ -DENABLE_POWER_SAVEXX -DSLEEP_WALKING_ENABLED=false -DHOST_SLEEP_ENABLE=true -DSYSTICK_MODE -DNENABLE_PTS -DTC_ASYNC=true -DHID_DEVICE -DUART_FLOWCONTROL_4WIRE_MODE=false -DNEW_EVT_HANDLER -DBOARD=USER_BOARD -DATT_DB_MEMORY -DHOST_UART_BAUDRATE_CONFIG_VALUE=921600 -DUART_FLOWCONTROL_6WIRE_MODE=true -DBLE_DEVICE_ROLE=BLE_ROLE_PERIPHERAL -DHID_KEYBOARD_DEVICE -DARM_MATH_CM0PLUS=true -DDEVICE_INFORMATION_SERVICE -DBLE_MODULE=BTLC1000_MR -DHID_SERVICE -D__SAMD21E18A__ -DEXTINT_CALLBACK_MODE=true -DUSART_CALLBACK_MODE=true -DHID_GATT_SERVER -DBATTERY_SERVICE
 
@@ -197,10 +211,16 @@ $(OUTPUT_DIR)/%.o: %.c
 # All Target
 all: $(TARGET)
 
+$(LIBCBOR):
+	#$(MAKE) -C src/tinycbor clean
+	$(MAKE) -C src/tinycbor LDFLAGS='' CC="$(CROSS_COMPILE)gcc" CPPFLAGS="$(C_FLAGS)" lib/libtinycbor.a
+
+$(LIBBEAR):
+
 $(TARGET): $(OBJS) $(LIB_DEP) $(LINKER_SCRIPT_DEP)
 	@echo Building target: $@
 	@echo Invoking: ARM/GNU Linker
-	$(CC) -o$(TARGET) $(OBJS) $(LIBS) -mthumb -Wl,-Map=$(TARGET_MAP) --specs=nano.specs -Wl,--start-group -larm_cortexM0l_math -lble_sdk -lm  -Wl,--end-group $(LIB_DIRS) -Wl,--gc-sections -Wl,-section-start=.start_app_function_addr=0x200 -Wl,-section-start=.flash_start_addr=0x0 -Wl,-section-start=.text=0x800 -Wl,-section-start=.data=0x20000004 -Wl,-section-start=.relocate=0x20000004 -Wl,-section-start=.bootloader_flag=0x20000000  -mcpu=cortex-m0plus -Wl,--entry=Reset_Handler -Wl,--cref -T$(LINKER_SCRIPT_DEP) -Xlinker --undefined=jump_to_application_function_addr -Xlinker --undefined=jump_to_application_function
+	$(CC) -o$(TARGET) $(OBJS) $(LIBS) -mthumb -Wl,-Map=$(TARGET_MAP) --specs=nano.specs -Wl,--start-group -larm_cortexM0l_math -lble_sdk -lm -l$(LIBCBOR) -Wl,--end-group $(LIB_DIRS) -Wl,--gc-sections -Wl,-section-start=.start_app_function_addr=0x200 -Wl,-section-start=.flash_start_addr=0x0 -Wl,-section-start=.text=0x800 -Wl,-section-start=.data=0x20000004 -Wl,-section-start=.relocate=0x20000004 -Wl,-section-start=.bootloader_flag=0x20000000  -mcpu=cortex-m0plus -Wl,--entry=Reset_Handler -Wl,--cref -T$(LINKER_SCRIPT_DEP) -Xlinker --undefined=jump_to_application_function_addr -Xlinker --undefined=jump_to_application_function
 	@echo Finished building target: $@
 	$(OBJCOPY) -O binary $(TARGET) $(TARGET_BIN)
 	$(OBJCOPY) -O ihex -R .eeprom -R .fuse -R .lock -R .signature $(TARGET) $(TARGET_HEX)
@@ -214,6 +234,7 @@ clean:
 	$(RM) $(OBJS)
 	$(RM) $(C_DEPS)
 	rm -rf $(TARGET) $(TARGET_BIN) $(TARGET_HEX) $(TARGET_LSS) $(TARGET_EEP) $(TARGET_MAP) $(TARGET_SREC)
+	$(MAKE) -C src/tinycbor clean
 wipe:
 	$(RM) $(OUTPUT_DIR)
 

@@ -73,7 +73,8 @@ INC_DIRS := \
 -I"src/NODEMGMT" \
 -I"src/RNG" \
 -I"src/BearSSL/src" \
--I"src/BearSSL/inc"
+-I"src/BearSSL/inc" \
+-I"src/fido2"
 
 LIB_DIRS := \
 -L"src/ASF/thirdparty/CMSIS/Lib/GCC" \
@@ -92,6 +93,34 @@ src/BearSSL/src/symcipher/aes_ct.c \
 src/BearSSL/src/symcipher/aes_ct_ctr.c \
 src/BearSSL/src/symcipher/aes_ct_ctrcbc.c \
 src/BearSSL/src/symcipher/aes_ct_enc.c \
+src/BearSSL/src/hash/sha2small.c \
+src/BearSSL/src/mac/hmac.c \
+src/BearSSL/src/rand/hmac_drbg.c \
+src/BearSSL/src/ec/ec_p256_m15.c \
+src/BearSSL/src/ec/ecdsa_i15_sign_raw.c \
+src/BearSSL/src/ec/ec_keygen.c \
+src/BearSSL/src/ec/ec_pubkey.c \
+src/BearSSL/src/ec/ec_secp256r1.c \
+src/BearSSL/src/ec/ec_secp384r1.c \
+src/BearSSL/src/ec/ec_secp521r1.c \
+src/BearSSL/src/ec/ecdsa_i15_bits.c \
+src/BearSSL/src/int/i15_ninv15.c \
+src/BearSSL/src/int/i15_encode.c \
+src/BearSSL/src/int/i15_decode.c \
+src/BearSSL/src/int/i15_decmod.c \
+src/BearSSL/src/int/i15_add.c \
+src/BearSSL/src/int/i15_sub.c \
+src/BearSSL/src/int/i15_modpow.c \
+src/BearSSL/src/int/i15_muladd.c \
+src/BearSSL/src/int/i15_montmul.c \
+src/BearSSL/src/int/i15_fmont.c \
+src/BearSSL/src/int/i15_iszero.c \
+src/BearSSL/src/int/i15_rshift.c \
+src/BearSSL/src/int/i15_bitlen.c \
+src/BearSSL/src/int/i15_tmont.c \
+src/BearSSL/src/codec/ccopy.c \
+src/BearSSL/src/codec/dec32be.c \
+src/BearSSL/src/codec/enc32be.c \
 src/CLOCKS/driver_clocks.c \
 src/COMMS/comms_aux_mcu.c \
 src/COMMS/comms_hid_msgs.c \
@@ -141,7 +170,8 @@ src/ASF/sam0/drivers/system/system.c \
 src/ASF/sam0/utils/cmsis/samd21/source/gcc/startup_samd21.c \
 src/ASF/sam0/utils/cmsis/samd21/source/system_samd21.c \
 src/ASF/sam0/utils/syscalls/gcc/syscalls.c \
-src/main.c
+src/main.c \
+src/fido2/fido2.c
 
 C_FLAGS := -mthumb
 
@@ -149,7 +179,7 @@ ifeq ($(DEBUG), 1)
     C_FLAGS += -DDEBUG -g3 -O1
     OUTPUT_DIR := Debug
 else
-    C_FLAGS += -DNDEBUG -Os
+    C_FLAGS += -DDEBUG_LOG_DISABLED -DNDEBUG -Os
     OUTPUT_DIR := Release
 endif
 

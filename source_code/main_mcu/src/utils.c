@@ -19,8 +19,8 @@
 *    Created:  02/01/2019
 *    Author:   Mathieu Stephan
 */
+#include <string.h> //For memcpy
 #include "utils.h"
-
 
 /*! \fn     utils_strlen(cust_char_t* string)
 *   \brief  Our own custom strlen
@@ -234,3 +234,44 @@ void utils_fill_uint16_array_with_value(uint16_t* array, uint16_t size, uint16_t
         array[i] = value;
     }
 }
+
+/*! \fn     utils_get_cbor_encoded_value_for_val_btw_m24_p23(int8_t value)
+*   \brief  Get the cbor encoded value for a value between -24 and 23 included
+*   \param  value   The value to encode
+*   \return Encoded value
+*/
+uint8_t utils_get_cbor_encoded_value_for_val_btw_m24_p23(int8_t value)
+{
+    if (value >= 0)
+    {
+        /* Positive/unsigned integer major type value is 0 */
+        return (uint8_t)value;
+    }
+    else
+    {
+        /* Major type value 1 */
+        uint8_t return_val = 0x20;
+
+        /* Reverse sign and remove one */
+        return_val |= ~value;
+
+        return return_val;
+    }
+}
+
+/*! \fn     utils_cbor_encode_32byte_bytestring(uint8_t* source, uint8_t* destination)
+*   \brief  CBOR encode a 32bytes long bytestring
+*   \param  source      source bytestring
+*   \param  destination Where to store the result (should be 2 bytes longer than source!)
+*   \return How many bytes were written in the destination (34)
+*/
+uint8_t utils_cbor_encode_32byte_bytestring(uint8_t* source, uint8_t* destination)
+{
+    destination[0] = 0x40 + 0x18;   // Bytestring type + next byte is uint8_t payload length
+    destination[1] = 32;            // Payload length
+    memcpy(&(destination[2]), source, 32);
+    return 34;
+}
+
+
+

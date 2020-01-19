@@ -24,11 +24,13 @@
 #ifndef LOGIC_ENCRYPTION_H_
 #define LOGIC_ENCRYPTION_H_
 
+#include "comms_aux_mcu_defines.h"
 #include "custom_fs.h"
 #include "defines.h"
 
 /* Defines */
 #define CTR_FLASH_MIN_INCR  32
+#define ECC256_SEED_LENGTH 8
 
 /* Prototypes */
 void logic_encryption_ctr_decrypt(uint8_t* data, uint8_t* cred_ctr, uint16_t data_length, BOOL old_gen_decrypt);
@@ -42,5 +44,29 @@ void logic_encryption_post_ctr_tasks(uint16_t ctr_inc);
 void logic_encryption_pre_ctr_tasks(uint16_t ctr_inc);
 void logic_encryption_delete_context(void);
 
+typedef struct
+{
+    uint8_t x[FIDO2_PUB_KEY_X_LEN];
+    uint8_t y[FIDO2_PUB_KEY_Y_LEN];
+} ecc256_pub_key;
+
+void logic_encryption_sha256_init(void);
+void logic_encryption_sha256_update(uint8_t const *data, size_t len);
+void logic_encryption_sha256_final(uint8_t *hash);
+
+void logic_encryption_sha256_hmac_init(uint8_t const *key, uint32_t klen);
+void logic_encryption_sha256_hmac_update(uint8_t const * data, size_t len);
+void logic_encryption_sha256_hmac_final(uint8_t *hmac_out);
+
+void logic_encryption_sha512_init(void);
+void logic_encryption_sha512_update(uint8_t const * data, size_t len);
+void logic_encryption_sha512_final(uint8_t *hash);
+
+void logic_encryption_ecc256_init(void);
+size_t logic_encryption_ecc256_generate_private_key(uint8_t *priv_key);
+void logic_encryption_ecc256_derive_public_key(uint8_t const *priv_key, ecc256_pub_key *pub_key);
+
+void logic_encryption_ecc256_load_key(uint8_t const *key);
+void logic_encryption_ecc256_sign(uint8_t const *data, int len, uint8_t * sig);
 
 #endif /* LOGIC_ENCRYPTION_H_ */

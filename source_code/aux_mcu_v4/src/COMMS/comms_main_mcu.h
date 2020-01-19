@@ -28,7 +28,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define AUX_MCU_MSG_TYPE_NIMH_CHARGE    0x0006
 #define AUX_MCU_MSG_TYPE_PING_WITH_INFO 0x0007
 #define AUX_MCU_MSG_TYPE_KEYBOARD_TYPE  0x0008
-
+#define AUX_MCU_MSG_TYPE_FIDO2          0x0009
 #define AUX_MCU_MSG_TYPE_RNG_TRANSFER   0x000A
 
 // Main MCU commands
@@ -68,6 +68,18 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define AUX_MCU_EVENT_CHARGE_LVL_UPDATE 0x000D
 #define AUX_MCU_EVENT_BLE_PAIRED        0x000E
 
+/* FIDO2 messages start */
+// Keep FIDO2 messages monotonically increasing
+// See comms_msg_rcvd_te handle_FIDO2_message() in comms_aux_mcu.c
+#define AUX_MCU_MSG_TYPE_FIDO2_START 0x0001
+#define AUX_MCU_FIDO2_AUTH_CRED_REQ  AUX_MCU_MSG_TYPE_FIDO2_START
+#define AUX_MCU_FIDO2_AUTH_CRED_RSP  0x0002
+//MAD = MAKE_AUTH_DATA
+#define AUX_MCU_FIDO2_MAD_REQ        0x0003
+#define AUX_MCU_FIDO2_MAD_RSP        0x0004
+#define AUX_MCU_MSG_TYPE_FIDO2_END   AUX_MCU_FIDO2_MAD_RSP
+/* FIDO2 messages end */
+
 /* Typedefs */
 typedef struct
 {
@@ -85,7 +97,7 @@ typedef struct
     uint8_t atbtlc_address[6];
 } aux_plat_details_message_t;
 
-typedef struct  
+typedef struct
 {
     uint16_t command;
     union
@@ -95,7 +107,7 @@ typedef struct
     };
 } main_mcu_command_message_t;
 
-typedef struct  
+typedef struct
 {
     uint16_t event_id;
     union
@@ -105,7 +117,7 @@ typedef struct
     };
 } aux_mcu_event_message_t;
 
-typedef struct  
+typedef struct
 {
     uint16_t charge_status;
     uint16_t battery_voltage;
@@ -114,7 +126,7 @@ typedef struct
     uint16_t dac_data_reg;
 } nimh_charge_message_t;
 
-typedef struct  
+typedef struct
 {
     uint16_t place_holder;
 } ping_with_info_message_t;
@@ -125,6 +137,61 @@ typedef struct
     uint16_t delay_between_types;
     uint16_t keyboard_symbols[(AUX_MCU_MSG_PAYLOAD_LENGTH/2)-sizeof(uint16_t)-sizeof(uint16_t)];
 } keyboard_type_message_t;
+
+typedef struct credential_ID_s {
+    uint8_t tag[FIDO2_TAG_LEN];
+}__attribute__((packed)) fido2_credential_ID_t;
+
+typedef struct fido2_auth_cred_req_message_s
+{
+    uint8_t rpID[FIDO2_RPID_LEN];
+    fido2_credential_ID_t cred_ID;
+} fido2_auth_cred_req_message_t;
+
+typedef struct fido2_auth_cred_rsp_message_s
+{
+    fido2_credential_ID_t cred_ID;
+    uint8_t user_ID[FIDO2_USER_ID_LEN];
+    uint8_t result;
+} fido2_auth_cred_rsp_message_t;
+
+typedef struct fido2_make_auth_data_s
+{
+    uint8_t rpID[FIDO2_RPID_LEN];
+    uint8_t user_ID[FIDO2_USER_ID_LEN];
+    uint8_t user_name[FIDO2_USER_NAME_LEN];
+    uint8_t display_name[FIDO2_DISPLAY_NAME_LEN];
+    uint8_t client_data_hash[FIDO2_CLIENT_DATA_HASH_LEN];
+    uint8_t new_cred; //0 - We are asserting a current credential, 1 = Existing
+} fido2_make_auth_data_req_message_t;
+
+typedef struct fido2_make_auth_data_rsp_s
+{
+    uint8_t tag[FIDO2_TAG_LEN];
+    uint8_t user_ID[FIDO2_USER_ID_LEN];
+    uint8_t rpID_hash[FIDO2_RPID_HASH_LEN];
+    uint32_t count_BE;
+    uint32_t flags;
+    uint8_t pub_key_x[FIDO2_PUB_KEY_X_LEN];
+    uint8_t pub_key_y[FIDO2_PUB_KEY_Y_LEN];
+    uint8_t attest_sig[FIDO2_ATTEST_SIG_LEN];
+    uint8_t aaguid[FIDO2_AAGUID_LEN];
+    uint32_t cred_ID_len;
+    uint8_t error_code;
+} fido2_make_auth_data_rsp_message_t;
+
+typedef struct fido2_message_s
+{
+    uint16_t message_type;
+    uint16_t reserved;
+    union
+    {
+        fido2_auth_cred_req_message_t fido2_auth_cred_req_message;
+        fido2_auth_cred_rsp_message_t fido2_auth_cred_rsp_message;
+        fido2_make_auth_data_req_message_t fido2_make_auth_data_req_message;
+        fido2_make_auth_data_rsp_message_t fido2_make_auth_data_rsp_message;
+    };
+} fido2_message_t;
 
 typedef struct
 {
@@ -140,6 +207,7 @@ typedef struct
         keyboard_type_message_t keyboard_type_message;
         nimh_charge_message_t nimh_charge_message;
         hid_message_t hid_message;
+        fido2_message_t fido2_message;
         uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH];
         uint16_t payload_as_uint16[AUX_MCU_MSG_PAYLOAD_LENGTH/2];
         uint32_t payload_as_uint32[AUX_MCU_MSG_PAYLOAD_LENGTH/4];    
@@ -148,7 +216,7 @@ typedef struct
     union
     {
         uint16_t rx_payload_valid_flag;
-        uint16_t tx_not_used;        
+        uint16_t tx_not_used;
     };
 } aux_mcu_message_t;
 
