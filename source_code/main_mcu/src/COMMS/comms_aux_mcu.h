@@ -26,6 +26,7 @@
 
 #include "comms_aux_mcu_defines.h"
 #include "comms_bootloader_msg.h"
+#include "fido2_values_defines.h"
 #include "comms_hid_msgs.h"
 #include "defines.h"
 
@@ -147,10 +148,33 @@ typedef struct
     uint16_t keyboard_symbols[(AUX_MCU_MSG_PAYLOAD_LENGTH/2)-sizeof(uint16_t)-sizeof(uint16_t)];
 } keyboard_type_message_t;
 
-typedef struct fido2_credential_ID_s 
+typedef struct fido2_credential_ID_s
 {
     uint8_t tag[FIDO2_TAG_LEN];
 } fido2_credential_ID_t;
+
+typedef struct auth_data_header_s
+{
+    uint8_t rpID_hash[FIDO2_RPID_HASH_LEN];
+    uint8_t flags;
+    uint32_t sign_count;
+} __attribute__((packed)) auth_data_header_t;
+
+typedef struct attest_header_s
+{
+    uint8_t aaguid[FIDO2_AAGUID_LEN];
+    uint8_t cred_len_h;
+    uint8_t cred_len_l;
+} attest_header_t;
+
+typedef struct attested_data_s
+{
+    auth_data_header_t auth_data_header;
+    attest_header_t attest_header;
+    fido2_credential_ID_t cred_ID;
+    uint8_t enc_pub_key[FIDO2_ENC_PUB_KEY_LEN];
+    uint32_t enc_PK_len;
+} __attribute__((packed)) attested_data_t;
 
 typedef struct fido2_auth_cred_req_message_s
 {

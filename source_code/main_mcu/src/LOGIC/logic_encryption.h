@@ -25,6 +25,7 @@
 #define LOGIC_ENCRYPTION_H_
 
 #include "comms_aux_mcu_defines.h"
+#include "fido2_values_defines.h"
 #include "custom_fs.h"
 #include "defines.h"
 

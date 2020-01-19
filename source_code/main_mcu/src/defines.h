@@ -44,6 +44,7 @@
 #define MEMBER_SUB_ARRAY_SIZE(type, member) (sizeof(((type*)0)->member[0]) / sizeof(((type*)0)->member[0][0]))
 
 /* Standard defines */
+#define SHA256_OUTPUT_LENGTH    32
 #define AES_KEY_LENGTH          256
 #define AES_BLOCK_SIZE          128
 #define AES256_CTR_LENGTH       AES_BLOCK_SIZE

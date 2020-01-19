@@ -10,47 +10,14 @@
 #include "comms_aux_mcu_defines.h"
 #include "logic_encryption.h"
 #include "platform_defines.h"
+#include "logic_security.h"
 #include "comms_aux_mcu.h"
+#include "logic_user.h"
 #include "cose_key.h"
 #include "utils.h"
 #include "fido2.h"
 #include "rng.h"
 #include "main.h"
-
-typedef struct auth_data_header_s
-{
-    uint8_t rpID_hash[FIDO2_RPID_HASH_LEN];
-    uint8_t flags;
-    uint32_t sign_count;
-} __attribute__((packed)) auth_data_header_t;
-
-typedef struct attest_header_s
-{
-    uint8_t aaguid[FIDO2_AAGUID_LEN];
-    uint8_t cred_len_h;
-    uint8_t cred_len_l;
-} attest_header_t;
-
-typedef struct attested_data_s
-{
-    auth_data_header_t auth_data_header;
-    attest_header_t attest_header;
-    fido2_credential_ID_t cred_ID;
-    uint8_t enc_pub_key[FIDO2_ENC_PUB_KEY_LEN];
-    uint32_t enc_PK_len;
-} __attribute__((packed)) attested_data_t;
-
-typedef struct credential_DB_rec_s
-{
-    uint8_t rpID[FIDO2_RPID_LEN];                  //252
-    uint8_t tag[FIDO2_TAG_LEN];                    //16
-    uint8_t user_ID[FIDO2_USER_ID_LEN];            //65
-    uint8_t user_name[FIDO2_USER_NAME_LEN];        //65
-    uint8_t display_name[FIDO2_DISPLAY_NAME_LEN];  //65
-    uint8_t spare;                                 //1 (padding)
-    uint8_t priv_key[FIDO2_PRIV_KEY_LEN];          //32
-    uint32_t count;                                //4
-} credential_DB_rec_t;
 
 static bool fido2_room_for_more_creds(uint8_t const *rpID);
 static void fido2_store_credential_in_db(credential_DB_rec_t const *cred_rec);
@@ -157,7 +124,7 @@ static uint32_t fido2_cbor_encode_public_key(uint8_t *buf, uint32_t bufLen, ecc2
 *   \param  outgoing response
 *   \return void
 */
-void fido2_process_exclude_list_item(fido2_auth_cred_req_message_t const *request, fido2_auth_cred_rsp_message_t *response)
+void fido2_process_exclude_list_item(fido2_auth_cred_req_message_t const* request, fido2_auth_cred_rsp_message_t* response)
 {
     credential_DB_rec_t *cred_rec = fido2_get_credential(request->rpID, request->cred_ID.tag);
     bool found= (cred_rec != NULL) ? 1 : 0;
@@ -193,20 +160,41 @@ static void fido2_set_attest_sign_count(uint32_t cred_sign_count, uint32_t *atte
 */
 static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t const *request, fido2_make_auth_data_rsp_message_t *response)
 {
+    uint8_t credential_id[FIDO2_CREDENTIAL_ID_LENGTH];
+    uint8_t private_key[FIDO2_PRIV_KEY_LEN];
     credential_DB_rec_t credential_rec;
-    ecc256_pub_key pub_key;
     attested_data_t attested_data;
+    ecc256_pub_key pub_key;
+    
+    /* Check for unlocked device */
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
+    {
+        response->error_code = FIDO2_USER_NOT_PRESENT;
+        return response->error_code;
+    }
 
     if (!fido2_room_for_more_creds(request->rpID))
     {
         response->error_code = FIDO2_STORAGE_EXHAUSTED;
         return response->error_code;
     }
+    /* Clear attested data */
     memset(&attested_data, 0, sizeof(attested_data));
+    
+    /* Create credential ID */
+    rng_fill_array(credential_id, sizeof(credential_id));
 
+    /* Compute RPid hash, required for answer */
     logic_encryption_sha256_init();
     logic_encryption_sha256_update(request->rpID, strnlen(request->rpID, FIDO2_RPID_LEN));
     logic_encryption_sha256_final(attested_data.auth_data_header.rpID_hash);
+
+    /* Create encryption key pair */
+    logic_encryption_ecc256_generate_private_key(private_key);
+    logic_encryption_ecc256_derive_public_key(private_key, &pub_key);
+    
+    /* Try to store new credential, function will create a new credential id  */
+    //fido2_return_code_te temp_return = logic_user_store_webauthn_credential(request->rpID, request->user_ID, request->rpID, request->display_name, private_key, credential_id);
 
     bool confirmation = fido2_prompt_user("Create credential?", TRUE, 10);
 
@@ -229,15 +217,12 @@ static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t
     //Make tag to uniquely identify this credential
     fido2_make_auth_tag(&attested_data.cred_ID);
 
-    //Create key pair
-    logic_encryption_ecc256_generate_private_key(credential_rec.priv_key);
-    logic_encryption_ecc256_derive_public_key(credential_rec.priv_key, &pub_key);
-
     //Fill out credential record to store in DB
     //count will always be 1 when new credential created. Update on every get_assertion/get_next_assertion
     credential_rec.count = 0;
     credential_rec.count = fido2_update_credential_count(credential_rec.count);
 
+    memcpy(credential_rec.priv_key, private_key, FIDO2_PRIV_KEY_LEN);
     memcpy(credential_rec.tag, attested_data.cred_ID.tag, FIDO2_TAG_LEN);
     memcpy(credential_rec.user_ID, request->user_ID, FIDO2_USER_ID_LEN);
     credential_rec.user_ID[FIDO2_USER_ID_LEN-1] = '\0';
@@ -366,7 +351,7 @@ static uint32_t fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_mess
 *   \param  outgoing response message
 *   \return void
 */
-void fido2_process_make_auth_data(fido2_make_auth_data_req_message_t const *request, fido2_make_auth_data_rsp_message_t *response)
+void fido2_process_make_auth_data(fido2_make_auth_data_req_message_t const* request, fido2_make_auth_data_rsp_message_t* response)
 {
     memset(response, 0, sizeof(*response));
 

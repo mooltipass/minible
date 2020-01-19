@@ -464,9 +464,6 @@ void logic_encryption_ecc256_derive_public_key(uint8_t const *priv_key, ecc256_p
     }
     memmove(pub_key->x, pubkey + 1, FIDO2_PUB_KEY_X_LEN);
     memmove(pub_key->y, pubkey + 1 + FIDO2_PUB_KEY_X_LEN, FIDO2_PUB_KEY_Y_LEN);
-
-    //Clear private key used to limit leaking
-    memset(logic_encryption_fido2_priv_key_buf, 0, sizeof(logic_encryption_fido2_priv_key_buf));
 }
 
 

@@ -20,6 +20,7 @@
 *    Author:   Mathieu Stephan
 */
 #include <string.h>
+#include "fido2_values_defines.h"
 #include "smartcard_highlevel.h"
 #include "logic_encryption.h"
 #include "logic_bluetooth.h"
@@ -39,6 +40,7 @@
 #include "nodemgmt.h"
 #include "text_ids.h"
 #include "utils.h"
+#include "fido2.h"
 #include "rng.h"
 // User security preferences
 uint16_t logic_user_cur_sec_preferences;
@@ -343,19 +345,23 @@ RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, c
 *   \param  user_name       Pointer to user name string
 *   \param  display_name    Pointer to display name string
 *   \param  private_key     32 bytes private key
-*   \param  credential_id   Pointer to a 16B buffer where to store the generated credential id in case of credential creation success
-*   \return success or not
+*   \param  credential_id   Pointer to credential ID
+*   \return FIDO2 success code
+*   \note   This function doesn't parse aux MCU messages in order to safely use aux mcu received message
 */
-RET_TYPE logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key, uint8_t* credential_id)
+fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key, uint8_t* credential_id)
 {
     uint8_t encrypted_private_key[MEMBER_SIZE(child_webauthn_node_t, private_key)];
     uint8_t temp_cred_ctr_val[MEMBER_SIZE(child_webauthn_node_t, ctr)];
     cust_char_t* three_line_prompt_2;
     
+    /* Sanity checks */
+    _Static_assert(FIDO2_CREDENTIAL_ID_LENGTH == MEMBER_SIZE(child_webauthn_node_t, credential_id), "Invalid FIDO2 credential id length");
+    
     /* Smartcard present and unlocked? */
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
-        return RETURN_NOK;
+        return FIDO2_USER_NOT_PRESENT;
     }
     
     /* Does service already exist? */
@@ -370,7 +376,7 @@ RET_TYPE logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_
         /* If it does, don't overwrite it... */
         if (child_address != NODE_ADDR_NULL)
         {
-            return RETURN_NOK;
+            return FIDO2_OPERATION_DENIED;
         }
     }
 
@@ -385,7 +391,7 @@ RET_TYPE logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_
     /* Did the user approve? */
     if (prompt_return != MINI_INPUT_RET_YES)
     {
-        return RETURN_NOK;
+        return FIDO2_OPERATION_DENIED;
     }
     
     /* If needed, add service */
@@ -396,7 +402,7 @@ RET_TYPE logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_
         /* Check for operation success */
         if (parent_address == NODE_ADDR_NULL)
         {
-            return RETURN_NOK;
+            return FIDO2_STORAGE_EXHAUSTED;
         }
     }
     
@@ -406,11 +412,17 @@ RET_TYPE logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_
     /* CTR encrypt key */
     logic_encryption_ctr_encrypt(encrypted_private_key, sizeof(encrypted_private_key), temp_cred_ctr_val);
     
-    /* Generate random credential id */
-    rng_fill_array(credential_id, MEMBER_SIZE(child_webauthn_node_t, credential_id));
-    
     /* Create new webauthn credential */
-    return logic_database_add_webauthn_credential_for_service(parent_address, user_handle, user_name, display_name, encrypted_private_key, temp_cred_ctr_val, credential_id);
+    RET_TYPE temp_ret = logic_database_add_webauthn_credential_for_service(parent_address, user_handle, user_name, display_name, encrypted_private_key, temp_cred_ctr_val, credential_id);
+    
+    if (temp_ret == RETURN_OK)
+    {
+        return FIDO2_SUCCESS;
+    } 
+    else
+    {
+        return FIDO2_STORAGE_EXHAUSTED;
+    }
 }
 
 /*! \fn     logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
