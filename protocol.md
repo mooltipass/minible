@@ -706,9 +706,9 @@ NOT Tested
 
 From the PC: 
 
-| byte 0-1 | byte 2-3                    | byte 4-5  |
-|:---------|:----------------------------|:----------|
-| 0x0105   | 2 | Start parent address |
+| byte 0-1 | byte 2-3                    | byte 4-5  | byte 6-7  |
+|:---------|:----------------------------|:----------|:----------|
+| 0x0105   | 4 | Data type ID | Start parent address |
 
 Device Answer:
 
@@ -746,7 +746,7 @@ From the PC:
 
 | byte 0-1 | byte 2-3                    | byte 4-37                       |
 |:---------|:----------------------------|:--------------------------------|
-| 0x0107   | 34 | Credential start address + 16 data start addresses |
+| 0x0107   | 34 | 10 credential start address + 7 data start addresses |
 
 Device Answer:
 
