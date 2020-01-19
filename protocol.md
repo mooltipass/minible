@@ -626,7 +626,7 @@ Device Answer:
 
 | byte 0-1 | byte 2-3                    | byte 4-37                          |
 |:---------|:----------------------------|:--------------------------------|
-| 0x0100   | 34 | Credential start address + 16 data start addresses |
+| 0x0100   | 34 | 10 credential start address + 7 data start addresses |
 
 
 
