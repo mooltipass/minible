@@ -298,5 +298,199 @@ uint8_t utils_cbor_encode_32byte_bytestring(uint8_t* source, uint8_t* destinatio
     return 34;
 }
 
+/*! \fn     utils_utf8_to_bmp(uint8_t* input, cust_char_t* output)
+*   \brief  Decode a utf8 point to a unicode BMP codepoint
+*   \param  input       Input buffer
+*   \param  output      Where to store the result
+*   \return How many bytes were read at the input, -1 if the parsing was erroneous
+*/
+int16_t utils_utf8_to_bmp(uint8_t* input, cust_char_t* output)
+{
+    uint8_t lead;
+    uint8_t mask;
+    uint16_t remunits;
+    uint16_t temp_index = 0;
+    uint8_t nxt = input[temp_index++];
 
+    if ((nxt & 0x80) == 0) 
+    {
+        /* ascii char */
+        *output = (cust_char_t)nxt;
+        return 1;
+    } 
+    else if ((nxt & 0xC0) == 0x80) 
+    {
+        /* invalid value */
+        return -1;
+    }
+    else 
+    {
+        /* Initial value for lead and mask to match utf8 2 bytes */
+        lead = 0xC0;
+        mask = 0xE0;
 
+        /* Bit shift until we match the lead */
+        for (remunits = 1; (nxt & mask) != lead; ++remunits) 
+        {
+            lead = mask;
+            mask >>= 1;
+            mask |= 0x80;
+        }
+
+        /* Check for valid number of remunits for fit in unicode BMP */
+        if (remunits >= 3)
+        {
+            return -1;
+        }
+
+        /* Remove the lead */
+        *output = (cust_char_t)(nxt ^ lead);
+
+        /* Add the remaining data */
+        while (remunits-- > 0) 
+        {
+            *output <<= 6;
+            *output |= (input[temp_index++] & 0x3F);
+        }
+
+        return temp_index;
+    }
+}
+
+/*! \fn     utils_utf8_encode_bmp(cust_char_t codepoint, uint8_t* buf_out, uint16_t max_writes)
+*   \brief  Encode a BMP code point into unicode string
+*   \param  codepoint   The code point
+*   \param  buf_out     Output buffer
+*   \param  max_writes  Maximum writes we're allowed
+*   \return How many bytes were written in the destination, not including terminating 0 (max 3), -1 if couldn't write
+*/
+int16_t utils_utf8_encode_bmp(cust_char_t codepoint, uint8_t* buf_out, uint16_t max_writes)
+{
+    if (codepoint <= 0x7F) 
+    {
+        if (max_writes >= 2)
+        {
+            // Plain ASCII
+            buf_out[0] = (uint8_t)codepoint;
+            buf_out[1] = 0;
+            return 1;
+        } 
+        else
+        {
+            return -1;
+        }
+    }
+    else if (codepoint <= 0x07FF) 
+    {
+        if (max_writes >= 3)
+        {
+            // 2-byte unicode
+            buf_out[0] = (uint8_t)(((codepoint >> 6) & 0x1F) | 0xC0);
+            buf_out[1] = (uint8_t)(((codepoint >> 0) & 0x3F) | 0x80);
+            buf_out[2] = 0;
+            return 2;
+        } 
+        else
+        {
+            return -1;
+        }
+    }
+    else if (codepoint <= 0xFFFF) 
+    {
+        if (max_writes >= 4)
+        {
+            // 3-byte unicode
+            buf_out[0] = (uint8_t)(((codepoint >> 12) & 0x0F) | 0xE0);
+            buf_out[1] = (uint8_t)(((codepoint >>  6) & 0x3F) | 0x80);
+            buf_out[2] = (uint8_t)(((codepoint >>  0) & 0x3F) | 0x80);
+            buf_out[3] = 0;
+            return 3;
+        } 
+        else
+        {
+            return -1;
+        }
+    }
+    else
+    {
+        // Not supported
+        return -1;
+    }
+}
+
+/*! \fn     utils_bmp_string_to_utf8_string(cust_char_t* bmp_string, uint8_t* utf8_string, uint16_t utf8_string_len)
+*   \brief  Encode a BMP string into a 0 terminated utf8 string
+*   \param  bmp_string          Pointer to bmp string
+*   \param  utf8_string         Pointer to utf8 string
+*   \param  utf8_string_len     Maximum bytes we can write in the utf8 string
+*   \return Number of bytes written excluding terminating 0, or something < 0 if we couldn't
+*/
+int16_t utils_bmp_string_to_utf8_string(cust_char_t* bmp_string, uint8_t* utf8_string, uint16_t utf8_string_len)
+{
+    int16_t nb_bytes_written_in_unicode_string;
+    int16_t total_bytes_written = 0;
+
+    while (*bmp_string)
+    {
+        /* Try to write into string, returns nb bytes written + 1 for terminating 0 */
+        nb_bytes_written_in_unicode_string = utils_utf8_encode_bmp(*bmp_string, utf8_string, utf8_string_len);
+
+        if (nb_bytes_written_in_unicode_string < 0)
+        {
+            /* Not enough space */
+            return -1;
+        }
+        else
+        {
+            /* Increment pointed codepoint, decrease available space */
+            total_bytes_written += nb_bytes_written_in_unicode_string;
+            utf8_string_len -= nb_bytes_written_in_unicode_string;
+            utf8_string += nb_bytes_written_in_unicode_string;
+            bmp_string++;
+        }
+    }
+
+    return total_bytes_written;
+}
+
+/*! \fn     utils_utf8_string_to_bmp_string(uint8_t* utf8_string, cust_char_t* bmp_string, uint16_t utf8_string_len)
+*   \brief  Encode a utf8 string into a BMP string
+*   \param  utf8_string         Pointer to a 0 terminated utf8 string
+*   \param  bmp_string          Pointer to bmp string
+*   \param  utf8_string_len     Maximum bytes we can read in the utf8 string
+*   \return Number of code points written excluding terminating 0, or something < 0 if we couldn't do the conversion (invalid utf8 code points for BMP)
+*   \note   BMP string should be at least the same size as the utf8 string
+*/
+int16_t utils_utf8_string_to_bmp_string(uint8_t* utf8_string, cust_char_t* bmp_string, uint16_t utf8_string_len)
+{
+    int16_t nb_bytes_read_in_unicode_string_for_a_cp;
+    int16_t total_bytes_read = 0;
+    int16_t nb_bmp_written = 0;
+
+    do
+    {
+        /* Try to get one bmp codepoint */
+        nb_bytes_read_in_unicode_string_for_a_cp = utils_utf8_to_bmp(utf8_string, bmp_string);
+
+        /* Parsing error? */
+        if (nb_bytes_read_in_unicode_string_for_a_cp < 0)
+        {
+            /* Either invalid char or goes over bmp limit */
+            return -1;
+        } 
+        else if ((nb_bytes_read_in_unicode_string_for_a_cp + total_bytes_read) > utf8_string_len)
+        {
+            /* Maliciously formed string to read above boundaries */
+            *bmp_string = 0;
+            return -1;
+        }
+        else
+        {
+            total_bytes_read += nb_bytes_read_in_unicode_string_for_a_cp;
+            utf8_string += nb_bytes_read_in_unicode_string_for_a_cp;
+            nb_bmp_written++;
+        }
+    } while(*bmp_string++);
+
+    return nb_bmp_written-1;
+}
