@@ -41,7 +41,7 @@ typedef enum
 typedef struct credential_DB_rec_s
 {
     uint8_t rpID[FIDO2_RPID_LEN];                  //252
-    uint8_t tag[FIDO2_TAG_LEN];                    //16
+    uint8_t tag[FIDO2_CREDENTIAL_ID_LENGTH];                    //16
     uint8_t user_ID[FIDO2_USER_ID_LEN];            //65
     uint8_t user_name[FIDO2_USER_NAME_LEN];        //65
     uint8_t display_name[FIDO2_DISPLAY_NAME_LEN];  //65

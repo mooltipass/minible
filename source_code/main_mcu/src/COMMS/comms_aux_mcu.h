@@ -150,7 +150,7 @@ typedef struct
 
 typedef struct fido2_credential_ID_s
 {
-    uint8_t tag[FIDO2_TAG_LEN];
+    uint8_t tag[FIDO2_CREDENTIAL_ID_LENGTH];
 } fido2_credential_ID_t;
 
 typedef struct auth_data_header_s
@@ -201,7 +201,7 @@ typedef struct fido2_make_auth_data_s
 
 typedef struct fido2_make_auth_data_rsp_s
 {
-    uint8_t tag[FIDO2_TAG_LEN];
+    uint8_t tag[FIDO2_CREDENTIAL_ID_LENGTH];
     uint8_t user_ID[FIDO2_USER_ID_LEN];
     uint8_t rpID_hash[FIDO2_RPID_HASH_LEN];
     uint32_t count_BE;
