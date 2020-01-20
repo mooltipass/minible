@@ -254,10 +254,10 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
 *   \param  send_message        The response message
 *   \return fido2_MSG_RCVD
 */
-static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_auth_cred_msg(fido2_message_t const *received_message, aux_mcu_message_t *send_message)
+static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_auth_cred_msg(fido2_message_t* received_message, aux_mcu_message_t *send_message)
 {
-    fido2_auth_cred_req_message_t const *incoming_message = &received_message->fido2_auth_cred_req_message;
-    fido2_auth_cred_rsp_message_t *response = &send_message->fido2_message.fido2_auth_cred_rsp_message;
+    fido2_auth_cred_req_message_t* incoming_message = &received_message->fido2_auth_cred_req_message;
+    fido2_auth_cred_rsp_message_t* response = &send_message->fido2_message.fido2_auth_cred_rsp_message;
 
     fido2_process_exclude_list_item(incoming_message, response);
 
@@ -273,10 +273,10 @@ static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_auth_cred_msg(fido2_message_
 *   \param  send_message        The response message
 *   \return FIDO2_MSG_RCVD
 */
-static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_make_auth_data_msg(fido2_message_t const *received_message, aux_mcu_message_t *send_message)
+static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_make_auth_data_msg(fido2_message_t* received_message, aux_mcu_message_t *send_message)
 {
-    fido2_make_auth_data_req_message_t const *request = &received_message->fido2_make_auth_data_req_message;
-    fido2_make_auth_data_rsp_message_t *response = &send_message->fido2_message.fido2_make_auth_data_rsp_message;
+    fido2_make_auth_data_req_message_t* request = &received_message->fido2_make_auth_data_req_message;
+    fido2_make_auth_data_rsp_message_t* response = &send_message->fido2_message.fido2_make_auth_data_rsp_message;
 
     fido2_process_make_auth_data(request, response);
 
@@ -302,7 +302,7 @@ static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_unknown_msg(fido2_message_t 
 *   \param  received_message The received message
 *   \return fido2_MSG_RCVD or UNKNOW_MSG_RCVD
 */
-static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_message(fido2_message_t const *received_message)
+static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_message(fido2_message_t* received_message)
 {
     uint16_t message_type = received_message->message_type;
     comms_msg_rcvd_te msg_rcvd = UNKNOW_MSG_RCVD;

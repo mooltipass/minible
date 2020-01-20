@@ -51,7 +51,7 @@ typedef struct credential_DB_rec_s
 } credential_DB_rec_t;
 
 /* Prototypes */
-void fido2_process_make_auth_data(fido2_make_auth_data_req_message_t const* request, fido2_make_auth_data_rsp_message_t* response);
-void fido2_process_exclude_list_item(fido2_auth_cred_req_message_t const* request, fido2_auth_cred_rsp_message_t* response);
+void fido2_process_make_auth_data(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t* response);
+void fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* request, fido2_auth_cred_rsp_message_t* response);
 
 #endif /* FIDO2_H_ */

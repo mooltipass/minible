@@ -585,6 +585,10 @@ RET_TYPE logic_database_add_webauthn_credential_for_service(uint16_t service_add
     memcpy(temp_cnode.private_key, private_key, sizeof(temp_cnode.private_key));
     memcpy(temp_cnode.ctr, ctr, sizeof(temp_cnode.ctr));
     memcpy(temp_cnode.credential_id, credential_id, sizeof(temp_cnode.credential_id));
+    
+    /* Set signature count to 1 */
+    temp_cnode.signature_counter_msb = 0;
+    temp_cnode.signature_counter_lsb = 1;
 
     /* Then create node */
     ret_type_te ret_val = nodemgmt_create_child_node(service_addr, (child_cred_node_t*)&temp_cnode, &storage_addr);

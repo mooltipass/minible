@@ -27,8 +27,8 @@
 #include "defines.h"
 
 /* Prototypes */
+int16_t utils_utf8_string_to_bmp_string(uint8_t* utf8_string, cust_char_t* bmp_string, uint16_t utf8_string_len, uint16_t bmp_string_len);
 int16_t utils_bmp_string_to_utf8_string(cust_char_t* bmp_string, uint8_t* utf8_string, uint16_t utf8_string_len);
-int16_t utils_utf8_string_to_bmp_string(uint8_t* utf8_string, cust_char_t* bmp_string, uint16_t utf8_string_len);
 void utils_concatenate_strings_with_slash(cust_char_t* string1, cust_char_t* string2, uint16_t storage_length);
 int16_t utils_custchar_strncmp(cust_char_t* f_string, cust_char_t* sec_string, uint16_t nb_chars);
 int16_t utils_utf8_encode_bmp(cust_char_t codepoint, uint8_t* buf_out, uint16_t max_writes);

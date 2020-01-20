@@ -453,7 +453,7 @@ int16_t utils_bmp_string_to_utf8_string(cust_char_t* bmp_string, uint8_t* utf8_s
     return total_bytes_written;
 }
 
-/*! \fn     utils_utf8_string_to_bmp_string(uint8_t* utf8_string, cust_char_t* bmp_string, uint16_t utf8_string_len)
+/*! \fn     utils_utf8_string_to_bmp_string(uint8_t* utf8_string, cust_char_t* bmp_string, uint16_t utf8_string_len, uint16_t bmp_string_len)
 *   \brief  Encode a utf8 string into a BMP string
 *   \param  utf8_string         Pointer to a 0 terminated utf8 string
 *   \param  bmp_string          Pointer to bmp string
@@ -461,7 +461,7 @@ int16_t utils_bmp_string_to_utf8_string(cust_char_t* bmp_string, uint8_t* utf8_s
 *   \return Number of code points written excluding terminating 0, or something < 0 if we couldn't do the conversion (invalid utf8 code points for BMP)
 *   \note   BMP string should be at least the same size as the utf8 string
 */
-int16_t utils_utf8_string_to_bmp_string(uint8_t* utf8_string, cust_char_t* bmp_string, uint16_t utf8_string_len)
+int16_t utils_utf8_string_to_bmp_string(uint8_t* utf8_string, cust_char_t* bmp_string, uint16_t utf8_string_len, uint16_t bmp_string_len)
 {
     int16_t nb_bytes_read_in_unicode_string_for_a_cp;
     int16_t total_bytes_read = 0;
@@ -469,6 +469,14 @@ int16_t utils_utf8_string_to_bmp_string(uint8_t* utf8_string, cust_char_t* bmp_s
 
     do
     {
+        /* Check if we still have space to write... */
+        if (bmp_string_len == nb_bmp_written)
+        {
+            /* Who would be dumb enough to call this function with len set to 0? */
+            *(bmp_string-1) = 0;
+            return -1;
+        }
+        
         /* Try to get one bmp codepoint */
         nb_bytes_read_in_unicode_string_for_a_cp = utils_utf8_to_bmp(utf8_string, bmp_string);
 
