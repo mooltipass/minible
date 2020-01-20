@@ -56,26 +56,25 @@ static uint32_t fido2_prompt_user(char const *prompt, bool wait_for_ack, uint32_
     return result;
 }
 
-/*! \fn     fido2_calc_attestation_signature(uint8_t const *data, int datalen, uint8_t const * client_data_hash, uint8_t * sigbuf)
+/*! \fn     fido2_calc_attestation_signature(uint8_t const* data, int datalen, uint8_t const* client_data_hash, uint8_t* sigbuf, uint16_t sigbuflen)
 *   \brief  Calculate the attestation signature
 *   \param  data to calculate signature over
 *   \param  length of data
 *   \param  hash of client data
 *   \param  out buffer with signature
+*   \param  size of signature buffer
 *   \return void
 */
-static void fido2_calc_attestation_signature(uint8_t const *data, int datalen, uint8_t const * client_data_hash, uint8_t * sigbuf)
+static void fido2_calc_attestation_signature(uint8_t const* data, int datalen, uint8_t const* client_data_hash, uint8_t* sigbuf, uint16_t sigbuflen)
 {
     uint8_t hashbuf[SHA256_OUTPUT_LENGTH];
-
-    _Static_assert(sizeof(hashbuf) >= 32, "Buffer must be 32 bytes or greater");
 
     logic_encryption_sha256_init();
     logic_encryption_sha256_update(data, datalen);
     logic_encryption_sha256_update(client_data_hash, FIDO2_CLIENT_DATA_HASH_LEN);
     logic_encryption_sha256_final(hashbuf);
 
-    logic_encryption_ecc256_sign(hashbuf, SHA256_OUTPUT_LENGTH, sigbuf);
+    logic_encryption_ecc256_sign(hashbuf, sigbuf, sigbuflen);
 }
 
 /*! \fn     fido2_cbor_encode_public_key(uint8_t *buf, uint32_t bufLen, ecc256_pub_key const *pub_key)
@@ -208,12 +207,12 @@ static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t
     rng_fill_array(attested_data.cred_ID.tag, sizeof(attested_data.cred_ID.tag));
 
     /* Create encryption key pair */
-    logic_encryption_ecc256_generate_private_key(private_key);
+    logic_encryption_ecc256_generate_private_key(private_key, (uint16_t)sizeof(private_key));
     
     /* Try to store new credential */
     fido2_return_code_te temp_return = FIDO2_SUCCESS;
     //temp_return logic_user_store_webauthn_credential(rp_id_copy, user_handle_copy, user_name_copy, display_name_copy, private_key, attested_data.cred_ID.tag);
-    timer_delay_ms(3000);
+    //timer_delay_ms(3000);
 
     /* Success? */
     if (temp_return == FIDO2_SUCCESS)
@@ -254,7 +253,7 @@ static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t
     logic_encryption_ecc256_load_key(private_key);
     logic_encryption_ecc256_derive_public_key(private_key, &pub_key);
     attested_data.enc_PK_len = fido2_cbor_encode_public_key(attested_data.enc_pub_key, sizeof(attested_data.enc_pub_key), &pub_key);
-    fido2_calc_attestation_signature((uint8_t const *)&attested_data, sizeof(attested_data) - sizeof(attested_data.enc_pub_key) + attested_data.enc_PK_len - sizeof(attested_data.enc_PK_len), request->client_data_hash, response->attest_sig);
+    fido2_calc_attestation_signature((uint8_t const *)&attested_data, sizeof(attested_data) - sizeof(attested_data.enc_pub_key) + attested_data.enc_PK_len - sizeof(attested_data.enc_PK_len), request->client_data_hash, response->attest_sig, sizeof(response->attest_sig));
 
     /*************************/
     /* Create answer to host */
@@ -357,7 +356,7 @@ static uint32_t fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_mess
     fido2_set_attest_sign_count(rec->count, &auth_data_header.sign_count);
 
     logic_encryption_ecc256_load_key(rec->priv_key);
-    fido2_calc_attestation_signature((uint8_t const *) &auth_data_header, sizeof(auth_data_header), request->client_data_hash, response->attest_sig);
+    fido2_calc_attestation_signature((uint8_t const *) &auth_data_header, sizeof(auth_data_header), request->client_data_hash, response->attest_sig, sizeof(response->attest_sig));
 
     //Fill out response object
     memcpy(response->tag, rec->tag, FIDO2_CREDENTIAL_ID_LENGTH);

@@ -38,12 +38,6 @@ br_aes_ct_ctrcbc_keys logic_encryption_cur_aes_context;
 cpz_lut_entry_t* logic_encryption_cur_cpz_entry;
 // Context used by the SHA256 engine for FIDO2
 static br_sha256_context logic_encryption_sha256_ctx;
-// Same but for SHA512 for FIDO2
-static br_sha512_context logic_encryption_sha512_ctx;
-// Key context used by the HMAC engine for FIDO2          
-static br_hmac_key_context logic_encryption_hmac_kc;   
-// Context for the HMAC engine for FIDO2                     
-static br_hmac_context logic_encryption_hmac_ctx;
 // Selected algorithm that we use for FIDO2
 static br_ec_impl const *logic_encryption_br_ec_algo = &br_ec_p256_m15;
 // Selected subalgorithm in use for FIDO2
@@ -290,14 +284,6 @@ void logic_encryption_sha256_init(void)
     br_sha256_init(&logic_encryption_sha256_ctx);
 }
 
-/*! \fn     logic_encryption_sha512_init(void)
-*   \brief  Initialize sha512 object
-*/
-void logic_encryption_sha512_init(void)
-{
-    br_sha512_init(&logic_encryption_sha512_ctx);
-}
-
 /*! \fn     logic_encryption_sha256_update(uint8_t const * data, size_t len)
 *   \brief  Update the sha256 value with the input data
 *   \param  data    buffer containing the data to compute sha256 over
@@ -308,16 +294,6 @@ void logic_encryption_sha256_update(uint8_t const *data, size_t len)
     br_sha256_update(&logic_encryption_sha256_ctx, data, len);
 }
 
-/*! \fn     logic_encryption_sha512_update(uint8_t const *data, size_t len)
-*   \brief  Update the sha512 value with the input data
-*   \param  data    buffer containing the data to compute sha512 over
-*   \param  len     length of data buffer
-*/
-void logic_encryption_sha512_update(uint8_t const *data, size_t len)
-{
-    br_sha512_update(&logic_encryption_sha512_ctx, data, len);
-}
-
 /*! \fn     logic_encryption_sha256_final(uint8_t *hash)
 *   \brief  Finalize the hash and out put the value to the argument
 *   \param  hash  The final hash value (output)
@@ -325,45 +301,6 @@ void logic_encryption_sha512_update(uint8_t const *data, size_t len)
 void logic_encryption_sha256_final(uint8_t *hash)
 {
     br_sha256_out(&logic_encryption_sha256_ctx, hash);
-}
-
-/*! \fn     logic_encryption_sha512_final(uint8_t *hash)
-*   \brief  Finalize the hash and output the value to the argument
-*   \param  hash  The final hash value (output)
-*/
-void logic_encryption_sha512_final(uint8_t *hash)
-{
-    br_sha512_out(&logic_encryption_sha512_ctx, hash);
-}
-
-/*! \fn     logic_encryption_sha256_hmac_init(uint8_t const *key, uint32_t klen)
-*   \brief  Initialize the sha256 HMAC object
-*   \param  key     key used for HMAC
-*   \param  len     length of key
-*/
-void logic_encryption_sha256_hmac_init(uint8_t const *key, uint32_t klen)
-{
-    br_hmac_key_init(&logic_encryption_hmac_kc, &br_sha256_vtable, key, klen);
-    br_hmac_init(&logic_encryption_hmac_ctx, &logic_encryption_hmac_kc, 0);
-}
-
-/*! \fn     logic_encryption_sha256_hmac_update(uint8_t const *data, size_t len)
-*   \brief  Update the HMAC256 value with the input data
-*   \param  data    buffer containing the data to compute HMAC256 over
-*   \param  len     length of data buffer
-*/
-void logic_encryption_sha256_hmac_update(uint8_t const *data, size_t len)
-{
-    br_hmac_update(&logic_encryption_hmac_ctx, data, len);
-}
-
-/*! \fn     logic_encryption_sha256_hmac_final(uint8_t *hmac_out)
-*   \brief  Finalize the HMAC and output the value to the argument
-*   \param  hash  The final HMAC value (output)
-*/
-void logic_encryption_sha256_hmac_final(uint8_t *hmac_out)
-{
-    br_hmac_out(&logic_encryption_hmac_ctx, hmac_out);
 }
 
 /*! \fn     logic_encryption_ecc256_init(void)
@@ -379,20 +316,18 @@ void logic_encryption_ecc256_init(void)
     br_hmac_drbg_init(&logic_encryption_hmac_drbg_ctx, &br_sha256_vtable, seed, ECC256_SEED_LENGTH);
 }
 
-/*! \fn     logic_encryption_ecc256_sign(uint8_t const *data, int len, uint8_t *sig)
+/*! \fn     logic_encryption_ecc256_sign(uint8_t const* data, uint8_t* sig, uint16_t sig_buf_len)
 *   \brief  Cryptographically sign input data and return the signature in arg.
-*   \param  data    data to sign
-*   \param  len     length of data to sign
-*   \param  sig     output signature
+*   \param  data        data to sign
+*   \param  sig         output signature
+*   \param  sig_buf_len size of signature buffer
 *   \note   The encryption key will be cleared after this function call
 */
-void logic_encryption_ecc256_sign(uint8_t const *data, int len, uint8_t *sig)
+void logic_encryption_ecc256_sign(uint8_t const* data, uint8_t* sig, uint16_t sig_buf_len)
 {
     size_t result = br_ecdsa_i15_sign_raw(logic_encryption_br_ec_algo, logic_encryption_sha256_ctx.vtable, data, &logic_encryption_fido2_signing_key, sig);
-
-    if (result == 0)
+    if (result != sig_buf_len)
     {
-        //TODO: Log(TAG_ERR, "error, signing failed!\n");
         while(1);
     }
     
@@ -400,68 +335,57 @@ void logic_encryption_ecc256_sign(uint8_t const *data, int len, uint8_t *sig)
     memset(logic_encryption_fido2_priv_key_buf, 0, sizeof(logic_encryption_fido2_priv_key_buf));
 }
 
-/*! \fn     logic_encryption_create_fido2_priv_signing_key(uint8_t const *priv_key, br_ec_private_key *br_key)
-*   \brief  Create key compatible with BearSSL library
-*   \param  priv_key    Buffer containing the private key
-*   \param  br_key      Output BearSSL compatible key
-*/
-static void logic_encryption_create_fido2_priv_signing_key(uint8_t const *priv_key, br_ec_private_key *br_key)
-{
-    memcpy(logic_encryption_fido2_priv_key_buf, priv_key, sizeof(logic_encryption_fido2_priv_key_buf));
-
-    br_key->x = logic_encryption_fido2_priv_key_buf;
-    br_key->curve = logic_encryption_br_ec_algo_id;
-    br_key->xlen = FIDO2_PRIV_KEY_LEN;
-}
-
-/*! \fn     logic_encryption_ecc256_load_key(uint8_t const *key)
+/*! \fn     logic_encryption_ecc256_load_key(uint8_t const* key)
 *   \brief  Load a key from a buffer
 *   \param  key     The key to load
 */
-void logic_encryption_ecc256_load_key(uint8_t const *key)
-{
-    logic_encryption_create_fido2_priv_signing_key(key, &logic_encryption_fido2_signing_key);
+void logic_encryption_ecc256_load_key(uint8_t const* key)
+{    
+    memcpy(logic_encryption_fido2_priv_key_buf, key, sizeof(logic_encryption_fido2_priv_key_buf));
+    logic_encryption_fido2_signing_key.x = logic_encryption_fido2_priv_key_buf;
+    logic_encryption_fido2_signing_key.curve = logic_encryption_br_ec_algo_id;
+    logic_encryption_fido2_signing_key.xlen = FIDO2_PRIV_KEY_LEN;
 }
 
-/*! \fn     logic_encryption_ecc256_generate_private_key(uint8_t *priv_key)
+/*! \fn     logic_encryption_ecc256_generate_private_key(uint8_t* priv_key, uint16_t priv_key_size)
 *   \brief  Generate a private key using ECC256
-*   \param  priv_key    Output private key
-*   \return size of key
+*   \param  priv_key        Output private key
+*   \param  priv_key_size   Size of expected private key
 */
-size_t logic_encryption_ecc256_generate_private_key(uint8_t *priv_key)
+void logic_encryption_ecc256_generate_private_key(uint8_t* priv_key, uint16_t priv_key_size)
 {
-    size_t result;
-
-    result = br_ec_keygen(&logic_encryption_hmac_drbg_ctx.vtable, logic_encryption_br_ec_algo, NULL, priv_key, logic_encryption_br_ec_algo_id);
-    if (result == 0)
+    size_t result = br_ec_keygen(&logic_encryption_hmac_drbg_ctx.vtable, logic_encryption_br_ec_algo, NULL, priv_key, logic_encryption_br_ec_algo_id);
+    if (result != priv_key_size)
     {
-        //Log("error, generating private key failed\n");
         while(1);
     }
-    return result;
 }
 
-/*! \fn     logic_encryption_ecc256_derive_public_key(uint8_t const *priv_key, ecc256_pub_key *pub_key)
+/*! \fn     logic_encryption_ecc256_derive_public_key(uint8_t const* priv_key, ecc256_pub_key* pub_key)
 *   \brief  Derive public key from the private key
 *   \param  priv_key    Private key to derive from
 *   \param  pub_key     Output public key
 */
-void logic_encryption_ecc256_derive_public_key(uint8_t const *priv_key, ecc256_pub_key *pub_key)
+void logic_encryption_ecc256_derive_public_key(uint8_t const* priv_key, ecc256_pub_key* pub_key)
 {
+    /* Extra byte in the beginning is public key identifier */
     #define PUBLIC_KEY_LEN 65
-
     uint8_t pubkey[PUBLIC_KEY_LEN];
-    size_t result;
     br_ec_private_key br_priv_key;
 
-    logic_encryption_create_fido2_priv_signing_key(priv_key, &br_priv_key);
+    /* Load private encryption key */
+    br_priv_key.curve = logic_encryption_br_ec_algo_id;
+    br_priv_key.xlen = FIDO2_PRIV_KEY_LEN;
+    br_priv_key.x = (uint8_t*)priv_key;
 
-    result = br_ec_compute_pub(logic_encryption_br_ec_algo, NULL, pubkey, &br_priv_key);
-    if (result == 0)
+    /* Compute public key, make sure it fills the right amount of bytes */
+    size_t result = br_ec_compute_pub(logic_encryption_br_ec_algo, NULL, pubkey, &br_priv_key);
+    if (result != sizeof(pubkey))
     {
-        //Log("error, deriving public key failed\n");
         while(1);
     }
+    
+    /* Copy the fields we're interested in */
     memmove(pub_key->x, pubkey + 1, FIDO2_PUB_KEY_X_LEN);
     memmove(pub_key->y, pubkey + 1 + FIDO2_PUB_KEY_X_LEN, FIDO2_PUB_KEY_Y_LEN);
 }
