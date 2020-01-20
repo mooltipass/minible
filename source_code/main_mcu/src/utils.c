@@ -34,6 +34,18 @@ uint16_t utils_strlen(cust_char_t* string)
     return i;
 }
 
+/*! \fn     utils_u8strlen(uint8_t* string)
+*   \brief  strlen for u8 strings
+*   \param  string      The string
+*   \return The string length
+*/
+uint16_t utils_u8strlen(uint8_t* string)
+{
+    uint16_t i;
+    for (i = 0; string[i] != 0; i++);
+    return i;
+}
+
 /*! \fn     utils_get_nb_lines(const cust_char_t* string)
 *   \brief  Count number of lines in string
 *   \param  string      The string
@@ -103,6 +115,19 @@ uint16_t utils_strcpy(cust_char_t* destination, cust_char_t* source)
 *   \return The string length
 */
 uint16_t utils_strnlen(cust_char_t* string, uint16_t maxlen)
+{
+    uint16_t i;
+    for (i = 0; (string[i] != 0) && (i < maxlen); i++);
+    return i;
+}
+
+/*! \fn     utils_u8strnlen(uint8_t* string, uint16_t maxlen)
+*   \brief  Our own custom strnlen for uint8_t strings
+*   \param  string      The string
+*   \param  maxlen      Max Length
+*   \return The string length
+*/
+uint16_t utils_u8strnlen(uint8_t const* string, uint16_t maxlen)
 {
     uint16_t i;
     for (i = 0; (string[i] != 0) && (i < maxlen); i++);

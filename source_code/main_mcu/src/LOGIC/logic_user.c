@@ -415,6 +415,7 @@ fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, ui
     /* Create new webauthn credential */
     RET_TYPE temp_ret = logic_database_add_webauthn_credential_for_service(parent_address, user_handle, user_name, display_name, encrypted_private_key, temp_cred_ctr_val, credential_id);
     
+    /* Correct return depending on credential add result */
     if (temp_ret == RETURN_OK)
     {
         return FIDO2_SUCCESS;

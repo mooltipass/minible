@@ -166,27 +166,22 @@ static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t
     attested_data_t attested_data;
     ecc256_pub_key pub_key;
     
-    /* Check for unlocked device */
+    /* Check for logged in user first */
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
         response->error_code = FIDO2_USER_NOT_PRESENT;
         return response->error_code;
     }
 
-    if (!fido2_room_for_more_creds(request->rpID))
-    {
-        response->error_code = FIDO2_STORAGE_EXHAUSTED;
-        return response->error_code;
-    }
-    /* Clear attested data */
+    /* Clear new attested data */
     memset(&attested_data, 0, sizeof(attested_data));
     
-    /* Create credential ID */
+    /* Create credential ID: random bytes */
     rng_fill_array(credential_id, sizeof(credential_id));
 
-    /* Compute RPid hash, required for answer */
+    /* Compute RPID hash, required for answer */
     logic_encryption_sha256_init();
-    logic_encryption_sha256_update(request->rpID, strnlen(request->rpID, FIDO2_RPID_LEN));
+    logic_encryption_sha256_update(request->rpID, utils_u8strnlen(request->rpID, FIDO2_RPID_LEN));
     logic_encryption_sha256_final(attested_data.auth_data_header.rpID_hash);
 
     /* Create encryption key pair */
