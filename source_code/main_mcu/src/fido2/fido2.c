@@ -236,7 +236,7 @@ static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t
     /********************************/
     
     /* 1) Authenticated data header */
-    logic_encryption_sha256_init();                                                                 // Init SH256 engine
+    logic_encryption_sha256_init();                                                                 // Init SHA256 engine
     logic_encryption_sha256_update(request->rpID, utils_u8strnlen(request->rpID, FIDO2_RPID_LEN));  // Update with our RPID
     logic_encryption_sha256_final(attested_data.auth_data_header.rpID_hash);                        // Compute final hash
     attested_data.auth_data_header.sign_count = cpu_to_be32(1);                                     // First signature, woot!
@@ -254,19 +254,23 @@ static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t
     logic_encryption_ecc256_derive_public_key(private_key, &pub_key);
     attested_data.enc_PK_len = fido2_cbor_encode_public_key(attested_data.enc_pub_key, sizeof(attested_data.enc_pub_key), &pub_key);
     fido2_calc_attestation_signature((uint8_t const *)&attested_data, sizeof(attested_data) - sizeof(attested_data.enc_pub_key) + attested_data.enc_PK_len - sizeof(attested_data.enc_PK_len), request->client_data_hash, response->attest_sig, sizeof(response->attest_sig));
+        
+    /*****************/
+    /* Sanity checks */
+    /*****************/
 
     /*************************/
     /* Create answer to host */
     /*************************/
-    memcpy(response->tag, attested_data.cred_ID.tag, sizeof(response->tag));
-    memcpy(response->user_ID, user_handle_copy, sizeof(response->user_ID));
-    memcpy(response->rpID_hash, attested_data.auth_data_header.rpID_hash, sizeof(response->rpID_hash));
+    memcpy(response->tag, attested_data.cred_ID.tag, sizeof(attested_data.cred_ID.tag));
+    memcpy(response->user_ID, user_handle_copy, sizeof(user_handle_copy));
+    memcpy(response->rpID_hash, attested_data.auth_data_header.rpID_hash, sizeof(attested_data.auth_data_header.rpID_hash));
     response->count_BE = attested_data.auth_data_header.sign_count;
     response->flags = attested_data.auth_data_header.flags;
-    memcpy(response->pub_key_x, pub_key.x, sizeof(response->pub_key_x));
-    memcpy(response->pub_key_y, pub_key.y, sizeof(response->pub_key_y));
+    memcpy(response->pub_key_x, pub_key.x, sizeof(pub_key.x));
+    memcpy(response->pub_key_y, pub_key.y, sizeof(pub_key.y));
     // Attest signature already filled out above when calculating attestation signature
-    memcpy(response->aaguid, attested_data.attest_header.aaguid, sizeof(response->aaguid));
+    memcpy(response->aaguid, attested_data.attest_header.aaguid, sizeof(attested_data.attest_header.aaguid));
     response->cred_ID_len = sizeof(attested_data.cred_ID.tag);
     // Error code already set
 
@@ -301,15 +305,45 @@ static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t
 *   \param  outgoing response message
 *   \return error code
 */
-static uint32_t fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_message_t const *request, fido2_make_auth_data_rsp_message_t *response)
+static uint32_t fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t *response)
 {
+    /* Local vars */
+    credential_DB_rec_t *rec = fido2_get_credential(request->rpID, NULL);    
+    uint8_t credential_id[MEMBER_ARRAY_SIZE(child_webauthn_node_t, credential_id)];
+    uint8_t user_handle[MEMBER_ARRAY_SIZE(child_webauthn_node_t, user_handle)];
+    cust_char_t rp_id_copy[MEMBER_ARRAY_SIZE(parent_data_node_t, service)];
+    uint8_t private_key[FIDO2_PRIV_KEY_LEN];
     auth_data_header_t auth_data_header;
-    credential_DB_rec_t *rec = fido2_get_credential(request->rpID, NULL);
+    uint32_t temp_sign_count;
     ecc256_pub_key pub_key;
-    uint32_t confirmation;
-
+    
+    /* Zero out that stuff */
     memset(&auth_data_header, 0, sizeof(auth_data_header));
+    memset(credential_id, 0, sizeof(credential_id));
+    memset(user_handle, 0, sizeof(user_handle));
+    memset(rp_id_copy, 0, sizeof(rp_id_copy));
+    
+    /* Input sanitation */
+    request->rpID[MEMBER_SIZE(fido2_make_auth_data_req_message_t, rpID)-1] = 0;
+    
+    /* Conversions from UTF8 to BMP (who stores emoticons anyway....) */
+    int16_t rpid_conv_length = utils_utf8_string_to_bmp_string(request->rpID, rp_id_copy, MEMBER_SIZE(fido2_make_auth_data_req_message_t, rpID), ARRAY_SIZE(rp_id_copy));
+    
+    /* Did the conversion go badly? */
+    if (rpid_conv_length < 0)
+    {
+        response->error_code = FIDO2_NO_CREDENTIALS;
+        return response->error_code;
+    }
+    
+    /* Check for logged in user first */
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
+    {
+        response->error_code = FIDO2_USER_NOT_PRESENT;
+        return response->error_code;
+    }
 
+    // TODO: remove below
     if (rec == NULL)
     {
         response->error_code = FIDO2_CRED_NOT_FOUND;
@@ -317,21 +351,28 @@ static uint32_t fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_mess
     }
     else
     {
+        memcpy(private_key, rec->priv_key, sizeof(private_key));
     }
+    
+    /* Compute RPid Hash */
     logic_encryption_sha256_init();
-    logic_encryption_sha256_update(request->rpID, strnlen(request->rpID, FIDO2_CREDENTIAL_ID_LENGTH));
+    logic_encryption_sha256_update(request->rpID, utils_u8strnlen(request->rpID, sizeof(request->rpID)));
     logic_encryption_sha256_final(auth_data_header.rpID_hash);
+    
+    /* Ask for user permission */
+    fido2_return_code_te temp_return = FIDO2_SUCCESS;
+    //temp_return = logic_user_get_webauthn_credential_key_for_rp(rp_id_copy, user_handle, credential_id, private_key, &temp_sign_count, (uint8_t**)0, 0);
+    
+    /* TODO: updating signing count */
+    temp_sign_count += 1;
 
-    confirmation = fido2_prompt_user("Confirm auth?", TRUE, 10);
-
-    if (confirmation == FIDO2_SUCCESS)
+    /* Success? */
+    if (temp_return == FIDO2_SUCCESS)
     {
-        auth_data_header.flags |= FIDO2_UP_BIT; //User present
-        auth_data_header.flags |= FIDO2_UV_BIT; //User verified
-        if (request->new_cred)
-        {
-            auth_data_header.flags |= FIDO2_AT_BIT; //Attested credential data attached
-        }
+        auth_data_header.sign_count = cpu_to_be32(temp_sign_count);
+        auth_data_header.flags &= ~FIDO2_AT_BIT;
+        auth_data_header.flags |= FIDO2_UP_BIT;
+        auth_data_header.flags |= FIDO2_UV_BIT;
         response->error_code = FIDO2_SUCCESS;
     }
     else
@@ -339,37 +380,36 @@ static uint32_t fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_mess
         auth_data_header.flags &= ~FIDO2_UP_BIT;
         auth_data_header.flags &= ~FIDO2_UV_BIT;
         auth_data_header.flags &= ~FIDO2_AT_BIT;
-        response->error_code = (uint8_t) FIDO2_OPERATION_DENIED;
+        response->error_code = (uint8_t)temp_return;
         return response->error_code;
     }
 
-    //Create public key from stored private key
-    logic_encryption_ecc256_derive_public_key(rec->priv_key, &pub_key);
-
-    //Update credential "count"
-    //Update on every get_assertion/get_next_assertion
+    // to remove
     rec->count = fido2_update_credential_count(rec->count);
-
     fido2_update_credential_in_db(rec);
-
-    //Create attestation signature
     fido2_set_attest_sign_count(rec->count, &auth_data_header.sign_count);
+    memcpy(credential_id, rec->tag, sizeof(credential_id));
+    memcpy(user_handle, rec->user_ID, sizeof(user_handle));
 
+    /* Sign header */
     logic_encryption_ecc256_load_key(rec->priv_key);
-    fido2_calc_attestation_signature((uint8_t const *) &auth_data_header, sizeof(auth_data_header), request->client_data_hash, response->attest_sig, sizeof(response->attest_sig));
+    logic_encryption_ecc256_derive_public_key(private_key, &pub_key);
+    fido2_calc_attestation_signature((uint8_t const *)&auth_data_header, sizeof(auth_data_header), request->client_data_hash, response->attest_sig, sizeof(response->attest_sig));
 
-    //Fill out response object
-    memcpy(response->tag, rec->tag, FIDO2_CREDENTIAL_ID_LENGTH);
-    memcpy(response->user_ID, rec->user_ID, FIDO2_USER_ID_LEN);
-    memcpy(response->rpID_hash, auth_data_header.rpID_hash, FIDO2_RPID_HASH_LEN);
+    /*************************/
+    /* Create answer to host */
+    /*************************/
+    memcpy(response->tag, credential_id, sizeof(credential_id));
+    memcpy(response->user_ID, user_handle, sizeof(user_handle));
+    memcpy(response->rpID_hash, auth_data_header.rpID_hash, sizeof(auth_data_header.rpID_hash));
     response->count_BE = auth_data_header.sign_count;
-    memcpy(response->pub_key_x, pub_key.x, FIDO2_PUB_KEY_X_LEN);
-    memcpy(response->pub_key_y, pub_key.y, FIDO2_PUB_KEY_Y_LEN);
-    //Attest signature already filled out above when calculating attestation signature
-    memcpy(response->aaguid, FIDO2_MINIBLE_AAGUID, FIDO2_AAGUID_LEN);
-    //We no longer have the credential ID. Not needed for assertion
-    response->cred_ID_len = 0;
+    memcpy(response->pub_key_x, pub_key.x, sizeof(pub_key.x));
+    memcpy(response->pub_key_y, pub_key.y, sizeof(pub_key.y));
+    // Attest signature already filled out above when calculating attestation signature
+    memcpy(response->aaguid, FIDO2_MINIBLE_AAGUID, sizeof(response->aaguid));
+    // We no longer have the credential ID. Not needed for assertion
     response->flags = auth_data_header.flags;
+    response->cred_ID_len = 0;
     //error code already set
     return response->error_code;
 }

@@ -535,17 +535,18 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     }
 }
 
-/*! \fn     logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t** credential_id_allow_list, uint16_t credential_id_allow_list_length)
+/*! \fn     logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t** credential_id_allow_list, uint16_t credential_id_allow_list_length)
 *   \brief  Get credential private key for a possible credential for a relying party
 *   \param  rp_id                           Pointer to relying party string
 *   \param  credential_id                   16B buffer to where to store the credential id
+*   \param  user_handle                     64B buffer to where to store the user handle
 *   \param  private_key                     32B buffer to where to store the private key
 *   \param  count                           Pointer to uint32_t to store authentication count
 *   \param  credential_id_allow_list        If credential_id_allow_list_length != 0, list of credential ids we allow
 *   \param  credential_id_allow_list_length Length of the credential allow list
 *   \return success status
 */
-RET_TYPE logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t** credential_id_allow_list, uint16_t credential_id_allow_list_length)
+fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t** credential_id_allow_list, uint16_t credential_id_allow_list_length)
 {
     uint8_t temp_cred_ctr[MEMBER_SIZE(child_webauthn_node_t, ctr)];
     
@@ -553,19 +554,13 @@ RET_TYPE logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8
     /* However, I'm not sure why this would happen, as the RP would need to keep track of all aliases of a given user... */
     
     /* Copy strings locally */
-    cust_char_t rp_id_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)];
     cust_char_t temp_user_name[MEMBER_ARRAY_SIZE(child_webauthn_node_t, user_name)+1];
-    utils_strncpy(rp_id_copy, rp_id, MEMBER_ARRAY_SIZE(parent_cred_node_t, service));
-    rp_id_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)-1] = 0;
     memset(temp_user_name, 0, sizeof(temp_user_name));
-    
-    /* Switcheroo */
-    rp_id = rp_id_copy;
     
     /* Smartcard present and unlocked? */
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
-        return -1;
+        return FIDO2_USER_NOT_PRESENT;
     }
     
     /* Does service already exist? */
@@ -577,7 +572,7 @@ RET_TYPE logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8
     {
         /* From 1s to 3s */
         timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
-        return RETURN_NOK;
+        return FIDO2_CRED_NOT_FOUND;
     }
     
     /* See how many credentials there are for this service */
@@ -594,9 +589,9 @@ RET_TYPE logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8
             /* Check for existing login */
             if (child_address == NODE_ADDR_NULL)
             {
-                /* From 3s to 7s */
+                /* From 3s to 7s, do not leak information and return that the operation was denied */
                 timer_delay_ms(3000 + (rng_get_random_uint16_t()&0x0FFF));
-                return RETURN_NOK;
+                return FIDO2_OPERATION_DENIED;
             }
         }
         
@@ -618,7 +613,7 @@ RET_TYPE logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8
             /* Did the user approve? */
             if (prompt_return != MINI_INPUT_RET_YES)
             {
-                return RETURN_NOK;
+                return FIDO2_OPERATION_DENIED;
             }
         }
         else
@@ -636,12 +631,12 @@ RET_TYPE logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8
         }
         
         /* Fetch webauthn data */
-        logic_database_get_webauthn_data_for_address(child_address, credential_id, private_key, count, temp_cred_ctr);
+        logic_database_get_webauthn_data_for_address(child_address, user_handle, credential_id, private_key, count, temp_cred_ctr);
         
         /* User approved, decrypt key */
         logic_encryption_ctr_decrypt(private_key, temp_cred_ctr, MEMBER_SIZE(child_webauthn_node_t, private_key), FALSE);
         
-        return RETURN_OK;
+        return FIDO2_SUCCESS;
     }
     else
     {
@@ -650,7 +645,7 @@ RET_TYPE logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8
         {
             /* From 1s to 3s */
             timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
-            return RETURN_NOK;
+            return FIDO2_CRED_NOT_FOUND;
         }
         else
         {
@@ -667,17 +662,17 @@ RET_TYPE logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8
             /* So.... what did the user select? */
             if (child_address == NODE_ADDR_NULL)
             {
-                return RETURN_NOK;
+                return FIDO2_OPERATION_DENIED;
             }
             else
             {
                 /* Fetch webauthn data */
-                logic_database_get_webauthn_data_for_address(child_address, credential_id, private_key, count, temp_cred_ctr);
+                logic_database_get_webauthn_data_for_address(child_address, user_handle, credential_id, private_key, count, temp_cred_ctr);
                 
                 /* User approved, decrypt key */
                 logic_encryption_ctr_decrypt(private_key, temp_cred_ctr, MEMBER_SIZE(child_webauthn_node_t, private_key), FALSE);
                 
-                return RETURN_OK;
+                return FIDO2_SUCCESS;
             }
         }
     }    
