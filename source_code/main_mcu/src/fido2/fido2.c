@@ -21,7 +21,7 @@
 #include "fido2.h"
 #include "rng.h"
 #include "main.h"
-
+uint8_t fido2_minible_aaguid[16] = {0x6d,0xb0,0x42,0xd0,0x61,0xaf,0x40,0x4c,0xa8,0x87,0xe7,0x2e,0x09,0xba,0x7e,0xb4};
 static bool fido2_room_for_more_creds(uint8_t const *rpID);
 static void fido2_store_credential_in_db(credential_DB_rec_t const *cred_rec);
 static void fido2_update_credential_in_db(credential_DB_rec_t const *cred_rec);
@@ -87,12 +87,19 @@ static void fido2_calc_attestation_signature(uint8_t const* data, int datalen, u
 *   \param  buffer for encoded output
 *   \param  buffer length
 *   \param  public key
-*   \return encoded public key buffer size
+*   \return Number of bytes written in the buffer (77)
 */
 static uint32_t fido2_cbor_encode_public_key(uint8_t *buf, uint32_t bufLen, ecc256_pub_key const *pub_key)
 {
     uint16_t output_data_length = 0;
+    
+    /* Ok, I know it's cheating... but if you read all functions descriptions below you'll see we know already the size required */
+    if (bufLen < (1+1+1+1+1+1+1+1+34+1+34))
+    {
+        while(1);
+    }
 
+    /* Store the bytes ! */
     buf[output_data_length++] = FIDO2_CBOR_CONTAINER_START | 5; //start and number of elements in container
     buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_LABEL_KTY);
     buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_KTY_EC2);
@@ -104,7 +111,6 @@ static uint32_t fido2_cbor_encode_public_key(uint8_t *buf, uint32_t bufLen, ecc2
     output_data_length+= utils_cbor_encode_32byte_bytestring((uint8_t*)pub_key->x, &buf[output_data_length]);
     buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_LABEL_Y);
     output_data_length+= utils_cbor_encode_32byte_bytestring((uint8_t*)pub_key->y, &buf[output_data_length]);
-
     return output_data_length;
 }
 
@@ -180,6 +186,9 @@ static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t
     memset(user_name_copy, 0, sizeof(user_name_copy));
     memset(rp_id_copy, 0, sizeof(rp_id_copy));
     
+    /* Sanity check */
+    _Static_assert(sizeof(user_handle_copy) <= sizeof(request->user_ID), "user id is too large");
+    
     /* Copies */
     memcpy(client_hash_copy, request->client_data_hash, sizeof(client_hash_copy));
     memcpy(user_handle_copy, request->user_ID, sizeof(user_handle_copy));
@@ -243,9 +252,9 @@ static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t
     // Flags have been previously set
     
     /* 2) Attestation header */
-    memcpy(attested_data.attest_header.aaguid, FIDO2_MINIBLE_AAGUID, FIDO2_AAGUID_LEN);     // Copy our AAGUID
-    attested_data.attest_header.cred_len_l = FIDO2_CREDENTIAL_ID_LENGTH & 0x00FF;           // Credential ID length
-    attested_data.attest_header.cred_len_h = (FIDO2_CREDENTIAL_ID_LENGTH & 0xFF00) >> 8;    // Credential ID length
+    memcpy(attested_data.attest_header.aaguid, fido2_minible_aaguid, sizeof(fido2_minible_aaguid)); // Copy our AAGUID
+    attested_data.attest_header.cred_len_l = FIDO2_CREDENTIAL_ID_LENGTH & 0x00FF;                   // Credential ID length
+    attested_data.attest_header.cred_len_h = (FIDO2_CREDENTIAL_ID_LENGTH & 0xFF00) >> 8;            // Credential ID length
     
     /* 3) Credential ID, previously set with random values */
     
@@ -258,6 +267,12 @@ static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t
     /*****************/
     /* Sanity checks */
     /*****************/
+    _Static_assert(sizeof(response->tag) == sizeof(attested_data.cred_ID.tag), "tag size is too large");
+    _Static_assert(sizeof(response->user_ID) >= sizeof(user_handle_copy), "user handle is too large");
+    _Static_assert(sizeof(response->rpID_hash) == sizeof(attested_data.auth_data_header.rpID_hash), "rpid hash is too large");
+    _Static_assert(sizeof(response->pub_key_x) == sizeof(pub_key.x), "pub key x is too large");
+    _Static_assert(sizeof(response->pub_key_y) == sizeof(pub_key.y), "pub key y is too large");
+    _Static_assert(sizeof(response->aaguid) == sizeof(attested_data.attest_header.aaguid), "aaguid is too large");
 
     /*************************/
     /* Create answer to host */
@@ -396,6 +411,16 @@ static uint32_t fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_mess
     logic_encryption_ecc256_derive_public_key(private_key, &pub_key);
     fido2_calc_attestation_signature((uint8_t const *)&auth_data_header, sizeof(auth_data_header), request->client_data_hash, response->attest_sig, sizeof(response->attest_sig));
 
+    /*****************/
+    /* Sanity checks */
+    /*****************/
+    _Static_assert(sizeof(response->tag) == sizeof(credential_id), "tag size is too large");
+    _Static_assert(sizeof(response->user_ID) >= sizeof(user_handle), "user handle is too large");
+    _Static_assert(sizeof(response->rpID_hash) == sizeof(auth_data_header.rpID_hash), "rpid hash is too large");
+    _Static_assert(sizeof(response->pub_key_x) == sizeof(pub_key.x), "pub key x is too large");
+    _Static_assert(sizeof(response->pub_key_y) == sizeof(pub_key.y), "pub key y is too large");
+    _Static_assert(sizeof(response->aaguid) == sizeof(fido2_minible_aaguid), "aaguid is too large");
+    
     /*************************/
     /* Create answer to host */
     /*************************/
@@ -406,7 +431,7 @@ static uint32_t fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_mess
     memcpy(response->pub_key_x, pub_key.x, sizeof(pub_key.x));
     memcpy(response->pub_key_y, pub_key.y, sizeof(pub_key.y));
     // Attest signature already filled out above when calculating attestation signature
-    memcpy(response->aaguid, FIDO2_MINIBLE_AAGUID, sizeof(response->aaguid));
+    memcpy(response->aaguid, fido2_minible_aaguid, sizeof(response->aaguid));
     // We no longer have the credential ID. Not needed for assertion
     response->flags = auth_data_header.flags;
     response->cred_ID_len = 0;

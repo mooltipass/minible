@@ -49,6 +49,5 @@
 #define FIDO2_CREDENTIAL_EXISTS     1
 #define FIDO2_NEW_CREDENTIAL        1
 
-#define FIDO2_MINIBLE_AAGUID        ((uint8_t*)"\x6d\xb0\x42\xd0\x61\xaf\x40\x4c\xa8\x87\xe7\x2e\x09\xba\x7e\xb4")
 
 #endif /* FIDO2_VALUES_DEFINES_H_ */
