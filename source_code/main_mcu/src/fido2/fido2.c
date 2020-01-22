@@ -374,12 +374,9 @@ static uint32_t fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_mess
     logic_encryption_sha256_update(request->rpID, utils_u8strnlen(request->rpID, sizeof(request->rpID)));
     logic_encryption_sha256_final(auth_data_header.rpID_hash);
     
-    /* Ask for user permission */
+    /* Ask for user permission, automatically pre increment signing counter upon success recall */
     fido2_return_code_te temp_return = FIDO2_SUCCESS;
     //temp_return = logic_user_get_webauthn_credential_key_for_rp(rp_id_copy, user_handle, credential_id, private_key, &temp_sign_count, (uint8_t**)0, 0);
-    
-    /* TODO: updating signing count */
-    temp_sign_count += 1;
 
     /* Success? */
     if (temp_return == FIDO2_SUCCESS)

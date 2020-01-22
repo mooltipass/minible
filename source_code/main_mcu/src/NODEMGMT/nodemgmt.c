@@ -330,15 +330,36 @@ void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_
     child_node->description[(sizeof(child_node->description)/sizeof(child_node->description[0]))-1] = 0;
 }
 
-/*! \fn     nodemgmt_read_webauthn_child_node_except_display_name(uint16_t address, child_webauthn_node_t* child_node)
+/*! \fn     nodemgmt_read_webauthn_child_node_except_display_name(uint16_t address, child_webauthn_node_t* child_node, BOOL update_date_and_increment_preinc_count)
 *   \brief  Read a webauthn child node but not the display name field
-*   \param  address     Where to read
-*   \param  child_node  Pointer to the node
+*   \param  address                                 Where to read
+*   \param  child_node                              Pointer to the node
+*   \param  update_date_and_increment_preinc_count  Boolean to pre increment sign count and update last used date
 */
-void nodemgmt_read_webauthn_child_node_except_display_name(uint16_t address, child_webauthn_node_t* child_node)
+void nodemgmt_read_webauthn_child_node_except_display_name(uint16_t address, child_webauthn_node_t* child_node, BOOL update_date_and_increment_preinc_count)
 {
     nodemgmt_read_parent_node_data_block_from_flash(address, (parent_node_t*)child_node);
     nodemgmt_check_user_perm_from_flags_and_lock(child_node->flags);
+    
+    /* Boolean set ? */
+    if (update_date_and_increment_preinc_count != FALSE)
+    {
+        // Increment sign count
+        uint32_t temp_sign_count = child_node->signature_counter_msb;
+        temp_sign_count <<= 16;
+        temp_sign_count += child_node->signature_counter_lsb;
+        temp_sign_count += 1;
+        child_node->signature_counter_lsb = (uint16_t)temp_sign_count;
+        child_node->signature_counter_msb = (uint16_t)(temp_sign_count >> 16);        
+        
+        // If we have a date, update last used field
+        if ((nodemgmt_current_date != 0x0000) && (child_node->dateLastUsed != nodemgmt_current_date))
+        {
+            child_node->dateLastUsed = nodemgmt_current_date;
+        }
+        
+        nodemgmt_write_parent_node_data_block_to_flash(address, (parent_node_t*)child_node);
+    }    
     
     // String cleaning
     child_node->user_name_t0 = 0;

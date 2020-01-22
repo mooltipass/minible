@@ -541,7 +541,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
 *   \param  credential_id                   16B buffer to where to store the credential id
 *   \param  user_handle                     64B buffer to where to store the user handle
 *   \param  private_key                     32B buffer to where to store the private key
-*   \param  count                           Pointer to uint32_t to store authentication count
+*   \param  count                           Pointer to uint32_t to store authentication count, automatically pre incremented
 *   \param  credential_id_allow_list        If credential_id_allow_list_length != 0, list of credential ids we allow
 *   \param  credential_id_allow_list_length Length of the credential allow list
 *   \return success status
@@ -631,7 +631,7 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
         }
         
         /* Fetch webauthn data */
-        logic_database_get_webauthn_data_for_address(child_address, user_handle, credential_id, private_key, count, temp_cred_ctr);
+        logic_database_get_webauthn_data_for_address_and_inc_count(child_address, user_handle, credential_id, private_key, count, temp_cred_ctr);
         
         /* User approved, decrypt key */
         logic_encryption_ctr_decrypt(private_key, temp_cred_ctr, MEMBER_SIZE(child_webauthn_node_t, private_key), FALSE);
@@ -667,7 +667,7 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
             else
             {
                 /* Fetch webauthn data */
-                logic_database_get_webauthn_data_for_address(child_address, user_handle, credential_id, private_key, count, temp_cred_ctr);
+                logic_database_get_webauthn_data_for_address_and_inc_count(child_address, user_handle, credential_id, private_key, count, temp_cred_ctr);
                 
                 /* User approved, decrypt key */
                 logic_encryption_ctr_decrypt(private_key, temp_cred_ctr, MEMBER_SIZE(child_webauthn_node_t, private_key), FALSE);
