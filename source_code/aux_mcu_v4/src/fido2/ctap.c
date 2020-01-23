@@ -735,7 +735,6 @@ uint8_t ctap_request(uint8_t * pkt_raw, int length, CTAP_RESPONSE * resp)
             printf2(TAG_ERR,"error, invalid cmd\n");
     }
 
-done:
     if (status != CTAP1_ERR_SUCCESS)
     {
         resp->length = 0;

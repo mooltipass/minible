@@ -335,8 +335,13 @@ void ctap_reset_state();
 
 uint8_t ctap_add_pin_if_verified(uint8_t * pinTokenEnc, uint8_t * platform_pubkey, uint8_t * pinHashEnc);
 uint8_t ctap_update_pin_if_verified(uint8_t * pinEnc, int len, uint8_t * platform_pubkey, uint8_t * pinAuth, uint8_t * pinHashEnc);
-
+int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * desc, uint8_t *user_ID);
+uint8_t ctap_make_credential(CborEncoder * encoder, uint8_t * request, int length);
+uint8_t ctap_get_assertion(CborEncoder * encoder, uint8_t * request, int length);
+uint8_t ctap_add_attest_statement(CborEncoder * map, uint8_t * sigder, int len);
+uint8_t ctap_add_user_entity(CborEncoder * map, CTAP_userEntity * user);
 void ctap_update_pin(uint8_t * pin, int len);
+uint8_t ctap_get_info(CborEncoder * encoder);
 uint8_t ctap_decrement_pin_attempts();
 int8_t ctap_leftover_pin_attempts();
 void ctap_reset_pin_attempts();

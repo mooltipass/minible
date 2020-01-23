@@ -221,7 +221,7 @@ static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t
     /* Try to store new credential */
     fido2_return_code_te temp_return = FIDO2_SUCCESS;
     //temp_return logic_user_store_webauthn_credential(rp_id_copy, user_handle_copy, user_name_copy, display_name_copy, private_key, attested_data.cred_ID.tag);
-    //timer_delay_ms(3000);
+    timer_delay_ms(3000);
 
     /* Success? */
     if (temp_return == FIDO2_SUCCESS)

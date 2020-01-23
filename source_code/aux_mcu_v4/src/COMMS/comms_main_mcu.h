@@ -140,7 +140,7 @@ typedef struct
 
 typedef struct credential_ID_s {
     uint8_t tag[FIDO2_TAG_LEN];
-}__attribute__((packed)) fido2_credential_ID_t;
+} fido2_credential_ID_t;
 
 typedef struct fido2_auth_cred_req_message_s
 {
