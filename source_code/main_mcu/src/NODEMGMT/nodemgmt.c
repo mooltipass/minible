@@ -987,7 +987,7 @@ uint16_t nodemgmt_get_start_addresses(uint16_t* addresses_array)
     // Write addresses in the user profile page. Possible as the credential start address & data start addresses are contiguous in memory
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.cred_start_addresses), MEMBER_SIZE(nodemgmt_profile_main_data_t, cred_start_addresses) + MEMBER_SIZE(nodemgmt_profile_main_data_t, data_start_addresses), addresses_array);
 
-    return MEMBER_SIZE(nodemgmt_profile_main_data_t, cred_start_addresses) + MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, data_start_addresses);
+    return MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, cred_start_addresses) + MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, data_start_addresses);
 }
 
 /*! \fn     nodemgmt_get_cred_change_number(void)
