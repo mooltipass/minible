@@ -23,6 +23,7 @@
 #include "cose_key.h"
 #include "solo_compat_layer.h"
 #include "comms_main_mcu.h"
+#include "driver_timer.h"
 
 struct _getAssertionState getAssertionState;
 
@@ -60,7 +61,7 @@ uint8_t ctap_get_info(CborEncoder * encoder)
         ret = cbor_encode_uint(&map, RESP_options);
         check_ret(ret);
         {
-            ret = cbor_encoder_create_map(&map, &options,3);
+            ret = cbor_encoder_create_map(&map, &options,4);
             check_ret(ret);
             {
                 ret = cbor_encode_text_string(&options, "rk", 2);
@@ -77,15 +78,12 @@ uint8_t ctap_get_info(CborEncoder * encoder)
                     check_ret(ret);
                 }
 
-                // NOT [yet] capable of verifying user
-                // Do not add option if UV isn't supported.
-                //
-                // ret = cbor_encode_text_string(&options, "uv", 2);
-                // check_ret(ret);
-                // {
-                //     ret = cbor_encode_boolean(&options, 0);
-                //     check_ret(ret);
-                // }
+                ret = cbor_encode_text_string(&options, "uv", 2);
+                check_ret(ret);
+                {
+                    ret = cbor_encode_boolean(&options, 1);
+                     check_ret(ret);
+                }
 
                 ret = cbor_encode_text_string(&options, "plat", 4);
                 check_ret(ret);
@@ -176,6 +174,7 @@ static void _ctap_MAD_aux_comm(uint8_t *rpID, CTAP_credInfo * credInfo, uint8_t 
     aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
     aux_mcu_message_t* temp_tx_message_pt;
     fido2_make_auth_data_req_message_t *req_msg;
+    ret_type_te ret;
 
     /* Create message to make authentication data */
     comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_FIDO2);
@@ -204,7 +203,12 @@ static void _ctap_MAD_aux_comm(uint8_t *rpID, CTAP_credInfo * credInfo, uint8_t 
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
 
     /* Wait for message from main MCU */
-    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2) != RETURN_OK);
+    do
+    {
+        ret = comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2);
+        ctaphid_update_status(2);
+        timer_delay_ms(50);
+    } while (ret != RETURN_OK);
 
     /* Received message is in temporary buffer */
     memcpy(resp_msg, &temp_rx_message_pt->fido2_message.fido2_make_auth_data_rsp_message, sizeof(*resp_msg));
@@ -360,6 +364,7 @@ int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * d
     aux_mcu_message_t* temp_tx_message_pt;
     fido2_auth_cred_req_message_t* msg;
     fido2_auth_cred_rsp_message_t* rsp_msg;
+    ret_type_te ret;
 
     /* Create message to authenticate a credential */
     comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_FIDO2);
@@ -381,7 +386,12 @@ int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * d
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
 
     /* Wait for message from main MCU */
-    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2) != RETURN_OK);
+    do
+    {
+        ret = comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2);
+        ctaphid_update_status(2);
+        timer_delay_ms(50);
+    } while (ret != RETURN_OK);
 
     /* Received message is in temporary buffer */
     rsp_msg = &temp_rx_message_pt->fido2_message.fido2_auth_cred_rsp_message;
