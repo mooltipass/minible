@@ -61,7 +61,7 @@
 #define CAPABILITY_CBOR             0x04
 #define CAPABILITY_NMSG             0x08
 
-#define CTAP_CAPABILITIES           (CAPABILITY_WINK | CAPABILITY_CBOR | CAPABILITY_NMSG)
+#define CTAP_CAPABILITIES           (CAPABILITY_CBOR | CAPABILITY_NMSG)
 
 typedef struct
 {
