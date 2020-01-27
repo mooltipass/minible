@@ -402,6 +402,26 @@ void logic_database_get_webauthn_username_for_address(uint16_t child_addr, cust_
     utils_strncpy(user_name, temp_half_cnode_pt->user_name, MEMBER_ARRAY_SIZE(child_webauthn_node_t, user_name));
 }
 
+/*! \fn     logic_database_get_webauthn_userhandle_for_address(uint16_t child_addr, uint8_t* userhandle)
+*   \brief  Get the userhandle at a given address
+*   \param  child_addr  Child address
+*   \param  user_name   Where to store 64B the userhandle
+*/
+void logic_database_get_webauthn_userhandle_for_address(uint16_t child_addr, uint8_t* userhandle)
+{
+    child_webauthn_node_t* temp_half_cnode_pt;
+    parent_node_t temp_pnode;
+    
+    /* Dirty trick */
+    temp_half_cnode_pt = (child_webauthn_node_t*)&temp_pnode;
+    
+    /* Read child node */
+    nodemgmt_read_webauthn_child_node_except_display_name(child_addr, temp_half_cnode_pt, FALSE);
+    
+    /* Copy userhandle */
+    memcpy(userhandle, temp_half_cnode_pt->user_handle, MEMBER_SIZE(child_webauthn_node_t, user_handle));
+}
+
 /*! \fn     logic_database_get_webauthn_data_for_address(uint16_t child_addr, uint8_t* user_handle, uint8_t* credential_id, uint8_t* key, uint32_t* count, uint8_t* ctr)
 *   \brief  Get the webauthn data for given address and pre increment signing counter
 *   \param  child_addr  Child address

@@ -34,13 +34,13 @@
 #include "driver_timer.h"
 #include "platform_io.h"
 #include "gui_prompts.h"
+#include "logic_fido2.h"
 #include "logic_user.h"
 #include "custom_fs.h"
 #include "logic_gui.h"
 #include "nodemgmt.h"
 #include "text_ids.h"
 #include "utils.h"
-#include "fido2.h"
 #include "rng.h"
 // User security preferences
 uint16_t logic_user_cur_sec_preferences;

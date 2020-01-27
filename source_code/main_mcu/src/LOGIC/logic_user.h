@@ -25,8 +25,8 @@
 #define LOGIC_USER_H_
 
 #include "comms_hid_msgs.h"
+#include "logic_fido2.h"
 #include "defines.h"
-#include "fido2.h"
 
 /* Defines */
 #define CHECK_PASSWORD_TIMER_VAL    4000

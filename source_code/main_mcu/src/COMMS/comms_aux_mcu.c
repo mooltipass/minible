@@ -30,8 +30,8 @@
 #include "driver_timer.h"
 #include "platform_io.h"
 #include "logic_power.h"
+#include "logic_fido2.h"
 #include "sh1122.h"
-#include "fido2.h"
 #include "main.h"
 #include "dma.h"
 #include "rng.h"
@@ -259,7 +259,7 @@ static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_auth_cred_msg(fido2_message_
     fido2_auth_cred_req_message_t* incoming_message = &received_message->fido2_auth_cred_req_message;
     fido2_auth_cred_rsp_message_t* response = &send_message->fido2_message.fido2_auth_cred_rsp_message;
 
-    fido2_process_exclude_list_item(incoming_message, response);
+    logic_fido2_process_exclude_list_item(incoming_message, response);
 
     send_message->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
     send_message->payload_length1 = sizeof(fido2_message_t);
@@ -278,7 +278,7 @@ static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_make_auth_data_msg(fido2_mes
     fido2_make_auth_data_req_message_t* request = &received_message->fido2_make_auth_data_req_message;
     fido2_make_auth_data_rsp_message_t* response = &send_message->fido2_message.fido2_make_auth_data_rsp_message;
 
-    fido2_process_make_auth_data(request, response);
+    logic_fido2_process_make_auth_data(request, response);
 
     send_message->fido2_message.message_type = AUX_MCU_FIDO2_MAD_RSP;
     send_message->payload_length1 = sizeof(fido2_message_t);

@@ -44,6 +44,7 @@ uint16_t logic_database_search_login_in_service(uint16_t parent_addr, cust_char_
 uint16_t logic_database_search_webauthn_credential_id_in_service(uint16_t parent_addr, uint8_t* credential_id);
 uint16_t logic_database_search_webauthn_userhandle_in_service(uint16_t parent_addr, uint8_t* user_handle);
 void logic_database_get_webauthn_username_for_address(uint16_t child_addr, cust_char_t* user_name);
+void logic_database_get_webauthn_userhandle_for_address(uint16_t child_addr, uint8_t* userhandle);
 void logic_database_get_login_for_address(uint16_t child_addr, cust_char_t** login);
 
 #endif /* LOGIC_DATABASE_H_ */

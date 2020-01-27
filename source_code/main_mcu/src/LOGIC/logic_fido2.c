@@ -1,5 +1,5 @@
-/*!  \file     fido2.c
-*    \brief    Crypto functions related to FIDO2
+/*!  \file     logic_fido2.c
+*    \brief    All functions for FIDO2!
 *    Created:  15/10/2019
 *    Author:   0x0ptr@pm.me
 *
@@ -8,55 +8,25 @@
 #include <stdint.h>
 #include <string.h>
 #include "comms_aux_mcu_defines.h"
+#include "fido2_values_defines.h"
 #include "logic_encryption.h"
 #include "platform_defines.h"
 #include "logic_security.h"
+#include "logic_database.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
+#include "logic_fido2.h"
 #include "logic_user.h"
-#include "cose_key.h"
 #include "nodemgmt.h"
 #include "defines.h"
 #include "utils.h"
-#include "fido2.h"
 #include "rng.h"
 #include "main.h"
+/* Mini BLE aaguid */
 uint8_t fido2_minible_aaguid[16] = {0x6d,0xb0,0x42,0xd0,0x61,0xaf,0x40,0x4c,0xa8,0x87,0xe7,0x2e,0x09,0xba,0x7e,0xb4};
-static bool fido2_room_for_more_creds(uint8_t const *rpID);
-static void fido2_store_credential_in_db(credential_DB_rec_t const *cred_rec);
-static void fido2_update_credential_in_db(credential_DB_rec_t const *cred_rec);
-static credential_DB_rec_t *fido2_get_credential(uint8_t const *rpID, uint8_t const *tag);
 
-/*! \fn     fido2_update_credential_count(uint32_t count)
-*   \brief  Update the credential count. This is to protect against replay attack.
-*           Server will check that count is not going backwards or re-used.
-*   \param  Current count to be updated
-*   \return new count
-*/
-static uint32_t fido2_update_credential_count(uint32_t count)
-{
-    //TBD
-    count++;
-    return count;
-}
 
-/*! \fn     fido2_prompt_user(char const *prompt, bool wait_for_ack, uint32_t timeout_sec)
-*   \brief  Prompt the user and optionally wait for ack from user.
-*   \param  prompt to display
-*   \param  boolean whether to wait for ACK
-*   \param  the amount of time to display message/wait for ack before timeout
-*   \return 0 if accepted or other value if denied/failed
-*/
-static uint32_t fido2_prompt_user(char const *prompt, bool wait_for_ack, uint32_t timeout_sec)
-{
-    uint32_t result = FIDO2_SUCCESS;
-    //TBD
-    //Display request to create cred with name
-    //Wait for ack
-    return result;
-}
-
-/*! \fn     fido2_calc_attestation_signature(uint8_t const* data, int datalen, uint8_t const* client_data_hash, uint8_t* sigbuf, uint16_t sigbuflen)
+/*! \fn     logic_fido2_calc_attestation_signature(uint8_t const* data, int datalen, uint8_t const* client_data_hash, uint8_t* sigbuf, uint16_t sigbuflen)
 *   \brief  Calculate the attestation signature
 *   \param  data to calculate signature over
 *   \param  length of data
@@ -65,7 +35,7 @@ static uint32_t fido2_prompt_user(char const *prompt, bool wait_for_ack, uint32_
 *   \param  size of signature buffer
 *   \return void
 */
-static void fido2_calc_attestation_signature(uint8_t const* data, int datalen, uint8_t const* client_data_hash, uint8_t* sigbuf, uint16_t sigbuflen)
+static void logic_fido2_calc_attestation_signature(uint8_t const* data, int datalen, uint8_t const* client_data_hash, uint8_t* sigbuf, uint16_t sigbuflen)
 {
     uint8_t hashbuf[SHA256_OUTPUT_LENGTH];
 
@@ -77,11 +47,11 @@ static void fido2_calc_attestation_signature(uint8_t const* data, int datalen, u
     logic_encryption_ecc256_sign(hashbuf, sigbuf, sigbuflen);
 }
 
-/*! \fn     fido2_cbor_encode_public_key(uint8_t *buf, uint32_t bufLen, ecc256_pub_key const *pub_key)
+/*! \fn     logic_fido2_cbor_encode_public_key(uint8_t* buf, uint32_t bufLen, ecc256_pub_key const* pub_key)
 *   \brief  CBOR encoder for the public key. All cbor encoding and decoding belongs to aux_mcu.
 *           Unfortunately, to be able to create attestation signature we have to encode the public key
 *           in cbor format so we have to do some cbor encoding on main_mcu also.
-*           Essentiallyt the same as Solo function ctap_add_coseKey() but
+*           Essentially the same as Solo function ctap_add_coseKey() but
 *           removed error checking and pass in buffer instead of the cbor encoder object
 *           in addition to hardcoding algtype.
 *   \param  buffer for encoded output
@@ -89,7 +59,7 @@ static void fido2_calc_attestation_signature(uint8_t const* data, int datalen, u
 *   \param  public key
 *   \return Number of bytes written in the buffer (77)
 */
-static uint32_t fido2_cbor_encode_public_key(uint8_t *buf, uint32_t bufLen, ecc256_pub_key const *pub_key)
+static uint32_t logic_fido2_cbor_encode_public_key(uint8_t* buf, uint32_t bufLen, ecc256_pub_key const* pub_key)
 {
     uint16_t output_data_length = 0;
     
@@ -111,10 +81,11 @@ static uint32_t fido2_cbor_encode_public_key(uint8_t *buf, uint32_t bufLen, ecc2
     output_data_length+= utils_cbor_encode_32byte_bytestring((uint8_t*)pub_key->x, &buf[output_data_length]);
     buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_LABEL_Y);
     output_data_length+= utils_cbor_encode_32byte_bytestring((uint8_t*)pub_key->y, &buf[output_data_length]);
+    
     return output_data_length;
 }
 
-/*! \fn     fido2_process_exclude_list_item(fido2_auth_cred_req_message_t const *request, fido2_auth_cred_rsp_message_t *response)
+/*! \fn     logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* request, fido2_auth_cred_rsp_message_t* response)
 *   \brief  Process Exclude list check from aux_mcu.
 *           Checks if tag already exists. Returns 1 if credential exists or 0
 *           otherwise. If tag exists prompt the user and wait for user ack.
@@ -122,45 +93,68 @@ static uint32_t fido2_cbor_encode_public_key(uint8_t *buf, uint32_t bufLen, ecc2
 *   \param  outgoing response
 *   \return void
 */
-void fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* request, fido2_auth_cred_rsp_message_t* response)
+void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* request, fido2_auth_cred_rsp_message_t* response)
 {
-    credential_DB_rec_t *cred_rec = fido2_get_credential(request->rpID, request->cred_ID.tag);
-    bool found= (cred_rec != NULL) ? 1 : 0;
-
+    /* Input sanitation & buffer for UTF8 to Unicode BMP conversion */
+    cust_char_t rp_id_copy[MEMBER_ARRAY_SIZE(parent_data_node_t, service)];
+    request->rpID[MEMBER_SIZE(fido2_auth_cred_req_message_t, rpID)-1] = 0;
+    memset(rp_id_copy, 0, sizeof(rp_id_copy));
+    
+    /* Zero out response */
     memset(response, 0, sizeof(*response));
-
-    if (found)
+    
+    /* Try to convert to unicode BMP */
+    int16_t rpid_conv_length = utils_utf8_string_to_bmp_string(request->rpID, rp_id_copy, MEMBER_SIZE(fido2_auth_cred_req_message_t, rpID), ARRAY_SIZE(rp_id_copy));
+    
+    /* Did the conversion go badly? */
+    if (rpid_conv_length < 0)
     {
-        fido2_prompt_user("Credential exists already and in exclude list", true, 10);
+        return;
+    }
+    
+    /* Does service already exist? */
+    uint16_t parent_address = logic_database_search_service(rp_id_copy, COMPARE_MODE_MATCH, TRUE, NODEMGMT_WEBAUTHN_CRED_TYPE_ID);
+    
+    /* Service doesn't exist, deny request with a variable timeout for privacy concerns */
+    if (parent_address == NODE_ADDR_NULL)
+    {
+        /* From 1s to 3s */
+        timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
+        return;
+    }
+    
+    /* Look for credential ID */
+    uint16_t child_address = logic_database_search_webauthn_credential_id_in_service(parent_address, request->cred_ID.tag);
+    
+    /* Static asserts */
+    _Static_assert(sizeof(response->user_ID) >= MEMBER_SIZE(child_webauthn_node_t, user_handle), "user handle size not big enough");
+    
+    /* Check for existing login */
+    if (child_address == NODE_ADDR_NULL)
+    {
+        /* From 3s to 7s, do not leak information */
+        timer_delay_ms(3000 + (rng_get_random_uint16_t()&0x0FFF));
+        return;
+    }
+    else
+    {
+        //fido2_prompt_user("Credential exists already and in exclude list", true, 10);
+        logic_database_get_webauthn_userhandle_for_address(child_address, response->user_ID);
         memcpy(&response->cred_ID, &request->cred_ID, sizeof(response->cred_ID));
-        memcpy(&response->user_ID, cred_rec->user_ID, sizeof(response->user_ID));
         response->result = FIDO2_CREDENTIAL_EXISTS;
     }
 }
 
-/*! \fn     fido2_set_attest_sign_count(uint32_t cred_sign_count, uint32_t *attested_sign_count)
-*   \brief  Set the attestation sign count in big endian format
-*   \param  input sign count
-*   \param  sign count in BE format
-*   \return void
-*/
-static void fido2_set_attest_sign_count(uint32_t cred_sign_count, uint32_t *attested_sign_count)
-{
-    /* FIDO2 requires sign count to be in Big-Endian format */
-    *attested_sign_count = cpu_to_be32(cred_sign_count);
-}
-
-/*! \fn     fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t const *request, fido2_make_auth_data_rsp_message_t *response)
+/*! \fn     logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t* response)
 *   \brief  Make authentication data for a new credential
 *   \param  incoming request message
 *   \param  outgoing response message
 *   \return error code
 */
-static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t *response)
+static uint32_t logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t* response)
 {
     /* Local vars */
     uint8_t private_key[FIDO2_PRIV_KEY_LEN];
-    credential_DB_rec_t credential_rec;
     attested_data_t attested_data;
     ecc256_pub_key pub_key;
 
@@ -219,9 +213,7 @@ static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t
     logic_encryption_ecc256_generate_private_key(private_key, (uint16_t)sizeof(private_key));
     
     /* Try to store new credential */
-    fido2_return_code_te temp_return = FIDO2_SUCCESS;
-    //temp_return logic_user_store_webauthn_credential(rp_id_copy, user_handle_copy, user_name_copy, display_name_copy, private_key, attested_data.cred_ID.tag);
-    timer_delay_ms(3000);
+    fido2_return_code_te temp_return = logic_user_store_webauthn_credential(rp_id_copy, user_handle_copy, user_name_copy, display_name_copy, private_key, attested_data.cred_ID.tag);
 
     /* Success? */
     if (temp_return == FIDO2_SUCCESS)
@@ -261,9 +253,9 @@ static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t
     /* 4) Encoded public key + generate signature */
     logic_encryption_ecc256_load_key(private_key);
     logic_encryption_ecc256_derive_public_key(private_key, &pub_key);
-    attested_data.enc_PK_len = fido2_cbor_encode_public_key(attested_data.enc_pub_key, sizeof(attested_data.enc_pub_key), &pub_key);
-    fido2_calc_attestation_signature((uint8_t const *)&attested_data, sizeof(attested_data) - sizeof(attested_data.enc_pub_key) + attested_data.enc_PK_len - sizeof(attested_data.enc_PK_len), request->client_data_hash, response->attest_sig, sizeof(response->attest_sig));
-        
+    attested_data.enc_PK_len = logic_fido2_cbor_encode_public_key(attested_data.enc_pub_key, sizeof(attested_data.enc_pub_key), &pub_key);
+    logic_fido2_calc_attestation_signature((uint8_t const *)&attested_data, sizeof(attested_data) - sizeof(attested_data.enc_pub_key) + attested_data.enc_PK_len - sizeof(attested_data.enc_PK_len), request->client_data_hash, response->attest_sig, sizeof(response->attest_sig));
+    
     /*****************/
     /* Sanity checks */
     /*****************/
@@ -289,41 +281,21 @@ static uint32_t fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t
     response->cred_ID_len = sizeof(attested_data.cred_ID.tag);
     // Error code already set
 
-    //Fill out credential record to store in DB
-    //count will always be 1 when new credential created. Update on every get_assertion/get_next_assertion
-    credential_rec.count = 0;
-    credential_rec.count = fido2_update_credential_count(credential_rec.count);
-
-    memcpy(credential_rec.priv_key, private_key, FIDO2_PRIV_KEY_LEN);
-    memcpy(credential_rec.tag, attested_data.cred_ID.tag, FIDO2_CREDENTIAL_ID_LENGTH);
-    memcpy(credential_rec.user_ID, request->user_ID, FIDO2_USER_ID_LEN);
-    credential_rec.user_ID[FIDO2_USER_ID_LEN-1] = '\0';
-    memcpy(credential_rec.user_name, request->user_name, FIDO2_USER_NAME_LEN);
-    credential_rec.user_name[FIDO2_USER_NAME_LEN-1] = '\0';
-    memcpy(credential_rec.display_name, request->display_name, FIDO2_DISPLAY_NAME_LEN);
-    credential_rec.display_name[FIDO2_DISPLAY_NAME_LEN-1] = '\0';
-    credential_rec.spare = 0;
-    //priv_key is already set above during logic_encryption_ecc256_generate_private_key()
-
-    memcpy(credential_rec.rpID, request->rpID, FIDO2_RPID_LEN);
-    fido2_store_credential_in_db(&credential_rec);
-
-
     //Clear private key to limit chance of leaking key
-    memset(credential_rec.priv_key, 0, FIDO2_PRIV_KEY_LEN);
+    memset(private_key, 0, sizeof(private_key));
+    
     return response->error_code;
 }
 
-/*! \fn     fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_message_t const *request, fido2_make_auth_data_rsp_message_t *response)
+/*! \fn     logic_fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_message_t const *request, fido2_make_auth_data_rsp_message_t *response)
 *   \brief  Make authentication data for an existing credential
 *   \param  incoming request message
 *   \param  outgoing response message
 *   \return error code
 */
-static uint32_t fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t *response)
+static uint32_t logic_fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t *response)
 {
     /* Local vars */
-    credential_DB_rec_t *rec = fido2_get_credential(request->rpID, NULL);    
     uint8_t credential_id[MEMBER_ARRAY_SIZE(child_webauthn_node_t, credential_id)];
     uint8_t user_handle[MEMBER_ARRAY_SIZE(child_webauthn_node_t, user_handle)];
     cust_char_t rp_id_copy[MEMBER_ARRAY_SIZE(parent_data_node_t, service)];
@@ -357,17 +329,6 @@ static uint32_t fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_mess
         response->error_code = FIDO2_USER_NOT_PRESENT;
         return response->error_code;
     }
-
-    // TODO: remove below
-    if (rec == NULL)
-    {
-        response->error_code = FIDO2_CRED_NOT_FOUND;
-        return response->error_code;
-    }
-    else
-    {
-        memcpy(private_key, rec->priv_key, sizeof(private_key));
-    }
     
     /* Compute RPid Hash */
     logic_encryption_sha256_init();
@@ -376,7 +337,7 @@ static uint32_t fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_mess
     
     /* Ask for user permission, automatically pre increment signing counter upon success recall */
     fido2_return_code_te temp_return = FIDO2_SUCCESS;
-    //temp_return = logic_user_get_webauthn_credential_key_for_rp(rp_id_copy, user_handle, credential_id, private_key, &temp_sign_count, (uint8_t**)0, 0);
+    temp_return = logic_user_get_webauthn_credential_key_for_rp(rp_id_copy, user_handle, credential_id, private_key, &temp_sign_count, (uint8_t**)0, 0);
 
     /* Success? */
     if (temp_return == FIDO2_SUCCESS)
@@ -396,17 +357,10 @@ static uint32_t fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_mess
         return response->error_code;
     }
 
-    // to remove
-    rec->count = fido2_update_credential_count(rec->count);
-    fido2_update_credential_in_db(rec);
-    fido2_set_attest_sign_count(rec->count, &auth_data_header.sign_count);
-    memcpy(credential_id, rec->tag, sizeof(credential_id));
-    memcpy(user_handle, rec->user_ID, sizeof(user_handle));
-
     /* Sign header */
-    logic_encryption_ecc256_load_key(rec->priv_key);
+    logic_encryption_ecc256_load_key(private_key);
     logic_encryption_ecc256_derive_public_key(private_key, &pub_key);
-    fido2_calc_attestation_signature((uint8_t const *)&auth_data_header, sizeof(auth_data_header), request->client_data_hash, response->attest_sig, sizeof(response->attest_sig));
+    logic_fido2_calc_attestation_signature((uint8_t const *)&auth_data_header, sizeof(auth_data_header), request->client_data_hash, response->attest_sig, sizeof(response->attest_sig));
 
     /*****************/
     /* Sanity checks */
@@ -433,68 +387,28 @@ static uint32_t fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_mess
     response->flags = auth_data_header.flags;
     response->cred_ID_len = 0;
     //error code already set
+    
+    //Clear private key to limit chance of leaking key
+    memset(private_key, 0, sizeof(private_key));
+    
     return response->error_code;
 }
 
-/*! \fn     fido2_process_make_auth_data(fido2_make_auth_data_req_message_t const *request, fido2_make_auth_data_rsp_message_t *response)
-*   \brief  Make the authentication data. This esentially creates the key pair and stores
-*           the new record in the DB
-*   \param  incoming request messsage
+/*! \fn     logic_fido2_process_make_auth_data(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t* response)
+*   \brief  Make the authentication data. This essentially creates the key pair and stores the new record in the DB
+*   \param  incoming request message
 *   \param  outgoing response message
-*   \return void
 */
-void fido2_process_make_auth_data(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t* response)
+void logic_fido2_process_make_auth_data(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t* response)
 {
     memset(response, 0, sizeof(*response));
 
     if (request->new_cred == FIDO2_NEW_CREDENTIAL)
     {
-        fido2_make_auth_data_new_cred(request, response);
+        logic_fido2_make_auth_data_new_cred(request, response);
     }
     else
     {
-        fido2_make_auth_data_existing_cred(request, response);
+        logic_fido2_make_auth_data_existing_cred(request, response);
     }
 }
-
-//DEBUG STORAGE:
-#define MAX_CRED 10
-static uint8_t cred_count = 0;
-static credential_DB_rec_t cred_store[MAX_CRED];
-
-static bool fido2_room_for_more_creds(uint8_t const *rpID)
-{
-    //TODO: Look up in DB
-    return cred_count < MAX_CRED;
-}
-
-static void fido2_store_credential_in_db(credential_DB_rec_t const *cred_rec)
-{
-    //TODO: Debug impl
-    if (fido2_room_for_more_creds(cred_rec->rpID))
-    {
-        memcpy(&cred_store[cred_count++], cred_rec, sizeof(cred_store[0]));
-    }
-}
-
-static void fido2_update_credential_in_db(credential_DB_rec_t const *cred_rec)
-{
-    //TODO: Update flash
-}
-
-//Always get the first credential for a rpID.
-static credential_DB_rec_t *fido2_get_credential(uint8_t const *rpID, uint8_t const *tag)
-{
-    //TODO: Debug impl
-    uint32_t i;
-
-    for(i = 0; i < MAX_CRED; ++i)
-    {
-        if (memcmp(cred_store[i].rpID, rpID, FIDO2_RPID_LEN) == 0)
-        {
-            return &cred_store[i];
-        }
-    }
-    return NULL;
-}
-
