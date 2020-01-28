@@ -99,10 +99,10 @@ void logic_aux_mcu_enable_ble(BOOL wait_for_enabled)
         platform_io_enable_ble();
         
         /* Prepare packet to send to AUX, specify bluetooth mac */
-        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
-        temp_tx_message_pt->main_mcu_command_message.command = MAIN_MCU_COMMAND_ENABLE_BLE;
-        logic_bluetooth_get_unit_mac_address(temp_tx_message_pt->main_mcu_command_message.payload);
-        temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->main_mcu_command_message.command) + 6;
+        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+        temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_CMD_ENABLE;
+        logic_bluetooth_get_unit_mac_address(temp_tx_message_pt->ble_message.payload);
+        temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + 6;
         
         /* Send message */
         comms_aux_mcu_send_message(FALSE);
@@ -133,10 +133,16 @@ void logic_aux_mcu_disable_ble(BOOL wait_for_disabled)
 {
     if (logic_aux_mcu_ble_enabled != FALSE)
     {
+        aux_mcu_message_t* temp_tx_message_pt;
         aux_mcu_message_t* temp_rx_message;
         
         /* Send command to aux MCU */
-        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DISABLE_BLE);
+        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+        temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_CMD_DISABLE;
+        temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
+        
+        /* Send message */
+        comms_aux_mcu_send_message(FALSE);
         
         if (wait_for_disabled != FALSE)
         {

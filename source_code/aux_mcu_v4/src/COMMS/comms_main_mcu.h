@@ -30,15 +30,16 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define AUX_MCU_MSG_TYPE_KEYBOARD_TYPE  0x0008
 #define AUX_MCU_MSG_TYPE_FIDO2          0x0009
 #define AUX_MCU_MSG_TYPE_RNG_TRANSFER   0x000A
+#define AUX_MCU_MSG_TYPE_BLE_CMD        0x000B
 
 // Main MCU commands
 #define MAIN_MCU_COMMAND_SLEEP          0x0001
 #define MAIN_MCU_COMMAND_ATTACH_USB     0x0002
 #define MAIN_MCU_COMMAND_PING           0x0003
-#define MAIN_MCU_COMMAND_ENABLE_BLE     0x0004
+#define MAIN_MCU_COMMAND_RESERVED       0x0004
 #define MAIN_MCU_COMMAND_NIMH_CHARGE    0x0005
 #define MAIN_MCU_COMMAND_NO_COMMS_UNAV  0x0006
-#define MAIN_MCU_COMMAND_DISABLE_BLE    0x0007
+#define MAIN_MCU_COMMAND_RESERVED2      0x0007
 #define MAIN_MCU_COMMAND_DETACH_USB     0x0008
 #define MAIN_MCU_COMMAND_FUNC_TEST      0x0009
 #define MAIN_MCU_COMMAND_UPDT_DEV_STAT  0x000A
@@ -67,6 +68,10 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define AUX_MCU_EVENT_USB_DETACHED      0x000C
 #define AUX_MCU_EVENT_CHARGE_LVL_UPDATE 0x000D
 #define AUX_MCU_EVENT_BLE_PAIRED        0x000E
+
+// BLE commands
+#define BLE_MESSAGE_CMD_ENABLE          0x0001
+#define BLE_MESSAGE_CMD_DISABLE         0x0002
 
 /* FIDO2 messages start */
 // Keep FIDO2 messages monotonically increasing
@@ -116,6 +121,12 @@ typedef struct
         uint16_t payload_as_uint16[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t))/2];
     };
 } aux_mcu_event_message_t;
+
+typedef struct 
+{
+    uint16_t message_id;
+    uint8_t payload[];
+} ble_message_t;
 
 typedef struct
 {
@@ -206,8 +217,9 @@ typedef struct
         aux_mcu_event_message_t aux_mcu_event_message;
         keyboard_type_message_t keyboard_type_message;
         nimh_charge_message_t nimh_charge_message;
-        hid_message_t hid_message;
         fido2_message_t fido2_message;
+        hid_message_t hid_message;
+        ble_message_t ble_message;
         uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH];
         uint16_t payload_as_uint16[AUX_MCU_MSG_PAYLOAD_LENGTH/2];
         uint32_t payload_as_uint32[AUX_MCU_MSG_PAYLOAD_LENGTH/4];    

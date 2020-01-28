@@ -275,6 +275,44 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
         message->payload_length1 = sizeof(uint16_t);
         comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
     }
+    else if (message->message_type == AUX_MCU_MSG_TYPE_BLE_CMD)
+    {
+        switch(message->ble_message.message_id)
+        {
+            case BLE_MESSAGE_CMD_ENABLE:
+            {
+                /* Enable BLE */
+                if (logic_is_ble_enabled() == FALSE)
+                {
+                    logic_bluetooth_start_bluetooth(message->main_mcu_command_message.payload);
+                    logic_set_ble_enabled();
+                }
+                message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+                message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
+                message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id);
+                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
+                break;
+            }
+            case BLE_MESSAGE_CMD_DISABLE:
+            {
+                /* Enable BLE */
+                if (logic_is_ble_enabled() != FALSE)
+                {
+                    logic_bluetooth_stop_bluetooth();
+                    logic_set_ble_disabled();
+                }
+                message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+                message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISABLED;
+                message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id);
+                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
+                break;
+            }
+            default:
+            {
+                break;
+            }
+        }
+    }
     else if (message->message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD)
     {
         switch(message->main_mcu_command_message.command)
@@ -341,34 +379,6 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
 
                 /* Inform main MCU */
                 comms_main_mcu_send_simple_event(AUX_MCU_EVENT_USB_DETACHED);
-                break;
-            }
-            case MAIN_MCU_COMMAND_ENABLE_BLE:
-            {                
-                /* Enable BLE */
-                if (logic_is_ble_enabled() == FALSE)
-                {
-                    logic_bluetooth_start_bluetooth(message->main_mcu_command_message.payload);
-                    logic_set_ble_enabled();
-                }
-                message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-                message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
-                message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id);
-                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
-                break;
-            }
-            case MAIN_MCU_COMMAND_DISABLE_BLE:
-            {
-                /* Enable BLE */
-                if (logic_is_ble_enabled() != FALSE)
-                {
-                    logic_bluetooth_stop_bluetooth();
-                    logic_set_ble_disabled();
-                }
-                message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-                message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISABLED;
-                message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id);
-                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
                 break;
             }
             case MAIN_MCU_COMMAND_NIMH_CHARGE:
