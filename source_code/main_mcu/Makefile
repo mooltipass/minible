@@ -74,7 +74,6 @@ INC_DIRS := \
 -I"src/RNG" \
 -I"src/BearSSL/src" \
 -I"src/BearSSL/inc" \
--I"src/fido2"
 
 LIB_DIRS := \
 -L"src/ASF/thirdparty/CMSIS/Lib/GCC" \
@@ -171,7 +170,7 @@ src/ASF/sam0/utils/cmsis/samd21/source/gcc/startup_samd21.c \
 src/ASF/sam0/utils/cmsis/samd21/source/system_samd21.c \
 src/ASF/sam0/utils/syscalls/gcc/syscalls.c \
 src/main.c \
-src/fido2/fido2.c
+src/LOGIC/logic_fido2.c
 
 C_FLAGS := -mthumb
 
