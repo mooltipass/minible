@@ -36,7 +36,7 @@ void device_wink()
 
 #if !defined DEBUG_LOG_DISABLED
 
-void dump_hex(uint8_t * buf, int size)
+void dump_hex(uint8_t * buf, uint32_t size)
 {
     uint32_t i;
     char tmp[50];

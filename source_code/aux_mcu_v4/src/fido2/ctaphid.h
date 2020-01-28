@@ -90,15 +90,15 @@ typedef struct
     uint8_t version_minor;
     uint8_t build_version;
     uint8_t capabilities;
-} __attribute__((packed)) CTAPHID_INIT_RESPONSE;
+} CTAPHID_INIT_RESPONSE;
 
 
 
-void ctaphid_init();
+void ctaphid_init(void);
 
 uint8_t ctaphid_handle_packet(uint8_t * pkt_raw);
 
-void ctaphid_check_timeouts();
+void ctaphid_check_timeouts(void);
 
 void ctaphid_update_status(int8_t status);
 

@@ -14,16 +14,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cbor.h"
-
-#include "ctap.h"
-#include "ctaphid.h"
-#include "ctap_parse.h"
-#include "ctap_errors.h"
-#include "cose_key.h"
 #include "solo_compat_layer.h"
 #include "comms_main_mcu.h"
+#include "comms_raw_hid.h"
 #include "driver_timer.h"
+#include "ctap_errors.h"
+#include "ctap_parse.h"
+#include "cose_key.h"
+#include "ctaphid.h"
+#include "ctap.h"
+#include "cbor.h"
 
 struct _getAssertionState getAssertionState;
 
@@ -169,7 +169,7 @@ static unsigned int get_credential_id_size(CTAP_credentialDescriptor * cred)
     return sizeof(CredentialId);
 }
 
-static void _ctap_MAD_aux_comm(uint8_t *rpID, CTAP_credInfo * credInfo, uint8_t const *clientDataHash, fido2_make_auth_data_rsp_message_t *resp_msg, bool new_cred)
+static void ctap_MAD_aux_comm(uint8_t *rpID, CTAP_userEntity *user, uint8_t const *clientDataHash, fido2_make_auth_data_rsp_message_t *resp_msg, bool new_cred)
 {
     aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
     aux_mcu_message_t* temp_tx_message_pt;
@@ -186,9 +186,9 @@ static void _ctap_MAD_aux_comm(uint8_t *rpID, CTAP_credInfo * credInfo, uint8_t 
     memcpy(req_msg->rpID, rpID, FIDO2_RPID_LEN);
     if (new_cred)
     {
-        memcpy(req_msg->user_ID, credInfo->user.id, FIDO2_USER_ID_LEN);
-        memcpy(req_msg->user_name, credInfo->user.name, FIDO2_USER_NAME_LEN);
-        memcpy(req_msg->display_name, credInfo->user.displayName, FIDO2_DISPLAY_NAME_LEN);
+        memcpy(req_msg->user_ID, user->id, FIDO2_USER_ID_LEN);
+        memcpy(req_msg->user_name, user->name, FIDO2_USER_NAME_LEN);
+        memcpy(req_msg->display_name, user->displayName, FIDO2_DISPLAY_NAME_LEN);
     }
     memcpy(req_msg->client_data_hash, clientDataHash, FIDO2_CLIENT_DATA_HASH_LEN);
     req_msg->new_cred = (new_cred) ? 1 : 0;
@@ -214,8 +214,8 @@ static void _ctap_MAD_aux_comm(uint8_t *rpID, CTAP_credInfo * credInfo, uint8_t 
     memcpy(resp_msg, &temp_rx_message_pt->fido2_message.fido2_make_auth_data_rsp_message, sizeof(*resp_msg));
     if (!new_cred)
     {
-        memcpy(credInfo->user.id, resp_msg->user_ID, FIDO2_USER_ID_LEN);
-        credInfo->user.id_size = FIDO2_USER_ID_LEN;
+        memcpy(user->id, resp_msg->user_ID, FIDO2_USER_ID_LEN);
+        user->id_size = FIDO2_USER_ID_LEN;
     }
 }
 
@@ -234,7 +234,7 @@ static int ctap_make_auth_data(uint8_t *rpID, uint8_t * auth_data_buf, uint32_t 
         exit(1);
     }
 
-    _ctap_MAD_aux_comm(rpID, credInfo, clientDataHash, &resp_msg, new_cred);
+    ctap_MAD_aux_comm(rpID, credInfo, clientDataHash, &resp_msg, new_cred);
 
     if (resp_msg.error_code != SUCCESS)
     {
@@ -479,7 +479,7 @@ uint8_t ctap_make_credential(CborEncoder * encoder, uint8_t * request, int lengt
     uint32_t auth_data_sz = sizeof(auth_data_buf);
 
     ret = ctap_make_auth_data(MC.rp.id, auth_data_buf, &auth_data_sz,
-            &MC.credInfo, MC.clientDataHash, sigbuf, true);
+            &(MC.credInfo.user), MC.clientDataHash, sigbuf, true);
     check_retr(ret);
 
     {
