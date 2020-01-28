@@ -11,11 +11,10 @@ void device_wink(void);
 void device_set_status(uint32_t status);
 int timestamp(void);
 
-void dump_hex(uint8_t * buf, int size);
+void dump_hex(uint8_t * buf, uint32_t size);
 #define dump_hex1(tag,data,len) dump_hex(data, len);
 
 #if !defined DEBUG_LOG_DISABLED
-void comms_usb_debug_printf(const char *fmt, ...);
 #define printf1(tag,fmt, ...) comms_usb_debug_printf(fmt, ##__VA_ARGS__)
 #define printf2(tag,fmt, ...) comms_usb_debug_printf(fmt, ##__VA_ARGS__)
 #define printf3(tag,fmt, ...) comms_usb_debug_printf(fmt, ##__VA_ARGS__)

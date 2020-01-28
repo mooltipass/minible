@@ -10,13 +10,13 @@
 //
 #include <stdint.h>
 
-#include "cbor.h"
-
-#include "ctap.h"
-#include "ctap_parse.h"
-#include "ctap_errors.h"
-#include "cose_key.h"
 #include "solo_compat_layer.h"
+#include "comms_raw_hid.h"
+#include "ctap_errors.h"
+#include "ctap_parse.h"
+#include "cose_key.h"
+#include "cbor.h"
+#include "ctap.h"
 
 extern struct _getAssertionState getAssertionState;
 
