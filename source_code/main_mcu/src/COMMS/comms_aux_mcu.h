@@ -28,6 +28,7 @@
 #include "comms_bootloader_msg.h"
 #include "fido2_values_defines.h"
 #include "comms_hid_msgs.h"
+#include "nodemgmt.h"
 #include "defines.h"
 
 /* Defines */
@@ -85,6 +86,8 @@
 // BLE commands
 #define BLE_MESSAGE_CMD_ENABLE          0x0001
 #define BLE_MESSAGE_CMD_DISABLE         0x0002
+#define BLE_MESSAGE_STORE_BOND_INFO     0x0003
+#define BLE_MESSAGE_RECALL_BOND_INFO    0x0004
 
 /* FIDO2 messages start */
 // Keep FIDO2 messages monotonically increasing
@@ -138,7 +141,11 @@ typedef struct
 typedef struct 
 {
     uint16_t message_id;
-    uint8_t payload[];
+    union
+    {
+        nodemgmt_bluetooth_bonding_information_t bonding_information_to_store_message;
+        uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)];
+    };
 } ble_message_t;
 
 typedef struct  
@@ -275,6 +282,7 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
 void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type);
 comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type);
 void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message);
+void comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* received_message);
 aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void);
 void comms_aux_mcu_send_simple_command_message(uint16_t command);
 void comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void);

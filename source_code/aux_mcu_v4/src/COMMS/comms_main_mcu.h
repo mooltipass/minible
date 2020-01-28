@@ -72,6 +72,8 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 // BLE commands
 #define BLE_MESSAGE_CMD_ENABLE          0x0001
 #define BLE_MESSAGE_CMD_DISABLE         0x0002
+#define BLE_MESSAGE_STORE_BOND_INFO     0x0003
+#define BLE_MESSAGE_RECALL_BOND_INFO    0x0004
 
 /* FIDO2 messages start */
 // Keep FIDO2 messages monotonically increasing

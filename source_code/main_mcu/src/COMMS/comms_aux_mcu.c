@@ -197,13 +197,33 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
     return return_val;
 }
 
+/*! \fn     comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* received_message)
+*   \brief  Deal with received BLE message
+*   \param  received_message    Pointer to received message
+*/
+void comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* received_message)
+{
+    switch(received_message->ble_message.message_id)
+    {
+        case BLE_MESSAGE_STORE_BOND_INFO:
+        {
+            break;
+        }
+        case BLE_MESSAGE_RECALL_BOND_INFO:
+        {
+            break;
+        }
+        default: break;
+    }    
+}
+
 /*! \fn     comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
 *   \brief  Deal with received aux MCU event
-*   \param  aux_mcu_receive_message     Pointer to received message
+*   \param  received_message    Pointer to received message
 */
 void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
 {
-    switch(aux_mcu_receive_message.main_mcu_command_message.command)
+    switch(received_message->main_mcu_command_message.command)
     {
         case AUX_MCU_EVENT_BLE_ENABLED:
         {
@@ -548,6 +568,11 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_FIDO2)
     {
         msg_rcvd = comms_aux_mcu_handle_fido2_message(&aux_mcu_receive_message.fido2_message);
+    }
+    else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BLE_CMD)
+    {
+        msg_rcvd = BLE_CMD_MSG_RCVD;
+        comms_aux_mcu_deal_with_ble_message(&aux_mcu_receive_message);
     }
     else
     {

@@ -284,7 +284,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* Enable BLE */
                 if (logic_is_ble_enabled() == FALSE)
                 {
-                    logic_bluetooth_start_bluetooth(message->main_mcu_command_message.payload);
+                    logic_bluetooth_start_bluetooth(message->ble_message.payload);
                     logic_set_ble_enabled();
                 }
                 message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
