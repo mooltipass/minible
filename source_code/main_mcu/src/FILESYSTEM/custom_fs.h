@@ -66,8 +66,9 @@
 #define SETTINGS_KNOCK_DETECT_SENSITIVITY   11
 #define SETTINGS_LEFT_HANDED_ON_BATTERY     12
 #define SETTINGS_LEFT_HANDED_ON_USB         13
+#define SETTINGS_TOBEFILLED                 14
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    14
+#define SETTINGS_NB_USED                    15
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32
@@ -126,7 +127,8 @@ typedef struct
     uint8_t device_settings[NB_DEVICE_SETTINGS];
     uint32_t nb_ms_since_last_full_charge;
     uint32_t nb_settings_last_covered;
-    uint8_t reserved[180];
+    uint8_t reserved[174];
+    uint8_t dbg_bluetooth_addr[6];
     uint32_t start_upgrade_flag;
 } custom_platform_settings_t;
 
@@ -235,6 +237,7 @@ void custom_fs_stop_continuous_read_from_flash(void);
 BOOL custom_fs_settings_check_fw_upgrade_flag(void);
 void custom_fs_settings_clear_fw_upgrade_flag(void);
 uint32_t custom_fs_get_number_of_keyb_layouts(void);
+void custom_fs_get_debug_bt_addr(uint8_t* bt_addr);
 void custom_fs_settings_set_fw_upgrade_flag(void);
 uint32_t custom_fs_get_number_of_languages(void);
 uint8_t custom_fs_get_current_language_id(void);

@@ -31,6 +31,7 @@
 #include "dataflash.h"
 #include "utils.h"
 #include "dma.h"
+#include "rng.h"
 
 #ifdef EMULATOR_BUILD
 #include "emu_storage.h"
@@ -1103,36 +1104,52 @@ void custom_fs_set_settings_value(uint8_t settings_id, uint8_t setting_value)
     }
 }
 
+/*! \fn     custom_fs_get_debug_bt_addr(uint8_t* bt_addr)
+*   \brief  Get debug bluetooth address
+*   \param  bt_addr Pointer to where to store the debug bluetooth address
+*/
+void custom_fs_get_debug_bt_addr(uint8_t* bt_addr)
+{
+    memcpy(bt_addr, custom_fs_platform_settings_p->dbg_bluetooth_addr, sizeof(custom_fs_platform_settings_p->dbg_bluetooth_addr));
+}
+
 /*! \fn     custom_fs_set_undefined_settings(void)
 *   \brief  Set settings that may not have been set to a default value
 */
 void custom_fs_set_undefined_settings(void)
 {
-    uint8_t temp_device_settings[NB_DEVICE_SETTINGS];
+    custom_platform_settings_t platform_settings_copy;
     
     if (custom_fs_platform_settings_p == 0)
     {
-        /* Custom fs not initalized (shouldn't happen) */
+        /* Customfs not initialized (shouldn't happen) */
         return;
     }
     else if (custom_fs_platform_settings_p->nb_settings_last_covered != SETTINGS_NB_USED)
-    {
-        uint32_t nb_settings_last_covered = custom_fs_platform_settings_p->nb_settings_last_covered;
+    {        
+        /* Copy settings structure stored in flash into ram, overwrite relevant settings part, flash again later */
+        memcpy(&platform_settings_copy, custom_fs_platform_settings_p, sizeof(platform_settings_copy));
 
         /* Check for blank memory & overflow */
         if (custom_fs_platform_settings_p->nb_settings_last_covered >= NB_DEVICE_SETTINGS)
         {
-            nb_settings_last_covered = 0;
+            platform_settings_copy.nb_settings_last_covered = 0;
         }
-
-        /* Copy the current settings */
-        memcpy(temp_device_settings, custom_fs_platform_settings_p->device_settings, nb_settings_last_covered);
         
-        /* Only update the non defined ones */
-        memcpy(&temp_device_settings[nb_settings_last_covered], &custom_fs_default_device_settings[nb_settings_last_covered], NB_DEVICE_SETTINGS-nb_settings_last_covered);
+        /* Only update the non defined settings */
+        memcpy(&platform_settings_copy.device_settings[platform_settings_copy.nb_settings_last_covered], &custom_fs_default_device_settings[platform_settings_copy.nb_settings_last_covered], NB_DEVICE_SETTINGS-platform_settings_copy.nb_settings_last_covered);
         
-        /* Store updated part */
-        custom_fs_settings_store_dump(temp_device_settings);
+        /* Set number of settings covered */
+        platform_settings_copy.nb_settings_last_covered = SETTINGS_NB_USED;
+        
+        /* Generate random mac address for debug purposes */
+        if (memcmp(custom_fs_platform_settings_p->dbg_bluetooth_addr, "\xFF\xFF\xFF\xFF\xFF\xFF", sizeof(custom_fs_platform_settings_p->dbg_bluetooth_addr)) == 0)
+        {
+            rng_fill_array(platform_settings_copy.dbg_bluetooth_addr, sizeof(platform_settings_copy.dbg_bluetooth_addr));
+        }
+        
+        /* Update memory */
+        custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&platform_settings_copy);
     }
 }
 

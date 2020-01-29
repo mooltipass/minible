@@ -22,12 +22,10 @@
 #include <string.h>
 #include "logic_bluetooth.h"
 #include "logic_aux_mcu.h"
+#include "custom_fs.h"
 #include "rng.h"
 // Connected boolean
 BOOL logic_bluetooth_is_connected = FALSE;
-// Mac address logic
-BOOL logic_bluetooth_mac_address_generated = FALSE;
-uint8_t logic_bluetooth_mac_address[6];
 
 
 /*! \fn     logic_bluetooth_set_connected_state(BOOL state)
@@ -68,13 +66,8 @@ bt_state_te logic_bluetooth_get_state(void)
 */
 void logic_bluetooth_get_unit_mac_address(uint8_t* buffer)
 {
-    /* Shhh, don't tell anyone... */
-    if (logic_bluetooth_mac_address_generated == FALSE)
-    {
-        rng_fill_array(logic_bluetooth_mac_address, 6);
-        logic_bluetooth_mac_address_generated = TRUE;
-    }
+    // TODO2: check for device own settings
     
-    /* Copy MAC address into buffer */
-    memcpy(buffer, logic_bluetooth_mac_address, sizeof(logic_bluetooth_mac_address));
+    /* In the meanwhile, get the debug one */
+    custom_fs_get_debug_bt_addr(buffer);
 }
