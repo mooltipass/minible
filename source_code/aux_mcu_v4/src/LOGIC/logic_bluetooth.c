@@ -132,6 +132,7 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
 static at_ble_status_t logic_bluetooth_hid_paired_callback(void* param)
 {
     at_ble_pair_done_t* pairing_params = (at_ble_pair_done_t*)param;
+    aux_mcu_message_t* temp_tx_message_pt;
     
     if(pairing_params->status == AT_BLE_SUCCESS)
     {
@@ -143,7 +144,53 @@ static at_ble_status_t logic_bluetooth_hid_paired_callback(void* param)
         logic_bluetooth_paired = TRUE;
         
         /* Inform main MCU */
-        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_PAIRED);
+        comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+        
+        /* Set payload size */
+        temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(temp_tx_message_pt->ble_message.bonding_information_to_store_message);
+        
+        /* Message ID */
+        temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_STORE_BOND_INFO;
+        
+        /***********************/
+        /* Bonding information */
+        /***********************/
+        
+        /* General stuff */
+        temp_tx_message_pt->ble_message.bonding_information_to_store_message.zero_to_be_valid = 0;
+        //temp_tx_message_pt->ble_message.bonding_information_to_store_message.address_resolv_type = pairing_params->
+        //temp_tx_message_pt->ble_message.bonding_information_to_store_message.mac_address
+        temp_tx_message_pt->ble_message.bonding_information_to_store_message.auth_type = pairing_params->auth;
+        
+        /* LTK */
+        memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_ltk_key, pairing_params->peer_ltk.key, sizeof(pairing_params->peer_ltk.key));
+        temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_ltk_ediv = pairing_params->peer_ltk.ediv;
+        memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_ltk_random_nb, pairing_params->peer_ltk.nb, sizeof(pairing_params->peer_ltk.nb));
+        temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_ltk_key_size = pairing_params->peer_ltk.key_size;
+        
+        /* CSRK */
+        memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_csrk_key, pairing_params->peer_csrk.key, sizeof(pairing_params->peer_csrk.key));
+        
+        /* IRK */
+        memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_irk_key, pairing_params->peer_irk.key, sizeof(pairing_params->peer_irk.key));
+        temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_irk_resolv_type = pairing_params->peer_irk.addr.type;
+        memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_irk_address, pairing_params->peer_irk.addr.addr, sizeof(pairing_params->peer_irk.addr.addr));
+        
+        /*temp_tx_message_pt->ble_message.bonding_information_to_store_message.
+        temp_tx_message_pt->ble_message.bonding_information_to_store_message.
+        temp_tx_message_pt->ble_message.bonding_information_to_store_message.
+        temp_tx_message_pt->ble_message.bonding_information_to_store_message.
+        temp_tx_message_pt->ble_message.bonding_information_to_store_message.
+        temp_tx_message_pt->ble_message.bonding_information_to_store_message.
+        
+        uint8_t host_ltk_key[16];
+        uint16_t host_ltk_ediv;
+        uint8_t host_ltk_random_nb[8];
+        uint16_t host_ltk_key_size;
+        uint8_t reserved[26];*/
+        
+        /* Send packet */
+        comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
     }
     else
     {

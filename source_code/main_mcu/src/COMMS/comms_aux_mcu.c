@@ -207,6 +207,7 @@ void comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* received_message)
     {
         case BLE_MESSAGE_STORE_BOND_INFO:
         {
+            logic_bluetooth_set_connected_state(TRUE);
             break;
         }
         case BLE_MESSAGE_RECALL_BOND_INFO:
@@ -248,7 +249,6 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
             logic_power_signal_battery_error();
             break;
         }
-        case AUX_MCU_EVENT_BLE_PAIRED:
         case AUX_MCU_EVENT_BLE_CONNECTED:
         {
             logic_bluetooth_set_connected_state(TRUE);

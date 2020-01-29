@@ -67,7 +67,6 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define AUX_MCU_EVENT_BLE_DISCONNECTED  0x000B
 #define AUX_MCU_EVENT_USB_DETACHED      0x000C
 #define AUX_MCU_EVENT_CHARGE_LVL_UPDATE 0x000D
-#define AUX_MCU_EVENT_BLE_PAIRED        0x000E
 
 // BLE commands
 #define BLE_MESSAGE_CMD_ENABLE          0x0001
@@ -124,10 +123,37 @@ typedef struct
     };
 } aux_mcu_event_message_t;
 
-typedef struct 
+// Bluetooth bonding information
+typedef struct
+{
+    uint16_t zero_to_be_valid;
+    uint8_t address_resolv_type;
+    uint8_t mac_address[6];
+    uint8_t auth_type;
+    uint8_t peer_ltk_key[16];
+    uint16_t peer_ltk_ediv;
+    uint8_t peer_ltk_random_nb[8];
+    uint16_t peer_ltk_key_size;
+    uint8_t peer_csrk_key[16];
+    uint8_t peer_irk_key[16];
+    uint8_t peer_irk_resolv_type;
+    uint8_t peer_irk_address[6];
+    uint8_t peer_irk_reserved;
+    uint8_t host_ltk_key[16];
+    uint16_t host_ltk_ediv;
+    uint8_t host_ltk_random_nb[8];
+    uint16_t host_ltk_key_size;
+    uint8_t reserved[26];
+} nodemgmt_bluetooth_bonding_information_t;
+
+typedef struct
 {
     uint16_t message_id;
-    uint8_t payload[];
+    union
+    {
+        nodemgmt_bluetooth_bonding_information_t bonding_information_to_store_message;
+        uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)];
+    };
 } ble_message_t;
 
 typedef struct
