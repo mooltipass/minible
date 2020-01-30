@@ -45,6 +45,7 @@ void debug_reset_device(void);
 void debug_atbtlc_info(void);
 void debug_glyphs_show(void);
 void debug_debug_menu(void);
+void debug_stack_info(void);
 
 
 #endif /* DEBUG_H_ */

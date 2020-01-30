@@ -132,13 +132,13 @@ void debug_debug_menu(void)
             #endif
             
             /* Item selection */
-            if (selected_item > 15)
+            if (selected_item > 16)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 15;
+                selected_item = 16;
             }
             
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);
@@ -165,12 +165,16 @@ void debug_debug_menu(void)
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Main MCU Flash", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Aux MCU Flash", TRUE);
             }
-            else
+            else if (selected_item < 16)
             {
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"RF Frequency Sweep", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Functional Test", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Sleep", TRUE);
+            }
+            else
+            {
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Stack Usage", TRUE);
             }
             
             /* Cursor */
@@ -281,6 +285,10 @@ void debug_debug_menu(void)
             else if (selected_item == 15)
             {
                 main_standby_sleep();
+            }
+            else if (selected_item == 16)
+            {
+                debug_stack_info();
             }
             redraw_needed = TRUE;
         }
@@ -1293,6 +1301,47 @@ void debug_nimh_charging(void)
             timer_start_timer(TIMER_TIMEOUT_FUNCTS, 1000);       
         }
         
+        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+        {
+            return;
+        }
+    }
+}
+
+/*! \fn     debug_stack_info(void)
+*   \brief  Print info about stack usage
+*/
+void debug_stack_info(void)
+{
+    aux_mcu_message_t* temp_rx_message;
+    aux_mcu_message_t* temp_tx_message_pt;
+    uint32_t main_mcu_stack_low_watermark = main_check_stack_usage();
+    uint32_t aux_mcu_stack_low_watermark = 0;
+
+    /* Print info */
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Stack Usage Low Watermarks");
+
+    /* Prepare status message request */
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PLAT_DETAILS);
+
+    /* Send message */
+    comms_aux_mcu_send_message(TRUE);
+
+    /* Wait for message from aux MCU */
+    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
+
+    aux_mcu_stack_low_watermark = temp_rx_message->aux_details_message.aux_stack_low_watermark;
+
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "Main MCU: %u bytes", main_mcu_stack_low_watermark);
+    sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "Aux MCU: %u bytes", aux_mcu_stack_low_watermark);
+
+    /* Info printed, rearm DMA RX */
+    comms_aux_arm_rx_and_clear_no_comms();
+
+    /* Check for click to return */
+    while(1)
+    {
         if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
         {
             return;

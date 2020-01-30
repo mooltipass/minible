@@ -104,6 +104,7 @@ typedef struct
     uint32_t atbtlc_rf_ver;
     uint32_t atbtlc_chip_id;
     uint8_t atbtlc_address[6];
+    uint32_t aux_stack_low_watermark;
 } aux_plat_details_message_t;
 
 typedef struct

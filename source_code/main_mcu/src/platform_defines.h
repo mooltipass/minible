@@ -130,6 +130,7 @@
      #define DEVELOPER_FEATURES_ENABLED
      #define BOD_NOT_ENABLED
      #define DBFLASH_CHIP_8M
+     #define STACK_MEASURE_ENABLED
 #endif
 
 #if defined(EMULATOR_BUILD)
