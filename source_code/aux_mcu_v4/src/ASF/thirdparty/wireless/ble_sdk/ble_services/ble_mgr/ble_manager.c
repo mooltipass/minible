@@ -1654,6 +1654,9 @@ at_ble_status_t ble_pair_done_handler(void *params)
 				/* Store the bonding information in the PDS */
 				ble_store_bonding_info(&ble_dev_info[idx]);
 			#endif
+            
+            /* Call logic bluetooth handler */
+            logic_bluetooth_successfull_pairing_call(&ble_dev_info[idx]);
 			
 			/*DBG_LOG_DEV("LTK: ");
 			for (idx = 0; idx < 16; idx++)

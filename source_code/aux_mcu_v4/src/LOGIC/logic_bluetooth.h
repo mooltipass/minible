@@ -9,6 +9,7 @@
 #ifndef LOGIC_BLUETOOTH_H_
 #define LOGIC_BLUETOOTH_H_
 
+#include "ble_manager.h"
 #include "at_ble_api.h"
 #include "defines.h"
 
@@ -275,6 +276,7 @@ void logic_bluetooth_update_report(uint16_t conn_handle, uint8_t serv_inst, uint
 uint8_t logic_bluetooth_get_report_characteristic(uint16_t handle, uint8_t serv, uint8_t reportid);
 uint8_t logic_bluetooth_get_notif_instance(uint8_t serv_num, uint16_t char_handle);
 void logic_bluetooth_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status);
+void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info);
 ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key);
 at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params);
 uint8_t logic_bluetooth_get_reportid(uint8_t serv, uint16_t handle);

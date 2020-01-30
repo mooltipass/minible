@@ -129,75 +129,64 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
 /*! \fn     logic_bluetooth_hid_paired_callback(void* params)
 *   \brief  Called during device pairing
 */
-static at_ble_status_t logic_bluetooth_hid_paired_callback(void* param)
+//static at_ble_status_t logic_bluetooth_hid_paired_callback(void* param)
+
+void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info)
 {
-    at_ble_pair_done_t* pairing_params = (at_ble_pair_done_t*)param;
     aux_mcu_message_t* temp_tx_message_pt;
+    DBG_LOG("Paired to device");
+        
+    /* Set booleans */
+    logic_bluetooth_can_communicate_with_host = TRUE;
+    logic_bluetooth_just_paired = TRUE;
+    logic_bluetooth_paired = TRUE;
+        
+    /* Inform main MCU */
+    comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+        
+    /* Set payload size */
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(temp_tx_message_pt->ble_message.bonding_information_to_store_message);
+        
+    /* Message ID */
+    temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_STORE_BOND_INFO;
+        
+    /***********************/
+    /* Bonding information */
+    /***********************/
+        
+    /* General stuff */
+    temp_tx_message_pt->ble_message.bonding_information_to_store_message.zero_to_be_valid = 0;
+    temp_tx_message_pt->ble_message.bonding_information_to_store_message.address_resolv_type = dev_info->conn_info.peer_addr.type;
+    memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.mac_address, dev_info->conn_info.peer_addr.addr, sizeof(dev_info->conn_info.peer_addr.addr));
+    temp_tx_message_pt->ble_message.bonding_information_to_store_message.auth_type = dev_info->bond_info.auth;
+        
+    /* Peer LTK */
+    memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_ltk_key, dev_info->bond_info.peer_ltk.key, sizeof(dev_info->bond_info.peer_ltk.key));
+    temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_ltk_ediv = dev_info->bond_info.peer_ltk.ediv;
+    memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_ltk_random_nb, dev_info->bond_info.peer_ltk.nb, sizeof(dev_info->bond_info.peer_ltk.nb));
+    temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_ltk_key_size = dev_info->bond_info.peer_ltk.key_size;
+        
+    /* CSRK */
+    memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_csrk_key, dev_info->bond_info.peer_csrk.key, sizeof(dev_info->bond_info.peer_csrk.key));
+        
+    /* IRK */
+    memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_irk_key, dev_info->bond_info.peer_irk.key, sizeof(dev_info->bond_info.peer_irk.key));
+    temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_irk_resolv_type = dev_info->bond_info.peer_irk.addr.type;
+    memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_irk_address, dev_info->bond_info.peer_irk.addr.addr, sizeof(dev_info->bond_info.peer_irk.addr.addr));
     
-    if(pairing_params->status == AT_BLE_SUCCESS)
-    {
-        DBG_LOG("Paired to device");
-        
-        /* Set booleans */
-        logic_bluetooth_can_communicate_with_host = TRUE;
-        logic_bluetooth_just_paired = TRUE;
-        logic_bluetooth_paired = TRUE;
-        
-        /* Inform main MCU */
-        comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
-        
-        /* Set payload size */
-        temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(temp_tx_message_pt->ble_message.bonding_information_to_store_message);
-        
-        /* Message ID */
-        temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_STORE_BOND_INFO;
-        
-        /***********************/
-        /* Bonding information */
-        /***********************/
-        
-        /* General stuff */
-        temp_tx_message_pt->ble_message.bonding_information_to_store_message.zero_to_be_valid = 0;
-        //temp_tx_message_pt->ble_message.bonding_information_to_store_message.address_resolv_type = pairing_params->
-        //temp_tx_message_pt->ble_message.bonding_information_to_store_message.mac_address
-        temp_tx_message_pt->ble_message.bonding_information_to_store_message.auth_type = pairing_params->auth;
-        
-        /* LTK */
-        memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_ltk_key, pairing_params->peer_ltk.key, sizeof(pairing_params->peer_ltk.key));
-        temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_ltk_ediv = pairing_params->peer_ltk.ediv;
-        memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_ltk_random_nb, pairing_params->peer_ltk.nb, sizeof(pairing_params->peer_ltk.nb));
-        temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_ltk_key_size = pairing_params->peer_ltk.key_size;
-        
-        /* CSRK */
-        memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_csrk_key, pairing_params->peer_csrk.key, sizeof(pairing_params->peer_csrk.key));
-        
-        /* IRK */
-        memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_irk_key, pairing_params->peer_irk.key, sizeof(pairing_params->peer_irk.key));
-        temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_irk_resolv_type = pairing_params->peer_irk.addr.type;
-        memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_irk_address, pairing_params->peer_irk.addr.addr, sizeof(pairing_params->peer_irk.addr.addr));
-        
-        /*temp_tx_message_pt->ble_message.bonding_information_to_store_message.
-        temp_tx_message_pt->ble_message.bonding_information_to_store_message.
-        temp_tx_message_pt->ble_message.bonding_information_to_store_message.
-        temp_tx_message_pt->ble_message.bonding_information_to_store_message.
-        temp_tx_message_pt->ble_message.bonding_information_to_store_message.
-        temp_tx_message_pt->ble_message.bonding_information_to_store_message.
-        
-        uint8_t host_ltk_key[16];
-        uint16_t host_ltk_ediv;
-        uint8_t host_ltk_random_nb[8];
-        uint16_t host_ltk_key_size;
-        uint8_t reserved[26];*/
-        
-        /* Send packet */
-        comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
-    }
-    else
-    {
-        DBG_LOG("ERROR: Failed pairing to device");
-    }
+    /* Host LTK */
+    memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.host_ltk_key, dev_info->host_ltk.key, sizeof(dev_info->host_ltk.key));
+    temp_tx_message_pt->ble_message.bonding_information_to_store_message.host_ltk_ediv = dev_info->host_ltk.ediv;
+    memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.host_ltk_random_nb, dev_info->host_ltk.nb, sizeof(dev_info->host_ltk.nb));
+    temp_tx_message_pt->ble_message.bonding_information_to_store_message.host_ltk_key_size = dev_info->host_ltk.key_size;
     
-    switch (pairing_params->auth)
+    /* Zero stuff */
+    memset(temp_tx_message_pt->ble_message.bonding_information_to_store_message.reserved, 0, sizeof(temp_tx_message_pt->ble_message.bonding_information_to_store_message.reserved));
+        
+    /* Send packet */
+    comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
+    
+    switch (dev_info->bond_info.auth)
     {
         case AT_BLE_AUTH_NO_MITM_NO_BOND: DBG_LOG("No Man In The Middle protection(MITM) , No Bonding");break;
         case AT_BLE_AUTH_NO_MITM_BOND: DBG_LOG("No MITM, Bonding");break;
@@ -207,13 +196,15 @@ static at_ble_status_t logic_bluetooth_hid_paired_callback(void* param)
     }
     
     #ifndef DEBUG_LOG_DISABLED
-    DBG_LOG("LTK Key (%dB): %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", pairing_params->peer_ltk.key_size,pairing_params->peer_ltk.key[0],pairing_params->peer_ltk.key[1],pairing_params->peer_ltk.key[2],pairing_params->peer_ltk.key[3],pairing_params->peer_ltk.key[4],pairing_params->peer_ltk.key[5],pairing_params->peer_ltk.key[6],pairing_params->peer_ltk.key[7],pairing_params->peer_ltk.key[8],pairing_params->peer_ltk.key[9],pairing_params->peer_ltk.key[10],pairing_params->peer_ltk.key[11],pairing_params->peer_ltk.key[12],pairing_params->peer_ltk.key[13],pairing_params->peer_ltk.key[14],pairing_params->peer_ltk.key[15]);
-    DBG_LOG("LTK ediv: %04x, RNG: %02x%02x%02x%02x%02x%02x%02x%02x", pairing_params->peer_ltk.ediv, pairing_params->peer_ltk.nb[0],pairing_params->peer_ltk.nb[1],pairing_params->peer_ltk.nb[2],pairing_params->peer_ltk.nb[3],pairing_params->peer_ltk.nb[4],pairing_params->peer_ltk.nb[5],pairing_params->peer_ltk.nb[6],pairing_params->peer_ltk.nb[7]);
-    DBG_LOG("CSRK: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",pairing_params->peer_csrk.key[0],pairing_params->peer_csrk.key[1],pairing_params->peer_csrk.key[2],pairing_params->peer_csrk.key[3],pairing_params->peer_csrk.key[4],pairing_params->peer_csrk.key[5],pairing_params->peer_csrk.key[6],pairing_params->peer_csrk.key[7],pairing_params->peer_csrk.key[8],pairing_params->peer_csrk.key[9],pairing_params->peer_csrk.key[10],pairing_params->peer_csrk.key[11],pairing_params->peer_csrk.key[12],pairing_params->peer_csrk.key[13],pairing_params->peer_csrk.key[14],pairing_params->peer_csrk.key[15]);
-    DBG_LOG("IRK: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",pairing_params->peer_irk.key[0],pairing_params->peer_irk.key[1],pairing_params->peer_irk.key[2],pairing_params->peer_irk.key[3],pairing_params->peer_irk.key[4],pairing_params->peer_irk.key[5],pairing_params->peer_irk.key[6],pairing_params->peer_irk.key[7],pairing_params->peer_irk.key[8],pairing_params->peer_irk.key[9],pairing_params->peer_irk.key[10],pairing_params->peer_irk.key[11],pairing_params->peer_irk.key[12],pairing_params->peer_irk.key[13],pairing_params->peer_irk.key[14],pairing_params->peer_irk.key[15]);
+    DBG_LOG("Host LTK Key (%dB): %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", dev_info->host_ltk.key_size,dev_info->host_ltk.key[0],dev_info->host_ltk.key[1],dev_info->host_ltk.key[2],dev_info->host_ltk.key[3],dev_info->host_ltk.key[4],dev_info->host_ltk.key[5],dev_info->host_ltk.key[6],dev_info->host_ltk.key[7],dev_info->host_ltk.key[8],dev_info->host_ltk.key[9],dev_info->host_ltk.key[10],dev_info->host_ltk.key[11],dev_info->host_ltk.key[12],dev_info->host_ltk.key[13],dev_info->host_ltk.key[14],dev_info->host_ltk.key[15]);
+    DBG_LOG("LTK ediv: %04x, RNG: %02x%02x%02x%02x%02x%02x%02x%02x", dev_info->host_ltk.ediv, dev_info->host_ltk.nb[0],dev_info->host_ltk.nb[1],dev_info->host_ltk.nb[2],dev_info->host_ltk.nb[3],dev_info->host_ltk.nb[4],dev_info->host_ltk.nb[5],dev_info->host_ltk.nb[6],dev_info->host_ltk.nb[7]);
+    DBG_LOG("Peer LTK Key (%dB): %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x", dev_info->bond_info.peer_ltk.key_size,dev_info->bond_info.peer_ltk.key[0],dev_info->bond_info.peer_ltk.key[1],dev_info->bond_info.peer_ltk.key[2],dev_info->bond_info.peer_ltk.key[3],dev_info->bond_info.peer_ltk.key[4],dev_info->bond_info.peer_ltk.key[5],dev_info->bond_info.peer_ltk.key[6],dev_info->bond_info.peer_ltk.key[7],dev_info->bond_info.peer_ltk.key[8],dev_info->bond_info.peer_ltk.key[9],dev_info->bond_info.peer_ltk.key[10],dev_info->bond_info.peer_ltk.key[11],dev_info->bond_info.peer_ltk.key[12],dev_info->bond_info.peer_ltk.key[13],dev_info->bond_info.peer_ltk.key[14],dev_info->bond_info.peer_ltk.key[15]);
+    DBG_LOG("LTK ediv: %04x, RNG: %02x%02x%02x%02x%02x%02x%02x%02x", dev_info->bond_info.peer_ltk.ediv, dev_info->bond_info.peer_ltk.nb[0],dev_info->bond_info.peer_ltk.nb[1],dev_info->bond_info.peer_ltk.nb[2],dev_info->bond_info.peer_ltk.nb[3],dev_info->bond_info.peer_ltk.nb[4],dev_info->bond_info.peer_ltk.nb[5],dev_info->bond_info.peer_ltk.nb[6],dev_info->bond_info.peer_ltk.nb[7]);
+    DBG_LOG("CSRK: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",dev_info->bond_info.peer_csrk.key[0],dev_info->bond_info.peer_csrk.key[1],dev_info->bond_info.peer_csrk.key[2],dev_info->bond_info.peer_csrk.key[3],dev_info->bond_info.peer_csrk.key[4],dev_info->bond_info.peer_csrk.key[5],dev_info->bond_info.peer_csrk.key[6],dev_info->bond_info.peer_csrk.key[7],dev_info->bond_info.peer_csrk.key[8],dev_info->bond_info.peer_csrk.key[9],dev_info->bond_info.peer_csrk.key[10],dev_info->bond_info.peer_csrk.key[11],dev_info->bond_info.peer_csrk.key[12],dev_info->bond_info.peer_csrk.key[13],dev_info->bond_info.peer_csrk.key[14],dev_info->bond_info.peer_csrk.key[15]);
+    DBG_LOG("IRK: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",dev_info->bond_info.peer_irk.key[0],dev_info->bond_info.peer_irk.key[1],dev_info->bond_info.peer_irk.key[2],dev_info->bond_info.peer_irk.key[3],dev_info->bond_info.peer_irk.key[4],dev_info->bond_info.peer_irk.key[5],dev_info->bond_info.peer_irk.key[6],dev_info->bond_info.peer_irk.key[7],dev_info->bond_info.peer_irk.key[8],dev_info->bond_info.peer_irk.key[9],dev_info->bond_info.peer_irk.key[10],dev_info->bond_info.peer_irk.key[11],dev_info->bond_info.peer_irk.key[12],dev_info->bond_info.peer_irk.key[13],dev_info->bond_info.peer_irk.key[14],dev_info->bond_info.peer_irk.key[15]);
     #endif
     
-    switch(pairing_params->peer_irk.addr.type)
+    switch(dev_info->bond_info.peer_irk.addr.type)
     {
         case(AT_BLE_ADDRESS_PUBLIC): DBG_LOG("Public IRK addr");break;
         case(AT_BLE_ADDRESS_RANDOM_STATIC): DBG_LOG("Random static IRK addr");break;
@@ -221,9 +212,7 @@ static at_ble_status_t logic_bluetooth_hid_paired_callback(void* param)
         case(AT_BLE_ADDRESS_RANDOM_PRIVATE_NON_RESOLVABLE): DBG_LOG("Random private non resolvable IRK addr");break;
         default: break;
     }
-    DBG_LOG("IRK addr: %02x%02x%02x%02x%02x%02x",pairing_params->peer_irk.addr.addr[0],pairing_params->peer_irk.addr.addr[1],pairing_params->peer_irk.addr.addr[2],pairing_params->peer_irk.addr.addr[3],pairing_params->peer_irk.addr.addr[4],pairing_params->peer_irk.addr.addr[5]);
-    
-    return pairing_params->status;
+    DBG_LOG("IRK addr: %02x%02x%02x%02x%02x%02x",dev_info->bond_info.peer_irk.addr.addr[0],dev_info->bond_info.peer_irk.addr.addr[1],dev_info->bond_info.peer_irk.addr.addr[2],dev_info->bond_info.peer_irk.addr.addr[3],dev_info->bond_info.peer_irk.addr.addr[4],dev_info->bond_info.peer_irk.addr.addr[5]);
 }
 
 /*! \fn     logic_bluetooth_encryption_changed_callback(void* params)
@@ -256,7 +245,7 @@ static const ble_gap_event_cb_t hid_app_gap_handle =
 {
     .connected = logic_bluetooth_hid_connected_callback,
     .disconnected = logic_bluetooth_hid_disconnected_callback,
-    .pair_done = logic_bluetooth_hid_paired_callback,
+    //.pair_done = logic_bluetooth_hid_paired_callback,
     .encryption_status_changed = logic_bluetooth_encryption_changed_callback
 };
 
