@@ -126,11 +126,10 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
     return AT_BLE_SUCCESS;
 }
 
-/*! \fn     logic_bluetooth_hid_paired_callback(void* params)
+/*! \fn     logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info)
 *   \brief  Called during device pairing
+*   \param  dev_info    Device information pointer
 */
-//static at_ble_status_t logic_bluetooth_hid_paired_callback(void* param)
-
 void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info)
 {
     aux_mcu_message_t* temp_tx_message_pt;
