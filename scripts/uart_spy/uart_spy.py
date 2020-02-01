@@ -1,48 +1,10 @@
 from __future__ import print_function
+from command_defines import *
 import threading
 import struct
 import serial
 import Queue
 import sys
-
-AUX_MCU_MSG_TYPE_USB            = 0x0000
-AUX_MCU_MSG_TYPE_BLE            = 0x0001
-AUX_MCU_MSG_TYPE_BOOTLOADER     = 0x0002
-AUX_MCU_MSG_TYPE_PLAT_DETAILS   = 0x0003
-AUX_MCU_MSG_TYPE_MAIN_MCU_CMD   = 0x0004
-AUX_MCU_MSG_TYPE_AUX_MCU_EVENT  = 0x0005
-AUX_MCU_MSG_TYPE_NIMH_CHARGE    = 0x0006
-AUX_MCU_MSG_TYPE_PING_WITH_INFO = 0x0007
-AUX_MCU_MSG_TYPE_KEYBOARD_TYPE  = 0x0008
-AUX_MCU_MSG_TYPE_FIDO2          = 0x0009
-AUX_MCU_MSG_TYPE_RNG_TRANSFER   = 0x000A
-AUX_MCU_MSG_TYPE_BLE_CMD        = 0x000B
-
-MAIN_MCU_COMMAND_SLEEP          = 0x0001
-MAIN_MCU_COMMAND_ATTACH_USB     = 0x0002
-MAIN_MCU_COMMAND_PING           = 0x0003
-MAIN_MCU_COMMAND_RESERVED       = 0x0004
-MAIN_MCU_COMMAND_NIMH_CHARGE    = 0x0005
-MAIN_MCU_COMMAND_NO_COMMS_UNAV  = 0x0006
-MAIN_MCU_COMMAND_RESERVED2      = 0x0007
-MAIN_MCU_COMMAND_DETACH_USB     = 0x0008
-MAIN_MCU_COMMAND_FUNC_TEST      = 0x0009
-MAIN_MCU_COMMAND_UPDT_DEV_STAT  = 0x000A
-MAIN_MCU_COMMAND_STOP_CHARGE    = 0x000B
-MAIN_MCU_COMMAND_SET_BATTERYLVL = 0x000C
-
-AUX_MCU_EVENT_BLE_ENABLED		= 0x0001
-AUX_MCU_EVENT_BLE_DISABLED		= 0x0002
-AUX_MCU_EVENT_TX_SWEEP_DONE		= 0x0003
-AUX_MCU_EVENT_FUNC_TEST_DONE	= 0x0004
-AUX_MCU_EVENT_USB_ENUMERATED	= 0x0005
-AUX_MCU_EVENT_CHARGE_DONE		= 0x0006
-AUX_MCU_EVENT_CHARGE_FAIL		= 0x0007
-
-BLE_MESSAGE_CMD_ENABLE          = 0x0001
-BLE_MESSAGE_CMD_DISABLE         = 0x0002
-BLE_MESSAGE_STORE_BOND_INFO     = 0x0003
-BLE_MESSAGE_RECALL_BOND_INFO    = 0x0004
 
 # UARTs
 uart_main_mcu = "COM16"
@@ -53,86 +15,45 @@ link_frame_bytes = 560
 queue = Queue.Queue(1000)
 
 # Open the UARTs
-ser_main = serial.Serial(uart_main_mcu, 6000000)
-ser_main.set_buffer_size(rx_size = 1000000, tx_size = 1000000)
 ser_aux = serial.Serial(uart_aux_mcu, 6000000)
+ser_main = serial.Serial(uart_main_mcu, 6000000)
 ser_aux.set_buffer_size(rx_size = 1000000, tx_size = 1000000)
+ser_main.set_buffer_size(rx_size = 1000000, tx_size = 1000000)
 
 	
 def is_frame_valid(frame, attach_usb_seen, enable_ble_seen):
-	# Extract values
-	[message_type, total_payload, command, command_payload_length] = struct.unpack("HHHH", frame[0:8])
+	# Extract message type
+	[message_type] = struct.unpack("H", frame[0:2])
 	
+	# To check if frame is valid we only check that the message type is valid
 	if message_type == AUX_MCU_MSG_TYPE_USB:
 		if not attach_usb_seen:
-			return False
-		if command >= 1 and command <= 0x001F:
-			return True
-		elif command >= 0x0100 and command <= 0x010F:
-			return True
-		elif command >= 0x8000 and command <= 0x8010:
-			return True
-		else:
 			return False
 	elif message_type == AUX_MCU_MSG_TYPE_BLE:
 		if not enable_ble_seen:
 			return False
-		if command >= 1 and command <= 0x001F:
-			return True
-		elif command >= 0x0100 and command <= 0x010F:
-			return True
-		elif command >= 0x8000 and command <= 0x8010:
-			return True
-		else:
-			return False
-	elif message_type == AUX_MCU_MSG_TYPE_BOOTLOADER:
-		if command >= 0x0000 and command <= 0x0002:
-			return True
-		else:
-			return False
-	elif message_type == AUX_MCU_MSG_TYPE_PLAT_DETAILS:
-		return True
-	elif message_type == AUX_MCU_MSG_TYPE_MAIN_MCU_CMD:
-		if command >= 0x0001 and command <= 0x000F:
-			return True
-		else:
-			return False
-	elif message_type == AUX_MCU_MSG_TYPE_AUX_MCU_EVENT:
-		if command >= 0x0001 and command <= 0x000F:
-			return True
-		else:
-			return False
-	elif message_type == AUX_MCU_MSG_TYPE_NIMH_CHARGE:
-		return True
-	elif message_type == AUX_MCU_MSG_TYPE_PING_WITH_INFO:
-		return True
-	elif message_type == AUX_MCU_MSG_TYPE_KEYBOARD_TYPE:
-		return True
-	elif message_type == AUX_MCU_MSG_TYPE_FIDO2:
-		return True
-	elif message_type == AUX_MCU_MSG_TYPE_RNG_TRANSFER:
-		return True
-	elif message_type == AUX_MCU_MSG_TYPE_BLE_CMD:
-		return True
 	elif message_type == 0xFFFF:
+		return True
+	elif message_type in message_types:
 		return True
 	else:
 		return False
 
 def serial_read(s, mcu):
-	resync_was_done = True
 	enable_ble_seen = False
 	attach_usb_seen = False
+	resync_was_done = True
 	nb_bytes = 0
 	frame = []
-	while True:
+	
+	while True:	
 		# Read the right number of bytes to get a full frame
 		bytes = s.read(link_frame_bytes-nb_bytes)
 		frame.extend(bytes)
 		nb_bytes = len(frame)
 		
 		# Do we have a full frame?
-		if link_frame_bytes == nb_bytes:
+		if link_frame_bytes == nb_bytes:		
 			# Convert frame if needed
 			if sys.version_info[0] < 3:
 				frame_bis = bytearray(frame)
@@ -141,9 +62,8 @@ def serial_read(s, mcu):
 			
 			# Check for valid frame
 			if not is_frame_valid(frame_bis, attach_usb_seen, enable_ble_seen):
+				print(mcu + ": discarding byte 0x" + str.format('{:02X}', frame_bis[0]) + " to try to get a SYNC")
 				resync_was_done = True
-				print(mcu + ": " + str.format('{:02X}', frame_bis[0]))
-				# remove one byte
 				frame = frame[1:]
 				nb_bytes -= 1
 			else:				
@@ -154,11 +74,11 @@ def serial_read(s, mcu):
 				if message_type == AUX_MCU_MSG_TYPE_BLE_CMD and command == BLE_MESSAGE_CMD_ENABLE:
 					enable_ble_seen = True
 				
-				# Add to the queue
+				# Add frame to the queue
 				queue.put([frame_bis, mcu, resync_was_done])
+				resync_was_done = False
 				nb_bytes = 0
 				frame = []		
-				resync_was_done = False
 
 # Reading threads
 thread1 = threading.Thread(target=serial_read, args=(ser_main,"MAIN",),).start()
