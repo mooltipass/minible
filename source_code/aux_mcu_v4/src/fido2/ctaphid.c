@@ -361,7 +361,7 @@ void ctaphid_check_timeouts(void)
 void ctaphid_update_status(int8_t status)
 {
     CTAPHID_WRITE_BUFFER wb;
-    printf1(TAG_HID, "Send device update %d!\n",status);
+    //printf1(TAG_HID, "Send device update %d!\n",status);
     ctaphid_write_buffer_init(&wb);
 
     wb.cid = buffer_cid();
