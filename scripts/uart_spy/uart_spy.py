@@ -4,26 +4,67 @@ import threading
 import struct
 import serial
 import Queue
+import glob
 import sys
 
+# If we've seen a message to enable USB or BLE
 enable_ble_seen = False
 attach_usb_seen = False
 
-# UARTs
-uart_main_mcu = "COM16"
-uart_aux_mcu = "COM15"
-link_frame_bytes = 560
+# Create a list of possible com ports
+if sys.platform.startswith('win'):
+	ports = ['COM%s' % (i + 1) for i in range(256)]
+elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+	# this excludes your current terminal "/dev/tty"
+	ports = glob.glob('/dev/tty[A-Za-z]*')
+elif sys.platform.startswith('darwin'):
+	ports = glob.glob('/dev/tty.*')
+else:
+	raise EnvironmentError('Unsupported platform')
+
+# Try to open them to see which ones are actually available
+available_ports = []
+for port in ports:
+	try:
+		s = serial.Serial(port)
+		s.close()
+		available_ports.append(port)
+	except (OSError, serial.SerialException):
+		pass
+		
+# Check for ports
+if len(available_ports) < 2:
+	print("Couldn't find COM ports!")
+	sys.exit(0)
+
+# Try to guess which one is ours		
+if sys.platform.startswith('win'):
+	for i in range(0, 256):
+		if "COM" + str(i) in available_ports and "COM" + str(i+1) in available_ports and "COM" + str(i+3) in available_ports:			
+			uart_main_mcu = "COM" + str(i+1)
+			uart_aux_mcu = "COM" + str(i)
+			break
+	ports = ['COM%s' % (i + 1) for i in range(256)]
+elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+	# TODO
+	uart_main_mcu = available_ports[1]
+	uart_aux_mcu = available_ports[0]
+elif sys.platform.startswith('darwin'):
+	# TODO
+	uart_main_mcu = available_ports[1]
+	uart_aux_mcu = available_ports[0]
 
 # Queue for sync
 queue = Queue.Queue(1000)
 
 # Open the UARTs
+link_frame_bytes = 560
 ser_aux = serial.Serial(uart_aux_mcu, 6000000)
 ser_main = serial.Serial(uart_main_mcu, 6000000)
 ser_aux.set_buffer_size(rx_size = 1000000, tx_size = 1000000)
 ser_main.set_buffer_size(rx_size = 1000000, tx_size = 1000000)
 
-	
+
 def is_frame_valid(frame):
 	# Extract message type
 	[message_type] = struct.unpack("H", frame[0:2])
@@ -137,22 +178,22 @@ while True:
 				battery_voltage = battery_voltage*103/256
 				
 				print(" - details below:")
-				print("                               Current status:", charge_status_lut[charge_status])
-				print("                               Battery voltage:", str(battery_voltage)+"mV")
-				print("                               Charging current:", str(charge_current*0.4)+"mA")
+				print("	                              Current status:", charge_status_lut[charge_status])
+				print("	                              Battery voltage:", str(battery_voltage)+"mV")
+				print("	                              Charging current:", str(charge_current*0.4)+"mA")
 				
 			if message_type == AUX_MCU_MSG_TYPE_PLAT_DETAILS:
 				[type, payload, fw_major, fw_minor, did, uid1, uid2, uid3, uid4, blusdk_maj, blusdk_min, blusdk_fw_maj, blusdk_fw_min, blusdk_fw_bld, rf_ver, atbtlc_chip_id, addr1, addr2, addr3, addr4, addr5, addr6 ] = struct.unpack("HHHHIIIIIHHHHHIIBBBBBB", frame[0:54])
 			
 				print(" - details below:")
-				print("                               Aux FW:", str(fw_major) + "." + str(fw_minor))
-				print("                               DID:", "0x" + ''.join(str.format('{:08X}', did)))
-				print("                               UID:", "0x" + ''.join(str.format('{:08X}', x) for x in [uid1, uid2, uid3, uid4]))
-				print("                               BluSDK lib:", str(blusdk_maj) + "." + str(blusdk_min))
-				print("                               BluSDK fw:", str(blusdk_fw_maj) + "." + str(blusdk_fw_min), "build", ''.join(str.format('{:04X}', blusdk_fw_bld)))
-				print("                               RF version:", "0x" + ''.join(str.format('{:08X}', rf_ver)))
-				print("                               ATBTLC1000 chip id:", "0x" + ''.join(str.format('{:08X}', atbtlc_chip_id)))
-				print("                               BLE address:", ''.join(str.format('{:02X}', x) for x in [addr1, addr2, addr3, addr4, addr5, addr6]))
+				print("	                              Aux FW:", str(fw_major) + "." + str(fw_minor))
+				print("	                              DID:", "0x" + ''.join(str.format('{:08X}', did)))
+				print("	                              UID:", "0x" + ''.join(str.format('{:08X}', x) for x in [uid1, uid2, uid3, uid4]))
+				print("	                              BluSDK lib:", str(blusdk_maj) + "." + str(blusdk_min))
+				print("	                              BluSDK fw:", str(blusdk_fw_maj) + "." + str(blusdk_fw_min), "build", ''.join(str.format('{:04X}', blusdk_fw_bld)))
+				print("	                              RF version:", "0x" + ''.join(str.format('{:08X}', rf_ver)))
+				print("	                              ATBTLC1000 chip id:", "0x" + ''.join(str.format('{:08X}', atbtlc_chip_id)))
+				print("	                              BLE address:", ''.join(str.format('{:02X}', x) for x in [addr1, addr2, addr3, addr4, addr5, addr6]))
 		else:
 			sys.stdout.write("Main->Aux: " + message_types_descriptions[message_type].rjust(20, ' '))
 			
