@@ -70,8 +70,20 @@ aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void)
 */
 void comms_aux_mcu_send_message(BOOL wait_for_send)
 {
+    /* As the aux MCU has 3 buffers (one for USB messages, one for BLE messages, one for others), check for timeout in case message is of type other */
+    if ((aux_mcu_send_message.message_type != AUX_MCU_MSG_TYPE_USB) && (aux_mcu_send_message.message_type != AUX_MCU_MSG_TYPE_BLE))
+    {
+        while (timer_has_timer_expired(TIMER_AUX_MCU_FLOOD, FALSE) == TIMER_RUNNING);
+    }
+    
     /* The function below does wait for a previous transfer to finish */
     dma_aux_mcu_init_tx_transfer(AUXMCU_SERCOM, (void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
+    
+    /* As the aux MCU has 3 buffers (one for USB messages, one for BLE messages, one for others), start a timer in case message is of type other */
+    if ((aux_mcu_send_message.message_type != AUX_MCU_MSG_TYPE_USB) && (aux_mcu_send_message.message_type != AUX_MCU_MSG_TYPE_BLE))
+    {
+        timer_start_timer(TIMER_AUX_MCU_FLOOD, AUX_FLOOD_TIMEOUT_MS);        
+    }
     
     /* If asked, wait for message sent */
     if (wait_for_send != FALSE)
@@ -207,7 +219,15 @@ void comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* received_message)
     {
         case BLE_MESSAGE_STORE_BOND_INFO:
         {
-            logic_bluetooth_set_connected_state(TRUE);
+            if (nodemgmt_store_bluetooth_bonding_information(&received_message->ble_message.bonding_information_to_store_message) == RETURN_OK)
+            {
+                /* Set connected state */
+                logic_bluetooth_set_connected_state(TRUE);
+            }
+            else
+            {
+                // TODO2: display notification?
+            }
             break;
         }
         case BLE_MESSAGE_RECALL_BOND_INFO:

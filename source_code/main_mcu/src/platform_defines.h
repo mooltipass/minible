@@ -67,6 +67,8 @@
 - v0.17:- Changed battery measurement logic to include a measurement queue to discard effects of USB plugging
 - v0.18:- Handling both Bluetooth pair and connect messages
 - v0.19:- Database model rework to include multiple standard credential types
+        - Timeout to prevent aux mcu flooding
+        - 
 */
 
 /**************** SETUP DEFINES ****************/
@@ -182,6 +184,7 @@ typedef struct
 /* Timeout defines  */
 /********************/
 #define SCREEN_TIMEOUT_MS       15000
+#define AUX_FLOOD_TIMEOUT_MS    2
 
 /********************/
 /* Voltage cutout   */

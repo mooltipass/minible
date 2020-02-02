@@ -106,6 +106,14 @@ while True:
 		# Decode message type
 		[message_type] = struct.unpack("H", frame[0:2])
 		
+		# Look for main mcu reset message
+		if message_type == 0xFFFF:
+			if mcu == "AUX":
+				print("Aux->Main: incorrect reset message")
+			else:
+				print("Main->Aux:  comms reset message")
+			continue
+		
 		# Apply decoding guidelines and build object
 		decode_int_object = struct.unpack(decoding_guidelines[message_type][0], frame[0:decoding_guidelines[message_type][2]])
 		decode_object = {}
