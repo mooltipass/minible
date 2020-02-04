@@ -127,7 +127,7 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
     uint16_t child_address = logic_database_search_webauthn_credential_id_in_service(parent_address, request->cred_ID.tag);
     
     /* Static asserts */
-    _Static_assert(sizeof(response->user_ID) >= MEMBER_SIZE(child_webauthn_node_t, user_handle), "user handle size not big enough");
+    _Static_assert(sizeof(response->user_handle) >= MEMBER_SIZE(child_webauthn_node_t, user_handle), "user handle size not big enough");
     
     /* Check for existing login */
     if (child_address == NODE_ADDR_NULL)
@@ -139,7 +139,7 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
     else
     {
         //fido2_prompt_user("Credential exists already and in exclude list", true, 10);
-        logic_database_get_webauthn_userhandle_for_address(child_address, response->user_ID);
+        logic_database_get_webauthn_userhandle_for_address(child_address, response->user_handle, &response->user_handle_len);
         memcpy(&response->cred_ID, &request->cred_ID, sizeof(response->cred_ID));
         response->result = FIDO2_CREDENTIAL_EXISTS;
     }
@@ -157,6 +157,7 @@ static uint32_t logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_mes
     uint8_t private_key[FIDO2_PRIV_KEY_LEN];
     attested_data_t attested_data;
     ecc256_pub_key pub_key;
+    uint8_t user_handle_len;
 
     /* Clear attested data that will be signed later */
     memset(&attested_data, 0, sizeof(attested_data));
@@ -181,11 +182,18 @@ static uint32_t logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_mes
     memset(rp_id_copy, 0, sizeof(rp_id_copy));
     
     /* Sanity check */
-    _Static_assert(sizeof(user_handle_copy) <= sizeof(request->user_ID), "user id is too large");
-    
+    _Static_assert(sizeof(user_handle_copy) <= sizeof(request->user_handle), "user id is too large");
+
+    /* Sanitize user_handle_len to prevent overflow */
+    if (request->user_handle_len > sizeof(user_handle_copy))
+    {
+        request->user_handle_len = sizeof(user_handle_copy);
+    }
+
     /* Copies */
     memcpy(client_hash_copy, request->client_data_hash, sizeof(client_hash_copy));
-    memcpy(user_handle_copy, request->user_ID, sizeof(user_handle_copy));
+    memcpy(user_handle_copy, request->user_handle, request->user_handle_len);
+    user_handle_len = request->user_handle_len;
     
     /* Conversions from UTF8 to BMP (who stores emoticons anyway....) */
     int16_t display_name_conv_length = utils_utf8_string_to_bmp_string(request->display_name, display_name_copy, MEMBER_SIZE(fido2_make_auth_data_req_message_t, display_name), ARRAY_SIZE(display_name_copy));
@@ -213,7 +221,7 @@ static uint32_t logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_mes
     logic_encryption_ecc256_generate_private_key(private_key, (uint16_t)sizeof(private_key));
     
     /* Try to store new credential */
-    fido2_return_code_te temp_return = logic_user_store_webauthn_credential(rp_id_copy, user_handle_copy, user_name_copy, display_name_copy, private_key, attested_data.cred_ID.tag);
+    fido2_return_code_te temp_return = logic_user_store_webauthn_credential(rp_id_copy, user_handle_copy, user_handle_len, user_name_copy, display_name_copy, private_key, attested_data.cred_ID.tag);
 
     /* Success? */
     if (temp_return == FIDO2_SUCCESS)
@@ -260,7 +268,7 @@ static uint32_t logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_mes
     /* Sanity checks */
     /*****************/
     _Static_assert(sizeof(response->tag) == sizeof(attested_data.cred_ID.tag), "tag size is too large");
-    _Static_assert(sizeof(response->user_ID) >= sizeof(user_handle_copy), "user handle is too large");
+    _Static_assert(sizeof(response->user_handle) >= sizeof(user_handle_copy), "user handle is too large");
     _Static_assert(sizeof(response->rpID_hash) == sizeof(attested_data.auth_data_header.rpID_hash), "rpid hash is too large");
     _Static_assert(sizeof(response->pub_key_x) == sizeof(pub_key.x), "pub key x is too large");
     _Static_assert(sizeof(response->pub_key_y) == sizeof(pub_key.y), "pub key y is too large");
@@ -270,7 +278,7 @@ static uint32_t logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_mes
     /* Create answer to host */
     /*************************/
     memcpy(response->tag, attested_data.cred_ID.tag, sizeof(attested_data.cred_ID.tag));
-    memcpy(response->user_ID, user_handle_copy, sizeof(user_handle_copy));
+    memcpy(response->user_handle, user_handle_copy, user_handle_len);
     memcpy(response->rpID_hash, attested_data.auth_data_header.rpID_hash, sizeof(attested_data.auth_data_header.rpID_hash));
     response->count_BE = attested_data.auth_data_header.sign_count;
     response->flags = attested_data.auth_data_header.flags;
@@ -298,6 +306,7 @@ static uint32_t logic_fido2_make_auth_data_existing_cred(fido2_make_auth_data_re
     /* Local vars */
     uint8_t credential_id[MEMBER_ARRAY_SIZE(child_webauthn_node_t, credential_id)];
     uint8_t user_handle[MEMBER_ARRAY_SIZE(child_webauthn_node_t, user_handle)];
+    uint8_t user_handle_len;
     cust_char_t rp_id_copy[MEMBER_ARRAY_SIZE(parent_data_node_t, service)];
     uint8_t private_key[FIDO2_PRIV_KEY_LEN];
     auth_data_header_t auth_data_header;
@@ -309,7 +318,8 @@ static uint32_t logic_fido2_make_auth_data_existing_cred(fido2_make_auth_data_re
     memset(credential_id, 0, sizeof(credential_id));
     memset(user_handle, 0, sizeof(user_handle));
     memset(rp_id_copy, 0, sizeof(rp_id_copy));
-    
+    user_handle_len = 0;
+
     /* Input sanitation */
     request->rpID[MEMBER_SIZE(fido2_make_auth_data_req_message_t, rpID)-1] = 0;
     
@@ -337,7 +347,7 @@ static uint32_t logic_fido2_make_auth_data_existing_cred(fido2_make_auth_data_re
     
     /* Ask for user permission, automatically pre increment signing counter upon success recall */
     fido2_return_code_te temp_return = FIDO2_SUCCESS;
-    temp_return = logic_user_get_webauthn_credential_key_for_rp(rp_id_copy, user_handle, credential_id, private_key, &temp_sign_count, (uint8_t**)0, 0);
+    temp_return = logic_user_get_webauthn_credential_key_for_rp(rp_id_copy, user_handle, &user_handle_len, credential_id, private_key, &temp_sign_count, (uint8_t**)0, 0);
 
     /* Success? */
     if (temp_return == FIDO2_SUCCESS)
@@ -366,17 +376,25 @@ static uint32_t logic_fido2_make_auth_data_existing_cred(fido2_make_auth_data_re
     /* Sanity checks */
     /*****************/
     _Static_assert(sizeof(response->tag) == sizeof(credential_id), "tag size is too large");
-    _Static_assert(sizeof(response->user_ID) >= sizeof(user_handle), "user handle is too large");
+    _Static_assert(sizeof(response->user_handle) >= sizeof(user_handle), "user handle is too large");
     _Static_assert(sizeof(response->rpID_hash) == sizeof(auth_data_header.rpID_hash), "rpid hash is too large");
     _Static_assert(sizeof(response->pub_key_x) == sizeof(pub_key.x), "pub key x is too large");
     _Static_assert(sizeof(response->pub_key_y) == sizeof(pub_key.y), "pub key y is too large");
     _Static_assert(sizeof(response->aaguid) == sizeof(fido2_minible_aaguid), "aaguid is too large");
     
+
+    /* Sanitize user_handle_len to prevent overflow */
+    if (user_handle_len > MEMBER_SIZE(fido2_get_assertion_rsp_message_t, user_handle))
+    {
+        user_handle_len = MEMBER_SIZE(fido2_get_assertion_rsp_message_t, user_handle);
+    }
+
     /*************************/
     /* Create answer to host */
     /*************************/
     memcpy(response->tag, credential_id, sizeof(credential_id));
-    memcpy(response->user_ID, user_handle, sizeof(user_handle));
+    memcpy(response->user_handle, user_handle, user_handle_len);
+    response->user_handle_len = user_handle_len;
     memcpy(response->rpID_hash, auth_data_header.rpID_hash, sizeof(auth_data_header.rpID_hash));
     response->count_BE = auth_data_header.sign_count;
     memcpy(response->pub_key_x, pub_key.x, sizeof(pub_key.x));

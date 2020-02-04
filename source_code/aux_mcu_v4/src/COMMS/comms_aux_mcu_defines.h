@@ -18,7 +18,7 @@
 
 //FIDO2 related lengths/sizes
 #define FIDO2_RPID_LEN 252                                      //RP ID length
-#define FIDO2_USER_ID_LEN 64                                    //User id length
+#define FIDO2_USER_HANDLE_LEN 64                                //User id length
 #define FIDO2_USER_NAME_LEN 65                                  //User name length
 #define FIDO2_DISPLAY_NAME_LEN 65                               //Display name length
 #define FIDO2_CLIENT_DATA_HASH_LEN (SHA256_OUTPUT_LENGTH)       //Client data hash length

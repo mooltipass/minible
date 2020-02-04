@@ -209,14 +209,16 @@ typedef struct fido2_auth_cred_req_message_s
 typedef struct fido2_auth_cred_rsp_message_s
 {
     fido2_credential_ID_t cred_ID;
-    uint8_t user_ID[FIDO2_USER_ID_LEN];
+    uint8_t user_handle[FIDO2_USER_HANDLE_LEN];
+    uint8_t user_handle_len;
     uint8_t result;
 } fido2_auth_cred_rsp_message_t;
 
 typedef struct fido2_make_auth_data_s
 {
     uint8_t rpID[FIDO2_RPID_LEN];
-    uint8_t user_ID[FIDO2_USER_ID_LEN];
+    uint8_t user_handle[FIDO2_USER_HANDLE_LEN];
+    uint8_t user_handle_len;
     uint8_t user_name[FIDO2_USER_NAME_LEN];
     uint8_t display_name[FIDO2_DISPLAY_NAME_LEN];
     uint8_t client_data_hash[FIDO2_CLIENT_DATA_HASH_LEN];
@@ -226,7 +228,8 @@ typedef struct fido2_make_auth_data_s
 typedef struct fido2_make_auth_data_rsp_s
 {
     uint8_t tag[FIDO2_CREDENTIAL_ID_LENGTH];
-    uint8_t user_ID[FIDO2_USER_ID_LEN];
+    uint8_t user_handle[FIDO2_USER_HANDLE_LEN];
+    uint8_t user_handle_len;
     uint8_t rpID_hash[FIDO2_RPID_HASH_LEN];
     uint32_t count_BE;
     uint32_t flags;

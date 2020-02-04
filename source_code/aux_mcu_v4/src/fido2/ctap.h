@@ -106,7 +106,7 @@
 #define CLIENT_DATA_HASH_SIZE       32  //sha256 hash
 #define DOMAIN_NAME_MAX_SIZE        253
 #define RP_NAME_LIMIT               32  // application limit, name parameter isn't needed.
-#define USER_ID_MAX_SIZE            64
+#define USER_HANDLE_MAX_SIZE        64
 #define USER_NAME_LIMIT             65  // Must be minimum of 64 bytes but can be more.
 #define DISPLAY_NAME_LIMIT          65  // Must be minimum of 64 bytes but can be more.
 #define ICON_LIMIT                  128 // Must be minimum of 64 bytes but can be more.
@@ -147,7 +147,7 @@ enum ErrorCode
 
 typedef struct
 {
-    uint8_t id[USER_ID_MAX_SIZE];
+    uint8_t id[USER_HANDLE_MAX_SIZE];
     uint8_t id_size;
     uint8_t name[USER_NAME_LIMIT];
     uint8_t displayName[DISPLAY_NAME_LIMIT];
@@ -278,7 +278,7 @@ void ctap_reset_state(void);
 
 uint8_t ctap_add_pin_if_verified(uint8_t * pinTokenEnc, uint8_t * platform_pubkey, uint8_t * pinHashEnc);
 uint8_t ctap_update_pin_if_verified(uint8_t * pinEnc, int len, uint8_t * platform_pubkey, uint8_t * pinAuth, uint8_t * pinHashEnc);
-int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * desc, uint8_t *user_ID);
+int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * desc);
 uint8_t ctap_make_credential(CborEncoder * encoder, uint8_t * request, int length);
 uint8_t ctap_get_assertion(CborEncoder * encoder, uint8_t * request, int length);
 uint8_t ctap_add_attest_statement(CborEncoder * map, uint8_t * sigder, int len);

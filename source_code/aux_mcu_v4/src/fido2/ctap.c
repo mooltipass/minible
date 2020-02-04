@@ -167,7 +167,7 @@ static unsigned int get_credential_id_size(CTAP_credentialDescriptor * cred)
     return sizeof(CredentialId);
 }
 
-static void ctap_MAD_aux_comm(uint8_t *rpID, CTAP_userEntity *user, uint8_t const *clientDataHash, fido2_make_auth_data_rsp_message_t *resp_msg, bool new_cred)
+static void ctap_MAD_aux_comm(uint8_t *rpID, CTAP_credInfo * credInfo, uint8_t const *clientDataHash, fido2_make_auth_data_rsp_message_t *resp_msg, bool new_cred)
 {
     aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
     aux_mcu_message_t* temp_tx_message_pt;
@@ -184,9 +184,10 @@ static void ctap_MAD_aux_comm(uint8_t *rpID, CTAP_userEntity *user, uint8_t cons
     memcpy(req_msg->rpID, rpID, FIDO2_RPID_LEN);
     if (new_cred)
     {
-        memcpy(req_msg->user_ID, user->id, FIDO2_USER_ID_LEN);
-        memcpy(req_msg->user_name, user->name, FIDO2_USER_NAME_LEN);
-        memcpy(req_msg->display_name, user->displayName, FIDO2_DISPLAY_NAME_LEN);
+        memcpy(req_msg->user_handle, credInfo->user.id, credInfo->user.id_size);
+        req_msg->user_handle_len = credInfo->user.id_size;
+        memcpy(req_msg->user_name, credInfo->user.name, FIDO2_USER_NAME_LEN);
+        memcpy(req_msg->display_name, credInfo->user.displayName, FIDO2_DISPLAY_NAME_LEN);
     }
     memcpy(req_msg->client_data_hash, clientDataHash, FIDO2_CLIENT_DATA_HASH_LEN);
     req_msg->new_cred = (new_cred) ? 1 : 0;
@@ -212,8 +213,8 @@ static void ctap_MAD_aux_comm(uint8_t *rpID, CTAP_userEntity *user, uint8_t cons
     memcpy(resp_msg, &temp_rx_message_pt->fido2_message.fido2_make_auth_data_rsp_message, sizeof(*resp_msg));
     if (!new_cred)
     {
-        memcpy(user->id, resp_msg->user_ID, FIDO2_USER_ID_LEN);
-        user->id_size = FIDO2_USER_ID_LEN;
+        memcpy(credInfo->user.id, resp_msg->user_handle, resp_msg->user_handle_len);
+        credInfo->user.id_size = resp_msg->user_handle_len;
     }
 }
 
@@ -356,7 +357,7 @@ uint8_t ctap_add_attest_statement(CborEncoder * map, uint8_t * sigder, int len)
 // Return 1 if credential belongs to this token
 // MiniBLE:
 // Forward message to main_mcu instead and get response.
-int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * desc, uint8_t *user_ID)
+int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * desc)
 {
     aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
     aux_mcu_message_t* temp_tx_message_pt;
@@ -393,10 +394,6 @@ int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * d
 
     /* Received message is in temporary buffer */
     rsp_msg = &temp_rx_message_pt->fido2_message.fido2_auth_cred_rsp_message;
-    if (user_ID != NULL)
-    {
-        memcpy(user_ID, rsp_msg->user_ID, FIDO2_USER_ID_LEN);
-    }
     return rsp_msg->result;
 }
 
@@ -452,7 +449,7 @@ uint8_t ctap_make_credential(CborEncoder * encoder, uint8_t * request, int lengt
 
         printf1(TAG_GREEN, "checking credId: "); dump_hex1(TAG_GREEN, (uint8_t*) &excl_cred->id, sizeof(CredentialId));
 
-        if (ctap_authenticate_credential(&MC.rp, excl_cred, NULL))
+        if (ctap_authenticate_credential(&MC.rp, excl_cred))
         {
             printf1(TAG_MC, "Cred %d failed!\r\n",i);
             return CTAP2_ERR_CREDENTIAL_EXCLUDED;

@@ -338,10 +338,11 @@ RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, c
     }
 }
 
-/*! \fn     logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key, uint8_t* credential_id)
+/*! \fn     logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, uint8_t user_handle_len, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key, uint8_t* credential_id)
 *   \brief  Generate and store new webauthn credential
 *   \param  rp_id           Pointer to relying party string
-*   \param  user_handle     Opaque byte sequence of 64 bytes.
+*   \param  user_handle     Opaque byte sequence of user_handle_len.
+*   \param  user_handle_len Length of user handle
 *   \param  user_name       Pointer to user name string
 *   \param  display_name    Pointer to display name string
 *   \param  private_key     32 bytes private key
@@ -349,7 +350,7 @@ RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, c
 *   \return FIDO2 success code
 *   \note   This function doesn't parse aux MCU messages in order to safely use aux mcu received message
 */
-fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key, uint8_t* credential_id)
+fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, uint8_t user_handle_len, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key, uint8_t* credential_id)
 {
     uint8_t encrypted_private_key[MEMBER_SIZE(child_webauthn_node_t, private_key)];
     uint8_t temp_cred_ctr_val[MEMBER_SIZE(child_webauthn_node_t, ctr)];
@@ -358,6 +359,10 @@ fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, ui
     /* Sanity checks */
     _Static_assert(FIDO2_CREDENTIAL_ID_LENGTH == MEMBER_SIZE(child_webauthn_node_t, credential_id), "Invalid FIDO2 credential id length");
     
+    if (user_handle_len > MEMBER_SIZE(child_webauthn_node_t, user_handle))
+    {
+        return FIDO2_OPERATION_DENIED;
+    }
     /* Smartcard present and unlocked? */
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
@@ -371,7 +376,7 @@ fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, ui
     /* If service exist, does user_handle exist? */
     if (parent_address != NODE_ADDR_NULL)
     {
-        child_address = logic_database_search_webauthn_userhandle_in_service(parent_address, user_handle);
+        child_address = logic_database_search_webauthn_userhandle_in_service(parent_address, user_handle, user_handle_len);
         
         /* If it does, don't overwrite it... */
         if (child_address != NODE_ADDR_NULL)
@@ -413,7 +418,7 @@ fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, ui
     logic_encryption_ctr_encrypt(encrypted_private_key, sizeof(encrypted_private_key), temp_cred_ctr_val);
     
     /* Create new webauthn credential */
-    RET_TYPE temp_ret = logic_database_add_webauthn_credential_for_service(parent_address, user_handle, user_name, display_name, encrypted_private_key, temp_cred_ctr_val, credential_id);
+    RET_TYPE temp_ret = logic_database_add_webauthn_credential_for_service(parent_address, user_handle, user_handle_len, user_name, display_name, encrypted_private_key, temp_cred_ctr_val, credential_id);
     
     /* Correct return depending on credential add result */
     if (temp_ret == RETURN_OK)
@@ -535,18 +540,19 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     }
 }
 
-/*! \fn     logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t** credential_id_allow_list, uint16_t credential_id_allow_list_length)
+/*! \fn     logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t** credential_id_allow_list, uint16_t credential_id_allow_list_length)
 *   \brief  Get credential private key for a possible credential for a relying party
 *   \param  rp_id                           Pointer to relying party string
 *   \param  credential_id                   16B buffer to where to store the credential id
-*   \param  user_handle                     64B buffer to where to store the user handle
+*   \param  user_handle                     buffer to where to store the user handle
+*   \param  user_handle_len                 Where to store length of user handle
 *   \param  private_key                     32B buffer to where to store the private key
 *   \param  count                           Pointer to uint32_t to store authentication count, automatically pre incremented
 *   \param  credential_id_allow_list        If credential_id_allow_list_length != 0, list of credential ids we allow
 *   \param  credential_id_allow_list_length Length of the credential allow list
 *   \return success status
 */
-fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t** credential_id_allow_list, uint16_t credential_id_allow_list_length)
+fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t** credential_id_allow_list, uint16_t credential_id_allow_list_length)
 {
     uint8_t temp_cred_ctr[MEMBER_SIZE(child_webauthn_node_t, ctr)];
     
@@ -631,7 +637,7 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
         }
         
         /* Fetch webauthn data */
-        logic_database_get_webauthn_data_for_address_and_inc_count(child_address, user_handle, credential_id, private_key, count, temp_cred_ctr);
+        logic_database_get_webauthn_data_for_address_and_inc_count(child_address, user_handle, user_handle_len, credential_id, private_key, count, temp_cred_ctr);
         
         /* User approved, decrypt key */
         logic_encryption_ctr_decrypt(private_key, temp_cred_ctr, MEMBER_SIZE(child_webauthn_node_t, private_key), FALSE);
@@ -667,7 +673,7 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
             else
             {
                 /* Fetch webauthn data */
-                logic_database_get_webauthn_data_for_address_and_inc_count(child_address, user_handle, credential_id, private_key, count, temp_cred_ctr);
+                logic_database_get_webauthn_data_for_address_and_inc_count(child_address, user_handle, user_handle_len, credential_id, private_key, count, temp_cred_ctr);
                 
                 /* User approved, decrypt key */
                 logic_encryption_ctr_decrypt(private_key, temp_cred_ctr, MEMBER_SIZE(child_webauthn_node_t, private_key), FALSE);
