@@ -40,27 +40,31 @@ if len(available_ports) < 2:
 # Try to guess which one is ours		
 if sys.platform.startswith('win'):
 	for i in range(0, 256):
-		if "COM" + str(i) in available_ports and "COM" + str(i+1) in available_ports and "COM" + str(i+3) in available_ports:			
+		if "COM" + str(i) in available_ports and "COM" + str(i+1) in available_ports and "COM" + str(i+3) in available_ports:		
 			uart_main_mcu = "COM" + str(i+1)
 			uart_aux_mcu = "COM" + str(i)
+			uart_debug = "COM" + str(i+2)
 			break
-	ports = ['COM%s' % (i + 1) for i in range(256)]
 elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
 	# TODO
 	uart_main_mcu = available_ports[1]
 	uart_aux_mcu = available_ports[0]
+	uart_debug = available_ports[2]
 elif sys.platform.startswith('darwin'):
 	# TODO
 	uart_main_mcu = available_ports[1]
 	uart_aux_mcu = available_ports[0]
+	uart_debug = available_ports[2]
 
 # Queue for sync
 queue = Queue.Queue(1000)
 
 # Open the UARTs
 link_frame_bytes = 560
+ser_dbg = serial.Serial(uart_debug, 3000000)
 ser_aux = serial.Serial(uart_aux_mcu, 6000000)
 ser_main = serial.Serial(uart_main_mcu, 6000000)
+ser_dbg.set_buffer_size(rx_size = 1000000, tx_size = 1000000)
 ser_aux.set_buffer_size(rx_size = 1000000, tx_size = 1000000)
 ser_main.set_buffer_size(rx_size = 1000000, tx_size = 1000000)
 
@@ -86,6 +90,11 @@ def is_frame_valid(frame):
 		return True
 	else:
 		return False
+		
+def debug_serial_read(s, str):	
+	while True:	
+		line = s.readline()
+		queue.put([line, "DBG", False])	
 
 def serial_read(s, mcu):
 	global enable_ble_seen
@@ -129,83 +138,87 @@ def serial_read(s, mcu):
 				frame = []		
 
 # Reading threads
-thread1 = threading.Thread(target=serial_read, args=(ser_main,"MAIN",),).start()
+thread1 = threading.Thread(target=serial_read, args=(ser_main,"MAIN"),).start()
 thread2 = threading.Thread(target=serial_read, args=(ser_aux,"AUX"),).start()
+thread3 = threading.Thread(target=debug_serial_read, args=(ser_dbg, "DBG"),).start()
 
 while True:
 	try:
 		[frame, mcu, resync_done] = queue.get(True, 1)
 		#print(' '.join(str.format('{:02X}', x) for x in frame))
 		
-		# Resync done?
-		if resync_done:
-			if mcu == "AUX":
-				print("<<<<<<< AUX RESYNC DONE >>>>>>>")
-			else:
-				print("<<<<<<< MAIN RESYNC DONE >>>>>>>")
-		
-		# Decode message type
-		[message_type] = struct.unpack("H", frame[0:2])
-		
-		# Look for main mcu reset message
-		if message_type == 0xFFFF:
-			if mcu == "AUX":
-				print("Aux->Main: incorrect reset message")
-			else:
-				print("Main->Aux:  comms reset message")
-			continue
-		
-		# Apply decoding guidelines and build object
-		decode_int_object = struct.unpack(decoding_guidelines[message_type][0], frame[0:decoding_guidelines[message_type][2]])
-		decode_object = {}
-		for i in range(0, len(decode_int_object)):
-			decode_object[decoding_guidelines[message_type][1][i]] = decode_int_object[i]
-				
-		if mcu == "AUX":
-			sys.stdout.write("Aux->Main: " + message_types_descriptions[message_type].rjust(20, ' '))
-			
-			if "command" in decode_object:
-				# Check we have a description for the command
-				command = decode_object["command"]
-				if command >= len(aux_mcu_command_description[message_type]):
-					sys.stdout.write(" - missing command description: " + str(command))
+		if mcu == "DBG":
+			print("Debug MSG:                                " + frame.replace("\r","").replace("\n",""))
+		else:		
+			# Resync done?
+			if resync_done:
+				if mcu == "AUX":
+					print("<<<<<<< AUX RESYNC DONE >>>>>>>")
 				else:
-					sys.stdout.write(" - "+ aux_mcu_command_description[message_type][command])
+					print("<<<<<<< MAIN RESYNC DONE >>>>>>>")
 			
-			if message_type == AUX_MCU_MSG_TYPE_NIMH_CHARGE:
-				charge_status_lut = ["idle", "current charge ramp start", "current charge ramp", "ramping start error", "current maintaining", "current ramp error", "current maintaining error", "charging done"]
-				[type, payload, charge_status, battery_voltage, charge_current] = struct.unpack("HHHHH", frame[0:10])
-				battery_voltage = battery_voltage*103/256
-				
-				print(" - details below:")
-				print("	                              Current status:", charge_status_lut[charge_status])
-				print("	                              Battery voltage:", str(battery_voltage)+"mV")
-				print("	                              Charging current:", str(charge_current*0.4)+"mA")
-				
-			if message_type == AUX_MCU_MSG_TYPE_PLAT_DETAILS:
-				[type, payload, fw_major, fw_minor, did, uid1, uid2, uid3, uid4, blusdk_maj, blusdk_min, blusdk_fw_maj, blusdk_fw_min, blusdk_fw_bld, rf_ver, atbtlc_chip_id, addr1, addr2, addr3, addr4, addr5, addr6 ] = struct.unpack("HHHHIIIIIHHHHHIIBBBBBB", frame[0:54])
+			# Decode message type
+			[message_type] = struct.unpack("H", frame[0:2])
 			
-				print(" - details below:")
-				print("	                              Aux FW:", str(fw_major) + "." + str(fw_minor))
-				print("	                              DID:", "0x" + ''.join(str.format('{:08X}', did)))
-				print("	                              UID:", "0x" + ''.join(str.format('{:08X}', x) for x in [uid1, uid2, uid3, uid4]))
-				print("	                              BluSDK lib:", str(blusdk_maj) + "." + str(blusdk_min))
-				print("	                              BluSDK fw:", str(blusdk_fw_maj) + "." + str(blusdk_fw_min), "build", ''.join(str.format('{:04X}', blusdk_fw_bld)))
-				print("	                              RF version:", "0x" + ''.join(str.format('{:08X}', rf_ver)))
-				print("	                              ATBTLC1000 chip id:", "0x" + ''.join(str.format('{:08X}', atbtlc_chip_id)))
-				print("	                              BLE address:", ''.join(str.format('{:02X}', x) for x in [addr1, addr2, addr3, addr4, addr5, addr6]))
-		else:
-			sys.stdout.write("Main->Aux: " + message_types_descriptions[message_type].rjust(20, ' '))
-			
-			if "command" in decode_object:
-				# Check we have a description for the command
-				command = decode_object["command"]
-				if command >= len(main_mcu_command_description[message_type]):
-					sys.stdout.write(" - missing command description: " + str(command))
+			# Look for main mcu reset message
+			if message_type == 0xFFFF:
+				if mcu == "AUX":
+					print("Aux->Main: incorrect reset message")
 				else:
-					sys.stdout.write(" - "+ main_mcu_command_description[message_type][command])
+					print("Main->Aux:  comms reset message")
+				continue
+			
+			# Apply decoding guidelines and build object
+			decode_int_object = struct.unpack(decoding_guidelines[message_type][0], frame[0:decoding_guidelines[message_type][2]])
+			decode_object = {}
+			for i in range(0, len(decode_int_object)):
+				decode_object[decoding_guidelines[message_type][1][i]] = decode_int_object[i]
 					
-		print("")		
+			if mcu == "AUX":
+				sys.stdout.write("Aux->Main: " + message_types_descriptions[message_type].rjust(20, ' '))
+				
+				if "command" in decode_object:
+					# Check we have a description for the command
+					command = decode_object["command"]
+					if command >= len(aux_mcu_command_description[message_type]):
+						sys.stdout.write(" - missing command description: " + str(command))
+					else:
+						sys.stdout.write(" - "+ aux_mcu_command_description[message_type][command])
+				
+				if message_type == AUX_MCU_MSG_TYPE_NIMH_CHARGE:
+					charge_status_lut = ["idle", "current charge ramp start", "current charge ramp", "ramping start error", "current maintaining", "current ramp error", "current maintaining error", "charging done"]
+					[type, payload, charge_status, battery_voltage, charge_current] = struct.unpack("HHHHH", frame[0:10])
+					battery_voltage = battery_voltage*103/256
+					
+					print(" - details below:")
+					print("	                                  Current status:", charge_status_lut[charge_status])
+					print("	                                  Battery voltage:", str(battery_voltage)+"mV")
+					print("	                                  Charging current:", str(charge_current*0.4)+"mA")
+					
+				if message_type == AUX_MCU_MSG_TYPE_PLAT_DETAILS:
+					[type, payload, fw_major, fw_minor, did, uid1, uid2, uid3, uid4, blusdk_maj, blusdk_min, blusdk_fw_maj, blusdk_fw_min, blusdk_fw_bld, rf_ver, atbtlc_chip_id, addr1, addr2, addr3, addr4, addr5, addr6 ] = struct.unpack("HHHHIIIIIHHHHHIIBBBBBB", frame[0:54])
+				
+					print(" - details below:")
+					print("	                                  Aux FW:", str(fw_major) + "." + str(fw_minor))
+					print("	                                  DID:", "0x" + ''.join(str.format('{:08X}', did)))
+					print("	                                  UID:", "0x" + ''.join(str.format('{:08X}', x) for x in [uid1, uid2, uid3, uid4]))
+					print("	                                  BluSDK lib:", str(blusdk_maj) + "." + str(blusdk_min))
+					print("	                                  BluSDK fw:", str(blusdk_fw_maj) + "." + str(blusdk_fw_min), "build", ''.join(str.format('{:04X}', blusdk_fw_bld)))
+					print("	                                  RF version:", "0x" + ''.join(str.format('{:08X}', rf_ver)))
+					print("	                                  ATBTLC1000 chip id:", "0x" + ''.join(str.format('{:08X}', atbtlc_chip_id)))
+					print("	                                  BLE address:", ''.join(str.format('{:02X}', x) for x in [addr1, addr2, addr3, addr4, addr5, addr6]))
+			else:
+				sys.stdout.write("Main->Aux: " + message_types_descriptions[message_type].rjust(20, ' '))
+				
+				if "command" in decode_object:
+					# Check we have a description for the command
+					command = decode_object["command"]
+					if command >= len(main_mcu_command_description[message_type]):
+						sys.stdout.write(" - missing command description: " + str(command))
+					else:
+						sys.stdout.write(" - "+ main_mcu_command_description[message_type][command])
+						
+			print("")		
 	except Queue.Empty:
 		pass
 	except KeyboardInterrupt:
