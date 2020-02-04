@@ -25,8 +25,6 @@
 #include "ctap.h"
 #include "cbor.h"
 
-struct _getAssertionState getAssertionState;
-
 uint8_t ctap_get_info(CborEncoder * encoder)
 {
     int ret;
@@ -219,7 +217,7 @@ static void ctap_MAD_aux_comm(uint8_t *rpID, CTAP_userEntity *user, uint8_t cons
     }
 }
 
-static int ctap_make_auth_data(uint8_t *rpID, uint8_t * auth_data_buf, uint32_t * len, CTAP_userEntity * credInfo, uint8_t const *clientDataHash, uint8_t *sigbuf, bool new_cred)
+static int ctap_make_auth_data(uint8_t *rpID, uint8_t * auth_data_buf, uint32_t * len, CTAP_credInfo * credInfo, uint8_t const *clientDataHash, uint8_t *sigbuf, bool new_cred)
 {
     fido2_make_auth_data_rsp_message_t resp_msg;
     CborEncoder cose_key;
@@ -374,7 +372,7 @@ int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * d
     /* Fill message */
     memset(msg, 0, sizeof(*msg));
     memcpy(msg->rpID, rp->id, FIDO2_RPID_LEN);
-    memcpy(msg->cred_ID.tag, desc->credential.id.tag, FIDO2_TAG_LEN);
+    memcpy(msg->cred_ID.tag, desc->id.tag, FIDO2_TAG_LEN);
 
     /* Set length of message */
     temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
@@ -452,7 +450,7 @@ uint8_t ctap_make_credential(CborEncoder * encoder, uint8_t * request, int lengt
         }
         check_retr(ret);
 
-        printf1(TAG_GREEN, "checking credId: "); dump_hex1(TAG_GREEN, (uint8_t*) &excl_cred->credential.id, sizeof(CredentialId));
+        printf1(TAG_GREEN, "checking credId: "); dump_hex1(TAG_GREEN, (uint8_t*) &excl_cred->id, sizeof(CredentialId));
 
         if (ctap_authenticate_credential(&MC.rp, excl_cred, NULL))
         {
@@ -526,7 +524,7 @@ static uint8_t ctap_add_credential_descriptor(CborEncoder * map, CTAP_credential
         ret = cbor_encode_text_string(&desc, "id", 2);
         check_ret(ret);
 
-        ret = cbor_encode_byte_string(&desc, (uint8_t*)&cred->credential.id,
+        ret = cbor_encode_byte_string(&desc, (uint8_t*)&cred->id,
             get_credential_id_size(cred));
         check_ret(ret);
     }
@@ -574,7 +572,7 @@ uint8_t ctap_add_user_entity(CborEncoder * map, CTAP_userEntity * user)
 }
 
 // adds 2 to map, or 3 if add_user is true
-static uint8_t ctap_end_get_assertion(CborEncoder * map, CTAP_credentialDescriptor * cred, uint8_t * auth_data_buf, unsigned int auth_data_buf_sz, uint8_t * sigbuf)
+static uint8_t ctap_end_get_assertion(CborEncoder * map, CTAP_credentialDescriptor *cred, CTAP_userEntity *user, uint8_t * auth_data_buf, unsigned int auth_data_buf_sz, uint8_t * sigbuf)
 {
     int ret;
     uint8_t sigder[72];
@@ -602,7 +600,7 @@ static uint8_t ctap_end_get_assertion(CborEncoder * map, CTAP_credentialDescript
     }
 
     printf1(TAG_GREEN, "adding user details to output\r\n");
-    ret = ctap_add_user_entity(map, &cred->credential.user);  // 4
+    ret = ctap_add_user_entity(map, user);  // 4
     check_retr(ret);
 
     return 0;
@@ -650,19 +648,18 @@ uint8_t ctap_get_assertion(CborEncoder * encoder, uint8_t * request, int length)
 
     //TODO: For now always use 1st credential
     CTAP_credentialDescriptor * cred = &GA.creds[0];
+    CTAP_credInfo cred_info;
 
     uint32_t auth_data_buf_sz = sizeof(auth_data_buf);
 
     {
-        ret = ctap_make_auth_data(GA.rp.id, auth_data_buf, &auth_data_buf_sz, &cred->credential.user, GA.clientDataHash, sigbuf, false);
+        ret = ctap_make_auth_data(GA.rp.id, auth_data_buf, &auth_data_buf_sz, &cred_info, GA.clientDataHash, sigbuf, false);
         CTAP_authData * authData = (CTAP_authData *)auth_data_buf;
-        memcpy(&cred->credential.id, authData->attest.id.tag, FIDO2_TAG_LEN);
+        memcpy(&cred->id, authData->attest.id.tag, FIDO2_TAG_LEN);
         check_retr(ret);
     }
 
-    memmove(getAssertionState.rpID, GA.rp.id, FIDO2_RPID_LEN); //Save RPID for get_next_assertion
-
-    ret = ctap_end_get_assertion(&map, cred, auth_data_buf, auth_data_buf_sz, sigbuf);  // 1,2,3,4
+    ret = ctap_end_get_assertion(&map, cred, &cred_info.user, auth_data_buf, auth_data_buf_sz, sigbuf);  // 1,2,3,4
     check_retr(ret);
 
     ret = cbor_encoder_close_container(encoder, &map);

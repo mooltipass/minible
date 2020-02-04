@@ -151,7 +151,6 @@ typedef struct
     uint8_t id_size;
     uint8_t name[USER_NAME_LIMIT];
     uint8_t displayName[DISPLAY_NAME_LIMIT];
-    uint8_t icon[ICON_LIMIT];
 }__attribute__((packed)) CTAP_userEntity;
 
 typedef struct {
@@ -167,7 +166,7 @@ typedef struct Credential CTAP_residentKey;
 typedef struct
 {
     uint8_t type;
-    struct Credential credential;
+    CredentialId id;
 } CTAP_credentialDescriptor;
 
 typedef struct
@@ -218,21 +217,6 @@ typedef struct
 
 typedef struct
 {
-    uint8_t saltLen;
-    uint8_t saltEnc[64];
-    uint8_t saltAuth[32];
-    COSE_key keyAgreement;
-    struct Credential * credential;
-} CTAP_hmac_secret;
-
-typedef struct
-{
-    uint8_t hmac_secret_present;
-    CTAP_hmac_secret hmac_secret;
-} CTAP_extensions;
-
-typedef struct
-{
     CTAP_userEntity user;
     uint8_t publicKeyCredentialType;
     int32_t COSEAlgorithmIdentifier;
@@ -253,19 +237,9 @@ typedef struct
     uint8_t uv;
     uint8_t up;
 
-    uint8_t pinAuth[16];
     uint8_t pinAuthPresent;
-    // pinAuthEmpty is true iff an empty bytestring was provided as pinAuth.
-    // This is exclusive with |pinAuthPresent|. It exists because an empty
-    // pinAuth is a special signal to block for touch. See
-    // https://fidoalliance.org/specs/fido-v2.0-ps-20190130/fido-client-to-authenticator-protocol-v2.0-ps-20190130.html#using-pinToken-in-authenticatorMakeCredential
     uint8_t pinAuthEmpty;
-    int pinProtocol;
-    CTAP_extensions extensions;
-
 } CTAP_makeCredential;
-
-
 
 typedef struct
 {
@@ -281,43 +255,12 @@ typedef struct
     uint8_t uv;
     uint8_t up;
 
-    uint8_t pinAuth[16];
     uint8_t pinAuthPresent;
-    // pinAuthEmpty is true iff an empty bytestring was provided as pinAuth.
-    // This is exclusive with |pinAuthPresent|. It exists because an empty
-    // pinAuth is a special signal to block for touch. See
-    // https://fidoalliance.org/specs/fido-v2.0-ps-20190130/fido-client-to-authenticator-protocol-v2.0-ps-20190130.html#using-pinToken-in-authenticatorGetAssertion
     uint8_t pinAuthEmpty;
-    int pinProtocol;
 
-    CTAP_credentialDescriptor * creds;
-    uint8_t allowListPresent;
-
-    CTAP_extensions extensions;
-
-} CTAP_getAssertion;
-
-typedef struct
-{
-    int pinProtocol;
-    int subCommand;
-    COSE_key keyAgreement;
-    uint8_t keyAgreementPresent;
-    uint8_t pinAuth[16];
-    uint8_t pinAuthPresent;
-    uint8_t newPinEnc[NEW_PIN_ENC_MAX_SIZE];
-    int newPinEncSize;
-    uint8_t pinHashEnc[16];
-    uint8_t pinHashEncPresent;
-    _Bool getKeyAgreement;
-    _Bool getRetries;
-} CTAP_clientPin;
-
-
-struct _getAssertionState {
-    uint8_t rpID[DOMAIN_NAME_MAX_SIZE + 1];     // extra for NULL termination
     CTAP_credentialDescriptor creds[ALLOW_LIST_MAX_SIZE];
-};
+    uint8_t allowListPresent;
+} CTAP_getAssertion;
 
 void ctap_response_init(CTAP_RESPONSE * resp);
 
