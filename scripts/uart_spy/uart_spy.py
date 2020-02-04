@@ -3,9 +3,18 @@ from command_defines import *
 import threading
 import struct
 import serial
-import Queue
+import time
 import glob
 import sys
+if sys.version_info[0] < 3:
+	import Queue as queue
+else:
+	import asyncio as queue
+	import asyncio
+	
+# Python main loop
+if sys.version_info[0] >= 3:
+	loop = asyncio.get_event_loop()
 
 # If we've seen a message to enable USB or BLE
 enable_ble_seen = False
@@ -57,7 +66,7 @@ elif sys.platform.startswith('darwin'):
 	uart_debug = available_ports[2]
 
 # Queue for sync
-queue = Queue.Queue(1000)
+msgqueue = queue.Queue(1000)
 
 # Open the UARTs
 link_frame_bytes = 560
@@ -92,13 +101,18 @@ def is_frame_valid(frame):
 		return False
 		
 def debug_serial_read(s, str):	
+	global loop
 	while True:	
 		line = s.readline()
-		queue.put([line, "DBG", False])	
+		if sys.version_info[0] >= 3:
+			loop.call_soon_threadsafe(msgqueue.put_nowait([line.decode("utf-8"), "DBG", False]))
+		else:
+			msgqueue.put([line, "DBG", False])	
 
 def serial_read(s, mcu):
 	global enable_ble_seen
 	global attach_usb_seen
+	global loop
 	resync_was_done = True
 	nb_bytes = 0
 	frame = []
@@ -111,11 +125,7 @@ def serial_read(s, mcu):
 		
 		# Do we have a full frame?
 		if link_frame_bytes == nb_bytes:		
-			# Convert frame if needed
-			if sys.version_info[0] < 3:
-				frame_bis = bytearray(frame)
-			else:
-				frame_bis = frame
+			frame_bis = bytearray(frame)
 			
 			# Check for valid frame
 			if not is_frame_valid(frame_bis):
@@ -132,7 +142,10 @@ def serial_read(s, mcu):
 					enable_ble_seen = True
 				
 				# Add frame to the queue
-				queue.put([frame_bis, mcu, resync_was_done])
+				if sys.version_info[0] >= 3:
+					loop.call_soon_threadsafe(msgqueue.put_nowait([frame_bis, mcu, resync_was_done]))
+				else:
+					msgqueue.put([frame_bis, mcu, resync_was_done])
 				resync_was_done = False
 				nb_bytes = 0
 				frame = []		
@@ -144,7 +157,10 @@ thread3 = threading.Thread(target=debug_serial_read, args=(ser_dbg, "DBG"),).sta
 
 while True:
 	try:
-		[frame, mcu, resync_done] = queue.get(True, 1)
+		if sys.version_info[0] >= 3:
+			[frame, mcu, resync_done] = msgqueue.get_nowait()
+		else:
+			[frame, mcu, resync_done] = msgqueue.get(True, 1)
 		#print(' '.join(str.format('{:02X}', x) for x in frame))
 		
 		if mcu == "DBG":
@@ -219,7 +235,9 @@ while True:
 						sys.stdout.write(" - "+ main_mcu_command_description[message_type][command])
 						
 			print("")		
-	except Queue.Empty:
-		pass
-	except KeyboardInterrupt:
-		sys.exit(0)
+	except Exception as e:
+		if e == KeyboardInterrupt:
+			sys.exit(0)
+		else:
+			# It's cheating I know....
+			time.sleep(.000001)
