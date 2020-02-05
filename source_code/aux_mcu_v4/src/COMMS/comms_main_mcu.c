@@ -672,3 +672,40 @@ void comms_main_mcu_get_32_rng_bytes_from_main_mcu(uint8_t* buffer)
     /* Received message is in temporary buffer */
     memcpy((void*)buffer, (void*)temp_rx_message_pt->payload_as_uint16, 32);
 }
+
+/*! \fn     comms_main_mcu_fetch_bonding_info_for_mac(uint8_t* mac_addr)
+*   \brief  Try to fetch bonding information for a given MAC
+*   \param  mac_addr        The MAC address
+*   \param  bonding_info    Where to store the bonding info if we find it
+*   \return if we managed to find bonding info
+*/
+ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t* mac_addr, nodemgmt_bluetooth_bonding_information_t* bonding_info)
+{
+    aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
+    aux_mcu_message_t* temp_tx_message_pt;
+    
+    /* Generate our packet */
+    comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+    temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_RECALL_BOND_INFO;
+    memcpy(temp_tx_message_pt->ble_message.payload, mac_addr, 6);
+    
+    /* Set payload size */
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + 6;
+    
+    /* Send packet */
+    comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
+    
+    /* Wait for message from main MCU */
+    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD) != RETURN_OK);
+    
+    /* Check for success and do necessary actions */
+    if (temp_rx_message_pt->payload_length1 == sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(nodemgmt_bluetooth_bonding_information_t))
+    {
+        memcpy(bonding_info, &temp_rx_message_pt->ble_message.bonding_information_to_store_message, sizeof(nodemgmt_bluetooth_bonding_information_t));
+        return RETURN_OK;
+    } 
+    else
+    {
+        return RETURN_NOK;
+    }
+}

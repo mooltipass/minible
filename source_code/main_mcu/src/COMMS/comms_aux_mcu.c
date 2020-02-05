@@ -232,6 +232,23 @@ void comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* received_message)
         }
         case BLE_MESSAGE_RECALL_BOND_INFO:
         {
+            /* Prepare answer */
+            memset(&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
+            aux_mcu_send_message.message_type = received_message->message_type;
+            aux_mcu_send_message.ble_message.message_id = received_message->ble_message.message_id;
+            
+            /* Try to fetch bonding information */
+            if (nodemgmt_get_bluetooth_bonding_information_for_mac_addr(received_message->ble_message.payload, &received_message->ble_message.bonding_information_to_store_message) == RETURN_OK)
+            {
+                aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.ble_message.message_id) + sizeof(aux_mcu_send_message.ble_message.bonding_information_to_store_message);
+            }
+            else
+            {
+                aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.ble_message.message_id);
+            }
+
+            /* Send message */
+            comms_aux_mcu_send_message(FALSE);
             break;
         }
         default: break;
