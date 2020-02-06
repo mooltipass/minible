@@ -1029,6 +1029,7 @@ at_ble_status_t ble_check_device_state(at_ble_handle_t conn_handle, ble_device_s
 /** @brief function to handle connected event received from stack */
 at_ble_status_t ble_connected_state_handler(void *params)
 {
+    nodemgmt_bluetooth_bonding_information_t recalled_bonding_info;
 	at_ble_connected_t *conn_params;
 	uint8_t idx = 0;
 	conn_params = (at_ble_connected_t *)params;
@@ -1051,16 +1052,55 @@ at_ble_status_t ble_connected_state_handler(void *params)
 		
 		if (conn_params->peer_addr.type == AT_BLE_ADDRESS_PUBLIC)
 		{
-			for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
+            /* Ask our dear MCU */
+            if (comms_main_mcu_fetch_bonding_info_for_mac(conn_params->peer_addr.type, conn_params->peer_addr.addr, &recalled_bonding_info) == RETURN_OK)
+            {
+                conn_exists = true;
+                ble_dev_info[0].conn_state = BLE_DEVICE_CONNECTED;
+                ble_dev_info[0].bond_info.status = AT_BLE_GAP_INVALID_PARAM;
+                memcpy(&ble_dev_info[0].conn_info, (uint8_t *)&connected_state_info, sizeof(at_ble_connected_t));
+                
+                /***********************/
+                /* Bonding information */
+                /***********************/
+                
+                /* General stuff */
+                ble_dev_info[0].bond_info.auth = recalled_bonding_info.auth_type;
+                ble_dev_info[0].conn_info.peer_addr.type = recalled_bonding_info.address_resolv_type;
+                memcpy(ble_dev_info[0].conn_info.peer_addr.addr, recalled_bonding_info.mac_address, sizeof(recalled_bonding_info.mac_address));
+                
+                /* Peer LTK */
+                memcpy(ble_dev_info[0].bond_info.peer_ltk.key, recalled_bonding_info.peer_ltk_key, sizeof(recalled_bonding_info.peer_ltk_key));
+                ble_dev_info[0].bond_info.peer_ltk.ediv = recalled_bonding_info.peer_ltk_ediv;
+                memcpy(ble_dev_info[0].bond_info.peer_ltk.nb, recalled_bonding_info.peer_ltk_random_nb, sizeof(recalled_bonding_info.peer_ltk_random_nb));
+                ble_dev_info[0].bond_info.peer_ltk.key_size = recalled_bonding_info.peer_ltk_key_size;
+                
+                /* CSRK */
+                memcpy(ble_dev_info[0].bond_info.peer_csrk.key, recalled_bonding_info.peer_csrk_key, sizeof(recalled_bonding_info.peer_csrk_key));
+                
+                /* IRK */
+                memcpy(ble_dev_info[0].bond_info.peer_irk.key, recalled_bonding_info.peer_irk_key, sizeof(recalled_bonding_info.peer_irk_key));
+                ble_dev_info[0].bond_info.peer_irk.addr.type = recalled_bonding_info.peer_irk_resolv_type;
+                memcpy(ble_dev_info[0].bond_info.peer_irk.addr.addr, recalled_bonding_info.peer_irk_address, sizeof(recalled_bonding_info.peer_irk_address));
+                
+                /* Host LTK */
+                memcpy(ble_dev_info[0].host_ltk.key, recalled_bonding_info.host_ltk_key, sizeof(recalled_bonding_info.host_ltk_key));
+                ble_dev_info[0].host_ltk.ediv = recalled_bonding_info.host_ltk_ediv;
+                memcpy(ble_dev_info[0].host_ltk.nb, recalled_bonding_info.host_ltk_random_nb, sizeof(recalled_bonding_info.host_ltk_random_nb));
+                ble_dev_info[0].host_ltk.key_size = recalled_bonding_info.host_ltk_key_size;
+            }
+            
+			/*for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
 			{
 				if(!memcmp((uint8_t *)&ble_dev_info[idx].conn_info.peer_addr, (uint8_t *)&conn_params->peer_addr, sizeof(at_ble_addr_t)))
 				{
 					ble_dev_info[idx].conn_state = BLE_DEVICE_CONNECTED;
+                    ble_dev_info[idx].bond_info.status = AT_BLE_GAP_INVALID_PARAM;
 					memcpy(&ble_dev_info[idx].conn_info, (uint8_t *)&connected_state_info, sizeof(at_ble_connected_t));
 					conn_exists = true;
 					break;
 				}
-			}
+			}*/
 			
 			if (!conn_exists)
 			{

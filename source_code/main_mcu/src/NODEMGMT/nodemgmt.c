@@ -563,16 +563,19 @@ RET_TYPE nodemgmt_store_bluetooth_bonding_information(nodemgmt_bluetooth_bonding
     }    
 }
 
-/*! \fn     nodemgmt_get_bluetooth_bonding_information_for_mac_addr(uint8_t* mac_address, nodemgmt_bluetooth_bonding_information_t* bonding_information)
+/*! \fn     nodemgmt_get_bluetooth_bonding_information_for_mac_addr(uint8_t address_resolv_type, uint8_t* mac_address, nodemgmt_bluetooth_bonding_information_t* bonding_information)
  *  \brief  Get a possible bluetooth bonding information for a given mac address
+ *  \param  address_resolv_type Type of address
+ *  \param  mac_addr            The MAC address
  *  \param  bonding_information Pointer to a where to store bonding information struct if found
  *  \return RETURN_OK if we found bonding information
  */
-RET_TYPE nodemgmt_get_bluetooth_bonding_information_for_mac_addr(uint8_t* mac_address, nodemgmt_bluetooth_bonding_information_t* bonding_information)
+RET_TYPE nodemgmt_get_bluetooth_bonding_information_for_mac_addr(uint8_t address_resolv_type, uint8_t* mac_address, nodemgmt_bluetooth_bonding_information_t* bonding_information)
 {
     uint8_t mac_address_read[MEMBER_ARRAY_SIZE(nodemgmt_bluetooth_bonding_information_t, mac_address)];
     uint16_t zero_to_be_valid_read_from_flash;
     uint16_t temp_page, temp_page_offset;
+    uint8_t address_resolv_type_read;
     uint16_t temp_uid;
     
     /* Find an available slot */
@@ -584,11 +587,14 @@ RET_TYPE nodemgmt_get_bluetooth_bonding_information_for_mac_addr(uint8_t* mac_ad
         /* Check for filled slot */
         dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, zero_to_be_valid), sizeof(zero_to_be_valid_read_from_flash), &zero_to_be_valid_read_from_flash);
         
+        /* Read address resolve type */
+        dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, address_resolv_type), sizeof(address_resolv_type_read), &address_resolv_type_read);
+        
         /* Read mac address */
         dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, mac_address), sizeof(mac_address_read), mac_address_read);
         
         /* Found it? */
-        if ((zero_to_be_valid_read_from_flash == 0x0000) && (memcmp(mac_address_read, mac_address, sizeof(mac_address_read)) == 0))
+        if ((zero_to_be_valid_read_from_flash == 0x0000) && (address_resolv_type_read == address_resolv_type) && (memcmp(mac_address_read, mac_address, sizeof(mac_address_read)) == 0))
         {
             dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset, sizeof(nodemgmt_bluetooth_bonding_information_t), (void*)bonding_information);
             return RETURN_OK;

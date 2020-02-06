@@ -673,13 +673,14 @@ void comms_main_mcu_get_32_rng_bytes_from_main_mcu(uint8_t* buffer)
     memcpy((void*)buffer, (void*)temp_rx_message_pt->payload_as_uint16, 32);
 }
 
-/*! \fn     comms_main_mcu_fetch_bonding_info_for_mac(uint8_t* mac_addr)
+/*! \fn     comms_main_mcu_fetch_bonding_info_for_mac(uint8_t address_resolv_type, uint8_t* mac_addr, nodemgmt_bluetooth_bonding_information_t* bonding_info)
 *   \brief  Try to fetch bonding information for a given MAC
-*   \param  mac_addr        The MAC address
-*   \param  bonding_info    Where to store the bonding info if we find it
+*   \param  address_resolv_type Type of address
+*   \param  mac_addr            The MAC address
+*   \param  bonding_infoWhere to store the bonding info if we find it
 *   \return if we managed to find bonding info
 */
-ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t* mac_addr, nodemgmt_bluetooth_bonding_information_t* bonding_info)
+ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t address_resolv_type, uint8_t* mac_addr, nodemgmt_bluetooth_bonding_information_t* bonding_info)
 {
     aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
     aux_mcu_message_t* temp_tx_message_pt;
@@ -687,10 +688,11 @@ ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t* mac_addr, nodemgm
     /* Generate our packet */
     comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
     temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_RECALL_BOND_INFO;
-    memcpy(temp_tx_message_pt->ble_message.payload, mac_addr, 6);
+    temp_tx_message_pt->ble_message.payload[0] = address_resolv_type;
+    memcpy(&temp_tx_message_pt->ble_message.payload[1], mac_addr, 6);
     
     /* Set payload size */
-    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + 6;
+    temp_tx_message_pt->payload_length1 = sizeof(address_resolv_type) + sizeof(temp_tx_message_pt->ble_message.message_id) + 6;
     
     /* Send packet */
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));

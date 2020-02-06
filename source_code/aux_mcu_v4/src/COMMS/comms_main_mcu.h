@@ -261,7 +261,7 @@ typedef struct
 } aux_mcu_message_t;
 
 /* Prototypes */
-ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t* mac_addr, nodemgmt_bluetooth_bonding_information_t* bonding_info);
+ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t address_resolv_type, uint8_t* mac_addr, nodemgmt_bluetooth_bonding_information_t* bonding_info);
 ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buffer, uint16_t expected_message_type);
 void comms_main_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type);
 void comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length);
