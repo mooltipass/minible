@@ -217,6 +217,7 @@ typedef struct
 
 typedef struct
 {
+    CredentialId id;
     CTAP_userEntity user;
     uint8_t publicKeyCredentialType;
     int32_t COSEAlgorithmIdentifier;
@@ -228,6 +229,13 @@ typedef struct
     uint32_t paramsParsed;
     uint8_t clientDataHash[CLIENT_DATA_HASH_SIZE];
     struct rpId rp;
+    uint8_t pinAuthPresent;
+    uint8_t pinAuthEmpty;
+} CTAP_requestCommon;
+
+typedef struct
+{
+    CTAP_requestCommon common;
 
     CTAP_credInfo credInfo;
 
@@ -236,27 +244,18 @@ typedef struct
 
     uint8_t uv;
     uint8_t up;
-
-    uint8_t pinAuthPresent;
-    uint8_t pinAuthEmpty;
 } CTAP_makeCredential;
 
 typedef struct
 {
-    uint32_t paramsParsed;
-    uint8_t clientDataHash[CLIENT_DATA_HASH_SIZE];
+    CTAP_requestCommon common;
     uint8_t clientDataHashPresent;
-
-    struct rpId rp;
 
     int credLen;
 
     uint8_t rk;
     uint8_t uv;
     uint8_t up;
-
-    uint8_t pinAuthPresent;
-    uint8_t pinAuthEmpty;
 
     CTAP_credentialDescriptor creds[ALLOW_LIST_MAX_SIZE];
     uint8_t allowListPresent;

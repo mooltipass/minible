@@ -181,7 +181,7 @@ uint8_t parse_user(CTAP_makeCredential * MC, CborValue * val)
 
     }
 
-    MC->paramsParsed |= PARAM_user;
+    MC->common.paramsParsed |= PARAM_user;
 
     return 0;
 }
@@ -294,7 +294,7 @@ uint8_t parse_pub_key_cred_params(CTAP_makeCredential * MC, CborValue * val)
             {
                 MC->credInfo.publicKeyCredentialType = cred_type;
                 MC->credInfo.COSEAlgorithmIdentifier = alg_type;
-                MC->paramsParsed |= PARAM_pubKeyCredParams;
+                MC->common.paramsParsed |= PARAM_pubKeyCredParams;
                 return 0;
             }
         }
@@ -592,26 +592,26 @@ uint8_t ctap_parse_make_credential(CTAP_makeCredential * MC, CborEncoder * encod
             case MC_clientDataHash:
                 printf1(TAG_MC,"CTAP_clientDataHash\n");
 
-                ret = parse_fixed_byte_string(&map, MC->clientDataHash, CLIENT_DATA_HASH_SIZE);
+                ret = parse_fixed_byte_string(&map, MC->common.clientDataHash, CLIENT_DATA_HASH_SIZE);
                 if (ret == 0)
                 {
-                    MC->paramsParsed |= PARAM_clientDataHash;
+                    MC->common.paramsParsed |= PARAM_clientDataHash;
                 }
 
-                printf1(TAG_MC,"  "); dump_hex1(TAG_MC,MC->clientDataHash, 32);
+                printf1(TAG_MC,"  "); dump_hex1(TAG_MC,MC->common.clientDataHash, 32);
                 break;
             case MC_rp:
                 printf1(TAG_MC,"CTAP_rp\n");
 
-                ret = parse_rp(&MC->rp, &map);
+                ret = parse_rp(&MC->common.rp, &map);
                 if (ret == 0)
                 {
-                    MC->paramsParsed |= PARAM_rp;
+                    MC->common.paramsParsed |= PARAM_rp;
                 }
 
 
-                printf1(TAG_MC,"  ID: %s\n", MC->rp.id);
-                printf1(TAG_MC,"  name: %s\n", MC->rp.name);
+                printf1(TAG_MC,"  ID: %s\n", MC->common.rp.id);
+                printf1(TAG_MC,"  name: %s\n", MC->common.rp.name);
                 break;
             case MC_user:
                 printf1(TAG_MC,"CTAP_user\n");
@@ -663,8 +663,8 @@ uint8_t ctap_parse_make_credential(CTAP_makeCredential * MC, CborEncoder * encod
             case MC_pinAuth: {
                 printf1(TAG_MC,"CTAP_pinAuth\n");
 
-                MC->pinAuthEmpty = 1;
-                MC->pinAuthPresent = 0;
+                MC->common.pinAuthEmpty = 1;
+                MC->common.pinAuthPresent = 0;
                 ret = 0;
                 break;
             }
@@ -856,18 +856,18 @@ uint8_t ctap_parse_get_assertion(CTAP_getAssertion * GA, uint8_t * request, int 
             case GA_clientDataHash:
                 printf1(TAG_GA,"GA_clientDataHash\n");
 
-                ret = parse_fixed_byte_string(&map, GA->clientDataHash, CLIENT_DATA_HASH_SIZE);
+                ret = parse_fixed_byte_string(&map, GA->common.clientDataHash, CLIENT_DATA_HASH_SIZE);
                 check_retr(ret);
                 GA->clientDataHashPresent = 1;
 
-                printf1(TAG_GA,"  "); dump_hex1(TAG_GA, GA->clientDataHash, 32);
+                printf1(TAG_GA,"  "); dump_hex1(TAG_GA, GA->common.clientDataHash, 32);
                 break;
             case GA_rpId:
                 printf1(TAG_GA,"GA_rpId\n");
 
-                ret = parse_rp_id(&GA->rp, &map);
+                ret = parse_rp_id(&GA->common.rp, &map);
 
-                printf1(TAG_GA,"  ID: %s\n", GA->rp.id);
+                printf1(TAG_GA,"  ID: %s\n", GA->common.rp.id);
                 break;
             case GA_allowList:
                 printf1(TAG_GA,"GA_allowList\n");
@@ -889,8 +889,8 @@ uint8_t ctap_parse_get_assertion(CTAP_getAssertion * GA, uint8_t * request, int 
             case GA_pinAuth: {
                 printf1(TAG_GA,"CTAP_pinAuth\n");
 
-                GA->pinAuthPresent = 0;
-                GA->pinAuthEmpty = 1;
+                GA->common.pinAuthPresent = 0;
+                GA->common.pinAuthEmpty = 1;
                 ret = 0;
                 break;
             }

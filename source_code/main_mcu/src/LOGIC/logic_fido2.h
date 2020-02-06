@@ -37,7 +37,8 @@ typedef enum
 } fido2_return_code_te;
 
 /* Prototypes */
-void logic_fido2_process_make_auth_data(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t* response);
+void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* request, fido2_make_credential_rsp_message_t* response);
+void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* request, fido2_get_assertion_rsp_message_t* response);
 void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* request, fido2_auth_cred_rsp_message_t* response);
 
 #endif /* FIDO2_H_ */

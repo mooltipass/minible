@@ -145,13 +145,12 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
     }
 }
 
-/*! \fn     logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t* response)
-*   \brief  Make authentication data for a new credential
+/*! \fn     logic_fido2_process_make_credential(fido2_make_credential_req_message_t* request, fido2_make_credential_rsp_message_t* response)
+*   \brief  Make a new credential. This essentially creates the key pair and stores the new record in the DB
 *   \param  incoming request message
 *   \param  outgoing response message
-*   \return error code
 */
-static uint32_t logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t* response)
+void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* request, fido2_make_credential_rsp_message_t* response)
 {
     /* Local vars */
     uint8_t private_key[FIDO2_PRIV_KEY_LEN];
@@ -159,16 +158,18 @@ static uint32_t logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_mes
     ecc256_pub_key pub_key;
     uint8_t user_handle_len;
 
+    memset(response, 0, sizeof(*response));
+
     /* Clear attested data that will be signed later */
     memset(&attested_data, 0, sizeof(attested_data));
     
     /* Input sanitation: displayable fields (eg strings) in webauthn spec are rpID / user name / display name */
-    request->display_name[MEMBER_SIZE(fido2_make_auth_data_req_message_t, display_name)-1] = 0;
-    request->user_name[MEMBER_SIZE(fido2_make_auth_data_req_message_t, user_name)-1] = 0;
-    request->rpID[MEMBER_SIZE(fido2_make_auth_data_req_message_t, rpID)-1] = 0;
+    request->display_name[MEMBER_SIZE(fido2_make_credential_req_message_t, display_name)-1] = 0;
+    request->user_name[MEMBER_SIZE(fido2_make_credential_req_message_t, user_name)-1] = 0;
+    request->rpID[MEMBER_SIZE(fido2_make_credential_req_message_t, rpID)-1] = 0;
     
     /* Local copies as the contents of the request message may get overwritten later */
-    uint8_t client_hash_copy[MEMBER_ARRAY_SIZE(fido2_make_auth_data_req_message_t, client_data_hash)];
+    uint8_t client_hash_copy[MEMBER_ARRAY_SIZE(fido2_make_credential_req_message_t, client_data_hash)];
     cust_char_t display_name_copy[MEMBER_ARRAY_SIZE(child_webauthn_node_t, display_name)];
     uint8_t user_handle_copy[MEMBER_ARRAY_SIZE(child_webauthn_node_t, user_handle)];
     cust_char_t user_name_copy[MEMBER_ARRAY_SIZE(child_webauthn_node_t, user_name)];
@@ -196,22 +197,22 @@ static uint32_t logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_mes
     user_handle_len = request->user_handle_len;
     
     /* Conversions from UTF8 to BMP (who stores emoticons anyway....) */
-    int16_t display_name_conv_length = utils_utf8_string_to_bmp_string(request->display_name, display_name_copy, MEMBER_SIZE(fido2_make_auth_data_req_message_t, display_name), ARRAY_SIZE(display_name_copy));
-    int16_t user_name_conv_length = utils_utf8_string_to_bmp_string(request->user_name, user_name_copy, MEMBER_SIZE(fido2_make_auth_data_req_message_t, user_name), ARRAY_SIZE(user_name_copy));
-    int16_t rpid_conv_length = utils_utf8_string_to_bmp_string(request->rpID, rp_id_copy, MEMBER_SIZE(fido2_make_auth_data_req_message_t, rpID), ARRAY_SIZE(rp_id_copy));
+    int16_t display_name_conv_length = utils_utf8_string_to_bmp_string(request->display_name, display_name_copy, MEMBER_SIZE(fido2_make_credential_req_message_t, display_name), ARRAY_SIZE(display_name_copy));
+    int16_t user_name_conv_length = utils_utf8_string_to_bmp_string(request->user_name, user_name_copy, MEMBER_SIZE(fido2_make_credential_req_message_t, user_name), ARRAY_SIZE(user_name_copy));
+    int16_t rpid_conv_length = utils_utf8_string_to_bmp_string(request->rpID, rp_id_copy, MEMBER_SIZE(fido2_make_credential_req_message_t, rpID), ARRAY_SIZE(rp_id_copy));
     
     /* Did any conversion go badly? */
     if ((display_name_conv_length < 0) || (user_name_conv_length < 0) || (rpid_conv_length < 0))
     {
         response->error_code = FIDO2_STORAGE_EXHAUSTED;
-        return response->error_code;
+        return;
     }
     
     /* Check for logged in user first */
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
         response->error_code = FIDO2_USER_NOT_PRESENT;
-        return response->error_code;
+        return;
     }
     
     /* Create credential ID: random bytes */
@@ -237,7 +238,7 @@ static uint32_t logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_mes
         attested_data.auth_data_header.flags &= ~FIDO2_UV_BIT;
         attested_data.auth_data_header.flags &= ~FIDO2_AT_BIT;
         response->error_code = (uint8_t)temp_return;
-        return response->error_code;
+        return;
     }
     
     /********************************/
@@ -268,7 +269,6 @@ static uint32_t logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_mes
     /* Sanity checks */
     /*****************/
     _Static_assert(sizeof(response->tag) == sizeof(attested_data.cred_ID.tag), "tag size is too large");
-    _Static_assert(sizeof(response->user_handle) >= sizeof(user_handle_copy), "user handle is too large");
     _Static_assert(sizeof(response->rpID_hash) == sizeof(attested_data.auth_data_header.rpID_hash), "rpid hash is too large");
     _Static_assert(sizeof(response->pub_key_x) == sizeof(pub_key.x), "pub key x is too large");
     _Static_assert(sizeof(response->pub_key_y) == sizeof(pub_key.y), "pub key y is too large");
@@ -278,7 +278,6 @@ static uint32_t logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_mes
     /* Create answer to host */
     /*************************/
     memcpy(response->tag, attested_data.cred_ID.tag, sizeof(attested_data.cred_ID.tag));
-    memcpy(response->user_handle, user_handle_copy, user_handle_len);
     memcpy(response->rpID_hash, attested_data.auth_data_header.rpID_hash, sizeof(attested_data.auth_data_header.rpID_hash));
     response->count_BE = attested_data.auth_data_header.sign_count;
     response->flags = attested_data.auth_data_header.flags;
@@ -291,17 +290,15 @@ static uint32_t logic_fido2_make_auth_data_new_cred(fido2_make_auth_data_req_mes
 
     //Clear private key to limit chance of leaking key
     memset(private_key, 0, sizeof(private_key));
-    
-    return response->error_code;
 }
 
-/*! \fn     logic_fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_message_t const *request, fido2_make_auth_data_rsp_message_t *response)
-*   \brief  Make authentication data for an existing credential
+
+/*! \fn     logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* request, fido2_get_assertion_rsp_message_t* response)
+*   \brief  Process an assertion for a credential
 *   \param  incoming request message
 *   \param  outgoing response message
-*   \return error code
 */
-static uint32_t logic_fido2_make_auth_data_existing_cred(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t *response)
+void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* request, fido2_get_assertion_rsp_message_t* response)
 {
     /* Local vars */
     uint8_t credential_id[MEMBER_ARRAY_SIZE(child_webauthn_node_t, credential_id)];
@@ -314,6 +311,7 @@ static uint32_t logic_fido2_make_auth_data_existing_cred(fido2_make_auth_data_re
     ecc256_pub_key pub_key;
     
     /* Zero out that stuff */
+    memset(response, 0, sizeof(*response));
     memset(&auth_data_header, 0, sizeof(auth_data_header));
     memset(credential_id, 0, sizeof(credential_id));
     memset(user_handle, 0, sizeof(user_handle));
@@ -321,23 +319,23 @@ static uint32_t logic_fido2_make_auth_data_existing_cred(fido2_make_auth_data_re
     user_handle_len = 0;
 
     /* Input sanitation */
-    request->rpID[MEMBER_SIZE(fido2_make_auth_data_req_message_t, rpID)-1] = 0;
+    request->rpID[MEMBER_SIZE(fido2_get_assertion_req_message_t, rpID)-1] = 0;
     
     /* Conversions from UTF8 to BMP (who stores emoticons anyway....) */
-    int16_t rpid_conv_length = utils_utf8_string_to_bmp_string(request->rpID, rp_id_copy, MEMBER_SIZE(fido2_make_auth_data_req_message_t, rpID), ARRAY_SIZE(rp_id_copy));
+    int16_t rpid_conv_length = utils_utf8_string_to_bmp_string(request->rpID, rp_id_copy, MEMBER_SIZE(fido2_get_assertion_req_message_t, rpID), ARRAY_SIZE(rp_id_copy));
     
     /* Did the conversion go badly? */
     if (rpid_conv_length < 0)
     {
         response->error_code = FIDO2_NO_CREDENTIALS;
-        return response->error_code;
+        return;
     }
     
     /* Check for logged in user first */
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
         response->error_code = FIDO2_USER_NOT_PRESENT;
-        return response->error_code;
+        return;
     }
     
     /* Compute RPid Hash */
@@ -364,7 +362,7 @@ static uint32_t logic_fido2_make_auth_data_existing_cred(fido2_make_auth_data_re
         auth_data_header.flags &= ~FIDO2_UV_BIT;
         auth_data_header.flags &= ~FIDO2_AT_BIT;
         response->error_code = (uint8_t)temp_return;
-        return response->error_code;
+        return;
     }
 
     /* Sign header */
@@ -378,8 +376,6 @@ static uint32_t logic_fido2_make_auth_data_existing_cred(fido2_make_auth_data_re
     _Static_assert(sizeof(response->tag) == sizeof(credential_id), "tag size is too large");
     _Static_assert(sizeof(response->user_handle) >= sizeof(user_handle), "user handle is too large");
     _Static_assert(sizeof(response->rpID_hash) == sizeof(auth_data_header.rpID_hash), "rpid hash is too large");
-    _Static_assert(sizeof(response->pub_key_x) == sizeof(pub_key.x), "pub key x is too large");
-    _Static_assert(sizeof(response->pub_key_y) == sizeof(pub_key.y), "pub key y is too large");
     _Static_assert(sizeof(response->aaguid) == sizeof(fido2_minible_aaguid), "aaguid is too large");
     
 
@@ -397,36 +393,14 @@ static uint32_t logic_fido2_make_auth_data_existing_cred(fido2_make_auth_data_re
     response->user_handle_len = user_handle_len;
     memcpy(response->rpID_hash, auth_data_header.rpID_hash, sizeof(auth_data_header.rpID_hash));
     response->count_BE = auth_data_header.sign_count;
-    memcpy(response->pub_key_x, pub_key.x, sizeof(pub_key.x));
-    memcpy(response->pub_key_y, pub_key.y, sizeof(pub_key.y));
     // Attest signature already filled out above when calculating attestation signature
     memcpy(response->aaguid, fido2_minible_aaguid, sizeof(response->aaguid));
     // We no longer have the credential ID. Not needed for assertion
     response->flags = auth_data_header.flags;
-    response->cred_ID_len = 0;
     //error code already set
     
     //Clear private key to limit chance of leaking key
     memset(private_key, 0, sizeof(private_key));
     
-    return response->error_code;
-}
-
-/*! \fn     logic_fido2_process_make_auth_data(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t* response)
-*   \brief  Make the authentication data. This essentially creates the key pair and stores the new record in the DB
-*   \param  incoming request message
-*   \param  outgoing response message
-*/
-void logic_fido2_process_make_auth_data(fido2_make_auth_data_req_message_t* request, fido2_make_auth_data_rsp_message_t* response)
-{
-    memset(response, 0, sizeof(*response));
-
-    if (request->new_cred == FIDO2_NEW_CREDENTIAL)
-    {
-        logic_fido2_make_auth_data_new_cred(request, response);
-    }
-    else
-    {
-        logic_fido2_make_auth_data_existing_cred(request, response);
-    }
+    return;
 }
