@@ -1043,6 +1043,12 @@ void ble_disconnect_all_device_and_clear_bond_info(void)
     memset(&ble_dev_info, 0, sizeof(ble_dev_info));
 }
 
+void ble_clear_bond_info(void)
+{
+    /* Delete all pairing data */
+    memset(&ble_dev_info, 0, sizeof(ble_dev_info));
+}
+
 /** @brief function to handle connected event received from stack */
 at_ble_status_t ble_connected_state_handler(void *params)
 {

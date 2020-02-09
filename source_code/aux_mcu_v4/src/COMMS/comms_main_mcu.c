@@ -309,10 +309,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             }
             case BLE_MESSAGE_CLEAR_BOND_INFO:
             {
-                if (logic_is_ble_enabled() != FALSE)
-                {
-                    logic_bluetooth_clear_bonding_information();
-                }                
+                logic_bluetooth_clear_bonding_information();     
             }
             default:
             {

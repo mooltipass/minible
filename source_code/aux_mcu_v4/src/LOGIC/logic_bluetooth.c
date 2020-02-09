@@ -18,6 +18,7 @@
 #include "platform.h"
 #include "battery.h"
 #include "defines.h"
+#include "logic.h"
 // Appearance: 0x03C1 (keyboard)
 // Dev name perm: disable writing device name
 // Device name: Mooltipass Mini BLE
@@ -131,7 +132,14 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
 */
 void logic_bluetooth_clear_bonding_information(void)
 {
-    ble_disconnect_all_device_and_clear_bond_info();
+    if (logic_is_ble_enabled() == FALSE)
+    {
+        ble_clear_bond_info();
+    } 
+    else
+    {
+        ble_disconnect_all_device_and_clear_bond_info();
+    }
 }
 
 /*! \fn     logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info)
