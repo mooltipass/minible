@@ -524,6 +524,7 @@ void nodemgmt_delete_all_bluetooth_bonding_information(void)
  */
 RET_TYPE nodemgmt_store_bluetooth_bonding_information(nodemgmt_bluetooth_bonding_information_t* bonding_information)
 {
+	uint8_t mac_address_read[MEMBER_ARRAY_SIZE(nodemgmt_bluetooth_bonding_information_t, mac_address)];
     bonding_information->zero_to_be_valid = 0x0000;
     uint16_t zero_to_be_valid_read_from_flash;
     uint16_t temp_page, temp_page_offset;
@@ -532,6 +533,27 @@ RET_TYPE nodemgmt_store_bluetooth_bonding_information(nodemgmt_bluetooth_bonding
     
     /* Check for bad surprises */
     _Static_assert(BASE_NODE_SIZE == 2*sizeof(nodemgmt_bluetooth_bonding_information_t), "Bonding information struct isn't the right size");
+	
+	/* Check if we should overwrite the same entry */
+	for (temp_uid = 0; temp_uid < NB_MAX_BONDING_INFORMATION; temp_uid++)
+	{
+		/* Get page and offset */
+		nodemgmt_get_bluetooth_bonding_info_starting_offset(temp_uid, &temp_page, &temp_page_offset);
+		
+		/* Check for filled slot */
+		dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, zero_to_be_valid), sizeof(zero_to_be_valid_read_from_flash), &zero_to_be_valid_read_from_flash);
+		
+		/* Read mac address */
+		dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, mac_address), sizeof(mac_address_read), mac_address_read);
+		
+		/* Found it? */
+		if ((zero_to_be_valid_read_from_flash == 0x0000) && (memcmp(mac_address_read, bonding_information->mac_address, sizeof(mac_address_read)) == 0))
+		{
+			/* Then overwrite the bonding information */
+			dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_page_offset, sizeof(nodemgmt_bluetooth_bonding_information_t), (void*)bonding_information);
+			return RETURN_OK;
+		}
+	}	
     
     /* Find an available slot */
     for (temp_uid = 0; temp_uid < NB_MAX_BONDING_INFORMATION; temp_uid++)

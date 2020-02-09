@@ -333,6 +333,16 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE, GUI_OUTOF_MENU_TRANSITION);
                 return TRUE;       
             }
+			
+			case GUI_BT_UNPAIR_ICON_ID:
+			{
+				mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPOMPT_DELETE_BLE_PAIRINGS, FALSE, FALSE, TRUE);
+				if (user_input == MINI_INPUT_RET_YES)
+				{
+					nodemgmt_delete_all_bluetooth_bonding_information();
+				}
+				return TRUE;
+			}
             
             /* Operations menu */
             case GUI_SIMPLE_ADV_ICON_ID:

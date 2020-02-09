@@ -255,7 +255,7 @@ void main_platform_init(void)
             if (comms_aux_mcu_send_receive_ping() != RETURN_OK)
             {
                 sh1122_put_error_string(&plat_oled_descriptor, u"No Aux MCU");
-                //while(1);
+                while(1);
             }                
         }
     }
