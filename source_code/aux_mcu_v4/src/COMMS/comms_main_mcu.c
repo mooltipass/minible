@@ -307,6 +307,13 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
                 break;
             }
+            case BLE_MESSAGE_CLEAR_BOND_INFO:
+            {
+                if (logic_is_ble_enabled() != FALSE)
+                {
+                    logic_bluetooth_clear_bonding_information();
+                }                
+            }
             default:
             {
                 break;

@@ -1026,6 +1026,23 @@ at_ble_status_t ble_check_device_state(at_ble_handle_t conn_handle, ble_device_s
 	return status;
 }
 
+void ble_disconnect_all_device_and_clear_bond_info(void)
+{
+    uint8_t idx = 0;
+    
+    /* Disconnect from devices */
+    for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
+    {
+        if ((ble_dev_info[idx].conn_state != BLE_DEVICE_DEFAULT_IDLE) && (ble_dev_info[idx].conn_state != BLE_DEVICE_DISCONNECTED))
+        {
+            at_ble_disconnect(ble_dev_info[idx].conn_info.handle, AT_BLE_TERMINATED_BY_USER);
+        }
+    }
+    
+    /* Delete all pairing data */
+    memset(&ble_dev_info, 0, sizeof(ble_dev_info));
+}
+
 /** @brief function to handle connected event received from stack */
 at_ble_status_t ble_connected_state_handler(void *params)
 {

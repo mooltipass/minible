@@ -339,7 +339,18 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPOMPT_DELETE_BLE_PAIRINGS, FALSE, FALSE, TRUE);
                 if (user_input == MINI_INPUT_RET_YES)
                 {
+                    aux_mcu_message_t* temp_tx_message_pt;
+
+                    /* Clear local bonding information */
                     nodemgmt_delete_all_bluetooth_bonding_information();
+
+                    /* Tell aux to clear its buffer and disconnect any device */
+                    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+                    temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_CLEAR_BOND_INFO;
+                    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
+                    
+                    /* Send message */
+                    comms_aux_mcu_send_message(FALSE);
                 }
                 return TRUE;
             }

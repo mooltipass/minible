@@ -126,6 +126,14 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
     return AT_BLE_SUCCESS;
 }
 
+/*! \fn     logic_bluetooth_clear_bonding_information(void)
+*   \brief  Called to clear all bonding information and disconnect any potential devices
+*/
+void logic_bluetooth_clear_bonding_information(void)
+{
+    ble_disconnect_all_device_and_clear_bond_info();
+}
+
 /*! \fn     logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info)
 *   \brief  Called during device pairing
 *   \param  dev_info    Device information pointer
@@ -1570,23 +1578,4 @@ void logic_bluetooth_routine(void)
     
     ble_event_task();
     logic_sleep_routine_ble_call();
-    
-    if (logic_bluetooth_just_paired != FALSE)
-    {
-        logic_bluetooth_just_paired = FALSE;
-        timer_start_timer(TIMER_BT_TESTS, 5000);
-    }
-    
-    if (logic_bluetooth_connected != FALSE)
-    {
-        if ((timer_has_timer_expired(TIMER_BT_TESTS, TRUE) == TIMER_EXPIRED) && false)
-        {            
-            timer_start_timer(TIMER_BT_TESTS, 5000);            
-            logic_bluetooth_keyboard_in_report[2] = 17;
-            logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_KEYBOARD_HID_SERVICE_INSTANCE, BLE_KEYBOARD_HID_IN_REPORT_NB, logic_bluetooth_keyboard_in_report, sizeof(logic_bluetooth_keyboard_in_report));
-            timer_delay_ms(20);
-            logic_bluetooth_keyboard_in_report[2] = 0x00;
-            logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_KEYBOARD_HID_SERVICE_INSTANCE, BLE_KEYBOARD_HID_IN_REPORT_NB, logic_bluetooth_keyboard_in_report, sizeof(logic_bluetooth_keyboard_in_report));
-        }
-    }
 }
