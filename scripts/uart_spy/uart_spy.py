@@ -73,9 +73,10 @@ link_frame_bytes = 560
 ser_dbg = serial.Serial(uart_debug, 3000000)
 ser_aux = serial.Serial(uart_aux_mcu, 6000000)
 ser_main = serial.Serial(uart_main_mcu, 6000000)
-ser_dbg.set_buffer_size(rx_size = 1000000, tx_size = 1000000)
-ser_aux.set_buffer_size(rx_size = 1000000, tx_size = 1000000)
-ser_main.set_buffer_size(rx_size = 1000000, tx_size = 1000000)
+if not (sys.platform.startswith('linux') or sys.platform.startswith('cygwin')):
+    ser_dbg.set_buffer_size(rx_size = 1000000, tx_size = 1000000)
+    ser_aux.set_buffer_size(rx_size = 1000000, tx_size = 1000000)
+    ser_main.set_buffer_size(rx_size = 1000000, tx_size = 1000000)
 
 
 def is_frame_valid(frame):
