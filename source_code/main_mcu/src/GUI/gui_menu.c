@@ -43,8 +43,8 @@ const uint16_t advanced_menu_pic_ids[] = {GUI_BT_ICON_ID, GUI_CAT_ICON_ID, GUI_F
 const uint16_t simple_menu_text_ids[] = {BT_TEXT_ID, FAV_TEXT_ID, LOGIN_TEXT_ID, LOCK_TEXT_ID, OPR_TEXT_ID};
 const uint16_t advanced_menu_text_ids[] = {BT_TEXT_ID, CAT_TEXT_ID, FAV_TEXT_ID, LOGIN_TEXT_ID, LOCK_TEXT_ID, OPR_TEXT_ID, SETTINGS_TEXT_ID};
 /* Bluetooth Menu */
-const uint16_t bluetooth_on_menu_pic_ids[] = {GUI_BT_DISABLE_ICON_ID, GUI_BT_UNPAIR_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BACK_ICON_ID};
-const uint16_t bluetooth_on_menu_text_ids[] = {BT_DISABLE_TEXT_ID, BT_UNPAIR_DEV_TEXT_ID, BT_NEW_PAIR_TEXT_ID, BACK_TEXT_ID};
+const uint16_t bluetooth_on_menu_pic_ids[] = {GUI_BT_DISABLE_ICON_ID, GUI_BT_UNPAIR_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BT_SETTINGS_ICON_ID, GUI_BACK_ICON_ID};
+const uint16_t bluetooth_on_menu_text_ids[] = {BT_DISABLE_TEXT_ID, BT_UNPAIR_DEV_TEXT_ID, BT_NEW_PAIR_TEXT_ID, BT_SETTINGS_TEXT_ID, BACK_TEXT_ID};
 /* Operations Menu */
 const uint16_t operations_menu_pic_ids[] = {GUI_ERASE_USER_ICON_ID, GUI_CHANGE_PIN_ICON_ID, GUI_CLONE_ICON_ID, GUI_SIMPLE_ADV_ICON_ID, GUI_BACK_ICON_ID};
 const uint16_t operations_simple_menu_text_ids[] = {ERASE_USER_TEXT_ID, CHANGE_PIN_TEXT_ID, CLONE_TEXT_ID, ENABLE_ADV_MENU_TEXT_ID, BACK_TEXT_ID};
@@ -336,7 +336,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             
             case GUI_BT_UNPAIR_ICON_ID:
             {
-                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPOMPT_DELETE_BLE_PAIRINGS, FALSE, FALSE, TRUE);
+                mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPROMPT_DEL_BLE_PAIRINGS_TEXT_ID, FALSE, FALSE, TRUE);
                 if (user_input == MINI_INPUT_RET_YES)
                 {
                     aux_mcu_message_t* temp_tx_message_pt;
@@ -351,6 +351,23 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     
                     /* Send message */
                     comms_aux_mcu_send_message(FALSE);
+
+                    /* Show confirmation */
+                    gui_prompts_display_information_on_screen_and_wait(PAIRINGS_CLEARED_TEXT_ID, DISP_MSG_INFO, FALSE);
+                }
+                return TRUE;
+            }
+
+            case GUI_NEW_PAIR_ICON_ID:
+            {
+                /* Let's try to pair a new device! */
+                if (gui_prompts_wait_for_pairing_screen() == GUI_INFO_DISP_RET_BLE_PAIRED)
+                {
+                    gui_prompts_display_information_on_screen_and_wait(PAIRING_SUCCEEDED_TEXT_ID, DISP_MSG_INFO, FALSE);
+                } 
+                else
+                {
+                    gui_prompts_display_information_on_screen_and_wait(PAIRING_FAILED_TEXT_ID, DISP_MSG_WARNING, FALSE);
                 }
                 return TRUE;
             }

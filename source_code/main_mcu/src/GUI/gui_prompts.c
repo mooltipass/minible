@@ -288,6 +288,62 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
     return GUI_INFO_DISP_RET_OK;
 }
 
+/*! \fn     gui_prompts_wait_for_pairing_screen(void)
+*   \brief  Waiting screen for pairing
+*   \return What caused the function to return (see enum)
+*/
+gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
+{
+    wheel_action_ret_te wheel_return;
+    uint16_t i = 0;
+    
+    /* Store current smartcard inserted state */
+    ret_type_te card_absent = smartcard_low_level_is_smc_absent();
+    
+    /* Display string */
+    gui_prompts_display_information_on_screen(PAIRING_WAIT_TEXT_ID, DISP_MSG_ACTION);
+    
+    /* Optional wait */
+    timer_start_timer(TIMER_ANIMATIONS, 50);
+    timer_start_timer(TIMER_WAIT_FUNCTS, 30000);
+    while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
+    {
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL); 
+        logic_accelerometer_routine();     
+        
+        /* Click to interrupt */  
+        wheel_return = inputs_get_wheel_action(FALSE, FALSE);
+        if (wheel_return == WHEEL_ACTION_LONG_CLICK)
+        {
+            return GUI_INFO_DISP_RET_LONG_CLICK;
+        }
+        
+        /* Card insertion status change */
+        if (card_absent != smartcard_low_level_is_smc_absent())
+        {
+            return GUI_INFO_DISP_RET_CARD_CHANGE;
+        }
+        
+        /* Animation timer */
+        if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+        {
+            /* Rearm timer, increment current bitmap */
+            timer_start_timer(TIMER_ANIMATIONS, 50);
+            if (i++ == gui_prompts_notif_idle_anim_length[DISP_MSG_ACTION]-1)
+            {
+                i = 0;
+            }
+            
+            /* Animation depending on message type */
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[DISP_MSG_ACTION]+i, FALSE);                 
+        }
+    }
+
+    //GUI_INFO_DISP_RET_BLE_PAIRED
+    /* Normal animation timeout */
+    return GUI_INFO_DISP_RET_OK;
+}
+
 /*! \fn     gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type
 *   \brief  Display text information on screen - 3 lines version
 *   \param  confirmationText_t  Pointer to the struct containing the 3 lines

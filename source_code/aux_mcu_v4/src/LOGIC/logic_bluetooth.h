@@ -287,6 +287,7 @@ at_ble_status_t ble_char_changed_app_event(void* param);
 void logic_bluetooth_clear_bonding_information(void);
 void logic_bluetooth_set_battery_level(uint8_t pct);
 ret_type_te logic_bluetooth_stop_advertising(void);
+BOOL logic_bluetooth_get_open_to_pairing(void);
 void logic_bluetooth_start_advertising(void);
 BOOL logic_bluetooth_can_talk_to_host(void);
 void logic_bluetooth_stop_bluetooth(void);

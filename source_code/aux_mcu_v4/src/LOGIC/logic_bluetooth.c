@@ -67,6 +67,7 @@ uint8_t logic_bluetooth_ctrl_point[1];
 BOOL logic_bluetooth_typed_report_sent = FALSE;
 /* Bluetooth connection bools */
 BOOL logic_bluetooth_can_communicate_with_host = FALSE;
+BOOL logic_bluetooth_open_to_pairing = FALSE;
 BOOL logic_bluetooth_advertising = FALSE;
 BOOL logic_bluetooth_just_connected = FALSE;
 BOOL logic_bluetooth_just_paired = FALSE;
@@ -80,6 +81,15 @@ static at_ble_status_t hid_custom_event(void *param)
 {
     at_ble_status_t status = AT_BLE_SUCCESS;
     return status;
+}
+
+/*! \fn     logic_bluetooth_get_open_to_pairing(void)
+*   \brief  Know if we are open for pairing
+*   \return The boolean
+*/
+BOOL logic_bluetooth_get_open_to_pairing(void)
+{
+    return logic_bluetooth_open_to_pairing;
 }
 
 /*! \fn     logic_bluetooth_hid_connected_callback(void* params)
@@ -110,6 +120,7 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
     
     /* Set booleans */
     logic_bluetooth_can_communicate_with_host = FALSE;
+    logic_bluetooth_open_to_pairing = FALSE;
     logic_bluetooth_just_connected = FALSE;
     logic_bluetooth_just_paired = FALSE;
     logic_bluetooth_connected = FALSE;
@@ -1242,8 +1253,9 @@ void logic_bluetooth_stop_bluetooth(void)
     
     /* Set booleans */
     logic_bluetooth_can_communicate_with_host = FALSE;
-    logic_bluetooth_advertising = FALSE;
+    logic_bluetooth_open_to_pairing = FALSE;
     logic_bluetooth_just_connected = FALSE;
+    logic_bluetooth_advertising = FALSE;
     logic_bluetooth_just_paired = FALSE;
     logic_bluetooth_connected = FALSE;
     logic_bluetooth_paired = FALSE;

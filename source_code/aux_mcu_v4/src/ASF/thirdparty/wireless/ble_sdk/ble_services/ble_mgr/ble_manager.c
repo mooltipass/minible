@@ -1112,6 +1112,13 @@ at_ble_status_t ble_connected_state_handler(void *params)
                 memcpy(ble_dev_info[0].host_ltk.nb, recalled_bonding_info.host_ltk_random_nb, sizeof(recalled_bonding_info.host_ltk_random_nb));
                 ble_dev_info[0].host_ltk.key_size = recalled_bonding_info.host_ltk_key_size;
             }
+            else if (logic_bluetooth_get_open_to_pairing() == FALSE)
+            {
+                /* No intention to pair... disconnect */
+                at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
+                DBG_LOG("Unknown device and we don't allow pairing... bye!");
+                return AT_BLE_FAILURE;              
+            }
             
 			/*for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
 			{
