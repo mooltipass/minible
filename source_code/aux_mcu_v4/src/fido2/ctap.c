@@ -213,7 +213,7 @@ static int ctap_make_credential_auth_data(CTAP_requestCommon *req_common, uint8_
 
     if((sizeof(CTAP_authDataHeader)) > *len)
     {
-        printf1(TAG_ERR,"assertion fail, auth_data_buf must be at least %d bytes\n", sizeof(CTAP_authData) - sizeof(CTAP_attestHeader));
+        printf1(TAG_ERR,"assertion fail, auth_data_buf must be at least %d bytes", sizeof(CTAP_authData) - sizeof(CTAP_attestHeader));
         exit(1);
     }
 
@@ -500,12 +500,12 @@ uint8_t ctap_make_credential(CborEncoder * encoder, uint8_t * request, int lengt
 
     if (ret != 0)
     {
-        printf2(TAG_ERR,"error, parse_make_credential failed\n");
+        printf2(TAG_ERR,"error, parse_make_credential failed");
         return ret;
     }
     if ((MC.common.paramsParsed & MC_requiredMask) != MC_requiredMask)
     {
-        printf2(TAG_ERR,"error, required parameter(s) for makeCredential are missing\n");
+        printf2(TAG_ERR,"error, required parameter(s) for makeCredential are missing");
         return CTAP2_ERR_MISSING_PARAMETER;
     }
 
@@ -534,7 +534,7 @@ uint8_t ctap_make_credential(CborEncoder * encoder, uint8_t * request, int lengt
 
         if (ctap_authenticate_credential(&MC.common.rp, excl_cred))
         {
-            printf1(TAG_MC, "Cred %d failed!\r\n",i);
+            printf1(TAG_MC, "Cred %d failed!\r",i);
             return CTAP2_ERR_CREDENTIAL_EXCLUDED;
         }
 
@@ -664,7 +664,7 @@ static uint8_t ctap_end_get_assertion(CborEncoder * map, CTAP_credInfo *cred_inf
         check_ret(ret);
     }
 
-    printf1(TAG_GREEN, "adding user details to output\r\n");
+    printf1(TAG_GREEN, "adding user details to output\r");
     ret = ctap_add_user_entity(map, &cred_info->user);  // 4
     check_retr(ret);
 
@@ -683,7 +683,7 @@ uint8_t ctap_get_assertion(CborEncoder * encoder, uint8_t * request, int length)
 
     if (ret != 0)
     {
-        printf2(TAG_ERR,"error, parse_get_assertion failed\n");
+        printf2(TAG_ERR,"error, parse_get_assertion failed");
         return ret;
     }
 
@@ -704,7 +704,7 @@ uint8_t ctap_get_assertion(CborEncoder * encoder, uint8_t * request, int length)
 
     int map_size = 3;
 
-    printf1(TAG_GA, "ALLOW_LIST has %d creds\n", GA.credLen);
+    printf1(TAG_GA, "ALLOW_LIST has %d creds", GA.credLen);
 
     map_size += 1;
 
@@ -751,37 +751,37 @@ uint8_t ctap_request(uint8_t * pkt_raw, int length, CTAP_RESPONSE * resp)
 
     cbor_encoder_init(&encoder, buf, resp->data_size, 0);
 
-    printf1(TAG_CTAP,"cbor input structure: %d bytes\n", length);
+    printf1(TAG_CTAP,"cbor input structure: %d bytes", length);
     printf1(TAG_DUMP,"cbor req: "); dump_hex1(TAG_DUMP, pkt_raw, length);
 
     switch(cmd)
     {
         case CTAP_MAKE_CREDENTIAL:
-            printf1(TAG_CTAP,"CTAP_MAKE_CREDENTIAL\n");
+            printf1(TAG_CTAP,"CTAP_MAKE_CREDENTIAL");
             timestamp();
             status = ctap_make_credential(&encoder, pkt_raw, length);
-            printf1(TAG_TIME,"make_credential time: %d ms\n", timestamp());
+            printf1(TAG_TIME,"make_credential time: %d ms", timestamp());
 
             resp->length = cbor_encoder_get_buffer_size(&encoder, buf);
             dump_hex1(TAG_DUMP, buf, resp->length);
 
             break;
         case CTAP_GET_ASSERTION:
-            printf1(TAG_CTAP,"CTAP_GET_ASSERTION\n");
+            printf1(TAG_CTAP,"CTAP_GET_ASSERTION");
             timestamp();
             status = ctap_get_assertion(&encoder, pkt_raw, length);
-            printf1(TAG_TIME,"get_assertion time: %d ms\n", timestamp());
+            printf1(TAG_TIME,"get_assertion time: %d ms", timestamp());
 
             resp->length = cbor_encoder_get_buffer_size(&encoder, buf);
 
-            printf1(TAG_DUMP,"cbor [%d]: \n",  resp->length);
+            printf1(TAG_DUMP,"cbor [%d]: ",  resp->length);
                 dump_hex1(TAG_DUMP,buf, resp->length);
             break;
         case CTAP_CANCEL:
-            printf1(TAG_CTAP,"CTAP_CANCEL\n");
+            printf1(TAG_CTAP,"CTAP_CANCEL");
             break;
         case CTAP_GET_INFO:
-            printf1(TAG_CTAP,"CTAP_GET_INFO\n");
+            printf1(TAG_CTAP,"CTAP_GET_INFO");
             status = ctap_get_info(&encoder);
 
             resp->length = cbor_encoder_get_buffer_size(&encoder, buf);
@@ -798,7 +798,7 @@ uint8_t ctap_request(uint8_t * pkt_raw, int length, CTAP_RESPONSE * resp)
             break;
         default:
             status = CTAP1_ERR_INVALID_COMMAND;
-            printf2(TAG_ERR,"error, invalid cmd\n");
+            printf2(TAG_ERR,"error, invalid cmd");
     }
 
     if (status != CTAP1_ERR_SUCCESS)
@@ -806,7 +806,7 @@ uint8_t ctap_request(uint8_t * pkt_raw, int length, CTAP_RESPONSE * resp)
         resp->length = 0;
     }
 
-    printf1(TAG_CTAP,"cbor output structure: %d bytes.  Return 0x%02x\n", resp->length, status);
+    printf1(TAG_CTAP,"cbor output structure: %d bytes.  Return 0x%02x", resp->length, status);
 
     return status;
 }

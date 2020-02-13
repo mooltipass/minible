@@ -1,4 +1,5 @@
-#include "ctap.h"
+#include "platform_defines.h"
+#include "platform_io.h"
 #include "stdarg.h"
 #include "stdint.h"
 #include "ctap.h"
@@ -15,9 +16,10 @@ void dump_hex(uint8_t * buf, uint32_t size);
 #define dump_hex1(tag,data,len) dump_hex(data, len);
 
 #if !defined DEBUG_LOG_DISABLED
-#define printf1(tag,fmt, ...) comms_usb_debug_printf(fmt, ##__VA_ARGS__)
-#define printf2(tag,fmt, ...) comms_usb_debug_printf(fmt, ##__VA_ARGS__)
-#define printf3(tag,fmt, ...) comms_usb_debug_printf(fmt, ##__VA_ARGS__)
+#define printf1(tag,fmt, ...) platform_io_uart_debug_printf(fmt, ##__VA_ARGS__)
+#define printf2(tag,fmt, ...) platform_io_uart_debug_printf(fmt, ##__VA_ARGS__)
+#define printf3(tag,fmt, ...) platform_io_uart_debug_printf(fmt, ##__VA_ARGS__)
+
 #else
 #define printf1(tag,fmt, ...)
 #define printf2(tag,fmt, ...)
