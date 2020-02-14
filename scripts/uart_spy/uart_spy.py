@@ -56,9 +56,9 @@ if sys.platform.startswith('win'):
 			break
 elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
 	# TODO
-	uart_main_mcu = available_ports[1]
-	uart_aux_mcu = available_ports[0]
-	uart_debug = available_ports[2]
+        uart_main_mcu = available_ports[3]
+        uart_aux_mcu = available_ports[2]
+        uart_debug = available_ports[1]
 elif sys.platform.startswith('darwin'):
 	# TODO
 	uart_main_mcu = available_ports[1]
