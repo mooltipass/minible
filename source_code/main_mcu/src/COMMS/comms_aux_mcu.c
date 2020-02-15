@@ -209,24 +209,33 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
     return return_val;
 }
 
-/*! \fn     comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* received_message)
+/*! \fn     comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* received_message, msg_restrict_type_te answer_restrict_type)
 *   \brief  Deal with received BLE message
-*   \param  received_message    Pointer to received message
+*   \param  received_message        Pointer to received message
+*   \param  answer_restrict_type    Message restriction type, which can be used to allow bonding information storage
+*   \return Type of message that was received (see enum)
 */
-void comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* received_message)
+comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* received_message, msg_restrict_type_te answer_restrict_type)
 {
+    comms_msg_rcvd_te return_val = BLE_CMD_MSG_RCVD;
+    
     switch(received_message->ble_message.message_id)
     {
         case BLE_MESSAGE_STORE_BOND_INFO:
         {
-            if (nodemgmt_store_bluetooth_bonding_information(&received_message->ble_message.bonding_information_to_store_message) == RETURN_OK)
+            if (answer_restrict_type == MSG_RESTRICT_ALLBUT_BOND_STORE)
             {
-                /* Set connected state */
-                logic_bluetooth_set_connected_state(TRUE);
-            }
-            else
-            {
-                /* Not seeing the point of displaying a notification as our memory is huge, especially given the added logic in case we're filtering for other messages */
+                /* We are allowed to store bonding information, check if we actually can */
+                if (nodemgmt_store_bluetooth_bonding_information(&received_message->ble_message.bonding_information_to_store_message) == RETURN_OK)
+                {
+                    /* Set connected state */
+                    return_val = BLE_BOND_STORE_RCVD;
+                    logic_bluetooth_set_connected_state(TRUE);
+                }
+                else
+                {
+                    /* Not seeing the point of displaying a notification as our memory is huge, especially given the added logic in case we're filtering for other messages */
+                }
             }
             break;
         }
@@ -253,6 +262,8 @@ void comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* received_message)
         }
         default: break;
     }    
+    
+    return return_val;
 }
 
 /*! \fn     comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
@@ -608,8 +619,7 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     }
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BLE_CMD)
     {
-        msg_rcvd = BLE_CMD_MSG_RCVD;
-        comms_aux_mcu_deal_with_ble_message(&aux_mcu_receive_message);
+        msg_rcvd = comms_aux_mcu_deal_with_ble_message(&aux_mcu_receive_message, answer_restrict_type);
     }
     else
     {

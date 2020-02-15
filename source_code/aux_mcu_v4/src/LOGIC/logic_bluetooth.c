@@ -92,6 +92,15 @@ BOOL logic_bluetooth_get_open_to_pairing(void)
     return logic_bluetooth_open_to_pairing;
 }
 
+/*! \fn     logic_bluetooth_set_open_to_pairing_bool(BOOL pairing_bool)
+*   \brief  Specify if we are open for pairing
+*   \param  pairing_bool The boolean
+*/
+void logic_bluetooth_set_open_to_pairing_bool(BOOL pairing_bool)
+{
+    logic_bluetooth_open_to_pairing = pairing_bool;
+}
+
 /*! \fn     logic_bluetooth_hid_connected_callback(void* params)
 *   \brief  Called during device connection
 */

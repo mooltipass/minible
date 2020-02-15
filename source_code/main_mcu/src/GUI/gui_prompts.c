@@ -308,7 +308,13 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
     timer_start_timer(TIMER_WAIT_FUNCTS, 30000);
     while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
     {
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL); 
+        if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BOND_STORE) == BLE_BOND_STORE_RCVD)
+        {
+            /* We received a bonding storage message */
+            return GUI_INFO_DISP_RET_BLE_PAIRED;
+        }
+        
+        /* Accelerometer stuff */
         logic_accelerometer_routine();     
         
         /* Click to interrupt */  
@@ -339,7 +345,6 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
         }
     }
 
-    //GUI_INFO_DISP_RET_BLE_PAIRED
     /* Normal animation timeout */
     return GUI_INFO_DISP_RET_OK;
 }

@@ -360,6 +360,16 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
 
             case GUI_NEW_PAIR_ICON_ID:
             {
+                aux_mcu_message_t* temp_tx_message_pt;
+                
+                /* Send command to enable pairing to aux MCU */
+                comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+                temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_ENABLE_PAIRING;
+                temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
+                
+                /* Send message */
+                comms_aux_mcu_send_message(TRUE);
+                
                 /* Let's try to pair a new device! */
                 if (gui_prompts_wait_for_pairing_screen() == GUI_INFO_DISP_RET_BLE_PAIRED)
                 {
@@ -369,6 +379,10 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 {
                     gui_prompts_display_information_on_screen_and_wait(PAIRING_FAILED_TEXT_ID, DISP_MSG_WARNING, FALSE);
                 }
+                
+                /* Now we disable pairing again */                
+                temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_DISABLE_PAIRING;
+                comms_aux_mcu_send_message(TRUE);
                 return TRUE;
             }
             

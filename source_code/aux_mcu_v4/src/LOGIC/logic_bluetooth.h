@@ -280,6 +280,7 @@ void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info
 ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key);
 at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params);
 uint8_t logic_bluetooth_get_reportid(uint8_t serv, uint16_t handle);
+void logic_bluetooth_set_open_to_pairing_bool(BOOL pairing_bool);
 void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address);
 void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len);
 uint8_t logic_bluetooth_get_hid_serv_instance(uint16_t handle);
