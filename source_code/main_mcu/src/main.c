@@ -605,39 +605,8 @@ int main(void)
     /* Infinite loop */
     while(TRUE)
     {
-        /* Power handling routine */
-        power_action_te power_action = logic_power_routine(FALSE);
-        
-        /* If the power routine tells us to power off, provided we are not updating */
-        if ((power_action == POWER_ACT_POWER_OFF) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE))
-        {
-            /* Set flag */
-            custom_fs_set_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID, TRUE);
-            logic_power_power_down_actions();
-            
-            /* Out of battery! */
-            gui_prompts_display_information_on_screen_and_wait(BATTERY_EMPTY_TEXT_ID, DISP_MSG_WARNING, FALSE);
-            sh1122_oled_off(&plat_oled_descriptor);
-            platform_io_power_down_oled();
-            timer_delay_ms(100);
-            
-            /* It may not be impossible that the user connected the device in the meantime */
-            if (platform_io_is_usb_3v3_present() == FALSE)
-            {
-                platform_io_disable_switch_and_die();
-                while(1);
-            } 
-            else
-            {
-                /* Call the power routine that will take care of power switch */
-                logic_power_routine(FALSE);
-            }                
-        }
-        else if (power_action == POWER_ACT_NEW_BAT_LEVEL)
-        {
-            /* New battery level, inform aux MCU */
-            logic_aux_mcu_update_aux_mcu_of_new_battery_level(logic_power_get_and_ack_new_battery_level()*10);
-        }
+        /* Power routine */
+        logic_power_routine();
         
         /* Do not do anything if we're uploading new graphics contents */
         if (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE)
@@ -669,19 +638,13 @@ int main(void)
                 gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_INTO_MENU_TRANSITION);
                 gui_dispatcher_get_back_to_current_screen();
             }
+            
+            /* Make sure all power switches are handled before calling GUI code */
+            logic_power_routine();
         
             /* GUI main loop, pass a possible virtual wheel action and reset it */
             gui_dispatcher_main_loop(virtual_wheel_action);
             virtual_wheel_action = WHEEL_ACTION_NONE;      
-        }
-        
-        /* test code */
-        if (gui_dispatcher_get_current_screen() == GUI_SCREEN_MAIN_MENU)
-        {
-            //logic_user_store_credential(u"abracadabralapinou.com", u"encoreunsuperlogin", 0, 0, 0);
-            //logic_user_store_credential(u"lapin.fr", u"zsuperlongpassword", 0, 0, 0);
-            //gui_prompts_ask_for_login_select(nodemgmt_get_starting_parent_addr());
-            //gui_dispatcher_get_back_to_current_screen();
         }
         
         /* Communications */

@@ -28,7 +28,9 @@
 #include "logic_device.h"
 #include "logic_power.h"
 #include "platform_io.h"
+#include "gui_prompts.h"
 #include "custom_fs.h"
+#include "text_ids.h"
 #include "sh1122.h"
 #include "inputs.h"
 #include "utils.h"
@@ -271,12 +273,12 @@ BOOL logic_power_is_usb_enumerate_sent_clear_bool(void)
     return return_bool;
 }
 
-/*! \fn     logic_power_routine(BOOL wait_for_adc_conversion_and_dont_start_another)
+/*! \fn     logic_power_check_power_switch_and_battery(BOOL wait_for_adc_conversion_and_dont_start_another)
 *   \brief  Power handling routine
 *   \param  wait_for_adc_conversion_and_dont_start_another  Set to TRUE to do what it says
 *   \return An action if needed (see enum)
 */
-power_action_te logic_power_routine(BOOL wait_for_adc_conversion_and_dont_start_another)
+power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_conversion_and_dont_start_another)
 {        
     volatile uint32_t nb_ms_since_full_charge_copy = logic_power_nb_ms_spent_since_last_full_charge;
     
@@ -510,4 +512,44 @@ power_action_te logic_power_routine(BOOL wait_for_adc_conversion_and_dont_start_
     
     /* Nothing to do */
     return POWER_ACT_NONE;
+}
+
+/*! \fn     logic_power_routine(void)
+*   \brief  Power routine, mostly takes care of switching off device if battery too low
+*/
+void logic_power_routine(void)
+{
+    /* Power handling routine */
+    power_action_te power_action = logic_power_check_power_switch_and_battery(FALSE);
+    
+    /* If the power routine tells us to power off, provided we are not updating */
+    if ((power_action == POWER_ACT_POWER_OFF) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE))
+    {
+        /* Set flag */
+        custom_fs_set_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID, TRUE);
+        logic_power_power_down_actions();
+        
+        /* Out of battery! */
+        gui_prompts_display_information_on_screen_and_wait(BATTERY_EMPTY_TEXT_ID, DISP_MSG_WARNING, FALSE);
+        sh1122_oled_off(&plat_oled_descriptor);
+        platform_io_power_down_oled();
+        timer_delay_ms(100);
+        
+        /* It may not be impossible that the user connected the device in the meantime */
+        if (platform_io_is_usb_3v3_present() == FALSE)
+        {
+            platform_io_disable_switch_and_die();
+            while(1);
+        }
+        else
+        {
+            /* Call the power routine that will take care of power switch */
+            logic_power_check_power_switch_and_battery(FALSE);
+        }
+    }
+    else if (power_action == POWER_ACT_NEW_BAT_LEVEL)
+    {
+        /* New battery level, inform aux MCU */
+        logic_aux_mcu_update_aux_mcu_of_new_battery_level(logic_power_get_and_ack_new_battery_level()*10);
+    }    
 }

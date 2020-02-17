@@ -421,7 +421,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
             platform_io_power_down_oled();
             
             /* Call power routine so it registers we powered down the oled screen */
-            logic_power_routine(TRUE);
+            logic_power_check_power_switch_and_battery(TRUE);
             
             /* Good night */
             main_standby_sleep();
