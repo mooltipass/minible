@@ -3,11 +3,6 @@
 # Install Process (15/02/2020):
 # - Install Python 3.6.x, at the time of writing version 3.6.9 and 3.6.10 couldn't be downloaded from the official website. You may take 3.6.8 from https://www.python.org/ftp/python/3.6.8/python-3.6.8-amd64.exe
 # - Install pyscard from https://sourceforge.net/projects/pyscard/files/pyscard/ (see https://github.com/LudovicRousseau/pyscard/blob/master/INSTALL.md - https://sourceforge.net/projects/pyscard/files/pyscard/pyscard%201.9.9/pyscard-1.9.9.win-amd64-py3.6.msi/download used for this tutorial)
-# - (Still needed?) Install Build Tools for Visual Studio 2019 from https://visualstudio.microsoft.com/downloads/, lower section, select C++ build tools at the installation welcome screen (https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16 for this tutorial)
-# - (Still needed?) Before installing pycryptodome (from https://stackoverflow.com/questions/41843266/microsoft-windows-python-3-6-pycrypto-installation-error):
-#	1) Open command prompt
-#	2) "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
-#	3) set CL=-FI"C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Tools\MSVC\14.24.28314\include\stdint.h" 
 # - Install pycryptodome: python -m pip install pycryptodome
 #
 from smartcard.CardConnectionObserver import ConsoleCardConnectionObserver
