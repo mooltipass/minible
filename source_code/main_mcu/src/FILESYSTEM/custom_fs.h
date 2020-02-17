@@ -66,7 +66,7 @@
 #define SETTINGS_KNOCK_DETECT_SENSITIVITY   11
 #define SETTINGS_LEFT_HANDED_ON_BATTERY     12
 #define SETTINGS_LEFT_HANDED_ON_USB         13
-#define SETTINGS_TOBEFILLED                 14
+#define SETTINGS_PIN_SHOWN_WHEN_BACK        14
 /* Set to define the number of settings used */
 #define SETTINGS_NB_USED                    15
 

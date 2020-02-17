@@ -689,17 +689,17 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
         {
             if (selected_digit > 0)
             {
-                if (random_pin_feature_enabled == FALSE)
-                {
-                    // When going back set pin digit to 0
-                    current_pin[selected_digit] = 0;
-                    current_pin[--selected_digit] = 0;
-                }
-                else
+                if (random_pin_feature_enabled != FALSE)
                 {
                     rng_fill_array(&current_pin[selected_digit-1], 2);
                     current_pin[selected_digit] &= 0x0F;
                     current_pin[--selected_digit] &= 0x0F;
+                }
+                else if ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_PIN_SHOWN_WHEN_BACK) == FALSE)
+                {
+                    // If enabled, when going back set pin digit to 0
+                    current_pin[selected_digit] = 0;
+                    current_pin[--selected_digit] = 0;
                 }
                 detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, -1);
             }
