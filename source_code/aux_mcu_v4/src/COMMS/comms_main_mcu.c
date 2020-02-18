@@ -154,6 +154,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
         main_mcu_send_message.aux_details_message.aux_uid_registers[1] = *(uint32_t*)0x0080A040;
         main_mcu_send_message.aux_details_message.aux_uid_registers[2] = *(uint32_t*)0x0080A044;
         main_mcu_send_message.aux_details_message.aux_uid_registers[3] = *(uint32_t*)0x0080A048;
+        main_mcu_send_message.aux_details_message.aux_stack_low_watermark = main_check_stack_usage();
         
         /* Check if BLE is enabled */
         if (logic_is_ble_enabled() != FALSE)

@@ -26,7 +26,7 @@
 
 
 #define FIDO2_RPID_LEN 252                                      //RP ID length
-#define FIDO2_USER_ID_LEN 65                                    //User id length
+#define FIDO2_USER_HANDLE_LEN 64                                    //User id length
 #define FIDO2_USER_NAME_LEN 65                                  //User name length
 #define FIDO2_DISPLAY_NAME_LEN 65                               //Display name length
 #define FIDO2_CLIENT_DATA_HASH_LEN (SHA256_OUTPUT_LENGTH)       //Client data hash length
@@ -37,7 +37,8 @@
 #define FIDO2_AAGUID_LEN 16                                     //AAGUID length
 #define FIDO2_ENC_PUB_KEY_LEN 100                               //Encryped public key length
 #define FIDO2_PRIV_KEY_LEN 32                                   //Private key length
-#define FIDO2_CREDENTIAL_ID_LENGTH 16                           // Credential id length
+#define FIDO2_CREDENTIAL_ID_LENGTH 16                           //Credential id length
+#define FIDO2_ALLOW_LIST_MAX_SIZE 10                            //Max length of allow list
 
 #define FIDO2_UP_BIT (1 << 0)       // User Present
 #define FIDO2_UV_BIT (1 << 2)       // User Verified
@@ -47,7 +48,6 @@
 #define FIDO2_CBOR_CONTAINER_START 0xA0
 
 #define FIDO2_CREDENTIAL_EXISTS     1
-#define FIDO2_NEW_CREDENTIAL        1
 
 #define COSE_KEY_LABEL_KTY      1
 #define COSE_KEY_LABEL_ALG      3

@@ -377,4 +377,9 @@ typedef uint32_t PIN_ID_T;
     #define USB_DP_PMUXREGID    PMUXE
 #endif
 
+/* Debugging features */
+#if defined(PLAT_V3_SETUP)
+     #define STACK_MEASURE_ENABLED
+#endif
+
 #endif /* PLATFORM_DEFINES_H_ */

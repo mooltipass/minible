@@ -14,6 +14,8 @@
 
 /* Prototypes */
 void main_standby_sleep(BOOL startup_run);
+uint32_t main_check_stack_usage(void);
+void main_init_stack_tracking(void);
 void main_set_bootloader_flag(void);
 void main_platform_init(void);
 

@@ -43,19 +43,19 @@ void dump_hex(uint8_t * buf, uint32_t size)
     uint32_t offset = 0;
     uint32_t byteno = 0;
 
-    comms_usb_debug_printf("DATA [len: %d]\n", size);
+    platform_io_uart_debug_printf("DATA [len: %d]", size);
 
     for (i = 0; i < size; ++i) {
         if ((i > 0) && (i % 16) == 0) {
             tmp[offset] = '\0';
-            comms_usb_debug_printf("[%03X]: %s\n", byteno, tmp);
+            platform_io_uart_debug_printf("[%03X]: %s", byteno, tmp);
             offset = 0;
             byteno += 16;
         }
         offset += sprintf(&tmp[offset], "%02X ", buf[i]);
     }
     tmp[offset] = '\0';
-    comms_usb_debug_printf("[%03X]: %s\n", byteno, tmp);
+    platform_io_uart_debug_printf("[%03X]: %s", byteno, tmp);
 }
 
 #endif

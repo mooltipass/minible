@@ -32,6 +32,8 @@
 
 
 /* Prototypes */
+uint32_t main_check_stack_usage(void);
+void main_init_stack_tracking(void);
 void main_platform_init(void);
 void main_standby_sleep(void);
 void main_reboot(void);

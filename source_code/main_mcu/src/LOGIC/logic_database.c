@@ -224,13 +224,14 @@ uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_t
     }    
 }
 
-/*! \fn     logic_database_search_webauthn_userhandle_in_service(uint16_t parent_addr, uint8_t* user_handle)
+/*! \fn     logic_database_search_webauthn_userhandle_in_service(uint16_t parent_addr, uint8_t* user_handle, uint8_t user_handle_len)
 *   \brief  Find a given userhandle for a given parent
 *   \param  parent_addr Parent node address
-*   \param  user_handle User handle (64B)
+*   \param  user_handle User handle
+*   \param  user_handle_len Length of user handle
 *   \return Address of the found node, NODE_ADDR_NULL otherwise
 */
-uint16_t logic_database_search_webauthn_userhandle_in_service(uint16_t parent_addr, uint8_t* user_handle)
+uint16_t logic_database_search_webauthn_userhandle_in_service(uint16_t parent_addr, uint8_t* user_handle, uint8_t user_handle_len)
 {
     child_webauthn_node_t* temp_half_cnode_pt;
     parent_node_t temp_pnode;
@@ -248,7 +249,13 @@ uint16_t logic_database_search_webauthn_userhandle_in_service(uint16_t parent_ad
     {
         return NODE_ADDR_NULL;
     }
-    
+
+    /* Sanitize the user handle length to prevent overflows */
+    if (user_handle_len > MEMBER_SIZE(child_webauthn_node_t, user_handle))
+    {
+        user_handle_len = MEMBER_SIZE(child_webauthn_node_t, user_handle);
+    }
+
     /* Start going through the nodes */
     do
     {
@@ -256,7 +263,7 @@ uint16_t logic_database_search_webauthn_userhandle_in_service(uint16_t parent_ad
         nodemgmt_read_webauthn_child_node_except_display_name(next_node_addr, temp_half_cnode_pt, FALSE);
         
         /* Compare with provided user handle */
-        if (memcmp(temp_half_cnode_pt->user_handle, user_handle, MEMBER_SIZE(child_webauthn_node_t, user_handle)) == 0)
+        if (user_handle_len == temp_half_cnode_pt->user_handle_len && memcmp(temp_half_cnode_pt->user_handle, user_handle, user_handle_len) == 0)
         {
             return next_node_addr;
         }
@@ -273,7 +280,7 @@ uint16_t logic_database_search_webauthn_userhandle_in_service(uint16_t parent_ad
 /*! \fn     logic_database_search_webauthn_credential_id_in_service(uint16_t parent_addr, uint8_t* credential_id)
 *   \brief  Find a given credential id for a given parent
 *   \param  parent_addr Parent node address
-*   \param  user_handle User handle (16B)
+*   \param  credential_id Credential ID
 *   \return Address of the found node, NODE_ADDR_NULL otherwise
 */
 uint16_t logic_database_search_webauthn_credential_id_in_service(uint16_t parent_addr, uint8_t* credential_id)
@@ -402,12 +409,13 @@ void logic_database_get_webauthn_username_for_address(uint16_t child_addr, cust_
     utils_strncpy(user_name, temp_half_cnode_pt->user_name, MEMBER_ARRAY_SIZE(child_webauthn_node_t, user_name));
 }
 
-/*! \fn     logic_database_get_webauthn_userhandle_for_address(uint16_t child_addr, uint8_t* userhandle)
+/*! \fn     logic_database_get_webauthn_userhandle_for_address(uint16_t child_addr, uint8_t* userhandle, uint8_t *user_handle_len)
 *   \brief  Get the userhandle at a given address
 *   \param  child_addr  Child address
-*   \param  user_name   Where to store 64B the userhandle
+*   \param  user_handle    Where to store the user handle 
+*   \param  user_hanle_len Where to store the user handle length
 */
-void logic_database_get_webauthn_userhandle_for_address(uint16_t child_addr, uint8_t* userhandle)
+void logic_database_get_webauthn_userhandle_for_address(uint16_t child_addr, uint8_t* user_handle, uint8_t *user_handle_len)
 {
     child_webauthn_node_t* temp_half_cnode_pt;
     parent_node_t temp_pnode;
@@ -417,21 +425,31 @@ void logic_database_get_webauthn_userhandle_for_address(uint16_t child_addr, uin
     
     /* Read child node */
     nodemgmt_read_webauthn_child_node_except_display_name(child_addr, temp_half_cnode_pt, FALSE);
-    
+
+    /* Sanitize user_handle_len to prevent overflow */
+    if (temp_half_cnode_pt->user_handle_len > MEMBER_SIZE(child_webauthn_node_t, user_handle))
+    {
+        temp_half_cnode_pt->user_handle_len = MEMBER_SIZE(child_webauthn_node_t, user_handle);
+    }
+
     /* Copy userhandle */
-    memcpy(userhandle, temp_half_cnode_pt->user_handle, MEMBER_SIZE(child_webauthn_node_t, user_handle));
+    memcpy(user_handle, temp_half_cnode_pt->user_handle, temp_half_cnode_pt->user_handle_len);
+
+    /* Store user handle length */
+    *user_handle_len = temp_half_cnode_pt->user_handle_len;
 }
 
-/*! \fn     logic_database_get_webauthn_data_for_address(uint16_t child_addr, uint8_t* user_handle, uint8_t* credential_id, uint8_t* key, uint32_t* count, uint8_t* ctr)
+/*! \fn     logic_database_get_webauthn_data_for_address(uint16_t child_addr, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* key, uint32_t* count, uint8_t* ctr)
 *   \brief  Get the webauthn data for given address and pre increment signing counter
 *   \param  child_addr  Child address
 *   \param  user_handle     Where to store the user handle
+*   \param  user_handle_len Where to store the user handle length
 *   \param  credential_id   Where to store the credential id
 *   \param  key             Where to store the fetched key
 *   \param  count           Where to store the sign count
 *   \param  ctr             Where to store the ctr value
 */
-void logic_database_get_webauthn_data_for_address_and_inc_count(uint16_t child_addr, uint8_t* user_handle, uint8_t* credential_id, uint8_t* key, uint32_t* count, uint8_t* ctr)
+void logic_database_get_webauthn_data_for_address_and_inc_count(uint16_t child_addr, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* key, uint32_t* count, uint8_t* ctr)
 {
     child_webauthn_node_t* temp_half_cnode_pt;
     parent_node_t temp_pnode;
@@ -441,10 +459,19 @@ void logic_database_get_webauthn_data_for_address_and_inc_count(uint16_t child_a
     
     /* Read child node */
     nodemgmt_read_webauthn_child_node_except_display_name(child_addr, temp_half_cnode_pt, TRUE);
-    
+
+    /* Sanitize user_handle_len to prevent overflow */
+    if (temp_half_cnode_pt->user_handle_len > MEMBER_SIZE(child_webauthn_node_t, user_handle))
+    {
+        temp_half_cnode_pt->user_handle_len = MEMBER_SIZE(child_webauthn_node_t, user_handle);
+    }
+
     /* Copy user handle */
-    memcpy(user_handle, temp_half_cnode_pt->user_handle, MEMBER_SIZE(child_webauthn_node_t, user_handle));
+    memcpy(user_handle, temp_half_cnode_pt->user_handle, temp_half_cnode_pt->user_handle_len);
     
+    /* Store user handle length */
+    *user_handle_len = temp_half_cnode_pt->user_handle_len;
+
     /* Copy credential id */
     memcpy(credential_id, temp_half_cnode_pt->credential_id, MEMBER_SIZE(child_webauthn_node_t, credential_id));
     
@@ -584,10 +611,11 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
     nodemgmt_user_db_changed_actions(FALSE);
 }    
 
-/*! \fn     logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id)
+/*! \fn     logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, uint8_t user_handle_len, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id)
 *   \brief  Add a new webauthn credential for a given service to our database
 *   \param  service_addr    Service address
-*   \param  user_handle     64 bytes user handle
+*   \param  user_handle     user handle
+*   \param  user_handle_len Length of user handle
 *   \param  user_name       Pointer to user name string
 *   \param  display_name    Pointer to display name sstring
 *   \param  private_key     Pointer to encrypted private key
@@ -595,16 +623,23 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
 *   \param  credential_id   Pointer to credential_id buffer
 *   \return Success status
 */
-RET_TYPE logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id)
+RET_TYPE logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, uint8_t user_handle_len, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id)
 {
     uint16_t storage_addr = NODE_ADDR_NULL;
     child_webauthn_node_t temp_cnode;
     
     /* Clear node */
     memset((void*)&temp_cnode, 0, sizeof(temp_cnode));
-    
+
+    /* Sanitize the user handle length to prevent overflows */
+    if (user_handle_len > MEMBER_SIZE(child_webauthn_node_t, user_handle))
+    {
+        user_handle_len = MEMBER_SIZE(child_webauthn_node_t, user_handle);
+    }
+
     /* Copy everything */
-    memcpy(temp_cnode.user_handle, user_handle, sizeof(temp_cnode.user_handle));
+    temp_cnode.user_handle_len = user_handle_len;
+    memcpy(temp_cnode.user_handle, user_handle, user_handle_len);
     utils_strncpy(temp_cnode.user_name, user_name, MEMBER_ARRAY_SIZE(child_webauthn_node_t, user_name));
     utils_strncpy(temp_cnode.display_name, display_name, MEMBER_ARRAY_SIZE(child_webauthn_node_t, display_name));
     memcpy(temp_cnode.private_key, private_key, sizeof(temp_cnode.private_key));

@@ -335,20 +335,39 @@ static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_auth_cred_msg(fido2_message_
     return FIDO2_MSG_RCVD;
 }
 
-/*! \fn     comms_aux_mcu_handle_fido2_make_auth_data_msg(fido2_message_t const *received_message, aux_mcu_message_t *send_message)
-*   \brief  routine handling making authentication data or making attestation data for a credential
+/*! \fn     comms_aux_mcu_handle_fido2_make_credential_msg(fido2_message_t const *received_message, aux_mcu_message_t *send_message)
+*   \brief  routine handling making a new credential
 *   \param  received_message    The received message
 *   \param  send_message        The response message
 *   \return FIDO2_MSG_RCVD
 */
-static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_make_auth_data_msg(fido2_message_t* received_message, aux_mcu_message_t *send_message)
+static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_make_credential_msg(fido2_message_t* received_message, aux_mcu_message_t *send_message)
 {
-    fido2_make_auth_data_req_message_t* request = &received_message->fido2_make_auth_data_req_message;
-    fido2_make_auth_data_rsp_message_t* response = &send_message->fido2_message.fido2_make_auth_data_rsp_message;
+    fido2_make_credential_req_message_t* request = &received_message->fido2_make_credential_req_message;
+    fido2_make_credential_rsp_message_t* response = &send_message->fido2_message.fido2_make_credential_rsp_message;
 
-    logic_fido2_process_make_auth_data(request, response);
+    logic_fido2_process_make_credential(request, response);
 
-    send_message->fido2_message.message_type = AUX_MCU_FIDO2_MAD_RSP;
+    send_message->fido2_message.message_type = AUX_MCU_FIDO2_MC_RSP;
+    send_message->payload_length1 = sizeof(fido2_message_t);
+    send_message->message_type = AUX_MCU_MSG_TYPE_FIDO2;
+    return FIDO2_MSG_RCVD;
+}
+
+/*! \fn     comms_aux_mcu_handle_fido2_get_assertion_msg(fido2_message_t const *received_message, aux_mcu_message_t *send_message)
+*   \brief  routine handling asserting a credential
+*   \param  received_message    The received message
+*   \param  send_message        The response message
+*   \return FIDO2_MSG_RCVD
+*/
+static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_get_assertion_msg(fido2_message_t* received_message, aux_mcu_message_t *send_message)
+{
+    fido2_get_assertion_req_message_t* request = &received_message->fido2_get_assertion_req_message;
+    fido2_get_assertion_rsp_message_t* response = &send_message->fido2_message.fido2_get_assertion_rsp_message;
+
+    logic_fido2_process_get_assertion(request, response);
+
+    send_message->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
     send_message->payload_length1 = sizeof(fido2_message_t);
     send_message->message_type = AUX_MCU_MSG_TYPE_FIDO2;
     return FIDO2_MSG_RCVD;
@@ -377,29 +396,35 @@ static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_message(fido2_message_t* rec
 
     if (message_type >= AUX_MCU_MSG_TYPE_FIDO2_START && message_type <= AUX_MCU_MSG_TYPE_FIDO2_END)
     {
-        switch (message_type) 
+        switch (message_type)
         {
             case AUX_MCU_FIDO2_AUTH_CRED_REQ:
             {
                 msg_rcvd = comms_aux_mcu_handle_fido2_auth_cred_msg(received_message, &aux_mcu_send_message);
                 break;
-            }                
-            case AUX_MCU_FIDO2_MAD_REQ:
+            }
+            case AUX_MCU_FIDO2_MC_REQ:
             {
-                msg_rcvd = comms_aux_mcu_handle_fido2_make_auth_data_msg(received_message, &aux_mcu_send_message);
+                msg_rcvd = comms_aux_mcu_handle_fido2_make_credential_msg(received_message, &aux_mcu_send_message);
                 break;
-            }                
+            }
+            case AUX_MCU_FIDO2_GA_REQ:
+            {
+                msg_rcvd = comms_aux_mcu_handle_fido2_get_assertion_msg(received_message, &aux_mcu_send_message);
+                break;
+            }
             case AUX_MCU_FIDO2_AUTH_CRED_RSP:
-            case AUX_MCU_FIDO2_MAD_RSP:
+            case AUX_MCU_FIDO2_MC_RSP:
+            case AUX_MCU_FIDO2_GA_RSP:
             {
                 msg_rcvd = comms_aux_mcu_handle_fido2_unknown_msg(received_message, &aux_mcu_send_message);
                 break;
-            }                
+            }
             default:
             {
                 msg_rcvd = UNKNOW_MSG_RCVD;
                 break;
-            }                
+            }
         };
 
         /* Send reply */
@@ -455,7 +480,6 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
 
     /* Received message payload length */
     uint16_t payload_length;
-
     /* First part of message */
     if ((nb_received_bytes_for_ongoing_transfer >= sizeof(aux_mcu_receive_message.message_type) + sizeof(aux_mcu_receive_message.payload_length1)) && (aux_mcu_message_answered_using_first_bytes == FALSE))
     {
