@@ -112,5 +112,6 @@
 #define PAIRING_WAIT_TEXT_ID            105
 #define PAIRING_SUCCEEDED_TEXT_ID       106
 #define PAIRING_FAILED_TEXT_ID          107
+#define CRED_ALREAD_PRESENT_TEXT_ID     108
 
 #endif

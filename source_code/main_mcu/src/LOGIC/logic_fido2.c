@@ -13,11 +13,14 @@
 #include "platform_defines.h"
 #include "logic_security.h"
 #include "logic_database.h"
+#include "gui_dispatcher.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "logic_fido2.h"
+#include "gui_prompts.h"
 #include "logic_user.h"
 #include "nodemgmt.h"
+#include "text_ids.h"
 #include "defines.h"
 #include "utils.h"
 #include "rng.h"
@@ -138,9 +141,10 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
     }
     else
     {
-        //fido2_prompt_user("Credential exists already and in exclude list", true, 10);
         logic_database_get_webauthn_userhandle_for_address(child_address, response->user_handle, &response->user_handle_len);
+        gui_prompts_display_information_on_screen(CRED_ALREAD_PRESENT_TEXT_ID, DISP_MSG_WARNING);
         memcpy(&response->cred_ID, &request->cred_ID, sizeof(response->cred_ID));
+        gui_dispatcher_get_back_to_current_screen();
         response->result = FIDO2_CREDENTIAL_EXISTS;
     }
 }
