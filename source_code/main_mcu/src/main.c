@@ -71,8 +71,8 @@ uint32_t* mcu_sp_rh_addresses = 0;
 /****************************************************************************/
 #ifndef EMULATOR_BUILD
 
-extern uint32_t _estack;
-extern uint32_t _sstack;
+extern uint32_t _estack; //Start of stack as defined by linker
+extern uint32_t _sstack; //End of stack as defined by linker
 
 const uint32_t jump_to_application_function_addr[2] __attribute__((used,section (".flash_start_addr"))) = {HMCRAMC0_ADDR+100,0x200+1};
 void jump_to_application_function(void) __attribute__((used,section (".start_app_function_addr")));
@@ -739,7 +739,6 @@ int main(void)
 
 #if defined(STACK_MEASURE_ENABLED)
 
-#define MAIN_STACK_TRACKING_COOKIE 0x5D
 uint32_t main_stack_low_water_mark = ~0U;
 
 /*! \fn     util_check_stack_usage(void)
@@ -753,13 +752,17 @@ uint32_t main_check_stack_usage(void)
     uint32_t i;
     uint32_t curr_low_water_mark;
 
+    /*
+     * Get the pointers to the start and end of the stack. These are symbols
+     * available from the compiler/linker.
+     */
     stack_start = (uint32_t) &_estack;
     stack_end = (uint32_t) &_sstack;
 
     for (i = stack_end; i < stack_start; ++i)
     {
         uint8_t *ptr = (uint8_t *) i;
-        if (*ptr != MAIN_STACK_TRACKING_COOKIE)
+        if (*ptr != DEBUG_STACK_TRACKING_COOKIE)
         {
             break;
         }
@@ -786,12 +789,12 @@ void main_init_stack_tracking(void)
     stack_end = (uint32_t) &_sstack;
     stack_size = stack_start - stack_end;
 
-    memset((void *) stack_end, MAIN_STACK_TRACKING_COOKIE, stack_size);
+    memset((void *) stack_end, DEBUG_STACK_TRACKING_COOKIE, stack_size);
 }
 
 #else
 
-/*! \fn     util_check_stack_usage(void)
+/*! \fn     main_check_stack_usage(void)
 *   \brief  check the stack usage
 *   \return current low water mark
 */
@@ -803,9 +806,7 @@ uint32_t main_check_stack_usage(void)
 /*! \fn     main_init_stack_tracking(void)
 *   \brief  Initialize stack tracking
 */
-void main_init_stack_tracking(void)
-{
+void main_init_stack_tracking(void) { }
 
-}
 #endif
 
