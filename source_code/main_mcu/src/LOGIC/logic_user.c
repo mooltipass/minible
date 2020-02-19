@@ -377,16 +377,17 @@ fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, ui
     if (parent_address != NODE_ADDR_NULL)
     {
         child_address = logic_database_search_webauthn_userhandle_in_service(parent_address, user_handle, user_handle_len);
-        
-        /* If it does, don't overwrite it... */
-        if (child_address != NODE_ADDR_NULL)
-        {
-            return FIDO2_OPERATION_DENIED;
-        }
     }
 
     /* Prepare prompt text */
-    custom_fs_get_string_from_file(ADD_CRED_TEXT_ID, &three_line_prompt_2, TRUE);
+    if (child_address == NODE_ADDR_NULL)
+    {
+        custom_fs_get_string_from_file(ADD_CRED_TEXT_ID, &three_line_prompt_2, TRUE);
+    } 
+    else
+    {
+        custom_fs_get_string_from_file(CHANGE_PWD_TEXT_ID, &three_line_prompt_2, TRUE);
+    }
     confirmationText_t conf_text_3_lines = {.lines[0]=rp_id, .lines[1]=three_line_prompt_2, .lines[2]=user_name};
         
     /* Request user approval */
@@ -418,7 +419,15 @@ fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, ui
     logic_encryption_ctr_encrypt(encrypted_private_key, sizeof(encrypted_private_key), temp_cred_ctr_val);
     
     /* Create new webauthn credential */
-    RET_TYPE temp_ret = logic_database_add_webauthn_credential_for_service(parent_address, user_handle, user_handle_len, user_name, display_name, encrypted_private_key, temp_cred_ctr_val, credential_id);
+    RET_TYPE temp_ret = RETURN_OK;
+    if (child_address == NODE_ADDR_NULL)
+    {
+        temp_ret = logic_database_add_webauthn_credential_for_service(parent_address, user_handle, user_handle_len, user_name, display_name, encrypted_private_key, temp_cred_ctr_val, credential_id);
+    }
+    else
+    {
+        logic_database_update_webauthn_credential(child_address, user_name, display_name, encrypted_private_key, temp_cred_ctr_val, credential_id);
+    }        
     
     /* Correct return depending on credential add result */
     if (temp_ret == RETURN_OK)

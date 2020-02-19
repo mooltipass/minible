@@ -574,6 +574,42 @@ uint16_t logic_database_add_service(cust_char_t* service, service_type_te cred_t
     }
 }
 
+/*! \fn     logic_database_update_webauthn_credential(uint16_t child_address, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id)
+*   \brief  Update a webauthn credential for a given service in our database
+*   \param  child_addr      Child address
+*   \param  user_name       Pointer to user name string
+*   \param  display_name    Pointer to display name sstring
+*   \param  private_key     Pointer to encrypted private key
+*   \param  ctr             CTR value
+*   \param  credential_id   Pointer to credential_id buffer
+*/
+void logic_database_update_webauthn_credential(uint16_t child_address, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id)
+{
+    child_webauthn_node_t temp_cnode;
+    
+    /* Read node, ownership checks are done within */
+    nodemgmt_read_webauthn_child_node(child_address, &temp_cnode, FALSE);
+    
+    /* Copy everything */
+    utils_strncpy(temp_cnode.user_name, user_name, MEMBER_ARRAY_SIZE(child_webauthn_node_t, user_name));
+    utils_strncpy(temp_cnode.display_name, display_name, MEMBER_ARRAY_SIZE(child_webauthn_node_t, display_name));
+    memcpy(temp_cnode.private_key, private_key, sizeof(temp_cnode.private_key));
+    memcpy(temp_cnode.ctr, ctr, sizeof(temp_cnode.ctr));
+    memcpy(temp_cnode.credential_id, credential_id, sizeof(temp_cnode.credential_id));
+    
+    /* Set signature count to 1 */
+    temp_cnode.signature_counter_msb = 0;
+    temp_cnode.signature_counter_lsb = 1;
+    
+    /* Update dates */
+    temp_cnode.dateCreated = nodemgmt_get_current_date();
+    temp_cnode.dateLastUsed = nodemgmt_get_current_date();
+
+    /* Then write node */
+    nodemgmt_write_child_node_block_to_flash(child_address, (child_node_t*)&temp_cnode, FALSE);
+    nodemgmt_user_db_changed_actions(FALSE);
+}
+
 /*! \fn     logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr)
 *   \brief  Update existing credential
 *   \param  child_addr  Child address
@@ -588,6 +624,10 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
     
     /* Read node, ownership checks are done within */
     nodemgmt_read_cred_child_node(child_addr, &temp_cnode);
+    
+    /* Update dates */
+    temp_cnode.dateCreated = nodemgmt_get_current_date();
+    temp_cnode.dateLastUsed = nodemgmt_get_current_date();
     
     /* Update fields that are required */
     if (desc != 0)

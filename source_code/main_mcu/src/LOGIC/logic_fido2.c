@@ -303,19 +303,19 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     /* Local vars */
     uint8_t credential_id[MEMBER_ARRAY_SIZE(child_webauthn_node_t, credential_id)];
     uint8_t user_handle[MEMBER_ARRAY_SIZE(child_webauthn_node_t, user_handle)];
-    uint8_t user_handle_len;
     cust_char_t rp_id_copy[MEMBER_ARRAY_SIZE(parent_data_node_t, service)];
     uint8_t private_key[FIDO2_PRIV_KEY_LEN];
     auth_data_header_t auth_data_header;
     uint32_t temp_sign_count;
+    uint8_t user_handle_len;
     ecc256_pub_key pub_key;
     
     /* Zero out that stuff */
-    memset(response, 0, sizeof(*response));
     memset(&auth_data_header, 0, sizeof(auth_data_header));
     memset(credential_id, 0, sizeof(credential_id));
     memset(user_handle, 0, sizeof(user_handle));
     memset(rp_id_copy, 0, sizeof(rp_id_copy));
+    memset(response, 0, sizeof(*response));
     user_handle_len = 0;
 
     /* Input sanitation */
