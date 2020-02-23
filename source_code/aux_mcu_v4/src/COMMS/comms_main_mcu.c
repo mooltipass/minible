@@ -97,6 +97,21 @@ void comms_main_mcu_send_simple_event(uint16_t event_id)
     comms_main_mcu_send_message((void*)&main_mcu_send_message, (uint16_t)sizeof(aux_mcu_message_t));
 }
 
+/*! \fn     comms_main_mcu_send_simple_event_alt_buffer(uint16_t event_id, aux_mcu_message_t* buffer)
+*   \brief  Send a simple event to main MCU, specifying the buffer
+*   \param  event_id    The event ID
+*   \param  buffer      The buffer to use to send the event
+*/
+void comms_main_mcu_send_simple_event_alt_buffer(uint16_t event_id, aux_mcu_message_t* buffer)
+{
+    dma_wait_for_main_mcu_packet_sent();
+    memset(buffer, 0, sizeof(*buffer));
+    buffer->aux_mcu_event_message.event_id = event_id;
+    buffer->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+    buffer->payload_length1 = sizeof(buffer->aux_mcu_event_message.event_id);
+    comms_main_mcu_send_message((void*)buffer, (uint16_t)sizeof(aux_mcu_message_t));
+}
+
 /*! \fn     comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length)
 *   \brief  Send a message to the MCU
 *   \param  message         Pointer to the message to send
@@ -115,6 +130,7 @@ void comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_le
 /*! \fn     comms_main_mcu_deal_with_non_usb_non_ble_message(void)
 *   \brief  Routine dealing with non USB & non BLE messages
 *   \param  message Message to deal with
+*   \note   This routine uses the received message as a buffer to send a new message if needed
 */
 void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message)
 {
@@ -144,64 +160,64 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
     if (message->message_type == AUX_MCU_MSG_TYPE_PLAT_DETAILS)
     {
         /* Status request */
-        memset((void*)&main_mcu_send_message, 0x00, sizeof(aux_mcu_message_t));
-        main_mcu_send_message.message_type = message->message_type;
-        main_mcu_send_message.payload_length1 = sizeof(aux_plat_details_message_t);
-        main_mcu_send_message.aux_details_message.aux_fw_ver_major = FW_MAJOR;
-        main_mcu_send_message.aux_details_message.aux_fw_ver_minor = FW_MINOR;
-        main_mcu_send_message.aux_details_message.aux_did_register = DSU->DID.reg;
-        main_mcu_send_message.aux_details_message.aux_uid_registers[0] = *(uint32_t*)0x0080A00C;
-        main_mcu_send_message.aux_details_message.aux_uid_registers[1] = *(uint32_t*)0x0080A040;
-        main_mcu_send_message.aux_details_message.aux_uid_registers[2] = *(uint32_t*)0x0080A044;
-        main_mcu_send_message.aux_details_message.aux_uid_registers[3] = *(uint32_t*)0x0080A048;
-        main_mcu_send_message.aux_details_message.aux_stack_low_watermark = main_check_stack_usage();
+        memset((void*)message, 0x00, sizeof(aux_mcu_message_t));
+        message->message_type = AUX_MCU_MSG_TYPE_PLAT_DETAILS;
+        message->payload_length1 = sizeof(aux_plat_details_message_t);
+        message->aux_details_message.aux_fw_ver_major = FW_MAJOR;
+        message->aux_details_message.aux_fw_ver_minor = FW_MINOR;
+        message->aux_details_message.aux_did_register = DSU->DID.reg;
+        message->aux_details_message.aux_uid_registers[0] = *(uint32_t*)0x0080A00C;
+        message->aux_details_message.aux_uid_registers[1] = *(uint32_t*)0x0080A040;
+        message->aux_details_message.aux_uid_registers[2] = *(uint32_t*)0x0080A044;
+        message->aux_details_message.aux_uid_registers[3] = *(uint32_t*)0x0080A048;
+        message->aux_details_message.aux_stack_low_watermark = main_check_stack_usage();
         
         /* Check if BLE is enabled */
         if (logic_is_ble_enabled() != FALSE)
         {
             /* Blusdk lib version */
-            main_mcu_send_message.aux_details_message.blusdk_lib_maj = BLE_SDK_MAJOR_NO(BLE_SDK_VERSION);
-            main_mcu_send_message.aux_details_message.blusdk_lib_min = BLE_SDK_MINOR_NO(BLE_SDK_VERSION);
+            message->aux_details_message.blusdk_lib_maj = BLE_SDK_MAJOR_NO(BLE_SDK_VERSION);
+            message->aux_details_message.blusdk_lib_min = BLE_SDK_MINOR_NO(BLE_SDK_VERSION);
             
             /* Try to get fw version */
             uint32_t blusdk_fw_ver;
             if(at_ble_firmware_version_get(&blusdk_fw_ver) == AT_BLE_SUCCESS)
             {
-                main_mcu_send_message.aux_details_message.blusdk_fw_maj = BLE_SDK_MAJOR_NO(blusdk_fw_ver);
-                main_mcu_send_message.aux_details_message.blusdk_fw_min = BLE_SDK_MINOR_NO(blusdk_fw_ver);
-                main_mcu_send_message.aux_details_message.blusdk_fw_build = BLE_SDK_BUILD_NO(blusdk_fw_ver);
+                message->aux_details_message.blusdk_fw_maj = BLE_SDK_MAJOR_NO(blusdk_fw_ver);
+                message->aux_details_message.blusdk_fw_min = BLE_SDK_MINOR_NO(blusdk_fw_ver);
+                message->aux_details_message.blusdk_fw_build = BLE_SDK_BUILD_NO(blusdk_fw_ver);
                 
                 /* Getting RF version */
-                at_ble_rf_version_get(&main_mcu_send_message.aux_details_message.atbtlc_rf_ver);
+                at_ble_rf_version_get(&message->aux_details_message.atbtlc_rf_ver);
                 
                 /* ATBTLC1000 chip ID */
-                at_ble_chip_id_get(&main_mcu_send_message.aux_details_message.atbtlc_chip_id);
+                at_ble_chip_id_get(&message->aux_details_message.atbtlc_chip_id);
                 
                 /* ATBTLC address */
                 at_ble_addr_t atbtlc_address;
                 atbtlc_address.type = AT_BLE_ADDRESS_PUBLIC;
                 at_ble_addr_get(&atbtlc_address);
-                memcpy((void*)main_mcu_send_message.aux_details_message.atbtlc_address, (void*)atbtlc_address.addr, sizeof(atbtlc_address.addr));
+                memcpy((void*)message->aux_details_message.atbtlc_address, (void*)atbtlc_address.addr, sizeof(atbtlc_address.addr));
             }
         }
         
         /* Send message */
-        comms_main_mcu_send_message((void*)&main_mcu_send_message, (uint16_t)sizeof(main_mcu_send_message));
+        comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
     }
     else if (message->message_type == AUX_MCU_MSG_TYPE_NIMH_CHARGE)
     {
         /* Return charging status */
-        memset((void*)&main_mcu_send_message, 0x00, sizeof(aux_mcu_message_t));
-        main_mcu_send_message.message_type = message->message_type;
-        main_mcu_send_message.payload_length1 = sizeof(nimh_charge_message_t);
-        main_mcu_send_message.nimh_charge_message.charge_status = logic_battery_get_charging_status();
-        main_mcu_send_message.nimh_charge_message.battery_voltage = logic_battery_get_vbat();
-        main_mcu_send_message.nimh_charge_message.charge_current = logic_battery_get_charging_current();
-        main_mcu_send_message.nimh_charge_message.dac_data_reg = platform_io_get_dac_data_register_set();
-        main_mcu_send_message.nimh_charge_message.stepdown_voltage = logic_battery_get_stepdown_voltage();
+        memset((void*)message, 0x00, sizeof(aux_mcu_message_t));
+        message->message_type = AUX_MCU_MSG_TYPE_NIMH_CHARGE;
+        message->payload_length1 = sizeof(nimh_charge_message_t);
+        message->nimh_charge_message.charge_status = logic_battery_get_charging_status();
+        message->nimh_charge_message.battery_voltage = logic_battery_get_vbat();
+        message->nimh_charge_message.charge_current = logic_battery_get_charging_current();
+        message->nimh_charge_message.dac_data_reg = platform_io_get_dac_data_register_set();
+        message->nimh_charge_message.stepdown_voltage = logic_battery_get_stepdown_voltage();
         
         /* Send message */
-        comms_main_mcu_send_message((void*)&main_mcu_send_message, (uint16_t)sizeof(main_mcu_send_message));
+        comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
     }
     else if (message->message_type == AUX_MCU_MSG_TYPE_BOOTLOADER)
     {
@@ -217,7 +233,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
         message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
         message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_IM_HERE;
         message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id);
-        comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
+        comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
     }    
     else if (message->message_type == AUX_MCU_MSG_TYPE_KEYBOARD_TYPE)
     {
@@ -274,7 +290,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
         message->message_type = AUX_MCU_MSG_TYPE_KEYBOARD_TYPE;
         message->payload_as_uint16[0] = (uint16_t)typing_success_bool;
         message->payload_length1 = sizeof(uint16_t);
-        comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
+        comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
     }
     else if (message->message_type == AUX_MCU_MSG_TYPE_BLE_CMD)
     {
@@ -288,10 +304,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                     logic_bluetooth_start_bluetooth(message->ble_message.payload);
                     logic_set_ble_enabled();
                 }
-                message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-                message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
-                message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id);
-                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
+                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_BLE_ENABLED, message);
                 break;
             }
             case BLE_MESSAGE_CMD_DISABLE:
@@ -302,10 +315,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                     logic_bluetooth_stop_bluetooth();
                     logic_set_ble_disabled();
                 }
-                message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-                message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISABLED;
-                message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id);
-                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
+                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_BLE_DISABLED, message);
                 break;
             }
             case BLE_MESSAGE_CLEAR_BOND_INFO:
@@ -339,7 +349,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 while (comms_main_mcu_other_msg_answered_using_first_bytes != FALSE);   
                 
                 /* Send ACK */
-                comms_main_mcu_send_simple_event(AUX_MCU_EVENT_SLEEP_RECEIVED);                 
+                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_SLEEP_RECEIVED, message);
                 dma_wait_for_main_mcu_packet_sent();
                 
                 /* Different strategies depending on if BLE is enabled */
@@ -369,7 +379,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             case MAIN_MCU_COMMAND_PING:
             {
                 /* Resend same message, not used anymore, obsolete */
-                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
+                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
                 break;
             }
             case MAIN_MCU_COMMAND_ATTACH_USB:
@@ -394,7 +404,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 logic_battery_stop_using_adc();
 
                 /* Inform main MCU */
-                comms_main_mcu_send_simple_event(AUX_MCU_EVENT_USB_DETACHED);
+                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_USB_DETACHED, message);
                 break;
             }
             case MAIN_MCU_COMMAND_NIMH_CHARGE:
@@ -462,7 +472,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 if (ble_sdk_version() == 0)
                 {
                     message->aux_mcu_event_message.payload[0] = 1;
-                    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
+                    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
                     break;
                 }
                 
@@ -484,7 +494,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 {
                     platform_io_disable_step_down();
                     message->aux_mcu_event_message.payload[0] = 2;
-                    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));
+                    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
                     break;                    
                 }    
                 
@@ -536,7 +546,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 platform_io_disable_step_down();
                 
                 /* Send functional test result */
-                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(aux_mcu_message_t));      
+                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));      
                 break;          
             }
             case MAIN_MCU_COMMAND_UPDT_DEV_STAT:
