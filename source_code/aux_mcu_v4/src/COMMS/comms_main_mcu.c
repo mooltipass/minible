@@ -230,10 +230,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
     }
     else if (message->message_type == AUX_MCU_MSG_TYPE_PING_WITH_INFO)
     {
-        message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-        message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_IM_HERE;
-        message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id);
-        comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
+        comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_IM_HERE, message);
     }    
     else if (message->message_type == AUX_MCU_MSG_TYPE_KEYBOARD_TYPE)
     {
@@ -563,13 +560,14 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
     }
 }
 
-/*! \fn     comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buffer, uint16_t expected_message_type)
+/*! \fn     comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buffer, uint16_t expected_message_type, BOOL resend_send_msg_if_retry_of_type_received)
 *   \brief  Routine dealing with main mcu comms
 *   \param  filter_and_force_use_of_temp_receive_buffer     Set to TRUE to force all received messages to be stored in the temp buffer and to not parse message if it matches expected_message_type
 *   \param  expected_message_type                           If filter_and_force_use_of_temp_receive_buffer is set to TRUE, expected message type to return RETURN_OK (NOT AUX_MCU_MSG_TYPE_USB & AUX_MCU_MSG_TYPE_BLE)
+*   \param  resend_send_msg_if_retry_of_type_received       If filter_and_force_use_of_temp_receive_buffer is set to TRUE and we detect a please retry for the expected message type, resend main_mcu_send_message to main mcu
 *   \return RETURN_OK if filter_and_force_use_of_temp_receive_buffer is set to TRUE and received message type is of type expected_message_type, otherwise RETURN_NOK
 */
-ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buffer, uint16_t expected_message_type)
+ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buffer, uint16_t expected_message_type, BOOL resend_send_msg_if_retry_of_type_received)
 {	
     /* First: deal with fully received messages */
     if (dma_main_mcu_usb_msg_received != FALSE)
@@ -601,8 +599,17 @@ ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buf
         {
             if ((filter_and_force_use_of_temp_receive_buffer != FALSE) && (dma_main_mcu_other_message.message_type == expected_message_type))
             {
-                memcpy((void*)&comms_main_mcu_temp_message, (void*)&dma_main_mcu_other_message, sizeof(comms_main_mcu_temp_message));
-                return RETURN_OK;
+                /* Did we receive a please retry from the main mcu? */
+                if ((resend_send_msg_if_retry_of_type_received != FALSE) && (dma_main_mcu_other_message.message_type == AUX_MCU_MSG_TYPE_FIDO2) && (dma_main_mcu_other_message.fido2_message.message_type == AUX_MCU_FIDO2_RETRY))
+                {
+                    timer_delay_ms(5);
+                    comms_main_mcu_send_message(&main_mcu_send_message, sizeof(main_mcu_send_message));
+                } 
+                else
+                {
+                    memcpy((void*)&comms_main_mcu_temp_message, (void*)&dma_main_mcu_other_message, sizeof(comms_main_mcu_temp_message));
+                    return RETURN_OK;
+                }
             } 
             else
             {
@@ -662,7 +669,16 @@ ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buf
         {
             if ((filter_and_force_use_of_temp_receive_buffer != FALSE) && (comms_main_mcu_temp_message.message_type == expected_message_type))
             {
-                return RETURN_OK;
+                /* Did we receive a please retry from the main mcu? */
+                if ((resend_send_msg_if_retry_of_type_received != FALSE) && (comms_main_mcu_temp_message.message_type == AUX_MCU_MSG_TYPE_FIDO2) && (comms_main_mcu_temp_message.fido2_message.message_type == AUX_MCU_FIDO2_RETRY))
+                {
+                    timer_delay_ms(5);
+                    comms_main_mcu_send_message(&main_mcu_send_message, sizeof(main_mcu_send_message));
+                }
+                else
+                {
+                    return RETURN_OK;
+                }
             }
             else
             {
@@ -693,7 +709,7 @@ void comms_main_mcu_get_32_rng_bytes_from_main_mcu(uint8_t* buffer)
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
     
     /* Wait for message from main MCU */
-    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_RNG_TRANSFER) != RETURN_OK);
+    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_RNG_TRANSFER, FALSE) != RETURN_OK);
     
     /* Received message is in temporary buffer */
     memcpy((void*)buffer, (void*)temp_rx_message_pt->payload_as_uint16, 32);
@@ -724,7 +740,7 @@ ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t address_resolv_typ
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
     
     /* Wait for message from main MCU */
-    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD) != RETURN_OK);
+    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK);
     
     /* Check for success and do necessary actions */
     if (temp_rx_message_pt->payload_length1 == sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(nodemgmt_bluetooth_bonding_information_t))

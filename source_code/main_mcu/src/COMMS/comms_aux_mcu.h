@@ -101,7 +101,8 @@
 //GA = GET ASSERTION
 #define AUX_MCU_FIDO2_GA_REQ         0x0005
 #define AUX_MCU_FIDO2_GA_RSP         0x0006
-#define AUX_MCU_MSG_TYPE_FIDO2_END   AUX_MCU_FIDO2_GA_RSP
+#define AUX_MCU_FIDO2_RETRY          0x0007
+#define AUX_MCU_MSG_TYPE_FIDO2_END   AUX_MCU_FIDO2_RETRY
 /* FIDO2 messages end */
 
 /* Typedefs */

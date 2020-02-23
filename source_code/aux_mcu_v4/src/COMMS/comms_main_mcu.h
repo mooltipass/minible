@@ -88,7 +88,8 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 //GA = GET ASSERTION
 #define AUX_MCU_FIDO2_GA_REQ         0x0005
 #define AUX_MCU_FIDO2_GA_RSP         0x0006
-#define AUX_MCU_MSG_TYPE_FIDO2_END   AUX_MCU_FIDO2_GA_RSP
+#define AUX_MCU_FIDO2_RETRY          0x0007
+#define AUX_MCU_MSG_TYPE_FIDO2_END   AUX_MCU_FIDO2_RETRY
 /* FIDO2 messages end */
 
 /* Typedefs */
@@ -296,8 +297,8 @@ typedef struct
 } aux_mcu_message_t;
 
 /* Prototypes */
+ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buffer, uint16_t expected_message_type, BOOL resend_send_msg_if_retry_of_type_received);
 ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t address_resolv_type, uint8_t* mac_addr, nodemgmt_bluetooth_bonding_information_t* bonding_info);
-ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buffer, uint16_t expected_message_type);
 void comms_main_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type);
 void comms_main_mcu_send_simple_event_alt_buffer(uint16_t event_id, aux_mcu_message_t* buffer);
 void comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length);

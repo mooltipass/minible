@@ -163,7 +163,7 @@ static ret_type_te ctap_make_credential_aux_comm(CTAP_requestCommon *common, CTA
     aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
     aux_mcu_message_t* temp_tx_message_pt;
     fido2_make_credential_req_message_t *req_msg;
-    ret_type_te ret;
+    ret_type_te ret = RETURN_NOK;
 
     /* Create message to make authentication data */
     comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_FIDO2);
@@ -189,11 +189,15 @@ static ret_type_te ctap_make_credential_aux_comm(CTAP_requestCommon *common, CTA
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
 
     /* Wait for message from main MCU */
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50);
     do
     {
-        ret = comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2);
+        while ((timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING) && (ret != RETURN_OK))
+        {
+            ret = comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2, TRUE);
+        }
+        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50);
         ctaphid_update_status(2);
-        timer_delay_ms(50);
     } while (ret != RETURN_OK);
 
     /* Received message is in temporary buffer */
@@ -267,7 +271,7 @@ static ret_type_te ctap_get_assertion_aux_comm(CTAP_requestCommon *common, CTAP_
     aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
     aux_mcu_message_t* temp_tx_message_pt;
     fido2_get_assertion_req_message_t *req_msg;
-    ret_type_te ret;
+    ret_type_te ret = RETURN_NOK;
 
     /* Create message to make authentication data */
     comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_FIDO2);
@@ -299,11 +303,15 @@ static ret_type_te ctap_get_assertion_aux_comm(CTAP_requestCommon *common, CTAP_
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
 
     /* Wait for message from main MCU */
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50);
     do
     {
-        ret = comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2);
+        while ((timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING) && (ret != RETURN_OK))
+        {
+            ret = comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2, TRUE);
+        }
+        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50);
         ctaphid_update_status(2);
-        timer_delay_ms(50);
     } while (ret != RETURN_OK);
 
     /* Received message is in temporary buffer */
@@ -446,7 +454,7 @@ int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * d
     aux_mcu_message_t* temp_tx_message_pt;
     fido2_auth_cred_req_message_t* msg;
     fido2_auth_cred_rsp_message_t* rsp_msg;
-    ret_type_te ret;
+    ret_type_te ret = RETURN_NOK;
 
     /* Create message to authenticate a credential */
     comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_FIDO2);
@@ -468,11 +476,15 @@ int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * d
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
 
     /* Wait for message from main MCU */
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50);
     do
     {
-        ret = comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2);
+        while ((timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING) && (ret != RETURN_OK))
+        {
+            ret = comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2, TRUE);
+        }
+        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50);
         ctaphid_update_status(2);
-        timer_delay_ms(50);
     } while (ret != RETURN_OK);
 
     /* Received message is in temporary buffer */

@@ -639,7 +639,19 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     }
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_FIDO2)
     {
-        msg_rcvd = comms_aux_mcu_handle_fido2_message(&aux_mcu_receive_message.fido2_message);
+        if (answer_restrict_type == MSG_NO_RESTRICT)
+        {
+            msg_rcvd = comms_aux_mcu_handle_fido2_message(&aux_mcu_receive_message.fido2_message);
+        } 
+        else
+        {
+            /* Filtering, send a please retry packet to aux MCU */
+            aux_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_FIDO2;
+            aux_mcu_send_message.fido2_message.message_type = AUX_MCU_FIDO2_RETRY;
+            aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.fido2_message.message_type);
+            comms_aux_mcu_send_message(FALSE);
+            msg_rcvd = FIDO2_MSG_RCVD;
+        }
     }
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BLE_CMD)
     {

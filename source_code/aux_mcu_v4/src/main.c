@@ -172,7 +172,7 @@ int main(void)
         /* We can only communicate with main MCU when platform sleep isn't requested */
         if (logic_sleep_is_full_platform_sleep_requested() == FALSE)
         {
-            comms_main_mcu_routine(FALSE, 0);
+            comms_main_mcu_routine(FALSE, 0, FALSE);
         }
         
         /* If BLE enabled: deal with events */
@@ -204,7 +204,7 @@ int main(void)
     while(TRUE)
     {
         //mini_ble_task();
-        comms_main_mcu_routine(FALSE, 0);
+        comms_main_mcu_routine(FALSE, 0, FALSE);
         comms_usb_communication_routine();
     }
     timer_start_timer(TIMER_TIMEOUT_FUNCTS, 2000);
@@ -215,13 +215,13 @@ int main(void)
             comms_usb_debug_printf("Hello %i, %i, %i", 1,2,3);
             timer_start_timer(TIMER_TIMEOUT_FUNCTS, 2000);
         }
-        comms_main_mcu_routine(FALSE, 0);
+        comms_main_mcu_routine(FALSE, 0, FALSE);
         comms_usb_communication_routine();
     }
     
     while(1)
     {
-        comms_main_mcu_routine(FALSE, 0);
+        comms_main_mcu_routine(FALSE, 0, FALSE);
         comms_usb_communication_routine();
     }
 	system_init();
