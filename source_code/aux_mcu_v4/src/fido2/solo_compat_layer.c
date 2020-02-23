@@ -10,7 +10,7 @@ uint32_t millis(void)
 
 void usbhid_send(uint8_t * msg)
 {
-    uint8_t *send_buf_ptr = comms_raw_hid_get_send_buffer(CTAP_INTERFACE);
+    hid_packet_t* send_buf_ptr = comms_raw_hid_get_send_buffer(CTAP_INTERFACE);
 
     memcpy(send_buf_ptr, msg, USB_RAWHID_RX_SIZE);
 
@@ -20,7 +20,7 @@ void usbhid_send(uint8_t * msg)
     //comms_usb_debug_printf("0x%02x 0x%02x 0x%02x 0x%02x\n", msg[8], msg[9], msg[10], msg[11]);
     //comms_usb_debug_printf("0x%02x 0x%02x 0x%02x 0x%02x\n", msg[12], msg[13], msg[14], msg[15]);
 
-    comms_raw_hid_send_packet(CTAP_INTERFACE, (hid_packet_t *) send_buf_ptr, TRUE, USB_RAWHID_RX_SIZE);
+    comms_raw_hid_send_packet(CTAP_INTERFACE, send_buf_ptr, TRUE, USB_RAWHID_RX_SIZE);
 }
 
 void ctaphid_write_block(uint8_t * data)

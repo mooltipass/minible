@@ -372,7 +372,7 @@ void ctaphid_update_status(int8_t status)
     ctaphid_write(&wb, NULL, 0);
 }
 
-static int ctaphid_buffer_packet(uint8_t * pkt_raw, uint8_t * cmd, uint32_t * cid, int * len)
+static int ctaphid_buffer_packet(uint32_t * pkt_raw, uint8_t * cmd, uint32_t * cid, int * len)
 {
     CTAPHID_PACKET * pkt = (CTAPHID_PACKET *)(pkt_raw);
 
@@ -531,7 +531,7 @@ extern void _check_ret(CborError ret, int line, const char * filename);
 /**
  * Removed Solo specific messages
  */
-uint8_t ctaphid_handle_packet(uint8_t * pkt_raw)
+uint8_t ctaphid_handle_packet(uint32_t * pkt_raw)
 {
     uint8_t cmd;
     uint32_t cid;

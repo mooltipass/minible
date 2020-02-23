@@ -151,11 +151,11 @@ typedef struct
     uint8_t id_size;
     uint8_t name[USER_NAME_LIMIT];
     uint8_t displayName[DISPLAY_NAME_LIMIT];
-}__attribute__((packed)) CTAP_userEntity;
+} CTAP_userEntity;
 
 typedef struct {
     uint8_t tag[CREDENTIAL_TAG_SIZE];
-}__attribute__((packed)) CredentialId;
+} CredentialId;
 
 struct Credential {
     CredentialId id;
@@ -175,7 +175,7 @@ typedef struct
     uint8_t credLenH;
     uint8_t credLenL;
     CredentialId id;
-} __attribute__((packed)) CTAP_attestHeader;
+} CTAP_attestHeader;
 
 typedef struct
 {
@@ -188,7 +188,7 @@ typedef struct
 {
     CTAP_authDataHeader head;
     CTAP_attestHeader attest;
-} __attribute__((packed)) CTAP_authData;
+} CTAP_authData;
 
 typedef struct
 {

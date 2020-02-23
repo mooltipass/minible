@@ -27,15 +27,25 @@ typedef struct
         uint8_t  packet_id:4;
     } byte1;
     uint8_t payload[62];    
+} moolticute_comms_hid_packet_t;
+
+typedef struct
+{
+    union
+    {
+        moolticute_comms_hid_packet_t mtc_hid_packet;
+        uint32_t raw_packet_uint32[64/4];
+        uint8_t raw_packet[64];
+    };
 } hid_packet_t;
 
 /* Prototypes */
 void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* packet, BOOL wait_send, uint16_t payload_size);
 void comms_raw_hid_send_hid_message(hid_interface_te hid_interface, aux_mcu_message_t* message);
 void comms_raw_hid_recv_callback(hid_interface_te hid_interface, uint16_t recv_bytes);
+hid_packet_t* comms_raw_hid_get_send_buffer(hid_interface_te hid_interface);
 void comms_raw_hid_connection_set_callback(hid_interface_te hid_interface);
 uint8_t* comms_raw_hid_get_recv_buffer(hid_interface_te hid_interface);
-uint8_t* comms_raw_hid_get_send_buffer(hid_interface_te hid_interface);
 void comms_raw_hid_arm_packet_receive(hid_interface_te hid_interface);
 void comms_raw_hid_send_callback(hid_interface_te hid_interface);
 void comms_raw_hid_update_device_status_cache(uint8_t* buffer);

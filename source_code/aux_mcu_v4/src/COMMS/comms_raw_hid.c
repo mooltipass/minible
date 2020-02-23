@@ -17,8 +17,8 @@
 #include "ctaphid.h"
 
 /* USB comms buffers */
-static __attribute__((aligned(4))) hid_packet_t raw_hid_recv_buffer[NB_HID_INTERFACES];
-static __attribute__((aligned(4))) hid_packet_t raw_hid_send_buffer[NB_HID_INTERFACES];
+static hid_packet_t raw_hid_recv_buffer[NB_HID_INTERFACES];
+static hid_packet_t raw_hid_send_buffer[NB_HID_INTERFACES];
 /* Future message to be sent to MCU */
 aux_mcu_message_t comms_raw_hid_temp_mcu_message_to_send[NB_HID_INTERFACES];
 /* Packet number we're expecting to receive */
@@ -65,10 +65,11 @@ uint8_t* comms_raw_hid_get_recv_buffer(hid_interface_te hid_interface)
 /*! \fn     comms_raw_hid_get_send_buffer(hid_interface_te hid_interface)
 *   \brief  Get the pointer to a send buffer
 *   \param  hid_interface   HID interface
+*   \return Pointer to the send buffer
 */
-uint8_t* comms_raw_hid_get_send_buffer(hid_interface_te hid_interface)
+hid_packet_t* comms_raw_hid_get_send_buffer(hid_interface_te hid_interface)
 {
-    return (uint8_t*)&(raw_hid_send_buffer[hid_interface]);
+    return &(raw_hid_send_buffer[hid_interface]);
 }
 
 /*! \fn     comms_raw_hid_recv_callback(hid_interface_te hid_interface, uint16_t recv_bytes)
@@ -175,7 +176,7 @@ void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* pac
 */
 void comms_raw_hid_send_hid_message(hid_interface_te hid_interface, aux_mcu_message_t* message)
 {
-    uint8_t total_number_of_packets = ((message->payload_length1 + sizeof(raw_hid_send_buffer[0].payload) - 1)/sizeof(raw_hid_send_buffer[0].payload))-1;
+    uint8_t total_number_of_packets = ((message->payload_length1 + sizeof(raw_hid_send_buffer[0].mtc_hid_packet.payload) - 1)/sizeof(raw_hid_send_buffer[0].mtc_hid_packet.payload))-1;
     uint16_t remaining_payload_to_send = message->payload_length1;
     uint16_t payload_offset = 0;
     uint8_t packet_id = 0;
@@ -201,32 +202,32 @@ void comms_raw_hid_send_hid_message(hid_interface_te hid_interface, aux_mcu_mess
         
         /* Generate packet */
         memset((void*)&raw_hid_send_buffer[hid_interface], 0, sizeof(raw_hid_send_buffer[0]));
-        raw_hid_send_buffer[hid_interface].byte1.total_packets = total_number_of_packets;
-        raw_hid_send_buffer[hid_interface].byte1.packet_id = packet_id;
+        raw_hid_send_buffer[hid_interface].mtc_hid_packet.byte1.total_packets = total_number_of_packets;
+        raw_hid_send_buffer[hid_interface].mtc_hid_packet.byte1.packet_id = packet_id;
         
         /* We do not care about the flip bit */
-        if (remaining_payload_to_send > sizeof(raw_hid_send_buffer[0].payload))
+        if (remaining_payload_to_send > sizeof(raw_hid_send_buffer[0].mtc_hid_packet.payload))
         {
-            raw_hid_send_buffer[hid_interface].byte0.payload_len = sizeof(raw_hid_send_buffer[0].payload);
+            raw_hid_send_buffer[hid_interface].mtc_hid_packet.byte0.payload_len = sizeof(raw_hid_send_buffer[0].mtc_hid_packet.payload);
         }
         else
         {
-            raw_hid_send_buffer[hid_interface].byte0.payload_len = remaining_payload_to_send;            
+            raw_hid_send_buffer[hid_interface].mtc_hid_packet.byte0.payload_len = remaining_payload_to_send;            
         }
         
         /* Copy payload */
-        memcpy(raw_hid_send_buffer[hid_interface].payload, &(message->payload[payload_offset]), raw_hid_send_buffer[hid_interface].byte0.payload_len);
+        memcpy(raw_hid_send_buffer[hid_interface].mtc_hid_packet.payload, &(message->payload[payload_offset]), raw_hid_send_buffer[hid_interface].mtc_hid_packet.byte0.payload_len);
         
         /* 0-fill padding */
-        uint16_t padding_length = sizeof(raw_hid_send_buffer[0].payload) - raw_hid_send_buffer[hid_interface].byte0.payload_len;
+        uint16_t padding_length = sizeof(raw_hid_send_buffer[0].mtc_hid_packet.payload) - raw_hid_send_buffer[hid_interface].mtc_hid_packet.byte0.payload_len;
         if (padding_length != 0)
         {
-            memset((void*)(&raw_hid_send_buffer[hid_interface].payload[raw_hid_send_buffer[hid_interface].byte0.payload_len]), 0x00, padding_length);
+            memset((void*)(&raw_hid_send_buffer[hid_interface].mtc_hid_packet.payload[raw_hid_send_buffer[hid_interface].mtc_hid_packet.byte0.payload_len]), 0x00, padding_length);
         }
         
         /* update local vars */
-        remaining_payload_to_send -= raw_hid_send_buffer[hid_interface].byte0.payload_len;
-        payload_offset += raw_hid_send_buffer[hid_interface].byte0.payload_len;
+        remaining_payload_to_send -= raw_hid_send_buffer[hid_interface].mtc_hid_packet.byte0.payload_len;
+        payload_offset += raw_hid_send_buffer[hid_interface].mtc_hid_packet.byte0.payload_len;
         packet_id += 1;
         
         /* Send packet: always send 64B due to some strange windows receive trigger thingy */
@@ -329,8 +330,7 @@ void comms_usb_communication_routine(void)
 
             if (hid_interface == CTAP_INTERFACE)
             {
-                uint8_t* usb_recast = (uint8_t*)&raw_hid_recv_buffer[hid_interface];
-                ctaphid_handle_packet(usb_recast);
+                ctaphid_handle_packet(raw_hid_recv_buffer[hid_interface].raw_packet_uint32);
                 comms_raw_hid_arm_packet_receive(hid_interface);
                 return;
             }
@@ -347,7 +347,7 @@ void comms_usb_communication_routine(void)
             }
             
             /* Check for bit flip state: if it doesn't match, reset fill indexes */
-            if (((comms_raw_hid_expect_flip_bit_state_set[hid_interface] != FALSE) && (raw_hid_recv_buffer[hid_interface].byte0.flip_bit == 0)) || ((comms_raw_hid_expect_flip_bit_state_set[hid_interface] == FALSE) && (raw_hid_recv_buffer[hid_interface].byte0.flip_bit != 0)))
+            if (((comms_raw_hid_expect_flip_bit_state_set[hid_interface] != FALSE) && (raw_hid_recv_buffer[hid_interface].mtc_hid_packet.byte0.flip_bit == 0)) || ((comms_raw_hid_expect_flip_bit_state_set[hid_interface] == FALSE) && (raw_hid_recv_buffer[hid_interface].mtc_hid_packet.byte0.flip_bit != 0)))
             {
                 comms_raw_hid_temp_mcu_message_fill_index[hid_interface] = 0;
                 comms_raw_hid_expected_packet_number[hid_interface] = 0;
@@ -356,7 +356,7 @@ void comms_usb_communication_routine(void)
             }
             
             /* Check for expected packet number */
-            if ((comms_raw_hid_expected_packet_number[hid_interface] != 0) && (raw_hid_recv_buffer[hid_interface].byte1.packet_id != comms_raw_hid_expected_packet_number[hid_interface]))
+            if ((comms_raw_hid_expected_packet_number[hid_interface] != 0) && (raw_hid_recv_buffer[hid_interface].mtc_hid_packet.byte1.packet_id != comms_raw_hid_expected_packet_number[hid_interface]))
             {
                 comms_raw_hid_temp_mcu_message_fill_index[hid_interface] = 0;
                 comms_raw_hid_expected_packet_number[hid_interface] = 0;
@@ -365,9 +365,9 @@ void comms_usb_communication_routine(void)
             }
             
             /* If first packet, store total number of packets for this hid message */
-            if (raw_hid_recv_buffer[hid_interface].byte1.packet_id == 0)
+            if (raw_hid_recv_buffer[hid_interface].mtc_hid_packet.byte1.packet_id == 0)
             {
-                comms_raw_hid_total_expected_packets[hid_interface] = raw_hid_recv_buffer[hid_interface].byte1.total_packets;
+                comms_raw_hid_total_expected_packets[hid_interface] = raw_hid_recv_buffer[hid_interface].mtc_hid_packet.byte1.total_packets;
                 
                 /* Reset index to fill temp message payload */
                 comms_raw_hid_temp_mcu_message_fill_index[hid_interface] = 0;
@@ -379,7 +379,7 @@ void comms_usb_communication_routine(void)
             }
             
             /* Check for overflow tentative */
-            if ((size_t)(comms_raw_hid_temp_mcu_message_fill_index[hid_interface] + raw_hid_recv_buffer[hid_interface].byte0.payload_len) > sizeof(comms_raw_hid_temp_mcu_message_to_send[0].payload))
+            if ((size_t)(comms_raw_hid_temp_mcu_message_fill_index[hid_interface] + raw_hid_recv_buffer[hid_interface].mtc_hid_packet.byte0.payload_len) > sizeof(comms_raw_hid_temp_mcu_message_to_send[0].payload))
             {
                 comms_raw_hid_temp_mcu_message_fill_index[hid_interface] = 0;
                 comms_raw_hid_expected_packet_number[hid_interface] = 0;
@@ -388,12 +388,12 @@ void comms_usb_communication_routine(void)
             }
             
             /* Fill temp mcu message payload */
-            memcpy((void*)&comms_raw_hid_temp_mcu_message_to_send[hid_interface].payload[comms_raw_hid_temp_mcu_message_fill_index[hid_interface]], (void*)raw_hid_recv_buffer[hid_interface].payload, raw_hid_recv_buffer[hid_interface].byte0.payload_len);
-            comms_raw_hid_temp_mcu_message_fill_index[hid_interface] += raw_hid_recv_buffer[hid_interface].byte0.payload_len;
+            memcpy((void*)&comms_raw_hid_temp_mcu_message_to_send[hid_interface].payload[comms_raw_hid_temp_mcu_message_fill_index[hid_interface]], (void*)raw_hid_recv_buffer[hid_interface].mtc_hid_packet.payload, raw_hid_recv_buffer[hid_interface].mtc_hid_packet.byte0.payload_len);
+            comms_raw_hid_temp_mcu_message_fill_index[hid_interface] += raw_hid_recv_buffer[hid_interface].mtc_hid_packet.byte0.payload_len;
             comms_raw_hid_expected_packet_number[hid_interface]++;
             
             /* Check for last message */
-            if (raw_hid_recv_buffer[hid_interface].byte1.packet_id == comms_raw_hid_total_expected_packets[hid_interface])
+            if (raw_hid_recv_buffer[hid_interface].mtc_hid_packet.byte1.packet_id == comms_raw_hid_total_expected_packets[hid_interface])
             {
                 /* Switch flip bit */
                 if (comms_raw_hid_expect_flip_bit_state_set[hid_interface] == FALSE)
@@ -406,7 +406,7 @@ void comms_usb_communication_routine(void)
                 }
                 
                 /* If ack is requested from host */
-                if (raw_hid_recv_buffer[hid_interface].byte0.ack_flag_or_req != 0)
+                if (raw_hid_recv_buffer[hid_interface].mtc_hid_packet.byte0.ack_flag_or_req != 0)
                 {
                     /* Send the same message */
                     memcpy((void*)&raw_hid_send_buffer[hid_interface], (void*)&raw_hid_recv_buffer[hid_interface], sizeof(raw_hid_send_buffer[0]));
