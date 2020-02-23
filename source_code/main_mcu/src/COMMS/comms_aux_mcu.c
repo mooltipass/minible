@@ -766,7 +766,6 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
             dma_aux_mcu_check_and_clear_dma_transfer_flag();
             comms_aux_arm_rx_and_clear_no_comms();
             
-            // TODO2: take necessary action in case we received an unwanted message (left to be implemented: reqs from aux MCU */
             if ((aux_mcu_receive_message.message_type == expected_packet) && (aux_mcu_receive_message.aux_mcu_event_message.event_id != expected_event))
             {
                 /* Received another event... deal with it (doesn't generate answers */
@@ -819,6 +818,19 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
                 
                 /* Send message */
                 comms_aux_mcu_send_message(FALSE);
+            }
+            else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_FIDO2)
+            {
+                /* Send a please retry packet to aux MCU */
+                aux_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_FIDO2;
+                aux_mcu_send_message.fido2_message.message_type = AUX_MCU_FIDO2_RETRY;
+                aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.fido2_message.message_type);
+                comms_aux_mcu_send_message(FALSE);
+            }
+            else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BLE_CMD)
+            {
+                /* We can still tackle these requests as they do not generate prompts */
+                comms_aux_mcu_deal_with_ble_message(&aux_mcu_receive_message, MSG_RESTRICT_ALL);
             }
         }
     }while (reloop != FALSE);
