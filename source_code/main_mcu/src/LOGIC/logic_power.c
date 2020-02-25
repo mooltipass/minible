@@ -58,8 +58,9 @@ BOOL logic_power_error_with_battery = FALSE;
 BOOL logic_power_enumerate_usb_command_just_sent = FALSE;
 /* Number of measurements left to discard */
 uint16_t logic_power_discard_measurement_counter = 0;
-/* Bool set for device boot */
+/* Bools set for device boot */
 BOOL logic_power_device_boot_flag_for_initial_battery_level_notif = TRUE;
+BOOL logic_power_device_boot_flag_for_aux_charge_status_override = TRUE;
 /* Number of times we still can skip the queue logic when taking into account an adc measurement */
 uint16_t logic_power_nb_times_to_skip_adc_measurement_queue = 0;
 /* ADC measurement counter */
@@ -491,9 +492,12 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
     /* New battery level reported by aux MCU */
     if (logic_power_aux_mcu_battery_level_update != 0)
     {
-        /* Only allow it if above our current one */
-        if (logic_power_aux_mcu_battery_level_update >= logic_power_current_battery_level)
+        /* Only allow it if above our current one or if the device just booted */
+        if ((logic_power_aux_mcu_battery_level_update >= logic_power_current_battery_level) || (logic_power_device_boot_flag_for_aux_charge_status_override != FALSE))
         {
+            /* Clear bool */
+            logic_power_device_boot_flag_for_aux_charge_status_override = FALSE;
+            
             /* Spoof measured voltage so if the device is unplugged the reported level is still correct */
             if (logic_power_aux_mcu_battery_level_update < ARRAY_SIZE(logic_power_battery_level_mapping))
             {
