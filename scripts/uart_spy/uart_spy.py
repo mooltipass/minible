@@ -224,6 +224,10 @@ while True:
 					print("	                                  RF version:", "0x" + ''.join(str.format('{:08X}', rf_ver)))
 					print("	                                  ATBTLC1000 chip id:", "0x" + ''.join(str.format('{:08X}', atbtlc_chip_id)))
 					print("	                                  BLE address:", ''.join(str.format('{:02X}', x) for x in [addr1, addr2, addr3, addr4, addr5, addr6]))
+					
+				if message_type == AUX_MCU_MSG_TYPE_AUX_MCU_EVENT and command == 0x000D:
+					[type, payload, command, charge_status] = struct.unpack("HHHB", frame[0:7])
+					sys.stdout.write(" " + str(charge_status*10) + "pct")
 			else:
 				sys.stdout.write("Main->Aux: " + message_types_descriptions[message_type].rjust(20, ' '))
 				
@@ -234,6 +238,10 @@ while True:
 						sys.stdout.write(" - missing command description: " + str(command))
 					else:
 						sys.stdout.write(" - "+ main_mcu_command_description[message_type][command])
+						
+						if command == 0x000C:
+							[type, payload, command, charge_status] = struct.unpack("HHHB", frame[0:7])
+							sys.stdout.write(" " + str(charge_status) + "pct")
 						
 			print("")		
 	except Exception as e:
