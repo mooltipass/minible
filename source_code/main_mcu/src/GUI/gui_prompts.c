@@ -27,6 +27,7 @@
 #include "driver_timer.h"
 #include "logic_device.h"
 #include "platform_io.h"
+#include "logic_power.h"
 #include "gui_prompts.h"
 #include "custom_fs.h"
 #include "nodemgmt.h"
@@ -245,8 +246,14 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
     timer_start_timer(TIMER_WAIT_FUNCTS, 3000);
     while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
     {
+        /* Deal with incoming messages but do not deal with them */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL); 
-        logic_accelerometer_routine();     
+        
+        /* Accelerometer routine for RNG stuff */
+        logic_accelerometer_routine();
+        
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE); 
         
         /* Click to interrupt */  
         wheel_return = inputs_get_wheel_action(FALSE, FALSE);
@@ -315,7 +322,10 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
         }
         
         /* Accelerometer stuff */
-        logic_accelerometer_routine();     
+        logic_accelerometer_routine();
+        
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
         
         /* Click to interrupt */  
         wheel_return = inputs_get_wheel_action(FALSE, FALSE);
@@ -639,6 +649,9 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         logic_accelerometer_routine();
         
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
+        
         // detection result
         detection_result = inputs_get_wheel_action(FALSE, FALSE);
         
@@ -839,6 +852,9 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
         
         // Call accelerometer routine for (among others) RNG stuff
         logic_accelerometer_routine();
+        
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
         
         // Read usb comms as the plugin could ask to cancel the request
         if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD)
@@ -1057,6 +1073,9 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         {
             input_answer = MINI_INPUT_RET_CARD_REMOVED;
         }
+        
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
         
         // Read usb comms as the plugin could ask to cancel the request
         if ((parse_aux_messages != FALSE) && (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD))
@@ -1363,6 +1382,9 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
         
         // Call accelerometer routine for (among others) RNG stuff
         logic_accelerometer_routine();
+        
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
         
         /* Read usb comms as the plugin could ask to cancel the request */
         if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD)
@@ -1714,6 +1736,9 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
         
         /* Call accelerometer routine for (among others) RNG stuff */
         logic_accelerometer_routine();
+        
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
         
         /* Read usb comms as the plugin could ask to cancel the request */
         if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD)
@@ -2135,6 +2160,9 @@ int16_t gui_prompts_select_category(void)
         /* Call accelerometer routine for (among others) RNG stuff */
         logic_accelerometer_routine();
         
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
+        
         /* Deal with simple messages */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         
@@ -2404,6 +2432,9 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
         
         /* Call accelerometer routine for (among others) RNG stuff */
         logic_accelerometer_routine();
+        
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
         
         /* Deal with simple messages */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
@@ -2776,6 +2807,9 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
         
         /* Call accelerometer routine for (among others) RNG stuff */
         logic_accelerometer_routine();
+        
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
         
         /* Deal with simple messages */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);

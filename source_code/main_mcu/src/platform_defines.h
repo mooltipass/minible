@@ -68,7 +68,11 @@
 - v0.18:- Handling both Bluetooth pair and connect messages
 - v0.19:- Database model rework to include multiple standard credential types
         - Timeout to prevent aux mcu flooding
-        - 
+        - Webauthn support
+        - BLE bonding information storage & recall
+        - Pairing menu operational
+        - Deny/Accept animation bug fix
+        - Handle power switches during prompts
 */
 
 /**************** SETUP DEFINES ****************/
