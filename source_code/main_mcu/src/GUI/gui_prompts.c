@@ -1196,7 +1196,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         int16_t wheel_increments = inputs_get_wheel_increment();
         if (wheel_increments != 0)
         {
-            if (wheel_increments > 0)
+            if (wheel_increments < 0)
             {
                 if (approve_selected == FALSE)
                 {
