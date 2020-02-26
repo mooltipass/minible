@@ -569,7 +569,11 @@ uint8_t ctap_make_credential(CborEncoder * encoder, uint8_t * request, int lengt
     uint32_t auth_data_sz = sizeof(auth_data_buf);
 
     ret = ctap_make_credential_auth_data(&MC.common, auth_data_buf, &auth_data_sz, &MC.credInfo, sigbuf);
-    check_retr(ret);
+    if (ret != CTAP1_ERR_SUCCESS)
+    {
+        printf1(TAG_ERR, "Error returned from make credential: %d", ret);
+        return ret;
+    }
 
     {
         ret = cbor_encode_int(&map,RESP_authData);
@@ -727,7 +731,11 @@ uint8_t ctap_get_assertion(CborEncoder * encoder, uint8_t * request, int length)
     uint32_t auth_data_buf_sz = sizeof(auth_data_buf);
     {
         ret = ctap_make_get_assertion_auth_data(&GA.common, &GA, auth_data_buf, &auth_data_buf_sz, &cred_info, sigbuf);
-        check_retr(ret);
+        if (ret != CTAP1_ERR_SUCCESS)
+        {
+            printf1(TAG_ERR, "Error returned from get assertion credential: %d", ret);
+            return ret;
+        }
     }
 
     ret = ctap_end_get_assertion(&map, &cred_info, auth_data_buf, auth_data_buf_sz, sigbuf);  // 1,2,3,4
