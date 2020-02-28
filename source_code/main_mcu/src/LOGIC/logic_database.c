@@ -734,6 +734,10 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
         memcpy(temp_cnode.ctr, ctr, MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr));
         memcpy(temp_cnode.password, password, sizeof(temp_cnode.password));
     }
+    
+    /* Set "master setting" for keys pressed after login & password entering */
+    temp_cnode.keyAfterPassword = 0xFFFF;
+    temp_cnode.keyAfterLogin = 0xFFFF;
 
     /* Then create node */
     ret_type_te ret_val = nodemgmt_create_child_node(service_addr, &temp_cnode, &storage_addr);

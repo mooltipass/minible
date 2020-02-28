@@ -1962,10 +1962,6 @@ RET_TYPE nodemgmt_create_child_node(uint16_t pAddr, child_cred_node_t* c, uint16
     c->dateCreated = nodemgmt_current_date;
     c->dateLastUsed = nodemgmt_current_date;
     
-    // Set "master setting" for keys pressed after login & password entering
-    c->keyAfterPassword = 0xFFFF;
-    c->keyAfterLogin = 0xFFFF;
-    
     // Read parent to get the first child address
     nodemgmt_read_parent_node(pAddr, &nodemgmt_current_handle.temp_parent_node, FALSE);
     childFirstAddress = nodemgmt_current_handle.temp_parent_node.cred_parent.nextChildAddress;
