@@ -1538,19 +1538,21 @@ void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
     }
 }
 
-/*! \fn     logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key)
+/*! \fn     logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key, uint8_t second_key)
 *   \brief  Send modifier and key through keyboard link
 *   \param  modifier    HID modifier
 *   \param  key         HID key
+*   \param  key         Another HID key
 *   \return If we were able to correctly type
 */
-ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key)
+ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key, uint8_t second_key)
 {
     if (logic_bluetooth_can_communicate_with_host != FALSE)
     {
         logic_bluetooth_notif_being_sent = KEYBOARD_NOTIF_SENDING;
         logic_bluetooth_keyboard_in_report[0] = modifier;
         logic_bluetooth_keyboard_in_report[2] = key;
+        logic_bluetooth_keyboard_in_report[3] = second_key;
         logic_bluetooth_typed_report_sent = FALSE;
         logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_KEYBOARD_HID_SERVICE_INSTANCE, BLE_KEYBOARD_HID_IN_REPORT_NB, logic_bluetooth_keyboard_in_report, sizeof(logic_bluetooth_keyboard_in_report));
         

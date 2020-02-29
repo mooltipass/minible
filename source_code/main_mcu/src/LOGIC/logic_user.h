@@ -26,6 +26,7 @@
 
 #include "comms_hid_msgs.h"
 #include "logic_fido2.h"
+#include "custom_fs.h"
 #include "defines.h"
 
 /* Defines */
@@ -34,7 +35,7 @@
 /* Prototypes */
 fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t** credential_id_allow_list, uint16_t credential_id_allow_list_length);
 fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, uint8_t user_handle_len, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key, uint8_t* credential_id);
-RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL only_pwd_prompt, BOOL* usb_selected);
+RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL only_pwd_prompt, BOOL* usb_selected, lock_feature_te keys_to_send_before_login);
 RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password);
 ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key, BOOL simple_mode);
 int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, hid_message_t* send_msg);
@@ -42,10 +43,13 @@ RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, c
 void logic_user_set_layout_id(uint16_t layout_id, BOOL usb_layout);
 void logic_user_clear_user_security_flag(uint16_t bitmask);
 void logic_user_set_user_security_flag(uint16_t bitmask);
+BOOL logic_user_get_lock_unlock_shortcut_enabled(void);
 void logic_user_get_user_cards_cpz(uint8_t* buffer);
 void logic_user_set_language(uint16_t language_id);
 uint16_t logic_user_get_user_security_flags(void);
+void logic_user_unlocked_feature_trigger(void);
 void logic_user_init_context(uint8_t user_id);
+void logic_user_locked_feature_trigger(void);
 uint8_t logic_user_get_current_user_id(void);
 void logic_user_manual_select_login(void);
 

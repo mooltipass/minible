@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    19
+#define FW_MINOR    20
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -73,6 +73,8 @@
         - Pairing menu operational
         - Deny/Accept animation bug fix
         - Handle power switches during prompts
+        - Allow aux MCU to overwrite battery status at first boot
+- v0.20:- _unlock_ service feature
 */
 
 /**************** SETUP DEFINES ****************/

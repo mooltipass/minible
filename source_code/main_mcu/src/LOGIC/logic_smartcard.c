@@ -175,7 +175,8 @@ RET_TYPE logic_smartcard_handle_inserted(void)
                 logic_gui_enable_bluetooth();
             }
             
-            //unlockFeatureCheck();
+            /* Unlock service feature if enabled */
+            logic_user_unlocked_feature_trigger();
             next_screen = GUI_SCREEN_MAIN_MENU;
             return_value = RETURN_OK;
         }

@@ -373,12 +373,6 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                            
                 break;
             }
-            case MAIN_MCU_COMMAND_PING:
-            {
-                /* Resend same message, not used anymore, obsolete */
-                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
-                break;
-            }
             case MAIN_MCU_COMMAND_ATTACH_USB:
             {
                 /* Start ADC conversions for when we're later asked to charge battery */
@@ -550,6 +544,26 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             {
                 /* Update device status buffer */
                 comms_raw_hid_update_device_status_cache(message->main_mcu_command_message.payload);
+                break;
+            }
+            case MAIN_MCU_COMMAND_TYPE_SHORTCUT:
+            {
+                uint8_t interface_id = message->main_mcu_command_message.payload[0];
+                uint8_t shortcut = message->main_mcu_command_message.payload[1];
+                
+                /* Depending on shortcut */
+                if ((shortcut & LF_ENT_KEY_MASK) != 0)
+                {
+                    logic_keyboard_type_key_with_modifier((hid_interface_te)interface_id, KEY_RETURN, 0, 200);
+                } 
+                else if ((shortcut & LF_CTRL_ALT_DEL_MASK) != 0)
+                {
+                    logic_keyboard_type_key_with_modifier((hid_interface_te)interface_id, KEY_DELETE, KEY_RIGHT_ALT|KEY_CTRL, 200);
+                }
+                else if ((shortcut & LF_WIN_L_SEND_MASK) != 0)
+                {
+                    logic_keyboard_type_lock_shortcut((hid_interface_te)interface_id, (uint8_t)(message->main_mcu_command_message.payload_as_uint16[1]));
+                }
                 break;
             }
             default:

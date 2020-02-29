@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    13
+#define FW_MINOR    15
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -33,6 +33,9 @@
         - sending battery level update to main mcu during charge
 - v0.12:- device status push to connected interfaces
 - v0.13:- BLE: correctly handling host reconnection
+- v0.14:- Webauthn support
+        - BLE: filter device connections
+- v0.15:- shortcut typing
 */
 
 /**************** SETUP DEFINES ****************/

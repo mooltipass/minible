@@ -631,13 +631,7 @@ int main(void)
                 logic_device_activity_detected();
                 logic_smartcard_handle_removed();
                 logic_device_set_state_changed();
-
-                /* Lock shortcut, if enabled */
-                /*if ((mp_lock_unlock_shortcuts != FALSE) && ((getMooltipassParameterInEeprom(LOCK_UNLOCK_FEATURE_PARAM) & LF_WIN_L_SEND_MASK) != 0))
-                {
-                    usbSendLockShortcut();
-                    mp_lock_unlock_shortcuts = FALSE;
-                }*/
+                logic_user_locked_feature_trigger();
             
                 /* Set correct screen */
                 gui_prompts_display_information_on_screen_and_wait(CARD_REMOVED_TEXT_ID, DISP_MSG_INFO, FALSE);

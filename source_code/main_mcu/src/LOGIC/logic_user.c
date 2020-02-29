@@ -42,6 +42,8 @@
 #include "text_ids.h"
 #include "utils.h"
 #include "rng.h"
+// Boolean to know state of lock/unlock feature
+BOOL logic_user_lock_unlock_shortcuts = FALSE;
 // User security preferences
 uint16_t logic_user_cur_sec_preferences;
 
@@ -70,6 +72,15 @@ void logic_user_init_context(uint8_t user_id)
 uint16_t logic_user_get_user_security_flags(void)
 {
     return logic_user_cur_sec_preferences;
+}
+
+/*! \fn     logic_user_get_lock_unlock_shortcut_enabled(void)
+*   \brief  Check if lock / unlock shortcuts are enabled
+*   \return The boolean
+*/
+BOOL logic_user_get_lock_unlock_shortcut_enabled(void)
+{
+    return logic_user_lock_unlock_shortcuts;
 }
 
 /*! \fn     logic_user_set_language(uint16_t language_id)
@@ -954,7 +965,7 @@ void logic_user_manual_select_login(void)
         else if (state_machine == 2)
         {
             /* Ask the user permission to enter login / password, check for back action */
-            ret_type_te user_prompt_return = logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr, only_password_prompt, &usb_interface_output);  
+            ret_type_te user_prompt_return = logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr, only_password_prompt, &usb_interface_output, 0x00);  
             
             /* Ask the user permission to enter login / password, check for back action */
             if (user_prompt_return == RETURN_BACK)
@@ -1036,15 +1047,16 @@ void logic_user_manual_select_login(void)
     }
 }
 
-/*! \fn     logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL only_pwd_prompt, BOOL* usb_selected)
+/*! \fn     logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL only_pwd_prompt, BOOL* usb_selected, lock_feature_te keys_to_send_before_login)
 *   \brief  Ask the user to enter the login & password of a given service
-*   \param  parent_address  Address of the parent
-*   \param  child_address   Address of the child
-*   \param  only_pwd_prompt Boolean to set if we only want the password prompt (used in case of going back)
-*   \param  usb_selected    Pointer to a boolean, used internally to know if the user selected USB interface
+*   \param  parent_address              Address of the parent
+*   \param  child_address               Address of the child
+*   \param  only_pwd_prompt             Boolean to set if we only want the password prompt (used in case of going back)
+*   \param  usb_selected                Pointer to a boolean, used internally to know if the user selected USB interface
+*   \param  keys_to_send_before_login   bitfield possibly containing possible shortcuts to send before typing the login (win-l or ctrl-alt-del)
 *   \return RETURN_OK if a login or password was typed or if the card was removed, RETURN_BACK if the user wants to come back, RETURN_NOK if the user denied both typing prompts or device isn't connected to anything
 */
-RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL only_pwd_prompt, BOOL* usb_selected)
+RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL only_pwd_prompt, BOOL* usb_selected, lock_feature_te keys_to_send_before_login)
 {
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,password)+1+1, "Can't describe all chars for password");
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,login)+1, "Can't describe all chars for login");
@@ -1053,6 +1065,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
     aux_mcu_message_t* temp_rx_message;
     child_cred_node_t temp_cnode;
     BOOL could_type_all_symbols;
+    BOOL shortcut_sent = FALSE;
     parent_node_t temp_pnode;
     
     /* Are we at least connected to anything? */
@@ -1139,7 +1152,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                 state_machine++;
             } 
             else
-            {
+            {                
                 /* Ask for login confirmation */
                 custom_fs_get_string_from_file(TYPE_LOGIN_TEXT_ID, &two_line_prompt_2, TRUE);
                 conf_text_2_lines.lines[1] = two_line_prompt_2;
@@ -1168,6 +1181,21 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     if (prompt_return == MINI_INPUT_RET_YES)
                     {
                         aux_mcu_message_t* typing_message_to_be_sent;
+                        
+                        /* Type shortcut if specified */
+                        if ((shortcut_sent == FALSE) && ((keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK)) != 0))
+                        {
+                            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+                            typing_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TYPE_SHORTCUT;
+                            typing_message_to_be_sent->main_mcu_command_message.payload[0] = (uint8_t)interface_id;
+                            typing_message_to_be_sent->main_mcu_command_message.payload[1] = keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK);
+                            typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint8_t) + sizeof(uint8_t);
+                            comms_aux_mcu_send_message(TRUE);
+                            shortcut_sent = TRUE;
+                            timer_delay_ms(600);
+                        }
+                        
+                        /* Type login */
                         comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
                         typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.login) + 1 + 1)*sizeof(cust_char_t);
                         ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.login, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, *usb_selected);
@@ -1244,6 +1272,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
             {
                 if (prompt_return == MINI_INPUT_RET_YES)
                 {
+                    aux_mcu_message_t* typing_message_to_be_sent;
                     BOOL prev_gen_credential_flag = FALSE;
                     
                     /* Check for previous generation password */
@@ -1261,9 +1290,21 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
                         utils_ascii_to_unicode((uint8_t*)temp_cnode.password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
                     }
-                    
-                    /* Prepare packet to be sent */
-                    aux_mcu_message_t* typing_message_to_be_sent;
+                        
+                    /* Type shortcut if specified */
+                    if ((shortcut_sent == FALSE) && ((keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK)) != 0))
+                    {
+                        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+                        typing_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TYPE_SHORTCUT;
+                        typing_message_to_be_sent->main_mcu_command_message.payload[0] = (uint8_t)interface_id;
+                        typing_message_to_be_sent->main_mcu_command_message.payload[1] = keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK);
+                        typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint8_t) + sizeof(uint8_t);
+                        comms_aux_mcu_send_message(TRUE);
+                        shortcut_sent = TRUE;
+                        timer_delay_ms(600);
+                    }
+                        
+                    /* Type password */
                     comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
                     typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.cust_char_password) + 1 + 1)*sizeof(cust_char_t);
                     ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.cust_char_password, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, *usb_selected);
@@ -1321,3 +1362,82 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
 
     return RETURN_OK;
 }
+
+/*! \fn     logic_user_unlocked_feature_trigger(void)
+*   \brief  Function called whenever the smartcard is unlocked, to offer typing login credentials
+*/
+void logic_user_unlocked_feature_trigger(void)
+{
+    uint8_t lock_unlock_feature_uint = custom_fs_settings_get_device_setting(SETTINGS_UNLOCK_FEATURE_PARAM);
+    
+    /* Fetch possible parent address for unlock service */
+    uint16_t parent_address = logic_database_search_service((cust_char_t*)u"_unlock_", COMPARE_MODE_MATCH, TRUE, NODEMGMT_STANDARD_CRED_TYPE_ID);
+    uint16_t child_address = NODE_ADDR_NULL;
+    BOOL usb_interface_output = TRUE;
+
+    /* See if the lock / unlock feature is enabled, type password if so */    
+    if ((parent_address != NODE_ADDR_NULL) && ((lock_unlock_feature_uint & LF_EN_MASK) != 0) && ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) || (logic_aux_mcu_is_usb_enumerated() != FALSE)))
+    {
+        logic_user_lock_unlock_shortcuts = TRUE;
+        
+        /* See how many credentials there are for this service */
+        uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &child_address, TRUE);
+
+        /* More than one login */
+        if (nb_logins_for_cred != 1)
+        {
+            /* Here chosen_login_addr is populated with the first node... isn't that pretty? */
+            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &child_address);
+            if (display_prompt_return != MINI_INPUT_RET_YES)
+            {
+                return;
+            }
+        }
+        else
+        {
+            /* Card removed, user going back... exit */
+            if (child_address == NODE_ADDR_NULL)
+            {
+                return;
+            }
+        }
+        
+        /* Ask the user permission to enter login / password, check for back action */
+        logic_user_ask_for_credentials_keyb_output(parent_address, child_address, ((lock_unlock_feature_uint & LF_LOGIN_MASK) != 0)?FALSE:TRUE, &usb_interface_output, lock_unlock_feature_uint);
+    }
+}
+
+/*! \fn     logic_user_locked_feature_trigger(void)
+*   \brief  Function called whenever the smartcard is removed to trigger the win-l shortcut
+*/
+void logic_user_locked_feature_trigger(void)
+{
+    uint8_t lock_unlock_feature_uint = custom_fs_settings_get_device_setting(SETTINGS_UNLOCK_FEATURE_PARAM);
+    
+    /* Are we at least connected to anything? */
+    if ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE))
+    {
+        return;
+    }
+    
+    /* Choose the interface, USB has priority */
+    uint8_t interface_id = 1;
+    if (logic_aux_mcu_is_usb_enumerated() != FALSE)
+    {
+        interface_id = 0;
+    }
+    
+    /* If user enabled the feature and the setting is there... */
+    if ((logic_user_lock_unlock_shortcuts != FALSE) && ((lock_unlock_feature_uint & LF_WIN_L_SEND_MASK) != 0))
+    {
+        aux_mcu_message_t* typing_message_to_be_sent;
+        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+        typing_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TYPE_SHORTCUT;
+        typing_message_to_be_sent->main_mcu_command_message.payload[0] = (uint8_t)interface_id;
+        typing_message_to_be_sent->main_mcu_command_message.payload[1] = LF_WIN_L_SEND_MASK;
+        custom_fs_get_keyboard_symbols_for_unicode_string((cust_char_t*)u"l", &typing_message_to_be_sent->main_mcu_command_message.payload_as_uint16[1], logic_aux_mcu_is_usb_enumerated());
+        typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint16_t);
+        logic_user_lock_unlock_shortcuts = FALSE;
+        comms_aux_mcu_send_message(TRUE);
+    }
+}                

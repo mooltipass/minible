@@ -12,6 +12,38 @@
 #include "usb.h"
 
 
+/*! \fn     logic_keyboard_type_lock_shortcut(hid_interface_te interface_id, uint8_t l_symbol)
+*   \brief  Type the lock shortcut
+*   \param  interface           HID interface on which to type the symbol
+*   \param  symbol              The l symbol
+*/
+void logic_keyboard_type_lock_shortcut(hid_interface_te interface_id, uint8_t l_symbol)
+{
+    uint8_t hid_packet_to_be_sent[8];
+    memset(hid_packet_to_be_sent, 0, sizeof(hid_packet_to_be_sent));
+    
+    if (interface_id == USB_INTERFACE)
+    {
+        hid_packet_to_be_sent[2] = KEY_WIN_L;
+        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
+        timer_delay_ms(100);
+        hid_packet_to_be_sent[3] = l_symbol;
+        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
+        timer_delay_ms(100);
+        memset(hid_packet_to_be_sent, 0, sizeof(hid_packet_to_be_sent));
+        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
+    }
+    else
+    {
+        logic_bluetooth_send_modifier_and_key(0, KEY_WIN_L, 0);
+        timer_delay_ms(100);
+        logic_bluetooth_send_modifier_and_key(0, KEY_WIN_L, l_symbol);
+        memset(hid_packet_to_be_sent, 0, sizeof(hid_packet_to_be_sent));
+        timer_delay_ms(100);
+        logic_bluetooth_send_modifier_and_key(0, 0, 0);     
+    }
+}
+
 /*! \fn     logic_keyboard_type_key_with_modifier(hid_interface_te interface, uint8_t key, uint8_t modifier, uint16_t delay_between_types)
 *   \brief  Perform a single keystroke
 *   \param  interface           HID interface on which to type the keystroke
@@ -35,7 +67,7 @@ ret_type_te logic_keyboard_type_key_with_modifier(hid_interface_te interface, ui
         } 
         else
         {
-            if (logic_bluetooth_send_modifier_and_key(modifier, 0) != RETURN_OK)
+            if (logic_bluetooth_send_modifier_and_key(modifier, 0, 0) != RETURN_OK)
             {
                 return RETURN_NOK;
             }
@@ -51,7 +83,7 @@ ret_type_te logic_keyboard_type_key_with_modifier(hid_interface_te interface, ui
     }
     else
     {
-        if (logic_bluetooth_send_modifier_and_key(modifier, key) != RETURN_OK)
+        if (logic_bluetooth_send_modifier_and_key(modifier, key, 0) != RETURN_OK)
         {
             return RETURN_NOK;
         }
@@ -67,7 +99,7 @@ ret_type_te logic_keyboard_type_key_with_modifier(hid_interface_te interface, ui
     }
     else
     {
-        if (logic_bluetooth_send_modifier_and_key(0, 0) != RETURN_OK)
+        if (logic_bluetooth_send_modifier_and_key(0, 0, 0) != RETURN_OK)
         {
             return RETURN_NOK;
         }
