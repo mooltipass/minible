@@ -212,7 +212,7 @@ void main_platform_init(void)
         logic_power_set_power_source(USB_POWERED);
         platform_io_power_up_oled(TRUE);
     }
-    sh1122_init_display(&plat_oled_descriptor);
+    sh1122_init_display(&plat_oled_descriptor, FALSE);
     
     /* Release aux MCU reset (v2 platform only) */
     platform_io_release_aux_reset();

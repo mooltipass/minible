@@ -856,24 +856,28 @@ uint8_t sh1122_get_current_font_height(sh1122_descriptor_t* oled_descriptor)
     return oled_descriptor->current_font_header.height;
 }
 
-/*! \fn     sh1122_init_display(sh1122_descriptor_t oled_descriptor)
+/*! \fn     sh1122_init_display(sh1122_descriptor_t oled_descriptor, BOOL leave_internal_logic_and_reflush_frame_buffer)
 *   \brief  Initialize a SSD1322 display
-*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  oled_descriptor                                 Pointer to a sh1122 descriptor struct
+*   \param  leave_internal_logic_and_reflush_frame_buffer   Set to TRUE to do what it says...
 */
-void sh1122_init_display(sh1122_descriptor_t* oled_descriptor)
+void sh1122_init_display(sh1122_descriptor_t* oled_descriptor, BOOL leave_internal_logic_and_reflush_frame_buffer)
 {
     /* Vars init : should already be to 0 but you never know... */
-    oled_descriptor->allow_text_partial_y_draw = FALSE;
-    oled_descriptor->allow_text_partial_x_draw = FALSE;
-    oled_descriptor->screen_wrapping_allowed = FALSE;
-    oled_descriptor->carriage_return_allowed = FALSE;
-    oled_descriptor->line_feed_allowed = FALSE;
-    oled_descriptor->currentFontAddress = 0;
-    oled_descriptor->max_text_x = SH1122_OLED_WIDTH;
-    oled_descriptor->min_text_x = 0;
-    oled_descriptor->max_disp_x = SH1122_OLED_WIDTH;
-    oled_descriptor->max_disp_y = SH1122_OLED_HEIGHT;
-    oled_descriptor->min_disp_y = 0;
+    if (leave_internal_logic_and_reflush_frame_buffer == FALSE)
+    {
+        oled_descriptor->allow_text_partial_y_draw = FALSE;
+        oled_descriptor->allow_text_partial_x_draw = FALSE;
+        oled_descriptor->screen_wrapping_allowed = FALSE;
+        oled_descriptor->carriage_return_allowed = FALSE;
+        oled_descriptor->line_feed_allowed = FALSE;
+        oled_descriptor->currentFontAddress = 0;
+        oled_descriptor->max_text_x = SH1122_OLED_WIDTH;
+        oled_descriptor->min_text_x = 0;
+        oled_descriptor->max_disp_x = SH1122_OLED_WIDTH;
+        oled_descriptor->max_disp_y = SH1122_OLED_HEIGHT;
+        oled_descriptor->min_disp_y = 0;
+    }
     
     /* Different init sequences based on screen inversion */
     const uint8_t* init_seq = sh1122_init_sequence;
@@ -910,11 +914,19 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor)
     sh1122_set_screen_invert(oled_descriptor, oled_descriptor->screen_inverted);
 
     /* Clear display */
-    sh1122_clear_current_screen(oled_descriptor);
-    #ifdef OLED_INTERNAL_FRAME_BUFFER
-    memset((void*)oled_descriptor->frame_buffer, 0x00, sizeof(oled_descriptor->frame_buffer));
-    oled_descriptor->frame_buffer_flush_in_progress = FALSE;
-    #endif
+    if (leave_internal_logic_and_reflush_frame_buffer == FALSE)
+    {
+        sh1122_clear_current_screen(oled_descriptor);
+        #ifdef OLED_INTERNAL_FRAME_BUFFER
+        memset((void*)oled_descriptor->frame_buffer, 0x00, sizeof(oled_descriptor->frame_buffer));
+        oled_descriptor->frame_buffer_flush_in_progress = FALSE;
+        #endif
+    }
+    else
+    {
+        /* Fill screen with 0 pixels */
+        sh1122_fill_screen(oled_descriptor, 0);
+    }
     
     /* Set emergency font by default */
     sh1122_set_emergency_font(oled_descriptor);
@@ -925,6 +937,15 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor)
     /* Switch screen on */
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_ON);
     oled_descriptor->oled_on = TRUE;
+    
+    /* Reflush frame buffer if asked to */
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    if (leave_internal_logic_and_reflush_frame_buffer != FALSE)
+    {
+        timer_delay_ms(50);
+        sh1122_flush_frame_buffer(oled_descriptor);
+    }
+    #endif
 }
 
 /*! \fn     sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, uint8_t color, BOOL write_to_buffer)

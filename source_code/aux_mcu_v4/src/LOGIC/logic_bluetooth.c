@@ -1542,7 +1542,7 @@ void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
 *   \brief  Send modifier and key through keyboard link
 *   \param  modifier    HID modifier
 *   \param  key         HID key
-*   \param  key         Another HID key
+*   \param  second_key  Another HID key
 *   \return If we were able to correctly type
 */
 ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key, uint8_t second_key)

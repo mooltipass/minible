@@ -38,7 +38,6 @@ void logic_keyboard_type_lock_shortcut(hid_interface_te interface_id, uint8_t l_
         logic_bluetooth_send_modifier_and_key(0, KEY_WIN_L, 0);
         timer_delay_ms(100);
         logic_bluetooth_send_modifier_and_key(0, KEY_WIN_L, l_symbol);
-        memset(hid_packet_to_be_sent, 0, sizeof(hid_packet_to_be_sent));
         timer_delay_ms(100);
         logic_bluetooth_send_modifier_and_key(0, 0, 0);     
     }

@@ -383,7 +383,7 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
                 platform_io_assert_oled_reset();
                 timer_delay_ms(15);
                 platform_io_power_up_oled(TRUE);
-                sh1122_init_display(&plat_oled_descriptor);
+                sh1122_init_display(&plat_oled_descriptor, TRUE);
                 gui_dispatcher_get_back_to_current_screen();
             }
             
@@ -395,7 +395,7 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
                 platform_io_assert_oled_reset();
                 timer_delay_ms(15);
                 platform_io_power_up_oled(FALSE);
-                sh1122_init_display(&plat_oled_descriptor);
+                sh1122_init_display(&plat_oled_descriptor, TRUE);
                 gui_dispatcher_get_back_to_current_screen();
             }   
 
