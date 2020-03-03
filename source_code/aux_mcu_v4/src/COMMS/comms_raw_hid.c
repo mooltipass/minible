@@ -35,6 +35,8 @@ volatile BOOL comms_raw_hid_packet_received[NB_HID_INTERFACES] = {FALSE, FALSE, 
 volatile BOOL comms_raw_hid_packet_receive_length[NB_HID_INTERFACES] = {0, 0, 0};
 /* Set when we just got enumerated */
 volatile BOOL comms_usb_just_enumerated = FALSE;
+/* Set when a USB timeout is detected */
+volatile BOOL comms_usb_timeout_detected = FALSE;
 /* Device status cache so we don't need to query main mcu */
 uint8_t comms_hid_device_status_cache[4];
 /* Set when we are enumerated */
@@ -262,6 +264,7 @@ void comms_raw_hid_connection_set_callback(hid_interface_te hid_interface)
     if (hid_interface == USB_INTERFACE)
     {
         /* Set enumerated booleans */
+        comms_usb_timeout_detected = FALSE;
         comms_usb_just_enumerated = TRUE;
         comms_usb_enumerated = TRUE;
     } 
@@ -278,9 +281,12 @@ void comms_raw_hid_connection_set_callback(hid_interface_te hid_interface)
 
 /*! \fn     comms_usb_communication_routine(void)
 *   \brief  Function called to deal with comms
+*   \return What happened
 */
-void comms_usb_communication_routine(void)
+comms_usb_ret_te comms_usb_communication_routine(void)
 {
+    comms_usb_ret_te ret_val = COMMS_USB_NO_RET;
+    
     /* If we just were enumerated, let main MCU know */
     if (comms_usb_just_enumerated != FALSE)
     {
@@ -288,6 +294,13 @@ void comms_usb_communication_routine(void)
         comms_raw_hid_arm_packet_receive(USB_INTERFACE);
         comms_raw_hid_arm_packet_receive(CTAP_INTERFACE);
         comms_usb_just_enumerated = FALSE;
+    }
+    
+    /* USB time out detected? */
+    if ((comms_usb_timeout_detected == FALSE) && (comms_usb_enumerated != FALSE) && (udc_get_nb_ms_before_last_usb_activity() > 65000))
+    {
+        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_USB_TIMEOUT);
+        comms_usb_timeout_detected = TRUE;
     }
     
     /* We received a new device status, push it to the host */
@@ -332,7 +345,7 @@ void comms_usb_communication_routine(void)
             {
                 ctaphid_handle_packet(raw_hid_recv_buffer[hid_interface].raw_packet_uint32);
                 comms_raw_hid_arm_packet_receive(hid_interface);
-                return;
+                return ret_val;
             }
 
             /* Special case: first two bytes set to 0xFF 0xFF, reset flip bit */
@@ -343,7 +356,7 @@ void comms_usb_communication_routine(void)
                 comms_raw_hid_temp_mcu_message_fill_index[hid_interface] = 0;
                 comms_raw_hid_expected_packet_number[hid_interface] = 0;
                 comms_raw_hid_arm_packet_receive(hid_interface);
-                return;
+                return ret_val;
             }
             
             /* Check for bit flip state: if it doesn't match, reset fill indexes */
@@ -352,7 +365,7 @@ void comms_usb_communication_routine(void)
                 comms_raw_hid_temp_mcu_message_fill_index[hid_interface] = 0;
                 comms_raw_hid_expected_packet_number[hid_interface] = 0;
                 comms_raw_hid_arm_packet_receive(hid_interface);
-                return;
+                return ret_val;
             }
             
             /* Check for expected packet number */
@@ -361,7 +374,7 @@ void comms_usb_communication_routine(void)
                 comms_raw_hid_temp_mcu_message_fill_index[hid_interface] = 0;
                 comms_raw_hid_expected_packet_number[hid_interface] = 0;
                 comms_raw_hid_arm_packet_receive(hid_interface);
-                return;
+                return ret_val;
             }
             
             /* If first packet, store total number of packets for this hid message */
@@ -384,7 +397,7 @@ void comms_usb_communication_routine(void)
                 comms_raw_hid_temp_mcu_message_fill_index[hid_interface] = 0;
                 comms_raw_hid_expected_packet_number[hid_interface] = 0;
                 comms_raw_hid_arm_packet_receive(hid_interface);
-                return;
+                return ret_val;
             }
             
             /* Fill temp mcu message payload */
@@ -443,6 +456,8 @@ void comms_usb_communication_routine(void)
             }
         }
     }
+    
+    return ret_val;
 }
 
 /*! \fn     comms_usb_debug_printf(const char *fmt, ...) 

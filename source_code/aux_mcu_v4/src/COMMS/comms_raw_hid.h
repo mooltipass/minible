@@ -49,8 +49,8 @@ uint8_t* comms_raw_hid_get_recv_buffer(hid_interface_te hid_interface);
 void comms_raw_hid_arm_packet_receive(hid_interface_te hid_interface);
 void comms_raw_hid_send_callback(hid_interface_te hid_interface);
 void comms_raw_hid_update_device_status_cache(uint8_t* buffer);
+comms_usb_ret_te comms_usb_communication_routine(void);
 void comms_usb_debug_printf(const char *fmt, ...);
-void comms_usb_communication_routine(void);
 void comms_usb_clear_enumerated(void);
 BOOL comms_usb_is_enumerated(void);
 

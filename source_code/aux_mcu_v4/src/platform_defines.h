@@ -36,6 +36,7 @@
 - v0.14:- Webauthn support
         - BLE: filter device connections
 - v0.15:- shortcut typing
+        - usb timeout detection for device lock
 */
 
 /**************** SETUP DEFINES ****************/

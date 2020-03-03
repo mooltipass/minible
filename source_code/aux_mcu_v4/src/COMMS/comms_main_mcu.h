@@ -68,6 +68,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define AUX_MCU_EVENT_BLE_DISCONNECTED  0x000B
 #define AUX_MCU_EVENT_USB_DETACHED      0x000C
 #define AUX_MCU_EVENT_CHARGE_LVL_UPDATE 0x000D
+#define AUX_MCU_EVENT_USB_TIMEOUT       0x000E
 
 // BLE commands
 #define BLE_MESSAGE_CMD_ENABLE          0x0001

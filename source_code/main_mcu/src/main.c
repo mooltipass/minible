@@ -9,6 +9,7 @@
 #include "logic_encryption.h"
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
+#include "logic_security.h"
 #include "logic_aux_mcu.h"
 #include "driver_clocks.h"
 #include "comms_aux_mcu.h"
@@ -637,6 +638,19 @@ int main(void)
                 gui_prompts_display_information_on_screen_and_wait(CARD_REMOVED_TEXT_ID, DISP_MSG_INFO, FALSE);
                 gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_INTO_MENU_TRANSITION);
                 gui_dispatcher_get_back_to_current_screen();
+            }
+            
+            /* USB connection timeout */
+            if (logic_device_get_and_clear_usb_timeout_detected() != FALSE)
+            {
+                /* Lock device */
+                if (logic_security_is_smc_inserted_unlocked() != FALSE)
+                {
+                    gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
+                    gui_dispatcher_get_back_to_current_screen();
+                    logic_smartcard_handle_removed();
+                    logic_device_set_state_changed();
+                }
             }
             
             /* Make sure all power switches are handled before calling GUI code */

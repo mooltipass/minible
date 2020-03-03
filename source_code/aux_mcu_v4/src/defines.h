@@ -27,6 +27,7 @@
 /* Enums */
 typedef enum    {LF_EN_MASK = 0x01, LF_ENT_KEY_MASK = 0x02, LF_LOGIN_MASK = 0x04, LF_WIN_L_SEND_MASK = 0x08, LF_CTRL_ALT_DEL_MASK = 0x10} lock_feature_te;
 typedef enum    {USB_INTERFACE = 0, BLE_INTERFACE = 1, CTAP_INTERFACE = 2, NB_HID_INTERFACES} hid_interface_te;
+typedef enum    {COMMS_USB_NO_RET = 0, COMMS_USB_TIMEOUT} comms_usb_ret_te;
 typedef enum    {RETURN_NOK = -1, RETURN_OK = 0} ret_type_te;
 
 /* Typedefs */

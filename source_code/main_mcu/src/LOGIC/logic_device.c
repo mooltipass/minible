@@ -30,9 +30,30 @@
 #include "main.h"
 /* Platform wakeup reason */
 volatile platform_wakeup_reason_te logic_device_wakeup_reason = WAKEUP_REASON_NONE;
+/* USB timeout detected bool */
+BOOL logic_device_usb_timeout_detected = FALSE;
 /* Device state changed bool */
 BOOL logic_device_state_changed = FALSE;
 
+
+/*! \fn     logic_device_get_and_clear_usb_timeout_detected(void)
+*   \brief  Get and clear USB timeout detected flag
+*   \return The flag
+*/
+BOOL logic_device_get_and_clear_usb_timeout_detected(void)
+{
+    BOOL ret_val = logic_device_usb_timeout_detected;
+    logic_device_usb_timeout_detected = FALSE;
+    return ret_val;
+}
+
+/*! \fn     logic_device_set_usb_timeout_detected(void)
+*   \brief  Set USB timeout detected flag
+*/
+void logic_device_set_usb_timeout_detected(void)
+{
+    logic_device_usb_timeout_detected = TRUE;
+}
 
 /*! \fn     logic_device_set_wakeup_reason(platform_wakeup_reason_te reason)
 *   \brief  Set device wakeup reason
