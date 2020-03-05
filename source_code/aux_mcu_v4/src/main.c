@@ -48,9 +48,6 @@ const uint32_t jump_to_application_function_addr[2] __attribute__((used,section 
 void jump_to_application_function(void) __attribute__((used,section (".start_app_function_addr")));
 void jump_to_application_function(void)
 {
-    /* Initialize stack usage tracking */
-    main_init_stack_tracking();
-
     /* Overwriting the default value of the NVMCTRL.CTRLB.MANW bit (errata reference 13134) */
     NVMCTRL->CTRLB.bit.MANW = 1;
     
@@ -154,6 +151,9 @@ void main_standby_sleep(BOOL startup_run)
 
 int main(void)
 {
+    /* Initialize stack usage tracking */
+    main_init_stack_tracking();
+
     /* Enable trace buffer */
     //debug_init_trace_buffer();
     
@@ -231,6 +231,18 @@ int main(void)
 
 #if defined(STACK_MEASURE_ENABLED)
 
+/*! \fn     main_get_SP(void)
+*   \brief  Get current active Stack Pointer (SP/r13)
+*   \return Stack Pointer
+*/
+__attribute__( ( always_inline ) ) static inline uint32_t main_get_SP(void)
+{
+  register uint32_t sp;
+
+  asm volatile ("MOV %0, SP\n" : "=r" (sp) );
+  return(sp);
+}
+
 uint32_t main_stack_low_water_mark = ~0U;
 
 /*! \fn     main_check_stack_usage(void)
@@ -275,13 +287,17 @@ void main_init_stack_tracking(void)
 {
     uint32_t stack_start;
     uint32_t stack_end;
-    uint32_t stack_size;
+    uint8_t *ptr;
 
-    stack_start = (uint32_t) &_estack;
+    stack_start = main_get_SP() - sizeof(uint32_t);
     stack_end = (uint32_t) &_sstack;
-    stack_size = stack_start - stack_end;
 
-    memset((void *) stack_end, DEBUG_STACK_TRACKING_COOKIE, stack_size);
+    //Inline implementation of memset since we we *might* be destroying
+    //our own stack when calling the memset function.
+    for (ptr = stack_end; ptr < stack_start; ++ptr)
+    {
+        *ptr = DEBUG_STACK_TRACKING_COOKIE;
+    }
 }
 
 #else

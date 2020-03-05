@@ -46,5 +46,6 @@ uint16_t utils_strnlen(cust_char_t* string, uint16_t maxlen);
 uint16_t utils_get_nb_lines(const cust_char_t* string);
 uint16_t utils_strlen(cust_char_t* string);
 uint16_t utils_u8strlen(uint8_t* string);
+uint32_t utils_get_SP(void);
 
 #endif /* UTILS_H_ */

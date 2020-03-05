@@ -502,3 +502,16 @@ int16_t utils_utf8_string_to_bmp_string(uint8_t* utf8_string, cust_char_t* bmp_s
 
     return nb_bmp_written-1;
 }
+
+/*! \fn     utils_get_SP(void)
+*   \brief  Get current active Stack Pointer (SP/r13)
+*   \return Stack Pointer
+*/
+__attribute__( ( always_inline ) ) inline uint32_t utils_get_SP(void)
+{
+  register uint32_t sp;
+
+  asm volatile ("MOV %0, SP\n" : "=r" (sp) );
+  return(sp);
+}
+

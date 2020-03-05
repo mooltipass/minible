@@ -8,7 +8,6 @@
 #include "platform_defines.h"
 #include "driver_clocks.h"
 #include "platform_io.h"
-#include "main.h"
 #include "dma.h"
 #include "sam.h"
 /* Bootloader flag at a given address */
@@ -23,9 +22,6 @@ static void start_application(void)
 {
     /* Pointer to the Application Section */
     void (*application_code_entry)(void);
-
-    /* Initialize stack usage tracking */
-    main_init_stack_tracking();
 
     /* Rebase the Stack Pointer */
     __set_MSP(*(uint32_t *)APP_START_ADDR);
