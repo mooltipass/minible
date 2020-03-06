@@ -714,6 +714,10 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
                     current_pin[selected_digit] = 0;
                     current_pin[--selected_digit] = 0;
                 }
+                else
+                {
+                    --selected_digit;
+                }
                 detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, -1);
             }
             else
