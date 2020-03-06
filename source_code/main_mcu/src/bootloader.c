@@ -52,9 +52,6 @@ static void start_application(void)
     /* Pointer to the Application Section */
     void (*application_code_entry)(void);
 
-    /* Initialize stack usage tracking */
-    main_init_stack_tracking();
-
     /* Rebase the Stack Pointer */
     __set_MSP(*(uint32_t *)APP_START_ADDR);
 
