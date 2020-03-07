@@ -25,6 +25,7 @@
 #define COMMS_HID_MSGS_H_
 
 #include "comms_aux_mcu_defines.h"
+#include "custom_fs.h"
 #include "defines.h"
 
 /* Defines */
@@ -68,6 +69,7 @@
 #define HID_CMD_SET_USER_KEYB_ID    0x001D
 #define HID_CMD_SET_USER_LANG_ID    0x001E
 #define HID_CMD_SET_DEVICE_LANG_ID  0x001F
+#define HID_CMD_ADD_UNKNOWN_CARD_ID 0x0020
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101
@@ -148,6 +150,15 @@ typedef struct
 
 typedef struct
 {
+    cpz_lut_entry_t cpz_lut_entry;
+    uint16_t security_preferences;
+    uint16_t language_id;
+    uint16_t usb_keyboard_id;
+    uint16_t ble_keyboard_id;
+} hid_message_setup_existing_user_req_t;
+
+typedef struct
+{
     uint32_t power_source;
     uint32_t platform_charging;
     uint16_t main_adc_battery_value;
@@ -176,6 +187,7 @@ typedef struct
         hid_message_get_cred_req_t get_credential_request;
         hid_message_get_cred_answer_t get_credential_answer;
         hid_message_get_set_category_strings_t get_set_cat_strings;
+        hid_message_setup_existing_user_req_t setup_existing_user_req;
     };
 } hid_message_t;
 

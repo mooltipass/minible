@@ -507,14 +507,15 @@ void nodemgmt_get_user_category_names_starting_offset(uint16_t uid, uint16_t *pa
     #endif
 }
 
-/*! \fn     nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId)
+/*! \fn     nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId, uint16_t bleKeyboardId)
  *  \brief  Formats the user profile flash memory of user uid.
  *  \param  uid             The id of the user to format profile memory
  *  \param  secPreferences  User security preferences
  *  \param  languageId      User language
  *  \param  keyboardId      Keyboard ID
+ *  \param  bleKeyboardId   BLE Keyboard ID
  */
-void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId, uint16_t keyboardId)
+void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId, uint16_t keyboardId, uint16_t bleKeyboardId)
 {
     /* Page & offset for this UID */
     uint16_t temp_page, temp_offset;
@@ -533,6 +534,7 @@ void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_
     nodemgmt_get_user_profile_starting_offset(uid, &temp_page, &temp_offset);
     dbflash_write_data_pattern_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmt_userprofile_t), 0x00);
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.sec_preferences), sizeof(secPreferences), (void*)&secPreferences);
+    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.ble_layout_id), sizeof(bleKeyboardId), (void*)&bleKeyboardId);
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.language_id), sizeof(languageId), (void*)&languageId);
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.layout_id), sizeof(keyboardId), (void*)&keyboardId);
 }
@@ -1615,7 +1617,7 @@ void nodemgmt_delete_current_user_from_flash(void)
     _Static_assert(sizeof(temp_buffer) >= offsetof(child_cred_node_t, nextChildAddress) + sizeof(child_node_pt->nextChildAddress), "Buffer not long enough to store first bytes");
         
     // Delete user profile memory
-    nodemgmt_format_user_profile(nodemgmt_current_handle.currentUserId, 0, 0, 0);
+    nodemgmt_format_user_profile(nodemgmt_current_handle.currentUserId, 0, 0, 0, 0);
     
     // Then browse through all the credentials to delete them
     for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes) + MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstDataParentNodes); i++)

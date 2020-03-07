@@ -1304,6 +1304,71 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             return 1;            
         }
         
+        case HID_CMD_ADD_UNKNOWN_CARD_ID:
+        {
+            /* Check the args, check we're not authenticated, check that the user could unlock the card */
+            if ((rcv_msg->payload_length == sizeof(hid_message_setup_existing_user_req_t)) && (gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_UNKNOWN))
+            {
+                uint8_t temp_buffer[AES_KEY_LENGTH/8];
+                logic_device_activity_detected();
+                uint8_t new_user_id;
+                
+                /* Sanity checks */
+                _Static_assert(sizeof(temp_buffer) >= SMARTCARD_CPZ_LENGTH, "Invalid buffer reuse");
+                
+                /* Read code protected zone to compare with provided one */
+                smartcard_highlevel_read_code_protected_zone(temp_buffer);
+                
+                /* Check that the provided CPZ is the current one, ask the user to unlock the card and check that we can add the user */
+                if (    (memcmp(temp_buffer, rcv_msg->setup_existing_user_req.cpz_lut_entry.cards_cpz, SMARTCARD_CPZ_LENGTH) == 0) && \
+                        (smartcard_highlevel_check_hidden_aes_key_contents() == RETURN_OK) && \
+                        (logic_smartcard_user_unlock_process() == UNLOCK_OK_RET) && \
+                        (logic_user_create_new_user_for_existing_card(&rcv_msg->setup_existing_user_req.cpz_lut_entry, rcv_msg->setup_existing_user_req.security_preferences, rcv_msg->setup_existing_user_req.language_id, rcv_msg->setup_existing_user_req.usb_keyboard_id, rcv_msg->setup_existing_user_req.ble_keyboard_id, &new_user_id) == RETURN_OK))
+                {
+                    /* Initialize user context, also sets user language */
+                    logic_user_init_context(new_user_id);
+                    
+                    /* Fetch pointer to CPZ MCU stored entry (just created) */
+                    cpz_lut_entry_t* cpz_stored_entry;
+                    custom_fs_get_cpz_lut_entry(temp_buffer, &cpz_stored_entry);
+                    
+                    /* Init encryption handling */
+                    smartcard_highlevel_read_aes_key(temp_buffer);
+                    logic_encryption_init_context(temp_buffer, cpz_stored_entry);
+                    
+                    /* Set smartcard unlock & MMM flags */
+                    logic_security_smartcard_unlocked_actions();
+                    logic_security_set_management_mode();
+                    
+                    /* Setup MMM */
+                    gui_dispatcher_set_current_screen(GUI_SCREEN_MEMORY_MGMT, TRUE, GUI_INTO_MENU_TRANSITION);
+                    
+                    /* Clear temp vars */
+                    memset((void*)temp_buffer, 0, sizeof(temp_buffer));
+                    
+                    /* Set success byte */
+                    send_msg->payload[0] = HID_1BYTE_ACK;
+                }
+                else
+                {
+                    /* Set failure byte */
+                    send_msg->payload[0] = HID_1BYTE_NACK;
+                }
+                
+                /* Go back to currently set screen */
+                gui_dispatcher_get_back_to_current_screen();
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+
+            send_msg->message_type = rcv_message_type;
+            send_msg->payload_length = 1;
+            return 1;   
+        }
+        
         default: break;
     }
     

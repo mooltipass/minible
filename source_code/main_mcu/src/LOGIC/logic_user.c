@@ -164,6 +164,53 @@ void logic_user_clear_user_security_flag(uint16_t bitmask)
     nodemgmt_store_user_sec_preferences(logic_user_cur_sec_preferences);
 }
 
+/*! \fn     logic_user_create_new_user_for_existing_card(cpz_lut_entry_t* cpz_entry, uint16_t sec_preferences, uint16_t language_id, uint16_t usb_layout_id, uint16_t ble_layout_id, uint8_t* new_user_id)
+*   \brief  Add a new user for an already unlocked card
+*   \param  cpz_entry           CPZ entry for the user
+*   \param  sec_preferences     User security preferences
+*   \param  language_id         User language ID
+*   \param  usb_layout_id       User USB layout ID
+*   \param  ble_layout_id       User BLE layout ID
+*   \param  new_user_id         Pointer to where to store the user id
+*   \return success or not
+*/
+ret_type_te logic_user_create_new_user_for_existing_card(cpz_lut_entry_t* cpz_entry, uint16_t sec_preferences, uint16_t language_id, uint16_t usb_layout_id, uint16_t ble_layout_id, uint8_t* new_user_id)
+{    
+    /* Check if there actually is an available slot */
+    if (custom_fs_get_nb_free_cpz_lut_entries(new_user_id) == 0)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Sanity checks */
+    if (language_id >= custom_fs_get_number_of_languages())
+    {
+        language_id = 0;
+    }
+    if ((usb_layout_id >= custom_fs_get_number_of_keyb_layouts()) || (ble_layout_id >= custom_fs_get_number_of_keyb_layouts()))
+    {
+        ble_layout_id = 0;
+        usb_layout_id = 0;
+    }
+    
+    /* Setup user profile in MCU Flash */
+    cpz_lut_entry_t user_profile;
+    user_profile.user_id = *new_user_id;
+    memset(user_profile.reserved, 0, sizeof(user_profile.reserved));
+    user_profile.use_provisioned_key_flag = cpz_entry->use_provisioned_key_flag;
+    memcpy(user_profile.nonce, cpz_entry->nonce, sizeof(user_profile.nonce));
+    memcpy(user_profile.cards_cpz, cpz_entry->cards_cpz, sizeof(user_profile.cards_cpz));
+    memcpy(user_profile.provisioned_key, cpz_entry->provisioned_key, sizeof(user_profile.provisioned_key));
+    
+    /* Setup user profile in external flash */
+    nodemgmt_format_user_profile(*new_user_id, sec_preferences & USER_SEC_FLG_ALL_FLAGS_MASK, language_id, usb_layout_id, ble_layout_id);
+    
+    /* Write down user profile. Will return OK as we've done the availability check before */
+    custom_fs_store_cpz_entry(&user_profile, *new_user_id);
+    
+    return RETURN_OK;    
+}
+
 /*! \fn     logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key, BOOL simple_mode)
 *   \brief  Add a new user with a new smart card
 *   \param  pin_code            The new pin code
@@ -201,11 +248,11 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* pro
     /* Setup user profile in external flash */
     if (simple_mode == FALSE)
     {
-        nodemgmt_format_user_profile(new_user_id, 0xFFFF & (~USER_SEC_FLG_BLE_ENABLED), custom_fs_get_current_language_id(), custom_fs_get_recommended_layout_for_current_language());
+        nodemgmt_format_user_profile(new_user_id, 0xFFFF & (~USER_SEC_FLG_BLE_ENABLED), custom_fs_get_current_language_id(), custom_fs_get_recommended_layout_for_current_language(), custom_fs_get_recommended_layout_for_current_language());
     }
     else
     {
-        nodemgmt_format_user_profile(new_user_id, 0, custom_fs_get_current_language_id(), custom_fs_get_recommended_layout_for_current_language());
+        nodemgmt_format_user_profile(new_user_id, 0, custom_fs_get_current_language_id(), custom_fs_get_recommended_layout_for_current_language(), custom_fs_get_recommended_layout_for_current_language());
     }
     
     /* Initialize nodemgmt context */

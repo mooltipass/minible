@@ -77,6 +77,7 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define USER_SEC_FLG_ADVANCED_MENU          0x08
 #define USER_SEC_FLG_BLE_ENABLED            0x10
 #define USER_SEC_FLG_KNOCK_DET_DISABLED     0x20
+#define USER_SEC_FLG_ALL_FLAGS_MASK         0x3F
 
 /*  The user limit is set to something smaller than what our DB can actually store.              */
 /*  We use the space freed by these non-used user profile to store bluetooth bonding information */
@@ -393,13 +394,13 @@ uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeAr
 RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress);
 void nodemgmt_read_webauthn_child_node_except_display_name(uint16_t address, child_webauthn_node_t* child_node, BOOL update_date_and_increment_preinc_count);
 void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout, uint16_t* userBLELayout);
+void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId, uint16_t keyboardId, uint16_t bleKeyboardId);
 void nodemgmt_read_webauthn_child_node(uint16_t address, child_webauthn_node_t* child_node, BOOL update_date_and_increment_preinc_count);
 uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
 uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);
 RET_TYPE nodemgmt_store_bluetooth_bonding_information(nodemgmt_bluetooth_bonding_information_t* bonding_information);
 uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_child_addr, uint16_t category_flags);
-void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId, uint16_t keyboardId);
 void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress);
 void nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress);
 void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node, BOOL write_category);
