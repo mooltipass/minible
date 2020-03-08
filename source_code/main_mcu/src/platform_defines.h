@@ -244,6 +244,8 @@ typedef struct
 //#define NO_SECURITY_BIT_CHECK
 /* Debug printf through USB */
 //#define DEBUG_USB_PRINTF_ENABLED
+/* Allow import / export of the provisioned aes key & flag */
+#define AES_PROVISIONED_KEY_IMPORT_EXPORT_ALLOWED
 
 /* GCLK ID defines */
 #define GCLK_ID_48M             GCLK_CLKCTRL_GEN_GCLK0_Val

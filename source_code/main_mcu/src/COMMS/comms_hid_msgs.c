@@ -832,10 +832,10 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             return send_msg->payload_length;            
         }
 
-        case HID_CMD_GET_CPZ_CTR:
+        case HID_CMD_GET_CPZ_LUT_ENTRY:
         {
-            send_msg->payload_length = MEMBER_SIZE(cpz_lut_entry_t,cards_cpz)+MEMBER_SIZE(cpz_lut_entry_t,nonce);
-            logic_encryption_get_cpz_ctr_entry(send_msg->payload);
+            send_msg->payload_length = sizeof(cpz_lut_entry_t);
+            logic_encryption_get_cpz_lut_entry(send_msg->payload);
             send_msg->message_type = rcv_message_type;
             return send_msg->payload_length;
         }
@@ -1315,6 +1315,12 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 
                 /* Sanity checks */
                 _Static_assert(sizeof(temp_buffer) >= SMARTCARD_CPZ_LENGTH, "Invalid buffer reuse");
+                
+                /* If feature is enabled */
+                #ifndef AES_PROVISIONED_KEY_IMPORT_EXPORT_ALLOWED
+                rcv_msg->setup_existing_user_req.cpz_lut_entry.use_provisioned_key_flag = 0;
+                memset(rcv_msg->setup_existing_user_req.cpz_lut_entry.provisioned_key, 0, MEMBER_SIZE(cpz_lut_entry_t,provisioned_key));
+                #endif
                 
                 /* Read code protected zone to compare with provided one */
                 smartcard_highlevel_read_code_protected_zone(temp_buffer);

@@ -110,16 +110,20 @@ void logic_encryption_xor_vector_to_other(uint8_t* destination, uint8_t* source,
     }    
 }
 
-/*! \fn     logic_encryption_get_cpz_ctr_entry(uint8_t* buffer)
-*   \brief  Write the current user CPZ CTR Nonce entry in buffer
-*   \param  buffer  Where to store the CPZ CTR Nonce entry
+/*! \fn     logic_encryption_get_cpz_lut_entry(uint8_t* buffer)
+*   \brief  Write the current user CPZ LUT entry in buffer
+*   \param  buffer  Where to store the CPZ LUT entry
 */
-void logic_encryption_get_cpz_ctr_entry(uint8_t* buffer)
+void logic_encryption_get_cpz_lut_entry(uint8_t* buffer)
 {
     if (logic_encryption_cur_cpz_entry != 0)
     {
-        memcpy(buffer, logic_encryption_cur_cpz_entry->cards_cpz, sizeof(logic_encryption_cur_cpz_entry->cards_cpz));
-        memcpy(&(buffer[sizeof(logic_encryption_cur_cpz_entry->cards_cpz)]), logic_encryption_cur_cpz_entry->nonce, sizeof(logic_encryption_cur_cpz_entry->nonce));
+        memcpy(buffer, logic_encryption_cur_cpz_entry, sizeof(*logic_encryption_cur_cpz_entry));
+        #ifndef AES_PROVISIONED_KEY_IMPORT_EXPORT_ALLOWED
+        cpz_lut_entry_t* exported_lut_entry = (cpz_lut_entry_t*)buffer;
+        exported_lut_entry->use_provisioned_key_flag = 0x00;
+        memset(exported_lut_entry->provisioned_key, 0, sizeof(exported_lut_entry->provisioned_key));
+        #endif
     }
 }
 

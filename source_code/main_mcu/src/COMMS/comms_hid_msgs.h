@@ -85,7 +85,7 @@
 #define HID_CMD_SET_FAVORITE        0x010B
 #define HID_CMD_GET_FAVORITE        0x010C
 #define HID_CMD_WRITE_NODE          0x010D
-#define HID_CMD_GET_CPZ_CTR         0x010E
+#define HID_CMD_GET_CPZ_LUT_ENTRY   0x010E
 #define HID_CMD_GET_FAVORITES       0x010F
 // Define used to identify commands
 #define HID_FIRST_CMD_FOR_MMM       HID_CMD_GET_START_PARENTS
