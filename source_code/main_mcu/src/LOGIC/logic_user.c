@@ -762,6 +762,8 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
 {
     uint8_t temp_cred_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     BOOL prev_gen_credential_flag = FALSE;
+    BOOL password_valid_flag = FALSE;
+    uint16_t pwd_length = 0;
     
     /* Copy strings locally */
     cust_char_t service_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)];
@@ -864,20 +866,29 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
         }
         
         /* Get prefilled message */
-        uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr, &prev_gen_credential_flag);
+        uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr, &prev_gen_credential_flag, &password_valid_flag);
         
-        /* User approved, decrypt password */
-        logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
-        
-        /* If old generation password, convert it to unicode */
-        if (prev_gen_credential_flag != FALSE)
+        /* Password valid? */
+        if (password_valid_flag == FALSE)
         {
-            _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
-            utils_ascii_to_unicode((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
-        }
-                
-        /* Get password length */
-        uint16_t pwd_length = utils_strlen(&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]));
+            send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index] = 0;
+            pwd_length = 0;
+        } 
+        else
+        {
+            /* User approved, decrypt password */
+            logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
+            
+            /* If old generation password, convert it to unicode */
+            if (prev_gen_credential_flag != FALSE)
+            {
+                _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
+                utils_ascii_to_unicode((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+            }
+            
+            /* Get password length */
+            pwd_length = utils_strlen(&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]));
+        }        
         
         /* Compute payload size */
         uint16_t return_payload_size = return_payload_size_without_pwd + (pwd_length + 1)*sizeof(cust_char_t);
@@ -915,20 +926,29 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
             else
             {
                 /* Get prefilled message */
-                uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr, &prev_gen_credential_flag);
+                uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr, &prev_gen_credential_flag, &password_valid_flag);
                 
-                /* User approved, decrypt password */
-                logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
-                
-                /* If old generation password, convert it to unicode */
-                if (prev_gen_credential_flag != FALSE)
+                /* Password valid? */
+                if (password_valid_flag == FALSE)
                 {
-                    _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
-                    utils_ascii_to_unicode((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
-                }
-                
-                /* Get password length */
-                uint16_t pwd_length = utils_strlen(&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]));
+                    send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index] = 0;
+                    pwd_length = 0;
+                } 
+                else
+                {
+                    /* User approved, decrypt password */
+                    logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
+                    
+                    /* If old generation password, convert it to unicode */
+                    if (prev_gen_credential_flag != FALSE)
+                    {
+                        _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
+                        utils_ascii_to_unicode((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+                    }
+                    
+                    /* Get password length */
+                    pwd_length = utils_strlen(&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]));
+                }                
                 
                 /* Compute payload size */
                 uint16_t return_payload_size = return_payload_size_without_pwd + (pwd_length + 1)*sizeof(cust_char_t);
@@ -1284,6 +1304,19 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
         } 
         else if (state_machine == 2)
         {
+            /* Is the password valid? */
+            if (temp_cnode.passwordBlankFlag != FALSE)
+            {
+                if (login_or_password_typed == FALSE)
+                {
+                    return RETURN_NOK;
+                }
+                else
+                {
+                    return RETURN_OK;
+                }
+            }
+            
             /* Ask for password confirmation */
             custom_fs_get_string_from_file(TYPE_PASSWORD_TEXT_ID, &two_line_prompt_2, TRUE);
             conf_text_2_lines.lines[1] = two_line_prompt_2;

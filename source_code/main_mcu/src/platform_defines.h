@@ -75,6 +75,7 @@
         - Handle power switches during prompts
         - Allow aux MCU to overwrite battery status at first boot
 - v0.20:- _unlock_ service feature
+        - detection of computer shutdown
 */
 
 /**************** SETUP DEFINES ****************/

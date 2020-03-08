@@ -282,6 +282,12 @@ void logic_gui_display_login_password(child_cred_node_t* child_node)
     /* 0 terminate password */
     child_node->cust_char_password[MEMBER_ARRAY_SIZE(child_cred_node_t, cust_char_password) - 1] = 0;
     
+    /* Check for valid password */
+    if (child_node->passwordBlankFlag != FALSE)
+    {
+        child_node->cust_char_password[0] = 0;
+    }
+    
     /* If old generation password, convert it to unicode */
     if (prev_gen_credential_flag != FALSE)
     {

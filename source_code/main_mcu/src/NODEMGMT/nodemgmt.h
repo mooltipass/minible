@@ -152,7 +152,7 @@ typedef struct
     uint16_t keyAfterLogin;         // Typed key after login
     uint16_t keyAfterPassword;      // Typed key after password
     uint16_t fakeFlags;             // Same as flags but with bit 5 set to 1
-    uint8_t reserved;               // Reserved
+    uint8_t passwordBlankFlag;      // No password flag
     uint8_t ctr[3];                 // Encryption counter
     union
     {

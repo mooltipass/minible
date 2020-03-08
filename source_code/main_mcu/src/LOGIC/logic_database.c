@@ -644,6 +644,7 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
         memcpy(temp_cnode.password, password, sizeof(temp_cnode.password));
         temp_cnode.fakeFlags &= ~NODEMGMT_PREVGEN_BIT_BITMASK;
         temp_cnode.flags &= ~NODEMGMT_PREVGEN_BIT_BITMASK;
+        temp_cnode.passwordBlankFlag = FALSE;
     }
     
     /* Then write back to flash at same address */
@@ -731,8 +732,13 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
     }
     if (password != 0)
     {
+        temp_cnode.passwordBlankFlag = FALSE;
         memcpy(temp_cnode.ctr, ctr, MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr));
         memcpy(temp_cnode.password, password, sizeof(temp_cnode.password));
+    }
+    else
+    {
+        temp_cnode.passwordBlankFlag = TRUE;
     }
     
     /* Set "master setting" for keys pressed after login & password entering */
@@ -781,15 +787,16 @@ void logic_database_fetch_encrypted_password(uint16_t child_node_addr, uint8_t* 
     }
 }
 
-/*! \fn     logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag)
+/*! \fn     logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag, BOOL* password_valid)
 *   \brief  Fill a get cred message packet
 *   \param  child_node_addr             Child node address
 *   \param  send_msg                    Pointer to send message
 *   \param  cred_ctr                    Where to store credential CTR
 *   \param  prev_gen_credential_flag    Where to store flag for previous gen cred
+*   \param  password_valid              Boolean set depending if the password is valid
 *   \return Payload size without pwd
 */
-uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag)
+uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag, BOOL* password_valid)
 {
     child_cred_node_t temp_cnode;    
     uint16_t current_index = 0;
@@ -840,6 +847,16 @@ uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, h
     else
     {
         *prev_gen_credential_flag = FALSE;
+    }
+    
+    /* Set password valid flag */
+    if (temp_cnode.passwordBlankFlag == FALSE)
+    {
+        *password_valid = TRUE;
+    } 
+    else
+    {
+        *password_valid = FALSE;
     }
     
     return current_index*sizeof(cust_char_t) + sizeof(send_msg->get_credential_answer.login_name_index) + sizeof(send_msg->get_credential_answer.description_index) + sizeof(send_msg->get_credential_answer.third_field_index) + sizeof(send_msg->get_credential_answer.password_index);
