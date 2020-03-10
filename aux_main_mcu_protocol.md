@@ -27,7 +27,8 @@ from main MCU:
 - 0x0006: [NiMH Charge Status Message Request/Answer from/to Main MCU](nimh_charge_message)  
 - 0x0007: [Ping Request with Information from Main MCU](ping_with_info_message)  
 - 0x0008: [Keyboard typing message](keyboard_typing_message)  
-  
+- 0x0009: [FIDO2 messages](FIDO2_messages.md)
+
 **From Main MCU: Payload Length Field**  
 Total payload length.  
 
