@@ -607,7 +607,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     }
 }
 
-/*! \fn     logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t** credential_id_allow_list, uint16_t credential_id_allow_list_length)
+/*! \fn     logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t credential_id_allow_list[FIDO2_ALLOW_LIST_MAX_SIZE][FIDO2_CREDENTIAL_ID_LENGTH], uint16_t credential_id_allow_list_length)
 *   \brief  Get credential private key for a possible credential for a relying party
 *   \param  rp_id                           Pointer to relying party string
 *   \param  credential_id                   16B buffer to where to store the credential id
@@ -619,7 +619,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
 *   \param  credential_id_allow_list_length Length of the credential allow list
 *   \return success status
 */
-fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t** credential_id_allow_list, uint16_t credential_id_allow_list_length)
+fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t credential_id_allow_list[FIDO2_ALLOW_LIST_MAX_SIZE][FIDO2_CREDENTIAL_ID_LENGTH], uint16_t credential_id_allow_list_length)
 {
     uint8_t temp_cred_ctr[MEMBER_SIZE(child_webauthn_node_t, ctr)];
     
