@@ -236,6 +236,7 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
                 else
                 {
                     /* Not seeing the point of displaying a notification as our memory is huge, especially given the added logic in case we're filtering for other messages */
+                    while(1);
                 }
             }
             break;
@@ -256,6 +257,53 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
             {
                 aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.ble_message.message_id);
             }
+
+            /* Send message */
+            comms_aux_mcu_send_message(FALSE);
+            break;
+        }
+        case BLE_MESSAGE_RECALL_BOND_INFO_IRK:
+        {
+            /* Prepare answer */
+            memset(&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
+            aux_mcu_send_message.message_type = received_message->message_type;
+            aux_mcu_send_message.ble_message.message_id = received_message->ble_message.message_id;
+            
+            /* Try to fetch bonding information */
+            if (nodemgmt_get_bluetooth_bonding_information_for_irk(received_message->ble_message.payload, &aux_mcu_send_message.ble_message.bonding_information_to_store_message) == RETURN_OK)
+            {
+                aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.ble_message.message_id) + sizeof(aux_mcu_send_message.ble_message.bonding_information_to_store_message);
+            }
+            else
+            {
+                aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.ble_message.message_id);
+            }
+
+            /* Send message */
+            comms_aux_mcu_send_message(FALSE);
+            break;
+        }
+        case BLE_MESSAGE_GET_IRK_KEYS:
+        {
+            uint16_t nb_irk_keys;
+            
+            /* Prepare answer */
+            memset(&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
+            aux_mcu_send_message.message_type = received_message->message_type;
+            aux_mcu_send_message.ble_message.message_id = received_message->ble_message.message_id;
+            
+            /* Static asserts */
+            _Static_assert(NB_MAX_BONDING_INFORMATION + 1 < (AUX_MCU_MSG_PAYLOAD_LENGTH-2)/MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t,peer_irk_key), "Message size doesn't allow storage of all IRK keys");
+            
+            /* Store IRKs: first 2 bytes is payload size, next is the aggregated keys, then an empty IRK key */
+            nodemgmt_get_bluetooth_bonding_information_irks(&nb_irk_keys, &(aux_mcu_send_message.ble_message.payload[2]));
+            
+            /* Add empty irk key to the count (set to 0 by the memset above) */
+            nb_irk_keys += 1;
+            
+            /* Update payload size */
+            aux_mcu_send_message.payload_length1 = sizeof(nb_irk_keys) + nb_irk_keys*MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t,peer_irk_key);
+            aux_mcu_send_message.ble_message.payload_as_uint16_t[0] = nb_irk_keys;
 
             /* Send message */
             comms_aux_mcu_send_message(FALSE);

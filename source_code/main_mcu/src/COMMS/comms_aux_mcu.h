@@ -84,13 +84,15 @@
 #define AUX_MCU_EVENT_USB_TIMEOUT       0x000E
 
 // BLE commands
-#define BLE_MESSAGE_CMD_ENABLE          0x0001
-#define BLE_MESSAGE_CMD_DISABLE         0x0002
-#define BLE_MESSAGE_STORE_BOND_INFO     0x0003
-#define BLE_MESSAGE_RECALL_BOND_INFO    0x0004
-#define BLE_MESSAGE_CLEAR_BOND_INFO     0x0005
-#define BLE_MESSAGE_ENABLE_PAIRING      0x0006
-#define BLE_MESSAGE_DISABLE_PAIRING     0x0007
+#define BLE_MESSAGE_CMD_ENABLE              0x0001
+#define BLE_MESSAGE_CMD_DISABLE             0x0002
+#define BLE_MESSAGE_STORE_BOND_INFO         0x0003
+#define BLE_MESSAGE_RECALL_BOND_INFO        0x0004
+#define BLE_MESSAGE_CLEAR_BOND_INFO         0x0005
+#define BLE_MESSAGE_ENABLE_PAIRING          0x0006
+#define BLE_MESSAGE_DISABLE_PAIRING         0x0007
+#define BLE_MESSAGE_GET_IRK_KEYS            0x0008
+#define BLE_MESSAGE_RECALL_BOND_INFO_IRK    0x0009
 
 /* FIDO2 messages start */
 #define AUX_MCU_MSG_TYPE_FIDO2_START 0x0001
@@ -151,6 +153,7 @@ typedef struct
     {
         nodemgmt_bluetooth_bonding_information_t bonding_information_to_store_message;
         uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)];
+        uint16_t payload_as_uint16_t[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t))/2];
     };
 } ble_message_t;
 

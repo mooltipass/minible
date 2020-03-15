@@ -674,6 +674,75 @@ RET_TYPE nodemgmt_get_bluetooth_bonding_information_for_mac_addr(uint8_t address
     return RETURN_NOK;   
 }
 
+/*! \fn     nodemgmt_get_bluetooth_bonding_information_for_irk(uint8_t* irk_key, nodemgmt_bluetooth_bonding_information_t* bonding_information)
+ *  \brief  Get a possible bluetooth bonding information for a given irk key
+ *  \param  irk_key             The IRK key
+ *  \param  bonding_information Pointer to a where to store bonding information struct if found
+ *  \return RETURN_OK if we found bonding information
+ */
+RET_TYPE nodemgmt_get_bluetooth_bonding_information_for_irk(uint8_t* irk_key, nodemgmt_bluetooth_bonding_information_t* bonding_information)
+{
+    uint8_t irk_key_read[MEMBER_ARRAY_SIZE(nodemgmt_bluetooth_bonding_information_t, peer_irk_key)];
+    uint16_t zero_to_be_valid_read_from_flash;
+    uint16_t temp_page, temp_page_offset;
+    uint16_t temp_uid;
+    
+    /* Find an available slot */
+    for (temp_uid = 0; temp_uid < NB_MAX_BONDING_INFORMATION; temp_uid++)
+    {
+        /* Get page and offset */
+        nodemgmt_get_bluetooth_bonding_info_starting_offset(temp_uid, &temp_page, &temp_page_offset);
+        
+        /* Check for filled slot */
+        dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, zero_to_be_valid), sizeof(zero_to_be_valid_read_from_flash), &zero_to_be_valid_read_from_flash);
+        
+        /* Read irk key */
+        dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, peer_irk_key), sizeof(irk_key_read), irk_key_read);
+        
+        /* Found it? */
+        if ((zero_to_be_valid_read_from_flash == 0x0000) && (memcmp(irk_key_read, irk_key, sizeof(irk_key_read)) == 0))
+        {
+            dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset, sizeof(nodemgmt_bluetooth_bonding_information_t), (void*)bonding_information);
+            return RETURN_OK;
+        }
+    }
+    
+    /* Didn't find what we were looking for */
+    return RETURN_NOK;   
+}
+
+/*! \fn     nodemgmt_get_bluetooth_bonding_information_irks(uint16_t* nb_keys, uint8_t* aggregated_keys_buffer)
+ *  \brief  Get all IRKs for the stored bonding information
+ *  \param  nb_keys                 Where to store the number stored keys
+ *  \param  aggregated_keys_buffer  Where to store the aggregated IRKs
+ */
+void nodemgmt_get_bluetooth_bonding_information_irks(uint16_t* nb_keys, uint8_t* aggregated_keys_buffer)
+{
+    uint16_t zero_to_be_valid_read_from_flash;
+    uint16_t temp_page, temp_page_offset;
+    
+    /* Set count to 0 */
+    *nb_keys = 0;
+    
+    /* Find an available slot */
+    for (uint16_t temp_uid = 0; temp_uid < NB_MAX_BONDING_INFORMATION; temp_uid++)
+    {
+        /* Get page and offset */
+        nodemgmt_get_bluetooth_bonding_info_starting_offset(temp_uid, &temp_page, &temp_page_offset);
+        
+        /* Read zero to be valid field */
+        dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, zero_to_be_valid), sizeof(zero_to_be_valid_read_from_flash), &zero_to_be_valid_read_from_flash);
+        
+        /* Found it? */
+        if (zero_to_be_valid_read_from_flash == 0x0000)
+        {
+            /* Store IRK in aggregated buffer */
+            dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, peer_irk_key), MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t,peer_irk_key), (void*)&(aggregated_keys_buffer[(*nb_keys)*MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t,peer_irk_key)]));
+            *nb_keys += 1;
+        }
+    }
+}
+
 /*! \fn     nodemgmt_store_user_sec_preferences(uint16_t sec_preferences)
  *  \brief  Store user security preferences
  *  \param  sec_preferences Security preferences bitfield

@@ -767,3 +767,71 @@ ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t address_resolv_typ
         return RETURN_NOK;
     }
 }
+
+/*! \fn     comms_main_mcu_fetch_bonding_info_for_irk(uint8_t* irk_key, nodemgmt_bluetooth_bonding_information_t* bonding_info)
+*   \brief  Try to fetch bonding information for a given IRK key
+*   \param  irk_key         The IRK key to look for
+*   \param  bonding_info    Where to store the bonding info if we find it
+*   \return if we managed to find bonding info
+*/
+ret_type_te comms_main_mcu_fetch_bonding_info_for_irk(uint8_t* irk_key, nodemgmt_bluetooth_bonding_information_t* bonding_info)
+{
+    aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
+    aux_mcu_message_t* temp_tx_message_pt;
+    
+    /* Generate our packet */
+    comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+    temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_RECALL_BOND_INFO_IRK;
+    memcpy(temp_tx_message_pt->ble_message.payload, irk_key, MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t, peer_irk_key));
+    
+    /* Set payload size */
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t, peer_irk_key);
+    
+    /* Send packet */
+    comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
+    
+    /* Wait for message from main MCU */
+    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK);
+    
+    /* Check for success and do necessary actions */
+    if (temp_rx_message_pt->payload_length1 == sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(nodemgmt_bluetooth_bonding_information_t))
+    {
+        memcpy(bonding_info, &temp_rx_message_pt->ble_message.bonding_information_to_store_message, sizeof(nodemgmt_bluetooth_bonding_information_t));
+        return RETURN_OK;
+    } 
+    else
+    {
+        return RETURN_NOK;
+    }
+}
+
+/*! \fn     comms_main_mcu_get_bonding_info_irks(uint8_t** irk_keys_buffer)
+*   \brief  Fetch all IRKs for stored bonding informations
+*   \param  irk_keys_buffer     Where to store the pointer to the irk keys fetched
+*   \return Number of IRK keys fetched
+*   \note   The data stored in irk_keys_buffer will be erroneous at the next comms_main_mcu call
+*/
+uint16_t comms_main_mcu_get_bonding_info_irks(uint8_t** irk_keys_buffer)
+{
+    aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
+    aux_mcu_message_t* temp_tx_message_pt;
+    
+    /* Generate our packet */
+    comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+    temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_GET_IRK_KEYS;
+    
+    /* Set payload size */
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
+    
+    /* Send packet */
+    comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
+    
+    /* Wait for message from main MCU */
+    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK);
+    
+    /* Store pointer to array */
+    *irk_keys_buffer = &(temp_rx_message_pt->ble_message.payload[2]);
+    
+    /* Return number of keys received */
+    return temp_rx_message_pt->ble_message.payload_as_uint16_t[0];
+}

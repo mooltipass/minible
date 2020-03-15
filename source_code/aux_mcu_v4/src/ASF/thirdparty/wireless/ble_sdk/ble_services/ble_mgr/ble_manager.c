@@ -1165,22 +1165,19 @@ at_ble_status_t ble_connected_state_handler(void *params)
 		}
 		else if((conn_params->peer_addr.type == AT_BLE_ADDRESS_RANDOM_PRIVATE_RESOLVABLE) && 
 				(memcmp((uint8_t *)&ble_peripheral_dev_address, (uint8_t *)&conn_params->peer_addr, sizeof(at_ble_addr_t))))
-		{
-			uint8_t idx1, idx2;
-			uint16_t key_len = 0;
-			uint8_t irk_key[BLE_MAX_DEVICE_CONNECTION * AT_BLE_MAX_KEY_LEN] = {0, };
-			for (idx1 = 0; idx1 < BLE_MAX_DEVICE_CONNECTION; idx1++)
-			{
-				for (idx2 = 0; idx2 < AT_BLE_MAX_KEY_LEN; idx2++)
-				{
-					irk_key[key_len++] = ble_dev_info[idx1].bond_info.peer_irk.key[idx2];
-				}
-			}
+		{            
+            uint8_t* irk_keys_buffer;
+            uint16_t nb_irk_keys = comms_main_mcu_get_bonding_info_irks(&irk_keys_buffer);
+            DBG_LOG_DEV("Received %d IRK keys from main MCU", nb_irk_keys);
+            for (uint16_t i=0; i < nb_irk_keys; i++)
+            {
+                DBG_LOG("IRK: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",irk_keys_buffer[i*16+0],irk_keys_buffer[i*16+1],irk_keys_buffer[i*16+2],irk_keys_buffer[i*16+3],irk_keys_buffer[i*16+4],irk_keys_buffer[i*16+5],irk_keys_buffer[i*16+6],irk_keys_buffer[i*16+7],irk_keys_buffer[i*16+8],irk_keys_buffer[i*16+9],irk_keys_buffer[i*16+10],irk_keys_buffer[i*16+11],irk_keys_buffer[i*16+12],irk_keys_buffer[i*16+13],irk_keys_buffer[i*16+14],irk_keys_buffer[i*16+15]);
+            }
 			
-			if(at_ble_random_address_resolve(BLE_MAX_DEVICE_CONNECTION, &conn_params->peer_addr, irk_key) == AT_BLE_SUCCESS)
+			if(at_ble_random_address_resolve((uint8_t)nb_irk_keys, &conn_params->peer_addr, irk_keys_buffer) == AT_BLE_SUCCESS)
 			{
-				resolve_addr_flag = true;
 				DBG_LOG_DEV("Resolving Random address success**");
+				resolve_addr_flag = true;
 				return AT_BLE_SUCCESS;
 			}
 			else
@@ -1212,25 +1209,63 @@ at_ble_status_t ble_connected_state_handler(void *params)
 
 at_ble_status_t ble_resolv_rand_addr_handler(void *params)
 {
-	at_ble_resolv_rand_addr_status_t *ble_resolv_rand_addr_status;
-	uint8_t idx;	
-	bool device_found = false;
+    at_ble_resolv_rand_addr_status_t* ble_resolv_rand_addr_status = (at_ble_resolv_rand_addr_status_t *)params;
+	nodemgmt_bluetooth_bonding_information_t recalled_bonding_info;
 	bool peripheral_device_added = false;
-	ble_resolv_rand_addr_status = (at_ble_resolv_rand_addr_status_t *)params;	
+	bool device_found = false;
+	uint8_t idx = 0;	
 	
 	if(ble_resolv_rand_addr_status->status == AT_BLE_SUCCESS)
-	{		
-		for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
-		{
-			/* Check the Resolved Address */
-			if (!memcmp((uint8_t *)ble_resolv_rand_addr_status->irk, (uint8_t *)ble_dev_info[idx].bond_info.peer_irk.key, AT_BLE_MAX_KEY_LEN))
-			{
-				device_found = true;
-				break;
-			}
-		}	
-		
+	{
+    	DBG_LOG_DEV("ble_resolv_rand_addr_handler: success");
+        	
+        /* Ask our dear MCU */
+        if (comms_main_mcu_fetch_bonding_info_for_irk((uint8_t*)ble_resolv_rand_addr_status->irk, &recalled_bonding_info) == RETURN_OK)
+        {
+            DBG_LOG_DEV("Main MCU knows IRK key");
+            
+            ble_dev_info[0].bond_info.status = AT_BLE_GAP_INVALID_PARAM;
+            ble_dev_info[0].conn_state = BLE_DEVICE_CONNECTED;
+            device_found = true;
+                
+            /***********************/
+            /* Bonding information */
+            /***********************/
+                
+            /* General stuff */
+            ble_dev_info[0].bond_info.auth = recalled_bonding_info.auth_type;
+            ble_dev_info[0].conn_info.peer_addr.type = recalled_bonding_info.address_resolv_type;
+            memcpy(ble_dev_info[0].conn_info.peer_addr.addr, recalled_bonding_info.mac_address, sizeof(recalled_bonding_info.mac_address));
+                
+            /* Peer LTK */
+            memcpy(ble_dev_info[0].bond_info.peer_ltk.key, recalled_bonding_info.peer_ltk_key, sizeof(recalled_bonding_info.peer_ltk_key));
+            ble_dev_info[0].bond_info.peer_ltk.ediv = recalled_bonding_info.peer_ltk_ediv;
+            memcpy(ble_dev_info[0].bond_info.peer_ltk.nb, recalled_bonding_info.peer_ltk_random_nb, sizeof(recalled_bonding_info.peer_ltk_random_nb));
+            ble_dev_info[0].bond_info.peer_ltk.key_size = recalled_bonding_info.peer_ltk_key_size;
+                
+            /* CSRK */
+            memcpy(ble_dev_info[0].bond_info.peer_csrk.key, recalled_bonding_info.peer_csrk_key, sizeof(recalled_bonding_info.peer_csrk_key));
+                
+            /* IRK */
+            memcpy(ble_dev_info[0].bond_info.peer_irk.key, recalled_bonding_info.peer_irk_key, sizeof(recalled_bonding_info.peer_irk_key));
+            ble_dev_info[0].bond_info.peer_irk.addr.type = recalled_bonding_info.peer_irk_resolv_type;
+            memcpy(ble_dev_info[0].bond_info.peer_irk.addr.addr, recalled_bonding_info.peer_irk_address, sizeof(recalled_bonding_info.peer_irk_address));
+                
+            /* Host LTK */
+            memcpy(ble_dev_info[0].host_ltk.key, recalled_bonding_info.host_ltk_key, sizeof(recalled_bonding_info.host_ltk_key));
+            ble_dev_info[0].host_ltk.ediv = recalled_bonding_info.host_ltk_ediv;
+            memcpy(ble_dev_info[0].host_ltk.nb, recalled_bonding_info.host_ltk_random_nb, sizeof(recalled_bonding_info.host_ltk_random_nb));
+            ble_dev_info[0].host_ltk.key_size = recalled_bonding_info.host_ltk_key_size;
+        }	
+        else
+        {
+            DBG_LOG_DEV("Main MCU doesn't know IRK key");
+        }            	
 	}
+    else
+    {
+        DBG_LOG_DEV("ble_resolv_rand_addr_handler: no success");
+    }        
 	
 	if (device_found)
 	{
@@ -1245,31 +1280,40 @@ at_ble_status_t ble_resolv_rand_addr_handler(void *params)
 	}
 	else
 	{
-		DBG_LOG_DEV("##########Device Not Found");
-		if (ble_device_count == BLE_MAX_DEVICE_CONNECTION)
-		{
-			DBG_LOG("Max number of connection reached: %d ===>Disconnecting...", ble_device_count);
-			at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
-			return AT_BLE_FAILURE;
-		}
-		for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
-		{
-			if(ble_dev_info[idx].conn_state == BLE_DEVICE_DEFAULT_IDLE)
-			{
-				memcpy(&ble_dev_info[idx].conn_info, (uint8_t *)&connected_state_info, sizeof(at_ble_connected_t));
-				ble_device_count++;
-				ble_dev_info[idx].conn_state = BLE_DEVICE_CONNECTED;
-				ble_dev_info[idx].dev_role = AT_BLE_ROLE_PERIPHERAL;
-				peripheral_device_added = true;
-				break;
-			}
-		}
+        if (logic_bluetooth_get_open_to_pairing() == FALSE)
+        {
+            /* No intention to pair... disconnect */
+            at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
+            DBG_LOG("Unknown device and we don't allow pairing... bye!");
+            return AT_BLE_FAILURE;
+        }
+        else
+        {
+		    DBG_LOG_DEV("##########Device Not Found");
+		    if (ble_device_count == BLE_MAX_DEVICE_CONNECTION)
+		    {
+    		    DBG_LOG("Max number of connection reached: %d ===>Disconnecting...", ble_device_count);
+    		    at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
+    		    return AT_BLE_FAILURE;
+		    }
+		    for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
+		    {
+    		    if(ble_dev_info[idx].conn_state == BLE_DEVICE_DEFAULT_IDLE)
+    		    {
+        		    memcpy(&ble_dev_info[idx].conn_info, (uint8_t *)&connected_state_info, sizeof(at_ble_connected_t));
+        		    ble_device_count++;
+        		    ble_dev_info[idx].conn_state = BLE_DEVICE_CONNECTED;
+        		    ble_dev_info[idx].dev_role = AT_BLE_ROLE_PERIPHERAL;
+        		    peripheral_device_added = true;
+        		    break;
+    		    }
+		    }
+        }        
 	}
 	if(!resolve_addr_flag)
 	{
 		send_slave_security_flag = false;
 		ble_encryption_request_handler((void *)temp_param);
-		
 	}
 	else
 	{

@@ -84,7 +84,11 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODEMGMT_BTBONDINFO_VUSER_SLOT_START        MAX_NUMBER_OF_USERS
 #define NODEMGMT_BTBONDINFO_VUSER_SLOT_STOP         128
 #define NODEMGMT_BTBONDINFO_SIZE                    (NODEMGMT_USER_PROFILE_SIZE/2)
-#define NB_MAX_BONDING_INFORMATION                  (NODEMGMT_BTBONDINFO_VUSER_SLOT_STOP-NODEMGMT_BTBONDINFO_VUSER_SLOT_START)*2*2  // For each user, we have one profile + user category names
+#define NB_MAX_BONDING_INFORMATION_TH               (NODEMGMT_BTBONDINFO_VUSER_SLOT_STOP-NODEMGMT_BTBONDINFO_VUSER_SLOT_START)*2*2  // For each user, we have one profile + user category names
+#define NB_MAX_BONDING_INFORMATION                  32
+#if NB_MAX_BONDING_INFORMATION > NB_MAX_BONDING_INFORMATION_TH
+    #error "Max number of bonding information too high"
+#endif
 
 /* Credential types IDs */
 #define NODEMGMT_STANDARD_CRED_TYPE_ID      0
@@ -394,6 +398,7 @@ uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeAr
 RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress);
 void nodemgmt_read_webauthn_child_node_except_display_name(uint16_t address, child_webauthn_node_t* child_node, BOOL update_date_and_increment_preinc_count);
 void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout, uint16_t* userBLELayout);
+RET_TYPE nodemgmt_get_bluetooth_bonding_information_for_irk(uint8_t* irk_key, nodemgmt_bluetooth_bonding_information_t* bonding_information);
 void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId, uint16_t keyboardId, uint16_t bleKeyboardId);
 void nodemgmt_read_webauthn_child_node(uint16_t address, child_webauthn_node_t* child_node, BOOL update_date_and_increment_preinc_count);
 uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
@@ -407,6 +412,7 @@ void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* ch
 void nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress);
 void nodemgmt_get_bluetooth_bonding_info_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 void nodemgmt_get_user_category_names_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
+void nodemgmt_get_bluetooth_bonding_information_irks(uint16_t* nb_keys, uint8_t* aggregated_keys_buffer);
 void nodemgmt_get_user_profile_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 RET_TYPE nodemgmt_create_child_node(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedAddress);
 void nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_node_t* parent_node);
