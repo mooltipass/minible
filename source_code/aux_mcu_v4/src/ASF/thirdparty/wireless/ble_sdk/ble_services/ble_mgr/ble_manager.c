@@ -45,10 +45,6 @@
 #include "logic_rng.h"
 #include "platform.h"
 
-#if defined PDS_SERVICE
-#include "pds.h"
-#endif
-
 #if BLE_DEVICE_ROLE == BLE_ROLE_ALL
 #ifndef ATT_DB_MEMORY
 #define ATT_DB_MEMORY
@@ -66,11 +62,9 @@ uint32_t att_db_data[BLE_ATT_DB_MEMORY_SIZE/4] = {0};
 /* Refer Bluetooth Core Specification-4.1, Volume-3, Part-H, Section-2.4.6 */
 bool volatile send_slave_security_flag = true;
 
-volatile uint8_t ble_device_count;
-
 bool volatile resolve_addr_flag = false;
 
-ble_connected_dev_info_t ble_dev_info[BLE_MAX_DEVICE_CONNECTION];
+ble_connected_dev_info_t ble_device_info;
 
 static at_ble_addr_t ble_peripheral_dev_address;
 
@@ -228,30 +222,12 @@ at_ble_init_config_t pf_cfg = {
 /** @brief BLE device initialization */
 void ble_device_init(at_ble_addr_t *addr, at_ble_gap_deviceinfo_t* device_info)
 {
-	uint8_t idx;	
-
 #ifdef BTLC_REINIT_SUPPORT
 	static bool btlc1000_initialized = false;
 #endif
    
-    /* Set the BLE Device connection state */
-    for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
-    {
-        memset(&ble_dev_info[idx], 0, sizeof(ble_connected_dev_info_t));
-		ble_dev_info[idx].conn_state = BLE_DEVICE_DEFAULT_IDLE;
-		/* Set Invalid to Bonding information */
-		ble_dev_info[idx].bond_info.status = AT_BLE_GAP_INVALID_PARAM;
-		ble_dev_info[idx].dev_role = AT_BLE_ROLE_NONE;
-		ble_dev_info[idx].conn_info.handle = BLE_INVALID_CONNECTION_HANDLE;
-    }
-	/* Need to reset the count to 0 for storing it only in SRAM */
-	ble_device_count = 0;
-	
-	#if defined PDS_SERVICE
-		/* Restore the bonding information from PDS */
-		ble_restore_bonding_info();
-	#endif
-	
+    /* Reset bond info data */
+    ble_clear_bond_info();	
 	
 #if defined ATT_DB_MEMORY
 	pf_cfg.memPool.memSize = BLE_ATT_DB_MEMORY_SIZE;
@@ -975,78 +951,58 @@ bool ble_check_disconnected_isperipheral(at_ble_handle_t handle)
 
 at_ble_status_t ble_connected_device_role(at_ble_handle_t conn_handle, at_ble_dev_role_t *dev_role)
 {
-	uint8_t idx;
 	at_ble_status_t status = AT_BLE_FAILURE;
-	for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
+	*dev_role = AT_BLE_ROLE_NONE;
+	if((ble_device_info.conn_state != BLE_DEVICE_DEFAULT_IDLE) && (ble_device_info.conn_state != BLE_DEVICE_DISCONNECTED) && (ble_device_info.conn_info.handle == conn_handle))
 	{
-		if((ble_dev_info[idx].conn_state != BLE_DEVICE_DEFAULT_IDLE) && 
-		  (ble_dev_info[idx].conn_state != BLE_DEVICE_DISCONNECTED) &&
-		  (ble_dev_info[idx].conn_info.handle == conn_handle))
-		{
-			*dev_role = ble_dev_info[idx].dev_role;
-			status = AT_BLE_SUCCESS;
-			break;
-		}
+    	*dev_role = ble_device_info.dev_role;
+    	status = AT_BLE_SUCCESS;
 	}
 	return status;
 }
 
 at_ble_status_t ble_disconnected_device_role(at_ble_handle_t conn_handle, at_ble_dev_role_t *dev_role)
 {
-	uint8_t idx;
 	at_ble_status_t status = AT_BLE_FAILURE;
 	*dev_role = AT_BLE_ROLE_NONE;
-	for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
+	if(((ble_device_info.conn_state == BLE_DEVICE_DEFAULT_IDLE) || (ble_device_info.conn_state == BLE_DEVICE_DISCONNECTED)) && (ble_device_info.conn_info.handle == conn_handle))
 	{
-		if(((ble_dev_info[idx].conn_state == BLE_DEVICE_DEFAULT_IDLE) ||
-		(ble_dev_info[idx].conn_state == BLE_DEVICE_DISCONNECTED))&&
-		(ble_dev_info[idx].conn_info.handle == conn_handle))
-		{
-			*dev_role = ble_dev_info[idx].dev_role;
-			status = AT_BLE_SUCCESS;
-			break;
-		}
+    	*dev_role = ble_device_info.dev_role;
+    	status = AT_BLE_SUCCESS;
 	}
 	return status;
 }
 
 at_ble_status_t ble_check_device_state(at_ble_handle_t conn_handle, ble_device_state_t state)
 {
-	uint8_t idx;
 	at_ble_status_t status = AT_BLE_FAILURE;
-	for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
+	if((ble_device_info.conn_state == state) && (ble_device_info.conn_info.handle == conn_handle))
 	{
-		if((ble_dev_info[idx].conn_state == state) &&
-		  (ble_dev_info[idx].conn_info.handle == conn_handle))
-		{
-			status = AT_BLE_SUCCESS;
-			break;
-		}
+		status = AT_BLE_SUCCESS;
 	}
 	return status;
 }
 
 void ble_disconnect_all_device_and_clear_bond_info(void)
 {
-    uint8_t idx = 0;
-    
     /* Disconnect from devices */
-    for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
+    if ((ble_device_info.conn_state != BLE_DEVICE_DEFAULT_IDLE) && (ble_device_info.conn_state != BLE_DEVICE_DISCONNECTED))
     {
-        if ((ble_dev_info[idx].conn_state != BLE_DEVICE_DEFAULT_IDLE) && (ble_dev_info[idx].conn_state != BLE_DEVICE_DISCONNECTED))
-        {
-            at_ble_disconnect(ble_dev_info[idx].conn_info.handle, AT_BLE_TERMINATED_BY_USER);
-        }
+        at_ble_disconnect(ble_device_info.conn_info.handle, AT_BLE_TERMINATED_BY_USER);
     }
     
     /* Delete all pairing data */
-    memset(&ble_dev_info, 0, sizeof(ble_dev_info));
+    ble_clear_bond_info();
 }
 
 void ble_clear_bond_info(void)
 {
     /* Delete all pairing data */
-    memset(&ble_dev_info, 0, sizeof(ble_dev_info));
+    memset(&ble_device_info, 0, sizeof(ble_device_info));
+    ble_device_info.dev_role = AT_BLE_ROLE_NONE;
+    ble_device_info.conn_state = BLE_DEVICE_DEFAULT_IDLE;
+    ble_device_info.bond_info.status = AT_BLE_GAP_INVALID_PARAM;
+    ble_device_info.conn_info.handle = BLE_INVALID_CONNECTION_HANDLE;
 }
 
 /** @brief function to handle connected event received from stack */
@@ -1054,10 +1010,16 @@ at_ble_status_t ble_connected_state_handler(void *params)
 {
     nodemgmt_bluetooth_bonding_information_t recalled_bonding_info;
 	at_ble_connected_t *conn_params;
-	uint8_t idx = 0;
 	conn_params = (at_ble_connected_t *)params;
 	bool peripheral_device_added = false;
-	bool conn_exists = false;
+    
+    /* Only allow connections if we're not connected to anything else */
+    if ((ble_device_info.conn_state != BLE_DEVICE_DEFAULT_IDLE) && (ble_device_info.conn_state != BLE_DEVICE_DISCONNECTED))
+    {
+        at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
+        DBG_LOG("We're already connected to someone else... bye!");
+        return AT_BLE_FAILURE;
+    }
 	
 	if (conn_params->conn_status == AT_BLE_SUCCESS)
 	{
@@ -1078,39 +1040,39 @@ at_ble_status_t ble_connected_state_handler(void *params)
             /* Ask our dear MCU */
             if (comms_main_mcu_fetch_bonding_info_for_mac(conn_params->peer_addr.type, conn_params->peer_addr.addr, &recalled_bonding_info) == RETURN_OK)
             {
-                conn_exists = true;
-                ble_dev_info[0].conn_state = BLE_DEVICE_CONNECTED;
-                ble_dev_info[0].bond_info.status = AT_BLE_GAP_INVALID_PARAM;
-                memcpy(&ble_dev_info[0].conn_info, (uint8_t *)&connected_state_info, sizeof(at_ble_connected_t));
+                ble_device_info.conn_state = BLE_DEVICE_CONNECTED;
+                ble_device_info.bond_info.status = AT_BLE_GAP_INVALID_PARAM;
+                DBG_LOG("Successfully recalled bonding info from MAIN MCU");
+                memcpy(&ble_device_info.conn_info, (uint8_t *)&connected_state_info, sizeof(at_ble_connected_t));
                 
                 /***********************/
                 /* Bonding information */
                 /***********************/
                 
                 /* General stuff */
-                ble_dev_info[0].bond_info.auth = recalled_bonding_info.auth_type;
-                ble_dev_info[0].conn_info.peer_addr.type = recalled_bonding_info.address_resolv_type;
-                memcpy(ble_dev_info[0].conn_info.peer_addr.addr, recalled_bonding_info.mac_address, sizeof(recalled_bonding_info.mac_address));
+                ble_device_info.bond_info.auth = recalled_bonding_info.auth_type;
+                ble_device_info.conn_info.peer_addr.type = recalled_bonding_info.address_resolv_type;
+                memcpy(ble_device_info.conn_info.peer_addr.addr, recalled_bonding_info.mac_address, sizeof(recalled_bonding_info.mac_address));
                 
                 /* Peer LTK */
-                memcpy(ble_dev_info[0].bond_info.peer_ltk.key, recalled_bonding_info.peer_ltk_key, sizeof(recalled_bonding_info.peer_ltk_key));
-                ble_dev_info[0].bond_info.peer_ltk.ediv = recalled_bonding_info.peer_ltk_ediv;
-                memcpy(ble_dev_info[0].bond_info.peer_ltk.nb, recalled_bonding_info.peer_ltk_random_nb, sizeof(recalled_bonding_info.peer_ltk_random_nb));
-                ble_dev_info[0].bond_info.peer_ltk.key_size = recalled_bonding_info.peer_ltk_key_size;
+                memcpy(ble_device_info.bond_info.peer_ltk.key, recalled_bonding_info.peer_ltk_key, sizeof(recalled_bonding_info.peer_ltk_key));
+                ble_device_info.bond_info.peer_ltk.ediv = recalled_bonding_info.peer_ltk_ediv;
+                memcpy(ble_device_info.bond_info.peer_ltk.nb, recalled_bonding_info.peer_ltk_random_nb, sizeof(recalled_bonding_info.peer_ltk_random_nb));
+                ble_device_info.bond_info.peer_ltk.key_size = recalled_bonding_info.peer_ltk_key_size;
                 
                 /* CSRK */
-                memcpy(ble_dev_info[0].bond_info.peer_csrk.key, recalled_bonding_info.peer_csrk_key, sizeof(recalled_bonding_info.peer_csrk_key));
+                memcpy(ble_device_info.bond_info.peer_csrk.key, recalled_bonding_info.peer_csrk_key, sizeof(recalled_bonding_info.peer_csrk_key));
                 
                 /* IRK */
-                memcpy(ble_dev_info[0].bond_info.peer_irk.key, recalled_bonding_info.peer_irk_key, sizeof(recalled_bonding_info.peer_irk_key));
-                ble_dev_info[0].bond_info.peer_irk.addr.type = recalled_bonding_info.peer_irk_resolv_type;
-                memcpy(ble_dev_info[0].bond_info.peer_irk.addr.addr, recalled_bonding_info.peer_irk_address, sizeof(recalled_bonding_info.peer_irk_address));
+                memcpy(ble_device_info.bond_info.peer_irk.key, recalled_bonding_info.peer_irk_key, sizeof(recalled_bonding_info.peer_irk_key));
+                ble_device_info.bond_info.peer_irk.addr.type = recalled_bonding_info.peer_irk_resolv_type;
+                memcpy(ble_device_info.bond_info.peer_irk.addr.addr, recalled_bonding_info.peer_irk_address, sizeof(recalled_bonding_info.peer_irk_address));
                 
                 /* Host LTK */
-                memcpy(ble_dev_info[0].host_ltk.key, recalled_bonding_info.host_ltk_key, sizeof(recalled_bonding_info.host_ltk_key));
-                ble_dev_info[0].host_ltk.ediv = recalled_bonding_info.host_ltk_ediv;
-                memcpy(ble_dev_info[0].host_ltk.nb, recalled_bonding_info.host_ltk_random_nb, sizeof(recalled_bonding_info.host_ltk_random_nb));
-                ble_dev_info[0].host_ltk.key_size = recalled_bonding_info.host_ltk_key_size;
+                memcpy(ble_device_info.host_ltk.key, recalled_bonding_info.host_ltk_key, sizeof(recalled_bonding_info.host_ltk_key));
+                ble_device_info.host_ltk.ediv = recalled_bonding_info.host_ltk_ediv;
+                memcpy(ble_device_info.host_ltk.nb, recalled_bonding_info.host_ltk_random_nb, sizeof(recalled_bonding_info.host_ltk_random_nb));
+                ble_device_info.host_ltk.key_size = recalled_bonding_info.host_ltk_key_size;
             }
             else if (logic_bluetooth_get_open_to_pairing() == FALSE)
             {
@@ -1119,52 +1081,28 @@ at_ble_status_t ble_connected_state_handler(void *params)
                 DBG_LOG("Unknown device and we don't allow pairing... bye!");
                 return AT_BLE_FAILURE;              
             }
-            
-			/*for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
+			else
 			{
-				if(!memcmp((uint8_t *)&ble_dev_info[idx].conn_info.peer_addr, (uint8_t *)&conn_params->peer_addr, sizeof(at_ble_addr_t)))
-				{
-					ble_dev_info[idx].conn_state = BLE_DEVICE_CONNECTED;
-                    ble_dev_info[idx].bond_info.status = AT_BLE_GAP_INVALID_PARAM;
-					memcpy(&ble_dev_info[idx].conn_info, (uint8_t *)&connected_state_info, sizeof(at_ble_connected_t));
-					conn_exists = true;
-					break;
-				}
-			}*/
-			
-			if (!conn_exists)
-			{
-				if (ble_device_count == BLE_MAX_DEVICE_CONNECTION)
-				{
-					DBG_LOG("Max number of connection reached: %d ===>Disconnecting...", ble_device_count);
-					at_ble_disconnect(conn_params->handle, AT_BLE_TERMINATED_BY_USER);
-					return AT_BLE_FAILURE;
-				}
-				for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
-				{
-					if(ble_dev_info[idx].conn_state == BLE_DEVICE_DEFAULT_IDLE)
-					{
-						memcpy(&ble_dev_info[idx].conn_info, (uint8_t *)conn_params, sizeof(at_ble_connected_t));
-						ble_device_count++;
-						ble_dev_info[idx].conn_state = BLE_DEVICE_CONNECTED;
-						break;
-					}
-				}
+                /* New connection ! */
+    			memcpy(&ble_device_info.conn_info, (uint8_t *)conn_params, sizeof(at_ble_connected_t));
+    			ble_device_info.conn_state = BLE_DEVICE_CONNECTED;
+                DBG_LOG("Allowing new connection to unknown device");
 			}
 			
 			if(!memcmp((uint8_t *)&ble_peripheral_dev_address, (uint8_t *)&conn_params->peer_addr, sizeof(at_ble_addr_t)))
 			{
-				ble_dev_info[idx].dev_role = AT_BLE_ROLE_CENTRAL;
+				ble_device_info.dev_role = AT_BLE_ROLE_CENTRAL;
+				DBG_LOG("Central role");
 			}
 			else
 			{
 				ble_device_current_state = PERIPHERAL_CONNECTED_STATE;
-				ble_dev_info[idx].dev_role = AT_BLE_ROLE_PERIPHERAL;
+				ble_device_info.dev_role = AT_BLE_ROLE_PERIPHERAL;
 				peripheral_device_added = true;
+				DBG_LOG("Peripheral role");
 			}
 		}
-		else if((conn_params->peer_addr.type == AT_BLE_ADDRESS_RANDOM_PRIVATE_RESOLVABLE) && 
-				(memcmp((uint8_t *)&ble_peripheral_dev_address, (uint8_t *)&conn_params->peer_addr, sizeof(at_ble_addr_t))))
+		else if((conn_params->peer_addr.type == AT_BLE_ADDRESS_RANDOM_PRIVATE_RESOLVABLE) && (memcmp((uint8_t *)&ble_peripheral_dev_address, (uint8_t *)&conn_params->peer_addr, sizeof(at_ble_addr_t))))
 		{            
             uint8_t* irk_keys_buffer;
             uint16_t nb_irk_keys = comms_main_mcu_get_bonding_info_irks(&irk_keys_buffer);
@@ -1193,7 +1131,7 @@ at_ble_status_t ble_connected_state_handler(void *params)
 		
 #if ((BLE_DEVICE_ROLE == BLE_ROLE_PERIPHERAL) || (BLE_DEVICE_ROLE == BLE_ROLE_ALL))
 		
-        if((ble_dev_info[idx].dev_role == AT_BLE_ROLE_PERIPHERAL) && (peripheral_device_added))
+        if((ble_device_info.dev_role == AT_BLE_ROLE_PERIPHERAL) && (peripheral_device_added))
         {
 	 		ble_send_slave_sec_request(conn_params->handle);
         }
@@ -1213,7 +1151,6 @@ at_ble_status_t ble_resolv_rand_addr_handler(void *params)
 	nodemgmt_bluetooth_bonding_information_t recalled_bonding_info;
 	bool peripheral_device_added = false;
 	bool device_found = false;
-	uint8_t idx = 0;	
 	
 	if(ble_resolv_rand_addr_status->status == AT_BLE_SUCCESS)
 	{
@@ -1224,8 +1161,8 @@ at_ble_status_t ble_resolv_rand_addr_handler(void *params)
         {
             DBG_LOG_DEV("Main MCU knows IRK key");
             
-            ble_dev_info[0].bond_info.status = AT_BLE_GAP_INVALID_PARAM;
-            ble_dev_info[0].conn_state = BLE_DEVICE_CONNECTED;
+            ble_device_info.bond_info.status = AT_BLE_GAP_INVALID_PARAM;
+            ble_device_info.conn_state = BLE_DEVICE_CONNECTED;
             device_found = true;
                 
             /***********************/
@@ -1233,29 +1170,29 @@ at_ble_status_t ble_resolv_rand_addr_handler(void *params)
             /***********************/
                 
             /* General stuff */
-            ble_dev_info[0].bond_info.auth = recalled_bonding_info.auth_type;
-            ble_dev_info[0].conn_info.peer_addr.type = recalled_bonding_info.address_resolv_type;
-            memcpy(ble_dev_info[0].conn_info.peer_addr.addr, recalled_bonding_info.mac_address, sizeof(recalled_bonding_info.mac_address));
+            ble_device_info.bond_info.auth = recalled_bonding_info.auth_type;
+            ble_device_info.conn_info.peer_addr.type = recalled_bonding_info.address_resolv_type;
+            memcpy(ble_device_info.conn_info.peer_addr.addr, recalled_bonding_info.mac_address, sizeof(recalled_bonding_info.mac_address));
                 
             /* Peer LTK */
-            memcpy(ble_dev_info[0].bond_info.peer_ltk.key, recalled_bonding_info.peer_ltk_key, sizeof(recalled_bonding_info.peer_ltk_key));
-            ble_dev_info[0].bond_info.peer_ltk.ediv = recalled_bonding_info.peer_ltk_ediv;
-            memcpy(ble_dev_info[0].bond_info.peer_ltk.nb, recalled_bonding_info.peer_ltk_random_nb, sizeof(recalled_bonding_info.peer_ltk_random_nb));
-            ble_dev_info[0].bond_info.peer_ltk.key_size = recalled_bonding_info.peer_ltk_key_size;
+            memcpy(ble_device_info.bond_info.peer_ltk.key, recalled_bonding_info.peer_ltk_key, sizeof(recalled_bonding_info.peer_ltk_key));
+            ble_device_info.bond_info.peer_ltk.ediv = recalled_bonding_info.peer_ltk_ediv;
+            memcpy(ble_device_info.bond_info.peer_ltk.nb, recalled_bonding_info.peer_ltk_random_nb, sizeof(recalled_bonding_info.peer_ltk_random_nb));
+            ble_device_info.bond_info.peer_ltk.key_size = recalled_bonding_info.peer_ltk_key_size;
                 
             /* CSRK */
-            memcpy(ble_dev_info[0].bond_info.peer_csrk.key, recalled_bonding_info.peer_csrk_key, sizeof(recalled_bonding_info.peer_csrk_key));
+            memcpy(ble_device_info.bond_info.peer_csrk.key, recalled_bonding_info.peer_csrk_key, sizeof(recalled_bonding_info.peer_csrk_key));
                 
             /* IRK */
-            memcpy(ble_dev_info[0].bond_info.peer_irk.key, recalled_bonding_info.peer_irk_key, sizeof(recalled_bonding_info.peer_irk_key));
-            ble_dev_info[0].bond_info.peer_irk.addr.type = recalled_bonding_info.peer_irk_resolv_type;
-            memcpy(ble_dev_info[0].bond_info.peer_irk.addr.addr, recalled_bonding_info.peer_irk_address, sizeof(recalled_bonding_info.peer_irk_address));
+            memcpy(ble_device_info.bond_info.peer_irk.key, recalled_bonding_info.peer_irk_key, sizeof(recalled_bonding_info.peer_irk_key));
+            ble_device_info.bond_info.peer_irk.addr.type = recalled_bonding_info.peer_irk_resolv_type;
+            memcpy(ble_device_info.bond_info.peer_irk.addr.addr, recalled_bonding_info.peer_irk_address, sizeof(recalled_bonding_info.peer_irk_address));
                 
             /* Host LTK */
-            memcpy(ble_dev_info[0].host_ltk.key, recalled_bonding_info.host_ltk_key, sizeof(recalled_bonding_info.host_ltk_key));
-            ble_dev_info[0].host_ltk.ediv = recalled_bonding_info.host_ltk_ediv;
-            memcpy(ble_dev_info[0].host_ltk.nb, recalled_bonding_info.host_ltk_random_nb, sizeof(recalled_bonding_info.host_ltk_random_nb));
-            ble_dev_info[0].host_ltk.key_size = recalled_bonding_info.host_ltk_key_size;
+            memcpy(ble_device_info.host_ltk.key, recalled_bonding_info.host_ltk_key, sizeof(recalled_bonding_info.host_ltk_key));
+            ble_device_info.host_ltk.ediv = recalled_bonding_info.host_ltk_ediv;
+            memcpy(ble_device_info.host_ltk.nb, recalled_bonding_info.host_ltk_random_nb, sizeof(recalled_bonding_info.host_ltk_random_nb));
+            ble_device_info.host_ltk.key_size = recalled_bonding_info.host_ltk_key_size;
         }	
         else
         {
@@ -1270,12 +1207,12 @@ at_ble_status_t ble_resolv_rand_addr_handler(void *params)
 	if (device_found)
 	{
 		DBG_LOG_DEV("##########Device Found");
-		if((ble_dev_info[idx].conn_state == BLE_DEVICE_DEFAULT_IDLE) || (ble_dev_info[idx].conn_state == BLE_DEVICE_DISCONNECTED))
+		if((ble_device_info.conn_state == BLE_DEVICE_DEFAULT_IDLE) || (ble_device_info.conn_state == BLE_DEVICE_DISCONNECTED))
 		{
-			ble_dev_info[idx].conn_state = BLE_DEVICE_CONNECTED;	
+			ble_device_info.conn_state = BLE_DEVICE_CONNECTED;	
 		}
-		ble_dev_info[idx].dev_role = AT_BLE_ROLE_PERIPHERAL;
-		memcpy((uint8_t *)&ble_dev_info[idx].conn_info, (uint8_t *)&connected_state_info, sizeof(at_ble_connected_t));
+		ble_device_info.dev_role = AT_BLE_ROLE_PERIPHERAL;
+		memcpy((uint8_t *)&ble_device_info.conn_info, (uint8_t *)&connected_state_info, sizeof(at_ble_connected_t));
 		peripheral_device_added = true;		
 	}
 	else
@@ -1290,24 +1227,10 @@ at_ble_status_t ble_resolv_rand_addr_handler(void *params)
         else
         {
 		    DBG_LOG_DEV("##########Device Not Found");
-		    if (ble_device_count == BLE_MAX_DEVICE_CONNECTION)
-		    {
-    		    DBG_LOG("Max number of connection reached: %d ===>Disconnecting...", ble_device_count);
-    		    at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
-    		    return AT_BLE_FAILURE;
-		    }
-		    for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
-		    {
-    		    if(ble_dev_info[idx].conn_state == BLE_DEVICE_DEFAULT_IDLE)
-    		    {
-        		    memcpy(&ble_dev_info[idx].conn_info, (uint8_t *)&connected_state_info, sizeof(at_ble_connected_t));
-        		    ble_device_count++;
-        		    ble_dev_info[idx].conn_state = BLE_DEVICE_CONNECTED;
-        		    ble_dev_info[idx].dev_role = AT_BLE_ROLE_PERIPHERAL;
-        		    peripheral_device_added = true;
-        		    break;
-    		    }
-		    }
+        	memcpy(&ble_device_info.conn_info, (uint8_t *)&connected_state_info, sizeof(at_ble_connected_t));
+        	ble_device_info.conn_state = BLE_DEVICE_CONNECTED;
+        	ble_device_info.dev_role = AT_BLE_ROLE_PERIPHERAL;
+        	peripheral_device_added = true;
         }        
 	}
 	if(!resolve_addr_flag)
@@ -1319,11 +1242,11 @@ at_ble_status_t ble_resolv_rand_addr_handler(void *params)
 	{
 		resolve_addr_flag = false;
 	}
-	DBG_LOG_DEV("Device idx:%d",idx);
+    
 	#if ((BLE_DEVICE_ROLE == BLE_ROLE_PERIPHERAL) || (BLE_DEVICE_ROLE == BLE_ROLE_ALL))
 	if(peripheral_device_added)
 	{
-		if((send_slave_security_flag) && (ble_dev_info[idx].dev_role == AT_BLE_ROLE_PERIPHERAL))
+		if((send_slave_security_flag) && (ble_device_info.dev_role == AT_BLE_ROLE_PERIPHERAL))
 		{
 			ble_send_slave_sec_request(connected_state_info.handle);
 		}		
@@ -1390,66 +1313,10 @@ at_ble_status_t ble_characteristic_write_cmd_complete_handler(void *params)
 /** @brief function handles disconnection event received from stack */
 at_ble_status_t ble_disconnected_state_handler(void *params)
 {
-	at_ble_disconnected_t *disconnect;
-	uint8_t idx;
-	disconnect = (at_ble_disconnected_t *)params;
-	
-	for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
-	{
-		if((ble_dev_info[idx].conn_info.handle == disconnect->handle) && 
-		((ble_dev_info[idx].conn_state == BLE_DEVICE_PAIRED) || (ble_dev_info[idx].conn_state == BLE_DEVICE_ENCRYPTION_COMPLETED)))
-		{
-			if(ble_dev_info[idx].bond_info.auth == AT_BLE_AUTH_NO_MITM_NO_BOND)
-			{
-				ble_dev_info[idx].conn_state = BLE_DEVICE_DEFAULT_IDLE;
-				memset((uint8_t *)&(ble_dev_info[idx].bond_info), 0, sizeof(at_ble_pair_done_t));
-				memset((uint8_t *)&(ble_dev_info[idx].conn_info), 0, sizeof(at_ble_connected_t));
-				ble_dev_info[idx].dev_role = AT_BLE_ROLE_NONE;
-				ble_dev_info[idx].bond_info.status = AT_BLE_GAP_INVALID_PARAM;
-			}
-			else
-			{
-				ble_dev_info[idx].conn_state = BLE_DEVICE_DISCONNECTED;
-			}			
-		}		
-		else if(ble_dev_info[idx].conn_info.handle == disconnect->handle)
-		{
-			switch (ble_dev_info[idx].conn_state)
-			{
-				case BLE_DEVICE_CONNECTED:			
-				case BLE_DEVICE_PAIRING:
-				case BLE_DEVICE_PAIRING_FAILED:
-				case BLE_DEVICE_ENCRYPTION_STATE:
-				case BLE_DEVICE_ENCRYPTION_FAILED:
-				{
-					/* Device is not paired so remove the device information */
-					if ((disconnect->reason == AT_BLE_ATT_INSUFF_AUTHEN) || (ble_dev_info[idx].conn_state == BLE_DEVICE_ENCRYPTION_FAILED))
-					{
-						memset((uint8_t *)&(ble_dev_info[idx].bond_info), 0, sizeof(at_ble_pair_done_t));
-						ble_dev_info[idx].bond_info.status = AT_BLE_GAP_INVALID_PARAM;
-					}
-					
-					ble_dev_info[idx].conn_state = BLE_DEVICE_DEFAULT_IDLE;
-					
-					if (ble_device_count > 0)
-					{
-						ble_device_count--;
-					}
-				}
-				break;
-				
-				case BLE_DEVICE_DISCONNECTED:
-				break;
-				
-				default:
-				DBG_LOG_DEV("State Not Handled %d", ble_dev_info[idx].conn_state);
-				ble_dev_info[idx].conn_state = BLE_DEVICE_DEFAULT_IDLE;
-				break;				
-			}
-		} 
-	}
+	at_ble_disconnected_t* disconnect = (at_ble_disconnected_t *)params;
 	send_slave_security_flag = true;
-	DBG_LOG("Device disconnected Reason:0x%02x Handle=0x%x", disconnect->reason, disconnect->handle);
+	ble_clear_bond_info();
+    DBG_LOG("Device disconnected Reason:0x%02x Handle=0x%x", disconnect->reason, disconnect->handle);
 	return AT_BLE_SUCCESS;
 }
 
@@ -1474,9 +1341,9 @@ at_ble_status_t ble_conn_param_update_req(void *params)
 at_ble_status_t ble_slave_security_request_handler(void* params)
 {
 	at_ble_pair_features_t features;
-	uint8_t i = 0, idx;
 	at_ble_slave_sec_request_t* slave_sec_req;
 	bool device_found = false;
+    bool handle_found = false;
 	
 	slave_sec_req = (at_ble_slave_sec_request_t*)params;	
 	
@@ -1487,21 +1354,17 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
 		//@Todo Status is not handled in the Library
 	//}
 
-	for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
+	if((ble_device_info.conn_info.handle == slave_sec_req->handle) && (ble_device_info.conn_state == BLE_DEVICE_CONNECTED))
 	{
-		if((ble_dev_info[idx].conn_info.handle == slave_sec_req->handle) && (ble_dev_info[idx].conn_state == BLE_DEVICE_CONNECTED))
-		{
-			device_found = true;
-			ble_dev_info[idx].conn_state = BLE_DEVICE_ENCRYPTION_STATE;
-			break;
-		}
+    	device_found = true;
+    	ble_device_info.conn_state = BLE_DEVICE_ENCRYPTION_STATE;
 	}
 	
 	if (device_found)
 	{
-		if((ble_dev_info[idx].bond_info.auth & AT_BLE_AUTH_NO_MITM_BOND) && (slave_sec_req->bond == true))
+		if((ble_device_info.bond_info.auth & AT_BLE_AUTH_NO_MITM_BOND) && (slave_sec_req->bond == true))
 		{
-			if(at_ble_encryption_start(slave_sec_req->handle, &ble_dev_info[idx].bond_info.peer_ltk, ble_dev_info[idx].bond_info.auth) == AT_BLE_SUCCESS)
+			if(at_ble_encryption_start(slave_sec_req->handle, &ble_device_info.bond_info.peer_ltk, ble_device_info.bond_info.auth) == AT_BLE_SUCCESS)
 			{
 				return  AT_BLE_SUCCESS;
 			}
@@ -1513,17 +1376,14 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
 		}
 		else
 		{
-			ble_dev_info[idx].conn_state = BLE_DEVICE_CONNECTED;
+			ble_device_info.conn_state = BLE_DEVICE_CONNECTED;
 		}
 	}
 	
-	for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
+	if((ble_device_info.conn_info.handle == slave_sec_req->handle) && (ble_device_info.conn_state == BLE_DEVICE_CONNECTED))
 	{
-		if((ble_dev_info[idx].conn_info.handle == slave_sec_req->handle) && (ble_dev_info[idx].conn_state == BLE_DEVICE_CONNECTED))
-		{
-			ble_dev_info[idx].conn_state = BLE_DEVICE_PAIRING;
-			break;
-		}
+		ble_device_info.conn_state = BLE_DEVICE_PAIRING;
+        handle_found = true;
 	}
 	
 	features.desired_auth =  BLE_AUTHENTICATION_LEVEL; 
@@ -1541,36 +1401,36 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
 	features.max_key_size = 16; //Default
 	features.min_key_size = 16; //Default
 	
-	if(idx < BLE_MAX_DEVICE_CONNECTION)
+	if(handle_found)
 	{
-		if (ble_dev_info[idx].conn_info.peer_addr.type == AT_BLE_ADDRESS_RANDOM_PRIVATE_RESOLVABLE)
+		if (ble_device_info.conn_info.peer_addr.type == AT_BLE_ADDRESS_RANDOM_PRIVATE_RESOLVABLE)
 		{
 			features.initiator_keys =   (at_ble_key_dis_t)(AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_ID);
 			features.responder_keys =   (at_ble_key_dis_t)(AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_ID);
 		}
 		
 		/* Check if fresh pairing requested */
-		if (ble_dev_info[idx].bond_info.status == AT_BLE_GAP_INVALID_PARAM)
+		if (ble_device_info.bond_info.status == AT_BLE_GAP_INVALID_PARAM)
 		{
 			/* Generate LTK */
-			for(i=0; i<8; i++)
+			for(uint16_t i=0; i<8; i++)
 			{
-				ble_dev_info[idx].host_ltk.key[i] = logic_rng_get_uint8();
-				ble_dev_info[idx].host_ltk.nb[i] = logic_rng_get_uint8();
+				ble_device_info.host_ltk.key[i] = logic_rng_get_uint8();
+				ble_device_info.host_ltk.nb[i] = logic_rng_get_uint8();
 			}
 			
-			for(i=8 ; i<16 ;i++)
+			for(uint16_t i=8 ; i<16 ;i++)
 			{
-				ble_dev_info[idx].host_ltk.key[i] = logic_rng_get_uint8();
+				ble_device_info.host_ltk.key[i] = logic_rng_get_uint8();
 			}
 			
-			ble_dev_info[idx].host_ltk.ediv = logic_rng_get_uint16();
-			ble_dev_info[idx].host_ltk.key_size = 16;
+			ble_device_info.host_ltk.ediv = logic_rng_get_uint16();
+			ble_device_info.host_ltk.key_size = 16;
 		}else{
 			/* Bonding information already exists */			
 		}
 		
-		if(at_ble_authenticate(slave_sec_req->handle, &features, &ble_dev_info[idx].host_ltk, NULL) != AT_BLE_SUCCESS)
+		if(at_ble_authenticate(slave_sec_req->handle, &features, &ble_device_info.host_ltk, NULL) != AT_BLE_SUCCESS)
 		{
 			features.bond = false;
 			features.mitm_protection = false;
@@ -1585,17 +1445,15 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
 at_ble_status_t ble_pair_request_handler(void *params)
 {
 	at_ble_pair_features_t features;
-	uint8_t i = 0, idx;
+	uint8_t i = 0;
 	at_ble_pair_request_t* pair_req;
 	pair_req = (at_ble_pair_request_t*)params;
+    bool device_found = false;
 	
-	for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
+	if((ble_device_info.conn_info.handle == pair_req->handle) && (ble_device_info.conn_state == BLE_DEVICE_CONNECTED))
 	{
-		if((ble_dev_info[idx].conn_info.handle == pair_req->handle) && (ble_dev_info[idx].conn_state == BLE_DEVICE_CONNECTED))
-		{
-			ble_dev_info[idx].conn_state = BLE_DEVICE_PAIRING;
-			break;
-		}
+    	ble_device_info.conn_state = BLE_DEVICE_PAIRING;
+        device_found = true;
 	}
 	
 	features.desired_auth =  BLE_AUTHENTICATION_LEVEL; 
@@ -1610,10 +1468,10 @@ at_ble_status_t ble_pair_request_handler(void *params)
 	features.max_key_size = 16; //Default
 	features.min_key_size = 16; //Default
 	
-	if (idx < BLE_MAX_DEVICE_CONNECTION)
+	if (device_found)
 	{
 		/* Distribution of LTK is required */
-		if (ble_dev_info[idx].conn_info.peer_addr.type == AT_BLE_ADDRESS_RANDOM_PRIVATE_RESOLVABLE)
+		if (ble_device_info.conn_info.peer_addr.type == AT_BLE_ADDRESS_RANDOM_PRIVATE_RESOLVABLE)
 		{
 			/* Distribution of IRK is required */
 			features.initiator_keys =   (at_ble_key_dis_t)(AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_ID);
@@ -1621,34 +1479,34 @@ at_ble_status_t ble_pair_request_handler(void *params)
 		}
 		
 		/* Check if fresh pairing requested */
-		if (ble_dev_info[idx].bond_info.status == AT_BLE_GAP_INVALID_PARAM)
+		if (ble_device_info.bond_info.status == AT_BLE_GAP_INVALID_PARAM)
 		{
 			/* Generate LTK */
 			for(i=0; i<8; i++)
 			{
-				ble_dev_info[idx].host_ltk.key[i] = logic_rng_get_uint8();
-				ble_dev_info[idx].host_ltk.nb[i] = logic_rng_get_uint8();
+				ble_device_info.host_ltk.key[i] = logic_rng_get_uint8();
+				ble_device_info.host_ltk.nb[i] = logic_rng_get_uint8();
 			}
 			
 			for(i=8 ; i<16 ;i++)
 			{
-				ble_dev_info[idx].host_ltk.key[i] = logic_rng_get_uint8();
+				ble_device_info.host_ltk.key[i] = logic_rng_get_uint8();
 			}
 			DBG_LOG_DEV("Generated LTK: ");
 			for (i = 0; i < 16; i++)
 			{
-				DBG_LOG_CONT_DEV("0x%02X ", ble_dev_info[idx].host_ltk.key[i]);
+				DBG_LOG_CONT_DEV("0x%02X ", ble_device_info.host_ltk.key[i]);
 			}
 			
-			ble_dev_info[idx].host_ltk.ediv = logic_rng_get_uint16();
-			ble_dev_info[idx].host_ltk.key_size = 16;
+			ble_device_info.host_ltk.ediv = logic_rng_get_uint16();
+			ble_device_info.host_ltk.key_size = 16;
 			}else{
 			/* Bonding information already exists */
 		}
 
 		/* Send pairing response */
 		DBG_LOG_DEV("Sending pairing response");
-		if(at_ble_authenticate(pair_req->handle, &features, &ble_dev_info[idx].host_ltk, NULL) != AT_BLE_SUCCESS)
+		if(at_ble_authenticate(pair_req->handle, &features, &ble_device_info.host_ltk, NULL) != AT_BLE_SUCCESS)
 		{
 			features.bond = false;
 			features.mitm_protection = false;
@@ -1738,18 +1596,13 @@ at_ble_status_t ble_pair_key_request_handler (void *params)
 at_ble_status_t ble_pair_done_handler(void *params)
 {
 	at_ble_pair_done_t *pairing_params;
-	uint8_t idx;
 	bool device_found = false;
 	pairing_params = (at_ble_pair_done_t *)params;
 	
-	for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
+	if((ble_device_info.conn_info.handle == pairing_params->handle) && (ble_device_info.conn_state == BLE_DEVICE_PAIRING))
 	{
-		if((ble_dev_info[idx].conn_info.handle == pairing_params->handle) && (ble_dev_info[idx].conn_state == BLE_DEVICE_PAIRING))
-		{
-			ble_dev_info[idx].conn_state = BLE_DEVICE_PAIRED;
-			device_found = true;
-			break;
-		}
+		ble_device_info.conn_state = BLE_DEVICE_PAIRED;
+		device_found = true;
 	}
 	
 	if(pairing_params->status == AT_BLE_SUCCESS)
@@ -1757,39 +1610,15 @@ at_ble_status_t ble_pair_done_handler(void *params)
 		DBG_LOG("Pairing procedure completed successfully");
 		if (device_found)
 		{
-			ble_dev_info[idx].bond_info.auth = pairing_params->auth;
-			ble_dev_info[idx].bond_info.status = pairing_params->status;
-			memcpy((uint8_t *)&ble_dev_info[idx].bond_info.peer_csrk, (uint8_t *)&pairing_params->peer_csrk, sizeof(at_ble_CSRK_t));
-			memcpy((uint8_t *)&ble_dev_info[idx].bond_info.peer_irk, (uint8_t *)&pairing_params->peer_irk, sizeof(at_ble_IRK_t));
-			memcpy((uint8_t *)&ble_dev_info[idx].bond_info.peer_ltk, (uint8_t *)&pairing_params->peer_ltk, sizeof(at_ble_LTK_t));
-			ble_dev_info->conn_state = BLE_DEVICE_PAIRED;
-			
-			#if defined PDS_SERVICE
-				/* Store the bonding information in the PDS */
-				ble_store_bonding_info(&ble_dev_info[idx]);
-			#endif
+			ble_device_info.bond_info.auth = pairing_params->auth;
+			ble_device_info.bond_info.status = pairing_params->status;
+			memcpy((uint8_t *)&ble_device_info.bond_info.peer_csrk, (uint8_t *)&pairing_params->peer_csrk, sizeof(at_ble_CSRK_t));
+			memcpy((uint8_t *)&ble_device_info.bond_info.peer_irk, (uint8_t *)&pairing_params->peer_irk, sizeof(at_ble_IRK_t));
+			memcpy((uint8_t *)&ble_device_info.bond_info.peer_ltk, (uint8_t *)&pairing_params->peer_ltk, sizeof(at_ble_LTK_t));
+			ble_device_info.conn_state = BLE_DEVICE_PAIRED;
             
             /* Call logic bluetooth handler */
-            logic_bluetooth_successfull_pairing_call(&ble_dev_info[idx]);
-			
-			/*DBG_LOG_DEV("LTK: ");
-			for (idx = 0; idx < 16; idx++)
-			{
-				DBG_LOG_CONT_DEV("0x%02X, ", pairing_params->peer_ltk.key[idx]);
-				
-			}
-			DBG_LOG_DEV("CSRK: ");
-			for (idx = 0; idx < 16; idx++)
-			{
-				DBG_LOG_CONT_DEV("0x%02X, ", pairing_params->peer_csrk.key[idx]);
-				
-			}
-			DBG_LOG_DEV("IRK:");
-			for (idx = 0; idx < 16; idx++)
-			{
-				DBG_LOG_CONT_DEV("0x%02X, ", pairing_params->peer_irk.key[idx]);
-				
-			}*/
+            logic_bluetooth_successfull_pairing_call(&ble_device_info);
 		}
 		else
 		{
@@ -1799,7 +1628,7 @@ at_ble_status_t ble_pair_done_handler(void *params)
 	}
 	else
 	{
-		ble_dev_info[idx].conn_state = BLE_DEVICE_PAIRING_FAILED;
+		ble_device_info.conn_state = BLE_DEVICE_PAIRING_FAILED;
 		DBG_LOG("Pairing failed...status %d",pairing_params->status);
 		if (ble_check_ispheripheral(pairing_params->handle)) {
 			DBG_LOG("Disconnecting ....");
@@ -1813,233 +1642,17 @@ at_ble_status_t ble_pair_done_handler(void *params)
 	return AT_BLE_SUCCESS;
 }
 
-#if defined PDS_SERVICE
-/* PDS NVM Instance  used by BLE Manager to store and retrieve the bonding info etc., */
-extern pds_env_t pds_env_cfg;
-
-/**
- * \brief  Initialize the PDS Module.
- *
- *  IInitialize the PDS & NVM Memory 
- *
- * \param[in] None
- *
- * \return Status of the PDS Module Initialize procedure
- *
- * \retval AT_BLE_SUCCESS PDS Module Initialize is completed
- * 
- * \retval  AT_BLE_FAILURE PDS Module Initialization Failure
- * 
- */
-at_ble_status_t pds_module_init(void)
-{
-	at_ble_status_t status = AT_BLE_SUCCESS;
-	pds_status_t pstatus;
-	
-	if((pstatus = pds_init(&pds_env_cfg)) != PDS_SUCCESS){
-		DBG_LOG("Failed to Initialize the PDS, Status:%d", pstatus);
-		status = AT_BLE_FAILURE;
-	}
-	
-	return status;
-}
-
-/**
- * \brief  Store the bonding information
- *
- *
- * \param[in] None
- *
- * \return Status of the PDS bonding information store procedure
- *
- * \retval AT_BLE_SUCCESS Stored the bonding information in PDS
- * 
- * \retval  AT_BLE_FAILURE Failed to store the bonding information in PDS
- * 
- */
-at_ble_status_t ble_store_bonding_info(void *params)
-{
-	at_ble_status_t status = AT_BLE_SUCCESS;
-	pds_status_t pstatus;
-	uint16_t bond_id[BLE_MAX_DEVICE_CONNECTION];
-	uint16_t count;
-	ble_connected_dev_info_t *dev_info = (ble_connected_dev_info_t *) params;
-	pds_bond_info_t bond_info;
-	
-	
-	memcpy((uint8_t *)&bond_info.peer_addr, (uint8_t *)&dev_info->conn_info.peer_addr, sizeof(at_ble_addr_t));
-	memcpy((uint8_t *)&bond_info.auth, (uint8_t *)&dev_info->bond_info.auth, sizeof(at_ble_auth_t));
-	memcpy((uint8_t *)&bond_info.peer_ltk, (uint8_t *)&dev_info->bond_info.peer_ltk, sizeof(at_ble_LTK_t));
-	
-	memcpy((uint8_t *)&bond_info.peer_csrk, (uint8_t *)&dev_info->bond_info.peer_csrk, sizeof(at_ble_CSRK_t));
-	memcpy((uint8_t *)&bond_info.peer_irk, (uint8_t *)&dev_info->bond_info.peer_irk, sizeof(at_ble_IRK_t));
-	memcpy((uint8_t *)&bond_info.host_ltk, (uint8_t *)&dev_info->host_ltk, sizeof(at_ble_LTK_t));
-	
-	/* List the item ID's */
-	if((count = pds_list_item(&pds_env_cfg, PDS_ID(BLE_BONDING_INFO, 0x00), bond_id, sizeof(bond_id))) < BLE_MAX_DEVICE_CONNECTION){
-		/* Find the empty sub-id space to store the bonding info */
-		uint32_t idx, idx1;
-		uint8_t subid_high = 0;
-		uint8_t newid = 0;
-		/* Get the highest value of Sub-id */
-		for (idx = 0; idx < count; idx++){
-			if((bond_id[idx] & 0x00FF) > subid_high){
-				subid_high = (bond_id[idx] & 0x00FF);
-			}
-		}
-		
-		
-		for (idx = 0; idx <= subid_high; idx++){
-			for (idx1 = 0; idx1 < count; idx1++){
-				/* Get the holes in the sub-id or increment the sub-id's */
-				if((bond_id[idx1] & 0x00FF) == (idx+1)){
-					break;
-				}
-			}
-			
-			/* idx is not matched  and found the hole */
-			if (idx1 == count){				
-				newid = (idx+1);
-				break;
-			}
-	    }
-	   
-	   if (newid == 0){
-		   newid += 1;
-	   }
-	   
-	   /* Store the Item into PDS */
-	   if((pstatus = pds_write(&pds_env_cfg, PDS_ID(BLE_BONDING_INFO, newid), \
-			(uint8_t *)&bond_info, sizeof(pds_bond_info_t))) != PDS_SUCCESS){
-				
-				/* Check the Bonding Info write failure due to no memory or Item Error */
-				if( (pstatus == PDS_NVM_NO_MEMORY) || (pstatus == PDS_SECTOR_ITEM_ERROR) ){
-					/* Compact operation moves all valid items to new memory space and 
-							frees up space in case any invalid items exists in previous PDS sector */
-					if((pstatus = pds_compact_sector(&pds_env_cfg)) == PDS_SUCCESS){
-						/* Try storing the bonding information in new sector i.e. after successful compact operation */
-						if((pstatus = pds_write(&pds_env_cfg, PDS_ID(BLE_BONDING_INFO, newid), \
-							(uint8_t *)&bond_info, sizeof(pds_bond_info_t))) == PDS_SUCCESS){
-								return status;
-							}
-					}
-				}
-			status = AT_BLE_FAILURE;
-			DBG_LOG("PDS Write Failed, Status:%d", pstatus);
-		}else{
-			DBG_LOG("PDS Bonding Write Success, Item-ID:%d", PDS_ID(BLE_BONDING_INFO, newid));
-		}
-	}else{
-		/* BLE Max device connection has reached */
-		status = AT_BLE_FAILURE;
-	}
-	
-	return status;	
-}
-
-/**
- * \brief  Restore the bonding information from PDS
- *
- *  Restore all the valid bonding information from PDS to device info table
- *
- * \param[in] None
- *
- * \return Status of the Restore bonding information
- *
- * \retval AT_BLE_SUCCESS PDS Restore bonding information is completed.
- * 
- * \retval  AT_BLE_FAILURE Restore bonding information failed
- * 
- */
-at_ble_status_t ble_restore_bonding_info(void)
-{
-	at_ble_status_t status = AT_BLE_SUCCESS;
-	pds_status_t pstatus;
-	uint16_t bond_id[BLE_MAX_DEVICE_CONNECTION];
-	uint16_t count;
-	uint8_t idx;
-	pds_bond_info_t bond_info;
-	/* retrieve list of items */
-	if((count = pds_list_item(&pds_env_cfg, PDS_ID(BLE_BONDING_INFO, 0x00), bond_id, sizeof(bond_id))) <= BLE_MAX_DEVICE_CONNECTION){
-		for (idx = 0; idx < count; idx++){
-			/* read and re-store the valid items on by one */
-			uint16_t read_size;
-			if((pstatus = pds_read(&pds_env_cfg, bond_id[idx], (uint8_t *)&bond_info, sizeof(pds_bond_info_t), &read_size)) == PDS_SUCCESS){
-				if (read_size == sizeof(pds_bond_info_t)){
-					memcpy((uint8_t *)&ble_dev_info[idx].conn_info.peer_addr, (uint8_t *)&bond_info.peer_addr, sizeof(at_ble_addr_t));
-					memcpy((uint8_t *)&ble_dev_info[idx].bond_info.auth, (uint8_t *)&bond_info.auth, sizeof(at_ble_auth_t));
-					memcpy((uint8_t *)&ble_dev_info[idx].bond_info.peer_ltk, (uint8_t *)&bond_info.peer_ltk, sizeof(at_ble_LTK_t));
-					
-					memcpy((uint8_t *)&ble_dev_info[idx].bond_info.peer_csrk, (uint8_t *)&bond_info.peer_csrk, sizeof(at_ble_CSRK_t));
-					memcpy((uint8_t *)&ble_dev_info[idx].bond_info.peer_irk, (uint8_t *)&bond_info.peer_irk, sizeof(at_ble_IRK_t));
-					memcpy((uint8_t *)&ble_dev_info[idx].host_ltk, (uint8_t *)&bond_info.host_ltk, sizeof(at_ble_LTK_t));
-					ble_dev_info[idx].conn_state = BLE_DEVICE_DISCONNECTED;
-				}				
-			}else{
-				DBG_LOG("PDS Bonding Read Failed, Status:%d", pstatus);
-			}		
-		}
-	}else{
-		status = AT_BLE_FAILURE;
-	}
-	return status;
-}
-
-/**
- * \brief  Remove all bonding information from PDS
- *
- *  Remove all the valid bonding informations from PDS
- *
- * \param[in] None
- *
- * \return Status of the Remove bonding information procedure
- *
- * \retval AT_BLE_SUCCESS bonding information removed successfully from the PDS
- * 
- * \retval  AT_BLE_FAILURE Failed to remove the bonding information from PDS
- * 
- */
-at_ble_status_t ble_remove_bonding_info(void)
-{
-	at_ble_status_t status = AT_BLE_SUCCESS;
-	pds_status_t pstatus;
-	uint16_t bond_id[BLE_MAX_DEVICE_CONNECTION];
-	uint16_t count;
-	uint8_t idx;
-	/* retrieve list of items */
-	if((count = pds_list_item(&pds_env_cfg, PDS_ID(BLE_BONDING_INFO, 0x00), bond_id, sizeof(bond_id))) >= 1){
-		for (idx = 0; idx < count; idx++){
-			/* read and re-store the valid items on by one */
-			if((pstatus = pds_delete(&pds_env_cfg, bond_id[idx])) == PDS_SUCCESS){
-				DBG_LOG("PDS Bonding Item Removed: %d", bond_id[idx]);
-			}else{
-				DBG_LOG("PDS Bonding Remove Item Failed, Status:%d", pstatus);
-			}
-		}
-	}else{
-		status = AT_BLE_FAILURE;
-	}
-	return status;
-}
-
-#endif /* defined PDS_SERVICE */
-
 /** @brief function handles encryption status change */
 at_ble_status_t ble_encryption_status_change_handler(void *params)
 {
 	at_ble_encryption_status_changed_t *enc_status;
-	uint8_t idx;
 	bool device_found = false;
 	
 	enc_status = (at_ble_encryption_status_changed_t *)params;
 	
-	for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
+	if((ble_device_info.conn_info.handle == enc_status->handle) && (ble_device_info.conn_state == BLE_DEVICE_ENCRYPTION_STATE))
 	{
-		if((ble_dev_info[idx].conn_info.handle == enc_status->handle) && (ble_dev_info[idx].conn_state == BLE_DEVICE_ENCRYPTION_STATE))
-		{
-			device_found = true;
-			break;
-		}
+		device_found = true;
 	}
 	
 	if(enc_status->status == AT_BLE_SUCCESS)
@@ -2048,9 +1661,9 @@ at_ble_status_t ble_encryption_status_change_handler(void *params)
 		DBG_LOG("Encryption completed successfully");
 		if (device_found)
 		{
-			ble_dev_info[idx].conn_state = BLE_DEVICE_ENCRYPTION_COMPLETED;
-			ble_dev_info[idx].bond_info.auth = enc_status->authen;
-			ble_dev_info[idx].bond_info.status = enc_status->status;
+			ble_device_info.conn_state = BLE_DEVICE_ENCRYPTION_COMPLETED;
+			ble_device_info.bond_info.auth = enc_status->authen;
+			ble_device_info.bond_info.status = enc_status->status;
 		}
 		else
 		{
@@ -2062,8 +1675,8 @@ at_ble_status_t ble_encryption_status_change_handler(void *params)
 	{
 		if(device_found)
 		{
-			ble_dev_info[idx].bond_info.status = enc_status->status;
-			ble_dev_info[idx].conn_state = BLE_DEVICE_ENCRYPTION_FAILED;
+			ble_device_info.bond_info.status = enc_status->status;
+			ble_device_info.conn_state = BLE_DEVICE_ENCRYPTION_FAILED;
 		}				
 		DBG_LOG("Encryption failed");
 		return AT_BLE_FAILURE;
@@ -2088,45 +1701,36 @@ at_ble_status_t ble_encryption_request_handler(void *params)
 	at_ble_encryption_request_t *enc_req;
 	bool key_found = false;
 	bool device_found = false;
-	uint8_t idx;
 	enc_req = (at_ble_encryption_request_t *)params;
 
-	for (idx = 0; idx < BLE_MAX_DEVICE_CONNECTION; idx++)
+	if((ble_device_info.conn_info.handle == enc_req->handle) && (ble_device_info.conn_state != BLE_DEVICE_DISCONNECTED) && (ble_device_info.conn_state != BLE_DEVICE_DEFAULT_IDLE))
 	{
-		if((ble_dev_info[idx].conn_info.handle == enc_req->handle) && (ble_dev_info[idx].conn_state != BLE_DEVICE_DISCONNECTED) &&
-		(ble_dev_info[idx].conn_state != BLE_DEVICE_DEFAULT_IDLE))
-		{
-			device_found = true;
-			ble_dev_info[idx].conn_state = BLE_DEVICE_ENCRYPTION_STATE;
-			DBG_LOG_DEV("ENC-Req: Conn Handle Device Found:hdl:%d", enc_req->handle);
-			break;
-		}
+    	device_found = true;
+    	ble_device_info.conn_state = BLE_DEVICE_ENCRYPTION_STATE;
+    	DBG_LOG_DEV("ENC-Req: Conn Handle Device Found:hdl:%d", enc_req->handle);
 	}
 	
 	if (device_found)
 	{
-		DBG_LOG_DEV("host device ediv %x",ble_dev_info[idx].host_ltk.ediv);
-		DBG_LOG_DEV("peer device ediv %x",ble_dev_info[idx].bond_info.peer_ltk.ediv);
+		DBG_LOG_DEV("host device ediv %x",ble_device_info.host_ltk.ediv);
+		DBG_LOG_DEV("peer device ediv %x",ble_device_info.bond_info.peer_ltk.ediv);
 		DBG_LOG_DEV("enc_req ediv %x", enc_req->ediv);
-		DBG_LOG_DEV("The index is %d",idx);
-		if((ble_dev_info[idx].host_ltk.ediv == enc_req->ediv)
-		&& !memcmp(&enc_req->nb[0],&ble_dev_info[idx].host_ltk.nb[0],8))
+		if((ble_device_info.host_ltk.ediv == enc_req->ediv) && !memcmp(&enc_req->nb[0],&ble_device_info.host_ltk.nb[0],8))
 		{
 			key_found = true;
 			DBG_LOG_DEV("ENC-Req: Key Found");
 		}
 	}
 	
-	
     if(key_found == false)
     {
 	    DBG_LOG("Pairing information of peer device is not available.");
 	    DBG_LOG("Please unpair the device from peer device(mobile) settings menu and start pairing again");
-		at_ble_disconnect(ble_dev_info[idx].conn_info.handle, AT_BLE_AUTH_FAILURE);
+		at_ble_disconnect(ble_device_info.conn_info.handle, AT_BLE_AUTH_FAILURE);
 		return AT_BLE_FAILURE;
     }
 
-	if(!(at_ble_encryption_request_reply(enc_req->handle, ble_dev_info[idx].bond_info.auth, key_found, &ble_dev_info[idx].host_ltk) == AT_BLE_SUCCESS))
+	if(!(at_ble_encryption_request_reply(enc_req->handle, ble_device_info.bond_info.auth, key_found, &ble_device_info.host_ltk) == AT_BLE_SUCCESS))
 	{
 		DBG_LOG("Encryption Request Reply Failed");
 	}

@@ -295,7 +295,7 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
             /* Static asserts */
             _Static_assert(NB_MAX_BONDING_INFORMATION + 1 < (AUX_MCU_MSG_PAYLOAD_LENGTH-2)/MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t,peer_irk_key), "Message size doesn't allow storage of all IRK keys");
             
-            /* Store IRKs: first 2 bytes is payload size, next is the aggregated keys, then an empty IRK key */
+            /* Store IRKs: first 2 bytes is the number of IRKs, next is the aggregated keys, then an empty IRK key */
             nodemgmt_get_bluetooth_bonding_information_irks(&nb_irk_keys, &(aux_mcu_send_message.ble_message.payload[2]));
             
             /* Add empty irk key to the count (set to 0 by the memset above) */
