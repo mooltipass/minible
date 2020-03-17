@@ -1492,11 +1492,6 @@ at_ble_status_t ble_pair_request_handler(void *params)
             {
                 ble_device_info.host_ltk.key[i] = logic_rng_get_uint8();
             }
-            DBG_LOG_DEV("Generated LTK: ");
-            for (i = 0; i < 16; i++)
-            {
-                DBG_LOG_CONT_DEV("0x%02X ", ble_device_info.host_ltk.key[i]);
-            }
             
             ble_device_info.host_ltk.ediv = logic_rng_get_uint16();
             ble_device_info.host_ltk.key_size = 16;
