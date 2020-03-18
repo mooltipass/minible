@@ -10,6 +10,8 @@
 #include "logic_keyboard.h"
 #include "driver_timer.h"
 #include "usb.h"
+/* Buffer containing the keys to be sent through USB */
+uint8_t logic_keyboard_usb_hid_keys_buffer[8];
 
 
 /*! \fn     logic_keyboard_type_lock_shortcut(hid_interface_te interface_id, uint8_t l_symbol)
@@ -18,20 +20,17 @@
 *   \param  symbol              The l symbol
 */
 void logic_keyboard_type_lock_shortcut(hid_interface_te interface_id, uint8_t l_symbol)
-{
-    uint8_t hid_packet_to_be_sent[8];
-    memset(hid_packet_to_be_sent, 0, sizeof(hid_packet_to_be_sent));
-    
+{    
     if (interface_id == USB_INTERFACE)
     {
-        hid_packet_to_be_sent[2] = KEY_WIN_L;
-        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
+        logic_keyboard_usb_hid_keys_buffer[2] = KEY_WIN_L;
+        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)logic_keyboard_usb_hid_keys_buffer, sizeof(logic_keyboard_usb_hid_keys_buffer));
         timer_delay_ms(100);
-        hid_packet_to_be_sent[3] = l_symbol;
-        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
+        logic_keyboard_usb_hid_keys_buffer[3] = l_symbol;
+        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)logic_keyboard_usb_hid_keys_buffer, sizeof(logic_keyboard_usb_hid_keys_buffer));
         timer_delay_ms(100);
-        memset(hid_packet_to_be_sent, 0, sizeof(hid_packet_to_be_sent));
-        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
+        memset(logic_keyboard_usb_hid_keys_buffer, 0, sizeof(logic_keyboard_usb_hid_keys_buffer));
+        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)logic_keyboard_usb_hid_keys_buffer, sizeof(logic_keyboard_usb_hid_keys_buffer));
     }
     else
     {
@@ -52,17 +51,14 @@ void logic_keyboard_type_lock_shortcut(hid_interface_te interface_id, uint8_t l_
 *   \return If we were able to type the key
 */
 ret_type_te logic_keyboard_type_key_with_modifier(hid_interface_te interface, uint8_t key, uint8_t modifier, uint16_t delay_between_types)
-{    
-    uint8_t hid_packet_to_be_sent[8];
-    memset(hid_packet_to_be_sent, 0, sizeof(hid_packet_to_be_sent));
-    
+{        
     // Send modifier
     if (modifier != 0)
     {
         if (interface == USB_INTERFACE)
         {
-            hid_packet_to_be_sent[0] = modifier;
-            usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
+            logic_keyboard_usb_hid_keys_buffer[0] = modifier;
+            usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)logic_keyboard_usb_hid_keys_buffer, sizeof(logic_keyboard_usb_hid_keys_buffer));
         } 
         else
         {
@@ -77,8 +73,8 @@ ret_type_te logic_keyboard_type_key_with_modifier(hid_interface_te interface, ui
     // Send modifier + key
     if (interface == USB_INTERFACE)
     {
-        hid_packet_to_be_sent[2] = key;
-        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
+        logic_keyboard_usb_hid_keys_buffer[2] = key;
+        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)logic_keyboard_usb_hid_keys_buffer, sizeof(logic_keyboard_usb_hid_keys_buffer));
     }
     else
     {
@@ -92,9 +88,9 @@ ret_type_te logic_keyboard_type_key_with_modifier(hid_interface_te interface, ui
     // Release all
     if (interface == USB_INTERFACE)
     {
-        hid_packet_to_be_sent[0] = 0;
-        hid_packet_to_be_sent[2] = 0;
-        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)hid_packet_to_be_sent, sizeof(hid_packet_to_be_sent));
+        logic_keyboard_usb_hid_keys_buffer[0] = 0;
+        logic_keyboard_usb_hid_keys_buffer[2] = 0;
+        usb_send(USB_KEYBOARD_ENDPOINT, (uint8_t*)logic_keyboard_usb_hid_keys_buffer, sizeof(logic_keyboard_usb_hid_keys_buffer));
     }
     else
     {
