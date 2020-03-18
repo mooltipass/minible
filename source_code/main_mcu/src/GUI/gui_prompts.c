@@ -504,14 +504,14 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
     
     /* Animation code */
     for (int16_t anim_step = 0; anim_step < nb_animation_steps; anim_step+=2)
-    {        
-        /* Why erase a small box when you can erase the screen? */
+    {
+        /* Wait for a possible ongoing previous flush */
         #ifdef OLED_INTERNAL_FRAME_BUFFER
-        if (anim_step != 0)
-        {
-            sh1122_clear_frame_buffer(&plat_oled_descriptor);
-        }
+        sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
         #endif
+        
+        /* Erase overwritten part */
+        sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, 0, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, SH1122_OLED_HEIGHT, 0, TRUE);
         
         /* Display the 4 digits */
         for (uint16_t i = 0; i < 4; i++)
@@ -586,6 +586,10 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
             sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_POP_ID+i, FALSE);
             timer_delay_ms(30);
         }
+        
+        /* Rewrite the last bitmaps in the frame buffer in case we have a power change */
+        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);
+        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);
     }    
     
     return wheel_action_ret;
