@@ -616,6 +616,15 @@ int main(void)
         /* Power routine */
         logic_power_routine();
         
+        /* Check flag to be logged off */
+        if (logic_user_get_and_clear_user_to_be_logged_off_flag() != FALSE)
+        {
+            gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
+            gui_dispatcher_get_back_to_current_screen();
+            logic_smartcard_handle_removed();
+            timer_delay_ms(250);
+        }
+        
         /* Do not do anything if we're uploading new graphics contents */
         if (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE)
         {

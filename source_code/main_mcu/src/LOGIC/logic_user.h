@@ -42,9 +42,11 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* pro
 int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, hid_message_t* send_msg);
 RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, cust_char_t* password);
 void logic_user_set_layout_id(uint16_t layout_id, BOOL usb_layout);
+BOOL logic_user_get_and_clear_user_to_be_logged_off_flag(void);
 void logic_user_clear_user_security_flag(uint16_t bitmask);
 void logic_user_set_user_security_flag(uint16_t bitmask);
 BOOL logic_user_get_lock_unlock_shortcut_enabled(void);
+void logic_user_set_user_to_be_logged_off_flag(void);
 void logic_user_get_user_cards_cpz(uint8_t* buffer);
 void logic_user_set_language(uint16_t language_id);
 uint16_t logic_user_get_user_security_flags(void);

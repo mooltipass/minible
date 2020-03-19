@@ -29,6 +29,7 @@
 #include "logic_power.h"
 #include "platform_io.h"
 #include "gui_prompts.h"
+#include "logic_user.h"
 #include "custom_fs.h"
 #include "text_ids.h"
 #include "sh1122.h"
@@ -296,9 +297,12 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         /* Overwrite all last battery measurements with the one from a while back in order to discard potential perturbation from ADC plugging */
         utils_fill_uint16_array_with_value(logic_power_last_vbat_measurements, ARRAY_SIZE(logic_power_last_vbat_measurements), logic_power_last_vbat_measurements[0]);
         
+        #ifdef OLED_INTERNAL_FRAME_BUFFER
+        sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
+        #endif
+        sh1122_oled_off(&plat_oled_descriptor);
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
         comms_aux_mcu_wait_for_message_sent();
-        sh1122_oled_off(&plat_oled_descriptor);
         platform_io_disable_vbat_to_oled_stepup();
         logic_power_set_power_source(USB_POWERED);
         logic_power_usb_enumerate_just_sent();
@@ -317,9 +321,12 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         inputs_set_inputs_invert_bool(plat_oled_descriptor.screen_inverted);
         
         /* Tell the aux MCU to detach USB, change power supply for OLED */
+        #ifdef OLED_INTERNAL_FRAME_BUFFER
+        sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
+        #endif
+        sh1122_oled_off(&plat_oled_descriptor);
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
         comms_aux_mcu_wait_for_message_sent();
-        sh1122_oled_off(&plat_oled_descriptor);
         platform_io_disable_3v3_to_oled_stepup();
         logic_power_set_power_source(BATTERY_POWERED);
         logic_power_set_battery_charging_bool(FALSE, FALSE);
@@ -336,21 +343,12 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         /* If user selected to, lock device */
         if ((logic_security_is_smc_inserted_unlocked() != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_LOCK_ON_DISCONNECT) != FALSE))
         {
-            gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
-            gui_dispatcher_get_back_to_current_screen();
-            logic_smartcard_handle_removed();
-            timer_start_timer(TIMER_WAIT_FUNCTS, 250);
+            logic_user_set_user_to_be_logged_off_flag();
         }
         
         /* Wait for detach ACK from aux MCU */
         while(comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_USB_DETACHED) != RETURN_OK);
         comms_aux_arm_rx_and_clear_no_comms();
-        
-        /* Wait for timer timeout to make sure card is not powered */
-        if ((logic_security_is_smc_inserted_unlocked() != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_LOCK_ON_DISCONNECT) != FALSE))
-        {
-            while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED);
-        }
         
         /* Clear inputs in case user move the wheel not on purpose */
         inputs_clear_detections();

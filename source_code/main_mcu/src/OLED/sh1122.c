@@ -894,7 +894,7 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor, BOOL leave_intern
         PORT->Group[oled_descriptor->sh1122_cd_pin_group].OUTCLR.reg = oled_descriptor->sh1122_cd_pin_mask;
         
         /* First byte: command */
-        sercom_spi_send_single_byte(oled_descriptor->sercom_pt, sh1122_init_sequence[ind++]);
+        sercom_spi_send_single_byte(oled_descriptor->sercom_pt, init_seq[ind++]);
         
         /* Second byte: payload length */
         uint16_t dataSize = init_seq[ind++];
@@ -902,16 +902,13 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor, BOOL leave_intern
         /* If different than 0, send payload */
         while (dataSize--)
         {
-            sercom_spi_send_single_byte(oled_descriptor->sercom_pt, sh1122_init_sequence[ind++]);
+            sercom_spi_send_single_byte(oled_descriptor->sercom_pt, init_seq[ind++]);
         }
         
         /* nCS release */
         PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTSET.reg = oled_descriptor->sh1122_cs_pin_mask;
         asm("NOP");asm("NOP");
     }
-    
-    /* Invert or not display */
-    sh1122_set_screen_invert(oled_descriptor, oled_descriptor->screen_inverted);
 
     /* Clear display */
     if (leave_internal_logic_and_reflush_frame_buffer == FALSE)
@@ -943,6 +940,7 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor, BOOL leave_intern
     if (leave_internal_logic_and_reflush_frame_buffer != FALSE)
     {
         timer_delay_ms(50);
+        oled_descriptor->loaded_transition = OLED_TRANS_NONE;
         sh1122_flush_frame_buffer(oled_descriptor);
     }
     #endif

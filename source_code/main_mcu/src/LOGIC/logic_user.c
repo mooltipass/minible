@@ -42,6 +42,8 @@
 #include "text_ids.h"
 #include "utils.h"
 #include "rng.h"
+// Boolean to specify if user should be logged off flag
+BOOL logic_user_should_be_logged_off_flag = FALSE;
 // Boolean to know state of lock/unlock feature
 BOOL logic_user_lock_unlock_shortcuts = FALSE;
 // User security preferences
@@ -63,6 +65,24 @@ void logic_user_init_context(uint8_t user_id)
     custom_fs_set_current_language(utils_check_value_for_range(user_language, 0, custom_fs_get_number_of_languages()-1));
     custom_fs_set_current_keyboard_id(utils_check_value_for_range(user_usb_layout, 0, custom_fs_get_number_of_keyb_layouts()-1), TRUE);
     custom_fs_set_current_keyboard_id(utils_check_value_for_range(user_ble_layout, 0, custom_fs_get_number_of_keyb_layouts()-1), FALSE);
+}
+
+/*! \fn     logic_user_set_user_to_be_logged_off_flag(void)
+*   \brief  Set the flag to inform that the user should be logged off
+*/
+void logic_user_set_user_to_be_logged_off_flag(void)
+{
+    logic_user_should_be_logged_off_flag = TRUE;
+}
+
+/*! \fn     logic_user_get_and_clear_user_to_be_logged_off_flag(void)
+*   \brief  Get and clear the flag that informs that the user should be logged off
+*/
+BOOL logic_user_get_and_clear_user_to_be_logged_off_flag(void)
+{
+    BOOL return_value = logic_user_should_be_logged_off_flag;
+    logic_user_should_be_logged_off_flag = FALSE;
+    return return_value;
 }
 
 /*! \fn     logic_user_get_user_security_flags(void)
