@@ -243,8 +243,8 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
     
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
-    timer_start_timer(TIMER_WAIT_FUNCTS, 3000);
-    while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 3000);
+    while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) != TIMER_EXPIRED)
     {
         /* Deal with incoming messages but do not deal with them */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL); 
