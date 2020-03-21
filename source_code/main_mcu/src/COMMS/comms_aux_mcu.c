@@ -233,7 +233,7 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
                 aux_mcu_send_message.message_type = received_message->message_type;
                 aux_mcu_send_message.ble_message.message_id = received_message->ble_message.message_id;
                 aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.ble_message.message_id) + 6;
-                gui_prompts_get_six_digits_pin(aux_mcu_send_message.ble_message.payload, ENTER_PIN_TEXT_ID);
+                gui_prompts_get_six_digits_pin(aux_mcu_send_message.ble_message.payload, ENTER_BT_PIN_TEXT_ID);
                 comms_aux_mcu_send_message(FALSE);
                 return_val = BLE_6PIN_REQ_RCVD;
                 break;
