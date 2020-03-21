@@ -315,10 +315,16 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
     timer_start_timer(TIMER_WAIT_FUNCTS, 30000);
     while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
     {
-        if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BOND_STORE) == BLE_BOND_STORE_RCVD)
+        comms_msg_rcvd_te received_packet = comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BOND_STORE);
+        if (received_packet == BLE_BOND_STORE_RCVD)
         {
             /* We received a bonding storage message */
             return GUI_INFO_DISP_RET_BLE_PAIRED;
+        }
+        else if (received_packet == BLE_6PIN_REQ_RCVD)
+        {
+            /* Received a request to get 6 digits pin */
+            gui_prompts_display_information_on_screen(PAIRING_WAIT_TEXT_ID, DISP_MSG_ACTION);            
         }
         
         /* Accelerometer stuff */
@@ -395,32 +401,50 @@ void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
     }
 }
 
-/*! \fn     gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction, int16_t vert_anim_direction, int16_t hor_anim_direction)
+/*! \fn     gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction, int16_t vert_anim_direction, int16_t hor_anim_direction, BOOL six_digit_prompt)
 *   \brief  Overwrite the digits on the current pin entering screen
 *   \param  current_pin         Array containing the pin
 *   \param  selected_digit      Currently selected digit
 *   \param  stringID            String ID for text query
 *   \param  vert_anim_direction Vertical anim direction (wheel up or down)
 *   \param  hor_anim_direction  Horizontal anim direction (next/previous digit)
+*   \param  six_digit_prompt    TRUE to specify 6 digits prompt
 *   \return A wheel action if there was one during the animation
 */
-wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t vert_anim_direction, int16_t hor_anim_direction)
+wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t vert_anim_direction, int16_t hor_anim_direction, BOOL six_digit_prompt)
 {
+    uint16_t x_offset_for_digits = six_digit_prompt == FALSE? PIN_PROMPT_OFFSET_FOR_FOUR_DIG:0;
     wheel_action_ret_te wheel_action_ret = WHEEL_ACTION_NONE;
+    uint16_t nb_of_digits = six_digit_prompt == FALSE? 4:6;
+    cust_char_t sig_digits_cust_chars[6];
     cust_char_t* string_to_display;
     
     /* Try to fetch the string to display */
     custom_fs_get_string_from_file(stringID, &string_to_display, TRUE);
     
-    /* Animation: get current digit and the next one */
+    /* Vertical animation: get current digit and the next one */
     int16_t next_digit = current_pin[selected_digit] + vert_anim_direction;
-    if (next_digit == 0x10)
+    if (six_digit_prompt == FALSE)
     {
-        next_digit = 0;
-    }
-    else if (next_digit  < 0)
+        if (next_digit == 0x10)
+        {
+            next_digit = 0;
+        }
+        else if (next_digit < 0)
+        {
+            next_digit = 0x0F;
+        }
+    } 
+    else
     {
-        next_digit = 0x0F;
+        if (next_digit == 10)
+        {
+            next_digit = 0;
+        }
+        else if (next_digit < 0)
+        {
+            next_digit = 9;
+        }
     }
     
     /* Convert current digit and next one into chars */
@@ -433,6 +457,15 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
     if (next_digit >= 0x0A)
     {
         next_char = next_digit + u'A' - 0x0A;
+    }
+    
+    /* Six digits prompts: convert digits into chars */
+    if (six_digit_prompt != FALSE)
+    {
+        for (uint16_t i = 0; i < nb_of_digits; i++)
+        {
+            sig_digits_cust_chars[i] = current_pin[i] + u'0';
+        }
     }
     
     /* Number of animation steps */
@@ -454,15 +487,20 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
     
     /* Write prompt text, centered on the left part */
     sh1122_allow_line_feed(&plat_oled_descriptor);
+    uint16_t nb_lines_to_display = utils_get_nb_lines(string_to_display);
     sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
-    sh1122_set_max_text_x(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X);
-    if (utils_get_nb_lines(string_to_display) == 1)
+    sh1122_set_max_text_x(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X+x_offset_for_digits);
+    if (nb_lines_to_display == 1)
     {
         sh1122_put_centered_string(&plat_oled_descriptor, PIN_PROMPT_1LTEXT_Y, string_to_display, TRUE);
     }
+    else if (nb_lines_to_display == 2)
+    {
+        sh1122_put_centered_string(&plat_oled_descriptor, PIN_PROMPT_2LTEXT_Y, string_to_display, TRUE);
+    }
     else
     {
-        sh1122_put_centered_string(&plat_oled_descriptor, PIN_PROMPT_2LTEXT_Y, string_to_display, TRUE);        
+        sh1122_put_centered_string(&plat_oled_descriptor, PIN_PROMPT_3LTEXT_Y, string_to_display, TRUE);        
     }    
     sh1122_prevent_line_feed(&plat_oled_descriptor);
     sh1122_reset_max_text_x(&plat_oled_descriptor);
@@ -472,30 +510,40 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
     {
         /* Erase digits */
         sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MONO_BOLD_30_ID);
-        sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_DIGIT_HEIGHT, 0x00, TRUE);
-        for (uint16_t i = 0; i < 4; i++)
+        sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_DIGIT_HEIGHT, 0x00, TRUE);
+        if (six_digit_prompt == FALSE)
         {
-            sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_ASTX_Y_INC, u'*', TRUE);
+            for (uint16_t i = 0; i < nb_of_digits; i++)
+            {
+                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_ASTX_Y_INC, u'*', TRUE);
+            }
+        } 
+        else
+        {
+            for (uint16_t i = 0; i < nb_of_digits; i++)
+            {
+                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, sig_digits_cust_chars[i], TRUE);
+            }
         }
         #ifdef OLED_INTERNAL_FRAME_BUFFER
-        sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_DIGIT_HEIGHT);
+        sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_DIGIT_HEIGHT);
         #endif
         
         for (uint16_t i = 0; i < PIN_PROMPT_ARROW_MOV_LGTH; i++)
         {        
-            sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
-            sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*(selected_digit-hor_anim_direction) + PIN_PROMPT_ARROW_HOR_ANIM_STEP*i*hor_anim_direction, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_MOVE_ID+i, TRUE);
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*(selected_digit-hor_anim_direction) + PIN_PROMPT_ARROW_HOR_ANIM_STEP*i*hor_anim_direction, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_MOVE_ID+i, TRUE);
+            sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS - x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
+            sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
+            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*(selected_digit-hor_anim_direction) + PIN_PROMPT_ARROW_HOR_ANIM_STEP*i*hor_anim_direction, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_MOVE_ID+i, TRUE);
+            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*(selected_digit-hor_anim_direction) + PIN_PROMPT_ARROW_HOR_ANIM_STEP*i*hor_anim_direction, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_MOVE_ID+i, TRUE);
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_ARROW_HEIGHT);
-            sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_ARROW_HEIGHT);
+            sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT);
+            sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT);
             #endif
             timer_delay_ms(20);            
         }
         
         /* Erase digits again */
-        sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_DIGIT_HEIGHT, 0x00, TRUE);
+        sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_DIGIT_HEIGHT, 0x00, TRUE);
     }
     
     /* Prepare for digits display */
@@ -511,15 +559,22 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
         #endif
         
         /* Erase overwritten part */
-        sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, 0, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, SH1122_OLED_HEIGHT, 0, TRUE);
+        sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, 0, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, SH1122_OLED_HEIGHT, 0, TRUE);
         
-        /* Display the 4 digits */
-        for (uint16_t i = 0; i < 4; i++)
+        /* Display the 4-6 digits */
+        for (uint16_t i = 0; i < nb_of_digits; i++)
         {
             if (i != selected_digit)
             {
-                /* Display '*' */
-                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_ASTX_Y_INC, u'*', TRUE);
+                if (six_digit_prompt == FALSE)
+                {
+                    /* Display '*' */
+                    sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_ASTX_Y_INC, u'*', TRUE);
+                } 
+                else
+                {
+                    sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, sig_digits_cust_chars[i], TRUE);
+                }
             }
             else
             {
@@ -528,27 +583,27 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
                 {
                     if (vert_anim_direction > 0)
                     {
-                        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_ACTIVATE_ID+(anim_step-1)/2, TRUE);                        
+                        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_ACTIVATE_ID+(anim_step-1)/2, TRUE);                        
                     }
                     else
                     {
-                        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);                        
+                        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);                        
                     }                    
                     if (vert_anim_direction < 0)
                     {
-                        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_ACTIVATE_ID+(anim_step-1)/2, TRUE);
+                        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_ACTIVATE_ID+(anim_step-1)/2, TRUE);
                     }
                     else
                     {
-                        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);
+                        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);
                     }
                 }
                 
                 /* Digits display with animation */
                 sh1122_set_min_display_y(&plat_oled_descriptor, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING);
                 sh1122_set_max_display_y(&plat_oled_descriptor, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT);
-                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + anim_step*vert_anim_direction,  current_char, TRUE);
-                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + anim_step*vert_anim_direction + (PIN_PROMPT_DIGIT_HEIGHT+1)*vert_anim_direction*-1, next_char, TRUE);
+                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + anim_step*vert_anim_direction,  current_char, TRUE);
+                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + anim_step*vert_anim_direction + (PIN_PROMPT_DIGIT_HEIGHT+1)*vert_anim_direction*-1, next_char, TRUE);
                 sh1122_reset_lim_display_y(&plat_oled_descriptor);
             }
         }
@@ -561,13 +616,14 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
         } 
         else
         {
-            sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS, 2*PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT);
+            sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, 2*PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT);
         }
         
         /* Skip animation if desired */
         wheel_action_ret = inputs_get_wheel_action(FALSE, FALSE);
         if (wheel_action_ret != WHEEL_ACTION_NONE)
         {
+            memset(sig_digits_cust_chars, 0, sizeof(sig_digits_cust_chars));
             sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
             return wheel_action_ret;
         }
@@ -582,17 +638,135 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
     {
         for (uint16_t i = 0; i < PIN_PROMPT_POPUP_ANIM_LGTH; i++)
         {
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_POP_ID+i, FALSE);
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_POP_ID+i, FALSE);
+            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_POP_ID+i, FALSE);
+            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_POP_ID+i, FALSE);
             timer_delay_ms(30);
         }
         
         /* Rewrite the last bitmaps in the frame buffer in case we have a power change */
-        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);
-        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);
+        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);
+        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);
     }    
     
+    memset(sig_digits_cust_chars, 0, sizeof(sig_digits_cust_chars));
     return wheel_action_ret;
+}
+
+
+/*! \fn     gui_prompts_get_six_digits_pin(uint8_t* pin_code, uint16_t stringID)
+*   \brief  Ask the user to enter a six digits PIN
+*   \param  pin_code    Pointer to where to store the pin code
+*   \param  stringID    String ID
+*   \return If the user approved the request
+*/
+RET_TYPE gui_prompts_get_six_digits_pin(uint8_t* pin_code, uint16_t stringID)
+{
+    wheel_action_ret_te detection_during_animation = WHEEL_ACTION_NONE;
+    wheel_action_ret_te detection_result = WHEEL_ACTION_NONE;
+    RET_TYPE ret_val = RETURN_NOK;
+    uint16_t selected_digit = 0;
+    BOOL finished = FALSE;
+    
+    // Set current pin to 000000
+    memset((void*)pin_code, 0, 6);
+    
+    /* Activity detected */
+    logic_device_activity_detected();
+    
+    // Clear current detections
+    inputs_clear_detections();
+    
+    // Display current pin on screen
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+    #endif
+    gui_prompts_render_pin_enter_screen(pin_code, selected_digit, stringID, 0, 0, TRUE);
+    
+    // While the user hasn't entered his pin
+    while(!finished)
+    {
+        // Still process the USB commands, reply with please retries
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        logic_accelerometer_routine();
+        
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
+        
+        // detection result
+        detection_result = inputs_get_wheel_action(FALSE, FALSE);
+        
+        // was there a detection during the animation?
+        if (detection_during_animation != WHEEL_ACTION_NONE)
+        {
+            detection_result = detection_during_animation;
+            detection_during_animation = WHEEL_ACTION_NONE;
+        }
+
+        /* Transform click up / click down to click */
+        if ((detection_result == WHEEL_ACTION_CLICK_UP) || (detection_result == WHEEL_ACTION_CLICK_DOWN))
+        {
+            detection_result = WHEEL_ACTION_SHORT_CLICK;
+        }
+        
+        // Position increment / decrement
+        if ((detection_result == WHEEL_ACTION_UP) || (detection_result == WHEEL_ACTION_DOWN))
+        {
+            if (detection_result == WHEEL_ACTION_UP)
+            {
+                detection_during_animation = gui_prompts_render_pin_enter_screen(pin_code, selected_digit, stringID, 1, 0, TRUE);
+                if (pin_code[selected_digit]++ == 9)
+                {
+                    pin_code[selected_digit] = 0;
+                }
+            }
+            else
+            {
+                detection_during_animation = gui_prompts_render_pin_enter_screen(pin_code, selected_digit, stringID, -1, 0, TRUE);
+                if (pin_code[selected_digit]-- == 0)
+                {
+                    pin_code[selected_digit] = 9;
+                }
+            }
+        }
+        
+        // Return if card removed or timer expired
+        if ((smartcard_low_level_is_smc_absent() == RETURN_OK) || (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED))
+        {
+            // Smartcard removed, no reason to continue
+            ret_val = RETURN_NOK;
+            finished = TRUE;
+        }
+        
+        // Change digit position or return/proceed
+        if (detection_result == WHEEL_ACTION_LONG_CLICK)
+        {
+            if (selected_digit > 0)
+            {
+                detection_during_animation = gui_prompts_render_pin_enter_screen(pin_code, --selected_digit, stringID, 0, -1, TRUE);
+            }
+            else
+            {
+                ret_val = RETURN_NOK;
+                finished = TRUE;
+            }
+        }
+        else if (detection_result == WHEEL_ACTION_SHORT_CLICK)
+        {
+            if (selected_digit < 5)
+            {
+                selected_digit++;
+                gui_prompts_render_pin_enter_screen(pin_code, selected_digit, stringID, 0, 1, TRUE);
+            }
+            else
+            {
+                ret_val = RETURN_OK;
+                finished = TRUE;
+            }
+        }
+    }
+    
+    // Return success status
+    return ret_val;
 }
 
 
@@ -644,7 +818,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
     #endif
-    gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 0);
+    gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 0, FALSE);
     
     // While the user hasn't entered his pin
     while(!finished)
@@ -677,7 +851,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
         {
             if (detection_result == WHEEL_ACTION_UP)
             {
-                detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 1, 0);
+                detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 1, 0, FALSE);
                 if (current_pin[selected_digit]++ == 0x0F)
                 {
                     current_pin[selected_digit] = 0;
@@ -685,7 +859,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
             }
             else
             {
-                detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, -1, 0);
+                detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, -1, 0, FALSE);
                 if (current_pin[selected_digit]-- == 0)
                 {
                     current_pin[selected_digit] = 0x0F;
@@ -722,7 +896,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
                 {
                     --selected_digit;
                 }
-                detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, -1);
+                detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, -1, FALSE);
             }
             else
             {
@@ -735,7 +909,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
             if (selected_digit < 3)
             {
                 selected_digit++;
-                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 1);
+                gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 1, FALSE);
             }
             else
             {

@@ -152,11 +152,12 @@
 	#ifndef BLE_DEVICE_NAME
 		#define BLE_DEVICE_NAME				"Mooltipass BLE"
 	#endif	/* BLE_DEVICE_NAME */
-	#define BLE_AUTHENTICATION_LEVEL	(AT_BLE_MODE1_L1_NOAUTH_PAIR_ENC)
-	#define BLE_IO_CAPABALITIES			(AT_BLE_IO_CAP_NO_INPUT_NO_OUTPUT)
-	#define BLE_MITM_REQ				(false)
+	#define BLE_AUTHENTICATION_LEVEL	(AT_BLE_MODE2_L2_AUTH_DATA_SGN)
+	#define BLE_IO_CAPABALITIES			(AT_BLE_IO_CAP_KB_DISPLAY)
+	#define BLE_MITM_REQ				(true)
 	#define BLE_BOND_REQ				(true)
 	#define BLE_PAIR_ENABLE				(true)
+    #define BLE_OOB_REQ                 (true)
 	#endif
 
 /*! \def  HID Mouse Profile GAP configurations
@@ -985,6 +986,8 @@ typedef struct ble_connected_dev_info
 	ble_device_state_t conn_state;
 	/// Host LTK, refer to \ref at_ble_LTK_t
 	at_ble_LTK_t host_ltk;
+    /// Host signing key, refer to \ef at_ble_CSRK_t
+    at_ble_CSRK_t host_csrk;
 }ble_connected_dev_info_t;
 
 #ifdef PDS_SERVICE

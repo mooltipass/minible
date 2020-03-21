@@ -80,6 +80,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define BLE_MESSAGE_DISABLE_PAIRING         0x0007
 #define BLE_MESSAGE_GET_IRK_KEYS            0x0008
 #define BLE_MESSAGE_RECALL_BOND_INFO_IRK    0x0009
+#define BLE_MESSAGE_GET_BT_6_DIGIT_CODE     0x000A
 
 /* FIDO2 messages start */
 #define AUX_MCU_MSG_TYPE_FIDO2_START 0x0001
@@ -153,7 +154,8 @@ typedef struct
     uint16_t host_ltk_ediv;
     uint8_t host_ltk_random_nb[8];
     uint16_t host_ltk_key_size;
-    uint8_t reserved[26];
+    uint8_t host_csrk_key[16];
+    uint8_t reserved[10];
 } nodemgmt_bluetooth_bonding_information_t;
 
 typedef struct
@@ -313,6 +315,7 @@ uint16_t comms_main_mcu_get_bonding_info_irks(uint8_t** irk_keys_buffer);
 aux_mcu_message_t* comms_main_mcu_get_temp_tx_message_object_pt(void);
 aux_mcu_message_t* comms_main_mcu_get_temp_rx_message_object_pt(void);
 void comms_main_mcu_get_32_rng_bytes_from_main_mcu(uint8_t* buffer);
+void comms_main_mcu_fetch_6_digits_pin(uint8_t* pin_array);
 void comms_main_mcu_send_simple_event(uint16_t event_id);
 void comms_main_init_rx(void);
 

@@ -54,7 +54,7 @@ custom_file_flash_header_t custom_fs_flash_header;
 /* Bool to specify if the SPI bus is left opened */
 BOOL custom_fs_data_bus_opened = FALSE;
 /* Temp string buffers for string reading */
-uint16_t custom_fs_temp_string1[128];
+cust_char_t custom_fs_temp_string1[64];
 /* Current language id */
 uint8_t custom_fs_cur_language_id = 0;
 /* Current keyboard layout id */

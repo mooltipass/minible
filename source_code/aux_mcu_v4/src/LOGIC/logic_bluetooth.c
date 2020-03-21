@@ -209,11 +209,12 @@ void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info
     temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_irk_resolv_type = dev_info->bond_info.peer_irk.addr.type;
     memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.peer_irk_address, dev_info->bond_info.peer_irk.addr.addr, sizeof(dev_info->bond_info.peer_irk.addr.addr));
     
-    /* Host LTK */
+    /* Host LTK & CSRK */
     memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.host_ltk_key, dev_info->host_ltk.key, sizeof(dev_info->host_ltk.key));
     temp_tx_message_pt->ble_message.bonding_information_to_store_message.host_ltk_ediv = dev_info->host_ltk.ediv;
     memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.host_ltk_random_nb, dev_info->host_ltk.nb, sizeof(dev_info->host_ltk.nb));
     temp_tx_message_pt->ble_message.bonding_information_to_store_message.host_ltk_key_size = dev_info->host_ltk.key_size;
+    memcpy(temp_tx_message_pt->ble_message.bonding_information_to_store_message.host_csrk_key, dev_info->host_csrk.key, sizeof(dev_info->host_csrk.key));
     
     /* Zero stuff */
     memset(temp_tx_message_pt->ble_message.bonding_information_to_store_message.reserved, 0, sizeof(temp_tx_message_pt->ble_message.bonding_information_to_store_message.reserved));

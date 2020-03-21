@@ -308,7 +308,8 @@ typedef struct
     uint16_t host_ltk_ediv;
     uint8_t host_ltk_random_nb[8];
     uint16_t host_ltk_key_size;
-    uint8_t reserved[26];
+    uint8_t host_csrk_key[16];
+    uint8_t reserved[10];
 } nodemgmt_bluetooth_bonding_information_t;
 
 // Node management handle

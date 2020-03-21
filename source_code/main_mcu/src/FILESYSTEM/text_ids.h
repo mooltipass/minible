@@ -113,5 +113,6 @@
 #define PAIRING_SUCCEEDED_TEXT_ID       106
 #define PAIRING_FAILED_TEXT_ID          107
 #define CRED_ALREAD_PRESENT_TEXT_ID     108
+#define ENTER_PIN_TEXT_ID               109
 
 #endif

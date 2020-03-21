@@ -64,11 +64,13 @@
 
 // PIN prompt
 #define PIN_PROMPT_ARROW_MOV_LGTH       7
-#define PIN_PROMPT_MAX_TEXT_X           134
+#define PIN_PROMPT_MAX_TEXT_X           100
 #define PIN_PROMPT_1LTEXT_Y             23
 #define PIN_PROMPT_2LTEXT_Y             12
+#define PIN_PROMPT_3LTEXT_Y             6
 #define PIN_PROMPT_ARROW_HOR_ANIM_STEP  4
-#define PIN_PROMPT_DIGIT_X_OFFS         134
+#define PIN_PROMPT_DIGIT_X_OFFS         100
+#define PIN_PROMPT_OFFSET_FOR_FOUR_DIG  34
 #define PIN_PROMPT_DIGIT_X_ADJ          15
 #define PIN_PROMT_DIGIT_AST_ADJ         (-1)
 #define PIN_PROMPT_UP_ARROW_Y           4
@@ -125,7 +127,7 @@ typedef struct
 } confirmationText_t;
 
 /* Prototypes */
-wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t vert_anim_direction, int16_t hor_anim_direction);
+wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t vert_anim_direction, int16_t hor_anim_direction, BOOL six_digit_prompt);
 ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, BOOL ignore_timeout_if_usb_powered, BOOL ignore_card_removal, BOOL usb_layout_choice);
 gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type, BOOL allow_scroll_to_interrupt);
 mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen, BOOL parse_aux_messages);
@@ -136,6 +138,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
 void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type);
 void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type);
 RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID);
+RET_TYPE gui_prompts_get_six_digits_pin(uint8_t* pin_code, uint16_t stringID);
 uint16_t gui_prompts_service_selection_screen(uint16_t start_address);
 int16_t gui_prompts_favorite_selection_screen(int16_t start_favid);
 gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void);
