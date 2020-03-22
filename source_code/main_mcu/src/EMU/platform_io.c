@@ -20,8 +20,27 @@ uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void){
         return vbat_lerp(bat, 40, 60, BATTERY_ADC_40PCT_VOLTAGE, BATTERY_ADC_60PCT_VOLTAGE);
     else if(bat <= 80)
         return vbat_lerp(bat, 60, 80, BATTERY_ADC_60PCT_VOLTAGE, BATTERY_ADC_80PCT_VOLTAGE);
-    else if(bat <= 80)
+    else if(bat <= 100)
         return vbat_lerp(bat, 80, 100, BATTERY_ADC_80PCT_VOLTAGE, BATTERY_ADC_OVER_VOLTAGE-1);
+
+    return BATTERY_ADC_OVER_VOLTAGE-1;
+}
+
+uint16_t platform_io_get_voledin_conversion_result(void)
+{
+    int bat = emu_get_battery_level();
+    if(bat <= 0) 
+        return BATTERY_ADC_OUT_CUTOUT-1;
+    else if(bat <= 20)
+        return (BATTERY_ADC_OUT_CUTOUT+BATTERY_ADC_20PCT_VOLTAGE)/2;
+    else if(bat <= 40)
+        return (BATTERY_ADC_20PCT_VOLTAGE+BATTERY_ADC_40PCT_VOLTAGE)/2;
+    else if(bat <= 60)
+        return (BATTERY_ADC_40PCT_VOLTAGE+BATTERY_ADC_60PCT_VOLTAGE)/2;
+    else if(bat <= 80)
+        return (BATTERY_ADC_60PCT_VOLTAGE+BATTERY_ADC_80PCT_VOLTAGE)/2;
+    else if(bat <= 100)
+        return (BATTERY_ADC_80PCT_VOLTAGE+BATTERY_ADC_OVER_VOLTAGE)/2;
 
     return BATTERY_ADC_OVER_VOLTAGE-1;
 }
