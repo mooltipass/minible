@@ -6,9 +6,9 @@ source $SCRIPTDIR/../funcs.sh
 
 #copy source for debian package
 make_version . deb
-cp -R . $HOME/build-debs/minible_emu-${DEB_VERSION}
+cp -R . $HOME/build-debs/minible-${DEB_VERSION}
 
 # Windows build
-make_version . windows
-docker exec winbuilder /bin/bash /scripts/build_emu.sh
+#make_version . windows
+#docker exec winbuilder /bin/bash /scripts/build_emu.sh
 
