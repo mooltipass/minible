@@ -213,10 +213,13 @@ clean:
 	rm -rf $(TARGET)
 
 install:
+	install -m 755 -d "$(DESTDIR)$(PREFIX)/bin" "$(DESTDIR)$(PREFIX)/share/misc"
 	install -m 755 build/minible "$(DESTDIR)$(PREFIX)/bin/"
+	install -m 644 emu_assets/miniblebundle.img "$(DESTDIR)$(PREFIX)/share/misc/"
 
 uninstall:
 	rm "$(DESTDIR)$(PREFIX)/bin/minible"
+	rm "$(DESTDIR)$(PREFIX)/share/misc/miniblebundle.img"
 
 wipe:
 	$(RM) $(OUTPUT_DIR)
