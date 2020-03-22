@@ -755,7 +755,7 @@ int main(void)
     }
 }
 
-#if defined(STACK_MEASURE_ENABLED)
+#if defined(STACK_MEASURE_ENABLED) && !defined(EMULATOR_BUILD)
 
 uint32_t main_stack_low_water_mark = ~0U;
 
