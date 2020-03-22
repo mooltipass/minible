@@ -13,10 +13,10 @@ if [ "$(git rev-list -n 1 $VERSION)" != "$(git rev-parse HEAD)"  ]; then
 fi
 
 # Debian package
-docker exec minible-deb bash /scripts/build_source_emu.sh $VERSION xenial
-docker exec minible-deb bash /scripts/build_source_emu.sh $VERSION bionic
-docker exec minible-deb bash /scripts/build_source_emu.sh $VERSION disco
-docker exec minible-deb bash /scripts/build_source_emu.sh $VERSION eoan
+docker exec minible-deb bash /scripts/build_source.sh $VERSION xenial
+docker exec minible-deb bash /scripts/build_source.sh $VERSION bionic
+docker exec minible-deb bash /scripts/build_source.sh $VERSION disco
+docker exec minible-deb bash /scripts/build_source.sh $VERSION eoan
 
 #windows and appimage
 #docker exec winbuilder bash -c "export CODESIGN_WIN_PASS=${CODESIGN_WIN_PASS}; /scripts/package.sh"
