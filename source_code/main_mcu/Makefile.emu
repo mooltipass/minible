@@ -168,13 +168,11 @@ OBJS := $(C_SRCS:%.c=$(OUTPUT_DIR)/%.o) $(CPP_SRCS:%.cpp=$(OUTPUT_DIR)/%.o) $(MO
 
 C_DEPS := $(OBJS:%.o=%.d)
 
-TARGET := minible
+TARGET := build/minible
 
 # All Target
+all: $(TARGET)
 build: $(TARGET)
-
-@$(call create_dir,build)
-cd build;
 
 $(OUTPUT_DIR)/%.o: %.c $(OUTPUT_DIR)/%.d
 	@echo Building file: $@
@@ -202,6 +200,7 @@ $(OUTPUT_DIR)/%.moc.cpp: %.h
 
 $(TARGET): $(OBJS) $(LIB_DEP)
 	@echo Building target: $@
+	@$(call create_dir,build)
 	@echo Invoking: GNU Linker
 	$(CPP) -o$(TARGET) $(OBJS) $(LIBS) -lm $(LIB_DIRS) -Wl,--gc-sections
 	@echo Finished building target: $@
