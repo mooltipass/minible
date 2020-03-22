@@ -1,0 +1,17 @@
+Source: minible
+Section: utils
+Priority: optional
+Maintainer: Mooltipass Team <support@themooltipass.com>
+Build-Depends: debhelper (>=9), tar (>=1.27.1), gzip (>=1.6), libqt5websockets5-dev, libudev-dev, qt5-qmake, qttools5-dev-tools, pkg-config, qtbase5-dev
+Standards-Version: 3.9.7
+Homepage: https://www.themooltipass.com/
+Vcs-Git: https://github.com/mooltipass/minible.git
+Vcs-Browser: https://github.com/mooltipass/minible
+
+Package: minible
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libqt5core5a, libqt5gui5, libqt5network5, libqt5websockets5, libqt5widgets5, libqt5dbus5, libudev1
+Description: Mooltipass Mini BLE Device Emulator
+ This tool starts a Mooltipass Mini BLE device emulator inside your OS.
+ It'll be able to connect with moolticute(d) in order to test the complete 
+ mooltipass ecosystem.
