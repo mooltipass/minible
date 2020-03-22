@@ -166,7 +166,7 @@ OBJS := $(C_SRCS:%.c=$(OUTPUT_DIR)/%.o) $(CPP_SRCS:%.cpp=$(OUTPUT_DIR)/%.o) $(MO
 
 C_DEPS := $(OBJS:%.o=%.d)
 
-TARGET := $(OUTPUT_DIR)/mini_ble.elf
+TARGET := minible
 
 # All Target
 all: $(TARGET)
