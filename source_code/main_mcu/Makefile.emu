@@ -1,3 +1,5 @@
+default: build ;
+
 ifeq ($(OS),Windows_NT)
 SHELL := cmd.exe
 MKDIR := mkdir
@@ -169,7 +171,10 @@ C_DEPS := $(OBJS:%.o=%.d)
 TARGET := minible
 
 # All Target
-all: $(TARGET)
+build: $(TARGET)
+
+@$(call create_dir,build)
+cd build;
 
 $(OUTPUT_DIR)/%.o: %.c $(OUTPUT_DIR)/%.d
 	@echo Building file: $@
