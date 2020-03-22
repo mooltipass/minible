@@ -1,4 +1,5 @@
 default: build ;
+PREFIX ?= /usr
 
 ifeq ($(OS),Windows_NT)
 SHELL := cmd.exe
@@ -210,6 +211,12 @@ clean:
 	$(RM) $(OBJS)
 	$(RM) $(C_DEPS)
 	rm -rf $(TARGET)
+
+install:
+	install -m 755 build/minible "$(DESTDIR)$(PREFIX)/bin/"
+
+uninstall:
+	rm "$(DESTDIR)$(PREFIX)/bin/minible"
 
 wipe:
 	$(RM) $(OUTPUT_DIR)
