@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    20
+#define FW_MINOR    21
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -76,6 +76,8 @@
         - Allow aux MCU to overwrite battery status at first boot
 - v0.20:- _unlock_ service feature
         - detection of computer shutdown
+- v0.21:- fix of various glitches due to power disconnections
+        - Bluetooth security increase
 */
 
 /**************** SETUP DEFINES ****************/
@@ -107,7 +109,7 @@
  * => 50 prototype units produced, 01/01/2020
  * - exact same layout as PLAT_V5_SETUP, except VOLED_1V2_EN swapped with SMC_PGM
  */
- #define PLAT_V6_SETUP 
+ #define PLAT_V5_SETUP 
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)

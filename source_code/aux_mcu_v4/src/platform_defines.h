@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    16
+#define FW_MINOR    17
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -38,6 +38,8 @@
 - v0.15:- shortcut typing
         - usb timeout detection for device lock
 - v0.16:- improved Bluetooth support
+- v0.17:- increased Bluetooth security
+        - USB typing bug fix
 */
 
 /**************** SETUP DEFINES ****************/
