@@ -11,6 +11,7 @@ static aux_mcu_message_t response;
 
 static void send_hid_message(aux_mcu_message_t *msg);
 static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *response);
+static BOOL process_ble_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *response);
 
 /* copied from aux mcu/src/LOGIC/logic_battery.h */
 typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7} lb_state_machine_te;
@@ -55,6 +56,11 @@ void emu_send_aux(char *data, int size)
             response_valid = process_main_cmd(msg, &response);
             break;
 
+        case AUX_MCU_MSG_TYPE_BLE_CMD:
+            memset(&response, 0, sizeof(response));
+            response_valid = process_ble_cmd(msg, &response);
+            break;
+
         case AUX_MCU_MSG_TYPE_NIMH_CHARGE:
             memset(&response, 0, sizeof(response));
             response.message_type = msg->message_type;
@@ -75,27 +81,31 @@ void emu_send_aux(char *data, int size)
     }
 }
 
-static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *resp)
+static BOOL process_ble_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *resp)
 {
     switch(msg->main_mcu_command_message.command) {
-        case MAIN_MCU_COMMAND_SLEEP:
-            break;
 
-        case MAIN_MCU_COMMAND_PING:
-            memcpy(resp, msg, sizeof(*resp));
-            return TRUE;
-
-        case MAIN_MCU_COMMAND_ENABLE_BLE:
+        case BLE_MESSAGE_CMD_ENABLE:
             resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
             resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
             resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
             return TRUE;
 
-        case MAIN_MCU_COMMAND_DISABLE_BLE:
+        case BLE_MESSAGE_CMD_DISABLE:
             resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
             resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISABLED;
             resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
             return TRUE;
+    }
+
+    return FALSE;
+}
+
+static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *resp)
+{
+    switch(msg->main_mcu_command_message.command) {
+        case MAIN_MCU_COMMAND_SLEEP:
+            break;
 
         case MAIN_MCU_COMMAND_NIMH_CHARGE:
             emu_charger_status = LB_CHARGE_START_RAMPING;
