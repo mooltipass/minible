@@ -5,6 +5,9 @@
 *
 *    Code inspired/reused from Solo project.
 */
+#ifdef EMULATOR_BUILD
+#include <arpa/inet.h>
+#endif
 #include <stdint.h>
 #include <string.h>
 #include "comms_aux_mcu_defines.h"

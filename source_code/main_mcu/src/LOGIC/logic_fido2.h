@@ -25,6 +25,10 @@
 #include "comms_aux_mcu.h"
 #include "defines.h"
 
+#ifdef EMULATOR_BUILD
+#define cpu_to_be32 htonl
+#endif
+
 /* Enums */
 typedef enum
 {
