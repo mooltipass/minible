@@ -11,6 +11,7 @@ void emu_dataflash_init(const char *path)
     int i;
     const char *bundle_paths[] = {
         "/usr/share/misc/miniblebundle.img",
+        "miniblebundle.img",
         "../../scripts/python_framework/bundle.img",
         "bundle.img",
         NULL
