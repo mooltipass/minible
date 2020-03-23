@@ -5,12 +5,9 @@ SCRIPTDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $SCRIPTDIR/../funcs.sh
 
 # Docker
-#docker pull mooltipass/mc-win-builder
+docker pull mooltipass/minible-win-builder
 docker pull mooltipass/minible-launchpad
 #docker pull mooltipass/mc-upload
-
-#create certificate from env
-#echo $CODESIGN_WIN_CERT | base64 -d > $HOME/cert.p12
 
 #setup the source dir for ubuntu deb
 rm -fr $HOME/build-debs && mkdir -p $HOME/build-debs

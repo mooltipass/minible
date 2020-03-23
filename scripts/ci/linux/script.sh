@@ -9,6 +9,6 @@ make_version . deb
 cp -R . $HOME/build-debs/minible-${DEB_VERSION}
 
 # Windows build
-#make_version . windows
-#docker exec winbuilder /bin/bash /scripts/build_emu.sh
+make_version . windows
+docker exec miniblebuilder /bin/bash /scripts/build.sh
 
