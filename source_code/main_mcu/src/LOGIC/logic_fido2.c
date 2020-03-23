@@ -6,7 +6,9 @@
 *    Code inspired/reused from Solo project.
 */
 #ifdef EMULATOR_BUILD
+#ifndef WIN32
 #include <arpa/inet.h>
+#endif
 #endif
 #include <stdint.h>
 #include <string.h>
