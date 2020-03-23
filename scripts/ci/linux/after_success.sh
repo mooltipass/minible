@@ -32,3 +32,12 @@ docker run -t --name minible-upload -d \
 	-e "GITHUB_TOKEN=${GITHUB_TOKEN}" \
     mooltipass/minible-upload
 
+for f in $HOME/uploads/*
+do
+    ff=$(basename $f)
+    echo uploading $ff
+    if [ -f $HOME/uploads/$ff ]
+    then
+        docker exec minible-upload bash -c "/scripts/upload.sh $VERSION $ff"
+    fi
+done
