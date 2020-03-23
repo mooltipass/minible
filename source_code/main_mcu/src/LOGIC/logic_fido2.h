@@ -26,7 +26,11 @@
 #include "defines.h"
 
 #ifdef EMULATOR_BUILD
-#define cpu_to_be32 htonl
+    #ifdef WIN32
+        #define cpu_to_be32 __builtin_bswap32 
+    #else
+        #define cpu_to_be32 htonl
+    #endif
 #endif
 
 /* Enums */
