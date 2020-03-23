@@ -26,9 +26,9 @@ cp -v \
 
 EXE_FILE="$(ls $HOME/uploads/*.exe 2> /dev/null | head -n 1)"
 
-#docker run -t --name mc-upload -d \
-#    -v $HOME/uploads:/uploads \
-#	-e "GITHUB_LOGIN=${GITHUB_LOGIN}" \
-#	-e "GITHUB_TOKEN=${GITHUB_TOKEN}" \
-#    mooltipass/mc-upload
+docker run -t --name minible-upload -d \
+    -v $HOME/uploads:/uploads \
+	-e "GITHUB_LOGIN=${GITHUB_LOGIN}" \
+	-e "GITHUB_TOKEN=${GITHUB_TOKEN}" \
+    mooltipass/minible-upload
 

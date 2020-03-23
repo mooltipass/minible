@@ -7,7 +7,7 @@ source $SCRIPTDIR/../funcs.sh
 # Docker
 docker pull mooltipass/minible-win-builder
 docker pull mooltipass/minible-launchpad
-#docker pull mooltipass/mc-upload
+docker pull mooltipass/minible-upload
 
 #setup the source dir for ubuntu deb
 rm -fr $HOME/build-debs && mkdir -p $HOME/build-debs
