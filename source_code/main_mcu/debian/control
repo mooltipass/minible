@@ -10,7 +10,7 @@ Vcs-Browser: https://github.com/mooltipass/minible
 
 Package: minible
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, libqt5core5a, libqt5gui5, libqt5network5, libqt5widgets5, libqt5dbus5
 Description: Mooltipass Mini BLE Device Emulator
  This tool starts a Mooltipass Mini BLE device emulator inside your OS.
  It'll be able to connect with moolticute(d) in order to test the complete 
