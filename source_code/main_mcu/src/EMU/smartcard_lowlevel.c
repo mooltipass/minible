@@ -155,7 +155,10 @@ void smartcard_lowlevel_blow_fuse(card_fuse_type_te fuse_name)
 
 RET_TYPE smartcard_low_level_is_smc_absent(void) {
     struct emu_smartcard_t *smartcard = emu_open_smartcard();
-    RET_TYPE r = (smartcard == NULL) ? RETURN_OK : RETURN_NOK;
+
+    if(smartcard == NULL)
+        return RETURN_OK;
+    
     emu_close_smartcard(FALSE);
-    return r;
+    return RETURN_NOK;
 }
