@@ -87,6 +87,7 @@ SOURCES += src/EMU/lis2hh12.c \
     src/LOGIC/logic_security.c \
     src/LOGIC/logic_smartcard.c \
     src/LOGIC/logic_user.c \
+    src/LOGIC/logic_accelerometer.c \
     src/NODEMGMT/nodemgmt.c \
     src/OLED/mooltipass_graphics_bundle.c \
     src/OLED/sh1122.c \
