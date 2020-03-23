@@ -28,12 +28,12 @@ void emu_close_smartcard(BOOL written)
         smartcardFile.write((char*)&card, sizeof(card));
         smartcardFile.flush();
     }
-    smc_mutex.unlock();
+    //smc_mutex.unlock();
 }
 
 bool emu_insert_smartcard(QString filePath, bool createNew)
 {
-    smc_mutex.lock();
+    QMutexLocker locker(&smc_mutex);
     smartcardFile.close();
 
     if(filePath.isEmpty()) {
