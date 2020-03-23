@@ -393,6 +393,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
     // No activity, turn off screen
     if  ((gui_dispatcher_get_current_screen() != GUI_SCREEN_MEMORY_MGMT) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_LOGIN_NOTIF) && (timer_has_timer_expired(TIMER_SCREEN, TRUE) == TIMER_EXPIRED))
     {
+        #ifndef EMULATOR_BUILD
         /* Display "going to sleep", switch off screen */
         if (sh1122_is_oled_on(&plat_oled_descriptor) != FALSE)
         {
@@ -431,6 +432,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
             /* Restart ADC conversions */
             platform_io_get_voledin_conversion_result_and_trigger_conversion();
         }
+        #endif
     }
     
     // Run main GUI screen loop if there was an action. TODO3: screen saver
