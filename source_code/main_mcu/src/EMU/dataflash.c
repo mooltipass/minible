@@ -10,10 +10,11 @@ void emu_dataflash_init(const char *path)
 {
     int i;
     const char *bundle_paths[] = {
+    #ifndef WIN32    
         "/usr/share/misc/miniblebundle.img",
+    #else
         "miniblebundle.img",
-        "../../scripts/python_framework/bundle.img",
-        "bundle.img",
+    #endif
         NULL
     };
 
