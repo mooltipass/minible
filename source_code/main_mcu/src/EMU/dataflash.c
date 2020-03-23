@@ -25,6 +25,7 @@ void emu_dataflash_init(const char *path)
     }
 
     for(i = 0; bundle_paths[i] != NULL;i++) {
+        fprintf(stderr, "Trying to open bundle file %s\n", bundle_paths[i]);
         bundle_fd = open(bundle_paths[i], O_RDONLY);
         if(bundle_fd >= 0)
             return;
