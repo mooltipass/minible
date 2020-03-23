@@ -8,16 +8,9 @@ static QMutex smc_mutex;
 static emu_smartcard_t card;
 static bool card_present;
 static QFile smartcardFile;
-static bool mutex_initialized = false;
 
 struct emu_smartcard_t *emu_open_smartcard()
 {
-    if (!mutex_initialized)
-    {
-        QMutexLocker locker(&smc_mutex);
-        mutex_initialized = true;
-    }
-    
     smc_mutex.lock();
     if(card_present) {
         return &card;
@@ -30,12 +23,6 @@ struct emu_smartcard_t *emu_open_smartcard()
 
 void emu_close_smartcard(BOOL written)
 {
-    if (!mutex_initialized)
-    {
-        QMutexLocker locker(&smc_mutex);
-        mutex_initialized = true;
-    }
-    
     if(written) {
         smartcardFile.seek(0);
         smartcardFile.write((char*)&card, sizeof(card));
@@ -46,11 +33,7 @@ void emu_close_smartcard(BOOL written)
 
 bool emu_insert_smartcard(QString filePath, bool createNew)
 {
-    if (!mutex_initialized)
-    {
-        QMutexLocker locker(&smc_mutex);
-        mutex_initialized = true;
-    }
+    smc_mutex.lock();
     smartcardFile.close();
 
     if(filePath.isEmpty()) {
