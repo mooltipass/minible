@@ -30,6 +30,12 @@ struct emu_smartcard_t *emu_open_smartcard()
 
 void emu_close_smartcard(BOOL written)
 {
+    if (!mutex_initialized)
+    {
+        QMutexLocker locker(&smc_mutex);
+        mutex_initialized = true;
+    }
+    
     if(written) {
         smartcardFile.seek(0);
         smartcardFile.write((char*)&card, sizeof(card));
