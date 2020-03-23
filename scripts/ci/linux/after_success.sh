@@ -21,7 +21,7 @@ docker exec minible-deb bash /scripts/build_source.sh $VERSION eoan
 #prepare files to upload volume
 mkdir -p $HOME/uploads
 cp -v \
-    output/*.{exe,zip} \
+    output/*.{exe,zip,img} \
     $HOME/uploads/
 
 EXE_FILE="$(ls $HOME/uploads/*.exe 2> /dev/null | head -n 1)"
