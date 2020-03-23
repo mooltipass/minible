@@ -509,9 +509,13 @@ int16_t utils_utf8_string_to_bmp_string(uint8_t* utf8_string, cust_char_t* bmp_s
 */
 __attribute__( ( always_inline ) ) inline uint32_t utils_get_SP(void)
 {
-  register uint32_t sp;
+#ifdef EMULATOR_BUILD
+    return 0;
+#else
+    register uint32_t sp;
 
-  asm volatile ("MOV %0, SP\n" : "=r" (sp) );
-  return(sp);
+    asm volatile ("MOV %0, SP\n" : "=r" (sp) );
+    return(sp);
+#endif
 }
 
