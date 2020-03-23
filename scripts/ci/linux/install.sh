@@ -2,7 +2,7 @@
 set -ev
 
 docker run -t --name miniblebuilder -d \
-    -v $(pwd):/moolticute \
+    -v $(pwd):/minible \
     mooltipass/minible-win-builder
 
 docker run -t --name minible-deb -d \
