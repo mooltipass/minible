@@ -1411,7 +1411,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     if (keys_to_send_before_login != 0x00)
                     {
                         /* If we came here because of the unlock feature, discard per login & general settings */
-                        typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)] = KEY_RETURN;
+                        typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)] = 0x0A;
                     }
                     else if (temp_cnode.keyAfterPassword == 0xFFFF)
                     {
