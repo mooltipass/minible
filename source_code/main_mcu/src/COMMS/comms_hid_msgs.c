@@ -240,7 +240,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             /* Smartcard unlocked or unknown card inserted */
             if ((logic_security_is_smc_inserted_unlocked() != FALSE) || (gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_UNKNOWN))
             {
-                logic_user_get_user_cards_cpz(send_msg->payload);
+                smartcard_highlevel_read_code_protected_zone(send_msg->payload); 
                 send_msg->payload_length = MEMBER_SIZE(cpz_lut_entry_t,cards_cpz);
             }
             else
