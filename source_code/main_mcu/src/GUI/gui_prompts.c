@@ -122,6 +122,9 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
     /* Load transition (likely to be overwritten later */
     sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     #endif
+    
+    /* Start timer in case the caller needs it */    
+    timer_start_timer(TIMER_ANIMATIONS, 50);
 }
 
 /*! \fn     gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type
