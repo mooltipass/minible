@@ -932,15 +932,15 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     return ret_val;
 }
 
-/*! \fn     gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt, BOOL first_item_selected)
+/*! \fn     gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL accept_cancel_message, BOOL usb_ble_prompt, BOOL first_item_selected)
 *   \brief  Ask for user confirmation for different things
 *   \param  string_id               String ID
-*   \param  flash_screen            Boolean to flash screen
+*   \param  accept_cancel_message   Boolean to accept the cancel message to cancel prompt
 *   \param  usb_ble_prompt          Set to TRUE to get BLE/USB icons, FALSE for yes/no
 *   \param  first_item_selected     Set to TRUE to select first option by default
 *   \return See enum
 */
-mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL flash_screen, BOOL usb_ble_prompt, BOOL first_item_selected)
+mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL accept_cancel_message, BOOL usb_ble_prompt, BOOL first_item_selected)
 {
     uint16_t bitmap_yes_no_array[10] = {BITMAP_POPUP_2LINES_Y, BITMAP_POPUP_2LINES_N, BITMAP_2LINES_PRESS_Y, BITMAP_2LINES_PRESS_N, BITMAP_2LINES_SEL_Y, BITMAP_2LINES_SEL_N, BITMAP_2LINES_IDLE_Y, BITMAP_2LINES_IDLE_N, BITMAP_POPUP_2LINES_Y_DESEL, BITMAP_POPUP_2LINES_N_SELEC};
     uint16_t bitmap_usb_ble_array[10] = {BITMAP_POPUP_USB, BITMAP_POPUP_BLE, BITMAP_USB_PRESS, BITMAP_BLE_PRESS, BITMAP_USB_SELECT, BITMAP_BLE_SELECT, BITMAP_USB_IDLE, BITMAP_BLE_IDLE, BITMAP_POPUP_USB_DESEL, BITMAP_POPUP_BLE_SEL};
@@ -961,7 +961,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     custom_fs_get_string_from_file(string_id, &string_to_display, TRUE);
     
     /* Check the user hasn't disabled the flash screen feature */
-    if ((flash_screen != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTING_FLASH_SCREEN_ID) != FALSE))
+    if ((BOOL)custom_fs_settings_get_device_setting(SETTING_FLASH_SCREEN_ID) != FALSE)
     {
         flash_flag = TRUE;
     }
@@ -1045,7 +1045,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
         if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD)
         {
             /* As this routine may be called by other functions in the firmware.... flash_screen is set to true for ext requests */
-            if (flash_screen != FALSE)
+            if (accept_cancel_message != FALSE)
             {
                 input_answer = MINI_INPUT_RET_TIMEOUT;
             }
@@ -1135,21 +1135,21 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     return input_answer;    
 }
 
-/*! \fn     gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen, BOOL parse_aux_messages)
+/*! \fn     gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL accept_cancel_message, BOOL parse_aux_messages)
 *   \brief  Ask for user confirmation for different things
-*   \param  nb_args             Number of text lines (2 to 4)
-*   \param  text_object         Pointer to the text object
-*   \param  flash_screen        Boolean to flash screen
-*   \param  parse_aux_messages  Set to TRUE to continue parsing aux messages
+*   \param  nb_args                 Number of text lines (2 to 4)
+*   \param  text_object             Pointer to the text object
+*   \param  accept_cancel_message   Boolean to accept the cancel message to cancel prompt
+*   \param  parse_aux_messages      Set to TRUE to continue parsing aux messages
 *   \return See enum
 */
-mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL flash_screen, BOOL parse_aux_messages)
+mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL accept_cancel_message, BOOL parse_aux_messages)
 {
     BOOL flash_flag = FALSE;
     uint16_t flash_sm = 0;
     
     /* Check the user hasn't disabled the flash screen feature */
-    if ((flash_screen != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTING_FLASH_SCREEN_ID) != FALSE))
+    if ((BOOL)custom_fs_settings_get_device_setting(SETTING_FLASH_SCREEN_ID) != FALSE)
     {
         flash_flag = TRUE;
     }
@@ -1266,7 +1266,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         if ((parse_aux_messages != FALSE) && (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD))
         {
             /* As this routine may be called by other functions in the firmware.... flash_screen is set to true for ext requests */
-            if (flash_screen != FALSE)
+            if (accept_cancel_message != FALSE)
             {
                 input_answer = MINI_INPUT_RET_TIMEOUT;
             }
@@ -1275,7 +1275,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         // Check if something has been pressed or for double knock
         detect_result = inputs_get_wheel_action(FALSE, TRUE);
         knock_detect_result = logic_accelerometer_routine();
-        if ((detect_result == WHEEL_ACTION_SHORT_CLICK) || ((flash_screen != FALSE) && (knock_detect_result == ACC_DET_KNOCK)))
+        if ((detect_result == WHEEL_ACTION_SHORT_CLICK) || ((accept_cancel_message != FALSE) && (knock_detect_result == ACC_DET_KNOCK)))
         { 
             if (approve_selected != FALSE)
             {
