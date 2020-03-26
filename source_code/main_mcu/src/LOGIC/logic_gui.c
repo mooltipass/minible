@@ -31,6 +31,7 @@
 #include "driver_timer.h"
 #include "logic_device.h"
 #include "gui_prompts.h"
+#include "logic_power.h"
 #include "logic_user.h"
 #include "logic_gui.h"
 #include "nodemgmt.h"
@@ -92,6 +93,9 @@ void logic_gui_enable_bluetooth(void)
                 gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_INFO);
                 timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
             }
+            
+            /* Handle possible power switches */
+            logic_power_check_power_switch_and_battery(FALSE);
         }
         
         /* Re-arm communication system */
