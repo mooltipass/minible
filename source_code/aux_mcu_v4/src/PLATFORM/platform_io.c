@@ -277,6 +277,7 @@ void platform_io_enable_battery_charging_ports(void)
 */
 void platform_io_disable_no_comms_signal(void)
 {
+    platform_io_no_comms_unavailable = TRUE;
     PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;
     PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.INEN = 0;
     PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;
