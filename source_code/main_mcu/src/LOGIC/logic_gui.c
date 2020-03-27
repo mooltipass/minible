@@ -93,10 +93,10 @@ void logic_gui_enable_bluetooth(void)
                 gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_INFO);
                 timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
             }
-            
-            /* Handle possible power switches */
-            logic_power_check_power_switch_and_battery(FALSE);
         }
+            
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
         
         /* Re-arm communication system */
         comms_aux_arm_rx_and_clear_no_comms();
