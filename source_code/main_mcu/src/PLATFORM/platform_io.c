@@ -628,7 +628,7 @@ void platform_io_assert_oled_reset(void)
 */
 void platform_io_power_up_oled(BOOL power_3v3)
 {
-    /* Limit inrush to the OLED caps: drive VBAT NMOSFETs with the MCU pullup then switch to push pull stage */
+    /* Limit inrush to the OLED caps: drive VBAT NMOSFETs with the MCU pullup then switch to push pull stage: for 3.1V measured for 36us */
     PORT->Group[VOLED_1V2_EN_GROUP].DIRCLR.reg = VOLED_1V2_EN_MASK;
     PORT->Group[VOLED_1V2_EN_GROUP].OUTSET.reg = VOLED_1V2_EN_MASK;
     PORT->Group[VOLED_1V2_EN_GROUP].PINCFG[VOLED_1V2_EN_PINID].bit.PULLEN = 1;

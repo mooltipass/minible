@@ -419,6 +419,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             case MAIN_MCU_COMMAND_NO_COMMS_UNAV:
             {
                 /* No comms signal unavailable */
+                platform_io_disable_no_comms_signal();
                 logic_set_nocomms_unavailable();
                 break;
             }

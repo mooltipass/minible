@@ -27,6 +27,8 @@ volatile uint16_t platform_io_low_cur_val;
 /* For debug purposes: voltage set for stepdown and matching DATA register value */
 uint16_t platform_io_stepdown_voltage_set = 0;
 uint16_t platform_io_dac_data_register_set = 0;
+/* Boolean to know if no comms signal is unavailable */
+BOOL platform_io_no_comms_unavailable = FALSE;
 
 
 /*! \fn     EIC_Handler(void)
@@ -270,6 +272,16 @@ void platform_io_enable_battery_charging_ports(void)
     ADC->CTRLA.reg = ADC_CTRLA_ENABLE;                                                              // And enable ADC
 }
 
+/*! \fn     platform_io_disable_no_comms_signal(void)
+*   \brief  Disable no comms input signal
+*/
+void platform_io_disable_no_comms_signal(void)
+{
+    PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;
+    PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.INEN = 0;
+    PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;
+}
+
 /*! \fn     platform_io_init_aux_comms_ports(void)
 *   \brief  Initialize the ports used for communication with aux MCU
 */
@@ -364,15 +376,22 @@ void platform_io_enable_eic(void)
 *   \return Assertion status
 */
 RET_TYPE platform_io_is_no_comms_asserted(void)
-{    
-    if ((PORT->Group[AUX_MCU_NOCOMMS_GROUP].IN.reg & AUX_MCU_NOCOMMS_MASK) == 0)
+{
+    if (platform_io_no_comms_unavailable == FALSE)
     {
-        return RETURN_NOK;
-    }
+        if ((PORT->Group[AUX_MCU_NOCOMMS_GROUP].IN.reg & AUX_MCU_NOCOMMS_MASK) == 0)
+        {
+            return RETURN_NOK;
+        }
+        else
+        {
+            return RETURN_OK;
+        }
+    } 
     else
     {
-        return RETURN_OK;
-    }
+        return RETURN_NOK;        
+    }       
 }
 
 /*! \fn     platform_io_init_no_comms_input(void)
@@ -380,9 +399,12 @@ RET_TYPE platform_io_is_no_comms_asserted(void)
 */
 void platform_io_init_no_comms_input(void)
 {
-    PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;          
-    PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_MASK;          
-    PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.INEN = 1; 
+    if (platform_io_no_comms_unavailable == FALSE)
+    {
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_MASK;
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.INEN = 1;
+    }
 }
 
 /*! \fn     platform_io_init_no_comms_pullup_port(void)
@@ -400,11 +422,14 @@ void platform_io_init_no_comms_pullup_port(void)
 */
 void platform_io_generate_no_comms_wakeup_pulse(void)
 {
-    PORT->Group[AUX_MCU_NOCOMMS_PULLUP_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_PULLUP_MASK;
-    #ifndef BOOTLOADER
+    if (platform_io_no_comms_unavailable == FALSE)
+    {
+        PORT->Group[AUX_MCU_NOCOMMS_PULLUP_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_PULLUP_MASK;
+        #ifndef BOOTLOADER
         DELAYMS(1);
-    #endif
-    PORT->Group[AUX_MCU_NOCOMMS_PULLUP_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_PULLUP_MASK;    
+        #endif
+        PORT->Group[AUX_MCU_NOCOMMS_PULLUP_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_PULLUP_MASK;
+    }       
 }
 
 /*! \fn     platform_io_enable_no_comms_int(void)
@@ -413,13 +438,16 @@ void platform_io_generate_no_comms_wakeup_pulse(void)
 void platform_io_enable_no_comms_int(void)
 {    
     /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
-    PORT->Group[AUX_MCU_NOCOMMS_GROUP].PMUX[AUX_MCU_NOCOMMS_PINID/2].bit.AUX_MCU_NOCOMMS_PMUXREGID = PORT_PMUX_PMUXO_A_Val; // Pin mux to EIC
-    PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 1;                                        // Enable peripheral multiplexer
-    EIC->CONFIG[NOCOMMS_EXTINT_NUM/8].bit.NOCOMMS_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;                                // Detect low state
-    EIC->INTFLAG.reg = (1 << NOCOMMS_EXTINT_NUM);                                                                           // Clear interrupt just in case
-    EIC->INTENCLR.reg = (1 << NOCOMMS_EXTINT_NUM);                                                                          // Clear interrupt just in case
-    EIC->INTENSET.reg = (1 << NOCOMMS_EXTINT_NUM);                                                                          // Enable interrupt from ext pin
-    EIC->WAKEUP.reg |= (1 << NOCOMMS_EXTINT_NUM);                                                                           // Enable wakeup from ext pin    
+    if (platform_io_no_comms_unavailable == FALSE)
+    {
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PMUX[AUX_MCU_NOCOMMS_PINID/2].bit.AUX_MCU_NOCOMMS_PMUXREGID = PORT_PMUX_PMUXO_A_Val; // Pin mux to EIC
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 1;                                        // Enable peripheral multiplexer
+        EIC->CONFIG[NOCOMMS_EXTINT_NUM/8].bit.NOCOMMS_EIC_SENSE_REG = EIC_CONFIG_SENSE0_LOW_Val;                                // Detect low state
+        EIC->INTFLAG.reg = (1 << NOCOMMS_EXTINT_NUM);                                                                           // Clear interrupt just in case
+        EIC->INTENCLR.reg = (1 << NOCOMMS_EXTINT_NUM);                                                                          // Clear interrupt just in case
+        EIC->INTENSET.reg = (1 << NOCOMMS_EXTINT_NUM);                                                                          // Enable interrupt from ext pin
+        EIC->WAKEUP.reg |= (1 << NOCOMMS_EXTINT_NUM);                                                                           // Enable wakeup from ext pin    
+    }    
 }
 
 /*! \fn     platform_io_enable_ble_int(void)

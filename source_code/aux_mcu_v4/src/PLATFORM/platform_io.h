@@ -22,6 +22,7 @@ BOOL platform_io_is_ble_wakeup_output_high(void);
 void platform_io_init_no_comms_pullup_port(void);
 RET_TYPE platform_io_is_no_comms_asserted(void);
 void platform_io_prepare_ports_for_sleep(void);
+void platform_io_disable_no_comms_signal(void);
 void platform_io_disable_charge_mosfets(void);
 void platform_io_enable_charge_mosfets(void);
 void platform_io_ble_disabled_actions(void);
