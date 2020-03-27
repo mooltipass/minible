@@ -176,6 +176,9 @@ uint16_t platform_io_get_voledin_conversion_result(void)
 */
 uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
 {
+    /* Rearm watchdog */
+    timer_start_timer(TIMER_ADC_WATCHDOG, 60000);
+    
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
     platform_io_voledin_conv_ready = FALSE;
     uint16_t return_val = ADC->RESULT.reg;
@@ -193,6 +196,9 @@ uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
 */
 uint16_t platform_io_get_voledinmv_conversion_result_and_trigger_conversion(void)
 {
+    /* Rearm watchdog */
+    timer_start_timer(TIMER_ADC_WATCHDOG, 60000);
+    
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
     platform_io_voledin_conv_ready = FALSE;
     uint32_t return_val = ADC->RESULT.reg;

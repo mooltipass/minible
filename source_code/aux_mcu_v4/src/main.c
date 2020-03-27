@@ -175,6 +175,12 @@ int main(void)
             comms_main_mcu_routine(FALSE, 0, FALSE);
         }
         
+        /* ADC watchdog */
+        if ((logic_battery_is_using_adc() != FALSE) && (timer_has_timer_expired(TIMER_ADC_WATCHDOG, TRUE) == TIMER_EXPIRED))
+        {
+            platform_io_get_cursense_conversion_result(TRUE);
+        }
+        
         /* If BLE enabled: deal with events */
         if (logic_is_ble_enabled() != FALSE)
         {

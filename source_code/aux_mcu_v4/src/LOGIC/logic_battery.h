@@ -66,6 +66,7 @@ void logic_battery_start_using_adc(void);
 void logic_battery_stop_using_adc(void);
 void logic_battery_stop_charging(void);
 uint16_t logic_battery_get_vbat(void);
+BOOL logic_battery_is_using_adc(void);
 void logic_battery_init(void);
 
 

@@ -681,6 +681,12 @@ int main(void)
             comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BUNDLE);            
         }
         
+        /* ADC watchdog */
+        if (timer_has_timer_expired(TIMER_ADC_WATCHDOG, TRUE) == TIMER_EXPIRED)
+        {
+            platform_io_get_voledin_conversion_result_and_trigger_conversion();
+        }
+        
         /* Accelerometer routine */
         BOOL is_screen_on_copy = sh1122_is_oled_on(&plat_oled_descriptor);
         acc_detection_te accelerometer_routine_return = logic_accelerometer_routine();

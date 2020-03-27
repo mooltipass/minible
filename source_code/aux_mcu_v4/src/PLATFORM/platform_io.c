@@ -129,6 +129,9 @@ uint32_t platform_io_get_cursense_conversion_result(BOOL trigger_conversion)
     /* Trigger new conversion (mux is already set at the right input in the interrupt */
     if (trigger_conversion != FALSE)
     {
+        /* Rearm watchdog */
+        timer_start_timer(TIMER_ADC_WATCHDOG, 60000);
+        
         while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
         ADC->SWTRIG.reg = ADC_SWTRIG_FLUSH;
         while ((ADC->SWTRIG.reg & ADC_SWTRIG_FLUSH) != 0);

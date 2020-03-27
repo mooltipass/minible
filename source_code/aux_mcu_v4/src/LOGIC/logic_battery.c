@@ -23,9 +23,10 @@ uint16_t logic_battery_peak_voltage = 0;
 /* Number of ticks since we saw the peak voltage */
 uint32_t logic_battery_nb_secs_since_peak = 0;
 uint16_t logic_battery_last_second_seen = 0;
-/* Flag to stop using the ADC */
+/* Flag to start/stop using the ADC */
 BOOL logic_battery_start_using_adc_flag = FALSE;
 BOOL logic_battery_stop_using_adc_flag = FALSE;
+BOOL logic_battery_using_adc_flag = FALSE;
 /* Diagnostic values */
 BOOL logic_battery_diag_charging_forced = FALSE;
 uint16_t logic_battery_diag_current_vbat = 0;
@@ -188,6 +189,15 @@ void logic_battery_start_using_adc(void)
     logic_battery_start_using_adc_flag = TRUE;
 }
 
+/*! \fn     logic_battery_is_using_adc(void)
+*   \brief  Know if we're using ADC
+*   \return The boolean in question
+*/
+BOOL logic_battery_is_using_adc(void)
+{
+    return logic_battery_using_adc_flag;
+}
+
 /*! \fn     logic_battery_task(void)
 *   \brief  Deal with battery related tasks such as charging
 *   \return Any action that may be needed
@@ -200,12 +210,14 @@ battery_action_te logic_battery_task(void)
     if (logic_battery_stop_using_adc_flag != FALSE)
     {
         while(platform_io_is_current_sense_conversion_result_ready() == FALSE);
+        logic_battery_using_adc_flag = FALSE;
     }
     
     /* If we've been told to, arm ADC */
     if (logic_battery_start_using_adc_flag != FALSE)
     {
         platform_io_get_cursense_conversion_result(TRUE);
+        logic_battery_using_adc_flag = TRUE;
     }
 
     /* Did we get current measurements? */
