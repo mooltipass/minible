@@ -716,7 +716,17 @@ int main(void)
             {
                 sh1122_set_screen_invert(&plat_oled_descriptor, invert_bool);
                 inputs_set_inputs_invert_bool(invert_bool);
-                if (gui_prompts_ask_for_one_line_confirmation(prompt_id, FALSE, FALSE, TRUE) == MINI_INPUT_RET_YES)
+                
+                /* Ask the user to change mode */
+                mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_one_line_confirmation(prompt_id, FALSE, FALSE, TRUE);
+                
+                /* In case of power switch, do not touch anything to not confuse the user */
+                if (prompt_return == MINI_INPUT_RET_POWER_SWITCH)
+                {
+                    /* Wait before asking again */
+                    timer_start_timer(TIMER_HANDED_MODE_CHANGE, 30000);
+                }
+                else if (prompt_return == MINI_INPUT_RET_YES)
                 {
                     /* Invert screen and inputs */
                     sh1122_set_screen_invert(&plat_oled_descriptor, invert_bool);

@@ -1041,8 +1041,17 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
         // Call accelerometer routine for (among others) RNG stuff
         logic_accelerometer_routine();
         
+        /* Get power state before entering the next routine */
+        power_source_te before_power_source = logic_power_get_power_source();
+        
         /* Handle possible power switches */
         logic_power_check_power_switch_and_battery(FALSE);
+        
+        /* Power source changed and we're asking the user to change left / right hand mode, return directly to not create any confusing */
+        if ((before_power_source != logic_power_get_power_source()) && ((string_id == QPROMPT_LEFT_HAND_MODE_TEXT_ID) || (string_id == QPROMPT_RIGHT_HAND_MODE_TEXT_ID)))
+        {
+            input_answer = MINI_INPUT_RET_POWER_SWITCH;
+        }
         
         // Read usb comms as the plugin could ask to cancel the request
         if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD)
