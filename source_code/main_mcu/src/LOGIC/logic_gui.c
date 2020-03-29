@@ -25,6 +25,7 @@
 #include "smartcard_lowlevel.h"
 #include "logic_encryption.h"
 #include "logic_smartcard.h"
+#include "logic_bluetooth.h"
 #include "gui_dispatcher.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
@@ -54,6 +55,9 @@ void logic_gui_disable_bluetooth(void)
         
         /* Display information message */
         gui_prompts_display_information_on_screen_and_wait(BLUETOOTH_DISABLED_TEXT_ID, DISP_MSG_INFO, FALSE);
+        
+        /* Update UI */
+        logic_bluetooth_set_connected_state(FALSE);
         
         /* Set BLE enabled bool */
         logic_aux_mcu_set_ble_enabled_bool(FALSE);
