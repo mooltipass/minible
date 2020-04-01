@@ -128,7 +128,7 @@ try:
 	file_path = filedialog.askopenfilename()
 	with open(file_path) as json_file:
 		json_data = json.load(json_file)
-		if "encryption" not in json_data or json_data["encryption"] != "SimpleCrypt":
+		if "encryption" not in json_data or json_data["encryption"] != "SimpleCrypt" or json_data["encryption"] != "SimpleCryptV2":
 			print("Incorrect backup file")
 		backup_file_payload = json_data["payload"]
 		
@@ -178,10 +178,14 @@ try:
 	
 	# Convert CPZ for file decryption
 	cpz_value = 0
-	for i in range(0, 4):
-		cpz_value += (card_cpz[i] << (i*8))
-	for i in range(0, 4):
-		cpz_value += (card_cpz[4+i] << (i*8))
+	if json_data["encryption"] == "SimpleCrypt":
+		for i in range(0, 4):
+			cpz_value += (card_cpz[i] << (i*8))
+		for i in range(0, 4):
+			cpz_value += (card_cpz[4+i] << (i*8))
+	elif json_data["encryption"] == "SimpleCryptV2":
+		for i in range(0, 8):
+			cpz_value += (card_cpz[i] << (i*8))
 
 	# Decrypt backup file payload
 	print("Decrypting file with CPZ", ''.join('{:02x}'.format(x) for x in card_cpz))
@@ -259,20 +263,3 @@ try:
 
 except CardRequestTimeoutException:
 	print("No card was inserted")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
