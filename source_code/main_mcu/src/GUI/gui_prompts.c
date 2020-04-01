@@ -246,8 +246,8 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
     
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
-    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 3000);
-    while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) != TIMER_EXPIRED)
+    timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 3000);
+    while (timer_has_timer_expired(TIMER_DEVICE_ACTION_TIMEOUT, TRUE) != TIMER_EXPIRED)
     {
         /* Deal with incoming messages but do not deal with them */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL); 
@@ -315,8 +315,8 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
     
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
-    timer_start_timer(TIMER_WAIT_FUNCTS, 30000);
-    while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
+    timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 30000);
+    while (timer_has_timer_expired(TIMER_DEVICE_ACTION_TIMEOUT, TRUE) != TIMER_EXPIRED)
     {
         comms_msg_rcvd_te received_packet = comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BOND_STORE);
         if (received_packet == BLE_BOND_STORE_RCVD)
@@ -330,7 +330,7 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
             gui_prompts_display_information_on_screen(PAIRING_WAIT_TEXT_ID, DISP_MSG_ACTION);     
             
             /* Add an extra 5 seconds for pairing to finish */
-            timer_start_timer(TIMER_WAIT_FUNCTS, 5000);   
+            timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 5000);   
         }
         
         /* Accelerometer stuff */
