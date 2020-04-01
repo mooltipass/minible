@@ -108,7 +108,7 @@ static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *resp)
             break;
             
         case MAIN_MCU_COMMAND_UPDT_DEV_STAT:
-            uint16_t cache_payload_size = 4;
+            int cache_payload_size = 4;
             resp->hid_message.message_type = HID_CMD_GET_DEVICE_STATUS;
             resp->hid_message.payload_length = cache_payload_size;
             memcpy(resp->hid_message.payload, msg->main_mcu_command_message.payload, cache_payload_size);
