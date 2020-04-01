@@ -128,7 +128,7 @@ try:
 	file_path = filedialog.askopenfilename()
 	with open(file_path) as json_file:
 		json_data = json.load(json_file)
-		if "encryption" not in json_data or json_data["encryption"] != "SimpleCrypt" or json_data["encryption"] != "SimpleCryptV2":
+		if "encryption" not in json_data or (json_data["encryption"] != "SimpleCrypt" and json_data["encryption"] != "SimpleCryptV2"):
 			print("Incorrect backup file")
 		backup_file_payload = json_data["payload"]
 		
