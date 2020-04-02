@@ -21,6 +21,7 @@
 */
 #include <string.h>
 #include "smartcard_highlevel.h"
+#include "logic_accelerometer.h"
 #include "smartcard_lowlevel.h"
 #include "logic_encryption.h"
 #include "logic_smartcard.h"
@@ -29,6 +30,7 @@
 #include "driver_timer.h"
 #include "logic_device.h"
 #include "gui_prompts.h"
+#include "logic_power.h"
 #include "platform_io.h"
 #include "logic_user.h"
 #include "logic_gui.h"
@@ -458,13 +460,51 @@ RET_TYPE logic_smartcard_clone_card(volatile uint16_t* pincode)
     gui_prompts_display_information_on_screen_and_wait(REMOVE_CARD_TEXT_ID, DISP_MSG_ACTION, FALSE);
     
     // Wait for the user to remove his smart card
-    while (smartcard_lowlevel_is_card_plugged() != RETURN_JRELEASED);
+    uint16_t temp_uint16 = 0;
+    uint16_t current_frame_id = 0;
+    while (smartcard_lowlevel_is_card_plugged() != RETURN_JRELEASED)
+    {
+        /* Deal with incoming messages but do not deal with them */
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        
+        /* Accelerometer routine for RNG stuff */
+        logic_accelerometer_routine();
+        
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
+        
+        if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+        {
+            /* Display new animation frame bitmap, rearm timer with provided value */
+            gui_prompts_display_information_on_string_single_anim_frame(&current_frame_id, &temp_uint16, DISP_MSG_ACTION);
+            timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
+        }
+    }
     
     // Inform the user to insert a blank smart card
     gui_prompts_display_information_on_screen_and_wait(INSERT_NEW_CARD_TEXT_ID, DISP_MSG_ACTION, FALSE);
     
     // Wait for the user to insert a blank smart card
-    while (smartcard_lowlevel_is_card_plugged() != RETURN_JDETECT);
+    temp_uint16 = 0;
+    current_frame_id = 0;
+    while (smartcard_lowlevel_is_card_plugged() != RETURN_JDETECT)
+    {
+        /* Deal with incoming messages but do not deal with them */
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        
+        /* Accelerometer routine for RNG stuff */
+        logic_accelerometer_routine();
+        
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
+        
+        if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+        {
+            /* Display new animation frame bitmap, rearm timer with provided value */
+            gui_prompts_display_information_on_string_single_anim_frame(&current_frame_id, &temp_uint16, DISP_MSG_ACTION);
+            timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
+        }
+    }
     gui_prompts_display_information_on_screen(PROCESSING_TEXT_ID, DISP_MSG_INFO);
     
     // Check that we have a blank card

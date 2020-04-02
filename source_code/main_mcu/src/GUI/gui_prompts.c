@@ -247,7 +247,7 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
     timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 3000);
-    while (timer_has_timer_expired(TIMER_DEVICE_ACTION_TIMEOUT, TRUE) != TIMER_EXPIRED)
+    while ((timer_has_timer_expired(TIMER_DEVICE_ACTION_TIMEOUT, FALSE) != TIMER_EXPIRED) || (i != gui_prompts_notif_idle_anim_length[message_type]-1))
     {
         /* Deal with incoming messages but do not deal with them */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL); 
