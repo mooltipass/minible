@@ -27,6 +27,7 @@
 #include "defines.h"
 
 /* Prototypes */
+BOOL logic_security_should_leave_management_mode(void);
 void logic_security_smartcard_unlocked_actions(void);
 BOOL logic_security_is_smc_inserted_unlocked(void);
 BOOL logic_security_is_management_mode_set(void);

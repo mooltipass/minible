@@ -20,11 +20,15 @@
 *    Author:   Mathieu Stephan
 */
 #include <asf.h>
+#include "logic_bluetooth.h"
 #include "logic_security.h"
+#include "logic_aux_mcu.h"
 /* Inserted card unlocked */
 volatile BOOL logic_security_smartcard_inserted_unlocked = FALSE;
 /* Memory management mode */
 volatile BOOL logic_security_management_mode = FALSE;
+BOOL logic_security_management_usb_con_on_enter = FALSE;
+bt_state_te logic_security_management_ble_con_on_enter = FALSE;
 
 
 /*! \fn     logic_security_clear_security_bools(void)
@@ -74,6 +78,23 @@ BOOL logic_security_is_smc_inserted_unlocked(void)
 void logic_security_set_management_mode(void)
 {
     logic_security_management_mode = TRUE;
+    logic_security_management_usb_con_on_enter = logic_aux_mcu_is_usb_enumerated();
+    logic_security_management_ble_con_on_enter = logic_bluetooth_get_state();
+}
+
+/*! \fn     logic_security_should_leave_management_mode(void)
+*   \brief  Know if we should leave management mode
+*/
+BOOL logic_security_should_leave_management_mode(void)
+{
+    if ((logic_security_management_mode != FALSE) && ((logic_security_management_usb_con_on_enter != logic_aux_mcu_is_usb_enumerated()) || (logic_security_management_ble_con_on_enter != logic_bluetooth_get_state())))
+    {
+        return TRUE;
+    } 
+    else
+    {
+        return FALSE;
+    }
 }
 
 /*! \fn     logic_security_clear_management_mode(void)

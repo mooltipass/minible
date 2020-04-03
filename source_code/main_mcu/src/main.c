@@ -625,6 +625,22 @@ int main(void)
             timer_delay_ms(250);
         }
         
+        /* Check if we should leave management mode */
+        if ((gui_dispatcher_get_current_screen() == GUI_SCREEN_MEMORY_MGMT) && (logic_security_should_leave_management_mode() != FALSE))
+        {
+            /* Device state is going to change... */
+            logic_device_set_state_changed();
+            
+            /* Clear bool */
+            logic_device_activity_detected();
+            logic_security_clear_management_mode();
+            
+            /* Set next screen */
+            gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE, GUI_INTO_MENU_TRANSITION);
+            gui_dispatcher_get_back_to_current_screen();
+            nodemgmt_scan_node_usage();
+        }
+        
         /* Do not do anything if we're uploading new graphics contents */
         if (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE)
         {
