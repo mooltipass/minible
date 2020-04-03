@@ -22,6 +22,7 @@
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
 #include "logic_security.h"
+#include "logic_bluetooth.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
@@ -29,6 +30,7 @@
 #include "logic_power.h"
 #include "platform_io.h"
 #include "gui_prompts.h"
+#include "logic_power.h"
 #include "logic_user.h"
 #include "custom_fs.h"
 #include "text_ids.h"
@@ -341,7 +343,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         logic_power_discard_measurement_counter = 10;
                 
         /* If user selected to, lock device */
-        if ((logic_security_is_smc_inserted_unlocked() != FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_LOCK_ON_DISCONNECT) != FALSE))
+        if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_bluetooth_get_state() != BT_STATE_CONNECTED) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_LOCK_ON_DISCONNECT) != FALSE))
         {
             logic_user_set_user_to_be_logged_off_flag();
         }
