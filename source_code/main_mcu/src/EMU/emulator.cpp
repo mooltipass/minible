@@ -106,7 +106,7 @@ public:
             data += nb;
             size -= nb;
 
-            if(size > 0)
+            while(hid->bytesToWrite() > 0 && hid->state() == QLocalSocket::ConnectedState)
                 hid->waitForBytesWritten();
         }
     }
