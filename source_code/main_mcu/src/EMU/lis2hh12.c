@@ -1,4 +1,5 @@
 #include "lis2hh12.h"
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
