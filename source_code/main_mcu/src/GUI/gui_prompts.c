@@ -1103,6 +1103,10 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
                     sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5]+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
                     timer_delay_ms(10);
                 }
+                
+                /* In case of power switching, where the frame buffer is resent to the display */
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5], TRUE);
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4]+CONF_2LINES_SEL_AN_LGTH-1, TRUE);
             }
             else
             {
@@ -1112,6 +1116,10 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
                     sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4]+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
                     timer_delay_ms(10);
                 }
+                
+                /* In case of power switching, where the frame buffer is resent to the display */
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4], TRUE);
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5]+CONF_2LINES_SEL_AN_LGTH-1, TRUE);
             }                
             approve_selected = !approve_selected;
             
