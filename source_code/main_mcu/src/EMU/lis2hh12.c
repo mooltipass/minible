@@ -12,9 +12,9 @@ BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_desc
     for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(acc_single_fifo_read_t, acc_data_array); i++)
     {
         /* Only fill the lower bytes as the rng uses them */
-        descriptor_pt->fifo_read.acc_data_array[i].acc_x = 100 + (uint16_t)rand() & 0x000F;
-        descriptor_pt->fifo_read.acc_data_array[i].acc_y = 100 + (uint16_t)rand() & 0x000F;
-        descriptor_pt->fifo_read.acc_data_array[i].acc_z = 100 + (uint16_t)rand() & 0x000F;
+        descriptor_pt->fifo_read.acc_data_array[i].acc_x = 100 + ((uint16_t)rand() & 0x000F);
+        descriptor_pt->fifo_read.acc_data_array[i].acc_y = 100 + ((uint16_t)rand() & 0x000F);
+        descriptor_pt->fifo_read.acc_data_array[i].acc_z = 100 + ((uint16_t)rand() & 0x000F);
     }
     return TRUE; 
 }
