@@ -24,6 +24,8 @@ void emu_charger_enable(BOOL en);
 
 BOOL emu_get_systick(uint32_t *value);
 
+BOOL emu_get_lefthanded(void);
+
 #ifdef __cplusplus
 }
 #endif

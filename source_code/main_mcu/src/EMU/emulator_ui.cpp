@@ -24,6 +24,9 @@ EmuWindow::EmuWindow()
 
     auto charger = createChargerUi();
     layout->addRow("USB", charger);
+
+    auto accel = createAccelerometerUi();
+    layout->addRow("Orientation", accel);
 }
 
 QWidget *EmuWindow::createSmartcardUi() 
@@ -160,4 +163,26 @@ QWidget *EmuWindow::createChargerUi()
         ui_mutex.unlock();
     });
     return checkbox;
+}
+
+static bool left_handed = false;
+BOOL emu_get_lefthanded()
+{
+    ui_mutex.lock();
+    bool ret = left_handed;
+    ui_mutex.unlock();
+    return ret;
+}
+
+QWidget *EmuWindow::createAccelerometerUi()
+{
+    auto checkbox = new QCheckBox("left-handed");
+    checkbox->setCheckState(left_handed ? Qt::Checked : Qt::Unchecked);
+    QObject::connect(checkbox, &QCheckBox::stateChanged, this, [=](int state) {
+        ui_mutex.lock();
+        left_handed = state == Qt::Checked;
+        ui_mutex.unlock();
+    });
+    return checkbox;
+
 }

@@ -11,6 +11,7 @@ private:
     QWidget *createSmartcardUi();
     QWidget *createBatteryUi();
     QWidget *createChargerUi();
+    QWidget *createAccelerometerUi();
 };
 
 #endif
