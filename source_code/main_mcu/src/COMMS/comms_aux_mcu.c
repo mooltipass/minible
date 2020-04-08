@@ -354,6 +354,14 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
             logic_aux_mcu_set_usb_enumerated_bool(TRUE);
             break;
         }
+        case AUX_MCU_EVENT_USB_DETACHED:
+        {
+            if (logic_power_get_power_source() == TRANSITIONING_TO_BATTERY_POWER)
+            {
+                logic_power_set_power_source(BATTERY_POWERED);
+            }
+            break;
+        }
         case AUX_MCU_EVENT_CHARGE_DONE:
         {
             logic_power_set_battery_level_update_from_aux(10);

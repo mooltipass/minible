@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    18
+#define FW_MINOR    19
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -41,6 +41,7 @@
 - v0.17:- increased Bluetooth security
         - USB typing bug fix
 - v0.18:- René's release, various bug fixes
+- v0.19:- prevent deadlock on usb disconnect with ctap messages
 */
 
 /**************** SETUP DEFINES ****************/
