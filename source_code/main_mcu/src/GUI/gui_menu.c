@@ -269,7 +269,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                         cust_char_t* display_cred_prompt_text;
                         custom_fs_get_string_from_file(QPROMPT_SNGL_DISP_CRED_TEXT_ID, &display_cred_prompt_text, TRUE);
                         confirmationText_t prompt_object = {.lines[0] = temp_pnode_pt->cred_parent.service, .lines[1] = display_cred_prompt_text};
-                        mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_confirmation(2, &prompt_object, FALSE, TRUE);
+                        mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_confirmation(2, &prompt_object, FALSE, TRUE, FALSE);
                         
                         if (display_prompt_return == MINI_INPUT_RET_BACK)
                         {

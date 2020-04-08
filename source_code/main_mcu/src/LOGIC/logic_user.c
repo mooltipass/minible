@@ -469,7 +469,7 @@ fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, ui
     confirmationText_t conf_text_3_lines = {.lines[0]=rp_id, .lines[1]=three_line_prompt_2, .lines[2]=user_name};
         
     /* Request user approval */
-    mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, FALSE);
+    mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, FALSE, TRUE);
     gui_dispatcher_get_back_to_current_screen();
         
     /* Did the user approve? */
@@ -565,7 +565,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
         confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=login};
         
         /* Request user approval */
-        mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, FALSE);
+        mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, FALSE, FALSE);
         gui_dispatcher_get_back_to_current_screen();
         
         /* Did the user approve? */
@@ -700,7 +700,7 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
             confirmationText_t conf_text_3_lines = {.lines[0]=rp_id, .lines[1]=three_line_prompt_2, .lines[2]=temp_user_name};
 
             /* Request user approval */
-            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, TRUE);
+            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, TRUE, TRUE);
             gui_dispatcher_get_back_to_current_screen();
 
             /* Did the user approve? */
@@ -854,7 +854,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
             confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=login};
 
             /* Request user approval */
-            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, TRUE);
+            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, TRUE, TRUE);
             gui_dispatcher_get_back_to_current_screen();
 
             /* Did the user approve? */
@@ -1093,7 +1093,7 @@ void logic_user_manual_select_login(void)
             cust_char_t* display_cred_prompt_text;
             custom_fs_get_string_from_file(QPROMPT_SNGL_DISP_CRED_TEXT_ID, &display_cred_prompt_text, TRUE);
             confirmationText_t prompt_object = {.lines[0] = temp_pnode_pt->cred_parent.service, .lines[1] = display_cred_prompt_text};
-            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_confirmation(2, &prompt_object, FALSE, TRUE);
+            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_confirmation(2, &prompt_object, FALSE, TRUE, FALSE);
             
             if (display_prompt_return == MINI_INPUT_RET_BACK)
             {
@@ -1243,10 +1243,10 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                 /* Ask for login confirmation */
                 custom_fs_get_string_from_file(TYPE_LOGIN_TEXT_ID, &two_line_prompt_2, TRUE);
                 conf_text_2_lines.lines[1] = two_line_prompt_2;
-                mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE);
+                mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE, TRUE);
 
                 /* Approved, back, card removed... */
-                if (prompt_return == MINI_INPUT_RET_CARD_REMOVED)
+                if ((prompt_return == MINI_INPUT_RET_CARD_REMOVED) || (prompt_return == MINI_INPUT_RET_POWER_SWITCH))
                 {
                     return RETURN_OK;
                 }
@@ -1340,10 +1340,10 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
             /* Ask for password confirmation */
             custom_fs_get_string_from_file(TYPE_PASSWORD_TEXT_ID, &two_line_prompt_2, TRUE);
             conf_text_2_lines.lines[1] = two_line_prompt_2;
-            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE);
+            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE, TRUE);
 
             /* Approved, back, card removed... */
-            if (prompt_return == MINI_INPUT_RET_CARD_REMOVED)
+            if ((prompt_return == MINI_INPUT_RET_CARD_REMOVED) || (prompt_return == MINI_INPUT_RET_POWER_SWITCH))
             {
                 return RETURN_OK;
             }

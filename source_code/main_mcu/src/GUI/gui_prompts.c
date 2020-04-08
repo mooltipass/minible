@@ -1155,15 +1155,16 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     return input_answer;    
 }
 
-/*! \fn     gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL accept_cancel_message, BOOL parse_aux_messages)
+/*! \fn     gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL accept_cancel_message, BOOL parse_aux_messages, BOOL exit_on_power_change)
 *   \brief  Ask for user confirmation for different things
 *   \param  nb_args                 Number of text lines (2 to 4)
 *   \param  text_object             Pointer to the text object
 *   \param  accept_cancel_message   Boolean to accept the cancel message to cancel prompt
 *   \param  parse_aux_messages      Set to TRUE to continue parsing aux messages
+*   \param  exit_on_power_change    Set to TRUE to exit function on power change
 *   \return See enum
 */
-mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL accept_cancel_message, BOOL parse_aux_messages)
+mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL accept_cancel_message, BOOL parse_aux_messages, BOOL exit_on_power_change)
 {
     BOOL flash_flag = FALSE;
     uint16_t flash_sm = 0;
@@ -1279,8 +1280,17 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             input_answer = MINI_INPUT_RET_CARD_REMOVED;
         }
         
+        /* Get power state before entering the next routine */
+        power_source_te before_power_source = logic_power_get_power_source();
+        
         /* Handle possible power switches */
         logic_power_check_power_switch_and_battery(FALSE);
+        
+        /* Power source changed and we're asking the user to change left / right hand mode, return directly to not create any confusing */
+        if ((before_power_source != logic_power_get_power_source()) && (exit_on_power_change != FALSE))
+        {
+            input_answer = MINI_INPUT_RET_POWER_SWITCH;
+        }
         
         // Read usb comms as the plugin could ask to cancel the request
         if ((parse_aux_messages != FALSE) && (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_CANCEL) == HID_CANCEL_MSG_RCVD))

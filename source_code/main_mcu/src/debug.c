@@ -77,14 +77,14 @@ void debug_test_prompts(void)
     cust_char_t* two_line_prompt_1 = (cust_char_t*)u"Delete Service?";
     cust_char_t* two_line_prompt_2 = (cust_char_t*)u"myreallysuperextralongwebsite.com";
     confirmationText_t conf_text_2_lines = {.lines[0]=two_line_prompt_1, .lines[1]=two_line_prompt_2};
-    gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, TRUE, TRUE);
+    gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, TRUE, TRUE, FALSE);
     
     /* 3 lines prompt */
     cust_char_t* three_line_prompt_1 = (cust_char_t*)u"themooltipass.com";
     cust_char_t* three_line_prompt_2 = (cust_char_t*)u"Login With:";
     cust_char_t* three_line_prompt_3 = (cust_char_t*)u"mysuperextralonglogin@mydomain.com";
     confirmationText_t conf_text_3_lines = {.lines[0]=three_line_prompt_1, .lines[1]=three_line_prompt_2, .lines[2]=three_line_prompt_3};
-    gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, TRUE);
+    gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, TRUE, FALSE);
     
     /* 4 lines prompt */
     cust_char_t* four_line_prompt_1 = (cust_char_t*)u"SSH Daemon";
@@ -92,7 +92,7 @@ void debug_test_prompts(void)
     cust_char_t* four_line_prompt_3 = (cust_char_t*)u"Login With:";
     cust_char_t* four_line_prompt_4 = (cust_char_t*)u"mysuperextralonglogin@mydomain.com";
     confirmationText_t conf_text_4_lines = {.lines[0]=four_line_prompt_1, .lines[1]=four_line_prompt_2, .lines[2]=four_line_prompt_3, .lines[3]=four_line_prompt_4};
-    gui_prompts_ask_for_confirmation(4, &conf_text_4_lines, TRUE, TRUE);
+    gui_prompts_ask_for_confirmation(4, &conf_text_4_lines, TRUE, TRUE, FALSE);
     
     /* Notifications */
     gui_prompts_display_information_on_screen_and_wait(35, DISP_MSG_INFO, FALSE);
