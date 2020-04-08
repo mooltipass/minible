@@ -226,14 +226,14 @@ void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame
     *timer_timeout = 50;    
 }
 
-/*! \fn     gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type, BOOL allow_scroll_to_interrupt)
+/*! \fn     gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type, BOOL allow_scroll_or_msg_to_interrupt)
 *   \brief  Display text information on screen
-*   \param  string_id                   String ID to display
-*   \param  message_type                Message type (see enum)
-*   \param  allow_scroll_to_interrupt   Boolean to allow scrolling to interrupt the notification
+*   \param  string_id                           String ID to display
+*   \param  message_type                        Message type (see enum)
+*   \param  allow_scroll_or_msg_to_interrupt    Boolean to allow scrolling or message to interrupt the notification
 *   \return What caused the function to return (see enum)
 */
-gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type, BOOL allow_scroll_to_interrupt)
+gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint16_t string_id, display_message_te message_type, BOOL allow_scroll_or_msg_to_interrupt)
 {
     wheel_action_ret_te wheel_return;
     uint16_t i = 0;
@@ -250,7 +250,13 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
     while ((timer_has_timer_expired(TIMER_DEVICE_ACTION_TIMEOUT, FALSE) != TIMER_EXPIRED) || (i != gui_prompts_notif_idle_anim_length[message_type]-1))
     {
         /* Deal with incoming messages but do not deal with them */
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL); 
+        comms_msg_rcvd_te rcvd_message = comms_aux_mcu_routine(MSG_RESTRICT_ALL); 
+        
+        /* Did we receive a message worthy of stopping the animation? */
+        if ((rcvd_message != NO_MSG_RCVD) && (rcvd_message != EVENT_MSG_RCVD))
+        {
+            return GUI_INFO_DISP_RET_SCROLL_OR_MSG;
+        }
         
         /* Accelerometer routine for RNG stuff */
         logic_accelerometer_routine();
@@ -268,9 +274,9 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
         {
             return GUI_INFO_DISP_RET_LONG_CLICK;
         }
-        else if ((allow_scroll_to_interrupt != FALSE) && ((wheel_return == WHEEL_ACTION_UP) || (wheel_return == WHEEL_ACTION_DOWN)))
+        else if ((allow_scroll_or_msg_to_interrupt != FALSE) && ((wheel_return == WHEEL_ACTION_UP) || (wheel_return == WHEEL_ACTION_DOWN)))
         {
-            return GUI_INFO_DISP_RET_SCROLL;
+            return GUI_INFO_DISP_RET_SCROLL_OR_MSG;
         }
         
         /* Card insertion status change */
