@@ -11,7 +11,7 @@ void emu_dataflash_init(const char *path)
     int i;
     const char *bundle_paths[] = {
     #ifndef WIN32    
-        "/usr/share/misc/miniblebundle.img",
+        XSTR(DESTDIR) XSTR(PREFIX) "/share/misc/miniblebundle.img",
     #else
         "miniblebundle.img",
     #endif
