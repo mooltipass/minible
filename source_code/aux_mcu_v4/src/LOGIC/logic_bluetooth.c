@@ -86,6 +86,15 @@ static at_ble_status_t hid_custom_event(void *param)
     return status;
 }
 
+/*! \fn     logic_bluetooth_store_temp_ban_connected_address(uint8_t* address)
+*   \brief  Store provided address for potential upcoming ban
+*/
+void logic_bluetooth_store_temp_ban_connected_address(uint8_t* address)
+{
+    /* Copy MAC into temp ban buffer */
+    memcpy(logic_bluetooth_temp_banned_mac, address, sizeof(logic_bluetooth_temp_banned_mac));    
+}
+
 /*! \fn     logic_bluetooth_temporarily_ban_connected_device(void)
 *   \brief  Temporarily ban currently connected device
 *   \return RETURN_OK if we were actually connected to a device and if we setup the temp ban
@@ -204,11 +213,12 @@ void logic_bluetooth_clear_bonding_information(void)
     }
 }
 
-/*! \fn     logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info)
+/*! \fn     logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info, at_ble_connected_t* connected_info)
 *   \brief  Called during device pairing
-*   \param  dev_info    Device information pointer
+*   \param  dev_info        Device information pointer
+*   \param  connected_info  Connection information pointer
 */
-void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info)
+void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info, at_ble_connected_t* connected_info)
 {
     aux_mcu_message_t* temp_tx_message_pt;
     DBG_LOG("Paired to device");
@@ -217,15 +227,18 @@ void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info
     logic_bluetooth_can_communicate_with_host = TRUE;
     logic_bluetooth_just_paired = TRUE;
     logic_bluetooth_paired = TRUE;
+    
+    /* Store ban info if IRK address */
+    if (connected_info->peer_addr.type != AT_BLE_ADDRESS_PUBLIC)
+    {
+        logic_bluetooth_store_temp_ban_connected_address(dev_info->bond_info.peer_irk.addr.addr);
+    }
         
     /* Inform main MCU */
     comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
         
     /* Set payload size */
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(temp_tx_message_pt->ble_message.bonding_information_to_store_message);
-    
-    /* Copy MAC into temp ban buffer */
-    memcpy(logic_bluetooth_temp_banned_mac, dev_info->conn_info.peer_addr.addr, sizeof(logic_bluetooth_temp_banned_mac));
         
     /* Message ID */
     temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_STORE_BOND_INFO;
@@ -298,7 +311,7 @@ void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info
 
 /*! \fn     logic_bluetooth_encryption_changed_success(uint8_t* mac)
 *   \brief  Called after encryption changed success
-*   \param  mac     Host MAC address
+*   \param  mac     Host MAC address (public or IRK)
 */
 void logic_bluetooth_encryption_changed_success(uint8_t* mac)
 {
@@ -307,9 +320,6 @@ void logic_bluetooth_encryption_changed_success(uint8_t* mac)
         
     /* Set boolean */
     logic_bluetooth_can_communicate_with_host = TRUE;
-    
-    /* Copy MAC into temp ban buffer */
-    memcpy(logic_bluetooth_temp_banned_mac, mac, sizeof(logic_bluetooth_temp_banned_mac));
 }
 
 /* Callbacks for GAP */

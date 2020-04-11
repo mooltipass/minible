@@ -26,6 +26,8 @@
 #include "rng.h"
 // Connected boolean
 BOOL logic_bluetooth_is_connected = FALSE;
+// Flag to prevent device lock after disconnect
+BOOL logic_bluetooth_prevent_dev_lock_after_disconnect = FALSE;
 
 
 /*! \fn     logic_bluetooth_set_connected_state(BOOL state)
@@ -35,6 +37,24 @@ BOOL logic_bluetooth_is_connected = FALSE;
 void logic_bluetooth_set_connected_state(BOOL state)
 {
     logic_bluetooth_is_connected = state;
+}
+
+/*! \fn     logic_bluetooth_set_do_not_lock_device_after_disconnect_flag(BOOL flag)
+*   \brief  Set flag allowing to prevent device lock on bluetooth disconnect
+*   \param  flag    Flag value
+*/
+void logic_bluetooth_set_do_not_lock_device_after_disconnect_flag(BOOL flag)
+{
+    logic_bluetooth_prevent_dev_lock_after_disconnect = flag;
+}
+
+/*! \fn     logic_bluetooth_get_do_not_lock_device_after_disconnect_flag(void)
+*   \brief  Get flag allowing to prevent device lock on bluetooth disconnect
+*   \return The flag
+*/
+BOOL logic_bluetooth_get_do_not_lock_device_after_disconnect_flag(void)
+{
+    return logic_bluetooth_prevent_dev_lock_after_disconnect;
 }
 
 /*! \fn     logic_bluetooth_get_state(void)

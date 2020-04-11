@@ -1020,20 +1020,19 @@ at_ble_status_t ble_connected_state_handler(void *params)
     
     if (conn_params->conn_status == AT_BLE_SUCCESS)
     {
+        DBG_LOG("Connection Handle %d", conn_params->handle);
         DBG_LOG("Connected to peer device with address 0x%02x%02x%02x%02x%02x%02x",
         conn_params->peer_addr.addr[5],
         conn_params->peer_addr.addr[4],
         conn_params->peer_addr.addr[3],
         conn_params->peer_addr.addr[2],
         conn_params->peer_addr.addr[1],
-        conn_params->peer_addr.addr[0]);
-        
-        DBG_LOG("Connection Handle %d", conn_params->handle);
-        
+        conn_params->peer_addr.addr[0]);        
         memcpy((uint8_t *)&connected_state_info, (uint8_t *)conn_params, sizeof(at_ble_connected_t));   
         
         if (conn_params->peer_addr.type == AT_BLE_ADDRESS_PUBLIC)
         {
+            /* Check for temp ban */
             if (logic_bluetooth_is_device_temp_banned(conn_params->peer_addr.addr) != FALSE)
             {
                 /* Device temporarily banned, disconnect it */
@@ -1042,7 +1041,11 @@ at_ble_status_t ble_connected_state_handler(void *params)
                 // Try AT_BLE_LL_CON_LIMIT_EXCEED ?
                 return AT_BLE_FAILURE;
             }
-            else if (comms_main_mcu_fetch_bonding_info_for_mac(conn_params->peer_addr.type, conn_params->peer_addr.addr, &recalled_bonding_info) == RETURN_OK)
+                   
+            /* Store address we could temp ban later */
+            logic_bluetooth_store_temp_ban_connected_address(conn_params->peer_addr.addr);
+            
+            if (comms_main_mcu_fetch_bonding_info_for_mac(conn_params->peer_addr.type, conn_params->peer_addr.addr, &recalled_bonding_info) == RETURN_OK)
             {
                 /* Our dear MCU knows that device */
                 ble_device_info.conn_state = BLE_DEVICE_CONNECTED;
@@ -1121,21 +1124,8 @@ at_ble_status_t ble_connected_state_handler(void *params)
             if(at_ble_random_address_resolve((uint8_t)nb_irk_keys, &conn_params->peer_addr, irk_keys_buffer) == AT_BLE_SUCCESS)
             {
                 DBG_LOG_DEV("Resolving Random address success**");
-                
-                /* Check for temporarily banned device */
-                if (logic_bluetooth_is_device_temp_banned(conn_params->peer_addr.addr) != FALSE)
-                {
-                    at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
-                    DBG_LOG("Device temporarily banned... bye!");
-                    // Try AT_BLE_LL_CON_LIMIT_EXCEED ?
-                    resolve_addr_flag = false;
-                    return AT_BLE_FAILURE;
-                }
-                else
-                {
-                    resolve_addr_flag = true;
-                    return AT_BLE_SUCCESS;                    
-                }                
+                resolve_addr_flag = true;
+                return AT_BLE_SUCCESS;
             }
             else
             {
@@ -1213,6 +1203,22 @@ at_ble_status_t ble_resolv_rand_addr_handler(void *params)
             memcpy(ble_device_info.host_ltk.nb, recalled_bonding_info.host_ltk_random_nb, sizeof(recalled_bonding_info.host_ltk_random_nb));
             ble_device_info.host_ltk.key_size = recalled_bonding_info.host_ltk_key_size;
             memcpy(ble_device_info.host_csrk.key, recalled_bonding_info.host_csrk_key, sizeof(recalled_bonding_info.host_csrk_key));
+            
+            /* Check for temp ban */
+            if ((connected_state_info.peer_addr.type != AT_BLE_ADDRESS_PUBLIC) && (logic_bluetooth_is_device_temp_banned(ble_device_info.bond_info.peer_irk.addr.addr) != FALSE))
+            {
+                /* Device temporarily banned, disconnect it */
+                at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
+                DBG_LOG("Device temporarily banned... bye!");
+                // Try AT_BLE_LL_CON_LIMIT_EXCEED ?
+                return AT_BLE_FAILURE;
+            }
+            
+            if (connected_state_info.peer_addr.type != AT_BLE_ADDRESS_PUBLIC)
+            {
+                /* Store address we could temp ban later */
+                logic_bluetooth_store_temp_ban_connected_address(ble_device_info.bond_info.peer_irk.addr.addr);
+            }
         }   
         else
         {
@@ -1633,7 +1639,7 @@ at_ble_status_t ble_pair_done_handler(void *params)
             ble_device_info.conn_state = BLE_DEVICE_PAIRED;
             
             /* Call logic bluetooth handler */
-            logic_bluetooth_successfull_pairing_call(&ble_device_info);
+            logic_bluetooth_successfull_pairing_call(&ble_device_info, &connected_state_info);
         }
         else
         {

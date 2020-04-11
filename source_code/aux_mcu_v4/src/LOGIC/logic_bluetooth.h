@@ -273,12 +273,13 @@ typedef struct hid_reportref_desc
 void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t* mode, uint8_t report_num, uint8_t* report_type, uint8_t** report_val, uint8_t* report_len, hid_info_t* info);
 void logic_bluetooth_boot_key_report_update(at_ble_handle_t conn_handle, uint8_t serv_inst, uint8_t* bootreport, uint16_t len);
 void logic_bluetooth_update_report(uint16_t conn_handle, uint8_t serv_inst, uint8_t reportid, uint8_t* report, uint16_t len);
+void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info, at_ble_connected_t* connected_info);
 ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key, uint8_t second_key);
 uint8_t logic_bluetooth_get_report_characteristic(uint16_t handle, uint8_t serv, uint8_t reportid);
 uint8_t logic_bluetooth_get_notif_instance(uint8_t serv_num, uint16_t char_handle);
 void logic_bluetooth_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status);
-void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info);
 at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params);
+void logic_bluetooth_store_temp_ban_connected_address(uint8_t* address);
 uint8_t logic_bluetooth_get_reportid(uint8_t serv, uint16_t handle);
 void logic_bluetooth_set_open_to_pairing_bool(BOOL pairing_bool);
 void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address);

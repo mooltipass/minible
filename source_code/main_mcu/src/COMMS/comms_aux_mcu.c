@@ -376,18 +376,19 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
         }
         case AUX_MCU_EVENT_BLE_CONNECTED:
         {
+            logic_bluetooth_set_do_not_lock_device_after_disconnect_flag(FALSE);
             logic_bluetooth_set_connected_state(TRUE);
             break;
         }
         case AUX_MCU_EVENT_BLE_DISCONNECTED:
         {
-            logic_bluetooth_set_connected_state(FALSE);
-            
             /* If user selected to, lock device */
-            if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_aux_mcu_is_usb_enumerated() == FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_LOCK_ON_DISCONNECT) != FALSE))
+            if ((logic_bluetooth_get_do_not_lock_device_after_disconnect_flag() == FALSE) && (logic_bluetooth_get_state() == BT_STATE_CONNECTED) && (logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_aux_mcu_is_usb_enumerated() == FALSE) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_LOCK_ON_DISCONNECT) != FALSE))
             {
                 logic_user_set_user_to_be_logged_off_flag();
             }
+            
+            logic_bluetooth_set_connected_state(FALSE);
             break;
         }
         case AUX_MCU_EVENT_CHARGE_LVL_UPDATE:
