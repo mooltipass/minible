@@ -345,6 +345,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         
         /* Discard next 10 measurement */
         logic_power_discard_measurement_counter = 10;
+        logic_power_adc_measurement_counter = 0;
                 
         /* If user selected to, lock device */
         if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_bluetooth_get_state() != BT_STATE_CONNECTED) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_LOCK_ON_DISCONNECT) != FALSE))
@@ -367,6 +368,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         {
             /* Device power-on or wakeup */
             logic_power_discard_measurement_counter = 5;
+            logic_power_adc_measurement_counter = 0;
         }
     }
     
