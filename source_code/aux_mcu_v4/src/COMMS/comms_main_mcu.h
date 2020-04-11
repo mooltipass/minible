@@ -81,6 +81,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define BLE_MESSAGE_GET_IRK_KEYS            0x0008
 #define BLE_MESSAGE_RECALL_BOND_INFO_IRK    0x0009
 #define BLE_MESSAGE_GET_BT_6_DIGIT_CODE     0x000A
+#define BLE_MESSAGE_DISCONNECT_FOR_NEXT     0x000B
 
 /* FIDO2 messages start */
 #define AUX_MCU_MSG_TYPE_FIDO2_START 0x0001

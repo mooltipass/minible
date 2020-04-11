@@ -2334,7 +2334,7 @@ at_ble_status_t ble_remove_bonding_info(void);
 #endif /* defined PDS_SERVICE */
 
 /* Added from mooltipass */
-void ble_disconnect_all_device_and_clear_bond_info(void);
+void ble_disconnect_all_devices(void);
 void ble_clear_bond_info(void);
 
 #endif /*__BLE_MANAGER_H__*/

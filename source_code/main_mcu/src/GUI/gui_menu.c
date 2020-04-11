@@ -43,8 +43,8 @@ const uint16_t advanced_menu_pic_ids[] = {GUI_BT_ICON_ID, GUI_CAT_ICON_ID, GUI_F
 const uint16_t simple_menu_text_ids[] = {BT_TEXT_ID, FAV_TEXT_ID, LOGIN_TEXT_ID, LOCK_TEXT_ID, OPR_TEXT_ID};
 const uint16_t advanced_menu_text_ids[] = {BT_TEXT_ID, CAT_TEXT_ID, FAV_TEXT_ID, LOGIN_TEXT_ID, LOCK_TEXT_ID, OPR_TEXT_ID, SETTINGS_TEXT_ID};
 /* Bluetooth Menu */
-const uint16_t bluetooth_on_menu_pic_ids[] = {GUI_BT_DISABLE_ICON_ID, GUI_BT_UNPAIR_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BT_SETTINGS_ICON_ID, GUI_BACK_ICON_ID};
-const uint16_t bluetooth_on_menu_text_ids[] = {BT_DISABLE_TEXT_ID, BT_UNPAIR_DEV_TEXT_ID, BT_NEW_PAIR_TEXT_ID, BT_SETTINGS_TEXT_ID, BACK_TEXT_ID};
+const uint16_t bluetooth_on_menu_pic_ids[] = {GUI_BT_DISABLE_ICON_ID, GUI_BT_UNPAIR_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BT_SWITCH_ICON_ID, GUI_BACK_ICON_ID};
+const uint16_t bluetooth_on_menu_text_ids[] = {BT_DISABLE_TEXT_ID, BT_UNPAIR_DEV_TEXT_ID, BT_NEW_PAIR_TEXT_ID, BT_SWITCH_TEXT_ID, BACK_TEXT_ID};
 /* Operations Menu */
 const uint16_t operations_menu_pic_ids[] = {GUI_ERASE_USER_ICON_ID, GUI_CHANGE_PIN_ICON_ID, GUI_CLONE_ICON_ID, GUI_SIMPLE_ADV_ICON_ID, GUI_BACK_ICON_ID};
 const uint16_t operations_simple_menu_text_ids[] = {ERASE_USER_TEXT_ID, CHANGE_PIN_TEXT_ID, CLONE_TEXT_ID, ENABLE_ADV_MENU_TEXT_ID, BACK_TEXT_ID};
@@ -332,6 +332,24 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 logic_user_clear_user_security_flag(USER_SEC_FLG_BLE_ENABLED);
                 gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE, GUI_OUTOF_MENU_TRANSITION);
                 return TRUE;       
+            }
+            
+            case GUI_BT_SWITCH_ICON_ID:
+            {
+                /* Are we actually connected to a device? */
+                if (logic_bluetooth_get_state() == BT_STATE_CONNECTED)
+                {
+                    aux_mcu_message_t* temp_tx_message_pt;
+                    
+                    /* Send command to aux MCU */
+                    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+                    temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_DISCONNECT_FOR_NEXT;
+                    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
+                    comms_aux_mcu_send_message(FALSE);
+                } 
+                else
+                {
+                }
             }
             
             case GUI_BT_UNPAIR_ICON_ID:
