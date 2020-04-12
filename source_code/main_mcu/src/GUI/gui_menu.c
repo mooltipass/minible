@@ -349,6 +349,9 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_DISCONNECT_FOR_NEXT;
                     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
                     comms_aux_mcu_send_message(FALSE);
+                    
+                    /* User notification */
+                    gui_prompts_display_information_on_screen_and_wait(DEVICE_DISCONNECTED_TEXT_ID, DISP_MSG_INFO, FALSE);
                 } 
                 else
                 {
