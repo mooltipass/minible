@@ -128,6 +128,14 @@ static BOOL process_ble_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *resp)
                 return FALSE;
             }
         }
+        
+        case BLE_MESSAGE_DISCONNECT_FOR_NEXT:
+        {
+            resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+            resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISCONNECTED;
+            resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
+            return TRUE;
+        }
             
     }
 
