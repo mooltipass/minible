@@ -8,6 +8,7 @@
 
 static BOOL response_valid;
 static aux_mcu_message_t response;
+static BOOL has_been_already_paired_to_device = FALSE;
 
 static void send_hid_message(aux_mcu_message_t *msg);
 static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *response);
@@ -96,6 +97,38 @@ static BOOL process_ble_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *resp)
             resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISABLED;
             resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
             return TRUE;
+            
+        case BLE_MESSAGE_ENABLE_PAIRING:
+        {
+            if (has_been_already_paired_to_device == FALSE)
+            {
+                resp->message_type = AUX_MCU_MSG_TYPE_BLE_CMD;
+                resp->ble_message.message_id = BLE_MESSAGE_GET_BT_6_DIGIT_CODE;
+                resp->payload_length1 = sizeof(resp->ble_message.message_id);
+                return TRUE;
+            }
+            else
+            {
+                return FALSE;
+            }
+        }
+            
+        case BLE_MESSAGE_GET_BT_6_DIGIT_CODE:
+        {
+            if (has_been_already_paired_to_device == FALSE)
+            {
+                has_been_already_paired_to_device = TRUE;
+                resp->message_type = AUX_MCU_MSG_TYPE_BLE_CMD;
+                resp->ble_message.message_id = BLE_MESSAGE_STORE_BOND_INFO;
+                resp->payload_length1 = sizeof(resp->ble_message.message_id) + sizeof(resp->ble_message.bonding_information_to_store_message);
+                return TRUE;
+            }
+            else
+            {
+                return FALSE;
+            }
+        }
+            
     }
 
     return FALSE;

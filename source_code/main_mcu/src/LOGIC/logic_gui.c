@@ -146,7 +146,7 @@ void logic_gui_clone_card(void)
         else if (temp_rettype == RETURN_NEW_PIN_DIFF)
         {
             /* Display that the PINs were different */
-            gui_prompts_display_information_on_screen_and_wait(PIN_DIFFERENT_TEXT_ID, DISP_MSG_WARNING, FALSE);
+            gui_prompts_display_information_on_screen_and_wait(DIFFERENT_PINS_TEXT_ID, DISP_MSG_WARNING, FALSE);
         }
         else
         {

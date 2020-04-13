@@ -29,7 +29,7 @@
 #define KEYB_LAYOUT_CHANGE_TEXT_ID      16
 #define CRED_PROMPT_CHANGE_TEXT_ID      17
 #define KNOCK_DETECTION_TEXT_ID         18
-#define WHEEL_ROT_FLIP_TEXT_ID          19
+//////////////////////////////////////////
 #define LANGUAGE_SWITCH_TEXT_ID         20
 #define PB_CARD_TEXT_ID                 21
 #define REMOVE_CARD_TEXT_ID             22
@@ -75,7 +75,7 @@
 #define PIN_CHANGED_TEXT_ID             64
 #define PIN_NOT_CHANGED_TEXT_ID         65
 #define ENTER_NEW_PIN_TEXT_ID           66
-#define PIN_DIFFERENT_TEXT_ID           67
+//////////////////////////////////////////
 #define CARD_NOT_BLANK_TEXT_ID          68
 #define INSERT_NEW_CARD_TEXT_ID         69
 #define CARD_CLONED_TEXT_ID             70
