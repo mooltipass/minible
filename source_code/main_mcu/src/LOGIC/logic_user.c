@@ -401,6 +401,7 @@ RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, c
     {
         _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
         utils_ascii_to_unicode((uint8_t*)encrypted_password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+        encrypted_password[NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
     }
 
     /* Finally do the comparison */
@@ -904,6 +905,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
             {
                 _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
                 utils_ascii_to_unicode((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+                send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index + NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
             }
             
             /* Get password length */
@@ -964,6 +966,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
                     {
                         _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
                         utils_ascii_to_unicode((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+                        send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index + NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
                     }
                     
                     /* Get password length */
@@ -1389,6 +1392,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     {
                         _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
                         utils_ascii_to_unicode((uint8_t*)temp_cnode.password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+                        temp_cnode.password[NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
                     }
                         
                     /* Type shortcut if specified */

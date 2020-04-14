@@ -171,8 +171,8 @@ void utils_ascii_to_unicode(uint8_t* string, uint16_t nb_chars)
 {
     for (int16_t i = nb_chars - 1; i >= 0; i--)
     {
-        string[i*2] = 0;
-        string[i*2 + 1] = string[i];
+        string[i*2] = string[i];
+        string[i*2 + 1] = 0;
     }
 }
 
