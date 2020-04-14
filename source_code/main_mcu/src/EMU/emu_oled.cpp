@@ -51,6 +51,12 @@ void emu_oled_byte(uint8_t data)
             case SH1122_CMD_SET_VSEGM_LEVEL:
                 cmdargs = 1;
                 break;
+            case SH1122_CMD_SET_DISPLAY_ON:
+                postToObject([]() { oled->set_display_on(true); }, oled);
+                break;
+            case SH1122_CMD_SET_DISPLAY_OFF:
+                postToObject([]() { oled->set_display_on(false); }, oled);
+                break;
             }
 
             last_cmd = data;
@@ -137,9 +143,17 @@ void OLEDWidget::update_display(const uint8_t *fb) {
     repaint();
 }
 
+void OLEDWidget::set_display_on(bool on) {
+    display_on = on;
+    repaint();
+}
+
 void OLEDWidget::paintEvent(QPaintEvent *) {
     QPainter painter(this);
-    painter.drawImage(QRect(0, 0, width(), height()), display, QRect(0, 0, display.width(), display.height()));
+    if(display_on)
+        painter.drawImage(QRect(0, 0, width(), height()), display, QRect(0, 0, display.width(), display.height()));
+    else
+        painter.eraseRect(QRect(0, 0, width(), height()));
 }
 
 // see INPUTS/inputs.c
