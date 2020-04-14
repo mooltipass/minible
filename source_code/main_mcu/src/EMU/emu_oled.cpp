@@ -208,13 +208,18 @@ void OLEDWidget::wheelEvent(QWheelEvent *evt) {
 
 void OLEDWidget::mousePressEvent(QMouseEvent *evt) {
     irq_mutex.lock();
-    set_emulated_wheel_state(true);
+    if(evt->button() == Qt::LeftButton)
+        set_emulated_wheel_state(true);
+    else if(evt->button() == Qt::BackButton)
+        inputs_wheel_click_duration_counter=3000; // long press
+
     irq_mutex.unlock();
 }
 
 void OLEDWidget::mouseReleaseEvent(QMouseEvent *evt) {
     irq_mutex.lock();
-    set_emulated_wheel_state(false);
+    if(evt->button() == Qt::LeftButton)
+        set_emulated_wheel_state(false);
     irq_mutex.unlock();
 }
 
