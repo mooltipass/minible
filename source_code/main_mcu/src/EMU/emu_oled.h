@@ -10,10 +10,12 @@
 class OLEDWidget: public QWidget {
 public:
     QImage display;
+    bool display_on = true;
     OLEDWidget();
     ~OLEDWidget();
 
     void update_display(const uint8_t *fb);
+    void set_display_on(bool on);
 
 protected:
     virtual void paintEvent(QPaintEvent *);
