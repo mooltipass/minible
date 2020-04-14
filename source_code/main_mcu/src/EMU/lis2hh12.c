@@ -9,14 +9,15 @@ static int urandom = -1;
 
 BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_descriptor_t* descriptor_pt, BOOL arm_other_transfer)
 {
-    int16_t base_y = emu_get_lefthanded() ? -100 : 100;
+    int16_t base_x = emu_get_lefthanded() ? 16384 : -16384;
+    int16_t base_y = 0;
+    int16_t base_z = 0;
     (void)arm_other_transfer;
     for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(acc_single_fifo_read_t, acc_data_array); i++)
     {
-        /* Only fill the lower bytes as the rng uses them */
-        descriptor_pt->fifo_read.acc_data_array[i].acc_x = 100 + ((uint16_t)rand() & 0x000F);
+        descriptor_pt->fifo_read.acc_data_array[i].acc_x = base_x + ((uint16_t)rand() & 0x000F);
         descriptor_pt->fifo_read.acc_data_array[i].acc_y = base_y + ((uint16_t)rand() & 0x000F);
-        descriptor_pt->fifo_read.acc_data_array[i].acc_z = 100 + ((uint16_t)rand() & 0x000F);
+        descriptor_pt->fifo_read.acc_data_array[i].acc_z = base_z + ((uint16_t)rand() & 0x000F);
     }
     return TRUE; 
 }
