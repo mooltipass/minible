@@ -640,7 +640,7 @@ From the PC:
 | 266->269 | 4B Set to 0 |
 | 270->525 | Second (up to) 256B of data to store |
 | 526->529 | Total file size |
-| 530->531 | 2B set to 0 |
+| 530->531 | 0 to signal upcoming data, otherwise 1 to signal last packet |
 
 Device Answer:
 
