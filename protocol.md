@@ -635,7 +635,7 @@ From the PC:
 | 0->1     | 0x0021 |
 | 2->3     | 528 |
 | 4->7     | 4B Set to 0 |
-| 8->9     | Amount of bytes to encrypt in this packet (from 0 to 512) |
+| 8->9     | Amount of bytes in this packet (from 0 to 512) |
 | 10->265  | First (up to) 256B of data to store |
 | 266->269 | 4B Set to 0 |
 | 270->525 | Second (up to) 256B of data to store |
