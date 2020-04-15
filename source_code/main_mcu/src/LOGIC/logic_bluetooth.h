@@ -30,6 +30,8 @@
 typedef enum    {BT_STATE_CONNECTED = 0, BT_STATE_OFF, BT_STATE_ON} bt_state_te;
 
 /* Prototypes */
+void logic_bluetooth_set_do_not_lock_device_after_disconnect_flag(BOOL flag);
+BOOL logic_bluetooth_get_do_not_lock_device_after_disconnect_flag(void);
 void logic_bluetooth_get_unit_mac_address(uint8_t* buffer);
 void logic_bluetooth_set_connected_state(BOOL state);
 bt_state_te logic_bluetooth_get_state(void);

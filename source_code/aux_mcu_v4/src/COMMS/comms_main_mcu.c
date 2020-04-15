@@ -330,6 +330,16 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 logic_bluetooth_set_open_to_pairing_bool(FALSE);
                 break;
             }
+            case BLE_MESSAGE_DISCONNECT_FOR_NEXT:
+            {
+                /* Where we actually connected to something? */
+                if (logic_bluetooth_temporarily_ban_connected_device() == RETURN_OK)
+                {
+                    /* No status messsage, only a notification of disconnection */
+                    comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_BLE_DISCONNECTED, message);                    
+                }
+                break;
+            }
             default:
             {
                 break;

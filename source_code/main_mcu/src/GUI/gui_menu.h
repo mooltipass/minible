@@ -49,7 +49,7 @@
 #define GUI_BT_DISABLE_ICON_ID      129
 #define GUI_BT_UNPAIR_ICON_ID       273
 #define GUI_NEW_PAIR_ICON_ID        210
-#define GUI_BT_SETTINGS_ICON_ID     851
+#define GUI_BT_SWITCH_ICON_ID       860
 
 /* Settings picture & text IDs */
 #define GUI_KEYB_LAYOUT_CHANGE_ICON_ID  219

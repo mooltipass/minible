@@ -75,12 +75,62 @@ BOOL logic_bluetooth_connected = FALSE;
 BOOL logic_bluetooth_paired = FALSE;
 /* Bool to specify if we setup the callbacks */
 BOOL logic_bluetooth_callbacks_set = FALSE;
+/* Boolean to know if we're currently temporarily banning someone */
+BOOL logic_bluetooth_temp_banning_device = FALSE;
+uint8_t logic_bluetooth_temp_banned_mac[6];
 
 
 static at_ble_status_t hid_custom_event(void *param)
 {
     at_ble_status_t status = AT_BLE_SUCCESS;
     return status;
+}
+
+/*! \fn     logic_bluetooth_store_temp_ban_connected_address(uint8_t* address)
+*   \brief  Store provided address for potential upcoming ban
+*/
+void logic_bluetooth_store_temp_ban_connected_address(uint8_t* address)
+{
+    /* Copy MAC into temp ban buffer */
+    memcpy(logic_bluetooth_temp_banned_mac, address, sizeof(logic_bluetooth_temp_banned_mac));    
+}
+
+/*! \fn     logic_bluetooth_temporarily_ban_connected_device(void)
+*   \brief  Temporarily ban currently connected device
+*   \return RETURN_OK if we were actually connected to a device and if we setup the temp ban
+*/
+RET_TYPE logic_bluetooth_temporarily_ban_connected_device(void)
+{
+    /* Mac is filled when device is connected */
+    if ((logic_is_ble_enabled() != FALSE) && (logic_bluetooth_can_communicate_with_host != FALSE))
+    {
+        /* Temp ban for 34 seconds */
+        timer_start_timer(TIMER_BLE_TEMP_BAN, 34567);
+        logic_bluetooth_temp_banning_device = TRUE;
+        ble_disconnect_all_devices();
+        return RETURN_OK;
+    }
+    else
+    {
+        return RETURN_NOK;
+    }
+}
+
+/*! \fn     logic_bluetooth_is_device_temp_banned(uint8_t* mac)
+*   \brief  Know if a given mac is temporarily banned
+*   \param  mac     MAC address for checks
+*   \return TRUE or false
+*/
+BOOL logic_bluetooth_is_device_temp_banned(uint8_t* mac)
+{
+    if ((memcmp(logic_bluetooth_temp_banned_mac, mac, sizeof(logic_bluetooth_temp_banned_mac)) == 0) && (logic_bluetooth_temp_banning_device != FALSE))
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
 }
 
 /*! \fn     logic_bluetooth_get_open_to_pairing(void)
@@ -158,15 +208,17 @@ void logic_bluetooth_clear_bonding_information(void)
     } 
     else
     {
-        ble_disconnect_all_device_and_clear_bond_info();
+        ble_disconnect_all_devices();
+        ble_clear_bond_info();
     }
 }
 
-/*! \fn     logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info)
+/*! \fn     logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info, at_ble_connected_t* connected_info)
 *   \brief  Called during device pairing
-*   \param  dev_info    Device information pointer
+*   \param  dev_info        Device information pointer
+*   \param  connected_info  Connection information pointer
 */
-void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info)
+void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info, at_ble_connected_t* connected_info)
 {
     aux_mcu_message_t* temp_tx_message_pt;
     DBG_LOG("Paired to device");
@@ -175,6 +227,12 @@ void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info
     logic_bluetooth_can_communicate_with_host = TRUE;
     logic_bluetooth_just_paired = TRUE;
     logic_bluetooth_paired = TRUE;
+    
+    /* Store ban info if IRK address */
+    if (connected_info->peer_addr.type != AT_BLE_ADDRESS_PUBLIC)
+    {
+        logic_bluetooth_store_temp_ban_connected_address(dev_info->bond_info.peer_irk.addr.addr);
+    }
         
     /* Inform main MCU */
     comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
@@ -251,29 +309,17 @@ void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info
     DBG_LOG("IRK addr: %02x%02x%02x%02x%02x%02x",dev_info->bond_info.peer_irk.addr.addr[0],dev_info->bond_info.peer_irk.addr.addr[1],dev_info->bond_info.peer_irk.addr.addr[2],dev_info->bond_info.peer_irk.addr.addr[3],dev_info->bond_info.peer_irk.addr.addr[4],dev_info->bond_info.peer_irk.addr.addr[5]);
 }
 
-/*! \fn     logic_bluetooth_encryption_changed_callback(void* params)
-*   \brief  Called during encryption status change
+/*! \fn     logic_bluetooth_encryption_changed_success(uint8_t* mac)
+*   \brief  Called after encryption changed success
+*   \param  mac     Host MAC address (public or IRK)
 */
-static at_ble_status_t logic_bluetooth_encryption_changed_callback(void *param)
+void logic_bluetooth_encryption_changed_success(uint8_t* mac)
 {
-    at_ble_encryption_status_changed_t *encryption_status_changed = (at_ble_encryption_status_changed_t *)param;
-    if(encryption_status_changed->status == AT_BLE_SUCCESS)
-    {
-        DBG_LOG("Enc status changed success");
+    /* Inform main MCU */
+    comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_CONNECTED);
         
-        /* Inform main MCU */
-        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_CONNECTED);
-        
-        /* Set boolean */
-        logic_bluetooth_can_communicate_with_host = TRUE;
-        
-        return encryption_status_changed->status;
-    }
-    else
-    {
-        DBG_LOG("ERROR: Enc status changed failed");
-    }
-    return encryption_status_changed->status;
+    /* Set boolean */
+    logic_bluetooth_can_communicate_with_host = TRUE;
 }
 
 /* Callbacks for GAP */
@@ -282,7 +328,7 @@ static const ble_gap_event_cb_t hid_app_gap_handle =
     .connected = logic_bluetooth_hid_connected_callback,
     .disconnected = logic_bluetooth_hid_disconnected_callback,
     //.pair_done = logic_bluetooth_hid_paired_callback,
-    .encryption_status_changed = logic_bluetooth_encryption_changed_callback
+    //.encryption_status_changed = logic_bluetooth_encryption_changed_callback
 };
 
 /*! \fn     logic_bluetooth_notification_confirmed_callback(void* params)
@@ -1606,6 +1652,12 @@ void logic_bluetooth_routine(void)
                 logic_bluetooth_notif_being_sent = NONE_NOTIF_SENDING;
             }
         }
+    }
+    
+    /* Temp ban routine */
+    if (timer_has_timer_expired(TIMER_BLE_TEMP_BAN, TRUE) == TIMER_EXPIRED)
+    {
+        logic_bluetooth_temp_banning_device = FALSE;
     }
     
     ble_event_task();

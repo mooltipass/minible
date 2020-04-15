@@ -43,8 +43,8 @@ const uint16_t advanced_menu_pic_ids[] = {GUI_BT_ICON_ID, GUI_CAT_ICON_ID, GUI_F
 const uint16_t simple_menu_text_ids[] = {BT_TEXT_ID, FAV_TEXT_ID, LOGIN_TEXT_ID, LOCK_TEXT_ID, OPR_TEXT_ID};
 const uint16_t advanced_menu_text_ids[] = {BT_TEXT_ID, CAT_TEXT_ID, FAV_TEXT_ID, LOGIN_TEXT_ID, LOCK_TEXT_ID, OPR_TEXT_ID, SETTINGS_TEXT_ID};
 /* Bluetooth Menu */
-const uint16_t bluetooth_on_menu_pic_ids[] = {GUI_BT_DISABLE_ICON_ID, GUI_BT_UNPAIR_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BT_SETTINGS_ICON_ID, GUI_BACK_ICON_ID};
-const uint16_t bluetooth_on_menu_text_ids[] = {BT_DISABLE_TEXT_ID, BT_UNPAIR_DEV_TEXT_ID, BT_NEW_PAIR_TEXT_ID, BT_SETTINGS_TEXT_ID, BACK_TEXT_ID};
+const uint16_t bluetooth_on_menu_pic_ids[] = {GUI_BT_DISABLE_ICON_ID, GUI_BT_UNPAIR_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BT_SWITCH_ICON_ID, GUI_BACK_ICON_ID};
+const uint16_t bluetooth_on_menu_text_ids[] = {BT_DISABLE_TEXT_ID, BT_UNPAIR_DEV_TEXT_ID, BT_NEW_PAIR_TEXT_ID, BT_SWITCH_TEXT_ID, BACK_TEXT_ID};
 /* Operations Menu */
 const uint16_t operations_menu_pic_ids[] = {GUI_ERASE_USER_ICON_ID, GUI_CHANGE_PIN_ICON_ID, GUI_CLONE_ICON_ID, GUI_SIMPLE_ADV_ICON_ID, GUI_BACK_ICON_ID};
 const uint16_t operations_simple_menu_text_ids[] = {ERASE_USER_TEXT_ID, CHANGE_PIN_TEXT_ID, CLONE_TEXT_ID, ENABLE_ADV_MENU_TEXT_ID, BACK_TEXT_ID};
@@ -269,7 +269,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                         cust_char_t* display_cred_prompt_text;
                         custom_fs_get_string_from_file(QPROMPT_SNGL_DISP_CRED_TEXT_ID, &display_cred_prompt_text, TRUE);
                         confirmationText_t prompt_object = {.lines[0] = temp_pnode_pt->cred_parent.service, .lines[1] = display_cred_prompt_text};
-                        mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_confirmation(2, &prompt_object, FALSE, TRUE);
+                        mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_confirmation(2, &prompt_object, FALSE, TRUE, FALSE);
                         
                         if (display_prompt_return == MINI_INPUT_RET_BACK)
                         {
@@ -334,6 +334,32 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 return TRUE;       
             }
             
+            case GUI_BT_SWITCH_ICON_ID:
+            {
+                /* Are we actually connected to a device? */
+                if (logic_bluetooth_get_state() == BT_STATE_CONNECTED)
+                {
+                    aux_mcu_message_t* temp_tx_message_pt;
+                    
+                    /* Set flag */
+                    logic_bluetooth_set_do_not_lock_device_after_disconnect_flag(TRUE);
+                    
+                    /* Send command to aux MCU */
+                    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+                    temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_DISCONNECT_FOR_NEXT;
+                    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
+                    comms_aux_mcu_send_message(FALSE);
+                    
+                    /* User notification */
+                    gui_prompts_display_information_on_screen_and_wait(DEVICE_DISCONNECTED_TEXT_ID, DISP_MSG_INFO, FALSE);
+                } 
+                else
+                {
+                    gui_prompts_display_information_on_screen_and_wait(NOT_CONNECTED_TO_DEVICE_TEXT_ID, DISP_MSG_INFO, FALSE);
+                }
+                return TRUE;
+            }
+            
             case GUI_BT_UNPAIR_ICON_ID:
             {
                 mini_input_yes_no_ret_te user_input = gui_prompts_ask_for_one_line_confirmation(QPROMPT_DEL_BLE_PAIRINGS_TEXT_ID, FALSE, FALSE, TRUE);
@@ -360,29 +386,40 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
 
             case GUI_NEW_PAIR_ICON_ID:
             {
-                aux_mcu_message_t* temp_tx_message_pt;
-                
-                /* Send command to enable pairing to aux MCU */
-                comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
-                temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_ENABLE_PAIRING;
-                temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
-                
-                /* Send message */
-                comms_aux_mcu_send_message(TRUE);
-                
-                /* Let's try to pair a new device! */
-                if (gui_prompts_wait_for_pairing_screen() == GUI_INFO_DISP_RET_BLE_PAIRED)
+                /* Are we connected to a device? */
+                if (logic_bluetooth_get_state() != BT_STATE_CONNECTED)
                 {
-                    gui_prompts_display_information_on_screen_and_wait(PAIRING_SUCCEEDED_TEXT_ID, DISP_MSG_INFO, FALSE);
-                } 
+                    aux_mcu_message_t* temp_tx_message_pt;
+                
+                    /* Send command to enable pairing to aux MCU */
+                    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+                    temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_ENABLE_PAIRING;
+                    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
+                
+                    /* Send message */
+                    comms_aux_mcu_send_message(TRUE);
+                
+                    /* Do not lock device during pairing procedure */
+                    logic_bluetooth_set_do_not_lock_device_after_disconnect_flag(TRUE);
+                
+                    /* Let's try to pair a new device! */
+                    if (gui_prompts_wait_for_pairing_screen() == GUI_INFO_DISP_RET_BLE_PAIRED)
+                    {
+                        gui_prompts_display_information_on_screen_and_wait(PAIRING_SUCCEEDED_TEXT_ID, DISP_MSG_INFO, FALSE);
+                    } 
+                    else
+                    {
+                        gui_prompts_display_information_on_screen_and_wait(PAIRING_FAILED_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                    }
+                
+                    /* Now we disable pairing again */                
+                    temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_DISABLE_PAIRING;
+                    comms_aux_mcu_send_message(TRUE);
+                }
                 else
                 {
-                    gui_prompts_display_information_on_screen_and_wait(PAIRING_FAILED_TEXT_ID, DISP_MSG_WARNING, FALSE);
-                }
-                
-                /* Now we disable pairing again */                
-                temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_DISABLE_PAIRING;
-                comms_aux_mcu_send_message(TRUE);
+                    gui_prompts_display_information_on_screen_and_wait(DISCONNECT_DEV_FIRST_TEXT_ID, DISP_MSG_INFO, FALSE);                    
+                }                
                 return TRUE;
             }
             

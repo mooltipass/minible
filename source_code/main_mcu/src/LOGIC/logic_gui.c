@@ -146,7 +146,7 @@ void logic_gui_clone_card(void)
         else if (temp_rettype == RETURN_NEW_PIN_DIFF)
         {
             /* Display that the PINs were different */
-            gui_prompts_display_information_on_screen_and_wait(PIN_DIFFERENT_TEXT_ID, DISP_MSG_WARNING, FALSE);
+            gui_prompts_display_information_on_screen_and_wait(DIFFERENT_PINS_TEXT_ID, DISP_MSG_WARNING, FALSE);
         }
         else
         {
@@ -301,6 +301,7 @@ void logic_gui_display_login_password(child_cred_node_t* child_node)
     {
         _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
         utils_ascii_to_unicode(child_node->password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+        child_node->password[NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
     }    
     
     /* Temp vars for our main loop */

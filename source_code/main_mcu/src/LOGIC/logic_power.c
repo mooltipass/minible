@@ -286,6 +286,12 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
 {        
     volatile uint32_t nb_ms_since_full_charge_copy = logic_power_nb_ms_spent_since_last_full_charge;
     
+    /* Do not do anything if we're transitioning power sources */
+    if (logic_power_get_power_source() == TRANSITIONING_TO_BATTERY_POWER)
+    {
+        return POWER_ACT_NONE;
+    }
+    
     /* Get current oled power source */
     oled_stepup_pwr_source_te current_voled_pwr_source = platform_io_get_voled_stepup_pwr_source();
     
@@ -315,9 +321,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         logic_device_activity_detected();
     }
     else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
-    {
-        aux_mcu_message_t* temp_rx_message_pt;
-        
+    {        
         /* Set inversion bool */
         plat_oled_descriptor.screen_inverted = (BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_BATTERY);
         inputs_set_inputs_invert_bool(plat_oled_descriptor.screen_inverted);
@@ -330,7 +334,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
         comms_aux_mcu_wait_for_message_sent();
         platform_io_disable_3v3_to_oled_stepup();
-        logic_power_set_power_source(BATTERY_POWERED);
+        logic_power_set_power_source(TRANSITIONING_TO_BATTERY_POWER);
         logic_power_set_battery_charging_bool(FALSE, FALSE);
         logic_aux_mcu_set_usb_enumerated_bool(FALSE);
         platform_io_assert_oled_reset();
@@ -341,16 +345,13 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         
         /* Discard next 10 measurement */
         logic_power_discard_measurement_counter = 10;
+        logic_power_adc_measurement_counter = 0;
                 
         /* If user selected to, lock device */
         if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_bluetooth_get_state() != BT_STATE_CONNECTED) && ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_LOCK_ON_DISCONNECT) != FALSE))
         {
             logic_user_set_user_to_be_logged_off_flag();
         }
-        
-        /* Wait for detach ACK from aux MCU */
-        while(comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_USB_DETACHED) != RETURN_OK);
-        comms_aux_arm_rx_and_clear_no_comms();
         
         /* Clear inputs in case user move the wheel not on purpose */
         inputs_clear_detections();
@@ -367,6 +368,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         {
             /* Device power-on or wakeup */
             logic_power_discard_measurement_counter = 5;
+            logic_power_adc_measurement_counter = 0;
         }
     }
     

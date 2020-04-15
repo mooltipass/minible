@@ -29,7 +29,7 @@
 #define KEYB_LAYOUT_CHANGE_TEXT_ID      16
 #define CRED_PROMPT_CHANGE_TEXT_ID      17
 #define KNOCK_DETECTION_TEXT_ID         18
-#define WHEEL_ROT_FLIP_TEXT_ID          19
+//////////////////////////////////////////
 #define LANGUAGE_SWITCH_TEXT_ID         20
 #define PB_CARD_TEXT_ID                 21
 #define REMOVE_CARD_TEXT_ID             22
@@ -75,7 +75,7 @@
 #define PIN_CHANGED_TEXT_ID             64
 #define PIN_NOT_CHANGED_TEXT_ID         65
 #define ENTER_NEW_PIN_TEXT_ID           66
-#define PIN_DIFFERENT_TEXT_ID           67
+//////////////////////////////////////////
 #define CARD_NOT_BLANK_TEXT_ID          68
 #define INSERT_NEW_CARD_TEXT_ID         69
 #define CARD_CLONED_TEXT_ID             70
@@ -108,11 +108,15 @@
 #define CONTACT_SUPPORT_001_TEXT_ID     101
 #define QPROMPT_DEL_BLE_PAIRINGS_TEXT_ID 102
 #define PAIRINGS_CLEARED_TEXT_ID        103
-#define BT_SETTINGS_TEXT_ID             104
+#define BT_SWITCH_TEXT_ID               104
 #define PAIRING_WAIT_TEXT_ID            105
 #define PAIRING_SUCCEEDED_TEXT_ID       106
 #define PAIRING_FAILED_TEXT_ID          107
 #define CRED_ALREAD_PRESENT_TEXT_ID     108
 #define ENTER_BT_PIN_TEXT_ID            109
+#define DISCONNECT_DEV_FIRST_TEXT_ID    110
+#define NOT_CONNECTED_TO_DEVICE_TEXT_ID 111
+#define DEVICE_DISCONNECTED_TEXT_ID     112
+#define ADD_NEW_FILE_TEXT_ID            113
 
 #endif

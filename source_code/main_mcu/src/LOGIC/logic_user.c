@@ -46,6 +46,10 @@
 BOOL logic_user_should_be_logged_off_flag = FALSE;
 // Boolean to know state of lock/unlock feature
 BOOL logic_user_lock_unlock_shortcuts = FALSE;
+// Boolean to know if we're adding data to a data service
+BOOL logic_user_adding_data_to_service_from_usb = FALSE;
+uint16_t logic_user_data_service_addr = NODE_ADDR_NULL;
+BOOL logic_user_adding_data_to_service = FALSE;
 // User security preferences
 uint16_t logic_user_cur_sec_preferences;
 
@@ -65,6 +69,10 @@ void logic_user_init_context(uint8_t user_id)
     custom_fs_set_current_language(utils_check_value_for_range(user_language, 0, custom_fs_get_number_of_languages()-1));
     custom_fs_set_current_keyboard_id(utils_check_value_for_range(user_usb_layout, 0, custom_fs_get_number_of_keyb_layouts()-1), TRUE);
     custom_fs_set_current_keyboard_id(utils_check_value_for_range(user_ble_layout, 0, custom_fs_get_number_of_keyb_layouts()-1), FALSE);
+    
+    /* Reset booleans */
+    logic_user_data_service_addr = NODE_ADDR_NULL;
+    logic_user_adding_data_to_service = FALSE;
 }
 
 /*! \fn     logic_user_set_user_to_be_logged_off_flag(void)
@@ -401,6 +409,7 @@ RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, c
     {
         _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
         utils_ascii_to_unicode((uint8_t*)encrypted_password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+        encrypted_password[NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
     }
 
     /* Finally do the comparison */
@@ -469,7 +478,7 @@ fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, ui
     confirmationText_t conf_text_3_lines = {.lines[0]=rp_id, .lines[1]=three_line_prompt_2, .lines[2]=user_name};
         
     /* Request user approval */
-    mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, FALSE);
+    mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, FALSE, TRUE);
     gui_dispatcher_get_back_to_current_screen();
         
     /* Did the user approve? */
@@ -516,6 +525,66 @@ fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, ui
     {
         return FIDO2_STORAGE_EXHAUSTED;
     }
+}
+
+/*! \fn     logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb)
+*   \brief  Store new data service and store current state in user context
+*   \param  service             Pointer to service string
+*   \param  is_message_from_usb BOOL set to true if the request comes from USB
+*   \return success or not
+*   \note   This function doesn't parse aux MCU messages in order to safely use aux mcu received message
+*/
+RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb)
+{
+    /* Reset booleans */
+    logic_user_adding_data_to_service_from_usb = is_message_from_usb;
+    logic_user_data_service_addr = NODE_ADDR_NULL;
+    logic_user_adding_data_to_service = FALSE;
+    
+    /* Smartcard present and unlocked? */
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Does service already exist? */
+    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, FALSE, NODEMGMT_STANDARD_DATA_TYPE_ID);
+    
+    /* If so, return error */
+    if (parent_address != NODE_ADDR_NULL)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Prepare prompt text */
+    cust_char_t* two_line_prompt_2;
+    custom_fs_get_string_from_file(ADD_NEW_FILE_TEXT_ID, &two_line_prompt_2, TRUE);
+    confirmationText_t conf_text_2_lines = {.lines[0]=service, .lines[1]=two_line_prompt_2};
+        
+    /* Request user approval */
+    mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, TRUE, FALSE, FALSE);
+    gui_dispatcher_get_back_to_current_screen();
+        
+    /* Did the user approve? */
+    if (prompt_return != MINI_INPUT_RET_YES)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Add data service */
+    logic_user_data_service_addr = logic_database_add_service(service, SERVICE_DATA_TYPE, NODEMGMT_STANDARD_DATA_TYPE_ID);
+    
+    /* Check for operation success */
+    if (logic_user_data_service_addr == NODE_ADDR_NULL)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Set boolean */
+    logic_user_adding_data_to_service = TRUE;
+    
+    /* Send success! */
+    return RETURN_NOK;
 }
 
 /*! \fn     logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
@@ -565,7 +634,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
         confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=login};
         
         /* Request user approval */
-        mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, FALSE);
+        mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, FALSE, FALSE);
         gui_dispatcher_get_back_to_current_screen();
         
         /* Did the user approve? */
@@ -700,7 +769,7 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
             confirmationText_t conf_text_3_lines = {.lines[0]=rp_id, .lines[1]=three_line_prompt_2, .lines[2]=temp_user_name};
 
             /* Request user approval */
-            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, TRUE);
+            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, TRUE, TRUE);
             gui_dispatcher_get_back_to_current_screen();
 
             /* Did the user approve? */
@@ -854,7 +923,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
             confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=login};
 
             /* Request user approval */
-            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, TRUE);
+            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, TRUE, TRUE);
             gui_dispatcher_get_back_to_current_screen();
 
             /* Did the user approve? */
@@ -904,6 +973,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
             {
                 _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
                 utils_ascii_to_unicode((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+                send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index + NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
             }
             
             /* Get password length */
@@ -964,6 +1034,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
                     {
                         _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
                         utils_ascii_to_unicode((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+                        send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index + NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
                     }
                     
                     /* Get password length */
@@ -1093,7 +1164,7 @@ void logic_user_manual_select_login(void)
             cust_char_t* display_cred_prompt_text;
             custom_fs_get_string_from_file(QPROMPT_SNGL_DISP_CRED_TEXT_ID, &display_cred_prompt_text, TRUE);
             confirmationText_t prompt_object = {.lines[0] = temp_pnode_pt->cred_parent.service, .lines[1] = display_cred_prompt_text};
-            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_confirmation(2, &prompt_object, FALSE, TRUE);
+            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_confirmation(2, &prompt_object, FALSE, TRUE, FALSE);
             
             if (display_prompt_return == MINI_INPUT_RET_BACK)
             {
@@ -1243,10 +1314,10 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                 /* Ask for login confirmation */
                 custom_fs_get_string_from_file(TYPE_LOGIN_TEXT_ID, &two_line_prompt_2, TRUE);
                 conf_text_2_lines.lines[1] = two_line_prompt_2;
-                mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE);
+                mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE, TRUE);
 
                 /* Approved, back, card removed... */
-                if (prompt_return == MINI_INPUT_RET_CARD_REMOVED)
+                if ((prompt_return == MINI_INPUT_RET_CARD_REMOVED) || (prompt_return == MINI_INPUT_RET_POWER_SWITCH))
                 {
                     return RETURN_OK;
                 }
@@ -1340,10 +1411,10 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
             /* Ask for password confirmation */
             custom_fs_get_string_from_file(TYPE_PASSWORD_TEXT_ID, &two_line_prompt_2, TRUE);
             conf_text_2_lines.lines[1] = two_line_prompt_2;
-            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE);
+            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE, TRUE);
 
             /* Approved, back, card removed... */
-            if (prompt_return == MINI_INPUT_RET_CARD_REMOVED)
+            if ((prompt_return == MINI_INPUT_RET_CARD_REMOVED) || (prompt_return == MINI_INPUT_RET_POWER_SWITCH))
             {
                 return RETURN_OK;
             }
@@ -1389,6 +1460,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     {
                         _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
                         utils_ascii_to_unicode((uint8_t*)temp_cnode.password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+                        temp_cnode.password[NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
                     }
                         
                     /* Type shortcut if specified */

@@ -755,10 +755,10 @@ int main(void)
                     inputs_set_inputs_invert_bool(invert_bool);
                     
                     /* Store settings */
-                    if (logic_power_get_power_source() == BATTERY_POWERED)
-                        custom_fs_set_settings_value(SETTINGS_LEFT_HANDED_ON_BATTERY, (uint8_t)invert_bool);
-                    else
+                    if (logic_power_get_power_source() == USB_POWERED)
                         custom_fs_set_settings_value(SETTINGS_LEFT_HANDED_ON_USB, (uint8_t)invert_bool);
+                    else
+                        custom_fs_set_settings_value(SETTINGS_LEFT_HANDED_ON_BATTERY, (uint8_t)invert_bool);
                 }
                 else
                 {

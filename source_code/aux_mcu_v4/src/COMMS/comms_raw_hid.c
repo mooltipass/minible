@@ -163,8 +163,9 @@ void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* pac
             }
             
             /* Check for usb disconnection */
-            if ((hid_interface == USB_INTERFACE) && ((usb_get_config() == 0) || (udc_get_nb_ms_before_last_usb_activity() > 100)))
+            if (((hid_interface == USB_INTERFACE) || (hid_interface == CTAP_INTERFACE)) && ((usb_get_config() == 0) || (udc_get_nb_ms_before_last_usb_activity() > 100)))
             {
+                comms_raw_hid_packet_being_sent[hid_interface] = FALSE;
                 return;
             }
         }
@@ -196,7 +197,7 @@ void comms_raw_hid_send_hid_message(hid_interface_te hid_interface, aux_mcu_mess
             }
             
             /* Check for usb disconnection */
-            if ((hid_interface == USB_INTERFACE) && ((usb_get_config() == 0) || (udc_get_nb_ms_before_last_usb_activity() > 100)))
+            if (((hid_interface == USB_INTERFACE) || (hid_interface == CTAP_INTERFACE)) && ((usb_get_config() == 0) || (udc_get_nb_ms_before_last_usb_activity() > 100)))
             {
                 return;
             }

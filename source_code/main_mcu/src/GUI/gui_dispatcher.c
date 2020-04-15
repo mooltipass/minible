@@ -415,7 +415,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
         timer_has_timer_expired(TIMER_SCREEN, TRUE);
         
         /* If we're battery powered, go to sleep */
-        if (logic_power_get_power_source() == BATTERY_POWERED)
+        if (logic_power_get_power_source() != USB_POWERED)
         {
             /* Hack: only disable OLED stepup when battery powered. When USB powered, if 3V3 USB isn't loaded then we can't detect USB disconnection */
             platform_io_power_down_oled();
