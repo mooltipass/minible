@@ -93,6 +93,8 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 /* Credential types IDs */
 #define NODEMGMT_STANDARD_CRED_TYPE_ID      0
 #define NODEMGMT_WEBAUTHN_CRED_TYPE_ID      1
+/* Data types IDs */
+#define NODEMGMT_STANDARD_DATA_TYPE_ID      0
 
 /* Structs */
 // Parent node, see: https://mooltipass.github.io/minible/database_model

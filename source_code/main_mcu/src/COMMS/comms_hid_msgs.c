@@ -88,15 +88,16 @@ uint16_t comms_hid_msgs_fill_get_status_message_answer(uint16_t* msg_array_uint1
     }
 }
 
-/*! \fn     comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type)
+/*! \fn     comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb)
 *   \brief  Parse an incoming message from USB or BLE
 *   \param  rcv_msg                 Received message
 *   \param  supposed_payload_length Supposed payload length
 *   \param  send_msg                Where to write a possible reply
 *   \param  answer_restrict_type    Enum restricting which messages we can answer
+*   \param  is_message_from_usb     Boolean set to TRUE if message comes from USB
 *   \return something >= 0 if an answer needs to be sent, otherwise -1
 */
-int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type)
+int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb)
 {    
     /* Check correct payload length */
     if ((supposed_payload_length != rcv_msg->payload_length) || (supposed_payload_length > sizeof(rcv_msg->payload)))
@@ -1230,6 +1231,31 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 send_msg->payload_as_uint16[0] = 0;
                 return sizeof(uint16_t);
             }
+        }
+        
+        case HID_CMD_CREATE_FILE_ID:
+        {
+            /* Input sanitazing */
+            uint16_t max_cust_char_length = max_payload_size/sizeof(cust_char_t);
+            
+            /* Get string length */
+            uint16_t string_length = utils_strnlen(rcv_msg->payload_as_cust_char_t, max_cust_char_length);
+            
+            /* Check for valid length, not exceeding payload size, then prompt user */
+            if ((string_length < max_cust_char_length) && ((string_length + 1) == (rcv_msg->payload_length / (uint16_t)sizeof(cust_char_t))) && (logic_security_is_smc_inserted_unlocked() == FALSE) && (logic_user_add_data_service(rcv_msg->payload_as_cust_char_t, is_message_from_usb) == RETURN_OK))
+            {
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+            
+            send_msg->message_type = rcv_message_type;
+            send_msg->payload_length = 1;
+            return 1;
         }
         
         case HID_CMD_SET_USER_KEYB_ID:

@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    23
+#define FW_MINOR    24
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -80,6 +80,7 @@
         - Bluetooth security increase
 - v0.22:- René's release, various bug fixes
 - v0.23:- more gracefully handling USB to battery power transition
+- v0.24:- bt disconnect/switch feature
 */
 
 /**************** SETUP DEFINES ****************/

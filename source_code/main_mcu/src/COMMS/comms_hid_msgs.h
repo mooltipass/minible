@@ -70,6 +70,9 @@
 #define HID_CMD_SET_USER_LANG_ID    0x001E
 #define HID_CMD_SET_DEVICE_LANG_ID  0x001F
 #define HID_CMD_ADD_UNKNOWN_CARD_ID 0x0020
+#define HID_CMD_CREATE_FILE_ID      0x0021
+#define HID_CMD_ADD_FILE_DATA_ID    0x0022
+#define HID_CMD_GET_FILE_DATA_ID    0x0023
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101
@@ -192,7 +195,7 @@ typedef struct
 } hid_message_t;
 
 /* Prototypes */
-int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type);
+int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb);
 uint16_t comms_hid_msgs_fill_get_status_message_answer(uint16_t* msg_array_uint16);
 
 
