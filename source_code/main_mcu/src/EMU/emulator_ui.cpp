@@ -44,7 +44,7 @@ QWidget *EmuWindow::createSmartcardUi()
     auto btn_insert_menu = new QMenu();
     auto act_invalid = btn_insert_menu->addAction("Invalid");
     QObject::connect(act_invalid, &QAction::triggered, this, [=]() {
-        if(emu_insert_smartcard(QString())) {
+        if(emu_insert_new_smartcard(QString(), EMU_SMARTCARD_INVALID)) {
             btn_remove->setEnabled(true);
             btn_insert->setEnabled(false);
         }
@@ -52,12 +52,11 @@ QWidget *EmuWindow::createSmartcardUi()
 
     auto act_broken = btn_insert_menu->addAction("Broken");
     QObject::connect(act_broken, &QAction::triggered, this, [=]() {
-        if(emu_insert_smartcard("!broken")) {
+        if(emu_insert_new_smartcard(QString(), EMU_SMARTCARD_BROKEN)) {
             btn_remove->setEnabled(true);
             btn_insert->setEnabled(false);
         }
     });
-
 
     auto act_new = btn_insert_menu->addAction("New (blank)");
     QObject::connect(act_new, &QAction::triggered, this, [=]() {
@@ -67,7 +66,7 @@ QWidget *EmuWindow::createSmartcardUi()
 
         if (dialog.exec() == QDialog::Accepted) {
             auto fileName = dialog.selectedFiles().value(0);
-            if(emu_insert_smartcard(fileName, true)) {
+            if(emu_insert_new_smartcard(fileName, EMU_SMARTCARD_REGULAR)) {
                 btn_remove->setEnabled(true);
                 btn_insert->setEnabled(false);
             }

@@ -5,7 +5,7 @@
 
 static det_ret_type_te smartcard_status = RETURN_REL;
 
-void emu_init_smartcard(struct emu_smartcard_t *blank, int type)
+void emu_init_smartcard(struct emu_smartcard_storage_t *blank, int type)
 {
     if(type == EMU_SMARTCARD_INVALID)
         memset(blank->smc, 0, sizeof(blank->smc));
@@ -45,18 +45,35 @@ det_ret_type_te smartcard_lowlevel_is_card_plugged(void)
     return smartcard_status;
 }
 
-RET_TYPE smartcard_lowlevel_check_for_const_val_in_smc_array(uint16_t nb_bytes_total_read, uint16_t start_record_index, uint8_t value){ return RETURN_OK; /* FIXME */ }
+RET_TYPE smartcard_lowlevel_check_for_const_val_in_smc_array(uint16_t nb_bytes_total_read, uint16_t start_record_index, uint8_t value){
+	uint8_t tmpbuf[nb_bytes_total_read-start_record_index];
+	smartcard_lowlevel_read_smc(nb_bytes_total_read, start_record_index, tmpbuf);
+	for(unsigned int i=0;i<sizeof(tmpbuf);i++)
+		if(tmpbuf[i] != value)
+			return RETURN_NOK;
+
+	return RETURN_OK;
+}
 
 /* 178-180 - manufacturer zone */
 uint8_t* smartcard_lowlevel_read_smc(uint16_t nb_bytes_total_read, uint16_t start_record_index, uint8_t* data_to_receive) 
 {
     struct emu_smartcard_t *smartcard = emu_open_smartcard();
+    int i;
     if(smartcard == NULL)
         return 0;
-
+    
     /* nb_bytes_total_read name is horribly misleading :( */
-    nb_bytes_total_read -= start_record_index;
-    memcpy(data_to_receive, smartcard->smc + start_record_index, nb_bytes_total_read);
+    for(i=start_record_index;i < nb_bytes_total_read;i++) {
+        BOOL allowed = TRUE;
+
+        /* This is not a full-featured smartcard emulator. We simply assume
+         * that the application zones are not readable without the PIN */
+        if(i >= (176/8) && i < (1408/8) && !smartcard->unlocked)
+            allowed = FALSE;
+
+        data_to_receive[i - start_record_index] = allowed ? smartcard->storage.smc[i] : 0xff;
+    }
     emu_close_smartcard(FALSE);
     return data_to_receive;
 }
@@ -69,18 +86,18 @@ void smartcard_lowlevel_write_smc(uint16_t start_index_bit, uint16_t nb_bits, ui
         return;
 
     /* these tests are not bulletproof, but they work with normally behaved accesses */
-    if(start_index_bit >= 1424 && start_index_bit <= 1440 && smartcard->fuses[MAN_FUSE]) {
+    if(start_index_bit >= 1424 && start_index_bit < 1440 && smartcard->storage.fuses[MAN_FUSE]) {
         emu_close_smartcard(FALSE);
         return;
     }
-    
-    if(smartcard->type == EMU_SMARTCARD_BROKEN) {
+
+    if(smartcard->storage.type == EMU_SMARTCARD_BROKEN) {
         emu_close_smartcard(FALSE);
         return;
     }
 
     /* FIXME: doesn't support sub-byte accesses */
-    memcpy(smartcard->smc + start_index_bit/8, data_to_write, nb_bits/8);
+    memcpy(smartcard->storage.smc + start_index_bit/8, data_to_write, nb_bits/8);
     emu_close_smartcard(TRUE);
 }
 
@@ -91,13 +108,14 @@ pin_check_return_te smartcard_lowlevel_validate_code(volatile uint16_t* code)
     if(smartcard == NULL)
         return RETURN_PIN_NOK_0;
 
-    if((*code & 0xff) == smartcard->smc[11] && (*code >> 8) == smartcard->smc[10]) {
-        smartcard->smc[12] = 0xf0;
+    if((*code & 0xff) == smartcard->storage.smc[11] && (*code >> 8) == smartcard->storage.smc[10]) {
+        smartcard->storage.smc[12] = 0xf0;
+        smartcard->unlocked = TRUE; // "The SV flag remains set until power to the card is turned off."
         emu_close_smartcard(TRUE);
         return RETURN_PIN_OK; 
 
     } else {
-        smartcard->smc[12] >>= 1; // remove one attempt bit
+        smartcard->storage.smc[12] >>= 1; // remove one attempt bit
         emu_close_smartcard(TRUE);
         return RETURN_PIN_NOK_0; 
     }
@@ -148,7 +166,7 @@ void smartcard_lowlevel_blow_fuse(card_fuse_type_te fuse_name)
     if(smartcard == NULL)
         return;
 
-    smartcard->fuses[fuse_name] = 1;
+    smartcard->storage.fuses[fuse_name] = 1;
     emu_close_smartcard(TRUE);
 }
 
