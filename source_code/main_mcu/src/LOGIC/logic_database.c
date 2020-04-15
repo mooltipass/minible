@@ -575,15 +575,14 @@ uint16_t logic_database_add_service(cust_char_t* service, service_type_te cred_t
     }
 }
 
-/*! \fn     logic_database_add_child_node_to_data_service(uint16_t logic_user_data_service_addr,uint16_t* logic_user_last_data_child_addr,hid_message_store_data_into_file_t* store_data_request, BOOL last_chunk)
+/*! \fn     logic_database_add_child_node_to_data_service(uint16_t logic_user_data_service_addr,uint16_t* logic_user_last_data_child_addr,hid_message_store_data_into_file_t* store_data_request)
 *   \brief  Add data to a given data service
 *   \param  logic_user_data_service_addr    The parent address
 *   \param  logic_user_last_data_child_addr Pointer to where to read/store the address of the latest stored child address
 *   \param  store_data_request              The store data request
-*   \param  last_chunk                      Boolean to specify if it is the last chunk of data
 *   \return success status
 */
-RET_TYPE logic_database_add_child_node_to_data_service(uint16_t logic_user_data_service_addr, uint16_t* logic_user_last_data_child_addr, hid_message_store_data_into_file_t* store_data_request, BOOL last_chunk)
+RET_TYPE logic_database_add_child_node_to_data_service(uint16_t logic_user_data_service_addr, uint16_t* logic_user_last_data_child_addr, hid_message_store_data_into_file_t* store_data_request)
 {
     _Static_assert(sizeof(hid_message_store_data_into_file_t) == sizeof(child_data_node_t), "Erroneous hid_message_store_data_into_file_t cast");
     uint8_t temp_cred_ctr_val_bis[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];

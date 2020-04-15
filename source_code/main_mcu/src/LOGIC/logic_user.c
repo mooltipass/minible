@@ -541,6 +541,8 @@ RET_TYPE logic_user_add_data_to_current_service(hid_message_store_data_into_file
     /* Check for same origin */
     if (is_message_from_usb != logic_user_adding_data_to_service_from_usb)
     {
+        logic_user_data_service_addr = NODE_ADDR_NULL;
+        logic_user_adding_data_to_service = FALSE;
         return RETURN_NOK;
     }
     
@@ -551,7 +553,16 @@ RET_TYPE logic_user_add_data_to_current_service(hid_message_store_data_into_file
     }
     
     /* Try adding data to database */
-    return logic_database_add_child_node_to_data_service(logic_user_data_service_addr, &logic_user_last_data_child_addr, store_data_request, (store_data_request->last_chunk_flag != 0)?TRUE:FALSE);
+    RET_TYPE return_val = logic_database_add_child_node_to_data_service(logic_user_data_service_addr, &logic_user_last_data_child_addr, store_data_request);
+    
+    /* Reset bools if last chunk */
+    if (store_data_request->last_chunk_flag != 0)
+    {
+        logic_user_data_service_addr = NODE_ADDR_NULL;
+        logic_user_adding_data_to_service = FALSE;
+    }
+    
+    return return_val;
 }
 
 /*! \fn     logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb)
