@@ -72,7 +72,7 @@ The # of data nodes is meant for information only, not for actual size (capped a
 | 264->265 | same as flags, but with bit 5 set to 1 | out of bounds |
 | 266->521 | next 256B of encrypted data | 4->131 encrypted data |
 | 522->525 | (first node) total payload size | out of bounds |
-| 526->527 | reserved (6B) | out of bounds |
+| 526->527 | reserved (2B) | out of bounds |
 
 **Child Node (528B)**
 
