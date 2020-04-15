@@ -172,6 +172,17 @@ typedef struct
     uint16_t aux_dac_register_val;
 } hid_message_get_battery_status_t;
 
+typedef struct 
+{
+    uint8_t set_to_0[4];
+    uint16_t nb_bytes_in_packet;
+    uint8_t first_chunk_of_data[256];
+    uint8_t still_set_to_0[4];
+    uint8_t second_chunk_of_data[256];
+    uint8_t total_file_size[4];
+    uint16_t last_chunk_flag;
+} hid_message_store_data_into_file_t;
+
 typedef struct
 {
     uint16_t message_type;
@@ -189,6 +200,7 @@ typedef struct
         hid_message_get_battery_status_t battery_status;
         hid_message_get_cred_req_t get_credential_request;
         hid_message_get_cred_answer_t get_credential_answer;
+        hid_message_store_data_into_file_t store_data_in_file;
         hid_message_get_set_category_strings_t get_set_cat_strings;
         hid_message_setup_existing_user_req_t setup_existing_user_req;
     };

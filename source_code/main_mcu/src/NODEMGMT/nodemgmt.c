@@ -1750,6 +1750,87 @@ void nodemgmt_delete_current_user_from_flash(void)
     }
 }
 
+/*! \fn     nodemgmt_update_data_parent_ctr_and_first_child_address(uint16_t parent_address, uint8_t* ctr_val, uint16_t first_child_address)
+ *  \brief  Update a data parent ctr and first child address
+ *  \param  parent_address                  Data parent address
+ *  \param  ctr_val                         CTR value
+ *  \param  first_child_address             First child address
+ */
+void nodemgmt_update_data_parent_ctr_and_first_child_address(uint16_t parent_address, uint8_t* ctr_val, uint16_t first_child_address)
+{   
+    /* Read node, ownership checks are done within */
+    nodemgmt_read_parent_node(parent_address, &nodemgmt_current_handle.temp_parent_node, FALSE);
+    
+    /* Update fields */
+    memcpy(nodemgmt_current_handle.temp_parent_node.data_parent.startDataCtr, ctr_val, sizeof(nodemgmt_current_handle.temp_parent_node.data_parent.startDataCtr));
+    nodemgmt_current_handle.temp_parent_node.data_parent.nextChildAddress = first_child_address;
+    
+    /* Then write back to flash at same address */
+    nodemgmt_write_parent_node_data_block_to_flash(parent_address, &nodemgmt_current_handle.temp_parent_node);
+}
+
+/*! \fn     nodemgmt_update_child_data_node_with_next_address(uint16_t child_address, uint16_t next_address)
+ *  \brief  Update a data child with a new next address
+ *  \param  child_address       Data child address
+ *  \param  next_address        Next child address
+ */
+void nodemgmt_update_child_data_node_with_next_address(uint16_t child_address, uint16_t next_address)
+{
+    /* Read node, ownership checks are done within */
+    nodemgmt_read_parent_node(child_address, &nodemgmt_current_handle.temp_parent_node, FALSE);
+    
+    /* Cheat: cast into child node */
+    child_data_node_t* child_data_cast = (child_data_node_t*)&nodemgmt_current_handle.temp_parent_node;
+    
+    /* Update fields */
+    child_data_cast->nextDataAddress = next_address;
+    
+    /* Then write back to flash at same address */
+    nodemgmt_write_parent_node_data_block_to_flash(child_address, &nodemgmt_current_handle.temp_parent_node);    
+}
+
+/*! \fn     nodemgmt_store_data_node(child_data_node_t* node, uint16_t* storedAddress)
+ *  \brief  Writes a data node to memory (next free via handle)
+ *  \param  node                    The node to write to memory
+ *  \param  storedAddress           Where to store the address at which the node was stored
+ *  \return success status
+ */
+RET_TYPE nodemgmt_store_data_node(child_data_node_t* node, uint16_t* storedAddress)
+{
+    // Store address where we're going to store the node
+    uint16_t freeNodeAddress = nodemgmt_current_handle.nextChildFreeNode;    
+    
+    // Check space in flash
+    if (freeNodeAddress == NODE_ADDR_NULL)
+    {
+        return RETURN_NOK;
+    }
+    
+    // Set flags to 0, added bonus: set valid flags
+    node->flags = 0;
+    
+    // Set node type
+    node->flags |= (NODE_TYPE_DATA << NODEMGMT_TYPE_FLAG_BITSHIFT);
+    
+    // Set correct user id to the node
+    node->flags |= (nodemgmt_current_handle.currentUserId << NODEMGMT_USERID_BITSHIFT);
+    
+    // Child nodes: set second flags
+    node->fakeFlags = node->flags | (NODEMGMT_VBIT_INVALID << NODEMGMT_CORRECT_FLAGS_BIT_BITSHIFT);
+    
+    // Store node
+    nodemgmt_write_child_node_block_to_flash(freeNodeAddress, (child_node_t*)node, FALSE);
+    
+    // Rescan node usage
+    nodemgmt_scan_node_usage();
+    
+    // Store the address
+    *storedAddress = freeNodeAddress;
+    
+    // Return success
+    return RETURN_OK;
+}
+
 /*! \fn     nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress)
  *  \brief  Writes a generic node to memory (next free via handle) (in alphabetical order)
  *  \param  g                       The node to write to memory (nextFreeParentNode)
@@ -1816,6 +1897,12 @@ RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type,
     if (node_type == NODE_TYPE_CHILD)
     {
         g->data_child.fakeFlags = g->data_child.flags | (NODEMGMT_VBIT_INVALID << NODEMGMT_CORRECT_FLAGS_BIT_BITSHIFT);
+    }
+    
+    // Data parent node: set category flag
+    if (node_type == NODE_TYPE_PARENT_DATA)
+    {
+        nodemgmt_categoryflags_to_flags(&g_first_three_fields_pt->flags, nodemgmt_current_handle.currentCategoryFlags);
     }
 
     // clear next/prev address

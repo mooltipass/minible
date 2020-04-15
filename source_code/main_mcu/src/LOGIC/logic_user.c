@@ -47,6 +47,7 @@ BOOL logic_user_should_be_logged_off_flag = FALSE;
 // Boolean to know state of lock/unlock feature
 BOOL logic_user_lock_unlock_shortcuts = FALSE;
 // Boolean to know if we're adding data to a data service
+uint16_t logic_user_last_data_child_addr = NODE_ADDR_NULL;
 BOOL logic_user_adding_data_to_service_from_usb = FALSE;
 uint16_t logic_user_data_service_addr = NODE_ADDR_NULL;
 BOOL logic_user_adding_data_to_service = FALSE;
@@ -71,6 +72,7 @@ void logic_user_init_context(uint8_t user_id)
     custom_fs_set_current_keyboard_id(utils_check_value_for_range(user_ble_layout, 0, custom_fs_get_number_of_keyb_layouts()-1), FALSE);
     
     /* Reset booleans */
+    logic_user_last_data_child_addr = NODE_ADDR_NULL;
     logic_user_data_service_addr = NODE_ADDR_NULL;
     logic_user_adding_data_to_service = FALSE;
 }
@@ -527,6 +529,31 @@ fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, ui
     }
 }
 
+/*! \fn     logic_user_add_data_to_current_service(hid_message_store_data_into_file_t* store_data_request, BOOL is_message_from_usb)
+*   \brief  Store new data in the currently opened service
+*   \param  store_data_request  The store data request
+*   \param  is_message_from_usb BOOL set to true if the request comes from USB
+*   \return success or not
+*   \note   This function doesn't parse aux MCU messages in order to safely use aux mcu received message
+*/
+RET_TYPE logic_user_add_data_to_current_service(hid_message_store_data_into_file_t* store_data_request, BOOL is_message_from_usb)
+{
+    /* Check for same origin */
+    if (is_message_from_usb != logic_user_adding_data_to_service_from_usb)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Check for approved */
+    if ((logic_user_adding_data_to_service == FALSE) || (logic_user_data_service_addr == NODE_ADDR_NULL))
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Try adding data to database */
+    return logic_database_add_child_node_to_data_service(logic_user_data_service_addr, &logic_user_last_data_child_addr, store_data_request, (store_data_request->last_chunk_flag != 0)?TRUE:FALSE);
+}
+
 /*! \fn     logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb)
 *   \brief  Store new data service and store current state in user context
 *   \param  service             Pointer to service string
@@ -538,6 +565,7 @@ RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_
 {
     /* Reset booleans */
     logic_user_adding_data_to_service_from_usb = is_message_from_usb;
+    logic_user_last_data_child_addr = NODE_ADDR_NULL;
     logic_user_data_service_addr = NODE_ADDR_NULL;
     logic_user_adding_data_to_service = FALSE;
     

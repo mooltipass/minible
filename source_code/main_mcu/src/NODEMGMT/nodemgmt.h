@@ -404,6 +404,7 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
 RET_TYPE nodemgmt_get_bluetooth_bonding_information_for_irk(uint8_t* irk_key, nodemgmt_bluetooth_bonding_information_t* bonding_information);
 void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId, uint16_t keyboardId, uint16_t bleKeyboardId);
 void nodemgmt_read_webauthn_child_node(uint16_t address, child_webauthn_node_t* child_node, BOOL update_date_and_increment_preinc_count);
+void nodemgmt_update_data_parent_ctr_and_first_child_address(uint16_t parent_address, uint8_t* ctr_val, uint16_t first_child_address);
 uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
 uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);
@@ -416,6 +417,7 @@ void nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentA
 void nodemgmt_get_bluetooth_bonding_info_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 void nodemgmt_get_user_category_names_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 void nodemgmt_get_bluetooth_bonding_information_irks(uint16_t* nb_keys, uint8_t* aggregated_keys_buffer);
+void nodemgmt_update_child_data_node_with_next_address(uint16_t child_address, uint16_t next_address);
 void nodemgmt_get_user_profile_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 RET_TYPE nodemgmt_create_child_node(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedAddress);
 void nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_node_t* parent_node);
@@ -426,6 +428,7 @@ void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOO
 void nodemgmt_set_cred_start_address(uint16_t parentAddress, uint16_t credential_type_id);
 uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_child_addr);
 uint16_t nodemgmt_get_next_child_node_for_cur_category(uint16_t search_start_child_addr);
+RET_TYPE nodemgmt_store_data_node(child_data_node_t* node, uint16_t* storedAddress);
 uint16_t nodemgmt_get_starting_parent_addr_for_category(uint16_t credential_type_id);
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);

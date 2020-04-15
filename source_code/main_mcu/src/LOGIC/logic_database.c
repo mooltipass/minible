@@ -20,6 +20,7 @@
 *    Author:   Mathieu Stephan
 */
 #include <string.h>
+#include "logic_encryption.h"
 #include "logic_database.h"
 #include "gui_dispatcher.h"
 #include "nodemgmt.h"
@@ -572,6 +573,61 @@ uint16_t logic_database_add_service(cust_char_t* service, service_type_te cred_t
     {
         return NODE_ADDR_NULL;
     }
+}
+
+/*! \fn     logic_database_add_child_node_to_data_service(uint16_t logic_user_data_service_addr,uint16_t* logic_user_last_data_child_addr,hid_message_store_data_into_file_t* store_data_request, BOOL last_chunk)
+*   \brief  Add data to a given data service
+*   \param  logic_user_data_service_addr    The parent address
+*   \param  logic_user_last_data_child_addr Pointer to where to read/store the address of the latest stored child address
+*   \param  store_data_request              The store data request
+*   \param  last_chunk                      Boolean to specify if it is the last chunk of data
+*   \return success status
+*/
+RET_TYPE logic_database_add_child_node_to_data_service(uint16_t logic_user_data_service_addr, uint16_t* logic_user_last_data_child_addr, hid_message_store_data_into_file_t* store_data_request, BOOL last_chunk)
+{
+    _Static_assert(sizeof(hid_message_store_data_into_file_t) == sizeof(child_data_node_t), "Erroneous hid_message_store_data_into_file_t cast");
+    uint8_t temp_cred_ctr_val_bis[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
+    uint8_t temp_cred_ctr_val[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
+    uint16_t stored_address = NODE_ADDR_NULL;
+    
+    /* Cast into node type */
+    child_data_node_t* data_node_pt = (child_data_node_t*)store_data_request;
+    
+    /* Input sanitizing */
+    memset(data_node_pt->reserved2, 0, sizeof(data_node_pt->reserved2));
+    memset(data_node_pt->reserved, 0, sizeof(data_node_pt->reserved));
+    data_node_pt->nextDataAddress = NODE_ADDR_NULL;
+    data_node_pt->fakeFlags = 0;
+    data_node_pt->flags = 0;    
+    
+    /* Encrypt chunks of data */
+    logic_encryption_ctr_encrypt(data_node_pt->data, sizeof(data_node_pt->data), temp_cred_ctr_val);
+    logic_encryption_ctr_encrypt(data_node_pt->data2, sizeof(data_node_pt->data2), temp_cred_ctr_val_bis);
+    
+    /* Try to store data node */
+    if (nodemgmt_store_data_node(data_node_pt, &stored_address) != RETURN_OK)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Update parent if this is the first block */
+    if (*logic_user_last_data_child_addr == NODE_ADDR_NULL)
+    {
+        nodemgmt_update_data_parent_ctr_and_first_child_address(logic_user_data_service_addr, temp_cred_ctr_val, stored_address);
+    }
+    else
+    {
+        /* If not, update the previous data node */
+        nodemgmt_update_child_data_node_with_next_address(*logic_user_last_data_child_addr, stored_address);
+    }
+    
+    /* Store storage address */
+    *logic_user_last_data_child_addr = stored_address;
+    
+    /* Updated actions */
+    nodemgmt_user_db_changed_actions(TRUE);
+    
+    return RETURN_OK;
 }
 
 /*! \fn     logic_database_update_webauthn_credential(uint16_t child_address, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id)

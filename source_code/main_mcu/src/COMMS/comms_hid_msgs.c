@@ -1258,6 +1258,25 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             return 1;
         }
         
+        case HID_CMD_ADD_FILE_DATA_ID:
+        {
+            /* Check for correct packet size and try to store data */
+            if ((rcv_msg->payload_length == sizeof(rcv_msg->store_data_in_file)) && (logic_user_add_data_to_current_service(&rcv_msg->store_data_in_file, is_message_from_usb) == RETURN_OK))
+            {
+                /* Set success byte */
+                send_msg->payload[0] = HID_1BYTE_ACK;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload[0] = HID_1BYTE_NACK;
+            }
+            
+            send_msg->message_type = rcv_message_type;
+            send_msg->payload_length = 1;
+            return 1;
+        }
+        
         case HID_CMD_SET_USER_KEYB_ID:
         {
             BOOL is_usb_interface_wanted = (BOOL)rcv_msg->payload[0];
