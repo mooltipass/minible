@@ -1,6 +1,7 @@
 #include "smartcard_lowlevel.h"
 #include "smartcard_highlevel.h"
 #include "emu_smartcard.h"
+#include "emulator.h"
 #include <string.h>
 
 static det_ret_type_te smartcard_status = RETURN_REL;
@@ -71,6 +72,9 @@ uint8_t* smartcard_lowlevel_read_smc(uint16_t nb_bytes_total_read, uint16_t star
          * that the application zones are not readable without the PIN */
         if(i >= (176/8) && i < (1408/8) && !smartcard->unlocked)
             allowed = FALSE;
+
+        if(emu_get_failure_flags() & EMU_FAIL_SMARTCARD_INSECURE)
+            allowed = TRUE;
 
         data_to_receive[i - start_record_index] = allowed ? smartcard->storage.smc[i] : 0xff;
     }

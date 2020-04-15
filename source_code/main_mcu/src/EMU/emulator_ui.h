@@ -12,6 +12,7 @@ private:
     QWidget *createBatteryUi();
     QWidget *createChargerUi();
     QWidget *createAccelerometerUi();
+    QWidget *createFailuresUi();
 };
 
 #endif

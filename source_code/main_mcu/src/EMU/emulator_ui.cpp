@@ -27,6 +27,9 @@ EmuWindow::EmuWindow()
 
     auto accel = createAccelerometerUi();
     layout->addRow("Orientation", accel);
+    
+    auto fail = createFailuresUi();
+    layout->addRow("Failures", fail);
 }
 
 QWidget *EmuWindow::createSmartcardUi() 
@@ -184,4 +187,45 @@ QWidget *EmuWindow::createAccelerometerUi()
     });
     return checkbox;
 
+}
+
+static int failure_flags = 0;
+
+int emu_get_failure_flags()
+{
+    ui_mutex.lock();
+    int ret = failure_flags;
+    ui_mutex.unlock();
+    return ret;
+}
+
+QWidget *EmuWindow::createFailuresUi()
+{
+    auto col_failures = new QWidget(this);
+    auto layout = new QBoxLayout(QBoxLayout::TopToBottom, col_failures);
+    layout->setContentsMargins(0,0,0,0);
+
+    const char *labels[] = {
+        "smartcard insecure",
+        "dbflash full",
+        "eeprom full",
+        NULL
+    };
+
+    for(int i=0;labels[i] != NULL;i++) {
+        auto cb = new QCheckBox(labels[i]);
+        int flag = 1 << i;
+
+        QObject::connect(cb, &QCheckBox::stateChanged, this, [flag](int state) {
+            ui_mutex.lock();
+            if(state == Qt::Checked)
+                failure_flags |= flag;
+            else
+               failure_flags &= ~flag;
+            ui_mutex.unlock();
+        });
+        layout->addWidget(cb);
+    }
+
+    return col_failures;
 }

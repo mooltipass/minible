@@ -26,6 +26,14 @@ BOOL emu_get_systick(uint32_t *value);
 
 BOOL emu_get_lefthanded(void);
 
+int emu_get_failure_flags(void);
+/* Keep this in sync with EmuWindow::createFailuresUi */
+enum {
+    EMU_FAIL_SMARTCARD_INSECURE=1,
+    EMU_FAIL_DBFLASH_FULL=2,
+    EMU_FAIL_EEPROM_FULL=4,
+};
+
 #ifdef __cplusplus
 }
 #endif
