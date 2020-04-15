@@ -608,6 +608,23 @@ Device Answer:
 
 
 
+0x0020: Create Data File
+------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                | byte 3-X                |
+|:---------|:------------------------|:------------------------|
+| 0x0020   | strlen(file_name)x2 + 2 | 0 terminated file name  |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0020   | 1 | 0x00 (failure) / 0x01 (success) |
+
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
