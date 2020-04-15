@@ -15,7 +15,7 @@ This page details the database model for the new Mooltipass Mini.
 | 7->6 | user ID LSbs (2b) | reserved |
 | 5 | flags not valid bit: 0b0 | reserved |
 | 4 | data parent: prev gen flag | reserved |
-| 3->0 | not used | not used |
+| 3->0 | data parent: credential category bitfield | not used |
 
 **Child Node**
 
@@ -41,10 +41,9 @@ By setting bit 5 to 0 and the "matching" bit one page later to 1, this allows us
 | 12->8 | user ID MSbs (5b) | userID |
 | 7->6 | user ID LSbs (2b) | payload length MSB (2b) |
 | 5 | flags not valid bit: 0b0 | payload length LSB (1b) |
-| 4->0 | # of data nodes | payload length LSB (5b) |
+| 4->0 | not used | payload length LSB (5b) |
 
 By setting bit 5 to 0 and the "matching" bit one page later to 1, this allows us to detect when scanning memory contents the child nodes first and second 264B blocks.  
-The # of data nodes is meant for information only, not for actual size (capped at 16).  
 
 ## [](#header-2) Nodes
 
