@@ -625,6 +625,54 @@ Device Answer:
 
 
 
+0x0021: Store Data Into File
+----------------------------
+
+From the PC: 
+
+| bytes    | value  |
+|:---------|:-------|
+| 0->1     | 0x0021 |
+| 2->3     | 528 |
+| 4->7     | 4B Set to 0 |
+| 8->9     | Amount of bytes to encrypt in this packet (from 0 to 512) |
+| 10->265  | First (up to) 256B of data to store |
+| 266->269 | 4B Set to 0 |
+| 270->525 | Second (up to) 256B of data to store |
+| 526->529 | Total file size |
+| 530->531 | 2B set to 0 |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0021   | 1 | 0x01 or 0x00 (success or fail) |
+
+
+
+0x0022: Get Data File Chunk
+---------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                     | byte 3-X                |
+|:---------|:-----------------------------|:------------------------|
+| 0x0022   | 0 or strlen(file_name)x2 + 2 | nothing or 0 terminated file name  |
+
+For a new data transfer, the file name must be specified. To get the next data chunk, set byte 2-3 to 0 (file name not specified).  
+  
+Device Answer:
+
+| bytes    | value  |
+|:---------|:-------|
+| 0->1     | 0x0022 |
+| 2->3     | depends |
+| 4->5     | 0x01 or 0x00 (success or fail) |
+| 6->7     | number of bytes in payload |
+| 8->519   | data chunk |
+
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
