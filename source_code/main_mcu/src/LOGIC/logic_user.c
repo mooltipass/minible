@@ -1276,7 +1276,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
     nodemgmt_read_cred_child_node(child_address, &temp_cnode);
 
     /* Prepare first line display (service / user), store it in the service field. fields are 0 terminated by previous calls */
-    if (utils_strlen(temp_pnode.cred_parent.service) + utils_strlen(temp_cnode.login) + 4 <= (uint16_t)MEMBER_ARRAY_SIZE(parent_cred_node_t, service))
+    if ((utils_strlen(temp_pnode.cred_parent.service) + utils_strlen(temp_cnode.login) + 4 <= (uint16_t)MEMBER_ARRAY_SIZE(parent_cred_node_t, service)) && (utils_strlen(temp_cnode.login) != 0))
     {
         uint16_t parent_length = utils_strlen(temp_pnode.cred_parent.service);
         temp_pnode.cred_parent.service[parent_length] = ' ';

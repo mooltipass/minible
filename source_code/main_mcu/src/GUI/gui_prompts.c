@@ -2742,7 +2742,10 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
                 nodemgmt_read_parent_node(temp_parent_addr, &temp_pnode, TRUE);
                 
                 /* Generate string */
-                utils_concatenate_strings_with_slash(temp_pnode.cred_parent.service, temp_half_cnode_pt->login, MEMBER_ARRAY_SIZE(parent_cred_node_t, service));
+                if (utils_strlen(temp_half_cnode_pt->login) != 0)
+                {
+                    utils_concatenate_strings_with_slash(temp_pnode.cred_parent.service, temp_half_cnode_pt->login, MEMBER_ARRAY_SIZE(parent_cred_node_t, service));
+                }
                 
                 /* Display fading out login */
                 sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
@@ -2776,7 +2779,10 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
                         nodemgmt_read_parent_node(temp_parent_addr, &temp_pnode, TRUE);
                         
                         /* Generate string */
-                        utils_concatenate_strings_with_slash(temp_pnode.cred_parent.service, temp_half_cnode_pt->login, MEMBER_ARRAY_SIZE(parent_cred_node_t, service));
+                        if (utils_strlen(temp_half_cnode_pt->login) != 0)
+                        {
+                            utils_concatenate_strings_with_slash(temp_pnode.cred_parent.service, temp_half_cnode_pt->login, MEMBER_ARRAY_SIZE(parent_cred_node_t, service));
+                        }                            
                     }
                     
                     /* Surround center of list item */
