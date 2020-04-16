@@ -1,5 +1,6 @@
 #include "platform_io.h"
 #include "emulator.h"
+#include "emu_smartcard.h"
 #include "platform_defines.h"
 #include <stdlib.h>
 
@@ -68,7 +69,7 @@ void platform_io_power_up_oled(BOOL power_3v3){
 }
 void platform_io_disable_switch_and_die(void){ abort(); }
 void platform_io_init_no_comms_signal(void){}
-void platform_io_smc_remove_function(void){}
+void platform_io_smc_remove_function(void){ emu_reset_smartcard(); }
 void platform_io_set_wheel_click_low(void){}
 BOOL platform_io_is_usb_3v3_present(void){ return emu_get_usb_charging(); }
 BOOL platform_io_is_usb_3v3_present_raw(void){ return emu_get_usb_charging(); }

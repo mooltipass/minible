@@ -51,6 +51,12 @@ void emu_oled_byte(uint8_t data)
             case SH1122_CMD_SET_VSEGM_LEVEL:
                 cmdargs = 1;
                 break;
+            case SH1122_CMD_SET_DISPLAY_ON:
+                postToObject([]() { oled->set_display_on(true); }, oled);
+                break;
+            case SH1122_CMD_SET_DISPLAY_OFF:
+                postToObject([]() { oled->set_display_on(false); }, oled);
+                break;
             }
 
             last_cmd = data;
@@ -137,9 +143,17 @@ void OLEDWidget::update_display(const uint8_t *fb) {
     repaint();
 }
 
+void OLEDWidget::set_display_on(bool on) {
+    display_on = on;
+    repaint();
+}
+
 void OLEDWidget::paintEvent(QPaintEvent *) {
     QPainter painter(this);
-    painter.drawImage(QRect(0, 0, width(), height()), display, QRect(0, 0, display.width(), display.height()));
+    if(display_on)
+        painter.drawImage(QRect(0, 0, width(), height()), display, QRect(0, 0, display.width(), display.height()));
+    else
+        painter.eraseRect(QRect(0, 0, width(), height()));
 }
 
 // see INPUTS/inputs.c
@@ -208,13 +222,18 @@ void OLEDWidget::wheelEvent(QWheelEvent *evt) {
 
 void OLEDWidget::mousePressEvent(QMouseEvent *evt) {
     irq_mutex.lock();
-    set_emulated_wheel_state(true);
+    if(evt->button() == Qt::LeftButton)
+        set_emulated_wheel_state(true);
+    else if(evt->button() == Qt::BackButton)
+        inputs_wheel_click_duration_counter=3000; // long press
+
     irq_mutex.unlock();
 }
 
 void OLEDWidget::mouseReleaseEvent(QMouseEvent *evt) {
     irq_mutex.lock();
-    set_emulated_wheel_state(false);
+    if(evt->button() == Qt::LeftButton)
+        set_emulated_wheel_state(false);
     irq_mutex.unlock();
 }
 
