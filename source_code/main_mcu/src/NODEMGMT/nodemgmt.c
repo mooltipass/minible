@@ -28,6 +28,10 @@
 #include "utils.h"
 #include "main.h"
 
+#ifdef EMULATOR_BUILD
+#include "emulator.h"
+#endif
+
 // Current node management handle
 nodemgmtHandle_t nodemgmt_current_handle;
 // Current date
@@ -1477,6 +1481,11 @@ uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeAr
     uint16_t pageItr;
     uint16_t nodeItr;
     
+#ifdef EMULATOR_BUILD
+    if(emu_get_failure_flags() & EMU_FAIL_DBFLASH_FULL)
+        return 0;
+#endif
+
     // Check the start page
     if (startPage < PAGE_PER_SECTOR)
     {

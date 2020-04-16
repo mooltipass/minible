@@ -35,6 +35,7 @@
 
 #ifdef EMULATOR_BUILD
 #include "emu_storage.h"
+#include "emulator.h"
 #endif
 
 /* Default device settings */
@@ -1209,6 +1210,11 @@ uint16_t custom_fs_get_nb_free_cpz_lut_entries(uint8_t* first_available_user_id)
 {
     *first_available_user_id = 0xFF;
     uint16_t return_val = 0;
+
+#ifdef EMULATOR_BUILD
+    if(emu_get_failure_flags() & EMU_FAIL_EEPROM_FULL)
+        return 0;
+#endif
     
     for (uint8_t i = 0; i < MAX_NUMBER_OF_USERS; i++)
     {

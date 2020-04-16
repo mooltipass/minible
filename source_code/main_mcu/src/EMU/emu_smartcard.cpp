@@ -31,40 +31,43 @@ void emu_close_smartcard(BOOL written)
     smc_mutex.unlock();
 }
 
-bool emu_insert_smartcard(QString filePath, bool createNew)
+bool emu_insert_smartcard(QString filePath)
 {
     QMutexLocker locker(&smc_mutex);
     smartcardFile.close();
+    
+    memset(&card, 0, sizeof(card));
 
-    if(filePath.isEmpty()) {
-        card_present = true;
-        emu_init_smartcard(&card, EMU_SMARTCARD_INVALID);
+    smartcardFile.setFileName(filePath);
+    if(!smartcardFile.exists() || !smartcardFile.open(QIODevice::ReadWrite))
+        return false;
 
-    } else if(filePath == "!broken") {
-        card_present = true;
-        emu_init_smartcard(&card, EMU_SMARTCARD_BROKEN);
+    smartcardFile.read((char*)&card.storage, sizeof(card.storage));
+    card_present = true;
 
-    } else {
-        smartcardFile.close();
+    return true;
+}
+
+bool emu_insert_new_smartcard(QString filePath, int smartcard_type)
+{
+    QMutexLocker locker(&smc_mutex);
+    smartcardFile.close();
+    
+    memset(&card, 0, sizeof(card));
+
+    card_present = true;
+    emu_init_smartcard(&card.storage, smartcard_type);
+
+    if(!filePath.isEmpty()) {
         smartcardFile.setFileName(filePath);
-        if(createNew) {
-            if(!smartcardFile.open(QIODevice::ReadWrite))
-                return false;
+        if(!smartcardFile.open(QIODevice::ReadWrite))
+            return false;
 
-            emu_init_smartcard(&card, EMU_SMARTCARD_BLANK);
-            smartcardFile.write((char*)&card, sizeof(card));
-            smartcardFile.flush();
-            card_present = true;
-
-        } else {
-            if(!smartcardFile.exists() || !smartcardFile.open(QIODevice::ReadWrite))
-                return false;
-
-            smartcardFile.read((char*)&card, sizeof(card));
-            card_present = true;
-        }
+        smartcardFile.write((char*)&card.storage, sizeof(card.storage));
+        smartcardFile.flush();
     }
 
+    card_present = true;
     return true;
 }
 
@@ -72,6 +75,11 @@ void emu_remove_smartcard() {
     QMutexLocker locker(&smc_mutex);
     smartcardFile.close();
     card_present = false;
+}
+
+void emu_reset_smartcard() {
+    QMutexLocker locker(&smc_mutex);
+    card.unlocked = FALSE;
 }
 
 bool emu_is_smartcard_inserted()

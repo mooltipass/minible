@@ -24,6 +24,12 @@ EmuWindow::EmuWindow()
 
     auto charger = createChargerUi();
     layout->addRow("USB", charger);
+
+    auto accel = createAccelerometerUi();
+    layout->addRow("Orientation", accel);
+    
+    auto fail = createFailuresUi();
+    layout->addRow("Failures", fail);
 }
 
 QWidget *EmuWindow::createSmartcardUi() 
@@ -41,7 +47,7 @@ QWidget *EmuWindow::createSmartcardUi()
     auto btn_insert_menu = new QMenu();
     auto act_invalid = btn_insert_menu->addAction("Invalid");
     QObject::connect(act_invalid, &QAction::triggered, this, [=]() {
-        if(emu_insert_smartcard(QString())) {
+        if(emu_insert_new_smartcard(QString(), EMU_SMARTCARD_INVALID)) {
             btn_remove->setEnabled(true);
             btn_insert->setEnabled(false);
         }
@@ -49,12 +55,11 @@ QWidget *EmuWindow::createSmartcardUi()
 
     auto act_broken = btn_insert_menu->addAction("Broken");
     QObject::connect(act_broken, &QAction::triggered, this, [=]() {
-        if(emu_insert_smartcard("!broken")) {
+        if(emu_insert_new_smartcard(QString(), EMU_SMARTCARD_BROKEN)) {
             btn_remove->setEnabled(true);
             btn_insert->setEnabled(false);
         }
     });
-
 
     auto act_new = btn_insert_menu->addAction("New (blank)");
     QObject::connect(act_new, &QAction::triggered, this, [=]() {
@@ -64,7 +69,7 @@ QWidget *EmuWindow::createSmartcardUi()
 
         if (dialog.exec() == QDialog::Accepted) {
             auto fileName = dialog.selectedFiles().value(0);
-            if(emu_insert_smartcard(fileName, true)) {
+            if(emu_insert_new_smartcard(fileName, EMU_SMARTCARD_REGULAR)) {
                 btn_remove->setEnabled(true);
                 btn_insert->setEnabled(false);
             }
@@ -160,4 +165,67 @@ QWidget *EmuWindow::createChargerUi()
         ui_mutex.unlock();
     });
     return checkbox;
+}
+
+static bool left_handed = false;
+BOOL emu_get_lefthanded()
+{
+    ui_mutex.lock();
+    bool ret = left_handed;
+    ui_mutex.unlock();
+    return ret;
+}
+
+QWidget *EmuWindow::createAccelerometerUi()
+{
+    auto checkbox = new QCheckBox("left-handed");
+    checkbox->setCheckState(left_handed ? Qt::Checked : Qt::Unchecked);
+    QObject::connect(checkbox, &QCheckBox::stateChanged, this, [=](int state) {
+        ui_mutex.lock();
+        left_handed = state == Qt::Checked;
+        ui_mutex.unlock();
+    });
+    return checkbox;
+
+}
+
+static int failure_flags = 0;
+
+int emu_get_failure_flags()
+{
+    ui_mutex.lock();
+    int ret = failure_flags;
+    ui_mutex.unlock();
+    return ret;
+}
+
+QWidget *EmuWindow::createFailuresUi()
+{
+    auto col_failures = new QWidget(this);
+    auto layout = new QBoxLayout(QBoxLayout::TopToBottom, col_failures);
+    layout->setContentsMargins(0,0,0,0);
+
+    const char *labels[] = {
+        "smartcard insecure",
+        "dbflash full",
+        "eeprom full",
+        NULL
+    };
+
+    for(int i=0;labels[i] != NULL;i++) {
+        auto cb = new QCheckBox(labels[i]);
+        int flag = 1 << i;
+
+        QObject::connect(cb, &QCheckBox::stateChanged, this, [flag](int state) {
+            ui_mutex.lock();
+            if(state == Qt::Checked)
+                failure_flags |= flag;
+            else
+               failure_flags &= ~flag;
+            ui_mutex.unlock();
+        });
+        layout->addWidget(cb);
+    }
+
+    return col_failures;
 }
