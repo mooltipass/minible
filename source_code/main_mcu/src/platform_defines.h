@@ -81,6 +81,7 @@
 - v0.22:- René's release, various bug fixes
 - v0.23:- more gracefully handling USB to battery power transition
 - v0.24:- bt disconnect/switch feature
+        - data storage feature
 */
 
 /**************** SETUP DEFINES ****************/

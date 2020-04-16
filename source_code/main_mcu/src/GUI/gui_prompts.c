@@ -633,7 +633,7 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
         
         /* Skip animation if desired */
         wheel_action_ret = inputs_get_wheel_action(FALSE, FALSE);
-        if (wheel_action_ret != WHEEL_ACTION_NONE)
+        if ((wheel_action_ret != WHEEL_ACTION_NONE) && ((hor_anim_direction != 0) || (vert_anim_direction != 0)))
         {
             memset(sig_digits_cust_chars, 0, sizeof(sig_digits_cust_chars));
             sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
