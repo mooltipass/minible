@@ -1233,6 +1233,49 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             }
         }
         
+        case HID_CMD_GET_FILE_DATA_ID:
+        {
+            cust_char_t* service_pointer = (cust_char_t*)0;
+            
+            /* New request or request for next bunch of data */
+            if (rcv_msg->payload_length != 0)
+            {
+                /* Input sanitazing */
+                uint16_t max_cust_char_length = max_payload_size/sizeof(cust_char_t);
+                
+                /* Get string length */
+                uint16_t string_length = utils_strnlen(rcv_msg->payload_as_cust_char_t, max_cust_char_length);
+                
+                /* Check for valid length, not exceeding payload size */
+                if ((string_length >= max_cust_char_length) || ((string_length + 1) != (rcv_msg->payload_length / (uint16_t)sizeof(cust_char_t))))
+                {
+                    /* Set failure byte */
+                    send_msg->payload_as_uint16[0] = HID_1BYTE_NACK;
+                    send_msg->payload_length = sizeof(uint16_t);
+                    return send_msg->payload_length;
+                }
+                
+                /* Set service pointer */
+                service_pointer = rcv_msg->payload_as_cust_char_t;
+            } 
+            
+            /* If service is 0, query user and get the bytes, otherwise just get the bytes */
+            if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_user_get_data_from_service(service_pointer, (uint8_t*)&send_msg->payload_as_uint16[2], &send_msg->payload_as_uint16[1]) == RETURN_OK))
+            {
+                /* Set success byte & payload size */
+                send_msg->payload_length = sizeof(uint16_t) + sizeof(uint16_t) + send_msg->payload_as_uint16[1];
+                send_msg->payload_as_uint16[0] = HID_1BYTE_ACK;
+                return send_msg->payload_length;
+            }
+            else
+            {
+                /* Set failure byte */
+                send_msg->payload_as_uint16[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = sizeof(uint16_t);
+                return send_msg->payload_length;
+            }        
+        }
+        
         case HID_CMD_CREATE_FILE_ID:
         {
             /* Input sanitazing */
@@ -1242,7 +1285,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             uint16_t string_length = utils_strnlen(rcv_msg->payload_as_cust_char_t, max_cust_char_length);
             
             /* Check for valid length, not exceeding payload size, then prompt user */
-            if ((string_length < max_cust_char_length) && ((string_length + 1) == (rcv_msg->payload_length / (uint16_t)sizeof(cust_char_t))) && (logic_security_is_smc_inserted_unlocked() == FALSE) && (logic_user_add_data_service(rcv_msg->payload_as_cust_char_t, is_message_from_usb) == RETURN_OK))
+            if ((string_length < max_cust_char_length) && ((string_length + 1) == (rcv_msg->payload_length / (uint16_t)sizeof(cust_char_t))) && (logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_user_add_data_service(rcv_msg->payload_as_cust_char_t, is_message_from_usb) == RETURN_OK))
             {
                 /* Set success byte */
                 send_msg->payload[0] = HID_1BYTE_ACK;
