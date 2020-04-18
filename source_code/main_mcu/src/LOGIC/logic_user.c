@@ -606,7 +606,7 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
             confirmationText_t notif_text_2_lines = {.lines[0]=two_line_notif_1, .lines[1]=service, .lines[2]=service};
 
             /* 2 lines notification Exporting data / file name */
-            gui_prompts_display_3line_information_on_screen(&notif_text_2_lines, DISP_MSG_INFO);
+            gui_prompts_display_information_lines_on_screen(&notif_text_2_lines, DISP_MSG_INFO, 2);
 
             /* Set information screen, do not call get back to current screen as screen is already updated */
             gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);
@@ -958,7 +958,7 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
             confirmationText_t notif_text_3_lines = {.lines[0]=rp_id, .lines[1]=three_line_notif_2, .lines[2]=temp_user_name};
 
             /* 3 lines notification website / logging you in with / username */
-            gui_prompts_display_3line_information_on_screen(&notif_text_3_lines, DISP_MSG_INFO);
+            gui_prompts_display_information_lines_on_screen(&notif_text_3_lines, DISP_MSG_INFO, 3);
 
             /* Set information screen, do not call get back to current screen as screen is already updated */
             gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);
@@ -1120,7 +1120,7 @@ int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, 
             confirmationText_t notif_text_3_lines = {.lines[0]=service, .lines[1]=three_line_notif_2, .lines[2]=login};
 
             /* 3 lines notification website / logging you in with / username */
-            gui_prompts_display_3line_information_on_screen(&notif_text_3_lines, DISP_MSG_INFO);
+            gui_prompts_display_information_lines_on_screen(&notif_text_3_lines, DISP_MSG_INFO, 3);
 
             /* Set information screen, do not call get back to current screen as screen is already updated */
             gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);

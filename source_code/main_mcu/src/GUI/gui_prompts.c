@@ -127,22 +127,23 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
     timer_start_timer(TIMER_ANIMATIONS, 50);
 }
 
-/*! \fn     gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type
-*   \brief  Display text information on screen - 3 lines version
+/*! \fn     gui_prompts_display_information_lines_on_screen(confirmationText_t* text_lines, display_message_te message_type, uint16_t nb_lines)
+*   \brief  Display text information on screen - multiple lines version
 *   \param  confirmationText_t  Pointer to the struct containing the 3 lines
 *   \param  message_type        Message type (see enum)
+*   \param  nb_lines            Number of lines to display
 */
-void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type)
+void gui_prompts_display_information_lines_on_screen(confirmationText_t* text_lines, display_message_te message_type, uint16_t nb_lines)
 {
     /* Activity detected routine */
     logic_device_activity_detected();
     
     /* Check strings lengths and truncate them if necessary */
     sh1122_set_min_text_x(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type]);
-    for (uint16_t i = 0; i < 3; i++)
+    for (uint16_t i = 0; i < nb_lines; i++)
     {
         /* Set correct font */
-        sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[2][i]);
+        sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_lines-1][i]);
 
         /* Get string length */
         uint16_t string_length = utils_strlen(text_lines->lines[i]);
@@ -160,7 +161,7 @@ void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_li
         }
 
         /* Display string */
-        sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[2][i], text_lines->lines[i], TRUE);
+        sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_lines-1][i], text_lines->lines[i], TRUE);
     }
     sh1122_reset_min_text_x(&plat_oled_descriptor);
 
@@ -174,13 +175,13 @@ void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_li
     
     /* Check strings length and truncate them if necessary */
     sh1122_set_min_text_x(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type]);
-    for (uint16_t i = 0; i < 3; i++)
+    for (uint16_t i = 0; i < nb_lines; i++)
     {
         /* Set correct font */
-        sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[2][i]);
+        sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_lines-1][i]);
 
         /* Display string */
-        sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[2][i], text_lines->lines[i], TRUE);
+        sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_lines-1][i], text_lines->lines[i], TRUE);
     }
     sh1122_reset_min_text_x(&plat_oled_descriptor);
     
@@ -387,7 +388,7 @@ void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
     uint16_t i = 0;
     
     // Display string
-    gui_prompts_display_3line_information_on_screen(text_lines, message_type);
+    gui_prompts_display_information_lines_on_screen(text_lines, message_type, 3);
     
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);

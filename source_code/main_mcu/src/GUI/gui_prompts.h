@@ -133,9 +133,9 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
 ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, BOOL ignore_timeout_if_usb_powered, BOOL ignore_card_removal, BOOL usb_layout_choice);
 mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL accept_cancel_message, BOOL usb_ble_prompt, BOOL first_item_selected);
 void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame_id, uint16_t* timer_timeout, display_message_te message_type);
+void gui_prompts_display_information_lines_on_screen(confirmationText_t* text_lines, display_message_te message_type, uint16_t nb_lines);
 void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type);
 mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_addr, uint16_t* chosen_child_node_addr);
-void gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type);
 void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type);
 RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID);
 RET_TYPE gui_prompts_get_six_digits_pin(uint8_t* pin_code, uint16_t stringID);
