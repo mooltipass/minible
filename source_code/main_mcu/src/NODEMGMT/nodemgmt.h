@@ -33,6 +33,7 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
     
 /* Old gen defines */
 #define NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH           32
+#define NODEMGMG_OLD_GEN_DATA_BLOCK_LENGTH          128
 
 /* Defines */
 #define NB_MAX_USERS                                MAX_NUMBER_OF_USERS
@@ -132,6 +133,13 @@ typedef struct
     uint8_t data2[256];             // Encrypted data (256B)
     uint8_t reserved2[6];           // Reserved for future use
 } child_data_node_t;
+
+typedef struct
+{
+    uint16_t fakeFlags;             // Same as flags but with bit 5 set to 1
+    uint8_t data2[256];             // Encrypted data (256B)
+    uint8_t reserved2[6];           // Reserved for future use    
+} child_data_node_second_half_t;
 
 // Child credential node, see: https://mooltipass.github.io/minible/database_model
 typedef struct
@@ -404,7 +412,9 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
 RET_TYPE nodemgmt_get_bluetooth_bonding_information_for_irk(uint8_t* irk_key, nodemgmt_bluetooth_bonding_information_t* bonding_information);
 void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_t languageId, uint16_t keyboardId, uint16_t bleKeyboardId);
 void nodemgmt_read_webauthn_child_node(uint16_t address, child_webauthn_node_t* child_node, BOOL update_date_and_increment_preinc_count);
+uint16_t nodemgmt_get_data_parent_next_child_address_ctr_and_prev_gen_flag(uint16_t parent_address, uint8_t* ctr, BOOL* prev_gen_flag);
 void nodemgmt_update_data_parent_ctr_and_first_child_address(uint16_t parent_address, uint8_t* ctr_val, uint16_t first_child_address);
+uint16_t nodemgmt_get_encrypted_data_from_data_node(uint16_t data_child_address, uint8_t* buffer, uint16_t* nb_bytes_written);
 uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
 uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);
@@ -442,6 +452,7 @@ int16_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId);
 int16_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId);
 uint16_t nodemgmt_get_starting_parent_addr(uint16_t credential_type_id);
 void nodemgmt_store_user_sec_preferences(uint16_t sec_preferences);
+void nodemgmt_check_address_validity_and_lock(uint16_t node_addr);
 void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags);
 uint16_t nodemgmt_get_start_addresses(uint16_t* addresses_array);
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);

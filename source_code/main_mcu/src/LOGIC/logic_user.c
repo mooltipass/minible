@@ -48,10 +48,13 @@ BOOL logic_user_should_be_logged_off_flag = FALSE;
 BOOL logic_user_lock_unlock_shortcuts = FALSE;
 // Variables used when adding data to a service
 uint16_t logic_user_last_data_child_addr = NODE_ADDR_NULL;
+uint16_t logic_user_next_data_child_addr = NODE_ADDR_NULL;
 BOOL logic_user_adding_data_to_service_from_usb = FALSE;
 uint16_t logic_user_data_service_addr = NODE_ADDR_NULL;
 BOOL logic_user_adding_data_to_service = FALSE;
 // Variables used when getting data from a service
+uint8_t logic_user_getting_data_ctr_value[MEMBER_SIZE(parent_data_node_t, startDataCtr)];
+BOOL logic_user_getting_data_from_service_prev_gen_flag = FALSE;
 BOOL logic_user_getting_data_from_service_from_usb = FALSE;
 BOOL logic_user_getting_data_from_service = FALSE;
 // User security preferences
@@ -533,26 +536,36 @@ fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, ui
     }
 }
 
-/*! \fn     logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer, uint16_t* nb_bytes_written)
+/*! \fn     logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer, uint16_t* nb_bytes_written, BOOL is_message_from_usb)
 *   \brief  Fetch data from service
 *   \param  service             If different than 0, service we want to fetch data from. If 0, request from next chunk of data
 *   \param  buffer              Where to store the decoded data
 *   \param  nb_bytes_written    Where to store the number of bytes written
+*   \param  is_message_from_usb BOOL set to true if the request comes from USB
 *   \return success or not
 */
-RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer, uint16_t* nb_bytes_written)
+RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer, uint16_t* nb_bytes_written, BOOL is_message_from_usb)
 {
     cust_char_t service_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)];
+    
+    /* Reset booleans for data storage */
+    logic_user_adding_data_to_service_from_usb = FALSE;
+    logic_user_last_data_child_addr = NODE_ADDR_NULL;
+    logic_user_data_service_addr = NODE_ADDR_NULL;
     
     /* Smartcard present and unlocked? */
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
-        return -1;
+        return RETURN_NOK;
     }
     
     /* New query or continuing one? */
     if (service != (cust_char_t*)0)
     {
+        /* Reset variables */
+        logic_user_next_data_child_addr = NODE_ADDR_NULL;
+        logic_user_getting_data_from_service = FALSE;
+        
         /* Copy strings locally */
         utils_strncpy(service_copy, service, MEMBER_ARRAY_SIZE(parent_cred_node_t, service));
         service_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)-1] = 0;
@@ -566,74 +579,74 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
         {
             return RETURN_NOK;
         }
-    }
     
-    /* If user specified to be prompted for login confirmation */
-    if ((logic_user_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0)
-    {
-        /* Prepare prompt message */
-        cust_char_t* three_line_prompt_2;
-        custom_fs_get_string_from_file(QPROMPT_EXPORT_DATA_TEXT_ID, &three_line_prompt_2, TRUE);
-        confirmationText_t conf_text_2_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2};
-
-        /* Request user approval */
-        mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, TRUE, TRUE, TRUE);
-        gui_dispatcher_get_back_to_current_screen();
-
-        /* Did the user approve? */
-        if (prompt_return != MINI_INPUT_RET_YES)
+        /* If user specified to be prompted for login confirmation */
+        if ((logic_user_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0)
         {
-            return RETURN_NOK;
+            /* Prepare prompt message */
+            cust_char_t* two_line_prompt_2;
+            custom_fs_get_string_from_file(QPROMPT_EXPORT_DATA_TEXT_ID, &two_line_prompt_2, TRUE);
+            confirmationText_t conf_text_2_lines = {.lines[0]=service, .lines[1]=two_line_prompt_2};
+
+            /* Request user approval */
+            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, TRUE, TRUE, TRUE);
+            gui_dispatcher_get_back_to_current_screen();
+
+            /* Did the user approve? */
+            if (prompt_return != MINI_INPUT_RET_YES)
+            {
+                return RETURN_NOK;
+            }
         }
-    }
-    else
-    {
-        /* Prepare notification message : contents of the TX message aren't accessed after this function return */
-        cust_char_t* three_line_notif_1;
-        custom_fs_get_string_from_file(QPROMPT_EXPORT_DATA_TEXT_ID, &three_line_notif_1, TRUE);
-        confirmationText_t notif_text_2_lines = {.lines[0]=three_line_notif_1, .lines[1]=service, .lines[2]=service};
-
-        /* 3 lines notification website / logging you in with / username */
-        gui_prompts_display_3line_information_on_screen(&notif_text_2_lines, DISP_MSG_INFO);
-
-        /* Set information screen, do not call get back to current screen as screen is already updated */
-        gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);
-    }
-    
-    #ifdef bla
-    /* Get prefilled message */
-    uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr, &prev_gen_credential_flag, &password_valid_flag);
-    
-    /* Password valid? */
-    if (password_valid_flag == FALSE)
-    {
-        send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index] = 0;
-        pwd_length = 0;
-    }
-    else
-    {
-        /* User approved, decrypt password */
-        logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
-        
-        /* If old generation password, convert it to unicode */
-        if (prev_gen_credential_flag != FALSE)
+        else
         {
-            _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
-            utils_ascii_to_unicode((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
-            send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index + NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
+            /* Prepare notification message : contents of the TX message aren't accessed after this function return */
+            cust_char_t* two_line_notif_1;
+            custom_fs_get_string_from_file(QPROMPT_EXPORT_DATA_TEXT_ID, &two_line_notif_1, TRUE);
+            confirmationText_t notif_text_2_lines = {.lines[0]=two_line_notif_1, .lines[1]=service, .lines[2]=service};
+
+            /* 2 lines notification Exporting data / file name */
+            gui_prompts_display_3line_information_on_screen(&notif_text_2_lines, DISP_MSG_INFO);
+
+            /* Set information screen, do not call get back to current screen as screen is already updated */
+            gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);
         }
         
-        /* Get password length */
-        pwd_length = utils_strlen(&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]));
+        /* Fetch first child address and set booleans */
+        logic_user_next_data_child_addr = nodemgmt_get_data_parent_next_child_address_ctr_and_prev_gen_flag(parent_address, logic_user_getting_data_ctr_value, &logic_user_getting_data_from_service_prev_gen_flag);
+        logic_user_getting_data_from_service_from_usb = is_message_from_usb;
+        logic_user_getting_data_from_service = TRUE;
     }
     
-    /* Compute payload size */
-    uint16_t return_payload_size = return_payload_size_without_pwd + (pwd_length + 1)*sizeof(cust_char_t);
+    /* Check for same origin */
+    if (is_message_from_usb != logic_user_getting_data_from_service_from_usb)
+    {
+        logic_user_next_data_child_addr = NODE_ADDR_NULL;
+        logic_user_getting_data_from_service = FALSE;
+        return RETURN_NOK;
+    }
     
-    /* Return payload size */
-    send_msg->payload_length = return_payload_size;
-    return return_payload_size;
-    #endif    
+    /* Check for data */
+    if (logic_user_next_data_child_addr == NODE_ADDR_NULL)
+    {
+        *nb_bytes_written = 0;
+        return RETURN_OK;
+    }
+    
+    /* Fetch data from database */
+    logic_user_next_data_child_addr = nodemgmt_get_encrypted_data_from_data_node(logic_user_next_data_child_addr, buffer, nb_bytes_written);
+    
+    /* Adjust nb bytes written if previous gen data */
+    if (logic_user_getting_data_from_service_prev_gen_flag != FALSE)
+    {
+        *nb_bytes_written = NODEMGMG_OLD_GEN_DATA_BLOCK_LENGTH;
+    }
+    
+    /* Decrypt data (nb_bytes_written is sanitized by nodemgmt call) */
+    //logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
+    
+    /* Return success */
+    return RETURN_OK;
 }
 
 /*! \fn     logic_user_add_data_to_current_service(hid_message_store_data_into_file_t* store_data_request, BOOL is_message_from_usb)
@@ -645,17 +658,19 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
 */
 RET_TYPE logic_user_add_data_to_current_service(hid_message_store_data_into_file_t* store_data_request, BOOL is_message_from_usb)
 {
+    /* Reset booleans */
+    logic_user_getting_data_from_service = FALSE;
+    
     /* Check for same origin */
     if (is_message_from_usb != logic_user_adding_data_to_service_from_usb)
     {
         logic_user_data_service_addr = NODE_ADDR_NULL;
-        logic_user_getting_data_from_service = FALSE;
         logic_user_adding_data_to_service = FALSE;
         return RETURN_NOK;
     }
     
     /* Check for approved */
-    if ((logic_user_adding_data_to_service == FALSE) || (logic_user_data_service_addr == NODE_ADDR_NULL))
+    if (logic_user_adding_data_to_service == FALSE)
     {
         return RETURN_NOK;
     }
@@ -667,7 +682,6 @@ RET_TYPE logic_user_add_data_to_current_service(hid_message_store_data_into_file
     if (store_data_request->last_chunk_flag != 0)
     {
         logic_user_data_service_addr = NODE_ADDR_NULL;
-        logic_user_getting_data_from_service = FALSE;
         logic_user_adding_data_to_service = FALSE;
     }
     
@@ -687,6 +701,7 @@ RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_
     logic_user_adding_data_to_service_from_usb = is_message_from_usb;
     logic_user_last_data_child_addr = NODE_ADDR_NULL;
     logic_user_data_service_addr = NODE_ADDR_NULL;
+    logic_user_getting_data_from_service = FALSE;
     logic_user_adding_data_to_service = FALSE;
     
     /* Smartcard present and unlocked? */
@@ -729,7 +744,6 @@ RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_
     }
     
     /* Set booleans */
-    logic_user_getting_data_from_service = FALSE;
     logic_user_adding_data_to_service = TRUE;
     
     /* Send success! */

@@ -184,6 +184,26 @@ void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags)
     }
 }
 
+/*! \fn     nodemgmt_check_address_validity_and_lock(uint16_t node_addr)
+*   \brief  Check for valid address and lock if invalid
+*   \param  node_addr   Node address
+*/
+void nodemgmt_check_address_validity_and_lock(uint16_t node_addr)
+{
+    // Node Page
+    uint16_t page_addr = nodemgmt_page_from_address(node_addr);
+    
+    /* Perform check */
+    if ((page_addr >= PAGE_PER_SECTOR) && (page_addr < PAGE_COUNT))
+    {
+        return;
+    }
+    else
+    {
+        while(1);
+    }
+}
+
 /*! \fn     nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type)
 *   \brief  Check that the user has the right to read/write a node
 *   \param  node_addr   Node address
@@ -232,6 +252,7 @@ RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_t
 void nodemgmt_write_parent_node_data_block_to_flash(uint16_t address, parent_node_t* parent_node)
 {
     _Static_assert(BASE_NODE_SIZE == sizeof(*parent_node), "Parent node isn't the size of base node size");    
+    nodemgmt_check_address_validity_and_lock(address);
     nodemgmt_user_id_to_flags(&(parent_node->cred_parent.flags), nodemgmt_current_handle.currentUserId);
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(address), BASE_NODE_SIZE * nodemgmt_node_from_address(address), BASE_NODE_SIZE, (void*)parent_node->node_as_bytes);
 }
@@ -259,6 +280,7 @@ void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* ch
     }
     
     /* Write to flash */
+    nodemgmt_check_address_validity_and_lock(address);
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(address), BASE_NODE_SIZE * nodemgmt_node_from_address(address), BASE_NODE_SIZE, (void*)child_node->node_as_bytes);
     dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(nodemgmt_get_incremented_address(address)), BASE_NODE_SIZE * nodemgmt_node_from_address(nodemgmt_get_incremented_address(address)), BASE_NODE_SIZE, (void*)(&child_node->node_as_bytes[BASE_NODE_SIZE]));
 }
@@ -270,6 +292,7 @@ void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* ch
 */
 void nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_node_t* parent_node)
 {
+    nodemgmt_check_address_validity_and_lock(address);
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(address), BASE_NODE_SIZE * nodemgmt_node_from_address(address), sizeof(parent_node->node_as_bytes), (void*)parent_node->node_as_bytes);
 }
 
@@ -298,6 +321,7 @@ void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOO
 */
 void nodemgmt_read_child_node_data_block_from_flash(uint16_t address, child_node_t* child_node)
 {
+    nodemgmt_check_address_validity_and_lock(address);
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(address), BASE_NODE_SIZE * nodemgmt_node_from_address(address), sizeof(child_node->node_as_bytes), (void*)child_node->node_as_bytes);
 }
 
@@ -873,6 +897,7 @@ uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_chi
     }
     
     /* Read flags and prev/next address */
+    nodemgmt_check_address_validity_and_lock(prev_child_node_addr_to_scan);
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(prev_child_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(prev_child_node_addr_to_scan), sizeof(child_read_buffer), &child_read_buffer);
     prev_child_node_addr_to_scan = child_node_pt->prevChildAddress;
     
@@ -880,6 +905,7 @@ uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_chi
     while (prev_child_node_addr_to_scan != NODE_ADDR_NULL)
     {
         /* Read flags and prev/next address */
+        nodemgmt_check_address_validity_and_lock(prev_child_node_addr_to_scan);
         dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(prev_child_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(prev_child_node_addr_to_scan), sizeof(child_read_buffer), &child_read_buffer);
 
         /* Check if it is of the current selected category */
@@ -917,6 +943,7 @@ uint16_t nodemgmt_get_next_child_node_for_cur_category(uint16_t search_start_chi
     child_cred_node_t* child_node_pt = (child_cred_node_t*)child_read_buffer;
         
     /* Read flags and prev/next address */
+    nodemgmt_check_address_validity_and_lock(search_start_child_addr);
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(search_start_child_addr), BASE_NODE_SIZE*nodemgmt_node_from_address(search_start_child_addr), sizeof(child_read_buffer), &child_read_buffer);
     search_start_child_addr = child_node_pt->nextChildAddress;
 
@@ -949,6 +976,7 @@ uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_c
     while (next_child_node_addr_to_scan != NODE_ADDR_NULL)
     {
         /* Read flags and prev/next address */
+        nodemgmt_check_address_validity_and_lock(next_child_node_addr_to_scan);
         dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_child_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(next_child_node_addr_to_scan), sizeof(child_read_buffer), &child_read_buffer);
         
         /* Check if it is of the current selected category */
@@ -999,6 +1027,7 @@ uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_pa
     }
     
     /* Read flags and prev/next address */
+    nodemgmt_check_address_validity_and_lock(search_start_parent_addr);
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(search_start_parent_addr), BASE_NODE_SIZE*nodemgmt_node_from_address(search_start_parent_addr), sizeof(parent_read_buffer), &parent_read_buffer);
     prev_parent_node_addr_to_scan = parent_node_pt->prevParentAddress;
     
@@ -1006,6 +1035,7 @@ uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_pa
     while (prev_parent_node_addr_to_scan != NODE_ADDR_NULL)
     {
         /* Read flags and prev/next address */
+        nodemgmt_check_address_validity_and_lock(prev_parent_node_addr_to_scan);
         dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(prev_parent_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(prev_parent_node_addr_to_scan), sizeof(parent_read_buffer), &parent_read_buffer);
 
         /* Check for logins with desired category */
@@ -1052,6 +1082,7 @@ uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_pa
     if (search_start_parent_addr != NODE_ADDR_NULL)
     {
         /* Read flags and prev/next address */
+        nodemgmt_check_address_validity_and_lock(search_start_parent_addr);
         dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(search_start_parent_addr), BASE_NODE_SIZE*nodemgmt_node_from_address(search_start_parent_addr), sizeof(parent_read_buffer), &parent_read_buffer);
         next_parent_node_addr_to_scan = parent_node_pt->nextParentAddress;
     }
@@ -1060,6 +1091,7 @@ uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_pa
     while (next_parent_node_addr_to_scan != NODE_ADDR_NULL)
     {
         /* Read flags and prev/next address */
+        nodemgmt_check_address_validity_and_lock(next_parent_node_addr_to_scan);
         dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_parent_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(next_parent_node_addr_to_scan), sizeof(parent_read_buffer), &parent_read_buffer);
 
         /* Check for logins with desired category */
@@ -1713,6 +1745,7 @@ void nodemgmt_delete_current_user_from_flash(void)
         while (next_parent_addr != NODE_ADDR_NULL)
         {
             // Read current parent node
+            nodemgmt_check_address_validity_and_lock(next_parent_addr);
             dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_parent_addr), BASE_NODE_SIZE * nodemgmt_node_from_address(next_parent_addr), sizeof(temp_buffer), (void*)parent_node_pt);
             nodemgmt_check_user_perm_from_flags_and_lock(parent_node_pt->flags);
             
@@ -1723,6 +1756,7 @@ void nodemgmt_delete_current_user_from_flash(void)
             while (next_child_addr != NODE_ADDR_NULL)
             {
                 // Read child node
+                nodemgmt_check_address_validity_and_lock(next_child_addr);
                 dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_child_addr), BASE_NODE_SIZE * nodemgmt_node_from_address(next_child_addr), sizeof(temp_buffer), (void*)child_node_pt);
                 nodemgmt_check_user_perm_from_flags_and_lock(child_node_pt->flags);
                 
@@ -1776,6 +1810,80 @@ void nodemgmt_update_data_parent_ctr_and_first_child_address(uint16_t parent_add
     
     /* Then write back to flash at same address */
     nodemgmt_write_parent_node_data_block_to_flash(parent_address, &nodemgmt_current_handle.temp_parent_node);
+}
+
+/*! \fn     nodemgmt_get_data_parent_next_child_address_ctr_and_prev_gen_flag(uint16_t parent_address, uint8_t* ctr, BOOL* prev_gen_flag)
+ *  \brief  Get data parent next child address & start ctr & prev gen flag
+ *  \param  parent_address  The parent address
+ *  \param  ctr             Where to store the ctr
+ *  \param  prev_gen_flag   Where to store the prev gen flag
+ *  \return The next child address
+ */
+uint16_t nodemgmt_get_data_parent_next_child_address_ctr_and_prev_gen_flag(uint16_t parent_address, uint8_t* ctr, BOOL* prev_gen_flag)
+{
+    /* Read node, ownership checks are done within */
+    nodemgmt_read_parent_node(parent_address, &nodemgmt_current_handle.temp_parent_node, FALSE);
+    
+    /* Cheat: cast into child node */
+    parent_data_node_t* parent_data_cast = (parent_data_node_t*)&nodemgmt_current_handle.temp_parent_node;
+    
+    /* Check for previous generation encrypted data */
+    if ((parent_data_cast->flags & NODEMGMT_PREVGEN_BIT_BITMASK) != 0)
+    {
+        *prev_gen_flag = TRUE;
+    }
+    else
+    {
+        *prev_gen_flag = FALSE;
+    }
+    
+    /* Store & return what we want */
+    memcpy(ctr, parent_data_cast->startDataCtr, MEMBER_SIZE(parent_data_node_t, startDataCtr));
+    return parent_data_cast->nextChildAddress;
+}
+
+/*! \fn     nodemgmt_get_encrypted_data_from_data_node(uint16_t data_child_address, uint8_t* buffer, uint16_t* nb_bytes_written)
+ *  \brief  Store encrypted data from data node
+ *  \param  data_child_address  Data child address
+ *  \param  buffer              Where to store data (up to 512B)
+ *  \param  nb_bytes_written    Where to store the number of bytes written
+ *  \return Address of next data node
+ */
+uint16_t nodemgmt_get_encrypted_data_from_data_node(uint16_t data_child_address, uint8_t* buffer, uint16_t* nb_bytes_written)
+{
+    _Static_assert(sizeof(child_data_node_second_half_t) == sizeof(child_data_node_t)/2, "Invalid split of child data node");
+    
+    /* Read node, ownership checks are done within */
+    nodemgmt_read_parent_node(data_child_address, &nodemgmt_current_handle.temp_parent_node, FALSE);
+        
+    /* Cheat: cast into child node */
+    child_data_node_t* child_data_cast = (child_data_node_t*)&nodemgmt_current_handle.temp_parent_node;
+    
+    /* Copy data of interest */
+    *nb_bytes_written = child_data_cast->data_length;
+    uint16_t return_addr = child_data_cast->nextDataAddress;
+    memcpy(buffer, child_data_cast->data, MEMBER_SIZE(child_data_node_t, data));
+    
+    /* Sanitization */
+    if (*nb_bytes_written > MEMBER_SIZE(child_data_node_t, data) + MEMBER_SIZE(child_data_node_t, data2))
+    {
+        *nb_bytes_written = MEMBER_SIZE(child_data_node_t, data) + MEMBER_SIZE(child_data_node_t, data2);
+    }
+    
+    /* Fetch second half of data */
+    data_child_address = nodemgmt_get_incremented_address(data_child_address);
+    
+    /* Read node, ownership checks are done within */
+    nodemgmt_read_parent_node(data_child_address, &nodemgmt_current_handle.temp_parent_node, FALSE);
+    
+    /* Cheat: cast into second half of child node */
+    child_data_node_second_half_t* child_second_half_data_cast = (child_data_node_second_half_t*)&nodemgmt_current_handle.temp_parent_node;
+    
+    /* Copy data of interest */
+    memcpy(&buffer[MEMBER_SIZE(child_data_node_t, data)], child_second_half_data_cast->data2, MEMBER_SIZE(child_data_node_t, data2));
+    
+    /* Return address of next data node */
+    return return_addr;    
 }
 
 /*! \fn     nodemgmt_update_child_data_node_with_next_address(uint16_t child_address, uint16_t next_address)

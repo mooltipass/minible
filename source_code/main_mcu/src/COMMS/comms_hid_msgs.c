@@ -1260,7 +1260,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
             } 
             
             /* If service is 0, query user and get the bytes, otherwise just get the bytes */
-            if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_user_get_data_from_service(service_pointer, (uint8_t*)&send_msg->payload_as_uint16[2], &send_msg->payload_as_uint16[1]) == RETURN_OK))
+            if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_user_get_data_from_service(service_pointer, (uint8_t*)&send_msg->payload_as_uint16[2], &send_msg->payload_as_uint16[1], is_message_from_usb) == RETURN_OK))
             {
                 /* Set success byte & payload size */
                 send_msg->payload_length = sizeof(uint16_t) + sizeof(uint16_t) + send_msg->payload_as_uint16[1];

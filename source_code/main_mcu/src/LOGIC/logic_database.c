@@ -194,6 +194,8 @@ uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_t
             {
                 compare_result = utils_custchar_strncmp(name, temp_pnode.cred_parent.service, ARRAY_SIZE(temp_pnode.cred_parent.service));
                 
+                /* Hey future Mathieu! Data parent category filter could be setup here... but then each file name must be unique across all categories... */
+                
                 if (compare_result == 0)
                 {
                     /* Result found */
