@@ -643,7 +643,16 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
     }
     
     /* Decrypt data (nb_bytes_written is sanitized by nodemgmt call) */
-    //logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
+    logic_encryption_ctr_decrypt(buffer, logic_user_getting_data_ctr_value, *nb_bytes_written, logic_user_getting_data_from_service_prev_gen_flag);
+    
+    /* Increment CTR */
+    uint16_t ctr_inc = ((*nb_bytes_written)*8 + AES256_CTR_LENGTH - 1)/AES256_CTR_LENGTH;
+    for (int16_t i = sizeof(logic_user_getting_data_ctr_value)-1; i >= 0; i--)
+    {
+        ctr_inc = ((uint16_t)logic_user_getting_data_ctr_value[i]) + ctr_inc;
+        logic_user_getting_data_ctr_value[i] = (uint8_t)(ctr_inc);
+        ctr_inc = (ctr_inc >> 8) & 0x00FF;
+    }
     
     /* Return success */
     return RETURN_OK;
