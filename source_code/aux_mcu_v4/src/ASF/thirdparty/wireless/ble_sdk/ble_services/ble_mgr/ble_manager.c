@@ -1419,8 +1419,8 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
     features.oob_avaiable = true;
             
     /* Distribution of LTK is required */
-    features.initiator_keys =   AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_SIGN; //Default
-    features.responder_keys =   AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_SIGN; //Default
+    features.initiator_keys =   AT_BLE_KEY_DIST_ENC; //Default
+    features.responder_keys =   AT_BLE_KEY_DIST_ENC; //Default
     features.max_key_size = 16; //Default
     features.min_key_size = 16; //Default
     
@@ -1428,8 +1428,8 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
     {
         if (ble_device_info.conn_info.peer_addr.type == AT_BLE_ADDRESS_RANDOM_PRIVATE_RESOLVABLE)
         {
-            features.initiator_keys =   (at_ble_key_dis_t)(AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_ID | AT_BLE_KEY_DIST_SIGN);
-            features.responder_keys =   (at_ble_key_dis_t)(AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_ID | AT_BLE_KEY_DIST_SIGN);
+            features.initiator_keys =   (at_ble_key_dis_t)(AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_ID);
+            features.responder_keys =   (at_ble_key_dis_t)(AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_ID);
         }
         
         /* Check if fresh pairing requested */
@@ -1440,7 +1440,7 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
             logic_rng_get_random_bytes(ble_device_info.host_ltk.nb, sizeof(ble_device_info.host_ltk.nb));
             ble_device_info.host_ltk.ediv = logic_rng_get_uint16();
             ble_device_info.host_ltk.key_size = 16;
-            /* Generate CSRK */
+            /* Generate CSRK, not used though */
             logic_rng_get_random_bytes(ble_device_info.host_csrk.key, sizeof(ble_device_info.host_csrk.key));
             DBG_LOG("Keys generated");
         }
@@ -1450,7 +1450,7 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
             DBG_LOG("Bonding info exists");
         }
         
-        if(at_ble_authenticate(slave_sec_req->handle, &features, &ble_device_info.host_ltk, &ble_device_info.host_csrk) != AT_BLE_SUCCESS)
+        if(at_ble_authenticate(slave_sec_req->handle, &features, &ble_device_info.host_ltk, NULL) != AT_BLE_SUCCESS)
         {
             features.bond = false;
             features.mitm_protection = false;
@@ -1479,22 +1479,24 @@ at_ble_status_t ble_pair_request_handler(void *params)
     features.bond = BLE_BOND_REQ;
     features.mitm_protection = BLE_MITM_REQ;
     features.io_cababilities = BLE_IO_CAPABALITIES;
-    features.oob_avaiable = BLE_OOB_REQ;
-    features.initiator_keys =   AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_SIGN; //Default
-    features.responder_keys =   AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_SIGN; //Default
+    features.oob_avaiable = BLE_OOB_REQ;    
+    /* Distribution of LTK is required */
+    if (ble_device_info.conn_info.peer_addr.type == AT_BLE_ADDRESS_RANDOM_PRIVATE_RESOLVABLE)
+    {
+        /* Distribution of IRK is required */
+        features.initiator_keys =   (at_ble_key_dis_t)(AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_ID);
+        features.responder_keys =   (at_ble_key_dis_t)(AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_ID);
+    }
+    else
+    {
+        features.initiator_keys =   AT_BLE_KEY_DIST_ENC;
+        features.responder_keys =   AT_BLE_KEY_DIST_ENC;
+    }
     features.max_key_size = 16; //Default
     features.min_key_size = 16; //Default
     
     if (device_found)
-    {
-        /* Distribution of LTK is required */
-        if (ble_device_info.conn_info.peer_addr.type == AT_BLE_ADDRESS_RANDOM_PRIVATE_RESOLVABLE)
-        {
-            /* Distribution of IRK is required */
-            features.initiator_keys =   (at_ble_key_dis_t)(AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_ID | AT_BLE_KEY_DIST_SIGN);
-            features.responder_keys =   (at_ble_key_dis_t)(AT_BLE_KEY_DIST_ENC | AT_BLE_KEY_DIST_ID | AT_BLE_KEY_DIST_SIGN);
-        }
-        
+    {        
         /* Check if fresh pairing requested */
         if (ble_device_info.bond_info.status == AT_BLE_GAP_INVALID_PARAM)
         {
@@ -1503,7 +1505,7 @@ at_ble_status_t ble_pair_request_handler(void *params)
             logic_rng_get_random_bytes(ble_device_info.host_ltk.nb, sizeof(ble_device_info.host_ltk.nb));
             ble_device_info.host_ltk.ediv = logic_rng_get_uint16();
             ble_device_info.host_ltk.key_size = 16;
-            /* Generate CSRK */
+            /* Generate CSRK, not used though... */
             logic_rng_get_random_bytes(ble_device_info.host_csrk.key, sizeof(ble_device_info.host_csrk.key));
             DBG_LOG("Keys generated");
         }
@@ -1515,7 +1517,7 @@ at_ble_status_t ble_pair_request_handler(void *params)
 
         /* Send pairing response */
         DBG_LOG_DEV("Sending pairing response");
-        if(at_ble_authenticate(pair_req->handle, &features, &ble_device_info.host_ltk, &ble_device_info.host_csrk) != AT_BLE_SUCCESS)
+        if(at_ble_authenticate(pair_req->handle, &features, &ble_device_info.host_ltk, NULL) != AT_BLE_SUCCESS)
         {
             features.bond = false;
             features.mitm_protection = false;
@@ -1524,7 +1526,7 @@ at_ble_status_t ble_pair_request_handler(void *params)
         }
         else
         {
-            DBG_LOG("Call the authenticate failed");
+            DBG_LOG("Call to ble authenticate succeeded");
         }
     }
     

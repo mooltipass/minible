@@ -179,7 +179,6 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
     
     /* Set booleans */
     logic_bluetooth_can_communicate_with_host = FALSE;
-    logic_bluetooth_open_to_pairing = FALSE;
     logic_bluetooth_just_connected = FALSE;
     logic_bluetooth_just_paired = FALSE;
     logic_bluetooth_connected = FALSE;

@@ -1144,9 +1144,12 @@ void custom_fs_set_undefined_settings(void)
         platform_settings_copy.nb_settings_last_covered = SETTINGS_NB_USED;
         
         /* Generate random mac address for debug purposes */
-        if (memcmp(custom_fs_platform_settings_p->dbg_bluetooth_addr, "\xFF\xFF\xFF\xFF\xFF\xFF", sizeof(custom_fs_platform_settings_p->dbg_bluetooth_addr)) == 0)
+        if ((memcmp(custom_fs_platform_settings_p->dbg_bluetooth_addr, "\xFF\xFF\xFF\xFF\xFF\xFF", sizeof(custom_fs_platform_settings_p->dbg_bluetooth_addr)) == 0) || ((custom_fs_platform_settings_p->dbg_bluetooth_addr[5] & 0xC0) != 0xC0))
         {
             rng_fill_array(platform_settings_copy.dbg_bluetooth_addr, sizeof(platform_settings_copy.dbg_bluetooth_addr));
+            
+            /* 2 MSBit must be '11' for RANDOM_STATIC address. */
+            platform_settings_copy.dbg_bluetooth_addr[5] |= 0xC0;
         }
         
         /* Update memory */
