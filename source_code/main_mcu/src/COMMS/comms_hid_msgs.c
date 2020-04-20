@@ -1265,6 +1265,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 /* Set success byte & payload size */
                 send_msg->payload_length = sizeof(uint16_t) + sizeof(uint16_t) + send_msg->payload_as_uint16[1];
                 send_msg->payload_as_uint16[0] = HID_1BYTE_ACK;
+                send_msg->message_type = rcv_message_type;
                 return send_msg->payload_length;
             }
             else
@@ -1272,6 +1273,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                 /* Set failure byte */
                 send_msg->payload_as_uint16[0] = HID_1BYTE_NACK;
                 send_msg->payload_length = sizeof(uint16_t);
+                send_msg->message_type = rcv_message_type;
                 return send_msg->payload_length;
             }        
         }
