@@ -45,6 +45,8 @@ const uint8_t gui_prompts_conf_prompt_y_positions[4][4] = {
     {2, 22, 43, 0},
     {0, 13, 29, 46}
 };
+// Same but for the tutorial
+const uint8_t gui_prompts_tutorial_3_lines_y_positions[3] = {0, 21, 42};
 // Text fonts for conf prompt
 const uint8_t gui_prompts_conf_prompt_fonts[4][4] = {
     {FONT_UBUNTU_MEDIUM_17_ID, 0, 0, 0},
@@ -73,6 +75,74 @@ const uint16_t gui_prompts_notif_popup_anim_bitmap[3] = {BITMAP_INFO_NOTIF_POPUP
 const uint16_t gui_prompts_notif_idle_anim_length[3] = {INFO_NOTIF_IDLE_ANIM_LGTH, WARNING_NOTIF_IDLE_ANIM_LGTH, ACTION_NOTIF_IDLE_ANIM_LGTH};
 const uint16_t gui_prompts_notif_idle_anim_bitmap[3] = {BITMAP_INFO_NOTIF_IDLE_ID, BITMAP_WARNING_NOTIF_IDLE_ID, BITMAP_ACTION_NOTIF_IDLE_ID};
 
+
+/*! \fn     gui_prompts_display_tutorial(void)
+*   \brief  Display device tutorial
+*/
+void gui_prompts_display_tutorial(void)
+{
+    wheel_action_ret_te detection_result;
+    uint16_t current_tutorial_page = 0;
+    cust_char_t* temp_string_pt;
+    BOOL redraw_needed = TRUE;
+    
+    /* Activity detected */
+    logic_device_activity_detected();
+    
+    /* Clear current detections */
+    inputs_clear_detections();
+    
+    /* Set tutorial font */
+    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_17_ID);
+    
+    /* Scroll through the pages */
+    while (current_tutorial_page < 4)
+    {
+        if (redraw_needed != FALSE)
+        {
+            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+            for (uint16_t i = 0; i < 3; i++)
+            {
+                custom_fs_get_string_from_file(TUTORIAL_FLINE_TEXT_ID + current_tutorial_page*3 + i, &temp_string_pt, TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 0, gui_prompts_tutorial_3_lines_y_positions[i], OLED_ALIGN_CENTER, temp_string_pt, TRUE);
+            }
+            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+        }
+                
+        /* Still process the USB commands, reply with please retries */
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        
+        /* Deal with accelerometer data */
+        logic_accelerometer_routine();
+            
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
+            
+        /* Detection result */
+        detection_result = inputs_get_wheel_action(FALSE, FALSE);
+
+        /* Transform click up / click down to click */
+        if ((detection_result == WHEEL_ACTION_CLICK_UP) || (detection_result == WHEEL_ACTION_CLICK_DOWN))
+        {
+            detection_result = WHEEL_ACTION_SHORT_CLICK;
+        }
+            
+        /* Next page */
+        if ((detection_result == WHEEL_ACTION_SHORT_CLICK) || (detection_result == WHEEL_ACTION_DOWN))
+        {
+            current_tutorial_page++;
+            redraw_needed = TRUE;
+        }   
+            
+        /* Previous page */
+        if ((current_tutorial_page > 0) && ((detection_result == WHEEL_ACTION_LONG_CLICK) || (detection_result == WHEEL_ACTION_UP)))
+        {
+            current_tutorial_page--;
+            redraw_needed = TRUE;
+        }        
+    }  
+}
 
 /*! \fn     gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type)
 *   \brief  Display text information on screen

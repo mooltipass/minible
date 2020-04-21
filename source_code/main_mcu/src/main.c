@@ -599,6 +599,9 @@ int main(void)
         }
     }  
     
+    /* Do we need to display device tutorial? */
+    gui_prompts_display_tutorial();
+    
     /* Get current smartcard detection result */
     det_ret_type_te card_detection_res = smartcard_lowlevel_is_card_plugged();
         

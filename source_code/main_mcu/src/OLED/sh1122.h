@@ -121,7 +121,7 @@ typedef struct
 } sh1122_descriptor_t;
 
 /* Prototypes */
-int16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, oled_align_te justify, const cust_char_t* string, BOOL write_to_buffer);
+int16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, oled_align_te justify, const cust_char_t* string, BOOL write_to_buffer);
 void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, uint16_t width, uint8_t* pixels, BOOL write_to_buffer);
 void sh1122_draw_rectangle(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint16_t width, uint16_t height, uint16_t color, BOOL write_to_buffer);
 void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream, BOOL write_to_buffer);

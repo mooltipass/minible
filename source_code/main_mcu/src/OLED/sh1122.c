@@ -2174,7 +2174,7 @@ uint16_t sh1122_get_number_of_printable_characters_for_string(sh1122_descriptor_
     return nb_characters;
 }
 
-/*! \fn     sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, oled_align_te justify, const char* string, BOOL write_to_buffer) 
+/*! \fn     sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, oled_align_te justify, const char* string, BOOL write_to_buffer) 
 *   \brief  Display a string on the screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
@@ -2184,7 +2184,7 @@ uint16_t sh1122_get_number_of_printable_characters_for_string(sh1122_descriptor_
 *   \param  write_to_buffer     Set to true to write to internal buffer
 *   \return Pixel width of the printed string, -1 if too wide for display
 */
-int16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, oled_align_te justify, const cust_char_t* string, BOOL write_to_buffer) 
+int16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, oled_align_te justify, const cust_char_t* string, BOOL write_to_buffer) 
 {
     uint16_t width = sh1122_get_string_width(oled_descriptor, string);
     int16_t max_text_x_copy = oled_descriptor->max_text_x;

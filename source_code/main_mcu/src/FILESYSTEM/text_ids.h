@@ -120,5 +120,8 @@
 #define ADD_NEW_FILE_TEXT_ID            113
 #define QPROMPT_EXPORT_DATA_TEXT_ID     114
 #define EXPORTING_DATA_FOR_TEXT_ID      115
+#define TUTORIAL_FLINE_TEXT_ID          116
+///////////////////////////////////////////
+#define TUTORIAL_LLINE_TEXT_ID          127
 
 #endif

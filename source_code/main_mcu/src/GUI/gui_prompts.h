@@ -143,5 +143,6 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address);
 int16_t gui_prompts_favorite_selection_screen(int16_t start_favid);
 gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void);
 int16_t gui_prompts_select_category(void);
+void gui_prompts_display_tutorial(void);
 
 #endif /* GUI_PROMPTS_H_ */
