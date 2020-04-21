@@ -243,7 +243,7 @@ try:
 						cipher = Crypto.Cipher.AES.new(bytes(aes_key), Crypto.Cipher.AES.MODE_CTR, counter=ctr)
 						if node_data_len == 132:
 							password = cipher.decrypt(bytes(node_data[100:132]))
-							decoded_password = password.decode('unicode_escape').split("\x00")[0]
+							decoded_password = password.decode('raw_unicode_escape').split("\x00")[0]
 						else:
 							password = cipher.decrypt(bytes(node_data[270:398]))
 							decoded_password = ""
