@@ -222,7 +222,7 @@ typedef struct
     #define BATTERY_ADC_30PCT_VOLTAGE   (3228)
     #define BATTERY_ADC_20PCT_VOLTAGE   (3173)
     #define BATTERY_ADC_10PCT_VOLTAGE   (3090)
-    #define BATTERY_ADC_OUT_CUTOUT      (3050)
+    #define BATTERY_ADC_OUT_CUTOUT      (3000)
 #endif
 
 /********************/
