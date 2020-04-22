@@ -95,6 +95,9 @@ void gui_prompts_display_tutorial(void)
     /* Set tutorial font */
     sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_17_ID);
     
+    /* Set timer */
+    timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 30000);
+    
     /* Scroll through the pages */
     while (current_tutorial_page < 4)
     {
@@ -109,6 +112,14 @@ void gui_prompts_display_tutorial(void)
             }
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
         }
+        
+        /* Battery powered, no action, switch off */
+        if ((timer_has_timer_expired(TIMER_DEVICE_ACTION_TIMEOUT, FALSE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
+        {
+            /* Switch off OLED, switch off platform */
+            platform_io_power_down_oled(); timer_delay_ms(200);
+            platform_io_disable_switch_and_die();
+        }
                 
         /* Still process the USB commands, reply with please retries */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
@@ -121,6 +132,12 @@ void gui_prompts_display_tutorial(void)
             
         /* Detection result */
         detection_result = inputs_get_wheel_action(FALSE, FALSE);
+        
+        /* Reset timer if action detecter */
+        if (detection_result != WHEEL_ACTION_NONE)
+        {
+            timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 30000);
+        }
 
         /* Transform click up / click down to click */
         if ((detection_result == WHEEL_ACTION_CLICK_UP) || (detection_result == WHEEL_ACTION_CLICK_DOWN))

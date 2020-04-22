@@ -68,8 +68,9 @@
 #define SETTINGS_LEFT_HANDED_ON_USB         13
 #define SETTINGS_PIN_SHOWN_WHEN_BACK        14
 #define SETTINGS_UNLOCK_FEATURE_PARAM       15
+#define SETTINGS_DEVICE_TUTORIAL            16
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    16
+#define SETTINGS_NB_USED                    17
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32

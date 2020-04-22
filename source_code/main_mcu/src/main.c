@@ -600,7 +600,14 @@ int main(void)
     }  
     
     /* Do we need to display device tutorial? */
-    gui_prompts_display_tutorial();
+    if ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_DEVICE_TUTORIAL) != FALSE)
+    {        
+        /* Display tutorial */
+        gui_prompts_display_tutorial();
+        
+        /* Tutorial displayed, reset boolean */
+        custom_fs_set_settings_value(SETTINGS_DEVICE_TUTORIAL, FALSE);
+    }
     
     /* Get current smartcard detection result */
     det_ret_type_te card_detection_res = smartcard_lowlevel_is_card_plugged();
