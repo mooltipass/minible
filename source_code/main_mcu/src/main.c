@@ -570,7 +570,10 @@ int main(void)
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
                 logic_power_usb_enumerate_just_sent();
             }
-        }        
+        }   
+        
+        /* Disable tutorial */
+        //custom_fs_set_settings_value(SETTINGS_DEVICE_TUTORIAL, FALSE);     
     }
     #endif
     

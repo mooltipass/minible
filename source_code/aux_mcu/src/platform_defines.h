@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    20
+#define FW_MINOR    21
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -43,6 +43,7 @@
 - v0.18:- René's release, various bug fixes
 - v0.19:- prevent deadlock on usb disconnect with ctap messages
 - v0.20:- MacOS Bluetooth bug fix
+- v0.21:- Battery charging constants adjustments
 */
 
 /**************** SETUP DEFINES ****************/

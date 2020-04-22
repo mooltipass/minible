@@ -30,7 +30,7 @@ typedef enum    {NIMH_12C_CHARGING, NIMH_23C_CHARGING} lb_nimh_charge_scheme_te;
 #define LOGIC_BATTERY_BAT_CUR_REACH_V_INC   1       // Voltage increments for charge
 #define LOGIC_BATTERY_CUR_FOR_REACH_END_12C 275     // ADC value different between high & low cursense to stop current reach ramping: 1LSB = 0.5445mA
 #define LOGIC_BATTERY_CUR_FOR_REACH_END_23C 367     // ADC value different between high & low cursense to stop current reach ramping: 1LSB = 0.5445mA
-#define LOGIC_BATTERY_MAX_V_FOR_CUR_REACH   2938    // Voltage at which we consider that something is wrong (around 1.6V)
+#define LOGIC_BATTERY_MAX_V_FOR_CUR_REACH   3000    // Voltage at which we consider that something is wrong (around 1.63V)
 /* Charging current maintaining */
 #define LOGIC_BATTERY_CUR_MAINTAIN_TICK     10      // Time intervals between decisions
 /* End of charge detection */
