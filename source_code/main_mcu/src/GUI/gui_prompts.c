@@ -82,6 +82,7 @@ const uint16_t gui_prompts_notif_idle_anim_bitmap[3] = {BITMAP_INFO_NOTIF_IDLE_I
 void gui_prompts_display_tutorial(void)
 {
     wheel_action_ret_te detection_result;
+    uint16_t current_animation_index = 0;
     uint16_t current_tutorial_page = 0;
     cust_char_t* temp_string_pt;
     BOOL redraw_needed = TRUE;
@@ -90,10 +91,7 @@ void gui_prompts_display_tutorial(void)
     logic_device_activity_detected();
     
     /* Clear current detections */
-    inputs_clear_detections();
-    
-    /* Set tutorial font */
-    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_17_ID);
+    inputs_clear_detections();    
     
     /* Set timer */
     timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 30000);
@@ -101,16 +99,72 @@ void gui_prompts_display_tutorial(void)
     /* Scroll through the pages */
     while (current_tutorial_page < 4)
     {
+        /* Transition into a new tutorial page */
         if (redraw_needed != FALSE)
         {
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
             sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+            sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_17_ID);
             for (uint16_t i = 0; i < 3; i++)
             {
                 custom_fs_get_string_from_file(TUTORIAL_FLINE_TEXT_ID + current_tutorial_page*3 + i, &temp_string_pt, TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 0, gui_prompts_tutorial_3_lines_y_positions[i], OLED_ALIGN_CENTER, temp_string_pt, TRUE);
             }
+            
+            /* Display animation frame if needed */
+            if (current_tutorial_page == 1)
+            {
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_ROT, TRUE);
+            }
+            else if (current_tutorial_page == 2)
+            {
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_PRESS, TRUE);
+            }
+            
+            /* Flush frame buffer */
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            
+            /* Arm timer for possible animation */
+            timer_start_timer(TIMER_ANIMATIONS, 50);
+            current_animation_index = 0;
+            inputs_clear_detections();
+            redraw_needed = FALSE;
+        }
+        
+        /* Animation */
+        if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+        {
+            if (current_tutorial_page == 1)
+            {
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_ROT+current_animation_index, FALSE);
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_ROT+current_animation_index, TRUE);
+                if (current_animation_index++ == BITMAP_WHEEL_ROT_NBFRAMES - 1)
+                {
+                    current_animation_index = 0;
+                }
+                timer_start_timer(TIMER_ANIMATIONS, 50);
+            }
+            else if (current_tutorial_page == 2)
+            {
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_PRESS+current_animation_index, FALSE);
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_PRESS+current_animation_index, TRUE);
+                
+                /* Different timeout depending on the current frame */
+                if ((current_animation_index == 0) || (current_animation_index == BITMAP_WHEEL_PRESS_NBFRAMES - 1))
+                {
+                    timer_start_timer(TIMER_ANIMATIONS, 500);
+                }
+                else
+                {
+                    timer_start_timer(TIMER_ANIMATIONS, 50);
+                }
+                
+                /* Animation loop */
+                if (current_animation_index++ == BITMAP_WHEEL_PRESS_NBFRAMES - 1)
+                {
+                    current_animation_index = 0;
+                }
+            }
         }
         
         /* Battery powered, no action, switch off */

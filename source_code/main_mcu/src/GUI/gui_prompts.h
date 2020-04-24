@@ -61,6 +61,10 @@
 #define BITMAP_BLE_IDLE                 726
 #define BITMAP_POPUP_USB_DESEL          837
 #define BITMAP_POPUP_BLE_SEL            823
+#define BITMAP_WHEEL_PRESS              869
+#define BITMAP_WHEEL_PRESS_NBFRAMES     10
+#define BITMAP_WHEEL_ROT                879
+#define BITMAP_WHEEL_ROT_NBFRAMES       20
 
 // PIN prompt
 #define PIN_PROMPT_ARROW_MOV_LGTH       7

@@ -573,7 +573,7 @@ int main(void)
         }   
         
         /* Disable tutorial */
-        //custom_fs_set_settings_value(SETTINGS_DEVICE_TUTORIAL, FALSE);     
+        custom_fs_set_settings_value(SETTINGS_DEVICE_TUTORIAL, FALSE);     
     }
     #endif
     
