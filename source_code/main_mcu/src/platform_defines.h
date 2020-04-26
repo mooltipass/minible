@@ -82,6 +82,7 @@
 - v0.23:- more gracefully handling USB to battery power transition
 - v0.24:- bt disconnect/switch feature
         - data storage feature
+- v0.25:- device tutorial
 */
 
 /**************** SETUP DEFINES ****************/

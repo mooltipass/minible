@@ -88,6 +88,9 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     if (platform_io_is_usb_3v3_present_raw() != FALSE)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Power using battery first!");
+        while (platform_io_is_usb_3v3_present_raw() != FALSE);
+        DELAYMS(200);
+        platform_io_disable_switch_and_die();
         while(1);
     }
     
@@ -95,6 +98,9 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     if (smartcard_low_level_is_smc_absent() != RETURN_OK)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Please remove the card first!");
+        while (smartcard_low_level_is_smc_absent() != RETURN_OK);
+        DELAYMS(200);
+        platform_io_disable_switch_and_die();
         while(1);
     }
     

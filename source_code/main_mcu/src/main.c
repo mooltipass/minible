@@ -288,12 +288,6 @@ void main_platform_init(void)
     {
         functional_testing_start(TRUE);
     }
-    
-    // TO REMOVE
-    if (custom_fs_get_device_flag_value(RF_TESTING_PASSED_FLAG_ID) == FALSE)
-    {
-        custom_fs_set_device_flag_value(RF_TESTING_PASSED_FLAG_ID, TRUE);
-    }
 
     /* Check for RF functional testing passed */
     #ifdef DEVELOPER_FEATURES_ENABLED
