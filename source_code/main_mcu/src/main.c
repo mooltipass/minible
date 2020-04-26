@@ -298,8 +298,8 @@ void main_platform_init(void)
     {
         /* Start continuous tone, wait for test to press long click or timeout to die */
         functional_rf_testing_start();
-        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 30000);
-        while (inputs_get_wheel_action(TRUE, FALSE) != WHEEL_ACTION_LONG_CLICK)
+        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50000);
+        while (inputs_get_wheel_action(FALSE, TRUE) != WHEEL_ACTION_LONG_CLICK)
         {
             /* Timer timeout, switch off platform */
             if ((timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
@@ -308,9 +308,16 @@ void main_platform_init(void)
                 platform_io_power_down_oled(); timer_delay_ms(200);
                 platform_io_disable_switch_and_die();
             }
+            
+            /* Handle possible power switches */
+            logic_power_check_power_switch_and_battery(FALSE);
+            
+            /* Comms functions */
+            comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         }
         custom_fs_set_device_flag_value(RF_TESTING_PASSED_FLAG_ID, TRUE);
         sh1122_clear_current_screen(&plat_oled_descriptor);
+        sh1122_clear_frame_buffer(&plat_oled_descriptor);
     }
 #endif
     
@@ -342,6 +349,9 @@ void main_platform_init(void)
                     break;
                 }
             }
+            
+            /* Handle possible power switches */
+            logic_power_check_power_switch_and_battery(FALSE);
             
             /* Timer timeout, switch off platform */
             if ((timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))

@@ -2090,6 +2090,7 @@ int16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char_
 */
 uint16_t sh1122_put_error_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string)
 {
+    sh1122_put_string_xy(oled_descriptor, 0, 0, OLED_ALIGN_CENTER, string, TRUE);
     return sh1122_put_string_xy(oled_descriptor, 0, 0, OLED_ALIGN_CENTER, string, FALSE);
 }
 
