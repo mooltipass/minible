@@ -83,6 +83,7 @@
 - v0.24:- bt disconnect/switch feature
         - data storage feature
 - v0.25:- device tutorial
+        - increased long press to reboot timer to 10s
 */
 
 /**************** SETUP DEFINES ****************/
@@ -419,7 +420,7 @@ typedef struct
 #define DBFLASH_BAUD_DIVIDER        1
 
 /* Reboot timer */
-#define NB_MS_WHEEL_PRESS_FOR_REBOOT    6000
+#define NB_MS_WHEEL_PRESS_FOR_REBOOT    10000
 
 /* PORT defines */
 /* WHEEL ENCODER */
