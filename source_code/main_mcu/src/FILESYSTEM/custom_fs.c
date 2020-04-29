@@ -1041,7 +1041,10 @@ uint16_t custom_fs_settings_get_dump(uint8_t* dump_buffer)
 {
     if (custom_fs_platform_settings_p == 0)
     {
-        return 0;
+        /* Shouldn't happen, except when displaying "no bundle" */
+        memset(dump_buffer, 0x00, sizeof(custom_fs_platform_settings_p->device_settings));
+        memcpy(dump_buffer, custom_fs_default_device_settings, sizeof(custom_fs_platform_settings_p->device_settings));
+        return sizeof(custom_fs_platform_settings_p->device_settings);
     }
     else
     {
