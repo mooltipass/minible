@@ -22,8 +22,8 @@
 // Appearance: 0x03C1 (keyboard)
 // Dev name perm: disable writing device name
 // Device name: Mooltipass Mini BLE
-// Minimum connection interval N (Value Time = N *1.25 ms): 6 = 7.5ms (taken from logitech craft)
-// Maximum connection interval N (Value Time = N *1.25 ms): 9 = 11.25ms (taken from logitech craft)
+// Minimum connection interval N (Value Time = N *1.25 ms): 11 = 13.75ms
+// Maximum connection interval N (Value Time = N *1.25 ms): 50 = 62.5ms
 // Slave preferred Connection latency (number of events): 44 (taken from logitech craft)
 // Slave preferred Link supervision time-out (Value Time = N * 10 ms): 216 (taken from logitech craft)
 at_ble_gap_deviceinfo_t logic_bluetooth_advanced_info = {.appearance=0x03C1, .dev_name_perm=AT_BLE_WRITE_DISABLE, .name.length=20, .name.value="Mooltipass Mini BLE", .slv_params.con_intv_min=6, .slv_params.con_intv_max=9, .slv_params.con_latency=44, .slv_params.superv_to=216};
