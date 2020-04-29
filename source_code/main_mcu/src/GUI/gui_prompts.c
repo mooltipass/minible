@@ -1724,6 +1724,21 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
     {
         utils_strcpy(&temp_pnode.cred_parent.service[utils_strlen(temp_pnode.cred_parent.service)], select_login_string);
     }
+            
+    /* String width to set correct underline */
+    sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
+    uint16_t underline_width = sh1122_get_string_width(&plat_oled_descriptor, temp_pnode.cred_parent.service);
+    uint16_t underline_x_start = plat_oled_descriptor.min_text_x;
+            
+    /* Sanitizing */
+    if ((plat_oled_descriptor.min_text_x + underline_width) < plat_oled_descriptor.max_text_x)
+    {
+        underline_x_start = plat_oled_descriptor.min_text_x + (plat_oled_descriptor.max_text_x - plat_oled_descriptor.min_text_x - underline_width)/2;
+    }
+    else
+    {
+        underline_width = plat_oled_descriptor.max_text_x - plat_oled_descriptor.min_text_x;
+    }
     
     /* Arm timer for scrolling */
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
@@ -1842,7 +1857,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
             sh1122_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Bar below the title */
-            sh1122_draw_rectangle(&plat_oled_descriptor, 73, LOGIN_SCROLL_Y_BAR, 110, 1, 0xFF, TRUE);
+            sh1122_draw_rectangle(&plat_oled_descriptor, underline_x_start, LOGIN_SCROLL_Y_BAR, underline_width, 1, 0xFF, TRUE);
             
             /* Loop for 4 always displayed texts: title then 3 list items */
             for (uint16_t i = 0; i < 4; i++)
@@ -2061,8 +2076,8 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     int16_t displayed_length;
     BOOL scrolling_needed[4];
     
-    /* "Select credential" string */
-    custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
+    /* Load hint string to compute aestetical elements positions */
+    custom_fs_get_string_from_file(PRESS_SCROLL_HINT_TEXT_ID, &select_credential_string, TRUE);
     
     /* Lines display settings */
     uint16_t non_addr_null_addr_tbp = NODE_ADDR_NULL+1;
@@ -2075,6 +2090,21 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     memset(text_anim_going_right, FALSE, sizeof(text_anim_going_right));
     memset(text_anim_x_offset, 0, sizeof(text_anim_x_offset));
     memset(scrolling_needed, FALSE, sizeof(scrolling_needed));
+    
+    /* Scroll hint string width to set correct underline */
+    sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
+    uint16_t scroll_hint_width = sh1122_get_string_width(&plat_oled_descriptor, strings_to_be_displayed[0]);
+    uint16_t scroll_hint_x_start = plat_oled_descriptor.min_text_x + (plat_oled_descriptor.max_text_x - plat_oled_descriptor.min_text_x - scroll_hint_width)/2;
+    
+    /* "Select credential" string */
+    custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
+    
+    /* Select login string width to set correct underline */
+    sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
+    uint16_t select_login_width = sh1122_get_string_width(&plat_oled_descriptor, strings_to_be_displayed[0]);
+    uint16_t select_login_x_start = plat_oled_descriptor.min_text_x + (plat_oled_descriptor.max_text_x - plat_oled_descriptor.min_text_x - select_login_width)/2;
+    uint16_t underline_bar_start_x = select_login_x_start;
+    uint16_t underline_bar_width = select_login_width;
     
     /* Arm timer for scrolling */
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
@@ -2146,6 +2176,8 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             if (hint_cur_displayed != FALSE)
             {
                 custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
+                underline_bar_start_x = select_login_x_start;
+                underline_bar_width = select_login_width;
             }
             user_knows_press_scroll = TRUE;
             hint_cur_displayed = FALSE;
@@ -2171,6 +2203,8 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             if (hint_cur_displayed != FALSE)
             {
                 custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
+                underline_bar_start_x = select_login_x_start;
+                underline_bar_width = select_login_width;
             }
             user_knows_press_scroll = TRUE;
             hint_cur_displayed = FALSE;
@@ -2202,6 +2236,8 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             
             /* Load hint string */
             custom_fs_get_string_from_file(PRESS_SCROLL_HINT_TEXT_ID, &select_credential_string, TRUE);
+            underline_bar_start_x = scroll_hint_x_start;
+            underline_bar_width = scroll_hint_width;
         }
 
         /* We're displaying first chars but the wheel was released */
@@ -2266,7 +2302,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             sh1122_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Bar below the title */
-            sh1122_draw_rectangle(&plat_oled_descriptor, 73, LOGIN_SCROLL_Y_BAR, 110, 1, 0xFF, TRUE);
+            sh1122_draw_rectangle(&plat_oled_descriptor, underline_bar_start_x, LOGIN_SCROLL_Y_BAR, underline_bar_width, 1, 0xFF, TRUE);
             
             /* Loop for 4 always displayed texts: title then 3 list items */
             for (uint16_t i = 0; i < 4; i++)
@@ -2356,12 +2392,16 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                                     {
                                         /* Load hint string */
                                         custom_fs_get_string_from_file(PRESS_SCROLL_HINT_TEXT_ID, &select_credential_string, TRUE);
+                                        underline_bar_start_x = scroll_hint_x_start;
+                                        underline_bar_width = scroll_hint_width;
                                         hint_cur_displayed = TRUE;
                                     } 
                                     else
                                     {
                                         /* "Select credential" string */
                                         custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
+                                        underline_bar_start_x = select_login_x_start;
+                                        underline_bar_width = select_login_width;
                                         hint_cur_displayed = FALSE;
                                     }                                
                                 }
@@ -2774,6 +2814,11 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
     cust_char_t* strings_to_be_displayed[4] = {select_login_string, temp_pnode.cred_parent.service, temp_pnode.cred_parent.service, temp_pnode.cred_parent.service};
     uint16_t fonts_to_be_used[4] = {FONT_UBUNTU_REGULAR_16_ID, FONT_UBUNTU_REGULAR_13_ID, FONT_UBUNTU_MEDIUM_15_ID, FONT_UBUNTU_REGULAR_13_ID};
     uint16_t strings_y_positions[4] = {0, LOGIN_SCROLL_Y_FLINE, LOGIN_SCROLL_Y_SLINE, LOGIN_SCROLL_Y_TLINE};
+        
+    /* Select login string width to set correct underline */
+    sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
+    uint16_t select_login_width = sh1122_get_string_width(&plat_oled_descriptor, strings_to_be_displayed[0]);
+    uint16_t select_login_x_start = plat_oled_descriptor.min_text_x + (plat_oled_descriptor.max_text_x - plat_oled_descriptor.min_text_x - select_login_width)/2;
     
     /* Arm timer for scrolling */
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
@@ -2896,7 +2941,7 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
             sh1122_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Bar below the title */
-            sh1122_draw_rectangle(&plat_oled_descriptor, 73, LOGIN_SCROLL_Y_BAR, 110, 1, 0xFF, TRUE);
+            sh1122_draw_rectangle(&plat_oled_descriptor, select_login_x_start, LOGIN_SCROLL_Y_BAR, select_login_width, 1, 0xFF, TRUE);
             
             /* Loop for 4 always displayed texts: title then 3 list items */
             for (uint16_t i = 0; i < 4; i++)
@@ -3283,8 +3328,12 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
                 custom_fs_set_current_language(cur_item_id);
             }
             
+            /* String width to set correct underline */
+            uint16_t string_width = sh1122_get_string_width(&plat_oled_descriptor, select_language_string);
+            uint16_t underline_x_start = plat_oled_descriptor.min_text_x + (plat_oled_descriptor.max_text_x - plat_oled_descriptor.min_text_x - string_width)/2;
+            
             /* Bar below the title */
-            sh1122_draw_rectangle(&plat_oled_descriptor, 73, LOGIN_SCROLL_Y_BAR, 110, 1, 0xFF, TRUE);
+            sh1122_draw_rectangle(&plat_oled_descriptor, underline_x_start, LOGIN_SCROLL_Y_BAR, string_width, 1, 0xFF, TRUE);
             
             /* Loop for next 3 languages */
             for (uint16_t i = 0; i < 3; i++)
