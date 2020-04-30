@@ -15,11 +15,15 @@
 #define BT_NB_MS_BEFORE_DEASSERTING_WAKEUP  10000
 
 /* debug defines */
-#define DEBUG_SLEEP_LOG_DISABLED
-#if defined(DEBUG_SLEEP_LOG_DISABLED)
+//#define DEBUG_SLEEP_LOG_DISABLED
+#if defined DEBUG_SLEEP_LOG_DISABLED
 	#define DBG_SLP_LOG(...)
 #else
-	#define DBG_SLP_LOG         comms_usb_debug_printf
+    #ifndef USB_PRINTF
+        #define DBG_SLP_LOG	    platform_io_uart_debug_printf
+    #else
+        #define DBG_SLP_LOG	    comms_usb_debug_printf
+    #endif
 #endif
 
 /* Prototypes */

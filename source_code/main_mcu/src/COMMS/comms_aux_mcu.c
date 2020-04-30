@@ -645,6 +645,12 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         /* Note: there's a case where we don't rearm DMA if the message is valid but payload is too long... was lazy to implement it */
         return NO_MSG_RCVD;
     }
+    
+    /* Here there's a message we need to deal with. If we're awake but screen off, increase the fake screen timer to leave time for a potential next message */
+    if (platform_io_get_voled_stepup_pwr_source() == OLED_STEPUP_SOURCE_NONE)
+    {
+        timer_start_timer(TIMER_SCREEN, SLEEP_AFTER_AUX_WAKEUP_MS);
+    }
 
     /* USB / BLE Messages */
     if ((aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_USB) || (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BLE))

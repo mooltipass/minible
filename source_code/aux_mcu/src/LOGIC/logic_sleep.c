@@ -27,7 +27,10 @@ void logic_sleep_wakeup_main_mcu_if_needed(void)
     /* First check if main MCU is asleep */
     if (logic_sleep_full_platform_sleep_requested != FALSE)
     {
-        // TODO if needed: use a timestamp to make sure we're not generating that pulse just after we've been set to sleep (very unlikely)
+        DBG_SLP_LOG("waking up main MCU");
+        
+        /* Make sure we're not generating that pulse just after we've been set to sleep */
+        while (timer_has_timer_expired(TIMER_MAIN_MCU_WAKE_DELAY, FALSE) == TIMER_RUNNING);
         
         /* Generate wakeup pulse */
         platform_io_generate_no_comms_wakeup_pulse();
@@ -68,6 +71,7 @@ void logic_sleep_ble_signal_to_sleep(void)
     {
         if ((logic_sleep_full_platform_sleep_requested != FALSE) && (platform_io_is_no_comms_asserted() != RETURN_OK))
         {
+            DBG_SLP_LOG("wanted to go to sleep but main MCU woke up in the mean time!");
             logic_sleep_full_platform_sleep_requested = FALSE;
             platform_io_enable_main_comms();
             comms_main_init_rx();

@@ -200,8 +200,9 @@ typedef struct
 /********************/
 /* Timeout defines  */
 /********************/
-#define SCREEN_TIMEOUT_MS       15000
-#define AUX_FLOOD_TIMEOUT_MS    2
+#define SCREEN_TIMEOUT_MS           15000
+#define AUX_FLOOD_TIMEOUT_MS        2
+#define SLEEP_AFTER_AUX_WAKEUP_MS   2000
 
 /********************/
 /* Voltage cutout   */

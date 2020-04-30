@@ -491,7 +491,7 @@ void main_standby_sleep(void)
         else if (wakeup_reason == WAKEUP_REASON_AUX_MCU)
         {
             /* AUX MCU woke up our device, set a sleep timer to a low value so we can deal with the incoming packet */
-            timer_start_timer(TIMER_SCREEN, 3000);
+            timer_start_timer(TIMER_SCREEN, SLEEP_AFTER_AUX_WAKEUP_MS);
         }
         else
         {
