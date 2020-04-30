@@ -27,8 +27,7 @@
 volatile BOOL logic_security_smartcard_inserted_unlocked = FALSE;
 /* Memory management mode */
 volatile BOOL logic_security_management_mode = FALSE;
-BOOL logic_security_management_usb_con_on_enter = FALSE;
-bt_state_te logic_security_management_ble_con_on_enter = FALSE;
+BOOL logic_security_management_mode_from_usb = FALSE;
 
 
 /*! \fn     logic_security_clear_security_bools(void)
@@ -72,14 +71,14 @@ BOOL logic_security_is_smc_inserted_unlocked(void)
     return logic_security_smartcard_inserted_unlocked;
 }
 
-/*! \fn     logic_security_set_management_mode(void)
+/*! \fn     logic_security_set_management_mode(BOOL from_usb)
 *   \brief  Set device into management mode
+*   \param  from_usb    If MMM was entered from USB
 */
-void logic_security_set_management_mode(void)
+void logic_security_set_management_mode(BOOL from_usb)
 {
     logic_security_management_mode = TRUE;
-    logic_security_management_usb_con_on_enter = logic_aux_mcu_is_usb_enumerated();
-    logic_security_management_ble_con_on_enter = logic_bluetooth_get_state();
+    logic_security_management_mode_from_usb = from_usb;
 }
 
 /*! \fn     logic_security_should_leave_management_mode(void)
@@ -87,7 +86,7 @@ void logic_security_set_management_mode(void)
 */
 BOOL logic_security_should_leave_management_mode(void)
 {
-    if ((logic_security_management_mode != FALSE) && ((logic_security_management_usb_con_on_enter != logic_aux_mcu_is_usb_enumerated()) || (logic_security_management_ble_con_on_enter != logic_bluetooth_get_state())))
+    if ((logic_security_management_mode != FALSE) && (((logic_security_management_mode_from_usb != FALSE) && (logic_aux_mcu_is_usb_enumerated() == FALSE)) || ((logic_security_management_mode_from_usb == FALSE) && (logic_bluetooth_get_state() != BT_STATE_CONNECTED))))
     {
         return TRUE;
     } 

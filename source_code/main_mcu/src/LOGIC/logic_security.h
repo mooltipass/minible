@@ -28,12 +28,12 @@
 
 /* Prototypes */
 BOOL logic_security_should_leave_management_mode(void);
+void logic_security_set_management_mode(BOOL from_usb);
 void logic_security_smartcard_unlocked_actions(void);
 BOOL logic_security_is_smc_inserted_unlocked(void);
 BOOL logic_security_is_management_mode_set(void);
 void logic_security_clear_management_mode(void);
 void logic_security_clear_security_bools(void);
-void logic_security_set_management_mode(void);
 
 
 #endif /* LOGIC_SECURITY_H_ */

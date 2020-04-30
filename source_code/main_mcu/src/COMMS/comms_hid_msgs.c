@@ -574,7 +574,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                             gui_dispatcher_set_current_screen(GUI_SCREEN_MEMORY_MGMT, TRUE, GUI_INTO_MENU_TRANSITION);
                             
                             /* Update current state */
-                            logic_security_set_management_mode();
+                            logic_security_set_management_mode(is_message_from_usb);
                             
                             /* Set success byte */
                             send_msg->payload[0] = HID_1BYTE_ACK;
@@ -594,7 +594,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                         gui_dispatcher_set_current_screen(GUI_SCREEN_MEMORY_MGMT, TRUE, GUI_INTO_MENU_TRANSITION);
                         
                         /* Update current state */
-                        logic_security_set_management_mode();
+                        logic_security_set_management_mode(is_message_from_usb);
                         
                         /* Set success byte */
                         send_msg->payload[0] = HID_1BYTE_ACK;
@@ -1434,7 +1434,7 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                     
                     /* Set smartcard unlock & MMM flags */
                     logic_security_smartcard_unlocked_actions();
-                    logic_security_set_management_mode();
+                    logic_security_set_management_mode(is_message_from_usb);
                     
                     /* Setup MMM */
                     gui_dispatcher_set_current_screen(GUI_SCREEN_MEMORY_MGMT, TRUE, GUI_INTO_MENU_TRANSITION);
