@@ -403,13 +403,23 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     logic_bluetooth_set_do_not_lock_device_after_disconnect_flag(TRUE);
                 
                     /* Let's try to pair a new device! */
-                    if (gui_prompts_wait_for_pairing_screen() == GUI_INFO_DISP_RET_BLE_PAIRED)
+                    gui_info_display_ret_te pairing_return = gui_prompts_wait_for_pairing_screen();
+                    
+                    /* Different messages based on return */
+                    if (pairing_return == GUI_INFO_DISP_RET_BLE_PAIRED)
                     {
+                        /* Success! */
                         gui_prompts_display_information_on_screen_and_wait(PAIRING_SUCCEEDED_TEXT_ID, DISP_MSG_INFO, FALSE);
                     } 
+                    else if (pairing_return == GUI_INFO_DISP_RET_OK)
+                    {
+                        /* Timeout */
+                        gui_prompts_display_information_on_screen_and_wait(PAIRING_FAILED_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                    }
                     else
                     {
-                        gui_prompts_display_information_on_screen_and_wait(PAIRING_FAILED_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        /* Long wheel press, card removed... */
+                        gui_prompts_display_information_on_screen_and_wait(PAIRING_CANCELLED_TEXT_ID, DISP_MSG_WARNING, FALSE);
                     }
                 
                     /* Now we disable pairing again */                

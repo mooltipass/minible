@@ -29,7 +29,7 @@
 #define KEYB_LAYOUT_CHANGE_TEXT_ID      16
 #define CRED_PROMPT_CHANGE_TEXT_ID      17
 #define KNOCK_DETECTION_TEXT_ID         18
-//////////////////////////////////////////
+#define PAIRING_CANCELLED_TEXT_ID       19
 #define LANGUAGE_SWITCH_TEXT_ID         20
 #define PB_CARD_TEXT_ID                 21
 #define REMOVE_CARD_TEXT_ID             22
