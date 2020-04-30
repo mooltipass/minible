@@ -85,6 +85,7 @@
 - v0.25:- device tutorial
         - increased long press to reboot timer to 10s
         - correctly computed string underlines
+        - power consumption bug fix
 */
 
 /**************** SETUP DEFINES ****************/

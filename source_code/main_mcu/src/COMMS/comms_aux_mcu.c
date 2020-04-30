@@ -256,7 +256,7 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
                 else
                 {
                     /* Not seeing the point of displaying a notification as our memory is huge, especially given the added logic in case we're filtering for other messages */
-                    while(1);
+                    main_reboot();
                 }
             }
             break;

@@ -28,6 +28,7 @@
 #include "bearssl_ec.h"
 #include "custom_fs.h"
 #include "nodemgmt.h"
+#include "main.h"
 #include "rng.h"
 
 // Next CTR value for our AES encryption
@@ -332,7 +333,7 @@ void logic_encryption_ecc256_sign(uint8_t const* data, uint8_t* sig, uint16_t si
     size_t result = br_ecdsa_i15_sign_raw(logic_encryption_br_ec_algo, logic_encryption_sha256_ctx.vtable, data, &logic_encryption_fido2_signing_key, sig);
     if (result != sig_buf_len)
     {
-        while(1);
+        main_reboot();
     }
     
     // Clear private key used to limit leaking
@@ -361,7 +362,7 @@ void logic_encryption_ecc256_generate_private_key(uint8_t* priv_key, uint16_t pr
     size_t result = br_ec_keygen(&logic_encryption_hmac_drbg_ctx.vtable, logic_encryption_br_ec_algo, NULL, priv_key, logic_encryption_br_ec_algo_id);
     if (result != priv_key_size)
     {
-        while(1);
+        main_reboot();
     }
 }
 
@@ -386,7 +387,7 @@ void logic_encryption_ecc256_derive_public_key(uint8_t const* priv_key, ecc256_p
     size_t result = br_ec_compute_pub(logic_encryption_br_ec_algo, NULL, pubkey, &br_priv_key);
     if (result != sizeof(pubkey))
     {
-        while(1);
+        main_reboot();
     }
     
     /* Copy the fields we're interested in */

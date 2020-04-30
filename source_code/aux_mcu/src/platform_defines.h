@@ -45,6 +45,7 @@
 - v0.20:- MacOS Bluetooth bug fix
 - v0.21:- Battery charging constants adjustments
         - Changed BLE connection intervals to maximize autonomy
+        - Power consumption bug fix
 */
 
 /**************** SETUP DEFINES ****************/

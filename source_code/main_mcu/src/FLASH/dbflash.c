@@ -22,6 +22,7 @@
 #include "platform_defines.h"
 #include "driver_sercom.h"
 #include "dbflash.h"
+#include "main.h"
 
 
 /*! \fn     dbflash_memory_boundary_error_callblack(void)
@@ -33,7 +34,7 @@ void dbflash_memory_boundary_error_callblack(void)
     #ifdef USB_MESSAGES_FOR_CRITICAL_CALLBACKS
         usbPutstr("#MBE");
     #endif
-    while(1);
+    main_reboot();
 }
 
 /*! \fn     dbflash_send_command(spi_flash_descriptor_t* descriptor_pt, uint8_t* data, uint32_t length)

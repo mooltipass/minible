@@ -180,7 +180,7 @@ void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags)
 {
     if (nodemgmt_check_user_perm_from_flags(flags) != RETURN_OK)
     {
-        while(1);
+        main_reboot();
     }
 }
 
@@ -200,7 +200,7 @@ void nodemgmt_check_address_validity_and_lock(uint16_t node_addr)
     }
     else
     {
-        while(1);
+        main_reboot();
     }
 }
 
@@ -449,7 +449,7 @@ void nodemgmt_get_user_profile_starting_offset(uint16_t uid, uint16_t *page, uin
     if(uid >= NB_MAX_USERS)
     {
         /* No debug... no reason it should get stuck here as the rest of the code shouldn't allow this */
-        while(1);
+        main_reboot();
     }
 
     /* Check for bad surprises */    
@@ -477,7 +477,7 @@ void nodemgmt_get_bluetooth_bonding_info_starting_offset(uint16_t uid, uint16_t 
     if(uid >= NB_MAX_BONDING_INFORMATION)
     {
         /* No debug... no reason it should get stuck here as the rest of the code shouldn't allow this */
-        while(1);
+        main_reboot();
     }
 
     /* Check for bad surprises */
@@ -518,7 +518,7 @@ void nodemgmt_get_user_category_names_starting_offset(uint16_t uid, uint16_t *pa
     if(uid >= NB_MAX_USERS)
     {
         /* No debug... no reason it should get stuck here as the data format doesn't allow such values */
-        while(1);
+        main_reboot();
     }
 
     /* Check for bad surprises */    
@@ -551,7 +551,7 @@ void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_
     if(uid >= NB_MAX_USERS)
     {
         /* No debug... no reason it should get stuck here as the data format doesn't allow such values */
-        while(1);
+        main_reboot();
     }
     
     #if NODE_ADDR_NULL != 0x0000
@@ -1285,12 +1285,12 @@ void nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentA
     
     if (categoryId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites)))
     {
-        while(1);
+        main_reboot();
     }
     
     if(favId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)))
     {
-        while(1);
+        main_reboot();
     }
 
     // Write to flash    
@@ -1310,12 +1310,12 @@ void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* paren
         
     if (categoryId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites)))
     {
-        while(1);
+        main_reboot();
     }
     
     if(favId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)))
     {
-        while(1);
+        main_reboot();
     }
     
     // Read from flash
@@ -1338,7 +1338,7 @@ void nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* paren
     
     if(favId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)))
     {
-        while(1);
+        main_reboot();
     }
     
     // Read from flash
@@ -1645,7 +1645,7 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
     if(userIdNum >= NB_MAX_USERS)
     {
         /* No debug... no reason it should get stuck here as the data format doesn't allow such values */
-        while(1);
+        main_reboot();
     }
     
     /* Sanity checks */
@@ -1979,7 +1979,7 @@ RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type,
     // We handle everything except data nodes...
     if (node_type == NODE_TYPE_DATA)
     {
-        while(1);
+        main_reboot();
     }
     
     // Set newFirstNodeAddress to firstNodeAddress by default

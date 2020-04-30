@@ -74,7 +74,7 @@ static uint32_t logic_fido2_cbor_encode_public_key(uint8_t* buf, uint32_t bufLen
     /* Ok, I know it's cheating... but if you read all functions descriptions below you'll see we know already the size required */
     if (bufLen < (1+1+1+1+1+1+1+1+34+1+34))
     {
-        while(1);
+        main_reboot();
     }
 
     /* Store the bytes ! */
