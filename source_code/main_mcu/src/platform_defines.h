@@ -82,7 +82,8 @@
 - v0.23:- more gracefully handling USB to battery power transition
 - v0.24:- bt disconnect/switch feature
         - data storage feature
-- v0.25:- device tutorial
+- v0.25:- release candidate firmware
+        - device tutorial
         - increased long press to reboot timer to 10s
         - correctly computed string underlines
         - power consumption bug fix

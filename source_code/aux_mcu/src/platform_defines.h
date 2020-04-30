@@ -43,8 +43,9 @@
 - v0.18:- René's release, various bug fixes
 - v0.19:- prevent deadlock on usb disconnect with ctap messages
 - v0.20:- MacOS Bluetooth bug fix
-- v0.21:- Battery charging constants adjustments
-        - Changed BLE connection intervals to maximize autonomy
+- v0.21:- Release candidate firmware
+        - Battery charging constants adjustments
+        - Changed BLE connection intervals to maximize battery life
         - Power consumption bug fix
 */
 
