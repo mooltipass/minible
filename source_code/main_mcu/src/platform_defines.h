@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    25
+#define FW_MINOR    26
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -88,6 +88,7 @@
         - correctly computed string underlines
         - power consumption bug fix
         - always display an animation when charging
+- v0.26:- adjusting timeouts to maximize battery life
 */
 
 /**************** SETUP DEFINES ****************/
@@ -119,7 +120,7 @@
  * => 50 prototype units produced, 01/01/2020
  * - exact same layout as PLAT_V5_SETUP, except VOLED_1V2_EN swapped with SMC_PGM
  */
- #define PLAT_V5_SETUP 
+ #define PLAT_V6_SETUP 
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)
@@ -204,8 +205,9 @@ typedef struct
 /* Timeout defines  */
 /********************/
 #define SCREEN_TIMEOUT_MS           15000
+#define SCREEN_TIMEOUT_MS_BAT_PWRD  7654
 #define AUX_FLOOD_TIMEOUT_MS        2
-#define SLEEP_AFTER_AUX_WAKEUP_MS   2000
+#define SLEEP_AFTER_AUX_WAKEUP_MS   1234
 
 /********************/
 /* Voltage cutout   */
