@@ -144,6 +144,8 @@ QMAKE_CXXFLAGS += -fdata-sections \
     -fPIC
     
 DEFINES += EMULATOR_BUILD
+DEFINES += DESTDIR=""
+DEFINES += PREFIX="/usr"
 
 HEADERS  += src/MainWindow.h \ \
     src/BearSSL/inc/bearssl.h \
