@@ -13,7 +13,7 @@ import re
 import os
 
 # Set the directory that you extract the cldr keyboards zip file here
-CLDR_KEYBOARDS_BASE_PATH = os.path.join("cldr-keyboards-36.1", "keyboards")
+CLDR_KEYBOARDS_BASE_PATH = os.path.join("cldr-keyboards-37.0", "keyboards")
 # the platform filename in the cldr, contains HID code to physical key code LUT
 PLATFORM_FILENAME = "_platform.xml"
 # keycodes that can't be used in the mooltipass
