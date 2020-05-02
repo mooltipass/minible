@@ -549,6 +549,7 @@ void logic_power_routine(void)
         {
             /* Call the power routine that will take care of power switch */
             logic_power_check_power_switch_and_battery(FALSE);
+            gui_dispatcher_get_back_to_current_screen();
         }
     }
     else if (power_action == POWER_ACT_NEW_BAT_LEVEL)
