@@ -113,8 +113,8 @@ This page explains in details the graphics bundle data structure.
 | bytes             | description |
 |:-------------------|:----------|
 | 0->39 | Unicode string of layout description, with terminating 0x0000 |
-| 40->99 | 15x uint16_t (interval_start-interval_end) of unicode chars for which we provide support description |
-| 100->... | Array of uint16_t, each describing how to type a glyph (see below) |
+| 40->119 | 20x uint16_t (interval_start-interval_end) of unicode chars for which we provide support description |
+| 120->... | Array of uint16_t, each describing how to type a glyph (see below) |
 
 | bits               | description |
 |:-------------------|:----------|
