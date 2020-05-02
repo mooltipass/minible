@@ -48,7 +48,7 @@
 
 /* Fields sizes */
 #define CUSTOM_FS_KEYBOARD_DESC_LGTH        20
-#define CUSTOM_FS_KEYB_NB_INT_DESCRIBED     15
+#define CUSTOM_FS_KEYB_NB_INT_DESCRIBED     20
 
 /* Settings IDs */
 #define NB_DEVICE_SETTINGS                  64

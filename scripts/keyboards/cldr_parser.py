@@ -554,7 +554,7 @@ class CLDR():
 		for remain_i in range(i, 20):
 			language_desc_item.frombytes(pack('H', 0))
 			
-		# Intervals (max 15 intervals, max 20 keys non described)
+		# Intervals (max 20 intervals, max 20 keys non described)
 		intervals_item = array('B')		
 		start_key = sorted(lut_bin_dict)[0]
 		last_key = start_key
@@ -581,9 +581,13 @@ class CLDR():
 		intervals_added += 1
 		
 		# 0 pad interval list
-		for remain_interval in range(intervals_added, 15):
+		for remain_interval in range(intervals_added, 20):
 			intervals_item.frombytes(pack('H', 0xFFFF))
 			intervals_item.frombytes(pack('H', 0xFFFF))
+			
+		# Warning if too many intervals
+		if intervals_added > 20:
+			print("Too many intervals: " + str(intervals_added))
 			
 		# Debug
 		if debug_print:
@@ -727,7 +731,7 @@ if False:
 		print(layout_name)	
 		print(returned_intervals)
 		nb_intervals_array.append(len(returned_intervals))
-		if len(returned_intervals) > 15:
+		if len(returned_intervals) > 20:
 			print("\r\n\r\n")
 	print(nb_intervals_array)
 

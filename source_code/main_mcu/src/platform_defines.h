@@ -90,6 +90,7 @@
         - always display an animation when charging
 - v0.26:- adjusting timeouts to maximize battery life
         - bug fix: status change update on automatic lock
+        - keyboard typing unicode range number increase
 */
 
 /**************** SETUP DEFINES ****************/
