@@ -638,6 +638,7 @@ int main(void)
         {
             gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
             gui_dispatcher_get_back_to_current_screen();
+            logic_device_set_state_changed();
             logic_smartcard_handle_removed();
             timer_delay_ms(250);
         }

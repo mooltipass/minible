@@ -89,6 +89,7 @@
         - power consumption bug fix
         - always display an animation when charging
 - v0.26:- adjusting timeouts to maximize battery life
+        - bug fix: status change update on automatic lock
 */
 
 /**************** SETUP DEFINES ****************/
