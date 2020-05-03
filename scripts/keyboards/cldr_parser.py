@@ -293,7 +293,7 @@ class CLDR():
 				final_keys.append(key)
 				
 		# return the modifier key and if caps lock is neeeded
-		if 'caps' in keys or 'ctrl' in keys:
+		if 'caps' in keys or 'ctrl' in keys or 'ctrlL' in keys or 'ctrlR' in keys:
 			return True, final_keys
 		else:
 			return False, final_keys
@@ -452,6 +452,8 @@ class CLDR():
 							'shift':	KEY_SHIFT,
 							'atlL':		KEY_RIGHT_ALT,
 							'opt':		0x00,
+							'optL':		0x00,
+							'optR':		0x00,
 							'cmd':		0x00,
 							'ctrlR':	0x00,
 							'shiftR':	KEY_SHIFT,
@@ -475,6 +477,8 @@ class CLDR():
 								'shift':	0x80,
 								'atlL':		0x40,
 								'opt':		0x00,
+								'optL':		0x00,
+								'optR':		0x00,
 								'cmd':		0x00,
 								'ctrlR':	0x00,
 								'shiftR':	0x80,
@@ -742,6 +746,10 @@ keyboard_generation_array = [ \
 								[ "osx", "U.S.", "USA (MacOS)"],\
 								[ "osx", "US Extended", "US Extended (MacOS)"],\
 							]
+
+if False:
+	cldr.show_lut("osx", "German", True)
+	sys.exit(0)
 
 counter = 0
 for array_item in keyboard_generation_array:
