@@ -114,12 +114,12 @@ class CLDR():
 						# Iterate over the keymaps
 						for m in obj.iter("keyMap"):
 							# get modifier keys, check for caps lock
-							caps, mf = self.get_modifier_keys(m.attrib.get('modifiers'))
+							caps_or_ctrl, mf = self.get_modifier_keys(m.attrib.get('modifiers'))
 							#print(m.attrib.get('modifiers'))
 							
 							# we don't support characters that require caps lock
 							# if some other combination can also yield this key, caps will be false.
-							if caps:
+							if caps_or_ctrl:
 								continue
 
 							for c in m.getchildren():
@@ -149,20 +149,34 @@ class CLDR():
 								# Get glyphs and points for the "to" attribute
 								glyphs, points = self.parse_to_attrib(c.attrib.get('to'), obj.attrib.get('locale'), mf, c.attrib.get('iso'))
 								
-								#if platform_name == "windows" and layout_name == "French":
-								#	print keycode, c.attrib.get('to')
-								#	print glyphs
-								#	print points
-								#	print ""
+								# Debug
+								debug_print_temp_bool = False
+								if False and platform_name == "osx" and layout_name == "French" and len(mf) > 0 and mf[0] == "shift" and chr(points[0]).isdigit():
+									debug_print_temp_bool = True
+									print("locale", obj.attrib.get('locale'))
+									print("modifier", mf)
+									print("iso", c.attrib.get('iso'))
+									print(keycode)
+									print(c.attrib.get('to'))
+									print(glyphs)
+									print(points)
+									print("")
+									print("")
+									print("")
 								
 								# Check for a single point: more than one point come from a bad python it seems (arabic, myanmar....)
 								if len(points) == 1 and points[0] >= 0x20:
+									if debug_print_temp_bool:
+										print("Single Point")
+										
 									if layout_name not in self.layouts[platform_name].keys():
 										self.layouts[platform_name][layout_name] = {} # unicode point -> set(modifier hex byte, keycode hex byte)
 										
 									# check for presence in dictionary 
 									if points[0] in self.layouts[platform_name][layout_name] and len(self.layouts[platform_name][layout_name][points[0]][0]) < len(mf):
-										if False and obj.attrib.get('locale') == "fr-t-k0-windows":
+										if debug_print_temp_bool:
+											print(glyphs, "-", points[0], "mapped to", mf, int(keycode), c.attrib.get('iso'), "already present in our dictionary:", self.layouts[platform_name][layout_name][points[0]][0], self.layouts[platform_name][layout_name][points[0]][1], self.layouts[platform_name][layout_name][points[0]][2]) 
+										if False and obj.attrib.get('locale') == "fr-t-k0-osx":
 											print(glyphs, "-", points[0], "mapped to", mf, int(keycode), c.attrib.get('iso'), "already present in our dictionary:", self.layouts[platform_name][layout_name][points[0]][0], self.layouts[platform_name][layout_name][points[0]][1], self.layouts[platform_name][layout_name][points[0]][2]) 
 									else:
 										# Check for deadkey
@@ -172,13 +186,21 @@ class CLDR():
 												is_dead_key = True
 										
 										if is_dead_key:
+											if debug_print_temp_bool:
+												print("Deadkey detected")
 											# Found deadkey: remove it from our transform list and add tag it
 											del self.transforms[platform_name][layout_name][chr(points[0])]
 											self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'), hidcode, True)
 										else:
+											if debug_print_temp_bool:
+												print("Added to dict")
+												print(glyphs, "-", points[0], "mapped to", mf, int(hidcode)) 
 											self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'), hidcode, False)
 								else:
-									if False:
+									if debug_print_temp_bool:
+										print("Multiple points")
+										
+									if False and obj.attrib.get('locale') == "fr-t-k0-osx":
 										print("multiple points")
 										print("locale", obj.attrib.get('locale'))
 										print("modifier", mf)
@@ -271,7 +293,7 @@ class CLDR():
 				final_keys.append(key)
 				
 		# return the modifier key and if caps lock is neeeded
-		if 'caps' in keys:
+		if 'caps' in keys or 'ctrl' in keys:
 			return True, final_keys
 		else:
 			return False, final_keys
@@ -425,6 +447,7 @@ class CLDR():
 		# Generate raw HID code + modifier to glyph mapping
 		hid_to_glyph_lut = {}
 		modifier_map = {	'ctrlL':	0x00,
+							'ctrl':	0x00,
 							'shiftL':	KEY_SHIFT,
 							'shift':	KEY_SHIFT,
 							'atlL':		KEY_RIGHT_ALT,
@@ -447,6 +470,7 @@ class CLDR():
 		if debug_print:
 			print("\r\nMooltipass Mini Old LUT:")
 		mini_modifier_map = {	'ctrlL':	0x00,
+								'ctrl':	0x00,
 								'shiftL':	0x80,
 								'shift':	0x80,
 								'atlL':		0x40,
@@ -588,6 +612,7 @@ class CLDR():
 		# Warning if too many intervals
 		if intervals_added > 20:
 			print("Too many intervals: " + str(intervals_added))
+			sys.exit(0)
 			
 		# Debug
 		if debug_print:
