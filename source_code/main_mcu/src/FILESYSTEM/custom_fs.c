@@ -534,6 +534,12 @@ ret_type_te custom_fs_init(void)
         return RETURN_NOK;
     }
     
+    /* Check correct payload length */
+    if (CUSTOM_FS_FILES_ADDR_OFFSET + custom_fs_flash_header.total_size > W25Q16_FLASH_SIZE)
+    {
+        return RETURN_NOK;
+    }
+    
     #ifdef BOOTLOADER
         return RETURN_OK;
     #else

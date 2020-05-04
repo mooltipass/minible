@@ -188,10 +188,6 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
             /* If button press, go to debug menu or power off */
             if (wheel_action == WHEEL_ACTION_LONG_CLICK)
             {
-                #ifdef DEBUG_MENU_ENABLED
-                debug_debug_menu();
-                rerender_bool = TRUE;
-                #else
                 /* Only if battery powered */
                 if ((platform_io_is_usb_3v3_present() == FALSE) && TRUE)
                 {
@@ -211,8 +207,7 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
                     {
                         rerender_bool = TRUE;
                     }
-                }                
-                #endif
+                }
             }
             break;
         }
@@ -265,7 +260,15 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
             }            
             break;
         }            
-        case GUI_SCREEN_INSERTED_INVALID:   break;        
+        case GUI_SCREEN_INSERTED_INVALID:   
+        {
+            /* Long click when invalid card inserted for debug menu */
+            #ifdef DEBUG_MENU_ENABLED
+            debug_debug_menu();
+            rerender_bool = TRUE;
+            #endif
+            break;
+        }            
         case GUI_SCREEN_INSERTED_UNKNOWN:   break;
         case GUI_SCREEN_MEMORY_MGMT:        break;
         case GUI_SCREEN_CATEGORIES:         break;

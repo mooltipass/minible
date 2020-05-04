@@ -27,6 +27,7 @@
 
 /* Defines */
 #define W25Q16_PAGE_SIZE    256
+#define W25Q16_FLASH_SIZE   2097152UL
 
 /* Prototypes */
 void dataflash_write_array_to_memory(spi_flash_descriptor_t* descriptor_pt, uint32_t address, uint8_t* data, uint32_t length);
