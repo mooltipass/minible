@@ -36,7 +36,7 @@ typedef enum    {NIMH_12C_CHARGING, NIMH_23C_CHARGING} lb_nimh_charge_scheme_te;
 /* End of charge detection */
 #define LOGIC_BATTERY_END_OF_CHARGE_NEG_V   2       // Decrease in ADC value during charging (around 1.5mV)
 /* Safety feature */
-#define LOGIC_BATTERY_NB_SECS_AFTER_PEAK    1200    // Maximum time allowed after peak voltage has been reached (20 minutes - measured at 8 minutes)
+#define LOGIC_BATTERY_NB_SECS_AFTER_PEAK    4800    // Maximum time allowed after peak voltage has been reached (can be quite long on a first charge) : 1h20
 
 /**************************/
 /* Battery levels defines */
