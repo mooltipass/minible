@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    21
+#define FW_MINOR    22
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -47,6 +47,7 @@
         - Battery charging constants adjustments
         - Changed BLE connection intervals to maximize battery life
         - Power consumption bug fix
+- v0.22:- Updated charging algorithm
 */
 
 /**************** SETUP DEFINES ****************/

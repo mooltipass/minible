@@ -297,6 +297,10 @@ battery_action_te logic_battery_task(void)
                     {
                         voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_23C;
                     }
+                    else if (logic_battery_charging_type == NIMH_45C_CHARGING)
+                    {
+                        voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_45C;
+                    }
                     
                     /* Is enough current flowing into the battery? */
                     if ((high_voltage - low_voltage) > voltage_diff_goal)
@@ -378,6 +382,10 @@ battery_action_te logic_battery_task(void)
                     {
                         voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_23C;
                     }
+                    else if (logic_battery_charging_type == NIMH_45C_CHARGING)
+                    {
+                        voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_45C;
+                    }
                     
                     /* Sanity checks on measured voltages (due to slow interrupt) */
                     if (high_voltage < low_voltage)
@@ -446,8 +454,8 @@ battery_action_te logic_battery_task(void)
                     }
                     else if (logic_battery_nb_secs_since_peak >= LOGIC_BATTERY_NB_SECS_AFTER_PEAK)
                     {
-                        /* Error state */
-                        logic_battery_state = LB_ERROR_CUR_MAINTAIN;
+                        /* Update state */
+                        logic_battery_state = LB_PEAK_TIMER_TRIGGERED;
                         
                         /* Disable charging */
                         platform_io_disable_charge_mosfets();
@@ -457,9 +465,9 @@ battery_action_te logic_battery_task(void)
                         platform_io_disable_step_down();
                         
                         /* Inform main MCU */
-                        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_FAIL);
+                        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_DONE);
                         status_message_sent_to_main_mcu = TRUE;
-                        return_value = BAT_ACT_CHARGE_FAIL;
+                        return_value = BAT_ACT_CHARGE_DONE;
                     }
 
                     /* Check for new battery level */
