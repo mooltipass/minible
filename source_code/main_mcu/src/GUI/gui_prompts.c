@@ -1413,6 +1413,12 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     /* Arm timer for flashing */
     timer_start_timer(TIMER_ANIMATIONS, 1000);
     
+    /* Variables used for the up/down animation */
+    uint16_t up_down_animation_bitmap_id = 0;
+    int16_t up_down_animation_increment = 0;
+    uint16_t up_down_animation_counter = 0;
+    BOOL up_down_animation_triggered = FALSE;
+    
     // Loop while no timeout occurs or no button is pressed
     while (input_answer == MINI_INPUT_RET_NONE)
     {        
@@ -1479,7 +1485,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             input_answer = MINI_INPUT_RET_BACK;
         }
         
-        /* Text scrolling animation */
+        /* Text scrolling animation / up down animation */
         if (timer_has_timer_expired(TIMER_SCROLLING, FALSE) == TIMER_EXPIRED)
         {
             /* Clear frame buffer as we'll only push the updated parts */
@@ -1487,14 +1493,11 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
             #endif        
             
-            /* Rearm timer */
-            timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
-            
             // Idle animation if enabled
             if ((flash_flag != FALSE) && (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED))
             {
                 /* Rearm timer: won't obviously fire at said timeout as this is included in the above if() */
-                timer_start_timer(TIMER_ANIMATIONS, 50);
+                timer_start_timer(TIMER_ANIMATIONS, SCROLLING_DEL*2-1);
                 
                 /* Check for overflow */
                 if (flash_sm++ == CONF_3LINES_IDLE_AN_LGT-1)
@@ -1504,27 +1507,56 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
                 }
             }
             
-            /* Display bitmap */
-            if(approve_selected == FALSE)
+            /* Display appropriate bitmap */
+            if (up_down_animation_triggered == FALSE)
             {
-                if (flash_sm != 0)
+                if (approve_selected == FALSE)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_3LINES_IDLE_N+flash_sm, TRUE);
+                    if (flash_sm != 0)
+                    {
+                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_3LINES_IDLE_N+flash_sm, TRUE);
+                    }
+                    else
+                    {
+                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID, TRUE);
+                    }
                 }
                 else
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID, TRUE);
+                    if (flash_sm != 0)
+                    {
+                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_3LINES_IDLE_Y+flash_sm, TRUE);
+                    }
+                    else
+                    {
+                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID+POPUP_3LINES_ANIM_LGTH-1, TRUE);
+                    }
                 }
-            }
+            
+                /* Rearm timer */
+                timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
+            } 
             else
             {
-                if (flash_sm != 0)
+                /* Up / Down animation */
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, up_down_animation_bitmap_id, TRUE);
+                up_down_animation_bitmap_id += up_down_animation_increment;
+                up_down_animation_counter++;
+                
+                /* Rearm timer to be as fast as possible */
+                timer_start_timer(TIMER_SCROLLING, 0);
+                
+                /* Check for animation end */
+                if (up_down_animation_counter == POPUP_3LINES_ANIM_LGTH)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_3LINES_IDLE_Y+flash_sm, TRUE);
-                }
-                else
-                {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID+POPUP_3LINES_ANIM_LGTH-1, TRUE);
+                    flash_sm = 0;
+                    up_down_animation_triggered = FALSE;
+                    
+                    /* Arm timer for flashing */
+                    timer_start_timer(TIMER_ANIMATIONS, 1000);
+                    
+                    /* Rearm scrolling timer */
+                    timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
                 }
             }
 
@@ -1576,51 +1608,43 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         
         // Approve / deny display change
         int16_t wheel_increments = inputs_get_wheel_increment();
-        if (wheel_increments != 0)
+        if ((up_down_animation_triggered == FALSE) && (wheel_increments != 0))
         {
+            /* Trigger animation */
+            up_down_animation_triggered = TRUE;
+            up_down_animation_counter = 0;
+            
             if (wheel_increments < 0)
             {
                 if (approve_selected == FALSE)
                 {
-                    for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH; i++)
-                    {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_UP_ID+i, FALSE);
-                        timer_delay_ms(10);
-                    }
+                    up_down_animation_bitmap_id = BITMAP_NY_UP_ID;
+                    up_down_animation_increment = 1;
                 } 
                 else
                 {
-                    for (int16_t i = POPUP_3LINES_ANIM_LGTH-1; i >= 0; i--)
-                    {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_UP_ID+i, FALSE);
-                        timer_delay_ms(10);
-                    }
+                    up_down_animation_bitmap_id = BITMAP_NY_UP_ID+POPUP_3LINES_ANIM_LGTH-1;
+                    up_down_animation_increment = -1;
                 }
             } 
             else
             {
                 if (approve_selected == FALSE)
                 {
-                    for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH; i++)
-                    {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID+i, FALSE);
-                        timer_delay_ms(10);
-                    }
+                    up_down_animation_bitmap_id = BITMAP_NY_DOWN_ID;
+                    up_down_animation_increment = 1;
                 }
                 else
                 {
-                    for (int16_t i = POPUP_3LINES_ANIM_LGTH-1; i >= 0; i--)
-                    {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID+i, FALSE);
-                        timer_delay_ms(10);
-                    }
+                    up_down_animation_bitmap_id = BITMAP_NY_DOWN_ID+POPUP_3LINES_ANIM_LGTH-1;
+                    up_down_animation_increment = -1;
                 }
             }
                 
             approve_selected = !approve_selected;
             
-            /* Reset state machine and wait before displaying idle animation again */
-            timer_start_timer(TIMER_ANIMATIONS, 3000);
+            /* Reset state machine, update timer */
+            timer_start_timer(TIMER_SCROLLING, 1);
             flash_sm = 0;
         }
     }
