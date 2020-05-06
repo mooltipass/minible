@@ -421,14 +421,31 @@ void platform_io_init_smc_ports(void)
     sercom_spi_init(SMARTCARD_SERCOM, SMARTCARD_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, SMARTCARD_MISO_PAD, SMARTCARD_MOSI_SCK_PADS, TRUE); 
 }
 
+/*! \fn     platform_io_use_internal_smc_det_pullup(void)
+*   \brief  Use the internal pullup for smartcard detection
+*/
+void platform_io_use_internal_smc_det_pullup(void)
+{
+    #if defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
+        PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 1;            // Card removed: use internal "low" impedance pull-up
+    #endif    
+}
+
+/*! \fn     platform_io_use_external_smc_det_pullup(void)
+*   \brief  Use the internal pullup for smartcard detection
+*/
+void platform_io_use_external_smc_det_pullup(void)
+{
+    #if defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
+        PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 0;            // Card inserted: rely on external pull-up!
+    #endif    
+}
+
 /*! \fn     platform_io_smc_remove_function(void)
 *   \brief  Function called when smartcard is removed
 */
 void platform_io_smc_remove_function(void)
 {
-    #if defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
-        PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 1;            // Card removed: use internal "low" impedance pull-up
-    #endif
     PORT->Group[SMC_POW_NEN_GROUP].OUTSET.reg = SMC_POW_NEN_MASK;                   // Deactivate power to the smart card
     PORT->Group[SMC_PGM_GROUP].DIRCLR.reg = SMC_PGM_MASK;                           // Setup all output pins as tri-state
     PORT->Group[SMC_RST_GROUP].DIRCLR.reg = SMC_RST_MASK;                           // Setup all output pins as tri-state
@@ -445,9 +462,6 @@ void platform_io_smc_remove_function(void)
 */
 void platform_io_smc_inserted_function(void)
 {
-    #if defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
-        PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 0;            // Card inserted: rely on external pull-up!
-    #endif
     PORT->Group[SMC_POW_NEN_GROUP].OUTCLR.reg = SMC_POW_NEN_MASK;                   // Enable power to the smart card
     PORT->Group[SMC_PGM_GROUP].DIRSET.reg = SMC_PGM_MASK;                           // PGM to 0
     PORT->Group[SMC_PGM_GROUP].OUTCLR.reg = SMC_PGM_MASK;                           // PGM to 0

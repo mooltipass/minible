@@ -199,6 +199,7 @@ void smartcard_lowlevel_detect(void)
             // We must make sure the user detected that the smartcard was removed before setting it as detected!
             if (card_return != RETURN_JRELEASED)
             {
+                platform_io_use_external_smc_det_pullup();
                 card_return = RETURN_JDETECT;
                 card_detect_counter++;
             }
@@ -216,6 +217,7 @@ void smartcard_lowlevel_detect(void)
             card_powered = FALSE;
             platform_io_smc_remove_function();
             logic_security_clear_security_bools();
+            platform_io_use_internal_smc_det_pullup();
             #ifdef SPECIAL_DEVELOPER_CARD_FEATURE
             special_dev_card_inserted = FALSE;
             #endif
