@@ -593,6 +593,7 @@ int main(void)
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
             while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
             {
+                logic_power_check_power_switch_and_battery(FALSE);
                 comms_aux_mcu_routine(MSG_RESTRICT_ALL);
                 logic_accelerometer_routine();
                 

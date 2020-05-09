@@ -38,6 +38,7 @@ void debug_smartcard_test(void);
 void debug_rf_freq_sweep(void);
 void debug_nimh_charging(void);
 void debug_language_test(void);
+void debug_test_battery(void);
 void debug_test_prompts(void);
 void debug_debug_screen(void);
 void debug_glyph_scroll(void);

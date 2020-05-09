@@ -27,6 +27,7 @@
 #include "functional_testing.h"
 #include "platform_defines.h"
 #include "logic_smartcard.h"
+#include "gui_dispatcher.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
@@ -132,13 +133,13 @@ void debug_debug_menu(void)
             #endif
             
             /* Item selection */
-            if (selected_item > 16)
+            if (selected_item > 17)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 16;
+                selected_item = 17;
             }
             
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);
@@ -174,7 +175,8 @@ void debug_debug_menu(void)
             }
             else
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Stack Usage", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Battery Test", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Stack Usage", TRUE);
             }
             
             /* Cursor */
@@ -288,11 +290,72 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 16)
             {
+                debug_test_battery();
+            }
+            else if (selected_item == 17)
+            {
                 debug_stack_info();
             }
             redraw_needed = TRUE;
         }
     }
+}
+
+/*! \fn     debug_test_battery(void)
+*   \brief  Test battery capacity
+*/
+void debug_test_battery(void)
+{
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    
+    if (platform_io_is_usb_3v3_present_raw() != FALSE)
+    {
+        sh1122_put_error_string(&plat_oled_descriptor, u"Device must be battery powered");
+        DELAYMS(2000);
+        return;
+    }
+    
+    battery_state_te bat_state = logic_power_get_battery_state();
+    if (bat_state <= BATTERY_75PCT)
+    {
+        sh1122_put_error_string(&plat_oled_descriptor, u"Charge battery first!");
+        DELAYMS(2000);
+        return;
+    }
+    
+    uint32_t animation_counter = 0;
+    
+    /* Count number of full animations between 75% and 25% */
+    while (bat_state > BATTERY_25PCT)
+    {
+        /* One full animation */
+        for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
+        {
+            timer_start_timer(TIMER_WAIT_FUNCTS, 28);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
+            while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
+            {
+                logic_power_check_power_switch_and_battery(FALSE);
+            }
+        }
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        
+        /* Updated battery status */
+        bat_state = logic_power_get_battery_state();
+        
+        /* Animation counter */
+        if (bat_state <= BATTERY_75PCT)
+        {
+            animation_counter++;
+        }
+    }
+    
+    /* Finished! display result */
+    inputs_clear_detections();
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_printf_xy(&plat_oled_descriptor, 40, 5, OLED_ALIGN_LEFT, FALSE, "Result: %d", animation_counter);
+    sh1122_printf_xy(&plat_oled_descriptor, 40, 30, OLED_ALIGN_LEFT, FALSE, "Click to exit");
+    while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK);
 }
 
 /*! \fn     debug_test_pattern_display(void)
