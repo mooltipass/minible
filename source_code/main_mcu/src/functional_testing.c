@@ -106,6 +106,19 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         while(1);
     }
     
+    /* Internal 1V1 measurement when battery powered and screen not powered */
+    sh1122_oled_off(&plat_oled_descriptor);
+    platform_io_power_down_oled();
+    DELAYMS(50);
+    uint16_t bandgap_measurement_bat_powered = platform_io_get_single_bandgap_measurement();
+    
+    /* Switch the screen back on */
+    logic_power_set_power_source(BATTERY_POWERED);
+    platform_io_power_up_oled(FALSE);
+    sh1122_oled_on(&plat_oled_descriptor);
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    
     /* Wheel testing */
     sh1122_put_error_string(&plat_oled_descriptor, u"scroll up");
     while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_UP);
@@ -138,6 +151,20 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     platform_io_power_up_oled(TRUE);
     sh1122_oled_on(&plat_oled_descriptor);
     
+    /* Perform bandgap measurement with OLED screen on not displaying anything */
+    DELAYMS(50);
+    uint16_t bandgap_measurement_usb_powered = platform_io_get_single_bandgap_measurement();
+    
+    /* Check that stepup voltage actually is lower than the ldo voltage (theoretical value is 103, typical value is 97) */
+    if ((bandgap_measurement_bat_powered - bandgap_measurement_usb_powered) < 80)
+    {
+        sh1122_put_error_string(&plat_oled_descriptor, u"Stepup error!");
+        while (platform_io_is_usb_3v3_present_raw() != FALSE);
+        DELAYMS(200);
+        platform_io_disable_switch_and_die();
+        while(1);
+    }
+    
     /* Signal the aux MCU do its functional testing */
     platform_io_enable_ble();
     sh1122_put_error_string(&plat_oled_descriptor, u"Please wait...");
@@ -154,11 +181,17 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     if (func_test_result == 1)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"ATBTLC1000 error!");
+        while (platform_io_is_usb_3v3_present_raw() != FALSE);
+        DELAYMS(200);
+        platform_io_disable_switch_and_die();
         while(1);
     }
     else if (func_test_result == 2)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Battery error!");
+        while (platform_io_is_usb_3v3_present_raw() != FALSE);
+        DELAYMS(200);
+        platform_io_disable_switch_and_die();
         while(1);
     }
     
@@ -172,6 +205,9 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         if (logic_accelerometer_routine() == ACC_FAILING)
         {
             sh1122_put_error_string(&plat_oled_descriptor, u"LIS2HH12 failed!");
+            while (platform_io_is_usb_3v3_present_raw() != FALSE);
+            DELAYMS(200);
+            platform_io_disable_switch_and_die();
             while(1);
         }
     }
@@ -185,6 +221,9 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     if ((detection_result == RETURN_MOOLTIPASS_PB) || (detection_result == RETURN_MOOLTIPASS_INVALID))
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Invalid card!");
+        while (platform_io_is_usb_3v3_present_raw() != FALSE);
+        DELAYMS(200);
+        platform_io_disable_switch_and_die();
         while(1);
     }
     
