@@ -291,6 +291,9 @@ uint16_t platform_io_get_single_bandgap_measurement(void)
     /* Disable routing of the bandgap voltage to the ADC */
     SYSCTRL->VREF.bit.BGOUTEN = 0;
     
+    /* Reset SAMPLEN register to its default value */
+    ADC->SAMPCTRL.bit.SAMPLEN = 0;
+    
     /* Start battery measurement */
     platform_io_get_voledin_conversion_result_and_trigger_conversion();
     
