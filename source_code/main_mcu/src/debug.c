@@ -335,7 +335,11 @@ void debug_test_battery(void)
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
             while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
             {
-                logic_power_check_power_switch_and_battery(FALSE);
+                /* power routines, new battery level acking in case we get a new one */
+                if (logic_power_check_power_switch_and_battery(FALSE) == POWER_ACT_NEW_BAT_LEVEL)
+                {
+                    logic_power_get_and_ack_new_battery_level();
+                }
             }
         }
         sh1122_clear_current_screen(&plat_oled_descriptor);

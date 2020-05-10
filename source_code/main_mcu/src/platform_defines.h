@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    27
+#define FW_MINOR    28
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -93,6 +93,8 @@
         - keyboard typing unicode range number increase
 - v0.27:- debug menu when long press with invalid card
         - battery life improvements (smc pullup logic)
+        - battery health test
+- v0.28:- battery health test bug fix
 */
 
 /**************** SETUP DEFINES ****************/
@@ -124,7 +126,7 @@
  * => 50 prototype units produced, 01/01/2020
  * - exact same layout as PLAT_V5_SETUP, except VOLED_1V2_EN swapped with SMC_PGM
  */
- #define PLAT_V6_SETUP 
+ #define PLAT_V5_SETUP 
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)
