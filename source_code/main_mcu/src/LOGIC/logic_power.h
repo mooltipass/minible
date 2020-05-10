@@ -29,7 +29,7 @@
 /* Reduce the wait to 5 seconds on emulator */
 #define NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE     (5UL * 1000UL)
 #else
-#define NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE     (5UL * 60UL * 1000UL)
+#define NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE     (30UL * 60UL * 1000UL)
 #endif
 /* Size of the buffer of last ADC conversions */
 #define LAST_VOLTAGE_CONV_BUFF_SIZE         10
