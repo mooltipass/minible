@@ -40,6 +40,7 @@ void platform_io_set_no_comms_as_wakeup_interrupt(void);
 void platform_io_disable_aux_tx_wakeup_interrupt(void);
 void platform_io_enable_usb_3v3_wakeup_interrupt(void);
 void platform_io_enable_aux_tx_wakeup_interrupt(void);
+void platform_io_bypass_3v3_detection_debounce(void);
 void platform_io_prepare_ports_for_sleep_exit(void);
 void platform_io_use_internal_smc_det_pullup(void);
 void platform_io_use_external_smc_det_pullup(void);

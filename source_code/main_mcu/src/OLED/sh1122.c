@@ -942,6 +942,7 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor, BOOL leave_intern
         timer_delay_ms(50);
         oled_descriptor->loaded_transition = OLED_TRANS_NONE;
         sh1122_flush_frame_buffer(oled_descriptor);
+        sh1122_check_for_flush_and_terminate(oled_descriptor);
     }
     #endif
 }

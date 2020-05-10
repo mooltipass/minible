@@ -780,6 +780,17 @@ BOOL platform_io_is_usb_3v3_present(void)
     return platform_io_debounced_3v3_present;
 }
 
+/*! \fn     platform_io_bypass_3v3_detection_debounce(void)
+*   \brief  Bypass the 3v3 debouncing
+*/
+void platform_io_bypass_3v3_detection_debounce(void)
+{
+    if (platform_io_is_usb_3v3_present_raw() != FALSE)
+    {
+        platform_io_debounced_3v3_present = TRUE;
+    }
+}
+
 /*! \fn     platform_io_init_power_ports(void)
 *   \brief  Initialize the platform power ports
 */

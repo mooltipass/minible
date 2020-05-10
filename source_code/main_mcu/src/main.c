@@ -153,7 +153,7 @@ void main_platform_init(void)
     else
     {
         /* Real ratio is 3300 / 3188 */
-        battery_voltage = (battery_voltage*33) >> 5;
+        battery_voltage = (battery_voltage*265) >> 8;
         logic_power_register_vbat_adc_measurement((uint16_t)battery_voltage);
     }
     
@@ -208,6 +208,7 @@ void main_platform_init(void)
     } 
     else
     {
+        platform_io_bypass_3v3_detection_debounce();
         logic_power_set_power_source(USB_POWERED);
         platform_io_power_up_oled(TRUE);
     }
@@ -589,9 +590,9 @@ int main(void)
     {
         for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
         {
-            timer_start_timer(TIMER_WAIT_FUNCTS, 28);
+            timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 28);
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
-            while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
+            while(timer_has_timer_expired(TIMER_DEVICE_ACTION_TIMEOUT, TRUE) == TIMER_RUNNING)
             {
                 logic_power_check_power_switch_and_battery(FALSE);
                 comms_aux_mcu_routine(MSG_RESTRICT_ALL);
