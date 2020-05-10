@@ -133,13 +133,13 @@ void debug_debug_menu(void)
             #endif
             
             /* Item selection */
-            if (selected_item > 17)
+            if (selected_item > 18)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 17;
+                selected_item = 18;
             }
             
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);
@@ -175,8 +175,9 @@ void debug_debug_menu(void)
             }
             else
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Battery Test", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Stack Usage", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Battery Recondition", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Battery Test", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Stack Usage", TRUE);
             }
             
             /* Cursor */
@@ -290,15 +291,95 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 16)
             {
-                debug_test_battery();
+                debug_battery_recondition();
             }
             else if (selected_item == 17)
+            {
+                debug_test_battery();
+            }
+            else if (selected_item == 18)
             {
                 debug_stack_info();
             }
             redraw_needed = TRUE;
         }
     }
+}
+
+/*! \fn     debug_battery_recondition(void)
+*   \brief  Fully discharge and charge the battery
+*/
+void debug_battery_recondition(void)
+{
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    
+    /* Needs to be battery powered */
+    if (platform_io_is_usb_3v3_present_raw() == FALSE)
+    {
+        sh1122_put_error_string(&plat_oled_descriptor, u"Device must be USB powered");
+        DELAYMS(2000);
+        return;
+    }
+    
+    /* Check for charging */
+    if (logic_power_is_battery_charging() != FALSE)
+    {
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_CHARGE);
+        logic_power_set_battery_charging_bool(FALSE, FALSE);
+        comms_aux_mcu_wait_for_message_sent();
+    }
+    
+    /* Switch to battery power for screen */
+    sh1122_oled_off(&plat_oled_descriptor);
+    platform_io_disable_3v3_to_oled_stepup();
+    platform_io_assert_oled_reset();
+    timer_delay_ms(15);
+    platform_io_power_up_oled(FALSE);
+    sh1122_init_display(&plat_oled_descriptor, TRUE);
+    
+    /* Display animation until 1V cell */
+    uint16_t current_vbat = 0xFFFF;
+    while (current_vbat > (1000*8192/3300))
+    {
+        for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
+        {
+            timer_start_timer(TIMER_WAIT_FUNCTS, 28);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
+            while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING);
+        }
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        
+        /* ADC value ready? */
+        if (platform_io_is_voledin_conversion_result_ready() != FALSE)
+        {
+            current_vbat = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+        }            
+    }
+    
+    /* Switch to USB power for screen */
+    sh1122_oled_off(&plat_oled_descriptor);
+    platform_io_disable_vbat_to_oled_stepup();
+    platform_io_assert_oled_reset();
+    timer_delay_ms(15);
+    platform_io_power_up_oled(TRUE);
+    sh1122_init_display(&plat_oled_descriptor, TRUE);
+    
+    /* Display info */
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_put_error_string(&plat_oled_descriptor, u"Topping up battery");
+    
+    /* Actually start charging */
+    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
+    logic_power_set_battery_charging_bool(TRUE, FALSE);
+    comms_aux_mcu_wait_for_message_sent();
+    
+    /* Wait for end of charge */
+    aux_mcu_message_t* temp_rx_message_pt;
+    while(comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_CHARGE_DONE) != RETURN_OK);
+    
+    /* Rearm RX */
+    comms_aux_arm_rx_and_clear_no_comms();
 }
 
 /*! \fn     debug_test_battery(void)
