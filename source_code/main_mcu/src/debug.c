@@ -367,6 +367,11 @@ void debug_battery_recondition(void)
     
     /* Display info */
     sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_put_error_string(&plat_oled_descriptor, u"Battery rest...");
+    timer_delay_ms(360000);
+    
+    /* Display info */
+    sh1122_clear_current_screen(&plat_oled_descriptor);
     sh1122_put_error_string(&plat_oled_descriptor, u"Topping up battery");
     
     /* Actually start charging */
