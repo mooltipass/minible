@@ -102,7 +102,9 @@ void gui_prompts_display_tutorial(void)
         /* Transition into a new tutorial page */
         if (redraw_needed != FALSE)
         {
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            #endif
             sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
             sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_17_ID);
             for (uint16_t i = 0; i < 3; i++)
@@ -122,7 +124,9 @@ void gui_prompts_display_tutorial(void)
             }
             
             /* Flush frame buffer */
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            #endif
             
             /* Arm timer for possible animation */
             timer_start_timer(TIMER_ANIMATIONS, 50);
@@ -1571,7 +1575,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
                 {
                     /* Erase previous part */
                     #ifndef OLED_INTERNAL_FRAME_BUFFER
-                    sh1122_draw_rectangle(&plat_oled_descriptor, 0, gui_prompts_conf_prompt_y_positions[nb_args-1][i], CONF_PROMPT_MAX_TEXT_X, gui_prompts_conf_prompt_line_heights[nb_args-1][i], 0x00, TRUE);
+                    //sh1122_draw_rectangle(&plat_oled_descriptor, 0, gui_prompts_conf_prompt_y_positions[nb_args-1][i], CONF_PROMPT_MAX_TEXT_X, gui_prompts_conf_prompt_line_heights[nb_args-1][i], 0x00, TRUE);
                     #endif
                     
                     /* Display partial text */
@@ -1863,7 +1867,9 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
         if (redraw_needed != FALSE)
         {
             /* Clear frame buffer, set display settings */
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            #endif
             sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
             sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
             
@@ -2308,7 +2314,9 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
         if (redraw_needed != FALSE)
         {
             /* Clear frame buffer, set display settings */
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            #endif
             sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
             sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
             
@@ -2657,7 +2665,9 @@ int16_t gui_prompts_select_category(void)
         if (redraw_needed != FALSE)
         {
             /* Clear frame buffer, set display settings */
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            #endif
             sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
             sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
             
@@ -2939,7 +2949,9 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
         if (redraw_needed != FALSE)
         {
             /* Clear frame buffer, set display settings */
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            #endif
             sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
             sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
             
@@ -3301,7 +3313,9 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
         if (redraw_needed != FALSE)
         {
             /* Clear frame buffer, set display settings */
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            #endif
             sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
             sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
             

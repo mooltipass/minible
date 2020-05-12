@@ -22,6 +22,7 @@
 #include <string.h>
 #include <asf.h>
 #include "comms_hid_msgs_debug.h"
+#include "logic_accelerometer.h"
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
 #include "functional_testing.h"
@@ -44,6 +45,7 @@
 #include "debug.h"
 #include "main.h"
 #include "dma.h"
+#include "rng.h"
 
 
 /*! \fn     debug_array_to_hex_u8string(uint8_t* array, uint8_t* string, uint16_t length)
@@ -312,6 +314,9 @@ void debug_debug_menu(void)
 void debug_battery_recondition(void)
 {
     sh1122_clear_current_screen(&plat_oled_descriptor);
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
     
     /* Needs to be battery powered */
     if (platform_io_is_usb_3v3_present_raw() == FALSE)
@@ -341,14 +346,36 @@ void debug_battery_recondition(void)
     uint16_t current_vbat = 0xFFFF;
     while (current_vbat > (1000*8192/3300))
     {
-        for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
-        {
-            timer_start_timer(TIMER_WAIT_FUNCTS, 28);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
-            while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING);
-        }
-        sh1122_clear_current_screen(&plat_oled_descriptor);
+        #ifdef OLED_INTERNAL_FRAME_BUFFER
+            uint8_t* frame_buffer_pt = (uint8_t*)&plat_oled_descriptor.frame_buffer[0][0];
+            sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
+            for (uint16_t i = 0; i < sizeof(plat_oled_descriptor.frame_buffer)/8; i++)
+            {
+                uint16_t rng_byte = rng_get_random_uint8_t();
+                for (uint16_t j = 0; j < 8; j++)
+                {
+                    if ((rng_byte & (1 << j)) != 0)
+                    {
+                        frame_buffer_pt[i*8+j] = 0x08;
+                    }
+                    else
+                    {
+                        frame_buffer_pt[i*8+j] = 0x00;                        
+                    }
+                }
+            }
+            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+        #else
+            for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
+            {
+                timer_start_timer(TIMER_WAIT_FUNCTS, 28);
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
+                while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING);
+            }
+            sh1122_clear_current_screen(&plat_oled_descriptor);
+        #endif
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        logic_accelerometer_routine();
         
         /* ADC value ready? */
         if (platform_io_is_voledin_conversion_result_ready() != FALSE)

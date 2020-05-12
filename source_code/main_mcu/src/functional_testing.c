@@ -57,7 +57,9 @@ void functional_rf_testing_start(void)
     comms_aux_mcu_send_message(FALSE);
 
     /* Debug */
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
     sh1122_clear_current_screen(&plat_oled_descriptor);
     sh1122_put_error_string(&plat_oled_descriptor, u"Check for power ONLY between bands");
 }
@@ -84,7 +86,9 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_IM_HERE) != RETURN_OK);
     comms_aux_arm_rx_and_clear_no_comms();
     sh1122_clear_current_screen(&plat_oled_descriptor);
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
     
     /* First boot should be done using battery */
     if (platform_io_is_usb_3v3_present_raw() != FALSE)
@@ -117,21 +121,29 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     platform_io_power_up_oled(FALSE);
     sh1122_oled_on(&plat_oled_descriptor);
     sh1122_clear_current_screen(&plat_oled_descriptor);
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
     
     /* Wheel testing */
     sh1122_put_error_string(&plat_oled_descriptor, u"scroll up");
     while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_UP);
     sh1122_clear_current_screen(&plat_oled_descriptor);
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
     sh1122_put_error_string(&plat_oled_descriptor, u"scroll down");
     while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_DOWN);
     sh1122_clear_current_screen(&plat_oled_descriptor);
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
     sh1122_put_error_string(&plat_oled_descriptor, u"click");
     while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK);
     sh1122_clear_current_screen(&plat_oled_descriptor);
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
     
     /* Ask to connect USB to test USB LDO + LDO 3V3 to 8V  */
     sh1122_put_error_string(&plat_oled_descriptor, u"connect USB");
@@ -141,7 +153,9 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     /* Wait for enumeration */
     while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_USB_ENUMERATED) != RETURN_OK);
     sh1122_clear_current_screen(&plat_oled_descriptor);
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
     comms_aux_arm_rx_and_clear_no_comms();
     
     /* Switch to LDO for voled stepup */
@@ -173,7 +187,9 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     /* Wait for end of sweep */
     while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_FUNC_TEST_DONE) != RETURN_OK);
     sh1122_clear_current_screen(&plat_oled_descriptor);
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
     comms_aux_arm_rx_and_clear_no_comms();
     
     /* Check functional test result */
@@ -216,7 +232,9 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     sh1122_put_error_string(&plat_oled_descriptor, u"insert card");
     while (smartcard_low_level_is_smc_absent() == RETURN_OK);
     sh1122_clear_current_screen(&plat_oled_descriptor);
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
     mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();
     if ((detection_result == RETURN_MOOLTIPASS_PB) || (detection_result == RETURN_MOOLTIPASS_INVALID))
     {
@@ -237,5 +255,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     sh1122_put_error_string(&plat_oled_descriptor, u"All Good!");    
     timer_delay_ms(4000);
     sh1122_clear_current_screen(&plat_oled_descriptor);
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
 }

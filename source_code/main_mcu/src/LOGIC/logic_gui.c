@@ -379,7 +379,9 @@ void logic_gui_display_login_password(child_cred_node_t* child_node)
         if (redraw_needed != FALSE)
         {
             /* Clear frame buffer, set display settings */
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            #endif
             sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
             
             /* Loop for 2 always displayed texts: login & password */

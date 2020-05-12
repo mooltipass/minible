@@ -318,7 +318,9 @@ void main_platform_init(void)
         }
         custom_fs_set_device_flag_value(RF_TESTING_PASSED_FLAG_ID, TRUE);
         sh1122_clear_current_screen(&plat_oled_descriptor);
+        #ifdef OLED_INTERNAL_FRAME_BUFFER
         sh1122_clear_frame_buffer(&plat_oled_descriptor);
+        #endif
     }
 #endif
     
