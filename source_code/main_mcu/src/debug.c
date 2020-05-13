@@ -399,7 +399,7 @@ void debug_battery_recondition(void)
     
     /* Display info */
     sh1122_clear_current_screen(&plat_oled_descriptor);
-    sh1122_put_error_string(&plat_oled_descriptor, u"Topping up battery");
+    sh1122_put_error_string(&plat_oled_descriptor, u"Topping up battery...");
     
     /* Actually start charging */
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
@@ -407,11 +407,11 @@ void debug_battery_recondition(void)
     comms_aux_mcu_wait_for_message_sent();
     
     /* Wait for end of charge */
-    aux_mcu_message_t* temp_rx_message_pt;
-    while(comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_CHARGE_DONE) != RETURN_OK);
-    
-    /* Rearm RX */
-    comms_aux_arm_rx_and_clear_no_comms();
+    while (logic_power_is_battery_charging() != FALSE)
+    {
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        logic_accelerometer_routine();
+    }
 }
 
 /*! \fn     debug_test_battery(void)
