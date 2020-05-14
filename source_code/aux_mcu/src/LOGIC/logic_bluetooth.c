@@ -183,6 +183,9 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
     logic_bluetooth_just_paired = FALSE;
     logic_bluetooth_connected = FALSE;
     logic_bluetooth_paired = FALSE;
+    
+    /* Callback in case we're waiting for a packet send */
+    comms_raw_hid_send_callback(BLE_INTERFACE);
 
     /* From battery service */
     logic_bluetooth_battery_notification_flag = TRUE;    
@@ -740,29 +743,51 @@ uint8_t logic_bluetooth_get_report_characteristic(uint16_t handle, uint8_t serv,
     return HID_INVALID_INST;
 }
 
-/*! \fn     logic_bluetooth_update_report(uint16_t conn_handle, uint8_t serv_inst, uint8_t reportid, uint8_t *report, uint16_t len)
+/*! \fn     logic_bluetooth_update_report(uint16_t conn_handle, uint8_t serv_inst, uint8_t reportid, uint8_t *report, uint16_t len, BOOL use_report_charac)
 *   \brief  Function to update the report
-*   \param  conn_handle Connection handle
-*   \param  serv_inst   Service Instance
-*   \param  report_id   Report ID
-*   \param  report      Report to be send
-*   \param  len         Length of report
+*   \param  conn_handle         Connection handle
+*   \param  serv_inst           Service Instance
+*   \param  report_id           Report ID
+*   \param  report              Report to be send
+*   \param  len                 Length of report
+*   \param  use_report_charac   Bool to indicate if we should use the report characteristic instead of the boot keyboard
 */
-void logic_bluetooth_update_report(uint16_t conn_handle, uint8_t serv_inst, uint8_t reportid, uint8_t* report, uint16_t len)
+void logic_bluetooth_update_report(uint16_t conn_handle, uint8_t serv_inst, uint8_t reportid, uint8_t* report, uint16_t len, BOOL use_report_charac)
 {
     // TODO: should we check for notification subscription?
     uint16_t status = 0;
     uint8_t id;
     
-    /* Get report characteristic id */
-    id = logic_bluetooth_get_report_characteristic(conn_handle, serv_inst, reportid);
-    
-    if(id != HID_INVALID_INST)
+    /* Standard report? */
+    if (use_report_charac != FALSE)
     {
-        if((status = at_ble_characteristic_value_set(logic_bluetooth_hid_serv_instances[serv_inst].hid_dev_report_val_char[id]->char_val.handle, report, len)) == AT_BLE_SUCCESS)
+        /* Get report characteristic id */
+        id = logic_bluetooth_get_report_characteristic(conn_handle, serv_inst, reportid);
+        
+        if(id != HID_INVALID_INST)
         {
-            DBG_LOG("Updated characteristic %d for hid instance %d and report id %d: sending %d bytes", id, serv_inst, reportid, len);
-            status = at_ble_notification_send(conn_handle, logic_bluetooth_hid_serv_instances[serv_inst].hid_dev_report_val_char[id]->char_val.handle);
+            if((status = at_ble_characteristic_value_set(logic_bluetooth_hid_serv_instances[serv_inst].hid_dev_report_val_char[id]->char_val.handle, report, len)) == AT_BLE_SUCCESS)
+            {
+                DBG_LOG("Updated characteristic %d for hid instance %d and report id %d: sending %d bytes", id, serv_inst, reportid, len);
+                status = at_ble_notification_send(conn_handle, logic_bluetooth_hid_serv_instances[serv_inst].hid_dev_report_val_char[id]->char_val.handle);
+                if (status != AT_BLE_SUCCESS)
+                {
+                    DBG_LOG("ERROR: Couldn't send notification, reason %d", status);
+                }
+            }
+            else
+            {
+                DBG_LOG("ERROR: couldn't update characteristic %d for hid instance %d and report id %d: sending %d bytes", id, serv_inst, reportid, len);
+            }
+        }
+    } 
+    else
+    {
+        /* Boot keyboard: big hack */
+        if((status = at_ble_characteristic_value_set(logic_bluetooth_hid_serv_instances[BLE_KEYBOARD_HID_SERVICE_INSTANCE].hid_dev_boot_keyboard_in_report->char_val.handle, report, len)) == AT_BLE_SUCCESS)
+        {
+            DBG_LOG("Updated boot keyboard characteristic");
+            status = at_ble_notification_send(conn_handle, logic_bluetooth_hid_serv_instances[BLE_KEYBOARD_HID_SERVICE_INSTANCE].hid_dev_boot_keyboard_in_report->char_val.handle);
             if (status != AT_BLE_SUCCESS)
             {
                 DBG_LOG("ERROR: Couldn't send notification, reason %d", status);
@@ -770,7 +795,7 @@ void logic_bluetooth_update_report(uint16_t conn_handle, uint8_t serv_inst, uint
         }
         else
         {
-            DBG_LOG("ERROR: couldn't update characteristic %d for hid instance %d and report id %d: sending %d bytes", id, serv_inst, reportid, len);
+            DBG_LOG("ERROR: couldn't update boot keyboard characteristic");
         }
     }
 }
@@ -1557,7 +1582,7 @@ BOOL logic_bluetooth_can_talk_to_host(void)
 *   \param  data_len    Data length
 */
 void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
-{    
+{
     /* Check that we're actually paired */
     if (logic_bluetooth_can_communicate_with_host != FALSE)
     {
@@ -1576,11 +1601,12 @@ void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
         
         /* Send data */
         logic_bluetooth_notif_being_sent = RAW_HID_NOTIF_SENDING;
-        logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_RAW_HID_SERVICE_INSTANCE, BLE_RAW_HID_IN_REPORT_NB, logic_bluetooth_raw_hid_data_out_buf, sizeof(logic_bluetooth_raw_hid_data_out_buf));
+        logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_RAW_HID_SERVICE_INSTANCE, BLE_RAW_HID_IN_REPORT_NB, logic_bluetooth_raw_hid_data_out_buf, sizeof(logic_bluetooth_raw_hid_data_out_buf), TRUE);
     }
     else
     {
         DBG_LOG("BLE Call to raw send but device not connected");
+        comms_raw_hid_send_callback(BLE_INTERFACE);
     }
 }
 
@@ -1595,12 +1621,24 @@ ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key,
 {
     if (logic_bluetooth_can_communicate_with_host != FALSE)
     {
-        logic_bluetooth_notif_being_sent = KEYBOARD_NOTIF_SENDING;
-        logic_bluetooth_keyboard_in_report[0] = modifier;
-        logic_bluetooth_keyboard_in_report[2] = key;
-        logic_bluetooth_keyboard_in_report[3] = second_key;
-        logic_bluetooth_typed_report_sent = FALSE;
-        logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_KEYBOARD_HID_SERVICE_INSTANCE, BLE_KEYBOARD_HID_IN_REPORT_NB, logic_bluetooth_keyboard_in_report, sizeof(logic_bluetooth_keyboard_in_report));
+        if (TRUE)
+        {
+            logic_bluetooth_notif_being_sent = KEYBOARD_NOTIF_SENDING;
+            logic_bluetooth_keyboard_in_report[0] = modifier;
+            logic_bluetooth_keyboard_in_report[2] = key;
+            logic_bluetooth_keyboard_in_report[3] = second_key;
+            logic_bluetooth_typed_report_sent = FALSE;
+            logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_KEYBOARD_HID_SERVICE_INSTANCE, BLE_KEYBOARD_HID_IN_REPORT_NB, logic_bluetooth_keyboard_in_report, sizeof(logic_bluetooth_keyboard_in_report), TRUE);
+        } 
+        else
+        {
+            logic_bluetooth_notif_being_sent = KEYBOARD_NOTIF_SENDING;
+            logic_bluetooth_boot_keyb_in_report[0] = modifier;
+            logic_bluetooth_boot_keyb_in_report[2] = key;
+            logic_bluetooth_boot_keyb_in_report[3] = second_key;
+            logic_bluetooth_typed_report_sent = FALSE;
+            logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_KEYBOARD_HID_SERVICE_INSTANCE, BLE_KEYBOARD_HID_IN_REPORT_NB, logic_bluetooth_boot_keyb_in_report, sizeof(logic_bluetooth_boot_keyb_in_report), FALSE);
+        }
         
         /* OK I'm still not sure about this one... but I think it should be OK. Stack trace is main > comms_main_mcu_routine > comms_main_mcu_deal_with_non_usb_non_ble_message > logic_keyboard_type_symbol > logic_keyboard_type_key_with_modifier to here */
         timer_start_timer(TIMER_BT_TYPING_TIMEOUT, 1000);
@@ -1640,7 +1678,7 @@ void logic_bluetooth_routine(void)
         /* send the notification and Update the battery level  */
         if ((logic_bluetooth_battery_notification_flag != FALSE) && (logic_bluetooth_can_communicate_with_host != FALSE))
         {
-            if(bat_update_char_value(logic_bluetooth_ble_connection_handle,&logic_bluetooth_bas_service_handler, logic_bluetooth_ble_battery_level, logic_bluetooth_battery_notification_flag) == AT_BLE_SUCCESS)
+            if(bat_update_char_value(logic_bluetooth_ble_connection_handle, &logic_bluetooth_bas_service_handler, logic_bluetooth_ble_battery_level, logic_bluetooth_battery_notification_flag) == AT_BLE_SUCCESS)
             {
                 DBG_LOG("Notif battery level:%d%%", logic_bluetooth_ble_battery_level);
                 logic_bluetooth_battery_notification_flag = FALSE;

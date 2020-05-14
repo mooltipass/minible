@@ -1,4 +1,5 @@
 from __future__ import print_function
+from time import gmtime, strftime, localtime
 from command_defines import *
 import threading
 import struct
@@ -192,7 +193,7 @@ while True:
 				decode_object[decoding_guidelines[message_type][1][i]] = decode_int_object[i]
 					
 			if mcu == "AUX":
-				sys.stdout.write("Aux->Main: " + message_types_descriptions[message_type].rjust(20, ' '))
+				sys.stdout.write(strftime("%Y-%m-%d %H:%M:%S", localtime()) + ": Aux->Main: " + message_types_descriptions[message_type].rjust(20, ' '))
 				
 				if "command" in decode_object:
 					# Check we have a description for the command
@@ -229,7 +230,7 @@ while True:
 					[type, payload, command, charge_status] = struct.unpack("HHHB", frame[0:7])
 					sys.stdout.write(" " + str(charge_status*10) + "pct")
 			else:
-				sys.stdout.write("Main->Aux: " + message_types_descriptions[message_type].rjust(20, ' '))
+				sys.stdout.write(strftime("%Y-%m-%d %H:%M:%S", localtime()) + ": Main->Aux: " + message_types_descriptions[message_type].rjust(20, ' '))
 				
 				if "command" in decode_object:
 					# Check we have a description for the command

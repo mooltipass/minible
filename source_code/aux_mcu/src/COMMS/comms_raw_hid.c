@@ -9,6 +9,7 @@
 #include "logic_bluetooth.h"
 #include "comms_main_mcu.h"
 #include "comms_raw_hid.h"
+#include "driver_timer.h"
 #include "ble_manager.h"
 #include "defines.h"
 #include "usb.h"
@@ -155,11 +156,19 @@ void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* pac
     /* If asked, wait */
     if (wait_send != FALSE)
     {
+        timer_start_timer(TIMER_BT_TYPING_TIMEOUT, 3000);        
         while(comms_raw_hid_packet_being_sent[hid_interface] == TRUE)
         {
             if (hid_interface == BLE_INTERFACE)
             {
                 ble_event_task();
+            }
+            
+            /* Check for BLE timeout */
+            if ((hid_interface == BLE_INTERFACE) && (timer_has_timer_expired(TIMER_BT_TYPING_TIMEOUT, FALSE) == TIMER_EXPIRED))
+            {
+                comms_raw_hid_packet_being_sent[hid_interface] = FALSE;
+                return;
             }
             
             /* Check for usb disconnection */
