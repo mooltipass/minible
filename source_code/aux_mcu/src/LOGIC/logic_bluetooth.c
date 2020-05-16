@@ -447,11 +447,11 @@ at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params)
         case CHAR_REPORT_CCD:
         {
             uint8_t report_id = logic_bluetooth_get_reportid(serv_inst, change_params.char_handle);
-            logic_bluetooth_report_ntf_info[report_id].serv_inst = serv_inst;
-            logic_bluetooth_report_ntf_info[report_id].report_ID = report_id;
-            logic_bluetooth_report_ntf_info[report_id].conn_handle = change_params.conn_handle;
-            logic_bluetooth_report_ntf_info[report_id].ntf_conf = (change_params.char_new_value[1]<<8 | change_params.char_new_value[0]);
-            DBG_LOG("Report Notification Callback Service Instance %d  Report ID  %d  Notification(Enable/Disable) %d Connection Handle %d", serv_inst, report_id, logic_bluetooth_report_ntf_info[report_id].ntf_conf, change_params.conn_handle);
+            logic_bluetooth_report_ntf_info[report_id-1].serv_inst = serv_inst;
+            logic_bluetooth_report_ntf_info[report_id-1].report_ID = report_id;
+            logic_bluetooth_report_ntf_info[report_id-1].conn_handle = change_params.conn_handle;
+            logic_bluetooth_report_ntf_info[report_id-1].ntf_conf = (change_params.char_new_value[1]<<8 | change_params.char_new_value[0]);
+            DBG_LOG("Report Notification Callback Service Instance %d  Report ID  %d  Notification(Enable/Disable) %d Connection Handle %d", serv_inst, report_id, logic_bluetooth_report_ntf_info[report_id-1].ntf_conf, change_params.conn_handle);
         }
         break;
         

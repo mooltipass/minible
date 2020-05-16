@@ -422,7 +422,8 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                         gui_prompts_display_information_on_screen_and_wait(PAIRING_CANCELLED_TEXT_ID, DISP_MSG_WARNING, FALSE);
                     }
                 
-                    /* Now we disable pairing again */                
+                    /* Now we disable pairing again */
+                    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);          
                     temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_DISABLE_PAIRING;
                     comms_aux_mcu_send_message(TRUE);
                 }

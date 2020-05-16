@@ -1132,11 +1132,11 @@ at_ble_status_t ble_connected_state_handler(void *params)
         memset((uint8_t *)&ble_peripheral_dev_address, 0, sizeof(at_ble_addr_t));
         
 #if ((BLE_DEVICE_ROLE == BLE_ROLE_PERIPHERAL) || (BLE_DEVICE_ROLE == BLE_ROLE_ALL))
-        
-        if((ble_device_info.dev_role == AT_BLE_ROLE_PERIPHERAL) && (peripheral_device_added))
+        /* Do not send security request, let the host make one once it wants to connect to protected characteristics */
+        /*if((ble_device_info.dev_role == AT_BLE_ROLE_PERIPHERAL) && (peripheral_device_added))
         {
-            //ble_send_slave_sec_request(conn_params->handle);
-        }
+            ble_send_slave_sec_request(conn_params->handle);
+        }*/
 #endif
     } 
     else
@@ -1253,13 +1253,14 @@ at_ble_status_t ble_resolv_rand_addr_handler(void *params)
     }
     
     #if ((BLE_DEVICE_ROLE == BLE_ROLE_PERIPHERAL) || (BLE_DEVICE_ROLE == BLE_ROLE_ALL))
-    if(peripheral_device_added)
+    /* Do not send security request, let the host make one once it wants to connect to protected characteristics */
+    /*if(peripheral_device_added)
     {
         if((send_slave_security_flag) && (ble_device_info.dev_role == AT_BLE_ROLE_PERIPHERAL))
         {
-            //ble_send_slave_sec_request(connected_state_info.handle);
+            ble_send_slave_sec_request(connected_state_info.handle);
         }       
-    }
+    }*/
     
     #endif
     ALL_UNUSED(peripheral_device_added);
@@ -1354,7 +1355,16 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
     bool device_found = false;
     bool handle_found = false;
     
-    slave_sec_req = (at_ble_slave_sec_request_t*)params;    
+    slave_sec_req = (at_ble_slave_sec_request_t*)params; 
+    DBG_LOG("ble_slave_security_request_handler"); 
+    
+    if (logic_bluetooth_get_open_to_pairing() == FALSE)
+    {
+        /* No intention to pair... disconnect */
+        at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
+        DBG_LOG("Unknown device and we don't allow pairing... bye!");
+        return AT_BLE_FAILURE;
+    }  
     
     //if (slave_sec_req->status != AT_BLE_SUCCESS)
     //{
@@ -1371,10 +1381,13 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
     
     if (device_found)
     {
+        DBG_LOG("Device found");
+        
         if((ble_device_info.bond_info.auth & AT_BLE_AUTH_NO_MITM_BOND) && (slave_sec_req->bond == true))
         {
             if(at_ble_encryption_start(slave_sec_req->handle, &ble_device_info.bond_info.peer_ltk, ble_device_info.bond_info.auth) == AT_BLE_SUCCESS)
             {
+                DBG_LOG("Encryption Started");
                 return  AT_BLE_SUCCESS;
             }
             else
@@ -1385,6 +1398,7 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
         }
         else
         {
+            DBG_LOG("No Encryption");
             ble_device_info.conn_state = BLE_DEVICE_CONNECTED;
         }
     }
@@ -1392,6 +1406,7 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
     if((ble_device_info.conn_info.handle == slave_sec_req->handle) && (ble_device_info.conn_state == BLE_DEVICE_CONNECTED))
     {
         ble_device_info.conn_state = BLE_DEVICE_PAIRING;
+        DBG_LOG("Pairing device");
         handle_found = true;
     }
     
@@ -1440,6 +1455,10 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
             DBG_LOG("Slave Security Req - Authentication Failed");
             return AT_BLE_FAILURE;
         }
+        else
+        {
+            DBG_LOG("Slave Security Req - Authenticate call success");
+        }
     }   
     return AT_BLE_SUCCESS;
 }
@@ -1451,6 +1470,15 @@ at_ble_status_t ble_pair_request_handler(void *params)
     at_ble_pair_request_t* pair_req;
     pair_req = (at_ble_pair_request_t*)params;
     bool device_found = false;
+    
+    DBG_LOG("ble_pair_request_handler");
+    if (logic_bluetooth_get_open_to_pairing() == FALSE)
+    {
+        /* No intention to pair... disconnect */
+        at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
+        DBG_LOG("Unknown device and we don't allow pairing... bye!");
+        return AT_BLE_FAILURE;
+    }
     
     if((ble_device_info.conn_info.handle == pair_req->handle) && (ble_device_info.conn_state == BLE_DEVICE_CONNECTED))
     {
@@ -1517,7 +1545,7 @@ at_ble_status_t ble_pair_request_handler(void *params)
 }
 
 /** @brief function handles pair key request */
-at_ble_status_t ble_pair_key_request_handler (void *params)
+at_ble_status_t ble_pair_key_request_handler(void *params)
 {
     at_ble_pair_key_request_t *pair_key;
     pair_key = (at_ble_pair_key_request_t *)params;
@@ -1526,6 +1554,7 @@ at_ble_status_t ble_pair_key_request_handler (void *params)
     uint8_t idx = 0;
         
     at_ble_pair_key_request_t pair_key_request;
+    DBG_LOG("ble_pair_key_request_handler");
         
     memcpy((uint8_t *)&pair_key_request, pair_key, sizeof(at_ble_pair_key_request_t));
     
