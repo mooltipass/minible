@@ -1083,13 +1083,6 @@ at_ble_status_t ble_connected_state_handler(void *params)
                 ble_device_info.host_ltk.key_size = recalled_bonding_info.host_ltk_key_size;
                 memcpy(ble_device_info.host_csrk.key, recalled_bonding_info.host_csrk_key, sizeof(recalled_bonding_info.host_csrk_key));
             }
-            else if (logic_bluetooth_get_open_to_pairing() == FALSE)
-            {
-                /* No intention to pair... disconnect */
-                at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
-                DBG_LOG("Unknown device and we don't allow pairing... bye!");
-                return AT_BLE_FAILURE;              
-            }
             else
             {
                 /* New connection ! */
@@ -1142,7 +1135,7 @@ at_ble_status_t ble_connected_state_handler(void *params)
         
         if((ble_device_info.dev_role == AT_BLE_ROLE_PERIPHERAL) && (peripheral_device_added))
         {
-            ble_send_slave_sec_request(conn_params->handle);
+            //ble_send_slave_sec_request(conn_params->handle);
         }
 #endif
     } 
@@ -1243,21 +1236,11 @@ at_ble_status_t ble_resolv_rand_addr_handler(void *params)
     }
     else
     {
-        if (logic_bluetooth_get_open_to_pairing() == FALSE)
-        {
-            /* No intention to pair... disconnect */
-            at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
-            DBG_LOG("Unknown device and we don't allow pairing... bye!");
-            return AT_BLE_FAILURE;
-        }
-        else
-        {
-            DBG_LOG_DEV("##########Device Not Found");
-            memcpy(&ble_device_info.conn_info, (uint8_t *)&connected_state_info, sizeof(at_ble_connected_t));
-            ble_device_info.conn_state = BLE_DEVICE_CONNECTED;
-            ble_device_info.dev_role = AT_BLE_ROLE_PERIPHERAL;
-            peripheral_device_added = true;
-        }        
+        DBG_LOG_DEV("##########Device Not Found");
+        memcpy(&ble_device_info.conn_info, (uint8_t *)&connected_state_info, sizeof(at_ble_connected_t));
+        ble_device_info.conn_state = BLE_DEVICE_CONNECTED;
+        ble_device_info.dev_role = AT_BLE_ROLE_PERIPHERAL;
+        peripheral_device_added = true;
     }
     if(!resolve_addr_flag)
     {
@@ -1274,7 +1257,7 @@ at_ble_status_t ble_resolv_rand_addr_handler(void *params)
     {
         if((send_slave_security_flag) && (ble_device_info.dev_role == AT_BLE_ROLE_PERIPHERAL))
         {
-            ble_send_slave_sec_request(connected_state_info.handle);
+            //ble_send_slave_sec_request(connected_state_info.handle);
         }       
     }
     
