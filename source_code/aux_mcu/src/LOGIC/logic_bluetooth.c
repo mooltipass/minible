@@ -22,13 +22,17 @@
 // Appearance: 0x03C1 (keyboard)
 // Dev name perm: disable writing device name
 // Device name: Mooltipass Mini BLE
-// Minimum connection interval N (Value Time = N *1.25 ms): 11 = 13.75ms
-// Maximum connection interval N (Value Time = N *1.25 ms): 50 = 62.5ms
-// Slave preferred Connection latency (number of events): 44 (taken from logitech craft)
-// Slave preferred Link supervision time-out (Value Time = N * 10 ms): 216 (taken from logitech craft)
-at_ble_gap_deviceinfo_t logic_bluetooth_advanced_info = {.appearance=0x03C1, .dev_name_perm=AT_BLE_WRITE_DISABLE, .name.length=20, .name.value="Mooltipass Mini BLE", .slv_params.con_intv_min=11, .slv_params.con_intv_max=50, .slv_params.con_latency=44, .slv_params.superv_to=216};
+// Minimum connection interval N (Value Time = N *1.25 ms): 9 = 11.25ms
+// Maximum connection interval N (Value Time = N *1.25 ms): 24 = 30ms
+// Slave preferred Connection latency (number of events): 30 (taken from ios guidelines)
+// Slave preferred Link supervision time-out (Value Time = N * 10 ms): 300 (taken from ios guidelines)
+at_ble_gap_deviceinfo_t logic_bluetooth_advanced_info = {.appearance=0x03C1, .dev_name_perm=AT_BLE_WRITE_DISABLE, .name.length=20, .name.value="Mooltipass Mini BLE", .slv_params.con_intv_min=9, .slv_params.con_intv_max=24, .slv_params.con_latency=30, .slv_params.superv_to=300};
 /* Control point notification structure for HID services*/
 hid_control_mode_ntf_t logic_bluetooth_hid_control_point_value[HID_MAX_SERV_INST];
+/* Characteristic numbers for the report CCD notifications */
+uint8_t logic_bluetooth_report_notif_characteristic_numbers_init_values[BLE_TOTAL_NUMBER_OF_REPORTS];
+uint16_t* logic_bluetooth_report_notif_characteristic_numbers[BLE_TOTAL_NUMBER_OF_REPORTS];
+uint16_t logic_bluetooth_report_notif_characteristic_numbers_counter = 0;
 /* Report notification structure for HID services */
 hid_report_ntf_t logic_bluetooth_report_ntf_info[BLE_TOTAL_NUMBER_OF_REPORTS];
 /* HID GATT services instances */
@@ -49,6 +53,7 @@ BOOL logic_bluetooth_battery_notification_flag = TRUE;
 at_ble_handle_t logic_bluetooth_ble_connection_handle;
 /* Battery level advertised */
 uint8_t logic_bluetooth_pending_battery_level = UINT8_MAX;
+uint8_t logic_bluetooth_ble_battery_notif_char = 1;
 uint8_t logic_bluetooth_ble_battery_level = 33;
 /* Array of pointers to keyboard & raw hid profiles */
 hid_prf_info_t* hid_prf_dataref[HID_MAX_SERV_INST];
@@ -447,11 +452,14 @@ at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params)
         case CHAR_REPORT_CCD:
         {
             uint8_t report_id = logic_bluetooth_get_reportid(serv_inst, change_params.char_handle);
-            logic_bluetooth_report_ntf_info[report_id-1].serv_inst = serv_inst;
-            logic_bluetooth_report_ntf_info[report_id-1].report_ID = report_id;
-            logic_bluetooth_report_ntf_info[report_id-1].conn_handle = change_params.conn_handle;
-            logic_bluetooth_report_ntf_info[report_id-1].ntf_conf = (change_params.char_new_value[1]<<8 | change_params.char_new_value[0]);
-            DBG_LOG("Report Notification Callback Service Instance %d  Report ID  %d  Notification(Enable/Disable) %d Connection Handle %d", serv_inst, report_id, logic_bluetooth_report_ntf_info[report_id-1].ntf_conf, change_params.conn_handle);
+            if ((report_id-1) < BLE_TOTAL_NUMBER_OF_REPORTS)
+            {
+                logic_bluetooth_report_ntf_info[report_id-1].serv_inst = serv_inst;
+                logic_bluetooth_report_ntf_info[report_id-1].report_ID = report_id;
+                logic_bluetooth_report_ntf_info[report_id-1].conn_handle = change_params.conn_handle;
+                logic_bluetooth_report_ntf_info[report_id-1].ntf_conf = (change_params.char_new_value[1]<<8 | change_params.char_new_value[0]);
+                DBG_LOG("Report Notification Callback Service Instance %d  Report ID  %d  Notification(Enable/Disable) %d Connection Handle %d", serv_inst, report_id, logic_bluetooth_report_ntf_info[report_id-1].ntf_conf, change_params.conn_handle);
+            }
         }
         break;
         
@@ -983,6 +991,9 @@ void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t*
             /*Configure HID Report Characteristic : client config descriptor related info (leave permissions as is!!!) */
             logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].client_config_desc.perm = (AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_NO_AUTHN_NO_AUTHR);
             logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].client_config_desc.handle = 0;
+            
+            /* Store pointer to handle */
+            logic_bluetooth_report_notif_characteristic_numbers[logic_bluetooth_report_notif_characteristic_numbers_counter++] = &logic_bluetooth_hid_gatt_instances[servinst].serv_chars[id + cur_characteristic_index].client_config_desc.handle;
         }
         else if(report_type[id] == OUTPUT_REPORT)
         {
@@ -1415,6 +1426,12 @@ void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
         DBG_LOG("ERROR: Defining battery service failed");
     }
     
+    /* Enable notification for battery service */
+    if (at_ble_characteristic_value_set(logic_bluetooth_bas_service_handler.serv_chars.client_config_handle, &logic_bluetooth_ble_battery_notif_char, sizeof(uint8_t)) != AT_BLE_SUCCESS)
+    {
+        DBG_LOG("Couldn't set battery notification characteristic");
+    }
+    
     /* Initialize HID services */
     for(uint16_t serv_num = 0; serv_num <= BLE_RAW_HID_SERVICE_INSTANCE; serv_num++)
     {
@@ -1469,6 +1486,17 @@ void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
         else
         {
             DBG_LOG("ERROR: HID Service Registration Fail");
+        }
+    }
+    
+    /* Enable notifications by default */
+    for (uint16_t i = 0; i < logic_bluetooth_report_notif_characteristic_numbers_counter; i++)
+    {
+        /* Set the notification value to 1, as we pass it as a pointer */
+        logic_bluetooth_report_notif_characteristic_numbers_init_values[i] = 1;
+        if (at_ble_characteristic_value_set(*logic_bluetooth_report_notif_characteristic_numbers[i], &logic_bluetooth_report_notif_characteristic_numbers_init_values[i], sizeof(uint8_t)) != AT_BLE_SUCCESS)
+        {
+            DBG_LOG("Couldn't set notification characteristic");
         }
     }
     
