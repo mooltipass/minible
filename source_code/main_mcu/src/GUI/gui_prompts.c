@@ -481,8 +481,8 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
             /* Received a request to get 6 digits pin */
             gui_prompts_display_information_on_screen(PAIRING_WAIT_TEXT_ID, DISP_MSG_ACTION);     
             
-            /* Add an extra 5 seconds for pairing to finish */
-            timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 5000);   
+            /* Add an extra 10 seconds for pairing to finish */
+            timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 10000);   
         }
         
         /* Accelerometer stuff */
