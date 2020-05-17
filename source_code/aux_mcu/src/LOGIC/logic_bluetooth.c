@@ -827,21 +827,7 @@ void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t*
     logic_bluetooth_hid_gatt_instances[servinst].serv.type = PRIMARY_SERVICE;
 
     /* Configure the HID service permission */
-    if(BLE_PAIR_ENABLE)
-    {
-        if(BLE_MITM_REQ)
-        {
-            logic_bluetooth_hid_gatt_instances[servinst].serv.perm = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);
-        }
-        else
-        {
-            logic_bluetooth_hid_gatt_instances[servinst].serv.perm = (AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_ENC_NO_AUTHN_NO_AUTHR);
-        }                        
-    }
-    else
-    {
-        logic_bluetooth_hid_gatt_instances[servinst].serv.perm = (AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_NO_AUTHN_NO_AUTHR);
-    }   
+    logic_bluetooth_hid_gatt_instances[servinst].serv.perm = (AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_NO_AUTHN_NO_AUTHR);
     /* Configure the HID service handle */
     logic_bluetooth_hid_gatt_instances[servinst].serv.handle = 0;   
     /* Configure HID Service */
@@ -902,22 +888,7 @@ void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t*
     logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.uuid[0] =(uint8_t) HID_UUID_CHAR_REPORT_MAP;
     logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.uuid.uuid[1] = (uint8_t)(HID_UUID_CHAR_REPORT_MAP >> 8);
     logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.properties = AT_BLE_CHAR_READ;   
-    /* Configure the HID characteristic value permission */
-    if(BLE_PAIR_ENABLE)
-    {
-        if(BLE_MITM_REQ)
-        {
-            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;
-        }
-        else
-        {
-            logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR;
-        }
-    }
-    else
-    {
-        logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR;
-    }   
+    logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].char_val.permissions = AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR;
     /*Configure HID Report Map Characteristic : user descriptor related info */
     logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.user_description = NULL;
     logic_bluetooth_hid_gatt_instances[servinst].serv_chars[cur_characteristic_index].user_desc.len = 0;
@@ -1371,7 +1342,17 @@ void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
     memcpy(mac_address.addr, unit_mac_address, AT_BLE_ADDR_LEN);
     
     /* Initialize the ble chip and set the device mac address */
-    ble_device_init(&mac_address, &logic_bluetooth_advanced_info);    
+    ble_device_init(&mac_address, &logic_bluetooth_advanced_info);
+    
+    /* Initialize the device information service */
+    dis_gatt_service_handler_t device_info_serv;
+    dis_init_service(&device_info_serv);
+    
+    /* Define the primary service in the GATT server database */
+    if(dis_primary_service_define(&device_info_serv) != AT_BLE_SUCCESS)
+    {
+        DBG_LOG("ERROR: Defining device information service failed");
+    }
     
     /* Initialize the battery service */
     bat_init_service(&logic_bluetooth_bas_service_handler, &logic_bluetooth_ble_battery_level);
@@ -1388,8 +1369,15 @@ void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
         DBG_LOG("Couldn't set battery notification characteristic");
     }
     
+    /* Reset counter */
+    logic_bluetooth_report_notif_characteristic_numbers_counter = 0;
+    
     /* Initialize HID services */
+    #ifdef ONE_BLE_HID_INTERFACE_DBG
+    for(uint16_t serv_num = 0; serv_num <= 0; serv_num++)
+    #else
     for(uint16_t serv_num = 0; serv_num <= BLE_RAW_HID_SERVICE_INSTANCE; serv_num++)
+    #endif
     {
         /* Clear service */
         memset(&logic_bluetooth_hid_serv_instances[serv_num], 0, sizeof(logic_bluetooth_hid_serv_instances[0]));
@@ -1454,16 +1442,6 @@ void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
         {
             DBG_LOG("Couldn't set notification characteristic");
         }
-    }
-    
-    /* Initialize the device information service */    
-    dis_gatt_service_handler_t device_info_serv;
-    dis_init_service(&device_info_serv);
-    
-    /* Define the primary service in the GATT server database */
-    if(dis_primary_service_define(&device_info_serv) != AT_BLE_SUCCESS)
-    {
-        DBG_LOG("ERROR: Defining device information service failed");
     }
     
     /*  Set advertisement data from ble_manager */
@@ -1567,6 +1545,11 @@ BOOL logic_bluetooth_can_talk_to_host(void)
 */
 void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
 {
+    #ifdef ONE_BLE_HID_INTERFACE_DBG
+        comms_raw_hid_send_callback(BLE_INTERFACE);
+        return;
+    #endif
+    
     /* Check that we're actually paired */
     if (logic_bluetooth_can_communicate_with_host != FALSE)
     {
