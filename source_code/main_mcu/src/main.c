@@ -323,6 +323,8 @@ void main_platform_init(void)
         #endif
     }
 #endif
+
+    //debug_always_bluetooth_enable_and_click_to_send_cred();
     
     /* Display error messages if something went wrong during custom fs init and bundle check */
     if ((custom_fs_init_return != RETURN_OK) || (bundle_integrity_check_return != RETURN_OK))

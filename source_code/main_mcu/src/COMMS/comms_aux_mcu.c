@@ -230,14 +230,21 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
         {
             if (answer_restrict_type == MSG_RESTRICT_ALLBUT_BOND_STORE)
             {
+                /* Buffer to store pin */
+                uint8_t bluetooth_pin[6];
+                gui_prompts_get_six_digits_pin(bluetooth_pin, ENTER_BT_PIN_TEXT_ID);
+                
                 /* Prepare answer and send it */
                 memset(&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
                 aux_mcu_send_message.message_type = received_message->message_type;
                 aux_mcu_send_message.ble_message.message_id = received_message->ble_message.message_id;
                 aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.ble_message.message_id) + 6;
-                gui_prompts_get_six_digits_pin(aux_mcu_send_message.ble_message.payload, ENTER_BT_PIN_TEXT_ID);
+                memcpy(aux_mcu_send_message.ble_message.payload, bluetooth_pin, sizeof(bluetooth_pin));
                 comms_aux_mcu_send_message(FALSE);
                 return_val = BLE_6PIN_REQ_RCVD;
+                
+                /* Clear buffer */
+                memset(bluetooth_pin, 0, sizeof(bluetooth_pin));
                 break;
             }                
             break;

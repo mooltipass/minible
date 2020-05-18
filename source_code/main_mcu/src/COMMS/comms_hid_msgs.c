@@ -1128,7 +1128,14 @@ int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_l
                                                 description_field_pt, third_field_pt, password_field_pt) == RETURN_OK)
             {
                 send_msg->message_type = rcv_message_type;
-                send_msg->payload[0] = HID_1BYTE_ACK;                
+                send_msg->payload[0] = HID_1BYTE_ACK;   
+                send_msg->payload_length = 1;             
+            }
+            else
+            {
+                send_msg->message_type = rcv_message_type;
+                send_msg->payload[0] = HID_1BYTE_NACK;
+                send_msg->payload_length = 1;
             }
             
             return 1;

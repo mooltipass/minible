@@ -128,7 +128,7 @@
  * => 50 prototype units produced, 01/01/2020
  * - exact same layout as PLAT_V5_SETUP, except VOLED_1V2_EN swapped with SMC_PGM
  */
- #define PLAT_V5_SETUP 
+ #define PLAT_V6_SETUP 
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)
@@ -221,12 +221,18 @@ typedef struct
 /* Voltage cutout   */
 /********************/
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP)
-    #define BATTERY_ADC_OUT_CUTOUT      (1140*273/110)
     #define BATTERY_ADC_OVER_VOLTAGE    (1600*273/110)
+    #define BATTERY_ADC_100PCT_VOLTAGE   (1180*273/110)
+    #define BATTERY_ADC_90PCT_VOLTAGE   (1180*273/110)
     #define BATTERY_ADC_80PCT_VOLTAGE   (1250*273/110)
-    #define BATTERY_ADC_60PCT_VOLTAGE   (1220*273/110)
-    #define BATTERY_ADC_40PCT_VOLTAGE   (1200*273/110)
+    #define BATTERY_ADC_70PCT_VOLTAGE   (1220*273/110)
+    #define BATTERY_ADC_60PCT_VOLTAGE   (1200*273/110)
+    #define BATTERY_ADC_50PCT_VOLTAGE   (1180*273/110)
+    #define BATTERY_ADC_40PCT_VOLTAGE   (1180*273/110)
+    #define BATTERY_ADC_30PCT_VOLTAGE   (1180*273/110)
     #define BATTERY_ADC_20PCT_VOLTAGE   (1180*273/110)
+    #define BATTERY_ADC_10PCT_VOLTAGE   (1180*273/110)
+    #define BATTERY_ADC_OUT_CUTOUT      (1180*273/110)
 #elif defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
     #define BATTERY_ADC_OVER_VOLTAGE    (1600*8192/3188)
     #define BATTERY_ADC_100PCT_VOLTAGE  (3435)

@@ -223,6 +223,7 @@ void gui_prompts_display_tutorial(void)
 *   \brief  Display text information on screen
 *   \param  string_id   String ID to display
 *   \param  message_type    Message type (see enum)
+*   \note   Do not call power switch routines here as it may corrupt send buffers
 */
 void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type)
 {

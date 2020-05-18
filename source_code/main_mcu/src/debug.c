@@ -308,6 +308,97 @@ void debug_debug_menu(void)
     }
 }
 
+/*! \fn     debug_always_bluetooth_enable_and_click_to_send_cred(void)
+*   \brief  A routine to click to send a test string through ble
+*/
+void debug_always_bluetooth_enable_and_click_to_send_cred(void)
+{
+    aux_mcu_message_t* temp_tx_message_pt;
+    
+    /* Set undefined settings in case this function is called early during device init */
+    custom_fs_set_undefined_settings();
+    
+    /* Clear all bonding information */
+    nodemgmt_delete_all_bluetooth_bonding_information();
+    
+    inputs_clear_detections();
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_put_error_string(&plat_oled_descriptor, u"Click to upload bundle, otherwise scroll");
+    if (inputs_get_wheel_action(TRUE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+    {
+        BOOL bundle_uploaded = FALSE;
+        while (bundle_uploaded == FALSE)
+        {            
+            /* Check for reindex bundle message */
+            if (comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BUNDLE) == HID_REINDEX_BUNDLE_RCVD)
+            {
+                /* Try to init our file system */
+                custom_fs_init();
+                bundle_uploaded = TRUE;
+            }
+        }
+    }        
+    
+    sh1122_clear_current_screen(&plat_oled_descriptor);    
+    sh1122_put_error_string(&plat_oled_descriptor, u"Enabling bluetooth...");
+    logic_aux_mcu_enable_ble(TRUE);
+    
+    /* Send command to enable pairing to aux MCU */
+    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+    temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_ENABLE_PAIRING;
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
+    comms_aux_mcu_send_message(TRUE);
+    
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_put_error_string(&plat_oled_descriptor, u"Waiting for pairing");    
+    BOOL pairing_done = FALSE;
+    while (pairing_done == FALSE)
+    {
+        comms_msg_rcvd_te received_packet = comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BOND_STORE);
+        if (received_packet == BLE_BOND_STORE_RCVD)
+        {
+            /* We received a bonding storage message */
+            pairing_done = TRUE;
+        }
+    }
+    
+    /* Reset emergency font */
+    sh1122_set_emergency_font(&plat_oled_descriptor);
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    sh1122_put_error_string(&plat_oled_descriptor, u"Click to send creds");
+    
+    /* Main loop */
+    while(TRUE)
+    {
+        if (inputs_get_wheel_action(FALSE, TRUE) == WHEEL_ACTION_SHORT_CLICK)
+        {
+            aux_mcu_message_t* typing_message_to_be_sent;
+            aux_mcu_message_t* temp_rx_message;
+            
+            /* Type "test" */
+            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
+            typing_message_to_be_sent->payload_length1 = 16;
+            typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[0] = 23;
+            typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[1] = 8;
+            typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[2] = 22;
+            typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[3] = 23;
+            typing_message_to_be_sent->keyboard_type_message.delay_between_types = 25;
+            typing_message_to_be_sent->keyboard_type_message.interface_identifier = 1;
+            comms_aux_mcu_send_message(TRUE);
+            
+            /* Wait for typing status */
+            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
+            
+            /* Rearm DMA RX */
+            comms_aux_arm_rx_and_clear_no_comms();
+        }
+        
+        /* Deal with comms */
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+    }
+    
+}
+
 /*! \fn     debug_battery_recondition(void)
 *   \brief  Fully discharge and charge the battery
 */
