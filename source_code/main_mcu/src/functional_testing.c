@@ -48,7 +48,7 @@ void functional_rf_testing_start(void)
     logic_aux_mcu_enable_ble(TRUE);
     
     /* Sweep message send */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&sweep_message_to_be_sent, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+    sweep_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
     sweep_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
     sweep_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TX_TONE_CONT;
     sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[0] = 0;        // Frequency index, up to 39

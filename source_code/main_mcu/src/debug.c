@@ -344,7 +344,7 @@ void debug_always_bluetooth_enable_and_click_to_send_cred(void)
     logic_aux_mcu_enable_ble(TRUE);
     
     /* Send command to enable pairing to aux MCU */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+    temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BLE_CMD);
     temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_ENABLE_PAIRING;
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
     comms_aux_mcu_send_message(TRUE);
@@ -376,7 +376,7 @@ void debug_always_bluetooth_enable_and_click_to_send_cred(void)
             aux_mcu_message_t* temp_rx_message;
             
             /* Type "test" */
-            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
+            typing_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
             typing_message_to_be_sent->payload_length1 = 16;
             typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[0] = 23;
             typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[1] = 8;
@@ -1015,7 +1015,8 @@ void debug_mcu_and_aux_info(void)
     sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", *(uint32_t*)0x0080A00C, *(uint32_t*)0x0080A040, *(uint32_t*)0x0080A044, *(uint32_t*)0x0080A048);
     
     /* Prepare status message request */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PLAT_DETAILS);
+    temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
+    (void)temp_tx_message_pt;
     
     /* Send message */
     comms_aux_mcu_send_message(TRUE);
@@ -1194,7 +1195,7 @@ void debug_rf_freq_sweep(void)
     /* Check for continuous sweep on aux MCU */
     if (nb_loops == -1)
     {
-        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&sweep_message_to_be_sent, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+        sweep_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
         sweep_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
         sweep_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TX_TONE_CONT;
         sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[0] = cur_frequency_index;  // Frequency index, up to 39
@@ -1214,7 +1215,7 @@ void debug_rf_freq_sweep(void)
         if (nb_loops != -1)
         {
             /* Start single sweep */
-            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&sweep_message_to_be_sent, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+            sweep_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
             sweep_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
             sweep_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TX_SWEEP_SGL;
             sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[0] = cur_frequency_index;  // Frequency index, up to 39
@@ -1298,7 +1299,8 @@ void debug_atbtlc_info(void)
     logic_aux_mcu_enable_ble(TRUE);
     
     /* Generate our packet */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PLAT_DETAILS);
+    temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
+    (void)temp_tx_message_pt;
     
     /* Send message */
     comms_aux_mcu_send_message(TRUE);
@@ -1489,7 +1491,8 @@ void debug_nimh_charging(void)
         if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_EXPIRED)
         {            
             /* Generate our packet */
-            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE);
+            temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_NIMH_CHARGE);
+            (void)temp_tx_message_pt;
             
             /* Send message */
             comms_aux_mcu_send_message(TRUE);
@@ -1594,7 +1597,8 @@ void debug_stack_info(void)
     sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Stack Usage Low Watermarks");
 
     /* Prepare status message request */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PLAT_DETAILS);
+    temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
+    (void)temp_tx_message_pt;
 
     /* Send message */
     comms_aux_mcu_send_message(TRUE);

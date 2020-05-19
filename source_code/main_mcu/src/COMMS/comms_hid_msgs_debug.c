@@ -62,8 +62,7 @@ void comms_hid_msgs_debug_printf(const char *fmt, ...)
         uint16_t actual_printed_chars = (uint16_t)hypothetical_nb_chars < sizeof(buf)-1? (uint16_t)hypothetical_nb_chars : sizeof(buf)-1;
         
         /* Use message to send to aux mcu as temporary buffer */        
-        comms_aux_mcu_wait_for_message_sent();
-        aux_mcu_message_t* temp_message = comms_aux_mcu_get_temp_tx_message_object_pt();
+        aux_mcu_message_t* temp_message = comms_aux_mcu_get_free_tx_message_object_pt();
         memset((void*)temp_message, 0, sizeof(aux_mcu_message_t));
         temp_message->message_type = AUX_MCU_MSG_TYPE_USB;
         temp_message->hid_message.message_type = HID_CMD_ID_DBG_MSG;
@@ -323,7 +322,8 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             aux_mcu_message_t* temp_tx_message_pt;
             
             /* Generate our packet */
-            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PLAT_DETAILS);
+            temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
+            (void)temp_tx_message_pt;
             
             /* Wait for current packet reception and arm reception */
             dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
@@ -404,7 +404,7 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             if (rcv_msg->payload_as_uint16[2] != 0)
             {
                 /* Generate our force charge voltage packet */
-                comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+                temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
                 temp_tx_message_pt->main_mcu_command_message.command = MAIN_MCU_COMMAND_FORCE_CHARGE_VOLT;
                 temp_tx_message_pt->main_mcu_command_message.payload_as_uint16[0] = rcv_msg->payload_as_uint16[2];
                 temp_tx_message_pt->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + MEMBER_SIZE(main_mcu_command_message_t, payload_as_uint16[0]);
@@ -421,7 +421,7 @@ int16_t comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_pay
             }
             
             /* Generate our get battery charge status packet */
-            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE);
+            temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_NIMH_CHARGE);
             
             /* Send message */
             comms_aux_mcu_send_message(TRUE);

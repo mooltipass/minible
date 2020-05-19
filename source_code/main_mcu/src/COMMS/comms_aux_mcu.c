@@ -60,6 +60,14 @@ void comms_aux_arm_rx_and_clear_no_comms(void)
     platform_io_clear_no_comms();
 }
 
+/*! \fn     comms_aux_mcu_wait_for_message_sent(void)
+*   \brief  Wait for previous message to be sent to aux MCU
+*/
+void comms_aux_mcu_wait_for_message_sent(void)
+{
+    dma_wait_for_aux_mcu_packet_sent();
+}
+
 /*! \fn     comms_aux_mcu_get_free_tx_message_object_pt(void)
 *   \brief  Get a pointer to our temporary tx message object
 */
@@ -69,6 +77,26 @@ aux_mcu_message_t* comms_aux_mcu_get_free_tx_message_object_pt(void)
     comms_aux_mcu_wait_for_message_sent();
     
     return &aux_mcu_send_message;
+}
+
+/*! \fn     comms_aux_mcu_get_empty_packet_ready_to_be_sent(uint16_t message_type)
+*   \brief  Get an empty message ready to be sent
+*   \param  message_type    Message type
+*   \return Pointer to the message ready to be sent
+*/
+aux_mcu_message_t* comms_aux_mcu_get_empty_packet_ready_to_be_sent(uint16_t message_type)
+{
+    /* Get pointer to our message to be sent buffer */
+    aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_free_tx_message_object_pt();
+
+    /* Clear it */
+    memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
+
+    /* Populate the fields */
+    temp_tx_message_pt->message_type = message_type;
+
+    /* Return message pointer */
+    return temp_tx_message_pt;
 }
 
 /*! \fn     comms_aux_mcu_send_message(BOOL wait_for_send)
@@ -100,25 +128,15 @@ void comms_aux_mcu_send_message(BOOL wait_for_send)
     }
 }
 
-/*! \fn     comms_aux_mcu_wait_for_message_sent(void)
-*   \brief  Wait for previous message to be sent to aux MCU
-*/
-void comms_aux_mcu_wait_for_message_sent(void)
-{
-    dma_wait_for_aux_mcu_packet_sent();
-}
-
 /*! \fn     comms_aux_mcu_send_simple_command_message(uint16_t command)
 *   \brief  Send simple command message to aux MCU
 *   \param  command The command to send
 */
 void comms_aux_mcu_send_simple_command_message(uint16_t command)
 {
-    comms_aux_mcu_wait_for_message_sent();
-    memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
-    aux_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;
-    aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.main_mcu_command_message.command);
-    aux_mcu_send_message.main_mcu_command_message.command = command;
+    aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+    temp_send_message->payload_length1 = sizeof(temp_send_message->main_mcu_command_message.command);
+    temp_send_message->main_mcu_command_message.command = command;
     comms_aux_mcu_send_message(FALSE);
 }
 
@@ -127,33 +145,11 @@ void comms_aux_mcu_send_simple_command_message(uint16_t command)
 */
 void comms_aux_mcu_update_device_status_buffer(void)
 {
-    comms_aux_mcu_wait_for_message_sent();
-    memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
-    aux_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_MAIN_MCU_CMD;
-    aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.main_mcu_command_message.command) + 4;
-    comms_hid_msgs_fill_get_status_message_answer(aux_mcu_send_message.main_mcu_command_message.payload_as_uint16);
-    aux_mcu_send_message.main_mcu_command_message.command = MAIN_MCU_COMMAND_UPDT_DEV_STAT;
+    aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+    comms_hid_msgs_fill_get_status_message_answer(temp_send_message->main_mcu_command_message.payload_as_uint16);
+    temp_send_message->payload_length1 = sizeof(temp_send_message->main_mcu_command_message.command) + 4;
+    temp_send_message->main_mcu_command_message.command = MAIN_MCU_COMMAND_UPDT_DEV_STAT;
     comms_aux_mcu_send_message(FALSE);
-}
-
-/*! \fn     comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type)
-*   \brief  Get an empty message ready to be sent
-*   \param  message_pt_pt           Pointer to where to store message pointer
-*   \param  message_type            Message type
-*/
-void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type)
-{
-    /* Get pointer to our message to be sent buffer */
-    aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_free_tx_message_object_pt();
-
-    /* Clear it */
-    memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
-
-    /* Populate the fields */
-    temp_tx_message_pt->message_type = message_type;
-
-    /* Store message pointer */
-    *message_pt_pt = temp_tx_message_pt;
 }
 
 /*! \fn     comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void)
@@ -161,16 +157,14 @@ void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message
 */
 void comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void)
 {
-    aux_mcu_message_t* temp_tx_message_pt;
-
     /* Set no comms (keep platform in sleep after its reboot) */
     platform_io_set_no_comms();
 
     /* Get pointer to our message to be sent buffer */
-    temp_tx_message_pt = comms_aux_mcu_get_free_tx_message_object_pt();
+    aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(0xFFFF);
 
     /* Fill message with magic 0xFF, send it twice */
-    memset((void*)temp_tx_message_pt, 0xFF, sizeof(*temp_tx_message_pt));
+    memset((void*)temp_send_message, 0xFF, sizeof(*temp_send_message));
     comms_aux_mcu_send_message(TRUE);comms_aux_mcu_send_message(TRUE);
 
     /* Wait for platform to boot */
@@ -193,13 +187,12 @@ void comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void)
 RET_TYPE comms_aux_mcu_send_receive_ping(void)
 {
     aux_mcu_message_t* temp_rx_message_pt;
-    aux_mcu_message_t* temp_tx_message_pt;
     RET_TYPE return_val;
 
     /* Prepare ping message and send it */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_PING_WITH_INFO);
-    comms_hid_msgs_fill_get_status_message_answer(temp_tx_message_pt->ping_with_info_message.initial_device_status_value);
-    temp_tx_message_pt->payload_length1 = sizeof(ping_with_info_message_t);
+    aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PING_WITH_INFO);
+    comms_hid_msgs_fill_get_status_message_answer(temp_send_message->ping_with_info_message.initial_device_status_value);
+    temp_send_message->payload_length1 = sizeof(ping_with_info_message_t);
     comms_aux_mcu_send_message(TRUE);
 
     /* Wait for answer: no need to parse answer as filter is done in comms_aux_mcu_active_wait */
@@ -219,6 +212,8 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
 */
 comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* received_message, msg_restrict_type_te answer_restrict_type)
 {
+    uint16_t received_message_id = received_message->ble_message.message_id;
+    uint16_t received_message_type = received_message->message_type;
     comms_msg_rcvd_te return_val = BLE_CMD_MSG_RCVD;
     
     switch(received_message->ble_message.message_id)
@@ -227,16 +222,15 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
         {
             if (answer_restrict_type == MSG_RESTRICT_ALLBUT_BOND_STORE)
             {
-                /* Buffer to store pin */
+                /* Get Bluetooth PIN from user */
                 uint8_t bluetooth_pin[6];
                 gui_prompts_get_six_digits_pin(bluetooth_pin, ENTER_BT_PIN_TEXT_ID);
                 
                 /* Prepare answer and send it */
-                memset(&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
-                aux_mcu_send_message.message_type = received_message->message_type;
-                aux_mcu_send_message.ble_message.message_id = received_message->ble_message.message_id;
-                aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.ble_message.message_id) + 6;
-                memcpy(aux_mcu_send_message.ble_message.payload, bluetooth_pin, sizeof(bluetooth_pin));
+                aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(received_message_type);
+                temp_send_message->payload_length1 = sizeof(received_message_id) + 6;
+                temp_send_message->ble_message.message_id = received_message_id;
+                memcpy(temp_send_message->ble_message.payload, bluetooth_pin, sizeof(bluetooth_pin));
                 comms_aux_mcu_send_message(FALSE);
                 return_val = BLE_6PIN_REQ_RCVD;
                 
@@ -268,18 +262,17 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
         case BLE_MESSAGE_RECALL_BOND_INFO:
         {
             /* Prepare answer */
-            memset(&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
-            aux_mcu_send_message.message_type = received_message->message_type;
-            aux_mcu_send_message.ble_message.message_id = received_message->ble_message.message_id;
+            aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(received_message_type);
+            temp_send_message->ble_message.message_id = received_message_id;
             
             /* Try to fetch bonding information */
-            if (nodemgmt_get_bluetooth_bonding_information_for_mac_addr(received_message->ble_message.payload[0], &received_message->ble_message.payload[1], &aux_mcu_send_message.ble_message.bonding_information_to_store_message) == RETURN_OK)
+            if (nodemgmt_get_bluetooth_bonding_information_for_mac_addr(received_message->ble_message.payload[0], &received_message->ble_message.payload[1], &temp_send_message->ble_message.bonding_information_to_store_message) == RETURN_OK)
             {
-                aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.ble_message.message_id) + sizeof(aux_mcu_send_message.ble_message.bonding_information_to_store_message);
+                temp_send_message->payload_length1 = sizeof(temp_send_message->ble_message.message_id) + sizeof(temp_send_message->ble_message.bonding_information_to_store_message);
             }
             else
             {
-                aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.ble_message.message_id);
+                temp_send_message->payload_length1 = sizeof(temp_send_message->ble_message.message_id);
             }
 
             /* Send message */
@@ -289,18 +282,17 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
         case BLE_MESSAGE_RECALL_BOND_INFO_IRK:
         {
             /* Prepare answer */
-            memset(&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
-            aux_mcu_send_message.message_type = received_message->message_type;
-            aux_mcu_send_message.ble_message.message_id = received_message->ble_message.message_id;
+            aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(received_message_type);
+            temp_send_message->ble_message.message_id = received_message_id;
             
             /* Try to fetch bonding information */
-            if (nodemgmt_get_bluetooth_bonding_information_for_irk(received_message->ble_message.payload, &aux_mcu_send_message.ble_message.bonding_information_to_store_message) == RETURN_OK)
+            if (nodemgmt_get_bluetooth_bonding_information_for_irk(received_message->ble_message.payload, &temp_send_message->ble_message.bonding_information_to_store_message) == RETURN_OK)
             {
-                aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.ble_message.message_id) + sizeof(aux_mcu_send_message.ble_message.bonding_information_to_store_message);
+                temp_send_message->payload_length1 = sizeof(temp_send_message->ble_message.message_id) + sizeof(temp_send_message->ble_message.bonding_information_to_store_message);
             }
             else
             {
-                aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.ble_message.message_id);
+                temp_send_message->payload_length1 = sizeof(temp_send_message->ble_message.message_id);
             }
 
             /* Send message */
@@ -312,22 +304,21 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
             uint16_t nb_irk_keys;
             
             /* Prepare answer */
-            memset(&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
-            aux_mcu_send_message.message_type = received_message->message_type;
-            aux_mcu_send_message.ble_message.message_id = received_message->ble_message.message_id;
+            aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(received_message_type);
+            temp_send_message->ble_message.message_id = received_message_id;
             
             /* Static asserts */
             _Static_assert(NB_MAX_BONDING_INFORMATION + 1 < (AUX_MCU_MSG_PAYLOAD_LENGTH-2)/MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t,peer_irk_key), "Message size doesn't allow storage of all IRK keys");
             
             /* Store IRKs: first 2 bytes is the number of IRKs, next is the aggregated keys, then an empty IRK key */
-            nodemgmt_get_bluetooth_bonding_information_irks(&nb_irk_keys, &(aux_mcu_send_message.ble_message.payload[2]));
+            nodemgmt_get_bluetooth_bonding_information_irks(&nb_irk_keys, &(temp_send_message->ble_message.payload[2]));
             
             /* Add empty irk key to the count (set to 0 by the memset above) */
             nb_irk_keys += 1;
             
             /* Update payload size */
-            aux_mcu_send_message.payload_length1 = sizeof(nb_irk_keys) + nb_irk_keys*MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t,peer_irk_key);
-            aux_mcu_send_message.ble_message.payload_as_uint16_t[0] = nb_irk_keys;
+            temp_send_message->payload_length1 = sizeof(nb_irk_keys) + nb_irk_keys*MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t,peer_irk_key);
+            temp_send_message->ble_message.payload_as_uint16_t[0] = nb_irk_keys;
 
             /* Send message */
             comms_aux_mcu_send_message(FALSE);
@@ -732,9 +723,9 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         msg_rcvd = RNG_MSG_RCVD;
 
         /* Set same message type and fill with random numbers */
-        aux_mcu_send_message.message_type = aux_mcu_receive_message.message_type;
-        rng_fill_array(aux_mcu_send_message.payload, 32);
-        aux_mcu_send_message.payload_length1 = 32;
+        aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_receive_message.message_type);
+        rng_fill_array(temp_send_message->payload, 32);
+        temp_send_message->payload_length1 = 32;
 
         /* Send message */
         comms_aux_mcu_send_message(FALSE);
@@ -748,9 +739,9 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         else
         {
             /* Filtering, send a please retry packet to aux MCU */
-            aux_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_FIDO2;
-            aux_mcu_send_message.fido2_message.message_type = AUX_MCU_FIDO2_RETRY;
-            aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.fido2_message.message_type);
+            aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+            temp_send_message->payload_length1 = sizeof(temp_send_message->fido2_message.message_type);
+            temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_RETRY;
             comms_aux_mcu_send_message(FALSE);
             msg_rcvd = FIDO2_MSG_RCVD;
         }
@@ -913,13 +904,11 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
                 }
             }
             else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_RNG_TRANSFER)
-            {                
-                /* Clear TX message just in case */
-                memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
-                
-                aux_mcu_send_message.message_type = aux_mcu_receive_message.message_type;
-                rng_fill_array(aux_mcu_send_message.payload, 32);
-                aux_mcu_send_message.payload_length1 = 32;
+            {
+                /* Set same message type and fill with random numbers */
+                aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_receive_message.message_type);
+                rng_fill_array(temp_send_message->payload, 32);
+                temp_send_message->payload_length1 = 32;
                 
                 /* Send message */
                 comms_aux_mcu_send_message(FALSE);
@@ -927,9 +916,9 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
             else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_FIDO2)
             {
                 /* Send a please retry packet to aux MCU */
-                aux_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_FIDO2;
-                aux_mcu_send_message.fido2_message.message_type = AUX_MCU_FIDO2_RETRY;
-                aux_mcu_send_message.payload_length1 = sizeof(aux_mcu_send_message.fido2_message.message_type);
+                aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+                temp_send_message->payload_length1 = sizeof(temp_send_message->fido2_message.message_type);
+                temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_RETRY;
                 comms_aux_mcu_send_message(FALSE);
             }
             else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BLE_CMD)

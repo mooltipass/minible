@@ -345,7 +345,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     logic_bluetooth_set_do_not_lock_device_after_disconnect_flag(TRUE);
                     
                     /* Send command to aux MCU */
-                    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+                    temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BLE_CMD);
                     temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_DISCONNECT_FOR_NEXT;
                     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
                     comms_aux_mcu_send_message(FALSE);
@@ -371,7 +371,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     nodemgmt_delete_all_bluetooth_bonding_information();
 
                     /* Tell aux to clear its buffer and disconnect any device */
-                    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+                    temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BLE_CMD);
                     temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_CLEAR_BOND_INFO;
                     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
                     
@@ -392,7 +392,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     aux_mcu_message_t* temp_tx_message_pt;
                 
                     /* Send command to enable pairing to aux MCU */
-                    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+                    temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BLE_CMD);
                     temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_ENABLE_PAIRING;
                     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
                 
@@ -423,7 +423,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     }
                 
                     /* Now we disable pairing again */
-                    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);          
+                    temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BLE_CMD);    
                     temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_DISABLE_PAIRING;
                     comms_aux_mcu_send_message(TRUE);
                 }

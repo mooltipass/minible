@@ -99,7 +99,7 @@ void logic_aux_mcu_enable_ble(BOOL wait_for_enabled)
         platform_io_enable_ble();
         
         /* Prepare packet to send to AUX, specify bluetooth mac */
-        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+        temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BLE_CMD);
         temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_CMD_ENABLE;
         logic_bluetooth_get_unit_mac_address(temp_tx_message_pt->ble_message.payload);
         temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + 6;
@@ -137,7 +137,7 @@ void logic_aux_mcu_disable_ble(BOOL wait_for_disabled)
         aux_mcu_message_t* temp_rx_message;
         
         /* Send command to aux MCU */
-        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
+        temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BLE_CMD);
         temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_CMD_DISABLE;
         temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
         
@@ -171,7 +171,7 @@ void logic_aux_mcu_update_aux_mcu_of_new_battery_level(uint16_t battery_level_pc
     aux_mcu_message_t* temp_tx_message_pt;
     
     /* Prepare message */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+    temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
     temp_tx_message_pt->main_mcu_command_message.command = MAIN_MCU_COMMAND_SET_BATTERYLVL;
     temp_tx_message_pt->main_mcu_command_message.payload[0] = (uint8_t)battery_level_pct;
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->main_mcu_command_message.command) + sizeof(temp_tx_message_pt->main_mcu_command_message.payload[0]);
@@ -198,7 +198,8 @@ uint32_t logic_aux_mcu_get_ble_chip_id(void)
         uint32_t return_val;
         
         /* Get an empty packet ready to be sent */
-        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message, AUX_MCU_MSG_TYPE_PLAT_DETAILS);
+        temp_tx_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
+        (void)temp_tx_message;
         
         /* Send message */
         comms_aux_mcu_send_message(TRUE);
@@ -240,7 +241,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(BOOL connect_to_usb_if_needed)
     fw_file_address += sizeof(fw_file_size);
     
     /* Prepare programming command */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BOOTLOADER);
+    temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BOOTLOADER);
     temp_tx_message_pt->bootloader_message.command = BOOTLOADER_START_PROGRAMMING_COMMAND;
     temp_tx_message_pt->bootloader_message.programming_command.image_length = fw_file_size;
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->bootloader_message.command) + sizeof(temp_tx_message_pt->bootloader_message.programming_command);
@@ -267,7 +268,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(BOOL connect_to_usb_if_needed)
         }
         
         /* Prepare write command */
-        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BOOTLOADER);
+        temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BOOTLOADER);
         temp_tx_message_pt->bootloader_message.command = BOOTLOADER_WRITE_COMMAND;
         temp_tx_message_pt->bootloader_message.write_command.size = 512;
         temp_tx_message_pt->bootloader_message.write_command.address = nb_bytes_sent;
@@ -298,7 +299,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(BOOL connect_to_usb_if_needed)
     }      
         
     /* Prepare start application command, no answers */
-    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BOOTLOADER);
+    temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BOOTLOADER);
     temp_tx_message_pt->bootloader_message.command = BOOTLOADER_START_APP_COMMAND;
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->bootloader_message.command);
     comms_aux_mcu_send_message(TRUE);

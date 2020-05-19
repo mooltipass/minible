@@ -1515,7 +1515,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         /* Type shortcut if specified */
                         if ((shortcut_sent == FALSE) && ((keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK)) != 0))
                         {
-                            comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+                            typing_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
                             typing_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TYPE_SHORTCUT;
                             typing_message_to_be_sent->main_mcu_command_message.payload[0] = (uint8_t)interface_id;
                             typing_message_to_be_sent->main_mcu_command_message.payload[1] = keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK);
@@ -1526,7 +1526,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         }
                         
                         /* Type login */
-                        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
+                        typing_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
                         typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.login) + 1 + 1)*sizeof(cust_char_t);
                         ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.login, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, *usb_selected);
                         if ((temp_cnode.keyAfterLogin == 0xFFFF) || ((logic_user_get_user_security_flags() & USER_SEC_FLG_ADVANCED_MENU) == 0))
@@ -1638,7 +1638,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     /* Type shortcut if specified */
                     if ((shortcut_sent == FALSE) && ((keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK)) != 0))
                     {
-                        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+                        typing_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
                         typing_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TYPE_SHORTCUT;
                         typing_message_to_be_sent->main_mcu_command_message.payload[0] = (uint8_t)interface_id;
                         typing_message_to_be_sent->main_mcu_command_message.payload[1] = keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK);
@@ -1649,7 +1649,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     }
                         
                     /* Type password */
-                    comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
+                    typing_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
                     typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.cust_char_password) + 1 + 1)*sizeof(cust_char_t);
                     ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.cust_char_password, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, *usb_selected);
                     if (keys_to_send_before_login != 0x00)
@@ -1780,7 +1780,7 @@ void logic_user_locked_feature_trigger(void)
     if ((logic_user_lock_unlock_shortcuts != FALSE) && ((lock_unlock_feature_uint & LF_WIN_L_SEND_MASK) != 0))
     {
         aux_mcu_message_t* typing_message_to_be_sent;
-        comms_aux_mcu_get_empty_packet_ready_to_be_sent(&typing_message_to_be_sent, AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+        typing_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
         typing_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TYPE_SHORTCUT;
         typing_message_to_be_sent->main_mcu_command_message.payload[0] = (uint8_t)interface_id;
         typing_message_to_be_sent->main_mcu_command_message.payload[1] = LF_WIN_L_SEND_MASK;
