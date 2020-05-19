@@ -98,7 +98,7 @@ static uint32_t logic_fido2_cbor_encode_public_key(uint8_t* buf, uint32_t bufLen
 *           Checks if tag already exists. Returns 1 if credential exists or 0
 *           otherwise. If tag exists prompt the user and wait for user ack.
 *   \param  incoming messsage request
-*   \return Mes
+*   \return void
 */
 void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* request)
 {
@@ -164,7 +164,7 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
         logic_database_get_webauthn_userhandle_for_address(child_address, temp_send_message->fido2_message.fido2_auth_cred_rsp_message.user_handle, &temp_send_message->fido2_message.fido2_auth_cred_rsp_message.user_handle_len);
         memcpy(&temp_send_message->fido2_message.fido2_auth_cred_rsp_message.cred_ID, &request->cred_ID, sizeof(temp_send_message->fido2_message.fido2_auth_cred_rsp_message.cred_ID));
         temp_send_message->fido2_message.fido2_auth_cred_rsp_message.result = FIDO2_CREDENTIAL_EXISTS;
-        comms_aux_mcu_send_message(TRUE);
+        comms_aux_mcu_send_message(FALSE);
         
         /* Back to current screen */
         gui_dispatcher_get_back_to_current_screen();
@@ -366,7 +366,7 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     if (rpid_conv_length < 0)
     {
         aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-        temp_send_message->fido2_message.fido2_make_credential_rsp_message.error_code = FIDO2_NO_CREDENTIALS;
+        temp_send_message->fido2_message.fido2_get_assertion_rsp_message.error_code = FIDO2_NO_CREDENTIALS;
         temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
         temp_send_message->payload_length1 = sizeof(fido2_message_t);
         comms_aux_mcu_send_message(FALSE);
@@ -377,7 +377,7 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
         aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-        temp_send_message->fido2_message.fido2_make_credential_rsp_message.error_code = FIDO2_USER_NOT_PRESENT;
+        temp_send_message->fido2_message.fido2_get_assertion_rsp_message.error_code = FIDO2_USER_NOT_PRESENT;
         temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
         temp_send_message->payload_length1 = sizeof(fido2_message_t);
         comms_aux_mcu_send_message(FALSE);
@@ -404,7 +404,7 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     else
     {
         aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-        temp_send_message->fido2_message.fido2_make_credential_rsp_message.error_code = temp_return;
+        temp_send_message->fido2_message.fido2_get_assertion_rsp_message.error_code = temp_return;
         temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
         temp_send_message->payload_length1 = sizeof(fido2_message_t);
         comms_aux_mcu_send_message(FALSE);
@@ -415,7 +415,7 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     /* Prepare message answer */
     /**************************/
     aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-    temp_send_message->fido2_message.fido2_make_credential_rsp_message.error_code = FIDO2_SUCCESS;
+    temp_send_message->fido2_message.fido2_get_assertion_rsp_message.error_code = FIDO2_SUCCESS;
     temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
     temp_send_message->payload_length1 = sizeof(fido2_message_t);
 
