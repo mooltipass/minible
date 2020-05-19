@@ -400,70 +400,50 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
     }
 }
 
-/*! \fn     comms_aux_mcu_handle_fido2_auth_cred_msg(fido2_message_t const *received_message, aux_mcu_message_t *send_message)
+/*! \fn     comms_msg_rcvd_te comms_aux_mcu_handle_fido2_auth_cred_msg(fido2_message_t* received_message)
 *   \brief  routine handling authenticating a credential
 *   \param  received_message    The received message
-*   \param  send_message        The response message
 *   \return fido2_MSG_RCVD
 */
-static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_auth_cred_msg(fido2_message_t* received_message, aux_mcu_message_t *send_message)
+static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_auth_cred_msg(fido2_message_t* received_message)
 {
     fido2_auth_cred_req_message_t* incoming_message = &received_message->fido2_auth_cred_req_message;
-    fido2_auth_cred_rsp_message_t* response = &send_message->fido2_message.fido2_auth_cred_rsp_message;
-
-    logic_fido2_process_exclude_list_item(incoming_message, response);
-
-    send_message->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
-    send_message->payload_length1 = sizeof(fido2_message_t);
-    send_message->message_type = AUX_MCU_MSG_TYPE_FIDO2;
+    logic_fido2_process_exclude_list_item(incoming_message);
     return FIDO2_MSG_RCVD;
 }
 
-/*! \fn     comms_aux_mcu_handle_fido2_make_credential_msg(fido2_message_t const *received_message, aux_mcu_message_t *send_message)
+/*! \fn     comms_aux_mcu_handle_fido2_make_credential_msg(fido2_message_t* received_message)
 *   \brief  routine handling making a new credential
 *   \param  received_message    The received message
-*   \param  send_message        The response message
 *   \return FIDO2_MSG_RCVD
 */
-static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_make_credential_msg(fido2_message_t* received_message, aux_mcu_message_t *send_message)
+static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_make_credential_msg(fido2_message_t* received_message)
 {
     fido2_make_credential_req_message_t* request = &received_message->fido2_make_credential_req_message;
-    fido2_make_credential_rsp_message_t* response = &send_message->fido2_message.fido2_make_credential_rsp_message;
-
-    logic_fido2_process_make_credential(request, response);
-
-    send_message->fido2_message.message_type = AUX_MCU_FIDO2_MC_RSP;
-    send_message->payload_length1 = sizeof(fido2_message_t);
-    send_message->message_type = AUX_MCU_MSG_TYPE_FIDO2;
+    logic_fido2_process_make_credential(request);
     return FIDO2_MSG_RCVD;
 }
 
-/*! \fn     comms_aux_mcu_handle_fido2_get_assertion_msg(fido2_message_t const *received_message, aux_mcu_message_t *send_message)
+/*! \fn     comms_aux_mcu_handle_fido2_get_assertion_msg(fido2_message_t* received_message)
 *   \brief  routine handling asserting a credential
 *   \param  received_message    The received message
 *   \param  send_message        The response message
 *   \return FIDO2_MSG_RCVD
 */
-static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_get_assertion_msg(fido2_message_t* received_message, aux_mcu_message_t *send_message)
+static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_get_assertion_msg(fido2_message_t* received_message)
 {
     fido2_get_assertion_req_message_t* request = &received_message->fido2_get_assertion_req_message;
-    fido2_get_assertion_rsp_message_t* response = &send_message->fido2_message.fido2_get_assertion_rsp_message;
-
-    logic_fido2_process_get_assertion(request, response);
-
-    send_message->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
-    send_message->payload_length1 = sizeof(fido2_message_t);
-    send_message->message_type = AUX_MCU_MSG_TYPE_FIDO2;
+    logic_fido2_process_get_assertion(request);
     return FIDO2_MSG_RCVD;
 }
 
-/*! \fn     comms_aux_mcu_handle_fido2_unknown_msg(fido2_message_t const *received_message, aux_mcu_message_t *send_message)
+/*! \fn     comms_aux_mcu_handle_fido2_unknown_msg(fido2_message_t const *received_message)
 *   \brief  routine handling unknown fido2 messages
 *   \param  received_message The received message
 *   \param  send_message The response message
 *   \return UNKNOW_MSG_RCVD
 */
-static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_unknown_msg(fido2_message_t const *received_message, aux_mcu_message_t *send_message)
+static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_unknown_msg(fido2_message_t const *received_message)
 {
     return UNKNOW_MSG_RCVD;
 }
@@ -484,24 +464,24 @@ static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_message(fido2_message_t* rec
         {
             case AUX_MCU_FIDO2_AUTH_CRED_REQ:
             {
-                msg_rcvd = comms_aux_mcu_handle_fido2_auth_cred_msg(received_message, &aux_mcu_send_message);
+                msg_rcvd = comms_aux_mcu_handle_fido2_auth_cred_msg(received_message);
                 break;
             }
             case AUX_MCU_FIDO2_MC_REQ:
             {
-                msg_rcvd = comms_aux_mcu_handle_fido2_make_credential_msg(received_message, &aux_mcu_send_message);
+                msg_rcvd = comms_aux_mcu_handle_fido2_make_credential_msg(received_message);
                 break;
             }
             case AUX_MCU_FIDO2_GA_REQ:
             {
-                msg_rcvd = comms_aux_mcu_handle_fido2_get_assertion_msg(received_message, &aux_mcu_send_message);
+                msg_rcvd = comms_aux_mcu_handle_fido2_get_assertion_msg(received_message);
                 break;
             }
             case AUX_MCU_FIDO2_AUTH_CRED_RSP:
             case AUX_MCU_FIDO2_MC_RSP:
             case AUX_MCU_FIDO2_GA_RSP:
             {
-                msg_rcvd = comms_aux_mcu_handle_fido2_unknown_msg(received_message, &aux_mcu_send_message);
+                msg_rcvd = comms_aux_mcu_handle_fido2_unknown_msg(received_message);
                 break;
             }
             default:
@@ -509,12 +489,6 @@ static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_message(fido2_message_t* rec
                 msg_rcvd = UNKNOW_MSG_RCVD;
                 break;
             }
-        };
-
-        /* Send reply */
-        if (msg_rcvd != UNKNOW_MSG_RCVD)
-        {
-            comms_aux_mcu_send_message(FALSE);
         }
     }
 
