@@ -60,11 +60,14 @@ void comms_aux_arm_rx_and_clear_no_comms(void)
     platform_io_clear_no_comms();
 }
 
-/*! \fn     comms_aux_mcu_get_temp_tx_message_object_pt(void)
+/*! \fn     comms_aux_mcu_get_free_tx_message_object_pt(void)
 *   \brief  Get a pointer to our temporary tx message object
 */
-aux_mcu_message_t* comms_aux_mcu_get_temp_tx_message_object_pt(void)
+aux_mcu_message_t* comms_aux_mcu_get_free_tx_message_object_pt(void)
 {
+    /* Wait for possible ongoing message to be sent */
+    comms_aux_mcu_wait_for_message_sent();
+    
     return &aux_mcu_send_message;
 }
 
@@ -140,11 +143,8 @@ void comms_aux_mcu_update_device_status_buffer(void)
 */
 void comms_aux_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type)
 {
-    /* Wait for possible ongoing message to be sent */
-    comms_aux_mcu_wait_for_message_sent();
-
     /* Get pointer to our message to be sent buffer */
-    aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
+    aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_free_tx_message_object_pt();
 
     /* Clear it */
     memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
@@ -166,11 +166,8 @@ void comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void)
     /* Set no comms (keep platform in sleep after its reboot) */
     platform_io_set_no_comms();
 
-    /* Wait for possible ongoing message to be sent */
-    comms_aux_mcu_wait_for_message_sent();
-
     /* Get pointer to our message to be sent buffer */
-    temp_tx_message_pt = comms_aux_mcu_get_temp_tx_message_object_pt();
+    temp_tx_message_pt = comms_aux_mcu_get_free_tx_message_object_pt();
 
     /* Fill message with magic 0xFF, send it twice */
     memset((void*)temp_tx_message_pt, 0xFF, sizeof(*temp_tx_message_pt));
