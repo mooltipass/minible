@@ -347,7 +347,7 @@ void debug_always_bluetooth_enable_and_click_to_send_cred(void)
     temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BLE_CMD);
     temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_ENABLE_PAIRING;
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
-    comms_aux_mcu_send_message(TRUE);
+    comms_aux_mcu_send_message(temp_tx_message_pt);
     
     sh1122_clear_current_screen(&plat_oled_descriptor);
     sh1122_put_error_string(&plat_oled_descriptor, u"Waiting for pairing");    
@@ -384,7 +384,7 @@ void debug_always_bluetooth_enable_and_click_to_send_cred(void)
             typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[3] = 23;
             typing_message_to_be_sent->keyboard_type_message.delay_between_types = 25;
             typing_message_to_be_sent->keyboard_type_message.interface_identifier = 1;
-            comms_aux_mcu_send_message(TRUE);
+            comms_aux_mcu_send_message(typing_message_to_be_sent);
             
             /* Wait for typing status */
             while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
@@ -1018,7 +1018,7 @@ void debug_mcu_and_aux_info(void)
     temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
     
     /* Send message */
-    comms_aux_mcu_send_message(TRUE);
+    comms_aux_mcu_send_message(temp_tx_message_pt);
     
     /* Wait for message from aux MCU */
     while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
@@ -1200,7 +1200,7 @@ void debug_rf_freq_sweep(void)
         sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[0] = cur_frequency_index;  // Frequency index, up to 39
         sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[1] = payload_type;         // Payload type, up to 7
         sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[2] = payload_length;       // Payload length, up to 36
-        comms_aux_mcu_send_message(FALSE);
+        comms_aux_mcu_send_message(sweep_message_to_be_sent);
     }
  
     while (TRUE)
@@ -1220,7 +1220,7 @@ void debug_rf_freq_sweep(void)
             sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[0] = cur_frequency_index;  // Frequency index, up to 39
             sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[1] = payload_type;         // Payload type, up to 7
             sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[2] = payload_length;       // Payload length, up to 36
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(sweep_message_to_be_sent);
         }
         
         /* Dynamic screen contents */
@@ -1301,7 +1301,7 @@ void debug_atbtlc_info(void)
     temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
     
     /* Send message */
-    comms_aux_mcu_send_message(TRUE);
+    comms_aux_mcu_send_message(temp_tx_message_pt);
     
     /* Wait for message from aux MCU */
     while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
@@ -1492,7 +1492,7 @@ void debug_nimh_charging(void)
             temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_NIMH_CHARGE);
             
             /* Send message */
-            comms_aux_mcu_send_message(TRUE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             
             /* Wait for message from aux MCU */
             while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE, -1) != RETURN_OK){}
@@ -1597,7 +1597,7 @@ void debug_stack_info(void)
     temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
 
     /* Send message */
-    comms_aux_mcu_send_message(TRUE);
+    comms_aux_mcu_send_message(temp_tx_message_pt);
 
     /* Wait for message from aux MCU */
     while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}

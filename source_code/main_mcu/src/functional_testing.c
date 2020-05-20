@@ -54,7 +54,7 @@ void functional_rf_testing_start(void)
     sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[0] = 0;        // Frequency index, up to 39
     sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[1] = 7;        // Payload type, up to 7
     sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[2] = 36;       // Payload length, up to 36
-    comms_aux_mcu_send_message(FALSE);
+    comms_aux_mcu_send_message(sweep_message_to_be_sent);
 
     /* Debug */
     #ifdef OLED_INTERNAL_FRAME_BUFFER

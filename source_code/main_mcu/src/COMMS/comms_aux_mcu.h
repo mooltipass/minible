@@ -35,10 +35,10 @@ aux_mcu_message_t* comms_aux_mcu_get_empty_packet_ready_to_be_sent(uint16_t mess
 comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type);
 void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message);
 aux_mcu_message_t* comms_aux_mcu_get_free_tx_message_object_pt(void);
+void comms_aux_mcu_send_message(aux_mcu_message_t* message_to_send);
 void comms_aux_mcu_send_simple_command_message(uint16_t command);
 void comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void);
 void comms_aux_mcu_update_device_status_buffer(void);
-void comms_aux_mcu_send_message(BOOL wait_for_send);
 RET_TYPE comms_aux_mcu_send_receive_ping(void);
 void comms_aux_mcu_wait_for_message_sent(void);
 void comms_aux_arm_rx_and_clear_no_comms(void);

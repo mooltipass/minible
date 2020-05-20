@@ -63,21 +63,21 @@ void comms_hid_msgs_debug_printf(const char *fmt, ...)
         uint16_t actual_printed_chars = (uint16_t)hypothetical_nb_chars < sizeof(buf)-1? (uint16_t)hypothetical_nb_chars : sizeof(buf)-1;
         
         /* Use message to send to aux mcu as temporary buffer */        
-        aux_mcu_message_t* temp_message = comms_aux_mcu_get_free_tx_message_object_pt();
-        memset((void*)temp_message, 0, sizeof(aux_mcu_message_t));
-        temp_message->message_type = AUX_MCU_MSG_TYPE_USB;
-        temp_message->hid_message.message_type = HID_CMD_ID_DBG_MSG;
-        temp_message->hid_message.payload_length = actual_printed_chars*2 + 2;
-        temp_message->payload_length1 = temp_message->hid_message.payload_length + sizeof(temp_message->hid_message.payload_length) + sizeof(temp_message->hid_message.message_type);
+        aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_free_tx_message_object_pt();
+        memset((void*)temp_tx_message_pt, 0, sizeof(aux_mcu_message_t));
+        temp_tx_message_pt->message_type = AUX_MCU_MSG_TYPE_USB;
+        temp_tx_message_pt->hid_message.message_type = HID_CMD_ID_DBG_MSG;
+        temp_tx_message_pt->hid_message.payload_length = actual_printed_chars*2 + 2;
+        temp_tx_message_pt->payload_length1 = temp_tx_message_pt->hid_message.payload_length + sizeof(temp_tx_message_pt->hid_message.payload_length) + sizeof(temp_tx_message_pt->hid_message.message_type);
         
         /* Copy to message payload */
         for (uint16_t i = 0; i < actual_printed_chars; i++)
         {
-            temp_message->hid_message.payload_as_uint16[i] = buf[i];
+            temp_tx_message_pt->hid_message.payload_as_uint16[i] = buf[i];
         }
         
         /* Send message */
-        comms_aux_mcu_send_message(TRUE);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
     }
     va_end(ap);
 }
@@ -111,8 +111,8 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
     if (should_ignore_message != FALSE)
     {
         /* Send please retry */
-        comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, HID_CMD_ID_RETRY, 0);
-        comms_aux_mcu_send_message(FALSE);
+        aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, HID_CMD_ID_RETRY, 0);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
     
@@ -278,7 +278,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(plat_acc_descriptor.fifo_read.acc_data_array));
             memcpy((void*)temp_tx_message_pt->hid_message.payload, (void*)plat_acc_descriptor.fifo_read.acc_data_array, sizeof(plat_acc_descriptor.fifo_read.acc_data_array));
             lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }
         case HID_CMD_ID_FLASH_AUX_MCU:
@@ -317,7 +317,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             comms_aux_arm_rx_and_clear_no_comms();
             
             /* Send message */
-            comms_aux_mcu_send_message(TRUE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             
             /* Wait for message from aux MCU */
             while(comms_aux_mcu_active_wait(&temp_rx_message, TRUE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
@@ -332,7 +332,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             comms_aux_arm_rx_and_clear_no_comms();
             
             /* Send message */
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }
         case HID_CMD_ID_GET_BATTERY_STATUS:
@@ -398,7 +398,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
                 temp_tx_message_pt->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + MEMBER_SIZE(main_mcu_command_message_t, payload_as_uint16[0]);
                 
                 /* Send message */
-                comms_aux_mcu_send_message(TRUE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
             }
 
             /* Stop force charge? */
@@ -412,7 +412,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_NIMH_CHARGE);
             
             /* Send message */
-            comms_aux_mcu_send_message(TRUE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             
             /* Get ADC value for current conversion */
             while (platform_io_is_voledin_conversion_result_ready() == FALSE);
@@ -436,7 +436,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             comms_aux_arm_rx_and_clear_no_comms();
             
             /* Send message */
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }
         default: break;

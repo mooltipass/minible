@@ -1046,7 +1046,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
         aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
-        comms_aux_mcu_send_message(FALSE);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
     
@@ -1060,7 +1060,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
         /* From 1s to 3s */
         timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
         aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
-        comms_aux_mcu_send_message(FALSE);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }    
     
@@ -1081,7 +1081,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
                 /* From 3s to 7s */
                 timer_delay_ms(3000 + (rng_get_random_uint16_t()&0x0FFF));
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
         }
@@ -1108,7 +1108,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             if (prompt_return != MINI_INPUT_RET_YES)
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
         }
@@ -1167,7 +1167,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
         
         /* Return payload size */
         comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, return_payload_size);
-        comms_aux_mcu_send_message(FALSE);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
     else
@@ -1178,7 +1178,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             /* From 1s to 3s */
             timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
             aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }
         else
@@ -1197,7 +1197,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             if (child_address == NODE_ADDR_NULL)
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
             else
@@ -1236,7 +1236,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
                 
                 /* Return payload size */
                 comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, return_payload_size);
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
         }
@@ -1539,7 +1539,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                             typing_message_to_be_sent->main_mcu_command_message.payload[0] = (uint8_t)interface_id;
                             typing_message_to_be_sent->main_mcu_command_message.payload[1] = keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK);
                             typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint8_t) + sizeof(uint8_t);
-                            comms_aux_mcu_send_message(TRUE);
+                            comms_aux_mcu_send_message(typing_message_to_be_sent);
                             shortcut_sent = TRUE;
                             timer_delay_ms(600);
                         }
@@ -1560,7 +1560,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)], *usb_selected);
                         typing_message_to_be_sent->keyboard_type_message.delay_between_types = custom_fs_settings_get_device_setting(SETTINGS_DELAY_BETWEEN_PRESSES);
                         typing_message_to_be_sent->keyboard_type_message.interface_identifier = interface_id;
-                        comms_aux_mcu_send_message(TRUE);
+                        comms_aux_mcu_send_message(typing_message_to_be_sent);
                         
                         /* Wait for typing status */
                         while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
@@ -1662,7 +1662,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         typing_message_to_be_sent->main_mcu_command_message.payload[0] = (uint8_t)interface_id;
                         typing_message_to_be_sent->main_mcu_command_message.payload[1] = keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK);
                         typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint8_t) + sizeof(uint8_t);
-                        comms_aux_mcu_send_message(TRUE);
+                        comms_aux_mcu_send_message(typing_message_to_be_sent);
                         shortcut_sent = TRUE;
                         timer_delay_ms(600);
                     }
@@ -1688,10 +1688,9 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)], *usb_selected);
                     typing_message_to_be_sent->keyboard_type_message.delay_between_types = custom_fs_settings_get_device_setting(SETTINGS_DELAY_BETWEEN_PRESSES);
                     typing_message_to_be_sent->keyboard_type_message.interface_identifier = interface_id;
-                    comms_aux_mcu_send_message(TRUE);
+                    comms_aux_mcu_send_message(typing_message_to_be_sent);
                     
                     /* Message is sent, clear everything */
-                    memset(typing_message_to_be_sent, 0, sizeof(aux_mcu_message_t));
                     memset(&temp_cnode, 0, sizeof(temp_cnode));
                     
                     /* Wait for typing status */
@@ -1806,6 +1805,6 @@ void logic_user_locked_feature_trigger(void)
         custom_fs_get_keyboard_symbols_for_unicode_string((cust_char_t*)u"l", &typing_message_to_be_sent->main_mcu_command_message.payload_as_uint16[1], logic_aux_mcu_is_usb_enumerated());
         typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint16_t);
         logic_user_lock_unlock_shortcuts = FALSE;
-        comms_aux_mcu_send_message(TRUE);
+        comms_aux_mcu_send_message(typing_message_to_be_sent);
     }
 }                

@@ -105,7 +105,7 @@ void logic_aux_mcu_enable_ble(BOOL wait_for_enabled)
         temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + 6;
         
         /* Send message */
-        comms_aux_mcu_send_message(FALSE);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         
         if (wait_for_enabled != FALSE)
         {
@@ -142,7 +142,7 @@ void logic_aux_mcu_disable_ble(BOOL wait_for_disabled)
         temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
         
         /* Send message */
-        comms_aux_mcu_send_message(FALSE);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         
         if (wait_for_disabled != FALSE)
         {
@@ -177,7 +177,7 @@ void logic_aux_mcu_update_aux_mcu_of_new_battery_level(uint16_t battery_level_pc
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->main_mcu_command_message.command) + sizeof(temp_tx_message_pt->main_mcu_command_message.payload[0]);
     
     /* Send message */
-    comms_aux_mcu_send_message(TRUE);
+    comms_aux_mcu_send_message(temp_tx_message_pt);
 }
 
 /*! \fn     comms_aux_mcu_get_ble_chip_id(void)
@@ -193,16 +193,15 @@ uint32_t logic_aux_mcu_get_ble_chip_id(void)
     }
     else
     {
+        aux_mcu_message_t* temp_tx_message_pt;
         aux_mcu_message_t* temp_rx_message;
-        aux_mcu_message_t* temp_tx_message;
         uint32_t return_val;
         
         /* Get an empty packet ready to be sent */
-        temp_tx_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
-        (void)temp_tx_message;
+        temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
         
         /* Send message */
-        comms_aux_mcu_send_message(TRUE);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         
         /* Wait for message from aux MCU */
         while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
@@ -247,7 +246,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(BOOL connect_to_usb_if_needed)
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->bootloader_message.command) + sizeof(temp_tx_message_pt->bootloader_message.programming_command);
     
     /* Send message */
-    comms_aux_mcu_send_message(TRUE);
+    comms_aux_mcu_send_message(temp_tx_message_pt);
     
     /* Wait for message from aux MCU */
     while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_BOOTLOADER, FALSE, -1) != RETURN_OK){}
@@ -289,7 +288,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(BOOL connect_to_usb_if_needed)
         }
         
         /* Send message */
-        comms_aux_mcu_send_message(TRUE);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         
         /* Wait for message from aux MCU */
         while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_BOOTLOADER, FALSE, -1) != RETURN_OK){}
@@ -302,7 +301,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(BOOL connect_to_usb_if_needed)
     temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BOOTLOADER);
     temp_tx_message_pt->bootloader_message.command = BOOTLOADER_START_APP_COMMAND;
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->bootloader_message.command);
-    comms_aux_mcu_send_message(TRUE);
+    comms_aux_mcu_send_message(temp_tx_message_pt);
     
     /* Let the aux MCU boot */
     timer_delay_ms(1000);

@@ -161,18 +161,18 @@ aux_mcu_message_t* comms_hid_msgs_get_empty_hid_packet(BOOL usb_hid_message, uin
 */
 void comms_hid_msgs_send_ack_nack_message(BOOL usb_hid_message, uint16_t message_type, BOOL ack_message)
 {
-    aux_mcu_message_t* temp_send_message = comms_hid_msgs_get_empty_hid_packet(usb_hid_message, message_type, sizeof(uint8_t));
+    aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(usb_hid_message, message_type, sizeof(uint8_t));
     if (ack_message == FALSE)
     {
-        temp_send_message->hid_message.payload[0] = HID_1BYTE_NACK;
+        temp_tx_message_pt->hid_message.payload[0] = HID_1BYTE_NACK;
     } 
     else
     {
-        temp_send_message->hid_message.payload[0] = HID_1BYTE_ACK;
+        temp_tx_message_pt->hid_message.payload[0] = HID_1BYTE_ACK;
     }
     
     /* Send message */
-    comms_aux_mcu_send_message(FALSE);
+    comms_aux_mcu_send_message(temp_tx_message_pt);
 }
 
 /*! \fn     comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb)
@@ -221,8 +221,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     if (should_ignore_message != FALSE)
     {
         /* Send please retry */
-        comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, HID_CMD_ID_RETRY, 0);
-        comms_aux_mcu_send_message(FALSE);
+        aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, HID_CMD_ID_RETRY, 0);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
     
@@ -242,7 +242,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Simple ping: copy the message contents */
             aux_mcu_message_t* temp_send_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, supposed_payload_length);
             memcpy((void*)temp_send_message_pt->hid_message.payload, (void*)rcv_msg->payload, supposed_payload_length);
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_send_message_pt);
             return;
         }
 
@@ -252,7 +252,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             aux_mcu_message_t* temp_send_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
             uint16_t payload_length = comms_hid_msgs_fill_get_status_message_answer(temp_send_message_pt->hid_message.payload_as_uint16);
             comms_hid_msgs_update_message_payload_length_fields(temp_send_message_pt, payload_length);
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_send_message_pt);
             return;
         }
         
@@ -269,7 +269,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             comms_aux_arm_rx_and_clear_no_comms();
             
             /* Send message */
-            comms_aux_mcu_send_message(TRUE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             
             /* Wait for message from aux MCU */
             while(comms_aux_mcu_active_wait(&temp_rx_message, TRUE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
@@ -287,7 +287,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             comms_aux_arm_rx_and_clear_no_comms();
             
             /* Send message */
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }
         
@@ -316,7 +316,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         {
             aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 32);
             rng_fill_array(temp_tx_message_pt->hid_message.payload, 32);
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }
 
@@ -327,7 +327,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, MEMBER_SIZE(cpz_lut_entry_t,cards_cpz));
                 smartcard_highlevel_read_code_protected_zone(temp_tx_message_pt->hid_message.payload);
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
             else
@@ -344,7 +344,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
             uint16_t payload_length = custom_fs_settings_get_dump(temp_tx_message_pt->hid_message.payload);
             comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, payload_length);
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return; 
         }
 
@@ -372,13 +372,13 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint16_t));
                 temp_tx_message_pt->hid_message.payload_as_uint16[0] = logic_user_get_user_security_flags();
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             } 
             else
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
         }
@@ -392,7 +392,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(nodemgmt_user_category_strings_t));
                 nodemgmt_get_category_strings((nodemgmt_user_category_strings_t*)&temp_tx_message_pt->hid_message.get_set_cat_strings);
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
                 
             } 
@@ -480,7 +480,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Get number of free users */
             aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint8_t));
             temp_tx_message_pt->hid_message.payload[0] = custom_fs_get_nb_free_cpz_lut_entries(&temp_uint8);
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }
 
@@ -512,7 +512,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
             uint16_t payload_length = nodemgmt_get_start_addresses(temp_tx_message_pt->hid_message.payload_as_uint16)*sizeof(uint16_t);
             comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, payload_length);
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }
 
@@ -584,7 +584,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
                 uint16_t nb_nodes_found = nodemgmt_find_free_nodes(rcv_msg->payload_as_uint16[1], temp_tx_message_pt->hid_message.payload_as_uint16, rcv_msg->payload_as_uint16[2], &(temp_tx_message_pt->hid_message.payload_as_uint16[rcv_msg->payload_as_uint16[1]]), nodemgmt_page_from_address(rcv_msg->payload_as_uint16[0]), nodemgmt_node_from_address(rcv_msg->payload_as_uint16[0]));
                 comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, nb_nodes_found*sizeof(uint16_t));
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
             else
@@ -700,7 +700,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                         /* Read and send parent node */
                         aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(parent_node_t));
                         nodemgmt_read_parent_node_data_block_from_flash(rcv_msg->payload_as_uint16[0], (parent_node_t*)temp_tx_message_pt->hid_message.payload_as_uint16);
-                        comms_aux_mcu_send_message(FALSE);
+                        comms_aux_mcu_send_message(temp_tx_message_pt);
                         return;
                     } 
                     else
@@ -708,7 +708,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                         /* Read and send child node */
                         aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(child_node_t));
                         nodemgmt_read_child_node_data_block_from_flash(rcv_msg->payload_as_uint16[0], (child_node_t*)temp_tx_message_pt->hid_message.payload_as_uint16);
-                        comms_aux_mcu_send_message(FALSE);
+                        comms_aux_mcu_send_message(temp_tx_message_pt);
                         return;
                     }
                 } 
@@ -769,7 +769,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 2*sizeof(uint32_t));
                 temp_tx_message_pt->hid_message.payload_as_uint32[0] = nodemgmt_get_cred_change_number();
                 temp_tx_message_pt->hid_message.payload_as_uint32[1] = nodemgmt_get_data_change_number();
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
             else
@@ -825,7 +825,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Read CTR value from flash and send it */
             aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr));
             nodemgmt_read_profile_ctr(temp_tx_message_pt->hid_message.payload);
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }
 
@@ -871,7 +871,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 2*sizeof(uint16_t));
                 nodemgmt_read_favorite(rcv_msg->payload_as_uint16[0], rcv_msg->payload_as_uint16[1], &(temp_tx_message_pt->hid_message.payload_as_uint16[0]), &(temp_tx_message_pt->hid_message.payload_as_uint16[1]));
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
             else
@@ -886,7 +886,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         {
             aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(cpz_lut_entry_t));
             logic_encryption_get_cpz_lut_entry(temp_tx_message_pt->hid_message.payload);
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }
 
@@ -896,7 +896,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
             uint16_t payload_length = nodemgmt_get_favorites(temp_tx_message_pt->hid_message.payload_as_uint16)*sizeof(favorite_addr_t);
             comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, payload_length);
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }
         
@@ -906,7 +906,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             if (rcv_msg->get_credential_request.service_name_index != 0)
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
             
@@ -914,7 +914,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             if (rcv_msg->get_credential_request.concatenated_strings[0] == 0)
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
             
@@ -930,7 +930,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             if (service_length == max_cust_char_length)
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
             
@@ -950,7 +950,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 if (rcv_msg->get_credential_request.login_name_index != service_length + 1)
                 {
                     aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
-                    comms_aux_mcu_send_message(FALSE);
+                    comms_aux_mcu_send_message(temp_tx_message_pt);
                     return;
                 }
                 
@@ -961,7 +961,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 if (login_length == max_cust_char_length)
                 {
                     aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
-                    comms_aux_mcu_send_message(FALSE);
+                    comms_aux_mcu_send_message(temp_tx_message_pt);
                     return;
                 }
                 
@@ -978,7 +978,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 /* Timer hasn't expired... do not allow check */
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint8_t));
                 temp_tx_message_pt->hid_message.payload[0] = HID_1BYTE_NA;
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
             else
@@ -1177,7 +1177,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Get device default language */
             aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint8_t));
             temp_tx_message_pt->hid_message.payload[0] = custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE);
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }
         
@@ -1188,14 +1188,14 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint8_t));
                 temp_tx_message_pt->hid_message.payload[0] = custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE);
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;          
             }
             else
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint8_t));
                 temp_tx_message_pt->hid_message.payload[0] = custom_fs_get_current_language_id();
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;              
             }
         }
@@ -1207,14 +1207,14 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint8_t));
                 temp_tx_message_pt->hid_message.payload[0] = 0;
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             } 
             else
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint8_t));
                 temp_tx_message_pt->hid_message.payload[0] = custom_fs_get_current_layout_id(rcv_msg->payload_as_uint16[0]);
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
         }
@@ -1223,7 +1223,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         {
             aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint16_t));
             temp_tx_message_pt->hid_message.payload_as_uint16[0] = (uint16_t)custom_fs_get_number_of_languages();
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return;   
         }
         
@@ -1231,7 +1231,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         {
             aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint16_t));
             temp_tx_message_pt->hid_message.payload_as_uint16[0] = (uint16_t)custom_fs_get_number_of_keyb_layouts();
-            comms_aux_mcu_send_message(FALSE);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
             return;       
         }
         
@@ -1243,14 +1243,14 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             if (custom_fs_get_language_description(rcv_msg->payload[0], (cust_char_t*)temp_tx_message_pt->hid_message.payload_as_uint16) == RETURN_OK)
             {
                 comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, utils_strlen((cust_char_t*)temp_tx_message_pt->hid_message.payload_as_uint16)*sizeof(uint16_t) + sizeof(uint16_t));
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             } 
             else
             {
                 comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, sizeof(uint16_t));
                 temp_tx_message_pt->hid_message.payload_as_uint16[0] = 0;
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
         }
@@ -1263,14 +1263,14 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             if (custom_fs_get_keyboard_descriptor_string(rcv_msg->payload[0], (cust_char_t*)temp_tx_message_pt->hid_message.payload_as_uint16) == RETURN_OK)
             {
                 comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, utils_strlen((cust_char_t*)temp_tx_message_pt->hid_message.payload_as_uint16)*sizeof(uint16_t) + sizeof(uint16_t));
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
             else
             {
                 comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, sizeof(uint16_t));
                 temp_tx_message_pt->hid_message.payload_as_uint16[0] = 0;
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
         }
@@ -1294,7 +1294,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     /* Set failure byte */
                     aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint16_t));
                     temp_tx_message_pt->hid_message.payload_as_uint16[0] = HID_1BYTE_NACK;
-                    comms_aux_mcu_send_message(FALSE);
+                    comms_aux_mcu_send_message(temp_tx_message_pt);
                     return;
                 }
                 
@@ -1311,7 +1311,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 /* Update message as the function above may have changed the other fields */
                 comms_hid_msgs_update_message_fields(temp_tx_message_pt, is_message_from_usb, rcv_message_type, temp_tx_message_pt->hid_message.payload_as_uint16[1]);
                 temp_tx_message_pt->hid_message.payload_as_uint16[0] = HID_1BYTE_ACK;
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
             else
@@ -1319,7 +1319,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 /* Set failure byte */
                 temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint16_t));
                 temp_tx_message_pt->hid_message.payload_as_uint16[0] = HID_1BYTE_NACK;
-                comms_aux_mcu_send_message(FALSE);
+                comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }        
         }

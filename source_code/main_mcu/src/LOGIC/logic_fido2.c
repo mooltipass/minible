@@ -113,10 +113,10 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
     /* Did the conversion go badly? */
     if (rpid_conv_length < 0)
     {
-        aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-        temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
-        temp_send_message->payload_length1 = sizeof(fido2_message_t);
-        comms_aux_mcu_send_message(FALSE);
+        aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+        temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
+        temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
     
@@ -128,10 +128,10 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
     {
         /* From 1s to 3s */
         timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
-        aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-        temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
-        temp_send_message->payload_length1 = sizeof(fido2_message_t);
-        comms_aux_mcu_send_message(FALSE);
+        aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+        temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
+        temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
     
@@ -146,10 +146,10 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
     {
         /* From 3s to 7s, do not leak information */
         timer_delay_ms(3000 + (rng_get_random_uint16_t()&0x0FFF));
-        aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-        temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
-        temp_send_message->payload_length1 = sizeof(fido2_message_t);
-        comms_aux_mcu_send_message(FALSE);
+        aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+        temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
+        temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
     else
@@ -158,13 +158,13 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
         gui_prompts_display_information_on_screen(CRED_ALREAD_PRESENT_TEXT_ID, DISP_MSG_WARNING);
         
         /* Send answer */
-        aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-        temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
-        temp_send_message->payload_length1 = sizeof(fido2_message_t);
-        logic_database_get_webauthn_userhandle_for_address(child_address, temp_send_message->fido2_message.fido2_auth_cred_rsp_message.user_handle, &temp_send_message->fido2_message.fido2_auth_cred_rsp_message.user_handle_len);
-        memcpy(&temp_send_message->fido2_message.fido2_auth_cred_rsp_message.cred_ID, &request->cred_ID, sizeof(temp_send_message->fido2_message.fido2_auth_cred_rsp_message.cred_ID));
-        temp_send_message->fido2_message.fido2_auth_cred_rsp_message.result = FIDO2_CREDENTIAL_EXISTS;
-        comms_aux_mcu_send_message(FALSE);
+        aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+        temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
+        temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
+        logic_database_get_webauthn_userhandle_for_address(child_address, temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.user_handle, &temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.user_handle_len);
+        memcpy(&temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.cred_ID, &request->cred_ID, sizeof(temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.cred_ID));
+        temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.result = FIDO2_CREDENTIAL_EXISTS;
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         
         /* Back to current screen */
         gui_dispatcher_get_back_to_current_screen();
@@ -227,22 +227,22 @@ void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* re
     /* Did any conversion go badly? */
     if ((display_name_conv_length < 0) || (user_name_conv_length < 0) || (rpid_conv_length < 0))
     {
-        aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-        temp_send_message->fido2_message.fido2_make_credential_rsp_message.error_code = FIDO2_STORAGE_EXHAUSTED;
-        temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_MC_RSP;
-        temp_send_message->payload_length1 = sizeof(fido2_message_t);
-        comms_aux_mcu_send_message(FALSE);
+        aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+        temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.error_code = FIDO2_STORAGE_EXHAUSTED;
+        temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_MC_RSP;
+        temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
     
     /* Check for logged in user first */
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
-        aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-        temp_send_message->fido2_message.fido2_make_credential_rsp_message.error_code = FIDO2_USER_NOT_PRESENT;
-        temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_MC_RSP;
-        temp_send_message->payload_length1 = sizeof(fido2_message_t);
-        comms_aux_mcu_send_message(FALSE);
+        aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+        temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.error_code = FIDO2_USER_NOT_PRESENT;
+        temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_MC_RSP;
+        temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
     
@@ -264,21 +264,21 @@ void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* re
     }
     else
     {
-        aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-        temp_send_message->fido2_message.fido2_make_credential_rsp_message.error_code = temp_return;
-        temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_MC_RSP;
-        temp_send_message->payload_length1 = sizeof(fido2_message_t);
-        comms_aux_mcu_send_message(FALSE);
+        aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+        temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.error_code = temp_return;
+        temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_MC_RSP;
+        temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
     
     /**************************/
     /* Prepare message answer */
     /**************************/
-    aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-    temp_send_message->fido2_message.fido2_make_credential_rsp_message.error_code = FIDO2_SUCCESS;
-    temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_MC_RSP;
-    temp_send_message->payload_length1 = sizeof(fido2_message_t);
+    aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+    temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.error_code = FIDO2_SUCCESS;
+    temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_MC_RSP;
+    temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
     
     /********************************/
     /* Create attestation signature */
@@ -302,30 +302,30 @@ void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* re
     logic_encryption_ecc256_load_key(private_key);
     logic_encryption_ecc256_derive_public_key(private_key, &pub_key);
     attested_data.enc_PK_len = logic_fido2_cbor_encode_public_key(attested_data.enc_pub_key, sizeof(attested_data.enc_pub_key), &pub_key);
-    logic_fido2_calc_attestation_signature((uint8_t const *)&attested_data, sizeof(attested_data) - sizeof(attested_data.enc_pub_key) + attested_data.enc_PK_len - sizeof(attested_data.enc_PK_len), request->client_data_hash, temp_send_message->fido2_message.fido2_make_credential_rsp_message.attest_sig, sizeof(temp_send_message->fido2_message.fido2_make_credential_rsp_message.attest_sig));
+    logic_fido2_calc_attestation_signature((uint8_t const *)&attested_data, sizeof(attested_data) - sizeof(attested_data.enc_pub_key) + attested_data.enc_PK_len - sizeof(attested_data.enc_PK_len), request->client_data_hash, temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.attest_sig, sizeof(temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.attest_sig));
     
     /*****************/
     /* Sanity checks */
     /*****************/
-    _Static_assert(sizeof(temp_send_message->fido2_message.fido2_make_credential_rsp_message.tag) == sizeof(attested_data.cred_ID.tag), "tag size is too large");
-    _Static_assert(sizeof(temp_send_message->fido2_message.fido2_make_credential_rsp_message.rpID_hash) == sizeof(attested_data.auth_data_header.rpID_hash), "rpid hash is too large");
-    _Static_assert(sizeof(temp_send_message->fido2_message.fido2_make_credential_rsp_message.pub_key_x) == sizeof(pub_key.x), "pub key x is too large");
-    _Static_assert(sizeof(temp_send_message->fido2_message.fido2_make_credential_rsp_message.pub_key_y) == sizeof(pub_key.y), "pub key y is too large");
-    _Static_assert(sizeof(temp_send_message->fido2_message.fido2_make_credential_rsp_message.aaguid) == sizeof(attested_data.attest_header.aaguid), "aaguid is too large");
+    _Static_assert(sizeof(temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.tag) == sizeof(attested_data.cred_ID.tag), "tag size is too large");
+    _Static_assert(sizeof(temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.rpID_hash) == sizeof(attested_data.auth_data_header.rpID_hash), "rpid hash is too large");
+    _Static_assert(sizeof(temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.pub_key_x) == sizeof(pub_key.x), "pub key x is too large");
+    _Static_assert(sizeof(temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.pub_key_y) == sizeof(pub_key.y), "pub key y is too large");
+    _Static_assert(sizeof(temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.aaguid) == sizeof(attested_data.attest_header.aaguid), "aaguid is too large");
 
     /*************************/
     /* Create answer to host */
     /*************************/
-    memcpy(temp_send_message->fido2_message.fido2_make_credential_rsp_message.tag, attested_data.cred_ID.tag, sizeof(attested_data.cred_ID.tag));
-    memcpy(temp_send_message->fido2_message.fido2_make_credential_rsp_message.rpID_hash, attested_data.auth_data_header.rpID_hash, sizeof(attested_data.auth_data_header.rpID_hash));
-    temp_send_message->fido2_message.fido2_make_credential_rsp_message.count_BE = attested_data.auth_data_header.sign_count;
-    temp_send_message->fido2_message.fido2_make_credential_rsp_message.flags = attested_data.auth_data_header.flags;
-    memcpy(temp_send_message->fido2_message.fido2_make_credential_rsp_message.pub_key_x, pub_key.x, sizeof(pub_key.x));
-    memcpy(temp_send_message->fido2_message.fido2_make_credential_rsp_message.pub_key_y, pub_key.y, sizeof(pub_key.y));
+    memcpy(temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.tag, attested_data.cred_ID.tag, sizeof(attested_data.cred_ID.tag));
+    memcpy(temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.rpID_hash, attested_data.auth_data_header.rpID_hash, sizeof(attested_data.auth_data_header.rpID_hash));
+    temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.count_BE = attested_data.auth_data_header.sign_count;
+    temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.flags = attested_data.auth_data_header.flags;
+    memcpy(temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.pub_key_x, pub_key.x, sizeof(pub_key.x));
+    memcpy(temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.pub_key_y, pub_key.y, sizeof(pub_key.y));
     // Attest signature already filled out above when calculating attestation signature
-    memcpy(temp_send_message->fido2_message.fido2_make_credential_rsp_message.aaguid, attested_data.attest_header.aaguid, sizeof(attested_data.attest_header.aaguid));
-    temp_send_message->fido2_message.fido2_make_credential_rsp_message.cred_ID_len = sizeof(attested_data.cred_ID.tag);
-    comms_aux_mcu_send_message(FALSE);
+    memcpy(temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.aaguid, attested_data.attest_header.aaguid, sizeof(attested_data.attest_header.aaguid));
+    temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.cred_ID_len = sizeof(attested_data.cred_ID.tag);
+    comms_aux_mcu_send_message(temp_tx_message_pt);
     
     //Clear private key to limit chance of leaking key
     memset(private_key, 0, sizeof(private_key));
@@ -364,22 +364,22 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     /* Did the conversion go badly? */
     if (rpid_conv_length < 0)
     {
-        aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-        temp_send_message->fido2_message.fido2_get_assertion_rsp_message.error_code = FIDO2_NO_CREDENTIALS;
-        temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
-        temp_send_message->payload_length1 = sizeof(fido2_message_t);
-        comms_aux_mcu_send_message(FALSE);
+        aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+        temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.error_code = FIDO2_NO_CREDENTIALS;
+        temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
+        temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
     
     /* Check for logged in user first */
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
-        aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-        temp_send_message->fido2_message.fido2_get_assertion_rsp_message.error_code = FIDO2_USER_NOT_PRESENT;
-        temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
-        temp_send_message->payload_length1 = sizeof(fido2_message_t);
-        comms_aux_mcu_send_message(FALSE);
+        aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+        temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.error_code = FIDO2_USER_NOT_PRESENT;
+        temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
+        temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
     
@@ -402,34 +402,34 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     }
     else
     {
-        aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-        temp_send_message->fido2_message.fido2_get_assertion_rsp_message.error_code = temp_return;
-        temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
-        temp_send_message->payload_length1 = sizeof(fido2_message_t);
-        comms_aux_mcu_send_message(FALSE);
+        aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+        temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.error_code = temp_return;
+        temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
+        temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
     
     /**************************/
     /* Prepare message answer */
     /**************************/
-    aux_mcu_message_t* temp_send_message = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
-    temp_send_message->fido2_message.fido2_get_assertion_rsp_message.error_code = FIDO2_SUCCESS;
-    temp_send_message->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
-    temp_send_message->payload_length1 = sizeof(fido2_message_t);
+    aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+    temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.error_code = FIDO2_SUCCESS;
+    temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
+    temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
 
     /* Sign header */
     logic_encryption_ecc256_load_key(private_key);
     logic_encryption_ecc256_derive_public_key(private_key, &pub_key);
-    logic_fido2_calc_attestation_signature((uint8_t const *)&auth_data_header, sizeof(auth_data_header), request->client_data_hash, temp_send_message->fido2_message.fido2_get_assertion_rsp_message.attest_sig, sizeof(temp_send_message->fido2_message.fido2_get_assertion_rsp_message.attest_sig));
+    logic_fido2_calc_attestation_signature((uint8_t const *)&auth_data_header, sizeof(auth_data_header), request->client_data_hash, temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.attest_sig, sizeof(temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.attest_sig));
 
     /*****************/
     /* Sanity checks */
     /*****************/
-    _Static_assert(sizeof(temp_send_message->fido2_message.fido2_get_assertion_rsp_message.tag) == sizeof(credential_id), "tag size is too large");
-    _Static_assert(sizeof(temp_send_message->fido2_message.fido2_get_assertion_rsp_message.user_handle) >= sizeof(user_handle), "user handle is too large");
-    _Static_assert(sizeof(temp_send_message->fido2_message.fido2_get_assertion_rsp_message.rpID_hash) == sizeof(auth_data_header.rpID_hash), "rpid hash is too large");
-    _Static_assert(sizeof(temp_send_message->fido2_message.fido2_get_assertion_rsp_message.aaguid) == sizeof(fido2_minible_aaguid), "aaguid is too large");
+    _Static_assert(sizeof(temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.tag) == sizeof(credential_id), "tag size is too large");
+    _Static_assert(sizeof(temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.user_handle) >= sizeof(user_handle), "user handle is too large");
+    _Static_assert(sizeof(temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.rpID_hash) == sizeof(auth_data_header.rpID_hash), "rpid hash is too large");
+    _Static_assert(sizeof(temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.aaguid) == sizeof(fido2_minible_aaguid), "aaguid is too large");
     
 
     /* Sanitize user_handle_len to prevent overflow */
@@ -441,16 +441,16 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     /*************************/
     /* Create answer to host */
     /*************************/
-    memcpy(temp_send_message->fido2_message.fido2_get_assertion_rsp_message.tag, credential_id, sizeof(credential_id));
-    memcpy(temp_send_message->fido2_message.fido2_get_assertion_rsp_message.user_handle, user_handle, user_handle_len);
-    temp_send_message->fido2_message.fido2_get_assertion_rsp_message.user_handle_len = user_handle_len;
-    memcpy(temp_send_message->fido2_message.fido2_get_assertion_rsp_message.rpID_hash, auth_data_header.rpID_hash, sizeof(auth_data_header.rpID_hash));
-    temp_send_message->fido2_message.fido2_get_assertion_rsp_message.count_BE = auth_data_header.sign_count;
+    memcpy(temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.tag, credential_id, sizeof(credential_id));
+    memcpy(temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.user_handle, user_handle, user_handle_len);
+    temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.user_handle_len = user_handle_len;
+    memcpy(temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.rpID_hash, auth_data_header.rpID_hash, sizeof(auth_data_header.rpID_hash));
+    temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.count_BE = auth_data_header.sign_count;
     // Attest signature already filled out above when calculating attestation signature
-    memcpy(temp_send_message->fido2_message.fido2_get_assertion_rsp_message.aaguid, fido2_minible_aaguid, sizeof(temp_send_message->fido2_message.fido2_get_assertion_rsp_message.aaguid));
+    memcpy(temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.aaguid, fido2_minible_aaguid, sizeof(temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.aaguid));
     // We no longer have the credential ID. Not needed for assertion
-    temp_send_message->fido2_message.fido2_get_assertion_rsp_message.flags = auth_data_header.flags;
-    comms_aux_mcu_send_message(FALSE);
+    temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.flags = auth_data_header.flags;
+    comms_aux_mcu_send_message(temp_tx_message_pt);
     
     //Clear private key to limit chance of leaking key
     memset(private_key, 0, sizeof(private_key));
