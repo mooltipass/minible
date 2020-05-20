@@ -88,16 +88,14 @@ uint16_t comms_hid_msgs_fill_get_status_message_answer(uint16_t* msg_array_uint1
     }
 }
 
-/*! \fn     comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb)
+/*! \fn     comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb)
 *   \brief  Parse an incoming message from USB or BLE
 *   \param  rcv_msg                 Received message
 *   \param  supposed_payload_length Supposed payload length
-*   \param  send_msg                Where to write a possible reply
 *   \param  answer_restrict_type    Enum restricting which messages we can answer
 *   \param  is_message_from_usb     Boolean set to TRUE if message comes from USB
-*   \return something >= 0 if an answer needs to be sent, otherwise -1
 */
-int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb)
+void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb)
 {    
     /* Check correct payload length */
     if ((supposed_payload_length != rcv_msg->payload_length) || (supposed_payload_length > sizeof(rcv_msg->payload)))

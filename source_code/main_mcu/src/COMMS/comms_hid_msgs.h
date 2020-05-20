@@ -207,7 +207,7 @@ typedef struct
 } hid_message_t;
 
 /* Prototypes */
-int16_t comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, hid_message_t* send_msg, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb);
+void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb);
 uint16_t comms_hid_msgs_fill_get_status_message_answer(uint16_t* msg_array_uint16);
 
 

@@ -335,7 +335,6 @@ void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* re
 /*! \fn     logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* request)
 *   \brief  Process an assertion for a credential
 *   \param  incoming request message
-*   \param  outgoing response message
 */
 void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* request)
 {
