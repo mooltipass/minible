@@ -84,13 +84,14 @@ void comms_hid_msgs_debug_printf(const char *fmt, ...)
 #pragma GCC diagnostic pop
 #endif
 
-/*! \fn     comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, msg_restrict_type_te answer_restrict_type)
+/*! \fn     comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb)
 *   \brief  Parse an incoming message from USB or BLE
 *   \param  rcv_msg                 Received message
 *   \param  supposed_payload_length Supposed payload length
 *   \param  answer_restrict_type    Enum restricting which messages we can answer
+*   \param  is_message_from_usb     TRUE if message is from USB
 */
-void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, msg_restrict_type_te answer_restrict_type)
+void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payload_length, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb)
 {    
     /* Check correct payload length */
     if ((supposed_payload_length != rcv_msg->payload_length) || (supposed_payload_length > sizeof(rcv_msg->payload)))
@@ -110,13 +111,12 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
     if (should_ignore_message != FALSE)
     {
         /* Send please retry */
-        send_msg->message_type = HID_CMD_ID_RETRY;
-        send_msg->payload_length = 0;
-        return 0;
+        comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, HID_CMD_ID_RETRY, 0);
+        comms_aux_mcu_send_message(FALSE);
+        return;
     }
     
     /* By default: copy the same CMD identifier for TX message */
-    send_msg->message_type = rcv_msg->message_type;
     uint16_t rcv_message_type = rcv_msg->message_type;
     
     /* Switch on command id */
@@ -132,9 +132,8 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             sh1122_start_data_sending(&plat_oled_descriptor);
             
             /* Set ack, leave same command id */
-            send_msg->payload[0] = HID_1BYTE_ACK;
-            send_msg->payload_length = 1;
-            return 1;
+            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+            return;
         }    
         case HID_CMD_ID_SEND_TO_DISP_BUFFER:
         {            
@@ -145,9 +144,8 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             }
             
             /* Set ack, leave same command id */
-            send_msg->payload[0] = HID_1BYTE_ACK;
-            send_msg->payload_length = 1;
-            return 1;
+            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+            return;
         }  
         case HID_CMD_ID_CLOSE_DISP_BUFFER:
         {            
@@ -158,9 +156,8 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             sh1122_stop_data_sending(&plat_oled_descriptor);            
             
             /* Set ack, leave same command id */
-            send_msg->payload[0] = HID_1BYTE_ACK;
-            send_msg->payload_length = 1;
-            return 1;
+            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+            return;
         }          
         case HID_CMD_ID_ERASE_DATA_FLASH:
         {
@@ -174,16 +171,14 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
                 dataflash_bulk_erase_without_wait(&dataflash_descriptor);
                 
                 /* Set ack, leave same command id */
-                send_msg->payload[0] = HID_1BYTE_ACK;
-                send_msg->payload_length = 1;
-                return 1;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set ack, leave same command id */
-                send_msg->payload[0] = HID_1BYTE_NACK;
-                send_msg->payload_length = 1;
-                return 1;               
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }                     
         }
         case HID_CMD_ID_IS_DATA_FLASH_READY:
@@ -191,16 +186,14 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             if (dataflash_is_busy(&dataflash_descriptor) != FALSE)
             {
                 /* Set nack, leave same command id */
-                send_msg->payload[0] = HID_1BYTE_NACK;
-                send_msg->payload_length = 1;
-                return 1;                
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
             else
             {
                 /* Set ack, leave same command id */
-                send_msg->payload[0] = HID_1BYTE_ACK;
-                send_msg->payload_length = 1;
-                return 1;                
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
         }
         case HID_CMD_ID_DATAFLASH_WRITE_256B:
@@ -212,16 +205,14 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
                 dataflash_write_array_to_memory(&dataflash_descriptor, *write_address, &rcv_msg->payload[4], 256);
                 
                 /* Set ack, leave same command id */
-                send_msg->payload[0] = HID_1BYTE_ACK;
-                send_msg->payload_length = 1;
-                return 1;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             } 
             else
             {
                 /* Set nack, leave same command id */
-                send_msg->payload[0] = HID_1BYTE_NACK;
-                send_msg->payload_length = 1;
-                return 1;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
         }
         case HID_CMD_ID_REINDEX_BUNDLE:
@@ -238,16 +229,14 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
                 comms_hid_msgs_debug_upload_allowed = FALSE;
                 
                 /* Set ack, leave same command id */
-                send_msg->payload[0] = HID_1BYTE_ACK;
-                send_msg->payload_length = 1;
-                return 1;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             } 
             else
             {
                 /* Set nack, leave same command id */
-                send_msg->payload[0] = HID_1BYTE_NACK;
-                send_msg->payload_length = 1;
-                return 1;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }                
         }
         case HID_CMD_ID_SET_OLED_PARAMS:
@@ -274,9 +263,8 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             }
             
             /* Set ack, leave same command id */
-            send_msg->payload[0] = HID_1BYTE_ACK;
-            send_msg->payload_length = 1;
-            return 1;
+            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+            return;
         }
         case HID_CMD_ID_START_BOOTLOADER:
         {
@@ -287,10 +275,11 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
         case HID_CMD_ID_GET_ACC_32_SAMPLES:
         {
             while (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, FALSE) == FALSE);
-            memcpy((void*)send_msg->payload, (void*)plat_acc_descriptor.fifo_read.acc_data_array, sizeof(plat_acc_descriptor.fifo_read.acc_data_array));        
-            lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);    
-            send_msg->payload_length = sizeof(plat_acc_descriptor.fifo_read.acc_data_array);
-            return sizeof(plat_acc_descriptor.fifo_read.acc_data_array);
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(plat_acc_descriptor.fifo_read.acc_data_array));
+            memcpy((void*)temp_tx_message_pt->hid_message.payload, (void*)plat_acc_descriptor.fifo_read.acc_data_array, sizeof(plat_acc_descriptor.fifo_read.acc_data_array));
+            lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
+            comms_aux_mcu_send_message(FALSE);
+            return;
         }
         case HID_CMD_ID_FLASH_AUX_MCU:
         {            
@@ -298,7 +287,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
             comms_aux_arm_rx_and_clear_no_comms();            
             logic_aux_mcu_flash_firmware_update(TRUE);            
-            return -1;
+            return;
         }
         case HID_CMD_ID_FLASH_AUX_AND_MAIN:
         {
@@ -322,7 +311,6 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             
             /* Generate our packet */
             temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
-            (void)temp_tx_message_pt;
             
             /* Wait for current packet reception and arm reception */
             dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
@@ -335,16 +323,17 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             while(comms_aux_mcu_active_wait(&temp_rx_message, TRUE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
                 
             /* Copy message contents into send packet */
-            memcpy((void*)send_msg->detailed_platform_info.aux_mcu_infos, (void*)&temp_rx_message->aux_details_message, sizeof(temp_rx_message->aux_details_message));
-            send_msg->detailed_platform_info.main_mcu_fw_major = FW_MAJOR;
-            send_msg->detailed_platform_info.main_mcu_fw_minor = FW_MINOR;
-            send_msg->payload_length = sizeof(send_msg->detailed_platform_info);
-            send_msg->message_type = rcv_message_type;
+            temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(temp_tx_message_pt->hid_message.detailed_platform_info));
+            memcpy((void*)temp_tx_message_pt->hid_message.detailed_platform_info.aux_mcu_infos, (void*)&temp_rx_message->aux_details_message, sizeof(temp_rx_message->aux_details_message));
+            temp_tx_message_pt->hid_message.detailed_platform_info.main_mcu_fw_major = FW_MAJOR;
+            temp_tx_message_pt->hid_message.detailed_platform_info.main_mcu_fw_minor = FW_MINOR;
             
             /* Rearm receive */
             comms_aux_arm_rx_and_clear_no_comms();
             
-            return sizeof(send_msg->detailed_platform_info);
+            /* Send message */
+            comms_aux_mcu_send_message(FALSE);
+            return;
         }
         case HID_CMD_ID_GET_BATTERY_STATUS:
         {
@@ -433,25 +422,25 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             while(comms_aux_mcu_active_wait(&temp_rx_message, TRUE, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE, -1) != RETURN_OK){}
                 
             /* Prepare packet to send back */
-            memset(send_msg, 0x00, sizeof(hid_message_t));
-            send_msg->battery_status.power_source = logic_power_get_power_source();
-            send_msg->battery_status.platform_charging = logic_power_is_battery_charging();
-            send_msg->battery_status.main_adc_battery_value = bat_adc_result;
-            send_msg->battery_status.aux_charge_status = temp_rx_message->nimh_charge_message.charge_status;
-            send_msg->battery_status.aux_battery_voltage = temp_rx_message->nimh_charge_message.battery_voltage;
-            send_msg->battery_status.aux_charge_current = temp_rx_message->nimh_charge_message.charge_current;
-            send_msg->battery_status.aux_stepdown_voltage = temp_rx_message->nimh_charge_message.stepdown_voltage;
-            send_msg->battery_status.aux_dac_register_val = temp_rx_message->nimh_charge_message.dac_data_reg;
-            send_msg->payload_length = sizeof(send_msg->battery_status);
-            send_msg->message_type = rcv_message_type;
+            temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(temp_tx_message_pt->hid_message.battery_status));
+            temp_tx_message_pt->hid_message.battery_status.power_source = logic_power_get_power_source();
+            temp_tx_message_pt->hid_message.battery_status.platform_charging = logic_power_is_battery_charging();
+            temp_tx_message_pt->hid_message.battery_status.main_adc_battery_value = bat_adc_result;
+            temp_tx_message_pt->hid_message.battery_status.aux_charge_status = temp_rx_message->nimh_charge_message.charge_status;
+            temp_tx_message_pt->hid_message.battery_status.aux_battery_voltage = temp_rx_message->nimh_charge_message.battery_voltage;
+            temp_tx_message_pt->hid_message.battery_status.aux_charge_current = temp_rx_message->nimh_charge_message.charge_current;
+            temp_tx_message_pt->hid_message.battery_status.aux_stepdown_voltage = temp_rx_message->nimh_charge_message.stepdown_voltage;
+            temp_tx_message_pt->hid_message.battery_status.aux_dac_register_val = temp_rx_message->nimh_charge_message.dac_data_reg;
             
             /* Rearm receive */
             comms_aux_arm_rx_and_clear_no_comms();
             
-            return sizeof(send_msg->battery_status);
+            /* Send message */
+            comms_aux_mcu_send_message(FALSE);
+            return;
         }
         default: break;
     }
     
-    return -1;
+    return;
 }

@@ -1045,7 +1045,9 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
     /* Smartcard present and unlocked? */
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
-        return -1;
+        aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+        comms_aux_mcu_send_message(FALSE);
+        return;
     }
     
     /* Does service already exist? */
@@ -1057,7 +1059,9 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
     {
         /* From 1s to 3s */
         timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
-        return -1;
+        aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+        comms_aux_mcu_send_message(FALSE);
+        return;
     }    
     
     /* See how many credentials there are for this service */
@@ -1076,7 +1080,9 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             {
                 /* From 3s to 7s */
                 timer_delay_ms(3000 + (rng_get_random_uint16_t()&0x0FFF));
-                return -1;
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
         }
         else
@@ -1101,8 +1107,9 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             /* Did the user approve? */
             if (prompt_return != MINI_INPUT_RET_YES)
             {
-                memset(send_msg->payload, 0, sizeof(send_msg->payload));
-                return -1;
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
         }
         else
@@ -1126,38 +1133,42 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);
         }
         
+        /* Prepare answer */
+        aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+        
         /* Get prefilled message */
-        uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr, &prev_gen_credential_flag, &password_valid_flag);
+        uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, &temp_tx_message_pt->hid_message, temp_cred_ctr, &prev_gen_credential_flag, &password_valid_flag);
         
         /* Password valid? */
         if (password_valid_flag == FALSE)
         {
-            send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index] = 0;
+            temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index] = 0;
             pwd_length = 0;
         } 
         else
         {
             /* User approved, decrypt password */
-            logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
+            logic_encryption_ctr_decrypt((uint8_t*)&(temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
             
             /* If old generation password, convert it to unicode */
             if (prev_gen_credential_flag != FALSE)
             {
                 _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
-                utils_ascii_to_unicode((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
-                send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index + NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
+                utils_ascii_to_unicode((uint8_t*)&(temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+                temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index + NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
             }
             
             /* Get password length */
-            pwd_length = utils_strlen(&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]));
+            pwd_length = utils_strlen(&(temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index]));
         }        
         
         /* Compute payload size */
         uint16_t return_payload_size = return_payload_size_without_pwd + (pwd_length + 1)*sizeof(cust_char_t);
         
         /* Return payload size */
-        send_msg->payload_length = return_payload_size;
-        return return_payload_size;
+        comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, return_payload_size);
+        comms_aux_mcu_send_message(FALSE);
+        return;
     }
     else
     {        
@@ -1166,7 +1177,9 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
         {
             /* From 1s to 3s */
             timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
-            return -1;
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+            comms_aux_mcu_send_message(FALSE);
+            return;
         }
         else
         {
@@ -1183,42 +1196,48 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             /* So.... what did the user select? */
             if (child_address == NODE_ADDR_NULL)
             {
-                return -1;
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
             else
             {
+                /* Prepare answer */
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+                
                 /* Get prefilled message */
-                uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, send_msg, temp_cred_ctr, &prev_gen_credential_flag, &password_valid_flag);
+                uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, &temp_tx_message_pt->hid_message, temp_cred_ctr, &prev_gen_credential_flag, &password_valid_flag);
                 
                 /* Password valid? */
                 if (password_valid_flag == FALSE)
                 {
-                    send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index] = 0;
+                    temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index] = 0;
                     pwd_length = 0;
                 } 
                 else
                 {
                     /* User approved, decrypt password */
-                    logic_encryption_ctr_decrypt((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
+                    logic_encryption_ctr_decrypt((uint8_t*)&(temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
                     
                     /* If old generation password, convert it to unicode */
                     if (prev_gen_credential_flag != FALSE)
                     {
                         _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
-                        utils_ascii_to_unicode((uint8_t*)&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
-                        send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index + NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
+                        utils_ascii_to_unicode((uint8_t*)&(temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+                        temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index + NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
                     }
                     
                     /* Get password length */
-                    pwd_length = utils_strlen(&(send_msg->get_credential_answer.concatenated_strings[send_msg->get_credential_answer.password_index]));
+                    pwd_length = utils_strlen(&(temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index]));
                 }                
                 
                 /* Compute payload size */
                 uint16_t return_payload_size = return_payload_size_without_pwd + (pwd_length + 1)*sizeof(cust_char_t);
                 
                 /* Return payload size */
-                send_msg->payload_length = return_payload_size;
-                return return_payload_size;                
+                comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, return_payload_size);
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
         }
     }    

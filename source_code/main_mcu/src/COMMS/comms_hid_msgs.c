@@ -99,15 +99,14 @@ void comms_hid_msgs_update_message_payload_length_fields(aux_mcu_message_t* mess
     message_pt->hid_message.payload_length = hid_payload_size;
 }
 
-/*! \fn     comms_hid_msgs_update_message_fields(BOOL usb_hid_message, uint16_t message_type, uint16_t hid_payload_size)
+/*! \fn     comms_hid_msgs_update_message_fields(aux_mcu_message_t* message_pt, BOOL usb_hid_message, uint16_t message_type, uint16_t hid_payload_size)
 *   \brief  Update an HID message fields
 *   \param  message_pt          Pointer to message to update
 *   \param  usb_hid_message     TRUE for USB HID message
 *   \param  message_type        HID message type
 *   \param  hid_payload_size    Payload size in HID message
-*   \return Pointer to the message ready to be sent
 */
-aux_mcu_message_t* comms_hid_msgs_update_message_fields(aux_mcu_message_t* message_pt, BOOL usb_hid_message, uint16_t message_type, uint16_t hid_payload_size)
+void comms_hid_msgs_update_message_fields(aux_mcu_message_t* message_pt, BOOL usb_hid_message, uint16_t message_type, uint16_t hid_payload_size)
 {
     if (usb_hid_message != FALSE)
     {
@@ -162,7 +161,7 @@ aux_mcu_message_t* comms_hid_msgs_get_empty_hid_packet(BOOL usb_hid_message, uin
 */
 void comms_hid_msgs_send_ack_nack_message(BOOL usb_hid_message, uint16_t message_type, BOOL ack_message)
 {
-    aux_mcu_message_t* temp_send_message = comms_hid_msgs_get_empty_hid_packet(usb_hid_message, message_type, 1);
+    aux_mcu_message_t* temp_send_message = comms_hid_msgs_get_empty_hid_packet(usb_hid_message, message_type, sizeof(uint8_t));
     if (ack_message == FALSE)
     {
         temp_send_message->hid_message.payload[0] = HID_1BYTE_NACK;
@@ -289,6 +288,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             
             /* Send message */
             comms_aux_mcu_send_message(FALSE);
+            return;
         }
         
         case HID_CMD_ID_SET_DATE:
@@ -929,7 +929,9 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Too long length */
             if (service_length == max_cust_char_length)
             {
-                return 0;
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
             
             /* Reduce max length */
@@ -937,12 +939,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             
             /* Is the login specified? */
             if (rcv_msg->get_credential_request.login_name_index == UINT16_MAX)
-            { 
-                /* Get a pointer to a message to send */
-                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
-                comms_aux_mcu_send_message(FALSE);
-                return;
-                
+            {                 
                 /* Request user to send credential */
                 logic_user_usb_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), 0, is_message_from_usb);
                 return;         
@@ -1062,8 +1059,6 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
                     return;
                 }
-            
-                return 1;
             }
         }
         
@@ -1175,8 +1170,6 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
                 return;
             }
-            
-            return 1;
         }
         
         case HID_CMD_GET_DEVICE_LANG_ID:
@@ -1509,6 +1502,4 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         
         default: break;
     }
-    
-    return -1;
 }

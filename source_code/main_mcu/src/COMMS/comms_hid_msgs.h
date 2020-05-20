@@ -28,8 +28,8 @@
 #include "defines.h"
 
 /* Prototypes */
-aux_mcu_message_t* comms_hid_msgs_update_message_fields(aux_mcu_message_t* message_pt, BOOL usb_hid_message, uint16_t message_type, uint16_t hid_payload_size);
 void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb);
+void comms_hid_msgs_update_message_fields(aux_mcu_message_t* message_pt, BOOL usb_hid_message, uint16_t message_type, uint16_t hid_payload_size);
 aux_mcu_message_t* comms_hid_msgs_get_empty_hid_packet(BOOL usb_hid_message, uint16_t message_type, uint16_t hid_payload_size);
 void comms_hid_msgs_update_message_payload_length_fields(aux_mcu_message_t* message_pt, uint16_t hid_payload_size);
 void comms_hid_msgs_send_ack_nack_message(BOOL usb_hid_message, uint16_t message_type, BOOL ack_message);

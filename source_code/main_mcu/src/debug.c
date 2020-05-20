@@ -1016,7 +1016,6 @@ void debug_mcu_and_aux_info(void)
     
     /* Prepare status message request */
     temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
-    (void)temp_tx_message_pt;
     
     /* Send message */
     comms_aux_mcu_send_message(TRUE);
@@ -1300,7 +1299,6 @@ void debug_atbtlc_info(void)
     
     /* Generate our packet */
     temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
-    (void)temp_tx_message_pt;
     
     /* Send message */
     comms_aux_mcu_send_message(TRUE);
@@ -1492,7 +1490,6 @@ void debug_nimh_charging(void)
         {            
             /* Generate our packet */
             temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_NIMH_CHARGE);
-            (void)temp_tx_message_pt;
             
             /* Send message */
             comms_aux_mcu_send_message(TRUE);
@@ -1598,7 +1595,6 @@ void debug_stack_info(void)
 
     /* Prepare status message request */
     temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
-    (void)temp_tx_message_pt;
 
     /* Send message */
     comms_aux_mcu_send_message(TRUE);
