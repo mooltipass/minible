@@ -88,6 +88,94 @@ uint16_t comms_hid_msgs_fill_get_status_message_answer(uint16_t* msg_array_uint1
     }
 }
 
+/*! \fn     comms_hid_msgs_update_message_payload_length_fields(aux_mcu_message_t* message_pt, uint16_t hid_payload_size)
+*   \brief  Update message payload length fields
+*   \param  message_pt          Pointer to message to update
+*   \param  hid_payload_size    Payload size in HID message
+*/
+void comms_hid_msgs_update_message_payload_length_fields(aux_mcu_message_t* message_pt, uint16_t hid_payload_size)
+{
+    message_pt->payload_length1 = hid_payload_size + sizeof(message_pt->hid_message.message_type) + sizeof(message_pt->hid_message.payload_length);
+    message_pt->hid_message.payload_length = hid_payload_size;
+}
+
+/*! \fn     comms_hid_msgs_update_message_fields(BOOL usb_hid_message, uint16_t message_type, uint16_t hid_payload_size)
+*   \brief  Update an HID message fields
+*   \param  message_pt          Pointer to message to update
+*   \param  usb_hid_message     TRUE for USB HID message
+*   \param  message_type        HID message type
+*   \param  hid_payload_size    Payload size in HID message
+*   \return Pointer to the message ready to be sent
+*/
+aux_mcu_message_t* comms_hid_msgs_update_message_fields(aux_mcu_message_t* message_pt, BOOL usb_hid_message, uint16_t message_type, uint16_t hid_payload_size)
+{
+    if (usb_hid_message != FALSE)
+    {
+        message_pt->message_type = AUX_MCU_MSG_TYPE_USB;
+    }
+    else
+    {
+        message_pt->message_type = AUX_MCU_MSG_TYPE_BLE;
+    }
+    
+    /* Update payload size */
+    message_pt->payload_length1 = hid_payload_size + sizeof(message_pt->hid_message.message_type) + sizeof(message_pt->hid_message.payload_length);
+    message_pt->hid_message.payload_length = hid_payload_size;
+    message_pt->hid_message.message_type = message_type;
+}    
+
+/*! \fn     comms_hid_msgs_get_empty_hid_packet(BOOL usb_hid_message, uint16_t message_type, uint16_t hid_payload_size)
+*   \brief  Get an empty HID message ready to be sent to aux
+*   \param  usb_hid_message     TRUE for USB HID message
+*   \param  message_type        HID message type
+*   \param  hid_payload_size    Payload size in HID message
+*   \return Pointer to the message ready to be sent
+*/
+aux_mcu_message_t* comms_hid_msgs_get_empty_hid_packet(BOOL usb_hid_message, uint16_t message_type, uint16_t hid_payload_size)
+{
+    aux_mcu_message_t* temp_send_message_pt;
+    
+    /* Get pointer to message to be sent */
+    if (usb_hid_message != FALSE)
+    {
+        temp_send_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_USB);
+    }
+    else
+    {
+        temp_send_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BLE);
+    }   
+    
+    /* Update payload size */
+    temp_send_message_pt->payload_length1 = hid_payload_size + sizeof(temp_send_message_pt->hid_message.message_type) + sizeof(temp_send_message_pt->hid_message.payload_length);
+    temp_send_message_pt->hid_message.payload_length = hid_payload_size;
+    temp_send_message_pt->hid_message.message_type = message_type;
+    
+    /* Return pointer */
+    return temp_send_message_pt;
+}
+
+/*! \fn     comms_hid_msgs_send_ack_nack_message(BOOL usb_hid_message, uint16_t message_type, BOOL ack_message)
+*   \brief  Send ACK or NACK message for a given message type
+*   \param  usb_hid_message TRUE for USB HID message
+*   \param  message_type    Message type for the (N)ACK
+*   \param  ack_message     TRUE to send ACK message
+*/
+void comms_hid_msgs_send_ack_nack_message(BOOL usb_hid_message, uint16_t message_type, BOOL ack_message)
+{
+    aux_mcu_message_t* temp_send_message = comms_hid_msgs_get_empty_hid_packet(usb_hid_message, message_type, 1);
+    if (ack_message == FALSE)
+    {
+        temp_send_message->hid_message.payload[0] = HID_1BYTE_NACK;
+    } 
+    else
+    {
+        temp_send_message->hid_message.payload[0] = HID_1BYTE_ACK;
+    }
+    
+    /* Send message */
+    comms_aux_mcu_send_message(FALSE);
+}
+
 /*! \fn     comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb)
 *   \brief  Parse an incoming message from USB or BLE
 *   \param  rcv_msg                 Received message
@@ -101,7 +189,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     if ((supposed_payload_length != rcv_msg->payload_length) || (supposed_payload_length > sizeof(rcv_msg->payload)))
     {
         /* Silent error */
-        return -1;
+        return;
     }
     
     /* Store received message type in case one of the routines below does some communication */
@@ -134,19 +222,17 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     if (should_ignore_message != FALSE)
     {
         /* Send please retry */
-        send_msg->message_type = HID_CMD_ID_RETRY;
-        send_msg->payload_length = 0;
-        return 0;
+        comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, HID_CMD_ID_RETRY, 0);
+        comms_aux_mcu_send_message(FALSE);
+        return;
     }
     
     /* Check for commands for management mode */
     if ((rcv_msg->message_type >= HID_FIRST_CMD_FOR_MMM) && (rcv_msg->message_type <= HID_LAST_CMD_FOR_MMM) && (logic_security_is_management_mode_set() == FALSE))
     {
         /* Set nack, leave same command id */
-        send_msg->message_type = rcv_message_type;
-        send_msg->payload[0] = HID_1BYTE_NACK;
-        send_msg->payload_length = 1;
-        return 1;
+        comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+        return;
     }
     
     /* Switch on command id */
@@ -155,18 +241,20 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         case HID_CMD_ID_PING:
         {
             /* Simple ping: copy the message contents */
-            memcpy((void*)send_msg->payload, (void*)rcv_msg->payload, rcv_msg->payload_length);
-            send_msg->payload_length = rcv_msg->payload_length;
-            send_msg->message_type = rcv_message_type;
-            return send_msg->payload_length;
+            aux_mcu_message_t* temp_send_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, supposed_payload_length);
+            memcpy((void*)temp_send_message_pt->hid_message.payload, (void*)rcv_msg->payload, supposed_payload_length);
+            comms_aux_mcu_send_message(FALSE);
+            return;
         }
 
         case HID_CMD_GET_DEVICE_STATUS:
         {
             /* Get device status: call dedicated function */
-            send_msg->payload_length = comms_hid_msgs_fill_get_status_message_answer(send_msg->payload_as_uint16);
-            send_msg->message_type = rcv_message_type;
-            return send_msg->payload_length;
+            aux_mcu_message_t* temp_send_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+            uint16_t payload_length = comms_hid_msgs_fill_get_status_message_answer(temp_send_message_pt->hid_message.payload_as_uint16);
+            comms_hid_msgs_update_message_payload_length_fields(temp_send_message_pt, payload_length);
+            comms_aux_mcu_send_message(FALSE);
+            return;
         }
         
         case HID_CMD_ID_PLAT_INFO:
@@ -176,7 +264,6 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             
             /* Generate our packet */
             temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
-            (void)temp_tx_message_pt;
             
             /* Wait for current packet reception and arm reception */
             dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
@@ -189,19 +276,19 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             while(comms_aux_mcu_active_wait(&temp_rx_message, TRUE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
             
             /* Copy message contents into send packet */
-            send_msg->platform_info.main_mcu_fw_major = FW_MAJOR;
-            send_msg->platform_info.main_mcu_fw_minor = FW_MINOR;
-            send_msg->platform_info.aux_mcu_fw_major = temp_rx_message->aux_details_message.aux_fw_ver_major;
-            send_msg->platform_info.aux_mcu_fw_minor = temp_rx_message->aux_details_message.aux_fw_ver_minor;
-            send_msg->platform_info.plat_serial_number = 12345678;
-            send_msg->platform_info.memory_size = DBFLASH_CHIP;            
-            send_msg->payload_length = sizeof(send_msg->platform_info);
-            send_msg->message_type = rcv_message_type;
+            temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(temp_tx_message_pt->hid_message.platform_info));
+            temp_tx_message_pt->hid_message.platform_info.main_mcu_fw_major = FW_MAJOR;
+            temp_tx_message_pt->hid_message.platform_info.main_mcu_fw_minor = FW_MINOR;
+            temp_tx_message_pt->hid_message.platform_info.aux_mcu_fw_major = temp_rx_message->aux_details_message.aux_fw_ver_major;
+            temp_tx_message_pt->hid_message.platform_info.aux_mcu_fw_minor = temp_rx_message->aux_details_message.aux_fw_ver_minor;
+            temp_tx_message_pt->hid_message.platform_info.plat_serial_number = 12345678;
+            temp_tx_message_pt->hid_message.platform_info.memory_size = DBFLASH_CHIP;        
             
             /* Rearm receive */
             comms_aux_arm_rx_and_clear_no_comms();
             
-            return sizeof(send_msg->platform_info);            
+            /* Send message */
+            comms_aux_mcu_send_message(FALSE);
         }
         
         case HID_CMD_ID_SET_DATE:
@@ -214,25 +301,23 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 nodemgmt_set_current_date(nodemgmt_construct_date(rcv_msg->payload_as_uint16[0],rcv_msg->payload_as_uint16[1],rcv_msg->payload_as_uint16[2]));
                 
                 /* Set success byte */
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-            
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
         }
         
         case HID_CMD_ID_GET_32B_RNG:
         {
-            send_msg->message_type = rcv_message_type;
-            rng_fill_array(send_msg->payload, 32);
-            send_msg->payload_length = 32;
-            return 32;
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 32);
+            rng_fill_array(temp_tx_message_pt->hid_message.payload, 32);
+            comms_aux_mcu_send_message(FALSE);
+            return;
         }
 
         case HID_CMD_GET_CUR_CARD_CPZ:
@@ -240,26 +325,27 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Smartcard unlocked or unknown card inserted */
             if ((logic_security_is_smc_inserted_unlocked() != FALSE) || (gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_UNKNOWN))
             {
-                smartcard_highlevel_read_code_protected_zone(send_msg->payload); 
-                send_msg->payload_length = MEMBER_SIZE(cpz_lut_entry_t,cards_cpz);
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, MEMBER_SIZE(cpz_lut_entry_t,cards_cpz));
+                smartcard_highlevel_read_code_protected_zone(temp_tx_message_pt->hid_message.payload);
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
-                send_msg->payload_length = 1;
-            }
-            
-            send_msg->message_type = rcv_message_type;
-            return send_msg->payload_length;            
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return; 
+            }         
         }
 
         case HID_CMD_GET_DEVICE_SETTINGS:
         {
             /* Get a dump of all device settings */
-            send_msg->payload_length = custom_fs_settings_get_dump(send_msg->payload);
-            send_msg->message_type = rcv_message_type;
-            return send_msg->payload_length;
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+            uint16_t payload_length = custom_fs_settings_get_dump(temp_tx_message_pt->hid_message.payload);
+            comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, payload_length);
+            comms_aux_mcu_send_message(FALSE);
+            return; 
         }
 
         case HID_CMD_SET_DEVICE_SETTINGS:
@@ -275,10 +361,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             sh1122_set_screen_invert(&plat_oled_descriptor, screen_inverted);
             
             /* Set ack, leave same command id */
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload[0] = HID_1BYTE_ACK;
-            send_msg->payload_length = 1;
-            return 1;
+            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+            return;
         }
         
         case HID_CMD_GET_USER_SETTINGS:
@@ -286,16 +370,16 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Get user security settings */
             if (logic_security_is_smc_inserted_unlocked() != FALSE)
             {
-                send_msg->payload_as_uint16[0] = logic_user_get_user_security_flags();
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload_length = 2;
-                return 2;
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint16_t));
+                temp_tx_message_pt->hid_message.payload_as_uint16[0] = logic_user_get_user_security_flags();
+                comms_aux_mcu_send_message(FALSE);
+                return;
             } 
             else
             {
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload_length = 0;
-                return 0;
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
         }
         
@@ -306,19 +390,17 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Get user categories strings */
             if (logic_security_is_smc_inserted_unlocked() != FALSE)
             {
-                send_msg->message_type = rcv_message_type;
-                nodemgmt_get_category_strings((nodemgmt_user_category_strings_t*)&send_msg->get_set_cat_strings);
-                send_msg->payload_length = sizeof(nodemgmt_user_category_strings_t);
-                return sizeof(nodemgmt_user_category_strings_t);
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(nodemgmt_user_category_strings_t));
+                nodemgmt_get_category_strings((nodemgmt_user_category_strings_t*)&temp_tx_message_pt->hid_message.get_set_cat_strings);
+                comms_aux_mcu_send_message(FALSE);
+                return;
                 
             } 
             else
             {
                 /* Set nack, leave same command id */
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload[0] = HID_1BYTE_NACK;
-                send_msg->payload_length = 1;
-                return 1;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
         }
         
@@ -335,12 +417,12 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     nodemgmt_set_category_strings((nodemgmt_user_category_strings_t*)&rcv_msg->get_set_cat_strings);
                     
                     /* Set ack, leave same command id */
-                    send_msg->payload[0] = HID_1BYTE_ACK;
+                    comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
                 } 
                 else
                 {
                     /* Set nack, leave same command id */
-                    send_msg->payload[0] = HID_1BYTE_NACK;
+                    comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
                 }                  
                 
                 /* Update screen */
@@ -349,12 +431,10 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             else
             {
                 /* Set nack, leave same command id */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
             }
             
-            send_msg->message_type = rcv_message_type;            
-            send_msg->payload_length = 1;
-            return 1; 
+            return; 
         }    
 
         case HID_CMD_RESET_UNKNOWN_CARD:
@@ -373,12 +453,12 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_INVALID, TRUE, GUI_INTO_MENU_TRANSITION);
 
                     /* Set success byte */
-                    send_msg->payload[0] = HID_1BYTE_ACK;
+                    comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
                 }
                 else
                 {
                     /* Set failure byte */
-                    send_msg->payload[0] = HID_1BYTE_NACK;
+                    comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
                 }
 
                 /* Update screen */
@@ -387,12 +467,10 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
             }
             
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
+            return;
         }
 
         case HID_CMD_GET_NB_FREE_USERS:
@@ -400,10 +478,10 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             uint8_t temp_uint8;
 
             /* Get number of free users */
-            send_msg->payload[0] = custom_fs_get_nb_free_cpz_lut_entries(&temp_uint8);
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint8_t));
+            temp_tx_message_pt->hid_message.payload[0] = custom_fs_get_nb_free_cpz_lut_entries(&temp_uint8);
+            comms_aux_mcu_send_message(FALSE);
+            return;
         }
 
         case HID_CMD_LOCK_DEVICE:
@@ -417,25 +495,25 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 logic_device_set_state_changed();
 
                 /* Set success byte */
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-            
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
         }
         
         case HID_CMD_GET_START_PARENTS:
         {            
             /* Return correct size & data */
-            send_msg->payload_length = nodemgmt_get_start_addresses(send_msg->payload_as_uint16)*sizeof(uint16_t);
-            send_msg->message_type = rcv_message_type;
-            return send_msg->payload_length;
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+            uint16_t payload_length = nodemgmt_get_start_addresses(temp_tx_message_pt->hid_message.payload_as_uint16)*sizeof(uint16_t);
+            comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, payload_length);
+            comms_aux_mcu_send_message(FALSE);
+            return;
         }
 
         case HID_CMD_SET_CRED_ST_PARENT:
@@ -447,17 +525,15 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 nodemgmt_set_cred_start_address(rcv_msg->payload_as_uint16[1], rcv_msg->payload_as_uint16[0]);
 
                 /* Set success byte */
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-            
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
         }
 
         case HID_CMD_SET_DATA_ST_PARENT:
@@ -469,17 +545,15 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 nodemgmt_set_data_start_address(rcv_msg->payload_as_uint16[1], rcv_msg->payload_as_uint16[0]);
 
                 /* Set success byte */
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-            
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
         }
 
         case HID_CMD_SET_START_PARENTS:
@@ -491,17 +565,15 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 nodemgmt_set_start_addresses(rcv_msg->payload_as_uint16);
 
                 /* Set success byte */
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-            
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
         }
 
         case HID_CMD_GET_FREE_NODES:
@@ -509,20 +581,17 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Check for correct number of args and that not too many free slots have been requested */
             if ((rcv_msg->payload_length == 3*sizeof(uint16_t)) && (((uint32_t)(rcv_msg->payload_as_uint16[1]) + (uint32_t)(rcv_msg->payload_as_uint16[2])) <= (max_payload_size/sizeof(uint16_t))))
             {
-                uint16_t nb_nodes_found = nodemgmt_find_free_nodes(rcv_msg->payload_as_uint16[1], send_msg->payload_as_uint16, rcv_msg->payload_as_uint16[2], &(send_msg->payload_as_uint16[rcv_msg->payload_as_uint16[1]]), nodemgmt_page_from_address(rcv_msg->payload_as_uint16[0]), nodemgmt_node_from_address(rcv_msg->payload_as_uint16[0]));
-                
-                /* Send free nodes */
-                send_msg->payload_length = nb_nodes_found*sizeof(uint16_t);
-                send_msg->message_type = rcv_message_type;
-                return nb_nodes_found*sizeof(uint16_t);
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+                uint16_t nb_nodes_found = nodemgmt_find_free_nodes(rcv_msg->payload_as_uint16[1], temp_tx_message_pt->hid_message.payload_as_uint16, rcv_msg->payload_as_uint16[2], &(temp_tx_message_pt->hid_message.payload_as_uint16[rcv_msg->payload_as_uint16[1]]), nodemgmt_page_from_address(rcv_msg->payload_as_uint16[0]), nodemgmt_node_from_address(rcv_msg->payload_as_uint16[0]));
+                comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, nb_nodes_found*sizeof(uint16_t));
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
             else
             {
                 /* Send failure */
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload[0] = HID_1BYTE_NACK;
-                send_msg->payload_length = 1;
-                return 1;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
         }
         
@@ -544,10 +613,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             }
             
             /* Set ack, leave same command id */
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload[0] = HID_1BYTE_ACK;
-            send_msg->payload_length = 1;
-            return 1;
+            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+            return;
         }
         
         case HID_CMD_START_MMM:
@@ -576,7 +643,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                             logic_security_set_management_mode(is_message_from_usb);
                             
                             /* Set success byte */
-                            send_msg->payload[0] = HID_1BYTE_ACK;
+                            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
                         } 
                         else
                         {
@@ -584,7 +651,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                             gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
 
                             /* Set failure byte */
-                            send_msg->payload[0] = HID_1BYTE_NACK;
+                            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
                         }
                     } 
                     else
@@ -596,13 +663,13 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                         logic_security_set_management_mode(is_message_from_usb);
                         
                         /* Set success byte */
-                        send_msg->payload[0] = HID_1BYTE_ACK;
+                        comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
                     }
                 }
                 else
                 {
                     /* Set failure byte */
-                    send_msg->payload[0] = HID_1BYTE_NACK;
+                    comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
                 }
             
                 /* Go back to old or updated screen */
@@ -611,13 +678,11 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
             }
             
             /* Return success or failure */
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
+            return;
         }
         
         case HID_CMD_READ_NODE:
@@ -633,36 +698,32 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     if ((temp_node_type == NODE_TYPE_PARENT) || (temp_node_type == NODE_TYPE_PARENT_DATA) || (temp_node_type == NODE_TYPE_NULL))
                     {
                         /* Read and send parent node */
-                        nodemgmt_read_parent_node_data_block_from_flash(rcv_msg->payload_as_uint16[0], (parent_node_t*)send_msg->payload_as_uint16);
-                        send_msg->payload_length = sizeof(parent_node_t);
-                        send_msg->message_type = rcv_message_type;
-                        return sizeof(parent_node_t);
+                        aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(parent_node_t));
+                        nodemgmt_read_parent_node_data_block_from_flash(rcv_msg->payload_as_uint16[0], (parent_node_t*)temp_tx_message_pt->hid_message.payload_as_uint16);
+                        comms_aux_mcu_send_message(FALSE);
+                        return;
                     } 
                     else
                     {
                         /* Read and send child node */
-                        nodemgmt_read_child_node_data_block_from_flash(rcv_msg->payload_as_uint16[0], (child_node_t*)send_msg->payload_as_uint16);
-                        send_msg->payload_length = sizeof(child_node_t);
-                        send_msg->message_type = rcv_message_type;
-                        return sizeof(child_node_t);
+                        aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(child_node_t));
+                        nodemgmt_read_child_node_data_block_from_flash(rcv_msg->payload_as_uint16[0], (child_node_t*)temp_tx_message_pt->hid_message.payload_as_uint16);
+                        comms_aux_mcu_send_message(FALSE);
+                        return;
                     }
                 } 
                 else
                 {
                     /* Set nack, leave same command id */
-                    send_msg->message_type = rcv_message_type;
-                    send_msg->payload[0] = HID_1BYTE_NACK;
-                    send_msg->payload_length = 1;
-                    return 1;
+                    comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                    return;
                 }
             } 
             else
             {
                 /* Set nack, leave same command id */
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload[0] = HID_1BYTE_NACK;
-                send_msg->payload_length = 1;
-                return 1;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
         }
 
@@ -679,7 +740,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 nodemgmt_write_child_node_block_to_flash(rcv_msg->payload_as_uint16[0], (child_node_t*)&(rcv_msg->payload_as_uint16[1]), FALSE);
 
                 /* Set success byte */
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else if ((rcv_msg->payload_length == sizeof(uint16_t) + sizeof(parent_node_t)) \
                     && (nodemgmt_check_user_permission(rcv_msg->payload_as_uint16[0], &temp_node_type_te) == RETURN_OK))
@@ -688,17 +750,15 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 nodemgmt_write_parent_node_data_block_to_flash(rcv_msg->payload_as_uint16[0], (parent_node_t*)&(rcv_msg->payload_as_uint16[1]));
 
                 /* Set success byte */
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
         }
 
         case HID_CMD_GET_USER_CHANGE_NB :
@@ -706,19 +766,18 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Smartcard unlocked? */
             if (logic_security_is_smc_inserted_unlocked() != FALSE)
             {
-                send_msg->payload_as_uint32[0] = nodemgmt_get_cred_change_number();
-                send_msg->payload_as_uint32[1] = nodemgmt_get_data_change_number();
-                send_msg->payload_length = 2*sizeof(uint32_t);
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 2*sizeof(uint32_t));
+                temp_tx_message_pt->hid_message.payload_as_uint32[0] = nodemgmt_get_cred_change_number();
+                temp_tx_message_pt->hid_message.payload_as_uint32[1] = nodemgmt_get_data_change_number();
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
-                send_msg->payload_length = 1;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-
-            send_msg->message_type = rcv_message_type;
-            return send_msg->payload_length;
         }
 
         case HID_CMD_SET_CRED_CHANGE_NB :
@@ -729,18 +788,16 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 /* Store change number */
                 nodemgmt_set_cred_change_number(rcv_msg->payload_as_uint32[0]);
 
-                /* Set success byte */                
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                /* Set success byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-            
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
         }
 
         case HID_CMD_SET_DATA_CHANGE_NB :
@@ -751,27 +808,25 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 /* Store change number */
                 nodemgmt_set_data_change_number(rcv_msg->payload_as_uint32[0]);
 
-                /* Set success byte */                
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                /* Set success byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-            
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
         }
 
         case HID_CMD_GET_CTR_VALUE:
         {
             /* Read CTR value from flash and send it */
-            send_msg->message_type = rcv_message_type;
-            nodemgmt_read_profile_ctr(send_msg->payload);            
-            send_msg->payload_length = MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr);
-            return MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr);
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr));
+            nodemgmt_read_profile_ctr(temp_tx_message_pt->hid_message.payload);
+            comms_aux_mcu_send_message(FALSE);
+            return;
         }
 
         case HID_CMD_SET_CTR_VALUE:
@@ -781,17 +836,15 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 nodemgmt_set_profile_ctr(rcv_msg->payload);
 
                 /* Set success byte */
-                send_msg->payload[0] = HID_1BYTE_ACK;         
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;  
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-            
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
         }
 
         case HID_CMD_SET_FAVORITE:
@@ -801,69 +854,68 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 nodemgmt_set_favorite(rcv_msg->payload_as_uint16[0], rcv_msg->payload_as_uint16[1], rcv_msg->payload_as_uint16[2], rcv_msg->payload_as_uint16[3]);
                 
                 /* Set success byte */
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
-            }
-            
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;            
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }        
         }
 
         case HID_CMD_GET_FAVORITE:
         {
             if (rcv_msg->payload_length == 2*sizeof(uint16_t))
             {
-                nodemgmt_read_favorite(rcv_msg->payload_as_uint16[0], rcv_msg->payload_as_uint16[1], &(send_msg->payload_as_uint16[0]), &(send_msg->payload_as_uint16[1]));
-                send_msg->payload_length = 2*sizeof(uint16_t);
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 2*sizeof(uint16_t));
+                nodemgmt_read_favorite(rcv_msg->payload_as_uint16[0], rcv_msg->payload_as_uint16[1], &(temp_tx_message_pt->hid_message.payload_as_uint16[0]), &(temp_tx_message_pt->hid_message.payload_as_uint16[1]));
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
-                send_msg->payload_length = 1;
-            }
-            
-            send_msg->message_type = rcv_message_type;
-            return send_msg->payload_length;            
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }       
         }
 
         case HID_CMD_GET_CPZ_LUT_ENTRY:
         {
-            send_msg->payload_length = sizeof(cpz_lut_entry_t);
-            logic_encryption_get_cpz_lut_entry(send_msg->payload);
-            send_msg->message_type = rcv_message_type;
-            return send_msg->payload_length;
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(cpz_lut_entry_t));
+            logic_encryption_get_cpz_lut_entry(temp_tx_message_pt->hid_message.payload);
+            comms_aux_mcu_send_message(FALSE);
+            return;
         }
 
         case HID_CMD_GET_FAVORITES:
         {
             /* Return correct size & data */
-            send_msg->payload_length = nodemgmt_get_favorites(send_msg->payload_as_uint16)*sizeof(favorite_addr_t);
-            send_msg->message_type = rcv_message_type;
-            return send_msg->payload_length;
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+            uint16_t payload_length = nodemgmt_get_favorites(temp_tx_message_pt->hid_message.payload_as_uint16)*sizeof(favorite_addr_t);
+            comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, payload_length);
+            comms_aux_mcu_send_message(FALSE);
+            return;
         }
         
         case HID_CMD_ID_GET_CRED:
-        {
-            /* Default answer: Nope! */
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 0;
-            
+        {            
             /* Incorrect service name index */
             if (rcv_msg->get_credential_request.service_name_index != 0)
             {
-                return 0;
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
             
             /* Empty service name */
             if (rcv_msg->get_credential_request.concatenated_strings[0] == 0)
             {
-                return 0;
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
             
             /* Max string length */
@@ -886,26 +938,23 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Is the login specified? */
             if (rcv_msg->get_credential_request.login_name_index == UINT16_MAX)
             { 
+                /* Get a pointer to a message to send */
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+                comms_aux_mcu_send_message(FALSE);
+                return;
+                
                 /* Request user to send credential */
-                int16_t payload_length = logic_user_usb_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), 0, send_msg);
-                if (payload_length < 0)
-                {
-                    send_msg->message_type = rcv_message_type;
-                    return 0;
-                }
-                else
-                {
-                    send_msg->message_type = rcv_message_type;
-                    send_msg->payload_length = payload_length;
-                    return payload_length;
-                }                
+                logic_user_usb_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), 0, is_message_from_usb);
+                return;         
             } 
             else
             {
                 /* Check correct index */
                 if (rcv_msg->get_credential_request.login_name_index != service_length + 1)
                 {
-                    return 0;
+                    aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+                    comms_aux_mcu_send_message(FALSE);
+                    return;
                 }
                 
                 /* Check login format */
@@ -914,22 +963,14 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 /* Too long length */
                 if (login_length == max_cust_char_length)
                 {
-                    return 0;
+                    aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+                    comms_aux_mcu_send_message(FALSE);
+                    return;
                 }
                 
                 /* Request user to send credential */
-                int16_t payload_length = logic_user_usb_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), &(rcv_msg->get_credential_request.concatenated_strings[rcv_msg->get_credential_request.login_name_index]), send_msg);
-                if (payload_length < 0)
-                {
-                    send_msg->message_type = rcv_message_type;
-                    return 0;
-                }
-                else
-                {
-                    send_msg->payload_length = payload_length;
-                    send_msg->message_type = rcv_message_type;
-                    return payload_length;
-                }
+                logic_user_usb_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), &(rcv_msg->get_credential_request.concatenated_strings[rcv_msg->get_credential_request.login_name_index]), is_message_from_usb);
+                return;
             }
         }
 
@@ -938,18 +979,13 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             if (timer_has_timer_expired(TIMER_CHECK_PASSWORD, FALSE) != TIMER_EXPIRED)
             {
                 /* Timer hasn't expired... do not allow check */
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload[0] = HID_1BYTE_NA;
-                send_msg->payload_length = 1;
-                return 1;
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint8_t));
+                temp_tx_message_pt->hid_message.payload[0] = HID_1BYTE_NA;
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
             else
-            {
-                /* Default answer: Nope! */
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload[0] = HID_1BYTE_NACK;
-                send_msg->payload_length = 1;
-            
+            {            
                 /********************************/
                 /* Here comes the sanity checks */
                 /********************************/
@@ -957,13 +993,15 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 /* Incorrect service name index */
                 if (rcv_msg->check_credential.service_name_index != 0)
                 {
-                    return 1;
+                    comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                    return;
                 }
             
                 /* Empty service name */
                 if (rcv_msg->check_credential.concatenated_strings[0] == 0)
                 {
-                    return 1;
+                    comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                    return;
                 }
             
                 /* Sequential order check */
@@ -987,7 +1025,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     /* If index is correct */
                     if (current_check_index != prev_check_index + prev_length)
                     {
-                        return 1;
+                        comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                        return;
                     }
                     
                     /* Get string length */
@@ -996,7 +1035,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     /* Too long length */
                     if (temp_length == max_cust_char_length)
                     {
-                        return 1;
+                        comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                        return;
                     }
                     
                     /* Store previous index & length */
@@ -1012,13 +1052,15 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                                                     &(rcv_msg->check_credential.concatenated_strings[rcv_msg->check_credential.login_name_index]),\
                                                     &(rcv_msg->check_credential.concatenated_strings[rcv_msg->check_credential.password_index])) == RETURN_OK)
                 {
-                    send_msg->payload[0] = HID_1BYTE_ACK;                
+                    comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                    return;           
                 }
                 else
                 {
                     /* Not a match, arm timer */
                     timer_start_timer(TIMER_CHECK_PASSWORD, CHECK_PASSWORD_TIMER_VAL);
-                    send_msg->payload[0] = HID_1BYTE_NACK;
+                    comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                    return;
                 }
             
                 return 1;
@@ -1026,12 +1068,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         }
         
         case HID_CMD_ID_STORE_CRED:
-        {   
-            /* Default answer: Nope! */
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload[0] = HID_1BYTE_NACK;
-            send_msg->payload_length = 1;
-            
+        {               
             /********************************/
             /* Here comes the sanity checks */
             /********************************/
@@ -1039,13 +1076,15 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Incorrect service name index */
             if (rcv_msg->store_credential.service_name_index != 0)
             {
-                return 1;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
             
             /* Empty service name */
             if (rcv_msg->store_credential.concatenated_strings[0] == 0)
             {
-                return 1;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
             
             /* Sequential order check */
@@ -1076,7 +1115,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     /* If index is correct */
                     if (current_check_index != prev_check_index + prev_length)
                     {
-                        return 1;
+                        comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                        return;
                     }
                     
                     /* Get string length */
@@ -1085,7 +1125,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     /* Too long length */
                     if (temp_length == max_cust_char_length)
                     {
-                        return 1;
+                        comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                        return;
                     }
                     
                     /* Store previous index & length */
@@ -1126,15 +1167,13 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                                                 &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.login_name_index]),\
                                                 description_field_pt, third_field_pt, password_field_pt) == RETURN_OK)
             {
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload[0] = HID_1BYTE_ACK;   
-                send_msg->payload_length = 1;             
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;        
             }
             else
             {
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload[0] = HID_1BYTE_NACK;
-                send_msg->payload_length = 1;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
             
             return 1;
@@ -1143,10 +1182,10 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         case HID_CMD_GET_DEVICE_LANG_ID:
         {
             /* Get device default language */
-            send_msg->payload[0] = custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE);
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint8_t));
+            temp_tx_message_pt->hid_message.payload[0] = custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE);
+            comms_aux_mcu_send_message(FALSE);
+            return;
         }
         
         case HID_CMD_GET_USER_LANG_ID:
@@ -1154,17 +1193,17 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Get user language, device default language returned if no user logged in */
             if (logic_security_is_smc_inserted_unlocked() == FALSE)
             {
-                send_msg->payload[0] = custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE);
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload_length = 1;
-                return 1;               
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint8_t));
+                temp_tx_message_pt->hid_message.payload[0] = custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE);
+                comms_aux_mcu_send_message(FALSE);
+                return;          
             }
             else
             {
-                send_msg->payload[0] = custom_fs_get_current_language_id();
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload_length = 1;
-                return 1;                
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint8_t));
+                temp_tx_message_pt->hid_message.payload[0] = custom_fs_get_current_language_id();
+                comms_aux_mcu_send_message(FALSE);
+                return;              
             }
         }
         
@@ -1173,69 +1212,73 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Get user keyboard id */
             if (logic_security_is_smc_inserted_unlocked() == FALSE)
             {
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload_length = 1;
-                send_msg->payload[0] = 0;
-                return 1;
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint8_t));
+                temp_tx_message_pt->hid_message.payload[0] = 0;
+                comms_aux_mcu_send_message(FALSE);
+                return;
             } 
             else
             {
-                send_msg->payload[0] = custom_fs_get_current_layout_id(rcv_msg->payload_as_uint16[0]);
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload_length = 1;
-                return 1;
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint8_t));
+                temp_tx_message_pt->hid_message.payload[0] = custom_fs_get_current_layout_id(rcv_msg->payload_as_uint16[0]);
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
         }
         
         case HID_CMD_GET_NB_LANGUAGES:
         {
-            send_msg->payload_as_uint16[0] = (uint16_t)custom_fs_get_number_of_languages();
-            send_msg->payload_length = sizeof(uint16_t);
-            send_msg->message_type = rcv_message_type;
-            return sizeof(uint16_t);            
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint16_t));
+            temp_tx_message_pt->hid_message.payload_as_uint16[0] = (uint16_t)custom_fs_get_number_of_languages();
+            comms_aux_mcu_send_message(FALSE);
+            return;   
         }
         
         case HID_CMD_GET_NB_LAYOUTS:
         {
-            send_msg->payload_as_uint16[0] = (uint16_t)custom_fs_get_number_of_keyb_layouts();
-            send_msg->payload_length = sizeof(uint16_t);
-            send_msg->message_type = rcv_message_type;
-            return sizeof(uint16_t);            
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint16_t));
+            temp_tx_message_pt->hid_message.payload_as_uint16[0] = (uint16_t)custom_fs_get_number_of_keyb_layouts();
+            comms_aux_mcu_send_message(FALSE);
+            return;       
         }
         
         case HID_CMD_GET_LANGUAGE_DESC:
         {
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+            
             /* This function checks for out of boundary conditions... */
-            if (custom_fs_get_language_description(rcv_msg->payload[0], (cust_char_t*)send_msg->payload_as_uint16) == RETURN_OK)
+            if (custom_fs_get_language_description(rcv_msg->payload[0], (cust_char_t*)temp_tx_message_pt->hid_message.payload_as_uint16) == RETURN_OK)
             {
-                send_msg->payload_length = utils_strlen((cust_char_t*)send_msg->payload_as_uint16)*sizeof(uint16_t) + sizeof(uint16_t);
-                send_msg->message_type = rcv_message_type;
-                return send_msg->payload_length;
+                comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, utils_strlen((cust_char_t*)temp_tx_message_pt->hid_message.payload_as_uint16)*sizeof(uint16_t) + sizeof(uint16_t));
+                comms_aux_mcu_send_message(FALSE);
+                return;
             } 
             else
             {
-                send_msg->payload_length = sizeof(uint16_t);
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload_as_uint16[0] = 0;
-                return sizeof(uint16_t);
+                comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, sizeof(uint16_t));
+                temp_tx_message_pt->hid_message.payload_as_uint16[0] = 0;
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
         }
         
         case HID_CMD_GET_LAYOUT_DESC:
         {
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+            
             /* This function checks for out of boundary conditions... */
-            if (custom_fs_get_keyboard_descriptor_string(rcv_msg->payload[0], (cust_char_t*)send_msg->payload_as_uint16) == RETURN_OK)
+            if (custom_fs_get_keyboard_descriptor_string(rcv_msg->payload[0], (cust_char_t*)temp_tx_message_pt->hid_message.payload_as_uint16) == RETURN_OK)
             {
-                send_msg->payload_length = utils_strlen((cust_char_t*)send_msg->payload_as_uint16)*sizeof(uint16_t) + sizeof(uint16_t);
-                send_msg->message_type = rcv_message_type;
-                return send_msg->payload_length;
+                comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, utils_strlen((cust_char_t*)temp_tx_message_pt->hid_message.payload_as_uint16)*sizeof(uint16_t) + sizeof(uint16_t));
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
             else
             {
-                send_msg->payload_length = sizeof(uint16_t);
-                send_msg->message_type = rcv_message_type;
-                send_msg->payload_as_uint16[0] = 0;
-                return sizeof(uint16_t);
+                comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, sizeof(uint16_t));
+                temp_tx_message_pt->hid_message.payload_as_uint16[0] = 0;
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
         }
         
@@ -1256,31 +1299,35 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 if ((string_length >= max_cust_char_length) || ((string_length + 1) != (rcv_msg->payload_length / (uint16_t)sizeof(cust_char_t))))
                 {
                     /* Set failure byte */
-                    send_msg->payload_as_uint16[0] = HID_1BYTE_NACK;
-                    send_msg->payload_length = sizeof(uint16_t);
-                    return send_msg->payload_length;
+                    aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint16_t));
+                    temp_tx_message_pt->hid_message.payload_as_uint16[0] = HID_1BYTE_NACK;
+                    comms_aux_mcu_send_message(FALSE);
+                    return;
                 }
                 
                 /* Set service pointer */
                 service_pointer = rcv_msg->payload_as_cust_char_t;
             } 
             
+            /* Get message to send */
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+            
             /* If service is 0, query user and get the bytes, otherwise just get the bytes */
-            if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_user_get_data_from_service(service_pointer, (uint8_t*)&send_msg->payload_as_uint16[2], &send_msg->payload_as_uint16[1], is_message_from_usb) == RETURN_OK))
+            if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_user_get_data_from_service(service_pointer, (uint8_t*)&temp_tx_message_pt->hid_message.payload_as_uint16[2], &temp_tx_message_pt->hid_message.payload_as_uint16[1], is_message_from_usb) == RETURN_OK))
             {
-                /* Set success byte & payload size */
-                send_msg->payload_length = sizeof(uint16_t) + sizeof(uint16_t) + send_msg->payload_as_uint16[1];
-                send_msg->payload_as_uint16[0] = HID_1BYTE_ACK;
-                send_msg->message_type = rcv_message_type;
-                return send_msg->payload_length;
+                /* Update message as the function above may have changed the other fields */
+                comms_hid_msgs_update_message_fields(temp_tx_message_pt, is_message_from_usb, rcv_message_type, temp_tx_message_pt->hid_message.payload_as_uint16[1]);
+                temp_tx_message_pt->hid_message.payload_as_uint16[0] = HID_1BYTE_ACK;
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload_as_uint16[0] = HID_1BYTE_NACK;
-                send_msg->payload_length = sizeof(uint16_t);
-                send_msg->message_type = rcv_message_type;
-                return send_msg->payload_length;
+                temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint16_t));
+                temp_tx_message_pt->hid_message.payload_as_uint16[0] = HID_1BYTE_NACK;
+                comms_aux_mcu_send_message(FALSE);
+                return;
             }        
         }
         
@@ -1296,17 +1343,15 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             if ((string_length < max_cust_char_length) && ((string_length + 1) == (rcv_msg->payload_length / (uint16_t)sizeof(cust_char_t))) && (logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_user_add_data_service(rcv_msg->payload_as_cust_char_t, is_message_from_usb) == RETURN_OK))
             {
                 /* Set success byte */
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-            
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
         }
         
         case HID_CMD_ADD_FILE_DATA_ID:
@@ -1315,17 +1360,15 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             if ((rcv_msg->payload_length == sizeof(rcv_msg->store_data_in_file)) && (logic_user_add_data_to_current_service(&rcv_msg->store_data_in_file, is_message_from_usb) == RETURN_OK))
             {
                 /* Set success byte */
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-            
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
         }
         
         case HID_CMD_SET_USER_KEYB_ID:
@@ -1340,17 +1383,15 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 logic_user_set_layout_id(desired_layout_id, is_usb_interface_wanted);
                 
                 /* Set success byte */
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;
         }
         
         case HID_CMD_SET_USER_LANG_ID:
@@ -1364,17 +1405,15 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 logic_user_set_language(desired_lang_id);
                 
                 /* Set success byte */
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;            
         }
         
         case HID_CMD_SET_DEVICE_LANG_ID:
@@ -1387,17 +1426,15 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 custom_fs_set_device_default_language(desired_lang_id);
                 
                 /* Set success byte */
-                send_msg->payload[0] = HID_1BYTE_ACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
             }
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
-            }
-
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;            
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }        
         }
         
         case HID_CMD_ADD_UNKNOWN_CARD_ID:
@@ -1449,12 +1486,14 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     memset((void*)temp_buffer, 0, sizeof(temp_buffer));
                     
                     /* Set success byte */
-                    send_msg->payload[0] = HID_1BYTE_ACK;
+                    comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                    return;
                 }
                 else
                 {
                     /* Set failure byte */
-                    send_msg->payload[0] = HID_1BYTE_NACK;
+                    comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                    return;
                 }
                 
                 /* Go back to currently set screen */
@@ -1463,12 +1502,9 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             else
             {
                 /* Set failure byte */
-                send_msg->payload[0] = HID_1BYTE_NACK;
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
             }
-
-            send_msg->message_type = rcv_message_type;
-            send_msg->payload_length = 1;
-            return 1;   
         }
         
         default: break;

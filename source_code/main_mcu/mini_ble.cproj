@@ -764,6 +764,9 @@
     <Compile Include="src\COMMS\comms_bootloader_msg.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\COMMS\comms_hid_defines.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\COMMS\comms_hid_msgs.c">
       <SubType>compile</SubType>
     </Compile>
@@ -774,6 +777,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\COMMS\comms_hid_msgs_debug.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\COMMS\comms_hid_msgs_debug_defines.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\debug.c">
@@ -801,6 +807,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\FILESYSTEM\custom_fs.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\FILESYSTEM\custom_fs_defines.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\FILESYSTEM\custom_fs_emergency_font.c">
@@ -939,6 +948,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\NODEMGMT\nodemgmt.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\NODEMGMT\nodemgmt_defines.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\OLED\mooltipass_graphics_bundle.c">

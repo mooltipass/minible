@@ -21,6 +21,7 @@
 */
 #include <string.h>
 #include <asf.h>
+#include "comms_hid_msgs_debug_defines.h"
 #include "comms_hid_msgs_debug.h"
 #include "platform_defines.h"
 #include "logic_bluetooth.h"
@@ -35,6 +36,7 @@
 #include "logic_fido2.h"
 #include "gui_prompts.h"
 #include "logic_user.h"
+#include "nodemgmt.h"
 #include "text_ids.h"
 #include "sh1122.h"
 #include "main.h"
@@ -623,15 +625,9 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
 
     /* USB / BLE Messages */
     if ((aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_USB) || (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BLE))
-    {
-        /* Cast payloads into correct type */
-        int16_t hid_reply_payload_length = -1;
-        
+    {        
         /* Store interface bool */
         BOOL is_message_from_usb = (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_USB)?TRUE:FALSE;
-
-        /* Store message type */
-        uint16_t receive_message_type = aux_mcu_receive_message.message_type;
 
         /* Clear TX message just in case */
         memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
@@ -652,15 +648,15 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
 
         /* Parse message */
         #ifndef DEBUG_USB_COMMANDS_ENABLED
-        hid_reply_payload_length = comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), answer_restrict_type, is_message_from_usb);
+        comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), answer_restrict_type, is_message_from_usb);
         #else
         if (aux_mcu_receive_message.hid_message.message_type >= HID_MESSAGE_START_CMD_ID_DBG)
         {
-            hid_reply_payload_length = comms_hid_msgs_parse_debug(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), answer_restrict_type);
+            comms_hid_msgs_parse_debug(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), answer_restrict_type);
         }
         else
         {
-            hid_reply_payload_length = comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), answer_restrict_type, is_message_from_usb);
+            comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), answer_restrict_type, is_message_from_usb);
         }
         #endif
     }
@@ -828,30 +824,24 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
                 comms_aux_mcu_deal_with_received_event(&aux_mcu_receive_message);
             }
             else if ((aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_USB) || (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BLE))
-            {
-                /* Cast payloads into correct type */
-                int16_t hid_reply_payload_length = -1;
-                
+            {                
                 /* Store interface bool */
                 BOOL is_message_from_usb = (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_USB)?TRUE:FALSE;
-                
-                /* Store message type */
-                uint16_t receive_message_type = aux_mcu_receive_message.message_type;
                 
                 /* Clear TX message just in case */
                 memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
                 
                 /* Parse message */
                 #ifndef DEBUG_USB_COMMANDS_ENABLED
-                hid_reply_payload_length = comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), MSG_RESTRICT_ALL, is_message_from_usb);
+                comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), MSG_RESTRICT_ALL, is_message_from_usb);
                 #else
                 if (aux_mcu_receive_message.hid_message.message_type >= HID_MESSAGE_START_CMD_ID_DBG)
                 {
-                    hid_reply_payload_length = comms_hid_msgs_parse_debug(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), MSG_RESTRICT_ALL);
+                    comms_hid_msgs_parse_debug(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), MSG_RESTRICT_ALL);
                 }
                 else
                 {
-                    hid_reply_payload_length = comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), MSG_RESTRICT_ALL, is_message_from_usb);
+                    comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), MSG_RESTRICT_ALL, is_message_from_usb);
                 }
                 #endif
             }

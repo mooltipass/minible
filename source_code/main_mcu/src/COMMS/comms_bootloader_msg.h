@@ -23,9 +23,6 @@
 #ifndef COMMS_BOOTLOADER_MSG_H_
 #define COMMS_BOOTLOADER_MSG_H_
 
-#include <asf.h>
-#include "comms_aux_mcu.h"
-
 /* Defines */
 #define BOOTLOADER_START_PROGRAMMING_COMMAND    0x0000 
 #define BOOTLOADER_WRITE_COMMAND                0x0001
@@ -57,7 +54,6 @@ typedef struct
         aux_mcu_bootloader_write_command_contents_t write_command;
     };
 } aux_mcu_bootloader_message_t;
-
 
 
 #endif /* COMMS_BOOTLOADER_MSG_H_ */

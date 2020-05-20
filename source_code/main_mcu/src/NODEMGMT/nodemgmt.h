@@ -24,6 +24,7 @@
 #ifndef NODEMGMT_H_
 #define NODEMGMT_H_
 
+#include "nodemgmt_defines.h"
 #include "platform_defines.h"
 #include "defines.h"
 #include "dbflash.h"
@@ -297,30 +298,6 @@ typedef struct
 {
     cust_char_t category_strings[4][33];
 } nodemgmt_user_category_strings_t;
-
-// Bluetooth bonding information
-typedef struct
-{
-    uint16_t zero_to_be_valid;
-    uint8_t address_resolv_type;
-    uint8_t mac_address[6];
-    uint8_t auth_type;
-    uint8_t peer_ltk_key[16];
-    uint16_t peer_ltk_ediv;
-    uint8_t peer_ltk_random_nb[8];
-    uint16_t peer_ltk_key_size;
-    uint8_t peer_csrk_key[16];
-    uint8_t peer_irk_key[16];
-    uint8_t peer_irk_resolv_type;
-    uint8_t peer_irk_address[6];
-    uint8_t peer_irk_reserved;
-    uint8_t host_ltk_key[16];
-    uint16_t host_ltk_ediv;
-    uint8_t host_ltk_random_nb[8];
-    uint16_t host_ltk_key_size;
-    uint8_t host_csrk_key[16];
-    uint8_t reserved[10];
-} nodemgmt_bluetooth_bonding_information_t;
 
 // Node management handle
 typedef struct

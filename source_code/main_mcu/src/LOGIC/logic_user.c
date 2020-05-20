@@ -1012,14 +1012,14 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
     }    
 }
 
-/*! \fn     logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, hid_message_t* send_msg)
-*   \brief  Get credential for service
-*   \param  service     Pointer to service string
-*   \param  login       Pointer to login string, or 0 if not specified
-*   \param  send_msg    Pointer to where to store our answer
+/*! \fn     logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOOL send_creds_to_usb)
+*   \brief  Get credential for service, send answer
+*   \param  service             Pointer to service string
+*   \param  login               Pointer to login string, or 0 if not specified
+*   \param  send_creds_to_usb   If credentials should be sent through USB
 *   \return payload size or -1 if error
 */
-int16_t logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, hid_message_t* send_msg)
+void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOOL send_creds_to_usb)
 {
     uint8_t temp_cred_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     BOOL prev_gen_credential_flag = FALSE;

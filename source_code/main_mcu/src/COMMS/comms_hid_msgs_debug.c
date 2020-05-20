@@ -22,6 +22,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <asf.h>
+#include "comms_hid_msgs_debug_defines.h"
 #include "comms_hid_msgs_debug.h"
 #include "comms_hid_msgs.h"
 #include "gui_dispatcher.h"
@@ -95,7 +96,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
     if ((supposed_payload_length != rcv_msg->payload_length) || (supposed_payload_length > sizeof(rcv_msg->payload)))
     {
         /* Silent error */
-        return -1;
+        return;
     }
     
     /* Checks based on restriction type */

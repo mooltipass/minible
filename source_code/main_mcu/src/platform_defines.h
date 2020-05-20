@@ -204,6 +204,12 @@ typedef struct
 /**********************/
 #define MAX_NUMBER_OF_USERS     112
 
+/*****************/
+/* Comms defines */
+/*****************/
+#define AUX_MCU_MSG_PAYLOAD_LENGTH  552
+#define HID_PAYLOAD_SIZE            64
+
 /********************/
 /* Settings defines */
 /********************/
