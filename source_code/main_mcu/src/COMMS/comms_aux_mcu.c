@@ -185,13 +185,12 @@ void comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void)
     /* Set no comms (keep platform in sleep after its reboot) */
     platform_io_set_no_comms();
 
-    /* Get pointer to our message to be sent buffer */
+    /* Generate two packets full of 0xFF... */
     aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(0xFFFF);
-
-    /* Fill message with magic 0xFF, send it twice */
     memset((void*)temp_tx_message_pt, 0xFF, sizeof(*temp_tx_message_pt));
     comms_aux_mcu_send_message(temp_tx_message_pt);
-    comms_aux_mcu_wait_for_message_sent();
+    temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(0xFFFF);
+    memset((void*)temp_tx_message_pt, 0xFF, sizeof(*temp_tx_message_pt));
     comms_aux_mcu_send_message(temp_tx_message_pt);
 
     /* Wait for platform to boot */
