@@ -353,7 +353,6 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             {
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
                 logic_power_set_battery_charging_bool(TRUE, FALSE);
-                comms_aux_mcu_wait_for_message_sent();
             }
             
             /* Stop charging? */
@@ -361,7 +360,6 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             {
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_CHARGE);
                 logic_power_set_battery_charging_bool(FALSE, FALSE);
-                comms_aux_mcu_wait_for_message_sent();
             }
             
             /* Use USB to power the screen? */
@@ -405,7 +403,6 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             if (rcv_msg->payload[6] != 0)
             {
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_FORCE_CHARGE);
-                comms_aux_mcu_wait_for_message_sent();
             }
             
             /* Generate our get battery charge status packet */

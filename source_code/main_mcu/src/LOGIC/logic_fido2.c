@@ -162,9 +162,8 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
         memcpy(&temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.cred_ID, &request->cred_ID, sizeof(temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.cred_ID));
         temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.result = FIDO2_CREDENTIAL_EXISTS;
         comms_aux_mcu_send_message(temp_tx_message_pt);
-        comms_aux_mcu_wait_for_message_sent();
         
-        /* Wait for message sent to prevent data corruption then display warning */
+        /* Display warning */
         gui_prompts_display_information_on_screen(CRED_ALREAD_PRESENT_TEXT_ID, DISP_MSG_WARNING);
         
         /* Back to current screen */

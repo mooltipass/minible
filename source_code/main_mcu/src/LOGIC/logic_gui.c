@@ -82,9 +82,6 @@ void logic_gui_enable_bluetooth(void)
         /* Display information message */
         gui_prompts_display_information_on_screen(ENABLING_BLUETOOTH_TEXT_ID, DISP_MSG_INFO);
         
-        /* Wait for message to be sent before going to the logic below */
-        comms_aux_mcu_wait_for_message_sent();
-        
         /* Wait for BT activation while displaying an animation */
         while (func_return != RETURN_OK)
         {

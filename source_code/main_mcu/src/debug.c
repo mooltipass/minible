@@ -422,7 +422,6 @@ void debug_battery_recondition(void)
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_CHARGE);
         logic_power_set_battery_charging_bool(FALSE, FALSE);
-        comms_aux_mcu_wait_for_message_sent();
     }
     
     /* Switch to battery power for screen */
@@ -495,7 +494,6 @@ void debug_battery_recondition(void)
     /* Actually start charging */
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
     logic_power_set_battery_charging_bool(TRUE, FALSE);
-    comms_aux_mcu_wait_for_message_sent();
     
     /* Wait for end of charge */
     while (logic_power_is_battery_charging() != FALSE)

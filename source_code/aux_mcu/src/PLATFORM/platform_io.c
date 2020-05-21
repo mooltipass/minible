@@ -130,7 +130,9 @@ uint32_t platform_io_get_cursense_conversion_result(BOOL trigger_conversion)
     if (trigger_conversion != FALSE)
     {
         /* Rearm watchdog */
+        #ifndef BOOTLOADER
         timer_start_timer(TIMER_ADC_WATCHDOG, 60000);
+        #endif
         
         while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
         ADC->SWTRIG.reg = ADC_SWTRIG_FLUSH;

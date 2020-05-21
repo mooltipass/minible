@@ -110,7 +110,6 @@ void logic_aux_mcu_enable_ble(BOOL wait_for_enabled)
         if (wait_for_enabled != FALSE)
         {
             /* wait for BLE to bootup */
-            comms_aux_mcu_wait_for_message_sent();
             while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_BLE_ENABLED) != RETURN_OK)
             {
                 logic_accelerometer_routine();
@@ -147,7 +146,6 @@ void logic_aux_mcu_disable_ble(BOOL wait_for_disabled)
         if (wait_for_disabled != FALSE)
         {
             /* wait for BLE to switch off */
-            comms_aux_mcu_wait_for_message_sent();
             while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_BLE_DISABLED) != RETURN_OK){}
             
             /* Rearm DMA RX */

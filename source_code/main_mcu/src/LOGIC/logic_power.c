@@ -310,7 +310,6 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         #endif
         sh1122_oled_off(&plat_oled_descriptor);
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
-        comms_aux_mcu_wait_for_message_sent();
         platform_io_disable_vbat_to_oled_stepup();
         logic_power_set_power_source(USB_POWERED);
         logic_power_usb_enumerate_just_sent();
@@ -332,7 +331,6 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         #endif
         sh1122_oled_off(&plat_oled_descriptor);
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
-        comms_aux_mcu_wait_for_message_sent();
         platform_io_disable_3v3_to_oled_stepup();
         logic_power_set_power_source(TRANSITIONING_TO_BATTERY_POWER);
         logic_power_set_battery_charging_bool(FALSE, FALSE);

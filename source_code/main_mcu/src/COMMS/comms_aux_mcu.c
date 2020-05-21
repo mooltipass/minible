@@ -44,7 +44,9 @@
 #include "rng.h"
 /* Received and sent MCU messages */
 aux_mcu_message_t aux_mcu_receive_message;
-aux_mcu_message_t aux_mcu_send_message;
+aux_mcu_message_t aux_mcu_send_message_2;
+aux_mcu_message_t aux_mcu_send_message_1;
+BOOL aux_mcu_message_1_reserved = FALSE;
 /* Flag set if we have treated a message by only looking at its first bytes */
 BOOL aux_mcu_message_answered_using_first_bytes = FALSE;
 /* Flag set for comms_aux_mcu_routine for recursive calls */
@@ -78,7 +80,22 @@ aux_mcu_message_t* comms_aux_mcu_get_free_tx_message_object_pt(void)
     /* Wait for possible ongoing message to be sent */
     comms_aux_mcu_wait_for_message_sent();
     
-    return &aux_mcu_send_message;
+    /* A bit of background: the code is structured in such a way that every time a
+    pointer is asked, the message is shortly sent after. There are a few cases where 
+    a pointer is asked to prepare a message, then another pointer is asked to get information
+    through this new message to complete the first message.
+    TLDR: for every pointer requested only one message is sent */
+    
+    /* Check for message 1 reserved */
+    if (aux_mcu_message_1_reserved == FALSE)
+    {
+        aux_mcu_message_1_reserved = TRUE;
+        return &aux_mcu_send_message_1;
+    }
+    else
+    {
+        return &aux_mcu_send_message_2;        
+    }
 }
 
 /*! \fn     comms_aux_mcu_get_empty_packet_ready_to_be_sent(uint16_t message_type)
@@ -109,22 +126,28 @@ aux_mcu_message_t* comms_aux_mcu_get_empty_packet_ready_to_be_sent(uint16_t mess
 void comms_aux_mcu_send_message(aux_mcu_message_t* message_to_send)
 {
     /* Check that we're indeed sending the aux_mcu_send_message.... */
-    if (message_to_send != &aux_mcu_send_message)
+    if ((message_to_send != &aux_mcu_send_message_1) && (message_to_send != &aux_mcu_send_message_2))
     {
         main_reboot();
     }
     
+    /* Is reserved message 1 freed? */
+    if ((aux_mcu_message_1_reserved != FALSE) && (message_to_send == &aux_mcu_send_message_1))
+    {
+        aux_mcu_message_1_reserved = FALSE;
+    }
+    
     /* As the aux MCU has 3 buffers (one for USB messages, one for BLE messages, one for others), check for timeout in case message is of type other */
-    if ((aux_mcu_send_message.message_type != AUX_MCU_MSG_TYPE_USB) && (aux_mcu_send_message.message_type != AUX_MCU_MSG_TYPE_BLE))
+    if ((message_to_send->message_type != AUX_MCU_MSG_TYPE_USB) && (message_to_send->message_type != AUX_MCU_MSG_TYPE_BLE))
     {
         while (timer_has_timer_expired(TIMER_AUX_MCU_FLOOD, FALSE) == TIMER_RUNNING);
     }
     
     /* The function below does wait for a previous transfer to finish */
-    dma_aux_mcu_init_tx_transfer(AUXMCU_SERCOM, (void*)&aux_mcu_send_message, sizeof(aux_mcu_send_message));
+    dma_aux_mcu_init_tx_transfer(AUXMCU_SERCOM, (void*)message_to_send, sizeof(*message_to_send));
     
     /* As the aux MCU has 3 buffers (one for USB messages, one for BLE messages, one for others), start a timer in case message is of type other */
-    if ((aux_mcu_send_message.message_type != AUX_MCU_MSG_TYPE_USB) && (aux_mcu_send_message.message_type != AUX_MCU_MSG_TYPE_BLE))
+    if ((message_to_send->message_type != AUX_MCU_MSG_TYPE_USB) && (message_to_send->message_type != AUX_MCU_MSG_TYPE_BLE))
     {
         timer_start_timer(TIMER_AUX_MCU_FLOOD, AUX_FLOOD_TIMEOUT_MS);        
     }
