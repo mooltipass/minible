@@ -630,10 +630,7 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     {        
         /* Store interface bool */
         BOOL is_message_from_usb = (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_USB)?TRUE:FALSE;
-
-        /* Clear TX message just in case */
-        memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
-
+        
         /* Depending on command ID, prepare return */
         if (aux_mcu_receive_message.hid_message.message_type == HID_CMD_ID_CANCEL_REQ)
         {
@@ -820,7 +817,7 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
             dma_aux_mcu_check_and_clear_dma_transfer_flag();
             comms_aux_arm_rx_and_clear_no_comms();
             
-            if ((aux_mcu_receive_message.message_type == expected_packet) && (aux_mcu_receive_message.aux_mcu_event_message.event_id != expected_event))
+            if ((aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_AUX_MCU_EVENT) && (aux_mcu_receive_message.aux_mcu_event_message.event_id != expected_event))
             {
                 /* Received another event... deal with it (doesn't generate answers */
                 comms_aux_mcu_deal_with_received_event(&aux_mcu_receive_message);
@@ -829,10 +826,7 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
             {                
                 /* Store interface bool */
                 BOOL is_message_from_usb = (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_USB)?TRUE:FALSE;
-                
-                /* Clear TX message just in case */
-                memset((void*)&aux_mcu_send_message, 0, sizeof(aux_mcu_send_message));
-                
+                                
                 /* Parse message */
                 #ifndef DEBUG_USB_COMMANDS_ENABLED
                 comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), MSG_RESTRICT_ALL, is_message_from_usb);
