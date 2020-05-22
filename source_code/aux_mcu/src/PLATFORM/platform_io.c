@@ -231,6 +231,30 @@ void platform_io_update_step_down_voltage(uint16_t voltage)
     platform_io_dac_data_register_set = complicated_math;
 }
 
+/*! \fn     platform_io_set_high_cur_sense_as_pull_down(void)
+*   \brief  Configure high current sense pin as pull down
+*/
+void platform_io_set_high_cur_sense_as_pull_down(void)
+{
+    /* Current sense inputs */
+    PORT->Group[HIGH_CUR_SENSE_GROUP].DIRCLR.reg = HIGH_CUR_SENSE_MASK;
+    PORT->Group[HIGH_CUR_SENSE_GROUP].OUTCLR.reg = HIGH_CUR_SENSE_MASK;
+    PORT->Group[HIGH_CUR_SENSE_GROUP].PINCFG[HIGH_CUR_SENSE_PINID].bit.PMUXEN = 0;
+    PORT->Group[HIGH_CUR_SENSE_GROUP].PINCFG[HIGH_CUR_SENSE_PINID].bit.PULLEN = 1;
+}
+
+/*! \fn     platform_io_set_high_cur_sense_as_sense(void)
+*   \brief  Configure high current sense pin as current sense
+*/
+void platform_io_set_high_cur_sense_as_sense(void)
+{
+    /* Current sense inputs */
+    PORT->Group[HIGH_CUR_SENSE_GROUP].DIRCLR.reg = HIGH_CUR_SENSE_MASK;
+    PORT->Group[HIGH_CUR_SENSE_GROUP].PINCFG[HIGH_CUR_SENSE_PINID].bit.PMUXEN = 1;
+    PORT->Group[HIGH_CUR_SENSE_GROUP].PINCFG[HIGH_CUR_SENSE_PINID].bit.PULLEN = 0;
+    PORT->Group[HIGH_CUR_SENSE_GROUP].PMUX[HIGH_CUR_SENSE_PINID/2].bit.HIGH_CUR_SENSE_PMUXREGID = HIGH_CUR_SENSE_PMUX_ID;
+}
+
 /*! \fn     platform_io_enable_battery_charging_ports(void)
 *   \brief  Initialize the ports used for battery charging
 */

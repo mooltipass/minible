@@ -184,7 +184,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     sh1122_put_error_string(&plat_oled_descriptor, u"Please wait...");
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_FUNC_TEST);
     
-    /* Wait for end of sweep */
+    /* Wait for end of functional test */
     while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_FUNC_TEST_DONE) != RETURN_OK);
     sh1122_clear_current_screen(&plat_oled_descriptor);
     #ifdef OLED_INTERNAL_FRAME_BUFFER
@@ -215,6 +215,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     platform_io_disable_ble();
     
     /* Test accelerometer */
+    sh1122_put_error_string(&plat_oled_descriptor, u"Testing accelerometer...");
     timer_start_timer(TIMER_TIMEOUT_FUNCTS, 2000);
     while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) != TIMER_EXPIRED)
     {
@@ -229,6 +230,10 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     }
     
     /* Ask for card, tests all SMC related signals */
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
     sh1122_put_error_string(&plat_oled_descriptor, u"insert card");
     while (smartcard_low_level_is_smc_absent() == RETURN_OK);
     sh1122_clear_current_screen(&plat_oled_descriptor);

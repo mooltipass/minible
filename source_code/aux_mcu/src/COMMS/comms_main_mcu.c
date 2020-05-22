@@ -471,12 +471,36 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 message->aux_mcu_event_message.event_id = AUX_MCU_EVENT_FUNC_TEST_DONE;
                 message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id) + sizeof(uint8_t);
                 
+                /* Use the bluetooth start time to discharge the ldo step down output capacitor */
+                platform_io_set_high_cur_sense_as_pull_down();
+                
                 /* Functional test: start by turning on bluetooth */
                 uint8_t temp_mac_address[6] = {0xDE, 0xAD, 0xBE, 0xEF, 0x12, 0x13};
                 logic_bluetooth_start_bluetooth(temp_mac_address);
                 if (ble_sdk_version() == 0)
                 {
                     message->aux_mcu_event_message.payload[0] = 1;
+                    comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
+                    break;
+                }
+                
+                /* Set the high current sense pin as its original purpose */
+                platform_io_set_high_cur_sense_as_sense();
+                timer_delay_ms(500);
+                
+                /* Get ADC conversion result */
+                while (platform_io_is_current_sense_conversion_result_ready() == FALSE);
+                platform_io_get_cursense_conversion_result(TRUE);
+                while (platform_io_is_current_sense_conversion_result_ready() == FALSE);
+                uint32_t cur_sense_vs = platform_io_get_cursense_conversion_result(TRUE);
+                volatile int16_t high_voltage = (int16_t)(cur_sense_vs >> 16);
+                volatile int16_t low_voltage = (int16_t)cur_sense_vs;
+                
+                /* Check for 0V */
+                if (high_voltage > 123)
+                {
+                    platform_io_disable_step_down();
+                    message->aux_mcu_event_message.payload[0] = 2;
                     comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
                     break;
                 }
@@ -490,9 +514,9 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 
                 /* Measure charging current */
                 while (platform_io_is_current_sense_conversion_result_ready() == FALSE);
-                uint32_t cur_sense_vs = platform_io_get_cursense_conversion_result(FALSE);
-                volatile int16_t high_voltage = (int16_t)(cur_sense_vs >> 16);
-                volatile int16_t low_voltage = (int16_t)cur_sense_vs;
+                cur_sense_vs = platform_io_get_cursense_conversion_result(FALSE);
+                high_voltage = (int16_t)(cur_sense_vs >> 16);
+                low_voltage = (int16_t)cur_sense_vs;
                 
                 /* Charging current? (check for 40mA) */
                 if ((high_voltage - low_voltage) > 100)
@@ -512,6 +536,10 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* Start charging! */
                 platform_io_enable_charge_mosfets();
                 
+                /* Discard first measurement */
+                while (platform_io_is_current_sense_conversion_result_ready() == FALSE);
+                platform_io_get_cursense_conversion_result(TRUE);
+                
                 /* Increase the voltage until we get some current (40mA) */
                 while (TRUE)
                 {
@@ -520,7 +548,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                     high_voltage = (int16_t)(cur_sense_vs >> 16);
                     low_voltage = (int16_t)cur_sense_vs;
                     
-                    if ((high_voltage - low_voltage) > LOGIC_BATTERY_CUR_FOR_ST_RAMP_END)
+                    if ((high_voltage > low_voltage) && ((high_voltage - low_voltage) > LOGIC_BATTERY_CUR_FOR_ST_RAMP_END))
                     {
                         /* All good! */
                         break;
