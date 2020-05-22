@@ -23,6 +23,8 @@
 #ifndef COMMS_BOOTLOADER_MSG_H_
 #define COMMS_BOOTLOADER_MSG_H_
 
+#include <stdint.h>
+
 /* Defines */
 #define BOOTLOADER_START_PROGRAMMING_COMMAND    0x0000 
 #define BOOTLOADER_WRITE_COMMAND                0x0001

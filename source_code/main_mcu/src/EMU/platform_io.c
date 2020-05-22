@@ -74,6 +74,7 @@ void platform_io_set_wheel_click_low(void){}
 BOOL platform_io_is_usb_3v3_present(void){ return emu_get_usb_charging(); }
 BOOL platform_io_is_usb_3v3_present_raw(void){ return emu_get_usb_charging(); }
 void platform_io_release_aux_reset(void){}
+void platform_io_bypass_3v3_detection_debounce(void){}
 void platform_io_assert_oled_reset(void){}
 void platform_io_init_flash_ports(void){}
 void platform_io_init_power_ports(void){}
@@ -95,6 +96,7 @@ void platform_io_disable_no_comms_as_wakeup_interrupt(void){}
 void platform_io_prepare_acc_ports_for_sleep_exit(void){}
 void platform_io_disable_aux_tx_wakeup_interrupt(void){}
 void platform_io_enable_usb_3v3_wakeup_interrupt(void){}
+void platform_io_bypass_3v3_detection_debounce(void){}
 void platform_io_enable_aux_tx_wakeup_interrupt(void){}
 void platform_io_prepare_ports_for_sleep_exit(void){}
 void platform_io_disable_scroll_wheel_ports(void){}
