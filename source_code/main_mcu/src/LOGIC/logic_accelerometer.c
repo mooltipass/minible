@@ -22,6 +22,7 @@
 #include "logic_accelerometer.h"
 #include "logic_security.h"
 #include "logic_device.h"
+#include "logic_power.h"
 #include "logic_user.h"
 #include "custom_fs.h"
 #include "lis2hh12.h"
@@ -53,6 +54,9 @@ uint16_t logic_accelerometer_knock_detect_counter;
 uint16_t logic_accelerometer_knock_last_det_counter;
 // first knock width
 uint16_t logic_accelerometer_first_knock_width;
+// x movement detection to wakeup device only
+uint16_t logic_accelerometer_x_movement_wakeup_only = FALSE;
+
 
 /*! \fn     logic_accelerometer_routine(void)
 *   \brief  Accelerometer routine
@@ -73,7 +77,7 @@ acc_detection_te logic_accelerometer_routine(void)
         lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
         
         /* If some movement, wakeup device */
-        if (return_val == ACC_DET_MOVEMENT)
+        if ((return_val == ACC_DET_MOVEMENT) && (logic_power_get_power_source() == USB_POWERED))
         {
             logic_device_activity_detected();
         }
@@ -84,6 +88,14 @@ acc_detection_te logic_accelerometer_routine(void)
     {
         return ACC_DET_NOTHING;
     }
+}
+
+/*! \fn     logic_accelerometer_set_x_movement_detection_wakeup(void)
+*   \brief  Set X movement detection for device wakeup
+*/
+void logic_accelerometer_set_x_movement_detection_wakeup(void)
+{
+    logic_accelerometer_x_movement_wakeup_only = TRUE;
 }
 
 /*! \fn     logic_accelerometer_scan_for_action_in_acc_read(void)
@@ -272,7 +284,11 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
     else
     {
         /* Depending on the threshold, return movement or nothing */
-        if ((logic_accelerometer_z_cum_diff_avg >> 8) > ACC_Z_MOVEMENT_AVG_SUM_DIFF)
+        if ((logic_accelerometer_x_movement_wakeup_only == FALSE) && ((logic_accelerometer_z_cum_diff_avg >> 8) > ACC_Z_MOVEMENT_AVG_SUM_DIFF))
+        {
+            return ACC_DET_MOVEMENT;
+        }
+        else if ((logic_accelerometer_x_movement_wakeup_only != FALSE) && ((logic_accelerometer_x_cum_diff_avg >> 8) > ACC_X_MOVEMENT_AVG_SUM_DIFF))
         {
             return ACC_DET_MOVEMENT;
         }

@@ -135,13 +135,13 @@ void debug_debug_menu(void)
             #endif
             
             /* Item selection */
-            if (selected_item > 18)
+            if (selected_item > 19)
             {
                 selected_item = 0;
             }
             else if (selected_item < 0)
             {
-                selected_item = 18;
+                selected_item = 19;
             }
             
             sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);
@@ -180,6 +180,7 @@ void debug_debug_menu(void)
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Battery Recondition", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Battery Test", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Stack Usage", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Kickstarter Video", TRUE);
             }
             
             /* Cursor */
@@ -303,9 +304,72 @@ void debug_debug_menu(void)
             {
                 debug_stack_info();
             }
+            else if (selected_item == 19)
+            {
+                debug_kickstarter_video();
+            }
             redraw_needed = TRUE;
         }
     }
+}
+
+/*! \fn     debug_kickstarter_video(void)
+*   \brief  Kickstarter video: animation, then sleep, click to wakeup, screen off, animation when movement detection
+*/
+void debug_kickstarter_video(void)
+{
+    logic_accelerometer_set_x_movement_detection_wakeup();
+    inputs_clear_detections();
+    
+    uint16_t sleep_counter = 0;
+    while (TRUE)
+    {
+        /* One full animation */
+        for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
+        {
+            timer_start_timer(TIMER_WAIT_FUNCTS, 88);
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
+            while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
+            {
+                logic_accelerometer_routine();
+                
+                /* click during animation to switch off */
+                if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+                {
+                    logic_power_power_down_actions();           // Power off actions
+                    sh1122_oled_off(&plat_oled_descriptor);     // Display off command
+                    platform_io_power_down_oled();              // Switch off stepup
+                    platform_io_set_wheel_click_pull_down();    // Pull down on wheel click to slowly discharge capacitor
+                    timer_delay_ms(100);                        // From OLED datasheet wait before removing 3V3
+                    platform_io_set_wheel_click_low();          // Completely discharge cap
+                    timer_delay_ms(10);                         // Wait a tad
+                    platform_io_disable_switch_and_die();       // Die!
+                }
+            }
+        }
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        
+        /* Wait for end of x axis movement */
+        while(logic_accelerometer_routine() == ACC_DET_MOVEMENT);
+        
+        /* Go to sleep */
+        if ((platform_io_is_usb_3v3_present_raw() == FALSE) && (sleep_counter < 4))
+        {
+            sleep_counter = 0;
+            sh1122_oled_off(&plat_oled_descriptor);
+            platform_io_power_down_oled();
+            logic_power_check_power_switch_and_battery(TRUE);
+            main_standby_sleep();
+            platform_io_get_voledin_conversion_result_and_trigger_conversion();
+        }
+        else
+        {
+            sleep_counter++;
+        }
+        
+        /* Wait for x axis movement */
+        while(logic_accelerometer_routine() != ACC_DET_MOVEMENT);      
+    }    
 }
 
 /*! \fn     debug_always_bluetooth_enable_and_click_to_send_cred(void)

@@ -38,6 +38,8 @@
 #define ACC_Z_MAX_AVG_SUM_DIFF      2*ACC_Z_AVG_NB_SAMPLES
 // The minimum sum of the difference between samples & avg to notify there's movement
 #define ACC_Z_MOVEMENT_AVG_SUM_DIFF ACC_Z_AVG_NB_SAMPLES*2
+// The minimum sum of the difference between samples & avg to notify there's movement
+#define ACC_X_MOVEMENT_AVG_SUM_DIFF (ACC_Z_AVG_NB_SAMPLES)
 // The maximum sum of the difference between samples & avg to consider the accelerometer is failing
 #define ACC_AVG_SUM_DIFF_FOR_FAIL   ACC_Z_AVG_NB_SAMPLES*3*2
 // Nb samples to timeout a second knock detection
@@ -51,6 +53,7 @@
 
 /* Prototypes */
 acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void);
+void logic_accelerometer_set_x_movement_detection_wakeup(void);
 acc_detection_te logic_accelerometer_routine(void);
 
 
