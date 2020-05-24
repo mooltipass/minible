@@ -64,6 +64,7 @@ void dma_custom_fs_init_transfer(Sercom* sercom, void* datap, uint16_t size){}
 BOOL dma_custom_fs_check_and_clear_dma_transfer_flag(void){return TRUE;}
 BOOL dma_oled_check_and_clear_dma_transfer_flag(void){return TRUE;}
 BOOL dma_acc_check_and_clear_dma_transfer_flag(void){return TRUE;}
+BOOL dma_aux_mcu_is_rx_transfer_already_init(void){return FALSE;}
 void dma_wait_for_aux_mcu_packet_sent(void){}
 void dma_set_custom_fs_flag_done(void){}
 void dma_acc_disable_transfer(void){}
