@@ -76,6 +76,8 @@ BOOL platform_io_is_usb_3v3_present_raw(void){ return emu_get_usb_charging(); }
 void platform_io_release_aux_reset(void){}
 void platform_io_bypass_3v3_detection_debounce(void){}
 void platform_io_assert_oled_reset(void){}
+void platform_io_set_voled_vin_as_pulldown(void){}
+void platform_io_set_voled_vin_as_adc_input(void){}
 void platform_io_init_flash_ports(void){}
 void platform_io_init_power_ports(void){}
 void platform_io_power_down_oled(void){
