@@ -60,7 +60,14 @@ BOOL aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = FALSE;
 */
 void comms_aux_arm_rx_and_clear_no_comms(void)
 {
-    dma_aux_mcu_init_rx_transfer(AUXMCU_SERCOM, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+    if (dma_aux_mcu_is_rx_transfer_already_init() == FALSE)
+    {
+        dma_aux_mcu_init_rx_transfer(AUXMCU_SERCOM, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+    }
+    else
+    {
+        /* Should never happen! */
+    }
     platform_io_clear_no_comms();
 }
 
@@ -840,10 +847,9 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
         /* Check if received message is the one we expected */
         if ((aux_mcu_receive_message.message_type != expected_packet) || ((expected_event >= 0) && (aux_mcu_receive_message.aux_mcu_event_message.event_id != expected_event)))
         {
-            /* Reloop, rearm receive */
+            /* Reloop, clear DMA flag */
             reloop = TRUE;
             dma_aux_mcu_check_and_clear_dma_transfer_flag();
-            comms_aux_arm_rx_and_clear_no_comms();
             
             if ((aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_AUX_MCU_EVENT) && (aux_mcu_receive_message.aux_mcu_event_message.event_id != expected_event))
             {
@@ -892,6 +898,9 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
                 /* We can still tackle these requests as they do not generate prompts */
                 comms_aux_mcu_deal_with_ble_message(&aux_mcu_receive_message, MSG_RESTRICT_ALL);
             }
+            
+            /* Rearm receive */
+            comms_aux_arm_rx_and_clear_no_comms();
         }
     }while (reloop != FALSE);
 

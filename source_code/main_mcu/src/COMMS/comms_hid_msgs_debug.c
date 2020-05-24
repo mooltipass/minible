@@ -328,9 +328,6 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             temp_tx_message_pt->hid_message.detailed_platform_info.main_mcu_fw_major = FW_MAJOR;
             temp_tx_message_pt->hid_message.detailed_platform_info.main_mcu_fw_minor = FW_MINOR;
             
-            /* Rearm receive */
-            comms_aux_arm_rx_and_clear_no_comms();
-            
             /* Send message */
             comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
@@ -428,9 +425,6 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             temp_tx_message_pt->hid_message.battery_status.aux_charge_current = temp_rx_message->nimh_charge_message.charge_current;
             temp_tx_message_pt->hid_message.battery_status.aux_stepdown_voltage = temp_rx_message->nimh_charge_message.stepdown_voltage;
             temp_tx_message_pt->hid_message.battery_status.aux_dac_register_val = temp_rx_message->nimh_charge_message.dac_data_reg;
-            
-            /* Rearm receive */
-            comms_aux_arm_rx_and_clear_no_comms();
             
             /* Send message */
             comms_aux_mcu_send_message(temp_tx_message_pt);

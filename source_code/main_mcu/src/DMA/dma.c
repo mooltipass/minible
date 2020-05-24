@@ -727,7 +727,7 @@ void dma_aux_mcu_disable_transfer(void)
     cpu_irq_leave_critical();    
 }
 
-/*! \fn     void dma_aux_mcu_init_rx_transfer(Sercom* sercom, void* datap, uint16_t size)
+/*! \fn     dma_aux_mcu_init_rx_transfer(Sercom* sercom, void* datap, uint16_t size)
 *   \brief  Initialize a DMA transfer from the AUX MCU
 *   \param  sercom      Pointer to a sercom module
 *   \param  datap       Pointer to where to store the data
@@ -753,4 +753,20 @@ void dma_aux_mcu_init_rx_transfer(Sercom* sercom, void* datap, uint16_t size)
     dma_aux_mcu_rx_transfer_to_be_rearmed = FALSE;
     
     cpu_irq_leave_critical();
+}
+
+/*! \fn     dma_aux_mcu_is_rx_transfer_already_init(void)
+*   \brief  Check if we are absolute idiots and are trying to initialize again a DMA RX transfer
+*   \return Your stupidity status in boolean form.
+*/
+BOOL dma_aux_mcu_is_rx_transfer_already_init(void)
+{
+    if (dma_aux_mcu_rx_transfer_to_be_rearmed == FALSE)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
 }

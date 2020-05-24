@@ -281,10 +281,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             temp_tx_message_pt->hid_message.platform_info.aux_mcu_fw_major = temp_rx_message->aux_details_message.aux_fw_ver_major;
             temp_tx_message_pt->hid_message.platform_info.aux_mcu_fw_minor = temp_rx_message->aux_details_message.aux_fw_ver_minor;
             temp_tx_message_pt->hid_message.platform_info.plat_serial_number = 12345678;
-            temp_tx_message_pt->hid_message.platform_info.memory_size = DBFLASH_CHIP;        
-            
-            /* Rearm receive */
-            comms_aux_arm_rx_and_clear_no_comms();
+            temp_tx_message_pt->hid_message.platform_info.memory_size = DBFLASH_CHIP;
             
             /* Send message */
             comms_aux_mcu_send_message(temp_tx_message_pt);
