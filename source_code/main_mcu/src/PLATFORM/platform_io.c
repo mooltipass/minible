@@ -791,6 +791,33 @@ void platform_io_bypass_3v3_detection_debounce(void)
     }
 }
 
+/*! \fn     platform_io_set_voled_vin_as_pulldown(void)
+*   \brief  Setup voled vin as pulldown
+*/
+void platform_io_set_voled_vin_as_pulldown(void)
+{
+#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
+    PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
+    PORT->Group[VOLED_VIN_GROUP].OUTCLR.reg = VOLED_VIN_MASK;
+    PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 0;
+    PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PULLEN = 1;
+#endif
+}
+
+
+/*! \fn     platform_io_set_voled_vin_as_adc_input(void)
+*   \brief  Setup voled vin as adc input
+*/
+void platform_io_set_voled_vin_as_adc_input(void)
+{
+#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
+    PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
+    PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PULLEN = 0;
+    PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 1;
+    PORT->Group[VOLED_VIN_GROUP].PMUX[VOLED_VIN_PINID/2].bit.VOLED_VIN_PMUXREGID = VOLED_VIN_PMUX_ID;
+#endif
+}
+
 /*! \fn     platform_io_init_power_ports(void)
 *   \brief  Initialize the platform power ports
 */
@@ -798,9 +825,7 @@ void platform_io_init_power_ports(void)
 {
     /* Configure analog input */
 #if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
-    PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
-    PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 1;
-    PORT->Group[VOLED_VIN_GROUP].PMUX[VOLED_VIN_PINID/2].bit.VOLED_VIN_PMUXREGID = VOLED_VIN_PMUX_ID;
+    platform_io_set_voled_vin_as_adc_input();
 #endif
 
     /* USB 3V3 presence */

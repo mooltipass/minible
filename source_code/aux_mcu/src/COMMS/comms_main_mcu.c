@@ -500,7 +500,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 if (high_voltage > 123)
                 {
                     platform_io_disable_step_down();
-                    message->aux_mcu_event_message.payload[0] = 2;
+                    message->aux_mcu_event_message.payload[0] = 3;
                     comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
                     break;
                 }
@@ -522,7 +522,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 if ((high_voltage - low_voltage) > 100)
                 {
                     platform_io_disable_step_down();
-                    message->aux_mcu_event_message.payload[0] = 2;
+                    message->aux_mcu_event_message.payload[0] = 3;
                     comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
                     break;                    
                 }    

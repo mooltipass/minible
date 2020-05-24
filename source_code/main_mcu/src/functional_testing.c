@@ -110,11 +110,19 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         while(1);
     }
     
-    /* Internal 1V1 measurement when battery powered and screen not powered */
-    sh1122_oled_off(&plat_oled_descriptor);
+    /* Internal 1V1 measurement & VOLED VIN when battery powered and screen not powered */
     platform_io_power_down_oled();
+    platform_io_set_voled_vin_as_pulldown();
+    DELAYMS(400);
+    sh1122_oled_off(&plat_oled_descriptor);
     DELAYMS(50);
     uint16_t bandgap_measurement_bat_powered = platform_io_get_single_bandgap_measurement();
+    
+    /* Use Voled_vin back as adc input, get the voltage when all power sources are off (falls to 800mV instantly than slowly drifts down... check for 800mV) */
+    while(platform_io_is_voledin_conversion_result_ready() == FALSE);
+    uint32_t battery_voltage = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+    while(platform_io_is_voledin_conversion_result_ready() == FALSE);
+    battery_voltage = platform_io_get_voledin_conversion_result_and_trigger_conversion();
     
     /* Switch the screen back on */
     logic_power_set_power_source(BATTERY_POWERED);
@@ -124,6 +132,16 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #endif
+    
+    /* Check for above 800mV */
+    if (battery_voltage > BATTERY_ADC_800MV_VALUE)
+    {
+        sh1122_put_error_string(&plat_oled_descriptor, u"Q2/Q8/U1 issue");
+        while (smartcard_low_level_is_smc_absent() != RETURN_OK);
+        DELAYMS(200);
+        platform_io_disable_switch_and_die();
+        while(1);
+    }
     
     /* Wheel testing */
     sh1122_put_error_string(&plat_oled_descriptor, u"scroll up");
@@ -204,7 +222,15 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     }
     else if (func_test_result == 2)
     {
-        sh1122_put_error_string(&plat_oled_descriptor, u"Battery error!");
+        sh1122_put_error_string(&plat_oled_descriptor, u"Battery circuit error!");
+        while (platform_io_is_usb_3v3_present_raw() != FALSE);
+        DELAYMS(200);
+        platform_io_disable_switch_and_die();
+        while(1);
+    }
+    else if (func_test_result == 3)
+    {
+        sh1122_put_error_string(&plat_oled_descriptor, u"Q5/Q9 error");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
         DELAYMS(200);
         platform_io_disable_switch_and_die();

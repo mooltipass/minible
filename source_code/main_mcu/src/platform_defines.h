@@ -229,7 +229,7 @@ typedef struct
 /********************/
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP)
     #define BATTERY_ADC_OVER_VOLTAGE    (1600*273/110)
-    #define BATTERY_ADC_100PCT_VOLTAGE   (1180*273/110)
+    #define BATTERY_ADC_100PCT_VOLTAGE  (1180*273/110)
     #define BATTERY_ADC_90PCT_VOLTAGE   (1180*273/110)
     #define BATTERY_ADC_80PCT_VOLTAGE   (1250*273/110)
     #define BATTERY_ADC_70PCT_VOLTAGE   (1220*273/110)
@@ -240,6 +240,7 @@ typedef struct
     #define BATTERY_ADC_20PCT_VOLTAGE   (1180*273/110)
     #define BATTERY_ADC_10PCT_VOLTAGE   (1180*273/110)
     #define BATTERY_ADC_OUT_CUTOUT      (1180*273/110)
+    #define BATTERY_ADC_800MV_VALUE     (1180*273/110)
 #elif defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
     #define BATTERY_ADC_OVER_VOLTAGE    (1600*8192/3188)
     #define BATTERY_ADC_100PCT_VOLTAGE  (3435)
@@ -253,6 +254,7 @@ typedef struct
     #define BATTERY_ADC_20PCT_VOLTAGE   (3173)
     #define BATTERY_ADC_10PCT_VOLTAGE   (3090)
     #define BATTERY_ADC_OUT_CUTOUT      (3000)
+    #define BATTERY_ADC_800MV_VALUE     (2056)
 #endif
 
 /********************/
