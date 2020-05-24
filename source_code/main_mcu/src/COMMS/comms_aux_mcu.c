@@ -810,6 +810,12 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
         {
             return RETURN_NOK;
         }
+        
+        /* No expiration, rearm timer! */
+        if (single_try == FALSE)
+        {
+            timer_start_timer(TIMER_TIMEOUT_FUNCTS, AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS);
+        }
 
         /* Get payload length */
         uint16_t payload_length;

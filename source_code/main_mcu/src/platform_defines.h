@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    31
+#define FW_MINOR    32
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -98,6 +98,7 @@
 - v0.29:- battery recondition debug menu item
 - v0.30:- ble pairing bug fix
 - v0.31:- tx buffer sending logic rewrite
+- v0.32:- active_wait bug fix
 */
 
 /**************** SETUP DEFINES ****************/

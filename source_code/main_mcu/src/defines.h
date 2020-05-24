@@ -26,7 +26,7 @@
 #include <inttypes.h>
 
 /* Defines */
-#define AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS    500
+#define AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS    1500
 
 /* Fonts defines */
 #define FONT_UBUNTU_MONO_BOLD_30_ID 0
