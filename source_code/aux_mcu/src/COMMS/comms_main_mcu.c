@@ -377,9 +377,6 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 }
                 else
                 {
-                    /* Disable main comms */
-                    platform_io_disable_main_comms();
-                    
                     /* Set flag */
                     logic_sleep_set_full_platform_sleep_requested();
                 }                    

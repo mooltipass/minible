@@ -93,6 +93,9 @@ void logic_sleep_ble_signal_to_sleep(void)
         
         DBG_SLP_LOG("Going to sleep");
         
+        /* Disable main comms */
+        platform_io_disable_main_comms();
+        
         /* Enable BLE interrupt for wakeup */
         platform_io_enable_ble_int();
         

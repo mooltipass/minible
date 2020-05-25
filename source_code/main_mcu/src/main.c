@@ -429,6 +429,9 @@ void main_standby_sleep(void)
         /* Send a go to sleep message to aux MCU, wait for ack, leave no comms high (automatically set when receiving the sleep received event) */
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_SLEEP);
         while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_SLEEP_RECEIVED) != RETURN_OK);
+        
+        /* Wait for end of message we were possibly sending */
+        comms_aux_mcu_wait_for_message_sent();
     
         /* Disable aux MCU dma transfers */
         dma_aux_mcu_disable_transfer();
