@@ -147,7 +147,7 @@
 #define DIS_CHAR_IEEE_REG_CERT_DATA_LIST_MAX_LEN	0x0a
 
 /** @brief PnP ID characteristic value configure by user*/
-#define PNP_ID_VENDOR_ID_SOURCE		0x00
+#define PNP_ID_VENDOR_ID_SOURCE		0x02
 #define PNP_ID_VENDOR_ID			USB_VENDOR_ID
 #define PNP_ID_PRODUCT_ID			USB_PRODUCT_ID
 #define PNP_ID_PRODUCT_VERSION		0x0001

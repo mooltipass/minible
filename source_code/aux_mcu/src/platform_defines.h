@@ -97,7 +97,7 @@
 #define BLE_PLATFORM_NAME           "Mooltipass Mini"
 
 /* Debug mode: one HID interface on bluetooth */
-//#define ONE_BLE_HID_INTERFACE_DBG
+#define ONE_BLE_HID_INTERFACE_DBG
 
 /* Enums */
 typedef enum {PIN_GROUP_0 = 0, PIN_GROUP_1 = 1} pin_group_te;
