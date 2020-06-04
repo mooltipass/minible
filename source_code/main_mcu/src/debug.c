@@ -353,7 +353,7 @@ void debug_kickstarter_video(void)
         while(logic_accelerometer_routine() == ACC_DET_MOVEMENT);
         
         /* Go to sleep */
-        if ((platform_io_is_usb_3v3_present_raw() == FALSE) && (sleep_counter < 4))
+        if ((platform_io_is_usb_3v3_present_raw() == FALSE) && (sleep_counter > 7))
         {
             sleep_counter = 0;
             sh1122_oled_off(&plat_oled_descriptor);

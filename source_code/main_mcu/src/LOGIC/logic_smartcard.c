@@ -140,6 +140,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
                 {
                     /* PINs match, new user added to memories */
                     gui_prompts_display_information_on_screen_and_wait(NEW_USER_ADDED_TEXT_ID, DISP_MSG_INFO, FALSE);
+                    logic_user_get_and_clear_user_to_be_logged_off_flag();
                     logic_security_smartcard_unlocked_actions();
                     next_screen = GUI_SCREEN_MAIN_MENU;
                     return_value = RETURN_OK;
@@ -178,6 +179,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
             }
             
             /* Unlock service feature if enabled */
+            logic_user_get_and_clear_user_to_be_logged_off_flag();
             logic_user_unlocked_feature_trigger();
             next_screen = GUI_SCREEN_MAIN_MENU;
             return_value = RETURN_OK;
