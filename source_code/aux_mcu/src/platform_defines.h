@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    25
+#define FW_MINOR    26
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -51,6 +51,7 @@
 - v0.23:- Updated charging constants
 - v0.24:- BLE timeouts to prevent freezes
 - v0.25:- updated functional test
+- v0.26:- complete overall of bluetooth descriptor for iOS compatibility
 */
 
 /**************** SETUP DEFINES ****************/

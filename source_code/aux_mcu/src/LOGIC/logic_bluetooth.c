@@ -69,6 +69,7 @@ uint8_t logic_bluetooth_boot_mouse_in_report[1];
 uint8_t logic_bluetooth_boot_keyb_out_report[1];
 uint8_t logic_bluetooth_boot_keyb_in_report[1];
 uint8_t logic_bluetooth_keyboard_in_report[8];
+uint8_t logic_bluetooth_mouse_in_report[4];
 uint8_t logic_bluetooth_ctrl_point[1];
 BOOL logic_bluetooth_typed_report_sent = FALSE;
 /* Bluetooth connection bools */
@@ -516,10 +517,39 @@ static const ble_custom_event_cb_t hid_custom_event_cb =
 /* keyboard report */
 static uint8_t logic_bluetooth_keyb_report_map[] =
 {
+    /* Want to have your keyboard working on iOS? you better include that mouse in it... because that makes sense... right? */
+    0x05, 0x01,                         // Usage Page (Generic Desktop)
+    0x09, 0x02,                         // Usage (Mouse)
+    0xA1, 0x01,                         // Collection (Application)
+    0x85, 0x01,                         // Report Id (1)
+    0x09, 0x01,                         //   Usage (Pointer)
+    0xA1, 0x00,                         //   Collection (Physical)
+    0x05, 0x09,                         //     Usage Page (Buttons)
+    0x19, 0x01,                         //     Usage Minimum (01) - Button 1
+    0x29, 0x03,                         //     Usage Maximum (03) - Button 3
+    0x15, 0x00,                         //     Logical Minimum (0)
+    0x25, 0x01,                         //     Logical Maximum (1)
+    0x75, 0x01,                         //     Report Size (1)
+    0x95, 0x03,                         //     Report Count (3)
+    0x81, 0x02,                         //     Input (Data, Variable, Absolute) - Button states
+    0x75, 0x05,                         //     Report Size (5)
+    0x95, 0x01,                         //     Report Count (1)
+    0x81, 0x01,                         //     Input (Constant) - Padding or Reserved bits
+    0x05, 0x01,                         //     Usage Page (Generic Desktop)
+    0x09, 0x30,                         //     Usage (X)
+    0x09, 0x31,                         //     Usage (Y)
+    0x09, 0x38,                         //     Usage (Wheel)
+    0x15, 0x81,                         //     Logical Minimum (-127)
+    0x25, 0x7F,                         //     Logical Maximum (127)
+    0x75, 0x08,                         //     Report Size (8)
+    0x95, 0x03,                         //     Report Count (3)
+    0x81, 0x06,                         //     Input (Data, Variable, Relative) - X & Y coordinate
+    0xC0,                               //   End Collection
+    0xC0,                               // End Collection
     0x05, 0x01,                         // Usage Page (Generic Desktop),
     0x09, 0x06,                         // Usage (Keyboard),
     0xA1, 0x01,                         // Collection (Application),
-    0x85, 0x01,                         // REPORT ID (1) - MANDATORY
+    0x85, 0x02,                         // REPORT ID (2) - MANDATORY
     0x05, 0x07,                         //   Usage Page (Key Codes),
     0x19, 0xE0,                         //   Usage Minimum (224, keyboard left control),
     0x29, 0xE7,                         //   Usage Maximum (231, keyboard right gui),
@@ -1441,11 +1471,15 @@ void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
     logic_bluetooth_hid_prf_data.hid_serv_instance = BLE_KEYBOARD_HID_SERVICE_INSTANCE;
     logic_bluetooth_hid_prf_data.hid_device = HID_KEYBOARD_MODE;
     logic_bluetooth_hid_prf_data.protocol_mode = HID_REPORT_PROTOCOL_MODE;
-    logic_bluetooth_hid_prf_data.num_of_report = 1;
-    logic_bluetooth_hid_prf_data.report_id[0] = BLE_KEYBOARD_HID_IN_REPORT_NB;
+    logic_bluetooth_hid_prf_data.num_of_report = 2;
+    logic_bluetooth_hid_prf_data.report_id[0] = BLE_MOUSE_HID_IN_REPORT_NB;
     logic_bluetooth_hid_prf_data.report_type[0] = INPUT_REPORT;
-    logic_bluetooth_hid_prf_data.report_val[0] = &logic_bluetooth_keyboard_in_report[0];
-    logic_bluetooth_hid_prf_data.report_len[0] = sizeof(logic_bluetooth_keyboard_in_report);
+    logic_bluetooth_hid_prf_data.report_val[0] = &logic_bluetooth_mouse_in_report[0];
+    logic_bluetooth_hid_prf_data.report_len[0] = sizeof(logic_bluetooth_mouse_in_report);
+    logic_bluetooth_hid_prf_data.report_id[1] = BLE_KEYBOARD_HID_IN_REPORT_NB;
+    logic_bluetooth_hid_prf_data.report_type[1] = INPUT_REPORT;
+    logic_bluetooth_hid_prf_data.report_val[1] = &logic_bluetooth_keyboard_in_report[0];
+    logic_bluetooth_hid_prf_data.report_len[1] = sizeof(logic_bluetooth_keyboard_in_report);
     logic_bluetooth_hid_prf_data.report_map_info.report_map = logic_bluetooth_keyb_report_map;
     logic_bluetooth_hid_prf_data.report_map_info.report_map_len = sizeof(logic_bluetooth_keyb_report_map);
     logic_bluetooth_hid_prf_data.hid_device_info.bcd_hid = 0x0111;
