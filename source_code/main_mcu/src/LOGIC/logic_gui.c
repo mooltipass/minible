@@ -155,6 +155,7 @@ void logic_gui_clone_card(void)
     {
         /* Couldn't reauth user */
         gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
+        logic_device_set_state_changed();
     }
 }    
 
@@ -187,6 +188,7 @@ void logic_gui_change_pin(void)
     else
     {
         gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
+        logic_device_set_state_changed();
     }
 }
 
@@ -251,6 +253,7 @@ void logic_gui_erase_user(void)
     }
     
     /* We're done! */
+    logic_device_set_state_changed();
     logic_smartcard_handle_removed();
 }
 
