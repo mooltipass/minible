@@ -25,7 +25,7 @@ typedef enum    {NONE_NOTIF_SENDING = 0, KEYBOARD_NOTIF_SENDING, RAW_HID_NOTIF_S
 #define BLE_TOTAL_NUMBER_OF_REPORTS         3
 #define BLE_MAX_REPORTS_FOR_GIVEN_SVC       2
 #define HID_MAX_SERV_INST				    2
-#define HID_MAX_CHARACTERISTIC              7
+#define HID_MAX_CHARACTERISTIC              8
 
 /** @brief APP_HID_FAST_ADV between 0x0020 and 0x4000 in 0.625 ms units (20ms to 10.24s). */
 //	<o> Fast Advertisement Interval <100-1000:50>
