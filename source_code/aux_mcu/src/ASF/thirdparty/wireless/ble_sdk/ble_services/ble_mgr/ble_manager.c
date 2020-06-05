@@ -1670,8 +1670,10 @@ at_ble_status_t ble_pair_done_handler(void *params)
             if(!(at_ble_disconnect(pairing_params->handle, AT_BLE_TERMINATED_BY_USER) == AT_BLE_SUCCESS))
             {
             DBG_LOG("Disconnect Request Failed");
+            logic_bluetooth_start_advertising();
             return AT_BLE_FAILURE;
-            }       
+            }   
+            logic_bluetooth_start_advertising();    
         }
     }
     return AT_BLE_SUCCESS;
