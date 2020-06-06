@@ -583,12 +583,12 @@ static uint8_t logic_bluetooth_keyb_report_map[] =
 
 /* raw keyboard report */
 static uint8_t logic_bluetooth_raw_report_map[] =
-/*{
+{
     0x06, USB_RAWHID_USAGE_PAGE & 0xFF, (USB_RAWHID_USAGE_PAGE >> 8) & 0xFF,
     0x0A, USB_RAWHID_USAGE & 0xFF, (USB_RAWHID_USAGE >> 8) & 0xFF,
     0xA1, 0x01,                         // Collection (application)
     0xA1, 0x02,                         // Collection (logical)
-    0x85, 0x02,                         // Report ID 2
+    0x85, 0x03,                         // Report ID 3
     0x75, 0x08,                         // report size = 8 bits
     0x15, 0x00,                         // logical minimum = 0
     0x26, 0xFF, 0x00,                   // logical maximum = 255
@@ -597,7 +597,7 @@ static uint8_t logic_bluetooth_raw_report_map[] =
     0x81, 0x02,                         // Input (array)
     0xC0,                               // end collection (logical)    
     0xA1, 0x02,                         // Collection (logical)
-    0x85, 0x03,                         // Report ID 3
+    0x85, 0x04,                         // Report ID 4
     0x75, 0x08,                         // report size = 8 bits
     0x15, 0x00,                         // logical minimum = 0
     0x26, 0xFF, 0x00,                   // logical maximum = 255
@@ -605,26 +605,6 @@ static uint8_t logic_bluetooth_raw_report_map[] =
     0x09, 0x02,                         // usage
     0x91, 0x02,                         // Output (array)
     0xC0,                               // end collection (logical)
-    0xC0                                // end collection (application)
-};*/
-{
-    0x06, USB_RAWHID_USAGE_PAGE & 0xFF, (USB_RAWHID_USAGE_PAGE >> 8) & 0xFF,
-    0x0A, USB_RAWHID_USAGE & 0xFF, (USB_RAWHID_USAGE >> 8) & 0xFF,
-    0xA1, 0x01,                         // Collection (application)
-    0x85, 0x02,                         // Report ID 2
-    0x75, 0x08,                         // report size = 8 bits
-    0x15, 0x00,                         // logical minimum = 0
-    0x26, 0xFF, 0x00,                   // logical maximum = 255
-    0x95, USB_RAWHID_TX_SIZE,           // report count
-    0x09, 0x01,                         // usage
-    0x81, 0x02,                         // Input (array)
-    0x85, 0x03,                         // Report ID 3
-    0x75, 0x08,                         // report size = 8 bits
-    0x15, 0x00,                         // logical minimum = 0
-    0x26, 0xFF, 0x00,                   // logical maximum = 255
-    0x95, USB_RAWHID_RX_SIZE,           // report count
-    0x09, 0x02,                         // usage
-    0x91, 0x02,                         // Output (array)
     0xC0                                // end collection (application)
 };
 
