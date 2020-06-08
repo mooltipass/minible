@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 
+static BOOL typing_return;
 static BOOL response_valid;
 static aux_mcu_message_t response;
 static BOOL has_been_already_paired_to_device = FALSE;
@@ -28,6 +29,15 @@ void emu_send_aux(char *data, int size)
         case AUX_MCU_MSG_TYPE_USB:
             send_hid_message(msg);
             break;
+            
+        case AUX_MCU_MSG_TYPE_KEYBOARD_TYPE:
+            memset(&response, 0, sizeof(response));
+            response.message_type = AUX_MCU_MSG_TYPE_KEYBOARD_TYPE;
+            response.payload_as_uint16[0] = (uint16_t)typing_return;
+            typing_return = !typing_return;
+            response.payload_length1 = 2;
+            response_valid = TRUE;
+            break;            
 
         case AUX_MCU_MSG_TYPE_PLAT_DETAILS:
             memset(&response, 0, sizeof(response));
@@ -39,8 +49,7 @@ void emu_send_aux(char *data, int size)
             response.aux_details_message.aux_uid_registers[0] = 0x01234567;
             response.aux_details_message.aux_uid_registers[1] = 0x89abcdef;
             response.aux_details_message.aux_uid_registers[2] = 0x08192a3b;
-            response.aux_details_message.aux_uid_registers[3] = 0x4c5d6e7f;
-            
+            response.aux_details_message.aux_uid_registers[3] = 0x4c5d6e7f;            
             response.aux_details_message.blusdk_lib_maj = 88;
             response.aux_details_message.blusdk_lib_min = 88;
             response.aux_details_message.blusdk_fw_maj = 77;
