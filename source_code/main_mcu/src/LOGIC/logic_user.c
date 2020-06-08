@@ -602,7 +602,7 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
         {
             /* Prepare notification message : contents of the TX message aren't accessed after this function return */
             cust_char_t* two_line_notif_1;
-            custom_fs_get_string_from_file(QPROMPT_EXPORT_DATA_TEXT_ID, &two_line_notif_1, TRUE);
+            custom_fs_get_string_from_file(EXPORTING_DATA_FOR_TEXT_ID, &two_line_notif_1, TRUE);
             confirmationText_t notif_text_2_lines = {.lines[0]=two_line_notif_1, .lines[1]=service, .lines[2]=service};
 
             /* 2 lines notification Exporting data / file name */
