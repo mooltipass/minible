@@ -109,8 +109,9 @@ void gui_prompts_display_tutorial(void)
             sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_17_ID);
             for (uint16_t i = 0; i < 3; i++)
             {
+                uint16_t text_offset = (current_tutorial_page > 0 && current_tutorial_page < 3)? 30 : 0;
                 custom_fs_get_string_from_file(TUTORIAL_FLINE_TEXT_ID + current_tutorial_page*3 + i, &temp_string_pt, TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 0, gui_prompts_tutorial_3_lines_y_positions[i], OLED_ALIGN_CENTER, temp_string_pt, TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, text_offset, gui_prompts_tutorial_3_lines_y_positions[i], OLED_ALIGN_CENTER, temp_string_pt, TRUE);
             }
             
             /* Display animation frame if needed */

@@ -2196,7 +2196,7 @@ int16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, in
     {
         if ((x + oled_descriptor->min_text_x + width) < oled_descriptor->max_text_x)
         {
-            x = oled_descriptor->min_text_x + x + (oled_descriptor->max_text_x - oled_descriptor->min_text_x - width)/2;
+            x = oled_descriptor->min_text_x + x + (oled_descriptor->max_text_x - oled_descriptor->min_text_x - x - width)/2;
         }
         else
         {
