@@ -131,7 +131,7 @@
  * => 50 prototype units produced, 01/01/2020
  * - exact same layout as PLAT_V5_SETUP, except VOLED_1V2_EN swapped with SMC_PGM
  */
- #define PLAT_V5_SETUP 
+ #define PLAT_V6_SETUP 
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)
@@ -221,6 +221,7 @@ typedef struct
 /********************/
 /* Timeout defines  */
 /********************/
+#define EMULATOR_SCREEN_TIMEOUT_MS  60000
 #define SCREEN_TIMEOUT_MS           15000
 #define SCREEN_TIMEOUT_MS_BAT_PWRD  7654
 #define AUX_FLOOD_TIMEOUT_MS        2

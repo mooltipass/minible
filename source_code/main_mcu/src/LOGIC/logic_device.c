@@ -90,6 +90,7 @@ platform_wakeup_reason_te logic_device_get_wakeup_reason(void)
 void logic_device_activity_detected(void)
 {
     /* Reset timers */
+    #ifndef EMULATOR_BUILD
     if (platform_io_is_usb_3v3_present() == FALSE)
     {
         timer_start_timer(TIMER_SCREEN, SCREEN_TIMEOUT_MS_BAT_PWRD);
@@ -98,6 +99,9 @@ void logic_device_activity_detected(void)
     {
         timer_start_timer(TIMER_SCREEN, SCREEN_TIMEOUT_MS);        
     }    
+    #else
+    timer_start_timer(TIMER_SCREEN, EMULATOR_SCREEN_TIMEOUT_MS);
+    #endif
     timer_start_timer(TIMER_USER_INTERACTION, utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_USER_INTERACTION_TIMEOUT_ID), SETTING_MIN_USER_INTERACTION_TIMEOUT, SETTING_MAX_USER_INTERACTION_TIMOUT) << 10);
     
     /* Check for screen off, switch it on if so */
