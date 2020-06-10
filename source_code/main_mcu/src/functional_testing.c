@@ -270,7 +270,10 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     if ((detection_result == RETURN_MOOLTIPASS_PB) || (detection_result == RETURN_MOOLTIPASS_INVALID))
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Invalid card!");
-        while (platform_io_is_usb_3v3_present_raw() != FALSE);
+        while (platform_io_is_usb_3v3_present_raw() != FALSE)
+        {
+            comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BUNDLE);
+        }
         DELAYMS(200);
         platform_io_disable_switch_and_die();
         while(1);

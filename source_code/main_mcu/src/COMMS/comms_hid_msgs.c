@@ -649,9 +649,6 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
 
                             /* Set failure byte */
                             comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
-                            
-                            /* Update status */
-                            logic_device_set_state_changed();
                         }
                     } 
                     else
