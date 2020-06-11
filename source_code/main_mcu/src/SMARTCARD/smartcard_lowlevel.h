@@ -30,7 +30,7 @@
 typedef enum    {MAN_FUSE = 0, EC2EN_FUSE = 1, ISSUER_FUSE = 2} card_fuse_type_te;
     
 /* Defines */
-#define CARD_DELAY_FOR_DETECTION    250
+#define CARD_DELAY_FOR_DETECTION    350
 
 // Prototypes
 RET_TYPE smartcard_lowlevel_check_for_const_val_in_smc_array(uint16_t nb_bytes_total_read, uint16_t start_record_index, uint8_t value);
