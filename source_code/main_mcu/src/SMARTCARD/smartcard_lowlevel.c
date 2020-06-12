@@ -204,7 +204,7 @@ void smartcard_lowlevel_detect(void)
                 card_detect_counter++;
             }
         }
-        else if (card_detect_counter != 0xFF)
+        else if (card_detect_counter != 0xFFFF)
         {
             card_detect_counter++;
         }
