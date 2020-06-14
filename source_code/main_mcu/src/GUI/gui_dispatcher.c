@@ -264,8 +264,11 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
         {
             /* Long click when invalid card inserted for debug menu */
             #ifdef DEBUG_MENU_ENABLED
-            debug_debug_menu();
-            rerender_bool = TRUE;
+            if (wheel_action == WHEEL_ACTION_LONG_CLICK)
+            {
+                debug_debug_menu();
+                rerender_bool = TRUE;
+            }
             #endif
             break;
         }            

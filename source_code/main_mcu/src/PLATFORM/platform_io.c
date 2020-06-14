@@ -517,7 +517,14 @@ void platform_io_smc_remove_function(void)
 */
 void platform_io_smc_inserted_function(void)
 {
-    PORT->Group[SMC_POW_NEN_GROUP].OUTCLR.reg = SMC_POW_NEN_MASK;                   // Enable power to the smart card
+    /* Limit inrush to the smartcard cap: drive PMOSFET with the MCU pulldown then switch to push pull stage */
+    PORT->Group[SMC_POW_NEN_GROUP].DIRCLR.reg = SMC_POW_NEN_MASK;
+    PORT->Group[SMC_POW_NEN_GROUP].OUTCLR.reg = SMC_POW_NEN_MASK;
+    PORT->Group[SMC_POW_NEN_GROUP].PINCFG[SMC_POW_NEN_PINID].bit.PULLEN = 1;
+    timer_delay_ms(1);
+    PORT->Group[SMC_POW_NEN_GROUP].PINCFG[VOLED_1V2_EN_PINID].bit.PULLEN = 0;
+    PORT->Group[SMC_POW_NEN_GROUP].OUTCLR.reg = SMC_POW_NEN_MASK;
+    PORT->Group[SMC_POW_NEN_GROUP].DIRSET.reg = SMC_POW_NEN_MASK;
     PORT->Group[SMC_PGM_GROUP].DIRSET.reg = SMC_PGM_MASK;                           // PGM to 0
     PORT->Group[SMC_PGM_GROUP].OUTCLR.reg = SMC_PGM_MASK;                           // PGM to 0
     PORT->Group[SMC_RST_GROUP].DIRSET.reg = SMC_RST_MASK;                           // RST to 1

@@ -1441,12 +1441,6 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
     uint16_t state_machine = 0;
     cust_char_t* two_line_prompt_2;
     confirmationText_t conf_text_2_lines = {.lines[0]=temp_pnode.cred_parent.service, .lines[1]=two_line_prompt_2};
-        
-    /* If only password prompt was queried, go to dedicated state machine */
-    if (only_pwd_prompt != FALSE)
-    {
-        state_machine = 2;
-    }
     
     while (TRUE)
     {
@@ -1489,9 +1483,17 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                 *usb_selected = TRUE;
                 interface_id = 0;
             }
-            
-            /* Move to next state */
-            state_machine++;
+        
+            /* If only password prompt was queried, go to dedicated state machine */
+            if (only_pwd_prompt != FALSE)
+            {
+                state_machine = 2;
+            }
+            else
+            {                
+                /* Move to next state */
+                state_machine++;                
+            }
         }
         else if (state_machine == 1)
         {
