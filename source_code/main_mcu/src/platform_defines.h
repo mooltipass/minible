@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    33
+#define FW_MINOR    34
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -100,6 +100,8 @@
 - v0.31:- tx buffer sending logic rewrite
 - v0.32:- active_wait bug fix
 - v0.33:- ios connectivity bug fix
+- v0.34:- unlock feature over ble bug fix
+        - smartcard power up sequence improvement
 */
 
 /**************** SETUP DEFINES ****************/
