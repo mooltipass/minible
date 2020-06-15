@@ -100,6 +100,6 @@ Simply click yes and go through the update process.
 Insert your smarcard **the wrong way around** inside the device, make sure you're connecting through USB.  
 Connect your device to your computer **using USB**, make sure Bluetooth connectivity is disabled.  
 In Moolticute, press CTRL-SHIFT-F3 (SHIFT-Command-F3 on Mac) in such a way that all 3 keys are pressed at the end of the shortcut. The BLE Dev tab will appear:  
-![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/ble_dev_tab.PNG?raw=true)  
+![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/ble_dev_tab_new.PNG?raw=true)  
 Click on the "Select Bundle File" button and select the bundle file we sent you by email, the upload will start automatically.  
 Once the upload is performed, **click the Update Platform button**. The BLE Dev tab will then disappear and you'll hear the device disconnecting and reconnecting from USB.  
