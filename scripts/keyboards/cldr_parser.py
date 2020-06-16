@@ -745,6 +745,7 @@ keyboard_generation_array = [ \
 								[ "osx", "British", "UK (MacOS)"],\
 								[ "osx", "U.S.", "USA (MacOS)"],\
 								[ "osx", "US Extended", "US Extended (MacOS)"],\
+								[ "windows", "United Kingdom", "United Kingdom"],\
 							]
 
 if False:
