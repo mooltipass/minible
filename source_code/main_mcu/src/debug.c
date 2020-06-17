@@ -180,7 +180,7 @@ void debug_debug_menu(void)
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Battery Recondition", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Battery Test", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Stack Usage", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Kickstarter Video", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Reset Settings", TRUE);
             }
             
             /* Cursor */
@@ -306,7 +306,7 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 19)
             {
-                debug_kickstarter_video();
+                custom_fs_hard_reset_settings();
             }
             redraw_needed = TRUE;
         }
