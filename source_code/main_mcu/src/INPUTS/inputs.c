@@ -269,7 +269,7 @@ void inputs_scan(void)
         {
             inputs_wheel_click_return = RETURN_JDETECT;
         }
-        if (inputs_wheel_click_counter != 0xFF)
+        if (inputs_wheel_click_counter != 0xFFFF)
         {
             inputs_wheel_click_counter++;
         }
@@ -388,6 +388,7 @@ void inputs_clear_detections(void)
     #endif
     inputs_wheel_click_duration_counter = 0;
     inputs_wheel_click_return = RETURN_REL;
+    inputs_discard_release_event = FALSE;
     inputs_wheel_cur_increment = 0;
     cpu_irq_leave_critical();
 }
@@ -448,6 +449,9 @@ wheel_action_ret_te inputs_get_wheel_action(BOOL wait_for_action, BOOL ignore_in
                         return_val = WHEEL_ACTION_SHORT_CLICK;
                     }
                 }
+                
+                /* Acknowledge */
+                inputs_wheel_click_return = RETURN_REL;
             }
             else if (inputs_wheel_click_return == RETURN_DET)
             {
@@ -474,17 +478,13 @@ wheel_action_ret_te inputs_get_wheel_action(BOOL wait_for_action, BOOL ignore_in
 
             // Clear detections
             inputs_wheel_click_duration_counter = 0;
-            if ((return_val == WHEEL_ACTION_CLICK_DOWN) || (return_val == WHEEL_ACTION_CLICK_UP))
+            if ((return_val == WHEEL_ACTION_CLICK_DOWN) || (return_val == WHEEL_ACTION_CLICK_UP) || (return_val == WHEEL_ACTION_LONG_CLICK))
             {
                 inputs_discard_release_event = TRUE;
             }
             else if(return_val == WHEEL_ACTION_NONE)
             {
                 // User has been scrolling then keeping the wheel pressed: do not do anything
-            }
-            else
-            {
-                inputs_wheel_click_return = RETURN_REL;
             }
             if (ignore_incdec == FALSE)
             {
