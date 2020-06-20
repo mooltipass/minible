@@ -102,6 +102,8 @@
 - v0.33:- ios connectivity bug fix
 - v0.34:- unlock feature over ble bug fix
         - smartcard power up sequence improvement
+        - scroll wheel detection bug fix
+        - high sleep power consumption bug fix
 */
 
 /**************** SETUP DEFINES ****************/
@@ -133,7 +135,7 @@
  * => 50 prototype units produced, 01/01/2020
  * - exact same layout as PLAT_V5_SETUP, except VOLED_1V2_EN swapped with SMC_PGM
  */
- #define PLAT_V6_SETUP 
+ #define PLAT_V5_SETUP 
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)

@@ -426,15 +426,19 @@ void main_standby_sleep(void)
     {
         aux_mcu_message_t* temp_rx_message;
     
-        /* Send a go to sleep message to aux MCU, wait for ack, leave no comms high (automatically set when receiving the sleep received event) */
-        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_SLEEP);
-        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_SLEEP_RECEIVED) != RETURN_OK);
-        
-        /* Wait for end of message we were possibly sending */
-        comms_aux_mcu_wait_for_message_sent();
-    
-        /* Disable aux MCU dma transfers */
-        dma_aux_mcu_disable_transfer();
+        /* Only if we actually wokeup the aux mcu */
+        if (logic_device_get_wakeup_reason() != WAKEUP_REASON_20M_TIMER)
+        {
+            /* Send a go to sleep message to aux MCU, wait for ack, leave no comms high (automatically set when receiving the sleep received event) */
+            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_SLEEP);
+            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_SLEEP_RECEIVED) != RETURN_OK);
+            
+            /* Wait for end of message we were possibly sending */
+            comms_aux_mcu_wait_for_message_sent();
+            
+            /* Disable aux MCU dma transfers */
+            dma_aux_mcu_disable_transfer();
+        }
     
         /* Wait for accelerometer DMA transfer end and put it to sleep */
         lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
@@ -474,15 +478,18 @@ void main_standby_sleep(void)
     
         /* Send any command to DB flash to wake it up (required in case of going to sleep twice) */
         dbflash_check_presence(&dbflash_descriptor);
-    
-        /* Re-enable AUX comms */
-        comms_aux_arm_rx_and_clear_no_comms();
-    
+        
         /* Resume accelerometer processing */
         lis2hh12_sleep_exit_and_dma_arm(&plat_acc_descriptor);
     
         /* Get wakeup reason */
         platform_wakeup_reason_te wakeup_reason = logic_device_get_wakeup_reason();
+        
+        /* Re-enable AUX comms */
+        if (wakeup_reason != WAKEUP_REASON_20M_TIMER)
+        {
+            comms_aux_arm_rx_and_clear_no_comms();
+        }
     
         /* Switch on OLED depending on wakeup reason */
         if (wakeup_reason == WAKEUP_REASON_20M_TIMER)
