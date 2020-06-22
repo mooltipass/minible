@@ -362,6 +362,9 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* Set main mcu wake up timer */
                 timer_start_timer(TIMER_MAIN_MCU_WAKE_DELAY, 500);
                 
+                /* In the case the main MCU doesn't raise the no comms in time */
+                timer_delay_ms(1);
+                
                 /* Different strategies depending on if BLE is enabled */
                 if (logic_is_ble_enabled() == FALSE)
                 {

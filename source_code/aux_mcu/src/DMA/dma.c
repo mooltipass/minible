@@ -255,7 +255,7 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
     /* Maths: 6Mbit/s baud rate -> 3.3us for 20 bits + added interrupt latency */
     if (went_through_loop_below != FALSE)
     {
-        DELAYUS(15);
+        DELAYUS(150);
     }
     else
     {
@@ -272,7 +272,7 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
                 if (t_delay < 720)
                 {
                     /* Less than 15us since message sent interrupt and now */
-                    DELAYUS(15);
+                    DELAYUS(150);
                 }
             }
         }
@@ -282,7 +282,7 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
             if ((t_delay < 720) && ((timer_get_systick() - dma_main_mcu_message_sent_systick_val) < 20))
             {
                 /* Less than 15us since message sent interrupt and now */
-                DELAYUS(15);
+                DELAYUS(150);
             }
         }        
     }

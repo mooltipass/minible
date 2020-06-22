@@ -1,6 +1,7 @@
 from __future__ import print_function
 from time import gmtime, strftime, localtime
 from command_defines import *
+from datetime import datetime
 import threading
 import struct
 import serial
@@ -166,7 +167,7 @@ while True:
 		#print(' '.join(str.format('{:02X}', x) for x in frame))
 		
 		if mcu == "DBG":
-			print("Debug MSG:                                " + frame.replace("\r","").replace("\n",""))
+			print(datetime.now().strftime("%H:%M:%S.%f")[:-3] + ": debug MSG:    " + frame.replace("\r","").replace("\n",""))
 		else:		
 			# Resync done?
 			if resync_done:
@@ -193,7 +194,7 @@ while True:
 				decode_object[decoding_guidelines[message_type][1][i]] = decode_int_object[i]
 					
 			if mcu == "AUX":
-				sys.stdout.write(strftime("%Y-%m-%d %H:%M:%S", localtime()) + ": Aux->Main: " + message_types_descriptions[message_type].rjust(20, ' '))
+				sys.stdout.write(datetime.now().strftime("%H:%M:%S.%f")[:-3] + ": Aux->Main: " + message_types_descriptions[message_type].rjust(20, ' '))
 				
 				if "command" in decode_object:
 					# Check we have a description for the command
@@ -230,7 +231,7 @@ while True:
 					[type, payload, command, charge_status] = struct.unpack("HHHB", frame[0:7])
 					sys.stdout.write(" " + str(charge_status*10) + "pct")
 			else:
-				sys.stdout.write(strftime("%Y-%m-%d %H:%M:%S", localtime()) + ": Main->Aux: " + message_types_descriptions[message_type].rjust(20, ' '))
+				sys.stdout.write(datetime.now().strftime("%H:%M:%S.%f")[:-3] + ": Main->Aux: " + message_types_descriptions[message_type].rjust(20, ' '))
 				
 				if "command" in decode_object:
 					# Check we have a description for the command

@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    28
+#define FW_MINOR    29
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -54,6 +54,7 @@
 - v0.26:- complete overall of bluetooth descriptor for iOS compatibility
 - v0.27:- faster advertising interval
 - v0.28:- wakeup pulse in case no comms is present for too long
+- v0.29:- aux mcu sleep bug fix
 */
 
 /**************** SETUP DEFINES ****************/
