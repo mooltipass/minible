@@ -24,7 +24,7 @@ The device you received is fully functional. It will allow you to:
 - fully manage your credentials in Moolticute  
 - show your credentials on the display  
   
-To speed-up development efforts, we unfortunately haven't written a user manual (yet). We however believe this may be a good thing, as we expect you to try the Mooltipass BLE in a way that feels intuitive to you, and then tell us if it is not the case.  
+You may find the device user manual <a href="https://github.com/mooltipass/minible/raw/master/MooltipassMiniBLEUserManual.pdf">here</a>.  
   
   
   
@@ -32,7 +32,7 @@ To speed-up development efforts, we unfortunately haven't written a user manual 
 You'll find that the battery autonomy mainly depends on the OLED screen ON time. The device, after a couple of seconds, will directly go to sleep and will stay alive:  
 - 100 days when Bluetooth is OFF    
 - 35 days when Bluetooth is ON  
-- 10 days when Bluetooth is ON and connected  
+- 7 days when Bluetooth is ON and connected  
   
 These numbers are purely theoretical and will need to be confirmed by your experience!  
   
@@ -40,17 +40,7 @@ These numbers are purely theoretical and will need to be confirmed by your exper
   
 ### [](#header-3)Basic Controls   
 As with the Mooltipass Mini, the Mooltipass Mini BLE is fully operated with a clickable scroll wheel: scroll to navigate through the menus / prompts, click to approve and long press to cancel / go back.  
-In the (un)likely case your device becomes unresponsive, you may force a shutdown by removing the USB cable attached to it, then keeping the wheel pressed for at least 10 seconds.  
-A debug menu is also available to (among others) switch off the device. We strongly recommend to not try it but if you wish so it can be accessed by removing any smartcard inserted in the device, waiting for the main screen to be showed and then keeping the wheel pressed for a couple of seconds.  
-  
-  
-  
-### [](#header-3)Known Bugs and Limitations  
-The following bugs and limitations are known and currently being worked on:  
-1) **Limited Bluetooth pairing capabilities**  
-The add/remove items in the Bluetooth menu aren't implemented yet and only one device can be paired to the Mooltipass. To pair a bluetooth device, simply enable Bluetooth on the mooltipass and then pair your device with it. The connection status is shown in the status bar in the bottom right corner of the screen. If you wish to pair another device, you'll need to power cycle the device using the debug menu.  
-2) **No USB communication when connected through a hub on Windows**  
-This is an odd one that we hope to fix soon. Please let us know if you experience this issue.  
+In the (un)likely case your device becomes unresponsive, you may force a shutdown by removing the USB cable attached to it, then keeping the wheel pressed for at least 15 seconds.  
   
   
   
