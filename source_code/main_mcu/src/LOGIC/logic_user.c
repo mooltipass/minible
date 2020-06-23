@@ -1660,7 +1660,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     {
                         _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
                         utils_ascii_to_unicode((uint8_t*)temp_cnode.password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
-                        temp_cnode.password[NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
+                        temp_cnode.cust_char_password[NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
                     }
                         
                     /* Type shortcut if specified */

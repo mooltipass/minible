@@ -105,6 +105,7 @@
         - scroll wheel detection bug fix
         - high sleep power consumption bug fix
 - v0.35:- correct behavior when browsing favorite with "all categories" filter selected
+        - mooltipass mini password typing bug fix
 */
 
 /**************** SETUP DEFINES ****************/
