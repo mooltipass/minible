@@ -2780,12 +2780,13 @@ int16_t gui_prompts_select_category(void)
     return -1;
 }
 
-/*! \fn     int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
+/*! \fn     int16_t gui_prompts_favorite_selection_screen(int16_t start_favid, int16_t start_catid)
 *   \brief  Favorites selection screen
 *   \param  start_favid     If different than -1, select this favID by default
-*   \return -1 when no choice / no credential, otherwise favorite ID
+*   \param  start_catid     Start category ID
+*   \return -1 when no choice / no credential, otherwise favorite ID (MSB) and category ID (LSB)
 */
-int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
+int32_t gui_prompts_favorite_selection_screen(int16_t start_favid, int16_t start_catid)
 {
     child_cred_node_t* temp_half_cnode_pt;
     cust_char_t* select_login_string;
@@ -2810,13 +2811,19 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
     #endif
     
     /* Temp vars for our main loop */
+    BOOL navigate_across_categories = nodemgmt_get_current_category() == 0 ? TRUE : FALSE;
     uint16_t temp_parent_addr, temp_child_addr;
     BOOL end_of_list_reached_at_center = FALSE;
     int16_t before_top_of_list_child_index = -1;
+    int16_t before_top_of_list_child_cat = -1;
     int16_t top_of_list_child_index = -1;
+    int16_t top_of_list_child_cat = -1;
     int16_t center_list_child_index = -1;
+    int16_t center_list_child_cat = -1;
     int16_t bottom_list_child_index = -1;
+    int16_t bottom_list_child_cat = -1;
     int16_t after_bottom_list_child_index = -1;
+    int16_t after_bottom_list_child_cat = -1;
     BOOL animation_just_started = TRUE;
     BOOL first_function_run = TRUE;
     int16_t text_anim_x_offset[4];
@@ -2835,10 +2842,21 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
     /* If favorite start id was specified, populate our vars */
     if (start_favid != -1)
     {
+        /* Get what is the index of the previous (empty or not) favorite */
+        int16_t prev_cat_index;
+        int16_t prev_fav_index;
+        nodemgmt_get_prev_favorite_and_category_index(start_catid, start_favid, &prev_cat_index, &prev_fav_index, navigate_across_categories);
+        
         /* Each function call checks for out of bounds */
         center_list_child_index = start_favid;
-        top_of_list_child_index = nodemgmt_get_next_non_null_favorite_before_index(start_favid-1);
-        before_top_of_list_child_index = nodemgmt_get_next_non_null_favorite_before_index(top_of_list_child_index-1);
+        center_list_child_cat = start_catid;
+        int32_t top_list_return = nodemgmt_get_next_non_null_favorite_before_index(prev_fav_index, prev_cat_index, navigate_across_categories);
+        top_of_list_child_index = (top_list_return) >> 16;
+        top_of_list_child_cat = (int16_t)top_list_return;
+        nodemgmt_get_prev_favorite_and_category_index(top_of_list_child_cat, top_of_list_child_index, &prev_cat_index, &prev_fav_index, navigate_across_categories);
+        int32_t before_top_list_return = nodemgmt_get_next_non_null_favorite_before_index(prev_fav_index, prev_cat_index, navigate_across_categories);
+        before_top_of_list_child_index = (before_top_list_return) >> 16;
+        before_top_of_list_child_cat = (int16_t)before_top_list_return;
     }
     
     /* "Select login" string */
@@ -2847,6 +2865,7 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
     /* Lines display settings */
     int16_t non_addr_null_index_tbp = NODE_ADDR_NULL+1;
     int16_t* index_to_check_to_display[5] = {&non_addr_null_index_tbp, &top_of_list_child_index, &center_list_child_index, &bottom_list_child_index, &after_bottom_list_child_index};
+    int16_t* cat_to_check_to_display[5] = {&non_addr_null_index_tbp, &top_of_list_child_cat, &center_list_child_cat, &bottom_list_child_cat, &after_bottom_list_child_cat};
     cust_char_t* strings_to_be_displayed[4] = {select_login_string, temp_pnode.cred_parent.service, temp_pnode.cred_parent.service, temp_pnode.cred_parent.service};
     uint16_t fonts_to_be_used[4] = {FONT_UBUNTU_REGULAR_16_ID, FONT_UBUNTU_REGULAR_13_ID, FONT_UBUNTU_MEDIUM_15_ID, FONT_UBUNTU_REGULAR_13_ID};
     uint16_t strings_y_positions[4] = {0, LOGIN_SCROLL_Y_FLINE, LOGIN_SCROLL_Y_SLINE, LOGIN_SCROLL_Y_TLINE};
@@ -2887,7 +2906,7 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
         wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, FALSE);
         if (detect_result == WHEEL_ACTION_SHORT_CLICK)
         { 
-            return center_list_child_index;
+            return (((int32_t)center_list_child_index) << 16) | center_list_child_cat;
         }
         else if (detect_result == WHEEL_ACTION_LONG_CLICK)
         {
@@ -2898,7 +2917,9 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
             if (end_of_list_reached_at_center == FALSE)
             {
                 before_top_of_list_child_index = top_of_list_child_index;
+                before_top_of_list_child_cat = top_of_list_child_cat;
                 top_of_list_child_index = center_list_child_index;
+                top_of_list_child_cat = center_list_child_cat;
                 animation_step = ((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2;
                 animation_just_started = TRUE;
             }
@@ -2908,6 +2929,7 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
             if (top_of_list_child_index >= 0)
             {
                 top_of_list_child_index = before_top_of_list_child_index;
+                top_of_list_child_cat = before_top_of_list_child_cat;
                 animation_step = -((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2;
                 animation_just_started = TRUE;
             }
@@ -2962,7 +2984,7 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
             if ((animation_step > 0) && (before_top_of_list_child_index >= 0))
             {
                 /* Fetch nodes */                
-                nodemgmt_read_favorite_for_current_category((uint16_t)before_top_of_list_child_index, &temp_parent_addr, &temp_child_addr);
+                nodemgmt_read_favorite((uint16_t)before_top_of_list_child_cat, (uint16_t)before_top_of_list_child_index, &temp_parent_addr, &temp_child_addr);
                 nodemgmt_read_cred_child_node_except_pwd(temp_child_addr, temp_half_cnode_pt);
                 nodemgmt_read_parent_node(temp_parent_addr, &temp_pnode, TRUE);
                 
@@ -2999,7 +3021,7 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
                     if (i > 0)
                     {
                         /* Fetch nodes */
-                        nodemgmt_read_favorite_for_current_category((uint16_t)*(index_to_check_to_display[i]), &temp_parent_addr, &temp_child_addr);
+                        nodemgmt_read_favorite((uint16_t)*(cat_to_check_to_display[i]), (uint16_t)*(index_to_check_to_display[i]), &temp_parent_addr, &temp_child_addr);
                         nodemgmt_read_cred_child_node_except_pwd(temp_child_addr, temp_half_cnode_pt);
                         nodemgmt_read_parent_node(temp_parent_addr, &temp_pnode, TRUE);
                         
@@ -3019,9 +3041,17 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
                     /* First address: store the "before top address */
                     if (i == 1)
                     {
-                        if (top_of_list_child_index != 0)
+                        if (top_of_list_child_index != -1)
                         {
-                            before_top_of_list_child_index = nodemgmt_get_next_non_null_favorite_before_index(top_of_list_child_index-1);
+                            /* Get what is the index of the previous (empty or not) favorite */
+                            int16_t prev_cat_index;
+                            int16_t prev_fav_index;
+                            nodemgmt_get_prev_favorite_and_category_index(top_of_list_child_cat, top_of_list_child_index, &prev_cat_index, &prev_fav_index, navigate_across_categories);
+                            
+                            /* Get before top address */
+                            int32_t before_top_list_return = nodemgmt_get_next_non_null_favorite_before_index(prev_fav_index, prev_cat_index, navigate_across_categories);
+                            before_top_of_list_child_index = (before_top_list_return) >> 16;
+                            before_top_of_list_child_cat = (int16_t)before_top_list_return;
                         }
                         else
                         {
@@ -3079,7 +3109,14 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
                     /* Search & store next favorite address (our array has an extra element) */
                     if (i > 0)
                     {
-                        *(index_to_check_to_display[i+1]) = nodemgmt_get_next_non_null_favorite_after_index(*(index_to_check_to_display[i])+1);                        
+                        /* Get what is the index of the next (empty or not) favorite */
+                        int16_t next_cat_index;
+                        int16_t next_fav_index;
+                        nodemgmt_get_next_favorite_and_category_index(*(cat_to_check_to_display[i]), *(index_to_check_to_display[i]), &next_cat_index, &next_fav_index, navigate_across_categories);
+                        
+                        int32_t next_address_return = nodemgmt_get_next_non_null_favorite_after_index(next_fav_index, next_cat_index, navigate_across_categories);
+                        *(index_to_check_to_display[i+1]) = (next_address_return) >> 16;
+                        *(cat_to_check_to_display[i+1]) = (int16_t)next_address_return;  
                     }
                     
                     /* Last item & animation scrolling up: display upcoming item */
@@ -3088,7 +3125,7 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
                         if ((animation_step < 0) && (*(index_to_check_to_display[i+1]) >= 0))
                         {
                             /* Fetch nodes */
-                            nodemgmt_read_favorite_for_current_category((uint16_t)after_bottom_list_child_index, &temp_parent_addr, &temp_child_addr);
+                            nodemgmt_read_favorite((uint16_t)after_bottom_list_child_cat, (uint16_t)after_bottom_list_child_index, &temp_parent_addr, &temp_child_addr);
                             nodemgmt_read_cred_child_node_except_pwd(temp_child_addr, temp_half_cnode_pt);
                             nodemgmt_read_parent_node(temp_parent_addr, &temp_pnode, TRUE);
                             
@@ -3104,7 +3141,9 @@ int16_t gui_prompts_favorite_selection_screen(int16_t start_favid)
                     if (i == 1)
                     {
                         /* Couldn't display the top of the list, means our center child is the first child */
-                        center_list_child_index = nodemgmt_get_next_non_null_favorite_after_index(0);
+                        int32_t center_list_return = nodemgmt_get_next_non_null_favorite_after_index(0, nodemgmt_get_current_category(), navigate_across_categories);
+                        center_list_child_index = (center_list_return) >> 16;
+                        center_list_child_cat = (int16_t)center_list_return;
                         
                         /* Check for no favorites */
                         if (center_list_child_index < 0)

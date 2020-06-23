@@ -1352,14 +1352,18 @@ void nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* paren
 /*! \fn     nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId)
  *  \brief  Get a non-null favorite ID after a given one
  *  \param  favId           The id number at which we should start looking for favs
- *  \return A favorite ID or -1
+ *  \param  category_id                 The category ID
+ *  \param  navigate_across_categories  Boolean to specify if we're allowed to navigate across categories
+ *  \return A favorite ID (MSB) and category ID (LSB) or -1
  */
-int16_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId)
+int32_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId, uint16_t category_id, BOOL navigate_across_categories)
 {
+    uint16_t end_category_id = (navigate_across_categories != FALSE) ? (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites)) : category_id + 1;
+    uint16_t start_category_id = category_id;
     favorite_addr_t favorite;
     
     /* Sanity checks */
-    if(favId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)))
+    if ((favId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite))) || (category_id >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites))))
     {
         return -1;
     }
@@ -1367,30 +1371,41 @@ int16_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId)
     /* Start looking */
     for (uint16_t i = favId; i < MEMBER_ARRAY_SIZE(favorites_for_category_t, favorite); i++)
     {
-        // Read from flash
-        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, category_favorites[nodemgmt_current_handle.currentCategoryId].favorite[i]), sizeof(favorite), (void*)&favorite);
-
-        // Valid favorite?
-        if ((favorite.child_addr != NODE_ADDR_NULL) && (favorite.parent_addr != NODE_ADDR_NULL))
+        for (uint16_t j = start_category_id; j < end_category_id; j++)
         {
-            return i;
+            // Read from flash
+            dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, category_favorites[j].favorite[i]), sizeof(favorite), (void*)&favorite);
+
+            // Valid favorite?
+            if ((favorite.child_addr != NODE_ADDR_NULL) && (favorite.parent_addr != NODE_ADDR_NULL))
+            {
+                return (((uint32_t)i) << 16) | j;
+            }
+        }
+        if (navigate_across_categories != FALSE)
+        {
+            start_category_id = 0;
         }
     }
     
     return -1;
 }
 
-/*! \fn     nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId)
+/*! \fn     nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId, uint16_t category_id, BOOL navigate_across_categories)
  *  \brief  Get a non-null favorite ID after a given one
- *  \param  favId           The id number at which we should start looking for favs
- *  \return A favorite ID or -1
+ *  \param  favId                       The id number at which we should start looking for favs
+ *  \param  category_id                 The category ID
+ *  \param  navigate_across_categories  Boolean to specify if we're allowed to navigate across categories
+ *  \return A favorite ID (MSB) and category ID (LSB) or -1
  */
-int16_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId)
+int32_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId, uint16_t category_id, BOOL navigate_across_categories)
 {
+    uint16_t end_category_id = (navigate_across_categories != FALSE) ? 0 : category_id;
+    uint16_t start_category_id = category_id;
     favorite_addr_t favorite;
     
     /* Sanity checks */
-    if(favId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite)))
+    if ((favId >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites[0].favorite))) || (category_id >= (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites))))
     {
         return -1;
     }
@@ -1398,13 +1413,20 @@ int16_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId)
     /* Start looking */
     for (int16_t i = favId; i >= 0; i--)
     {
-        // Read from flash
-        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, category_favorites[nodemgmt_current_handle.currentCategoryId].favorite[i]), sizeof(favorite), (void*)&favorite);
-
-        // Valid favorite?
-        if ((favorite.child_addr != NODE_ADDR_NULL) && (favorite.parent_addr != NODE_ADDR_NULL))
+        for (int16_t j = start_category_id; j >= end_category_id; j--)
         {
-            return i;
+            // Read from flash
+            dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, category_favorites[j].favorite[i]), sizeof(favorite), (void*)&favorite);
+
+            // Valid favorite?
+            if ((favorite.child_addr != NODE_ADDR_NULL) && (favorite.parent_addr != NODE_ADDR_NULL))
+            {
+                return (((uint32_t)i) << 16) | j;
+            }            
+        }
+        if (navigate_across_categories != FALSE)
+        {
+            start_category_id = MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites) - 1;
         }
     }
     
@@ -1608,6 +1630,60 @@ uint16_t nodemgmt_get_current_category_flags(void)
 uint16_t nodemgmt_get_current_category(void)
 {
     return nodemgmt_current_handle.currentCategoryId;    
+}
+
+/*! \fn     nodemgmt_get_prev_favorite_and_category_index(int16_t category_index, int16_t favorite_index, int16_t* new_cat_index, int16_t* new_fav_index, BOOL navigate_across_categories)
+ *  \brief  Get the previous favorite index for a given favorite & category index
+ *  \param  category_index              Current category index
+ *  \param  favorite_index              Current favorite index
+ *  \param  new_cat_index               Where to store new category index
+ *  \param  new_fav_index               Where to store new favorite index
+ *  \param  navigate_across_categories  Boolean to know if we should sweep across categories
+ */
+void nodemgmt_get_prev_favorite_and_category_index(int16_t category_index, int16_t favorite_index, int16_t* new_cat_index, int16_t* new_fav_index, BOOL navigate_across_categories)
+{
+    if (navigate_across_categories != FALSE)
+    {
+        if (--category_index < 0)
+        {
+            favorite_index -= 1;
+            category_index = MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites) - 1;
+        }
+    } 
+    else
+    {
+        favorite_index -= 1;
+    }
+    
+    *new_cat_index = category_index;
+    *new_fav_index = favorite_index;
+}
+
+/*! \fn     nodemgmt_get_next_favorite_and_category_index(int16_t category_index, int16_t favorite_index, int16_t* new_cat_index, int16_t* new_fav_index, BOOL navigate_across_categories)
+ *  \brief  Get the next favorite index for a given favorite & category index
+ *  \param  category_index              Current category index
+ *  \param  favorite_index              Current favorite index
+ *  \param  new_cat_index               Where to store new category index
+ *  \param  new_fav_index               Where to store new favorite index
+ *  \param  navigate_across_categories  Boolean to know if we should sweep across categories
+ */
+void nodemgmt_get_next_favorite_and_category_index(int16_t category_index, int16_t favorite_index, int16_t* new_cat_index, int16_t* new_fav_index, BOOL navigate_across_categories)
+{
+    if (navigate_across_categories != FALSE)
+    {
+        if (++category_index >= MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites))
+        {
+            favorite_index += 1;
+            category_index = 0;
+        }
+    } 
+    else
+    {
+        favorite_index += 1;
+    }
+    
+    *new_cat_index = category_index;
+    *new_fav_index = favorite_index;
 }
 
 /*! \fn     nodemgmt_set_current_category_id(uint16_t catId)

@@ -212,6 +212,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             }
             case GUI_FAV_ICON_ID:
             {
+                int16_t chosen_category_index = nodemgmt_get_current_category();
                 uint16_t chosen_service_addr, chosen_login_addr;
                 int16_t chosen_favorite_index = -1;
                 BOOL only_password_prompt = FALSE;
@@ -223,16 +224,18 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 {
                     if (state_machine_index == 0)
                     {
-                        chosen_favorite_index = gui_prompts_favorite_selection_screen(chosen_favorite_index);
+                        int32_t chose_favorite_return = gui_prompts_favorite_selection_screen(chosen_favorite_index, chosen_category_index);
+                        chosen_favorite_index = (chose_favorite_return) >> 16;
+                        chosen_category_index = (int16_t)chose_favorite_return;
 
                         /* No login was chosen */
-                        if (chosen_favorite_index < 0)
+                        if (chose_favorite_return < 0)
                         {
                             return TRUE;
                         }
                     
                         /* Load address */
-                        nodemgmt_read_favorite_for_current_category(chosen_favorite_index, &chosen_service_addr, &chosen_login_addr);
+                        nodemgmt_read_favorite(chosen_category_index, chosen_favorite_index, &chosen_service_addr, &chosen_login_addr);
                         
                         /* Next state */
                         state_machine_index++;

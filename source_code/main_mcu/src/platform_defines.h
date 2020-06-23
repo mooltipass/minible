@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    34
+#define FW_MINOR    35
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -104,6 +104,7 @@
         - smartcard power up sequence improvement
         - scroll wheel detection bug fix
         - high sleep power consumption bug fix
+- v0.35:- correct behavior when browsing favorite with "all categories" filter selected
 */
 
 /**************** SETUP DEFINES ****************/

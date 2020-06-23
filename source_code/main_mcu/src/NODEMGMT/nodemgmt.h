@@ -381,6 +381,8 @@ static inline uint16_t nodemgmt_node_from_address(uint16_t addr)
 }
 
 /* Prototypes */
+void nodemgmt_get_prev_favorite_and_category_index(int16_t category_index, int16_t favorite_index, int16_t* new_cat_index, int16_t* new_fav_index, BOOL navigate_across_categories);
+void nodemgmt_get_next_favorite_and_category_index(int16_t category_index, int16_t favorite_index, int16_t* new_cat_index, int16_t* new_fav_index, BOOL navigate_across_categories);
 RET_TYPE nodemgmt_get_bluetooth_bonding_information_for_mac_addr(uint8_t address_resolv_type, uint8_t* mac_address, nodemgmt_bluetooth_bonding_information_t* bonding_information);
 uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode);
 RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress);
@@ -391,6 +393,8 @@ void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_
 void nodemgmt_read_webauthn_child_node(uint16_t address, child_webauthn_node_t* child_node, BOOL update_date_and_increment_preinc_count);
 uint16_t nodemgmt_get_data_parent_next_child_address_ctr_and_prev_gen_flag(uint16_t parent_address, uint8_t* ctr, BOOL* prev_gen_flag);
 void nodemgmt_update_data_parent_ctr_and_first_child_address(uint16_t parent_address, uint8_t* ctr_val, uint16_t first_child_address);
+int32_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId, uint16_t category_id, BOOL navigate_across_categories);
+int32_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId, uint16_t category_id, BOOL navigate_across_categories);
 uint16_t nodemgmt_get_encrypted_data_from_data_node(uint16_t data_child_address, uint8_t* buffer, uint16_t* nb_bytes_written);
 uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
 uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
@@ -425,8 +429,6 @@ void nodemgmt_set_category_strings(nodemgmt_user_category_strings_t* strings_pt)
 void nodemgmt_get_category_string(uint16_t category_id, cust_char_t* string_pt);
 void nodemgmt_set_category_string(uint16_t category_id, cust_char_t* string_pt);
 uint16_t nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day);
-int16_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId);
-int16_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId);
 uint16_t nodemgmt_get_starting_parent_addr(uint16_t credential_type_id);
 void nodemgmt_store_user_sec_preferences(uint16_t sec_preferences);
 void nodemgmt_check_address_validity_and_lock(uint16_t node_addr);

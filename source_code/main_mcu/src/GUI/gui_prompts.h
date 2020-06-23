@@ -141,10 +141,10 @@ void gui_prompts_display_information_lines_on_screen(confirmationText_t* text_li
 void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type);
 mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_addr, uint16_t* chosen_child_node_addr);
 void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type);
+int32_t gui_prompts_favorite_selection_screen(int16_t start_favid, int16_t start_catid);
 RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID);
 RET_TYPE gui_prompts_get_six_digits_pin(uint8_t* pin_code, uint16_t stringID);
 uint16_t gui_prompts_service_selection_screen(uint16_t start_address);
-int16_t gui_prompts_favorite_selection_screen(int16_t start_favid);
 gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void);
 int16_t gui_prompts_select_category(void);
 void gui_prompts_display_tutorial(void);
