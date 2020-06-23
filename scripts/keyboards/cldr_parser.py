@@ -746,6 +746,8 @@ keyboard_generation_array = [ \
 								[ "osx", "U.S.", "USA (MacOS)"],\
 								[ "osx", "US Extended", "US Extended (MacOS)"],\
 								[ "windows", "United Kingdom", "United Kingdom"],\
+								[ "osx", "Colemak", "Colemak (MacOS)"],\
+								[ "chromeos", "USA - Colemak", "Colemak (Chrome)"],\
 							]
 
 if False:
@@ -754,7 +756,7 @@ if False:
 
 counter = 0
 for array_item in keyboard_generation_array:
-	cldr.generate_mini_ble_lut(array_item[0], array_item[1], False, array_item[2], str(counter) + "_" + array_item[0] + "_" + array_item[1].lower() + ".img")
+	cldr.generate_mini_ble_lut(array_item[0], array_item[1], False, array_item[2], str(counter) + "_" + array_item[0] + "_" + array_item[1].replace(" ","").lower() + ".img")
 	print("Generated " + str(counter) + "_" + array_item[0] + "_" + array_item[1].lower() + ".img")
 	counter += 1
 
