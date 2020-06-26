@@ -437,6 +437,13 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
                 cpu_irq_enter_critical();
                 logic_power_nb_ms_spent_since_last_full_charge = NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE;
                 cpu_irq_leave_critical();
+                
+                /* If we're not charging... then charge */
+                if ((logic_power_get_power_source() == USB_POWERED) && (logic_power_battery_charging == FALSE))
+                {
+                    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
+                    logic_power_battery_charging = TRUE;
+                }
             }
             
             /* Low battery, need to power off? */
