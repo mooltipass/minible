@@ -47,6 +47,8 @@ aux_mcu_message_t aux_mcu_receive_message;
 aux_mcu_message_t aux_mcu_send_message_2;
 aux_mcu_message_t aux_mcu_send_message_1;
 BOOL aux_mcu_message_1_reserved = FALSE;
+/* Flag set if comms are disabled */
+BOOL aux_mcu_comms_disabled = FALSE;
 /* Flag set if we have treated a message by only looking at its first bytes */
 BOOL aux_mcu_message_answered_using_first_bytes = FALSE;
 /* Flag set for comms_aux_mcu_routine for recursive calls */
@@ -69,6 +71,24 @@ void comms_aux_arm_rx_and_clear_no_comms(void)
         /* Should never happen! */
     }
     platform_io_clear_no_comms();
+    aux_mcu_comms_disabled = FALSE;
+}
+
+/*! \fn     comms_aux_mcu_set_comms_disabled(void)
+*   \brief  Specify that comms are disabled
+*/
+void comms_aux_mcu_set_comms_disabled(void)
+{
+    aux_mcu_comms_disabled = TRUE;
+}
+
+/*! \fn     comms_aux_mcu_are_comms_disabled(void)
+*   \brief  Know if aux comms are disabled
+*   \return If comms are disabled
+*/
+BOOL comms_aux_mcu_are_comms_disabled(void)
+{
+    return aux_mcu_comms_disabled;
 }
 
 /*! \fn     comms_aux_mcu_wait_for_message_sent(void)
@@ -539,6 +559,13 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
 #ifdef EMULATOR_BUILD
     DELAYMS(1);
 #endif
+
+    /* Comms disabled? */
+    if (comms_aux_mcu_are_comms_disabled() != FALSE)
+    {
+        return NO_MSG_RCVD;
+    }
+
     /* Recursivity: set function called flag */
     BOOL function_already_called = FALSE;
     if (aux_mcu_comms_aux_mcu_routine_function_called == FALSE)
@@ -757,6 +784,9 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     }
     else
     {
+        /* Useless message, except for debugging */
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_INVALID_MSG_RCVD);
+        
         msg_rcvd = UNKNOW_MSG_RCVD;
         asm("Nop");
     }
@@ -798,6 +828,12 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
 {
     /* Bool for the do{} */
     BOOL reloop = FALSE;
+    
+    /* Comms disabled? Should not happen... */
+    if (comms_aux_mcu_are_comms_disabled() != FALSE)
+    {
+        main_reboot();
+    }
 
     /* Arm timer */
     if (single_try == FALSE)

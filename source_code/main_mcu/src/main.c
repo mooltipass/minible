@@ -461,6 +461,9 @@ void main_standby_sleep(void)
     
         /* Clear wakeup reason */
         logic_device_clear_wakeup_reason();
+        
+        /* Specify that comms are disabled */
+        comms_aux_mcu_set_comms_disabled();
     
         /* Enter deep sleep */
         SCB->SCR = SCB_SCR_SLEEPDEEP_Msk;

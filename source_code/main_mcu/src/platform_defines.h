@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    36
+#define FW_MINOR    37
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -107,6 +107,7 @@
 - v0.35:- correct behavior when browsing favorite with "all categories" filter selected
         - mooltipass mini password typing bug fix
 - v0.36:- comms rearm on invalid payload length
+- v0.37:- do not deal with comms during periodic wakeup
 */
 
 /**************** SETUP DEFINES ****************/
@@ -138,7 +139,7 @@
  * => 50 prototype units produced, 01/01/2020
  * - exact same layout as PLAT_V5_SETUP, except VOLED_1V2_EN swapped with SMC_PGM
  */
- #define PLAT_V6_SETUP 
+ #define PLAT_V5_SETUP 
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)

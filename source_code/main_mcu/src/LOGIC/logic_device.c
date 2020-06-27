@@ -28,8 +28,8 @@
 #include "sh1122.h"
 #include "utils.h"
 #include "main.h"
-/* Platform wakeup reason */
-volatile platform_wakeup_reason_te logic_device_wakeup_reason = WAKEUP_REASON_NONE;
+/* Platform wakeup reason: leave it to others as at boot it prevents accidental non-disabling for aux mcu */
+volatile platform_wakeup_reason_te logic_device_wakeup_reason = WAKEUP_REASON_OTHER;
 /* USB timeout detected bool */
 BOOL logic_device_usb_timeout_detected = FALSE;
 /* Device state changed bool */

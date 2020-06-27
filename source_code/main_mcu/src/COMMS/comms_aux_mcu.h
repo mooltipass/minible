@@ -42,6 +42,7 @@ void comms_aux_mcu_update_device_status_buffer(void);
 RET_TYPE comms_aux_mcu_send_receive_ping(void);
 void comms_aux_mcu_wait_for_message_sent(void);
 void comms_aux_arm_rx_and_clear_no_comms(void);
-
+BOOL comms_aux_mcu_are_comms_disabled(void);
+void comms_aux_mcu_set_comms_disabled(void);
 
 #endif /* COMMS_AUX_MCU_H_ */
