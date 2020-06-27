@@ -86,17 +86,17 @@ def is_frame_valid(frame):
 	[message_type] = struct.unpack("H", frame[0:2])
 	
 	# To check if frame is valid we only check that the message type is valid
-	if message_type == AUX_MCU_MSG_TYPE_USB:
-		if not attach_usb_seen:
-			return False
-		else:
-			return True
-	elif message_type == AUX_MCU_MSG_TYPE_BLE:
-		if not enable_ble_seen:
-			return False
-		else:
-			return True
-	elif message_type == 0xFFFF:
+	#if message_type == AUX_MCU_MSG_TYPE_USB:
+	#	if not attach_usb_seen:
+	#		return False
+	#	else:
+	#		return True
+	#elif message_type == AUX_MCU_MSG_TYPE_BLE:
+	#	if not enable_ble_seen:
+	#		return False
+	#	else:
+	#		return True
+	if message_type == 0xFFFF:
 		return True
 	elif message_type in message_types:
 		return True
