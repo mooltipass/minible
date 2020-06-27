@@ -40,7 +40,7 @@ void logic_sleep_wakeup_main_mcu_if_needed(void)
         comms_main_init_rx();
         
         /* Leave some time for correct no comms readout */
-        timer_delay_ms(1);
+        timer_delay_ms(3);
         
         /* Reset bool now that the main MCU is awake */
         logic_sleep_full_platform_sleep_requested = FALSE;

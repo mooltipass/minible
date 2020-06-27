@@ -598,6 +598,9 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
             {
                 /* Arm next RX DMA transfer */
                 comms_aux_arm_rx_and_clear_no_comms();
+                
+                /* Useless message, except for debugging */
+                //comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_INVALID_MSG_RCVD);
             }
         }
         else if ((aux_mcu_receive_message.payload_length1 != 0) && (nb_received_bytes_for_ongoing_transfer >= sizeof(aux_mcu_receive_message.message_type) + sizeof(aux_mcu_receive_message.payload_length1) + aux_mcu_receive_message.payload_length1))
@@ -630,9 +633,25 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
             /* Arm next RX DMA transfer */
             comms_aux_arm_rx_and_clear_no_comms();
         }
+        
+        if ((aux_mcu_receive_message.payload_length1 == 0) && (aux_mcu_receive_message.rx_payload_valid_flag == 0))
+        {
+            /* Useless message, except for debugging */
+            //comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_INVALID_MSG_RCVD);
+        }
 
         /* Reset bool */
         aux_mcu_message_answered_using_first_bytes = FALSE;
+    }
+    
+    /* Invalid payload length, rearm dma */
+    if ((should_deal_with_packet != FALSE) && (payload_length > AUX_MCU_MSG_PAYLOAD_LENGTH))
+    {
+        /* Arm next RX DMA transfer */
+        comms_aux_arm_rx_and_clear_no_comms();
+        
+        /* Useless message, except for debugging */
+        //comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_INVALID_MSG_RCVD);
     }
 
     /* Return if we shouldn't deal with packet, or if payload has the incorrect size */
@@ -644,7 +663,6 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
             aux_mcu_comms_aux_mcu_routine_function_called = FALSE;
         }
 
-        /* Note: there's a case where we don't rearm DMA if the message is valid but payload is too long... was lazy to implement it */
         return NO_MSG_RCVD;
     }
     

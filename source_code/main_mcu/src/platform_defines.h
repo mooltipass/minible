@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    35
+#define FW_MINOR    36
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -106,6 +106,7 @@
         - high sleep power consumption bug fix
 - v0.35:- correct behavior when browsing favorite with "all categories" filter selected
         - mooltipass mini password typing bug fix
+- v0.36:- comms rearm on invalid payload length
 */
 
 /**************** SETUP DEFINES ****************/
