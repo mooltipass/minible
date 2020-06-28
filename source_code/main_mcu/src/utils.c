@@ -65,6 +65,30 @@ uint16_t utils_get_nb_lines(const cust_char_t* string)
     return return_val;
 }
 
+/*! \fn     utils_get_string_next_line_pt(cust_char_t* string)
+*   \brief  Get a pointer to the next line in the current string
+*   \param  string      The string
+*   \return Pointer to the next line or 0 if no new line
+*   \note   If the string is not terminated this function will freeze
+*/
+cust_char_t* utils_get_string_next_line_pt(cust_char_t* string)
+{
+    BOOL new_char_found = FALSE;
+    while (*string)
+    {
+        if ((*string == '\r') ||  (*string == '\n'))
+        {
+            new_char_found = TRUE;
+        }
+        else if (new_char_found != FALSE)
+        {
+            return string;
+        }
+        string++;
+    }
+    return (cust_char_t*)0;
+}
+
 /*! \fn     utils_strncpy(cust_char_t* destination, cust_char_t* source, uint16_t max_chars)
 *   \brief  Our own version of strncpy
 *   \param  destination     Where to store

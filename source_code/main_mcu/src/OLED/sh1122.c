@@ -2069,6 +2069,12 @@ int16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char_
     // Write chars until we find final 0
     while (*str)
     {
+        /* Check for line feed */
+        if ((*str == '\n') &&  (oled_descriptor->line_feed_allowed == FALSE))
+        {
+            return string_width;
+        }
+        
         int16_t pixel_width = sh1122_put_char(oled_descriptor, *str++, write_to_buffer);
         if(pixel_width < 0)
         {
@@ -2101,7 +2107,7 @@ uint16_t sh1122_put_error_string(sh1122_descriptor_t* oled_descriptor, const cus
 *   \param  y                   Starting y
 *   \param  string              Null terminated string
 *   \param  write_to_buffer     Set to true to write to internal buffer
-*   \return How many characters were printed
+*   \return Width of the printed string
 */
 uint16_t sh1122_put_centered_string(sh1122_descriptor_t* oled_descriptor, uint8_t y, const cust_char_t* string, BOOL write_to_buffer) 
 {

@@ -97,6 +97,8 @@
 
 // Information display
 #define INF_DISPLAY_TEXT_Y              22
+#define INF_DISPLAY_2L_TEXT_Y1          13
+#define INF_DISPLAY_2L_TEXT_Y2          33
 #define INFO_NOTIF_ANIM_LGTH            12
 #define ACTION_NOTIF_ANIM_LGTH          11
 #define WARNING_NOTIF_ANIM_LGTH         14

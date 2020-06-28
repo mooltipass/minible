@@ -247,7 +247,22 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
     /* Display string */
     sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
     sh1122_set_min_text_x(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type]);
-    sh1122_put_centered_string(&plat_oled_descriptor, INF_DISPLAY_TEXT_Y, string_to_display, TRUE);
+    
+    /* Count number of lines */
+    uint16_t nb_lines_to_display = utils_get_nb_lines(string_to_display);
+    
+    /* Depending on number of lines */
+    if (nb_lines_to_display == 1)
+    {
+        sh1122_put_centered_string(&plat_oled_descriptor, INF_DISPLAY_TEXT_Y, string_to_display, TRUE);
+    } 
+    else
+    {
+        sh1122_put_centered_string(&plat_oled_descriptor, INF_DISPLAY_2L_TEXT_Y1, string_to_display, TRUE);
+        sh1122_put_centered_string(&plat_oled_descriptor, INF_DISPLAY_2L_TEXT_Y2, utils_get_string_next_line_pt(string_to_display), TRUE);
+    }
+    
+    /* Reset display settings */
     sh1122_reset_min_text_x(&plat_oled_descriptor);
     
     /* Flush frame buffer */
