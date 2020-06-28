@@ -301,7 +301,7 @@ void logic_gui_display_login_password(child_cred_node_t* child_node)
     {
         _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
         utils_ascii_to_unicode(child_node->password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
-        child_node->password[NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
+        child_node->cust_char_password[NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
     }    
     
     /* Temp vars for our main loop */
