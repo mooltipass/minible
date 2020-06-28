@@ -99,10 +99,11 @@ void logic_device_activity_detected(void)
     {
         timer_start_timer(TIMER_SCREEN, SCREEN_TIMEOUT_MS);        
     }    
+    timer_start_timer(TIMER_USER_INTERACTION, utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_USER_INTERACTION_TIMEOUT_ID), SETTING_MIN_USER_INTERACTION_TIMEOUT, SETTING_MAX_USER_INTERACTION_TIMOUT) << 10);
     #else
     timer_start_timer(TIMER_SCREEN, EMULATOR_SCREEN_TIMEOUT_MS);
+    timer_start_timer(TIMER_USER_INTERACTION, SETTING_MAX_USER_INTERACTION_TIMOUT_EMU << 10);
     #endif
-    timer_start_timer(TIMER_USER_INTERACTION, utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_USER_INTERACTION_TIMEOUT_ID), SETTING_MIN_USER_INTERACTION_TIMEOUT, SETTING_MAX_USER_INTERACTION_TIMOUT) << 10);
     
     /* Check for screen off, switch it on if so */
     if (sh1122_is_oled_on(&plat_oled_descriptor) == FALSE)

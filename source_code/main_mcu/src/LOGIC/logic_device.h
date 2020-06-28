@@ -31,6 +31,7 @@
 #define SETTING_MIN_USER_INTERACTION_TIMEOUT    7
 #define SETTING_DFT_USER_INTERACTION_TIMEOUT    15
 #define SETTING_MAX_USER_INTERACTION_TIMOUT     25
+#define SETTING_MAX_USER_INTERACTION_TIMOUT_EMU 30
 
 /* Prototypes */
 ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages);
