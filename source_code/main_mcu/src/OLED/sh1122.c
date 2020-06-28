@@ -1835,7 +1835,7 @@ uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_
         if (glyph.glyph_data_offset == 0xFFFFFFFF)
         {
             // If there's no glyph data, it is the space!
-            return glyph.xrect;
+            return glyph.xrect + 1;
         }
         else
         {
@@ -1934,6 +1934,7 @@ uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int1
     if (glyph.glyph_data_offset == 0xFFFFFFFF)
     {
         /* Space character, just fill in the gddram buffer and output background pixels */
+        glyph.glyph_data_offset = 0;
         glyph_width = glyph.xrect;
     }
     else
@@ -1971,20 +1972,9 @@ int16_t sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, BO
         return -1;
     }
     
-    if (ch == '\n')
+    if ((ch == '\n') || (ch == '\r'))
     {
-        if (oled_descriptor->line_feed_allowed != FALSE)
-        {
-            oled_descriptor->cur_text_y += oled_descriptor->current_font_header.height;
-            oled_descriptor->cur_text_x = 0;            
-        }
-    }
-    else if (ch == '\r')
-    {
-        if (oled_descriptor->carriage_return_allowed != FALSE)
-        {
-            oled_descriptor->cur_text_x = 0;
-        }
+        // Handled at the calling function level
     }
     else
     {
@@ -2070,9 +2060,24 @@ int16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char_
     while (*str)
     {
         /* Check for line feed */
-        if ((*str == '\n') &&  (oled_descriptor->line_feed_allowed == FALSE))
+        if (*str == '\n')
         {
-            return string_width;
+            if (oled_descriptor->line_feed_allowed == FALSE)
+            {
+                return string_width;
+            } 
+            else
+            {
+                /* Get to the new line */
+                while ((*str == '\n') || (*str == '\r'))
+                {
+                    str++;
+                }
+                
+                /* Compute new X & Y */
+                oled_descriptor->cur_text_y += oled_descriptor->current_font_header.height;
+                oled_descriptor->cur_text_x = sh1122_get_start_x_for_string_based_on_alignment(oled_descriptor, oled_descriptor->new_line_x, oled_descriptor->new_line_justify, str);
+            }
         }
         
         int16_t pixel_width = sh1122_put_char(oled_descriptor, *str++, write_to_buffer);
@@ -2182,22 +2187,18 @@ uint16_t sh1122_get_number_of_printable_characters_for_string(sh1122_descriptor_
     return nb_characters;
 }
 
-/*! \fn     sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, oled_align_te justify, const char* string, BOOL write_to_buffer) 
-*   \brief  Display a string on the screen
+/*! \fn     sh1122_get_start_x_for_string_based_on_alignment(sh1122_descriptor_t* oled_descriptor, int16_t x, oled_align_te justify, const cust_char_t* string)
+*   \brief  Get the start x for a given string for a given alignment
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
-*   \param  y                   Starting y
 *   \param  justify             String justify (see enum)
 *   \param  string              Null terminated string
-*   \param  write_to_buffer     Set to true to write to internal buffer
-*   \return Pixel width of the printed string, -1 if too wide for display
+*   \return Start X
 */
-int16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, oled_align_te justify, const cust_char_t* string, BOOL write_to_buffer) 
+int16_t sh1122_get_start_x_for_string_based_on_alignment(sh1122_descriptor_t* oled_descriptor, int16_t x, oled_align_te justify, const cust_char_t* string)
 {
     uint16_t width = sh1122_get_string_width(oled_descriptor, string);
-    int16_t max_text_x_copy = oled_descriptor->max_text_x;
-    uint16_t return_val;
-
+    
     if (justify == OLED_ALIGN_CENTER)
     {
         if ((x + oled_descriptor->min_text_x + width) < oled_descriptor->max_text_x)
@@ -2208,13 +2209,9 @@ int16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, in
         {
             x = oled_descriptor->min_text_x;
         }
-    } 
+    }
     else if (justify == OLED_ALIGN_RIGHT)
     {
-        if (x < oled_descriptor->max_text_x)
-        {
-            oled_descriptor->max_text_x = x;
-        }
         if (x >= (width + oled_descriptor->min_text_x))
         {
             x -= width;
@@ -2229,15 +2226,31 @@ int16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, in
         }
     }
     
+    return x;    
+}
+
+/*! \fn     sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, oled_align_te justify, const char* string, BOOL write_to_buffer) 
+*   \brief  Display a string on the screen
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  x                   Starting x
+*   \param  y                   Starting y
+*   \param  justify             String justify (see enum)
+*   \param  string              Null terminated string
+*   \param  write_to_buffer     Set to true to write to internal buffer
+*   \return Pixel width of the printed string, -1 if too wide for display
+*/
+int16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, oled_align_te justify, const cust_char_t* string, BOOL write_to_buffer) 
+{    
     /* Store cur text x & y */
-    oled_descriptor->cur_text_x = x;
+    oled_descriptor->cur_text_x = sh1122_get_start_x_for_string_based_on_alignment(oled_descriptor, x, justify, string);
+    oled_descriptor->new_line_justify = justify;
     oled_descriptor->cur_text_y = y;
+    oled_descriptor->new_line_x = x;
     
     /* Display string */
-    return_val = sh1122_put_string(oled_descriptor, string, write_to_buffer);
-    oled_descriptor->max_text_x = max_text_x_copy;
+    int16_t return_val = sh1122_put_string(oled_descriptor, string, write_to_buffer);
     
-    // Return the number of characters printed
+    /* Return the number of characters printed */
     return return_val;
 }
 
@@ -2255,9 +2268,6 @@ int16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, in
 #pragma GCC diagnostic ignored "-Wsuggest-attribute=format"
 uint16_t sh1122_printf_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, BOOL write_to_buffer, const char *fmt, ...) 
 {
-    int16_t max_text_x_copy = oled_descriptor->max_text_x;
-    uint16_t return_val;
-    uint16_t width;
     cust_char_t u16buf[64];
     char buf[64];    
     va_list ap;
@@ -2271,48 +2281,19 @@ uint16_t sh1122_printf_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8
         {
             u16buf[i] = buf[i];
         }
-        width = sh1122_get_string_width(oled_descriptor, u16buf);
     }
     else
     {
         va_end(ap);
         return 0;
     }
-
-    if (justify == OLED_ALIGN_CENTER)
-    {
-        if ((x + oled_descriptor->min_text_x + width) < oled_descriptor->max_text_x)
-        {
-            x = (oled_descriptor->max_text_x + x + oled_descriptor->min_text_x - width)/2;
-        }
-    }
-    else if (justify == OLED_ALIGN_RIGHT)
-    {
-        if (x < oled_descriptor->max_text_x)
-        {
-            oled_descriptor->max_text_x = x;
-        }
-        if (x >= (width + oled_descriptor->min_text_x))
-        {
-            x -= width;
-        }
-        else if ((width + oled_descriptor->min_text_x) >= oled_descriptor->max_text_x)
-        {
-            x = oled_descriptor->min_text_x;
-        }
-        else
-        {
-            x = oled_descriptor->max_text_x - width;
-        }
-    }
     
     /* Store cur text x & y */
-    oled_descriptor->cur_text_x = x;
+    oled_descriptor->cur_text_x = sh1122_get_start_x_for_string_based_on_alignment(oled_descriptor, x, justify, u16buf);
     oled_descriptor->cur_text_y = y;
     
     /* Display string */
-    return_val = sh1122_put_string(oled_descriptor, u16buf, write_to_buffer);
-    oled_descriptor->max_text_x = max_text_x_copy;
+    uint16_t return_val = sh1122_put_string(oled_descriptor, u16buf, write_to_buffer);
     
     // Return the number of characters printed
     return return_val;

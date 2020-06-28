@@ -110,6 +110,8 @@ typedef struct
     uint16_t max_disp_x;                                // Max display X
     int16_t min_text_x;                                 // Min text X
     int16_t max_text_x;                                 // Max text X
+    oled_align_te new_line_justify;                     // Justification for new lines
+    int16_t new_line_x;                                 // X position when return occurs
     int16_t cur_text_x;                                 // Current x for writing text
     int16_t cur_text_y;                                 // Current y for writing text
     BOOL oled_on;                                       // Know if oled is on
@@ -124,6 +126,7 @@ typedef struct
 int16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, oled_align_te justify, const cust_char_t* string, BOOL write_to_buffer);
 void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, uint16_t width, uint8_t* pixels, BOOL write_to_buffer);
 void sh1122_draw_rectangle(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint16_t width, uint16_t height, uint16_t color, BOOL write_to_buffer);
+int16_t sh1122_get_start_x_for_string_based_on_alignment(sh1122_descriptor_t* oled_descriptor, int16_t x, oled_align_te justify, const cust_char_t* string);
 void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream, BOOL write_to_buffer);
 void sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, uint8_t color, BOOL write_to_buffer);
 RET_TYPE sh1122_display_bitmap_from_flash_at_recommended_position(sh1122_descriptor_t* oled_descriptor, uint32_t file_id, BOOL write_to_buffer);

@@ -667,15 +667,15 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
     sh1122_set_max_text_x(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X+x_offset_for_digits);
     if (nb_lines_to_display == 1)
     {
-        sh1122_put_centered_string(&plat_oled_descriptor, PIN_PROMPT_1LTEXT_Y, string_to_display, TRUE);
+        sh1122_put_string_xy(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X+x_offset_for_digits-1, PIN_PROMPT_1LTEXT_Y, OLED_ALIGN_RIGHT, string_to_display, TRUE);
     }
     else if (nb_lines_to_display == 2)
     {
-        sh1122_put_centered_string(&plat_oled_descriptor, PIN_PROMPT_2LTEXT_Y, string_to_display, TRUE);
+        sh1122_put_string_xy(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X+x_offset_for_digits-1, PIN_PROMPT_2LTEXT_Y, OLED_ALIGN_RIGHT, string_to_display, TRUE);
     }
     else
     {
-        sh1122_put_centered_string(&plat_oled_descriptor, PIN_PROMPT_3LTEXT_Y, string_to_display, TRUE);        
+        sh1122_put_string_xy(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X+x_offset_for_digits-1, PIN_PROMPT_3LTEXT_Y, OLED_ALIGN_RIGHT, string_to_display, TRUE);
     }    
     sh1122_prevent_line_feed(&plat_oled_descriptor);
     sh1122_reset_max_text_x(&plat_oled_descriptor);

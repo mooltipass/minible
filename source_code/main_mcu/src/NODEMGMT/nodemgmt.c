@@ -1358,7 +1358,7 @@ void nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* paren
  */
 int32_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId, uint16_t category_id, BOOL navigate_across_categories)
 {
-    uint16_t end_category_id = (navigate_across_categories != FALSE) ? (MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites)) : category_id + 1;
+    uint16_t end_category_id = (navigate_across_categories != FALSE) ? ((int16_t)MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites)) : category_id + 1;
     uint16_t start_category_id = category_id;
     favorite_addr_t favorite;
     
@@ -1671,7 +1671,7 @@ void nodemgmt_get_next_favorite_and_category_index(int16_t category_index, int16
 {
     if (navigate_across_categories != FALSE)
     {
-        if (++category_index >= MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites))
+        if (++category_index >= (int16_t)MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites))
         {
             favorite_index += 1;
             category_index = 0;
