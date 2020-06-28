@@ -711,6 +711,7 @@ keyboard_generation_array = [ \
 								[ "windows", "Icelandic", "Iceland"],\
 								[ "windows", "Italian", "Italy"],\
 								[ "windows", "Latin American", "Latin America"],\
+								[ "windows", "Dutch", "Netherlands"],\
 								[ "windows", "Norwegian", "Norway"],\
 								[ "windows", "Polish (Programmers)", "Poland"],\
 								[ "windows", "Portuguese", "Portugal"],\
@@ -719,12 +720,14 @@ keyboard_generation_array = [ \
 								[ "windows", "Spanish", "Spain"],\
 								[ "windows", "Finnish", "Sweden & Finland"],\
 								[ "windows", "Swiss French", "Swiss French"],\
+								[ "windows", "United Kingdom", "United Kingdom"],\
 								[ "windows", "United Kingdom Extended", "UK Extended"],\
 								[ "windows", "US", "USA"],\
 								[ "windows", "United States-International", "US International"],\
 								[ "osx", "Belgian", "Belgium (MacOS)"],\
 								[ "osx", "Brazilian", "Brazil (MacOS)"],\
 								[ "osx", "Canadian", "Canada (MacOS)"],\
+								[ "osx", "Colemak", "Colemak (MacOS)"],\
 								[ "osx", "Czech", "Czech (MacOS)"],\
 								[ "osx", "Czech-QWERTY", "Czech QWERT (MacOS)"],\
 								[ "osx", "Danish", "Denmark (MacOS)"],\
@@ -734,6 +737,7 @@ keyboard_generation_array = [ \
 								[ "osx", "Hungarian", "Hungary (MacOS)"],\
 								[ "osx", "Icelandic", "Iceland (MacOS)"],\
 								[ "osx", "Italian", "Italy (MacOS)"],\
+								[ "osx", "Dutch", "Nertherlands (Mac)"],\
 								[ "osx", "Norwegian", "Norway (MacOS)"],\
 								[ "osx", "Polish", "Poland (MacOS)"],\
 								[ "osx", "Portuguese", "Portugal (MacOS)"],\
@@ -745,8 +749,6 @@ keyboard_generation_array = [ \
 								[ "osx", "British", "UK (MacOS)"],\
 								[ "osx", "U.S.", "USA (MacOS)"],\
 								[ "osx", "US Extended", "US Extended (MacOS)"],\
-								[ "windows", "United Kingdom", "United Kingdom"],\
-								[ "osx", "Colemak", "Colemak (MacOS)"],\
 								[ "chromeos", "USA - Colemak", "Colemak (Chrome)"],\
 							]
 
