@@ -1165,7 +1165,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     inputs_clear_detections();
     
     /* Transition the action bitmap */
-    for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
+    for (uint16_t i = (flash_flag == FALSE)?POPUP_2LINES_ANIM_LGTH-1:0; i < POPUP_2LINES_ANIM_LGTH; i++)
     {
         /* Write both in frame buffer and display */
         if (first_item_selected != FALSE)
@@ -1413,7 +1413,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     inputs_clear_detections();
     
     /* Transition done, now transition the action bitmap */
-    for (uint16_t j = 0; j < POPUP_3LINES_ANIM_LGTH; j++)
+    for (uint16_t j = (flash_flag == FALSE)?POPUP_3LINES_ANIM_LGTH-1:0; j < POPUP_3LINES_ANIM_LGTH; j++)
     {
         sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_3LINES_ID+j, TRUE);
         for (uint16_t i = 0; i < nb_args; i++)
