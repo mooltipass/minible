@@ -248,7 +248,7 @@ card_detect_return_te smartcard_lowlevel_first_detect_function(void)
     card_powered = TRUE;
 
     /* Let the card come online */
-    timer_delay_ms(300);
+    timer_delay_ms(500);
 
     /* Check smart card FZ */
     smartcard_highlevel_read_fab_zone((uint8_t*)&data_buffer);
