@@ -10,6 +10,7 @@
 #include "logic_keyboard.h"
 #include "driver_timer.h"
 #include "usb.h"
+#include "udc.h"
 /* Buffer containing the keys to be sent through USB */
 uint8_t logic_keyboard_usb_hid_keys_buffer[8];
 
@@ -20,7 +21,13 @@ uint8_t logic_keyboard_usb_hid_keys_buffer[8];
 *   \param  symbol              The l symbol
 */
 void logic_keyboard_type_lock_shortcut(hid_interface_te interface_id, uint8_t l_symbol)
-{    
+{
+    /* Check for enumeration */
+    if ((interface_id == USB_INTERFACE) && ((usb_get_config() == 0) || (udc_get_nb_ms_before_last_usb_activity() > 100)))
+    {
+        return;
+    }
+    
     if (interface_id == USB_INTERFACE)
     {
         logic_keyboard_usb_hid_keys_buffer[2] = KEY_WIN_L;
@@ -51,7 +58,13 @@ void logic_keyboard_type_lock_shortcut(hid_interface_te interface_id, uint8_t l_
 *   \return If we were able to type the key
 */
 ret_type_te logic_keyboard_type_key_with_modifier(hid_interface_te interface, uint8_t key, uint8_t modifier, uint16_t delay_between_types)
-{        
+{
+    /* Check for enumeration */
+    if ((interface == USB_INTERFACE) && ((usb_get_config() == 0) || (udc_get_nb_ms_before_last_usb_activity() > 100)))
+    {
+        return RETURN_NOK;
+    }
+    
     // Send modifier
     if (modifier != 0)
     {
