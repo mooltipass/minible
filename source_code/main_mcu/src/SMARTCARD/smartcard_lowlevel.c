@@ -243,12 +243,14 @@ card_detect_return_te smartcard_lowlevel_first_detect_function(void)
     uint16_t data_buffer;
     uint16_t temp_uint;
 
-    /* Initialize IOs */
+    /* Switch on / switch off / switch on, as in some rare cases the cards doesn't initialize correctly */
     platform_io_smc_inserted_function();
+    timer_delay_ms(100);
+    platform_io_smc_remove_function();
+    timer_delay_ms(100);
+    platform_io_smc_inserted_function();
+    timer_delay_ms(300);
     card_powered = TRUE;
-
-    /* Let the card come online */
-    timer_delay_ms(500);
 
     /* Check smart card FZ */
     smartcard_highlevel_read_fab_zone((uint8_t*)&data_buffer);
