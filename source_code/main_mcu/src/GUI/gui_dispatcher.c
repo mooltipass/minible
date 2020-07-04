@@ -180,6 +180,12 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
     /* Bool to know if we should rerender */
     BOOL rerender_bool = FALSE;
     
+    /* No point in dealing with a discarded event */
+    if (wheel_action == WHEEL_ACTION_DISCARDED)
+    {
+        return;
+    }
+    
     /* switch to let the compiler optimize instead of function pointer array */
     switch (gui_dispatcher_current_screen)
     {
