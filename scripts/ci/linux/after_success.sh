@@ -17,6 +17,7 @@ docker exec minible-deb bash /scripts/build_source.sh $VERSION xenial
 docker exec minible-deb bash /scripts/build_source.sh $VERSION bionic
 docker exec minible-deb bash /scripts/build_source.sh $VERSION disco
 docker exec minible-deb bash /scripts/build_source.sh $VERSION eoan
+docker exec minible-deb bash /scripts/build_source.sh $VERSION focal
 
 #prepare files to upload volume
 mkdir -p $HOME/uploads
