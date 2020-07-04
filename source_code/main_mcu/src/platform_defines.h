@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    37
+#define FW_MINOR    38
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -108,6 +108,8 @@
         - mooltipass mini password typing bug fix
 - v0.36:- comms rearm on invalid payload length
 - v0.37:- do not deal with comms during periodic wakeup
+- v0.38:- card power up bug fix
+        - false wheel detection during lock bug fix
 */
 
 /**************** SETUP DEFINES ****************/
