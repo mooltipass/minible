@@ -1114,6 +1114,13 @@ at_ble_status_t ble_connected_state_handler(void *params)
                 DBG_LOG("IRK: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",irk_keys_buffer[i*16+0],irk_keys_buffer[i*16+1],irk_keys_buffer[i*16+2],irk_keys_buffer[i*16+3],irk_keys_buffer[i*16+4],irk_keys_buffer[i*16+5],irk_keys_buffer[i*16+6],irk_keys_buffer[i*16+7],irk_keys_buffer[i*16+8],irk_keys_buffer[i*16+9],irk_keys_buffer[i*16+10],irk_keys_buffer[i*16+11],irk_keys_buffer[i*16+12],irk_keys_buffer[i*16+13],irk_keys_buffer[i*16+14],irk_keys_buffer[i*16+15]);
             }
             
+            if (nb_irk_keys == 0)
+            {
+                DBG_LOG("No IRK keys gotten");
+                resolve_addr_flag = FALSE;
+                return AT_BLE_FAILURE;
+            }
+            
             if(at_ble_random_address_resolve((uint8_t)nb_irk_keys, &conn_params->peer_addr, irk_keys_buffer) == AT_BLE_SUCCESS)
             {
                 DBG_LOG_DEV("Resolving Random address success**");

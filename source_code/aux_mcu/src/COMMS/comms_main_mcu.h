@@ -19,6 +19,9 @@ extern volatile BOOL comms_main_mcu_usb_msg_answered_using_first_bytes;
 extern volatile BOOL comms_main_mcu_ble_msg_answered_using_first_bytes;
 extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 
+/* Timeout when waiting for something from main MCU */
+#define MAIN_MCU_COMMS_WAIT_TIMEOUT     5000
+
 /* Defines */
 #define AUX_MCU_MSG_TYPE_USB            0x0000
 #define AUX_MCU_MSG_TYPE_BLE            0x0001

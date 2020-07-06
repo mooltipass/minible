@@ -791,7 +791,13 @@ void comms_main_mcu_fetch_6_digits_pin(uint8_t* pin_array)
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
     
     /* Wait for message from main MCU */
-    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK);
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, MAIN_MCU_COMMS_WAIT_TIMEOUT);
+    while ((comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
+    if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) != TIMER_RUNNING)
+    {
+        memset(pin_array, 0, 6);
+        return;
+    }
     
     /* Store returned data */
     memcpy(pin_array, temp_rx_message_pt->ble_message.payload, 6);
@@ -822,7 +828,12 @@ ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t address_resolv_typ
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
     
     /* Wait for message from main MCU */
-    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK);
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, MAIN_MCU_COMMS_WAIT_TIMEOUT);
+    while ((comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
+    if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) != TIMER_RUNNING)
+    {
+        return RETURN_NOK;
+    }
     
     /* Check for success and do necessary actions */
     if (temp_rx_message_pt->payload_length1 == sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(nodemgmt_bluetooth_bonding_information_t))
@@ -859,7 +870,12 @@ ret_type_te comms_main_mcu_fetch_bonding_info_for_irk(uint8_t* irk_key, nodemgmt
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
     
     /* Wait for message from main MCU */
-    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK);
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, MAIN_MCU_COMMS_WAIT_TIMEOUT);
+    while ((comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
+    if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) != TIMER_RUNNING)
+    {
+        return RETURN_NOK;
+    }
     
     /* Check for success and do necessary actions */
     if (temp_rx_message_pt->payload_length1 == sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(nodemgmt_bluetooth_bonding_information_t))
@@ -895,7 +911,12 @@ uint16_t comms_main_mcu_get_bonding_info_irks(uint8_t** irk_keys_buffer)
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
     
     /* Wait for message from main MCU */
-    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK);
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, MAIN_MCU_COMMS_WAIT_TIMEOUT);
+    while ((comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
+    if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) != TIMER_RUNNING)
+    {
+        return 0;
+    }
     
     /* Store pointer to array */
     *irk_keys_buffer = &(temp_rx_message_pt->ble_message.payload[2]);

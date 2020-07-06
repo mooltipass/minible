@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    31
+#define FW_MINOR    32
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -57,6 +57,7 @@
 - v0.29:- aux mcu sleep bug fix
 - v0.30:- bluetooth connection bug fix (increase delay for main mcu wakeup)
 - v0.31:- reverting v0.30
+- v0.32:- timeout feature when waiting from something from main MCU
 */
 
 /**************** SETUP DEFINES ****************/
