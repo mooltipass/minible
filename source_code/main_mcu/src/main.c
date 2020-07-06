@@ -427,7 +427,7 @@ void main_standby_sleep(void)
         aux_mcu_message_t* temp_rx_message;
     
         /* Only if we actually wokeup the aux mcu */
-        if (logic_device_get_wakeup_reason() != WAKEUP_REASON_20M_TIMER)
+        if (comms_aux_mcu_are_comms_disabled() == FALSE)
         {
             /* Send a go to sleep message to aux MCU, wait for ack, leave no comms high (automatically set when receiving the sleep received event) */
             comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_SLEEP);
