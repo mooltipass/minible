@@ -790,8 +790,8 @@ void comms_main_mcu_fetch_6_digits_pin(uint8_t* pin_array)
     /* Send packet */
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
     
-    /* Wait for message from main MCU */
-    timer_start_timer(TIMER_TIMEOUT_FUNCTS, MAIN_MCU_COMMS_WAIT_TIMEOUT);
+    /* Wait for message from main MCU: long timeout as user input required */
+    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 60000);
     while ((comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
     if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) != TIMER_RUNNING)
     {
