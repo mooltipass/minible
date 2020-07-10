@@ -194,12 +194,15 @@ void smartcard_lowlevel_detect(void)
 {
     if ((PORT->Group[SMC_DET_GROUP].IN.reg & SMC_DET_MASK) == 0)
     {
+        if (card_detect_counter == CARD_DELAY_FOR_PULLUP_SWITCH)
+        {
+            platform_io_use_external_smc_det_pullup();
+        }
         if (card_detect_counter == CARD_DELAY_FOR_DETECTION)
         {
             // We must make sure the user detected that the smartcard was removed before setting it as detected!
             if (card_return != RETURN_JRELEASED)
             {
-                platform_io_use_external_smc_det_pullup();
                 card_return = RETURN_JDETECT;
                 card_detect_counter++;
             }
@@ -212,15 +215,19 @@ void smartcard_lowlevel_detect(void)
     else
     {
         // Smartcard remove functions
-        if ((card_detect_counter != 0) && (card_powered != FALSE))
+        if (card_detect_counter != 0)
         {
-            card_powered = FALSE;
-            platform_io_smc_remove_function();
-            logic_security_clear_security_bools();
+            // to prevent calling the functions below too often when false detections
+            if (card_powered != FALSE)
+            {
+                card_powered = FALSE;
+                platform_io_smc_remove_function();
+                logic_security_clear_security_bools();
+                #ifdef SPECIAL_DEVELOPER_CARD_FEATURE
+                special_dev_card_inserted = FALSE;
+                #endif
+            }
             platform_io_use_internal_smc_det_pullup();
-            #ifdef SPECIAL_DEVELOPER_CARD_FEATURE
-            special_dev_card_inserted = FALSE;
-            #endif
         }
         if (card_return == RETURN_DET)
         {
@@ -244,10 +251,6 @@ card_detect_return_te smartcard_lowlevel_first_detect_function(void)
     uint16_t temp_uint;
 
     /* Switch on / switch off / switch on, as in some rare cases the cards doesn't initialize correctly */
-    platform_io_smc_inserted_function();
-    timer_delay_ms(100);
-    platform_io_smc_remove_function();
-    timer_delay_ms(100);
     platform_io_smc_inserted_function();
     timer_delay_ms(300);
     card_powered = TRUE;
@@ -546,8 +549,7 @@ void smartcard_lowlevel_clear_pgmrst_signals(void)
 {
     PORT->Group[SMC_PGM_GROUP].OUTCLR.reg = SMC_PGM_MASK;
     PORT->Group[SMC_RST_GROUP].OUTCLR.reg = SMC_RST_MASK;
-    smartcard_lowlevel_hpulse_delay();
-    smartcard_lowlevel_hpulse_delay();
+    DELAYUS(10);
 }
 
 /*! \fn     smartcard_lowlevel_set_pgmrst_signals(void)

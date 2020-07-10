@@ -1394,6 +1394,9 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 custom_fs_set_current_language(desired_lang_id);
                 logic_user_set_language(desired_lang_id);
                 
+                /* Update display */
+                gui_dispatcher_get_back_to_current_screen();
+                
                 /* Set success byte */
                 comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
                 return;
