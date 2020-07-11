@@ -254,6 +254,9 @@ card_detect_return_te smartcard_lowlevel_first_detect_function(void)
     platform_io_smc_inserted_function();
     timer_delay_ms(300);
     card_powered = TRUE;
+    
+    /* Seems to be required for correct init */
+    smartcard_highlevel_read_fab_zone((uint8_t*)&data_buffer);
 
     /* Check smart card FZ */
     smartcard_highlevel_read_fab_zone((uint8_t*)&data_buffer);
