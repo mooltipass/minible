@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    39
+#define FW_MINOR    40
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -111,6 +111,8 @@
 - v0.38:- card power up bug fix
         - false wheel detection during lock bug fix
 - v0.39:- allow aux mcu wakeup when message needs to be sent during periodic wake ups
+- v0.40:- invalid card inserted bug fix
+        - faster card communications
 */
 
 /**************** SETUP DEFINES ****************/
