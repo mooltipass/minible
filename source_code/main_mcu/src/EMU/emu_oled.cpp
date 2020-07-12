@@ -203,6 +203,12 @@ extern "C" void inputs_scan(void)
             click_missed = false;
         }
     }
+    if ((inputs_wheel_click_return == RETURN_INVALID) && (!adjusted_wheel_state))
+    {
+        inputs_wheel_click_return = RETURN_REL;
+        fw_wheel_state = false;
+        click_missed = false;
+    }
 
     if ((inputs_wheel_click_return == RETURN_DET) || (inputs_wheel_click_return == RETURN_JDETECT))
     {
