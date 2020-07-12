@@ -408,8 +408,29 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
         user_action = wheel_action;
     }
     
+    /* Going to sleep logic, in multiple lines to be clear */
+    BOOL should_go_to_sleep = FALSE;
+    
+    /* Set boolean only if inactivity timer expired */
+    if (timer_has_timer_expired(TIMER_SCREEN, FALSE) == TIMER_EXPIRED)
+    {
+        should_go_to_sleep = TRUE;
+    }
+    
+    /* Exceptions: memory management and notification screen */
+    if ((gui_dispatcher_get_current_screen() == GUI_SCREEN_MEMORY_MGMT) || (gui_dispatcher_get_current_screen() == GUI_SCREEN_LOGIN_NOTIF))
+    {
+        should_go_to_sleep = FALSE;
+    }
+    
+    /* When battery powered and asking for an action from the user */
+    if ((logic_power_get_power_source() == USB_POWERED) && ((gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_INVALID) || (gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_UNKNOWN)))
+    {
+        should_go_to_sleep = FALSE;
+    }
+    
     // No activity, turn off screen
-    if  ((gui_dispatcher_get_current_screen() != GUI_SCREEN_MEMORY_MGMT) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_LOGIN_NOTIF) && (timer_has_timer_expired(TIMER_SCREEN, TRUE) == TIMER_EXPIRED))
+    if  (should_go_to_sleep != FALSE)
     {
         /* Display "going to sleep", switch off screen */
         if (sh1122_is_oled_on(&plat_oled_descriptor) != FALSE)
