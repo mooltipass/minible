@@ -216,7 +216,7 @@ extern "C" void inputs_scan(void)
 void OLEDWidget::wheelEvent(QWheelEvent *evt) {
     int delta = evt->angleDelta().y()/120;
     irq_mutex.lock();
-    inputs_wheel_cur_increment += delta;
+    inputs_wheel_cur_increment -= delta;
     irq_mutex.unlock();
 }
 
