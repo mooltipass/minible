@@ -387,7 +387,8 @@ void inputs_clear_detections(void)
     inputs_wheel_increment_armed_up = FALSE;
     #endif
     inputs_wheel_click_duration_counter = 0;
-    inputs_wheel_click_return = RETURN_REL;
+    inputs_wheel_click_return = RETURN_DET;
+    inputs_discard_release_event = TRUE;
     inputs_wheel_cur_increment = 0;
     cpu_irq_leave_critical();
 }
