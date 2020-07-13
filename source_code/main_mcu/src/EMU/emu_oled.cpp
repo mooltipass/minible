@@ -188,6 +188,13 @@ extern "C" void inputs_scan(void)
     bool adjusted_wheel_state = emu_wheel_state;
     if(click_missed)
         adjusted_wheel_state = !adjusted_wheel_state;
+    
+    if ((inputs_wheel_click_return == RETURN_INVALID) && (!adjusted_wheel_state))
+    {
+        inputs_wheel_click_return = RETURN_REL;
+        fw_wheel_state = false;
+        click_missed = false;
+    }
 
     if (adjusted_wheel_state) {
         if(inputs_wheel_click_return == RETURN_REL) {
@@ -202,12 +209,6 @@ extern "C" void inputs_scan(void)
             fw_wheel_state = false;
             click_missed = false;
         }
-    }
-    if ((inputs_wheel_click_return == RETURN_INVALID) && (!adjusted_wheel_state))
-    {
-        inputs_wheel_click_return = RETURN_REL;
-        fw_wheel_state = false;
-        click_missed = false;
     }
 
     if ((inputs_wheel_click_return == RETURN_DET) || (inputs_wheel_click_return == RETURN_JDETECT))
