@@ -23,6 +23,7 @@ extern "C" {
 /// grayscale 8-bit
 static uint8_t oled_fb[FB_WIDTH * FB_HEIGHT];
 static int oled_col, oled_row;
+static uint16_t nb_inputs_scan_skips = 0
 
 void emu_oled_byte(uint8_t data)
 {
@@ -185,6 +186,12 @@ extern "C" void inputs_scan(void);
 
 extern "C" void inputs_scan(void)
 {
+    if (nb_inputs_scan_skips > 0)
+    {
+        nb_inputs_scan_skips--;
+        return;
+    }
+    
     bool adjusted_wheel_state = emu_wheel_state;
     if(click_missed)
         adjusted_wheel_state = !adjusted_wheel_state;
@@ -232,7 +239,10 @@ void OLEDWidget::mousePressEvent(QMouseEvent *evt) {
     if(evt->button() == Qt::LeftButton)
         set_emulated_wheel_state(true);
     else if(evt->button() == Qt::BackButton)
+    {
         inputs_wheel_click_duration_counter=3000; // long press
+        nb_inputs_scan_skips = 2;
+    }
 
     irq_mutex.unlock();
 }
