@@ -23,7 +23,7 @@ extern "C" {
 /// grayscale 8-bit
 static uint8_t oled_fb[FB_WIDTH * FB_HEIGHT];
 static int oled_col, oled_row;
-static uint16_t nb_inputs_scan_skips = 0
+static uint16_t nb_inputs_scan_skips = 0;
 
 void emu_oled_byte(uint8_t data)
 {
