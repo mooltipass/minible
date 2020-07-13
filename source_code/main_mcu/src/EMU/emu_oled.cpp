@@ -23,7 +23,6 @@ extern "C" {
 /// grayscale 8-bit
 static uint8_t oled_fb[FB_WIDTH * FB_HEIGHT];
 static int oled_col, oled_row;
-static uint16_t nb_inputs_scan_skips = 0;
 
 void emu_oled_byte(uint8_t data)
 {
@@ -162,67 +161,47 @@ void OLEDWidget::paintEvent(QPaintEvent *) {
 extern "C" volatile int16_t inputs_wheel_cur_increment;
 extern "C" volatile uint16_t inputs_wheel_click_duration_counter;
 extern "C" volatile det_ret_type_te inputs_wheel_click_return;
+static bool emu_wheel_state;
 
-// With a slow PC with fast input processing (such as VM), the input events
-// can arrive faster than the firmware will process them. The code below
-// ensures that the wheel clicks are not missed.
-
-static bool emu_wheel_state,    // emulated wheel state 
-            fw_wheel_state,     // wheel state as known by the firmware
-            click_missed;       // this is set to true if emu_wheel_state changes twice without the firmware side noticing
-
-static void set_emulated_wheel_state(bool state)
+static void set_emulated_wheel_state(bool state, int16_t nb_ms_press_override)
 {
-    if(state == emu_wheel_state)
-        return;
-
-    if(fw_wheel_state != emu_wheel_state)
-        click_missed = true;
-
     emu_wheel_state = state;
+    if (nb_ms_press_override > 0)
+    {
+        inputs_wheel_click_duration_counter = nb_ms_press_override;
+    }
 }
 
 extern "C" void inputs_scan(void);
 
 extern "C" void inputs_scan(void)
 {
-    if (nb_inputs_scan_skips > 0)
+    if (inputs_wheel_click_return == RETURN_INVALID)
     {
-        nb_inputs_scan_skips--;
-        return;
-    }
-    
-    bool adjusted_wheel_state = emu_wheel_state;
-    if(click_missed)
-        adjusted_wheel_state = !adjusted_wheel_state;
-    
-    if ((inputs_wheel_click_return == RETURN_INVALID) && (!adjusted_wheel_state))
-    {
-        inputs_wheel_click_return = RETURN_REL;
-        fw_wheel_state = false;
-        click_missed = false;
-    }
-
-    if (adjusted_wheel_state) {
-        if(inputs_wheel_click_return == RETURN_REL) {
-            inputs_wheel_click_return = RETURN_JDETECT;
-            fw_wheel_state = true;
-            click_missed = false;
-        }
-
-    } else {
-        if (inputs_wheel_click_return == RETURN_DET) {
-            inputs_wheel_click_return = RETURN_JRELEASED;
-            fw_wheel_state = false;
-            click_missed = false;
+        if (!emu_wheel_state)
+        {
+            inputs_wheel_click_return = RETURN_REL;
         }
     }
-
-    if ((inputs_wheel_click_return == RETURN_DET) || (inputs_wheel_click_return == RETURN_JDETECT))
+    else
     {
-        inputs_wheel_click_duration_counter++;
-    } else {
-        inputs_wheel_click_duration_counter = 0;
+        if (emu_wheel_state) {
+            if(inputs_wheel_click_return == RETURN_REL) {
+                inputs_wheel_click_return = RETURN_JDETECT;
+            }
+
+        } else {
+            if (inputs_wheel_click_return == RETURN_DET) {
+                inputs_wheel_click_return = RETURN_JRELEASED;
+            }
+        }
+
+        if ((inputs_wheel_click_return == RETURN_DET) || (inputs_wheel_click_return == RETURN_JDETECT))
+        {
+            inputs_wheel_click_duration_counter++;
+        } else {
+            inputs_wheel_click_duration_counter = 0;
+        }
     }
 }
 
@@ -236,21 +215,22 @@ void OLEDWidget::wheelEvent(QWheelEvent *evt) {
 
 void OLEDWidget::mousePressEvent(QMouseEvent *evt) {
     irq_mutex.lock();
-    if(evt->button() == Qt::LeftButton)
-        set_emulated_wheel_state(true);
-    else if(evt->button() == Qt::BackButton)
+    if((evt->button() == Qt::BackButton) || (evt->button() == Qt::RightButton))
     {
-        inputs_wheel_click_duration_counter=3000; // long press
-        nb_inputs_scan_skips = 2;
+        set_emulated_wheel_state(true, 3000);
     }
+    else if(evt->button() == Qt::LeftButton)
+        set_emulated_wheel_state(true, -1);
 
     irq_mutex.unlock();
 }
 
 void OLEDWidget::mouseReleaseEvent(QMouseEvent *evt) {
     irq_mutex.lock();
-    if(evt->button() == Qt::LeftButton)
-        set_emulated_wheel_state(false);
+    if((evt->button() == Qt::BackButton) || (evt->button() == Qt::RightButton))
+        set_emulated_wheel_state(false, -1);
+    else if(evt->button() == Qt::LeftButton)
+        set_emulated_wheel_state(false, -1);
     irq_mutex.unlock();
 }
 
@@ -258,20 +238,20 @@ void OLEDWidget::keyPressEvent(QKeyEvent *evt) {
     irq_mutex.lock();
     switch(evt->key()) {
     case Qt::Key_Up:
-    case Qt::Key_Left:
         inputs_wheel_cur_increment--;
         break;
     case Qt::Key_Down:
-    case Qt::Key_Right:
         inputs_wheel_cur_increment++;
         break;
+    case Qt::Key_Right:
     case Qt::Key_Space:
     case Qt::Key_Enter:
     case Qt::Key_Return:
-        set_emulated_wheel_state(true);
+        set_emulated_wheel_state(true, -1);
         break;
+    case Qt::Key_Left:
     case Qt::Key_Backspace:
-        inputs_wheel_click_duration_counter=3000;
+        set_emulated_wheel_state(true, 3000);
         break;
     }
     irq_mutex.unlock();
@@ -280,10 +260,13 @@ void OLEDWidget::keyPressEvent(QKeyEvent *evt) {
 void OLEDWidget::keyReleaseEvent(QKeyEvent *evt) {
     irq_mutex.lock();
     switch(evt->key()) {
+    case Qt::Key_Right:
     case Qt::Key_Space:
     case Qt::Key_Enter:
     case Qt::Key_Return:
-        set_emulated_wheel_state(false);
+    case Qt::Key_Left:
+    case Qt::Key_Backspace:
+        set_emulated_wheel_state(false, -1);
         break;
     }
     irq_mutex.unlock();
