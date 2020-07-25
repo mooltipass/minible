@@ -29,3 +29,8 @@ If all went well during the compilation, you should see the two emulator windows
 Close both emulator windows, start the compilation step again and ta-da!
 
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/emulator_tuto/4_emulator_working.PNG?raw=true)
+
+
+### [](#header-3)Step 5 : Mooltipass Team Ground Rules  
+
+We can't wait to collaborate with you! Do not forget to have a look at the [Mooltipass Team Ground Rules](https://mooltipass.github.io/minible/coding_rules)
