@@ -31,6 +31,7 @@ Close both emulator windows, start the compilation step again and ta-da!
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/emulator_tuto/4_emulator_working.PNG?raw=true)
 
 
-### [](#header-3)Step 5 : Mooltipass Team Ground Rules  
+### [](#header-3)Step 5 : Emulator Control & Mooltipass Team Ground Rules  
 
-We can't wait to collaborate with you! Do not forget to have a look at the [Mooltipass Team Ground Rules](https://mooltipass.github.io/minible/coding_rules)
+You may use the keyboard arrow keys to control the emulator, or use your mouse with its scroll wheel.  
+We can't wait to collaborate with you! Do not forget to have a look at the [Mooltipass Team Ground Rules](https://mooltipass.github.io/minible/coding_rules)  
