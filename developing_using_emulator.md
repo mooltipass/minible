@@ -41,34 +41,34 @@ We can't wait to collaborate with you! Do not forget to have a look at the [Mool
   
   
 ## [](#header-2)Ubuntu  
-Getting up and running on Ubuntu is slightly faster than on Windows!
+Getting up and running on Ubuntu is slightly faster than on Windows!  
 
-### [](#header-3)Step 1: Downloading the Mini BLE Repository
-First install git:
-`sudo apt-get install git`
-Then clone our repository:
-`git clone https://github.com/mooltipass/minible`
-Initialize all its submodules:
-`cd minible`
-`git submodule update --init --recursive`
+### [](#header-3)Step 1: Downloading the Mini BLE Repository  
+First install git:  
+`sudo apt-get install git`  
+Then clone our repository:  
+`git clone https://github.com/mooltipass/minible`  
+Initialize all its submodules:  
+`cd minible`  
+`git submodule update --init --recursive`  
 
-### [](#header-3)Step 2: Compiling the Emulator
-Install all prerequisites:
-`sudo apt-get install build-essential qt5-default`
-Compile the emulator:
-`cd source_code/main_mcu/`
-`make -f Makefile.emu`
-Then finally launch it:
-`./build/minible`
+### [](#header-3)Step 2: Compiling the Emulator  
+Install all prerequisites:  
+`sudo apt-get install build-essential qt5-default`  
+Compile the emulator:  
+`cd source_code/main_mcu/`  
+`make -f Makefile.emu`  
+Then finally launch it:  
+`./build/minible`  
 
 ### [](#header-3)Step 3 : Providing Missing Bundle  
 
-![](https://github.com/mooltipass/minible/blob/gh-pages/images/emulator_tuto/3_missing_bundle_ubuntu.PNG?raw=true)
-
-If all went well during the compilation, you should see the two emulator windows above appear, with the emulator asking for a bundle file.  
-Close both emulator windows and type the following command:
-`sudo cp emu_assets/miniblebundle.img /usr/share/misc/`
-
+![](https://github.com/mooltipass/minible/blob/gh-pages/images/emulator_tuto/3_missing_bundle_ubuntu.PNG?raw=true)  
+  
+If all went well during the compilation, you should see the two emulator windows above appear, with the emulator asking for a bundle file.    
+Close both emulator windows and type the following command:  
+`sudo cp emu_assets/miniblebundle.img /usr/share/misc/`  
+  
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/emulator_tuto/4_emulator_working_ubuntu.PNG?raw=true)
 
 
