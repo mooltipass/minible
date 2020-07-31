@@ -30,6 +30,7 @@ INCLUDEPATH += src/EMU \
     src/BearSSL/inc
 
 SOURCES += src/EMU/lis2hh12.c \
+    src/BearSSL/src/hash/sha1.c \
     src/BearSSL/src/symcipher/aes_ct.c \
     src/BearSSL/src/symcipher/aes_ct_ctr.c \
     src/BearSSL/src/symcipher/aes_ct_ctrcbc.c \
@@ -86,6 +87,7 @@ SOURCES += src/EMU/lis2hh12.c \
     src/LOGIC/logic_power.c \
     src/LOGIC/logic_security.c \
     src/LOGIC/logic_smartcard.c \
+    src/LOGIC/logic_totp.c \
     src/LOGIC/logic_user.c \
     src/LOGIC/logic_accelerometer.c \
     src/NODEMGMT/nodemgmt.c \
@@ -180,6 +182,7 @@ HEADERS  += src/MainWindow.h \ \
     src/LOGIC/logic_power.h \
     src/LOGIC/logic_security.h \
     src/LOGIC/logic_smartcard.h \
+    src/LOGIC/logic_totp.h \
     src/LOGIC/logic_user.h \
     src/NODEMGMT/nodemgmt.h \
     src/OLED/mooltipass_graphics_bundle.h \
