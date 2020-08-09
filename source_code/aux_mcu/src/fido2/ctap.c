@@ -272,6 +272,7 @@ static ret_type_te ctap_get_assertion_aux_comm(CTAP_requestCommon *common, CTAP_
     aux_mcu_message_t* temp_tx_message_pt;
     fido2_get_assertion_req_message_t *req_msg;
     ret_type_te ret = RETURN_NOK;
+    uint8_t i;
 
     /* Create message to make authentication data */
     comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_FIDO2);
@@ -289,7 +290,10 @@ static ret_type_te ctap_get_assertion_aux_comm(CTAP_requestCommon *common, CTAP_
         return RETURN_NOK;
     }
     req_msg->allow_list.len = GA->credLen;
-    memcpy(req_msg->allow_list.tag, GA->creds, req_msg->allow_list.len * sizeof(req_msg->allow_list.tag[0]));
+    for (i = 0; i < req_msg->allow_list.len; ++i)
+    {
+        memcpy(&req_msg->allow_list.tag[i], GA->creds[i].id.tag, sizeof(req_msg->allow_list.tag[i]));
+    }
 
     memcpy(req_msg->client_data_hash, common->clientDataHash, FIDO2_CLIENT_DATA_HASH_LEN);
 

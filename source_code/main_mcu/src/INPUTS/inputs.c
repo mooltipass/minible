@@ -264,19 +264,23 @@ void inputs_scan(void)
         }
         #endif
         
-        /* Was previously 50, decreased to 5 as we have hardware debouncing */
-        if ((inputs_wheel_click_counter == 5) && (inputs_wheel_click_return != RETURN_JRELEASED))
+        /* Check that detection wasn't set to invalid */
+        if (inputs_wheel_click_return != RETURN_INVALID)
         {
-            inputs_wheel_click_return = RETURN_JDETECT;
-        }
-        if (inputs_wheel_click_counter != 0xFFFF)
-        {
-            inputs_wheel_click_counter++;
-        }
-        if ((inputs_wheel_click_return == RETURN_DET) || (inputs_wheel_click_return == RETURN_JDETECT))
-        {
-            inputs_wheel_click_duration_counter++;
-        }
+            /* Was previously 50, decreased to 5 as we have hardware debouncing */
+            if ((inputs_wheel_click_counter == 5) && (inputs_wheel_click_return != RETURN_JRELEASED))
+            {
+                inputs_wheel_click_return = RETURN_JDETECT;
+            }
+            if (inputs_wheel_click_counter != 0xFFFF)
+            {
+                inputs_wheel_click_counter++;
+            }
+            if ((inputs_wheel_click_return == RETURN_DET) || (inputs_wheel_click_return == RETURN_JDETECT))
+            {
+                inputs_wheel_click_duration_counter++;
+            }
+        }        
     }
     else
     {
@@ -357,7 +361,7 @@ det_ret_type_te inputs_is_wheel_clicked(void)
     // This copy is an atomic operation
     volatile det_ret_type_te return_val = inputs_wheel_click_return;
 
-    if ((return_val != RETURN_DET) && (return_val != RETURN_REL))
+    if ((return_val != RETURN_DET) && (return_val != RETURN_REL) && (return_val != RETURN_INVALID))
     {
         logic_device_activity_detected();
         cpu_irq_enter_critical();
@@ -386,8 +390,8 @@ void inputs_clear_detections(void)
     inputs_wheel_increment_armed_down = FALSE;
     inputs_wheel_increment_armed_up = FALSE;
     #endif
+    inputs_wheel_click_return = RETURN_INVALID;
     inputs_wheel_click_duration_counter = 0;
-    inputs_wheel_click_return = RETURN_REL;
     inputs_discard_release_event = FALSE;
     inputs_wheel_cur_increment = 0;
     cpu_irq_leave_critical();
@@ -419,6 +423,12 @@ wheel_action_ret_te inputs_get_wheel_action(BOOL wait_for_action, BOOL ignore_in
         if (ignore_incdec == FALSE)
         {
             inputs_wheel_cur_increment_copy = inputs_wheel_cur_increment;
+        }
+        
+        // Check for invalid state
+        if (inputs_wheel_click_return == RETURN_INVALID)
+        {
+            return WHEEL_ACTION_NONE;
         }
 
         if (inputs_wheel_click_return == RETURN_JDETECT)
