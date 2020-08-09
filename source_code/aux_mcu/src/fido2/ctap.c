@@ -777,6 +777,7 @@ uint8_t ctap_request(uint8_t * pkt_raw, int length, CTAP_RESPONSE * resp)
 
     printf1(TAG_CTAP,"cbor input structure: %d bytes", length);
     printf1(TAG_DUMP,"cbor req: "); dump_hex1(TAG_DUMP, pkt_raw, length);
+    printf1(TAG_CTAP,"cbor cmd: 0x%x", cmd);
 
     switch(cmd)
     {
