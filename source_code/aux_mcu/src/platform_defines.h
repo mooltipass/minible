@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    33
+#define FW_MINOR    34
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -59,6 +59,8 @@
 - v0.31:- reverting v0.30
 - v0.32:- timeout feature when waiting from something from main MCU
 - v0.33:- bluetooth pairing bug fix
+- v0.34:- Webauthn bug fix
+        - Support for new battery status display
 */
 
 /**************** SETUP DEFINES ****************/
