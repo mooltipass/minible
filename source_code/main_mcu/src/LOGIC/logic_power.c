@@ -160,7 +160,6 @@ void logic_power_set_max_charging_voltage_from_aux(uint16_t measured_voltage)
         logic_power_full_charge_voltage_gotten = TRUE;
         logic_power_full_charge_voltage_val = (uint16_t)scaled_down_value;
         logic_power_delta_between_hyp_100pct_and_real = (logic_power_full_charge_voltage_val-BATTERY_TYPICAL_DELTA_BTW_FULL_CHARGE_AND_100PCT) - BATTERY_ADC_100PCT_VOLTAGE;
-        while(1);
     }    
 }
 
