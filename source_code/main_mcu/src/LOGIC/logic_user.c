@@ -877,10 +877,11 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
 *   \param  private_key                     32B buffer to where to store the private key
 *   \param  count                           Pointer to uint32_t to store authentication count, automatically pre incremented
 *   \param  credential_id_allow_list        If credential_id_allow_list_length != 0, list of credential ids we allow
-*   \param  credential_id_allow_list_length Length of the credential allow list
+*   \param  credential_id_allow_list_length Length of the credential allow lista
+*   \param  flags                           Flag meta data for request
 *   \return success status
 */
-fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t credential_id_allow_list[FIDO2_ALLOW_LIST_MAX_SIZE][FIDO2_CREDENTIAL_ID_LENGTH], uint16_t credential_id_allow_list_length)
+fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t credential_id_allow_list[FIDO2_ALLOW_LIST_MAX_SIZE][FIDO2_CREDENTIAL_ID_LENGTH], uint16_t credential_id_allow_list_length, uint8_t flags)
 {
     uint8_t temp_cred_ctr[MEMBER_SIZE(child_webauthn_node_t, ctr)];
     
@@ -932,38 +933,40 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
         /* Fetch username for that credential id, username is already 0 terminated by code above */
         logic_database_get_webauthn_username_for_address(child_address, temp_user_name);
         
-        /* If user specified to be prompted for login confirmation */
-        if ((logic_user_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0)
+        if ( (flags & FIDO2_GA_FLAG_SILENT) != FIDO2_GA_FLAG_SILENT)
         {
-            /* Prepare prompt message */
-            cust_char_t* three_line_prompt_2;
-            custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &three_line_prompt_2, TRUE);
-            confirmationText_t conf_text_3_lines = {.lines[0]=rp_id, .lines[1]=three_line_prompt_2, .lines[2]=temp_user_name};
-
-            /* Request user approval */
-            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, TRUE, TRUE);
-            gui_dispatcher_get_back_to_current_screen();
-
-            /* Did the user approve? */
-            if (prompt_return != MINI_INPUT_RET_YES)
+            /* If user specified to be prompted for login confirmation */
+            if ((logic_user_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0)
             {
-                return FIDO2_OPERATION_DENIED;
+                /* Prepare prompt message */
+                cust_char_t* three_line_prompt_2;
+                custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &three_line_prompt_2, TRUE);
+                confirmationText_t conf_text_3_lines = {.lines[0]=rp_id, .lines[1]=three_line_prompt_2, .lines[2]=temp_user_name};
+
+                /* Request user approval */
+                mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, TRUE, TRUE);
+                gui_dispatcher_get_back_to_current_screen();
+
+                /* Did the user approve? */
+                if (prompt_return != MINI_INPUT_RET_YES)
+                {
+                    return FIDO2_OPERATION_DENIED;
+                }
+            }
+            else
+            {
+                /* Prepare notification message */
+                cust_char_t* three_line_notif_2;
+                custom_fs_get_string_from_file(LOGGING_WITH_TEXT_ID, &three_line_notif_2, TRUE);
+                confirmationText_t notif_text_3_lines = {.lines[0]=rp_id, .lines[1]=three_line_notif_2, .lines[2]=temp_user_name};
+
+                /* 3 lines notification website / logging you in with / username */
+                gui_prompts_display_information_lines_on_screen(&notif_text_3_lines, DISP_MSG_INFO, 3);
+
+                /* Set information screen, do not call get back to current screen as screen is already updated */
+                gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);
             }
         }
-        else
-        {
-            /* Prepare notification message */
-            cust_char_t* three_line_notif_2;
-            custom_fs_get_string_from_file(LOGGING_WITH_TEXT_ID, &three_line_notif_2, TRUE);
-            confirmationText_t notif_text_3_lines = {.lines[0]=rp_id, .lines[1]=three_line_notif_2, .lines[2]=temp_user_name};
-
-            /* 3 lines notification website / logging you in with / username */
-            gui_prompts_display_information_lines_on_screen(&notif_text_3_lines, DISP_MSG_INFO, 3);
-
-            /* Set information screen, do not call get back to current screen as screen is already updated */
-            gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);
-        }
-        
         /* Fetch webauthn data */
         logic_database_get_webauthn_data_for_address_and_inc_count(child_address, user_handle, user_handle_len, credential_id, private_key, count, temp_cred_ctr);
         

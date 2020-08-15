@@ -100,6 +100,11 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define AUX_MCU_MSG_TYPE_FIDO2_END   AUX_MCU_FIDO2_RETRY
 /* FIDO2 messages end */
 
+/*
+ * Flags for Get Assertion request to Main MCU
+ */
+#define FIDO2_GA_FLAG_SILENT        0x1 // Indicates to not prompt for user ACK
+
 /* Typedefs */
 typedef struct
 {
@@ -248,6 +253,7 @@ typedef struct fido2_get_assertion_req_message_s
     uint8_t rpID[FIDO2_RPID_LEN];
     uint8_t client_data_hash[FIDO2_CLIENT_DATA_HASH_LEN];
     fido2_allow_list_t allow_list;
+    uint8_t flags;
 } fido2_get_assertion_req_message_t;
 
 typedef struct fido2_get_assertion_rsp_message_s

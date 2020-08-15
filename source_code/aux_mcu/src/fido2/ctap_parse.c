@@ -463,7 +463,7 @@ uint8_t parse_rp(struct rpId * rp, CborValue * val)
     return 0;
 }
 
-uint8_t parse_options(CborValue * val, uint8_t * rk, uint8_t * uv, uint8_t * up)
+uint8_t parse_options(CborValue * val, uint8_t * rk, uint8_t * uv, uint8_t *uvPresent, uint8_t * up, uint8_t *upPresent)
 {
     size_t sz, map_length;
     char key[8];
@@ -471,6 +471,11 @@ uint8_t parse_options(CborValue * val, uint8_t * rk, uint8_t * uv, uint8_t * up)
     unsigned int i;
     _Bool b;
     CborValue map;
+
+    *up = 0;
+    *uv = 0;
+    *upPresent = 0;
+    *uvPresent = 0;
 
     if (cbor_value_get_type(val) != CborMapType)
     {
@@ -525,6 +530,7 @@ uint8_t parse_options(CborValue * val, uint8_t * rk, uint8_t * uv, uint8_t * up)
             check_ret(ret);
             printf1(TAG_GA, "uv: %d\r",b);
             *uv = b;
+            *uvPresent = 1;
         }
         else if (strncmp(key, "up",2) == 0)
         {
@@ -532,6 +538,7 @@ uint8_t parse_options(CborValue * val, uint8_t * rk, uint8_t * uv, uint8_t * up)
             check_ret(ret);
             printf1(TAG_GA, "up: %d\r",b);
             *up = b;
+            *upPresent = 1;
         }
         else
         {
@@ -657,7 +664,7 @@ uint8_t ctap_parse_make_credential(CTAP_makeCredential * MC, CborEncoder * encod
 
             case MC_options:
                 printf1(TAG_MC,"CTAP_options");
-                ret = parse_options(&map, &MC->credInfo.rk, &MC->uv, &MC->up);
+                ret = parse_options(&map, &MC->credInfo.rk, &MC->uv, &MC->uvPresent, &MC->up, &MC->upPresent);
                 check_retr(ret);
                 break;
             case MC_pinAuth: {
@@ -883,7 +890,7 @@ uint8_t ctap_parse_get_assertion(CTAP_getAssertion * GA, uint8_t * request, int 
 
             case GA_options:
                 printf1(TAG_GA,"CTAP_options");
-                ret = parse_options(&map, &GA->rk, &GA->uv, &GA->up);
+                ret = parse_options(&map, &GA->rk, &GA->uv, &GA->uvPresent, &GA->up, &GA->upPresent);
                 check_retr(ret);
                 break;
             case GA_pinAuth: {

@@ -244,6 +244,8 @@ typedef struct
 
     uint8_t uv;
     uint8_t up;
+    uint8_t uvPresent;
+    uint8_t upPresent;
 } CTAP_makeCredential;
 
 typedef struct
@@ -259,6 +261,8 @@ typedef struct
 
     CTAP_credentialDescriptor creds[ALLOW_LIST_MAX_SIZE];
     uint8_t allowListPresent;
+    uint8_t upPresent;
+    uint8_t uvPresent;
 } CTAP_getAssertion;
 
 void ctap_response_init(CTAP_RESPONSE * resp);
