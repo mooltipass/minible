@@ -146,9 +146,9 @@ See FIDO2 specification for definition of the values that are not explicitly def
 
 **From AUX MCU:**
 
-| byte 8 - 259 | byte 260 - 291   | byte 292 - 455 |
-|:-------------|:-----------------|:---------------|
-| RPID         | Client Data Hash | Allow List     |
+| byte 8 - 259 | byte 260 - 291   | byte 292 - 455 | byte 456 |
+|:-------------|:-----------------|:---------------|:---------|
+| RPID         | Client Data Hash | Allow List     | Flags    |
 
 **RPID**
 
@@ -175,6 +175,15 @@ Number of "Credential IDs" following. Valid value is 0 - 10.
 **Credential ID X**
 
 The [CredentialID](https://www.w3.org/TR/webauthn/#credential-id) to present to the user to ask for assertion.
+
+**Flags**
+
+Flag for the operation
+
+| Value | Description                                                           |
+|:-------|:---------------------------------------------------------------------|
+| 0x00   | Normal operation
+| 0x01   | Silent Get Assertion. Do not prompt user
 
 
 
