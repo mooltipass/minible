@@ -397,8 +397,16 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     {
         auth_data_header.sign_count = cpu_to_be32(temp_sign_count);
         auth_data_header.flags &= ~FIDO2_AT_BIT;
-        auth_data_header.flags |= FIDO2_UP_BIT;
-        auth_data_header.flags |= FIDO2_UV_BIT;
+        if ( (request->flags & FIDO2_GA_FLAG_SILENT) == FIDO2_GA_FLAG_SILENT)
+        {
+            auth_data_header.flags &= ~FIDO2_UP_BIT;
+            auth_data_header.flags &= ~FIDO2_UV_BIT;
+        }
+        else
+        {
+            auth_data_header.flags |= FIDO2_UP_BIT;
+            auth_data_header.flags |= FIDO2_UV_BIT;
+        }
     }
     else
     {
