@@ -933,7 +933,9 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
         /* Fetch username for that credential id, username is already 0 terminated by code above */
         logic_database_get_webauthn_username_for_address(child_address, temp_user_name);
         
-        if ( (flags & FIDO2_GA_FLAG_SILENT) != FIDO2_GA_FLAG_SILENT)
+        /* Here's the strange part in the webauthn spec: in some cases a RP wants to check if an authenticator has a given credential.
+        To do so, it actually sends an assertion request with a silent flag set, and then expects the authenticator to silently sign it! */
+        if ((flags & FIDO2_GA_FLAG_SILENT) != FIDO2_GA_FLAG_SILENT)
         {
             /* If user specified to be prompted for login confirmation */
             if ((logic_user_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0)
