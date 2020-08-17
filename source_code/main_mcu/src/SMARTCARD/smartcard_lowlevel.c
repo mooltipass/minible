@@ -41,7 +41,11 @@ volatile BOOL card_powered = FALSE;
 */
 void smartcard_lowlevel_hpulse_delay(void)
 {
+#if defined(PLAT_V7_SETUP)
     DELAYUS(2);
+#else
+    DELAYUS(3);
+#endif
 }
 
 /*! \fn     smartcard_lowlevel_tchp_delay(void)
