@@ -935,6 +935,12 @@
     <Compile Include="src\LOGIC\logic_smartcard.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\LOGIC\logic_totp.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\LOGIC\logic_totp.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\LOGIC\logic_user.c">
       <SubType>compile</SubType>
     </Compile>

@@ -48,5 +48,6 @@ uint16_t utils_get_nb_lines(const cust_char_t* string);
 uint16_t utils_strlen(cust_char_t* string);
 uint16_t utils_u8strlen(uint8_t* string);
 uint32_t utils_get_SP(void);
+static time_t utils_switch_endiannes(time_t input);
 
 #endif /* UTILS_H_ */

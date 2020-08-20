@@ -543,3 +543,23 @@ __attribute__( ( always_inline ) ) inline uint32_t utils_get_SP(void)
 #endif
 }
 
+/*! \fn     utils_switch_endiannes(time_t little_endian)
+*   \brief  Switches endiannes of a given time_t value by swapping order of bytes. If input is in little endian, the output will be big endian, and vice versa
+*   \param  input value in any endiannes
+*   \return input in switched endiannes
+*/
+time_t utils_switch_endiannes(time_t input)
+{
+    time_t switched = (input << 56) & 0xFF00000000000000;
+    switched |= (input << 40) & 0x00FF000000000000;
+    switched |= (input << 24) & 0x0000FF0000000000;
+    switched |= (input << 8) & 0x000000FF00000000;
+    switched |= (input >> 8) & 0x00000000FF000000;
+    switched |= (input >> 24) & 0x0000000000FF0000;
+    switched |= (input >> 40) & 0x000000000000FF00;
+    switched |= (input >> 56) & 0x00000000000000FF;
+
+    return switched;
+}
+
+

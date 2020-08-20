@@ -51,6 +51,10 @@
 #define FALSE                   0
 #define TRUE                    (!FALSE)
 
+/* TOTP */
+/** Length in bytes of a TOTP Token */
+#define LOGIC_TOTP_TOKEN_LEN 6
+
 /* Debugging defines */
 #define DEBUG_STACK_TRACKING_COOKIE 0x5D
 
