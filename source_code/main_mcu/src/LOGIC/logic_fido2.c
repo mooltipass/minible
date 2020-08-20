@@ -390,15 +390,23 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     
     /* Ask for user permission, automatically pre increment signing counter upon success recall */
     fido2_return_code_te temp_return = FIDO2_SUCCESS;
-    temp_return = logic_user_get_webauthn_credential_key_for_rp(rp_id_copy, user_handle, &user_handle_len, credential_id, private_key, &temp_sign_count, request->allow_list.tag, request->allow_list.len);
+    temp_return = logic_user_get_webauthn_credential_key_for_rp(rp_id_copy, user_handle, &user_handle_len, credential_id, private_key, &temp_sign_count, request->allow_list.tag, request->allow_list.len, request->flags);
 
     /* Success? */
     if (temp_return == FIDO2_SUCCESS)
     {
         auth_data_header.sign_count = cpu_to_be32(temp_sign_count);
         auth_data_header.flags &= ~FIDO2_AT_BIT;
-        auth_data_header.flags |= FIDO2_UP_BIT;
-        auth_data_header.flags |= FIDO2_UV_BIT;
+        if ( (request->flags & FIDO2_GA_FLAG_SILENT) == FIDO2_GA_FLAG_SILENT)
+        {
+            auth_data_header.flags &= ~FIDO2_UP_BIT;
+            auth_data_header.flags &= ~FIDO2_UV_BIT;
+        }
+        else
+        {
+            auth_data_header.flags |= FIDO2_UP_BIT;
+            auth_data_header.flags |= FIDO2_UV_BIT;
+        }
     }
     else
     {

@@ -273,6 +273,7 @@ static ret_type_te ctap_get_assertion_aux_comm(CTAP_requestCommon *common, CTAP_
     fido2_get_assertion_req_message_t *req_msg;
     ret_type_te ret = RETURN_NOK;
     uint8_t i;
+    uint8_t uv_up = 0;
 
     /* Create message to make authentication data */
     comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_FIDO2);
@@ -294,6 +295,15 @@ static ret_type_te ctap_get_assertion_aux_comm(CTAP_requestCommon *common, CTAP_
     {
         memcpy(&req_msg->allow_list.tag[i], GA->creds[i].id.tag, sizeof(req_msg->allow_list.tag[i]));
     }
+
+    /*
+     * Determine whether we should prompt the user or not
+     * Prompt under the following conditions:
+     * 1. Either UV or UP or both is 1
+     * 2. UP missing (case currently for demo.yubico.com/webauthn)
+     */
+    uv_up = GA->uv + GA->up;
+    req_msg->flags = (!uv_up && GA->upPresent == 1) ? FIDO2_GA_FLAG_SILENT : 0;
 
     memcpy(req_msg->client_data_hash, common->clientDataHash, FIDO2_CLIENT_DATA_HASH_LEN);
 
@@ -777,6 +787,7 @@ uint8_t ctap_request(uint8_t * pkt_raw, int length, CTAP_RESPONSE * resp)
 
     printf1(TAG_CTAP,"cbor input structure: %d bytes", length);
     printf1(TAG_DUMP,"cbor req: "); dump_hex1(TAG_DUMP, pkt_raw, length);
+    printf1(TAG_CTAP,"cbor cmd: 0x%x", cmd);
 
     switch(cmd)
     {

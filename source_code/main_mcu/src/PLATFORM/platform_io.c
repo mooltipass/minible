@@ -32,6 +32,7 @@ oled_stepup_pwr_source_te platform_io_oled_stepup_power_source = OLED_STEPUP_SOU
 volatile BOOL platform_io_voledin_conv_ready = FALSE;
 /* 3v3 detected counter & state */
 volatile BOOL platform_io_debounced_3v3_present = FALSE;
+volatile uint16_t platform_io_3v3_not_detected_counter = 0;
 volatile uint16_t platform_io_3v3_detected_counter = 0;
 
 
@@ -73,11 +74,19 @@ void platform_io_scan_3v3(void)
 {
     if ((PORT->Group[USB_3V3_GROUP].IN.reg & USB_3V3_MASK) == 0)
     {
-        platform_io_debounced_3v3_present = FALSE;
         platform_io_3v3_detected_counter = 0;
+        if (platform_io_3v3_not_detected_counter == 250)
+        {
+            platform_io_debounced_3v3_present = FALSE;
+        }
+        if (platform_io_3v3_not_detected_counter != UINT16_MAX)
+        {
+            platform_io_3v3_not_detected_counter++;
+        }
     }
     else
     {
+        platform_io_3v3_not_detected_counter = 0;
         if (platform_io_3v3_detected_counter == 250)
         {
             platform_io_debounced_3v3_present = TRUE;
