@@ -42,7 +42,6 @@ typedef enum    {NIMH_12C_CHARGING = 0, NIMH_23C_CHARGING, NIMH_45C_CHARGING} lb
 /**************************/
 /* Battery levels defines */
 /**************************/
-#define BATTERY_ADC_OVER_VOLTAGE    (1600*8192/3300)
 #define BATTERY_ADC_100PCT_VOLTAGE  (2837)
 #define BATTERY_ADC_90PCT_VOLTAGE   (2757)
 #define BATTERY_ADC_80PCT_VOLTAGE   (2702)

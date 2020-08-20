@@ -113,6 +113,7 @@
 - v0.39:- allow aux mcu wakeup when message needs to be sent during periodic wake ups
 - v0.40:- invalid card inserted bug fix
         - faster card communications
+- v0.41:- smarter battery status display
 */
 
 /**************** SETUP DEFINES ****************/
@@ -244,7 +245,6 @@ typedef struct
 /* Voltage cutout   */
 /********************/
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP)
-    #define BATTERY_ADC_OVER_VOLTAGE    (1600*273/110)
     #define BATTERY_ADC_100PCT_VOLTAGE  (1180*273/110)
     #define BATTERY_ADC_90PCT_VOLTAGE   (1180*273/110)
     #define BATTERY_ADC_80PCT_VOLTAGE   (1250*273/110)
@@ -258,7 +258,6 @@ typedef struct
     #define BATTERY_ADC_OUT_CUTOUT      (1180*273/110)
     #define BATTERY_ADC_800MV_VALUE     (1180*273/110)
 #elif defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
-    #define BATTERY_ADC_OVER_VOLTAGE    (1600*8192/3188)
     #define BATTERY_ADC_100PCT_VOLTAGE  (3435)
     #define BATTERY_ADC_90PCT_VOLTAGE   (3368)
     #define BATTERY_ADC_80PCT_VOLTAGE   (3335)
@@ -272,6 +271,7 @@ typedef struct
     #define BATTERY_ADC_OUT_CUTOUT      (3000)
     #define BATTERY_ADC_800MV_VALUE     (2056)
 #endif
+#define BATTERY_TYPICAL_DELTA_BTW_FULL_CHARGE_AND_100PCT    ((1581*8192/3188)-BATTERY_ADC_100PCT_VOLTAGE+31)
 
 /********************/
 /* Display defines  */

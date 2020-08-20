@@ -420,6 +420,7 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
         }
         case AUX_MCU_EVENT_CHARGE_DONE:
         {
+            logic_power_set_max_charging_voltage_from_aux(received_message->aux_mcu_event_message.payload_as_uint16[0]);
             logic_power_set_battery_level_update_from_aux(10);
             logic_power_set_battery_charging_bool(FALSE, TRUE);
             break;

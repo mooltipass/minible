@@ -22,9 +22,9 @@ uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void){
     else if(bat <= 80)
         return vbat_lerp(bat, 60, 80, BATTERY_ADC_60PCT_VOLTAGE, BATTERY_ADC_80PCT_VOLTAGE);
     else if(bat <= 100)
-        return vbat_lerp(bat, 80, 100, BATTERY_ADC_80PCT_VOLTAGE, BATTERY_ADC_OVER_VOLTAGE-1);
+        return vbat_lerp(bat, 80, 100, BATTERY_ADC_80PCT_VOLTAGE, BATTERY_ADC_100PCT_VOLTAGE+1);
 
-    return BATTERY_ADC_OVER_VOLTAGE-1;
+    return BATTERY_ADC_100PCT_VOLTAGE+1;
 }
 
 uint16_t platform_io_get_voledin_conversion_result(void)
@@ -41,9 +41,9 @@ uint16_t platform_io_get_voledin_conversion_result(void)
     else if(bat <= 80)
         return (BATTERY_ADC_60PCT_VOLTAGE+BATTERY_ADC_80PCT_VOLTAGE)/2;
     else if(bat <= 100)
-        return (BATTERY_ADC_80PCT_VOLTAGE+BATTERY_ADC_OVER_VOLTAGE)/2;
+        return (BATTERY_ADC_80PCT_VOLTAGE+BATTERY_ADC_100PCT_VOLTAGE)/2;
 
-    return BATTERY_ADC_OVER_VOLTAGE-1;
+    return BATTERY_ADC_100PCT_VOLTAGE+1;
 }
 
 static oled_stepup_pwr_source_te platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;

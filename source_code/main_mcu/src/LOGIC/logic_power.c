@@ -68,6 +68,10 @@ BOOL logic_power_device_boot_flag_for_aux_charge_status_override = TRUE;
 uint16_t logic_power_nb_times_to_skip_adc_measurement_queue = 0;
 /* ADC measurement counter */
 uint16_t logic_power_adc_measurement_counter = 0;
+/* Boolean and values when the aux mcu reports full charge */
+int16_t logic_power_delta_between_hyp_100pct_and_real = 0;
+BOOL logic_power_full_charge_voltage_gotten = FALSE;
+uint16_t logic_power_full_charge_voltage_val = 0;
 
 
 /*! \fn     logic_power_ms_tick(void)
@@ -138,6 +142,25 @@ uint16_t logic_power_get_and_ack_new_battery_level(void)
     logic_power_device_boot_flag_for_initial_battery_level_notif = FALSE;
     logic_power_aux_mcu_battery_level_update = 0;
     return logic_power_current_battery_level;
+}
+
+/*! \fn     logic_power_set_max_charging_voltage_from_aux(uint16_t measured_voltage)
+*   \brief  Called when the aux MCU finishes its charge
+*   \param  measured_voltage    The measured voltage at end of charge (3V3 powered then...)
+*/
+void logic_power_set_max_charging_voltage_from_aux(uint16_t measured_voltage)
+{
+    /* AUX MCU is using Vcc/1.48 reference, we're using Vcc/2 reference, and the device is 3V3 powered and not 3.188V powered */
+    uint32_t scaled_down_value = ((uint32_t)measured_voltage*173)>>7;
+    scaled_down_value = (scaled_down_value*265)>>8;
+    
+    /* Sanity check on reported value */
+    if (scaled_down_value > BATTERY_ADC_100PCT_VOLTAGE)
+    {
+        logic_power_full_charge_voltage_gotten = TRUE;
+        logic_power_full_charge_voltage_val = (uint16_t)scaled_down_value;
+        logic_power_delta_between_hyp_100pct_and_real = (logic_power_full_charge_voltage_val-BATTERY_TYPICAL_DELTA_BTW_FULL_CHARGE_AND_100PCT) - BATTERY_ADC_100PCT_VOLTAGE;
+    }    
 }
 
 /*! \fn     logic_power_set_battery_level_update_from_aux(uint8_t battery_level)
@@ -436,6 +459,12 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
             
             /* Logic deals with with the vbat measured a while back in order to prevent a non registered USB plug to perturbate ADC measurements */
             uint16_t vbat_measurement_from_a_bit_ago = logic_power_last_vbat_measurements[0];
+            
+            /* If calibration correction is available */
+            if (logic_power_full_charge_voltage_gotten != FALSE)
+            {
+                vbat_measurement_from_a_bit_ago -= logic_power_delta_between_hyp_100pct_and_real;
+            }
             
             /* Low battery, need to power off? */
             if ((logic_power_get_power_source() == BATTERY_POWERED) && (vbat_measurement_from_a_bit_ago < BATTERY_ADC_OUT_CUTOUT) && (platform_io_is_usb_3v3_present_raw() == FALSE))
