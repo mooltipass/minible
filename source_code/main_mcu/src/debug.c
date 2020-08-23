@@ -1575,7 +1575,9 @@ void debug_nimh_charging(void)
                 } 
                 else
                 {
-                    sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "%u - VBat: %umV - Cur %i", temp_rx_message->nimh_charge_message.charge_status, (temp_rx_message->nimh_charge_message.battery_voltage*103)>>8, temp_rx_message->nimh_charge_message.charge_current);
+                    /* AUX MCU is using Vcc/1.48 reference and we are 3V3 powered */
+                    uint32_t scaled_down_value = ((uint32_t)temp_rx_message->nimh_charge_message.battery_voltage*8919)>>14;
+                    sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "%u - VBat: %umV - Cur %i", temp_rx_message->nimh_charge_message.charge_status, scaled_down_value, temp_rx_message->nimh_charge_message.charge_current);
                 }
             }
                 
