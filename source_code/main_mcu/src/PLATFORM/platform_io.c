@@ -239,7 +239,7 @@ void platform_io_init_bat_adc_measurements(void)
     temp_adc_ctrb_reg.bit.RESSEL = ADC_CTRLB_RESSEL_16BIT_Val;                                  // Set to 16bit result to allow averaging mode
     temp_adc_ctrb_reg.bit.PRESCALER = ADC_CTRLB_PRESCALER_DIV64_Val;                            // Set fclk_adc to 48M / 64 = 750kHz (or 125kHz if at 8M)
     ADC->CTRLB = temp_adc_ctrb_reg;                                                             // Write ctrlb
-    ADC->AVGCTRL.reg = ADC_AVGCTRL_ADJRES(4) | ADC_AVGCTRL_SAMPLENUM_1024;                      // Average on 1024 samples. Expected time for avg: 375k/(12-1)/1024 = 33.3Hz = 30ms (or 180ms if at 8M). Single conversion mode, single ended, 12bit
+    ADC->AVGCTRL.reg = ADC_AVGCTRL_ADJRES(4) | ADC_AVGCTRL_SAMPLENUM_1024;                      // Average on 1024 samples. Expected time for avg: 750k/7/1024 = 104Hz = 9.6ms (or 58ms if at 8M). Single conversion mode, single ended, 12bit
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                       // Wait for sync
     ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(VBAT_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND;  // 1x gain, one channel set to voled in
     ADC->INTENSET.reg = ADC_INTENSET_RESRDY;                                                    // Enable in result ready interrupt
