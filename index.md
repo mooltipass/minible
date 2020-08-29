@@ -22,20 +22,3 @@ You'll find below different test reports done on the Mooltipass BLE.
 * [OLED step-up - 2018-08-05 load tests](test_reports/2018-08-05-voled-load-tests)
 * [3V3 step-up - 2018-08-01 rise times characterization](test_reports/2018-08-01-3v3-stepup-rise)
 * [3V3 step-up - 2018-08-05 load tests](test_reports/2018-08-05-3v3-load-tests)
-
-## [](#header-2)Contributors
-Interested in joining our team? For this new project, we are using <a href="https://colony.io/">colony</a> to equally share Mooltipass revenue and keep track of the overall project progress.  
-You'll find below the available tasks, grouped by category.
-### [](#header-3)Firmware:
-Do not forget to review our [contributors guidelines and coding rules](coding_rules).
-* [Aux MCU USB Communications - OUT report](task_aux_mcu_usb)
-* [Secure Bootloader Implementation](task_bootloader)
-* [Create a Visual Virtual Device](task_picture_grabbing)
-* [RNG Characterization](task_rng)
-* OTP Implementation
-
-## [](#header-2)Keeping in Touch
-- <a href="https://groups.google.com/forum/#!forum/mooltipass">Mooltipass General Google Group</a> for general discussions
-- <a href="https://groups.google.com/forum/#!forum/mooltipass-mini-ble-developpers">Developers Google Group</a> for technical discussions
-- <a href="https://colony.io">Colony Kanban Board</a> for developers ongoing tasks
-- **Mooltipass IRC channel** for direct communications: **#mooltipass** on **irc.freenode.net**
