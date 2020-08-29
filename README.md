@@ -94,9 +94,22 @@ Device emulators are available for <a href="https://github.com/mooltipass/minibl
 <p align="center">
   <img src="https://github.com/mooltipass/minible/raw/master/_readme_assets/dev_board.PNG" alt="Mooltipass Mini BLE"/>
 </p>
-The Mooltipass team welcomes contributions from open source enthusiasts! Feel free to have a look at <a href="https://github.com/mooltipass/minible/issues?q=is%3Aissue+is%3Aopen+label%3A%22feature+request%22">our list of feature requests</a> to see what you could contribute on. Depending on the task, we could ship you one of our developpement boards shown above, or you could also develop <a href="https://mooltipass.github.io/minible/developing_using_emulator">using our device emulator</a>
+The Mooltipass team welcomes contributions from open source enthusiasts! Feel free to have a look at <a href="https://github.com/mooltipass/minible/issues?q=is%3Aissue+is%3Aopen+label%3A%22feature+request%22">our list of feature requests</a> to see what you could contribute on. Depending on the task, we could ship you one of our developpement boards shown above, or you could also develop <a href="https://mooltipass.github.io/minible/developing_using_emulator">using our device emulator</a>. Do not forget to review our contributing guidelines.
 
+## Adding a New Language to the Mini BLE
+The following languages are currently supported:
+- English
+- Catalan
+- German
+- French
+- Italian
+- Croatian
+- Dutch
+- Portuguese
+- Spanish
+- Slovene
+- Finnish
+If your language is not listed, **get in touch with us** to then be able to follow <a href="https://mooltipass.github.io/minible/translators_guidelines">these instructions</a>.
 
-
-
-
+## [](#header-2)Keeping in Touch
+Get in touch with the development team and other Mooltipass enthuasiasts on our **Mooltipass IRC channel**: **#mooltipass** on **irc.freenode.net**
