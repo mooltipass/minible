@@ -64,7 +64,8 @@ Our database model is documented <a href="https://mooltipass.github.io/minible/d
 - Parent (services) - Child (credentials) structure
 - Credential categories support
 - Credential favorites support
-- Webauthn custom credential type
+- Webauthn custom credential type  
+
 At the time of writing, the Mini BLE can handle logins & passwords up to 64 unicode characters long.
 
 ### Manual Credential Typing
