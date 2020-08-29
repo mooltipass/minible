@@ -58,7 +58,7 @@ Our user interface is the fruit of several years of work. It includes:
 - Multiple languages support on device
 - Language-based fonts support
   
-### User Database Features
+### User Database
 Our database model is documented <a href="https://mooltipass.github.io/minible/database_model">here</a>. Its main characteristics are:  
 - Multiple doubly linked list-based credential and file storage
 - Parent (services) - Child (credentials) structure
@@ -70,12 +70,31 @@ Our database model is documented <a href="https://mooltipass.github.io/minible/d
 Mooltipass devices can simulate key presses in order to type logins & passwords onto the computer they're connected to. As the "byte sent on the wire" to "actual character typed on the computer" conversion is handled by the computer itself, that meant the Mooltipass devices need to handle multiple keyboard layouts.  
 For the Mooltipass Mini BLE, we are <a href="https://github.com/mooltipass/minible/tree/master/scripts/keyboards">parsing the CLDR</a> to make sure we can type text <a href="https://mooltipass.github.io/minible/unicode_layouts">on any device</a>.
 
-### Security Features
-The Mooltipass team selected <a href="https://bearssl.org/">BearSSL</a> for cryptographic features. The remaining code was coded from the ground up.
+### Authentication Features
+The Mooltipass team selected <a href="https://bearssl.org/">BearSSL</a> for cryptographic routines. The remaining code was made from the ground up.
 The Mooltipass Mini BLE includes the following authentication features:
 - Standard login/password authentication, by key presses or with its own communication channel
 - Webauthn / FIDO2 password-less authentication 
 - (WIP) TOTP second factor authentication
+
+### Note Worty Items
+Creating these firmwares from the ground up allowed us to create a smooth user-experience, tailored to privacy-minded indviduals. Here are some things that are worth mentioning:  
+- All transfers to peripherals, displays and MCUs are <a href="https://github.com/mooltipass/minible/blob/master/source_code/main_mcu/src/DMA/dma.c#L29">DMA-based</a>
+- A custom NiMH charging algorithm was implemented
+- An accelerometer is used as a source of entropy
+- All source code is doxygen-style documented
+
+## Device Emulator
+<p align="center">
+  <img src="https://github.com/mooltipass/minible/raw/master/_readme_assets/emulator_working_ubuntu.PNG" alt="Mooltipass Mini BLE"/>
+</p>
+Device emulators are available for <a href="https://github.com/mooltipass/minible/releases">Windows</a> and <a href="https://launchpad.net/~mooltipass/+archive/ubuntu/minible-beta">Ubuntu</a>. Together with <a href="https://github.com/mooltipass/moolticute">Moolticute</a>, you will be able to test our complete ecosystem without a physical device.
+
+## Contributing to the Mooltipass Firmware
+<p align="center">
+  <img src="https://github.com/mooltipass/minible/raw/master/_readme_assets/dev_board.PNG" alt="Mooltipass Mini BLE"/>
+</p>
+The Mooltipass team welcomes contributions from open source enthusiasts! Feel free to have a look at <a href="https://github.com/mooltipass/minible/issues?q=is%3Aissue+is%3Aopen+label%3A%22feature+request%22">our list of feature requests</a> to see what you could contribute on. Depending on the task, we could ship you one of our developpement boards shown above, or you could also develop <a href="https://mooltipass.github.io/minible/developing_using_emulator">using our device emulator</a>
 
 
 
