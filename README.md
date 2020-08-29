@@ -65,6 +65,7 @@ Our database model is documented <a href="https://mooltipass.github.io/minible/d
 - Credential categories support
 - Credential favorites support
 - Webauthn custom credential type
+At the time of writing, the Mini BLE can handle logins & passwords up to 64 unicode characters long.
 
 ### Manual Credential Typing
 Mooltipass devices can simulate key presses in order to type logins & passwords onto the computer they're connected to. As the "byte sent on the wire" to "actual character typed on the computer" conversion is handled by the computer itself, that meant the Mooltipass devices need to handle multiple keyboard layouts.  
