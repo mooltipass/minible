@@ -395,15 +395,24 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     /* Success? */
     if (temp_return == FIDO2_SUCCESS)
     {
-        auth_data_header.sign_count = cpu_to_be32(temp_sign_count);
         auth_data_header.flags &= ~FIDO2_AT_BIT;
         if ( (request->flags & FIDO2_GA_FLAG_SILENT) == FIDO2_GA_FLAG_SILENT)
         {
+            /*
+             * A Silent Asserting (SA) is a request from the host OS that is used to verify that this is the authenticator that has the requested account.
+             * The UP flag on the request is set to 0 on a SA and thus the authenticator is not supposed to prompt the user. This is to avoid the user
+             * being prompted twice (once for SA and one for the real Assertion).
+             * The SA will not be used for an actual login. A second request will come that is not SA and that will be used for the actual login.
+             * To make sure the request is not valid set the sign count to 0 and clear any UV and UP flag. According to FIDO2 specification an RP SHALL
+             * test for at least UP=1 before allowing login with this token. Also, sign count cannot go backwards so 0 is not a valid sign count.
+             */
+            auth_data_header.sign_count = 0;
             auth_data_header.flags &= ~FIDO2_UP_BIT;
             auth_data_header.flags &= ~FIDO2_UV_BIT;
         }
         else
         {
+            auth_data_header.sign_count = cpu_to_be32(temp_sign_count);
             auth_data_header.flags |= FIDO2_UP_BIT;
             auth_data_header.flags |= FIDO2_UV_BIT;
         }
