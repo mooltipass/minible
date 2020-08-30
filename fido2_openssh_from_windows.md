@@ -10,7 +10,7 @@ Copy it inside Git /usr/bin folder (C:\Program Files\Git\usr\bin by default).
 
 ## Creating a private / public key
 Launch **Git Bash**, then type ```ssh-keygen -w winhello.dll -t ecdsa-sk -f id_ecdsa_sk```. Approve the request on your device.  
-In the same git Bash window, start the ssh agent by typing ```eval `ssh-agent -s` ```
+In the same git Bash window, start the ssh agent by typing ```eval `ssh-agent -s` ```  
 Add the key to the agent by typing ```ssh-add id_ecdsa_sk```
 
 ## Adding the newly created key to the accepted list on your server
