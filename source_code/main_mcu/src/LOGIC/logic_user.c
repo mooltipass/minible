@@ -759,20 +759,23 @@ RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_
     return RETURN_OK;
 }
 
-/*! \fn     logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
+/*! \fn     logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password, cust_char_t *TOTPsecret)
 *   \brief  Store new credential
 *   \param  service     Pointer to service string
 *   \param  login       Pointer to login string
 *   \param  desc        Pointer to description string, or 0 if not specified
 *   \param  third       Pointer to arbitrary third field, or 0 if not specified
 *   \param  password    Pointer to password string, or 0 if not specified
+*   \param  TOTPsecret  Pointer to TOTP secret string, or 0 if not specified
 *   \return success or not
 *   \note   This function doesn't parse aux MCU messages in order to safely use aux mcu received message
 */
-RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
+RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password, cust_char_t* TOTPsecret)
 {
     cust_char_t encrypted_password[MEMBER_SIZE(child_cred_node_t, password)/sizeof(cust_char_t)];
+    uint8_t encrypted_TOTPsecret[MEMBER_SIZE(child_cred_node_t, TOTPsecret)/sizeof(uint8_t)];
     uint8_t temp_cred_ctr_val[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
+    uint8_t TOTPsecret_len = 0;
     
     /* Smartcard present and unlocked? */
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
@@ -830,6 +833,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     
     /* Fill RNG array with random numbers */
     rng_fill_array((uint8_t*)encrypted_password, sizeof(encrypted_password));
+    rng_fill_array((uint8_t*)encrypted_TOTPsecret, sizeof(encrypted_TOTPsecret));
     
     /* Password provided? */
     if (password != 0)
@@ -847,6 +851,33 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
         
         /* CTR encrypt password */
         logic_encryption_ctr_encrypt((uint8_t*)encrypted_password, sizeof(encrypted_password), temp_cred_ctr_val);
+
+        if (TOTPsecret == 0)
+        {
+            encrypted_TOTPsecret[0] = 0;
+
+            /* CTR encrypt TOTP secret */
+            //TODO: logic_encryption_ctr_encrypt((uint8_t*)encrypted_TOTPsecret, sizeof(encrypted_TOTPsecret), temp_cred_ctr_val);
+            TOTPsecret_len = 0;
+        }
+    }
+
+    /* TOTP secret provided? */
+    if (TOTPsecret != 0)
+    {
+        uint8_t const maxTOTPsecret_len = MEMBER_SIZE(child_cred_node_t, TOTPsecret)/sizeof(uint8_t);
+
+        //+ 1 to allow it to go above max size for overflow check
+        uint8_t TOTPsecret_unicode_len = utils_strnlen(TOTPsecret, 100);
+        if ( TOTPsecret_unicode_len > ((maxTOTPsecret_len * 8) / 5))
+        {
+            //Buffer overflow
+            return RETURN_NOK;
+        }
+        utils_unicode_to_ascii(TOTPsecret, TOTPsecret_unicode_len);
+        TOTPsecret_len = logic_encryption_b32_decode((uint8_t *) TOTPsecret, TOTPsecret_unicode_len, encrypted_TOTPsecret, sizeof(encrypted_TOTPsecret));
+        /* CTR encrypt TOTP secret */
+        //TODO: logic_encryption_ctr_encrypt((uint8_t*)encrypted_TOTPsecret, sizeof(encrypted_TOTPsecret), temp_cred_ctr_val);
     }
     
     /* Update existing login or create new one? */
@@ -854,17 +885,31 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     {
         if (password != 0)
         {
-            logic_database_update_credential(child_address, desc, third, (uint8_t*)encrypted_password, temp_cred_ctr_val);
+            if (TOTPsecret != 0)
+            {
+                logic_database_update_credential(child_address, desc, third, (uint8_t*)encrypted_password, (uint8_t *)encrypted_TOTPsecret, TOTPsecret_len, temp_cred_ctr_val);
+            }
+            else
+            {
+                logic_database_update_credential(child_address, desc, third, (uint8_t*)encrypted_password, 0, 0, temp_cred_ctr_val);
+            }
         } 
         else
         {
-            logic_database_update_credential(child_address, desc, third, 0, 0);
+            if (TOTPsecret != 0)
+            {
+                logic_database_update_credential(child_address, desc, third, 0, (uint8_t *)encrypted_TOTPsecret, TOTPsecret_len, temp_cred_ctr_val);
+            }
+            else
+            {
+                logic_database_update_credential(child_address, desc, third, 0, 0, 0, 0);
+            }
         }
         return RETURN_OK;
     }
     else
     {
-        return logic_database_add_credential_for_service(parent_address, login, desc, third, (uint8_t*)encrypted_password, temp_cred_ctr_val);
+        return logic_database_add_credential_for_service(parent_address, login, desc, third, (uint8_t*)encrypted_password, (uint8_t *) encrypted_TOTPsecret, TOTPsecret_len, temp_cred_ctr_val);
     }
 }
 
@@ -1389,7 +1434,7 @@ void logic_user_manual_select_login(void)
             else if (display_prompt_return == MINI_INPUT_RET_YES)
             {
                 nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
-                logic_gui_display_login_password((child_cred_node_t*)&temp_cnode);
+                logic_gui_display_login_password_totp((child_cred_node_t*)&temp_cnode);
                 memset(&temp_cnode, 0, sizeof(temp_cnode));
                 return;
             }
@@ -1703,31 +1748,133 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     typing_message_to_be_sent->keyboard_type_message.delay_between_types = custom_fs_settings_get_device_setting(SETTINGS_DELAY_BETWEEN_PRESSES);
                     typing_message_to_be_sent->keyboard_type_message.interface_identifier = interface_id;
                     comms_aux_mcu_send_message(typing_message_to_be_sent);
-                    
-                    /* Message is sent, clear everything */
-                    memset(&temp_cnode, 0, sizeof(temp_cnode));
-                    
+
+
                     /* Wait for typing status */
                     while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
                     could_type_all_symbols = (BOOL)temp_rx_message->payload_as_uint16[0];
-                    
+
                     /* Rearm DMA RX */
                     comms_aux_arm_rx_and_clear_no_comms();
-                    
+
                     /* Display warning if some chars were missing */
                     if ((string_to_key_points_transform_success != RETURN_OK) || (could_type_all_symbols == FALSE))
                     {
                         gui_prompts_display_information_on_screen_and_wait(COULDNT_TYPE_CHARS_TEXT_ID, DISP_MSG_WARNING, FALSE);
                     }
-                        
+
                     /* Set bool */
                     login_or_password_typed = TRUE;
-                    
+
+                }
+                /* Move on */
+                state_machine++;
+            }
+        }
+        else if (state_machine == 3)
+        {
+            /* TOTP provided? */
+            if (temp_cnode.TOTPsecretLen == 0)
+            {
+                /* Message is sent, clear everything */
+                memset(&temp_cnode, 0, sizeof(temp_cnode));
+                if (login_or_password_typed == FALSE)
+                {
+                    return RETURN_NOK;
+                }
+                else
+                {
+                    return RETURN_OK;
+                }
+            }
+
+            /* Ask for TOTP confirmation */
+            cust_char_t totp_prompt[15];
+            memset(totp_prompt, 0, sizeof(totp_prompt));
+            //TODO: Hardcoded text
+            strcpy((char *) totp_prompt, "Type TOTP?");
+            utils_ascii_to_unicode((uint8_t *)totp_prompt, 10);
+            conf_text_2_lines.lines[1] = totp_prompt;
+
+            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE, TRUE);
+
+            /* Approved, back, card removed... */
+            if ((prompt_return == MINI_INPUT_RET_CARD_REMOVED) || (prompt_return == MINI_INPUT_RET_POWER_SWITCH))
+            {
+                /* Message is sent, clear everything */
+                memset(&temp_cnode, 0, sizeof(temp_cnode));
+                return RETURN_OK;
+            }
+            else if (prompt_return == MINI_INPUT_RET_BACK)
+            {
+                state_machine--;
+            }
+            else
+            {
+                if (prompt_return == MINI_INPUT_RET_YES)
+                {
+                    aux_mcu_message_t* typing_message_to_be_sent;
+
+                    /* Decrypt TOTP The field just after it is 0 */
+                    //logic_encryption_ctr_decrypt((uint8_t*)temp_cnode.TOTPsecret, temp_cnode.ctr, MEMBER_SIZE(child_cred_node_t, TOTPsecret), FALSE);
+
+
+                    /* Type shortcut if specified */
+                    if ((shortcut_sent == FALSE) && ((keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK)) != 0))
+                    {
+                        typing_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+                        typing_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TYPE_SHORTCUT;
+                        typing_message_to_be_sent->main_mcu_command_message.payload[0] = (uint8_t)interface_id;
+                        typing_message_to_be_sent->main_mcu_command_message.payload[1] = keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK);
+                        typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint8_t) + sizeof(uint8_t);
+                        comms_aux_mcu_send_message(typing_message_to_be_sent);
+                        shortcut_sent = TRUE;
+                        timer_delay_ms(600);
+                    }
+
+                    /* Type TOTP */
+                    cust_char_t buf[15];
+                    memset(buf, 0, sizeof(buf));
+                    logic_encryption_generate_totp(temp_cnode.TOTPsecret, temp_cnode.TOTPsecretLen, (char *) buf, sizeof(buf));
+                    //TODO: 6 digits hardcoded
+                    utils_ascii_to_unicode((uint8_t *)buf, 6);
+
+                    typing_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
+                    typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(buf) + 1 + 1)*sizeof(cust_char_t);
+                    ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(buf, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, *usb_selected);
+                    typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(buf)] = temp_cnode.keyAfterPassword;
+
+                    custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(buf)], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(buf)], *usb_selected);
+                    typing_message_to_be_sent->keyboard_type_message.delay_between_types = custom_fs_settings_get_device_setting(SETTINGS_DELAY_BETWEEN_PRESSES);
+                    typing_message_to_be_sent->keyboard_type_message.interface_identifier = interface_id;
+                    comms_aux_mcu_send_message(typing_message_to_be_sent);
+
+                    /* Message is sent, clear everything */
+                    memset(&temp_cnode, 0, sizeof(temp_cnode));
+
+                    /* Wait for typing status */
+                    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
+                    could_type_all_symbols = (BOOL)temp_rx_message->payload_as_uint16[0];
+
+                    /* Rearm DMA RX */
+                    comms_aux_arm_rx_and_clear_no_comms();
+
+                    /* Display warning if some chars were missing */
+                    if ((string_to_key_points_transform_success != RETURN_OK) || (could_type_all_symbols == FALSE))
+                    {
+                        gui_prompts_display_information_on_screen_and_wait(COULDNT_TYPE_CHARS_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                    }
+
+                    /* Set bool */
+                    login_or_password_typed = TRUE;
+
                     /* Move on */
                     return RETURN_OK;
                 }
                 else
                 {
+                    /* Clear everything */
+                    memset(&temp_cnode, 0, sizeof(temp_cnode));
                     if (login_or_password_typed == FALSE)
                     {
                         return RETURN_NOK;

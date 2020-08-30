@@ -677,6 +677,9 @@
     <Compile Include="src\BearSSL\src\ec\ec_secp521r1.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\BearSSL\src\hash\sha1.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\BearSSL\src\hash\sha2small.c">
       <SubType>compile</SubType>
     </Compile>

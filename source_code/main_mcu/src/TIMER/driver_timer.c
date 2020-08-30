@@ -221,6 +221,49 @@ void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t ho
 #endif
 }
 
+/*! \fn	time(void)
+*   \brief  Get the current unix time
+*   \param  None
+*   \return Seconds since 1970
+*/
+uint64_t time(void)
+{
+    uint64_t unix_time = 0;
+    int32_t i;
+    uint32_t num_days = 0;
+    calendar_t tm;
+    uint8_t is_curr_year_leap;
+    uint16_t year;
+
+    timer_get_calendar(&tm);
+    year = tm.bit.YEAR + 2000;
+    is_curr_year_leap = IS_LEAP_YEAR(year);
+
+    //Add up days in all years
+    for (i = EPOCH_YEAR; i < year; ++i)
+    {
+        num_days += IS_LEAP_YEAR(i) ? 366 : 365;
+    }
+
+    //Add up days in all months
+    for (i = 0; i < tm.bit.MONTH - 1; ++i)
+    {
+        num_days += dph[i];
+        num_days += ((i == LEAP_MONTH) && is_curr_year_leap) ? 1 : 0;
+    }
+
+    //Add days in month
+    num_days += tm.bit.DAY - 1;
+
+    //Add the days hours, minutes, and seconds
+    unix_time = num_days * SEC_IN_DAY;
+    unix_time += tm.bit.HOUR * SEC_IN_HOUR;
+    unix_time += tm.bit.MINUTE * 60;
+    unix_time += tm.bit.SECOND;
+
+    return unix_time;
+}
+
 /*!	\fn		timer_get_calendar(calendar_t* calendar_pt)
 *	\brief	Get the current date
 *   \param  calendar_pt Pointer to a calendar struct

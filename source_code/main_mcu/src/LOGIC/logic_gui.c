@@ -257,11 +257,11 @@ void logic_gui_erase_user(void)
     logic_smartcard_handle_removed();
 }
 
-/*! \fn     logic_gui_display_login_password(child_cred_node_t* child_node)
-*   \brief  Display login and password on the screen
+/*! \fn     logic_gui_display_login_password_totp(child_cred_node_t* child_node)
+*   \brief  Display login, password, and TOTP on the screen
 *   \param  child_node  Pointer to the child node
 */
-void logic_gui_display_login_password(child_cred_node_t* child_node)
+void logic_gui_display_login_password_totp(child_cred_node_t* child_node)
 {
     /* Activity detected */
     logic_device_activity_detected();
@@ -303,23 +303,40 @@ void logic_gui_display_login_password(child_cred_node_t* child_node)
         utils_ascii_to_unicode(child_node->password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
         child_node->cust_char_password[NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
     }    
-    
+
+    /* User approved, decrypt TOTPsecret */
+    //TODO: logic_encryption_ctr_decrypt(child_node->TOTPsecret, child_node->ctr, MEMBER_SIZE(child_cred_node_t, TOTPsecret), FALSE);
+
     /* Temp vars for our main loop */
     BOOL first_function_run = TRUE;
-    int16_t text_anim_x_offset[2];
-    BOOL text_anim_going_right[2];
+
+#define NUM_LINES 3
+
+    int16_t text_anim_x_offset[NUM_LINES];
+    BOOL text_anim_going_right[NUM_LINES];
     BOOL redraw_needed = TRUE;
     int16_t displayed_length;
-    BOOL scrolling_needed[2];
+    BOOL scrolling_needed[NUM_LINES];
     
     /* Reset temp vars */
     memset(text_anim_going_right, FALSE, sizeof(text_anim_going_right));
     memset(text_anim_x_offset, 0, sizeof(text_anim_x_offset));
     memset(scrolling_needed, FALSE, sizeof(scrolling_needed));
     
+    /* Generate TOTP */
+    uint8_t buf[30];
+    memset(buf, 0, sizeof(buf));
+    if (child_node->TOTPsecretLen > 0)
+    {
+        uint8_t remaining_secs = logic_encryption_generate_totp(child_node->TOTPsecret, child_node->TOTPsecretLen, buf, sizeof(buf));
+        //TODO: 6 digits hardcoded
+        snprintf(&buf[6], 30 - 6, " [%02u]", remaining_secs);
+        utils_ascii_to_unicode(buf, 11);
+    }
+
     /* Lines display settings */
-    cust_char_t* strings_to_be_displayed[2] = {child_node->login, child_node->cust_char_password};
-    uint16_t strings_y_positions[4] = {12, 36};
+    cust_char_t* strings_to_be_displayed[NUM_LINES] = {child_node->login, child_node->cust_char_password, (cust_char_t *)buf};
+    uint16_t strings_y_positions[4] = {5, 20, 35};
     
     /* Arm timer for scrolling */
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
@@ -336,18 +353,21 @@ void logic_gui_display_login_password(child_cred_node_t* child_node)
         /* User interaction timeout */
         if (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED)
         {
+            memset(buf, 0, sizeof(buf));
             return;
         }
         
         /* Card removed */
         if (smartcard_low_level_is_smc_absent() == RETURN_OK)
         {
+            memset(buf, 0, sizeof(buf));
             return;
         }
         
         /* Click to exit */
         if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
         {
+            memset(buf, 0, sizeof(buf));
             return;
         }
         
@@ -358,7 +378,7 @@ void logic_gui_display_login_password(child_cred_node_t* child_node)
             timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
             
             /* Scrolling logic: when enabled, going left or right... */
-            for (uint16_t i = 0; i < 2; i++)
+            for (uint16_t i = 0; i < NUM_LINES; i++)
             {
                 if (scrolling_needed[i] != FALSE)
                 {
@@ -378,14 +398,23 @@ void logic_gui_display_login_password(child_cred_node_t* child_node)
         /* Redraw if needed */
         if (redraw_needed != FALSE)
         {
+            memset(buf, 0, sizeof(buf));
+            if (child_node->TOTPsecretLen > 0)
+            {
+                uint8_t remaining_secs = logic_encryption_generate_totp(child_node->TOTPsecret, child_node->TOTPsecretLen, buf, sizeof(buf));
+                //TODO: 6 digits hardcoded
+                snprintf(&buf[6], 30 - 6, " [%02u]", remaining_secs);
+                utils_ascii_to_unicode(buf, 11);
+            }
+
             /* Clear frame buffer, set display settings */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
             #endif
             sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
             
-            /* Loop for 2 always displayed texts: login & password */
-            for (uint16_t i = 0; i < 2; i++)
+            /* Loop for NUM_LINES always displayed texts: login & password & TOTP */
+            for (uint16_t i = 0; i < NUM_LINES; i++)
             {          
                 /* Load the right font */
                 sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);

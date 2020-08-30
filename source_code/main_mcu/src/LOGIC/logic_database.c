@@ -667,15 +667,17 @@ void logic_database_update_webauthn_credential(uint16_t child_address, cust_char
     nodemgmt_user_db_changed_actions(FALSE);
 }
 
-/*! \fn     logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr)
+/*! \fn     logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t *TOTPsecret, uint8_t TOTPsecret_len, uint8_t* ctr)
 *   \brief  Update existing credential
-*   \param  child_addr  Child address
-*   \param  desc        Pointer to description string, or 0 if not specified
-*   \param  third       Pointer to arbitrary third field, or 0 if not specified
-*   \param  password    Pointer to encrypted password, or 0 if not specified
-*   \param  ctr         CTR value
+*   \param  child_addr      Child address
+*   \param  desc            Pointer to description string, or 0 if not specified
+*   \param  third           Pointer to arbitrary third field, or 0 if not specified
+*   \param  password        Pointer to encrypted password, or 0 if not specified
+*   \param  TOTPsecret      Pointer to encrypted TOTPsecret, or 0 if not specified
+*   \param  TOTPsecret_len  Length of encrypted TOTPsecret, or 0 if not specified
+*   \param  ctr             CTR value
 */
-void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr)
+void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t *TOTPsecret, uint8_t TOTPsecret_len, uint8_t* ctr)
 {
     child_cred_node_t temp_cnode;
     
@@ -704,6 +706,13 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
         temp_cnode.passwordBlankFlag = FALSE;
     }
     
+    temp_cnode.TOTPsecretLen = TOTPsecret_len;
+    if (TOTPsecret_len != 0)
+    {
+        memcpy(temp_cnode.ctr, ctr, MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr));
+        memcpy(temp_cnode.TOTPsecret, TOTPsecret, sizeof(temp_cnode.TOTPsecret));
+    }
+
     /* Then write back to flash at same address */
     nodemgmt_write_child_node_block_to_flash(child_addr, (child_node_t*)&temp_cnode, FALSE);
     nodemgmt_user_db_changed_actions(FALSE);
@@ -759,17 +768,19 @@ RET_TYPE logic_database_add_webauthn_credential_for_service(uint16_t service_add
     return ret_val;    
 }
 
-/*! \fn     logic_database_add_credential_for_service(uint16_t service_addr, cust_char_t* login, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr)
+/*! \fn     logic_database_add_credential_for_service(uint16_t service_addr, cust_char_t* login, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t *TOTPsecret, uint8_t TOTPsecret_len, uint8_t* ctr)
 *   \brief  Add a new credential for a given service to our database
 *   \param  service_addr    Service address
 *   \param  login           Pointer to login string
 *   \param  desc            Pointer to description string, or 0 if not specified
 *   \param  third           Pointer to arbitrary third field, or 0 if not specified
 *   \param  password        Pointer to encrypted password, or 0 if not specified
+*   \param  TOTPsecret      Pointer to encrypted TOTPsecret, or 0 if not specified
+*   \param  TOTPsecret_len  Length of encrypted TOTPsecret, or 0 if not specified
 *   \param  ctr             CTR value
 *   \return Success status
 */
-RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_char_t* login, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr)
+RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_char_t* login, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t *TOTPsecret, uint8_t TOTPsecret_len, uint8_t* ctr)
 {
     uint16_t storage_addr = NODE_ADDR_NULL;
     child_cred_node_t temp_cnode;
@@ -797,7 +808,15 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
     {
         temp_cnode.passwordBlankFlag = TRUE;
     }
-    
+
+    temp_cnode.TOTPsecretLen = TOTPsecret_len;
+    if (TOTPsecret_len != 0)
+    {
+        temp_cnode.TOTPsecretLen = TOTPsecret_len;
+        memcpy(temp_cnode.ctr, ctr, MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr));
+        memcpy(temp_cnode.TOTPsecret, TOTPsecret, sizeof(temp_cnode.TOTPsecret));
+    }
+
     /* Set "master setting" for keys pressed after login & password entering */
     temp_cnode.keyAfterPassword = 0xFFFF;
     temp_cnode.keyAfterLogin = 0xFFFF;
@@ -814,7 +833,7 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
 }
 
 /*! \fn     logic_database_fetch_encrypted_password(uint16_t child_node_addr, uint8_t* password, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag)
-*   \brief  Fill a get cred message packet
+*   \brief  Get the encrypted password
 *   \param  child_node_addr             Child node address
 *   \param  password                    Where to store the encrypted password
 *   \param  cred_ctr                    Where to store credential CTR
@@ -842,6 +861,28 @@ void logic_database_fetch_encrypted_password(uint16_t child_node_addr, uint8_t* 
     {
         *prev_gen_credential_flag = FALSE;
     }
+}
+
+/*! \fn     logic_database_fetch_encrypted_TOTPsecret(uint16_t child_node_addr, uint8_t* TOTPsecret, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag)
+*   \brief  Get the encrypted TOTPsecret
+*   \param  child_node_addr             Child node address
+*   \param  TOTPsecret                  Where to store the encrypted TOTPsecret
+*   \param  prev_gen_credential_flag    Where to store flag for previous gen cred
+*   \return Length of TOTPsecret
+*/
+uint8_t logic_database_fetch_encrypted_TOTPsecret(uint16_t child_node_addr, uint8_t* TOTPsecret, BOOL* prev_gen_credential_flag)
+{
+    uint8_t TOTPsecret_len = 0;
+    child_cred_node_t temp_cnode;
+
+    /* Read node, ownership checks and text fields sanitizing are done within */
+    nodemgmt_read_cred_child_node(child_node_addr, &temp_cnode);
+
+    /* Copy encrypted TOTPsecret */
+    memcpy(TOTPsecret, temp_cnode.TOTPsecret, sizeof(temp_cnode.TOTPsecret));
+    TOTPsecret_len = temp_cnode.TOTPsecretLen;
+    *prev_gen_credential_flag = FALSE;
+    return TOTPsecret_len;
 }
 
 /*! \fn     logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag, BOOL* password_valid)

@@ -41,6 +41,7 @@ uint8_t utils_get_cbor_encoded_value_for_val_btw_m24_p23(int8_t value);
 uint16_t utils_strcpy(cust_char_t* destination, cust_char_t* source);
 uint16_t utils_u8strnlen(uint8_t const* string, uint16_t maxlen);
 void utils_ascii_to_unicode(uint8_t* string, uint16_t nb_chars);
+void utils_unicode_to_ascii(cust_char_t* string, uint16_t nb_chars);
 cust_char_t* utils_get_string_next_line_pt(cust_char_t* string);
 int16_t utils_utf8_to_bmp(uint8_t* input, cust_char_t* output);
 uint16_t utils_strnlen(cust_char_t* string, uint16_t maxlen);

@@ -200,6 +200,22 @@ void utils_ascii_to_unicode(uint8_t* string, uint16_t nb_chars)
     }
 }
 
+/*! \fn     utils_unicode_to_ascii(uint8_t* string, uint16_t nb_chars)
+*   \brief  Convert unicode string to ascii
+*   \param  string      The string
+*   \param  nb_chars    String length
+*/
+void utils_unicode_to_ascii(cust_char_t* string, uint16_t nb_chars)
+{
+    uint8_t *ptr8 = (uint8_t *) string;
+    uint16_t i;
+    for (i = 0; i < nb_chars * 2; ++i)
+    {
+        ptr8[i] = ptr8[i*2];
+    }
+    ptr8[i] = 0;
+}
+
 /*! \fn     utils_check_value_for_range(uint16_t val, uint16_t min, uint16_t max)
 *   \brief  Make sure a given value is within a range
 *   \param  val     The value to check

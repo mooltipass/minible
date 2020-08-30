@@ -22,6 +22,7 @@
 #include <string.h>
 #include "logic_encryption.h"
 #include "bearssl_block.h"
+#include "driver_timer.h"
 #include "bearssl_hash.h"
 #include "bearssl_hmac.h"
 #include "bearssl_rand.h"
@@ -395,4 +396,140 @@ void logic_encryption_ecc256_derive_public_key(uint8_t const* priv_key, ecc256_p
     memmove(pub_key->y, pubkey + 1 + FIDO2_PUB_KEY_X_LEN, FIDO2_PUB_KEY_Y_LEN);
 }
 
+
+/*! \fn     logic_encryption_sha1 truncate(uint8_t const *sha1)
+*   \brief  Truncate sha1 hash value to uint32 (from RFC6238)
+*   \param  hash  The hash to truncate (input)
+*   \return uint32_t truncated hash value
+*/
+static uint32_t logic_encryption_sha1_truncate(uint8_t const *sha1)
+{
+    uint8_t offset = sha1[SHA1_OUTPUT_LEN - 1] & 0xF;
+    uint32_t truncated_value = (sha1[offset]  & 0x7F) << 24;
+    truncated_value |= (sha1[offset + 1] & 0xFF) << 16;
+    truncated_value |= (sha1[offset + 2] & 0xFF) <<  8;
+    truncated_value |= (sha1[offset + 3] & 0xFF);
+    return truncated_value;
+}
+
+/*! \fn     logic_encryption_lookup_b32_alpha(char ch)
+*   \brief  Truncate sha1 hash value to uint32
+*   \param  ch  Character to look up (input)
+*   \return uint8_t Value of character or 0xFF if invalid input
+*/
+static uint8_t logic_encryption_lookup_b32_alpha(char ch)
+{
+    /**
+     * We are assuming that the encoded value is all CAPS
+     * and spaces and padding ('=') has been removed.
+    */
+    if (ch >= 'A' && ch <= 'Z')
+    {
+        return ch - 'A';
+    }
+    else if (ch >= '2' && ch <= '7')
+    {
+        return ch - '2' + 26;
+    }
+    else
+    {
+        return 0xFF;
+    }
+}
+
+/*! \fn     logic_encryption_b32_decode(uint8_t const *str, uint32_t len, uint8_t *out, uint8_t out_size)
+*   \brief  RFC4648 base32 decoder implementation
+*   \param  str      Input string to decode
+*   \param  len      Input string length
+*   \param  out      Decoded binary data
+*   \param  out_size Size of "out" buffer
+*   \return uint32_t Actual size of "out" decoded binary data
+*/
+uint32_t logic_encryption_b32_decode(uint8_t const *str, uint32_t len, uint8_t *out, uint8_t out_size)
+{
+    uint32_t out_len = 0;
+    uint32_t i;
+    uint32_t curr_value = 0;
+    uint32_t num_bits = 0;
+
+    for (i = 0; i < len; ++i)
+    {
+        uint32_t b32_value = logic_encryption_lookup_b32_alpha(str[i]);
+
+        /*
+         * We got a character that is not part of the alphabet for b32
+         */
+        if (b32_value == 0xFF)
+        {
+            break;
+        }
+
+        /*
+         * Add in the value. Each b32 encoded digit represents 5 bits
+         */
+        curr_value |= b32_value;
+        num_bits += 5;
+
+        /*
+         * We have enough for 1 byte
+         */
+        if (num_bits >= 8)
+        {
+            /*
+             * Take lower 8 bits to get our byte.
+             * We might have shifted to far so shift the value down by the
+             * excess amount (for example we got 2 b32 decoded values shifted
+             * in (5 bits x 2 = 10 = num_bits) so we need to shift the value down
+             * by num_bits - 8 = 2 bits)
+             */
+            out[out_len] = (uint8_t) (curr_value >> (num_bits - 8));
+            ++out_len;
+            num_bits -= 8;
+        }
+
+        /*
+         * Shift by 5 to make room for next b32 value. Don't need to worry about
+         * masking off the topmost bits (that we already "used" since we just
+         * take the lower 8 bits anyway above.
+         */
+        curr_value <<= 5;
+        if (out_len >= out_size)
+        {
+            break;
+        }
+    }
+    return out_len;
+}
+
+/*! \fn     logic_encryption_b32_decode(uint8_t const *str, uint32_t len, uint8_t *out, uint8_t out_size)
+*   \brief  RFC6238 TOTP implementation
+*   \param  key      Input secret key
+*   \param  key_len  Input secret key length
+*   \param  buf      Output generated TOTP
+*   \param  buf_len  Size of "buf"
+*   \return uint32_t Number of seconds remaining until next time step
+*/
+uint32_t logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, char *buf, uint8_t buf_len)
+{
+    uint8_t hmac_sha1_output[SHA1_OUTPUT_LEN] = { 0x0 };
+    uint32_t code;
+    br_hmac_key_context kc;
+    br_hmac_context ctx;
+
+    uint64_t unix_time = time();
+    uint64_t counter = unix_time / TOTP_TIME_STEP;
+    uint8_t remaining_secs = TOTP_TIME_STEP - (unix_time % TOTP_TIME_STEP);
+
+    counter = Swap64(counter);
+
+    br_hmac_key_init(&kc, &br_sha1_vtable, key, key_len);
+    br_hmac_init(&ctx, &kc, 0);
+    br_hmac_update(&ctx, &counter, sizeof(counter));
+    br_hmac_out(&ctx, hmac_sha1_output);
+
+    //TODO: 1) Magic 2) Convert to support different number of digits
+    code = logic_encryption_sha1_truncate(hmac_sha1_output) % 1000000;
+    snprintf(buf, buf_len, "%06lu", code);
+    return remaining_secs;
+}
 

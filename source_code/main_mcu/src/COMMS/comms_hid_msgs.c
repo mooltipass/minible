@@ -1141,6 +1141,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             cust_char_t* description_field_pt = (cust_char_t*)0;
             cust_char_t* third_field_pt = (cust_char_t*)0;
             cust_char_t* password_field_pt = (cust_char_t*)0;
+            cust_char_t* TOTPsecret_field_pt = (cust_char_t*)0;
+
             if (rcv_msg->store_credential.description_index != UINT16_MAX)
             {
                 description_field_pt = &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.description_index]);
@@ -1157,7 +1159,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Proceed to other logic */
             if (logic_user_store_credential(    &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.service_name_index]),\
                                                 &(rcv_msg->store_credential.concatenated_strings[rcv_msg->store_credential.login_name_index]),\
-                                                description_field_pt, third_field_pt, password_field_pt) == RETURN_OK)
+                                                description_field_pt, third_field_pt, password_field_pt, TOTPsecret_field_pt) == RETURN_OK)
             {
                 comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
                 return;        

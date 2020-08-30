@@ -71,6 +71,7 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODEMGMT_CAT_MASK_FINAL                     0x000F
 #define NODEMGMT_CAT_MASK                           0x000F
 #define NODEMGMT_CAT_BITSHIFT                       0
+#define NODEMGMT_TOTP_SECRET_MAX_LEN                20
 
 /* User security settings flags */
 #define USER_SEC_FLG_LOGIN_CONF             0x01
@@ -175,7 +176,9 @@ typedef struct
         cust_char_t cust_char_password[64];        
     };
     cust_char_t pwdTerminatingZero; // Set to 0
-    uint8_t TBD[128];               // TBD
+    uint8_t TOTPsecret[NODEMGMT_TOTP_SECRET_MAX_LEN]; // TOTP secret key
+    uint8_t TOTPsecretLen;          // Length of TOTP secret (0 = no TOTP provided)
+    uint8_t TBD[107];                // TBD
 } child_cred_node_t;
 
 // Webauthn credential

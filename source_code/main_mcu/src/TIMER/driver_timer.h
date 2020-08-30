@@ -60,11 +60,22 @@ typedef enum {TIMER_EXPIRED = 0, TIMER_RUNNING = 1} timer_flag_te;
 
 #endif
 
+#define IS_LEAP_YEAR(year)  ((((year) % 4 == 0) && ((year) % 100 != 0)) || ((year) % 400 == 0))
+#define SEC_IN_HOUR (60 * 60)
+#define SEC_IN_DAY (24 * SEC_IN_HOUR)
+
+/* Constants */
+//Days Per Month
+static uint8_t const dph[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+static uint8_t const LEAP_MONTH = 1; //Feburary
+static uint16_t const EPOCH_YEAR = 1970;
+
 /* Prototypes */
 void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second);
 timer_flag_te timer_has_timer_expired(timer_id_te uid, BOOL clear);
 void timer_start_timer(timer_id_te uid, uint32_t val);
 void timer_get_calendar(calendar_t* calendar_pt);
+uint64_t time(void);
 uint32_t timer_get_timer_val(timer_id_te uid);
 BOOL timer_get_mcu_systick(uint32_t* value);
 void timer_initialize_timebase(void);
