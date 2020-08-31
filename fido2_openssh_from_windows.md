@@ -8,7 +8,7 @@ Version 8.3+ of OpenSSH is required for FIDO2 authentication to work on Windows.
 
 ## Prerequisites - OpenSSH SK WinHello
 Download the latest **winhello.dll** from the <a href="https://github.com/tavrez/openssh-sk-winhello/releases">the OpenSSH SK WinHello project release page</a>.  
-Copy it inside Git /usr/bin folder (C:\Program Files\Git\usr\bin by default).  
+Copy it inside Git /usr/bin folder (C:\Program Files\Git\usr\bin by default, or C:\Users\<<your_profile>>\AppData\Local\Programs\Git\usr\bin).  
 
 ## Creating your Credential
 Launch **Git Bash**, then type ```ssh-keygen -w winhello.dll -t ecdsa-sk -f id_ecdsa_sk```. Approve the request on your device.  
