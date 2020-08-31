@@ -1,7 +1,7 @@
 # Setting up FIDO2 authentication on Linux from Windows
 
 ## Computer Requirements
-Windows Client: Windows 10 version 1903 or higher
+Windows Client: Windows 10 version 1903 or higher.  
 Linux Server: OpenSSH v8.2 at least, Ubuntu 20.04 if using Ubuntu.
 
 ## Prerequisites - OpenSSH
@@ -29,7 +29,7 @@ Host <<your_server_hostname_or_ip>>
         user <<your_username_here>>
         IdentityFile id_ecdsa_sk
 ```
-then simply login into your server by typing ```ssh <<your_server_hostname_or_ip>>
+then simply login into your server by typing ```ssh <<your_server_hostname_or_ip>>```
 
 
 ## A failed approach using Windows WSL2
