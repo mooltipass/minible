@@ -990,32 +990,39 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
         else
         {
             /* 2 children or more, as 1 is tackled in the previous if */
-            
-            /* Here chosen_login_addr already is populated with the first node... isn't that pretty? */
-            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &child_address);
-            if (display_prompt_return != MINI_INPUT_RET_YES)
+
+            /* Here's the strange part in the webauthn spec: in some cases a RP wants to check if an authenticator has a given credential.
+            To do so, it actually sends an assertion request with a silent flag set, and then expects the authenticator to silently sign it! 
+            For added security, in such a case we set the sign count to 0 to prevent malicious usage */
+            if ((flags & FIDO2_GA_FLAG_SILENT) != FIDO2_GA_FLAG_SILENT)
             {
-                child_address = NODE_ADDR_NULL;
+                /* Here chosen_login_addr already is populated with the first node... isn't that pretty? */
+                mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &child_address);
+                if (display_prompt_return != MINI_INPUT_RET_YES)
+                {
+                    child_address = NODE_ADDR_NULL;
+                }
+                gui_dispatcher_get_back_to_current_screen();
+
+                /* So.... what did the user select? */
+                if (child_address == NODE_ADDR_NULL)
+                {
+                    return FIDO2_OPERATION_DENIED;
+                }
             }
-            gui_dispatcher_get_back_to_current_screen();
-            
-            /* So.... what did the user select? */
-            if (child_address == NODE_ADDR_NULL)
-            {
-                return FIDO2_OPERATION_DENIED;
-            }
-            else
-            {
-                /* Fetch webauthn data */
-                logic_database_get_webauthn_data_for_address_and_inc_count(child_address, user_handle, user_handle_len, credential_id, private_key, count, temp_cred_ctr);
-                
-                /* User approved, decrypt key */
-                logic_encryption_ctr_decrypt(private_key, temp_cred_ctr, MEMBER_SIZE(child_webauthn_node_t, private_key), FALSE);
-                
-                return FIDO2_SUCCESS;
-            }
+            /* Fetch webauthn data
+             * If this is a silent request we don't prompt above. We instead just select the first credential (already in "child_address" according to above comment and send that
+             * back. The credential is not used for login anyway. It is just to check that the authenticator has credentials for this RPID.
+             * No need to check for child_address == NULL since either it is a silent assertion (and child_address is already populated) OR we returned above if the user backed out of the prompt.
+             */
+            logic_database_get_webauthn_data_for_address_and_inc_count(child_address, user_handle, user_handle_len, credential_id, private_key, count, temp_cred_ctr);
+
+            /* User approved, decrypt key */
+            logic_encryption_ctr_decrypt(private_key, temp_cred_ctr, MEMBER_SIZE(child_webauthn_node_t, private_key), FALSE);
+
+            return FIDO2_SUCCESS;
         }
-    }    
+    }
 }
 
 /*! \fn     logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOOL send_creds_to_usb)
