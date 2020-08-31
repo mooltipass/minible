@@ -13,8 +13,8 @@ Copy it inside Git /usr/bin folder (C:\Program Files\Git\usr\bin by default, or 
 
 ## Creating your Credential
 Launch **Git Bash**, then type ```ssh-keygen -w winhello.dll -t ecdsa-sk -f id_ecdsa_sk```. Approve the request on your device.  
-In the same git Bash window, start the ssh agent by typing ```eval `ssh-agent -s` ```  
-Add the key to the agent by typing ```ssh-add id_ecdsa_sk```  
+In the same git Bash window, start the ssh agent by typing ```eval `ssh-agent -P /usr/bin/winhello.dll` ```  
+Add the key to the agent by typing ```ssh-add -S /usr/bin/winhello.dll```  
 For information, two files are created when creating your credential:  
 > FIDO/U2F OpenSSH keys consist of two parts: a "key handle" part stored in the private key file on disk, and a per-device private key that is unique to each FIDO/U2F token and that cannot be exported from the token hardware. These are combined by the hardware at authentication time to derive the real key that is used to sign authentication challenges.
 
