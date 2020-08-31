@@ -1,7 +1,8 @@
 # Setting up FIDO2 authentication on Linux from Windows
 
-## Linux Server Requirements
-OpenSSH v8.2 at least, Ubuntu 20.04 if using Ubuntu.
+## Computer Requirements
+Windows Client: Windows 10 version 1903 or higher
+Linux Server: OpenSSH v8.2 at least, Ubuntu 20.04 if using Ubuntu.
 
 ## Prerequisites - OpenSSH
 Version 8.3+ of OpenSSH is required for FIDO2 authentication to work on Windows. Unfortunately Windows typically uses an older version.  As funny as it sounds, the simplest way to get the latest openSSH is to install <a href="https://git-scm.com/download/win">git for windows</a>.
