@@ -546,6 +546,22 @@ uint8_t ctap_make_credential(CborEncoder * encoder, uint8_t * request, int lengt
         return CTAP2_ERR_INVALID_OPTION;
     }
 
+    /*
+     * Special case for Windows 10 (W10).
+     * W10 might send a make credential request with "SelectDevice" as the RP/name.
+     * W10 uses this to select a device if more than one device is hooked up to the PC.
+     * Ignore this request and don't create the credential
+     */
+    uint8_t rpid_is_SD = strcmp( (char const *) MC.common.rp.id, "SelectDevice") == 0;
+    uint8_t rpname_is_SD = strcmp( (char const *) MC.common.rp.name, "SelectDevice") == 0;
+
+    if (rpid_is_SD && rpname_is_SD)
+    {
+        //Silently return success
+        printf2(TAG_ERR, "Windows workaround: Silently returning SUCCESS");
+        return CTAP1_ERR_SUCCESS;
+    }
+
     // crypto_aes256_init(CRYPTO_TRANSPORT_KEY, NULL);
     for (i = 0; i < MC.excludeListSize; i++)
     {
@@ -825,8 +841,8 @@ uint8_t ctap_request(uint8_t * pkt_raw, int length, CTAP_RESPONSE * resp)
 
             break;
         case CTAP_RESET:
+            //Not supported
             status = CTAP2_ERR_OPERATION_DENIED;
-            //TODO: Not implemented
             break;
         case GET_NEXT_ASSERTION:
             status = CTAP2_ERR_NOT_ALLOWED;
