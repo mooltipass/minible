@@ -12,7 +12,7 @@ Download the latest **winhello.dll** from the <a href="https://github.com/tavrez
 Copy it inside Git /usr/bin folder (C:\Program Files\Git\usr\bin by default, or C:\Users\<<your_profile>>\AppData\Local\Programs\Git\usr\bin).  
 
 ## Creating your Credential
-Launch **Git Bash**, then type ```ssh-keygen -w winhello.dll -t ecdsa-sk -f id_ecdsa_sk```. Approve the request on your device.  
+Launch **Git Bash**, then type ```ssh-keygen -w winhello.dll -t ecdsa-sk -f id_ecdsa_sk -O user=<<credential_identifier>>```. Approve the request on your device.  
 In the same git Bash window, start the ssh agent by typing ```eval `ssh-agent -P /usr/bin/winhello.dll` ```  
 Add the key to the agent by typing ```ssh-add -S /usr/bin/winhello.dll```  
 For information, two files are created when creating your credential:  
