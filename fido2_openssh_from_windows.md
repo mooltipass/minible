@@ -22,7 +22,14 @@ For information, two files are created when creating your credential:
 **Only if you don't have any public keys setup on your server**, an easy way to send your public keys to your server is to type ```scp id_ecdsa_sk.pub <<your_user_name>>@<<your_server_hostname_or_ip>>:~/.ssh/authorized_keys``` on the same git Bash window.
 
 ## Login into your server with your Mini BLE
-
+Create a ```config``` file inside .ssh by typing ```vi .ssh/config```. In it, enter the following contents:
+```
+Host <<your_server_hostname_or_ip>>
+        SecurityKeyProvider winhello.dll
+        user <<your_username_here>>
+        IdentityFile id_ecdsa_sk
+```
+then simply login into your server by typing ```ssh <<your_server_hostname_or_ip>>
 
 
 ## A failed approach using Windows WSL2
