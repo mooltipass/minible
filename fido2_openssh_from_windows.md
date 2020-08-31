@@ -1,19 +1,23 @@
 # Setting up FIDO2 authentication on Linux from Windows
 
+## Linux Server Requirements
+OpenSSH v8.2 at least, Ubuntu 20.04 if using Ubuntu.
+
 ## Prerequisites - OpenSSH
-Version 8.3+ of OpenSSH is required for FIDO2 authentication to work on Windows. Unfortunately Windows typically uses an older version.   
-As funny as it sounds, the simplest way to get it is to install <a href="https://git-scm.com/download/win">git for windows</a>.
+Version 8.3+ of OpenSSH is required for FIDO2 authentication to work on Windows. Unfortunately Windows typically uses an older version.  As funny as it sounds, the simplest way to get the latest ssh is to install <a href="https://git-scm.com/download/win">git for windows</a>.
 
 ## Prerequisites - OpenSSH SK WinHello
 Download the latest **winhello.dll** from the <a href="https://github.com/tavrez/openssh-sk-winhello/releases">the OpenSSH SK WinHello project release page</a>.  
 Copy it inside Git /usr/bin folder (C:\Program Files\Git\usr\bin by default).  
 
-## Creating a private / public key
+## Creating your Credential
 Launch **Git Bash**, then type ```ssh-keygen -w winhello.dll -t ecdsa-sk -f id_ecdsa_sk```. Approve the request on your device.  
 In the same git Bash window, start the ssh agent by typing ```eval `ssh-agent -s` ```  
-Add the key to the agent by typing ```ssh-add id_ecdsa_sk```
+Add the key to the agent by typing ```ssh-add id_ecdsa_sk```  
+For information, two files are created when creating your credential:  
+> FIDO/U2F OpenSSH keys consist of two parts: a "key handle" part stored in the private key file on disk, and a per-device private key that is unique to each FIDO/U2F token and that cannot be exported from the token hardware. These are combined by the hardware at authentication time to derive the real key that is used to sign authentication challenges.
 
-## Adding the newly created key to the accepted list on your server
+## Adding the public key to the accepted list on your server
 **Only if you don't have any public keys setup on your server**, an easy way to send your public keys to your server is to type ```scp id_ecdsa_sk.pub <<your_user_name>>@<<your_server_hostname_or_ip>>:~/.ssh/authorized_keys``` on the same git Bash window.
 
 ## Login into your server with your Mini BLE
