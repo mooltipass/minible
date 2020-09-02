@@ -34,6 +34,7 @@ SOURCES += src/EMU/lis2hh12.c \
     src/BearSSL/src/symcipher/aes_ct_ctr.c \
     src/BearSSL/src/symcipher/aes_ct_ctrcbc.c \
     src/BearSSL/src/symcipher/aes_ct_enc.c \
+    src/BearSSL/src/hash/sha1.c \
     src/BearSSL/src/hash/sha2small.c \
     src/BearSSL/src/mac/hmac.c \
     src/BearSSL/src/rand/hmac_drbg.c \

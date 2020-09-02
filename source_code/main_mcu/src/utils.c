@@ -543,3 +543,25 @@ __attribute__( ( always_inline ) ) inline uint32_t utils_get_SP(void)
 #endif
 }
 
+/*! \fn     utils_itoa(int32_t value, cust_char_t *str, uint8_t str_len)
+*   \brief  Convert integer to string prefixed with 0 padding
+            Convert an unsigned integer to a string. Prefix string with 0s
+            if the number of digits in integer is less than num_digits.
+*   \param  value       Integer to convert to string
+*   \param  num_digits  Number of digits including 0 padding
+*   \param  str         Output string
+*   \param  str_len     Length of str buffer
+*/
+void utils_itoa(uint32_t value, uint8_t num_digits, cust_char_t *str, uint8_t str_len)
+{
+    if (num_digits < str_len)
+    {
+        str[num_digits] = '\0';
+        for(int8_t digit = num_digits - 1; digit >= 0; --digit)
+        {
+            str[digit] = value % 10 + '0';
+            value /= 10;
+        }
+    }
+}
+

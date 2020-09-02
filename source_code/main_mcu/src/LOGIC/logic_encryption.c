@@ -22,12 +22,14 @@
 #include <string.h>
 #include "logic_encryption.h"
 #include "bearssl_block.h"
+#include "driver_timer.h"
 #include "bearssl_hash.h"
 #include "bearssl_hmac.h"
 #include "bearssl_rand.h"
 #include "bearssl_ec.h"
 #include "custom_fs.h"
 #include "nodemgmt.h"
+#include "utils.h"
 #include "main.h"
 #include "rng.h"
 
@@ -49,7 +51,8 @@ static br_hmac_drbg_context logic_encryption_hmac_drbg_ctx;
 static br_ec_private_key logic_encryption_fido2_signing_key;
 // Private key buffer. Above has a pointer to this buffer
 static uint8_t logic_encryption_fido2_priv_key_buf[FIDO2_PRIV_KEY_LEN];     
-      
+// Modulus used to extract 6, 7, or 8 digits for TOTP value
+static uint32_t LOGIC_ENCRYPTION_DIGITS_POWER[] = { 1000000, 10000000, 100000000 };
 
 /*! \fn     logic_encryption_get_cur_cpz_lut_entry(void)
 *   \brief  Get current user CPZ entry
@@ -395,4 +398,64 @@ void logic_encryption_ecc256_derive_public_key(uint8_t const* priv_key, ecc256_p
     memmove(pub_key->y, pubkey + 1 + FIDO2_PUB_KEY_X_LEN, FIDO2_PUB_KEY_Y_LEN);
 }
 
+
+/*! \fn     logic_encryption_sha1 truncate(uint8_t const *sha1)
+*   \brief  Truncate sha1 hash value to uint32 (from RFC6238)
+*   \param  hash  The hash to truncate (input)
+*   \return uint32_t truncated hash value
+*/
+static uint32_t logic_encryption_sha1_truncate(uint8_t const *sha1)
+{
+    uint8_t offset = sha1[SHA1_OUTPUT_LEN - 1] & 0xF;
+    uint32_t truncated_value = (sha1[offset]  & 0x7F) << 24;
+    truncated_value |= (sha1[offset + 1] & 0xFF) << 16;
+    truncated_value |= (sha1[offset + 2] & 0xFF) <<  8;
+    truncated_value |= (sha1[offset + 3] & 0xFF);
+    return truncated_value;
+}
+
+/*! \fn     logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t num_digits, cust_char_t *str, uint8_t str_len)
+*   \brief  RFC6238 TOTP implementation
+*   \param  key      Input secret key
+*   \param  key_len  Input secret key length
+*   \param  str      Output generated TOTP
+*   \param  str_len  Length of "str"
+*   \return uint32_t Number of seconds remaining until next time step
+*/
+uint32_t logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t num_digits, cust_char_t *str, uint8_t str_len)
+{
+    uint8_t hmac_sha1_output[SHA1_OUTPUT_LEN] = { 0x0 };
+    uint32_t code;
+    br_hmac_key_context kc;
+    br_hmac_context ctx;
+
+    /* 
+     * TOTP is basically TOTP = HOTP(time step since EPOCH).
+     * First get the UNIX time from the system and then compute the number of
+     * steps passed until now. Step size is highly recommended to be 30 second
+     * and thus this is what we are supporting here.
+     */
+    uint64_t unix_time = time();
+    uint64_t counter = unix_time / TOTP_TIME_STEP;
+    uint8_t remaining_secs = TOTP_TIME_STEP - (unix_time % TOTP_TIME_STEP);
+
+    /* Counter needs to be big-endian (RFC4226) */
+    counter = Swap64(counter);
+
+    /* Initialize the HMAC engine with the SHA1 (HMAC-SHA1) and the secret key */
+    br_hmac_key_init(&kc, &br_sha1_vtable, key, key_len);
+    /* Initialize the HMAC context with the chosen algorithm and key */
+    br_hmac_init(&ctx, &kc, 0);
+    /* Perform HMAC-SHA1 on the counter */
+    br_hmac_update(&ctx, &counter, sizeof(counter));
+    /* Get the result. Output of HMAC-SHA1 is 160 bits (20 bytes) */
+    br_hmac_out(&ctx, hmac_sha1_output);
+
+    if (num_digits >= LOGIC_ENCRYPTION_MIN_DIGITS && num_digits <= LOGIC_ENCRYPTION_MAX_DIGITS && num_digits < str_len)
+    {
+        code = logic_encryption_sha1_truncate(hmac_sha1_output) % LOGIC_ENCRYPTION_DIGITS_POWER[num_digits - LOGIC_ENCRYPTION_MIN_DIGITS];
+        utils_itoa(code, num_digits, str, str_len);
+    }
+    return remaining_secs;
+}
 
