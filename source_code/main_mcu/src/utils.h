@@ -44,6 +44,7 @@ void utils_ascii_to_unicode(uint8_t* string, uint16_t nb_chars);
 cust_char_t* utils_get_string_next_line_pt(cust_char_t* string);
 int16_t utils_utf8_to_bmp(uint8_t* input, cust_char_t* output);
 uint16_t utils_strnlen(cust_char_t* string, uint16_t maxlen);
+void utils_itoa(uint32_t value, uint8_t num_digits, cust_char_t *str, uint8_t str_len);
 uint16_t utils_get_nb_lines(const cust_char_t* string);
 uint16_t utils_strlen(cust_char_t* string);
 uint16_t utils_u8strlen(uint8_t* string);

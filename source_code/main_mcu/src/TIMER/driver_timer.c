@@ -221,6 +221,54 @@ void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t ho
 #endif
 }
 
+/*! \fn	time(void)
+*   \brief  Get the current unix time
+*
+*   Compute the number of seconds since EPOCH (Jan 1st. 1970), also
+*   commonly known as UNIX time. UNIX time does NOT include LEAP seconds.
+*   See https://pubs.opengroup.org/onlinepubs/9699919799/xrat/V4_xbd_chap04.html#tag_21_04_16
+*   \param  None
+*   \return Seconds since Jan 1st. 1970
+*/
+uint64_t time(void)
+{
+    uint64_t unix_time = 0;
+    int32_t i;
+    uint32_t num_days = 0;
+    calendar_t tm;
+    uint8_t is_curr_year_leap;
+    uint16_t year;
+
+    /* Assuming timer_get_calendar() returns UTC time */
+    timer_get_calendar(&tm);
+    year = tm.bit.YEAR + 2000;
+    is_curr_year_leap = IS_LEAP_YEAR(year);
+
+    //Add up days in all years
+    for (i = EPOCH_YEAR; i < year; ++i)
+    {
+        num_days += IS_LEAP_YEAR(i) ? 366 : 365;
+    }
+
+    //Add up days in all months
+    for (i = 0; i < tm.bit.MONTH - 1; ++i)
+    {
+        num_days += driver_timer_dph[i];
+        num_days += ((i == LEAP_MONTH) && is_curr_year_leap) ? 1 : 0;
+    }
+
+    //Add days in month
+    num_days += tm.bit.DAY - 1;
+
+    //Add the days hours, minutes, and seconds
+    unix_time = num_days * SEC_IN_DAY;
+    unix_time += tm.bit.HOUR * SEC_IN_HOUR;
+    unix_time += tm.bit.MINUTE * 60;
+    unix_time += tm.bit.SECOND;
+
+    return unix_time;
+}
+
 /*!	\fn		timer_get_calendar(calendar_t* calendar_pt)
 *	\brief	Get the current date
 *   \param  calendar_pt Pointer to a calendar struct

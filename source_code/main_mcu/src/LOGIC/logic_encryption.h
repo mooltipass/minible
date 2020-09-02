@@ -31,6 +31,16 @@
 /* Defines */
 #define CTR_FLASH_MIN_INCR  32
 #define ECC256_SEED_LENGTH 8
+#define SHA1_OUTPUT_LEN 20
+#define TOTP_TIME_STEP (30UL)
+/* A minimum of 6 is the required minimum value per RFC4226 */
+#define LOGIC_ENCRYPTION_MIN_DIGITS 6
+/*
+ * MAX is set to 8 though there appears to not be a maximum specified in the
+ * RFC. However, the RFC reference implementation operates with a maximum of 8
+ * so we'll follow that.
+ */
+#define LOGIC_ENCRYPTION_MAX_DIGITS 8
 
 /* Prototypes */
 void logic_encryption_ctr_decrypt(uint8_t* data, uint8_t* cred_ctr, uint16_t data_length, BOOL old_gen_decrypt);
@@ -61,4 +71,5 @@ void logic_encryption_ecc256_derive_public_key(uint8_t const *priv_key, ecc256_p
 void logic_encryption_ecc256_load_key(uint8_t const *key);
 void logic_encryption_ecc256_sign(uint8_t const* data, uint8_t* sig, uint16_t sig_buf_len);
 
+uint32_t logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t num_digits, cust_char_t *str, uint8_t str_len);
 #endif /* LOGIC_ENCRYPTION_H_ */
