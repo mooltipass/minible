@@ -425,6 +425,7 @@ static uint32_t logic_encryption_sha1_truncate(uint8_t const *sha1)
 uint32_t logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t num_digits, cust_char_t *str, uint8_t str_len)
 {
     uint8_t hmac_sha1_output[SHA1_OUTPUT_LEN] = { 0x0 };
+    memset(str, 0x00, sizeof(cust_char_t)*str_len);
     uint32_t code;
     br_hmac_key_context kc;
     br_hmac_context ctx;
