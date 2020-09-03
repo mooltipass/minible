@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    41
+#define FW_MINOR    42
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -114,6 +114,7 @@
 - v0.40:- invalid card inserted bug fix
         - faster card communications
 - v0.41:- smarter battery status display
+- v0.42:- various FIDO2 bug fixes
 */
 
 /**************** SETUP DEFINES ****************/

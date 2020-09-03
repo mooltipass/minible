@@ -33,6 +33,7 @@
 #include "usb.h"
 #include "usb_utils.h"
 #include "comms_raw_hid.h"
+#include "logic_keyboard.h"
 #include "usb_descriptors.h"
 #include "platform_defines.h"
 
@@ -149,21 +150,6 @@ void usb_handle_standard_request(usb_request_t *request)
     {
       udc_control_send_zlp();
       udc_set_address(request->wValue);
-    } break;
-    
-    case USB_CMD(OUT, INTERFACE, CLASS, SET_REPORT):
-    {
-        if (request->wIndex == USB_KEYBOARD_INTERFACE)
-        {
-            /* Wait for OUT transfer */
-            USB->DEVICE.DeviceEndpoint[0].EPSTATUSCLR.bit.BK0RDY = 1;
-            //volatile uint32_t lapin2 = *(uint32_t*)request;
-            while ((USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRCPT0) == 0);
-            /* very, very very dirty hack: get the low byte containing the leds */
-            //volatile uint32_t lapin = *(uint32_t*)request;
-            udc_control_send_zlp();
-            //asm("Nop");
-        }
     } break;
 
     case USB_CMD(OUT, DEVICE, STANDARD, SET_CONFIGURATION):
@@ -293,7 +279,61 @@ void usb_handle_standard_request(usb_request_t *request)
           udc_control_send(ctap_hid_report_desc, length);
       }
 
-    } break;
+    } break;    
+    
+    case USB_CMD(OUT, INTERFACE, CLASS, HID_SET_IDLE):
+    {
+        comms_raw_hid_set_idle_config(request->wIndex, (request->wValue >> 8));
+        udc_control_send_zlp();
+        break;
+    }
+    
+    case USB_CMD(OUT, INTERFACE, CLASS, HID_GET_IDLE):
+    {
+        uint16_t length = request->wLength;
+        length = LIMIT(length, 1);
+        udc_control_send(comms_raw_hid_get_idle_config(request->wIndex), length);
+        break;
+    }
+    
+    case USB_CMD(IN, INTERFACE, CLASS, HID_SET_PROTOCOL):
+    {
+        comms_raw_hid_set_protocol(request->wIndex, request->wValue);
+        udc_control_send_zlp();
+        break;
+    }
+    
+    case USB_CMD(IN, INTERFACE, CLASS, HID_GET_PROTOCOL):
+    {
+        uint16_t length = request->wLength;
+        length = LIMIT(length, 1);
+        udc_control_send(comms_raw_hid_get_protocol(request->wIndex), length);
+        break;
+    }
+    
+    case USB_CMD(OUT, INTERFACE, CLASS, HID_SET_REPORT):
+    {
+        // TODO: check led states and do comms here!
+        if (request->wIndex == USB_KEYBOARD_INTERFACE)
+        {
+            /* Wait for OUT transfer */
+            USB->DEVICE.DeviceEndpoint[0].EPSTATUSCLR.bit.BK0RDY = 1;
+            //volatile uint32_t lapin2 = *(uint32_t*)request;
+            while ((USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRCPT0) == 0);
+            /* very, very very dirty hack: get the low byte containing the leds */
+            //volatile uint32_t lapin = *(uint32_t*)request;
+            udc_control_send_zlp();
+            //asm("Nop");
+        }
+        udc_control_send_zlp();
+        break;
+    }
+    
+    case USB_CMD(IN, INTERFACE, CLASS, HID_GET_REPORT):
+    {
+        udc_control_send_zlp();
+        break;
+    }
 
     default:
     {

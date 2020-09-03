@@ -57,6 +57,17 @@ enum
 
 enum
 {
+    // HID (human interface device)
+     USB_HID_GET_REPORT    =      1,
+     USB_HID_GET_IDLE      =      2,
+     USB_HID_GET_PROTOCOL  =      3,
+     USB_HID_SET_REPORT    =      9,
+     USB_HID_SET_IDLE      =      10,
+     USB_HID_SET_PROTOCOL  =      11,
+};
+
+enum
+{
   USB_DEVICE_DESCRIPTOR                    = 1,
   USB_CONFIGURATION_DESCRIPTOR             = 2,
   USB_STRING_DESCRIPTOR                    = 3,

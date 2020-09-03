@@ -44,7 +44,71 @@ uint8_t comms_hid_device_status_cache[4];
 BOOL comms_usb_enumerated = FALSE;
 /* Set when we received a new device status */
 BOOL comms_raw_hid_new_device_status_received = FALSE;
+/* Array containing idle config / protocol for usb interfaces */
+uint8_t comms_raw_hid_interfaces_idle_config[USB_NUMBER_OF_INTERFACES];
+uint8_t comms_raw_hid_interfaces_protocol[USB_NUMBER_OF_INTERFACES];
+/* Same, for idle count */
+uint8_t comms_raw_hid_interfaces_idle_count[USB_NUMBER_OF_INTERFACES];
+/* Boolean to know if we received at least one message from the proprietary usb interface */
+BOOL comms_raw_hid_at_least_one_msg_rcvd_from_prop_hid = FALSE;
+/* Buffer for status message send */
+uint32_t comms_raw_hid_shorter_aux_mcu_message_for_status_update[USB_RAWHID_RX_SIZE/sizeof(uint32_t)];
 
+
+/*! \fn     comms_raw_hid_set_idle_config(uint8_t interface, uint8_t val)
+*   \brief  Set idle config for a given usb interface
+*   \param  interface           HID interface
+*   \param  val                 The value
+*/
+void comms_raw_hid_set_idle_config(uint8_t interface, uint8_t val)
+{
+    if (interface < USB_NUMBER_OF_INTERFACES)
+    {
+        comms_raw_hid_interfaces_idle_config[interface] = val;
+        comms_raw_hid_interfaces_idle_count[interface] = 0;
+    }
+}
+
+/*! \fn     comms_raw_hid_set_protocol(uint8_t interface, uint8_t val)
+*   \brief  Set protocol for a given usb interface
+*   \param  interface           HID interface
+*   \param  val                 The value
+*/
+void comms_raw_hid_set_protocol(uint8_t interface, uint8_t val)
+{
+    if (interface < USB_NUMBER_OF_INTERFACES)
+    {
+        comms_raw_hid_interfaces_protocol[interface] = val;
+    }
+}
+
+/*! \fn     comms_raw_hid_get_idle_config(uint8_t interface)
+*   \brief  Get idle config for a given usb interface
+*   \param  interface           HID interface
+*   \return The value
+*/
+uint8_t* comms_raw_hid_get_idle_config(uint8_t interface)
+{
+    if (interface < USB_NUMBER_OF_INTERFACES)
+    {
+        return &comms_raw_hid_interfaces_idle_config[interface];
+    }
+    return 0;    
+}
+
+/*! \fn     comms_raw_hid_get_protocol(uint8_t interface)
+*   \brief  Get idle config for a given usb interface
+*   \param  interface           HID interface
+*   \return The value
+*/
+uint8_t* comms_raw_hid_get_protocol(uint8_t interface)
+{
+    if (interface < USB_NUMBER_OF_INTERFACES)
+    {
+        return &comms_raw_hid_interfaces_protocol[interface];
+    }
+    return 0;    
+}
 
 /*! \fn     comms_raw_hid_update_device_status_cache(uint8_t* buffer)
 *   \brief  Update device status cache
@@ -262,6 +326,7 @@ BOOL comms_usb_is_enumerated(void)
 */
 void comms_usb_clear_enumerated(void)
 {
+    comms_raw_hid_at_least_one_msg_rcvd_from_prop_hid = FALSE;
     comms_usb_enumerated = FALSE;
 }
 
@@ -314,11 +379,9 @@ comms_usb_ret_te comms_usb_communication_routine(void)
     }
     
     /* We received a new device status, push it to the host */
-    if (comms_raw_hid_new_device_status_received != FALSE)
+    if ((comms_raw_hid_new_device_status_received != FALSE) && (comms_raw_hid_at_least_one_msg_rcvd_from_prop_hid != FALSE))
     {
-        /* Temporary buffer, where we cheat */
-        uint32_t shorter_aux_mcu_message[USB_RAWHID_RX_SIZE/sizeof(uint32_t)];
-        aux_mcu_message_t* temp_message_pt = (aux_mcu_message_t*)shorter_aux_mcu_message;
+        aux_mcu_message_t* temp_message_pt = (aux_mcu_message_t*)comms_raw_hid_shorter_aux_mcu_message_for_status_update;
         
         /* Prepare message to be sent */
         temp_message_pt->hid_message.message_type = HID_CMD_GET_DEVICE_STATUS;
@@ -356,6 +419,11 @@ comms_usb_ret_te comms_usb_communication_routine(void)
                 ctaphid_handle_packet(raw_hid_recv_buffer[hid_interface].raw_packet_uint32);
                 comms_raw_hid_arm_packet_receive(hid_interface);
                 return ret_val;
+            }
+            
+            if (hid_interface == USB_INTERFACE)
+            {
+                comms_raw_hid_at_least_one_msg_rcvd_from_prop_hid = TRUE;
             }
 
             /* Special case: first two bytes set to 0xFF 0xFF, reset flip bit */

@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    34
+#define FW_MINOR    35
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -61,6 +61,8 @@
 - v0.33:- bluetooth pairing bug fix
 - v0.34:- Webauthn bug fix
         - Support for new battery status display
+- v0.35:- various FIDO2 bug fixes
+        - chromebook bug fix: do not send message over proprietary hid if we didn't receive anything from it...
 */
 
 /**************** SETUP DEFINES ****************/
@@ -102,6 +104,7 @@
 #define USB_CTAP_INTERFACE          2                   // Interface for CTAP
 #define USB_CTAP_RX_ENDPOINT        4                   // CTAP RX endpoint
 #define USB_CTAP_TX_ENDPOINT        5                   // CTAP TX endpoint
+#define USB_NUMBER_OF_INTERFACES    3                   // Number of USB interfaces (RAW / KEYBOARD / CTAP)
 
 /* Bluetooth defies */
 #define BLE_PLATFORM_NAME           "Mooltipass Mini"
