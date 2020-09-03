@@ -221,7 +221,7 @@ void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t ho
 #endif
 }
 
-/*! \fn	time(void)
+/*! \fn	driver_timer_get_time(void)
 *   \brief  Get the current unix time
 *
 *   Compute the number of seconds since EPOCH (Jan 1st. 1970), also
@@ -230,7 +230,7 @@ void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t ho
 *   \param  None
 *   \return Seconds since Jan 1st. 1970
 */
-uint64_t time(void)
+uint64_t driver_timer_get_time(void)
 {
     uint64_t unix_time = 0;
     int32_t i;
