@@ -430,13 +430,13 @@ uint32_t logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t n
     br_hmac_key_context kc;
     br_hmac_context ctx;
 
-    /* 
+    /*
      * TOTP is basically TOTP = HOTP(time step since EPOCH).
      * First get the UNIX time from the system and then compute the number of
      * steps passed until now. Step size is highly recommended to be 30 second
      * and thus this is what we are supporting here.
      */
-    uint64_t unix_time = time();
+    uint64_t unix_time = driver_timer_get_time();
     uint64_t counter = unix_time / TOTP_TIME_STEP;
     uint8_t remaining_secs = TOTP_TIME_STEP - (unix_time % TOTP_TIME_STEP);
 
@@ -457,6 +457,10 @@ uint32_t logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t n
         code = logic_encryption_sha1_truncate(hmac_sha1_output) % LOGIC_ENCRYPTION_DIGITS_POWER[num_digits - LOGIC_ENCRYPTION_MIN_DIGITS];
         utils_itoa(code, num_digits, str, str_len);
     }
+
+    memset(&ctx, 0, sizeof(ctx));
+    memset(&kc, 0, sizeof(kc));
+
     return remaining_secs;
 }
 
