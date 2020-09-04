@@ -441,7 +441,11 @@ uint32_t logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t n
     uint8_t remaining_secs = TOTP_TIME_STEP - (unix_time % TOTP_TIME_STEP);
 
     /* Counter needs to be big-endian (RFC4226) */
+    #ifndef EMULATOR_BUILD
     counter = Swap64(counter);
+    #else
+    counter = htobe64(counter);
+    #endif
 
     /* Initialize the HMAC engine with the SHA1 (HMAC-SHA1) and the secret key */
     br_hmac_key_init(&kc, &br_sha1_vtable, key, key_len);
