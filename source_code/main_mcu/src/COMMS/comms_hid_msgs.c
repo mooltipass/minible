@@ -194,7 +194,6 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     /* Store received message type in case one of the routines below does some communication */
     uint16_t max_payload_size = MEMBER_ARRAY_SIZE(hid_message_t,payload);
     uint16_t rcv_message_type = rcv_msg->message_type;
-    BOOL is_aes_gcm_message = FALSE;
     
     /* Check if it's a AES-GCM message */
     if ((rcv_msg->message_type & HID_MESSAGE_AES_GCM_BITMASK) != 0)
@@ -202,7 +201,6 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         /* If so, remove the bitmask, reduce max payload size and set the bool */
         rcv_msg->message_type &= ~HID_MESSAGE_AES_GCM_BITMASK;
         max_payload_size-= HID_MESSAGE_GCM_TAG_LGTH;
-        is_aes_gcm_message = TRUE;
     }
     
     /* Checks based on restriction type */
