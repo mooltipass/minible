@@ -444,7 +444,7 @@ uint32_t logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t n
     #ifndef EMULATOR_BUILD
     counter = Swap64(counter);
     #else
-    counter = qToBigEndian(counter);
+    counter = qToBigEndian<quint64_le>(counter);
     #endif
 
     /* Initialize the HMAC engine with the SHA1 (HMAC-SHA1) and the secret key */
