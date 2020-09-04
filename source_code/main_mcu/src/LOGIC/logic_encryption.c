@@ -19,6 +19,9 @@
 *    Created:  20/03/2019
 *    Author:   Mathieu Stephan
 */
+#ifdef EMULATOR_BUILD
+#include <QtEndian>
+#endif
 #include <string.h>
 #include "logic_encryption.h"
 #include "bearssl_block.h"
