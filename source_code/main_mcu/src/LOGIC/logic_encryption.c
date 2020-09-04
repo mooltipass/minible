@@ -19,9 +19,6 @@
 *    Created:  20/03/2019
 *    Author:   Mathieu Stephan
 */
-#ifdef EMULATOR_BUILD
-#include <QtEndian>
-#endif
 #include <string.h>
 #include "logic_encryption.h"
 #include "bearssl_block.h"
@@ -447,7 +444,16 @@ uint32_t logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t n
     #ifndef EMULATOR_BUILD
     counter = Swap64(counter);
     #else
-    counter = qToBigEndian<quint64_le>(counter);
+    // ok, feel free to find the function that works here because after many tries I couldn't.
+    uint64_t switched = (counter << 56) & 0xFF00000000000000;
+    switched |= (counter << 40) & 0x00FF000000000000;
+    switched |= (counter << 24) & 0x0000FF0000000000;
+    switched |= (counter << 8) & 0x000000FF00000000;
+    switched |= (counter >> 8) & 0x00000000FF000000;
+    switched |= (counter >> 24) & 0x0000000000FF0000;
+    switched |= (counter >> 40) & 0x000000000000FF00;
+    switched |= (counter >> 56) & 0x00000000000000FF;
+    counter = switched;
     #endif
 
     /* Initialize the HMAC engine with the SHA1 (HMAC-SHA1) and the secret key */
