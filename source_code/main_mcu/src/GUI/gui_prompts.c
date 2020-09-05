@@ -577,7 +577,8 @@ void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
 }
 
 /*! \fn     gui_prompts_get_char_to_display(uint8_t const * current_pin, uint8_t index)
-*   \brief  Get the next PIN value to display or '*' if PIN should be hidden
+*   \brief  Get the next PIN value to display or '*' if PIN should be hidden.
+*           Called whenever a non selected PIN digit needs to be displayed.
 *   \param  current_pin         Array containing the pin
 *   \param  index               Index into current_pin array
 *   \return Character to display
@@ -585,17 +586,16 @@ void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
 static cust_char_t gui_prompts_get_char_to_display(uint8_t const * current_pin, uint8_t index)
 {
     cust_char_t disp_char;
-    uint8_t curr_pin = current_pin[index];
 
     if ((BOOL)custom_fs_settings_get_device_setting(SETTING_SHOW_PIN_ON_ENTRY) != FALSE)
     {
-        if (curr_pin >= 0x0A)
+        if (current_pin[index] >= 0x0A)
         {
-            disp_char = curr_pin + u'A' - 0x0A;
+            disp_char = current_pin[index] + u'A' - 0x0A;
         }
         else
         {
-            disp_char = curr_pin + u'0';
+            disp_char = current_pin[index] + u'0';
         }
     }
     else
