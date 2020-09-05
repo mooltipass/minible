@@ -191,7 +191,16 @@ void comms_raw_hid_arm_packet_receive(hid_interface_te hid_interface)
 void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* packet, BOOL wait_send, uint16_t payload_size)
 {
     /* Wait for possible previous packet to be sent */
-    while(comms_raw_hid_packet_being_sent[hid_interface] == TRUE);
+    timer_start_timer(TIMER_USB_SEND_TIMEOUT, 1000);
+    while(comms_raw_hid_packet_being_sent[hid_interface] == TRUE)
+    {
+        /* Check for usb disconnection, or in some cases a timeout due to the computer not wanting to read the OUT endpoint (wtf...) */
+        if (((hid_interface == USB_INTERFACE) || (hid_interface == CTAP_INTERFACE)) && ((usb_get_config() == 0) || (udc_get_nb_ms_before_last_usb_activity() > 100) || (timer_has_timer_expired(TIMER_USB_SEND_TIMEOUT, TRUE) == TIMER_EXPIRED)))
+        {
+            comms_raw_hid_packet_being_sent[hid_interface] = FALSE;
+            return;
+        }
+    }
     
     /* Reset flag */
     comms_raw_hid_packet_being_sent[hid_interface] = TRUE;
@@ -220,6 +229,7 @@ void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* pac
     /* If asked, wait */
     if (wait_send != FALSE)
     {
+        timer_start_timer(TIMER_USB_SEND_TIMEOUT, 1000);
         timer_start_timer(TIMER_BT_TYPING_TIMEOUT, 3000);        
         while(comms_raw_hid_packet_being_sent[hid_interface] == TRUE)
         {
@@ -235,8 +245,8 @@ void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* pac
                 return;
             }
             
-            /* Check for usb disconnection */
-            if (((hid_interface == USB_INTERFACE) || (hid_interface == CTAP_INTERFACE)) && ((usb_get_config() == 0) || (udc_get_nb_ms_before_last_usb_activity() > 100)))
+            /* Check for usb disconnection, or in some cases a timeout due to the computer not wanting to read the OUT endpoint (wtf...) */
+            if (((hid_interface == USB_INTERFACE) || (hid_interface == CTAP_INTERFACE)) && ((usb_get_config() == 0) || (udc_get_nb_ms_before_last_usb_activity() > 100) || (timer_has_timer_expired(TIMER_USB_SEND_TIMEOUT, TRUE) == TIMER_EXPIRED)))
             {
                 comms_raw_hid_packet_being_sent[hid_interface] = FALSE;
                 return;
@@ -260,6 +270,7 @@ void comms_raw_hid_send_hid_message(hid_interface_te hid_interface, aux_mcu_mess
     /* Generate and send packets */
     while(remaining_payload_to_send > 0)
     {
+        timer_start_timer(TIMER_USB_SEND_TIMEOUT, 1000);
         /* Wait for a possible previous packet to be sent as we do buffer re-use */
         while(comms_raw_hid_packet_being_sent[hid_interface] == TRUE)
         {
@@ -269,9 +280,10 @@ void comms_raw_hid_send_hid_message(hid_interface_te hid_interface, aux_mcu_mess
                 ble_event_task();
             }
             
-            /* Check for usb disconnection */
-            if (((hid_interface == USB_INTERFACE) || (hid_interface == CTAP_INTERFACE)) && ((usb_get_config() == 0) || (udc_get_nb_ms_before_last_usb_activity() > 100)))
+            /* Check for usb disconnection, or in some cases a timeout due to the computer not wanting to read the OUT endpoint (wtf...) */
+            if (((hid_interface == USB_INTERFACE) || (hid_interface == CTAP_INTERFACE)) && ((usb_get_config() == 0) || (udc_get_nb_ms_before_last_usb_activity() > 100) || (timer_has_timer_expired(TIMER_USB_SEND_TIMEOUT, TRUE) == TIMER_EXPIRED)))
             {
+                comms_raw_hid_packet_being_sent[hid_interface] = FALSE;
                 return;
             }
         }
