@@ -200,6 +200,8 @@ void comms_aux_mcu_send_simple_command_message(uint16_t command)
     comms_aux_mcu_send_message(temp_send_message_pt);
 }
 
+//void comms_
+
 /*! \fn     comms_aux_mcu_update_device_status_buffer(void)
 *   \brief  Update the device status buffer on the aux MCU
 */

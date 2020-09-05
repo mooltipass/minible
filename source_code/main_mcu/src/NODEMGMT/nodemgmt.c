@@ -547,6 +547,8 @@ void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_
 {
     /* Page & offset for this UID */
     uint16_t temp_page, temp_offset;
+    uint16_t nb_languages_known = custom_fs_get_number_of_languages();
+    uint16_t nb_keyboards_layout_known = custom_fs_get_number_of_keyb_layouts();
     
     if(uid >= NB_MAX_USERS)
     {
@@ -561,10 +563,12 @@ void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_
     // Set buffer to all 0's.
     nodemgmt_get_user_profile_starting_offset(uid, &temp_page, &temp_offset);
     dbflash_write_data_pattern_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmt_userprofile_t), 0x00);
+    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.nb_keyboards_layout_known), sizeof(nb_keyboards_layout_known), (void*)&nb_keyboards_layout_known);
+    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.nb_languages_known), sizeof(nb_languages_known), (void*)&nb_languages_known);    
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.sec_preferences), sizeof(secPreferences), (void*)&secPreferences);
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.ble_layout_id), sizeof(bleKeyboardId), (void*)&bleKeyboardId);
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.language_id), sizeof(languageId), (void*)&languageId);
-    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.layout_id), sizeof(keyboardId), (void*)&keyboardId);
+    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.layout_id), sizeof(keyboardId), (void*)&keyboardId);   
 }
 
 /*! \fn     nodemgmt_delete_all_bluetooth_bonding_information(void)
@@ -868,6 +872,36 @@ uint16_t nodemgmt_get_user_ble_layout(void)
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.ble_layout_id), sizeof(layout_id), &layout_id);
     
     return layout_id;
+}
+
+/*! \fn     nodemgmt_get_user_nb_known_languages(void)
+ *  \brief  Get number of known languages at the time of last user profile use
+ *  \return Number of known languages
+ */
+uint16_t nodemgmt_get_user_nb_known_languages(void)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    uint16_t nb_languages_known;
+    
+    // Each user profile is within a page, data starting parent node is at the end of the favorites
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.nb_languages_known), sizeof(nb_languages_known), &nb_languages_known);
+    
+    return nb_languages_known;    
+}
+
+/*! \fn     nodemgmt_get_user_nb_known_keyboard_layouts(void)
+ *  \brief  Get number of known keyboard layouts at the time of last user profile use
+ *  \return Number of known keyboard layouts
+ */
+uint16_t nodemgmt_get_user_nb_known_keyboard_layouts(void)
+{
+    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
+    uint16_t nb_keyboards_layout_known;
+    
+    // Each user profile is within a page, data starting parent node is at the end of the favorites
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.nb_keyboards_layout_known), sizeof(nb_keyboards_layout_known), &nb_keyboards_layout_known);
+    
+    return nb_keyboards_layout_known;    
 }
 
 /*! \fn     nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_child_addr)
@@ -1752,6 +1786,18 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
     
     // scan for next free parent and child nodes from the start of the memory
     nodemgmt_scan_node_usage();
+    
+    // Check if the number of known languages/layouts is different from the one we currently have, and reset the language if so
+    if ((nodemgmt_get_user_nb_known_languages() != custom_fs_get_number_of_languages()) || (nodemgmt_get_user_nb_known_keyboard_layouts() != custom_fs_get_number_of_keyb_layouts()))
+    {
+        uint16_t nb_languages_known = custom_fs_get_number_of_languages();
+        uint16_t nb_keyboards_layout_known = custom_fs_get_number_of_keyb_layouts();
+        nodemgmt_store_user_language(custom_fs_get_current_language_id());
+        nodemgmt_store_user_layout(custom_fs_get_recommended_layout_for_current_language());
+        nodemgmt_store_user_ble_layout(custom_fs_get_recommended_layout_for_current_language());
+        dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.nb_languages_known), sizeof(nb_languages_known), (void*)&nb_languages_known);
+        dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.nb_keyboards_layout_known), sizeof(nb_keyboards_layout_known), (void*)&nb_keyboards_layout_known);
+    }
 
     // Store user security preference and language
     *userSecFlags = nodemgmt_get_user_sec_preferences();

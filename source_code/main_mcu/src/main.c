@@ -323,8 +323,6 @@ void main_platform_init(void)
         #endif
     }
 #endif
-
-    //debug_always_bluetooth_enable_and_click_to_send_cred();
     
     /* Display error messages if something went wrong during custom fs init and bundle check */
     if ((custom_fs_init_return != RETURN_OK) || (bundle_integrity_check_return != RETURN_OK))
@@ -368,12 +366,6 @@ void main_platform_init(void)
         }
     } 
     
-    /* If the device went through the bootloader: re-initialize device settings and clear bool */
-    if (custom_fs_get_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID) != FALSE)
-    {
-        custom_fs_set_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID, FALSE);
-    }
-    
     /* Set settings that may not have been set to an initial value */
     custom_fs_set_undefined_settings();
     
@@ -384,6 +376,69 @@ void main_platform_init(void)
     
     /* Set screen brightness */
     sh1122_set_contrast_current(&plat_oled_descriptor, custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT));
+
+    /* Actions for first user device boot */
+    #ifdef DEVELOPER_FEATURES_ENABLED
+    if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
+    #else
+    if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) || (custom_fs_get_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID) != FALSE))
+    #endif
+    {
+        /* Select language and store it as default */
+        if (gui_prompts_select_language_or_keyboard_layout(FALSE, TRUE, TRUE, FALSE) != RETURN_OK)
+        {
+            /* We're battery powered, the user didn't select anything, switch off device */
+            sh1122_oled_off(&plat_oled_descriptor);
+            platform_io_power_down_oled();
+            timer_delay_ms(100);
+            platform_io_disable_switch_and_die();
+            while(1);            
+        }
+        
+        /* Store set language as device default one */
+        custom_fs_set_device_default_language(custom_fs_get_current_language_id());
+        
+        /* Set flag */
+        custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
+        
+        /* Clear frame buffer */
+        sh1122_fade_into_darkness(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    }
+    
+    /* Special developer features */
+    #ifdef SPECIAL_DEVELOPER_CARD_FEATURE
+    /* Check if this is running on a device without bootloader, add CPZ entry for special card */
+    if (mcu_sp_rh_addresses[1] == 0x0201)
+    {
+        /* Special card has 0000 CPZ, set 0000 as nonce */
+        //dbflash_format_flash(&dbflash_descriptor);
+        //nodemgmt_format_user_profile(100, 0, 0);
+        cpz_lut_entry_t special_user_profile;
+        memset(&special_user_profile, 0, sizeof(special_user_profile));
+        special_user_profile.user_id = 100;
+                
+        /* When developping on a newly flashed board: reset USB connection and reset defaults */
+        if (custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id) == RETURN_OK)
+        {
+            if (platform_io_is_usb_3v3_present_raw() != FALSE)
+            {
+                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
+                timer_delay_ms(2000);
+                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+                logic_power_usb_enumerate_just_sent();
+            }
+        }   
+        
+        /* Disable tutorial */
+        custom_fs_set_settings_value(SETTINGS_DEVICE_TUTORIAL, FALSE);     
+    }
+    #endif
+    
+    /* If the device went through the bootloader: re-initialize device settings and clear bool */
+    if (custom_fs_get_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID) != FALSE)
+    {
+        custom_fs_set_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID, FALSE);
+    }
 }
 
 /*! \fn     main_reboot(void)
@@ -541,63 +596,6 @@ int main(void)
 
     /* Initialize our platform */
     main_platform_init();
-
-    /* Actions for first user device boot */
-    #ifdef DEVELOPER_FEATURES_ENABLED
-    if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
-    #else
-    if (custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE)
-    #endif
-    {
-        /* Select language and store it as default */
-        if (gui_prompts_select_language_or_keyboard_layout(FALSE, TRUE, TRUE, FALSE) != RETURN_OK)
-        {
-            /* We're battery powered, the user didn't select anything, switch off device */
-            sh1122_oled_off(&plat_oled_descriptor);
-            platform_io_power_down_oled();
-            timer_delay_ms(100);
-            platform_io_disable_switch_and_die();
-            while(1);            
-        }
-        
-        /* Store set language as device default one */
-        custom_fs_set_device_default_language(custom_fs_get_current_language_id());
-        
-        /* Set flag */
-        custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
-        
-        /* Clear frame buffer */
-        sh1122_fade_into_darkness(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
-    }
-    
-    /* Special developer features */
-    #ifdef SPECIAL_DEVELOPER_CARD_FEATURE
-    /* Check if this is running on a device without bootloader, add CPZ entry for special card */
-    if (mcu_sp_rh_addresses[1] == 0x0201)
-    {
-        /* Special card has 0000 CPZ, set 0000 as nonce */
-        //dbflash_format_flash(&dbflash_descriptor);
-        //nodemgmt_format_user_profile(100, 0, 0);
-        cpz_lut_entry_t special_user_profile;
-        memset(&special_user_profile, 0, sizeof(special_user_profile));
-        special_user_profile.user_id = 100;
-                
-        /* When developping on a newly flashed board: reset USB connection and reset defaults */
-        if (custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id) == RETURN_OK)
-        {
-            if (platform_io_is_usb_3v3_present_raw() != FALSE)
-            {
-                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
-                timer_delay_ms(2000);
-                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
-                logic_power_usb_enumerate_just_sent();
-            }
-        }   
-        
-        /* Disable tutorial */
-        custom_fs_set_settings_value(SETTINGS_DEVICE_TUTORIAL, FALSE);     
-    }
-    #endif
     
     /* Activity detected */
     logic_device_activity_detected();
