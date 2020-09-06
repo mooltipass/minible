@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    42
+#define FW_MINOR    43
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -115,6 +115,9 @@
         - faster card communications
 - v0.41:- smarter battery status display
 - v0.42:- various FIDO2 bug fixes
+- v0.43:- user language / layout reset in case of change of # of languages/layouts on the device
+        - always ask device default language after firmware update
+        -
 */
 
 /**************** SETUP DEFINES ****************/

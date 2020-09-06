@@ -84,6 +84,35 @@ void logic_user_init_context(uint8_t user_id)
     logic_user_adding_data_to_service = FALSE;
 }
 
+/*! \fn     logic_user_is_bluetooth_enabled_for_inserted_card(void)
+*   \brief  Know if bluetooth is enabled for the user identified by the inserted card
+*   \return RETURN_OK to require bluetooth enabling, RETURN_NOK for the opposite, RETURN_INVALID to not perform any action
+*/
+RET_TYPE logic_user_is_bluetooth_enabled_for_inserted_card(void)
+{
+    uint8_t temp_buffer[SMARTCARD_CPZ_LENGTH];
+    uint8_t potential_user_id;
+    
+    /* Read code protected zone to see if we know this particular card */
+    smartcard_highlevel_read_code_protected_zone(temp_buffer);
+    
+    /* See if we know the card and if so fetch the user id */
+    if (custom_fs_get_user_id_for_cpz(temp_buffer, &potential_user_id) != RETURN_OK)
+    {
+        return RETURN_INVALID;
+    }
+    
+    /* See if we need to enable bluetooth */
+    if ((nodemgmt_get_sec_preference_for_user_id(potential_user_id) & USER_SEC_FLG_BLE_ENABLED) == 0)
+    {
+        return RETURN_NOK;
+    }
+    else
+    {
+        return RETURN_OK;
+    }    
+}
+
 /*! \fn     logic_user_set_user_to_be_logged_off_flag(void)
 *   \brief  Set the flag to inform that the user should be logged off
 */

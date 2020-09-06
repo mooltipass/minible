@@ -1742,6 +1742,30 @@ void nodemgmt_set_current_category_id(uint16_t catId)
     }
 }
 
+/*! \fn     nodemgmt_get_sec_preference_for_user_id(uint16_t userIdNum)
+ *  \brief  Get the security preferences for a given user id
+ *  \return The security preferences
+ */
+uint16_t nodemgmt_get_sec_preference_for_user_id(uint16_t userIdNum)
+{
+    uint16_t offsetUserProfile;             // The offset of the user profile
+    uint16_t pageUserProfile;               // The page of the user profile
+    uint16_t user_sec_flags;                // Fetch user security flags
+    
+    if(userIdNum >= NB_MAX_USERS)
+    {
+        /* No debug... no reason it should get stuck here as the data format doesn't allow such values */
+        main_reboot();
+    }
+            
+    /* Get page and page offset for the specified user profile */
+    nodemgmt_get_user_profile_starting_offset(userIdNum, &pageUserProfile, &offsetUserProfile);
+    
+    /* Fetch security preferences */
+    dbflash_read_data_from_flash(&dbflash_descriptor, pageUserProfile, offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.sec_preferences), sizeof(user_sec_flags), &user_sec_flags);
+    return user_sec_flags;
+}
+
 /*! \fn     nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout, uint16_t* userBLELayout)
  *  \brief  Initializes the Node Management Handle, scans memory for the next free node
  *  \param  userIdNum       The user id to initialize the handle for

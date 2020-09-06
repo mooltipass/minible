@@ -1166,6 +1166,32 @@ void custom_fs_set_undefined_settings(void)
     }
 }
 
+/*! \fn     custom_fs_get_user_id_for_cpz(uint8_t* cpz, uint8_t* user_id)
+*   \brief  Get the user id for a given a CPZ
+*   \param  cpz         CPZ bytes
+*   \param  user_id     Where to store the user id
+*   \return Success status
+*/
+RET_TYPE custom_fs_get_user_id_for_cpz(uint8_t* cpz, uint8_t* user_id)
+{
+    // Loop through LUT entries
+    for (uint16_t i = 0; i < MAX_NUMBER_OF_USERS; i++)
+    {
+        // Check for valid user ID (erased flash)
+        if (custom_fs_cpz_lut[i].user_id != UINT8_MAX)
+        {
+            // Check for CPZ match
+            if (memcmp(custom_fs_cpz_lut[i].cards_cpz, cpz, sizeof(custom_fs_cpz_lut[0].cards_cpz)) == 0)
+            {
+                *user_id = custom_fs_cpz_lut[i].user_id;
+                return RETURN_OK;
+            }
+        }
+    }
+    
+    return RETURN_NOK;
+}
+
 /*! \fn     custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_pt)
 *   \brief  Get a pointer to a CPZ LUT entry given a CPZ 
 *   \param  cpz         CPZ bytes

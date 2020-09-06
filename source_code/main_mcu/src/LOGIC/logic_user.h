@@ -45,6 +45,7 @@ RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, c
 void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOOL send_creds_to_usb);
 RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb);
 void logic_user_set_layout_id(uint16_t layout_id, BOOL usb_layout);
+RET_TYPE logic_user_is_bluetooth_enabled_for_inserted_card(void);
 BOOL logic_user_get_and_clear_user_to_be_logged_off_flag(void);
 void logic_user_clear_user_security_flag(uint16_t bitmask);
 void logic_user_set_user_security_flag(uint16_t bitmask);

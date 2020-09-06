@@ -87,7 +87,7 @@ void logic_smartcard_handle_removed(void)
 *   \return RETURN_OK if user is authenticated
 */
 RET_TYPE logic_smartcard_handle_inserted(void)
-{
+ {
     // Low level routine: see what kind of card we're dealing with
     mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();
     // By default, return to invalid screen
@@ -162,22 +162,23 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     }
     else if (detection_result == RETURN_MOOLTIPASS_USER)
     {
+        /* Check if we know this card and if we need to enable bluetooth */
+        RET_TYPE bluetooth_enable_return = logic_user_is_bluetooth_enabled_for_inserted_card();
+        if (bluetooth_enable_return == RETURN_OK)
+        {
+            logic_gui_enable_bluetooth();
+        } 
+        else if (bluetooth_enable_return == RETURN_NOK)
+        {
+            logic_gui_disable_bluetooth();
+        }
+        
         /* Call valid card detection function */
         valid_card_det_return_te temp_return = logic_smartcard_valid_card_unlock(TRUE, FALSE);
         
         /* This a valid user smart card, we call a dedicated function for the user to unlock the card */
         if (temp_return == RETURN_VCARD_OK)
-        {
-            /* Enable / disable bluetooth depending on user preference */
-            if ((logic_user_get_user_security_flags() & USER_SEC_FLG_BLE_ENABLED) == 0)
-            {
-                logic_gui_disable_bluetooth();
-            }
-            else
-            {
-                logic_gui_enable_bluetooth();
-            }
-            
+        {            
             /* Unlock service feature if enabled */
             logic_user_get_and_clear_user_to_be_logged_off_flag();
             logic_user_unlocked_feature_trigger();

@@ -432,6 +432,7 @@ void nodemgmt_get_category_string(uint16_t category_id, cust_char_t* string_pt);
 void nodemgmt_set_category_string(uint16_t category_id, cust_char_t* string_pt);
 uint16_t nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day);
 uint16_t nodemgmt_get_starting_parent_addr(uint16_t credential_type_id);
+uint16_t nodemgmt_get_sec_preference_for_user_id(uint16_t userIdNum);
 void nodemgmt_store_user_sec_preferences(uint16_t sec_preferences);
 void nodemgmt_check_address_validity_and_lock(uint16_t node_addr);
 void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags);

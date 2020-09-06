@@ -265,7 +265,7 @@ void inputs_scan(void)
         #endif
         
         /* Check that detection wasn't set to invalid */
-        if (inputs_wheel_click_return != RETURN_INVALID)
+        if (inputs_wheel_click_return != RETURN_INV_DET)
         {
             /* Was previously 50, decreased to 5 as we have hardware debouncing */
             if ((inputs_wheel_click_counter == 5) && (inputs_wheel_click_return != RETURN_JRELEASED))
@@ -361,7 +361,7 @@ det_ret_type_te inputs_is_wheel_clicked(void)
     // This copy is an atomic operation
     volatile det_ret_type_te return_val = inputs_wheel_click_return;
 
-    if ((return_val != RETURN_DET) && (return_val != RETURN_REL) && (return_val != RETURN_INVALID))
+    if ((return_val != RETURN_DET) && (return_val != RETURN_REL) && (return_val != RETURN_INV_DET))
     {
         logic_device_activity_detected();
         cpu_irq_enter_critical();
@@ -390,7 +390,7 @@ void inputs_clear_detections(void)
     inputs_wheel_increment_armed_down = FALSE;
     inputs_wheel_increment_armed_up = FALSE;
     #endif
-    inputs_wheel_click_return = RETURN_INVALID;
+    inputs_wheel_click_return = RETURN_INV_DET;
     inputs_wheel_click_duration_counter = 0;
     inputs_discard_release_event = FALSE;
     inputs_wheel_cur_increment = 0;
@@ -426,7 +426,7 @@ wheel_action_ret_te inputs_get_wheel_action(BOOL wait_for_action, BOOL ignore_in
         }
         
         // Check for invalid state
-        if (inputs_wheel_click_return == RETURN_INVALID)
+        if (inputs_wheel_click_return == RETURN_INV_DET)
         {
             return WHEEL_ACTION_NONE;
         }
