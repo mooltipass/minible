@@ -256,6 +256,20 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             return;
         }
         
+        case HID_CMD_IM_LOCKED:
+        {
+            /* Inform that computer is locked */
+            logic_user_inform_computer_locked_state(is_message_from_usb, TRUE);
+            return;
+        }
+        
+        case HID_CMD_IM_UNLOCKED:
+        {
+            /* Inform that computer is unlocked */
+            logic_user_inform_computer_locked_state(is_message_from_usb, FALSE);
+            return;
+        }
+        
         case HID_CMD_ID_PLAT_INFO:
         {
             aux_mcu_message_t* temp_rx_message;

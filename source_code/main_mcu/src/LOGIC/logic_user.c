@@ -57,9 +57,43 @@ uint8_t logic_user_getting_data_ctr_value[MEMBER_SIZE(parent_data_node_t, startD
 BOOL logic_user_getting_data_from_service_prev_gen_flag = FALSE;
 BOOL logic_user_getting_data_from_service_from_usb = FALSE;
 BOOL logic_user_getting_data_from_service = FALSE;
+// Variable to know if the user computer is unlocked
+BOOL logic_user_usb_computer_unlocked = FALSE;
+BOOL logic_user_ble_computer_unlocked = FALSE;
 // User security preferences
 uint16_t logic_user_cur_sec_preferences;
 
+
+/*! \fn     logic_user_inform_computer_locked_state(BOOL usb_interface, BOOL locked)
+*   \brief  Inform our logic that a given computer got locked/unlocked
+*   \param  usb_interface   To inform about the computer connected through USB
+*   \param  locked          If the computer is locked or not
+*/
+void logic_user_inform_computer_locked_state(BOOL usb_interface, BOOL locked)
+{
+    if (usb_interface == FALSE)
+    {
+        if (locked == FALSE)
+        {
+            logic_user_ble_computer_unlocked = TRUE;
+        } 
+        else
+        {
+            logic_user_ble_computer_unlocked = FALSE;
+        }
+    } 
+    else
+    {
+        if (locked == FALSE)
+        {
+            logic_user_usb_computer_unlocked = TRUE;
+        }
+        else
+        {
+            logic_user_usb_computer_unlocked = FALSE;
+        }
+    }
+}
 
 /*! \fn     logic_user_init_context(uint8_t user_id)
 *   \brief  Initialize our user context
@@ -1796,6 +1830,28 @@ void logic_user_unlocked_feature_trigger(void)
     /* See if the lock / unlock feature is enabled, type password if so */    
     if ((parent_address != NODE_ADDR_NULL) && ((lock_unlock_feature_uint & LF_EN_MASK) != 0) && ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) || (logic_aux_mcu_is_usb_enumerated() != FALSE)))
     {
+        BOOL computer_locked = TRUE;
+        
+        /* If only connected to one interface and computer is unlocked, clear bool */
+        if ((logic_aux_mcu_is_usb_enumerated() != FALSE) && (logic_bluetooth_get_state() == BT_STATE_CONNECTED))
+        {
+        }
+        else if ((logic_aux_mcu_is_usb_enumerated() != FALSE) && (logic_user_usb_computer_unlocked != FALSE))
+        {
+            computer_locked = FALSE;
+        }
+        else if ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) && (logic_user_ble_computer_unlocked != FALSE))
+        {
+            computer_locked = FALSE;
+        }
+        
+        /* Computer already unlocked? */
+        if (computer_locked == FALSE)
+        {
+            return;
+        }
+        
+        /* enable unlock / lock shortcuts */
         logic_user_lock_unlock_shortcuts = TRUE;
         
         /* See how many credentials there are for this service */

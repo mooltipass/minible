@@ -704,6 +704,9 @@ int main(void)
             /* USB connection timeout */
             if (logic_device_get_and_clear_usb_timeout_detected() != FALSE)
             {
+                /* Assume the usb connected computer comes locked */
+                logic_user_inform_computer_locked_state(TRUE, TRUE);
+                
                 /* Lock device */
                 if (logic_security_is_smc_inserted_unlocked() != FALSE)
                 {

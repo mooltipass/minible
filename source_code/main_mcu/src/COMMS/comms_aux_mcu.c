@@ -414,6 +414,7 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
         }
         case AUX_MCU_EVENT_USB_DETACHED:
         {
+            logic_user_inform_computer_locked_state(TRUE, TRUE);            
             if (logic_power_get_power_source() == TRANSITIONING_TO_BATTERY_POWER)
             {
                 logic_power_set_power_source(BATTERY_POWERED);
@@ -447,6 +448,7 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
                 logic_user_set_user_to_be_logged_off_flag();
             }
             
+            logic_user_inform_computer_locked_state(FALSE, TRUE);
             logic_bluetooth_set_connected_state(FALSE);
             break;
         }

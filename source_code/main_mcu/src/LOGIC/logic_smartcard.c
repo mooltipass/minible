@@ -87,7 +87,7 @@ void logic_smartcard_handle_removed(void)
 *   \return RETURN_OK if user is authenticated
 */
 RET_TYPE logic_smartcard_handle_inserted(void)
- {
+{
     // Low level routine: see what kind of card we're dealing with
     mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();
     // By default, return to invalid screen
