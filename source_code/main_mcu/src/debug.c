@@ -556,7 +556,7 @@ void debug_battery_recondition(void)
     sh1122_put_error_string(&plat_oled_descriptor, u"Topping up battery...");
     
     /* Actually start charging */
-    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
+    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHG_SLW_STRT);
     logic_power_set_battery_charging_bool(TRUE, FALSE);
     
     /* Wait for end of charge */

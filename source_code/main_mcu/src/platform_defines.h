@@ -121,6 +121,7 @@
         - enable / disable bluetooth before PIN prompt
         - device tutorial: only go to next step if correct action performed
         - different charge algorithm when the the battery is at low voltage
+        - device remembers battery voltage at last power off
 */
 
 /**************** SETUP DEFINES ****************/
