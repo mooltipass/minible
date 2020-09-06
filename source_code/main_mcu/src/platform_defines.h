@@ -117,7 +117,9 @@
 - v0.42:- various FIDO2 bug fixes
 - v0.43:- user language / layout reset in case of change of # of languages/layouts on the device
         - always ask device default language after firmware update
-        -
+        - unlock feature: do not prompt if computer is already unlocked (pending MC support)
+        - enable / disable bluetooth before PIN prompt
+        - 
 */
 
 /**************** SETUP DEFINES ****************/

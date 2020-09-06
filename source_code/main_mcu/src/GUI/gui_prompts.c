@@ -192,24 +192,37 @@ void gui_prompts_display_tutorial(void)
         /* Detection result */
         detection_result = inputs_get_wheel_action(FALSE, FALSE);
         
-        /* Reset timer if action detecter */
+        /* Reset timer if action detected */
         if (detection_result != WHEEL_ACTION_NONE)
         {
             timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 30000);
         }
-
-        /* Transform click up / click down to click */
-        if ((detection_result == WHEEL_ACTION_CLICK_UP) || (detection_result == WHEEL_ACTION_CLICK_DOWN))
-        {
-            detection_result = WHEEL_ACTION_SHORT_CLICK;
-        }
             
         /* Next page */
-        if ((detection_result == WHEEL_ACTION_SHORT_CLICK) || (detection_result == WHEEL_ACTION_DOWN))
+        if ((current_tutorial_page == 0) || (current_tutorial_page == 3))
         {
-            current_tutorial_page++;
-            redraw_needed = TRUE;
-        }   
+            if ((detection_result == WHEEL_ACTION_SHORT_CLICK) || (detection_result == WHEEL_ACTION_DOWN))
+            {
+                current_tutorial_page++;
+                redraw_needed = TRUE;
+            }
+        }
+        else if (current_tutorial_page == 1)
+        {
+            if (detection_result == WHEEL_ACTION_DOWN)
+            {
+                current_tutorial_page++;
+                redraw_needed = TRUE;
+            }
+        }
+        else if (current_tutorial_page == 2)
+        {
+            if (detection_result == WHEEL_ACTION_SHORT_CLICK)
+            {
+                current_tutorial_page++;
+                redraw_needed = TRUE;
+            }
+        }
             
         /* Previous page */
         if ((current_tutorial_page > 0) && ((detection_result == WHEEL_ACTION_LONG_CLICK) || (detection_result == WHEEL_ACTION_UP)))
