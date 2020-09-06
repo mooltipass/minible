@@ -129,7 +129,8 @@ void logic_power_init(void)
 void logic_power_power_down_actions(void)
 {
     volatile uint32_t nb_ms_since_charge_copy = logic_power_nb_ms_spent_since_last_full_charge;
-    custom_fs_define_nb_ms_since_last_full_charge(nb_ms_since_charge_copy);
+    uint16_t vbat_measurement_from_a_bit_ago = logic_power_last_vbat_measurements[0];
+    custom_fs_define_nb_ms_since_last_full_charge(nb_ms_since_charge_copy, vbat_measurement_from_a_bit_ago);
 }
 
 /*! \fn     logic_power_get_and_ack_new_battery_level(void)
@@ -187,7 +188,7 @@ void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_su
         cpu_irq_enter_critical();
         logic_power_nb_ms_spent_since_last_full_charge = 0;
         cpu_irq_leave_critical();
-        custom_fs_define_nb_ms_since_last_full_charge(0);
+        custom_fs_define_nb_ms_since_last_full_charge(0, UINT16_MAX);
         utils_fill_uint16_array_with_value(logic_power_last_vbat_measurements, ARRAY_SIZE(logic_power_last_vbat_measurements), BATTERY_ADC_100PCT_VOLTAGE);
     }
 }

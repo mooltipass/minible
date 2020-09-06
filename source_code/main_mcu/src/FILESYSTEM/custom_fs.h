@@ -36,6 +36,7 @@ RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* addre
 RET_TYPE custom_fs_get_string_from_file(uint32_t string_id, cust_char_t** string_pt, BOOL lock_on_fail);
 ret_type_te custom_fs_get_keyboard_descriptor_string(uint8_t keyboard_id, cust_char_t* string_pt);
 RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size);
+void custom_fs_define_nb_ms_since_last_full_charge(uint32_t nb_ms, uint16_t vbat_measurement);
 ret_type_te custom_fs_get_language_description(uint8_t language_id, cust_char_t* string_pt);
 void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
 void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
@@ -50,9 +51,9 @@ void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id);
 RET_TYPE custom_fs_get_user_id_for_cpz(uint8_t* cpz, uint8_t* user_id);
 void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc);
 uint8_t custom_fs_get_recommended_layout_for_current_language(void);
+uint16_t custom_fs_get_last_vbat_measurement_before_poweroff(void);
 BOOL custom_fs_get_device_flag_value(custom_fs_flag_id_te flag_id);
 uint8_t custom_fs_settings_get_device_setting(uint16_t setting_id);
-void custom_fs_define_nb_ms_since_last_full_charge(uint32_t nb_ms);
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void);
 ret_type_te custom_fs_set_current_language(uint8_t language_id);
 void custom_fs_set_device_default_language(uint8_t language_id);

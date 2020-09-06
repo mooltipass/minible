@@ -109,6 +109,7 @@ void main_platform_init(void)
     RET_TYPE bundle_integrity_check_return = RETURN_NOK;
     RET_TYPE custom_fs_init_return = RETURN_NOK;
     RET_TYPE dataflash_init_return = RETURN_NOK;
+    BOOL poweredoff_due_to_battery = FALSE;
     RET_TYPE fuses_ok = RETURN_NOK;
     
     /* Low level port initializations for power supplies */
@@ -127,6 +128,7 @@ void main_platform_init(void)
         }
         else
         {
+            poweredoff_due_to_battery = TRUE;
             custom_fs_set_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID, FALSE);
         }
     }
@@ -155,6 +157,17 @@ void main_platform_init(void)
         /* Real ratio is 3300 / 3188 */
         battery_voltage = (battery_voltage*265) >> 8;
         logic_power_register_vbat_adc_measurement((uint16_t)battery_voltage);
+    }
+    
+    /* Override previous measurement from the one before switched off (if valid) or if we were switched off due to out of battery */
+    uint16_t vbat_measurement_before_power_off = custom_fs_get_last_vbat_measurement_before_poweroff();
+    if (poweredoff_due_to_battery != FALSE)
+    {
+        logic_power_register_vbat_adc_measurement(0);
+    }
+    else if (vbat_measurement_before_power_off != UINT16_MAX)
+    {
+        logic_power_register_vbat_adc_measurement(vbat_measurement_before_power_off);
     }
     
     /* Check fuses, program them if incorrectly set */

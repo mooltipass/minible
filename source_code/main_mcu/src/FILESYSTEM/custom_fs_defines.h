@@ -126,7 +126,8 @@ typedef struct
     uint8_t device_settings[NB_DEVICE_SETTINGS];
     uint32_t nb_ms_since_last_full_charge;
     uint32_t nb_settings_last_covered;
-    uint8_t reserved[174];
+    uint16_t last_seen_vbat_mes;
+    uint8_t reserved[172];
     uint8_t dbg_bluetooth_addr[6];
     uint32_t start_upgrade_flag;
 } custom_platform_settings_t;

@@ -976,15 +976,17 @@ BOOL custom_fs_get_device_flag_value(custom_fs_flag_id_te flag_id)
     return FALSE;
 }
 
-/*! \fn     custom_fs_define_nb_ms_since_last_full_charge(uint32_t nb_ms)
-*   \brief  Store the number of ms since last full charge
-*   \param  nb_ms   Number of ms
+/*! \fn     custom_fs_define_nb_ms_since_last_full_charge(uint32_t nb_ms, uint16_t vbat_measurement)
+*   \brief  Store the number of ms since last full charge, and the current vbat measurement
+*   \param  nb_ms               Number of ms
+*   \param  vbat_measurement    Current vbat measurement
 */
-void custom_fs_define_nb_ms_since_last_full_charge(uint32_t nb_ms)
+void custom_fs_define_nb_ms_since_last_full_charge(uint32_t nb_ms, uint16_t vbat_measurement)
 {
     volatile custom_platform_settings_t temp_settings;
     custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
     temp_settings.nb_ms_since_last_full_charge = nb_ms;
+    temp_settings.last_seen_vbat_mes = vbat_measurement;
     custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
     return;    
 }
@@ -1003,6 +1005,22 @@ uint32_t custom_fs_get_nb_ms_since_last_full_charge(void)
     {
         return 0;
     }
+}
+
+/*! \fn     custom_fs_get_last_vbat_measurement_before_poweroff(void)
+*   \brief  Get the last vbat measurement before off
+*   \return Last vbat measurement or 0xFFFF if issue
+*/
+uint16_t custom_fs_get_last_vbat_measurement_before_poweroff(void)
+{
+    if (custom_fs_platform_settings_p != 0)
+    {
+        return custom_fs_platform_settings_p->last_seen_vbat_mes;
+    }
+    else
+    {
+        return 0xFFFF;
+    }    
 }
 
 /*! \fn     custom_fs_settings_check_fw_upgrade_flag(void)
