@@ -260,6 +260,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         {
             /* Inform that computer is locked */
             logic_user_inform_computer_locked_state(is_message_from_usb, TRUE);
+            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
             return;
         }
         
@@ -267,6 +268,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         {
             /* Inform that computer is unlocked */
             logic_user_inform_computer_locked_state(is_message_from_usb, FALSE);
+            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
             return;
         }
         
