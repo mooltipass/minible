@@ -199,6 +199,7 @@ void main_platform_init(void)
     platform_io_init_ports();
     comms_aux_arm_rx_and_clear_no_comms();
     platform_io_init_bat_adc_measurements();
+    logic_device_set_wakeup_reason(WAKEUP_REASON_BOOT);
     
     /* Initialize OLED screen */
     if (platform_io_is_usb_3v3_present_raw() == FALSE)
@@ -379,7 +380,7 @@ void main_platform_init(void)
 
     /* Actions for first user device boot */
     #ifdef DEVELOPER_FEATURES_ENABLED
-    if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) && (mcu_sp_rh_addresses[1] != 0x0201))
+    if (((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) || (custom_fs_get_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID) != FALSE)) && (mcu_sp_rh_addresses[1] != 0x0201))
     #else
     if ((custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE) || (custom_fs_get_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID) != FALSE))
     #endif
@@ -430,7 +431,7 @@ void main_platform_init(void)
         }   
         
         /* Disable tutorial */
-        //custom_fs_set_settings_value(SETTINGS_DEVICE_TUTORIAL, FALSE);     
+        custom_fs_set_settings_value(SETTINGS_DEVICE_TUTORIAL, FALSE);     
     }
     #endif
     

@@ -411,6 +411,12 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_USB_DETACHED, message);
                 break;
             }
+            case MAIN_MCU_COMMAND_NIMH_CHG_SLW_STRT:
+            {
+                /* Charge NiMH battery */
+                logic_battery_start_charging(NIMH_SLOWSTART_45C_CHARGING);
+                break;                
+            }
             case MAIN_MCU_COMMAND_NIMH_CHARGE:
             {
                 /* Charge NiMH battery */

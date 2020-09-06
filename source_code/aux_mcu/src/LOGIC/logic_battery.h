@@ -11,8 +11,8 @@
 
 /* Enums */
 typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7, LB_PEAK_TIMER_TRIGGERED = 8} lb_state_machine_te;
+typedef enum    {NIMH_12C_CHARGING = 0, NIMH_23C_CHARGING, NIMH_45C_CHARGING, NIMH_SLOWSTART_45C_CHARGING} lb_nimh_charge_scheme_te;
 typedef enum    {BAT_ACT_NONE = 0, BAT_ACT_NEW_BAT_LEVEL, BAT_ACT_CHARGE_FAIL, BAT_ACT_CHARGE_DONE} battery_action_te;
-typedef enum    {NIMH_12C_CHARGING = 0, NIMH_23C_CHARGING, NIMH_45C_CHARGING} lb_nimh_charge_scheme_te;
     
 /* Defines */
 

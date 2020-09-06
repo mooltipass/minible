@@ -405,7 +405,14 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         cpu_irq_leave_critical();
         
         /* Send message to start charging */
-        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
+        if (logic_power_get_battery_state() <= BATTERY_25PCT)
+        {
+            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHG_SLW_STRT);            
+        } 
+        else
+        {
+            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
+        }
         logic_power_battery_charging = TRUE;
     }
     

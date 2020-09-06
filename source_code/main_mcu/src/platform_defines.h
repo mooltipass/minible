@@ -119,7 +119,8 @@
         - always ask device default language after firmware update
         - unlock feature: do not prompt if computer is already unlocked (pending MC support)
         - enable / disable bluetooth before PIN prompt
-        - 
+        - device tutorial: only go to next step if correct action performed
+        - different charge algorithm when the the battery is at low voltage
 */
 
 /**************** SETUP DEFINES ****************/
@@ -155,7 +156,7 @@
  * => Kickstarter mass production setup
  * - exactly like PLAT_V6_SETUP, but with a different transistor for faster card communications
  */
- #define PLAT_V6_SETUP 
+ #define PLAT_V5_SETUP 
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)

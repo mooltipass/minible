@@ -14,6 +14,8 @@ uint16_t logic_battery_battery_level_mapping[11] = {BATTERY_ADC_OUT_CUTOUT, BATT
 uint16_t logic_battery_current_battery_level = 0;
 /* Current charging type / speed */
 lb_nimh_charge_scheme_te logic_battery_charging_type = NIMH_12C_CHARGING;
+/* Counter when wanting to keep battery charge to a low current */
+uint32_t logic_battery_low_charge_current_counter = 0;
 /* Current state machine */
 lb_state_machine_te logic_battery_state = LB_IDLE;
 /* Current voltage set for charging */
@@ -150,6 +152,7 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
     timer_start_timer(TIMER_BATTERY_TICK, LOGIC_BATTERY_START_CHARGE_DELAY);
 
     /* Reset vars */
+    logic_battery_low_charge_current_counter = 0;
     logic_battery_nb_secs_since_peak = 0;
     logic_battery_peak_voltage = 0;
 }
@@ -243,8 +246,16 @@ battery_action_te logic_battery_task(void)
                     /* Is enough current flowing into the battery? */
                     if ((high_voltage - low_voltage) > LOGIC_BATTERY_CUR_FOR_ST_RAMP_END)
                     {
-                        /* Change state machine */
-                        logic_battery_state = LB_CHARGING_REACH;
+                        /* Keep in low current charge if instructed to */
+                        if ((logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING) && (logic_battery_low_charge_current_counter++ <= (10*60*1000)/LOGIC_BATTERY_CUR_REACH_TICK))
+                        {
+                            /* Do nothing... */
+                        }
+                        else
+                        {
+                            /* Change state machine */
+                            logic_battery_state = LB_CHARGING_REACH;                            
+                        }                        
                         
                         /* Arm decision timer */
                         timer_start_timer(TIMER_BATTERY_TICK, LOGIC_BATTERY_CUR_REACH_TICK);
