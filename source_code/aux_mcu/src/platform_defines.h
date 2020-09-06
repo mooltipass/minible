@@ -64,6 +64,7 @@
 - v0.35:- various FIDO2 bug fixes
         - chromebook bug fix: do not send message over proprietary hid if we didn't receive anything from it...
 - v0.36:- potential usb freeze bug fix
+        - different charge algorithm when the the battery is at low voltage
 */
 
 /**************** SETUP DEFINES ****************/

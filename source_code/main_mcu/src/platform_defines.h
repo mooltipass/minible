@@ -156,7 +156,7 @@
  * => Kickstarter mass production setup
  * - exactly like PLAT_V6_SETUP, but with a different transistor for faster card communications
  */
- #define PLAT_V5_SETUP 
+ #define PLAT_V6_SETUP 
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)
@@ -259,7 +259,7 @@ typedef struct
 #define EMULATOR_SCREEN_TIMEOUT_MS  60000
 #define SCREEN_TIMEOUT_MS           15000
 #define SCREEN_TIMEOUT_MS_BAT_PWRD  7654
-#define AUX_FLOOD_TIMEOUT_MS        2
+#define AUX_FLOOD_TIMEOUT_MS        3
 #define SLEEP_AFTER_AUX_WAKEUP_MS   1234
 
 /********************/

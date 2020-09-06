@@ -247,7 +247,7 @@ battery_action_te logic_battery_task(void)
                     if ((high_voltage - low_voltage) > LOGIC_BATTERY_CUR_FOR_ST_RAMP_END)
                     {
                         /* Keep in low current charge if instructed to */
-                        if ((logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING) && (logic_battery_low_charge_current_counter++ <= (10*60*1000)/LOGIC_BATTERY_CUR_REACH_TICK))
+                        if ((logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING) && (logic_battery_low_charge_current_counter++ <= (LOGIC_BATTERY_NB_MIN_SLOW_START*60*1000)/LOGIC_BATTERY_CUR_REACH_TICK))
                         {
                             /* Do nothing... */
                         }
@@ -311,6 +311,10 @@ battery_action_te logic_battery_task(void)
                     else if (logic_battery_charging_type == NIMH_45C_CHARGING)
                     {
                         voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_45C;
+                    }
+                    else if (logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING)
+                    {
+                        voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_45C;                        
                     }
                     
                     /* Is enough current flowing into the battery? */
@@ -396,6 +400,10 @@ battery_action_te logic_battery_task(void)
                     else if (logic_battery_charging_type == NIMH_45C_CHARGING)
                     {
                         voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_45C;
+                    }
+                    else if (logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING)
+                    {
+                        voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_45C;                        
                     }
                     
                     /* Sanity checks on measured voltages (due to slow interrupt) */
