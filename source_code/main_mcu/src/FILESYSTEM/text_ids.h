@@ -75,7 +75,7 @@
 #define PIN_CHANGED_TEXT_ID             64
 #define PIN_NOT_CHANGED_TEXT_ID         65
 #define ENTER_NEW_PIN_TEXT_ID           66
-//////////////////////////////////////////
+#define CONTACT_SUPPORT_002_TEXT_ID     67
 #define CARD_NOT_BLANK_TEXT_ID          68
 #define INSERT_NEW_CARD_TEXT_ID         69
 #define CARD_CLONED_TEXT_ID             70
@@ -123,5 +123,6 @@
 #define TUTORIAL_FLINE_TEXT_ID          116
 ///////////////////////////////////////////
 #define TUTORIAL_LLINE_TEXT_ID          127
+#define CONTACT_SUPPORT_003_TEXT_ID     128
 
 #endif

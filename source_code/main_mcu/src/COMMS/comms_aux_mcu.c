@@ -200,8 +200,6 @@ void comms_aux_mcu_send_simple_command_message(uint16_t command)
     comms_aux_mcu_send_message(temp_send_message_pt);
 }
 
-//void comms_
-
 /*! \fn     comms_aux_mcu_update_device_status_buffer(void)
 *   \brief  Update the device status buffer on the aux MCU
 */
@@ -265,6 +263,47 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
     comms_aux_arm_rx_and_clear_no_comms();
 
     return return_val;
+}
+
+/*! \fn     comms_aux_mcu_get_aux_status(void)
+*   \brief  Request the aux MCU for its status, check if it's alive
+*   \return Different status (see enum)
+*/
+aux_status_return_te comms_aux_mcu_get_aux_status(void)
+{
+    aux_mcu_message_t* temp_rx_message_pt;
+    aux_status_return_te ret_val;
+
+    /* Send get status message */
+    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_GET_STATUS);
+
+    /* Wait for answer: no need to parse answer as filter is done in comms_aux_mcu_active_wait */
+    if (comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVEN_HERES_MY_STATUS) == RETURN_NOK)
+    {
+        return RETURN_AUX_STAT_TIMEOUT;
+    }
+    
+    /* Check if BLE is enabled */
+    if (temp_rx_message_pt->aux_mcu_event_message.payload[0] != FALSE)
+    {
+        if (temp_rx_message_pt->aux_mcu_event_message.payload[1] != FALSE)
+        {
+            ret_val = RETURN_AUX_STAT_OK;
+        }
+        else
+        {
+            ret_val = RETURN_AUX_STAT_BLE_ISSUE;
+        }
+    }
+    else
+    {
+        ret_val = RETURN_AUX_STAT_OK_WITH_BLE;
+    }
+
+    /* Rearm receive */
+    comms_aux_arm_rx_and_clear_no_comms();
+
+    return ret_val;
 }
 
 /*! \fn     comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* received_message, msg_restrict_type_te answer_restrict_type)
@@ -883,12 +922,6 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
         if (dma_check_return == FALSE)
         {
             return RETURN_NOK;
-        }
-        
-        /* No expiration, rearm timer! */
-        if (single_try == FALSE)
-        {
-            timer_start_timer(TIMER_TIMEOUT_FUNCTS, AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS);
         }
 
         /* Get payload length */

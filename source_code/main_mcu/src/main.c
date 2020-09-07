@@ -380,7 +380,7 @@ void main_platform_init(void)
         }
     } 
     
-    /* Set settings that may not have been set to an initial value */
+    /* Set settings that may not have been set to an initial value (after going into the bootloader for example) */
     custom_fs_set_undefined_settings();
     
     /* Apply possible screen inversion */
@@ -436,10 +436,10 @@ void main_platform_init(void)
         {
             if (platform_io_is_usb_3v3_present_raw() != FALSE)
             {
-                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
+                /*comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
                 timer_delay_ms(2000);
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
-                logic_power_usb_enumerate_just_sent();
+                logic_power_usb_enumerate_just_sent();*/
             }
         }   
         
@@ -448,11 +448,14 @@ void main_platform_init(void)
     }
     #endif
     
-    /* If the device went through the bootloader: re-initialize device settings and clear bool */
+    /* Clear went through bootloader flag */
     if (custom_fs_get_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID) != FALSE)
     {
         custom_fs_set_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID, FALSE);
     }
+    
+    /* Arm aux MCU ping timer */
+    timer_start_timer(TIMER_AUX_MCU_PING, NB_MS_AUX_MCU_PING);
 }
 
 /*! \fn     main_reboot(void)
@@ -693,6 +696,28 @@ int main(void)
         /* Do not do anything if we're uploading new graphics contents */
         if (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE)
         {
+            /* Aux MCU ping */
+            if (timer_has_timer_expired(TIMER_AUX_MCU_PING, TRUE) == TIMER_EXPIRED)
+            {
+                /* Ping the aux */
+                aux_status_return_te get_status_return = comms_aux_mcu_get_aux_status();
+                
+                /* Check result */
+                if (get_status_return == RETURN_AUX_STAT_TIMEOUT)
+                {
+                    gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_002_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                    gui_dispatcher_get_back_to_current_screen();
+                }
+                else if (get_status_return == RETURN_AUX_STAT_BLE_ISSUE)
+                {
+                    gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_003_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                    gui_dispatcher_get_back_to_current_screen();
+                }
+                
+                /* Rearm aux MCU ping timer */
+                timer_start_timer(TIMER_AUX_MCU_PING, NB_MS_AUX_MCU_PING);
+            }
+            
             /* Do appropriate actions on smartcard insertion / removal */
             if (card_detection_res == RETURN_JDETECT)
             {

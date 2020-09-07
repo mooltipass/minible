@@ -435,6 +435,32 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 logic_bluetooth_set_battery_level(message->main_mcu_command_message.payload[0]);
                 break;
             }
+            case MAIN_MCU_COMMAND_GET_STATUS:
+            {
+                /* Status request */
+                memset((void*)message, 0x00, sizeof(aux_mcu_message_t));
+                message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+                message->aux_mcu_event_message.event_id = AUX_MCU_EVEN_HERES_MY_STATUS;
+                message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id) + sizeof(uint8_t) + sizeof(uint8_t);
+                
+                /* Update BLE status payload */
+                if (logic_is_ble_enabled() != FALSE)
+                {
+                    /* Inform BLE is enabled */
+                    message->payload[0] = TRUE;
+                    
+                    /* Try to get fw version */
+                    uint32_t blusdk_fw_ver;
+                    if(at_ble_firmware_version_get(&blusdk_fw_ver) == AT_BLE_SUCCESS)
+                    {
+                        /* Inform BLE seems to be operational */
+                        message->payload[1] = TRUE;
+                    }
+                }
+                
+                /* Send message */
+                comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
+            }
             case MAIN_MCU_COMMAND_NO_COMMS_UNAV:
             {
                 /* No comms signal unavailable */

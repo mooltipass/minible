@@ -493,6 +493,9 @@ typedef struct
 /* Reboot timer */
 #define NB_MS_WHEEL_PRESS_FOR_REBOOT    10000
 
+/* AUX MCU ping */
+#define NB_MS_AUX_MCU_PING          3000
+
 /* PORT defines */
 /* WHEEL ENCODER */
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
