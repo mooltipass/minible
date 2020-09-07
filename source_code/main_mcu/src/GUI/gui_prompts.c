@@ -589,6 +589,37 @@ void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
     }
 }
 
+/*! \fn     gui_prompts_get_char_to_display(uint8_t const * current_pin, uint8_t index)
+*   \brief  Get the next PIN value to display or '*' if PIN should be hidden.
+*           Called whenever a non selected PIN digit needs to be displayed.
+*   \param  current_pin         Array containing the pin
+*   \param  index               Index into current_pin array
+*   \return Character to display
+*/
+static cust_char_t gui_prompts_get_char_to_display(uint8_t const * current_pin, uint8_t index)
+{
+    cust_char_t disp_char;
+
+    if ((BOOL)custom_fs_settings_get_device_setting(SETTING_SHOW_PIN_ON_ENTRY) != FALSE)
+    {
+        if (current_pin[index] >= 0x0A)
+        {
+            disp_char = current_pin[index] + u'A' - 0x0A;
+        }
+        else
+        {
+            disp_char = current_pin[index] + u'0';
+        }
+    }
+    else
+    {
+        // Display '*'
+        disp_char = u'*';
+    }
+
+    return disp_char;
+}
+
 /*! \fn     gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t anim_direction, int16_t vert_anim_direction, int16_t hor_anim_direction, BOOL six_digit_prompt)
 *   \brief  Overwrite the digits on the current pin entering screen
 *   \param  current_pin         Array containing the pin
@@ -703,7 +734,8 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
         {
             for (uint16_t i = 0; i < nb_of_digits; i++)
             {
-                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_ASTX_Y_INC, u'*', TRUE);
+                cust_char_t disp_char = gui_prompts_get_char_to_display(current_pin, i);
+                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_ASTX_Y_INC, disp_char, TRUE);
             }
         } 
         else
@@ -756,8 +788,8 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
             {
                 if (six_digit_prompt == FALSE)
                 {
-                    /* Display '*' */
-                    sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_ASTX_Y_INC, u'*', TRUE);
+                    cust_char_t disp_char = gui_prompts_get_char_to_display(current_pin, i);
+                    sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_ASTX_Y_INC, disp_char, TRUE);
                 } 
                 else
                 {
