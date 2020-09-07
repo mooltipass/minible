@@ -690,10 +690,19 @@ void platform_io_init_ble_ports_for_disabled(void)
 */
 void platform_io_init_usb_ports(void)
 {
-    PORT->Group[USB_DM_GROUP].PINCFG[USB_DM_PINID].bit.PMUXEN = 1;
     PORT->Group[USB_DM_GROUP].PMUX[USB_DM_PINID/2].bit.USB_DM_PMUXREGID = USB_DM_PMUX_ID;
-    PORT->Group[USB_DP_GROUP].PINCFG[USB_DP_PINID].bit.PMUXEN = 1;
-    PORT->Group[USB_DP_GROUP].PMUX[USB_DP_PINID/2].bit.USB_DP_PMUXREGID = USB_DP_PMUX_ID;    
+    PORT->Group[USB_DM_GROUP].PINCFG[USB_DM_PINID].bit.PMUXEN = 1;
+    PORT->Group[USB_DP_GROUP].PMUX[USB_DP_PINID/2].bit.USB_DP_PMUXREGID = USB_DP_PMUX_ID;
+    PORT->Group[USB_DP_GROUP].PINCFG[USB_DP_PINID].bit.PMUXEN = 1;  
+}
+
+/*! \fn     platform_io_disable_usb_ports(void)
+*   \brief  Disable the platform USB ports
+*/
+void platform_io_disable_usb_ports(void)
+{
+    PORT->Group[USB_DM_GROUP].PINCFG[USB_DM_PINID].bit.PMUXEN = 0;
+    PORT->Group[USB_DP_GROUP].PINCFG[USB_DP_PINID].bit.PMUXEN = 0; 
 }
 
 /*! \fn     platform_io_init_ports(void)
@@ -705,7 +714,7 @@ void platform_io_init_ports(void)
     platform_io_init_aux_comms();
     
     /* USB comms */
-    platform_io_init_usb_ports();
+    //platform_io_init_usb_ports();
     
     /* NiMH charging ports */
     platform_io_enable_battery_charging_ports();

@@ -124,5 +124,6 @@
 ///////////////////////////////////////////
 #define TUTORIAL_LLINE_TEXT_ID          127
 #define CONTACT_SUPPORT_003_TEXT_ID     128
+#define CONTACT_SUPPORT_004_TEXT_ID     128
 
 #endif

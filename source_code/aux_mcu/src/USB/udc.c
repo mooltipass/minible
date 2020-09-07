@@ -33,6 +33,7 @@
 #include "udc.h"
 #include "usb.h"
 #include "usb_utils.h"
+#include "platform_io.h"
 #include "comms_raw_hid.h"
 #include "usb_descriptors.h"
 #include "platform_defines.h"
@@ -134,7 +135,7 @@ void udc_init(void)
   USB->DEVICE.CTRLA.bit.MODE = USB_CTRLA_MODE_DEVICE_Val;
   USB->DEVICE.CTRLA.bit.RUNSTDBY = 1;
   USB->DEVICE.CTRLB.bit.SPDCONF = USB_DEVICE_CTRLB_SPDCONF_FS_Val;
-  //USB->DEVICE.CTRLB.bit.DETACH = 0;
+  USB->DEVICE.CTRLB.bit.DETACH = 1;
 
   USB->DEVICE.INTENSET.reg = USB_DEVICE_INTENSET_EORST;
   USB->DEVICE.DeviceEndpoint[0].EPINTENSET.bit.RXSTP = 1;
@@ -153,6 +154,7 @@ void udc_init(void)
 //-----------------------------------------------------------------------------
 void udc_attach(void)
 {
+    platform_io_init_usb_ports();
   USB->DEVICE.CTRLB.bit.DETACH = 0;
   udc_usb_attached = TRUE;
 }
@@ -160,6 +162,7 @@ void udc_attach(void)
 //-----------------------------------------------------------------------------
 void udc_detach(void)
 {
+    platform_io_disable_usb_ports();
   USB->DEVICE.CTRLB.bit.DETACH = 1;
   udc_usb_attached = FALSE;
   usb_reset_config();

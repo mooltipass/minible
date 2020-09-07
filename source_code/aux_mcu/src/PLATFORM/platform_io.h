@@ -7,6 +7,8 @@
 #ifndef PLATFORM_IO_H_
 #define PLATFORM_IO_H_
 
+#include "defines.h"
+
 /* Prototypes */
 uint32_t platform_io_get_cursense_conversion_result(BOOL trigger_conversion);
 BOOL platform_io_is_current_sense_conversion_result_ready(void);
@@ -41,6 +43,7 @@ void platform_io_enable_main_comms(void);
 void platform_io_disable_step_down(void);
 void platform_io_assert_ble_wakeup(void);
 void platform_io_enable_debug_uart(void);
+void platform_io_disable_usb_ports(void);
 void platform_io_reset_ble_uarts(void);
 void platform_io_disable_ble_int(void);
 void platform_io_enable_ble_int(void);

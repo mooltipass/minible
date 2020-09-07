@@ -713,6 +713,11 @@ int main(void)
                     gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_003_TEXT_ID, DISP_MSG_WARNING, FALSE);
                     gui_dispatcher_get_back_to_current_screen();
                 }
+                else if (get_status_return == RETURN_AUX_STAT_INV_MAIN_MSG)
+                {
+                    gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_004_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                    gui_dispatcher_get_back_to_current_screen();
+                }
                 
                 /* Rearm aux MCU ping timer */
                 timer_start_timer(TIMER_AUX_MCU_PING, NB_MS_AUX_MCU_PING);

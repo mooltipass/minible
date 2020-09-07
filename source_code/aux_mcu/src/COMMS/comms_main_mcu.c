@@ -36,6 +36,8 @@ volatile aux_mcu_message_t comms_main_mcu_temp_message;
 volatile BOOL comms_main_mcu_usb_msg_answered_using_first_bytes = FALSE;
 volatile BOOL comms_main_mcu_ble_msg_answered_using_first_bytes = FALSE;
 volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes = FALSE;
+/* Flag set when an invalid message was received */
+BOOL comms_main_mcu_invalid_message_received_from_main = FALSE;
 
 /*! \fn     comms_main_init_rx(void)
 *   \brief  Init communications with aux MCU
@@ -342,6 +344,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             }
             default:
             {
+                comms_main_mcu_invalid_message_received_from_main = TRUE;
                 break;
             }
         }
@@ -441,7 +444,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 memset((void*)message, 0x00, sizeof(aux_mcu_message_t));
                 message->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
                 message->aux_mcu_event_message.event_id = AUX_MCU_EVEN_HERES_MY_STATUS;
-                message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id) + sizeof(uint8_t) + sizeof(uint8_t);
+                message->payload_length1 = sizeof(message->aux_mcu_event_message.event_id) + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint8_t);
                 
                 /* Update BLE status payload */
                 if (logic_is_ble_enabled() != FALSE)
@@ -457,6 +460,10 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                         message->payload[1] = TRUE;
                     }
                 }
+                
+                /* Incorrect message received flag */
+                message->payload[2] = comms_main_mcu_invalid_message_received_from_main;
+                comms_main_mcu_invalid_message_received_from_main = FALSE;
                 
                 /* Send message */
                 comms_main_mcu_send_message((void*)message, (uint16_t)sizeof(*message));
@@ -642,9 +649,15 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             }
             default:
             {
+                comms_main_mcu_invalid_message_received_from_main = TRUE;
                 break;
             }
         }
+    }
+    else
+    {
+        /* Unknown message */
+        comms_main_mcu_invalid_message_received_from_main = TRUE;
     }
 }
 

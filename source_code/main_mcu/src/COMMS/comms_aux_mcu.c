@@ -283,12 +283,17 @@ aux_status_return_te comms_aux_mcu_get_aux_status(void)
         return RETURN_AUX_STAT_TIMEOUT;
     }
     
-    /* Check if BLE is enabled */
-    if (temp_rx_message_pt->aux_mcu_event_message.payload[0] != FALSE)
+    /* Most important thing: incorrect received messages */
+    if (temp_rx_message_pt->aux_mcu_event_message.payload[2] != FALSE)
     {
+        ret_val = RETURN_AUX_STAT_INV_MAIN_MSG;
+    }
+    else if (temp_rx_message_pt->aux_mcu_event_message.payload[0] != FALSE)
+    {
+        /* Second priority: check if BLE is enabled */
         if (temp_rx_message_pt->aux_mcu_event_message.payload[1] != FALSE)
         {
-            ret_val = RETURN_AUX_STAT_OK;
+            ret_val = RETURN_AUX_STAT_OK_WITH_BLE;
         }
         else
         {
@@ -297,7 +302,7 @@ aux_status_return_te comms_aux_mcu_get_aux_status(void)
     }
     else
     {
-        ret_val = RETURN_AUX_STAT_OK_WITH_BLE;
+        ret_val = RETURN_AUX_STAT_OK;
     }
 
     /* Rearm receive */
