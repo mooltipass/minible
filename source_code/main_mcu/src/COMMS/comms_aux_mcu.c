@@ -55,7 +55,27 @@ BOOL aux_mcu_message_answered_using_first_bytes = FALSE;
 BOOL aux_mcu_comms_aux_mcu_routine_function_called = FALSE;
 /* Flag set to specify that the first aux mcu function call wanted to rearm rx */
 BOOL aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = FALSE;
+/* Flag set when an invalid message was received */
+BOOL aux_mcu_comms_invalid_message_received = FALSE;
 
+
+/*! \fn     comms_aux_mcu_set_invalid_message_received(void)
+*   \brief  Register that an invalid message was received
+*/
+void comms_aux_mcu_set_invalid_message_received(void)
+{
+    aux_mcu_comms_invalid_message_received = TRUE;
+}
+
+/*! \fn     comms_aux_mcu_get_and_clear_invalid_message_received(void)
+*   \brief  Get and clear the invalid message received flag
+*/
+BOOL comms_aux_mcu_get_and_clear_invalid_message_received(void)
+{
+    BOOL ret_val = aux_mcu_comms_invalid_message_received;
+    aux_mcu_comms_invalid_message_received = FALSE;
+    return ret_val;
+}
 
 /*! \fn     comms_aux_arm_rx_and_clear_no_comms(void)
 *   \brief  Init RX communications with aux MCU
@@ -431,7 +451,13 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
             comms_aux_mcu_send_message(temp_send_message_pt);
             break;
         }
-        default: break;
+        default: 
+        {
+            /* Flag invalid message */
+            comms_aux_mcu_set_invalid_message_received();
+            
+            break;
+        }            
     }    
     
     return return_val;
@@ -506,7 +532,12 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
             logic_device_set_usb_timeout_detected();
             break;
         }
-        default: break;
+        default: 
+        {
+            /* Flag invalid message */
+            comms_aux_mcu_set_invalid_message_received();
+            break;
+        }            
     }
 }
 
@@ -596,6 +627,9 @@ static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_message(fido2_message_t* rec
             }
             default:
             {
+                /* Flag invalid message */
+                comms_aux_mcu_set_invalid_message_received();
+                
                 msg_rcvd = UNKNOW_MSG_RCVD;
                 break;
             }
@@ -683,8 +717,8 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
                 /* Arm next RX DMA transfer */
                 comms_aux_arm_rx_and_clear_no_comms();
                 
-                /* Useless message, except for debugging */
-                //comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_INVALID_MSG_RCVD);
+                /* FLag invalid message */
+                comms_aux_mcu_set_invalid_message_received();
             }
         }
         else if ((aux_mcu_receive_message.payload_length1 != 0) && (nb_received_bytes_for_ongoing_transfer >= sizeof(aux_mcu_receive_message.message_type) + sizeof(aux_mcu_receive_message.payload_length1) + aux_mcu_receive_message.payload_length1))
@@ -720,8 +754,8 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         
         if ((aux_mcu_receive_message.payload_length1 == 0) && (aux_mcu_receive_message.rx_payload_valid_flag == 0))
         {
-            /* Useless message, except for debugging */
-            //comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_INVALID_MSG_RCVD);
+            /* Flag invalid message */
+            comms_aux_mcu_set_invalid_message_received();
         }
 
         /* Reset bool */
@@ -734,8 +768,8 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         /* Arm next RX DMA transfer */
         comms_aux_arm_rx_and_clear_no_comms();
         
-        /* Useless message, except for debugging */
-        //comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_INVALID_MSG_RCVD);
+        /* Flag invalid message */
+        comms_aux_mcu_set_invalid_message_received();
     }
 
     /* Return if we shouldn't deal with packet, or if payload has the incorrect size */
@@ -841,8 +875,8 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     }
     else
     {
-        /* Useless message, except for debugging */
-        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_INVALID_MSG_RCVD);
+        /* Flag invalid message */
+        comms_aux_mcu_set_invalid_message_received();
         
         msg_rcvd = UNKNOW_MSG_RCVD;
         asm("Nop");
@@ -946,6 +980,7 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
             /* Reloop, rearm receive */
             reloop = TRUE;
             dma_aux_mcu_check_and_clear_dma_transfer_flag();
+            comms_aux_mcu_set_invalid_message_received();
             comms_aux_arm_rx_and_clear_no_comms();
         }
 

@@ -696,6 +696,13 @@ int main(void)
         /* Do not do anything if we're uploading new graphics contents */
         if (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE)
         {
+            /* Comms problem */
+            if (comms_aux_mcu_get_and_clear_invalid_message_received() != FALSE)
+            {
+                gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_005_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                gui_dispatcher_get_back_to_current_screen();                
+            }
+            
             /* Aux MCU ping */
             if (timer_has_timer_expired(TIMER_AUX_MCU_PING, TRUE) == TIMER_EXPIRED)
             {

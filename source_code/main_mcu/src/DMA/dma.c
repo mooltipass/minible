@@ -394,11 +394,14 @@ BOOL dma_aux_mcu_check_dma_transfer_flag(void)
 
 /*! \fn     dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag(void)
 *   \brief  Wait for the complete reception of current AUX MCU packet
+*   \return If the reception flag was already cleared
 */
-void dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag(void)
+BOOL dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag(void)
 {
+    BOOL ret_val = dma_aux_mcu_packet_received;
     while (dma_aux_mcu_rx_transfer_to_be_rearmed == FALSE);
     dma_aux_mcu_packet_received = FALSE;
+    return !ret_val;
 }
 
 /*! \fn     dma_custom_fs_init_transfer(Sercom* sercom, void* datap, uint16_t size)

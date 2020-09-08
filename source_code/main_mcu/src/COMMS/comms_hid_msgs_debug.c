@@ -313,7 +313,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
             
             /* Wait for current packet reception and arm reception */
-            dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
+            BOOL dma_flag_already_cleared = dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
             comms_aux_arm_rx_and_clear_no_comms();
             
             /* Send message */
@@ -330,6 +330,12 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             
             /* Send message */
             comms_aux_mcu_send_message(temp_tx_message_pt);
+            
+            /* Clear flag if we need to in order to not disturbing calling's function logic */
+            if (dma_flag_already_cleared != FALSE)
+            {
+                dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
+            }
             return;
         }
         case HID_CMD_ID_GET_BATTERY_STATUS:
@@ -342,7 +348,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             logic_device_activity_detected();        
             
             /* Wait for current packet reception and arm reception */
-            dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
+            BOOL dma_flag_already_cleared = dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
             comms_aux_arm_rx_and_clear_no_comms();
             
             /* Start charging? */
@@ -425,6 +431,12 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             temp_tx_message_pt->hid_message.battery_status.aux_charge_current = temp_rx_message->nimh_charge_message.charge_current;
             temp_tx_message_pt->hid_message.battery_status.aux_stepdown_voltage = temp_rx_message->nimh_charge_message.stepdown_voltage;
             temp_tx_message_pt->hid_message.battery_status.aux_dac_register_val = temp_rx_message->nimh_charge_message.dac_data_reg;
+                
+            /* Clear flag if we need to in order to not disturbing calling's function logic */
+            if (dma_flag_already_cleared != FALSE)
+            {
+                dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
+            }
             
             /* Send message */
             comms_aux_mcu_send_message(temp_tx_message_pt);
