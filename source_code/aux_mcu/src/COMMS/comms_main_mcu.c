@@ -463,19 +463,19 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 if (logic_is_ble_enabled() != FALSE)
                 {
                     /* Inform BLE is enabled */
-                    comms_main_mcu_message_for_main_replies.payload[0] = TRUE;
+                    comms_main_mcu_message_for_main_replies.aux_mcu_event_message.payload[0] = TRUE;
                     
                     /* Try to get fw version */
                     uint32_t blusdk_fw_ver;
                     if(at_ble_firmware_version_get(&blusdk_fw_ver) == AT_BLE_SUCCESS)
                     {
                         /* Inform BLE seems to be operational */
-                        comms_main_mcu_message_for_main_replies.payload[1] = TRUE;
+                        comms_main_mcu_message_for_main_replies.aux_mcu_event_message.payload[1] = TRUE;
                     }
                 }
                 
                 /* Incorrect message received flag */
-                comms_main_mcu_message_for_main_replies.payload[2] = comms_main_mcu_invalid_message_received_from_main;
+                comms_main_mcu_message_for_main_replies.aux_mcu_event_message.payload[2] = comms_main_mcu_invalid_message_received_from_main;
                 comms_main_mcu_invalid_message_received_from_main = FALSE;
                 
                 /* Send message */
