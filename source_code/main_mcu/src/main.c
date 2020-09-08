@@ -703,6 +703,13 @@ int main(void)
                 gui_dispatcher_get_back_to_current_screen();                
             }
             
+            /* RX DMA problem */
+            if (comms_aux_mcu_get_and_clear_rx_transfer_already_armed() != FALSE)
+            {
+                gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_006_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                gui_dispatcher_get_back_to_current_screen();
+            }
+            
             /* Aux MCU ping */
             if (timer_has_timer_expired(TIMER_AUX_MCU_PING, TRUE) == TIMER_EXPIRED)
             {

@@ -37,6 +37,7 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
 aux_mcu_message_t* comms_aux_mcu_get_free_tx_message_object_pt(void);
 void comms_aux_mcu_send_message(aux_mcu_message_t* message_to_send);
 void comms_aux_mcu_send_simple_command_message(uint16_t command);
+BOOL comms_aux_mcu_get_and_clear_rx_transfer_already_armed(void);
 BOOL comms_aux_mcu_get_and_clear_invalid_message_received(void);
 void comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void);
 aux_status_return_te comms_aux_mcu_get_aux_status(void);

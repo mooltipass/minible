@@ -57,6 +57,8 @@ BOOL aux_mcu_comms_aux_mcu_routine_function_called = FALSE;
 BOOL aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = FALSE;
 /* Flag set when an invalid message was received */
 BOOL aux_mcu_comms_invalid_message_received = FALSE;
+/* Flag set when rx transfer is already armed */
+BOOL aux_mcu_comms_rx_already_armed = FALSE;
 
 
 /*! \fn     comms_aux_mcu_set_invalid_message_received(void)
@@ -74,6 +76,16 @@ BOOL comms_aux_mcu_get_and_clear_invalid_message_received(void)
 {
     BOOL ret_val = aux_mcu_comms_invalid_message_received;
     aux_mcu_comms_invalid_message_received = FALSE;
+    return ret_val;
+}
+
+/*! \fn     comms_aux_mcu_get_and_clear_rx_transfer_already_armed(void)
+*   \brief  Get and clear the rx transfer already armed flag
+*/
+BOOL comms_aux_mcu_get_and_clear_rx_transfer_already_armed(void)
+{
+    BOOL ret_val = aux_mcu_comms_rx_already_armed;
+    aux_mcu_comms_rx_already_armed = FALSE;
     return ret_val;
 }
 
