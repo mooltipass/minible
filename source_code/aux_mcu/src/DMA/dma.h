@@ -25,6 +25,7 @@ extern volatile BOOL dma_main_mcu_ble_msg_received;
 /* Prototypes */
 void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size);
 uint16_t dma_main_mcu_get_remaining_bytes_for_rx_transfer(void);
+void* dma_get_pointer_to_message_being_sent_to_main_mcu(void);
 BOOL dma_main_mcu_check_and_clear_dma_transfer_flag(void);
 void dma_wait_for_main_mcu_packet_sent(void);
 void dma_main_mcu_init_rx_transfer(void);

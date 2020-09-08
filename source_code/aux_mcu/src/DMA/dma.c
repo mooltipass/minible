@@ -38,6 +38,8 @@ volatile BOOL dma_main_mcu_other_msg_received = FALSE;
 /* MCU systick value when the main MCU message sent interrupt happened */
 volatile uint32_t dma_main_mcu_message_sent_mcu_systick_val;
 volatile uint32_t dma_main_mcu_message_sent_systick_val;
+/* Pointer to message being sent to main MCU */
+void* dma_pt_to_message_being_sent_to_main_mcu;
 
 /*! \fn     DMAC_Handler(void)
 *   \brief  Function called by interrupt when RX is done
@@ -243,6 +245,9 @@ BOOL dma_main_mcu_check_and_clear_dma_transfer_flag(void)
 */
 void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
 {
+    /* Store pointer */
+    dma_pt_to_message_being_sent_to_main_mcu = datap;
+    
     /* Wait for previous transfer to be done */
     BOOL went_through_loop_below = FALSE;
     while (dma_main_mcu_packet_sent == FALSE)
@@ -333,6 +338,14 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
     /* Re-enable IRQs */
     __DMB();
     __enable_irq();
+}
+
+/*! \fn     dma_get_pointer_to_message_being_sent_to_main_mcu(void)
+*   \brief  Get pointer to the message currently being sent to main MCU
+*/
+void* dma_get_pointer_to_message_being_sent_to_main_mcu(void)
+{
+    return dma_pt_to_message_being_sent_to_main_mcu;
 }
 
 /*! \fn     dma_main_mcu_disable_transfer(void)
