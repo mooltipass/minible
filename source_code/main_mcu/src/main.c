@@ -713,24 +713,27 @@ int main(void)
             /* Aux MCU ping */
             if (timer_has_timer_expired(TIMER_AUX_MCU_PING, TRUE) == TIMER_EXPIRED)
             {
-                /* Ping the aux */
-                aux_status_return_te get_status_return = comms_aux_mcu_get_aux_status();
-                
-                /* Check result */
-                if (get_status_return == RETURN_AUX_STAT_TIMEOUT)
+                if (comms_aux_mcu_are_comms_disabled() != FALSE)
                 {
-                    gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_002_TEXT_ID, DISP_MSG_WARNING, FALSE);
-                    gui_dispatcher_get_back_to_current_screen();
-                }
-                else if (get_status_return == RETURN_AUX_STAT_BLE_ISSUE)
-                {
-                    gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_003_TEXT_ID, DISP_MSG_WARNING, FALSE);
-                    gui_dispatcher_get_back_to_current_screen();
-                }
-                else if (get_status_return == RETURN_AUX_STAT_INV_MAIN_MSG)
-                {
-                    gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_004_TEXT_ID, DISP_MSG_WARNING, FALSE);
-                    gui_dispatcher_get_back_to_current_screen();
+                    /* Ping the aux */
+                    aux_status_return_te get_status_return = comms_aux_mcu_get_aux_status();
+                    
+                    /* Check result */
+                    if (get_status_return == RETURN_AUX_STAT_TIMEOUT)
+                    {
+                        gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_002_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        gui_dispatcher_get_back_to_current_screen();
+                    }
+                    else if (get_status_return == RETURN_AUX_STAT_BLE_ISSUE)
+                    {
+                        gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_003_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        gui_dispatcher_get_back_to_current_screen();
+                    }
+                    else if (get_status_return == RETURN_AUX_STAT_INV_MAIN_MSG)
+                    {
+                        gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_004_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        gui_dispatcher_get_back_to_current_screen();
+                    }
                 }
                 
                 /* Rearm aux MCU ping timer */

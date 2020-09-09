@@ -345,6 +345,8 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
     }
     else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
     {        
+        aux_mcu_message_t* temp_rx_message_pt;
+        
         /* Set inversion bool */
         plat_oled_descriptor.screen_inverted = (BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_BATTERY);
         inputs_set_inputs_invert_bool(plat_oled_descriptor.screen_inverted);
@@ -355,8 +357,11 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         #endif
         sh1122_oled_off(&plat_oled_descriptor);
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
+        while(comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_USB_DETACHED) != RETURN_OK);
+        comms_aux_arm_rx_and_clear_no_comms();
         platform_io_disable_3v3_to_oled_stepup();
-        logic_power_set_power_source(TRANSITIONING_TO_BATTERY_POWER);
+        logic_power_set_power_source(BATTERY_POWERED);
+        logic_user_inform_computer_locked_state(TRUE, TRUE);
         logic_power_set_battery_charging_bool(FALSE, FALSE);
         logic_aux_mcu_set_usb_enumerated_bool(FALSE);
         platform_io_assert_oled_reset();

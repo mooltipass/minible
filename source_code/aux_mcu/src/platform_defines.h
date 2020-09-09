@@ -65,6 +65,7 @@
         - chromebook bug fix: do not send message over proprietary hid if we didn't receive anything from it...
 - v0.36:- potential usb freeze bug fix
         - different charge algorithm when the the battery is at low voltage
+        - aux-main communication bug fix
 */
 
 /**************** SETUP DEFINES ****************/

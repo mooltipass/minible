@@ -496,6 +496,7 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
         }
         case AUX_MCU_EVENT_USB_DETACHED:
         {
+            // Not used here anymore
             logic_user_inform_computer_locked_state(TRUE, TRUE);            
             if (logic_power_get_power_source() == TRANSITIONING_TO_BATTERY_POWER)
             {
