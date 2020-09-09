@@ -434,12 +434,12 @@ void main_platform_init(void)
         /* When developping on a newly flashed board: reset USB connection and reset defaults */
         if (custom_fs_store_cpz_entry(&special_user_profile, special_user_profile.user_id) == RETURN_OK)
         {
-            if (platform_io_is_usb_3v3_present_raw() != FALSE)
+            if ((platform_io_is_usb_3v3_present_raw() != FALSE) && TRUE)
             {
-                /*comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
+                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
                 timer_delay_ms(2000);
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
-                logic_power_usb_enumerate_just_sent();*/
+                logic_power_usb_enumerate_just_sent();
             }
         }   
         

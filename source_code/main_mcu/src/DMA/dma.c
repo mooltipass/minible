@@ -394,12 +394,12 @@ BOOL dma_aux_mcu_check_dma_transfer_flag(void)
 
 /*! \fn     dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag(void)
 *   \brief  Wait for the complete reception of current AUX MCU packet
-*   \return If the reception flag was already cleared
+*   \return If the DMA reception flag was already cleared
 */
 BOOL dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag(void)
 {
-    BOOL ret_val = dma_aux_mcu_packet_received;
     while (dma_aux_mcu_rx_transfer_to_be_rearmed == FALSE);
+    BOOL ret_val = dma_aux_mcu_packet_received;
     dma_aux_mcu_packet_received = FALSE;
     return !ret_val;
 }
