@@ -20,9 +20,10 @@ void dma_aux_mcu_init_rx_transfer(Sercom* sercom, void* datap, uint16_t size)
     aux_rcvbuf = datap;
 }
 
-void dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag(void){
+BOOL dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag(void){
     while(dma_aux_mcu_get_remaining_bytes_for_rx_transfer()) {}
     dma_aux_mcu_packet_received = FALSE;
+    return TRUE;
 }
 
 uint16_t dma_aux_mcu_get_remaining_bytes_for_rx_transfer(void){
