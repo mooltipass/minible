@@ -714,6 +714,13 @@ int main(void)
                 gui_dispatcher_get_back_to_current_screen();
             }
             
+            /* TX buffer re requested problem */
+            if (comms_aux_mcu_get_and_clear_second_tx_buffer_rerequested() != FALSE)
+            {
+                gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_007_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                gui_dispatcher_get_back_to_current_screen();
+            }
+            
             /* Aux MCU ping */
             if (timer_has_timer_expired(TIMER_AUX_MCU_PING, TRUE) == TIMER_EXPIRED)
             {

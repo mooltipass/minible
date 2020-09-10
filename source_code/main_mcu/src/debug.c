@@ -1129,7 +1129,6 @@ void debug_mcu_and_aux_info(void)
 void debug_rf_freq_sweep(void)
 {
     aux_mcu_message_t* sweep_message_to_be_sent;
-    aux_mcu_message_t* temp_rx_message;
     
     /* Parameters to be sent to aux mcu */
     int16_t payload_length = 36;
@@ -1296,7 +1295,7 @@ void debug_rf_freq_sweep(void)
         if (nb_loops != -1)
         {
             /* Wait for end of sweep */
-            temp_rx_message = comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_TX_SWEEP_DONE);
+            comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_TX_SWEEP_DONE);
         }        
         
         /* Sweep if required */

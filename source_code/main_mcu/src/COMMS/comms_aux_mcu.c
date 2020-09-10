@@ -47,6 +47,7 @@ aux_mcu_message_t aux_mcu_receive_message;
 aux_mcu_message_t aux_mcu_send_message_2;
 aux_mcu_message_t aux_mcu_send_message_1;
 BOOL aux_mcu_message_1_reserved = FALSE;
+BOOL aux_mcu_message_2_reserved = FALSE;
 /* Flag set if comms are disabled */
 BOOL aux_mcu_comms_disabled = FALSE;
 /* Flag set if we have treated a message by only looking at its first bytes */
@@ -59,6 +60,8 @@ BOOL aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = FALSE;
 BOOL aux_mcu_comms_invalid_message_received = FALSE;
 /* Flag set when rx transfer is already armed */
 BOOL aux_mcu_comms_rx_already_armed = FALSE;
+/* Flag set when the second tx buffer is requested */
+BOOL aux_mcu_comms_second_buffer_rerequested = FALSE;
 
 
 /*! \fn     comms_aux_mcu_set_invalid_message_received(void)
@@ -86,6 +89,16 @@ BOOL comms_aux_mcu_get_and_clear_rx_transfer_already_armed(void)
 {
     BOOL ret_val = aux_mcu_comms_rx_already_armed;
     aux_mcu_comms_rx_already_armed = FALSE;
+    return ret_val;
+}
+
+/*! \fn     comms_aux_mcu_get_and_clear_second_tx_buffer_rerequested(void)
+*   \brief  Get and clear the tx buffer 2 re requested flag
+*/
+BOOL comms_aux_mcu_get_and_clear_second_tx_buffer_rerequested(void)
+{
+    BOOL ret_val = aux_mcu_comms_second_buffer_rerequested;
+    aux_mcu_comms_second_buffer_rerequested = FALSE;
     return ret_val;
 }
 
@@ -147,6 +160,12 @@ aux_mcu_message_t* comms_aux_mcu_get_free_tx_message_object_pt(void)
     /* Wait for possible ongoing message to be sent */
     comms_aux_mcu_wait_for_message_sent();
     
+    /* Check for error */
+    if (aux_mcu_message_2_reserved != FALSE)
+    {
+        aux_mcu_comms_second_buffer_rerequested = TRUE;
+    }
+    
     /* A bit of background: the code is structured in such a way that every time a
     pointer is asked, the message is shortly sent after. There are a few cases where 
     a pointer is asked to prepare a message, then another pointer is asked to get information
@@ -161,6 +180,7 @@ aux_mcu_message_t* comms_aux_mcu_get_free_tx_message_object_pt(void)
     }
     else
     {
+        aux_mcu_message_2_reserved = TRUE;
         return &aux_mcu_send_message_2;        
     }
 }
@@ -202,6 +222,12 @@ void comms_aux_mcu_send_message(aux_mcu_message_t* message_to_send)
     if ((aux_mcu_message_1_reserved != FALSE) && (message_to_send == &aux_mcu_send_message_1))
     {
         aux_mcu_message_1_reserved = FALSE;
+    }
+    
+    /* Is reserved message 2 freed? */
+    if ((aux_mcu_message_2_reserved != FALSE) && (message_to_send == &aux_mcu_send_message_2))
+    {
+        aux_mcu_message_2_reserved = FALSE;
     }
     
     /* As the aux MCU has 3 buffers (one for USB messages, one for BLE messages, one for others), check for timeout in case message is of type other */
@@ -493,16 +519,6 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
         case AUX_MCU_EVENT_USB_ENUMERATED:
         {
             logic_aux_mcu_set_usb_enumerated_bool(TRUE);
-            break;
-        }
-        case AUX_MCU_EVENT_USB_DETACHED:
-        {
-            // Not used here anymore as we're actively waiting for it
-            logic_user_inform_computer_locked_state(TRUE, TRUE);            
-            if (logic_power_get_power_source() == TRANSITIONING_TO_BATTERY_POWER)
-            {
-                logic_power_set_power_source(BATTERY_POWERED);
-            }
             break;
         }
         case AUX_MCU_EVENT_CHARGE_DONE:
@@ -926,8 +942,20 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
 aux_mcu_message_t* comms_aux_mcu_wait_for_aux_event(uint16_t aux_mcu_event)
 {
     aux_mcu_message_t* temp_rx_message_pt;
-    while(comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, aux_mcu_event) != RETURN_OK);
-    comms_aux_arm_rx_and_clear_no_comms();
+    uint16_t nb_loops_done = 0;
+    
+    /* Wait for the expected event... but not indefinitely */
+    while ((comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, aux_mcu_event) != RETURN_OK) && (nb_loops_done < NB_ACTIVE_WAIT_LOOP_TIMEOUT))
+    {
+        nb_loops_done++;
+    }
+    
+    /* Rearm comms only if we received the message */
+    if (nb_loops_done != NB_ACTIVE_WAIT_LOOP_TIMEOUT)
+    {
+        comms_aux_arm_rx_and_clear_no_comms();
+    }
+    
     return temp_rx_message_pt;
 }
 

@@ -124,7 +124,16 @@ aux_mcu_command_description.append([	"0x0000: invalid",
 										"0x000A: BLE connected",
 										"0x000B: BLE disconnected",
 										"0x000C: USB detached",
-										"0x000D: NiMh charge level update"])
+										"0x000D: NiMh charge level update",
+										"0x000E: USB timeout!",
+										"0x000F: here's my status",
+										"0x0010: attach command received",
+										"0x0011: charge started",
+										"0x0012: no comms info received",
+										"0x0013: shortcut typed",
+										"0x0014: new status received",
+										"0x0015: charge stopped",
+										"0x0016: new battery level received"])
 # NiMh charge
 aux_mcu_command_description.append([])
 # Ping with info
@@ -217,16 +226,17 @@ main_mcu_command_description.append([])
 main_mcu_command_description.append([	"0x0000: invalid",
 										"0x0001: sleep",
 										"0x0002: attach usb",
-										"0x0003: INVALID",
-										"0x0004: INVALID",
+										"0x0003: slow nimh charge",
+										"0x0004: invalid",
 										"0x0005: charge battery",
 										"0x0006: no comms signal unavailable",
-										"0x0007: INVALID",
+										"0x0007: type shortcut",
 										"0x0008: detach USB",
 										"0x0009: functional test start",
 										"0x000A: update device status",
 										"0x000B: stop battery charge",
-										"0x000C: set battery level"])
+										"0x000C: set battery level",
+										"0x000D: get AUX status",])
 # Aux MCU event
 main_mcu_command_description.append([])
 # NiMh charge

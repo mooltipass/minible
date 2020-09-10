@@ -66,6 +66,7 @@
 - v0.36:- potential usb freeze bug fix
         - different charge algorithm when the the battery is at low voltage
         - aux-main communication bug fix
+        - acking every message sent by the main
 */
 
 /**************** SETUP DEFINES ****************/
