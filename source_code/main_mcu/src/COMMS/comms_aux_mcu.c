@@ -310,7 +310,7 @@ aux_status_return_te comms_aux_mcu_get_aux_status(void)
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_GET_STATUS);
 
     /* Wait for answer: no need to parse answer as filter is done in comms_aux_mcu_active_wait */
-    if (comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVEN_HERES_MY_STATUS) == RETURN_NOK)
+    if (comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_HERES_MY_STATUS) == RETURN_NOK)
     {
         return RETURN_AUX_STAT_TIMEOUT;
     }
@@ -496,7 +496,7 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
         }
         case AUX_MCU_EVENT_USB_DETACHED:
         {
-            // Not used here anymore
+            // Not used here anymore as we're actively waiting for it
             logic_user_inform_computer_locked_state(TRUE, TRUE);            
             if (logic_power_get_power_source() == TRANSITIONING_TO_BATTERY_POWER)
             {
@@ -914,6 +914,20 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
 
     /* Return type of message received */
     return msg_rcvd;
+}
+
+/*! \fn     comms_aux_mcu_wait_for_aux_event(uint16_t aux_mcu_event)
+*   \brief  Actively wait for an event from the aux MCU
+*   \param  aux_mcu_event   The event to wait for
+*   \return A pointer to the received message
+*   \note   Do not call the power switching routines inside the while loop due to rx buffer reuse.
+*/
+aux_mcu_message_t* comms_aux_mcu_wait_for_aux_event(uint16_t aux_mcu_event)
+{
+    aux_mcu_message_t* temp_rx_message_pt;
+    while(comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, aux_mcu_event) != RETURN_OK);
+    comms_aux_arm_rx_and_clear_no_comms();
+    return temp_rx_message_pt;
 }
 
 /*! \fn     comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet, BOOL single_try, int16_t expected_event)

@@ -1294,10 +1294,7 @@ void debug_rf_freq_sweep(void)
         if (nb_loops != -1)
         {
             /* Wait for end of sweep */
-            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_TX_SWEEP_DONE) != RETURN_OK);
-            
-            /* Rearm RX */
-            comms_aux_arm_rx_and_clear_no_comms();
+            temp_rx_message = comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_TX_SWEEP_DONE);
         }        
         
         /* Sweep if required */
@@ -1341,10 +1338,7 @@ void debug_rf_freq_sweep(void)
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_TX_TONE_CONT_STOP);
         
         /* Wait for callback */
-        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_TX_SWEEP_DONE) != RETURN_OK);
-        
-        /* Rearm RX */
-        comms_aux_arm_rx_and_clear_no_comms();
+        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_TX_SWEEP_DONE);
     }
 }
 

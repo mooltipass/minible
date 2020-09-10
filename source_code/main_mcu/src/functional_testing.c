@@ -83,8 +83,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     
     /* Receive pending ping */
     sh1122_put_error_string(&plat_oled_descriptor, u"Pinging Aux MCU...");
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_IM_HERE) != RETURN_OK);
-    comms_aux_arm_rx_and_clear_no_comms();
+    comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_IM_HERE);
     sh1122_clear_current_screen(&plat_oled_descriptor);
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
@@ -169,12 +168,11 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
     
     /* Wait for enumeration */
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_USB_ENUMERATED) != RETURN_OK);
+    comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_ENUMERATED);
     sh1122_clear_current_screen(&plat_oled_descriptor);
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #endif
-    comms_aux_arm_rx_and_clear_no_comms();
     
     /* Switch to LDO for voled stepup */
     logic_power_set_power_source(USB_POWERED);
@@ -203,12 +201,11 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_FUNC_TEST);
     
     /* Wait for end of functional test */
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_FUNC_TEST_DONE) != RETURN_OK);
+    temp_rx_message = comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_FUNC_TEST_DONE);
     sh1122_clear_current_screen(&plat_oled_descriptor);
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #endif
-    comms_aux_arm_rx_and_clear_no_comms();
     
     /* Check functional test result */
     uint8_t func_test_result = temp_rx_message->aux_mcu_event_message.payload[0];

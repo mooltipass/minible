@@ -34,6 +34,7 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
 aux_mcu_message_t* comms_aux_mcu_get_empty_packet_ready_to_be_sent(uint16_t message_type);
 comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type);
 void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message);
+aux_mcu_message_t* comms_aux_mcu_wait_for_aux_event(uint16_t aux_mcu_event);
 aux_mcu_message_t* comms_aux_mcu_get_free_tx_message_object_pt(void);
 void comms_aux_mcu_send_message(aux_mcu_message_t* message_to_send);
 void comms_aux_mcu_send_simple_command_message(uint16_t command);

@@ -146,7 +146,7 @@ void logic_aux_mcu_disable_ble(BOOL wait_for_disabled)
         if (wait_for_disabled != FALSE)
         {
             /* wait for BLE to switch off */
-            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_BLE_DISABLED) != RETURN_OK){}
+            comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_BLE_DISABLED);
             
             /* Rearm DMA RX */
             comms_aux_arm_rx_and_clear_no_comms();
