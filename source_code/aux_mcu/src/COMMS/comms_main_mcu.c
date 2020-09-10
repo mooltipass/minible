@@ -435,24 +435,28 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             {
                 /* Charge NiMH battery */
                 logic_battery_start_charging(NIMH_SLOWSTART_45C_CHARGING);
+                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_CHARGE_STARTED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
                 break;                
             }
             case MAIN_MCU_COMMAND_NIMH_CHARGE:
             {
                 /* Charge NiMH battery */
                 logic_battery_start_charging(NIMH_45C_CHARGING);
+                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_CHARGE_STARTED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
                 break;
             }
             case MAIN_MCU_COMMAND_STOP_CHARGE:
             {
                 /* Stop charging battery */
                 logic_battery_stop_charging();
+                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_CHARGE_STOPPED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
                 break;
             }
             case MAIN_MCU_COMMAND_SET_BATTERYLVL:
             {
                 /* Set battery level on bluetooth service */
                 logic_bluetooth_set_battery_level(message->main_mcu_command_message.payload[0]);
+                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_NEW_BATTERY_LVL_RCVD, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
                 break;
             }
             case MAIN_MCU_COMMAND_GET_STATUS:
@@ -489,6 +493,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* No comms signal unavailable */
                 platform_io_disable_no_comms_signal();
                 logic_set_nocomms_unavailable();
+                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_NO_COMMS_INFO_RCVD, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
                 break;
             }
             case MAIN_MCU_COMMAND_TX_SWEEP_SGL:
@@ -641,6 +646,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             {
                 /* Update device status buffer */
                 comms_raw_hid_update_device_status_cache(message->main_mcu_command_message.payload);
+                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_NEW_STATUS_RCVD, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
                 break;
             }
             case MAIN_MCU_COMMAND_TYPE_SHORTCUT:
@@ -661,6 +667,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 {
                     logic_keyboard_type_lock_shortcut((hid_interface_te)interface_id, (uint8_t)(message->main_mcu_command_message.payload_as_uint16[1]));
                 }
+                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_SHORTCUT_TYPED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
                 break;
             }
             default:

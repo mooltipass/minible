@@ -145,11 +145,8 @@ void logic_aux_mcu_disable_ble(BOOL wait_for_disabled)
         
         if (wait_for_disabled != FALSE)
         {
-            /* wait for BLE to switch off */
+            /* Wait for BLE to switch off */
             comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_BLE_DISABLED);
-            
-            /* Rearm DMA RX */
-            comms_aux_arm_rx_and_clear_no_comms();
             
             /* Set boolean */
             logic_aux_mcu_ble_enabled = FALSE;
@@ -176,6 +173,7 @@ void logic_aux_mcu_update_aux_mcu_of_new_battery_level(uint16_t battery_level_pc
     
     /* Send message */
     comms_aux_mcu_send_message(temp_tx_message_pt);
+    comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_NEW_BATTERY_LVL_RCVD);
 }
 
 /*! \fn     comms_aux_mcu_get_ble_chip_id(void)
@@ -308,6 +306,7 @@ RET_TYPE logic_aux_mcu_flash_firmware_update(BOOL connect_to_usb_if_needed)
     if ((platform_io_is_usb_3v3_present() != FALSE) && (connect_to_usb_if_needed != FALSE))
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_ATTACH_CMD_RCVD);
     }
         
     return RETURN_OK;

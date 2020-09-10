@@ -284,14 +284,15 @@ void main_platform_init(void)
     if (debugger_present != FALSE)
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NO_COMMS_UNAV);
+        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_NO_COMMS_INFO_RCVD);
     }    
     
     /* If USB present, send USB attach message */
     if (platform_io_is_usb_3v3_present_raw() != FALSE)
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
-        logic_power_usb_enumerate_just_sent();
         comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_ATTACH_CMD_RCVD);
+        logic_power_usb_enumerate_just_sent();
     } 
     
 #ifndef EMULATOR_BUILD
@@ -441,6 +442,7 @@ void main_platform_init(void)
                 comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
                 timer_delay_ms(2000);
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+                comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_ATTACH_CMD_RCVD);
                 logic_power_usb_enumerate_just_sent();
             }
         }   

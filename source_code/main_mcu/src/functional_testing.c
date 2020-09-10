@@ -166,6 +166,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     sh1122_put_error_string(&plat_oled_descriptor, u"connect USB");
     while (platform_io_is_usb_3v3_present_raw() == FALSE);
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+    comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_ATTACH_CMD_RCVD);
     
     /* Wait for enumeration */
     comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_ENUMERATED);

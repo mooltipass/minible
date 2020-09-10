@@ -242,6 +242,7 @@ void comms_aux_mcu_update_device_status_buffer(void)
     temp_send_message_pt->payload_length1 = sizeof(temp_send_message_pt->main_mcu_command_message.command) + 4;
     temp_send_message_pt->main_mcu_command_message.command = MAIN_MCU_COMMAND_UPDT_DEV_STAT;
     comms_aux_mcu_send_message(temp_send_message_pt);
+    comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_NEW_STATUS_RCVD);
 }
 
 /*! \fn     comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void)

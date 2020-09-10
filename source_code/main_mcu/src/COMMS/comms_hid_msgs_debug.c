@@ -355,6 +355,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             if (rcv_msg->payload[0] != 0)
             {
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
+                comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STARTED);
                 logic_power_set_battery_charging_bool(TRUE, FALSE);
             }
             
@@ -362,6 +363,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             if (rcv_msg->payload[1] != 0)
             {
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_CHARGE);
+                comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STOPPED);
                 logic_power_set_battery_charging_bool(FALSE, FALSE);
             }
             

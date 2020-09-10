@@ -485,6 +485,7 @@ void debug_battery_recondition(void)
     if (logic_power_is_battery_charging() != FALSE)
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_CHARGE);
+        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STOPPED);
         logic_power_set_battery_charging_bool(FALSE, FALSE);
     }
     
@@ -557,6 +558,7 @@ void debug_battery_recondition(void)
     
     /* Actually start charging */
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHG_SLW_STRT);
+    comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STARTED);
     logic_power_set_battery_charging_bool(TRUE, FALSE);
     
     /* Wait for end of charge */
@@ -1524,6 +1526,7 @@ void debug_nimh_charging(void)
     if (logic_power_get_power_source() == USB_POWERED)
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
+        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STARTED);
         logic_power_set_battery_charging_bool(TRUE, FALSE);
     }
     

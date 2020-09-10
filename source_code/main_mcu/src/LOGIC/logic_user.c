@@ -1625,6 +1625,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                             typing_message_to_be_sent->main_mcu_command_message.payload[1] = keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK);
                             typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint8_t) + sizeof(uint8_t);
                             comms_aux_mcu_send_message(typing_message_to_be_sent);
+                            comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_SHORTCUT_TYPED);
                             shortcut_sent = TRUE;
                             timer_delay_ms(600);
                         }
@@ -1748,6 +1749,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         typing_message_to_be_sent->main_mcu_command_message.payload[1] = keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK);
                         typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint8_t) + sizeof(uint8_t);
                         comms_aux_mcu_send_message(typing_message_to_be_sent);
+                        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_SHORTCUT_TYPED);
                         shortcut_sent = TRUE;
                         timer_delay_ms(600);
                     }
@@ -1913,5 +1915,6 @@ void logic_user_locked_feature_trigger(void)
         typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint16_t);
         logic_user_lock_unlock_shortcuts = FALSE;
         comms_aux_mcu_send_message(typing_message_to_be_sent);
+        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_SHORTCUT_TYPED);
     }
 }                
