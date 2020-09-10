@@ -261,7 +261,7 @@ typedef struct
 #define EMULATOR_SCREEN_TIMEOUT_MS  60000
 #define SCREEN_TIMEOUT_MS           15000
 #define SCREEN_TIMEOUT_MS_BAT_PWRD  7654
-#define AUX_FLOOD_TIMEOUT_MS        3
+#define AUX_FLOOD_TIMEOUT_MS        1
 #define SLEEP_AFTER_AUX_WAKEUP_MS   1234
 
 /********************/

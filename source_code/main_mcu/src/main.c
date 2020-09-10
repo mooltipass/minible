@@ -724,7 +724,7 @@ int main(void)
             /* Aux MCU ping */
             if (timer_has_timer_expired(TIMER_AUX_MCU_PING, TRUE) == TIMER_EXPIRED)
             {
-                if (comms_aux_mcu_are_comms_disabled() != FALSE)
+                if (comms_aux_mcu_are_comms_disabled() == FALSE)
                 {
                     /* Ping the aux */
                     aux_status_return_te get_status_return = comms_aux_mcu_get_aux_status();

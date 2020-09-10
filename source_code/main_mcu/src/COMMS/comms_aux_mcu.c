@@ -114,6 +114,7 @@ void comms_aux_arm_rx_and_clear_no_comms(void)
     else
     {
         /* Should never happen! */
+        aux_mcu_comms_rx_already_armed = TRUE;
     }
     platform_io_clear_no_comms();
     aux_mcu_comms_disabled = FALSE;
@@ -230,7 +231,7 @@ void comms_aux_mcu_send_message(aux_mcu_message_t* message_to_send)
         aux_mcu_message_2_reserved = FALSE;
     }
     
-    /* As the aux MCU has 3 buffers (one for USB messages, one for BLE messages, one for others), check for timeout in case message is of type other */
+    /* As the aux MCU has 3 buffers (one for USB messages, one for BLE messages, one for others), check for timeout in case message is of type other... however that shouldn't happen as every send command gets an answer */
     if ((message_to_send->message_type != AUX_MCU_MSG_TYPE_USB) && (message_to_send->message_type != AUX_MCU_MSG_TYPE_BLE))
     {
         while (timer_has_timer_expired(TIMER_AUX_MCU_FLOOD, FALSE) == TIMER_RUNNING);
