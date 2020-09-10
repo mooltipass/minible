@@ -487,6 +487,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 
                 /* Send message */
                 comms_main_mcu_send_message((void*)&comms_main_mcu_message_for_main_replies, (uint16_t)sizeof(comms_main_mcu_message_for_main_replies));
+                break;
             }
             case MAIN_MCU_COMMAND_NO_COMMS_UNAV:
             {
