@@ -1008,7 +1008,6 @@ void platform_io_init_aux_comms(void)
     /* TX & RX en, 8bits */
     SERCOM_USART_CTRLB_Type temp_ctrlb_reg;
     temp_ctrlb_reg.reg = 0;
-    temp_ctrlb_reg.bit.SFDE = 1;
     temp_ctrlb_reg.bit.RXEN = 1;
     temp_ctrlb_reg.bit.TXEN = 1;   
     while ((AUXMCU_SERCOM->USART.SYNCBUSY.reg & SERCOM_USART_SYNCBUSY_CTRLB) != 0);
