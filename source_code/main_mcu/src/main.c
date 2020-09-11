@@ -275,7 +275,7 @@ void main_platform_init(void)
             if (comms_aux_mcu_send_receive_ping() != RETURN_OK)
             {
                 sh1122_put_error_string(&plat_oled_descriptor, u"No Aux MCU");
-                while(1);
+                //while(1);
             }                
         }
     }
@@ -438,12 +438,12 @@ void main_platform_init(void)
         {
             if ((platform_io_is_usb_3v3_present_raw() != FALSE) && TRUE)
             {
-                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
-                comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
-                timer_delay_ms(2000);
-                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
-                comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_ATTACH_CMD_RCVD);
-                logic_power_usb_enumerate_just_sent();
+                //comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
+                //comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
+                //timer_delay_ms(2000);
+                //comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+                //comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_ATTACH_CMD_RCVD);
+                //logic_power_usb_enumerate_just_sent();
             }
         }   
         

@@ -120,7 +120,7 @@
         - unlock feature: do not prompt if computer is already unlocked (pending MC support)
         - enable / disable bluetooth before PIN prompt
         - device tutorial: only go to next step if correct action performed
-        - different charge algorithm when the the battery is at low voltage
+        - different charge algorithm when the battery is at low voltage
         - device remembers battery voltage at last power off
         - aux-main communication bug fix
 */
@@ -356,6 +356,8 @@ typedef struct
     #define AUXMCU_GCLK_SERCOM_ID       GCLK_CLKCTRL_ID_SERCOM4_CORE_Val
     #define AUXMCU_APB_SERCOM_BIT       SERCOM4_
     #define AUXMCU_SERCOM               SERCOM4
+    #define AUXMCU_SERCOM_HANDLER       SERCOM4_Handler
+    #define AUXMCU_SERCOM_INTERUPT      SERCOM4_IRQn
     #define AUXMCU_RX_TXPO              1
     #define AUXMCU_TX_PAD               3
     #define OLED_GCLK_SERCOM_ID         GCLK_CLKCTRL_ID_SERCOM0_CORE_Val
@@ -387,6 +389,8 @@ typedef struct
     #define AUXMCU_GCLK_SERCOM_ID       GCLK_CLKCTRL_ID_SERCOM5_CORE_Val
     #define AUXMCU_APB_SERCOM_BIT       SERCOM5_
     #define AUXMCU_SERCOM               SERCOM5
+    #define AUXMCU_SERCOM_HANDLER       SERCOM5_Handler
+    #define AUXMCU_SERCOM_INTERUPT      SERCOM5_IRQn
     #define AUXMCU_RX_TXPO              1
     #define AUXMCU_TX_PAD               3
     #define OLED_GCLK_SERCOM_ID         GCLK_CLKCTRL_ID_SERCOM4_CORE_Val

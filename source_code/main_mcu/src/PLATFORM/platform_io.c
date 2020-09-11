@@ -67,6 +67,16 @@ void EIC_Handler(void)
     }
 }
 
+/*! \fn     AUXMCU_SERCOM_HANDLER(void)
+*   \brief  Routine called upon USART RX interrupt, to assert no comms
+*/
+void AUXMCU_SERCOM_HANDLER(void)
+{
+    platform_io_set_no_comms();
+    platform_io_disable_rx_usart_rx_interrupt();
+    AUXMCU_SERCOM->USART.INTFLAG.reg = SERCOM_USART_INTFLAG_RXC;
+}
+
 /*! \fn     platform_io_scan_3v3(void)
 *   \brief  Scan 3v3 presence for debouncing purposes
 */
@@ -907,6 +917,30 @@ void platform_io_clear_no_comms(void)
     #endif
 }
 
+/*! \fn     platform_io_arm_rx_usart_rx_interrupt(void)
+*   \brief  Arm USART RX interrupt, used to assert no comms
+*/
+void platform_io_arm_rx_usart_rx_interrupt(void)
+{
+    /* Enable SoF interrupt */
+    AUXMCU_SERCOM->USART.INTENSET.bit.RXC = 1;
+    
+    /* Enable interrupt line that may be enabled later */
+    NVIC_EnableIRQ(AUXMCU_SERCOM_INTERUPT);
+}
+
+/*! \fn     platform_io_disable_rx_usart_rx_interrupt(void)
+*   \brief  Disable USART RX interrupt, used to assert no comms
+*/
+void platform_io_disable_rx_usart_rx_interrupt(void)
+{
+    /* Enable interrupt line that may be enabled later */
+    NVIC_DisableIRQ(AUXMCU_SERCOM_INTERUPT);
+    
+    /* Disable SoF interrupt */
+    AUXMCU_SERCOM->USART.INTENCLR.bit.RXC = 1;
+}
+
 /*! \fn     platform_io_init_no_comms_signal(void)
 *   \brief  Initialize the aux comms signal, used as wakeup for aux MCU at boot
 */
@@ -974,6 +1008,7 @@ void platform_io_init_aux_comms(void)
     /* TX & RX en, 8bits */
     SERCOM_USART_CTRLB_Type temp_ctrlb_reg;
     temp_ctrlb_reg.reg = 0;
+    temp_ctrlb_reg.bit.SFDE = 1;
     temp_ctrlb_reg.bit.RXEN = 1;
     temp_ctrlb_reg.bit.TXEN = 1;   
     while ((AUXMCU_SERCOM->USART.SYNCBUSY.reg & SERCOM_USART_SYNCBUSY_CTRLB) != 0);

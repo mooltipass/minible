@@ -109,6 +109,8 @@ void comms_aux_arm_rx_and_clear_no_comms(void)
 {
     if (dma_aux_mcu_is_rx_transfer_already_init() == FALSE)
     {
+        /* Arm SOF USART interrupt to assert no comms signal, arm DMA transfer */
+        platform_io_arm_rx_usart_rx_interrupt();
         dma_aux_mcu_init_rx_transfer(AUXMCU_SERCOM, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
     }
     else
