@@ -85,7 +85,7 @@ void logic_gui_enable_bluetooth(void)
         /* Wait for BT activation while displaying an animation */
         while (func_return != RETURN_OK)
         {
-            func_return = comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, TRUE, AUX_MCU_EVENT_BLE_ENABLED);
+            func_return = comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, TRUE, AUX_MCU_EVENT_BLE_ENABLED);
             
             /* Idle animation */
             if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)

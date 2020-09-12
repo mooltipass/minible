@@ -451,7 +451,7 @@ void debug_always_bluetooth_enable_and_click_to_send_cred(void)
             comms_aux_mcu_send_message(typing_message_to_be_sent);
             
             /* Wait for typing status */
-            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
+            while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
             
             /* Rearm DMA RX */
             comms_aux_arm_rx_and_clear_no_comms();
@@ -1085,7 +1085,7 @@ void debug_mcu_and_aux_info(void)
     comms_aux_mcu_send_message(temp_tx_message_pt);
     
     /* Wait for message from aux MCU */
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
+    while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
         
     /* Cast aux MCU DID */
     DSU_DID_Type aux_mcu_did;
@@ -1361,7 +1361,7 @@ void debug_atbtlc_info(void)
     comms_aux_mcu_send_message(temp_tx_message_pt);
     
     /* Wait for message from aux MCU */
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
+    while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
         
     /* Output debug info */
     sh1122_clear_current_screen(&plat_oled_descriptor);
@@ -1553,7 +1553,7 @@ void debug_nimh_charging(void)
             comms_aux_mcu_send_message(temp_tx_message_pt);
             
             /* Wait for message from aux MCU */
-            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE, -1) != RETURN_OK){}
+            while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE, -1) != RETURN_OK){}
             
             /* Clear screen */
             sh1122_clear_current_screen(&plat_oled_descriptor);
@@ -1660,7 +1660,7 @@ void debug_stack_info(void)
     comms_aux_mcu_send_message(temp_tx_message_pt);
 
     /* Wait for message from aux MCU */
-    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
+    while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
 
     aux_mcu_stack_low_watermark = temp_rx_message->aux_details_message.aux_stack_low_watermark;
 

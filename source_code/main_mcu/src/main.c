@@ -438,12 +438,12 @@ void main_platform_init(void)
         {
             if ((platform_io_is_usb_3v3_present_raw() != FALSE) && TRUE)
             {
-                //comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
-                //comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
-                //timer_delay_ms(2000);
-                //comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
-                //comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_ATTACH_CMD_RCVD);
-                //logic_power_usb_enumerate_just_sent();
+                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
+                comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
+                timer_delay_ms(2000);
+                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
+                comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_ATTACH_CMD_RCVD);
+                logic_power_usb_enumerate_just_sent();
             }
         }   
         
@@ -507,7 +507,7 @@ void main_standby_sleep(void)
         {
             /* Send a go to sleep message to aux MCU, wait for ack, leave no comms high (automatically set when receiving the sleep received event) */
             comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_SLEEP);
-            while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_SLEEP_RECEIVED) != RETURN_OK);
+            while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_SLEEP_RECEIVED) != RETURN_OK);
             
             /* Wait for end of message we were possibly sending */
             comms_aux_mcu_wait_for_message_sent();

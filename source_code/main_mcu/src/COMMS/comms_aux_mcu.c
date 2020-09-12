@@ -109,9 +109,12 @@ void comms_aux_arm_rx_and_clear_no_comms(void)
 {
     if (dma_aux_mcu_is_rx_transfer_already_init() == FALSE)
     {
-        /* Arm SOF USART interrupt to assert no comms signal, arm DMA transfer */
-        platform_io_arm_rx_usart_rx_interrupt();
+        /* Arm USART RX interrupt to assert no comms signal, arm DMA transfer */
         dma_aux_mcu_init_rx_transfer(AUXMCU_SERCOM, (void*)&aux_mcu_receive_message, sizeof(aux_mcu_receive_message));
+        
+        /* While this sounded like a good idea, this isn't really one as this interrupt will only fire if the DMA fires after the second USART bytes is received (as one byte was received before the DMA could fetch it */
+        /* It is however left here (because, why not?) but the no comms signal is asserted at the DMA end of transfer interrupt. Delay between interrupt firing and no comms assertion was measured at 4us */
+        platform_io_arm_rx_usart_rx_interrupt();
     }
     else
     {
@@ -319,7 +322,7 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
     comms_aux_mcu_send_message(temp_tx_message_pt);
 
     /* Wait for answer: no need to parse answer as filter is done in comms_aux_mcu_active_wait */
-    return_val = comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_IM_HERE);
+    return_val = comms_aux_mcu_active_wait(&temp_rx_message_pt, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_IM_HERE);
 
     /* Rearm receive */
     comms_aux_arm_rx_and_clear_no_comms();
@@ -340,7 +343,7 @@ aux_status_return_te comms_aux_mcu_get_aux_status(void)
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_GET_STATUS);
 
     /* Wait for answer: no need to parse answer as filter is done in comms_aux_mcu_active_wait */
-    if (comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_HERES_MY_STATUS) == RETURN_NOK)
+    if (comms_aux_mcu_active_wait(&temp_rx_message_pt, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_HERES_MY_STATUS) == RETURN_NOK)
     {
         return RETURN_AUX_STAT_TIMEOUT;
     }
@@ -672,6 +675,61 @@ static comms_msg_rcvd_te comms_aux_mcu_handle_fido2_message(fido2_message_t* rec
     return msg_rcvd;
 }
 
+/*! \fn     comms_aux_mcu_prepare_for_active_rx_packet_receive(void)
+*   \brief  This function is called to whenever we are preparing for an active RX wait.
+*           The calling function may be located inside the comms_aux_mcu_routine call stack
+*           OR outside of it. This makes things particularly tricky as comms_aux_mcu_routine deals
+*           with packets when they are not completely received.
+*           This function therefore makes sure the comms_aux_mcu_routine isn't disturbed by an active wait
+*   \note   After calling this routine, to not disturb the rest of the logic, we actively awaited packet should be received as a whole (clearing dma flags)
+*/
+void comms_aux_mcu_prepare_for_active_rx_packet_receive(void)
+{
+    /* To know if this is called from within the comms_aux_mcu_routine call stack, where we'd need to rearm the rx transfer */
+    if (aux_mcu_comms_aux_mcu_routine_function_called != FALSE)
+    {
+        /* If we just answered a message based on its first bytes */
+        if (aux_mcu_message_answered_using_first_bytes != FALSE)
+        {
+            /* Wait for full packet reception */
+            dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
+            
+            /* Clear flag */
+            aux_mcu_message_answered_using_first_bytes = FALSE;
+            
+            /* Rearm RX */
+            comms_aux_arm_rx_and_clear_no_comms();
+        }
+        else
+        {
+            /* Full packet receive arm RX and set flag to not rearm twice rx */
+            comms_aux_arm_rx_and_clear_no_comms();
+            aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx = FALSE;
+        }
+    }
+    else
+    {
+        /* Called outside of comms_aux_mcu_routine */
+        
+        /* If we just previously answered a message based on its first bytes */
+        if (aux_mcu_message_answered_using_first_bytes != FALSE)
+        {
+            /* Wait for full packet reception */
+            dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
+            
+            /* Clear flag */
+            aux_mcu_message_answered_using_first_bytes = FALSE;
+            
+            /* Rearm RX */
+            comms_aux_arm_rx_and_clear_no_comms();
+        }    
+        else
+        {
+            /* Nothing to do: called from outside comms_aux_mcu_routine, with DMA already acked */
+        }        
+    }
+}
+
 /*! \fn     comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_type)
 *   \brief  Routine dealing with aux mcu comms
 *   \param  answer_restrict_type    Enum restricting which messages we can answer
@@ -725,6 +783,9 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     /* First part of message */
     if ((nb_received_bytes_for_ongoing_transfer >= sizeof(aux_mcu_receive_message.message_type) + sizeof(aux_mcu_receive_message.payload_length1)) && (aux_mcu_message_answered_using_first_bytes == FALSE))
     {
+        /* Issue no comms just in case */
+        platform_io_set_no_comms();
+        
         /* Check if we were too slow to deal with the message before complete packet transfer */
         if (dma_aux_mcu_check_and_clear_dma_transfer_flag() != FALSE)
         {
@@ -948,7 +1009,7 @@ aux_mcu_message_t* comms_aux_mcu_wait_for_aux_event(uint16_t aux_mcu_event)
     uint16_t nb_loops_done = 0;
     
     /* Wait for the expected event... but not indefinitely */
-    while ((comms_aux_mcu_active_wait(&temp_rx_message_pt, FALSE, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, aux_mcu_event) != RETURN_OK) && (nb_loops_done < NB_ACTIVE_WAIT_LOOP_TIMEOUT))
+    while ((comms_aux_mcu_active_wait(&temp_rx_message_pt, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, aux_mcu_event) != RETURN_OK) && (nb_loops_done < NB_ACTIVE_WAIT_LOOP_TIMEOUT))
     {
         nb_loops_done++;
     }
@@ -962,10 +1023,9 @@ aux_mcu_message_t* comms_aux_mcu_wait_for_aux_event(uint16_t aux_mcu_event)
     return temp_rx_message_pt;
 }
 
-/*! \fn     comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet, BOOL single_try, int16_t expected_event)
+/*! \fn     comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, uint16_t expected_packet, BOOL single_try, int16_t expected_event)
 *   \brief  Active wait for a message from the aux MCU.
 *   \param  rx_message_pt_pt        Pointer to where to store the pointer to the received message
-*   \param  do_not_touch_dma_logic  Set to TRUE to not mess with the DMA flags
 *   \param  expected_packet         Expected packet
 *   \param  single_try              Set to TRUE to not use any timeout
 *   \param  expected_event          If an event is expected, event ID or -1
@@ -974,10 +1034,13 @@ aux_mcu_message_t* comms_aux_mcu_wait_for_aux_event(uint16_t aux_mcu_event)
 *   \note   DMA RX arm must be called to rearm message receive as a rearm in this code would enable data to be overwritten
 *   \note   This function is not touching the no comms signal except in case the wrong message type isn't received
 */
-RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do_not_touch_dma_flags, uint16_t expected_packet, BOOL single_try, int16_t expected_event)
+RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, uint16_t expected_packet, BOOL single_try, int16_t expected_event)
 {
     /* Bool for the do{} */
     BOOL reloop = FALSE;
+    
+    /* Prepare for active wait */
+    comms_aux_mcu_prepare_for_active_rx_packet_receive();
     
     /* Comms disabled? Should not happen... */
     if (comms_aux_mcu_are_comms_disabled() != FALSE)
@@ -1005,14 +1068,7 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, BOOL do
         timer_flag_te timer_flag_return = TIMER_RUNNING;
         while((dma_check_return == FALSE) && (timer_flag_return == TIMER_RUNNING))
         {
-            if (do_not_touch_dma_flags == FALSE)
-            {
-                dma_check_return = dma_aux_mcu_check_and_clear_dma_transfer_flag();
-            }
-            else
-            {
-                dma_check_return = dma_aux_mcu_check_dma_transfer_flag();
-            }
+            dma_check_return = dma_aux_mcu_check_and_clear_dma_transfer_flag();
             timer_flag_return = timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE);
         }
 

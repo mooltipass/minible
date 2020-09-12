@@ -74,7 +74,6 @@ void AUXMCU_SERCOM_HANDLER(void)
 {
     platform_io_set_no_comms();
     platform_io_disable_rx_usart_rx_interrupt();
-    AUXMCU_SERCOM->USART.INTFLAG.reg = SERCOM_USART_INTFLAG_RXC;
 }
 
 /*! \fn     platform_io_scan_3v3(void)
@@ -922,7 +921,7 @@ void platform_io_clear_no_comms(void)
 */
 void platform_io_arm_rx_usart_rx_interrupt(void)
 {
-    /* Enable SoF interrupt */
+    /* Enable RX interrupt */
     AUXMCU_SERCOM->USART.INTENSET.bit.RXC = 1;
     
     /* Enable interrupt line that may be enabled later */
@@ -933,12 +932,12 @@ void platform_io_arm_rx_usart_rx_interrupt(void)
 *   \brief  Disable USART RX interrupt, used to assert no comms
 */
 void platform_io_disable_rx_usart_rx_interrupt(void)
-{
+{    
+    /* Disable RX interrupt */
+    AUXMCU_SERCOM->USART.INTENCLR.bit.RXC = 1;
+    
     /* Enable interrupt line that may be enabled later */
     NVIC_DisableIRQ(AUXMCU_SERCOM_INTERUPT);
-    
-    /* Disable SoF interrupt */
-    AUXMCU_SERCOM->USART.INTENCLR.bit.RXC = 1;
 }
 
 /*! \fn     platform_io_init_no_comms_signal(void)
@@ -1009,7 +1008,7 @@ void platform_io_init_aux_comms(void)
     SERCOM_USART_CTRLB_Type temp_ctrlb_reg;
     temp_ctrlb_reg.reg = 0;
     temp_ctrlb_reg.bit.RXEN = 1;
-    temp_ctrlb_reg.bit.TXEN = 1;   
+    temp_ctrlb_reg.bit.TXEN = 1;
     while ((AUXMCU_SERCOM->USART.SYNCBUSY.reg & SERCOM_USART_SYNCBUSY_CTRLB) != 0);
     AUXMCU_SERCOM->USART.CTRLB = temp_ctrlb_reg;
     /* Set max baud rate */

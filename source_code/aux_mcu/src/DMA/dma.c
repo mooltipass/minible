@@ -242,30 +242,6 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
     /* Wait for previous transfer to be completed */
     while (dma_main_mcu_packet_sent == FALSE);
     
-    #ifndef BOOTLOADER    
-    /* Check for no comms */
-    if (logic_is_no_comms_unavailable() == FALSE)
-    {
-        /* Check for timeout, then try to send a wakeup pulse (unlikely to happen) */
-        timer_start_timer(TIMER_MAIN_MCU_WAKE_DELAY, 8888);
-        while(platform_io_is_no_comms_asserted() == RETURN_OK)
-        {
-            if (timer_has_timer_expired(TIMER_MAIN_MCU_WAKE_DELAY, TRUE) == TIMER_EXPIRED)
-            {
-                /* Send wake-up pulse, wait a little before reading no comms again */
-                timer_start_timer(TIMER_MAIN_MCU_WAKE_DELAY, 8888);
-                platform_io_generate_no_comms_wakeup_pulse();
-                timer_delay_ms(5);                
-            }
-        }
-    }
-    else
-    {
-        /* No access to no comms signal, add non negotiable delay */
-        DELAYMS(50);
-    }
-    #endif
-    
     /* Disable IRQs */
     __disable_irq();
     __DMB();

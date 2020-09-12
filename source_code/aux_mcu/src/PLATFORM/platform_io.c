@@ -420,6 +420,7 @@ RET_TYPE platform_io_is_no_comms_asserted(void)
     } 
     else
     {
+        DELAYMS(50);
         return RETURN_NOK;        
     }       
 }

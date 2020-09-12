@@ -59,6 +59,7 @@ void DMAC_Handler(void)
     if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
     {
         /* Set transfer done boolean, clear interrupt */
+        platform_io_set_no_comms();
         dma_aux_mcu_packet_received = TRUE;
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
         dma_aux_mcu_rx_transfer_to_be_rearmed = TRUE;

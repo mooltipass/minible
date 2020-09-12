@@ -280,15 +280,11 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Generate our packet */
             temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
             
-            /* Wait for current packet reception and arm reception */
-            BOOL dma_flag_already_cleared = dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
-            comms_aux_arm_rx_and_clear_no_comms();
-            
             /* Send message */
             comms_aux_mcu_send_message(temp_tx_message_pt);
             
             /* Wait for message from aux MCU */
-            while(comms_aux_mcu_active_wait(&temp_rx_message, TRUE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
+            while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
             
             /* Copy message contents into send packet */
             temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(temp_tx_message_pt->hid_message.platform_info));
@@ -302,11 +298,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Send message */
             comms_aux_mcu_send_message(temp_tx_message_pt);
             
-            /* Clear flag if we need to in order to not disturbing calling's function logic */
-            if (dma_flag_already_cleared != FALSE)
-            {
-                dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
-            }
+            /* Rearm RX */
+            comms_aux_arm_rx_and_clear_no_comms();
             return;
         }
         

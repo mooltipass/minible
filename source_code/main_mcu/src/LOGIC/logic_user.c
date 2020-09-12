@@ -1649,7 +1649,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         comms_aux_mcu_send_message(typing_message_to_be_sent);
                         
                         /* Wait for typing status */
-                        while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
+                        while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
                         could_type_all_symbols = (BOOL)temp_rx_message->payload_as_uint16[0];
                             
                         /* Rearm DMA RX */
@@ -1781,7 +1781,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     memset(&temp_cnode, 0, sizeof(temp_cnode));
                     
                     /* Wait for typing status */
-                    while(comms_aux_mcu_active_wait(&temp_rx_message, FALSE, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
+                    while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
                     could_type_all_symbols = (BOOL)temp_rx_message->payload_as_uint16[0];
                     
                     /* Rearm DMA RX */

@@ -312,15 +312,11 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             /* Generate our packet */
             temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
             
-            /* Wait for current packet reception and arm reception */
-            BOOL dma_flag_already_cleared = dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
-            comms_aux_arm_rx_and_clear_no_comms();
-            
             /* Send message */
             comms_aux_mcu_send_message(temp_tx_message_pt);
             
             /* Wait for message from aux MCU */
-            while(comms_aux_mcu_active_wait(&temp_rx_message, TRUE, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
+            while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
                 
             /* Copy message contents into send packet */
             temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(temp_tx_message_pt->hid_message.detailed_platform_info));
@@ -331,11 +327,8 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             /* Send message */
             comms_aux_mcu_send_message(temp_tx_message_pt);
             
-            /* Clear flag if we need to in order to not disturbing calling's function logic */
-            if (dma_flag_already_cleared != FALSE)
-            {
-                dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
-            }
+            /* Rearm message reception */
+            comms_aux_arm_rx_and_clear_no_comms();
             return;
         }
         case HID_CMD_ID_GET_BATTERY_STATUS:
@@ -345,11 +338,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             uint16_t bat_adc_result;
             
             /* Keep screen on in case we're testing power consumption */
-            logic_device_activity_detected();        
-            
-            /* Wait for current packet reception and arm reception */
-            BOOL dma_flag_already_cleared = dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
-            comms_aux_arm_rx_and_clear_no_comms();
+            logic_device_activity_detected();
             
             /* Start charging? */
             if (rcv_msg->payload[0] != 0)
@@ -421,7 +410,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             bat_adc_result = platform_io_get_voledin_conversion_result_and_trigger_conversion();
             
             /* Wait for message from aux MCU */
-            while(comms_aux_mcu_active_wait(&temp_rx_message, TRUE, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE, -1) != RETURN_OK){}
+            while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE, -1) != RETURN_OK){}
                 
             /* Prepare packet to send back */
             temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(temp_tx_message_pt->hid_message.battery_status));
@@ -433,12 +422,9 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             temp_tx_message_pt->hid_message.battery_status.aux_charge_current = temp_rx_message->nimh_charge_message.charge_current;
             temp_tx_message_pt->hid_message.battery_status.aux_stepdown_voltage = temp_rx_message->nimh_charge_message.stepdown_voltage;
             temp_tx_message_pt->hid_message.battery_status.aux_dac_register_val = temp_rx_message->nimh_charge_message.dac_data_reg;
-                
-            /* Clear flag if we need to in order to not disturbing calling's function logic */
-            if (dma_flag_already_cleared != FALSE)
-            {
-                dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
-            }
+            
+            /* Rearm aux communications */    
+            comms_aux_arm_rx_and_clear_no_comms();
             
             /* Send message */
             comms_aux_mcu_send_message(temp_tx_message_pt);
