@@ -325,7 +325,10 @@ void usb_handle_standard_request(usb_request_t *request)
             udc_control_send_zlp();
             //asm("Nop");
         }
-        udc_control_send_zlp();
+        else
+        {
+            udc_control_send_zlp();
+        }
         break;
     }
     

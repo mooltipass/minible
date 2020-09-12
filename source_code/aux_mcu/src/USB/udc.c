@@ -323,9 +323,7 @@ void udc_recv(int ep, uint8_t *data, int size)
 void udc_control_send_zlp(void)
 {
   udc_mem[0].in.PCKSIZE.bit.BYTE_COUNT = 0;
-  USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_STALL1;
-  USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRCPT1;
-  USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRFAIL1;
+  USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_STALL1|USB_DEVICE_EPINTFLAG_TRCPT1|USB_DEVICE_EPINTFLAG_TRFAIL1;
   USB->DEVICE.DeviceEndpoint[0].EPSTATUSSET.bit.BK1RDY = 1;
 
   while ((0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRCPT1) && (0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRFAIL1) && (0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.STALL1) && (0 == USB->DEVICE.INTFLAG.bit.EORST));

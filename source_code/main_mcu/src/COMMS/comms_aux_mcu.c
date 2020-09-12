@@ -118,8 +118,8 @@ void comms_aux_arm_rx_and_clear_no_comms(void)
         /* Should never happen! */
         aux_mcu_comms_rx_already_armed = TRUE;
     }
-    platform_io_clear_no_comms();
     aux_mcu_comms_disabled = FALSE;
+    platform_io_clear_no_comms();
 }
 
 /*! \fn     comms_aux_mcu_set_comms_disabled(void)

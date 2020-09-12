@@ -35,9 +35,6 @@ volatile aux_mcu_message_t dma_main_mcu_other_message;
 volatile BOOL dma_main_mcu_usb_msg_received = FALSE;
 volatile BOOL dma_main_mcu_ble_msg_received = FALSE;
 volatile BOOL dma_main_mcu_other_msg_received = FALSE;
-/* MCU systick value when the main MCU message sent interrupt happened */
-volatile uint32_t dma_main_mcu_message_sent_mcu_systick_val;
-volatile uint32_t dma_main_mcu_message_sent_systick_val;
 /* Pointer to message being sent to main MCU */
 void* dma_pt_to_message_being_sent_to_main_mcu;
 
@@ -111,12 +108,6 @@ void DMAC_Handler(void)
         /* Set transfer done boolean, clear interrupt */
         dma_main_mcu_packet_sent = TRUE;
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
-        
-        /* Store timestamp of message sent */
-        #ifndef BOOTLOADER
-        timer_get_mcu_systick((uint32_t*)&dma_main_mcu_message_sent_mcu_systick_val);
-        dma_main_mcu_message_sent_systick_val = timer_get_systick();
-        #endif
     }
 }
 
@@ -248,50 +239,10 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
     /* Store pointer */
     dma_pt_to_message_being_sent_to_main_mcu = datap;
     
-    /* Wait for previous transfer to be done */
-    BOOL went_through_loop_below = FALSE;
-    while (dma_main_mcu_packet_sent == FALSE)
-    {
-        went_through_loop_below = TRUE;
-    }
+    /* Wait for previous transfer to be completed */
+    while (dma_main_mcu_packet_sent == FALSE);
     
-    #ifndef BOOTLOADER
-    /* We just waited for previous message to be sent, leave a little time for MCU to raise no_comms */
-    /* Maths: 6Mbit/s baud rate -> 3.3us for 20 bits + added interrupt latency */
-    if (went_through_loop_below != FALSE)
-    {
-        DELAYUS(150);
-    }
-    else
-    {
-        /* Edge case: we didn't go through the loop, the flag just got cleared but the main MCU hasn't raised the no comms signal yet */
-        uint32_t mcu_systick;
-        timer_get_mcu_systick(&mcu_systick);
-        if (dma_main_mcu_message_sent_mcu_systick_val < mcu_systick)
-        {
-            /* Main MCU systick is decreasing, we've detected a wrapover */
-            if((timer_get_systick() - dma_main_mcu_message_sent_systick_val) < 20)
-            {
-                /* This is a real wrapover as main MCU wrapover is ~300ms */
-                uint32_t t_delay = MCU_SYSTICK_MAX_PERIOD - mcu_systick + dma_main_mcu_message_sent_mcu_systick_val;
-                if (t_delay < 720)
-                {
-                    /* Less than 15us since message sent interrupt and now */
-                    DELAYUS(150);
-                }
-            }
-        }
-        else
-        {
-            uint32_t t_delay = dma_main_mcu_message_sent_mcu_systick_val - mcu_systick;
-            if ((t_delay < 720) && ((timer_get_systick() - dma_main_mcu_message_sent_systick_val) < 20))
-            {
-                /* Less than 15us since message sent interrupt and now */
-                DELAYUS(150);
-            }
-        }        
-    }
-    
+    #ifndef BOOTLOADER    
     /* Check for no comms */
     if (logic_is_no_comms_unavailable() == FALSE)
     {
@@ -313,8 +264,6 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
         /* No access to no comms signal, add non negotiable delay */
         DELAYMS(50);
     }
-    #else
-    (void)went_through_loop_below;
     #endif
     
     /* Disable IRQs */
@@ -332,7 +281,7 @@ void dma_main_mcu_init_tx_transfer(void* spi_data_p, void* datap, uint16_t size)
     dma_descriptors[DMA_DESCID_TX_COMMS].SRCADDR.reg = (uint32_t)datap + size;
     
     /* Resume DMA channel operation */
-    DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_TX_COMMS);
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_TX_COMMS);
     DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
     
     /* Re-enable IRQs */
