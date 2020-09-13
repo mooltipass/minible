@@ -52,6 +52,7 @@ A first unsuccessful approach to hit that goal was to use linked descriptors. Ho
 As a result, the main loop on both MCUs will continuously read the ongoing receive transfer DMA byte count. Therefore, the main MCU can process a "read node" command as soon as 2 (message type) + 2 (payload length #1) + 2 (command identifier) + 2 (payload length) + 2 (node address) = 10 bytes are received in 17us and the aux MCU could start sending data after the first 64 bytes are received in 106us.   
   
 ## [](#header-2) Protocol Intricacies
+![](https://github.com/mooltipass/minible/blob/gh-pages/images/aux_main_prot/aux_main_prot1.png?raw=true)  
 The main MCU is a **communication slave**: all external devices (computers, phones...) initiate dialog with the Mooltipass. The aux MCU simply forwards Mooltipass packets to the main MCU.  
 Three different kinds of packets may therefore be sent from the AUX MCU:  
 - USB communications  
@@ -59,10 +60,12 @@ Three different kinds of packets may therefore be sent from the AUX MCU:
 - Event messages (USB disconnected & others)  
 
 If no flow control was implemented these 3 different packets may be sent **at once** to the main MCU, which may not have enough time to deal with each packet before being able to receive another.  
-As a result, from the "proto v2" boards, a dedicated main MCU output pin explicitely lets the aux MCU know to not send any packet. This does not lead to additional memory requirements on the aux MCU as:   
+As a result, from the "proto v2" boards, a dedicated main MCU output pin (nocomms) explicitely lets the aux MCU know to not send any packet. This does not lead to additional memory requirements on the aux MCU as:   
 - a USB buffer needs to be implemented for packet de-serialization  
 - a BLE buffer needs to be implemented for packet de-serialization  
 - the status messages are generated on the fly by the aux MCU  
 - any Mooltipass command requires an answer (no risk to overwrite aux MCU buffers)  
-
-The other communication direction (main MCU to aux MCU) isn't a problem either, as the aux MCU also needs to keep buffers to do packet serialisation. Every time the aux MCU receives a packet received interrupt (from the DMA controller), it therefore should copy the received packet into the appropriate communication buffer.  
+  
+The nocomms signals is issued both in the RX USART interrupt and DMA end of transfer interrupt. The former isn't really needed as it is only fired if the DMA starts fetching USART bytes after the second received byte. Before checking the nocomms signal state, the AUX MCU takes into account the DMA interrupt latency.
+![](https://github.com/mooltipass/minible/blob/gh-pages/images/aux_main_prot/aux_main_prot2.png?raw=true)  
+As some MAIN to AUX command messages may require a little processing from the aux, every message from the main to the aux requires an answer (protocol flow control). For other messages, the aux MCU keeps dedicated buffers to do packet deserialisation. Every time the aux MCU receives a packet received interrupt (from the DMA controller), it therefore copies the received packet into the appropriate communication buffer.  
