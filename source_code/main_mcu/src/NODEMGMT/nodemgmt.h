@@ -106,7 +106,7 @@ typedef struct
     uint16_t prevParentAddress;     // Previous parent node address (Alphabetically)
     uint16_t nextParentAddress;     // Next parent node address (Alphabetically)
     uint16_t nextChildAddress;      // Parent node first child address
-    cust_char_t service[126];       // Unicode BMP text describing service, used for sorting and searching
+    cust_char_t service[SERVICE_NAME_MAX_LEN]; // Unicode BMP text describing service, used for sorting and searching
     uint8_t reserved[4];            // Reserved for future use
 } parent_cred_node_t;
 
@@ -117,7 +117,7 @@ typedef struct
     uint16_t prevParentAddress;     // Previous parent node address (Alphabetically)
     uint16_t nextParentAddress;     // Next parent node address (Alphabetically)
     uint16_t nextChildAddress;      // Parent node first child address
-    cust_char_t service[126];       // Unicode BMP text describing service, used for sorting and searching
+    cust_char_t service[SERVICE_NAME_MAX_LEN]; // Unicode BMP text describing service, used for sorting and searching
     uint8_t reserved;               // Reserved for future use
     uint8_t startDataCtr[3];        // Encryption counter
 } parent_data_node_t;
@@ -142,6 +142,19 @@ typedef struct
     uint8_t reserved2[6];           // Reserved for future use    
 } child_data_node_second_half_t;
 
+typedef struct TOTP_cred_node_s
+{
+    union
+    {
+        uint8_t TOTPsecret[TOTP_SECRET_MAX_LEN];    // Encrypted secret
+        uint8_t TOTPsecret_ct[TOTP_SECRET_MAX_LEN]; // Decrypted (cleartext) secret
+    };
+    uint16_t TOTPsecretLen;        // Length of TOTPsecret
+    uint8_t TOTPnumDigits;         // Number of digits for TOTP value
+    uint8_t TOTPsecret_ctr[3];     // Encryption counter
+
+} TOTP_cred_node_t;
+
 // Child credential node, see: https://mooltipass.github.io/minible/database_model
 typedef struct
 {
@@ -161,9 +174,9 @@ typedef struct
                                     * 8 dn 5 -> Month
                                     * 4 dn 0 -> Day
                                     */
-    cust_char_t login[64];          // Unicode BMP login
+    cust_char_t login[LOGIN_NAME_MAX_LEN]; // Unicode BMP login
     cust_char_t description[24];    // Unicode BMP description
-    cust_char_t thirdField[36];     // Unicode BMP third field   
+    cust_char_t thirdField[36];     // Unicode BMP third field
     uint16_t keyAfterLogin;         // Typed key after login
     uint16_t keyAfterPassword;      // Typed key after password
     uint16_t fakeFlags;             // Same as flags but with bit 5 set to 1
@@ -172,10 +185,11 @@ typedef struct
     union
     {
         uint8_t password[128];      // Encrypted password
-        cust_char_t cust_char_password[64];        
+        cust_char_t cust_char_password[64];
     };
     cust_char_t pwdTerminatingZero; // Set to 0
-    uint8_t TBD[128];               // TBD
+    TOTP_cred_node_t TOTP;          // TOTP entry
+    uint8_t TBD[90];                // TBD
 } child_cred_node_t;
 
 // Webauthn credential
