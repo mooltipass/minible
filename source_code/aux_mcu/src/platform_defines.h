@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    36
+#define FW_MINOR    37
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -67,6 +67,7 @@
         - different charge algorithm when the the battery is at low voltage
         - aux-main communication bug fix
         - acking every message sent by the main
+- v0.37:- aux-main communication real bug fix
 */
 
 /**************** SETUP DEFINES ****************/

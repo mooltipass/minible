@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    43
+#define FW_MINOR    44
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -123,6 +123,7 @@
         - different charge algorithm when the battery is at low voltage
         - device remembers battery voltage at last power off
         - aux-main communication bug fix
+- v0.44:- aux-main communication real bug fix
 */
 
 /**************** SETUP DEFINES ****************/
