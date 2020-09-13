@@ -890,14 +890,19 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         /* Store interface bool */
         BOOL is_message_from_usb = (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_USB)?TRUE:FALSE;
         
+        /* Bool if parsing HID message required */
+        BOOL hid_parsing_required = TRUE;
+        
         /* Depending on command ID, prepare return */
         if (aux_mcu_receive_message.hid_message.message_type == HID_CMD_ID_CANCEL_REQ)
         {
             msg_rcvd = HID_CANCEL_MSG_RCVD;
+            hid_parsing_required = FALSE;
         }
         else if (aux_mcu_receive_message.hid_message.message_type == HID_CMD_ID_REINDEX_BUNDLE)
         {
             msg_rcvd = HID_REINDEX_BUNDLE_RCVD;
+            hid_parsing_required = FALSE;
         }
         else
         {
@@ -906,16 +911,22 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
 
         /* Parse message */
         #ifndef DEBUG_USB_COMMANDS_ENABLED
-        comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), answer_restrict_type, is_message_from_usb);
-        #else
-        if (aux_mcu_receive_message.hid_message.message_type >= HID_MESSAGE_START_CMD_ID_DBG)
-        {
-            comms_hid_msgs_parse_debug(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), answer_restrict_type, is_message_from_usb);
-        }
-        else
+        if (hid_parsing_required != FALSE)
         {
             comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), answer_restrict_type, is_message_from_usb);
         }
+        #else
+        if (hid_parsing_required != FALSE)
+        {
+            if (aux_mcu_receive_message.hid_message.message_type >= HID_MESSAGE_START_CMD_ID_DBG)
+            {
+                comms_hid_msgs_parse_debug(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), answer_restrict_type, is_message_from_usb);
+            }
+            else
+            {
+                comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), answer_restrict_type, is_message_from_usb);
+            }
+        }        
         #endif
     }
     else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BOOTLOADER)
