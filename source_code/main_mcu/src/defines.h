@@ -87,4 +87,19 @@ typedef ret_type_te RET_TYPE;
 typedef uint32_t nat_type_t;
 typedef int32_t BOOL;
 
+/* Structures */
+
+typedef struct TOTPcredentials_s
+{
+    union
+    {
+        uint8_t TOTPsecret[TOTP_SECRET_MAX_LEN]; // Encrypted TOTP secret
+        uint8_t TOTPsecret_ct[TOTP_SECRET_MAX_LEN];     // Cleartext TOTP secret
+    };
+    uint8_t TOTPsecretLen;        // Length of TOTPsecret
+    uint8_t TOTPnumDigits;        // Number of digits for TOTP value
+    uint8_t TOTPtimeStep;         // TOTP time step. Reserved for future. MUST be set to 30 when sent from host
+    uint8_t TOTP_SHA_ver;         // TOTP SHA version. Reserved for future. MUST be set to 0 when sent from host. (Valid future values would be 0 - SHA1, 1 = SHA256, 2 - SHA512)
+} TOTPcredentials_t;
+
 #endif /* DEFINES_H_ */
