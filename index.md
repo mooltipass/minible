@@ -22,6 +22,7 @@ You'll find below different test reports done on the Mooltipass BLE.
 * [OLED step-up - 2018-08-05 load tests](test_reports/2018-08-05-voled-load-tests)
 * [3V3 step-up - 2018-08-01 rise times characterization](test_reports/2018-08-01-3v3-stepup-rise)
 * [3V3 step-up - 2018-08-05 load tests](test_reports/2018-08-05-3v3-load-tests)
+* [Power consumtpion - 2020-09-13 tests](test_reports/2020-09-13-power-consumptions)
 
 ## [](#header-2)Tutorials 
 * [Using FIDO2 to setup password-less authentication on Linux from a Windows computer](fido2_openssh_from_windows)
