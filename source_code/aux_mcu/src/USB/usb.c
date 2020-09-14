@@ -315,15 +315,20 @@ void usb_handle_standard_request(usb_request_t *request)
     {
         // TODO: check led states and do comms here!
         if (request->wIndex == USB_KEYBOARD_INTERFACE)
-        {
+        {      
+            /* Rearm receive */      
+            udc_rearm_ctrl0_out_handler();
+            
             /* Wait for OUT transfer */
+            USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRCPT0;
             USB->DEVICE.DeviceEndpoint[0].EPSTATUSCLR.bit.BK0RDY = 1;
-            //volatile uint32_t lapin2 = *(uint32_t*)request;
+            while ((USB->DEVICE.DeviceEndpoint[0].EPSTATUS.bit.BK0RDY) == 0);
             while ((USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRCPT0) == 0);
-            /* very, very very dirty hack: get the low byte containing the leds */
-            //volatile uint32_t lapin = *(uint32_t*)request;
+            volatile uint8_t led_states = *(uint8_t*)request;
             udc_control_send_zlp();
-            //asm("Nop");
+            
+            /* Rearm receive */
+            udc_rearm_ctrl0_out_handler();
         }
         else
         {

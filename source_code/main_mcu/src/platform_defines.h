@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    44
+#define FW_MINOR    45
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -124,6 +124,7 @@
         - device remembers battery voltage at last power off
         - aux-main communication bug fix
 - v0.44:- aux-main communication real bug fix
+- v0.45:- correct screen when importing unknown database
 */
 
 /**************** SETUP DEFINES ****************/

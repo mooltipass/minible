@@ -361,6 +361,14 @@ void udc_control_send(uint8_t *data, int size)
   while ((0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRCPT1) && (0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRFAIL1) && (0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.STALL1) && (0 == USB->DEVICE.INTFLAG.bit.EORST));
 }
 
+void udc_rearm_ctrl0_out_handler(void)
+{
+    udc_mem[0].out.ADDR.reg = (uint32_t)udc_ctrl_out_buf;
+    udc_mem[0].out.PCKSIZE.bit.SIZE = USB_DEVICE_PCKSIZE_SIZE_64;
+    udc_mem[0].out.PCKSIZE.bit.MULTI_PACKET_SIZE = 8;
+    udc_mem[0].out.PCKSIZE.bit.BYTE_COUNT = 0;
+}
+
 //-----------------------------------------------------------------------------
 void USB_Handler(void)
 {

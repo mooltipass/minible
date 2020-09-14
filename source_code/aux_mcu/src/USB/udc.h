@@ -53,6 +53,7 @@ void udc_recv(int ep, uint8_t *data, int size);
 void udc_control_send_zlp(void);
 void udc_control_stall(void);
 void udc_checks(void);
+void udc_rearm_ctrl0_out_handler(void);
 void udc_control_send(uint8_t *data, int size);
 uint16_t udc_get_nb_ms_before_last_usb_activity(void);
 
