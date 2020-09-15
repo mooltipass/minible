@@ -41,6 +41,8 @@ static int rtc_offset;
 
 /* Timer array */
 volatile timerEntry_t context_timers[TOTAL_NUMBER_OF_TIMERS];
+/* Bool set when MCU systic expired */
+volatile BOOL timer_systick_expired = TRUE;
 /* System tick */
 volatile uint32_t sysTick;
 
@@ -99,11 +101,7 @@ void TCC2_Handler(void)
 */
 void timer_initialize_timebase(void)
 {
-#ifndef EMULATOR_BUILD
-    /* Enable MCU systick with max value period */
-    SysTick->LOAD = 0x00FFFFFF;
-    SysTick->CTRL = 1;
-            
+#ifndef EMULATOR_BUILD            
     /* Assign internal 32kHz to GCLK3, divide it by 32 */
     GCLK_GENDIV_Type gendiv_reg;                                        // Gendiv struct
     gendiv_reg.bit.ID = GCLK_CLKCTRL_GEN_GCLK3_Val;                     // Select gclk3
@@ -311,6 +309,45 @@ void timer_ms_tick(void)
             }
         }
     }
+}
+
+#ifndef EMULATOR_BUILD
+/*!	\fn		SysTick_Handler(void)
+*	\brief	Called by MCU systick at timeout
+*/
+void SysTick_Handler(void)
+{
+    /* Disable systick */
+    SysTick->CTRL = 0;
+    timer_systick_expired = TRUE;
+}
+#endif
+
+/*!	\fn		timer_wait_for_aux_tx_flood_protection(void)
+*	\brief	Wait for the MCU systick timeout
+*/
+void timer_wait_for_aux_tx_flood_protection(void)
+{
+    while(timer_systick_expired == FALSE);
+}
+
+/*!	\fn		timer_arm_mcu_systick_for_aux_tx_flood_protection(void)
+*	\brief	Arm MCU systick in countdown mode to implement a timeout
+*   \note   This function is called by interrupt from the DMA TX done
+*/
+void timer_arm_mcu_systick_for_aux_tx_flood_protection(void)
+{
+    #ifndef EMULATOR_BUILD
+    /* Reset Booleans */
+    timer_systick_expired = FALSE;
+    
+    /* Set defined timeout value */
+    SysTick->LOAD = MCU_SYSTICK_VAL_FOR_AUX_RX_TO;
+    SysTick->VAL = 0;
+    
+    /* Use reference clock, generate interrupt and enable counter */
+    SysTick->CTRL = 0x03;
+    #endif
 }
 
 /*!	\fn		timer_get_mcu_systick(uint32_t* value)

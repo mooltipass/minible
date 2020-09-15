@@ -22,6 +22,7 @@
 #include <asf.h>
 #include "platform_defines.h"
 #include "comms_aux_mcu.h"
+#include "driver_timer.h"
 #include "platform_io.h"
 #include "dma.h"
 /* DMA Descriptors for our transfers and their DMA priority levels (highest number is higher priority, contrary to what is written in some datasheets) */
@@ -69,6 +70,9 @@ void DMAC_Handler(void)
     DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_TX_COMMS);
     if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
     {
+        /* Arm MCU systick for tx flood protection */
+        timer_arm_mcu_systick_for_aux_tx_flood_protection();
+        
         /* Set transfer done boolean, clear interrupt */
         dma_aux_mcu_packet_sent = TRUE;
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
@@ -86,7 +90,7 @@ void DMAC_Handler(void)
     /* OLED TX routine */
     DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_TX_OLED);
     if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
-    {
+    {        
         /* Set transfer done boolean, clear interrupt */
         dma_oled_transfer_done = TRUE;
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
@@ -681,8 +685,12 @@ void dma_acc_init_transfer(Sercom *sercom, void* datap, uint16_t size, uint8_t* 
 void dma_aux_mcu_init_tx_transfer(Sercom* sercom, void* datap, uint16_t size)
 {
     volatile void *usart_data_p = &sercom->USART.DATA.reg;
+    
     /* Wait for previous transfer to be done */
     while (dma_aux_mcu_packet_sent == FALSE);
+    
+    /* Wait for flood protection to expire (120us around) */
+    timer_wait_for_aux_tx_flood_protection();
     
     cpu_irq_enter_critical();
     

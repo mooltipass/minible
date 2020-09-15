@@ -506,6 +506,9 @@ typedef struct
 /* Number of active wait loops before we give up trying to receive a message from aux */
 #define NB_ACTIVE_WAIT_LOOP_TIMEOUT     10
 
+/* Value set inside the MCU systick timer to not send 2 messages to the AUX MCU too close to each other (as the AUX DMA interrupt may take a little while to fire) */
+#define MCU_SYSTICK_VAL_FOR_AUX_RX_TO   7200    // Around 150us
+
 /* PORT defines */
 /* WHEEL ENCODER */
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)

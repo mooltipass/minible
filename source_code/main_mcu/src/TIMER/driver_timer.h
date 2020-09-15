@@ -48,7 +48,7 @@ typedef enum {  TIMER_WAIT_FUNCTS = 0,
                 TIMER_CHECK_PASSWORD = 6, 
                 TIMER_BATTERY_ANIM = 7, 
                 TIMER_HANDED_MODE_CHANGE = 8, 
-                TIMER_AUX_MCU_FLOOD = 9, 
+                TIMER_FREE_TO_BE_USED = 9, 
                 TIMER_ADC_WATCHDOG = 10, 
                 TIMER_DEVICE_ACTION_TIMEOUT = 11, 
                 TIMER_AUX_MCU_PING = 12,
@@ -86,11 +86,13 @@ static uint16_t const EPOCH_YEAR = 1970;
 /* Prototypes */
 void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second);
 timer_flag_te timer_has_timer_expired(timer_id_te uid, BOOL clear);
+void timer_arm_mcu_systick_for_aux_tx_flood_protection(void);
 void timer_start_timer(timer_id_te uid, uint32_t val);
+void timer_wait_for_aux_tx_flood_protection(void);
 void timer_get_calendar(calendar_t* calendar_pt);
-uint64_t driver_timer_get_time(void);
 uint32_t timer_get_timer_val(timer_id_te uid);
 BOOL timer_get_mcu_systick(uint32_t* value);
+uint64_t driver_timer_get_time(void);
 void timer_initialize_timebase(void);
 uint32_t timer_get_systick(void);
 void timer_delay_ms(uint32_t ms);

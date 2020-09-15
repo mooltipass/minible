@@ -236,7 +236,7 @@ void main_platform_init(void)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No RWWE");
         while(1);        
-    }
+    }    
     
     /* Check for data flash */
     if (dataflash_init_return != RETURN_OK)
