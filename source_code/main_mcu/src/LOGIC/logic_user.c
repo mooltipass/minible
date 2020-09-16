@@ -997,14 +997,14 @@ RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* log
     uint8_t TOTPsecret_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     _Static_assert(MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret) == MEMBER_SIZE(TOTPcredentials_t, TOTPsecret), "TOTP secret lengths does not match!");
 
-    /* Sanitize */
-    if (logic_user_sanitize_TOTP(TOTPcreds) == RETURN_NOK)
+    /* Smartcard present and unlocked? */
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
         return RETURN_NOK;
     }
 
-    /* Smartcard present and unlocked? */
-    if (logic_security_is_smc_inserted_unlocked() == FALSE)
+    /* Sanitize */
+    if (logic_user_sanitize_TOTP(TOTPcreds) == RETURN_NOK)
     {
         return RETURN_NOK;
     }
