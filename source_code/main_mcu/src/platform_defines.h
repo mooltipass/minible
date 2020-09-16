@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    45
+#define FW_MINOR    46
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -125,8 +125,9 @@
         - aux-main communication bug fix
 - v0.44:- aux-main communication real bug fix
 - v0.45:- correct screen when importing unknown database
-        - use of main MCU systick to prevent aux MCU message floding
+        - use of main MCU systick to prevent aux MCU message flooding
         - end of bundle upload bug fix
+- v0.46:- disconnect from USB before updating aux
 */
 
 /**************** SETUP DEFINES ****************/

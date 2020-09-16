@@ -291,9 +291,9 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
         }
         case HID_CMD_ID_FLASH_AUX_AND_MAIN:
         {
-            /* Wait for current packet reception and arm reception */
-            dma_aux_mcu_wait_for_current_packet_reception_and_clear_flag();
-            comms_aux_arm_rx_and_clear_no_comms();
+            /* Detach from USB to get a free bus */
+            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
+            comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
             
             /* Start by flashing aux */
             logic_aux_mcu_flash_firmware_update(FALSE);
