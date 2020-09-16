@@ -76,6 +76,7 @@
 #define HID_CMD_GET_FILE_DATA_ID    0x0023
 #define HID_CMD_IM_LOCKED           0x0024
 #define HID_CMD_IM_UNLOCKED         0x0025
+#define HID_CMD_ID_STORE_TOTP_CRED  0x0026
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101
@@ -124,6 +125,13 @@ typedef struct
     uint16_t password_index;
     cust_char_t concatenated_strings[0];
 } hid_message_store_cred_t;
+
+typedef struct
+{
+    cust_char_t service_name[SERVICE_NAME_MAX_LEN];
+    cust_char_t login_name[LOGIN_NAME_MAX_LEN];
+    TOTPcredentials_t TOTPcreds;
+} hid_message_store_TOTP_cred_t;
 
 typedef struct
 {
@@ -199,6 +207,7 @@ typedef struct
         hid_message_detailed_plat_info_t detailed_platform_info;
         hid_message_plat_info_t platform_info;
         hid_message_store_cred_t store_credential;
+        hid_message_store_TOTP_cred_t store_TOTP_credential;
         hid_message_check_cred_req_t check_credential;
         hid_message_get_battery_status_t battery_status;
         hid_message_get_cred_req_t get_credential_request;

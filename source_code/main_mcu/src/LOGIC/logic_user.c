@@ -945,17 +945,18 @@ RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* log
     uint8_t TOTPsecret_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     _Static_assert(MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret) == MEMBER_SIZE(TOTPcredentials_t, TOTPsecret), "TOTP secret lengths does not match!");
 
+    /* Smartcard present and unlocked? */
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
+    {
+        return RETURN_NOK;
+    }
+
     /* Sanitize TOTPsecretLen length */
     if (TOTPcreds->TOTPsecretLen > MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret))
     {
         return RETURN_NOK;
     }
 
-    /* Smartcard present and unlocked? */
-    if (logic_security_is_smc_inserted_unlocked() == FALSE)
-    {
-        return RETURN_NOK;
-    }
 
     /* Does service already exist? */
     uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, TRUE, NODEMGMT_STANDARD_CRED_TYPE_ID);
