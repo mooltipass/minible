@@ -125,6 +125,8 @@
         - aux-main communication bug fix
 - v0.44:- aux-main communication real bug fix
 - v0.45:- correct screen when importing unknown database
+        - use of main MCU systick to prevent aux MCU message floding
+        - end of bundle upload bug fix
 */
 
 /**************** SETUP DEFINES ****************/

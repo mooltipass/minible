@@ -890,7 +890,6 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
         else if (aux_mcu_receive_message.hid_message.message_type == HID_CMD_ID_REINDEX_BUNDLE)
         {
             msg_rcvd = HID_REINDEX_BUNDLE_RCVD;
-            hid_parsing_required = FALSE;
         }
         else
         {
