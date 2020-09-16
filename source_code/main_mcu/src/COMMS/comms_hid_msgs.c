@@ -1209,7 +1209,46 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 return;
             }
         }
-        
+
+        case HID_CMD_ID_STORE_TOTP_CRED:
+        {
+            /********************************/
+            /* Here comes the sanity checks */
+            /********************************/
+
+            /* Empty service name */
+            if (rcv_msg->store_TOTP_credential.service_name[0] == 0)
+            {
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }
+            /* Empty login name */
+            if (rcv_msg->store_TOTP_credential.login_name[0] == 0)
+            {
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }
+
+            cust_char_t* service_name_pt = rcv_msg->store_TOTP_credential.service_name;
+            cust_char_t* login_name_pt = rcv_msg->store_TOTP_credential.login_name;
+            TOTPcredentials_t *TOTPcreds = &rcv_msg->store_TOTP_credential.TOTPcreds;
+
+            /* Ensure strings are null-terminated */
+            service_name_pt[SERVICE_NAME_MAX_LEN-1] = '\0';
+            login_name_pt[LOGIN_NAME_MAX_LEN-1] = '\0';
+
+            /* Proceed to other logic */
+            if (logic_user_store_TOTP_credential(service_name_pt, login_name_pt, TOTPcreds) == RETURN_OK)
+            {
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
+            }
+            else
+            {
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }
+        }
         case HID_CMD_GET_DEVICE_LANG_ID:
         {
             /* Get device default language */
