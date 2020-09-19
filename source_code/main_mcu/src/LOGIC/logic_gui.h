@@ -29,13 +29,15 @@
 
 
 /* Prototypes */
-void logic_gui_display_login_password(child_cred_node_t* child_node);
+void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node);
 void logic_gui_disable_bluetooth(void);
 void logic_gui_enable_bluetooth(void);
 void logic_gui_clone_card(void);
 void logic_gui_change_pin(void);
 void logic_gui_erase_user(void);
 
-
-
+/* Defines */
+#define LOGIC_GUI_NUM_LINES (3)           // Number of lines to display for credentials
+#define LOGIC_GUI_TOTP_STR_LEN (30)       // Length of TOTP string generated
+#define LOGIC_GUI_TOTP_MAX_TIMESTEP (100) // Maximum number for the timestep
 #endif /* LOGIC_GUI_H_ */
