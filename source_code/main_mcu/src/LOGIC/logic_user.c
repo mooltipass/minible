@@ -1574,7 +1574,7 @@ void logic_user_manual_select_login(void)
             else if (display_prompt_return == MINI_INPUT_RET_YES)
             {
                 nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
-                logic_gui_display_login_password((child_cred_node_t*)&temp_cnode);
+                logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode);
                 memset(&temp_cnode, 0, sizeof(temp_cnode));
                 return;
             }
