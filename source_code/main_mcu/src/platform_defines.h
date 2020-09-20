@@ -28,6 +28,7 @@
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
 #define FW_MINOR    46
+#define UNIT_SN     12345678
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
