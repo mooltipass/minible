@@ -34,9 +34,9 @@ The device will send back the very same message.
 
 From the device:
 
-| byte 0-1 | byte 2-3         | bytes 4-X         |
-|:---------|:-----------------|:------------------|
-| 0x0002   | 0                | N/A               |
+| byte 0-1 | byte 2-3         | bytes 4-7         | bytes 8-X         |
+|:---------|:-----------------|:------------------|:------------------|
+| 0x0002   | 4                | Unit's SN         | N/A               |
 
 When the device is busy and can't deal with the message sent by the computer, it will reply a message with a "Please Retry" one, inviting the computer to re-send its packet.  
 
