@@ -110,13 +110,13 @@ void utils_strncpy(cust_char_t* destination, cust_char_t* source, uint16_t max_c
     }
 }
 
-/*! \fn     utils_strcpy(cust_char_t* destination, cust_char_t* source)
+/*! \fn     utils_strcpy(cust_char_t* destination, cust_char_t const* source)
 *   \brief  Our own version of strcpy
 *   \param  destination     Where to store
 *   \param  source          The source
 *   \return Number of chars copied
 */
-uint16_t utils_strcpy(cust_char_t* destination, cust_char_t* source)
+uint16_t utils_strcpy(cust_char_t* destination, cust_char_t const* source)
 {
     uint16_t return_val = 0;
     
