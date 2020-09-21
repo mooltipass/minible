@@ -127,11 +127,11 @@ void comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_le
     /* Wait for possible previous message to be sent */
     dma_wait_for_main_mcu_packet_sent();
     
+    /* DMA receive and beginning of interrupt was measured at 3.5us */
+    DELAYUS(5);
+    
     /* Wake-up main MCU if it is currently sleeping */
     logic_sleep_wakeup_main_mcu_if_needed();
-    
-    /* DMA receive and beginning of interrupt was measured at 5us */
-    DELAYUS(13);
     
     /* Wait for no comms release */
     while (platform_io_is_no_comms_asserted() == RETURN_OK);
