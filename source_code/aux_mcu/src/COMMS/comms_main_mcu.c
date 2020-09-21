@@ -128,7 +128,7 @@ void comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_le
     dma_wait_for_main_mcu_packet_sent();
     
     /* DMA receive and beginning of interrupt was measured at 3.5us */
-    DELAYUS(5);
+    DELAYUS(10);
     
     /* Wake-up main MCU if it is currently sleeping */
     logic_sleep_wakeup_main_mcu_if_needed();

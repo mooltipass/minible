@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    38
+#define FW_MINOR    39
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -69,6 +69,7 @@
         - acking every message sent by the main
 - v0.37:- aux-main communication real bug fix
 - v0.38:- correct LED states fetch
+- v0.39:- increased delay before reading no comms state
 */
 
 /**************** SETUP DEFINES ****************/
