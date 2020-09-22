@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    46
+#define FW_MINOR    47
 #define UNIT_SN     12345678
 
 /* Changelog:
@@ -129,6 +129,7 @@
         - use of main MCU systick to prevent aux MCU message flooding
         - end of bundle upload bug fix
 - v0.46:- disconnect from USB before updating aux
+- v0.47:- more intuitive behavior of long click
 */
 
 /**************** SETUP DEFINES ****************/

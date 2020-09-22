@@ -41,6 +41,8 @@ volatile BOOL inputs_last_b_state_on = FALSE;
 #endif
 // Wheel pressed duration counter
 volatile uint16_t inputs_wheel_click_duration_counter;
+// Penalty for long click
+volatile uint16_t inputs_wheel_long_click_penalty;
 // Current wheel click return
 volatile det_ret_type_te inputs_wheel_click_return;
 // Wheel click counter
@@ -393,6 +395,7 @@ void inputs_clear_detections(void)
     inputs_wheel_click_return = RETURN_INV_DET;
     inputs_wheel_click_duration_counter = 0;
     inputs_discard_release_event = FALSE;
+    inputs_wheel_long_click_penalty = 0;
     inputs_wheel_cur_increment = 0;
     cpu_irq_leave_critical();
 }
@@ -438,10 +441,10 @@ wheel_action_ret_te inputs_get_wheel_action(BOOL wait_for_action, BOOL ignore_in
             inputs_wheel_click_return = RETURN_DET;
             cpu_irq_leave_critical();
         }
-        if ((inputs_wheel_click_return == RETURN_JRELEASED) || (inputs_wheel_cur_increment_copy != 0) || (inputs_wheel_click_duration_counter > LONG_PRESS_MS))
+        if ((inputs_wheel_click_return == RETURN_JRELEASED) || (inputs_wheel_cur_increment_copy != 0) || (inputs_wheel_click_duration_counter > LONG_PRESS_MS + inputs_wheel_long_click_penalty))
         {
             cpu_irq_enter_critical();
-            if ((inputs_wheel_click_duration_counter > LONG_PRESS_MS) && (inputs_discard_release_event == FALSE))
+            if ((inputs_wheel_click_duration_counter > LONG_PRESS_MS + inputs_wheel_long_click_penalty) && (inputs_discard_release_event == FALSE))
             {
                 return_val = WHEEL_ACTION_LONG_CLICK;
             }
@@ -449,9 +452,10 @@ wheel_action_ret_te inputs_get_wheel_action(BOOL wait_for_action, BOOL ignore_in
             {                    
                 if (inputs_wheel_cur_increment_copy == 0)
                 {
-                    if (inputs_discard_release_event != FALSE)
+                    if ((inputs_discard_release_event != FALSE) || (inputs_wheel_long_click_penalty != 0))
                     {
                         inputs_discard_release_event = FALSE;
+                        inputs_wheel_long_click_penalty = 0;
                         return_val = WHEEL_ACTION_DISCARDED;
                     } 
                     else
@@ -488,9 +492,13 @@ wheel_action_ret_te inputs_get_wheel_action(BOOL wait_for_action, BOOL ignore_in
 
             // Clear detections
             inputs_wheel_click_duration_counter = 0;
-            if ((return_val == WHEEL_ACTION_CLICK_DOWN) || (return_val == WHEEL_ACTION_CLICK_UP) || (return_val == WHEEL_ACTION_LONG_CLICK))
+            if (return_val == WHEEL_ACTION_LONG_CLICK)
             {
                 inputs_discard_release_event = TRUE;
+            }
+            else if ((return_val == WHEEL_ACTION_CLICK_DOWN) || (return_val == WHEEL_ACTION_CLICK_UP))
+            {
+                inputs_wheel_long_click_penalty = LONG_PRESS_MS;
             }
             else if(return_val == WHEEL_ACTION_NONE)
             {
