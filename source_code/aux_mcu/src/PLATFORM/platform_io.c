@@ -433,8 +433,9 @@ void platform_io_init_no_comms_input(void)
     if (platform_io_no_comms_unavailable == FALSE)
     {
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;
-        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_MASK;
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_MASK;
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.INEN = 1;
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PULLEN = 1;
     }
 }
 
@@ -456,10 +457,12 @@ void platform_io_generate_no_comms_wakeup_pulse(void)
     if (platform_io_no_comms_unavailable == FALSE)
     {
         PORT->Group[AUX_MCU_NOCOMMS_PULLUP_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_PULLUP_MASK;
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_MASK;
         #ifndef BOOTLOADER
         DELAYMS(1);
         #endif
         PORT->Group[AUX_MCU_NOCOMMS_PULLUP_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_PULLUP_MASK;
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTSET.reg = AUX_MCU_NOCOMMS_MASK;
     }       
 }
 

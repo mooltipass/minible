@@ -772,7 +772,7 @@ ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buf
     BOOL should_deal_with_packet = FALSE;
     
     /* Conditions: received more bytes than the payload length, didn't already reply using this method, received flag didn't arrive in the mean time */
-    if ((nb_received_bytes_for_ongoing_transfer >= sizeof(dma_main_mcu_temp_rcv_message.message_type) + sizeof(dma_main_mcu_temp_rcv_message.payload_length1) + dma_main_mcu_temp_rcv_message.payload_length1) && (*answered_with_the_first_bytes_pointer == FALSE) && ((sizeof(aux_mcu_message_t) - nb_received_bytes_for_ongoing_transfer) > 20) && (*packet_fully_received_in_the_mean_time_pointer == FALSE))
+    if ((nb_received_bytes_for_ongoing_transfer >= sizeof(dma_main_mcu_temp_rcv_message.message_type) + sizeof(dma_main_mcu_temp_rcv_message.payload_length1) + dma_main_mcu_temp_rcv_message.payload_length1) && (*answered_with_the_first_bytes_pointer == FALSE) && ((sizeof(aux_mcu_message_t) - nb_received_bytes_for_ongoing_transfer) > 200) && (*packet_fully_received_in_the_mean_time_pointer == FALSE))
     {
         should_deal_with_packet = TRUE;
         
