@@ -755,9 +755,9 @@ Device Answer:
 
 From the PC: 
 
-| byte 0-1 | byte 2-X     |
-|:---------|:-------------|
-| 0x0102   |        N/A   |
+| byte 0-1 | byte 2-3     | byte 3-4     |
+|:---------|:-------------|:-------------|
+| 0x0102   |        2     | Node address |
 
 Device Answer:
 
