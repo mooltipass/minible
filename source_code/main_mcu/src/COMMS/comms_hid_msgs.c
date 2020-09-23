@@ -205,13 +205,22 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         is_aes_gcm_message = TRUE;
     }
     
-    /* Checks based on restriction type */
+    /* Checks based on restriction type; ignore all messages */
     BOOL should_ignore_message = FALSE;
-    if ((answer_restrict_type == MSG_RESTRICT_ALL) && (rcv_msg->message_type != HID_CMD_ID_PING))
+    if ((answer_restrict_type == MSG_RESTRICT_ALL) && 
+    (rcv_msg->message_type != HID_CMD_ID_PING) &&
+    (rcv_msg->message_type != HID_CMD_IM_LOCKED) &&
+    (rcv_msg->message_type != HID_CMD_IM_UNLOCKED))
     {
         should_ignore_message = TRUE;
     }
-    if ((answer_restrict_type == MSG_RESTRICT_ALLBUT_CANCEL) && (rcv_msg->message_type != HID_CMD_ID_PING) && (rcv_msg->message_type != HID_CMD_ID_CANCEL_REQ))
+    
+    /* Checks based on restriction type; ignore all messages except cancel request */
+    if ((answer_restrict_type == MSG_RESTRICT_ALLBUT_CANCEL) && 
+        (rcv_msg->message_type != HID_CMD_ID_PING) && 
+        (rcv_msg->message_type != HID_CMD_ID_CANCEL_REQ) && 
+        (rcv_msg->message_type != HID_CMD_IM_LOCKED) &&
+        (rcv_msg->message_type != HID_CMD_IM_UNLOCKED))
     {
         should_ignore_message = TRUE;
     }
