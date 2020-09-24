@@ -156,7 +156,6 @@ typedef struct TOTP_cred_node_s
     uint8_t TOTPsecret_ctr[3];     // Encryption counter
     uint8_t reserved1;             // Reserved for future use
     uint8_t reserved2;             // Reserved for future use
-
 } TOTP_cred_node_t;
 
 // Child credential node, see: https://mooltipass.github.io/minible/database_model
