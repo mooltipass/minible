@@ -24,6 +24,11 @@
 #ifndef NODEMGMT_DEFINES_H_
 #define NODEMGMT_DEFINES_H_
 
+/* Defines */
+#define TOTP_SECRET_MAX_LEN                 32
+#define SERVICE_NAME_MAX_LEN                126
+#define LOGIN_NAME_MAX_LEN                  64
+
 // Bluetooth bonding information
 typedef struct
 {
