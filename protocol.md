@@ -711,6 +711,25 @@ Inform the mooltipass device that the host is unlocked
 
 
 
+0x0026: Disable No Prompt
+-------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0026   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0026   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Disable the no prompt feature on the current user profile.
+
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
