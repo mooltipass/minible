@@ -76,6 +76,7 @@
 #define HID_CMD_GET_FILE_DATA_ID    0x0023
 #define HID_CMD_IM_LOCKED           0x0024
 #define HID_CMD_IM_UNLOCKED         0x0025
+#define HID_CMD_DISABLE_NO_PROMPT   0x0026
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101

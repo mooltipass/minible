@@ -205,7 +205,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         is_aes_gcm_message = TRUE;
     }
     
-    /* Checks based on restriction type; ignore all messages */
+    /* Checks based on restriction type: ignore all messages */
     BOOL should_ignore_message = FALSE;
     if ((answer_restrict_type == MSG_RESTRICT_ALL) && 
     (rcv_msg->message_type != HID_CMD_ID_PING) &&
@@ -215,7 +215,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         should_ignore_message = TRUE;
     }
     
-    /* Checks based on restriction type; ignore all messages except cancel request */
+    /* Checks based on restriction type: ignore all messages except cancel request */
     if ((answer_restrict_type == MSG_RESTRICT_ALLBUT_CANCEL) && 
         (rcv_msg->message_type != HID_CMD_ID_PING) && 
         (rcv_msg->message_type != HID_CMD_ID_CANCEL_REQ) && 
@@ -280,6 +280,24 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             logic_user_inform_computer_locked_state(is_message_from_usb, FALSE);
             comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
             return;
+        }
+        
+        case HID_CMD_DISABLE_NO_PROMPT:
+        {
+            /* User logged in? */
+            if (logic_security_is_smc_inserted_unlocked() != FALSE)
+            {
+                /* Do not set the flag if it's already set */
+                if ((logic_user_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) == 0)
+                {
+                    logic_user_set_user_security_flag(USER_SEC_FLG_LOGIN_CONF);
+                }
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+            } 
+            else
+            {
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+            }
         }
         
         case HID_CMD_ID_PLAT_INFO:
