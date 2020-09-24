@@ -27,9 +27,6 @@
 
 /* Defines */
 #define AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS    1500
-#define TOTP_SECRET_MAX_LEN                 32
-#define SERVICE_NAME_MAX_LEN                126
-#define LOGIN_NAME_MAX_LEN                  64
 
 /* Fonts defines */
 #define FONT_UBUNTU_MONO_BOLD_30_ID 0

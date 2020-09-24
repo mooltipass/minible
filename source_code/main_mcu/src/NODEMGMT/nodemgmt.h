@@ -150,8 +150,12 @@ typedef struct TOTP_cred_node_s
         uint8_t TOTPsecret_ct[TOTP_SECRET_MAX_LEN]; // Decrypted (cleartext) secret
     };
     uint16_t TOTPsecretLen;        // Length of TOTPsecret
+    uint8_t TOTPtimeStep;          // Time step to calculate TOTP value over (default: 30s, max: 99s)
+    uint8_t TOTP_SHA_ver;          // SHA version used for TOTP (0 - SHA1 (default), 1 = SHA256, 2 = SHA512)
     uint8_t TOTPnumDigits;         // Number of digits for TOTP value
     uint8_t TOTPsecret_ctr[3];     // Encryption counter
+    uint8_t reserved1;             // Reserved for future use
+    uint8_t reserved2;             // Reserved for future use
 
 } TOTP_cred_node_t;
 
@@ -189,7 +193,7 @@ typedef struct
     };
     cust_char_t pwdTerminatingZero; // Set to 0
     TOTP_cred_node_t TOTP;          // TOTP entry
-    uint8_t TBD[90];                // TBD
+    uint8_t TBD[86];                // TBD
 } child_cred_node_t;
 
 // Webauthn credential
