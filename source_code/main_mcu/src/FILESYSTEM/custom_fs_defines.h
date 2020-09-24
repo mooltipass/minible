@@ -66,9 +66,11 @@
 #define SETTINGS_PIN_SHOWN_WHEN_BACK        14
 #define SETTINGS_UNLOCK_FEATURE_PARAM       15
 #define SETTINGS_DEVICE_TUTORIAL            16
-#define SETTING_SHOW_PIN_ON_ENTRY           17
+#define SETTINGS_SHOW_PIN_ON_ENTRY          17
+#define SETTINGS_DISABLE_BLE_ON_CARD_REMOVE 18
+#define SETTINGS_DISABLE_BLE_ON_LOCK        19
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    18
+#define SETTINGS_NB_USED                    20
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32

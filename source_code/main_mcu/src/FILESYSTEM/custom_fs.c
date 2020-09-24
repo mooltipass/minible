@@ -39,8 +39,27 @@
 #endif
 
 /* Default device settings */
-const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = {0,FALSE,SETTING_DFT_USER_INTERACTION_TIMEOUT,TRUE,0,0x09,0x0A,25,TRUE,0x90,TRUE,9,FALSE,FALSE,FALSE,FALSE,TRUE};
-/* Current selected language entry */
+const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = { 0,                                       // SETTING_RESERVED_ID                
+                                                                        FALSE,                                   // SETTING_RANDOM_PIN_ID              
+                                                                        SETTING_DFT_USER_INTERACTION_TIMEOUT,    // SETTING_USER_INTERACTION_TIMEOUT_ID
+                                                                        TRUE,                                    // SETTING_FLASH_SCREEN_ID            
+                                                                        0,                                       // SETTING_DEVICE_DEFAULT_LANGUAGE    
+                                                                        0x09,                                    // SETTINGS_CHAR_AFTER_LOGIN_PRESS    
+                                                                        0x0A,                                    // SETTINGS_CHAR_AFTER_PASS_PRESS     
+                                                                        15,                                      // SETTINGS_DELAY_BETWEEN_PRESSES     
+                                                                        TRUE,                                    // SETTINGS_BOOT_ANIMATION            
+                                                                        0x90,                                    // SETTINGS_MASTER_CURRENT            
+                                                                        TRUE,                                    // SETTINGS_LOCK_ON_DISCONNECT        
+                                                                        9,                                       // SETTINGS_KNOCK_DETECT_SENSITIVITY  
+                                                                        FALSE,                                   // SETTINGS_LEFT_HANDED_ON_BATTERY    
+                                                                        FALSE,                                   // SETTINGS_LEFT_HANDED_ON_USB        
+                                                                        FALSE,                                   // SETTINGS_PIN_SHOWN_WHEN_BACK       
+                                                                        FALSE,                                   // SETTINGS_UNLOCK_FEATURE_PARAM      
+                                                                        TRUE,                                    // SETTINGS_DEVICE_TUTORIAL           
+                                                                        FALSE,                                   // SETTINGS_SHOW_PIN_ON_ENTRY         
+                                                                        FALSE,                                   // SETTINGS_DISABLE_BLE_ON_CARD_REMOVE
+                                                                        FALSE};                                  // SETTINGS_DISABLE_BLE_ON_LOCK       
+/* Current selected language entry */ 
 language_map_entry_t custom_fs_cur_language_entry = {.starting_bitmap = 0, .starting_font = 0, .string_file_index = 0};
 /* Temp values to speed up string files reading */
 custom_fs_string_count_t custom_fs_current_text_file_string_count = 0;

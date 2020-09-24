@@ -152,15 +152,14 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
     }
     else if (wheel_action == WHEEL_ACTION_LONG_CLICK)
     {
+        /* Lock device ? */
         if (gui_menu_selected_menu == MAIN_MENU)
         {
-            /* Lock device */
-            gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
-            logic_smartcard_handle_removed();
-            logic_device_set_state_changed();
+            /* Set flag */
+            logic_user_set_user_to_be_logged_off_flag();
             
-            /* Re-render menu */
-            return TRUE;
+            /* Don't Re-render menu */
+            return FALSE;
         }
         else
         {
@@ -196,10 +195,11 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             }
             case GUI_LOCK_ICON_ID:
             {
-                gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
-                logic_smartcard_handle_removed(); 
-                logic_device_set_state_changed();
-                return TRUE;
+                /* Set flag */
+                logic_user_set_user_to_be_logged_off_flag();
+                
+                /* Don't Re-render menu */
+                return FALSE;
             }                
             case GUI_CAT_ICON_ID:
             {

@@ -600,7 +600,7 @@ static cust_char_t gui_prompts_get_char_to_display(uint8_t const * current_pin, 
 {
     cust_char_t disp_char;
 
-    if ((BOOL)custom_fs_settings_get_device_setting(SETTING_SHOW_PIN_ON_ENTRY) != FALSE)
+    if ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_SHOW_PIN_ON_ENTRY) != FALSE)
     {
         if (current_pin[index] >= 0x0A)
         {

@@ -21,6 +21,7 @@
 #include "logic_user.h"
 #include "custom_fs.h"
 #include "dataflash.h"
+#include "logic_gui.h"
 #include "text_ids.h"
 #include "lis2hh12.h"
 #include "nodemgmt.h"
@@ -677,6 +678,11 @@ int main(void)
         /* Check flag to be logged off */
         if (logic_user_get_and_clear_user_to_be_logged_off_flag() != FALSE)
         {
+            /* Disable bluetooth? */
+            if (custom_fs_settings_get_device_setting(SETTINGS_DISABLE_BLE_ON_LOCK) != FALSE)
+            {
+                logic_gui_disable_bluetooth();
+            }
             gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
             gui_dispatcher_get_back_to_current_screen();
             logic_device_set_state_changed();
@@ -764,6 +770,12 @@ int main(void)
             }
             else if (card_detection_res == RETURN_JRELEASED)
             {
+                /* Disable bluetooth? */
+                if (custom_fs_settings_get_device_setting(SETTINGS_DISABLE_BLE_ON_CARD_REMOVE) != FALSE)
+                {
+                    logic_gui_disable_bluetooth();
+                }
+                
                 /* Light up the Mooltipass and call the dedicated function */
                 logic_device_activity_detected();
                 logic_smartcard_handle_removed();
@@ -785,10 +797,8 @@ int main(void)
                 /* Lock device */
                 if (logic_security_is_smc_inserted_unlocked() != FALSE)
                 {
-                    gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
-                    gui_dispatcher_get_back_to_current_screen();
-                    logic_smartcard_handle_removed();
-                    logic_device_set_state_changed();
+                    /* Set flag */
+                    logic_user_set_user_to_be_logged_off_flag();
                 }
             }
             

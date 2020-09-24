@@ -529,10 +529,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Lock device */
             if (logic_security_is_smc_inserted_unlocked() != FALSE)
             {
-                gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
-                gui_dispatcher_get_back_to_current_screen();
-                logic_smartcard_handle_removed();
-                logic_device_set_state_changed();
+                /* Set flag */
+                logic_user_set_user_to_be_logged_off_flag();
 
                 /* Set success byte */
                 comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
