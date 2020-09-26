@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 #include <inttypes.h>
+#include <nodemgmt_defines.h>
 
 /* Defines */
 #define AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS    1500

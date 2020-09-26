@@ -121,7 +121,6 @@
 #define QPROMPT_EXPORT_DATA_TEXT_ID     114
 #define EXPORTING_DATA_FOR_TEXT_ID      115
 #define TUTORIAL_FLINE_TEXT_ID          116
-#define CHANGE_TOTP_TEXT_ID             117
 ///////////////////////////////////////////
 #define TUTORIAL_LLINE_TEXT_ID          127
 #define CONTACT_SUPPORT_003_TEXT_ID     128
@@ -129,5 +128,6 @@
 #define CONTACT_SUPPORT_005_TEXT_ID     130
 #define CONTACT_SUPPORT_006_TEXT_ID     131
 #define CONTACT_SUPPORT_007_TEXT_ID     132
+#define CHANGE_TOTP_TEXT_ID             133
 
 #endif

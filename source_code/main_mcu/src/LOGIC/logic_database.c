@@ -711,6 +711,7 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
 
 /*! \fn     logic_database_update_TOTP_credentials(uint16_t child_addr, TOTPcredentials_t const *TOTPcreds, uint8_t* ctr)
 *   \brief  Update existing credential
+*           NOTE: Assumes TOTPcreds are sanitized already
 *   \param  child_addr  Child address
 *   \param  TOTPcreds   Pointer to encrypted TOTPsecret and meta data
 *   \param  ctr         CTR value
@@ -719,12 +720,6 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
 RET_TYPE logic_database_update_TOTP_credentials(uint16_t child_addr, TOTPcredentials_t const *TOTPcreds, uint8_t* ctr)
 {
     child_cred_node_t temp_cnode;
-
-    /* Sanitize TOTPsecretLen length */
-    if (TOTPcreds->TOTPsecretLen > MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret))
-    {
-        return RETURN_NOK;
-    }
 
     /* Read node, ownership checks are done within */
     nodemgmt_read_cred_child_node(child_addr, &temp_cnode);
@@ -735,10 +730,14 @@ RET_TYPE logic_database_update_TOTP_credentials(uint16_t child_addr, TOTPcredent
 
     /* Update fields */
 
-    /* TOTPsecretLen checked above, copy all credential information into node */
+    /* TOTPsecretLen checked in calling function, copy all credential information into node */
     memcpy(temp_cnode.TOTP.TOTPsecret, TOTPcreds->TOTPsecret, TOTPcreds->TOTPsecretLen);
     memcpy(temp_cnode.TOTP.TOTPsecret_ctr, ctr, MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret_ctr));
     temp_cnode.TOTP.TOTPsecretLen = TOTPcreds->TOTPsecretLen;
+
+    /* All values sanitized in calling function */
+    temp_cnode.TOTP.TOTPtimeStep = TOTPcreds->TOTPtimeStep;
+    temp_cnode.TOTP.TOTP_SHA_ver = TOTPcreds->TOTP_SHA_ver;
     temp_cnode.TOTP.TOTPnumDigits = TOTPcreds->TOTPnumDigits;
 
     /* Then write back to flash at same address */
@@ -854,6 +853,7 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
 
 /*! \fn     logic_database_add_TOTP_credential_for_service(uint16_t service_addr, cust_char_t* login, TOTPcredentials_t const *TOTPcreds)
 *   \brief  Add a new TOTP credential for a given service to our database
+*           NOTE: Assumes TOTPcreds are sanitized already
 *   \param  service_addr    Service address
 *   \param  login           Pointer to login string
 *   \param  TOTPcreds       Pointer to the TOTP credentials
@@ -865,25 +865,24 @@ RET_TYPE logic_database_add_TOTP_credential_for_service(uint16_t service_addr, c
     uint16_t storage_addr = NODE_ADDR_NULL;
     child_cred_node_t temp_cnode;
 
-    /* Sanitize TOTPsecretLen length */
-    if (TOTPcreds->TOTPsecretLen > MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret))
-    {
-        return RETURN_NOK;
-    }
-
     /* Clear node */
     memset((void*)&temp_cnode, 0, sizeof(temp_cnode));
 
     /* Update fields that are required */
     utils_strncpy(temp_cnode.login, login, sizeof(temp_cnode.login)/sizeof(cust_char_t));
     temp_cnode.passwordBlankFlag = TRUE;
+
+    /* Set "master setting" for keys pressed after login & password entering */
     temp_cnode.keyAfterPassword = 0xFFFF;
     temp_cnode.keyAfterLogin = 0xFFFF;
 
-    /* TOTPsecretLen checked above, copy all credential information into node */
+    /* TOTPsecretLen is checked in calling function, copy all credential information into node */
     memcpy(temp_cnode.TOTP.TOTPsecret, TOTPcreds->TOTPsecret, TOTPcreds->TOTPsecretLen);
     memcpy(temp_cnode.TOTP.TOTPsecret_ctr, ctr, MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret_ctr));
     temp_cnode.TOTP.TOTPsecretLen = TOTPcreds->TOTPsecretLen;
+    /* All values sanitized in calling function */
+    temp_cnode.TOTP.TOTPtimeStep = TOTPcreds->TOTPtimeStep;
+    temp_cnode.TOTP.TOTP_SHA_ver = TOTPcreds->TOTP_SHA_ver;
     temp_cnode.TOTP.TOTPnumDigits = TOTPcreds->TOTPnumDigits;
 
     /* Then create node */
@@ -932,9 +931,8 @@ void logic_database_fetch_encrypted_password(uint16_t child_node_addr, uint8_t* 
 *   \brief  Fetch encrypted TOTP secret
 *   \param  child_node_addr             Child node address
 *   \param  TOTPsecret                  Where to store the encrypted secret
-*   \param  TOTPsecretLen               Where to store the TOTP length
+*   \param  TOTPsecretLen               Where to store the TOTP length (maximum secret length supported is 32 bytes)
 *   \param  TOTP_ctr                    Where to store TOTP CTR
-*   \param  prev_gen_credential_flag    Where to store flag for previous gen cred
 */
 void logic_database_fetch_encrypted_TOTPsecret(uint16_t child_node_addr, uint8_t* TOTPsecret, uint8_t *TOTPsecretLen, uint8_t* TOTP_ctr)
 {

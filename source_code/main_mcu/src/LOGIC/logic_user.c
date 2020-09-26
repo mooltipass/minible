@@ -931,11 +931,44 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     }
 }
 
+/*! \fn     logic_user_sanitize_TOTP(TOTPcredentials_t const *TOTPcreds)
+*   \brief  Sanitize input TOTP credentials
+*   \param  TOTPcreds      Pointer to the TOTP credentials
+*   \return Success status
+*/
+static RET_TYPE logic_user_sanitize_TOTP(TOTPcredentials_t const *TOTPcreds)
+{
+    /* Sanitize TOTPsecretLen length */
+    if (TOTPcreds->TOTPsecretLen > MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret))
+    {
+        return RETURN_NOK;
+    }
+
+    /* Sanitize TOTPtimeStep */
+    if (TOTPcreds->TOTPtimeStep < LOGIC_ENCRYPTION_MIN_TIME_STEP || TOTPcreds->TOTPtimeStep > LOGIC_ENCRYPTION_MAX_TIME_STEP)
+    {
+        return RETURN_NOK;
+    }
+
+    /* Sanitize TOTPnumDigits */
+    if (TOTPcreds->TOTPnumDigits < LOGIC_ENCRYPTION_MIN_DIGITS || TOTPcreds->TOTPnumDigits > LOGIC_ENCRYPTION_MAX_DIGITS)
+    {
+        return RETURN_NOK;
+    }
+
+    /* Sanitize TOTP_SHA_ver */
+    if (TOTPcreds->TOTP_SHA_ver < LOGIC_ENCRYPTION_MIN_SHA_VER || TOTPcreds->TOTP_SHA_ver > LOGIC_ENCRYPTION_MAX_SHA_VER)
+    {
+        return RETURN_NOK;
+    }
+    return RETURN_OK;
+}
+
 /*! \fn     logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* login, TOTPcredentials_t const *TOTPcreds)
 *   \brief  Store new TOTP credentials
 *   \param  service     Pointer to service string
 *   \param  login       Pointer to login string
-*   \param  desc        Pointer to TOTP credentials data
+*   \param  TOTPcreds   Pointer to TOTP credentials data
 *   \return success or not
 *   \note   This function doesn't parse aux MCU messages in order to safely use aux mcu received message
 */
@@ -945,8 +978,8 @@ RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* log
     uint8_t TOTPsecret_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     _Static_assert(MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret) == MEMBER_SIZE(TOTPcredentials_t, TOTPsecret), "TOTP secret lengths does not match!");
 
-    /* Sanitize TOTPsecretLen length */
-    if (TOTPcreds->TOTPsecretLen > MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret))
+    /* Sanitize */
+    if (logic_user_sanitize_TOTP(TOTPcreds) == RETURN_NOK)
     {
         return RETURN_NOK;
     }
@@ -978,9 +1011,7 @@ RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* log
         }
         else
         {
-            //TODO: Need bundle update
-            //custom_fs_get_string_from_file(CHANGE_TOTP_TEXT_ID, &three_line_prompt_2, TRUE);
-            custom_fs_get_string_from_file(CHANGE_PWD_TEXT_ID, &three_line_prompt_2, TRUE);
+            custom_fs_get_string_from_file(CHANGE_TOTP_TEXT_ID, &three_line_prompt_2, TRUE);
         }
         confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=login};
 
@@ -1008,27 +1039,27 @@ RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* log
     }
 
     /* Fill RNG array with random numbers */
-    rng_fill_array((uint8_t*)TOTPcreds_copy.TOTPsecret, sizeof(TOTPcreds_copy.TOTPsecret));
+    rng_fill_array((uint8_t*)TOTPcreds_copy.TOTPsecret_ct, sizeof(TOTPcreds_copy.TOTPsecret));
 
     /* TOTPsecret provided? */
     if (TOTPcreds->TOTPsecretLen != 0)
     {
-        TOTPcreds_copy.TOTPnumDigits = TOTPcreds->TOTPnumDigits;
         /* Copy TOTPsecret into array, length is sanitized at the beginning of function */
         TOTPcreds_copy.TOTPsecretLen = TOTPcreds->TOTPsecretLen;
         memcpy(TOTPcreds_copy.TOTPsecret_ct, TOTPcreds->TOTPsecret_ct, TOTPcreds_copy.TOTPsecretLen);
 
         /* CTR encrypt TOTPsecret */
-        logic_encryption_ctr_encrypt((uint8_t*)TOTPcreds_copy.TOTPsecret, sizeof(TOTPcreds_copy.TOTPsecret), TOTPsecret_ctr);
+        logic_encryption_ctr_encrypt((uint8_t*)TOTPcreds_copy.TOTPsecret_ct, sizeof(TOTPcreds_copy.TOTPsecret), TOTPsecret_ctr);
+
+        /* Copy rest of fields. Already sanitized in the beginning of the function */
+        TOTPcreds_copy.TOTPtimeStep = TOTPcreds->TOTPtimeStep;
+        TOTPcreds_copy.TOTP_SHA_ver = TOTPcreds->TOTP_SHA_ver;
+        TOTPcreds_copy.TOTPnumDigits = TOTPcreds->TOTPnumDigits;
     }
     else if (child_address == NODE_ADDR_NULL)
     {
         /* New credential but TOTP somehow not specified */
-        TOTPcreds_copy.TOTPsecretLen = 0;
-        TOTPcreds_copy.TOTPsecret[0] = 0;
-
-        /* CTR encrypt TOTPsecret */
-        logic_encryption_ctr_encrypt((uint8_t*)TOTPcreds_copy.TOTPsecret, sizeof(TOTPcreds_copy.TOTPsecret), TOTPsecret_ctr);
+        return RETURN_NOK;
     }
 
     /* Update existing login or create new one? */
@@ -1036,14 +1067,21 @@ RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* log
     {
         /* If TOTPsecretLen = 0 we will overwrite the current TOTPsecret with invalid key */
         logic_database_update_TOTP_credentials(child_address, &TOTPcreds_copy, TOTPsecret_ctr);
+        memset(&TOTPcreds_copy, 0, sizeof(TOTPcreds_copy));
         return RETURN_OK;
+    }
+    else if (TOTPcreds->TOTPsecretLen == 0)
+    {
+        return RETURN_NOK;
     }
     else
     {
-        /* NOTE: If TOTPsecretLen = 0 we will create a new cred with a TOTPsecret with invalid key (len 0) */
-        return logic_database_add_TOTP_credential_for_service(parent_address, login, &TOTPcreds_copy, TOTPsecret_ctr);
+        RET_TYPE ret_value = logic_database_add_TOTP_credential_for_service(parent_address, login, &TOTPcreds_copy, TOTPsecret_ctr);
+        memset(&TOTPcreds_copy, 0, sizeof(TOTPcreds_copy));
+        return ret_value;
     }
 }
+
 /*! \fn     logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t credential_id_allow_list[FIDO2_ALLOW_LIST_MAX_SIZE][FIDO2_CREDENTIAL_ID_LENGTH], uint16_t credential_id_allow_list_length)
 *   \brief  Get credential private key for a possible credential for a relying party
 *   \param  rp_id                           Pointer to relying party string
