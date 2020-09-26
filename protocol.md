@@ -730,6 +730,33 @@ Disable the no prompt feature on the current user profile.
 
 
 
+0x0027: Store TOTP Credential
+-------------------------
+
+From the PC:
+
+| bytes    | value                                 |
+|:---------|:--------------------------------------|
+| 0->1     | 0x0006                                |
+| 2->3     | 416                                   |
+| 4->255   | service name (null-terminated)        |
+| 256->383 | login name (null-terminated)          |
+| 384->415 | TOTP secret key                       |
+| 416->416 | TOTP secret key length (max 32 bytes) |
+| 417->417 | TOTP number of digits [6-8]           |
+| 418->418 | TOTP time step [30 - 99]              |
+| 419->419 | TOTP SHA version [0 - 2]              |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0005   | 1                           | 0x01 or 0x00 (success or fail)  |
+
+Store new or updated TOTP credentials for a service/login combination.
+
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
