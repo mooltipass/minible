@@ -946,6 +946,12 @@ void logic_database_fetch_encrypted_TOTPsecret(uint16_t child_node_addr, uint8_t
 
     /* Copy secret (non-encryped) TOTPsecret length */
     *TOTPsecretLen = temp_cnode.TOTP.TOTPsecretLen;
+    
+    /* Sanitize secret len */
+    if (temp_cnode.TOTP.TOTPsecretLen > sizeof(temp_cnode.TOTP.TOTPsecret))
+    {
+        *TOTPsecretLen = sizeof(temp_cnode.TOTP.TOTPsecret);
+    }
 
     /* Copy CTR */
     memcpy(TOTP_ctr, temp_cnode.TOTP.TOTPsecret_ctr, sizeof(temp_cnode.TOTP.TOTPsecret_ctr));
