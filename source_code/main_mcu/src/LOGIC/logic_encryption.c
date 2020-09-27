@@ -414,7 +414,7 @@ static uint32_t logic_encryption_sha1_truncate(uint8_t const *sha1)
     return truncated_value;
 }
 
-/*! \fn     logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t num_digits, uint8_t timeStep, cust_char_t *str, uint8_t str_len)
+/*! \fn     logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t num_digits, uint8_t time_step, cust_char_t *str, uint8_t str_len)
 *   \brief  RFC6238 TOTP implementation
 *   \param  key        Input secret key
 *   \param  key_len    Input secret key length
