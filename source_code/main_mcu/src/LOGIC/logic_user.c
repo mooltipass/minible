@@ -507,7 +507,7 @@ RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, c
 *   \param  private_key     32 bytes private key
 *   \param  credential_id   Pointer to credential ID
 *   \return FIDO2 success code
-*   \note   This function doesn't parse aux MCU messages in order to safely use aux mcu received message
+*   \note   As we are using the RX buffer here, we are exiting this function the moment we receive a new RX message (think power switches) but also don't try listen to RX messages
 */
 fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, uint8_t user_handle_len, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key, uint8_t* credential_id)
 {
@@ -726,7 +726,6 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
 *   \param  store_data_request  The store data request
 *   \param  is_message_from_usb BOOL set to true if the request comes from USB
 *   \return success or not
-*   \note   This function doesn't parse aux MCU messages in order to safely use aux mcu received message
 */
 RET_TYPE logic_user_add_data_to_current_service(hid_message_store_data_into_file_t* store_data_request, BOOL is_message_from_usb)
 {
@@ -765,7 +764,7 @@ RET_TYPE logic_user_add_data_to_current_service(hid_message_store_data_into_file
 *   \param  service             Pointer to service string
 *   \param  is_message_from_usb BOOL set to true if the request comes from USB
 *   \return success or not
-*   \note   This function doesn't parse aux MCU messages in order to safely use aux mcu received message
+*   \note   As we are using the RX buffer here, we are exiting this function the moment we receive a new RX message (think power switches) but also don't try listen to RX messages
 */
 RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb)
 {
@@ -797,7 +796,7 @@ RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_
     confirmationText_t conf_text_2_lines = {.lines[0]=service, .lines[1]=two_line_prompt_2};
         
     /* Request user approval */
-    mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, TRUE, FALSE, FALSE);
+    mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, TRUE, FALSE, TRUE);
     gui_dispatcher_get_back_to_current_screen();
         
     /* Did the user approve? */
@@ -829,6 +828,7 @@ RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_
 *   \param  desc        Pointer to description string, or 0 if not specified
 *   \param  third       Pointer to arbitrary third field, or 0 if not specified
 *   \param  password    Pointer to password string, or 0 if not specified
+*   \note   As we are using the RX buffer here, we are exiting this function the moment we receive a new RX message (think power switches) but also don't try listen to RX messages
 *   \return success or not
 */
 RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
@@ -868,7 +868,7 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
         confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=login};
         
         /* Request user approval */
-        mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, FALSE, FALSE);
+        mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, FALSE, TRUE);
         gui_dispatcher_get_back_to_current_screen();
         
         /* Did the user approve? */
@@ -968,6 +968,7 @@ static RET_TYPE logic_user_sanitize_TOTP(TOTPcredentials_t const *TOTPcreds)
 *   \param  service     Pointer to service string
 *   \param  login       Pointer to login string
 *   \param  TOTPcreds   Pointer to TOTP credentials data
+*   \note   As we are using the RX buffer here, we are exiting this function the moment we receive a new RX message (think power switches) but also don't try listen to RX messages
 *   \return success or not
 */
 RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* login, TOTPcredentials_t const *TOTPcreds)
@@ -975,22 +976,6 @@ RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* log
     TOTPcredentials_t TOTPcreds_copy;
     uint8_t TOTPsecret_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     _Static_assert(MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret) == MEMBER_SIZE(TOTPcredentials_t, TOTPsecret), "TOTP secret lengths does not match!");
-    
-    /* Copy strings locally */
-    cust_char_t service_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)];
-    cust_char_t login_copy[MEMBER_ARRAY_SIZE(child_cred_node_t, login)];
-    utils_strncpy(service_copy, service, MEMBER_ARRAY_SIZE(parent_cred_node_t, service));
-    service_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)-1] = 0;
-    memset(login_copy, 0, sizeof(login_copy));
-    
-    /* Switcheroo */
-    service = service_copy;
-    if (login != 0)
-    {
-        utils_strncpy(login_copy, login, MEMBER_ARRAY_SIZE(child_cred_node_t, login));
-        login_copy[MEMBER_ARRAY_SIZE(child_cred_node_t, login)-1] = 0;
-        login = login_copy;
-    }
 
     /* Sanitize */
     if (logic_user_sanitize_TOTP(TOTPcreds) == RETURN_NOK)
@@ -1030,7 +1015,7 @@ RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* log
         confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=login};
 
         /* Request user approval */
-        mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, FALSE, FALSE);
+        mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, FALSE, TRUE);
         gui_dispatcher_get_back_to_current_screen();
 
         /* Did the user approve? */

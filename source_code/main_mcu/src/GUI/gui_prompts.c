@@ -1376,6 +1376,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
 *   \param  accept_cancel_message   Boolean to accept the cancel message to cancel prompt
 *   \param  parse_aux_messages      Set to TRUE to continue parsing aux messages
 *   \param  exit_on_power_change    Set to TRUE to exit function on power change
+*   \note   Setting parse_aux_messages to FALSE while setting accept_cancel_message to TRUE only allows to use the knock feature for approval
 *   \return See enum
 */
 mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, confirmationText_t* text_object, BOOL accept_cancel_message, BOOL parse_aux_messages, BOOL exit_on_power_change)
