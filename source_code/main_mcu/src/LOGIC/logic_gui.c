@@ -257,30 +257,30 @@ void logic_gui_erase_user(void)
     logic_smartcard_handle_removed();
 }
 
-/*! \fn     logic_gui_create_TOTP_display_str(cust_char_t *TOTP_str, uint8_t TOTP_str_len, uint8_t remaining_secs)
+/*! \fn     logic_gui_create_TOTP_display_str(cust_char_t *TOTP_str, uint8_t TOTP_str_len, uint16_t num_digits, uint8_t remaining_secs)
 *   \brief  Create the TOTP display string: "<TOTP> [remaining secs]", example: "123456 [30]"
 *   \param  TOTP_str       String containing the TOTP
 *   \paran  TOTP_str_len   Total length of the TOTP_str
-*   \param  numDigits      Number of digits in TOTP
+*   \param  num_digits     Number of digits in TOTP
 *   \param  remaining_secs Number of seconds remaining
 */
-static void logic_gui_create_TOTP_display_str(cust_char_t *TOTP_str, uint8_t TOTP_str_len, uint8_t numDigits, uint8_t remaining_secs)
+static void logic_gui_create_TOTP_display_str(cust_char_t *TOTP_str, uint16_t TOTP_str_len, uint16_t num_digits, uint16_t remaining_secs)
 {
     /*
     * Ensure we have enough room for TOTP + remaining secs
     * Number of TOTP digits + space + '[' + 2-digit remaining secs + ']'
     */
-    uint8_t total_length = numDigits + 1 + 1 + 2 + 1;
+    uint8_t total_length = num_digits + 1 + 1 + 2 + 1;
 
     if (remaining_secs < LOGIC_GUI_TOTP_MAX_TIMESTEP && TOTP_str_len > total_length)
     {
-        uint8_t curr_index = numDigits;
+        uint8_t curr_index = num_digits;
 
         TOTP_str[curr_index++] = ' ';
         TOTP_str[curr_index++] = '[';
 
-        utils_itoa(remaining_secs, 2, &TOTP_str[curr_index], TOTP_str_len - curr_index);
-        curr_index += 2;
+        utils_itoa(remaining_secs, LOGIC_GUI_TOTP_SEC_NUM_DIG, &TOTP_str[curr_index], LOGIC_GUI_TOTP_SEC_NUM_DIG + 1);
+        curr_index += LOGIC_GUI_TOTP_SEC_NUM_DIG;
 
         TOTP_str[curr_index++] = ']';
         TOTP_str[curr_index] = '\0';
@@ -340,11 +340,11 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
     /* Temp vars for our main loop */
     BOOL first_function_run = TRUE;
 
-    int16_t text_anim_x_offset[LOGIC_GUI_NUM_LINES];
-    BOOL text_anim_going_right[LOGIC_GUI_NUM_LINES];
+    int16_t text_anim_x_offset[LOGIC_GUI_NUM_LINES_MAX];
+    BOOL text_anim_going_right[LOGIC_GUI_NUM_LINES_MAX];
     BOOL redraw_needed = TRUE;
     int16_t displayed_length;
-    BOOL scrolling_needed[LOGIC_GUI_NUM_LINES];
+    BOOL scrolling_needed[LOGIC_GUI_NUM_LINES_MAX];
     
     /* Reset temp vars */
     memset(text_anim_going_right, FALSE, sizeof(text_anim_going_right));
@@ -361,9 +361,37 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
     }
 
     /* Lines display settings */
-    cust_char_t* strings_to_be_displayed[LOGIC_GUI_NUM_LINES] = {child_node->login, child_node->cust_char_password, TOTP_str};
-    uint16_t strings_y_positions[4] = {5, 20, 35};
-    
+    uint16_t strings_y_positions[LOGIC_GUI_NUM_DISPLAY_CFG][LOGIC_GUI_NUM_LINES_MAX] = { {12, 36, 0}, {5, 20, 35} };
+
+    uint8_t num_lines_to_display = 1; //Login always displayed
+    num_lines_to_display += !!(child_node->passwordBlankFlag == FALSE); //Are we displaying password?
+    num_lines_to_display += !!(child_node->TOTP.TOTPsecretLen > 0);     //Are we displaying TOTP?
+
+    /*
+     * Line configuration
+     * We always display the login on the first line
+     * If we have both password and TOTP we display password on second line and then TOTP on third line.
+     * If we don't have both password and TOTP we display whichever we have on the second line
+    */
+    cust_char_t* strings_to_be_displayed[LOGIC_GUI_NUM_LINES_MAX];
+    strings_to_be_displayed[0] = child_node->login;
+    if (child_node->passwordBlankFlag == FALSE)
+    {
+        strings_to_be_displayed[1] = child_node->cust_char_password;
+    }
+    else
+    {
+        strings_to_be_displayed[1] = TOTP_str;
+    }
+
+    /*
+     * Always set line 3. Either we only display line 1&2 and this is never used
+     * or we display all 3 lines and this will be used
+    */
+    strings_to_be_displayed[2] = TOTP_str;
+
+    uint8_t strings_y_pos_idx = !!(num_lines_to_display == LOGIC_GUI_NUM_LINES_MAX);
+
     /* Arm timer for scrolling */
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
     
@@ -404,7 +432,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
             timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);
             
             /* Scrolling logic: when enabled, going left or right... */
-            for (uint16_t i = 0; i < LOGIC_GUI_NUM_LINES; i++)
+            for (uint16_t i = 0; i < num_lines_to_display; i++)
             {
                 if (scrolling_needed[i] != FALSE)
                 {
@@ -437,8 +465,8 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
             #endif
             sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
             
-            /* Loop for LOGIC_GUI_NUM_LINES always displayed texts: login & password & TOTP */
-            for (uint16_t i = 0; i < LOGIC_GUI_NUM_LINES; i++)
+            /* Loop for num_lines_to_display. Always display login. Password/TOTP optional */
+            for (uint16_t i = 0; i < num_lines_to_display; i++)
             {          
                 /* Load the right font */
                 sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
@@ -447,7 +475,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
                 if (scrolling_needed[i] != FALSE)
                 {
                     /* Scrolling required: display with the correct X offset */
-                    displayed_length = sh1122_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], strings_y_positions[i], OLED_ALIGN_LEFT, strings_to_be_displayed[i], TRUE);
+                    displayed_length = sh1122_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], strings_y_positions[strings_y_pos_idx][i], OLED_ALIGN_LEFT, strings_to_be_displayed[i], TRUE);
                         
                     /* Scrolling: go change direction if we went too far */
                     if (text_anim_going_right[i] == FALSE)
@@ -468,7 +496,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
                 else
                 {
                     /* String not large enough or start of animation */
-                    displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i], strings_to_be_displayed[i], TRUE);
+                    displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[strings_y_pos_idx][i], strings_to_be_displayed[i], TRUE);
                 }
                     
                 /* First run: based on the number of chars displayed, set the scrolling needed bool */
