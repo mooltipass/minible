@@ -543,7 +543,7 @@ __attribute__( ( always_inline ) ) inline uint32_t utils_get_SP(void)
 #endif
 }
 
-/*! \fn     utils_itoa(int32_t value, cust_char_t *str, uint8_t str_len)
+/*! \fn     utils_itoa(int32_t value, uint8_t num_digits, cust_char_t *str, uint8_t str_len)
 *   \brief  Convert integer to string prefixed with 0 padding
             Convert an unsigned integer to a string. Prefix string with 0s
             if the number of digits in integer is less than num_digits.
