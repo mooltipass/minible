@@ -830,7 +830,6 @@ RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_
 *   \param  third       Pointer to arbitrary third field, or 0 if not specified
 *   \param  password    Pointer to password string, or 0 if not specified
 *   \return success or not
-*   \note   This function doesn't parse aux MCU messages in order to safely use aux mcu received message
 */
 RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
 {
@@ -970,13 +969,28 @@ static RET_TYPE logic_user_sanitize_TOTP(TOTPcredentials_t const *TOTPcreds)
 *   \param  login       Pointer to login string
 *   \param  TOTPcreds   Pointer to TOTP credentials data
 *   \return success or not
-*   \note   This function doesn't parse aux MCU messages in order to safely use aux mcu received message
 */
 RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* login, TOTPcredentials_t const *TOTPcreds)
 {
     TOTPcredentials_t TOTPcreds_copy;
     uint8_t TOTPsecret_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     _Static_assert(MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret) == MEMBER_SIZE(TOTPcredentials_t, TOTPsecret), "TOTP secret lengths does not match!");
+    
+    /* Copy strings locally */
+    cust_char_t service_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)];
+    cust_char_t login_copy[MEMBER_ARRAY_SIZE(child_cred_node_t, login)];
+    utils_strncpy(service_copy, service, MEMBER_ARRAY_SIZE(parent_cred_node_t, service));
+    service_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)-1] = 0;
+    memset(login_copy, 0, sizeof(login_copy));
+    
+    /* Switcheroo */
+    service = service_copy;
+    if (login != 0)
+    {
+        utils_strncpy(login_copy, login, MEMBER_ARRAY_SIZE(child_cred_node_t, login));
+        login_copy[MEMBER_ARRAY_SIZE(child_cred_node_t, login)-1] = 0;
+        login = login_copy;
+    }
 
     /* Sanitize */
     if (logic_user_sanitize_TOTP(TOTPcreds) == RETURN_NOK)
