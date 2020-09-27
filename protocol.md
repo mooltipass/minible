@@ -737,7 +737,7 @@ From the PC:
 
 | bytes    | value                                 |
 |:---------|:--------------------------------------|
-| 0->1     | 0x0006                                |
+| 0->1     | 0x0027                                |
 | 2->3     | 416                                   |
 | 4->255   | service name (null-terminated)        |
 | 256->383 | login name (null-terminated)          |
@@ -751,7 +751,7 @@ Device Answer:
 
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
-| 0x0005   | 1                           | 0x01 or 0x00 (success or fail)  |
+| 0x0027   | 1                           | 0x01 or 0x00 (success or fail)  |
 
 Store new or updated TOTP credentials for a service/login combination.
 
