@@ -851,7 +851,7 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
     return ret_val;
 }
 
-/*! \fn     logic_database_add_TOTP_credential_for_service(uint16_t service_addr, cust_char_t* login, TOTPcredentials_t const *TOTPcreds)
+/*! \fn     logic_database_add_TOTP_credential_for_service(uint16_t service_addr, cust_char_t* login, TOTPcredentials_t const *TOTPcreds, uint8_t *ctr)
 *   \brief  Add a new TOTP credential for a given service to our database
 *           NOTE: Assumes TOTPcreds are sanitized already
 *   \param  service_addr    Service address
@@ -869,7 +869,8 @@ RET_TYPE logic_database_add_TOTP_credential_for_service(uint16_t service_addr, c
     memset((void*)&temp_cnode, 0, sizeof(temp_cnode));
 
     /* Update fields that are required */
-    utils_strncpy(temp_cnode.login, login, sizeof(temp_cnode.login)/sizeof(cust_char_t));
+    utils_strncpy(temp_cnode.login, login, MEMBER_ARRAY_SIZE(child_cred_node_t, login));
+
     temp_cnode.passwordBlankFlag = TRUE;
 
     /* Set "master setting" for keys pressed after login & password entering */
