@@ -830,7 +830,6 @@ RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_
 *   \param  third       Pointer to arbitrary third field, or 0 if not specified
 *   \param  password    Pointer to password string, or 0 if not specified
 *   \return success or not
-*   \note   This function doesn't parse aux MCU messages in order to safely use aux mcu received message
 */
 RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
 {
@@ -928,6 +927,172 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     else
     {
         return logic_database_add_credential_for_service(parent_address, login, desc, third, (uint8_t*)encrypted_password, temp_cred_ctr_val);
+    }
+}
+
+/*! \fn     logic_user_sanitize_TOTP(TOTPcredentials_t const *TOTPcreds)
+*   \brief  Sanitize input TOTP credentials
+*   \param  TOTPcreds      Pointer to the TOTP credentials
+*   \return Success status
+*/
+static RET_TYPE logic_user_sanitize_TOTP(TOTPcredentials_t const *TOTPcreds)
+{
+    /* Sanitize TOTPsecretLen length */
+    if (TOTPcreds->TOTPsecretLen > MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret))
+    {
+        return RETURN_NOK;
+    }
+
+    /* Sanitize TOTPtimeStep */
+    if (TOTPcreds->TOTPtimeStep < LOGIC_ENCRYPTION_MIN_TIME_STEP || TOTPcreds->TOTPtimeStep > LOGIC_ENCRYPTION_MAX_TIME_STEP)
+    {
+        return RETURN_NOK;
+    }
+
+    /* Sanitize TOTPnumDigits */
+    if (TOTPcreds->TOTPnumDigits < LOGIC_ENCRYPTION_MIN_DIGITS || TOTPcreds->TOTPnumDigits > LOGIC_ENCRYPTION_MAX_DIGITS)
+    {
+        return RETURN_NOK;
+    }
+
+    /* Sanitize TOTP_SHA_ver */
+    if (TOTPcreds->TOTP_SHA_ver < LOGIC_ENCRYPTION_MIN_SHA_VER || TOTPcreds->TOTP_SHA_ver > LOGIC_ENCRYPTION_MAX_SHA_VER)
+    {
+        return RETURN_NOK;
+    }
+    return RETURN_OK;
+}
+
+/*! \fn     logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* login, TOTPcredentials_t const *TOTPcreds)
+*   \brief  Store new TOTP credentials
+*   \param  service     Pointer to service string
+*   \param  login       Pointer to login string
+*   \param  TOTPcreds   Pointer to TOTP credentials data
+*   \return success or not
+*/
+RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* login, TOTPcredentials_t const *TOTPcreds)
+{
+    TOTPcredentials_t TOTPcreds_copy;
+    uint8_t TOTPsecret_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
+    _Static_assert(MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret) == MEMBER_SIZE(TOTPcredentials_t, TOTPsecret), "TOTP secret lengths does not match!");
+    
+    /* Copy strings locally */
+    cust_char_t service_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)];
+    cust_char_t login_copy[MEMBER_ARRAY_SIZE(child_cred_node_t, login)];
+    utils_strncpy(service_copy, service, MEMBER_ARRAY_SIZE(parent_cred_node_t, service));
+    service_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)-1] = 0;
+    memset(login_copy, 0, sizeof(login_copy));
+    
+    /* Switcheroo */
+    service = service_copy;
+    if (login != 0)
+    {
+        utils_strncpy(login_copy, login, MEMBER_ARRAY_SIZE(child_cred_node_t, login));
+        login_copy[MEMBER_ARRAY_SIZE(child_cred_node_t, login)-1] = 0;
+        login = login_copy;
+    }
+
+    /* Sanitize */
+    if (logic_user_sanitize_TOTP(TOTPcreds) == RETURN_NOK)
+    {
+        return RETURN_NOK;
+    }
+
+    /* Smartcard present and unlocked? */
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
+    {
+        return RETURN_NOK;
+    }
+
+    /* Does service already exist? */
+    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, TRUE, NODEMGMT_STANDARD_CRED_TYPE_ID);
+    uint16_t child_address = NODE_ADDR_NULL;
+
+    /* If service exist, does login exist? */
+    if (parent_address != NODE_ADDR_NULL)
+    {
+        child_address = logic_database_search_login_in_service(parent_address, login, TRUE);
+    }
+
+    /* Special case: in MMM and user chose to not be prompted */
+    if ((logic_security_is_management_mode_set() == FALSE) || ((logic_user_get_user_security_flags() & USER_SEC_FLG_CRED_SAVE_PROMPT_MMM) != 0))
+    {
+        /* Prepare prompt text */
+        cust_char_t* three_line_prompt_2;
+        if (child_address == NODE_ADDR_NULL)
+        {
+            custom_fs_get_string_from_file(ADD_CRED_TEXT_ID, &three_line_prompt_2, TRUE);
+        }
+        else
+        {
+            custom_fs_get_string_from_file(CHANGE_TOTP_TEXT_ID, &three_line_prompt_2, TRUE);
+        }
+        confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=login};
+
+        /* Request user approval */
+        mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(3, &conf_text_3_lines, TRUE, FALSE, FALSE);
+        gui_dispatcher_get_back_to_current_screen();
+
+        /* Did the user approve? */
+        if (prompt_return != MINI_INPUT_RET_YES)
+        {
+            return RETURN_NOK;
+        }
+    }
+
+    /* If needed, add service */
+    if (parent_address == NODE_ADDR_NULL)
+    {
+        parent_address = logic_database_add_service(service, SERVICE_CRED_TYPE, NODEMGMT_STANDARD_CRED_TYPE_ID);
+
+        /* Check for operation success */
+        if (parent_address == NODE_ADDR_NULL)
+        {
+            return RETURN_NOK;
+        }
+    }
+
+    /* Fill RNG array with random numbers */
+    rng_fill_array((uint8_t*)TOTPcreds_copy.TOTPsecret_ct, sizeof(TOTPcreds_copy.TOTPsecret));
+
+    /* TOTPsecret provided? */
+    if (TOTPcreds->TOTPsecretLen != 0)
+    {
+        /* Copy TOTPsecret into array, length is sanitized at the beginning of function */
+        TOTPcreds_copy.TOTPsecretLen = TOTPcreds->TOTPsecretLen;
+        memcpy(TOTPcreds_copy.TOTPsecret_ct, TOTPcreds->TOTPsecret_ct, TOTPcreds_copy.TOTPsecretLen);
+
+        /* CTR encrypt TOTPsecret */
+        logic_encryption_ctr_encrypt((uint8_t*)TOTPcreds_copy.TOTPsecret_ct, sizeof(TOTPcreds_copy.TOTPsecret), TOTPsecret_ctr);
+
+        /* Copy rest of fields. Already sanitized in the beginning of the function */
+        TOTPcreds_copy.TOTPtimeStep = TOTPcreds->TOTPtimeStep;
+        TOTPcreds_copy.TOTP_SHA_ver = TOTPcreds->TOTP_SHA_ver;
+        TOTPcreds_copy.TOTPnumDigits = TOTPcreds->TOTPnumDigits;
+    }
+    else if (child_address == NODE_ADDR_NULL)
+    {
+        /* New credential but TOTP somehow not specified */
+        return RETURN_NOK;
+    }
+
+    /* Update existing login or create new one? */
+    if (child_address != NODE_ADDR_NULL)
+    {
+        /* If TOTPsecretLen = 0 we will overwrite the current TOTPsecret with invalid key */
+        logic_database_update_TOTP_credentials(child_address, &TOTPcreds_copy, TOTPsecret_ctr);
+        memset(&TOTPcreds_copy, 0, sizeof(TOTPcreds_copy));
+        return RETURN_OK;
+    }
+    else if (TOTPcreds->TOTPsecretLen == 0)
+    {
+        return RETURN_NOK;
+    }
+    else
+    {
+        RET_TYPE ret_value = logic_database_add_TOTP_credential_for_service(parent_address, login, &TOTPcreds_copy, TOTPsecret_ctr);
+        memset(&TOTPcreds_copy, 0, sizeof(TOTPcreds_copy));
+        return ret_value;
     }
 }
 

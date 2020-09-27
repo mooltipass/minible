@@ -414,15 +414,17 @@ static uint32_t logic_encryption_sha1_truncate(uint8_t const *sha1)
     return truncated_value;
 }
 
-/*! \fn     logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t num_digits, cust_char_t *str, uint8_t str_len)
+/*! \fn     logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t num_digits, uint8_t timeStep, cust_char_t *str, uint8_t str_len)
 *   \brief  RFC6238 TOTP implementation
-*   \param  key      Input secret key
-*   \param  key_len  Input secret key length
-*   \param  str      Output generated TOTP
-*   \param  str_len  Length of "str"
+*   \param  key        Input secret key
+*   \param  key_len    Input secret key length
+*   \param  num_digits Number of digits for TOTP
+*   \param  time_step  Time step to use for TOTP
+*   \param  str        Output generated TOTP
+*   \param  str_len    Length of "str"
 *   \return uint32_t Number of seconds remaining until next time step
 */
-uint32_t logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t num_digits, cust_char_t *str, uint8_t str_len)
+uint32_t logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t num_digits, uint8_t time_step, cust_char_t *str, uint8_t str_len)
 {
     uint8_t hmac_sha1_output[SHA1_OUTPUT_LEN] = { 0x0 };
     memset(str, 0x00, sizeof(cust_char_t)*str_len);
@@ -437,8 +439,8 @@ uint32_t logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t n
      * and thus this is what we are supporting here.
      */
     uint64_t unix_time = driver_timer_get_time();
-    uint64_t counter = unix_time / TOTP_TIME_STEP;
-    uint8_t remaining_secs = TOTP_TIME_STEP - (unix_time % TOTP_TIME_STEP);
+    uint64_t counter = unix_time / time_step;
+    uint8_t remaining_secs = time_step - (unix_time % time_step);
 
     /* Counter needs to be big-endian (RFC4226) */
     #ifndef EMULATOR_BUILD
