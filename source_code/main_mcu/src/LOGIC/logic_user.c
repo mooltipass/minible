@@ -1283,8 +1283,12 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
     /* Service doesn't exist, deny request with a variable timeout for privacy concerns */
     if (parent_address == NODE_ADDR_NULL)
     {
-        /* From 1s to 3s */
-        timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
+        /* Do it only for everything except subdomains */
+        if (utils_get_number_of_given_char(service, (cust_char_t)'.') != 2)
+        {
+            /* From 1s to 3s */
+            timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
+        }
         aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
         comms_aux_mcu_send_message(temp_tx_message_pt);
         return;

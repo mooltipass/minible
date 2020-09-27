@@ -65,6 +65,26 @@ uint16_t utils_get_nb_lines(const cust_char_t* string)
     return return_val;
 }
 
+/*! \fn     utils_get_number_of_given_char(cust_char_t* string, cust_char_t needed_char)
+*   \brief  Get the number of occurences of a given char in a 0 terminated string
+*   \param  string      The string
+*   \param  needed_char The char we're looking for
+*   \return Number of occurences
+*/
+uint16_t utils_get_number_of_given_char(cust_char_t* string, cust_char_t needed_char)
+{
+    uint16_t ret_val = 0;
+    while (*string)
+    {
+        if (*string == needed_char)
+        {
+            ret_val++;
+        }
+        string++;
+    }
+    return ret_val;
+}
+
 /*! \fn     utils_get_string_next_line_pt(cust_char_t* string)
 *   \brief  Get a pointer to the next line in the current string
 *   \param  string      The string
