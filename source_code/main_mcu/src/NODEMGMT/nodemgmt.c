@@ -1863,9 +1863,10 @@ void nodemgmt_delete_current_user_from_flash(void)
 {
     uint16_t next_parent_addr = NODE_ADDR_NULL;
     uint16_t next_child_addr;
+    uint16_t temp_buffer2[4];
     uint16_t temp_buffer[4];
     uint16_t temp_address;
-    parent_data_node_t* parent_node_pt = (parent_data_node_t*)temp_buffer;
+    parent_data_node_t* parent_node_pt = (parent_data_node_t*)temp_buffer2;
     child_cred_node_t* child_node_pt = (child_cred_node_t*)temp_buffer;
     
     /* Boundary checks for the buffer we'll use to store start of node data */
@@ -1907,7 +1908,7 @@ void nodemgmt_delete_current_user_from_flash(void)
                 nodemgmt_check_user_perm_from_flags_and_lock(child_node_pt->flags);
                 
                 // Store the next child address in temp
-                if (i == 0)
+                if (i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes))
                 {
                     // First loop is cnode
                     temp_address = child_node_pt->nextChildAddress;
