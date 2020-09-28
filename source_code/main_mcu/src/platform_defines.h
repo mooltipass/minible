@@ -508,7 +508,7 @@ typedef struct
 #define NB_MS_WHEEL_PRESS_FOR_REBOOT    10000
 
 /* AUX MCU ping */
-#define NB_MS_AUX_MCU_PING              300
+#define NB_MS_AUX_MCU_PING              10000
 
 /* Number of active wait loops before we give up trying to receive a message from aux */
 #define NB_ACTIVE_WAIT_LOOP_TIMEOUT     10
