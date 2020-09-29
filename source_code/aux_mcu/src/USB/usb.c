@@ -263,20 +263,43 @@ void usb_handle_standard_request(usb_request_t *request)
     {
       uint16_t length = request->wLength;
 
-      if (request->wIndex == USB_RAWHID_INTERFACE)
+      if (request->wValue == 0x2100)
       {
-          length = LIMIT(length, sizeof(usb_hid_report_descriptor));
-          udc_control_send(usb_hid_report_descriptor, length);
-      } 
-      else if (request->wIndex == USB_KEYBOARD_INTERFACE)
-      {
-          length = LIMIT(length, sizeof(keyboard_hid_report_desc));
-          udc_control_send(keyboard_hid_report_desc, length);
+          /* HID */
+          if (request->wIndex == USB_RAWHID_INTERFACE)
+          {
+              length = LIMIT(length, sizeof(usb_configuration_hierarchy.raw_hid));
+              udc_control_send((uint8_t*)&usb_configuration_hierarchy.raw_hid, length);
+          }
+          else if (request->wIndex == USB_KEYBOARD_INTERFACE)
+          {
+              length = LIMIT(length, sizeof(usb_configuration_hierarchy.keyb_hid));
+              udc_control_send((uint8_t*)&usb_configuration_hierarchy.keyb_hid, length);
+          }
+          else if (request->wIndex == USB_CTAP_INTERFACE)
+          {
+              length = LIMIT(length, sizeof(usb_configuration_hierarchy.ctap_hid));
+              udc_control_send((uint8_t*)&usb_configuration_hierarchy.ctap_hid, length);
+          }          
       }
-      else if (request->wIndex == USB_CTAP_INTERFACE)
+      else if (request->wValue == 0x2200)
       {
-          length = LIMIT(length, sizeof(ctap_hid_report_desc));
-          udc_control_send(ctap_hid_report_desc, length);
+          /* REPORT */
+          if (request->wIndex == USB_RAWHID_INTERFACE)
+          {
+              length = LIMIT(length, sizeof(usb_hid_report_descriptor));
+              udc_control_send(usb_hid_report_descriptor, length);
+          }
+          else if (request->wIndex == USB_KEYBOARD_INTERFACE)
+          {
+              length = LIMIT(length, sizeof(keyboard_hid_report_desc));
+              udc_control_send(keyboard_hid_report_desc, length);
+          }
+          else if (request->wIndex == USB_CTAP_INTERFACE)
+          {
+              length = LIMIT(length, sizeof(ctap_hid_report_desc));
+              udc_control_send(ctap_hid_report_desc, length);
+          }
       }
 
     } break;    
@@ -288,7 +311,7 @@ void usb_handle_standard_request(usb_request_t *request)
         break;
     }
     
-    case USB_CMD(OUT, INTERFACE, CLASS, HID_GET_IDLE):
+    case USB_CMD(IN, INTERFACE, CLASS, HID_GET_IDLE):
     {
         uint16_t length = request->wLength;
         length = LIMIT(length, 1);
@@ -296,7 +319,7 @@ void usb_handle_standard_request(usb_request_t *request)
         break;
     }
     
-    case USB_CMD(IN, INTERFACE, CLASS, HID_SET_PROTOCOL):
+    case USB_CMD(OUT, INTERFACE, CLASS, HID_SET_PROTOCOL):
     {
         comms_raw_hid_set_protocol(request->wIndex, request->wValue);
         udc_control_send_zlp();
