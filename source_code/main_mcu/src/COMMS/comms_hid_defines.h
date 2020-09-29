@@ -94,6 +94,7 @@
 #define HID_CMD_WRITE_NODE          0x010D
 #define HID_CMD_GET_CPZ_LUT_ENTRY   0x010E
 #define HID_CMD_GET_FAVORITES       0x010F
+#define HID_CMD_CHANGE_NODE_PWD     0x0110
 // Define used to identify commands
 #define HID_FIRST_CMD_FOR_MMM       HID_CMD_GET_START_PARENTS
 #define HID_LAST_CMD_FOR_MMM        0x0200
@@ -125,6 +126,12 @@ typedef struct
     uint16_t password_index;
     cust_char_t concatenated_strings[0];
 } hid_message_store_cred_t;
+
+typedef struct
+{
+    uint16_t node_address;
+    cust_char_t new_password[0];
+} hid_message_change_node_pwd_t;
 
 typedef struct
 {
@@ -203,6 +210,7 @@ typedef struct
         hid_message_check_cred_req_t check_credential;
         hid_message_get_battery_status_t battery_status;
         hid_message_get_cred_req_t get_credential_request;
+        hid_message_change_node_pwd_t change_node_password;
         hid_message_get_cred_answer_t get_credential_answer;
         hid_message_store_data_into_file_t store_data_in_file;
         hid_message_get_set_category_strings_t get_set_cat_strings;

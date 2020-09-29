@@ -159,6 +159,7 @@ uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cus
 *   \param  cred_type               set to TRUE to search for credential, FALSE for data 
 *   \param  category_id             Credential/Data category ID
 *   \return Address of the found node, NODE_ADDR_NULL otherwise
+*   \note   Full 8Mb database search has been timed at 581ms
 */
 uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_te compare_type, BOOL cred_type, uint16_t category_id)
 {

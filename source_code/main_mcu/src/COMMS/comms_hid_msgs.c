@@ -1100,6 +1100,32 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             }
         }
         
+        case HID_CMD_CHANGE_NODE_PWD:
+        {
+            node_type_te temp_node_type;
+            
+            /* Empty password */
+            if (rcv_msg->change_node_password.new_password[0] == 0)
+            {
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }
+                
+            /* Check simple mode, user permission and correct node type */
+            if (((logic_user_get_user_security_flags() & USER_SEC_FLG_ADVANCED_MENU) == 0) && (nodemgmt_check_user_permission(rcv_msg->change_node_password.node_address, &temp_node_type) == RETURN_OK) && (temp_node_type == NODE_TYPE_CHILD))
+            {
+                logic_user_change_node_password(rcv_msg->change_node_password.node_address, rcv_msg->change_node_password.new_password);
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
+            } 
+            else
+            {
+                /* Set nack, leave same command id */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }
+        }
+        
         case HID_CMD_ID_STORE_CRED:
         {               
             /********************************/

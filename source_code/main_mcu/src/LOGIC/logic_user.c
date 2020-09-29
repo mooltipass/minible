@@ -821,6 +821,26 @@ RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_
     return RETURN_OK;
 }
 
+/*! \fn     logic_user_change_node_password(uint16_t node_address, cust_char_t* password)
+*   \brief  Change node password
+*   \param  node_address    The node address
+*   \param  password        Pointer to password string
+*/
+void logic_user_change_node_password(uint16_t node_address, cust_char_t* password)
+{
+    cust_char_t encrypted_password[MEMBER_SIZE(child_cred_node_t, password)/sizeof(cust_char_t)];
+    uint8_t temp_cred_ctr_val[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
+    
+    /* Copy password into array, no need to terminate it given the underlying database model */
+    utils_strncpy(encrypted_password, password, sizeof(encrypted_password)/sizeof(cust_char_t));
+    
+    /* CTR encrypt password */
+    logic_encryption_ctr_encrypt((uint8_t*)encrypted_password, sizeof(encrypted_password), temp_cred_ctr_val);
+    
+    /* Update credential */
+    logic_database_update_credential(node_address, 0, 0, (uint8_t*)encrypted_password, temp_cred_ctr_val);
+}
+
 /*! \fn     logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password)
 *   \brief  Store new credential
 *   \param  service     Pointer to service string

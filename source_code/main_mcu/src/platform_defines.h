@@ -132,6 +132,7 @@
 - v0.47:- more intuitive behavior of long click
 - v0.48:- settings to disable bluetooth on lock & card removal
         - faster usb get credential answer for subdomains
+        - erase profile feature bug fix
 */
 
 /**************** SETUP DEFINES ****************/
