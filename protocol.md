@@ -1019,8 +1019,6 @@ Device Answer:
 |:---------|:----------------------------|:-----------|
 | 0x010F   | 1 (failure) or 200 | all favorites concatenated |
 
-NOT Tested
-
 
 
 0x010D: Write Node
@@ -1056,6 +1054,23 @@ Device Answer:
 | 0x010E   | 1 (failure) or 24 | Card CPZ | User AES CTR Nonce |
 
 
+
+0x0110: Set Node Password
+-------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3     | byte 3-X     |
+|:---------|:-------------|:-------------|
+| 0x0110   | Node address | Null terminated password |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0110   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Command only available when simple mode is enabled, for a valid child node.
 
 
   
