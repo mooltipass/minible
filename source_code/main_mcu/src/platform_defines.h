@@ -133,6 +133,7 @@
 - v0.48:- settings to disable bluetooth on lock & card removal
         - faster usb get credential answer for subdomains
         - erase profile feature bug fix
+        - faster csv import feature through change node pwd command
 */
 
 /**************** SETUP DEFINES ****************/
