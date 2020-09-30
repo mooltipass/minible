@@ -340,11 +340,11 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
     /* Temp vars for our main loop */
     BOOL first_function_run = TRUE;
 
-    int16_t text_anim_x_offset[LOGIC_GUI_NUM_LINES_MAX];
-    BOOL text_anim_going_right[LOGIC_GUI_NUM_LINES_MAX];
+    int16_t text_anim_x_offset[LOGIC_GUI_DISP_CRED_NUM_LINES_MAX];
+    BOOL text_anim_going_right[LOGIC_GUI_DISP_CRED_NUM_LINES_MAX];
     BOOL redraw_needed = TRUE;
     int16_t displayed_length;
-    BOOL scrolling_needed[LOGIC_GUI_NUM_LINES_MAX];
+    BOOL scrolling_needed[LOGIC_GUI_DISP_CRED_NUM_LINES_MAX];
     
     /* Reset temp vars */
     memset(text_anim_going_right, FALSE, sizeof(text_anim_going_right));
@@ -361,11 +361,11 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
     }
 
     /* Lines display settings */
-    uint16_t strings_y_positions[LOGIC_GUI_NUM_DISPLAY_CFG][LOGIC_GUI_NUM_LINES_MAX] = { {12, 36, 0}, {5, 20, 35} };
+    uint16_t strings_y_positions[LOGIC_GUI_CRED_SHOW_NB_DISP_CFG][LOGIC_GUI_DISP_CRED_NUM_LINES_MAX] = { {12, 36, 0}, {5, 20, 35} };
 
     uint8_t num_lines_to_display = 1; //Login always displayed
-    num_lines_to_display += !!(child_node->passwordBlankFlag == FALSE); //Are we displaying password?
-    num_lines_to_display += !!(child_node->TOTP.TOTPsecretLen > 0);     //Are we displaying TOTP?
+    num_lines_to_display += (child_node->passwordBlankFlag == FALSE) ? 1 : 0; //Are we displaying password?
+    num_lines_to_display += (child_node->TOTP.TOTPsecretLen > 0) ? 1 : 0;     //Are we displaying TOTP?
 
     /*
      * Line configuration
@@ -373,7 +373,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
      * If we have both password and TOTP we display password on second line and then TOTP on third line.
      * If we don't have both password and TOTP we display whichever we have on the second line
     */
-    cust_char_t* strings_to_be_displayed[LOGIC_GUI_NUM_LINES_MAX];
+    cust_char_t* strings_to_be_displayed[LOGIC_GUI_DISP_CRED_NUM_LINES_MAX];
     strings_to_be_displayed[0] = child_node->login;
     if (child_node->passwordBlankFlag == FALSE)
     {
@@ -390,7 +390,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
     */
     strings_to_be_displayed[2] = TOTP_str;
 
-    uint8_t strings_y_pos_idx = !!(num_lines_to_display == LOGIC_GUI_NUM_LINES_MAX);
+    uint8_t strings_y_pos_idx = (num_lines_to_display == LOGIC_GUI_DISP_CRED_NUM_LINES_MAX) ? 1 : 0;
 
     /* Arm timer for scrolling */
     timer_start_timer(TIMER_SCROLLING, SCROLLING_DEL);

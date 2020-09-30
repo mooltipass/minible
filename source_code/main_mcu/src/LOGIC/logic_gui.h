@@ -37,9 +37,9 @@ void logic_gui_change_pin(void);
 void logic_gui_erase_user(void);
 
 /* Defines */
-#define LOGIC_GUI_NUM_LINES_MAX (3)       // Max number of lines to display for credentials
-#define LOGIC_GUI_NUM_DISPLAY_CFG (2)     // Number of display cfg (2 or 3 lines)
-#define LOGIC_GUI_TOTP_STR_LEN (30)       // Length of TOTP string generated
-#define LOGIC_GUI_TOTP_MAX_TIMESTEP (100) // Maximum number for the timestep
-#define LOGIC_GUI_TOTP_SEC_NUM_DIG (2)    // Number of digits for seconds remaining for TOTP display
+#define LOGIC_GUI_DISP_CRED_NUM_LINES_MAX (3) // Max number of lines to display for credentials
+#define LOGIC_GUI_CRED_SHOW_NB_DISP_CFG (2)   // Number of display cfg (2 or 3 lines)
+#define LOGIC_GUI_TOTP_STR_LEN (30)           // Length of TOTP string generated
+#define LOGIC_GUI_TOTP_MAX_TIMESTEP (100)     // Maximum number for the timestep
+#define LOGIC_GUI_TOTP_SEC_NUM_DIG (2)        // Number of digits for seconds remaining for TOTP display
 #endif /* LOGIC_GUI_H_ */
