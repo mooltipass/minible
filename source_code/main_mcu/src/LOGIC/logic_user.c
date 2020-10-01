@@ -997,14 +997,14 @@ RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* log
     uint8_t TOTPsecret_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     _Static_assert(MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret) == MEMBER_SIZE(TOTPcredentials_t, TOTPsecret), "TOTP secret lengths does not match!");
 
-    /* Sanitize */
-    if (logic_user_sanitize_TOTP(TOTPcreds) == RETURN_NOK)
+    /* Smartcard present and unlocked? */
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
         return RETURN_NOK;
     }
 
-    /* Smartcard present and unlocked? */
-    if (logic_security_is_smc_inserted_unlocked() == FALSE)
+    /* Sanitize */
+    if (logic_user_sanitize_TOTP(TOTPcreds) == RETURN_NOK)
     {
         return RETURN_NOK;
     }
@@ -1634,7 +1634,7 @@ void logic_user_manual_select_login(void)
             else if (display_prompt_return == MINI_INPUT_RET_YES)
             {
                 nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
-                logic_gui_display_login_password((child_cred_node_t*)&temp_cnode);
+                logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode);
                 memset(&temp_cnode, 0, sizeof(temp_cnode));
                 return;
             }
