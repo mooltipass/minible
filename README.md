@@ -116,3 +116,8 @@ If your language is not listed, **get in touch with us** to then be able to foll
 
 ## [](#header-2)Keeping in Touch
 Get in touch with the development team and other Mooltipass enthuasiasts on our **Mooltipass IRC channel**: **#mooltipass** on **irc.freenode.net**
+
+## [](#header-2)Licenses
+<p align="center">
+  <img src="https://github.com/mooltipass/minible/raw/master/_readme_assets/licenses.PNG" alt="Mooltipass Mini BLE"/>
+</p>
