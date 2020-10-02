@@ -69,8 +69,9 @@
 #define SETTINGS_SHOW_PIN_ON_ENTRY          17
 #define SETTINGS_DISABLE_BLE_ON_CARD_REMOVE 18
 #define SETTINGS_DISABLE_BLE_ON_LOCK        19
+#define SETTINGS_NB_20MINS_TICKS_FOR_LOCK   20
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    20
+#define SETTINGS_NB_USED                    21
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32

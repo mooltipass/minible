@@ -218,6 +218,18 @@ aux_mcu_message_t* comms_aux_mcu_get_empty_packet_ready_to_be_sent(uint16_t mess
 */
 void comms_aux_mcu_send_message(aux_mcu_message_t* message_to_send)
 {
+    /* Do we need to wake-up aux mcu? */
+    if (aux_mcu_comms_disabled != FALSE)
+    {
+        comms_aux_arm_rx_and_clear_no_comms();
+        
+        /* Leave the line below */
+        platform_io_clear_no_comms();
+        
+        /* give some time to AUX to wakeup */
+        timer_delay_ms(100);
+    }        
+        
     /* Check that we're indeed sending the aux_mcu_send_message.... */
     if ((message_to_send != &aux_mcu_send_message_1) && (message_to_send != &aux_mcu_send_message_2))
     {

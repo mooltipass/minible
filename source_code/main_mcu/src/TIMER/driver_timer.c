@@ -28,6 +28,7 @@
 #include "logic_device.h"
 #include "logic_power.h"
 #include "platform_io.h"
+#include "logic_user.h"
 #include "inputs.h"
 
 #ifdef EMULATOR_BUILD
@@ -41,6 +42,8 @@ static int rtc_offset;
 
 /* Timer array */
 volatile timerEntry_t context_timers[TOTAL_NUMBER_OF_TIMERS];
+/* Inactivity timer remaining ticks */
+volatile uint16_t timer_inactivity_20mins_tick_remain = 0;
 /* Bool set when MCU systic expired */
 volatile BOOL timer_systick_expired = TRUE;
 /* System tick */
@@ -89,11 +92,31 @@ void TCC2_Handler(void)
         
         /* In case this wakes up device, setup the flag */
         logic_device_set_wakeup_reason(WAKEUP_REASON_20M_TIMER);
+        
+        /* Deal with inactivity logoff timer */
+        if (timer_inactivity_20mins_tick_remain != 0)
+        {
+            if (timer_inactivity_20mins_tick_remain-- == 1)
+            {
+                logic_user_set_user_to_be_logged_off_flag();
+            }
+        }
     }
     #endif    
 }
 
 #endif
+
+/*! \fn     timer_start_logoff_timer(uint16_t nb_20mins_ticks_before_lock)
+*   \brief  Start inactivity logoff timer
+*   \param  nb_20mins_ticks_before_lock     Number of 20mins ticks before lock
+*/
+void timer_start_logoff_timer(uint16_t nb_20mins_ticks_before_lock)
+{
+    cpu_irq_enter_critical();
+    timer_inactivity_20mins_tick_remain = nb_20mins_ticks_before_lock + 1;
+    cpu_irq_leave_critical();
+}
 
 /*! \fn     timer_initialize_timebase(void)
 *   \brief  Initialize the platform time base

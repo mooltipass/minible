@@ -58,7 +58,8 @@ const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = { 0,      
                                                                         TRUE,                                    // SETTINGS_DEVICE_TUTORIAL           
                                                                         FALSE,                                   // SETTINGS_SHOW_PIN_ON_ENTRY         
                                                                         FALSE,                                   // SETTINGS_DISABLE_BLE_ON_CARD_REMOVE
-                                                                        FALSE};                                  // SETTINGS_DISABLE_BLE_ON_LOCK       
+                                                                        FALSE,                                   // SETTINGS_DISABLE_BLE_ON_LOCK  
+                                                                        0};                                      // SETTINGS_NB_20MINS_TICKS_FOR_LOCK 
 /* Current selected language entry */ 
 language_map_entry_t custom_fs_cur_language_entry = {.starting_bitmap = 0, .starting_font = 0, .string_file_index = 0};
 /* Temp values to speed up string files reading */

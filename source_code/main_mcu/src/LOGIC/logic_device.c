@@ -105,6 +105,13 @@ void logic_device_activity_detected(void)
     timer_start_timer(TIMER_USER_INTERACTION, SETTING_MAX_USER_INTERACTION_TIMOUT_EMU << 10);
     #endif
     
+    /* Re-arm logoff timer if feature is enabled */
+    uint16_t nb_20mins_ticks_before_lock_setting = custom_fs_settings_get_device_setting(SETTINGS_NB_20MINS_TICKS_FOR_LOCK);
+    if (nb_20mins_ticks_before_lock_setting != 0)
+    {
+        timer_start_logoff_timer(nb_20mins_ticks_before_lock_setting);
+    }
+    
     /* Check for screen off, switch it on if so */
     if (sh1122_is_oled_on(&plat_oled_descriptor) == FALSE)
     {

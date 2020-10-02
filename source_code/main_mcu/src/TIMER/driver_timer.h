@@ -85,6 +85,7 @@ static uint16_t const EPOCH_YEAR = 1970;
 
 /* Prototypes */
 void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second);
+void timer_start_logoff_timer(uint16_t nb_20mins_ticks_before_lock);
 timer_flag_te timer_has_timer_expired(timer_id_te uid, BOOL clear);
 void timer_arm_mcu_systick_for_aux_tx_flood_protection(void);
 void timer_start_timer(timer_id_te uid, uint32_t val);
