@@ -1242,6 +1242,9 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Here comes the sanity checks */
             /********************************/
 
+            /* Santity check that we can receive a full TOTP message in the receive buffer */
+            _Static_assert(sizeof rcv_msg->payload >= sizeof rcv_msg->store_credential, "Receive buffer not large enough for TOTP credential");
+
             /* Empty service name */
             if (rcv_msg->store_TOTP_credential.service_name[0] == 0)
             {
