@@ -335,6 +335,8 @@ typedef struct
     parent_node_t temp_parent_node;         // Temp parent node to be used when needed
     uint16_t currentCategoryId;             // Current category ID
     uint16_t currentCategoryFlags;          // Current category flags
+    uint16_t lastCredParentNodes[10];      // The address of the users last cred parent node (read from flash. eg cache)
+    uint16_t lastDataParentNodes[7];       // The addresses of the users last data parent nodes (read from flash. eg cache)
 } nodemgmtHandle_t;
 
 /* Inlines */
@@ -438,12 +440,12 @@ void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOO
 void nodemgmt_set_cred_start_address(uint16_t parentAddress, uint16_t credential_type_id);
 uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_child_addr);
 uint16_t nodemgmt_get_next_child_node_for_cur_category(uint16_t search_start_child_addr);
+uint16_t nodemgmt_get_last_parent_addr(BOOL data_parent, uint16_t credential_type_id);
 uint16_t nodemgmt_get_starting_parent_addr_for_category(uint16_t credential_type_id);
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
 RET_TYPE nodemgmt_store_data_node(child_data_node_t* node, uint16_t* storedAddress);
 void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId);
-uint16_t nodemgmt_get_last_parent_node_for_category(uint16_t credential_type_id);
 void nodemgmt_get_category_strings(nodemgmt_user_category_strings_t* strings_pt);
 void nodemgmt_set_category_strings(nodemgmt_user_category_strings_t* strings_pt);
 void nodemgmt_get_category_string(uint16_t category_id, cust_char_t* string_pt);
@@ -457,6 +459,7 @@ void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags);
 uint16_t nodemgmt_get_start_addresses(uint16_t* addresses_array);
 uint16_t nodemgmt_get_starting_data_parent_addr(uint16_t typeId);
 void nodemgmt_delete_all_bluetooth_bonding_information(void);
+RET_TYPE nodemgmt_check_address_validity(uint16_t node_addr);
 RET_TYPE nodemgmt_check_user_perm_from_flags(uint16_t flags);
 void nodemgmt_set_start_addresses(uint16_t* addresses_array);
 void nodemgmt_set_data_change_number(uint32_t changeNumber);

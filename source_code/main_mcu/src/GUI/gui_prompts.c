@@ -2169,12 +2169,6 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     int16_t displayed_length;
     BOOL scrolling_needed[4];
     
-    /* Handle one credential case */
-    if (top_of_list_parent_addr == center_of_list_parent_addr)
-    {
-        top_of_list_parent_addr = NODE_ADDR_NULL;
-    }
-    
     /* Load hint string to compute aestetical elements positions */
     custom_fs_get_string_from_file(PRESS_SCROLL_HINT_TEXT_ID, &select_credential_string, TRUE);
     
@@ -2290,12 +2284,6 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                 center_of_list_parent_addr = next_diff_fletter_node_addr;
                 top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(center_of_list_parent_addr, NODEMGMT_STANDARD_CRED_TYPE_ID);
                 animation_just_started = TRUE;
-                
-                /* Handle one credential case */
-                if (top_of_list_parent_addr == center_of_list_parent_addr)
-                {
-                    top_of_list_parent_addr = NODE_ADDR_NULL;
-                }
             }     
             else
             {
@@ -2315,7 +2303,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             hint_cur_displayed = FALSE;
             displaying_hint = FALSE;
             
-            uint16_t prev_diff_fletter_node_addr = logic_database_get_prev_2_fletters_services(center_of_list_parent_addr, cur_fchar, fchar_array);
+            uint16_t prev_diff_fletter_node_addr = logic_database_get_prev_2_fletters_services(center_of_list_parent_addr, cur_fchar, fchar_array, NODEMGMT_STANDARD_CRED_TYPE_ID);
             if (prev_diff_fletter_node_addr != NODE_ADDR_NULL)
             {
                 fchar_array[2] = cur_fchar;
@@ -2323,12 +2311,6 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                 center_of_list_parent_addr = prev_diff_fletter_node_addr;
                 top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(center_of_list_parent_addr, NODEMGMT_STANDARD_CRED_TYPE_ID);
                 animation_just_started = TRUE;
-                
-                /* Handle one credential case */
-                if (top_of_list_parent_addr == center_of_list_parent_addr)
-                {
-                    top_of_list_parent_addr = NODE_ADDR_NULL;
-                }
             }
             else
             {

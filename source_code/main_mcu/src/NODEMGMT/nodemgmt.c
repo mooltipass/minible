@@ -184,6 +184,27 @@ void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags)
     }
 }
 
+/*! \fn     nodemgmt_check_address_validity(uint16_t node_addr)
+*   \brief  Check for valid address
+*   \param  node_addr   Node address
+*   \return Address validity
+*/
+RET_TYPE nodemgmt_check_address_validity(uint16_t node_addr)
+{
+    // Node Page
+    uint16_t page_addr = nodemgmt_page_from_address(node_addr);
+    
+    /* Perform check */
+    if ((page_addr >= PAGE_PER_SECTOR) && (page_addr < PAGE_COUNT))
+    {
+        return RETURN_OK;
+    }
+    else
+    {
+        return RETURN_NOK;
+    }
+}
+
 /*! \fn     nodemgmt_check_address_validity_and_lock(uint16_t node_addr)
 *   \brief  Check for valid address and lock if invalid
 *   \param  node_addr   Node address
@@ -1027,53 +1048,6 @@ uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_c
     return NODE_ADDR_NULL;
 }
 
-/*! \fn     nodemgmt_get_last_parent_node_for_category(uint16_t credential_type_id)
- *  \brief  Gets the last parent node for the current category
- *  \param  credential_type_id          Credential type ID
- *  \return The address or NODE_ADDR_NULL
- */
-uint16_t nodemgmt_get_last_parent_node_for_category(uint16_t credential_type_id)
-{
-    uint16_t next_parent_node_addr_to_scan = nodemgmt_current_handle.firstCredParentNodes[credential_type_id];
-    uint16_t last_parent_node_to_return = NODE_ADDR_NULL;
-    uint16_t parent_read_buffer[4];
-    
-    /* Boundary checks */
-    if (credential_type_id >= MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes))
-    {
-        return NODE_ADDR_NULL;
-    }
-    
-    /* Sanity check for this hack */
-    _Static_assert(0 == offsetof(parent_cred_node_t, flags), "Incorrect buffer for flags & addr read");
-    _Static_assert(2 == offsetof(parent_cred_node_t, prevParentAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(4 == offsetof(parent_cred_node_t, nextParentAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(6 == offsetof(parent_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(sizeof(parent_read_buffer) == MEMBER_SIZE(parent_cred_node_t, flags) + MEMBER_SIZE(parent_cred_node_t, prevParentAddress) + MEMBER_SIZE(parent_cred_node_t, nextParentAddress) + MEMBER_SIZE(parent_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
-    
-    /* Hack to read flags & prev / next address */
-    parent_cred_node_t* parent_node_pt = (parent_cred_node_t*)parent_read_buffer;
-    
-    /* Loop */
-    while (next_parent_node_addr_to_scan != NODE_ADDR_NULL)
-    {
-        /* Read flags and prev/next address */
-        nodemgmt_check_address_validity_and_lock(next_parent_node_addr_to_scan);
-        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_parent_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(next_parent_node_addr_to_scan), sizeof(parent_read_buffer), &parent_read_buffer);
-
-        /* Check for logins with desired category */
-        if (nodemgmt_check_for_logins_with_category_in_parent_node(parent_node_pt->nextChildAddress, nodemgmt_current_handle.currentCategoryFlags) != NODE_ADDR_NULL)
-        {
-            last_parent_node_to_return = next_parent_node_addr_to_scan;
-        }
-        
-        /* Store next address to scan */
-        next_parent_node_addr_to_scan = parent_node_pt->nextParentAddress;
-    }
-    
-    return last_parent_node_to_return;    
-}
-
 /*! \fn     nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id)
  *  \brief  Gets the prev parent node for the current category
  *  \param  search_start_parent_addr    The parent address from which to start looking.
@@ -1129,8 +1103,38 @@ uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_pa
         prev_parent_node_addr_to_scan = parent_node_pt->prevParentAddress;
     }
     
-    /* Here we need to loop over! */
-    return nodemgmt_get_last_parent_node_for_category(credential_type_id);
+    /* We need to loop over: check null (memory corruption) */
+    if (nodemgmt_current_handle.lastCredParentNodes[credential_type_id] == NODE_ADDR_NULL)
+    {
+        return NODE_ADDR_NULL;
+    }
+    
+    /* We need to loop over: check that it isn't the same node */
+    if (nodemgmt_current_handle.lastCredParentNodes[credential_type_id] == search_start_parent_addr)
+    {
+        return NODE_ADDR_NULL;
+    }
+    
+    /* We need to loop over: check if the last node could work */
+    nodemgmt_check_address_validity_and_lock(nodemgmt_current_handle.lastCredParentNodes[credential_type_id]);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(nodemgmt_current_handle.lastCredParentNodes[credential_type_id]), BASE_NODE_SIZE*nodemgmt_node_from_address(nodemgmt_current_handle.lastCredParentNodes[credential_type_id]), sizeof(parent_read_buffer), &parent_read_buffer);
+    if (nodemgmt_check_for_logins_with_category_in_parent_node(parent_node_pt->nextChildAddress, nodemgmt_current_handle.currentCategoryFlags) != NODE_ADDR_NULL)
+    {
+        return nodemgmt_current_handle.lastCredParentNodes[credential_type_id];
+    }
+    
+    /* Last credential isn't the right candidate, continue looking */
+    uint16_t looped_return = nodemgmt_get_prev_parent_node_for_cur_category(nodemgmt_current_handle.lastCredParentNodes[credential_type_id], credential_type_id);
+    
+    /* Single cred? */
+    if (looped_return == search_start_parent_addr)
+    {
+        return NODE_ADDR_NULL;
+    }
+    else
+    {
+        return looped_return;
+    }
 }
 
 /*! \fn     nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id)
@@ -1191,7 +1195,15 @@ uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_pa
         /* Check for logins with desired category */
         if (nodemgmt_check_for_logins_with_category_in_parent_node(parent_node_pt->nextChildAddress, nodemgmt_current_handle.currentCategoryFlags) != NODE_ADDR_NULL)
         {
-            return next_parent_node_addr_to_scan;
+            /* Check for single credential */
+            if (next_parent_node_addr_to_scan == search_start_parent_addr)
+            {
+                return NODE_ADDR_NULL;
+            } 
+            else
+            {
+                return next_parent_node_addr_to_scan;
+            }
         }
         
         /* Store next address to scan */
@@ -1236,6 +1248,88 @@ uint16_t nodemgmt_get_starting_parent_addr(uint16_t credential_type_id)
     
     return temp_address;
 }
+
+/*! \fn     nodemgmt_get_last_parent_addr(uint16_t credential_type_id)
+ *  \brief  Search the users last parent node
+ *  \return The address
+ */
+uint16_t nodemgmt_get_last_parent_addr(BOOL data_parent, uint16_t credential_type_id)
+{
+    _Static_assert(offsetof(parent_cred_node_t, nextParentAddress) == offsetof(parent_data_node_t, nextParentAddress), "Incorrect reuse of parent node structure");
+    _Static_assert(offsetof(parent_cred_node_t, service) == offsetof(parent_data_node_t, service), "Incorrect reuse of parent node structure");
+    uint16_t next_parent_node_addr_to_scan = NODE_ADDR_NULL;
+    cust_char_t last_parent_fchar = 0;
+    uint16_t parent_read_buffer[5];
+    
+    /* Sanity check for this hack */
+    _Static_assert(0 == offsetof(parent_cred_node_t, flags), "Incorrect buffer for flags & addr read");
+    _Static_assert(2 == offsetof(parent_cred_node_t, prevParentAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(4 == offsetof(parent_cred_node_t, nextParentAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(6 == offsetof(parent_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(8 == offsetof(parent_cred_node_t, service), "Incorrect buffer for flags & addr read");
+    _Static_assert(sizeof(parent_read_buffer) == MEMBER_SIZE(parent_cred_node_t, flags) + MEMBER_SIZE(parent_cred_node_t, prevParentAddress) + MEMBER_SIZE(parent_cred_node_t, nextParentAddress) + MEMBER_SIZE(parent_cred_node_t, nextChildAddress) + sizeof(cust_char_t), "Incorrect buffer for flags & addr read");
+
+    /* Hack to read flags & prev / next address */
+    parent_cred_node_t* parent_node_pt = (parent_cred_node_t*)parent_read_buffer;
+
+    /* Get starting parent depending on type + boundary checks */
+    if (data_parent == FALSE)
+    {
+        next_parent_node_addr_to_scan = nodemgmt_current_handle.firstCredParentNodes[credential_type_id];
+        if (credential_type_id >= MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, cred_start_addresses))
+        {
+            return NODE_ADDR_NULL;
+        }
+    } 
+    else
+    {
+        next_parent_node_addr_to_scan = nodemgmt_current_handle.firstDataParentNodes[credential_type_id];
+        if (credential_type_id >= MEMBER_ARRAY_SIZE(nodemgmt_profile_main_data_t, data_start_addresses))
+        {
+            return NODE_ADDR_NULL;
+        }
+    }
+    
+     /* Loop */
+     while (next_parent_node_addr_to_scan != NODE_ADDR_NULL)
+     {
+         /* Check for valid address */
+         if (nodemgmt_check_address_validity(next_parent_node_addr_to_scan) != RETURN_OK)
+         {
+             return NODE_ADDR_NULL;
+         }
+         
+         /* Read flags and prev/next address */
+         dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_parent_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(next_parent_node_addr_to_scan), sizeof(parent_read_buffer), &parent_read_buffer);
+
+         /* Check ownership & validity */
+         if (nodemgmt_check_user_perm_from_flags(parent_node_pt->flags) != RETURN_OK)
+         {
+             return NODE_ADDR_NULL;
+         }
+         
+         /* Check for invalid linked list */
+         if (parent_node_pt->service[0] < last_parent_fchar)
+         {
+             return NODE_ADDR_NULL;
+         }
+         
+         /* Store last parent first char */
+         last_parent_fchar = parent_node_pt->service[0];
+         
+         /* Check for end condition */
+         if (parent_node_pt->nextParentAddress == NODE_ADDR_NULL)
+         {
+             return next_parent_node_addr_to_scan;
+         }
+
+         /* Store next address to scan */
+         next_parent_node_addr_to_scan = parent_node_pt->nextParentAddress;
+     }
+
+     return NODE_ADDR_NULL;    
+}
+
 
 /*! \fn     nodemgmt_get_starting_data_parent_addr(uint16_t typeId)
  *  \brief  Gets the users starting data parent node from the user profile memory portion of flash
@@ -1868,10 +1962,22 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
         nodemgmt_current_handle.firstCredParentNodes[i] = nodemgmt_get_starting_parent_addr(i);
     }
     
+    // Get last cred parents
+    for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, lastCredParentNodes); i++)
+    {
+        nodemgmt_current_handle.lastCredParentNodes[i] = nodemgmt_get_last_parent_addr(FALSE, i);
+    }
+    
     // Get starting data parents
     for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstDataParentNodes); i++)
     {        
         nodemgmt_current_handle.firstDataParentNodes[i] = nodemgmt_get_starting_data_parent_addr(i);
+    }
+    
+    // Get last data parents
+    for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, lastDataParentNodes); i++)
+    {
+        nodemgmt_current_handle.lastDataParentNodes[i] = nodemgmt_get_last_parent_addr(TRUE, i);
     }
     
     // scan for next free parent and child nodes from the start of the memory
