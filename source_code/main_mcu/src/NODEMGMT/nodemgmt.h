@@ -438,11 +438,12 @@ void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOO
 void nodemgmt_set_cred_start_address(uint16_t parentAddress, uint16_t credential_type_id);
 uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_child_addr);
 uint16_t nodemgmt_get_next_child_node_for_cur_category(uint16_t search_start_child_addr);
-RET_TYPE nodemgmt_store_data_node(child_data_node_t* node, uint16_t* storedAddress);
 uint16_t nodemgmt_get_starting_parent_addr_for_category(uint16_t credential_type_id);
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
+RET_TYPE nodemgmt_store_data_node(child_data_node_t* node, uint16_t* storedAddress);
 void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId);
+uint16_t nodemgmt_get_last_parent_node_for_category(uint16_t credential_type_id);
 void nodemgmt_get_category_strings(nodemgmt_user_category_strings_t* strings_pt);
 void nodemgmt_set_category_strings(nodemgmt_user_category_strings_t* strings_pt);
 void nodemgmt_get_category_string(uint16_t category_id, cust_char_t* string_pt);

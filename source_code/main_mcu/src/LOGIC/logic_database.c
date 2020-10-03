@@ -27,14 +27,15 @@
 #include "utils.h"
 
 
-/*! \fn     logic_database_get_prev_2_fletters_services(uint16_t start_address, cust_char_t start_char, cust_char_t* char_array)
+/*! \fn     logic_database_get_prev_2_fletters_services(uint16_t start_address, cust_char_t start_char, cust_char_t* char_array, uint16_t credential_type_id)
 *   \brief  Get the previous 2 services with different first letters
 *   \param  start_address       Address at which we should start looking
 *   \param  start_char          The current first char
 *   \param  char_array          An array for 2 chars
+*   \param  category_id         Credential/Data category ID
 *   \return Address of the next node having a different first letter
 */
-uint16_t logic_database_get_prev_2_fletters_services(uint16_t start_address, cust_char_t start_char, cust_char_t* char_array)
+uint16_t logic_database_get_prev_2_fletters_services(uint16_t start_address, cust_char_t start_char, cust_char_t* char_array, uint16_t credential_type_id)
 {
     uint16_t previous_address = start_address;
     uint16_t return_value = NODE_ADDR_NULL;
@@ -102,16 +103,18 @@ uint16_t logic_database_get_prev_2_fletters_services(uint16_t start_address, cus
     return return_value;
 }
 
-/*! \fn     logic_database_get_next_2_fletters_services(uint16_t start_address, cust_char_t cur_char, cust_char_t* char_array)
+/*! \fn     logic_database_get_next_2_fletters_services(uint16_t start_address, cust_char_t cur_char, cust_char_t* char_array, uint16_t credential_type_id)
 *   \brief  Get the next 2 services with different first letters
 *   \param  start_address       Address at which we should start looking
 *   \param  cur_char            The current first char
 *   \param  char_array          An array for 2 chars
+*   \param  category_id         Credential/Data category ID
 *   \return Address of the next node having a different first letter
 */
-uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cust_char_t cur_char, cust_char_t* char_array)
+uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cust_char_t cur_char, cust_char_t* char_array, uint16_t credential_type_id)
 {
     uint16_t return_value = NODE_ADDR_NULL;
+    cust_char_t initial_char = cur_char;
     uint16_t current_node_addr;
     uint16_t storage_index = 0;
     parent_node_t temp_pnode;
@@ -120,7 +123,7 @@ uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cus
     temp_pnode.cred_parent.nextParentAddress = start_address;
     char_array[0] = ' '; char_array[1] = ' ';
     
-    do 
+    while(TRUE)
     {
         /* Update current node address */
         current_node_addr = temp_pnode.cred_parent.nextParentAddress;
@@ -131,6 +134,13 @@ uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cus
         /* Check if the fchar changed */
         if ((temp_pnode.cred_parent.service[0] != cur_char) && (nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags()) != NODE_ADDR_NULL))
         {
+            /* Detect loop back */
+            if (initial_char == temp_pnode.cred_parent.service[0])
+            {
+                break;
+            }
+            
+            /* Store node */
             char_array[storage_index++] = temp_pnode.cred_parent.service[0];
             cur_char = temp_pnode.cred_parent.service[0];
             
@@ -147,7 +157,12 @@ uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cus
             }
         }
         
-    } while (temp_pnode.cred_parent.nextParentAddress != NODE_ADDR_NULL);
+        /* Handle wrapover */
+        if (temp_pnode.cred_parent.nextParentAddress == NODE_ADDR_NULL)
+        {
+            temp_pnode.cred_parent.nextParentAddress = nodemgmt_get_next_parent_node_for_cur_category(NODE_ADDR_NULL, credential_type_id);
+        }
+    }
     
     return return_value;
 }

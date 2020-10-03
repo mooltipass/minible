@@ -134,6 +134,7 @@
         - faster usb get credential answer for subdomains
         - erase profile feature bug fix
         - faster csv import feature through change node pwd command
+        - inactivity timer for device lock 
 */
 
 /**************** SETUP DEFINES ****************/
