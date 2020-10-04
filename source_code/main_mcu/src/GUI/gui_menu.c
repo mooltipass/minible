@@ -243,7 +243,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     else if (state_machine_index == 1)
                     {
                         /* Ask the user permission to enter login / password, check for back action */
-                        ret_type_te user_prompt_return = logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr, only_password_prompt, &usb_interface_output, 0x00, FALSE);
+                        ret_type_te user_prompt_return = logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr, only_password_prompt, &usb_interface_output, 0x00, FALSE, FALSE);
                         
                         /* Check for back, and deny of both prompts */
                         if (user_prompt_return == RETURN_BACK)

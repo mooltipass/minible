@@ -1564,7 +1564,7 @@ void logic_user_manual_select_login(void)
         else if (state_machine == 2)
         {
             /* Ask the user permission to enter login / password, check for back action */
-            ret_type_te user_prompt_return = logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr, only_password_prompt, &usb_interface_output, 0x00, FALSE);  
+            ret_type_te user_prompt_return = logic_user_ask_for_credentials_keyb_output(chosen_service_addr, chosen_login_addr, only_password_prompt, &usb_interface_output, 0x00, FALSE, FALSE);  
             
             /* Ask the user permission to enter login / password, check for back action */
             if (user_prompt_return == RETURN_BACK)
@@ -1646,7 +1646,7 @@ void logic_user_manual_select_login(void)
     }
 }
 
-/*! \fn     logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL skip_login_prompt_and_int_choice, BOOL* usb_selected, lock_feature_te keys_to_send_before_login, BOOL skip_login_prompt)
+/*! \fn     logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL skip_login_prompt_and_int_choice, BOOL* usb_selected, lock_feature_te keys_to_send_before_login, BOOL skip_login_prompt, BOOL no_password_prompt)
 *   \brief  Ask the user to enter the login & password of a given service
 *   \param  parent_address                      Address of the parent
 *   \param  child_address                       Address of the child
@@ -1654,9 +1654,10 @@ void logic_user_manual_select_login(void)
 *   \param  usb_selected                        Pointer to a boolean, used internally to know if the user selected USB interface
 *   \param  keys_to_send_before_login           bitfield possibly containing possible shortcuts to send before typing the login (win-l or ctrl-alt-del)
 *   \param  skip_login_prompt                   Boolean to set if we want to skip login prompt
+*   \param  no_password_prompt                  Boolean to set if we don't want a password prompt
 *   \return RETURN_OK if a login or password was typed or if the card was removed, RETURN_BACK if the user wants to come back, RETURN_NOK if the user denied both typing prompts or device isn't connected to anything
 */
-RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL skip_login_prompt_and_int_choice, BOOL* usb_selected, lock_feature_te keys_to_send_before_login, BOOL skip_login_prompt)
+RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL skip_login_prompt_and_int_choice, BOOL* usb_selected, lock_feature_te keys_to_send_before_login, BOOL skip_login_prompt, BOOL no_password_prompt)
 {
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,password)+1+1, "Can't describe all chars for password");
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,login)+1, "Can't describe all chars for login");
@@ -1859,10 +1860,18 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                 }
             }
             
-            /* Ask for password confirmation */
-            custom_fs_get_string_from_file(TYPE_PASSWORD_TEXT_ID, &two_line_prompt_2, TRUE);
-            conf_text_2_lines.lines[1] = two_line_prompt_2;
-            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE, TRUE);
+            /* Ask for password confirmation if needed */
+            mini_input_yes_no_ret_te prompt_return;
+            if (no_password_prompt == FALSE)
+            {
+                custom_fs_get_string_from_file(TYPE_PASSWORD_TEXT_ID, &two_line_prompt_2, TRUE);
+                conf_text_2_lines.lines[1] = two_line_prompt_2;
+                prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE, TRUE);
+            } 
+            else
+            {
+                prompt_return = MINI_INPUT_RET_YES;
+            }
 
             /* Approved, back, card removed... */
             if ((prompt_return == MINI_INPUT_RET_CARD_REMOVED) || (prompt_return == MINI_INPUT_RET_POWER_SWITCH))
@@ -2053,7 +2062,7 @@ void logic_user_unlocked_feature_trigger(void)
         }
         
         /* Ask the user permission to enter login / password, check for back action */
-        logic_user_ask_for_credentials_keyb_output(parent_address, child_address, FALSE, &usb_interface_output, lock_unlock_feature_uint, ((lock_unlock_feature_uint & LF_LOGIN_MASK) != 0)?FALSE:TRUE);
+        logic_user_ask_for_credentials_keyb_output(parent_address, child_address, FALSE, &usb_interface_output, lock_unlock_feature_uint, ((lock_unlock_feature_uint & LF_LOGIN_MASK) != 0)?FALSE:TRUE, ((lock_unlock_feature_uint & LF_NO_PWD_PROMPT_MASK) != 0)?TRUE:FALSE);
     }
 }
 

@@ -135,6 +135,9 @@
         - erase profile feature bug fix
         - faster csv import feature through change node pwd command
         - inactivity timer for device lock 
+        - credential loop in login menu
+        - jumping through first letters bug fix
+        - unlock feature: option to bypass password prompt
 */
 
 /**************** SETUP DEFINES ****************/
