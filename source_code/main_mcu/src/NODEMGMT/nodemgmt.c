@@ -1053,10 +1053,11 @@ uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_c
  *  \param  search_start_parent_addr    The parent address from which to start looking.
  *  \param  credential_type_id          Credential type ID
  *  \return The address or NODE_ADDR_NULL
+ *  \note   This function should only be called when it is known a credential exists in said category!
  */
 uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id)
 {
-    uint16_t prev_parent_node_addr_to_scan = nodemgmt_current_handle.firstCredParentNodes[credential_type_id];
+    uint16_t prev_parent_node_addr_to_scan = search_start_parent_addr;
     uint16_t parent_read_buffer[4];
     
     /* Boundary checks */
@@ -1075,10 +1076,22 @@ uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_pa
     /* Hack to read flags & prev / next address */
     parent_cred_node_t* parent_node_pt = (parent_cred_node_t*)parent_read_buffer;
     
-    /* Nothing before nothing :D */
+    /* Nothing specified, start from last node */
     if (search_start_parent_addr == NODE_ADDR_NULL)
     {
-        return NODE_ADDR_NULL;
+        search_start_parent_addr = nodemgmt_current_handle.lastCredParentNodes[credential_type_id];
+        if (search_start_parent_addr == NODE_ADDR_NULL)
+        {
+            return NODE_ADDR_NULL;
+        }
+        
+        /* Check if the last node could work */
+        nodemgmt_check_address_validity_and_lock(search_start_parent_addr);
+        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(search_start_parent_addr), BASE_NODE_SIZE*nodemgmt_node_from_address(search_start_parent_addr), sizeof(parent_read_buffer), &parent_read_buffer);
+        if (nodemgmt_check_for_logins_with_category_in_parent_node(parent_node_pt->nextChildAddress, nodemgmt_current_handle.currentCategoryFlags) != NODE_ADDR_NULL)
+        {
+                return search_start_parent_addr;
+        }
     }
     
     /* Read flags and prev/next address */
@@ -1103,28 +1116,8 @@ uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_pa
         prev_parent_node_addr_to_scan = parent_node_pt->prevParentAddress;
     }
     
-    /* We need to loop over: check null (memory corruption) */
-    if (nodemgmt_current_handle.lastCredParentNodes[credential_type_id] == NODE_ADDR_NULL)
-    {
-        return NODE_ADDR_NULL;
-    }
-    
-    /* We need to loop over: check that it isn't the same node */
-    if (nodemgmt_current_handle.lastCredParentNodes[credential_type_id] == search_start_parent_addr)
-    {
-        return NODE_ADDR_NULL;
-    }
-    
-    /* We need to loop over: check if the last node could work */
-    nodemgmt_check_address_validity_and_lock(nodemgmt_current_handle.lastCredParentNodes[credential_type_id]);
-    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(nodemgmt_current_handle.lastCredParentNodes[credential_type_id]), BASE_NODE_SIZE*nodemgmt_node_from_address(nodemgmt_current_handle.lastCredParentNodes[credential_type_id]), sizeof(parent_read_buffer), &parent_read_buffer);
-    if (nodemgmt_check_for_logins_with_category_in_parent_node(parent_node_pt->nextChildAddress, nodemgmt_current_handle.currentCategoryFlags) != NODE_ADDR_NULL)
-    {
-        return nodemgmt_current_handle.lastCredParentNodes[credential_type_id];
-    }
-    
-    /* Last credential isn't the right candidate, continue looking */
-    uint16_t looped_return = nodemgmt_get_prev_parent_node_for_cur_category(nodemgmt_current_handle.lastCredParentNodes[credential_type_id], credential_type_id);
+    /* Handle wrapover */
+    uint16_t looped_return = nodemgmt_get_prev_parent_node_for_cur_category(NODE_ADDR_NULL, credential_type_id);
     
     /* Single cred? */
     if (looped_return == search_start_parent_addr)
@@ -1212,6 +1205,12 @@ uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_pa
         /* If next address is empty, loopover */
         if (next_parent_node_addr_to_scan == NODE_ADDR_NULL)
         {
+            /* Check for cred loop */
+            if (search_start_parent_addr == NODE_ADDR_NULL)
+            {
+                return NODE_ADDR_NULL;
+            }
+            
             next_parent_node_addr_to_scan = nodemgmt_current_handle.firstCredParentNodes[credential_type_id];
         }
     }

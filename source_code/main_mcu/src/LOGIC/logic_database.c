@@ -37,11 +37,13 @@
 */
 uint16_t logic_database_get_prev_2_fletters_services(uint16_t start_address, cust_char_t start_char, cust_char_t* char_array, uint16_t credential_type_id)
 {
-    uint16_t previous_address = start_address;
+    uint16_t last_seen_parent_node_that_fits_category = NODE_ADDR_NULL;
+    uint16_t current_node_addr = start_address;
     uint16_t return_value = NODE_ADDR_NULL;
     BOOL skip_first_change_bool = TRUE;
     cust_char_t cur_char = start_char;
-    uint16_t current_node_addr;
+    BOOL loopback_detected = FALSE;
+    BOOL first_loop_bool = TRUE;
     int16_t storage_index = 1;
     parent_node_t temp_pnode;
     
@@ -49,54 +51,74 @@ uint16_t logic_database_get_prev_2_fletters_services(uint16_t start_address, cus
     temp_pnode.cred_parent.prevParentAddress = start_address;
     char_array[0] = ' '; char_array[1] = ' ';
     
-    do
+    while(TRUE)
     {
         /* Update current node address */
         current_node_addr = temp_pnode.cred_parent.prevParentAddress;
         
+        /* Handle wrapover */
+        if (current_node_addr == NODE_ADDR_NULL)
+        {
+            current_node_addr = nodemgmt_get_prev_parent_node_for_cur_category(NODE_ADDR_NULL, credential_type_id);
+        }
+        
+        /* Check for credential loop */
+        if ((current_node_addr == start_address) && (first_loop_bool == FALSE))
+        {
+            loopback_detected = TRUE;
+            break;
+        }
+        
+        /* Reset bool */
+        first_loop_bool = FALSE;
+        
         /* Read Node */
         nodemgmt_read_parent_node(current_node_addr, &temp_pnode, FALSE);
         
-        /* Check if the fchar changed */
-        if ((temp_pnode.cred_parent.service[0] != cur_char) && (nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags()) != NODE_ADDR_NULL))
-        {            
-            if (skip_first_change_bool == FALSE)
+        /* Part of current category? */
+        if (nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags()) != NODE_ADDR_NULL)
+        {
+            /* Check if the fchar changed */
+            if (temp_pnode.cred_parent.service[0] != cur_char)
             {
-                char_array[storage_index--] = cur_char;
-                
-                /* First next letter, store address */
-                if (storage_index == 0)
+                if (skip_first_change_bool == FALSE)
                 {
-                    return_value = previous_address;
+                    char_array[storage_index--] = cur_char;
+                    
+                    /* First next letter, store address */
+                    if (storage_index == 0)
+                    {
+                        return_value = last_seen_parent_node_that_fits_category;
+                    }
+                    
+                    /* Did we fill the array? */
+                    if (storage_index == -1)
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    skip_first_change_bool = FALSE;
                 }
                 
-                /* Did we fill the array? */
-                if (storage_index == -1)
-                {
-                    break;
-                }
-            } 
-            else
-            {
-                skip_first_change_bool = FALSE;
+                cur_char = temp_pnode.cred_parent.service[0];
             }
             
-            previous_address = current_node_addr;
-            cur_char = temp_pnode.cred_parent.service[0];
-        }    
-    } while (temp_pnode.cred_parent.prevParentAddress != NODE_ADDR_NULL);
+            /* Store parent node address */
+            last_seen_parent_node_that_fits_category = current_node_addr;
+        }
+    }
     
-    /* Check if we are at the first parent node and therefore need to store address & chars */
-    if (temp_pnode.cred_parent.prevParentAddress == NODE_ADDR_NULL)
+    /* We looped back, but didn't have the occasion to store the credential */
+    if ((loopback_detected != FALSE) && (cur_char != start_char))
     {
-        if (((storage_index == 1) && (temp_pnode.cred_parent.service[0] != start_char)) && (nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags()) != NODE_ADDR_NULL))
+        char_array[storage_index--] = cur_char;
+        
+        /* First next letter, store address */
+        if (storage_index == 0)
         {
-            char_array[1] = temp_pnode.cred_parent.service[0];
-            return_value = current_node_addr;
-        } 
-        else if (((storage_index == 0) && (temp_pnode.cred_parent.service[0] != char_array[1])) && (nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags()) != NODE_ADDR_NULL))
-        {
-            char_array[0] = temp_pnode.cred_parent.service[0];
+            return_value = last_seen_parent_node_that_fits_category;
         }
     }
     
@@ -113,9 +135,9 @@ uint16_t logic_database_get_prev_2_fletters_services(uint16_t start_address, cus
 */
 uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cust_char_t cur_char, cust_char_t* char_array, uint16_t credential_type_id)
 {
+    uint16_t current_node_addr = start_address;
     uint16_t return_value = NODE_ADDR_NULL;
-    cust_char_t initial_char = cur_char;
-    uint16_t current_node_addr;
+    BOOL first_loop_bool = TRUE;
     uint16_t storage_index = 0;
     parent_node_t temp_pnode;
     
@@ -125,6 +147,15 @@ uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cus
     
     while(TRUE)
     {
+        /* Check for credential loop */
+        if ((temp_pnode.cred_parent.nextParentAddress == start_address) && (first_loop_bool == FALSE))
+        {
+            break;
+        }
+        
+        /* Reset bool */
+        first_loop_bool = FALSE;
+        
         /* Update current node address */
         current_node_addr = temp_pnode.cred_parent.nextParentAddress;
         
@@ -133,13 +164,7 @@ uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cus
         
         /* Check if the fchar changed */
         if ((temp_pnode.cred_parent.service[0] != cur_char) && (nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags()) != NODE_ADDR_NULL))
-        {
-            /* Detect loop back */
-            if (initial_char == temp_pnode.cred_parent.service[0])
-            {
-                break;
-            }
-            
+        {            
             /* Store node */
             char_array[storage_index++] = temp_pnode.cred_parent.service[0];
             cur_char = temp_pnode.cred_parent.service[0];

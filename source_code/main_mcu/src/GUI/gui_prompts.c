@@ -2284,6 +2284,12 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                 center_of_list_parent_addr = next_diff_fletter_node_addr;
                 top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(center_of_list_parent_addr, NODEMGMT_STANDARD_CRED_TYPE_ID);
                 animation_just_started = TRUE;
+                
+                /* Only 2 letters */
+                if (fchar_array[2] == ' ')
+                {
+                    fchar_array[2] = cur_fchar;
+                }
             }     
             else
             {
@@ -2311,6 +2317,12 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                 center_of_list_parent_addr = prev_diff_fletter_node_addr;
                 top_of_list_parent_addr = nodemgmt_get_prev_parent_node_for_cur_category(center_of_list_parent_addr, NODEMGMT_STANDARD_CRED_TYPE_ID);
                 animation_just_started = TRUE;
+                
+                /* Only 2 letters */
+                if (fchar_array[0] == ' ')
+                {
+                    fchar_array[0] = cur_fchar;
+                }
             }
             else
             {
