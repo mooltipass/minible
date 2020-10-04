@@ -402,11 +402,11 @@ static inline uint16_t nodemgmt_node_from_address(uint16_t addr)
 }
 
 /* Prototypes */
+RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress, uint16_t* newLastNodeAddress);
 void nodemgmt_get_prev_favorite_and_category_index(int16_t category_index, int16_t favorite_index, int16_t* new_cat_index, int16_t* new_fav_index, BOOL navigate_across_categories);
 void nodemgmt_get_next_favorite_and_category_index(int16_t category_index, int16_t favorite_index, int16_t* new_cat_index, int16_t* new_fav_index, BOOL navigate_across_categories);
 RET_TYPE nodemgmt_get_bluetooth_bonding_information_for_mac_addr(uint8_t address_resolv_type, uint8_t* mac_address, nodemgmt_bluetooth_bonding_information_t* bonding_information);
 uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeArray, uint16_t nbChildtNodes, uint16_t* childNodeArray, uint16_t startPage, uint16_t startNode);
-RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress);
 void nodemgmt_read_webauthn_child_node_except_display_name(uint16_t address, child_webauthn_node_t* child_node, BOOL update_date_and_increment_preinc_count);
 void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout, uint16_t* userBLELayout);
 RET_TYPE nodemgmt_get_bluetooth_bonding_information_for_irk(uint8_t* irk_key, nodemgmt_bluetooth_bonding_information_t* bonding_information);
@@ -475,9 +475,11 @@ uint16_t nodemgmt_get_user_nb_known_languages(void);
 void nodemgmt_delete_current_user_from_flash(void);
 uint16_t nodemgmt_get_current_category_flags(void);
 void nodemgmt_store_user_layout(uint16_t layoutId);
+void nodemgmt_trigger_db_ext_changed_actions(void);
 uint16_t nodemgmt_get_user_sec_preferences(void);
 uint32_t nodemgmt_get_cred_change_number(void);
 uint32_t nodemgmt_get_data_change_number(void);
+void nodemgmt_scan_for_last_parent_nodes(void);
 void nodemgmt_set_current_date(uint16_t date);
 uint16_t nodemgmt_get_current_category(void);
 uint16_t nodemgmt_get_user_ble_layout(void);

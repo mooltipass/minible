@@ -644,6 +644,9 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 logic_device_activity_detected();
                 logic_security_clear_management_mode();
                 
+                /* Trigger dedicated actions */
+                nodemgmt_trigger_db_ext_changed_actions();
+                
                 /* Set next screen */
                 gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE, GUI_INTO_MENU_TRANSITION);
                 gui_dispatcher_get_back_to_current_screen();

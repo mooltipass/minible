@@ -1795,6 +1795,15 @@ uint16_t nodemgmt_find_free_nodes(uint16_t nbParentNodes, uint16_t* parentNodeAr
     return nbChildNodesFound+nbParentNodesFound;
 }
 
+/*! \fn     nodemgmt_trigger_db_ext_changed_actions(void)
+*   \brief  Function called to perform actions needed when db was externally changed
+*/
+void nodemgmt_trigger_db_ext_changed_actions(void)
+{
+    // Scan last parent nodes
+    nodemgmt_scan_for_last_parent_nodes();
+}
+
 /*! \fn     nodemgmt_scan_node_usage(void)
 *   \brief  Scan memory to find empty slots
 */
@@ -1926,6 +1935,24 @@ uint16_t nodemgmt_get_sec_preference_for_user_id(uint16_t userIdNum)
     return user_sec_flags;
 }
 
+/*! \fn     nodemgmt_scan_for_last_parent_nodes(void)
+ *  \brief  Scan the database and store the last parent nodes for each parent type
+ */
+void nodemgmt_scan_for_last_parent_nodes(void)
+{
+    // Get last cred parents
+    for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, lastCredParentNodes); i++)
+    {
+        nodemgmt_current_handle.lastCredParentNodes[i] = nodemgmt_get_last_parent_addr(FALSE, i);
+    }    
+    
+    // Get last data parents
+    for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, lastDataParentNodes); i++)
+    {
+        nodemgmt_current_handle.lastDataParentNodes[i] = nodemgmt_get_last_parent_addr(TRUE, i);
+    }
+}
+
 /*! \fn     nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout, uint16_t* userBLELayout)
  *  \brief  Initializes the Node Management Handle, scans memory for the next free node
  *  \param  userIdNum       The user id to initialize the handle for
@@ -1962,23 +1989,14 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
         nodemgmt_current_handle.firstCredParentNodes[i] = nodemgmt_get_starting_parent_addr(i);
     }
     
-    // Get last cred parents
-    for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, lastCredParentNodes); i++)
-    {
-        nodemgmt_current_handle.lastCredParentNodes[i] = nodemgmt_get_last_parent_addr(FALSE, i);
-    }
-    
     // Get starting data parents
     for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstDataParentNodes); i++)
     {        
         nodemgmt_current_handle.firstDataParentNodes[i] = nodemgmt_get_starting_data_parent_addr(i);
     }
     
-    // Get last data parents
-    for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, lastDataParentNodes); i++)
-    {
-        nodemgmt_current_handle.lastDataParentNodes[i] = nodemgmt_get_last_parent_addr(TRUE, i);
-    }
+    // Scan for last parent nodes
+    nodemgmt_scan_for_last_parent_nodes();
     
     // scan for next free parent and child nodes from the start of the memory
     nodemgmt_scan_node_usage();
@@ -2267,18 +2285,19 @@ RET_TYPE nodemgmt_store_data_node(child_data_node_t* node, uint16_t* storedAddre
     return RETURN_OK;
 }
 
-/*! \fn     nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress)
+/*! \fn     nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress, uint16_t* newLastNodeAddress)
  *  \brief  Writes a generic node to memory (next free via handle) (in alphabetical order)
  *  \param  g                       The node to write to memory (nextFreeParentNode)
  *  \param  node_type               The node type (see enum)
  *  \param  firstNodeAddress        Address of the first node of its kind
  *  \param  newFirstNodeAddress     If the firstNodeAddress changed, this var will store the new value
  *  \param  storedAddress           Where to store the address at which the node was stored
+ *  \param  newLastNodeAddress     If the lastNodeAddress changed, this var will store the new value
  *  \return success status
  *  \note   Handles necessary doubly linked list management
  *  \note   Not called for child data node
  */
-RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress)
+RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type, uint16_t firstNodeAddress, uint16_t* newFirstNodeAddress, uint16_t* storedAddress, uint16_t* newLastNodeAddress)
 {
     /* Sanity checks */
     _Static_assert(offsetof(parent_cred_node_t, prevParentAddress) == offsetof(parent_data_node_t, prevParentAddress), "Next / Prev fields do not match across parent & child nodes");
@@ -2303,6 +2322,9 @@ RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type,
     
     // Set newFirstNodeAddress to firstNodeAddress by default
     *newFirstNodeAddress = firstNodeAddress;
+    
+    // Set newLastNodeAddress invalid by default
+    *newLastNodeAddress = NODE_ADDR_NULL;
     
     // Select correct free address based on node type
     if (node_type == NODE_TYPE_CHILD)
@@ -2360,6 +2382,7 @@ RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type,
         
         // set new first node address
         *newFirstNodeAddress = freeNodeAddress;
+        *newLastNodeAddress = freeNodeAddress;
     }
     else
     {        
@@ -2397,6 +2420,7 @@ RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type,
                     else
                     {
                         nodemgmt_write_parent_node_data_block_to_flash(freeNodeAddress, (parent_node_t*)g);
+                        *newLastNodeAddress = freeNodeAddress;
                     }
                     
                     // set previous last node to point to new node
@@ -2487,7 +2511,7 @@ RET_TYPE nodemgmt_create_generic_node(generic_node_t* g, node_type_te node_type,
  */
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId)
 {
-    uint16_t temp_address, first_parent_addr;
+    uint16_t first_parent_addr, last_parent_addr, potential_new_fparent, potential_new_lparent;
     RET_TYPE temprettype;
     
     // Set the first parent address depending on the type
@@ -2499,6 +2523,7 @@ RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uin
             return RETURN_NOK;
         }
         first_parent_addr = nodemgmt_current_handle.firstCredParentNodes[typeId];
+        last_parent_addr = nodemgmt_current_handle.lastCredParentNodes[typeId];
     } 
     else
     {
@@ -2508,6 +2533,7 @@ RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uin
             return RETURN_NOK;
         }
         first_parent_addr = nodemgmt_current_handle.firstDataParentNodes[typeId];
+        last_parent_addr = nodemgmt_current_handle.lastDataParentNodes[typeId];
     }
     
     // This is particular to parent nodes...
@@ -2516,23 +2542,36 @@ RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uin
     // Call nodemgmt_create_generic_node to add a node
     if (type == SERVICE_CRED_TYPE)
     {
-        temprettype = nodemgmt_create_generic_node((generic_node_t*)p, NODE_TYPE_PARENT, first_parent_addr, &temp_address, storedAddress);
+        temprettype = nodemgmt_create_generic_node((generic_node_t*)p, NODE_TYPE_PARENT, first_parent_addr, &potential_new_fparent, storedAddress, &potential_new_lparent);
     }
     else
     {
-        temprettype = nodemgmt_create_generic_node((generic_node_t*)p, NODE_TYPE_PARENT_DATA, first_parent_addr, &temp_address, storedAddress);
+        temprettype = nodemgmt_create_generic_node((generic_node_t*)p, NODE_TYPE_PARENT_DATA, first_parent_addr, &potential_new_fparent, storedAddress, &potential_new_lparent);
     }
     
     // If the return is ok & we changed the first node address
-    if ((temprettype == RETURN_OK) && (first_parent_addr != temp_address))
+    if ((temprettype == RETURN_OK) && (first_parent_addr != potential_new_fparent))
     {
         if (type == SERVICE_CRED_TYPE)
         {
-            nodemgmt_set_cred_start_address(temp_address, typeId);
+            nodemgmt_set_cred_start_address(potential_new_fparent, typeId);
         }
         else
         {
-            nodemgmt_set_data_start_address(temp_address, typeId);
+            nodemgmt_set_data_start_address(potential_new_fparent, typeId);
+        }
+    }
+    
+    // If the return is ok & we changed the last node address
+    if ((temprettype == RETURN_OK) && (last_parent_addr != potential_new_lparent) && (potential_new_lparent != NODE_ADDR_NULL))
+    {
+        if (type == SERVICE_CRED_TYPE)
+        {
+            nodemgmt_current_handle.lastCredParentNodes[typeId] = potential_new_lparent;
+        }
+        else
+        {
+            nodemgmt_current_handle.lastDataParentNodes[typeId] = potential_new_lparent;
         }
     }
     
@@ -2549,7 +2588,7 @@ RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uin
  */
 RET_TYPE nodemgmt_create_child_node(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedAddress)
 {
-    uint16_t childFirstAddress, temp_address;
+    uint16_t childFirstAddress, temp_address, temp_address2;
     RET_TYPE temprettype;
     
     // Write date created & used fields
@@ -2561,7 +2600,7 @@ RET_TYPE nodemgmt_create_child_node(uint16_t pAddr, child_cred_node_t* c, uint16
     childFirstAddress = nodemgmt_current_handle.temp_parent_node.cred_parent.nextChildAddress;
     
     // Call nodemgmt_create_generic_node to add a node
-    temprettype = nodemgmt_create_generic_node((generic_node_t*)c, NODE_TYPE_CHILD, childFirstAddress, &temp_address, storedAddress);
+    temprettype = nodemgmt_create_generic_node((generic_node_t*)c, NODE_TYPE_CHILD, childFirstAddress, &temp_address, storedAddress, &temp_address2);
     
     // If the return is ok & we changed the first child address
     if ((temprettype == RETURN_OK) && (childFirstAddress != temp_address))
