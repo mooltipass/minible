@@ -84,6 +84,21 @@ platform_wakeup_reason_te logic_device_get_wakeup_reason(void)
     return logic_device_wakeup_reason;
 }
 
+/*! \fn     logic_device_power_off(void)
+*   \brief  Switch off device
+*/
+void logic_device_power_off(void)
+{
+    logic_power_power_down_actions();           // Power down actions
+    sh1122_oled_off(&plat_oled_descriptor);     // Display off command
+    platform_io_power_down_oled();              // Switch off stepup
+    platform_io_set_wheel_click_pull_down();    // Pull down on wheel click to slowly discharge capacitor
+    timer_delay_ms(100);                        // From OLED datasheet wait before removing 3V3
+    platform_io_set_wheel_click_low();          // Completely discharge cap
+    timer_delay_ms(10);                         // Wait a tad
+    platform_io_disable_switch_and_die();       // Die!    
+}
+
 /*! \fn     logic_device_activity_detected(void)
 *   \brief  Function called whenever some activity is detected
 */

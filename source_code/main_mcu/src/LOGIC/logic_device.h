@@ -44,5 +44,6 @@ void logic_device_set_usb_timeout_detected(void);
 void logic_device_clear_wakeup_reason(void);
 void logic_device_set_state_changed(void);
 void logic_device_activity_detected(void);
+void logic_device_power_off(void);
 
 #endif /* LOGIC_DEVICE_H_ */

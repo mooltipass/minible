@@ -346,6 +346,12 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
     }
     else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
     {        
+        /* Switch off device if needed */
+        if (((BOOL)custom_fs_settings_get_device_setting(SETTINGS_SWITCH_OFF_AFTER_USB_DISC) != FALSE) && (logic_bluetooth_get_state() != BT_STATE_CONNECTED))
+        {
+            logic_device_power_off();
+        }
+        
         /* Set inversion bool */
         plat_oled_descriptor.screen_inverted = (BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_BATTERY);
         inputs_set_inputs_invert_bool(plat_oled_descriptor.screen_inverted);

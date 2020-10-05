@@ -138,6 +138,7 @@
         - credential loop in login menu
         - jumping through first letters bug fix
         - unlock feature: option to bypass password prompt
+        - setting to switch off device after USB disconnection
 */
 
 /**************** SETUP DEFINES ****************/
