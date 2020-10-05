@@ -270,8 +270,8 @@ void comms_aux_mcu_send_simple_command_message(uint16_t command)
 void comms_aux_mcu_update_device_status_buffer(void)
 {
     aux_mcu_message_t* temp_send_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
-    comms_hid_msgs_fill_get_status_message_answer(temp_send_message_pt->main_mcu_command_message.payload_as_uint16);
-    temp_send_message_pt->payload_length1 = sizeof(temp_send_message_pt->main_mcu_command_message.command) + 4;
+    uint16_t payload_size = comms_hid_msgs_fill_get_status_message_answer(temp_send_message_pt->main_mcu_command_message.payload_as_uint16);
+    temp_send_message_pt->payload_length1 = sizeof(temp_send_message_pt->main_mcu_command_message.command) + payload_size;
     temp_send_message_pt->main_mcu_command_message.command = MAIN_MCU_COMMAND_UPDT_DEV_STAT;
     comms_aux_mcu_send_message(temp_send_message_pt);
     comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_NEW_STATUS_RCVD);
@@ -317,7 +317,6 @@ RET_TYPE comms_aux_mcu_send_receive_ping(void)
 
     /* Prepare ping message and send it */
     aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PING_WITH_INFO);
-    comms_hid_msgs_fill_get_status_message_answer(temp_tx_message_pt->ping_with_info_message.initial_device_status_value);
     temp_tx_message_pt->payload_length1 = sizeof(ping_with_info_message_t);
     comms_aux_mcu_send_message(temp_tx_message_pt);
 

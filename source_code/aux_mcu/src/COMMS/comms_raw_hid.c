@@ -39,7 +39,7 @@ volatile BOOL comms_usb_just_enumerated = FALSE;
 /* Set when a USB timeout is detected */
 volatile BOOL comms_usb_timeout_detected = FALSE;
 /* Device status cache so we don't need to query main mcu */
-uint8_t comms_hid_device_status_cache[4];
+uint8_t comms_hid_device_status_cache[5];
 /* Set when we are enumerated */
 BOOL comms_usb_enumerated = FALSE;
 /* Set when we received a new device status */

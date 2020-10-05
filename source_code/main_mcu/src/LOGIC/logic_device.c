@@ -34,7 +34,28 @@ volatile platform_wakeup_reason_te logic_device_wakeup_reason = WAKEUP_REASON_OT
 BOOL logic_device_usb_timeout_detected = FALSE;
 /* Device state changed bool */
 BOOL logic_device_state_changed = FALSE;
+/* Settings changed bool */
+BOOL logic_device_settings_changed = FALSE;
 
+
+/*! \fn     logic_device_set_settings_changed(void)
+*   \brief  Inform that the settings have changed
+*/
+void logic_device_set_settings_changed(void)
+{
+    logic_device_settings_changed = TRUE;
+}
+
+/*! \fn     logic_device_get_and_clear_settings_changed_flag(void)
+*   \brief  Get and clear settings changed flag
+*   \return The flag
+*/
+BOOL logic_device_get_and_clear_settings_changed_flag(void)
+{
+    BOOL return_val = logic_device_settings_changed;
+    logic_device_settings_changed = FALSE;
+    return return_val;
+}
 
 /*! \fn     logic_device_get_and_clear_usb_timeout_detected(void)
 *   \brief  Get and clear USB timeout detected flag

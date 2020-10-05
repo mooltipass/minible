@@ -185,7 +185,7 @@ typedef struct
 
 typedef struct
 {
-    uint16_t initial_device_status_value[2];
+    uint8_t tbd[2];
 } ping_with_info_message_t;
 
 typedef struct

@@ -479,6 +479,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             {
                 gui_prompts_select_language_or_keyboard_layout(FALSE, FALSE, FALSE, FALSE);
                 logic_user_set_language(custom_fs_get_current_language_id());
+                logic_device_set_settings_changed();
                 return TRUE;
             }
             case GUI_MMM_STORAGE_CONF_ICON_ID:
@@ -535,6 +536,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 
                 /* Keyboard layout storage */
                 logic_user_set_layout_id(custom_fs_get_current_layout_id(usb_interface_selected), usb_interface_selected);
+                logic_device_set_settings_changed();
                 return TRUE;
             }
             case GUI_CRED_PROMPT_CHANGE_ICON_ID:

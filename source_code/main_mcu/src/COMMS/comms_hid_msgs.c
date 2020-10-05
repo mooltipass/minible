@@ -76,16 +76,24 @@ uint16_t comms_hid_msgs_fill_get_status_message_answer(uint16_t* msg_array_uint1
         msg_array_uint8[0] |= 0x10;
     }
     
+    /* Battery level */
+    msg_array_uint8[1] = logic_power_get_battery_level() * 10;
+    
     /* If user logged in, send user security preferences */
     if (logic_security_is_smc_inserted_unlocked() != FALSE)
     {
         msg_array_uint16[1] = logic_user_get_user_security_flags();
-        return 4;
     }
     else
     {
-        return 1;
+        /* Otherwise, just pad */
+        msg_array_uint16[1] = 0;
     }
+    
+    /* Settings changed flag */
+    msg_array_uint8[4] = (uint8_t)logic_device_get_and_clear_settings_changed_flag();
+    
+    return 5;
 }
 
 /*! \fn     comms_hid_msgs_update_message_payload_length_fields(aux_mcu_message_t* message_pt, uint16_t hid_payload_size)

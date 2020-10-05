@@ -71,6 +71,7 @@
 - v0.38:- correct LED states fetch
 - v0.39:- partial packet processing for smaller packets
 - v0.40:- updated USB code to conform with USB test suite
+        - new platform status message support
 */
 
 /**************** SETUP DEFINES ****************/

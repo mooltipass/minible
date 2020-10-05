@@ -139,6 +139,7 @@
         - jumping through first letters bug fix
         - unlock feature: option to bypass password prompt
         - setting to switch off device after USB disconnection
+        - updated status message to include battery pct & settings changed flag
 */
 
 /**************** SETUP DEFINES ****************/

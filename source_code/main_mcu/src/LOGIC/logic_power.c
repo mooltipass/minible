@@ -145,6 +145,23 @@ uint16_t logic_power_get_and_ack_new_battery_level(void)
     return logic_power_current_battery_level;
 }
 
+/*! \fn     logic_power_get_battery_level(void)
+*   \brief  Get current battery level
+*   \return The battery level in percent tenth
+*/
+uint16_t logic_power_get_battery_level(void)
+{
+    /* ADC logic didn't have time to kick in */
+    if (logic_power_current_battery_level > 10)
+    {
+        return 10;
+    }
+    else
+    {
+        return logic_power_current_battery_level;
+    }
+}
+
 /*! \fn     logic_power_set_max_charging_voltage_from_aux(uint16_t measured_voltage)
 *   \brief  Called when the aux MCU finishes its charge
 *   \param  measured_voltage    The measured voltage at end of charge (3V3 powered then...)
@@ -600,5 +617,8 @@ void logic_power_routine(void)
     {
         /* New battery level, inform aux MCU */
         logic_aux_mcu_update_aux_mcu_of_new_battery_level(logic_power_get_and_ack_new_battery_level()*10);
+        
+        /* Update device state */
+        logic_device_set_state_changed();
     }    
 }
