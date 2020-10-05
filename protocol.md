@@ -351,7 +351,7 @@ Status Byte:
 User Security Preferences (valid if byte 4 = 0x05):
 See 0x0013
 
-Settings changed flag: if different than 0, new settings are available
+Settings changed flag: if different than 0, new **device** settings are available
 
 
 
