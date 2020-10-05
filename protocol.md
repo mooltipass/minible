@@ -334,9 +334,9 @@ From the PC:
 
 Device Answer:
 
-| byte 0-1 | byte 2-3                    | byte 4 | byte 5 | byte 6-7 |
-|:---------|:----------------------------|:-------|:-------|:-------|
-| 0x0011   | 1 or 4 | status byte, see below | reserved | user security preferences |
+| byte 0-1 | byte 2-3 | byte 4 | byte 5 | byte 6-7 | byte 8 |
+|:---------|:---------|:-------|:-------|:---------|:-------|
+| 0x0011   | 5        | status byte, see below | battery pct | user security preferences | settings changed flag |
 
 Status Byte:
 
@@ -348,8 +348,10 @@ Status Byte:
 | 0x08     | Unknown card inserted |
 | 0x10     | Device in management mode |
 
-User Security Preferences:
+User Security Preferences (valid if byte 4 = 0x05):
 See 0x0013
+
+Settings changed flag: if different than 0, new settings are available
 
 
 
