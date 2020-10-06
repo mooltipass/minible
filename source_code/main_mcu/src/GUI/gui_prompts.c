@@ -2344,6 +2344,12 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                 fchar_array[1] = cur_fchar;
             }
         }
+        else if (detect_result == WHEEL_ACTION_DISCARDED)
+        {
+            /* Small delay to clear detections possibly caused by scrolling */
+            timer_delay_ms(50);
+            inputs_clear_detections();
+        }
         
         /* Check if we should start displaying the hint */
         if ((displaying_hint == FALSE) && ((timer_get_systick()-func_stat_ts) > GUI_DELAY_BEFORE_HINT) && (user_knows_press_scroll == FALSE))
