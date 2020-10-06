@@ -1188,7 +1188,14 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+    if (flash_flag != FALSE)
+    {
+        sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+    } 
+    else
+    {
+        sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+    }
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
     sh1122_clear_current_screen(&plat_oled_descriptor);
@@ -1407,7 +1414,14 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+    if (flash_flag != FALSE)
+    {
+        sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+    }
+    else
+    {
+        sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+    }
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
     sh1122_clear_current_screen(&plat_oled_descriptor);
