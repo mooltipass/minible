@@ -1031,10 +1031,10 @@ void debug_debug_screen(void)
         /* Line 4: battery */
         sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, TRUE, "BAT: ADC %u, %u mV", bat_adc_result, (((uint32_t)bat_adc_result)*199)>>9);
         
-        /* Line 5: MCU system timer */
-        uint32_t systick_val;
-        timer_get_mcu_systick(&systick_val);
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, TRUE, "MCU systick: %u", systick_val);
+        /* Line 5: Unit SN & MAC */
+        uint8_t mac[6];
+        custom_fs_get_debug_bt_addr(mac);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, TRUE, "Unit SN: %u, MAC: %02x%02x%02x%02x%02x%02x", UNIT_SN, mac[5], mac[4], mac[3], mac[2], mac[1], mac[0]);
         
         /* Display stats */
         stat_times[5] = timer_get_systick();

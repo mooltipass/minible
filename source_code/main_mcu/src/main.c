@@ -882,6 +882,9 @@ int main(void)
                         custom_fs_set_settings_value(SETTINGS_LEFT_HANDED_ON_USB, (uint8_t)invert_bool);
                     else
                         custom_fs_set_settings_value(SETTINGS_LEFT_HANDED_ON_BATTERY, (uint8_t)invert_bool);
+                        
+                    /* Set flag */
+                    logic_device_set_settings_changed();
                 }
                 else
                 {
