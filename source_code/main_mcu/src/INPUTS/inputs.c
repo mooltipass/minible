@@ -498,7 +498,7 @@ wheel_action_ret_te inputs_get_wheel_action(BOOL wait_for_action, BOOL ignore_in
             }
             else if ((return_val == WHEEL_ACTION_CLICK_DOWN) || (return_val == WHEEL_ACTION_CLICK_UP))
             {
-                inputs_wheel_long_click_penalty = LONG_PRESS_MS;
+                inputs_wheel_long_click_penalty = LONG_PRESS_MS*2;
             }
             else if(return_val == WHEEL_ACTION_NONE)
             {
