@@ -5,6 +5,7 @@
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/sleep_current/bt_off_card.PNG?raw=true)
 
 ### [](#header-3)Bluetooth ON, card, advertising
+Note: advertising period has been changed to half since then, new average value is now 0.264mA
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/sleep_current/bt_on_card_advertising.PNG?raw=true)
 
 ### [](#header-3)Bluetooth ON, card, android
