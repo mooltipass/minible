@@ -1284,19 +1284,25 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
             if (approve_selected != FALSE)
             {
                 input_answer = MINI_INPUT_RET_YES;
-                for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
+                if (flash_flag != FALSE)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[2]+i, FALSE);
-                    timer_delay_ms(10);
+                    for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
+                    {
+                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[2]+i, FALSE);
+                        timer_delay_ms(10);
+                    }
                 }
             }
             else
             {
                 input_answer = MINI_INPUT_RET_NO;
-                for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
+                if (flash_flag != FALSE)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[3]+i, FALSE);
-                    timer_delay_ms(10);
+                    for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
+                    {
+                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[3]+i, FALSE);
+                        timer_delay_ms(10);
+                    }
                 }
             }
         }
@@ -1311,7 +1317,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
         {
             if (approve_selected == FALSE)
             {
-                for (uint16_t i = 0; i < CONF_2LINES_SEL_AN_LGTH; i++)
+                for (uint16_t i = (flash_flag == FALSE)?CONF_2LINES_SEL_AN_LGTH-1:0; i < CONF_2LINES_SEL_AN_LGTH; i++)
                 {
                     sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4]+i, FALSE);
                     sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5]+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
@@ -1324,7 +1330,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
             }
             else
             {
-                for (uint16_t i = 0; i < CONF_2LINES_SEL_AN_LGTH; i++)
+                for (uint16_t i = (flash_flag == FALSE)?CONF_2LINES_SEL_AN_LGTH-1:0; i < CONF_2LINES_SEL_AN_LGTH; i++)
                 {
                     sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5]+i, FALSE);
                     sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4]+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
@@ -1531,19 +1537,25 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             if (approve_selected != FALSE)
             {
                 input_answer = MINI_INPUT_RET_YES;
-                for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH+1; i++)
+                if (flash_flag != FALSE)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_YES_PRESS_ID+i, FALSE);
-                    timer_delay_ms(10);
+                    for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH+1; i++)
+                    {
+                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_YES_PRESS_ID+i, FALSE);
+                        timer_delay_ms(10);
+                    }
                 }
             }
             else
             {
                 input_answer = MINI_INPUT_RET_NO;
-                for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH+1; i++)
+                if (flash_flag != FALSE)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NO_PRESS_ID+i, FALSE);
-                    timer_delay_ms(10);
+                    for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH+1; i++)
+                    {
+                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NO_PRESS_ID+i, FALSE);
+                        timer_delay_ms(10);
+                    }
                 }
             }
         }
@@ -1678,7 +1690,10 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         if ((up_down_animation_triggered == FALSE) && (wheel_increments != 0))
         {
             /* Trigger animation */
-            up_down_animation_triggered = TRUE;
+            if (flash_flag != FALSE)
+            {
+                up_down_animation_triggered = TRUE;
+            }
             up_down_animation_counter = 0;
             
             if (wheel_increments < 0)
