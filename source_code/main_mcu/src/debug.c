@@ -962,6 +962,7 @@ void debug_debug_screen(void)
     uint32_t stat_times[6];    
     timer_get_calendar(&temp_calendar);
     uint32_t last_stat_s = temp_calendar.bit.SECOND;
+    uint16_t default_osculp_calib_val = SYSCTRL->OSCULP32K.bit.CALIB;
     
     while(1)
     {
@@ -1029,7 +1030,7 @@ void debug_debug_screen(void)
         sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, TRUE, "ACC: %uHz X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_x, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_y, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_z);
         
         /* Line 4: battery */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, TRUE, "BAT: ADC %u, %u mV", bat_adc_result, (((uint32_t)bat_adc_result)*199)>>9);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, TRUE, "BAT: ADC %u, %u mV, OSC: %u", bat_adc_result, (((uint32_t)bat_adc_result)*199)>>9, SYSCTRL->OSCULP32K.bit.CALIB);
         
         /* Line 5: Unit SN & MAC */
         uint8_t mac[6];
@@ -1053,6 +1054,22 @@ void debug_debug_screen(void)
         if (wheel_user_action == WHEEL_ACTION_SHORT_CLICK)
         {
             return;
+        }
+        else if (wheel_user_action == WHEEL_ACTION_UP)
+        {
+            if (default_osculp_calib_val != 31)
+            {
+                default_osculp_calib_val++;
+            }
+            SYSCTRL->OSCULP32K.bit.CALIB = default_osculp_calib_val;
+        }
+        else if (wheel_user_action == WHEEL_ACTION_DOWN)
+        {
+            if (default_osculp_calib_val != 0)
+            {
+                default_osculp_calib_val--;
+            }
+            SYSCTRL->OSCULP32K.bit.CALIB = default_osculp_calib_val;
         }
     }
 }
