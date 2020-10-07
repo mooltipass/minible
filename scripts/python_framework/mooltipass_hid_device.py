@@ -3,6 +3,7 @@ from os.path import isfile, join, isdir
 from resizeimage import resizeimage
 from mooltipass_defines import *
 from generic_hid_device import *
+from datetime import timezone
 from pprint import pprint
 from array import array
 from PIL import Image
@@ -243,6 +244,63 @@ class mooltipass_hid_device:
 	# Flash the aux MCU from the bundle contents, no answer from device.
 	def flashAuxMcuFromBundle(self):
 		self.device.sendHidMessage(self.getPacketForCommand(CMD_DBG_FLASH_AUX_MCU, None))	
+		
+	# Plot time difference with time
+	def timeDiff(self):
+		# log file
+		f = open("timelog.txt", "w")
+	
+		ts_start = round(datetime.timestamp(datetime.now(tz=timezone.utc)))
+		ts_diff_offset = None
+		last_ts = ts_start
+		
+		while True:
+			if last_ts != round(datetime.timestamp(datetime.now(tz=timezone.utc))):				
+				# Ask the device time and get local time
+				packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(HID_CMD_ID_GET_PLAT_TIME, None))	
+				utc_now = datetime.now(tz=timezone.utc)
+				
+				# Handle please retry message
+				if packet["cmd"] != CMD_ID_RETRY:				
+					# Create timestamps
+					device_hour = struct.unpack('B', packet["data"][0:1])[0] - 2
+					device_minute = struct.unpack('B', packet["data"][1:2])[0]
+					device_second = struct.unpack('B', packet["data"][2:3])[0]
+					device_day = struct.unpack('B', packet["data"][3:4])[0]
+					device_month = struct.unpack('B', packet["data"][4:5])[0]
+					device_year = struct.unpack('B', packet["data"][5:6])[0]
+					device_year += 2000
+					device_time = datetime(device_year, device_month, device_day, device_hour, device_minute, device_second, tzinfo=timezone.utc)
+					utc_timestamp = round(datetime.timestamp(utc_now))
+					device_timestamp = round(datetime.timestamp(device_time))
+					ts_difference = utc_timestamp - device_timestamp
+					
+					# Store offset
+					if ts_diff_offset is None:
+						ts_diff_offset = ts_difference
+						
+					# Remove offset from difference
+					ts_difference -= ts_diff_offset
+					
+					if False:
+						print("Current UTC time: " + str(utc_now.hour) + "h" + str(utc_now.minute) + "m" + str(utc_now.second) + "s " + str(utc_now.day) + "/" + str(utc_now.month) + "/" + str(utc_now.year))
+						print("Current device time: " + str(device_time.hour) + "h" + str(device_time.minute) + "m" + str(device_time.second) + "s " + str(device_time.day) + "/" + str(device_time.month) + "/" + str(device_time.year))
+						print("Current timestamp: " + str(utc_timestamp))
+						print("Device timestamp: " + str(device_timestamp))
+						print("Timestamp difference: " + str(ts_difference))
+					
+					f.write(str(utc_timestamp-ts_start) + "," + str(ts_difference) + "\r")
+					f.flush()
+					print(str(utc_timestamp-ts_start) + ": " + str(ts_difference))
+					
+					# Store last seen timestamp
+					last_ts = round(datetime.timestamp(datetime.now(tz=timezone.utc)))
+				else:
+					time.sleep(0.1)				
+			else:
+				time.sleep(0.1)
+				
+		f.close()
 				
 
 	# Get platform info
