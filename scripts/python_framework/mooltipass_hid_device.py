@@ -251,6 +251,8 @@ class mooltipass_hid_device:
 		f = open("timelog.txt", "w")
 	
 		ts_start = round(datetime.timestamp(datetime.now(tz=timezone.utc)))
+		nb_of_s_since_last_ts_diff_change = 0
+		last_ts_diff_seen = 0
 		ts_diff_offset = None
 		last_ts = ts_start
 		
@@ -261,7 +263,7 @@ class mooltipass_hid_device:
 				utc_now = datetime.now(tz=timezone.utc)
 				
 				# Handle please retry message
-				if packet["cmd"] != CMD_ID_RETRY:				
+				if packet["cmd"] != CMD_ID_RETRY and packet["cmd"] != CMD_GET_DEVICE_STATUS:			
 					# Create timestamps
 					device_hour = struct.unpack('B', packet["data"][0:1])[0] - 2
 					device_minute = struct.unpack('B', packet["data"][1:2])[0]
@@ -289,9 +291,19 @@ class mooltipass_hid_device:
 						print("Device timestamp: " + str(device_timestamp))
 						print("Timestamp difference: " + str(ts_difference))
 					
+					# Write log
 					f.write(str(utc_timestamp-ts_start) + "," + str(ts_difference) + "\r")
 					f.flush()
-					print(str(utc_timestamp-ts_start) + ": " + str(ts_difference))
+					
+					# Stats
+					if ts_difference != last_ts_diff_seen:
+						print("New ts difference: " + str(ts_difference) + ", had been " + str(nb_of_s_since_last_ts_diff_change) + "s since the last change")
+					
+						# Store new difference
+						last_ts_diff_seen = ts_difference
+						nb_of_s_since_last_ts_diff_change = 0
+					else:
+						nb_of_s_since_last_ts_diff_change += 1
 					
 					# Store last seen timestamp
 					last_ts = round(datetime.timestamp(datetime.now(tz=timezone.utc)))
