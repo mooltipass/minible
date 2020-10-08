@@ -129,5 +129,6 @@
 #define CONTACT_SUPPORT_006_TEXT_ID     131
 #define CONTACT_SUPPORT_007_TEXT_ID     132
 #define CHANGE_TOTP_TEXT_ID             133
+#define TYPE_TOTP_TEXT_ID               134
 
 #endif

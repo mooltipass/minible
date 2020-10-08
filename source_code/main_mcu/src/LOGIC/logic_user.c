@@ -1662,7 +1662,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,password)+1+1, "Can't describe all chars for password");
     _Static_assert(MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) > MEMBER_ARRAY_SIZE(child_cred_node_t,login)+1, "Can't describe all chars for login");
     uint16_t interface_id = (*usb_selected == FALSE)? 1:0;
-    BOOL login_or_password_typed = FALSE;
+    BOOL anything_typed = FALSE;
     aux_mcu_message_t* temp_rx_message;
     child_cred_node_t temp_cnode;
     BOOL could_type_all_symbols;
@@ -1753,7 +1753,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                 state_machine++;                    
             }
         }
-        else if (state_machine == 1)
+        else if (state_machine == 1) //Login
         {
             /* Check for presence of an actual login */
             if (temp_cnode.login[0] == 0)
@@ -1837,7 +1837,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         }
                         
                         /* Set bool */
-                        login_or_password_typed = TRUE;
+                        anything_typed = TRUE;
                     }
 
                     /* Move on */
@@ -1845,12 +1845,145 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                 }
             }            
         } 
-        else if (state_machine == 2)
+        else if (state_machine == 2) //Password
         {
             /* Is the password valid? */
             if (temp_cnode.passwordBlankFlag != FALSE)
             {
-                if (login_or_password_typed == FALSE)
+                state_machine++;
+            }
+            else
+            {
+
+                /* Ask for password confirmation if needed */
+                mini_input_yes_no_ret_te prompt_return;
+                if (no_password_prompt == FALSE)
+                {
+                    custom_fs_get_string_from_file(TYPE_PASSWORD_TEXT_ID, &two_line_prompt_2, TRUE);
+                    conf_text_2_lines.lines[1] = two_line_prompt_2;
+                    prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE, TRUE);
+                }
+                else
+                {
+                    prompt_return = MINI_INPUT_RET_YES;
+                }
+                /* Approved, back, card removed... */
+                if ((prompt_return == MINI_INPUT_RET_CARD_REMOVED) || (prompt_return == MINI_INPUT_RET_POWER_SWITCH))
+                {
+                    return RETURN_OK;
+                }
+                else if (prompt_return == MINI_INPUT_RET_BACK)
+                {
+                    /* Check for no login */
+                    if (temp_cnode.login[0] == 0)
+                    {
+                        /* Check for multiple interfaces connected */
+                        if ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() != FALSE))
+                        {
+                            state_machine = 0;
+                        }
+                        else
+                        {
+                            /* No login, no multiple interfaces connected, leave function */
+                            return RETURN_BACK;                        
+                        }                 
+                    }
+                    else
+                    {
+                        state_machine--;
+                    }
+                }
+                else
+                {
+                    if (prompt_return == MINI_INPUT_RET_YES)
+                    {
+                        aux_mcu_message_t* typing_message_to_be_sent;
+                        BOOL prev_gen_credential_flag = FALSE;
+                        
+                        /* Check for previous generation password */
+                        if ((temp_cnode.flags & NODEMGMT_PREVGEN_BIT_BITMASK) != 0)
+                        {
+                            prev_gen_credential_flag = TRUE;
+                        }
+                        
+                        /* Decrypt password. The field just after it is 0 */
+                        logic_encryption_ctr_decrypt((uint8_t*)temp_cnode.password, temp_cnode.ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
+                        
+                        /* If old generation password, convert it to unicode */
+                        if (prev_gen_credential_flag != FALSE)
+                        {
+                            _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
+                            utils_ascii_to_unicode((uint8_t*)temp_cnode.password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+                            temp_cnode.cust_char_password[NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
+                        }
+                            
+                        /* Type shortcut if specified */
+                        if ((shortcut_sent == FALSE) && ((keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK)) != 0))
+                        {
+                            typing_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+                            typing_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TYPE_SHORTCUT;
+                            typing_message_to_be_sent->main_mcu_command_message.payload[0] = (uint8_t)interface_id;
+                            typing_message_to_be_sent->main_mcu_command_message.payload[1] = keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK);
+                            typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint8_t) + sizeof(uint8_t);
+                            comms_aux_mcu_send_message(typing_message_to_be_sent);
+                            comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_SHORTCUT_TYPED);
+                            shortcut_sent = TRUE;
+                            timer_delay_ms(600);
+                        }
+                            
+                        /* Type password */
+                        typing_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
+                        typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.cust_char_password) + 1 + 1)*sizeof(cust_char_t);
+                        ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.cust_char_password, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, *usb_selected);
+                        if (keys_to_send_before_login != 0x00)
+                        {
+                            /* If we came here because of the unlock feature, discard per login & general settings */
+                            typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)] = 0x0A;
+                        }
+                        else if (temp_cnode.keyAfterPassword == 0xFFFF)
+                        {
+                            /* Use default device key press: password is 0 terminated by read function, _Static_asserts guarantees enough space, message is initialized at 0s */
+                            typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)] = custom_fs_settings_get_device_setting(SETTINGS_CHAR_AFTER_PASS_PRESS);
+                        }
+                        else
+                        {
+                            typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)] = temp_cnode.keyAfterPassword;
+                        }
+                        custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)], *usb_selected);
+                        typing_message_to_be_sent->keyboard_type_message.delay_between_types = custom_fs_settings_get_device_setting(SETTINGS_DELAY_BETWEEN_PRESSES);
+                        typing_message_to_be_sent->keyboard_type_message.interface_identifier = interface_id;
+                        comms_aux_mcu_send_message(typing_message_to_be_sent);
+                        
+                        /* Wait for typing status */
+                        while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
+                        could_type_all_symbols = (BOOL)temp_rx_message->payload_as_uint16[0];
+                        
+                        /* Rearm DMA RX */
+                        comms_aux_arm_rx_and_clear_no_comms();
+                        
+                        /* Display warning if some chars were missing */
+                        if ((string_to_key_points_transform_success != RETURN_OK) || (could_type_all_symbols == FALSE))
+                        {
+                            gui_prompts_display_information_on_screen_and_wait(COULDNT_TYPE_CHARS_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        }
+                            
+                        /* Set bool */
+                        anything_typed = TRUE;
+                    }
+                    /* Move on */
+                    state_machine++;
+                }
+            }
+        }
+        else if (state_machine == 3) //TOTP
+        {
+            /* Is TOTP valid? */
+            if (temp_cnode.TOTP.TOTPsecretLen == 0)
+            {
+                /* Message is sent, clear everything */
+                memset(&temp_cnode, 0, sizeof(temp_cnode));
+
+                if (anything_typed == FALSE)
                 {
                     return RETURN_NOK;
                 }
@@ -1859,44 +1992,52 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     return RETURN_OK;
                 }
             }
-            
-            /* Ask for password confirmation if needed */
-            mini_input_yes_no_ret_te prompt_return;
-            if (no_password_prompt == FALSE)
-            {
-                custom_fs_get_string_from_file(TYPE_PASSWORD_TEXT_ID, &two_line_prompt_2, TRUE);
-                conf_text_2_lines.lines[1] = two_line_prompt_2;
-                prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE, TRUE);
-            } 
-            else
-            {
-                prompt_return = MINI_INPUT_RET_YES;
-            }
+
+            /* Ask for TOTP type confirmation */
+            custom_fs_get_string_from_file(TYPE_TOTP_TEXT_ID, &two_line_prompt_2, TRUE);
+            conf_text_2_lines.lines[1] = two_line_prompt_2;
+            mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, FALSE, TRUE, TRUE);
 
             /* Approved, back, card removed... */
             if ((prompt_return == MINI_INPUT_RET_CARD_REMOVED) || (prompt_return == MINI_INPUT_RET_POWER_SWITCH))
             {
+                memset(&temp_cnode, 0, sizeof(temp_cnode));
                 return RETURN_OK;
             }
             else if (prompt_return == MINI_INPUT_RET_BACK)
             {
-                /* Check for no login */
-                if (temp_cnode.login[0] == 0)
+                /*
+                 * State is TOTP typing
+                 * If password is blank we go back 2 to login type prompt
+                 * However, if there is no login and multiple IF connected we go back to start (and collect $200)
+                 * If no login and only 1 IF connected we just return
+                 *   ELSE
+                 * Password is valid and we go back to password type prompt
+                */
+
+                /* Check for password is valid */
+                if (temp_cnode.passwordBlankFlag != FALSE)
                 {
-                    /* Check for multiple interfaces connected */
-                    if ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() != FALSE))
+                    state_machine -= 2; //State machine is now at login
+
+                    /* Check for no login */
+                    if (temp_cnode.login[0] == 0)
                     {
-                        state_machine = 0;
+                        /* Check for multiple interfaces connected */
+                        if ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() != FALSE))
+                        {
+                            state_machine = 0;
+                        }
+                        else
+                        {
+                            /* No login, no multiple interfaces connected, leave function */
+                            return RETURN_BACK;
+                        }
                     }
-                    else
-                    {
-                        /* No login, no multiple interfaces connected, leave function */
-                        return RETURN_BACK;                        
-                    }                 
                 }
                 else
                 {
-                    state_machine--;
+                    state_machine--; //State machine is now at password
                 }
             }
             else
@@ -1904,87 +2045,62 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                 if (prompt_return == MINI_INPUT_RET_YES)
                 {
                     aux_mcu_message_t* typing_message_to_be_sent;
-                    BOOL prev_gen_credential_flag = FALSE;
-                    
-                    /* Check for previous generation password */
-                    if ((temp_cnode.flags & NODEMGMT_PREVGEN_BIT_BITMASK) != 0)
+
+                    /* Decrypt TOTPsecret */
+                    logic_encryption_ctr_decrypt(temp_cnode.TOTP.TOTPsecret_ct, temp_cnode.TOTP.TOTPsecret_ctr, MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret), FALSE);
+
+                    /* Generate TOTP */
+                    cust_char_t TOTP_str[LOGIC_GUI_TOTP_STR_LEN];
+                    memset(TOTP_str, 0, sizeof TOTP_str);
+                    logic_encryption_generate_totp(temp_cnode.TOTP.TOTPsecret_ct, temp_cnode.TOTP.TOTPsecretLen, temp_cnode.TOTP.TOTPnumDigits, temp_cnode.TOTP.TOTPtimeStep, TOTP_str, LOGIC_GUI_TOTP_STR_LEN);
+                    uint16_t TOTP_len = utils_strlen(TOTP_str);
+                    uint16_t length_needed = TOTP_len + 1 + 1;
+
+                    if (MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) <= length_needed)
                     {
-                        prev_gen_credential_flag = TRUE;
+                        // Can't describe all chars for TOTP
+                        return RETURN_NOK;
                     }
-                    
-                    /* Decrypt password. The field just after it is 0 */
-                    logic_encryption_ctr_decrypt((uint8_t*)temp_cnode.password, temp_cnode.ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
-                    
-                    /* If old generation password, convert it to unicode */
-                    if (prev_gen_credential_flag != FALSE)
-                    {
-                        _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
-                        utils_ascii_to_unicode((uint8_t*)temp_cnode.password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
-                        temp_cnode.cust_char_password[NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
-                    }
-                        
-                    /* Type shortcut if specified */
-                    if ((shortcut_sent == FALSE) && ((keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK)) != 0))
-                    {
-                        typing_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
-                        typing_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_TYPE_SHORTCUT;
-                        typing_message_to_be_sent->main_mcu_command_message.payload[0] = (uint8_t)interface_id;
-                        typing_message_to_be_sent->main_mcu_command_message.payload[1] = keys_to_send_before_login & (LF_ENT_KEY_MASK|LF_CTRL_ALT_DEL_MASK);
-                        typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint8_t) + sizeof(uint8_t);
-                        comms_aux_mcu_send_message(typing_message_to_be_sent);
-                        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_SHORTCUT_TYPED);
-                        shortcut_sent = TRUE;
-                        timer_delay_ms(600);
-                    }
-                        
-                    /* Type password */
+
+                    /* Type TOTP */
                     typing_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_KEYBOARD_TYPE);
-                    typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (utils_strlen(temp_cnode.cust_char_password) + 1 + 1)*sizeof(cust_char_t);
-                    ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(temp_cnode.cust_char_password, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, *usb_selected);
-                    if (keys_to_send_before_login != 0x00)
-                    {
-                        /* If we came here because of the unlock feature, discard per login & general settings */
-                        typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)] = 0x0A;
-                    }
-                    else if (temp_cnode.keyAfterPassword == 0xFFFF)
-                    {
-                        /* Use default device key press: password is 0 terminated by read function, _Static_asserts guarantees enough space, message is initialized at 0s */
-                        typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)] = custom_fs_settings_get_device_setting(SETTINGS_CHAR_AFTER_PASS_PRESS);
-                    }
-                    else
-                    {
-                        typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)] = temp_cnode.keyAfterPassword;
-                    }
-                    custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.cust_char_password)], *usb_selected);
+                    typing_message_to_be_sent->payload_length1 = MEMBER_SIZE(keyboard_type_message_t, interface_identifier) + MEMBER_SIZE(keyboard_type_message_t, delay_between_types) + (TOTP_len + 1 + 1)*sizeof(cust_char_t);
+                    ret_type_te string_to_key_points_transform_success = custom_fs_get_keyboard_symbols_for_unicode_string(TOTP_str, typing_message_to_be_sent->keyboard_type_message.keyboard_symbols, *usb_selected);
+
+                    /* Use default device key press: TOTP_str is 0 terminated by generate_totp function */
+                    typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[TOTP_len] = custom_fs_settings_get_device_setting(SETTINGS_CHAR_AFTER_PASS_PRESS);
+
+                    custom_fs_get_keyboard_symbols_for_unicode_string(&typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[TOTP_len], &typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[TOTP_len], *usb_selected);
                     typing_message_to_be_sent->keyboard_type_message.delay_between_types = custom_fs_settings_get_device_setting(SETTINGS_DELAY_BETWEEN_PRESSES);
                     typing_message_to_be_sent->keyboard_type_message.interface_identifier = interface_id;
                     comms_aux_mcu_send_message(typing_message_to_be_sent);
-                    
+
                     /* Message is sent, clear everything */
                     memset(&temp_cnode, 0, sizeof(temp_cnode));
-                    
+
                     /* Wait for typing status */
                     while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_KEYBOARD_TYPE, FALSE, -1) != RETURN_OK){}
                     could_type_all_symbols = (BOOL)temp_rx_message->payload_as_uint16[0];
-                    
+
                     /* Rearm DMA RX */
                     comms_aux_arm_rx_and_clear_no_comms();
-                    
+
                     /* Display warning if some chars were missing */
                     if ((string_to_key_points_transform_success != RETURN_OK) || (could_type_all_symbols == FALSE))
                     {
                         gui_prompts_display_information_on_screen_and_wait(COULDNT_TYPE_CHARS_TEXT_ID, DISP_MSG_WARNING, FALSE);
                     }
-                        
+
                     /* Set bool */
-                    login_or_password_typed = TRUE;
-                    
+                    anything_typed = TRUE;
+
                     /* Move on */
                     return RETURN_OK;
                 }
                 else
                 {
-                    if (login_or_password_typed == FALSE)
+                    memset(&temp_cnode, 0, sizeof(temp_cnode));
+                    if (anything_typed == FALSE)
                     {
                         return RETURN_NOK;
                     }
