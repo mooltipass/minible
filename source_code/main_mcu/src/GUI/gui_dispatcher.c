@@ -438,6 +438,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
             else
             {
                 /* Interrupted animation */
+                logic_device_activity_detected();
                 gui_dispatcher_get_back_to_current_screen();
                 return;     
             }        
