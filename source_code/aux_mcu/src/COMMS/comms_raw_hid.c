@@ -391,7 +391,7 @@ comms_usb_ret_te comms_usb_communication_routine(void)
     }
     
     /* We received a new device status, push it to the host */
-    if ((comms_raw_hid_new_device_status_received != FALSE) && (comms_raw_hid_at_least_one_msg_rcvd_from_prop_hid != FALSE))
+    if (comms_raw_hid_new_device_status_received != FALSE)
     {
         aux_mcu_message_t* temp_message_pt = (aux_mcu_message_t*)comms_raw_hid_shorter_aux_mcu_message_for_status_update;
         
@@ -402,7 +402,7 @@ comms_usb_ret_te comms_usb_communication_routine(void)
         temp_message_pt->payload_length1 = sizeof(temp_message_pt->hid_message.message_type) + sizeof(temp_message_pt->hid_message.payload_length) + temp_message_pt->hid_message.payload_length;
         
         /* Can send to USB? */
-        if (comms_usb_enumerated != FALSE)
+        if ((comms_usb_enumerated != FALSE) && (comms_raw_hid_at_least_one_msg_rcvd_from_prop_hid != FALSE))
         {
             comms_raw_hid_send_hid_message(USB_INTERFACE, temp_message_pt);
         }

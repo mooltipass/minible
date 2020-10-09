@@ -1051,7 +1051,7 @@ void debug_debug_screen(void)
         wheel_action_ret_te wheel_user_action = inputs_get_wheel_action(FALSE, FALSE);  
         
         /* Return ? */
-        if (wheel_user_action == WHEEL_ACTION_SHORT_CLICK)
+        if ((wheel_user_action == WHEEL_ACTION_SHORT_CLICK) || (wheel_user_action == WHEEL_ACTION_LONG_CLICK))
         {
             return;
         }
