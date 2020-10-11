@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    40
+#define FW_MINOR    41
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -73,6 +73,7 @@
 - v0.40:- updated USB code to conform with USB test suite
         - new platform status message support
         - faster advertising
+- v0.41:- bug fix: no status update pushed to the host over bluetooth
 */
 
 /**************** SETUP DEFINES ****************/

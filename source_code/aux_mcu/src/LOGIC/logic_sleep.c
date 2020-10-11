@@ -32,12 +32,12 @@ void logic_sleep_wakeup_main_mcu_if_needed(void)
         /* Make sure we're not generating that pulse just after we've been set to sleep */
         while (timer_has_timer_expired(TIMER_MAIN_MCU_WAKE_DELAY, FALSE) == TIMER_RUNNING);
         
-        /* Generate wakeup pulse */
-        platform_io_generate_no_comms_wakeup_pulse();
-        
         /* Re-enable main comms */
         platform_io_enable_main_comms();
         comms_main_init_rx();
+        
+        /* Generate wakeup pulse */
+        platform_io_generate_no_comms_wakeup_pulse();
         
         /* Leave some time for correct no comms readout */
         timer_delay_ms(1);
