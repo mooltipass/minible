@@ -1668,7 +1668,8 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
     BOOL could_type_all_symbols;
     BOOL shortcut_sent = FALSE;
     parent_node_t temp_pnode;
-    
+    BOOL password_decrypted = FALSE;
+
     /* Are we at least connected to anything? */
     if ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE))
     {
@@ -1906,8 +1907,12 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                             prev_gen_credential_flag = TRUE;
                         }
                         
-                        /* Decrypt password. The field just after it is 0 */
-                        logic_encryption_ctr_decrypt((uint8_t*)temp_cnode.password, temp_cnode.ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
+                        if (password_decrypted == FALSE)
+                        {
+                            /* Decrypt password. The field just after it is 0 */
+                            logic_encryption_ctr_decrypt((uint8_t*)temp_cnode.password, temp_cnode.ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
+                            password_decrypted = TRUE;
+                        }
                         
                         /* If old generation password, convert it to unicode */
                         if (prev_gen_credential_flag != FALSE)
@@ -1977,8 +1982,8 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
         }
         else if (state_machine == 3) //TOTP
         {
-            /* Is TOTP valid? */
-            if (temp_cnode.TOTP.TOTPsecretLen == 0)
+            /* Is TOTP valid? or are we here because of unlock feature? */
+            if ((temp_cnode.TOTP.TOTPsecretLen == 0) || (keys_to_send_before_login != 0x00))
             {
                 /* Message is sent, clear everything */
                 memset(&temp_cnode, 0, sizeof(temp_cnode));
@@ -2053,7 +2058,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     cust_char_t TOTP_str[LOGIC_GUI_TOTP_STR_LEN];
                     memset(TOTP_str, 0, sizeof TOTP_str);
                     logic_encryption_generate_totp(temp_cnode.TOTP.TOTPsecret_ct, temp_cnode.TOTP.TOTPsecretLen, temp_cnode.TOTP.TOTPnumDigits, temp_cnode.TOTP.TOTPtimeStep, TOTP_str, LOGIC_GUI_TOTP_STR_LEN);
-                    uint16_t TOTP_len = utils_strlen(TOTP_str);
+                    uint16_t TOTP_len = utils_strnlen(TOTP_str, LOGIC_GUI_TOTP_STR_LEN);
                     uint16_t length_needed = TOTP_len + 1 + 1;
 
                     if (MEMBER_ARRAY_SIZE(keyboard_type_message_t,keyboard_symbols) <= length_needed)
