@@ -721,6 +721,26 @@ void platform_io_assert_oled_reset(void)
     DELAYUS(15);    
 }
 
+/*! \fn     platform_io_transcienty_battery_oled_power_up(void)
+*   \brief  OLED power up with battery creating high current transcients
+*/
+void platform_io_transcienty_battery_oled_power_up(void)
+{
+    /* Go full bananas: directly enable mosfets */
+    PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;
+    PORT->Group[VOLED_1V2_EN_GROUP].OUTSET.reg = VOLED_1V2_EN_MASK;
+    platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_VBAT;
+    
+    /* Worst Voled rise time is 30ms when Vbat is at 1.05V */
+    timer_delay_ms(30);
+    
+    /* Release reset */
+    PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK;
+    
+    /* Datasheet mentions a 2us reset time */
+    timer_delay_ms(1);
+}
+
 /*! \fn     platform_io_power_up_oled(BOOL power_3v3)
 *   \brief  OLED powerup routine (3V3, 12V, reset release)
 *   \param  power_3v3   TRUE to use USB 3V3 as source for 12V stepup

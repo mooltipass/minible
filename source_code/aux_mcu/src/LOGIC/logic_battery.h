@@ -11,7 +11,7 @@
 
 /* Enums */
 typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7, LB_PEAK_TIMER_TRIGGERED = 8} lb_state_machine_te;
-typedef enum    {NIMH_12C_CHARGING = 0, NIMH_23C_CHARGING, NIMH_45C_CHARGING, NIMH_SLOWSTART_45C_CHARGING, NIMH_RECOVERY_45C_CHARGING} lb_nimh_charge_scheme_te;
+typedef enum    {NIMH_12C_CHARGING = 0, NIMH_23C_CHARGING, NIMH_45C_CHARGING, NIMH_SLOWSTART_45C_CHARGING, NIMH_RECOVERY_45C_CHARGING, NIMH_DANGEROUS_FORCED_CHARGE} lb_nimh_charge_scheme_te;
 typedef enum    {BAT_ACT_NONE = 0, BAT_ACT_NEW_BAT_LEVEL, BAT_ACT_CHARGE_FAIL, BAT_ACT_CHARGE_DONE} battery_action_te;
     
 /* Defines */
@@ -24,10 +24,12 @@ typedef enum    {BAT_ACT_NONE = 0, BAT_ACT_NEW_BAT_LEVEL, BAT_ACT_CHARGE_FAIL, B
 #define LOGIC_BATTERY_BAT_START_CHG_V_INC   3       // Voltage increments for charge
 #define LOGIC_BATTERY_CUR_FOR_RECOVERY      50      // ADC value difference between high & low cursense for recovery ramping: 1LSB = 0.5445mA
 #define LOGIC_BATTERY_CUR_FOR_ST_RAMP_END   100     // ADC value difference between high & low cursense to stop the initial ramping: 1LSB = 0.5445mA
+#define LOGIC_BATTERY_CUR_FOR_DANGER_CHARGE 611     // ADC value difference between high & low cursense for forced dangerous charge (to test battery recovery): 1LSB = 0.5445mA
 #define LOGIC_BATTERY_MAX_V_FOR_RECOVERY_CG 2571    // Voltage at which we stop the recovery charge (around 1.4V)
 #define LOGIC_BATTERY_MAX_V_FOR_ST_RAMP     2938    // Voltage at which we consider that something is wrong during initial ramp (around 1.6V)
 #define LOGIC_BATTERY_START_CHARGE_DELAY    100     // Delay before taking the first decision in our charging algorithm
 #define LOGIC_BATTERY_NB_MIN_SLOW_START     60      // Number of minutes we keep a low current for slow start charge
+#define LOGIC_BATTERY_NB_MIN_DANGER_CHARGE  30      // Number of minutes we are charging a high current into the battery
 // Charging current reaching: after quick ramp up, trying to reach the targeted charging current
 #define LOGIC_BATTERY_CUR_REACH_TICK        5       // Time intervals between decisions
 #define LOGIC_BATTERY_BAT_CUR_REACH_V_INC   1       // Voltage increments for charge

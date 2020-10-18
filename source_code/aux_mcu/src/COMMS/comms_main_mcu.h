@@ -50,6 +50,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define MAIN_MCU_COMMAND_STOP_CHARGE        0x000B
 #define MAIN_MCU_COMMAND_SET_BATTERYLVL     0x000C
 #define MAIN_MCU_COMMAND_GET_STATUS         0x000D
+#define MAIN_MCU_COMMAND_NIMH_DANGER_CHARGE 0x000E
 
 // Debug MCU commands
 #define MAIN_MCU_COMMAND_TX_SWEEP_SGL       0x1000

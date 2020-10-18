@@ -411,12 +411,14 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
                 
                 /* Send message */
                 comms_aux_mcu_send_message(temp_tx_message_pt);
+                timer_delay_ms(100);
             }
 
             /* Stop force charge? */
             if (rcv_msg->payload[6] != 0)
             {
                 comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_FORCE_CHARGE);
+                timer_delay_ms(100);
             }
             
             /* Generate our get battery charge status packet */

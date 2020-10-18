@@ -701,7 +701,7 @@ void comms_aux_mcu_prepare_for_active_rx_packet_receive(void)
             /* Rearm RX */
             comms_aux_arm_rx_and_clear_no_comms();
         }
-        else
+        else if (aux_mcu_comms_prev_aux_mcu_routine_wants_to_arm_rx != FALSE)
         {
             /* Full packet receive arm RX and set flag to not rearm twice rx */
             comms_aux_arm_rx_and_clear_no_comms();

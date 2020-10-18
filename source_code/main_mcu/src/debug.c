@@ -152,7 +152,7 @@ void debug_debug_menu(void)
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Battery", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main and Aux MCU Info", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU BLE Info", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"NiMH Charging", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"NiMH Danger", TRUE);
             }
             else if (selected_item < 8)
             {
@@ -225,7 +225,7 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 3)
             {
-                debug_nimh_charging();
+                debug_battery_repair();
             }
             else if (selected_item == 4)
             {
@@ -461,7 +461,73 @@ void debug_always_bluetooth_enable_and_click_to_send_cred(void)
         /* Deal with comms */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
     }
+}
+
+/*! \fn     debug_battery_repair(void)
+*   \brief  Our custom sauce to repair damaged NiMH battery
+*   \note   Completely based on our experience
+*/
+void debug_battery_repair(void)
+{
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
     
+    /* Needs to be battery powered */
+    if (platform_io_is_usb_3v3_present_raw() == FALSE)
+    {
+        sh1122_put_error_string(&plat_oled_descriptor, u"Device must be USB powered");
+        DELAYMS(2000);
+        return;
+    }
+    
+    /* Check for charging */
+    if (logic_power_is_battery_charging() != FALSE)
+    {
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_CHARGE);
+        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STOPPED);
+        logic_power_set_battery_charging_bool(FALSE, FALSE);
+    }
+
+    for (uint16_t charge_discharge_cycles = 0; charge_discharge_cycles < 2; charge_discharge_cycles++)
+    {
+        /* From previous loop iteration: wait for little charge */
+        if (charge_discharge_cycles != 0)
+        {
+            timer_delay_ms(30000);
+            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_CHARGE);
+            comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STOPPED);
+            logic_power_set_battery_charging_bool(FALSE, FALSE);
+        }
+
+        /* Switch on & off power to the oled stepup in a very abrupt manner to create current transcients on battery */
+        for (uint16_t i = 0; i < 20; i++)
+        {
+            platform_io_disable_3v3_to_oled_stepup();
+            sh1122_oled_off(&plat_oled_descriptor);
+            platform_io_assert_oled_reset();
+            timer_delay_ms(15);
+            platform_io_transcienty_battery_oled_power_up();
+            sh1122_init_display(&plat_oled_descriptor, TRUE);
+            sh1122_put_error_string(&plat_oled_descriptor, u"Blinking");
+            timer_delay_ms(15);
+        }
+
+        /* Switch back to USB supply */
+        sh1122_oled_off(&plat_oled_descriptor);
+        platform_io_disable_vbat_to_oled_stepup();
+        platform_io_assert_oled_reset();
+        timer_delay_ms(15);
+        platform_io_power_up_oled(TRUE);
+        sh1122_init_display(&plat_oled_descriptor, TRUE);
+        sh1122_put_error_string(&plat_oled_descriptor, u"Charging");
+
+        /* Start danger change */
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_DANGER_CHARGE);
+        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STARTED);
+        logic_power_set_battery_charging_bool(TRUE, FALSE);
+    }
 }
 
 /*! \fn     debug_battery_recondition(void)
