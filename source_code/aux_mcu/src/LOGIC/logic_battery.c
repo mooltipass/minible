@@ -18,6 +18,8 @@ lb_nimh_charge_scheme_te logic_battery_charging_type = NIMH_12C_CHARGING;
 uint32_t logic_battery_low_charge_current_counter = 0;
 /* Current state machine */
 lb_state_machine_te logic_battery_state = LB_IDLE;
+/* Current goal for ramping start */
+uint32_t logic_battery_ramping_current_goal = 0;
 /* Current voltage set for charging */
 uint16_t logic_battery_charge_voltage = 0;
 /* Peak voltage at the battery */
@@ -133,6 +135,16 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
     /* State machine change */
     logic_battery_state = LB_CHARGE_START_RAMPING;
     
+    /* Ramping current goal */
+    if (charging_type == NIMH_RECOVERY_45C_CHARGING)
+    {
+        logic_battery_ramping_current_goal = LOGIC_BATTERY_CUR_FOR_RECOVERY;
+    }
+    else
+    {
+        logic_battery_ramping_current_goal = LOGIC_BATTERY_CUR_FOR_ST_RAMP_END;
+    }
+    
     /* Type of charging storage */
     logic_battery_charging_type = charging_type;
 
@@ -244,12 +256,15 @@ battery_action_te logic_battery_task(void)
                 if (timer_has_timer_expired(TIMER_BATTERY_TICK, FALSE) == TIMER_EXPIRED)
                 {
                     /* Is enough current flowing into the battery? */
-                    if ((high_voltage - low_voltage) > LOGIC_BATTERY_CUR_FOR_ST_RAMP_END)
+                    if ((high_voltage - low_voltage) > logic_battery_ramping_current_goal)
                     {
-                        /* Keep in low current charge if instructed to */
-                        if ((logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING) && (logic_battery_low_charge_current_counter++ <= (LOGIC_BATTERY_NB_MIN_SLOW_START*60*1000)/LOGIC_BATTERY_CUR_REACH_TICK))
+                        if ((logic_battery_charging_type == NIMH_RECOVERY_45C_CHARGING) && (low_voltage <= LOGIC_BATTERY_MAX_V_FOR_RECOVERY_CG))
                         {
-                            /* Do nothing... */
+                            /* Recovery: 0.1C until battery reaches given voltage */
+                        }
+                        else if ((logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING) && (logic_battery_low_charge_current_counter++ <= (LOGIC_BATTERY_NB_MIN_SLOW_START*60*1000)/LOGIC_BATTERY_CUR_REACH_TICK))
+                        {
+                            /* Slow start: keep current at low value for a fixed time before increasing it */
                         }
                         else
                         {
@@ -313,6 +328,10 @@ battery_action_te logic_battery_task(void)
                         voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_45C;
                     }
                     else if (logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING)
+                    {
+                        voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_45C;                        
+                    }
+                    else if (logic_battery_charging_type == NIMH_RECOVERY_45C_CHARGING)
                     {
                         voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_45C;                        
                     }
@@ -402,6 +421,10 @@ battery_action_te logic_battery_task(void)
                         voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_45C;
                     }
                     else if (logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING)
+                    {
+                        voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_45C;                        
+                    }
+                    else if (logic_battery_charging_type == NIMH_RECOVERY_45C_CHARGING)
                     {
                         voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_45C;                        
                     }

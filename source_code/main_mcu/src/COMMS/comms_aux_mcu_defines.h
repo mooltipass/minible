@@ -49,7 +49,7 @@
 #define MAIN_MCU_COMMAND_SLEEP              0x0001
 #define MAIN_MCU_COMMAND_ATTACH_USB         0x0002
 #define MAIN_MCU_COMMAND_NIMH_CHG_SLW_STRT  0x0003
-//////////////////////////////////////////////////
+#define MAIN_MCU_COMMAND_NIMH_RECOVERY_CHG  0x0004
 #define MAIN_MCU_COMMAND_NIMH_CHARGE        0x0005
 #define MAIN_MCU_COMMAND_NO_COMMS_UNAV      0x0006
 #define MAIN_MCU_COMMAND_TYPE_SHORTCUT      0x0007

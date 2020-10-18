@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    41
+#define FW_MINOR    42
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -74,6 +74,7 @@
         - new platform status message support
         - faster advertising
 - v0.41:- bug fix: no status update pushed to the host over bluetooth
+- v0.42:- NiMH recovery charge
 */
 
 /**************** SETUP DEFINES ****************/
