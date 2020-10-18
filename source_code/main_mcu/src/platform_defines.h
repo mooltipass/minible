@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    48
+#define FW_MINOR    49
 #define UNIT_SN     12345678
 
 /* Changelog:
@@ -140,6 +140,8 @@
         - unlock feature: option to bypass password prompt
         - setting to switch off device after USB disconnection
         - updated status message to include battery pct & settings changed flag
+- v0.49:- disabling bluetooth when updating platform
+        - emergency power down
 */
 
 /**************** SETUP DEFINES ****************/
@@ -296,6 +298,7 @@ typedef struct
     #define BATTERY_ADC_20PCT_VOLTAGE   (1180*273/110)
     #define BATTERY_ADC_10PCT_VOLTAGE   (1180*273/110)
     #define BATTERY_ADC_OUT_CUTOUT      (1180*273/110)
+    #define BATTERY_ADC_EMGCY_CUTOUT    (1180*273/110)
     #define BATTERY_ADC_800MV_VALUE     (1180*273/110)
 #elif defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
     #define BATTERY_ADC_100PCT_VOLTAGE  (3435)
@@ -309,6 +312,7 @@ typedef struct
     #define BATTERY_ADC_20PCT_VOLTAGE   (3173)
     #define BATTERY_ADC_10PCT_VOLTAGE   (3090)
     #define BATTERY_ADC_OUT_CUTOUT      (3000)
+    #define BATTERY_ADC_EMGCY_CUTOUT    (2700)
     #define BATTERY_ADC_800MV_VALUE     (2056)
 #endif
 #define BATTERY_TYPICAL_DELTA_BTW_FULL_CHARGE_AND_100PCT    ((1581*8192/3188)-BATTERY_ADC_100PCT_VOLTAGE+31)

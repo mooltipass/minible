@@ -72,6 +72,8 @@ uint16_t logic_power_adc_measurement_counter = 0;
 int16_t logic_power_delta_between_hyp_100pct_and_real = 0;
 BOOL logic_power_full_charge_voltage_gotten = FALSE;
 uint16_t logic_power_full_charge_voltage_val = 0;
+/* Over discharge boolean */
+BOOL logic_power_over_discharge_flag = FALSE;
 
 
 /*! \fn     logic_power_ms_tick(void)
@@ -291,6 +293,24 @@ battery_state_te logic_power_get_battery_state(void)
     }
 }
 
+/*! \fn     logic_power_inform_of_over_discharge(void)
+*   \brief  Inform the power logic that the battery is in an over discharge state
+*/
+void logic_power_inform_of_over_discharge(void)
+{
+    logic_power_over_discharge_flag = TRUE;
+}
+
+/*! \fn     logic_power_get_and_reset_over_discharge_flag(void)
+*   \brief  Get and reset over discharge flag
+*/
+BOOL logic_power_get_and_reset_over_discharge_flag(void)
+{
+    BOOL return_value = logic_power_over_discharge_flag;
+    logic_power_over_discharge_flag = FALSE;
+    return return_value;
+}
+
 /*! \fn     logic_power_register_vbat_adc_measurement(uint16_t adc_val)
 *   \brief  Register an ADC measurement of the battery voltage
 *   \param  adc_val The ADC value
@@ -424,7 +444,9 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
     logic_power_last_seen_voled_stepup_pwr_source = current_voled_pwr_source;
     
     /* Battery charging start logic */
-    if ((logic_power_get_power_source() == USB_POWERED) && (logic_power_is_usb_enumerate_sent_clear_bool() != FALSE) && (logic_power_battery_charging == FALSE) && (((nb_ms_since_full_charge_copy >= NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE) && (logic_power_get_battery_state() <= BATTERY_75PCT)) || (logic_power_get_battery_state() <= BATTERY_25PCT)))
+    if ((logic_power_get_power_source() == USB_POWERED) && (logic_power_is_usb_enumerate_sent_clear_bool() != FALSE) && 
+        (logic_power_battery_charging == FALSE) && 
+        (((nb_ms_since_full_charge_copy >= NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE) && (logic_power_get_battery_state() <= BATTERY_75PCT)) || (logic_power_get_battery_state() <= BATTERY_25PCT)))
     {
         /* Reset counter in case we entered here because of safety case */
         cpu_irq_enter_critical();
@@ -507,6 +529,15 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
             {
                 /* platform_io_is_usb_3v3_present_raw() call is here to prevent erroneous measurements */
                 return POWER_ACT_POWER_OFF;
+            }
+            
+            /* Emergency battery cutoff */
+            if ((logic_power_get_power_source() == BATTERY_POWERED) && (vbat_measurement_from_a_bit_ago < BATTERY_ADC_EMGCY_CUTOUT) && (platform_io_is_usb_3v3_present_raw() == FALSE))
+            {
+                custom_fs_set_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID, TRUE);
+                logic_power_power_down_actions();
+                platform_io_power_down_oled();
+                platform_io_disable_switch_and_die();
             }
             
             /* Check for new battery level */
@@ -608,6 +639,9 @@ void logic_power_routine(void)
         }
         else
         {
+            /* Inform logic of over discharge */
+            logic_power_inform_of_over_discharge();
+            
             /* Call the power routine that will take care of power switch */
             logic_power_check_power_switch_and_battery(FALSE);
             gui_dispatcher_get_back_to_current_screen();

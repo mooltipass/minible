@@ -164,6 +164,7 @@ void main_platform_init(void)
     uint16_t vbat_measurement_before_power_off = custom_fs_get_last_vbat_measurement_before_poweroff();
     if (poweredoff_due_to_battery != FALSE)
     {
+        logic_power_inform_of_over_discharge();
         logic_power_register_vbat_adc_measurement(0);
     }
     else if (vbat_measurement_before_power_off != UINT16_MAX)
