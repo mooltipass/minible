@@ -255,6 +255,7 @@ void debug_debug_menu(void)
             {
                 custom_fs_set_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID, TRUE);
                 custom_fs_settings_set_fw_upgrade_flag();
+                logic_aux_mcu_disable_ble(TRUE);
                 main_reboot();
             }
             else if (selected_item == 11)

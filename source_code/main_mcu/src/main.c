@@ -476,6 +476,9 @@ void main_reboot(void)
     lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
     while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
     
+    /* Wait for end of message we were possibly sending */
+    comms_aux_mcu_wait_for_message_sent();
+    
     /* Power Off OLED screen */
     sh1122_oled_off(&plat_oled_descriptor);
     platform_io_power_down_oled();

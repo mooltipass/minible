@@ -295,6 +295,9 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
             comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
             
+            /* Disable bluetooth if enabled */
+            logic_aux_mcu_disable_ble(TRUE);
+            
             /* Start by flashing aux */
             logic_aux_mcu_flash_firmware_update(FALSE);
             
