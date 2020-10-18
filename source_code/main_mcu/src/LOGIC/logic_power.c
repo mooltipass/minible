@@ -402,8 +402,8 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
         platform_io_disable_3v3_to_oled_stepup();
         logic_power_set_power_source(BATTERY_POWERED);
-        logic_user_inform_computer_locked_state(TRUE, TRUE);
         logic_power_set_battery_charging_bool(FALSE, FALSE);
+        logic_user_reset_computer_locked_state(TRUE);
         logic_aux_mcu_set_usb_enumerated_bool(FALSE);
         platform_io_assert_oled_reset();
         timer_delay_ms(15);

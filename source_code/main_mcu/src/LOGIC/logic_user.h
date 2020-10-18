@@ -49,6 +49,7 @@ void logic_user_change_node_password(uint16_t node_address, cust_char_t* passwor
 void logic_user_inform_computer_locked_state(BOOL usb_interface, BOOL locked);
 void logic_user_set_layout_id(uint16_t layout_id, BOOL usb_layout);
 RET_TYPE logic_user_is_bluetooth_enabled_for_inserted_card(void);
+void logic_user_reset_computer_locked_state(BOOL usb_interface);
 BOOL logic_user_get_and_clear_user_to_be_logged_off_flag(void);
 void logic_user_clear_user_security_flag(uint16_t bitmask);
 void logic_user_set_user_security_flag(uint16_t bitmask);

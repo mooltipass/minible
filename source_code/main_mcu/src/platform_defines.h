@@ -142,6 +142,7 @@
         - updated status message to include battery pct & settings changed flag
 - v0.49:- disabling bluetooth when updating platform
         - emergency power down
+        - making sure computer lock status was received for no password prompt setting
 */
 
 /**************** SETUP DEFINES ****************/

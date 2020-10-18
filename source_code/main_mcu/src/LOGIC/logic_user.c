@@ -58,11 +58,29 @@ BOOL logic_user_getting_data_from_service_prev_gen_flag = FALSE;
 BOOL logic_user_getting_data_from_service_from_usb = FALSE;
 BOOL logic_user_getting_data_from_service = FALSE;
 // Variable to know if the user computer is unlocked
+BOOL logic_user_usb_computer_lock_status_received = FALSE;
+BOOL logic_user_ble_computer_lock_status_received = FALSE;
 BOOL logic_user_usb_computer_unlocked = FALSE;
 BOOL logic_user_ble_computer_unlocked = FALSE;
 // User security preferences
 uint16_t logic_user_cur_sec_preferences;
 
+
+/*! \fn     logic_user_reset_computer_locked_state(BOOL usb_interface)
+*   \brief  Reset computer locked state to unknown
+*   \param  usb_interface   To inform about the computer connected through USB
+*/
+void logic_user_reset_computer_locked_state(BOOL usb_interface)
+{
+    if (usb_interface == FALSE)
+    {
+        logic_user_ble_computer_lock_status_received = FALSE;
+    } 
+    else
+    {
+        logic_user_usb_computer_lock_status_received = FALSE;
+    }
+}
 
 /*! \fn     logic_user_inform_computer_locked_state(BOOL usb_interface, BOOL locked)
 *   \brief  Inform our logic that a given computer got locked/unlocked
@@ -73,6 +91,7 @@ void logic_user_inform_computer_locked_state(BOOL usb_interface, BOOL locked)
 {
     if (usb_interface == FALSE)
     {
+        logic_user_ble_computer_lock_status_received = TRUE;
         if (locked == FALSE)
         {
             logic_user_ble_computer_unlocked = TRUE;
@@ -84,6 +103,7 @@ void logic_user_inform_computer_locked_state(BOOL usb_interface, BOOL locked)
     } 
     else
     {
+        logic_user_usb_computer_lock_status_received = TRUE;
         if (locked == FALSE)
         {
             logic_user_usb_computer_unlocked = TRUE;
@@ -2142,13 +2162,31 @@ void logic_user_unlocked_feature_trigger(void)
         if ((logic_aux_mcu_is_usb_enumerated() != FALSE) && (logic_bluetooth_get_state() == BT_STATE_CONNECTED))
         {
         }
-        else if ((logic_aux_mcu_is_usb_enumerated() != FALSE) && (logic_user_usb_computer_unlocked != FALSE))
+        else if (logic_aux_mcu_is_usb_enumerated() != FALSE)
         {
-            computer_locked = FALSE;
+            /* If we didn't receive the lock status, assume locked and remove no password prompt */
+            if (logic_user_usb_computer_lock_status_received == FALSE)
+            {
+                lock_unlock_feature_uint &= ~LF_NO_PWD_PROMPT_MASK;
+                logic_user_usb_computer_unlocked = FALSE;
+            }
+            if (logic_user_usb_computer_unlocked != FALSE)
+            {
+                computer_locked = FALSE;
+            }
         }
-        else if ((logic_bluetooth_get_state() == BT_STATE_CONNECTED) && (logic_user_ble_computer_unlocked != FALSE))
+        else if (logic_bluetooth_get_state() == BT_STATE_CONNECTED)
         {
-            computer_locked = FALSE;
+            /* If we didn't receive the lock status, assume locked and remove no password prompt */
+            if (logic_user_ble_computer_lock_status_received == FALSE)
+            {
+                lock_unlock_feature_uint &= ~LF_NO_PWD_PROMPT_MASK;
+                logic_user_ble_computer_unlocked = FALSE;
+            }
+            if (logic_user_ble_computer_unlocked != FALSE)
+            {
+                computer_locked = FALSE;
+            }
         }
         
         /* Computer already unlocked? */
