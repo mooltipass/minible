@@ -293,7 +293,7 @@ battery_action_te logic_battery_task(void)
                                 platform_io_disable_step_down();
 
                                 /* Inform main MCU */
-                                comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_DONE);
+                                logic_battery_inform_main_of_charge_done(0);
                                 return_value = BAT_ACT_CHARGE_DONE;
                             }                     
                         }                        
@@ -324,7 +324,7 @@ battery_action_te logic_battery_task(void)
                                 platform_io_disable_step_down();
 
                                 /* Inform main MCU */
-                                comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_DONE);
+                                logic_battery_inform_main_of_charge_done(0);
                                 return_value = BAT_ACT_CHARGE_DONE;
                             }
                         }
@@ -498,12 +498,7 @@ battery_action_te logic_battery_task(void)
                         platform_io_disable_step_down();
                         
                         /* Inform main MCU */
-                        aux_mcu_message_t* temp_tx_message_pt;
-                        comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT);
-                        temp_tx_message_pt->aux_mcu_event_message.event_id = AUX_MCU_EVENT_CHARGE_DONE;
-                        temp_tx_message_pt->aux_mcu_event_message.payload_as_uint16[0] = logic_battery_peak_voltage;
-                        temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->aux_mcu_event_message.event_id) + sizeof(uint16_t);
-                        comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
+                        logic_battery_inform_main_of_charge_done(logic_battery_peak_voltage);
                         status_message_sent_to_main_mcu = TRUE;
                         return_value = BAT_ACT_CHARGE_DONE;
                     }
@@ -561,7 +556,7 @@ battery_action_te logic_battery_task(void)
                         platform_io_disable_step_down();
                         
                         /* Inform main MCU */
-                        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_DONE);
+                        logic_battery_inform_main_of_charge_done(logic_battery_peak_voltage);
                         status_message_sent_to_main_mcu = TRUE;
                         return_value = BAT_ACT_CHARGE_DONE;
                     }
@@ -614,4 +609,18 @@ battery_action_te logic_battery_task(void)
     logic_battery_stop_using_adc_flag = FALSE;
 
     return return_value;
+}
+
+/*! \fn     logic_battery_inform_main_of_charge_done(uint16_t peak_voltage_level)
+*   \brief  Inform main MCU of charge done
+*   \peak_voltage_level The ADC value for peak voltage level
+*/
+void logic_battery_inform_main_of_charge_done(uint16_t peak_voltage_level)
+{
+    aux_mcu_message_t* temp_tx_message_pt;
+    comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT);
+    temp_tx_message_pt->aux_mcu_event_message.event_id = AUX_MCU_EVENT_CHARGE_DONE;
+    temp_tx_message_pt->aux_mcu_event_message.payload_as_uint16[0] = peak_voltage_level;
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->aux_mcu_event_message.event_id) + sizeof(uint16_t);
+    comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
 }

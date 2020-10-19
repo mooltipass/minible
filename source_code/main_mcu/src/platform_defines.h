@@ -143,6 +143,7 @@
 - v0.49:- disabling bluetooth when updating platform
         - emergency power down
         - making sure computer lock status was received for no password prompt setting
+        - battery status improvement
 */
 
 /**************** SETUP DEFINES ****************/

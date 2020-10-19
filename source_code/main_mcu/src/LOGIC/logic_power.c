@@ -182,6 +182,10 @@ void logic_power_set_max_charging_voltage_from_aux(uint16_t measured_voltage)
         logic_power_full_charge_voltage_val = (uint16_t)scaled_down_value;
         logic_power_delta_between_hyp_100pct_and_real = (logic_power_full_charge_voltage_val-BATTERY_TYPICAL_DELTA_BTW_FULL_CHARGE_AND_100PCT) - BATTERY_ADC_100PCT_VOLTAGE;
     }    
+    else
+    {
+        logic_power_full_charge_voltage_gotten = FALSE;
+    }
 }
 
 /*! \fn     logic_power_set_battery_level_update_from_aux(uint8_t battery_level)
@@ -209,7 +213,7 @@ void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_su
         logic_power_nb_ms_spent_since_last_full_charge = 0;
         cpu_irq_leave_critical();
         custom_fs_define_nb_ms_since_last_full_charge(0, UINT16_MAX);
-        utils_fill_uint16_array_with_value(logic_power_last_vbat_measurements, ARRAY_SIZE(logic_power_last_vbat_measurements), BATTERY_ADC_100PCT_VOLTAGE);
+        utils_fill_uint16_array_with_value(logic_power_last_vbat_measurements, ARRAY_SIZE(logic_power_last_vbat_measurements), UINT16_MAX);
     }
 }
 

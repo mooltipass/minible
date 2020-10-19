@@ -75,6 +75,7 @@
         - faster advertising
 - v0.41:- bug fix: no status update pushed to the host over bluetooth
 - v0.42:- NiMH recovery charge
+        - improved nimh charging
 */
 
 /**************** SETUP DEFINES ****************/
