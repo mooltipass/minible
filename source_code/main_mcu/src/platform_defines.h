@@ -317,6 +317,7 @@ typedef struct
     #define BATTERY_ADC_800MV_VALUE     (2056)
 #endif
 #define BATTERY_TYPICAL_DELTA_BTW_FULL_CHARGE_AND_100PCT    ((1581*8192/3188)-BATTERY_ADC_100PCT_VOLTAGE+31)
+#define BATTERY_1V_WHEN_MEASURED_FROM_MAIN_WITH_USB         (1000*8192/3300)
 
 /********************/
 /* Display defines  */

@@ -55,6 +55,7 @@ battery_state_te logic_power_get_battery_state(void);
 power_source_te logic_power_get_power_source(void);
 void logic_power_inform_of_over_discharge(void);
 void logic_power_usb_enumerate_just_sent(void);
+RET_TYPE logic_power_battery_recondition(void);
 uint16_t logic_power_get_battery_level(void);
 void logic_power_signal_battery_error(void);
 BOOL logic_power_is_battery_charging(void);

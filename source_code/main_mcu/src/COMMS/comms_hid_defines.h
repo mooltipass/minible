@@ -78,6 +78,7 @@
 #define HID_CMD_IM_UNLOCKED         0x0025
 #define HID_CMD_DISABLE_NO_PROMPT   0x0026
 #define HID_CMD_ID_STORE_TOTP_CRED  0x0027
+#define HID_CMD_NIMH_RECONDITION    0x0028
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101

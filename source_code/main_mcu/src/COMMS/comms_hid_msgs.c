@@ -289,6 +289,13 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
             return;
         }
+
+        case HID_CMD_NIMH_RECONDITION:
+        {
+            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+            logic_power_battery_recondition();
+            return;
+        }
         
         case HID_CMD_DISABLE_NO_PROMPT:
         {

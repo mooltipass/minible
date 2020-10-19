@@ -295,7 +295,7 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 16)
             {
-                debug_battery_recondition();
+                logic_power_battery_recondition();
             }
             else if (selected_item == 17)
             {

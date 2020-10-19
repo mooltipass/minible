@@ -19,6 +19,7 @@
 *    Created:  29/09/2018
 *    Author:   Mathieu Stephan
 */
+#include "logic_accelerometer.h"
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
 #include "logic_security.h"
@@ -660,4 +661,145 @@ void logic_power_routine(void)
         /* Update device state */
         logic_device_set_state_changed();
     }    
+}
+
+/*! \fn     logic_power_battery_recondition(void)
+*   \brief  Fully discharge and charge the battery
+*   \return Success status
+*/
+RET_TYPE logic_power_battery_recondition(void)
+{
+    uint16_t gui_dispatcher_current_idle_anim_frame_id = 0;
+    uint16_t temp_uint16;
+
+    /* Needs to be battery powered */
+    if (platform_io_is_usb_3v3_present_raw() == FALSE)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Check for charging */
+    if (logic_power_is_battery_charging() != FALSE)
+    {
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_CHARGE);
+        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STOPPED);
+        logic_power_set_battery_charging_bool(FALSE, FALSE);
+    }
+    
+    /* Switch to battery power for screen */
+    sh1122_oled_off(&plat_oled_descriptor);
+    platform_io_disable_3v3_to_oled_stepup();
+    platform_io_assert_oled_reset();
+    timer_delay_ms(15);
+    platform_io_power_up_oled(FALSE);
+    sh1122_init_display(&plat_oled_descriptor, TRUE);
+    
+    /* Display animation until 1V at the cell */
+    uint16_t current_vbat = UINT16_MAX;
+    gui_prompts_display_information_on_screen(RECOND_DISCHARGE_TEXT_ID, DISP_MSG_INFO);
+    while (current_vbat > BATTERY_1V_WHEN_MEASURED_FROM_MAIN_WITH_USB)
+    {        
+        /* Idle animation */
+        if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+        {
+            /* Display new animation frame bitmap, rearm timer with provided value */
+            gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_INFO);
+            timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
+        }
+
+        /* Do not deal with incoming messages */
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        logic_accelerometer_routine();
+
+        /* User disconnected USB? */
+        if (platform_io_is_usb_3v3_present_raw() == FALSE)
+        {
+            gui_dispatcher_get_back_to_current_screen();
+            return RETURN_NOK;
+        }
+        
+        /* ADC value ready? */
+        if (platform_io_is_voledin_conversion_result_ready() != FALSE)
+        {
+            current_vbat = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+        }
+    }
+    
+    /* Switch back to USB power for screen */
+    sh1122_oled_off(&plat_oled_descriptor);
+    platform_io_disable_vbat_to_oled_stepup();
+    platform_io_assert_oled_reset();
+    timer_delay_ms(15);
+    platform_io_power_up_oled(TRUE);
+    sh1122_init_display(&plat_oled_descriptor, TRUE);
+
+    /* Battery rest */
+    timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 10*60*1000);
+    gui_prompts_display_information_on_screen(RECOND_REST_TEXT_ID, DISP_MSG_INFO);
+    while (timer_has_timer_expired(TIMER_DEVICE_ACTION_TIMEOUT, TRUE) != TIMER_EXPIRED)
+    {
+        /* Idle animation */
+        if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+        {
+            /* Display new animation frame bitmap, rearm timer with provided value */
+            gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_INFO);
+            timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
+        }
+
+        /* Do not deal with incoming messages */
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        logic_accelerometer_routine();
+
+        /* User disconnected USB? */
+        if (platform_io_is_usb_3v3_present_raw() == FALSE)
+        {
+            /* Switch to battery power for screen */
+            sh1122_oled_off(&plat_oled_descriptor);
+            platform_io_disable_3v3_to_oled_stepup();
+            platform_io_assert_oled_reset();
+            timer_delay_ms(15);
+            platform_io_power_up_oled(FALSE);
+            sh1122_init_display(&plat_oled_descriptor, TRUE);
+            gui_dispatcher_get_back_to_current_screen();
+            return RETURN_NOK;
+        }
+    }
+    
+    /* Actually start charging */
+    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHG_SLW_STRT);
+    comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STARTED);
+    logic_power_set_battery_charging_bool(TRUE, FALSE);
+    
+    /* Wait for end of charge */
+    gui_prompts_display_information_on_screen(RECOND_CHARGE_TEXT_ID, DISP_MSG_INFO);
+    while (logic_power_is_battery_charging() != FALSE)
+    {
+        /* Idle animation */
+        if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+        {
+            /* Display new animation frame bitmap, rearm timer with provided value */
+            gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_INFO);
+            timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
+        }
+        
+        /* Do not deal with incoming messages */
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        logic_accelerometer_routine();
+
+        /* User disconnected USB? */
+        if (platform_io_is_usb_3v3_present_raw() == FALSE)
+        {
+            /* Switch to battery power for screen */
+            sh1122_oled_off(&plat_oled_descriptor);
+            platform_io_disable_3v3_to_oled_stepup();
+            platform_io_assert_oled_reset();
+            timer_delay_ms(15);
+            platform_io_power_up_oled(FALSE);
+            sh1122_init_display(&plat_oled_descriptor, TRUE);
+            gui_dispatcher_get_back_to_current_screen();
+            return RETURN_NOK;
+        }
+    }
+
+    return RETURN_OK;
 }
