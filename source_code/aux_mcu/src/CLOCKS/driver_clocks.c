@@ -52,9 +52,11 @@ void clocks_start_48MDFLL(void)
     //osc8m_register.bit.ENABLE = 1;                              // enable oscillator (not needed as already enabled)
     SYSCTRL->OSC8M = osc8m_register;                            // write register
     
-    /************************************/
-    /*  Configure DFLL48M in open loop  */
-    /************************************/
+    /**********************************************************/
+    /* Configure DFLL48M in closed loop using USB SoF         */
+    /* When the DFLL doesn't lock, it falls back to open loop */
+    /* which is perfectly fine for us                         */
+    /**********************************************************/
     
     /* Disable ONDEMAND mode while writing configurations */
     while (!(SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_DFLLRDY));    // Wait for sync
@@ -67,6 +69,13 @@ void clocks_start_48MDFLL(void)
     dfll_val.bit.COARSE = coarse_val;                           // Store coarse value
     dfll_val.bit.FINE = fine_val;                               // Store fine value
     SYSCTRL->DFLLVAL = dfll_val;                                // Store register value, no need for sync
+
+    /* Multiplication factor using USB SoF */
+    SYSCTRL_DFLLMUL_Type dfll_mul;
+    dfll_mul.bit.CSTEP = 0x1f / 8;
+    dfll_mul.bit.FSTEP = 0xff / 8;
+    dfll_mul.bit.MUL = 0xBB80;
+    SYSCTRL->DFLLMUL = dfll_mul;
     
     /* Finally, setup DFLL module */
     SYSCTRL_DFLLCTRL_Type dfll_ctrl;                            // DFLL control register
@@ -74,12 +83,12 @@ void clocks_start_48MDFLL(void)
     dfll_ctrl.bit.WAITLOCK = 0;                                 // Output clock before locked
     dfll_ctrl.bit.BPLCKC = 0;                                   // Do not bypass coarse lock
     dfll_ctrl.bit.QLDIS = 0;                                    // Enable quick lock
-    dfll_ctrl.bit.CCDIS = 0;                                    // Enable chill cycle
+    dfll_ctrl.bit.CCDIS = 1;                                    // Disable chill cycle
     dfll_ctrl.bit.ONDEMAND = 0;                                 // Oscillator always on
     dfll_ctrl.bit.RUNSTDBY = 0;                                 // Do not run in standby
-    dfll_ctrl.bit.USBCRM = 0;                                   // No USB recovery mode
+    dfll_ctrl.bit.USBCRM = 1;                                   // Use USB recovery mode
     dfll_ctrl.bit.STABLE = 0;                                   // FINE calibration tracks changes
-    dfll_ctrl.bit.MODE = 0;                                     // Open loop operation
+    dfll_ctrl.bit.MODE = 1;                                     // Closed loop operation when possible (USB connected)
     while (!(SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_DFLLRDY));    // Wait for sync
     SYSCTRL->DFLLCTRL = dfll_ctrl;                              // Write register
     /* Wait for lock */
