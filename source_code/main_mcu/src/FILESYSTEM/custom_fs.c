@@ -536,7 +536,6 @@ static void custom_fs_init_custom_storage_slots(void);
 *   \brief  Initialize our custom file system... system
 *   \return RETURN_(N)OK
 */
-
 ret_type_te custom_fs_init(void)
 {    
     _Static_assert(sizeof(custom_platform_settings_t) == NVMCTRL_ROW_SIZE, "Platform settings isn't a page long");
@@ -576,6 +575,15 @@ ret_type_te custom_fs_init(void)
     /* Set default language */
         return custom_fs_set_current_language(default_device_language);
     #endif
+}
+
+/*! \fn     custom_fs_get_start_address_of_signed_data(void)
+*   \brief  Get the start address of signed data in the data flash
+*   \return The start address
+*/
+custom_fs_address_t custom_fs_get_start_address_of_signed_data(void)
+{
+    return START_OF_SIGNED_DATA_IN_DATA_FLASH;
 }
 
 /*! \fn     custom_fs_get_string_from_file(uint32_t text_file_id, uint32_t string_id, char* string_pt, BOOL lock_on_fail)

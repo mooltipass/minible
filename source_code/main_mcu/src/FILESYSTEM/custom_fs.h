@@ -27,7 +27,10 @@
 
 #include "custom_fs_defines.h"
 #include "platform_defines.h"
-#include "defines.h" 
+#include "defines.h"
+
+/* Defines */
+#define START_OF_SIGNED_DATA_IN_DATA_FLASH    (CUSTOM_FS_FILES_ADDR_OFFSET + offsetof(custom_file_flash_header_t, tbd))
 
 /* Prototypes */
 ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer, BOOL usb_layout);
@@ -50,6 +53,7 @@ void custom_fs_set_settings_value(uint8_t settings_id, uint8_t setting_value);
 void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id);
 RET_TYPE custom_fs_get_user_id_for_cpz(uint8_t* cpz, uint8_t* user_id);
 void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc);
+custom_fs_address_t custom_fs_get_start_address_of_signed_data(void);
 uint8_t custom_fs_get_recommended_layout_for_current_language(void);
 uint16_t custom_fs_get_last_vbat_measurement_before_poweroff(void);
 BOOL custom_fs_get_device_flag_value(custom_fs_flag_id_te flag_id);

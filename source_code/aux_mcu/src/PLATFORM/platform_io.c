@@ -420,7 +420,9 @@ RET_TYPE platform_io_is_no_comms_asserted(void)
     } 
     else
     {
+        #ifndef BOOTLOADER
         DELAYMS(1000);
+        #endif
         return RETURN_NOK;        
     }       
 }

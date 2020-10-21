@@ -109,7 +109,9 @@ typedef struct
     uint32_t magic_header;
     uint32_t total_size;
     uint32_t crc32;
-    uint8_t signed_hash[64];
+    uint8_t reserved[4];
+    uint8_t signed_hash[16];
+    uint8_t tbd[44];
     custom_fs_file_count_t update_file_count;
     custom_fs_address_t update_file_offset;
     custom_fs_file_count_t string_file_count;
