@@ -79,6 +79,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         sh1122_put_error_string(&plat_oled_descriptor, u"Nocomms error!");
         while(1);
     }
+    comms_aux_mcu_clear_rx_already_armed_error();
     platform_io_clear_no_comms();
     
     /* Receive pending ping */

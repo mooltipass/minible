@@ -110,7 +110,34 @@ RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, 
     return RETURN_OK;
 }
 
-/*! \fn     custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
+/*! \fn     custom_fs_get_other_data_from_continuous_read_from_flash(uint8_t* datap, uint32_t size, BOOL use_dma)
+*   \brief  Get another chunk of data from continuous read from flash
+*   \param  datap       Pointer to where to store the data
+    \param  size        How many bytes to read
+    \param  use_dma     Boolean to specify if we use DMA: if set, function will return before data is transferred!
+*/
+void custom_fs_get_other_data_from_continuous_read_from_flash(uint8_t* datap, uint32_t size, BOOL use_dma)
+{
+    /* Check if we have opened the SPI bus */
+    if (custom_fs_data_bus_opened == FALSE)
+    {
+        return;
+    }
+    
+    /* If we are using DMA */
+    if (use_dma != FALSE)
+    {
+        /* Arm DMA transfer */
+        dma_custom_fs_init_transfer(custom_fs_dataflash_desc->sercom_pt, (void*)datap, size);
+    }
+    else
+    {
+        /* Read data */
+        dataflash_read_bytes_from_opened_transfer(custom_fs_dataflash_desc, datap, size);
+    }
+}
+
+/*! \fn     custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size, BOOL use_dma)
 *   \brief  Continuous data read from the external flash
 *   \param  datap       Pointer to where to store the data
 *   \param  address     Where to read the data
@@ -166,10 +193,8 @@ RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void)
     /* Start a read on external flash */
     dataflash_read_data_array_start(custom_fs_dataflash_desc, CUSTOM_FS_FILES_ADDR_OFFSET + sizeof(custom_fs_flash_header.magic_header) + sizeof(custom_fs_flash_header.total_size) + sizeof(custom_fs_flash_header.crc32));
 
-    /* Main FW: reset DMA controler */
-    #ifndef BOOTLOADER
+    /* Reset DMA controller */
     dma_reset();
-    #endif
 
     /* Use the DMA controller to compute the crc32 */
     uint32_t crc32 = dma_compute_crc32_from_spi(custom_fs_dataflash_desc->sercom_pt, custom_fs_flash_header.total_size - sizeof(custom_fs_flash_header.magic_header) - sizeof(custom_fs_flash_header.total_size) - sizeof(custom_fs_flash_header.crc32));
@@ -177,10 +202,8 @@ RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void)
     /* Stop transfer */
     dataflash_stop_ongoing_transfer(custom_fs_dataflash_desc);
     
-    /* Main FW: reset DMA controler */
-    #ifndef BOOTLOADER
+    /* Reset DMA controller */
     dma_reset();
-    #endif
     
     /* Do the final check */
     if (custom_fs_flash_header.crc32 == crc32)

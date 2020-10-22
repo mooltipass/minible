@@ -44,6 +44,7 @@ BOOL comms_aux_mcu_get_and_clear_invalid_message_received(void);
 void comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void);
 void comms_aux_mcu_prepare_for_active_rx_packet_receive(void);
 aux_status_return_te comms_aux_mcu_get_aux_status(void);
+void comms_aux_mcu_clear_rx_already_armed_error(void);
 void comms_aux_mcu_set_invalid_message_received(void);
 void comms_aux_mcu_update_device_status_buffer(void);
 RET_TYPE comms_aux_mcu_send_receive_ping(void);

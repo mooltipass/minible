@@ -88,7 +88,10 @@ int main(void)
 
     /* Local variables */
     custom_fs_address_t current_data_flash_addr;                                                                        // Current data flash address
-    uint16_t bundle_data[NVMCTRL_ROW_SIZE/2];                                                                           // Bundle data, page sized
+    uint16_t bundle_data_b1[NVMCTRL_ROW_SIZE/2];                                                                        // First buffer for bundle data
+    uint16_t bundle_data_b2[NVMCTRL_ROW_SIZE/2];                                                                        // Second buffer for bundle data
+    uint16_t* available_data_buffer;                                                                                    // Available buffer to receive data
+    uint16_t* received_data_buffer;                                                                                     // Buffer in which we received data
     //uint8_t old_version_number[4];                                                                                      // Old firmware version identifier
     //uint8_t new_version_number[4];                                                                                      // New firmware version identifier
     
@@ -153,12 +156,16 @@ int main(void)
         start_application();
     }
 
+    /* Reset DMA controller, set it up again */
+    dma_reset();
+    dma_init();
+
     /* Fetch encryption key: TODO */
     #if defined(PLAT_V7_SETUP)
     memset(cur_aes_key, 0, sizeof(cur_aes_key));
     #endif
     
-    /* Automatic write, disable caching */
+    /* Automatic flash write, disable caching */
     NVMCTRL->CTRLB.bit.MANW = 0;
     NVMCTRL->CTRLB.bit.CACHEDIS = 1;
 
@@ -180,22 +187,37 @@ int main(void)
         BOOL address_passed_for_fw_data = FALSE;
         BOOL address_valid_for_fw_data = FALSE;
 
+        /* Arm first DMA transfer */
+        custom_fs_continuous_read_from_flash((uint8_t*)bundle_data_b1, current_data_flash_addr, sizeof(bundle_data_b1), TRUE);
+        available_data_buffer = bundle_data_b2;
+        received_data_buffer = bundle_data_b1;
+
         /* CBCMAC the complete memory */
         while (current_data_flash_addr < W25Q16_FLASH_SIZE)
         {
             /* Compute number of bytes to read */
             uint32_t nb_bytes_to_read = W25Q16_FLASH_SIZE - current_data_flash_addr;
-            if (nb_bytes_to_read > sizeof(bundle_data))
+            if (nb_bytes_to_read > sizeof(bundle_data_b1))
             {
-                nb_bytes_to_read = sizeof(bundle_data);
+                nb_bytes_to_read = sizeof(bundle_data_b1);
             }
 
-            /* Read the bytes... */
-            custom_fs_read_from_flash((uint8_t*)bundle_data, current_data_flash_addr, nb_bytes_to_read);
+            /* Wait for received DMA transfer */
+            while(dma_custom_fs_check_and_clear_dma_transfer_flag() == FALSE);
+
+            /* Arm next DMA transfer */
+            if (available_data_buffer == bundle_data_b1)
+            {
+                custom_fs_get_other_data_from_continuous_read_from_flash((uint8_t*)bundle_data_b1, sizeof(bundle_data_b1), TRUE);
+            } 
+            else
+            {
+                custom_fs_get_other_data_from_continuous_read_from_flash((uint8_t*)bundle_data_b2, sizeof(bundle_data_b2), TRUE);
+            }
 
             /* CBCMAC the crap out of it */
             #if defined(PLAT_V7_SETUP)
-            br_aes_ct_ctrcbc_mac(&bootloader_cur_aes_context, cur_cbc_mac, bundle_data, nb_bytes_to_read);
+            br_aes_ct_ctrcbc_mac(&bootloader_cur_aes_context, cur_cbc_mac, received_data_buffer, nb_bytes_to_read);
             #endif
 
             /* Where the fw data is valid inside our read buffer */
@@ -235,7 +257,7 @@ int main(void)
                     }
 
                     /* Write the data, finally. */
-                    NVM_MEMORY[address_in_mcu_memory/2] = bundle_data[i];
+                    NVM_MEMORY[address_in_mcu_memory/2] = received_data_buffer[i];
 
                     /* Increment address counter */
                     nb_bytes_written_in_mcu_memory += 2;
@@ -244,8 +266,17 @@ int main(void)
                     /* Check for end of fw file... */
                     if (nb_bytes_written_in_mcu_memory >= fw_file_size)
                     {
+                        /* Set booleans */
                         address_passed_for_fw_data = TRUE;
                         address_valid_for_fw_data = FALSE;
+
+                        /* First pass: store cbcmac so far */
+
+                        /* Second pass: compare cbcmac, break loop */
+                        if (nb_pass == 1)
+                        {
+                            nb_pass = 33;
+                        }
                         break;
                     }
                 }
@@ -253,6 +284,18 @@ int main(void)
 
             /* Increment address */
             current_data_flash_addr += nb_bytes_to_read;
+
+            /* Set correct buffer pointers, DMA transfers were already triggered */
+            if (available_data_buffer == bundle_data_b1)
+            {
+                available_data_buffer = bundle_data_b2;
+                received_data_buffer = bundle_data_b1;
+            }
+            else
+            {
+                available_data_buffer = bundle_data_b1;
+                received_data_buffer = bundle_data_b2;
+            }
         }
     }
     

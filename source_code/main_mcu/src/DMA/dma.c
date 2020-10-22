@@ -54,7 +54,8 @@ volatile BOOL dma_aux_mcu_rx_transfer_to_be_rearmed = TRUE;
 *   \brief  Function called by interrupt when RX is done
 */
 void DMAC_Handler(void)
-{    
+{
+    #ifndef BOOTLOADER    
     /* AUX MCU RX routine */
     DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_COMMS);
     if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
@@ -77,6 +78,7 @@ void DMAC_Handler(void)
         dma_aux_mcu_packet_sent = TRUE;
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
     }
+    #endif
     
     /* RX routine for custom fs */
     DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_FS);
@@ -87,6 +89,7 @@ void DMAC_Handler(void)
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
     }
     
+    #ifndef BOOTLOADER
     /* OLED TX routine */
     DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_TX_OLED);
     if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
@@ -110,6 +113,7 @@ void DMAC_Handler(void)
         dma_acc_transfer_done = TRUE;
         DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
     }
+    #endif
 }
 
 /*! \fn     dma_set_custom_fs_flag_done(void)
@@ -209,6 +213,7 @@ void dma_init(void)
     dma_chctrlb_reg.bit.TRIGSRC = DATAFLASH_DMA_SERCOM_TXTRIG;                              // Select RX trigger
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
 
+    #ifndef BOOTLOADER
     /* Setup transfer descriptor for oled TX */
     dma_descriptors[DMA_DESCID_TX_OLED].BTCTRL.reg = DMAC_BTCTRL_VALID;                     // Valid descriptor
     dma_descriptors[DMA_DESCID_TX_OLED].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;  // 1 byte address increment
@@ -291,6 +296,7 @@ void dma_init(void)
     dma_chctrlb_reg.bit.TRIGSRC = AUX_MCU_SERCOM_RXTRIG;                                    // Select RX trigger
     DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
     DMAC->CHINTENSET.reg = DMAC_CHINTENSET_TCMPL;                                           // Enable channel transfer complete interrupt
+    #endif
 
     /* Enable IRQ */
     NVIC_EnableIRQ(DMAC_IRQn);
