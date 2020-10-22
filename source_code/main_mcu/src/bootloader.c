@@ -107,8 +107,9 @@ int main(void)
     //uint8_t new_aes_key[AES_KEY_LENGTH/8];                                                                              // New AES signing key
     uint8_t encryption_aes_key[AES_KEY_LENGTH/8];                                                                       // AES encryption key
     uint8_t signing_aes_key[AES_KEY_LENGTH/8];                                                                          // AES signing key
+    uint8_t encryption_aes_iv[16];                                                                                      // AES IV for encryption
     uint8_t cbc_mac_to_end_of_mcu_fpass[16];                                                                            // CBCMAC until the end of fw at first pass
-    uint8_t cur_cbc_mac[16];                                                                                            // Current CBCMAC val
+    uint8_t cur_cbc_mac[16];                                                                                            // Currently computed CBCMAC val
     //BOOL aes_key_update_bool;                                                                                           // Boolean specifying that we want to update the aes key
     
     /* Sanity checks */
@@ -189,6 +190,7 @@ int main(void)
     /* Fetch encryption & signing keys: TODO */
     #if defined(PLAT_V7_SETUP)
     memset(encryption_aes_key, 0, sizeof(encryption_aes_key));
+    memset(encryption_aes_iv, 0, sizeof(encryption_aes_iv));
     memset(signing_aes_key, 0, sizeof(signing_aes_key));
     #endif
     
