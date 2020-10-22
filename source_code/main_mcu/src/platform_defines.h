@@ -179,7 +179,7 @@
  * => Kickstarter mass production setup
  * - exactly like PLAT_V6_SETUP, but with a different transistor for faster card communications
  */
- #define PLAT_V6_SETUP 
+ #define PLAT_V7_SETUP 
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)

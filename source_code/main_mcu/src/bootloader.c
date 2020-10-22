@@ -102,12 +102,14 @@ int main(void)
 
 #if defined(PLAT_V7_SETUP)
     /* Mass production units get signed firmware updates */
-    br_aes_ct_ctrcbc_keys bootloader_cur_aes_context;                                                                   // The AES encryption context
-    uint8_t new_aes_key[AES_KEY_LENGTH/8];                                                                              // New AES encryption key
-    uint8_t cur_aes_key[AES_KEY_LENGTH/8];                                                                              // AES encryption key
+    br_aes_ct_ctrcbc_keys bootloader_encryption_aes_context;                                                            // The AES encryption context
+    br_aes_ct_ctrcbc_keys bootloader_signing_aes_context;                                                               // The AES signing context
+    //uint8_t new_aes_key[AES_KEY_LENGTH/8];                                                                              // New AES signing key
+    uint8_t encryption_aes_key[AES_KEY_LENGTH/8];                                                                       // AES encryption key
+    uint8_t signing_aes_key[AES_KEY_LENGTH/8];                                                                          // AES signing key
     uint8_t cbc_mac_to_end_of_mcu_fpass[16];                                                                            // CBCMAC until the end of fw at first pass
     uint8_t cur_cbc_mac[16];                                                                                            // Current CBCMAC val
-    BOOL aes_key_update_bool;                                                                                           // Boolean specifying that we want to update the aes key
+    //BOOL aes_key_update_bool;                                                                                           // Boolean specifying that we want to update the aes key
     
     /* Sanity checks */
     _Static_assert((W25Q16_FLASH_SIZE-START_OF_SIGNED_DATA_IN_DATA_FLASH) % 16 == 0, "CBCMAC address space isn't a multiple of block size");
@@ -121,16 +123,10 @@ int main(void)
     platform_io_init_no_comms_signal();
     DELAYMS_8M(100);
     
-    /* Fuses not programmed, start application or erase mcu depending on platform */
+    /* Fuses not programmed, start application who will check them anyway */
     if (fuses_check_program(FALSE) != RETURN_OK)
     {
-        #if defined(PLAT_V7_SETUP)
-        brick_main_mcu();
-        platform_io_disable_switch_and_die();
-        while(1);
-        #else
         start_application();
-        #endif
     }
     
     /* Initialize our settings system: should not returned failed as fuses are programmed for rwee */
@@ -139,23 +135,12 @@ int main(void)
         platform_io_disable_switch_and_die();
         while(1);
     }
-
-    /* Check for bricked device */
-    if (custom_fs_get_device_flag_value(DEVICE_BRICKED_FLAG_ID) != FALSE)
-    {
-        brick_main_mcu();
-        platform_io_disable_switch_and_die();
-        while(1);
-    }
     
-    /* If no flag set, jump to application */
+    /* If no upgrade flag set, jump to application */
     if (custom_fs_settings_check_fw_upgrade_flag() == FALSE)
     {
         start_application();
     }
-
-    /* By default, brick the device so it's an all or nothing update procedure */  
-    custom_fs_set_device_flag_value(DEVICE_BRICKED_FLAG_ID, TRUE);
     
     /* Store the dataflash descriptor for our custom fs library */
     custom_fs_set_dataflash_descriptor(&dataflash_descriptor);
@@ -169,7 +154,6 @@ int main(void)
     /* Check for external flash presence */
     if (dataflash_check_presence(&dataflash_descriptor) == RETURN_NOK)
     {
-        custom_fs_set_device_flag_value(DEVICE_BRICKED_FLAG_ID, FALSE);
         custom_fs_settings_clear_fw_upgrade_flag();
         start_application();
     }
@@ -183,7 +167,6 @@ int main(void)
     if (custom_fs_get_file_address(0, &fw_file_address, CUSTOM_FS_FW_UPDATE_TYPE) == RETURN_NOK)
     {
         /* If we couldn't find the update file */
-        custom_fs_set_device_flag_value(DEVICE_BRICKED_FLAG_ID, FALSE);
         custom_fs_settings_clear_fw_upgrade_flag();
         start_application();
     }
@@ -195,8 +178,7 @@ int main(void)
     /* Check CRC32 */
     if (custom_fs_compute_and_check_external_bundle_crc32() == RETURN_NOK)
     {
-        /* Wrong CRC32 */
-        custom_fs_set_device_flag_value(DEVICE_BRICKED_FLAG_ID, FALSE);
+        /* Wrong CRC32 : invalid bundle, start application which will also detect it */
         custom_fs_settings_clear_fw_upgrade_flag();
         start_application();
     }
@@ -204,9 +186,10 @@ int main(void)
     /* Setup DMA controller for data flash transfers */
     dma_init();
 
-    /* Fetch encryption key: TODO */
+    /* Fetch encryption & signing keys: TODO */
     #if defined(PLAT_V7_SETUP)
-    memset(cur_aes_key, 0, sizeof(cur_aes_key));
+    memset(encryption_aes_key, 0, sizeof(encryption_aes_key));
+    memset(signing_aes_key, 0, sizeof(signing_aes_key));
     #endif
     
     /* Automatic flash write, disable caching */
@@ -218,7 +201,7 @@ int main(void)
     {
         #if defined(PLAT_V7_SETUP)
         /* Initialize encryption context, set IV to 0 */
-        br_aes_ct_ctrcbc_init(&bootloader_cur_aes_context, cur_aes_key, AES_KEY_LENGTH/8);
+        br_aes_ct_ctrcbc_init(&bootloader_signing_aes_context, signing_aes_key, AES_KEY_LENGTH/8);
         memset((void*)cur_cbc_mac, 0x00, sizeof(cur_cbc_mac));
         #endif
 
@@ -261,7 +244,7 @@ int main(void)
 
             /* CBCMAC the crap out of it */
             #if defined(PLAT_V7_SETUP)
-            br_aes_ct_ctrcbc_mac(&bootloader_cur_aes_context, cur_cbc_mac, received_data_buffer, nb_bytes_to_read);
+            br_aes_ct_ctrcbc_mac(&bootloader_signing_aes_context, cur_cbc_mac, received_data_buffer, nb_bytes_to_read);
             #endif
 
             /* Where the fw data is valid inside our read buffer */
@@ -332,14 +315,11 @@ int main(void)
                         #if defined(PLAT_V7_SETUP)
                         if (utils_side_channel_safe_memcmp(cbc_mac_to_end_of_mcu_fpass, cur_cbc_mac, sizeof(cbc_mac_to_end_of_mcu_fpass)) != 0)
                         {
+                            /* Somehow the CBCMAC changed between both passes, which can only be explained by a malicious attempt */
                             brick_main_mcu();
+                            platform_io_disable_switch_and_die();
+                            while(1);
                         }
-                        else
-                        {
-                            custom_fs_set_device_flag_value(DEVICE_BRICKED_FLAG_ID, FALSE);
-                        }
-                        #else
-                        custom_fs_set_device_flag_value(DEVICE_BRICKED_FLAG_ID, FALSE);
                         #endif
 
                         /* Do not perform CBC mac until end of bundle */
@@ -364,6 +344,10 @@ int main(void)
                 received_data_buffer = bundle_data_b2;
             }
         }
+
+        /* End of pass */
+        while(dma_custom_fs_check_and_clear_dma_transfer_flag() == FALSE);
+        custom_fs_stop_continuous_read_from_flash();
     }
     
     /* Final wait, clear flag, reset */
