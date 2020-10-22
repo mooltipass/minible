@@ -585,3 +585,21 @@ void utils_itoa(uint32_t value, uint8_t num_digits, cust_char_t *str, uint8_t st
     }
 }
 
+/*! \fn     utils_side_channel_safe_memcmp(uint8_t* dataA, uint8_t* dataB, uint32_t size)
+*   \brief  A side channel attack safe implementation of memcmp
+*   \param  dataA   First array
+*   \param  dataB   Second array
+*   \param  size    Arrays length
+*   \return 0 for match
+*/
+uint8_t utils_side_channel_safe_memcmp(uint8_t* dataA, uint8_t* dataB, uint32_t size)
+{
+    volatile uint8_t return_value = 0x00;
+
+    for (uint32_t i = 0; i < size; i++)
+    {
+        return_value |= dataA[i] ^ dataB[i];
+    }
+
+    return return_value;
+}

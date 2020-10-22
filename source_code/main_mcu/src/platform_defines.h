@@ -254,7 +254,11 @@ typedef struct
 /* Simply an array point to our internal memory */
 #define NVM_MEMORY ((volatile uint16_t *)FLASH_ADDR)
 /* Our firmware start address */
-#define APP_START_ADDR (0x2000)
+#if defined(PLAT_V7_SETUP)
+    #define APP_START_ADDR (0x4000)
+#else
+    #define APP_START_ADDR (0x2000)
+#endif
 /* Internal storage slot for settings storage */
 #define SETTINGS_STORAGE_SLOT               0
 #define FLAGS_STORAGE_SLOT                  1

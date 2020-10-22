@@ -32,6 +32,7 @@
 #include "defines.h"
 #include "sh1122.h"
 #include "inputs.h"
+#include "utils.h"
 #include "fuses.h"
 #include "main.h"
 #include "dma.h"
@@ -67,26 +68,30 @@ static void start_application(void)
     application_code_entry();
 }
 
+/*! \fn     brick_main_mcu(void)
+*   \brief  Nice way to brick the main MCU
+*/
+static void brick_main_mcu(void)
+{
+    /* Automatic flash write, disable caching */
+    NVMCTRL->CTRLB.bit.MANW = 0;
+    NVMCTRL->CTRLB.bit.CACHEDIS = 1;
+
+    /* Erase all pages of internal memory */
+    for (uint32_t current_flash_address = APP_START_ADDR; current_flash_address < FLASH_SIZE; current_flash_address += NVMCTRL_ROW_SIZE)
+    {
+        /* Erase complete row, composed of 4 pages */
+        while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+        NVMCTRL->ADDR.reg  = current_flash_address/2;
+        NVMCTRL->CTRLA.reg = NVMCTRL_CTRLA_CMD_ER | NVMCTRL_CTRLA_CMDEX_KEY;
+    }
+}
+
 /*! \fn     main(void)
 *   \brief  Program Main
 */
 int main(void)
 {
-#if defined(PLAT_V7_SETUP)
-    /* Mass production units get signed firmware updates */
-    br_aes_ct_ctrcbc_keys bootloader_cur_aes_context;                                                                   // The AES encryption context
-    uint8_t new_aes_key[AES_KEY_LENGTH/8];                                                                              // New AES encryption key
-    uint8_t cur_aes_key[AES_KEY_LENGTH/8];                                                                              // AES encryption key
-    uint8_t cur_cbc_mac[16];                                                                                            // Current CBCMAC val
-    BOOL aes_key_update_bool;                                                                                           // Boolean specifying that we want to update the aes key
-    
-    /* Sanity checks */
-    _Static_assert((W25Q16_FLASH_SIZE-START_OF_SIGNED_DATA_IN_DATA_FLASH) % 16 == 0, "CBCMAC address space isn't a multiple of block size");
-    _Static_assert(sizeof(bundle_data) % 16 == 0, "Bundle buffer size is not a multiple of block size");
-    _Static_assert(sizeof(cur_cbc_mac) == 16, "Invalid MAC buffer size");
-#endif
-
-    /* Local variables */
     custom_fs_address_t current_data_flash_addr;                                                                        // Current data flash address
     uint16_t bundle_data_b1[NVMCTRL_ROW_SIZE/2];                                                                        // First buffer for bundle data
     uint16_t bundle_data_b2[NVMCTRL_ROW_SIZE/2];                                                                        // Second buffer for bundle data
@@ -94,26 +99,63 @@ int main(void)
     uint16_t* received_data_buffer;                                                                                     // Buffer in which we received data
     //uint8_t old_version_number[4];                                                                                      // Old firmware version identifier
     //uint8_t new_version_number[4];                                                                                      // New firmware version identifier
+
+#if defined(PLAT_V7_SETUP)
+    /* Mass production units get signed firmware updates */
+    br_aes_ct_ctrcbc_keys bootloader_cur_aes_context;                                                                   // The AES encryption context
+    uint8_t new_aes_key[AES_KEY_LENGTH/8];                                                                              // New AES encryption key
+    uint8_t cur_aes_key[AES_KEY_LENGTH/8];                                                                              // AES encryption key
+    uint8_t cbc_mac_to_end_of_mcu_fpass[16];                                                                            // CBCMAC until the end of fw at first pass
+    uint8_t cur_cbc_mac[16];                                                                                            // Current CBCMAC val
+    BOOL aes_key_update_bool;                                                                                           // Boolean specifying that we want to update the aes key
+    
+    /* Sanity checks */
+    _Static_assert((W25Q16_FLASH_SIZE-START_OF_SIGNED_DATA_IN_DATA_FLASH) % 16 == 0, "CBCMAC address space isn't a multiple of block size");
+    _Static_assert(sizeof(bundle_data_b1) % 16 == 0, "Bundle buffer size is not a multiple of block size");
+    _Static_assert(sizeof(bundle_data_b2) % 16 == 0, "Bundle buffer size is not a multiple of block size");
+    _Static_assert(sizeof(cur_cbc_mac) == 16, "Invalid MAC buffer size");
+#endif
     
     /* Enable switch and 3V3 stepup, set no comms signal, leave some time for stepup powerup */
     platform_io_enable_switch();
     platform_io_init_no_comms_signal();
     DELAYMS_8M(100);
     
-    /* Fuses not programmed, start application */
+    /* Fuses not programmed, start application or erase mcu depending on platform */
     if (fuses_check_program(FALSE) != RETURN_OK)
     {
+        #if defined(PLAT_V7_SETUP)
+        brick_main_mcu();
+        platform_io_disable_switch_and_die();
+        while(1);
+        #else
         start_application();
+        #endif
     }
     
-    /* Initialize our settings system */
-    custom_fs_settings_init();
+    /* Initialize our settings system: should not returned failed as fuses are programmed for rwee */
+    if (custom_fs_settings_init() != CUSTOM_FS_INIT_OK)
+    {
+        platform_io_disable_switch_and_die();
+        while(1);
+    }
+
+    /* Check for bricked device */
+    if (custom_fs_get_device_flag_value(DEVICE_BRICKED_FLAG_ID) != FALSE)
+    {
+        brick_main_mcu();
+        platform_io_disable_switch_and_die();
+        while(1);
+    }
     
     /* If no flag set, jump to application */
     if (custom_fs_settings_check_fw_upgrade_flag() == FALSE)
     {
         start_application();
     }
+
+    /* By default, brick the device so it's an all or nothing update procedure */  
+    custom_fs_set_device_flag_value(DEVICE_BRICKED_FLAG_ID, TRUE);
     
     /* Store the dataflash descriptor for our custom fs library */
     custom_fs_set_dataflash_descriptor(&dataflash_descriptor);
@@ -127,6 +169,7 @@ int main(void)
     /* Check for external flash presence */
     if (dataflash_check_presence(&dataflash_descriptor) == RETURN_NOK)
     {
+        custom_fs_set_device_flag_value(DEVICE_BRICKED_FLAG_ID, FALSE);
         custom_fs_settings_clear_fw_upgrade_flag();
         start_application();
     }
@@ -140,6 +183,7 @@ int main(void)
     if (custom_fs_get_file_address(0, &fw_file_address, CUSTOM_FS_FW_UPDATE_TYPE) == RETURN_NOK)
     {
         /* If we couldn't find the update file */
+        custom_fs_set_device_flag_value(DEVICE_BRICKED_FLAG_ID, FALSE);
         custom_fs_settings_clear_fw_upgrade_flag();
         start_application();
     }
@@ -152,12 +196,12 @@ int main(void)
     if (custom_fs_compute_and_check_external_bundle_crc32() == RETURN_NOK)
     {
         /* Wrong CRC32 */
+        custom_fs_set_device_flag_value(DEVICE_BRICKED_FLAG_ID, FALSE);
         custom_fs_settings_clear_fw_upgrade_flag();
         start_application();
     }
 
-    /* Reset DMA controller, set it up again */
-    dma_reset();
+    /* Setup DMA controller for data flash transfers */
     dma_init();
 
     /* Fetch encryption key: TODO */
@@ -233,10 +277,24 @@ int main(void)
                 valid_fw_data_offset = fw_file_address - current_data_flash_addr;
             }
 
-            /* Second pass, should we flash into main MCU? */
-            if ((nb_pass == 1) 
-                && TRUE 
-                && (address_valid_for_fw_data != FALSE))
+            /* First pass: store cbcmac at end of fw file (kind of), second pass: flash & check cbcmac */
+            if ((nb_pass == 0) && (address_valid_for_fw_data != FALSE))
+            {
+                #if defined(PLAT_V7_SETUP)
+                nb_bytes_written_in_mcu_memory += nb_bytes_to_read - valid_fw_data_offset;
+
+                if (nb_bytes_written_in_mcu_memory >= fw_file_size)
+                {
+                    /* Set booleans */
+                    address_passed_for_fw_data = TRUE;
+                    address_valid_for_fw_data = FALSE;
+
+                    /* Store cbcmac so far */
+                    memcpy(cbc_mac_to_end_of_mcu_fpass, cur_cbc_mac, sizeof(cbc_mac_to_end_of_mcu_fpass));
+                }
+                #endif
+            }
+            else if ((nb_pass == 1) && (address_valid_for_fw_data != FALSE))
             {
                 /* Keep in mind we are 16 bytes aligned here */
                 for (uint32_t i = valid_fw_data_offset/2; i < nb_bytes_to_read/2; i++)
@@ -270,13 +328,22 @@ int main(void)
                         address_passed_for_fw_data = TRUE;
                         address_valid_for_fw_data = FALSE;
 
-                        /* First pass: store cbcmac so far */
-
-                        /* Second pass: compare cbcmac, break loop */
-                        if (nb_pass == 1)
+                        /* Check the CBCMAC from the previous pass matches the current one's */
+                        #if defined(PLAT_V7_SETUP)
+                        if (utils_side_channel_safe_memcmp(cbc_mac_to_end_of_mcu_fpass, cur_cbc_mac, sizeof(cbc_mac_to_end_of_mcu_fpass)) != 0)
                         {
-                            nb_pass = 33;
+                            brick_main_mcu();
                         }
+                        else
+                        {
+                            custom_fs_set_device_flag_value(DEVICE_BRICKED_FLAG_ID, FALSE);
+                        }
+                        #else
+                        custom_fs_set_device_flag_value(DEVICE_BRICKED_FLAG_ID, FALSE);
+                        #endif
+
+                        /* Do not perform CBC mac until end of bundle */
+                        nb_pass = 33;
                         break;
                     }
                 }

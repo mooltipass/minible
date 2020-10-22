@@ -832,6 +832,12 @@
     <Compile Include="src\TIMER\driver_timer.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\utils.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\utils.h">
+      <SubType>compile</SubType>
+    </Compile>
     <None Include="src\asf.h">
       <SubType>compile</SubType>
     </None>
