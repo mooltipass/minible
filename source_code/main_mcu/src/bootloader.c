@@ -149,8 +149,8 @@ int main(void)
     
     /* Sanity checks */
     _Static_assert((W25Q16_FLASH_SIZE-START_OF_SIGNED_DATA_IN_DATA_FLASH) % 16 == 0, "CBCMAC address space isn't a multiple of block size");
-    _Static_assert(sizeof(row_to_be_flashed) == sizeof(NVMCTRL_ROW_SIZE), "Incorrect row_to_be_flashed size to flash main MCU row");
     _Static_assert(sizeof(row_to_be_flashed) == sizeof(bundle_data_b2), "Diff buffer sizes, flashing logic needs to be redone");
+    _Static_assert(sizeof(row_to_be_flashed) == NVMCTRL_ROW_SIZE, "Incorrect row_to_be_flashed size to flash main MCU row");
     _Static_assert(sizeof(row_to_be_flashed) % 16 == 0, "Bundle buffer size is not a multiple of block size");
     _Static_assert(sizeof(bundle_data_b2) % 16 == 0, "Bundle buffer size is not a multiple of block size");
     _Static_assert(sizeof(bundle_data_b1) % 16 == 0, "Bundle buffer size is not a multiple of block size");
