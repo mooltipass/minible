@@ -1,0 +1,3923 @@
+
+bootloader.elf:     file format elf32-littlearm
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         00001e9c  00000000  00000000  00010000  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .relocate     00000018  20000000  00001e9c  00020000  2**2
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .bss          00000254  20000020  00001ec0  00020020  2**4
+                  ALLOC
+  3 .stack        00002004  20000274  00002114  00020020  2**0
+                  ALLOC
+  4 .ARM.attributes 00000028  00000000  00000000  00020018  2**0
+                  CONTENTS, READONLY
+  5 .comment      00000059  00000000  00000000  00020040  2**0
+                  CONTENTS, READONLY
+  6 .debug_info   00029ae9  00000000  00000000  00020099  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_abbrev 0000291b  00000000  00000000  00049b82  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_loc    00003cf2  00000000  00000000  0004c49d  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_aranges 00000750  00000000  00000000  0005018f  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_ranges 000006f8  00000000  00000000  000508df  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 11 .debug_macro  00004f7e  00000000  00000000  00050fd7  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 12 .debug_line   0000a421  00000000  00000000  00055f55  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 13 .debug_str    0008cb64  00000000  00000000  00060376  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 14 .debug_frame  0000122c  00000000  00000000  000ecedc  2**2
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <exception_table>:
+       0:	78 22 00 20 91 12 00 00 8d 12 00 00 8d 12 00 00     x". ............
+	...
+      2c:	8d 12 00 00 00 00 00 00 00 00 00 00 8d 12 00 00     ................
+      3c:	05 12 00 00 8d 12 00 00 8d 12 00 00 8d 12 00 00     ................
+      4c:	8d 12 00 00 f1 0d 00 00 8d 12 00 00 f1 04 00 00     ................
+      5c:	8d 12 00 00 8d 12 00 00 8d 12 00 00 8d 12 00 00     ................
+      6c:	8d 12 00 00 8d 12 00 00 8d 12 00 00 35 10 00 00     ............5...
+      7c:	01 12 00 00 8d 12 00 00 03 12 00 00 8d 12 00 00     ................
+      8c:	8d 12 00 00 8d 12 00 00 00 00 00 00 00 00 00 00     ................
+      9c:	b1 0e 00 00 8d 12 00 00 8d 12 00 00 8d 12 00 00     ................
+      ac:	8d 12 00 00 00 00 00 00                             ........
+
+000000b4 <__do_global_dtors_aux>:
+      b4:	b510      	push	{r4, lr}
+      b6:	4c06      	ldr	r4, [pc, #24]	; (d0 <__do_global_dtors_aux+0x1c>)
+      b8:	7823      	ldrb	r3, [r4, #0]
+      ba:	2b00      	cmp	r3, #0
+      bc:	d107      	bne.n	ce <__do_global_dtors_aux+0x1a>
+      be:	4b05      	ldr	r3, [pc, #20]	; (d4 <__do_global_dtors_aux+0x20>)
+      c0:	2b00      	cmp	r3, #0
+      c2:	d002      	beq.n	ca <__do_global_dtors_aux+0x16>
+      c4:	4804      	ldr	r0, [pc, #16]	; (d8 <__do_global_dtors_aux+0x24>)
+      c6:	e000      	b.n	ca <__do_global_dtors_aux+0x16>
+      c8:	bf00      	nop
+      ca:	2301      	movs	r3, #1
+      cc:	7023      	strb	r3, [r4, #0]
+      ce:	bd10      	pop	{r4, pc}
+      d0:	20000020 	.word	0x20000020
+      d4:	00000000 	.word	0x00000000
+      d8:	00001e9c 	.word	0x00001e9c
+
+000000dc <frame_dummy>:
+      dc:	4b08      	ldr	r3, [pc, #32]	; (100 <frame_dummy+0x24>)
+      de:	b510      	push	{r4, lr}
+      e0:	2b00      	cmp	r3, #0
+      e2:	d003      	beq.n	ec <frame_dummy+0x10>
+      e4:	4907      	ldr	r1, [pc, #28]	; (104 <frame_dummy+0x28>)
+      e6:	4808      	ldr	r0, [pc, #32]	; (108 <frame_dummy+0x2c>)
+      e8:	e000      	b.n	ec <frame_dummy+0x10>
+      ea:	bf00      	nop
+      ec:	4807      	ldr	r0, [pc, #28]	; (10c <frame_dummy+0x30>)
+      ee:	6803      	ldr	r3, [r0, #0]
+      f0:	2b00      	cmp	r3, #0
+      f2:	d100      	bne.n	f6 <frame_dummy+0x1a>
+      f4:	bd10      	pop	{r4, pc}
+      f6:	4b06      	ldr	r3, [pc, #24]	; (110 <frame_dummy+0x34>)
+      f8:	2b00      	cmp	r3, #0
+      fa:	d0fb      	beq.n	f4 <frame_dummy+0x18>
+      fc:	4798      	blx	r3
+      fe:	e7f9      	b.n	f4 <frame_dummy+0x18>
+     100:	00000000 	.word	0x00000000
+     104:	20000024 	.word	0x20000024
+     108:	00001e9c 	.word	0x00001e9c
+     10c:	00001e9c 	.word	0x00001e9c
+     110:	00000000 	.word	0x00000000
+
+00000114 <start_application>:
+
+/**
+ * \brief Function to start the application.
+ */
+static void start_application(void)
+{
+     114:	b580      	push	{r7, lr}
+     116:	af00      	add	r7, sp, #0
+    /* Pointer to the Application Section */
+    void (*application_code_entry)(void);
+
+    /* Rebase the Stack Pointer */
+    __set_MSP(*(uint32_t *)APP_START_ADDR);
+     118:	2380      	movs	r3, #128	; 0x80
+     11a:	019b      	lsls	r3, r3, #6
+
+    \param [in]    topOfMainStack  Main Stack Pointer value to set
+ */
+__attribute__( ( always_inline ) ) __STATIC_INLINE void __set_MSP(uint32_t topOfMainStack)
+{
+  __ASM volatile ("MSR msp, %0\n" : : "r" (topOfMainStack) : "sp");
+     11c:	681a      	ldr	r2, [r3, #0]
+     11e:	f382 8808 	msr	MSP, r2
+
+    /* Rebase the vector table base address */
+    SCB->VTOR = ((uint32_t)APP_START_ADDR & SCB_VTOR_TBLOFF_Msk);
+     122:	4a03      	ldr	r2, [pc, #12]	; (130 <start_application+0x1c>)
+     124:	6093      	str	r3, [r2, #8]
+
+    /* Load the Reset Handler address of the application */
+    application_code_entry = (void (*)(void))(unsigned *)(*(unsigned *)(APP_START_ADDR + 4));
+     126:	4b03      	ldr	r3, [pc, #12]	; (134 <start_application+0x20>)
+
+    /* Jump to user Reset Handler in the application */
+    application_code_entry();
+     128:	681b      	ldr	r3, [r3, #0]
+     12a:	4798      	blx	r3
+}
+     12c:	46bd      	mov	sp, r7
+     12e:	bd80      	pop	{r7, pc}
+     130:	e000ed00 	.word	0xe000ed00
+     134:	00002004 	.word	0x00002004
+
+00000138 <main>:
+
+/*! \fn     main(void)
+*   \brief  Program Main
+*/
+int main(void)
+{
+     138:	b5f0      	push	{r4, r5, r6, r7, lr}
+     13a:	46de      	mov	lr, fp
+     13c:	4657      	mov	r7, sl
+     13e:	464e      	mov	r6, r9
+     140:	4645      	mov	r5, r8
+     142:	b5e0      	push	{r5, r6, r7, lr}
+     144:	4c95      	ldr	r4, [pc, #596]	; (39c <main+0x264>)
+     146:	44a5      	add	sp, r4
+    _Static_assert(sizeof(bundle_data_b2) % 16 == 0, "Bundle buffer size is not a multiple of block size");
+    _Static_assert(sizeof(cur_cbc_mac) == 16, "Invalid MAC buffer size");
+#endif
+    
+    /* Enable switch and 3V3 stepup, set no comms signal, leave some time for stepup powerup */
+    platform_io_enable_switch();
+     148:	4b95      	ldr	r3, [pc, #596]	; (3a0 <main+0x268>)
+     14a:	4798      	blx	r3
+    platform_io_init_no_comms_signal();
+     14c:	4b95      	ldr	r3, [pc, #596]	; (3a4 <main+0x26c>)
+     14e:	4798      	blx	r3
+    DELAYMS_8M(100);
+     150:	4b95      	ldr	r3, [pc, #596]	; (3a8 <main+0x270>)
+     152:	9303      	str	r3, [sp, #12]
+     154:	9b03      	ldr	r3, [sp, #12]
+     156:	1e5a      	subs	r2, r3, #1
+     158:	9203      	str	r2, [sp, #12]
+     15a:	2b00      	cmp	r3, #0
+     15c:	d1fa      	bne.n	154 <main+0x1c>
+    
+    /* Fuses not programmed, start application who will check them anyway */
+    if (fuses_check_program(FALSE) != RETURN_OK)
+     15e:	2000      	movs	r0, #0
+     160:	4b92      	ldr	r3, [pc, #584]	; (3ac <main+0x274>)
+     162:	4798      	blx	r3
+     164:	2800      	cmp	r0, #0
+     166:	d001      	beq.n	16c <main+0x34>
+    {
+        start_application();
+     168:	4b91      	ldr	r3, [pc, #580]	; (3b0 <main+0x278>)
+     16a:	4798      	blx	r3
+    }
+    
+    /* Initialize our settings system: should not returned failed as fuses are programmed for rwee */
+    if (custom_fs_settings_init() != CUSTOM_FS_INIT_OK)
+     16c:	4b91      	ldr	r3, [pc, #580]	; (3b4 <main+0x27c>)
+     16e:	4798      	blx	r3
+     170:	2800      	cmp	r0, #0
+     172:	d002      	beq.n	17a <main+0x42>
+    {
+        platform_io_disable_switch_and_die();
+     174:	4b90      	ldr	r3, [pc, #576]	; (3b8 <main+0x280>)
+     176:	4798      	blx	r3
+     178:	e7fe      	b.n	178 <main+0x40>
+        while(1);
+    }
+    
+    /* If no upgrade flag set, jump to application */
+    if (custom_fs_settings_check_fw_upgrade_flag() == FALSE)
+     17a:	4b90      	ldr	r3, [pc, #576]	; (3bc <main+0x284>)
+     17c:	4798      	blx	r3
+     17e:	2800      	cmp	r0, #0
+     180:	d030      	beq.n	1e4 <main+0xac>
+    {
+        start_application();
+    }
+    
+    /* Store the dataflash descriptor for our custom fs library */
+    custom_fs_set_dataflash_descriptor(&dataflash_descriptor);
+     182:	4c8f      	ldr	r4, [pc, #572]	; (3c0 <main+0x288>)
+     184:	0020      	movs	r0, r4
+     186:	4b8f      	ldr	r3, [pc, #572]	; (3c4 <main+0x28c>)
+     188:	4798      	blx	r3
+    
+    /* Change the MCU main clock to 48MHz */
+    clocks_start_48MDFLL();
+     18a:	4b8f      	ldr	r3, [pc, #572]	; (3c8 <main+0x290>)
+     18c:	4798      	blx	r3
+    
+    /* Initialize flash io ports */
+    platform_io_init_flash_ports();
+     18e:	4b8f      	ldr	r3, [pc, #572]	; (3cc <main+0x294>)
+     190:	4798      	blx	r3
+    
+    /* Check for external flash presence */
+    if (dataflash_check_presence(&dataflash_descriptor) == RETURN_NOK)
+     192:	0020      	movs	r0, r4
+     194:	4b8e      	ldr	r3, [pc, #568]	; (3d0 <main+0x298>)
+     196:	4798      	blx	r3
+     198:	1c43      	adds	r3, r0, #1
+     19a:	d026      	beq.n	1ea <main+0xb2>
+        custom_fs_settings_clear_fw_upgrade_flag();
+        start_application();
+    }
+    
+    /* Custom file system initialization */
+    custom_fs_init();
+     19c:	4b8d      	ldr	r3, [pc, #564]	; (3d4 <main+0x29c>)
+     19e:	4798      	blx	r3
+    
+    /* Look for update file address */
+    custom_fs_address_t fw_file_address;
+    custom_fs_binfile_size_t fw_file_size;
+    if (custom_fs_get_file_address(0, &fw_file_address, CUSTOM_FS_FW_UPDATE_TYPE) == RETURN_NOK)
+     1a0:	2204      	movs	r2, #4
+     1a2:	a905      	add	r1, sp, #20
+     1a4:	2000      	movs	r0, #0
+     1a6:	4b8c      	ldr	r3, [pc, #560]	; (3d8 <main+0x2a0>)
+     1a8:	4798      	blx	r3
+     1aa:	1c43      	adds	r3, r0, #1
+     1ac:	d022      	beq.n	1f4 <main+0xbc>
+        custom_fs_settings_clear_fw_upgrade_flag();
+        start_application();
+    }
+    
+    /* Read file size */
+    custom_fs_read_from_flash((uint8_t*)&fw_file_size, fw_file_address, sizeof(fw_file_size));
+     1ae:	2204      	movs	r2, #4
+     1b0:	9905      	ldr	r1, [sp, #20]
+     1b2:	a804      	add	r0, sp, #16
+     1b4:	4b89      	ldr	r3, [pc, #548]	; (3dc <main+0x2a4>)
+     1b6:	4798      	blx	r3
+    fw_file_address += sizeof(fw_file_size);
+     1b8:	9b05      	ldr	r3, [sp, #20]
+     1ba:	3304      	adds	r3, #4
+     1bc:	9305      	str	r3, [sp, #20]
+    
+    /* Check CRC32 */
+    if (custom_fs_compute_and_check_external_bundle_crc32() == RETURN_NOK)
+     1be:	4b88      	ldr	r3, [pc, #544]	; (3e0 <main+0x2a8>)
+     1c0:	4798      	blx	r3
+     1c2:	1c43      	adds	r3, r0, #1
+     1c4:	d01b      	beq.n	1fe <main+0xc6>
+        custom_fs_settings_clear_fw_upgrade_flag();
+        start_application();
+    }
+
+    /* Setup DMA controller for data flash transfers */
+    dma_init();
+     1c6:	4b87      	ldr	r3, [pc, #540]	; (3e4 <main+0x2ac>)
+     1c8:	4798      	blx	r3
+    memset(encryption_aes_iv, 0, sizeof(encryption_aes_iv));
+    memset(signing_aes_key, 0, sizeof(signing_aes_key));
+    #endif
+    
+    /* Automatic flash write, disable caching */
+    NVMCTRL->CTRLB.bit.MANW = 0;
+     1ca:	4b87      	ldr	r3, [pc, #540]	; (3e8 <main+0x2b0>)
+     1cc:	685a      	ldr	r2, [r3, #4]
+     1ce:	2180      	movs	r1, #128	; 0x80
+     1d0:	438a      	bics	r2, r1
+     1d2:	605a      	str	r2, [r3, #4]
+    NVMCTRL->CTRLB.bit.CACHEDIS = 1;
+     1d4:	6859      	ldr	r1, [r3, #4]
+     1d6:	2280      	movs	r2, #128	; 0x80
+     1d8:	02d2      	lsls	r2, r2, #11
+     1da:	430a      	orrs	r2, r1
+     1dc:	605a      	str	r2, [r3, #4]
+
+    /* Two passes: one to check the signature, one to flash and check previously stored signature for fw file */
+    for (uint16_t nb_pass = 0; nb_pass < 2; nb_pass++)
+     1de:	2300      	movs	r3, #0
+     1e0:	469b      	mov	fp, r3
+     1e2:	e0b0      	b.n	346 <main+0x20e>
+        start_application();
+     1e4:	4b72      	ldr	r3, [pc, #456]	; (3b0 <main+0x278>)
+     1e6:	4798      	blx	r3
+     1e8:	e7cb      	b.n	182 <main+0x4a>
+        custom_fs_settings_clear_fw_upgrade_flag();
+     1ea:	4b80      	ldr	r3, [pc, #512]	; (3ec <main+0x2b4>)
+     1ec:	4798      	blx	r3
+        start_application();
+     1ee:	4b70      	ldr	r3, [pc, #448]	; (3b0 <main+0x278>)
+     1f0:	4798      	blx	r3
+     1f2:	e7d3      	b.n	19c <main+0x64>
+        custom_fs_settings_clear_fw_upgrade_flag();
+     1f4:	4b7d      	ldr	r3, [pc, #500]	; (3ec <main+0x2b4>)
+     1f6:	4798      	blx	r3
+        start_application();
+     1f8:	4b6d      	ldr	r3, [pc, #436]	; (3b0 <main+0x278>)
+     1fa:	4798      	blx	r3
+     1fc:	e7d7      	b.n	1ae <main+0x76>
+        custom_fs_settings_clear_fw_upgrade_flag();
+     1fe:	4b7b      	ldr	r3, [pc, #492]	; (3ec <main+0x2b4>)
+     200:	4798      	blx	r3
+        start_application();
+     202:	4b6b      	ldr	r3, [pc, #428]	; (3b0 <main+0x278>)
+     204:	4798      	blx	r3
+     206:	e7de      	b.n	1c6 <main+0x8e>
+            while(dma_custom_fs_check_and_clear_dma_transfer_flag() == FALSE);
+
+            /* Arm next DMA transfer */
+            if (available_data_buffer == bundle_data_b1)
+            {
+                custom_fs_get_other_data_from_continuous_read_from_flash((uint8_t*)bundle_data_b1, sizeof(bundle_data_b1), TRUE);
+     208:	2201      	movs	r2, #1
+     20a:	2180      	movs	r1, #128	; 0x80
+     20c:	0049      	lsls	r1, r1, #1
+     20e:	0018      	movs	r0, r3
+     210:	4b77      	ldr	r3, [pc, #476]	; (3f0 <main+0x2b8>)
+     212:	4798      	blx	r3
+     214:	e025      	b.n	262 <main+0x12a>
+                /* Compute the fw data offset */
+                valid_fw_data_offset = fw_file_address - current_data_flash_addr;
+            }
+
+            /* First pass: store cbcmac at end of fw file (kind of), second pass: flash & check cbcmac */
+            if ((nb_pass == 0) && (address_valid_for_fw_data != FALSE))
+     216:	465b      	mov	r3, fp
+     218:	2b00      	cmp	r3, #0
+     21a:	d136      	bne.n	28a <main+0x152>
+     21c:	464a      	mov	r2, r9
+     21e:	1e53      	subs	r3, r2, #1
+     220:	419a      	sbcs	r2, r3
+     222:	4691      	mov	r9, r2
+                    }
+                }
+            }
+
+            /* Increment address */
+            current_data_flash_addr += nb_bytes_to_read;
+     224:	19bf      	adds	r7, r7, r6
+
+            /* Set correct buffer pointers, DMA transfers were already triggered */
+            if (available_data_buffer == bundle_data_b1)
+     226:	ab46      	add	r3, sp, #280	; 0x118
+     228:	459a      	cmp	sl, r3
+     22a:	d07b      	beq.n	324 <main+0x1ec>
+                received_data_buffer = bundle_data_b1;
+            }
+            else
+            {
+                available_data_buffer = bundle_data_b1;
+                received_data_buffer = bundle_data_b2;
+     22c:	ab06      	add	r3, sp, #24
+     22e:	9301      	str	r3, [sp, #4]
+                available_data_buffer = bundle_data_b1;
+     230:	ab46      	add	r3, sp, #280	; 0x118
+     232:	469a      	mov	sl, r3
+        while (current_data_flash_addr < W25Q16_FLASH_SIZE)
+     234:	4b6f      	ldr	r3, [pc, #444]	; (3f4 <main+0x2bc>)
+     236:	429f      	cmp	r7, r3
+     238:	d879      	bhi.n	32e <main+0x1f6>
+            uint32_t nb_bytes_to_read = W25Q16_FLASH_SIZE - current_data_flash_addr;
+     23a:	2680      	movs	r6, #128	; 0x80
+     23c:	03b6      	lsls	r6, r6, #14
+     23e:	1bf6      	subs	r6, r6, r7
+     240:	2380      	movs	r3, #128	; 0x80
+     242:	005b      	lsls	r3, r3, #1
+     244:	429e      	cmp	r6, r3
+     246:	d900      	bls.n	24a <main+0x112>
+     248:	001e      	movs	r6, r3
+            while(dma_custom_fs_check_and_clear_dma_transfer_flag() == FALSE);
+     24a:	47a0      	blx	r4
+     24c:	2800      	cmp	r0, #0
+     24e:	d0fc      	beq.n	24a <main+0x112>
+            if (available_data_buffer == bundle_data_b1)
+     250:	ab46      	add	r3, sp, #280	; 0x118
+     252:	459a      	cmp	sl, r3
+     254:	d0d8      	beq.n	208 <main+0xd0>
+                custom_fs_get_other_data_from_continuous_read_from_flash((uint8_t*)bundle_data_b2, sizeof(bundle_data_b2), TRUE);
+     256:	2201      	movs	r2, #1
+     258:	2180      	movs	r1, #128	; 0x80
+     25a:	0049      	lsls	r1, r1, #1
+     25c:	a806      	add	r0, sp, #24
+     25e:	4b64      	ldr	r3, [pc, #400]	; (3f0 <main+0x2b8>)
+     260:	4798      	blx	r3
+            if ((address_valid_for_fw_data == FALSE) && (address_passed_for_fw_data == FALSE) && ((current_data_flash_addr + nb_bytes_to_read) > fw_file_address))
+     262:	9b00      	ldr	r3, [sp, #0]
+     264:	464a      	mov	r2, r9
+     266:	4313      	orrs	r3, r2
+     268:	d1d5      	bne.n	216 <main+0xde>
+     26a:	9b05      	ldr	r3, [sp, #20]
+     26c:	19f2      	adds	r2, r6, r7
+     26e:	429a      	cmp	r2, r3
+     270:	d9d1      	bls.n	216 <main+0xde>
+            if ((nb_pass == 0) && (address_valid_for_fw_data != FALSE))
+     272:	2201      	movs	r2, #1
+     274:	4691      	mov	r9, r2
+     276:	465a      	mov	r2, fp
+     278:	2a00      	cmp	r2, #0
+     27a:	d0d3      	beq.n	224 <main+0xec>
+                valid_fw_data_offset = fw_file_address - current_data_flash_addr;
+     27c:	1bdb      	subs	r3, r3, r7
+            else if ((nb_pass == 1) && (address_valid_for_fw_data != FALSE))
+     27e:	465a      	mov	r2, fp
+     280:	2a01      	cmp	r2, #1
+     282:	d009      	beq.n	298 <main+0x160>
+                address_valid_for_fw_data = TRUE;
+     284:	2301      	movs	r3, #1
+     286:	4699      	mov	r9, r3
+     288:	e7cc      	b.n	224 <main+0xec>
+            else if ((nb_pass == 1) && (address_valid_for_fw_data != FALSE))
+     28a:	465b      	mov	r3, fp
+     28c:	2b01      	cmp	r3, #1
+     28e:	d1c9      	bne.n	224 <main+0xec>
+     290:	464b      	mov	r3, r9
+     292:	2b00      	cmp	r3, #0
+     294:	d0c6      	beq.n	224 <main+0xec>
+     296:	2300      	movs	r3, #0
+                for (uint32_t i = valid_fw_data_offset/2; i < nb_bytes_to_read/2; i++)
+     298:	0859      	lsrs	r1, r3, #1
+     29a:	0872      	lsrs	r2, r6, #1
+     29c:	4693      	mov	fp, r2
+     29e:	4291      	cmp	r1, r2
+     2a0:	d232      	bcs.n	308 <main+0x1d0>
+     2a2:	2201      	movs	r2, #1
+     2a4:	4393      	bics	r3, r2
+     2a6:	1b58      	subs	r0, r3, r5
+     2a8:	9b01      	ldr	r3, [sp, #4]
+     2aa:	469c      	mov	ip, r3
+     2ac:	4484      	add	ip, r0
+                        while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+     2ae:	4a4e      	ldr	r2, [pc, #312]	; (3e8 <main+0x2b0>)
+     2b0:	2301      	movs	r3, #1
+                    if (address_in_mcu_memory % (NVMCTRL_ROW_SIZE/4) == 0)
+     2b2:	46e1      	mov	r9, ip
+     2b4:	46b4      	mov	ip, r6
+     2b6:	000e      	movs	r6, r1
+     2b8:	4641      	mov	r1, r8
+     2ba:	46b8      	mov	r8, r7
+     2bc:	e00c      	b.n	2d8 <main+0x1a0>
+                    NVM_MEMORY[address_in_mcu_memory/2] = received_data_buffer[i];
+     2be:	0028      	movs	r0, r5
+     2c0:	4398      	bics	r0, r3
+     2c2:	464f      	mov	r7, r9
+     2c4:	5b7f      	ldrh	r7, [r7, r5]
+     2c6:	8007      	strh	r7, [r0, #0]
+                    nb_bytes_written_in_mcu_memory += 2;
+     2c8:	3102      	adds	r1, #2
+                    address_in_mcu_memory += 2;
+     2ca:	3502      	adds	r5, #2
+                    if (nb_bytes_written_in_mcu_memory >= fw_file_size)
+     2cc:	9804      	ldr	r0, [sp, #16]
+     2ce:	4281      	cmp	r1, r0
+     2d0:	d21e      	bcs.n	310 <main+0x1d8>
+                for (uint32_t i = valid_fw_data_offset/2; i < nb_bytes_to_read/2; i++)
+     2d2:	3601      	adds	r6, #1
+     2d4:	455e      	cmp	r6, fp
+     2d6:	d010      	beq.n	2fa <main+0x1c2>
+                    if (address_in_mcu_memory % NVMCTRL_ROW_SIZE == 0)
+     2d8:	20ff      	movs	r0, #255	; 0xff
+     2da:	4228      	tst	r0, r5
+     2dc:	d106      	bne.n	2ec <main+0x1b4>
+                        while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+     2de:	7d10      	ldrb	r0, [r2, #20]
+     2e0:	4218      	tst	r0, r3
+     2e2:	d0fc      	beq.n	2de <main+0x1a6>
+                        NVMCTRL->ADDR.reg  = address_in_mcu_memory/2;
+     2e4:	0868      	lsrs	r0, r5, #1
+     2e6:	61d0      	str	r0, [r2, #28]
+                        NVMCTRL->CTRLA.reg = NVMCTRL_CTRLA_CMD_ER | NVMCTRL_CTRLA_CMDEX_KEY;
+     2e8:	4843      	ldr	r0, [pc, #268]	; (3f8 <main+0x2c0>)
+     2ea:	8010      	strh	r0, [r2, #0]
+                    if (address_in_mcu_memory % (NVMCTRL_ROW_SIZE/4) == 0)
+     2ec:	203f      	movs	r0, #63	; 0x3f
+     2ee:	4228      	tst	r0, r5
+     2f0:	d1e5      	bne.n	2be <main+0x186>
+                        while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+     2f2:	7d10      	ldrb	r0, [r2, #20]
+     2f4:	4218      	tst	r0, r3
+     2f6:	d0fc      	beq.n	2f2 <main+0x1ba>
+     2f8:	e7e1      	b.n	2be <main+0x186>
+     2fa:	4666      	mov	r6, ip
+     2fc:	4647      	mov	r7, r8
+     2fe:	4688      	mov	r8, r1
+     300:	2301      	movs	r3, #1
+     302:	4699      	mov	r9, r3
+     304:	469b      	mov	fp, r3
+     306:	e78d      	b.n	224 <main+0xec>
+                for (uint32_t i = valid_fw_data_offset/2; i < nb_bytes_to_read/2; i++)
+     308:	2301      	movs	r3, #1
+     30a:	4699      	mov	r9, r3
+     30c:	469b      	mov	fp, r3
+     30e:	e789      	b.n	224 <main+0xec>
+     310:	4666      	mov	r6, ip
+     312:	4647      	mov	r7, r8
+     314:	4688      	mov	r8, r1
+                        address_valid_for_fw_data = FALSE;
+     316:	2300      	movs	r3, #0
+     318:	4699      	mov	r9, r3
+                        address_passed_for_fw_data = TRUE;
+     31a:	3301      	adds	r3, #1
+     31c:	9300      	str	r3, [sp, #0]
+                        nb_pass = 33;
+     31e:	3320      	adds	r3, #32
+     320:	469b      	mov	fp, r3
+     322:	e77f      	b.n	224 <main+0xec>
+                received_data_buffer = bundle_data_b1;
+     324:	ab46      	add	r3, sp, #280	; 0x118
+     326:	9301      	str	r3, [sp, #4]
+                available_data_buffer = bundle_data_b2;
+     328:	ab06      	add	r3, sp, #24
+     32a:	469a      	mov	sl, r3
+     32c:	e782      	b.n	234 <main+0xfc>
+            }
+        }
+
+        /* End of pass */
+        while(dma_custom_fs_check_and_clear_dma_transfer_flag() == FALSE);
+     32e:	4c33      	ldr	r4, [pc, #204]	; (3fc <main+0x2c4>)
+     330:	47a0      	blx	r4
+     332:	2800      	cmp	r0, #0
+     334:	d0fc      	beq.n	330 <main+0x1f8>
+        custom_fs_stop_continuous_read_from_flash();
+     336:	4b32      	ldr	r3, [pc, #200]	; (400 <main+0x2c8>)
+     338:	4798      	blx	r3
+    for (uint16_t nb_pass = 0; nb_pass < 2; nb_pass++)
+     33a:	465b      	mov	r3, fp
+     33c:	3301      	adds	r3, #1
+     33e:	b29b      	uxth	r3, r3
+     340:	469b      	mov	fp, r3
+     342:	2b01      	cmp	r3, #1
+     344:	d81b      	bhi.n	37e <main+0x246>
+        current_data_flash_addr = custom_fs_get_start_address_of_signed_data();
+     346:	4b2f      	ldr	r3, [pc, #188]	; (404 <main+0x2cc>)
+     348:	4798      	blx	r3
+     34a:	4681      	mov	r9, r0
+        custom_fs_continuous_read_from_flash((uint8_t*)bundle_data_b1, current_data_flash_addr, sizeof(bundle_data_b1), TRUE);
+     34c:	2301      	movs	r3, #1
+     34e:	2280      	movs	r2, #128	; 0x80
+     350:	0052      	lsls	r2, r2, #1
+     352:	0001      	movs	r1, r0
+     354:	a846      	add	r0, sp, #280	; 0x118
+     356:	4c2c      	ldr	r4, [pc, #176]	; (408 <main+0x2d0>)
+     358:	47a0      	blx	r4
+        while (current_data_flash_addr < W25Q16_FLASH_SIZE)
+     35a:	4b26      	ldr	r3, [pc, #152]	; (3f4 <main+0x2bc>)
+     35c:	4599      	cmp	r9, r3
+     35e:	d8e6      	bhi.n	32e <main+0x1f6>
+     360:	2700      	movs	r7, #0
+     362:	2300      	movs	r3, #0
+     364:	9300      	str	r3, [sp, #0]
+     366:	4698      	mov	r8, r3
+     368:	2580      	movs	r5, #128	; 0x80
+     36a:	01ad      	lsls	r5, r5, #6
+     36c:	ab46      	add	r3, sp, #280	; 0x118
+     36e:	9301      	str	r3, [sp, #4]
+     370:	ab06      	add	r3, sp, #24
+     372:	469a      	mov	sl, r3
+            while(dma_custom_fs_check_and_clear_dma_transfer_flag() == FALSE);
+     374:	4c21      	ldr	r4, [pc, #132]	; (3fc <main+0x2c4>)
+     376:	464b      	mov	r3, r9
+     378:	46b9      	mov	r9, r7
+     37a:	001f      	movs	r7, r3
+     37c:	e75d      	b.n	23a <main+0x102>
+    }
+    
+    /* Final wait, clear flag, reset */
+    while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+     37e:	4a1a      	ldr	r2, [pc, #104]	; (3e8 <main+0x2b0>)
+     380:	2301      	movs	r3, #1
+     382:	7d11      	ldrb	r1, [r2, #20]
+     384:	4219      	tst	r1, r3
+     386:	d0fc      	beq.n	382 <main+0x24a>
+    custom_fs_settings_clear_fw_upgrade_flag();
+     388:	4b18      	ldr	r3, [pc, #96]	; (3ec <main+0x2b4>)
+     38a:	4798      	blx	r3
+    This function acts as a special kind of Data Memory Barrier.
+    It completes when all explicit memory accesses before this instruction complete.
+ */
+__attribute__( ( always_inline ) ) __STATIC_INLINE void __DSB(void)
+{
+  __ASM volatile ("dsb");
+     38c:	f3bf 8f4f 	dsb	sy
+ */
+__STATIC_INLINE void NVIC_SystemReset(void)
+{
+  __DSB();                                                     /* Ensure all outstanding memory accesses included
+                                                                  buffered write are completed before reset */
+  SCB->AIRCR  = ((0x5FA << SCB_AIRCR_VECTKEY_Pos)      |
+     390:	4a1e      	ldr	r2, [pc, #120]	; (40c <main+0x2d4>)
+     392:	4b1f      	ldr	r3, [pc, #124]	; (410 <main+0x2d8>)
+     394:	60da      	str	r2, [r3, #12]
+     396:	f3bf 8f4f 	dsb	sy
+     39a:	e7fe      	b.n	39a <main+0x262>
+     39c:	fffffde4 	.word	0xfffffde4
+     3a0:	00000e5d 	.word	0x00000e5d
+     3a4:	0000104d 	.word	0x0000104d
+     3a8:	000186a0 	.word	0x000186a0
+     3ac:	00001071 	.word	0x00001071
+     3b0:	00000115 	.word	0x00000115
+     3b4:	00000ae5 	.word	0x00000ae5
+     3b8:	00000e6d 	.word	0x00000e6d
+     3bc:	00000c05 	.word	0x00000c05
+     3c0:	20000000 	.word	0x20000000
+     3c4:	00000975 	.word	0x00000975
+     3c8:	0000043d 	.word	0x0000043d
+     3cc:	00000ec5 	.word	0x00000ec5
+     3d0:	00000d89 	.word	0x00000d89
+     3d4:	00000981 	.word	0x00000981
+     3d8:	000009bd 	.word	0x000009bd
+     3dc:	000007f1 	.word	0x000007f1
+     3e0:	00000909 	.word	0x00000909
+     3e4:	0000054d 	.word	0x0000054d
+     3e8:	41004000 	.word	0x41004000
+     3ec:	00000bdd 	.word	0x00000bdd
+     3f0:	00000839 	.word	0x00000839
+     3f4:	001fffff 	.word	0x001fffff
+     3f8:	ffffa502 	.word	0xffffa502
+     3fc:	00000639 	.word	0x00000639
+     400:	00000955 	.word	0x00000955
+     404:	000009b9 	.word	0x000009b9
+     408:	00000879 	.word	0x00000879
+     40c:	05fa0004 	.word	0x05fa0004
+     410:	e000ed00 	.word	0xe000ed00
+
+00000414 <clocks_map_gclk_to_peripheral_clock>:
+void clocks_map_gclk_to_peripheral_clock(uint32_t gclk_id, uint32_t peripheral_clk_id)
+{
+    GCLK_CLKCTRL_Type clkctrl;                                          // Clkctrl struct
+    clkctrl.reg = 0;                                                    // Reset temp var
+    clkctrl.bit.ID = peripheral_clk_id;                                 // Select TCC0 input
+    clkctrl.bit.GEN = gclk_id;                                          // Select gclk
+     414:	230f      	movs	r3, #15
+     416:	4018      	ands	r0, r3
+     418:	0200      	lsls	r0, r0, #8
+     41a:	3330      	adds	r3, #48	; 0x30
+     41c:	4019      	ands	r1, r3
+     41e:	4301      	orrs	r1, r0
+    clkctrl.bit.CLKEN = 1;                                              // Enable generator
+     420:	2080      	movs	r0, #128	; 0x80
+     422:	01c0      	lsls	r0, r0, #7
+     424:	4301      	orrs	r1, r0
+    while ((GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) != 0);             // Wait for sync
+     426:	4a04      	ldr	r2, [pc, #16]	; (438 <clocks_map_gclk_to_peripheral_clock+0x24>)
+     428:	7853      	ldrb	r3, [r2, #1]
+     42a:	b25b      	sxtb	r3, r3
+     42c:	2b00      	cmp	r3, #0
+     42e:	dbfb      	blt.n	428 <clocks_map_gclk_to_peripheral_clock+0x14>
+    GCLK->CLKCTRL = clkctrl;                                            // Write register
+     430:	4b01      	ldr	r3, [pc, #4]	; (438 <clocks_map_gclk_to_peripheral_clock+0x24>)
+     432:	8059      	strh	r1, [r3, #2]
+}
+     434:	4770      	bx	lr
+     436:	46c0      	nop			; (mov r8, r8)
+     438:	40000c00 	.word	0x40000c00
+
+0000043c <clocks_start_48MDFLL>:
+void clocks_start_48MDFLL(void)
+{
+    GCLK_GENCTRL_Type genctrl;                                  // Genctrl struct
+    
+    /* Set 1 wait states for on-board flash: from NVM characteristics */
+    NVMCTRL->CTRLB.bit.RWS = 1;
+     43c:	4a25      	ldr	r2, [pc, #148]	; (4d4 <clocks_start_48MDFLL+0x98>)
+     43e:	6853      	ldr	r3, [r2, #4]
+     440:	211e      	movs	r1, #30
+     442:	438b      	bics	r3, r1
+     444:	391c      	subs	r1, #28
+     446:	430b      	orrs	r3, r1
+     448:	6053      	str	r3, [r2, #4]
+    
+    /* Reset GCLK module */
+    while ((GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) != 0);     // Wait for sync
+     44a:	4a23      	ldr	r2, [pc, #140]	; (4d8 <clocks_start_48MDFLL+0x9c>)
+     44c:	7853      	ldrb	r3, [r2, #1]
+     44e:	b25b      	sxtb	r3, r3
+     450:	2b00      	cmp	r3, #0
+     452:	dbfb      	blt.n	44c <clocks_start_48MDFLL+0x10>
+    GCLK->CTRL.reg = GCLK_CTRL_SWRST;                           // Trigger reset
+     454:	2201      	movs	r2, #1
+     456:	4b20      	ldr	r3, [pc, #128]	; (4d8 <clocks_start_48MDFLL+0x9c>)
+     458:	701a      	strb	r2, [r3, #0]
+    while ((GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) != 0);     // Wait for sync
+     45a:	001a      	movs	r2, r3
+     45c:	7853      	ldrb	r3, [r2, #1]
+     45e:	b25b      	sxtb	r3, r3
+     460:	2b00      	cmp	r3, #0
+     462:	dbfb      	blt.n	45c <clocks_start_48MDFLL+0x20>
+    while ((GCLK->CTRL.reg & GCLK_CTRL_SWRST) != 0);            // Wait for end of reset
+     464:	491c      	ldr	r1, [pc, #112]	; (4d8 <clocks_start_48MDFLL+0x9c>)
+     466:	2201      	movs	r2, #1
+     468:	780b      	ldrb	r3, [r1, #0]
+     46a:	4213      	tst	r3, r2
+     46c:	d1fc      	bne.n	468 <clocks_start_48MDFLL+0x2c>
+    
+    /* Remove osc8m clock division */
+    SYSCTRL_OSC8M_Type osc8m_register = SYSCTRL->OSC8M;         // load current osc8m register val
+     46e:	491b      	ldr	r1, [pc, #108]	; (4dc <clocks_start_48MDFLL+0xa0>)
+     470:	6a0b      	ldr	r3, [r1, #32]
+    osc8m_register.bit.FRANGE = SYSCTRL_OSC8M_FRANGE_2_Val;     // select 8mhz oscillation range
+    osc8m_register.bit.PRESC = SYSCTRL_OSC8M_PRESC_0_Val;       // set 1 prescaler
+    osc8m_register.bit.RUNSTDBY = 0;                            // oscillator not running during standby
+    //osc8m_register.bit.ENABLE = 1;                              // enable oscillator (not needed as already enabled)
+    SYSCTRL->OSC8M = osc8m_register;                            // write register
+     472:	2240      	movs	r2, #64	; 0x40
+     474:	4393      	bics	r3, r2
+     476:	4a1a      	ldr	r2, [pc, #104]	; (4e0 <clocks_start_48MDFLL+0xa4>)
+     478:	4013      	ands	r3, r2
+     47a:	009b      	lsls	r3, r3, #2
+     47c:	089b      	lsrs	r3, r3, #2
+     47e:	2280      	movs	r2, #128	; 0x80
+     480:	0612      	lsls	r2, r2, #24
+     482:	4313      	orrs	r3, r2
+     484:	620b      	str	r3, [r1, #32]
+    /************************************/
+    /*  Configure DFLL48M in open loop  */
+    /************************************/
+    
+    /* Disable ONDEMAND mode while writing configurations */
+    while (!(SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_DFLLRDY));    // Wait for sync
+     486:	2210      	movs	r2, #16
+     488:	68cb      	ldr	r3, [r1, #12]
+     48a:	421a      	tst	r2, r3
+     48c:	d0fc      	beq.n	488 <clocks_start_48MDFLL+0x4c>
+    SYSCTRL->DFLLCTRL.reg = 0;                                  // Disable ONDEMAND mode while writing configurations
+     48e:	4913      	ldr	r1, [pc, #76]	; (4dc <clocks_start_48MDFLL+0xa0>)
+     490:	2300      	movs	r3, #0
+     492:	848b      	strh	r3, [r1, #36]	; 0x24
+    
+    /* Load coarse and fine values from NVM and store them in DFFLVAL.COARSE & DFFLVAL.FINE */
+    uint32_t coarse_val = ((*((uint32_t *)SYSCTRL_FUSES_DFLL48M_COARSE_CAL_ADDR)) & SYSCTRL_FUSES_DFLL48M_COARSE_CAL_Msk) >> SYSCTRL_FUSES_DFLL48M_COARSE_CAL_Pos;
+     494:	4b13      	ldr	r3, [pc, #76]	; (4e4 <clocks_start_48MDFLL+0xa8>)
+     496:	681a      	ldr	r2, [r3, #0]
+    uint32_t fine_val =  ((*((uint32_t *)FUSES_DFLL48M_FINE_CAL_ADDR)) & FUSES_DFLL48M_FINE_CAL_Msk) >> FUSES_DFLL48M_FINE_CAL_Pos;
+     498:	4b13      	ldr	r3, [pc, #76]	; (4e8 <clocks_start_48MDFLL+0xac>)
+     49a:	681b      	ldr	r3, [r3, #0]
+    SYSCTRL_DFLLVAL_Type dfll_val;                              // DFLL value register
+    dfll_val.bit.COARSE = coarse_val;                           // Store coarse value
+    dfll_val.bit.FINE = fine_val;                               // Store fine value
+    SYSCTRL->DFLLVAL = dfll_val;                                // Store register value, no need for sync
+     49c:	059b      	lsls	r3, r3, #22
+     49e:	0e92      	lsrs	r2, r2, #26
+     4a0:	0292      	lsls	r2, r2, #10
+     4a2:	0d9b      	lsrs	r3, r3, #22
+     4a4:	4313      	orrs	r3, r2
+     4a6:	628b      	str	r3, [r1, #40]	; 0x28
+    dfll_ctrl.bit.ONDEMAND = 0;                                 // Oscillator always on
+    dfll_ctrl.bit.RUNSTDBY = 0;                                 // Do not run in standby
+    dfll_ctrl.bit.USBCRM = 0;                                   // No USB recovery mode
+    dfll_ctrl.bit.STABLE = 0;                                   // FINE calibration tracks changes
+    dfll_ctrl.bit.MODE = 0;                                     // Open loop operation
+    while (!(SYSCTRL->PCLKSR.reg & SYSCTRL_PCLKSR_DFLLRDY));    // Wait for sync
+     4a8:	2210      	movs	r2, #16
+     4aa:	68cb      	ldr	r3, [r1, #12]
+     4ac:	421a      	tst	r2, r3
+     4ae:	d0fc      	beq.n	4aa <clocks_start_48MDFLL+0x6e>
+    SYSCTRL->DFLLCTRL = dfll_ctrl;                              // Write register
+     4b0:	4b0a      	ldr	r3, [pc, #40]	; (4dc <clocks_start_48MDFLL+0xa0>)
+     4b2:	2202      	movs	r2, #2
+     4b4:	849a      	strh	r2, [r3, #36]	; 0x24
+    /* Wait for lock */
+    while (SYSCTRL->PCLKSR.reg & (SYSCTRL_PCLKSR_DFLLRDY | SYSCTRL_PCLKSR_DFLLLCKF | SYSCTRL_PCLKSR_DFLLLCKC));
+     4b6:	0019      	movs	r1, r3
+     4b8:	32ce      	adds	r2, #206	; 0xce
+     4ba:	68cb      	ldr	r3, [r1, #12]
+     4bc:	421a      	tst	r2, r3
+     4be:	d1fc      	bne.n	4ba <clocks_start_48MDFLL+0x7e>
+    genctrl.bit.ID = GCLK_CLKCTRL_GEN_GCLK0_Val;                // Select gclk0
+    genctrl.bit.SRC = GCLK_GENCTRL_SRC_DFLL48M_Val;             // Assign 48M oscillator
+    genctrl.bit.GENEN = 1;                                      // Enable generator
+    genctrl.bit.DIVSEL = 0;                                     // Divide clock by gendiv.div
+    genctrl.bit.OE = 1;                                         // Output clock
+    while ((GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) != 0);     // Wait for sync
+     4c0:	4a05      	ldr	r2, [pc, #20]	; (4d8 <clocks_start_48MDFLL+0x9c>)
+     4c2:	7853      	ldrb	r3, [r2, #1]
+     4c4:	b25b      	sxtb	r3, r3
+     4c6:	2b00      	cmp	r3, #0
+     4c8:	dbfb      	blt.n	4c2 <clocks_start_48MDFLL+0x86>
+    GCLK->GENCTRL = genctrl;                                    // Write register
+     4ca:	4b03      	ldr	r3, [pc, #12]	; (4d8 <clocks_start_48MDFLL+0x9c>)
+     4cc:	4a07      	ldr	r2, [pc, #28]	; (4ec <clocks_start_48MDFLL+0xb0>)
+     4ce:	605a      	str	r2, [r3, #4]
+     4d0:	4770      	bx	lr
+     4d2:	46c0      	nop			; (mov r8, r8)
+     4d4:	41004000 	.word	0x41004000
+     4d8:	40000c00 	.word	0x40000c00
+     4dc:	40000800 	.word	0x40000800
+     4e0:	fffffcff 	.word	0xfffffcff
+     4e4:	00806024 	.word	0x00806024
+     4e8:	00806028 	.word	0x00806028
+     4ec:	00090700 	.word	0x00090700
+
+000004f0 <DMAC_Handler>:
+        DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
+    }
+    #endif
+    
+    /* RX routine for custom fs */
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_FS);
+     4f0:	4b07      	ldr	r3, [pc, #28]	; (510 <DMAC_Handler+0x20>)
+     4f2:	2101      	movs	r1, #1
+     4f4:	223f      	movs	r2, #63	; 0x3f
+     4f6:	5499      	strb	r1, [r3, r2]
+    if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
+     4f8:	320f      	adds	r2, #15
+     4fa:	5c9b      	ldrb	r3, [r3, r2]
+     4fc:	079b      	lsls	r3, r3, #30
+     4fe:	d506      	bpl.n	50e <DMAC_Handler+0x1e>
+    {
+        /* Set transfer done boolean, clear interrupt */
+        dma_custom_fs_transfer_done = TRUE;
+     500:	3a4d      	subs	r2, #77	; 0x4d
+     502:	4b04      	ldr	r3, [pc, #16]	; (514 <DMAC_Handler+0x24>)
+     504:	601a      	str	r2, [r3, #0]
+        DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
+     506:	3101      	adds	r1, #1
+     508:	234e      	movs	r3, #78	; 0x4e
+     50a:	4a01      	ldr	r2, [pc, #4]	; (510 <DMAC_Handler+0x20>)
+     50c:	54d1      	strb	r1, [r2, r3]
+        /* Set transfer done boolean, clear interrupt */
+        dma_acc_transfer_done = TRUE;
+        DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
+    }
+    #endif
+}
+     50e:	4770      	bx	lr
+     510:	41004800 	.word	0x41004800
+     514:	2000003c 	.word	0x2000003c
+
+00000518 <dma_set_custom_fs_flag_done>:
+/*! \fn     dma_set_custom_fs_flag_done(void)
+*   \brief  Manually set the custom fs done flag (used to simulate DMA transfers)
+*/
+void dma_set_custom_fs_flag_done(void)
+{
+    dma_custom_fs_transfer_done = TRUE;
+     518:	2201      	movs	r2, #1
+     51a:	4b01      	ldr	r3, [pc, #4]	; (520 <dma_set_custom_fs_flag_done+0x8>)
+     51c:	601a      	str	r2, [r3, #0]
+}
+     51e:	4770      	bx	lr
+     520:	2000003c 	.word	0x2000003c
+
+00000524 <dma_reset>:
+/*! \fn     dma_reset(void)
+*   \brief  Reset DMA controller
+*/
+void dma_reset(void)
+{
+    DMAC->CTRL.reg = 0;                 // Disable DMA
+     524:	2200      	movs	r2, #0
+     526:	4b08      	ldr	r3, [pc, #32]	; (548 <dma_reset+0x24>)
+     528:	801a      	strh	r2, [r3, #0]
+    while (DMAC->CTRL.reg != 0);        // Wait for DMA disabled
+     52a:	001a      	movs	r2, r3
+     52c:	8813      	ldrh	r3, [r2, #0]
+     52e:	b29b      	uxth	r3, r3
+     530:	2b00      	cmp	r3, #0
+     532:	d1fb      	bne.n	52c <dma_reset+0x8>
+    DMAC->CTRL.reg = DMAC_CTRL_SWRST;   // Reset DMA
+     534:	2201      	movs	r2, #1
+     536:	4b04      	ldr	r3, [pc, #16]	; (548 <dma_reset+0x24>)
+     538:	801a      	strh	r2, [r3, #0]
+    while (DMAC->CTRL.reg != 0);        // Wait for DMA reset
+     53a:	001a      	movs	r2, r3
+     53c:	8813      	ldrh	r3, [r2, #0]
+     53e:	b29b      	uxth	r3, r3
+     540:	2b00      	cmp	r3, #0
+     542:	d1fb      	bne.n	53c <dma_reset+0x18>
+}
+     544:	4770      	bx	lr
+     546:	46c0      	nop			; (mov r8, r8)
+     548:	41004800 	.word	0x41004800
+
+0000054c <dma_init>:
+
+/*! \fn     dma_init(void)
+*   \brief  Initialize DMA controller that will be used later
+*/
+void dma_init(void)
+{    
+     54c:	b5f0      	push	{r4, r5, r6, r7, lr}
+     54e:	46ce      	mov	lr, r9
+     550:	4647      	mov	r7, r8
+     552:	b580      	push	{r7, lr}
+    /* Setup DMA controller */
+    DMAC_CTRL_Type dmac_ctrl_reg;
+    DMAC->BASEADDR.reg = (uint32_t)&dma_descriptors[0];                                     // Base descriptor
+     554:	4b2f      	ldr	r3, [pc, #188]	; (614 <dma_init+0xc8>)
+     556:	4a30      	ldr	r2, [pc, #192]	; (618 <dma_init+0xcc>)
+     558:	6353      	str	r3, [r2, #52]	; 0x34
+    DMAC->WRBADDR.reg = (uint32_t)&dma_writeback_descriptors[0];                            // Write back descriptor
+     55a:	4930      	ldr	r1, [pc, #192]	; (61c <dma_init+0xd0>)
+     55c:	6391      	str	r1, [r2, #56]	; 0x38
+    dmac_ctrl_reg.reg = DMAC_CTRL_DMAENABLE;                                                // Enable dma
+     55e:	2402      	movs	r4, #2
+    dmac_ctrl_reg.bit.LVLEN0 = 1;                                                           // Enable priority level 0
+    dmac_ctrl_reg.bit.LVLEN1 = 1;                                                           // Enable priority level 1
+    dmac_ctrl_reg.bit.LVLEN2 = 1;                                                           // Enable priority level 2
+    dmac_ctrl_reg.bit.LVLEN3 = 1;                                                           // Enable priority level 3
+     560:	2180      	movs	r1, #128	; 0x80
+     562:	0109      	lsls	r1, r1, #4
+     564:	4689      	mov	r9, r1
+     566:	492e      	ldr	r1, [pc, #184]	; (620 <dma_init+0xd4>)
+    DMAC->CTRL = dmac_ctrl_reg;                                                             // Write DMA control register
+     568:	8011      	strh	r1, [r2, #0]
+    //DMAC->DBGCTRL.bit.DBGRUN = 1;                                                         // Normal operation during debugging
+    
+    /* DMA QOS: elevate to medium priority */
+    DMAC_QOSCTRL_Type dma_qos_ctrl_reg;                                                     // Temporary register
+    dma_qos_ctrl_reg.reg = 0;                                                               // Clear temp register
+     56a:	2500      	movs	r5, #0
+    dma_qos_ctrl_reg.bit.DQOS = DMAC_QOSCTRL_WRBQOS_MEDIUM_Val;                             // Medium QOS for writeback
+    dma_qos_ctrl_reg.bit.FQOS = DMAC_QOSCTRL_WRBQOS_MEDIUM_Val;                             // Medium QOS for fetch
+    dma_qos_ctrl_reg.bit.WRBQOS = DMAC_QOSCTRL_WRBQOS_MEDIUM_Val;                           // Medium QOS for data
+     56c:	212a      	movs	r1, #42	; 0x2a
+    DMAC->QOSCTRL = dma_qos_ctrl_reg;                                                       // Write register
+     56e:	7391      	strb	r1, [r2, #14]
+    
+    /* Enable round robin for all levels */
+    DMAC_PRICTRL0_Type dmac_prictrl_reg;                                                    // Temporary register
+    dmac_prictrl_reg.reg = 0;                                                               // Clear temp register
+    dmac_prictrl_reg.bit.LVLPRI0 = 1;                                                       // Enable round robin for level 0
+     570:	3929      	subs	r1, #41	; 0x29
+     572:	468c      	mov	ip, r1
+    dmac_prictrl_reg.bit.LVLPRI1 = 1;                                                       // Enable round robin for level 1
+    dmac_prictrl_reg.bit.LVLPRI2 = 1;                                                       // Enable round robin for level 2
+    dmac_prictrl_reg.bit.LVLPRI3 = 1;                                                       // Enable round robin for level 3
+     574:	492b      	ldr	r1, [pc, #172]	; (624 <dma_init+0xd8>)
+    DMAC->PRICTRL0 = dmac_prictrl_reg;                                                      // Write register
+     576:	6151      	str	r1, [r2, #20]
+
+    /* Setup transfer descriptor for custom fs RX */
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.reg = DMAC_BTCTRL_VALID;                       // Valid descriptor
+     578:	4661      	mov	r1, ip
+     57a:	8219      	strh	r1, [r3, #16]
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;    // 1 byte address increment
+     57c:	8a19      	ldrh	r1, [r3, #16]
+     57e:	04c9      	lsls	r1, r1, #19
+     580:	0cc9      	lsrs	r1, r1, #19
+     582:	8219      	strh	r1, [r3, #16]
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_DST_Val;     // Step selection for destination
+     584:	8a19      	ldrh	r1, [r3, #16]
+     586:	4e28      	ldr	r6, [pc, #160]	; (628 <dma_init+0xdc>)
+     588:	4031      	ands	r1, r6
+     58a:	8219      	strh	r1, [r3, #16]
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.DSTINC = 1;                                // Destination Address Increment is enabled.
+     58c:	8a19      	ldrh	r1, [r3, #16]
+     58e:	4648      	mov	r0, r9
+     590:	4301      	orrs	r1, r0
+     592:	8219      	strh	r1, [r3, #16]
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;  // Byte data transfer
+     594:	8a19      	ldrh	r1, [r3, #16]
+     596:	4f25      	ldr	r7, [pc, #148]	; (62c <dma_init+0xe0>)
+     598:	4039      	ands	r1, r7
+     59a:	8219      	strh	r1, [r3, #16]
+    dma_descriptors[DMA_DESCID_RX_FS].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_INT_Val;   // Once data block is transferred, generate interrupt
+     59c:	8a19      	ldrh	r1, [r3, #16]
+     59e:	2618      	movs	r6, #24
+     5a0:	43b1      	bics	r1, r6
+     5a2:	2008      	movs	r0, #8
+     5a4:	4680      	mov	r8, r0
+     5a6:	4640      	mov	r0, r8
+     5a8:	4301      	orrs	r1, r0
+     5aa:	8219      	strh	r1, [r3, #16]
+    dma_descriptors[DMA_DESCID_RX_FS].DESCADDR.reg = 0;                                     // No next descriptor address
+     5ac:	61dd      	str	r5, [r3, #28]
+    
+    /* Setup DMA channel */
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_FS);                                        // Select channel
+     5ae:	213f      	movs	r1, #63	; 0x3f
+     5b0:	4688      	mov	r8, r1
+     5b2:	2101      	movs	r1, #1
+     5b4:	4640      	mov	r0, r8
+     5b6:	5411      	strb	r1, [r2, r0]
+    DMAC_CHCTRLB_Type dma_chctrlb_reg;                                                      // Temp register
+    dma_chctrlb_reg.reg = 0;                                                                // Clear it
+    dma_chctrlb_reg.bit.LVL = 0;                                                            // Priority level
+    dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
+    dma_chctrlb_reg.bit.TRIGSRC = DATAFLASH_DMA_SERCOM_RXTRIG;                              // Select RX trigger
+     5b8:	491d      	ldr	r1, [pc, #116]	; (630 <dma_init+0xe4>)
+    DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
+     5ba:	6451      	str	r1, [r2, #68]	; 0x44
+    DMAC->CHINTENSET.reg = DMAC_CHINTENSET_TCMPL;                                           // Enable channel transfer complete interrupt
+     5bc:	214d      	movs	r1, #77	; 0x4d
+     5be:	5454      	strb	r4, [r2, r1]
+
+    /* Setup transfer descriptor for custom fs TX */
+    dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.reg = DMAC_BTCTRL_VALID;                       // Valid descriptor
+     5c0:	4661      	mov	r1, ip
+     5c2:	8419      	strh	r1, [r3, #32]
+    dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;    // 1 byte address increment
+     5c4:	8c19      	ldrh	r1, [r3, #32]
+     5c6:	04c9      	lsls	r1, r1, #19
+     5c8:	0cc9      	lsrs	r1, r1, #19
+     5ca:	8419      	strh	r1, [r3, #32]
+    dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.bit.STEPSEL = DMAC_BTCTRL_STEPSEL_SRC_Val;     // Step selection for source
+     5cc:	8c19      	ldrh	r1, [r3, #32]
+     5ce:	468c      	mov	ip, r1
+     5d0:	2180      	movs	r1, #128	; 0x80
+     5d2:	0149      	lsls	r1, r1, #5
+     5d4:	4660      	mov	r0, ip
+     5d6:	4301      	orrs	r1, r0
+     5d8:	8419      	strh	r1, [r3, #32]
+    dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.bit.SRCINC = 1;                                // Destination Address Increment is enabled.
+     5da:	8c19      	ldrh	r1, [r3, #32]
+     5dc:	468c      	mov	ip, r1
+     5de:	2180      	movs	r1, #128	; 0x80
+     5e0:	00c9      	lsls	r1, r1, #3
+     5e2:	4660      	mov	r0, ip
+     5e4:	4301      	orrs	r1, r0
+     5e6:	8419      	strh	r1, [r3, #32]
+    dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;  // Byte data transfer
+     5e8:	8c19      	ldrh	r1, [r3, #32]
+     5ea:	400f      	ands	r7, r1
+     5ec:	841f      	strh	r7, [r3, #32]
+    dma_descriptors[DMA_DESCID_TX_FS].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val; // Once data block is transferred, do nothing
+     5ee:	8c19      	ldrh	r1, [r3, #32]
+     5f0:	43b1      	bics	r1, r6
+     5f2:	8419      	strh	r1, [r3, #32]
+    dma_descriptors[DMA_DESCID_TX_FS].DESCADDR.reg = 0;                                     // No next descriptor address
+     5f4:	62dd      	str	r5, [r3, #44]	; 0x2c
+    
+    /* Setup DMA channel */
+    DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_TX_FS);                                        // Select channel
+     5f6:	4643      	mov	r3, r8
+     5f8:	54d4      	strb	r4, [r2, r3]
+    dma_chctrlb_reg.reg = 0;                                                                // Clear it
+    dma_chctrlb_reg.bit.LVL = 0;                                                            // Priority level
+    dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
+    dma_chctrlb_reg.bit.TRIGSRC = DATAFLASH_DMA_SERCOM_TXTRIG;                              // Select RX trigger
+     5fa:	2380      	movs	r3, #128	; 0x80
+     5fc:	041b      	lsls	r3, r3, #16
+     5fe:	4648      	mov	r0, r9
+     600:	4318      	orrs	r0, r3
+    DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
+     602:	6450      	str	r0, [r2, #68]	; 0x44
+  NVIC->ISER[0] = (1 << ((uint32_t)(IRQn) & 0x1F));
+     604:	2240      	movs	r2, #64	; 0x40
+     606:	4b0b      	ldr	r3, [pc, #44]	; (634 <dma_init+0xe8>)
+     608:	601a      	str	r2, [r3, #0]
+    DMAC->CHINTENSET.reg = DMAC_CHINTENSET_TCMPL;                                           // Enable channel transfer complete interrupt
+    #endif
+
+    /* Enable IRQ */
+    NVIC_EnableIRQ(DMAC_IRQn);
+}
+     60a:	bc0c      	pop	{r2, r3}
+     60c:	4690      	mov	r8, r2
+     60e:	4699      	mov	r9, r3
+     610:	bdf0      	pop	{r4, r5, r6, r7, pc}
+     612:	46c0      	nop			; (mov r8, r8)
+     614:	20000100 	.word	0x20000100
+     618:	41004800 	.word	0x41004800
+     61c:	20000090 	.word	0x20000090
+     620:	00000f02 	.word	0x00000f02
+     624:	01010101 	.word	0x01010101
+     628:	ffffefff 	.word	0xffffefff
+     62c:	fffffcff 	.word	0xfffffcff
+     630:	00800700 	.word	0x00800700
+     634:	e000e100 	.word	0xe000e100
+
+00000638 <dma_custom_fs_check_and_clear_dma_transfer_flag>:
+*   \return TRUE or FALSE
+*/
+BOOL dma_custom_fs_check_and_clear_dma_transfer_flag(void)
+{
+    /* flag can't be set twice, code is safe */
+    if (dma_custom_fs_transfer_done != FALSE)
+     638:	4b04      	ldr	r3, [pc, #16]	; (64c <dma_custom_fs_check_and_clear_dma_transfer_flag+0x14>)
+     63a:	681b      	ldr	r3, [r3, #0]
+    {
+        dma_custom_fs_transfer_done = FALSE;
+        return TRUE;
+    }
+    return FALSE;
+     63c:	2000      	movs	r0, #0
+    if (dma_custom_fs_transfer_done != FALSE)
+     63e:	2b00      	cmp	r3, #0
+     640:	d003      	beq.n	64a <dma_custom_fs_check_and_clear_dma_transfer_flag+0x12>
+        dma_custom_fs_transfer_done = FALSE;
+     642:	2200      	movs	r2, #0
+     644:	4b01      	ldr	r3, [pc, #4]	; (64c <dma_custom_fs_check_and_clear_dma_transfer_flag+0x14>)
+     646:	601a      	str	r2, [r3, #0]
+        return TRUE;
+     648:	3001      	adds	r0, #1
+}
+     64a:	4770      	bx	lr
+     64c:	2000003c 	.word	0x2000003c
+
+00000650 <dma_custom_fs_init_transfer>:
+*   \param  sercom      Pointer to a sercom module
+*   \param  datap       Pointer to where to store the data
+*   \param  size        Number of bytes to transfer
+*/
+void dma_custom_fs_init_transfer(Sercom* sercom, void* datap, uint16_t size)
+{
+     650:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+     652:	0005      	movs	r5, r0
+     654:	000c      	movs	r4, r1
+     656:	0016      	movs	r6, r2
+    volatile void *spi_data_p = &sercom->SPI.DATA.reg;
+    cpu_irq_enter_critical();
+     658:	4b0b      	ldr	r3, [pc, #44]	; (688 <dma_custom_fs_init_transfer+0x38>)
+     65a:	4798      	blx	r3
+    
+    /* SPI RX DMA TRANSFER */
+    /* Setup transfer size */
+    dma_descriptors[DMA_DESCID_RX_FS].BTCNT.bit.BTCNT = (uint16_t)size;
+     65c:	4b0b      	ldr	r3, [pc, #44]	; (68c <dma_custom_fs_init_transfer+0x3c>)
+     65e:	825e      	strh	r6, [r3, #18]
+    volatile void *spi_data_p = &sercom->SPI.DATA.reg;
+     660:	0028      	movs	r0, r5
+     662:	3028      	adds	r0, #40	; 0x28
+    /* Source address: DATA register from SPI */
+    dma_descriptors[DMA_DESCID_RX_FS].SRCADDR.reg = (uint32_t)spi_data_p;
+     664:	6158      	str	r0, [r3, #20]
+    /* Destination address: given value */
+    dma_descriptors[DMA_DESCID_RX_FS].DSTADDR.reg = (uint32_t)datap + size;
+     666:	19a1      	adds	r1, r4, r6
+     668:	6199      	str	r1, [r3, #24]
+    
+    /* Resume DMA channel operation */
+    DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_RX_FS);
+     66a:	4a09      	ldr	r2, [pc, #36]	; (690 <dma_custom_fs_init_transfer+0x40>)
+     66c:	273f      	movs	r7, #63	; 0x3f
+     66e:	2401      	movs	r4, #1
+     670:	55d4      	strb	r4, [r2, r7]
+    DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
+     672:	2540      	movs	r5, #64	; 0x40
+     674:	3401      	adds	r4, #1
+     676:	5554      	strb	r4, [r2, r5]
+
+    /* SPI TX DMA TRANSFER */
+    /* Setup transfer size */
+    dma_descriptors[DMA_DESCID_TX_FS].BTCNT.bit.BTCNT = (uint16_t)size;
+     678:	845e      	strh	r6, [r3, #34]	; 0x22
+    /* Source address: DATA register from SPI */
+    dma_descriptors[DMA_DESCID_TX_FS].DSTADDR.reg = (uint32_t)spi_data_p;
+     67a:	6298      	str	r0, [r3, #40]	; 0x28
+    /* Destination address: given value */
+    dma_descriptors[DMA_DESCID_TX_FS].SRCADDR.reg = (uint32_t)datap + size;
+     67c:	6259      	str	r1, [r3, #36]	; 0x24
+    
+    /* Resume DMA channel operation */
+    DMAC->CHID.reg= DMAC_CHID_ID(DMA_DESCID_TX_FS);
+     67e:	55d4      	strb	r4, [r2, r7]
+    DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
+     680:	5554      	strb	r4, [r2, r5]
+    
+    cpu_irq_leave_critical();
+     682:	4b04      	ldr	r3, [pc, #16]	; (694 <dma_custom_fs_init_transfer+0x44>)
+     684:	4798      	blx	r3
+}
+     686:	bdf8      	pop	{r3, r4, r5, r6, r7, pc}
+     688:	0000121d 	.word	0x0000121d
+     68c:	20000100 	.word	0x20000100
+     690:	41004800 	.word	0x41004800
+     694:	0000125d 	.word	0x0000125d
+
+00000698 <dma_compute_crc32_from_spi>:
+*   \param  size        Number of bytes to transfer
+*   \return the crc32
+*   \note   DMA controller must be disabled and reset before calling this function!
+*/
+uint32_t dma_compute_crc32_from_spi(Sercom* sercom, uint32_t size)
+{
+     698:	b5f0      	push	{r4, r5, r6, r7, lr}
+     69a:	46de      	mov	lr, fp
+     69c:	4657      	mov	r7, sl
+     69e:	464e      	mov	r6, r9
+     6a0:	4645      	mov	r5, r8
+     6a2:	b5e0      	push	{r5, r6, r7, lr}
+     6a4:	b085      	sub	sp, #20
+    volatile void *spi_data_p = &sercom->SPI.DATA.reg;
+     6a6:	2328      	movs	r3, #40	; 0x28
+     6a8:	4698      	mov	r8, r3
+     6aa:	4480      	add	r8, r0
+    /* The byte that will be used to read/write spi data */
+    volatile uint8_t temp_src_dst_reg = 0;
+     6ac:	2400      	movs	r4, #0
+     6ae:	ab02      	add	r3, sp, #8
+     6b0:	71dc      	strb	r4, [r3, #7]
+    DMAC_CRCCTRL_Type crc_ctrl_reg;
+    crc_ctrl_reg.reg = 0;
+    crc_ctrl_reg.bit.CRCSRC = 0x20;                                                         // DMA channel 0 (SPI RX)
+    crc_ctrl_reg.bit.CRCPOLY = DMAC_CRCCTRL_CRCPOLY_CRC32_Val;                              // CRC32
+    crc_ctrl_reg.bit.CRCBEATSIZE = DMAC_CRCCTRL_CRCBEATSIZE_BYTE_Val;                       // Beat size is one byte
+    DMAC->CRCCTRL = crc_ctrl_reg;                                                           // Store register
+     6b2:	4a44      	ldr	r2, [pc, #272]	; (7c4 <dma_compute_crc32_from_spi+0x12c>)
+     6b4:	4b44      	ldr	r3, [pc, #272]	; (7c8 <dma_compute_crc32_from_spi+0x130>)
+     6b6:	8053      	strh	r3, [r2, #2]
+    DMAC->CRCCHKSUM.reg = 0xFFFFFFFF;                                                       // Not sure why, it is needed
+     6b8:	2301      	movs	r3, #1
+     6ba:	425b      	negs	r3, r3
+     6bc:	6093      	str	r3, [r2, #8]
+    
+    /* Setup DMA controller */
+    DMAC_CTRL_Type dmac_ctrl_reg;
+    DMAC->BASEADDR.reg = (uint32_t)&dma_descriptors[0];                                     // Base descriptor
+     6be:	4b43      	ldr	r3, [pc, #268]	; (7cc <dma_compute_crc32_from_spi+0x134>)
+     6c0:	6353      	str	r3, [r2, #52]	; 0x34
+    DMAC->WRBADDR.reg = (uint32_t)&dma_writeback_descriptors[0];                            // Write back descriptor
+     6c2:	4843      	ldr	r0, [pc, #268]	; (7d0 <dma_compute_crc32_from_spi+0x138>)
+     6c4:	6390      	str	r0, [r2, #56]	; 0x38
+    dmac_ctrl_reg.reg = DMAC_CTRL_DMAENABLE;                                                // Enable dma
+    dmac_ctrl_reg.bit.LVLEN0 = 1;                                                           // Enable priority level 0
+    dmac_ctrl_reg.bit.LVLEN1 = 1;                                                           // Enable priority level 1
+    dmac_ctrl_reg.bit.LVLEN2 = 1;                                                           // Enable priority level 2
+    dmac_ctrl_reg.bit.LVLEN3 = 1;                                                           // Enable priority level 3
+    dmac_ctrl_reg.bit.CRCENABLE = 1;                                                        // Enable CRC generator
+     6c6:	4843      	ldr	r0, [pc, #268]	; (7d4 <dma_compute_crc32_from_spi+0x13c>)
+    DMAC->CTRL = dmac_ctrl_reg;                                                             // Write DMA control register
+     6c8:	8010      	strh	r0, [r2, #0]
+        
+    /* SPI RX routine, cf user manual 26.5.4 */
+    /* Using the SERCOM DMA requests, requires the DMA controller to be configured first. */
+
+    /* Setup transfer descriptor for custom fs RX */
+    dma_descriptors[0].BTCTRL.reg = DMAC_BTCTRL_VALID;                                      // Valid descriptor
+     6ca:	2001      	movs	r0, #1
+     6cc:	4682      	mov	sl, r0
+     6ce:	8018      	strh	r0, [r3, #0]
+    dma_descriptors[0].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;                   // 1 byte address increment
+     6d0:	8818      	ldrh	r0, [r3, #0]
+     6d2:	04c0      	lsls	r0, r0, #19
+     6d4:	0cc0      	lsrs	r0, r0, #19
+     6d6:	8018      	strh	r0, [r3, #0]
+    dma_descriptors[0].BTCTRL.bit.DSTINC = 0;                                               // Destination Address Increment is not enabled.
+     6d8:	8818      	ldrh	r0, [r3, #0]
+     6da:	4d3f      	ldr	r5, [pc, #252]	; (7d8 <dma_compute_crc32_from_spi+0x140>)
+     6dc:	46a9      	mov	r9, r5
+     6de:	4028      	ands	r0, r5
+     6e0:	8018      	strh	r0, [r3, #0]
+    dma_descriptors[0].BTCTRL.bit.SRCINC = 0;                                               // Source Address Increment is not enabled.
+     6e2:	8818      	ldrh	r0, [r3, #0]
+     6e4:	4d3d      	ldr	r5, [pc, #244]	; (7dc <dma_compute_crc32_from_spi+0x144>)
+     6e6:	46ac      	mov	ip, r5
+     6e8:	4028      	ands	r0, r5
+     6ea:	8018      	strh	r0, [r3, #0]
+    dma_descriptors[0].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;                 // Byte data transfer
+     6ec:	8818      	ldrh	r0, [r3, #0]
+     6ee:	4f3c      	ldr	r7, [pc, #240]	; (7e0 <dma_compute_crc32_from_spi+0x148>)
+     6f0:	4038      	ands	r0, r7
+     6f2:	8018      	strh	r0, [r3, #0]
+    dma_descriptors[0].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val;                // Once data block is transferred, do not generate interrupt
+     6f4:	8818      	ldrh	r0, [r3, #0]
+     6f6:	2618      	movs	r6, #24
+     6f8:	43b0      	bics	r0, r6
+     6fa:	8018      	strh	r0, [r3, #0]
+    dma_descriptors[0].DESCADDR.reg = 0;                                                    // No next descriptor address
+     6fc:	60dc      	str	r4, [r3, #12]
+    
+    /* Setup DMA channel */
+    DMAC->CHID.reg = DMAC_CHID_ID(0);                                                       // Use channel 0
+     6fe:	203f      	movs	r0, #63	; 0x3f
+     700:	4683      	mov	fp, r0
+     702:	5414      	strb	r4, [r2, r0]
+    DMAC_CHCTRLB_Type dma_chctrlb_reg;                                                      // Temp register
+    dma_chctrlb_reg.reg = 0;                                                                // Clear it
+    dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
+    dma_chctrlb_reg.bit.TRIGSRC = DATAFLASH_DMA_SERCOM_RXTRIG;                              // Select RX trigger
+     704:	4837      	ldr	r0, [pc, #220]	; (7e4 <dma_compute_crc32_from_spi+0x14c>)
+    DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
+     706:	6450      	str	r0, [r2, #68]	; 0x44
+
+    /* SPI TX routines, cf user manual 26.5.4 */
+    /* Using the SERCOM DMA requests, requires the DMA controller to be configured first. */
+
+    /* Setup transfer descriptor for custom fs TX */
+    dma_descriptors[1].BTCTRL.reg = DMAC_BTCTRL_VALID;                                      // Valid descriptor
+     708:	4650      	mov	r0, sl
+     70a:	8218      	strh	r0, [r3, #16]
+    dma_descriptors[1].BTCTRL.bit.STEPSIZE = DMAC_BTCTRL_STEPSIZE_X1_Val;                   // 1 byte address increment
+     70c:	8a18      	ldrh	r0, [r3, #16]
+     70e:	04c0      	lsls	r0, r0, #19
+     710:	0cc0      	lsrs	r0, r0, #19
+     712:	8218      	strh	r0, [r3, #16]
+    dma_descriptors[1].BTCTRL.bit.DSTINC = 0;                                               // Destination Address Increment is not enabled.
+     714:	8a18      	ldrh	r0, [r3, #16]
+     716:	464d      	mov	r5, r9
+     718:	4028      	ands	r0, r5
+     71a:	8218      	strh	r0, [r3, #16]
+    dma_descriptors[1].BTCTRL.bit.SRCINC = 0;                                               // Source Address Increment is not enabled.
+     71c:	8a18      	ldrh	r0, [r3, #16]
+     71e:	4665      	mov	r5, ip
+     720:	4028      	ands	r0, r5
+     722:	8218      	strh	r0, [r3, #16]
+    dma_descriptors[1].BTCTRL.bit.BEATSIZE = DMAC_BTCTRL_BEATSIZE_BYTE_Val;                 // Byte data transfer
+     724:	8a18      	ldrh	r0, [r3, #16]
+     726:	4007      	ands	r7, r0
+     728:	821f      	strh	r7, [r3, #16]
+    dma_descriptors[1].BTCTRL.bit.BLOCKACT = DMAC_BTCTRL_BLOCKACT_NOACT_Val;                // Once data block is tranferred, do nothing
+     72a:	8a18      	ldrh	r0, [r3, #16]
+     72c:	43b0      	bics	r0, r6
+     72e:	8218      	strh	r0, [r3, #16]
+    dma_descriptors[1].DESCADDR.reg = 0;                                                    // No next descriptor address
+     730:	61dc      	str	r4, [r3, #28]
+    
+    /* Setup DMA channel */
+    DMAC->CHID.reg = DMAC_CHID_ID(1);                                                       // Use channel 1
+     732:	2301      	movs	r3, #1
+     734:	4658      	mov	r0, fp
+     736:	5413      	strb	r3, [r2, r0]
+    dma_chctrlb_reg.reg = 0;                                                                // Clear it
+    dma_chctrlb_reg.bit.TRIGACT = DMAC_CHCTRLB_TRIGACT_BEAT_Val;                            // One trigger required for each beat transfer
+    dma_chctrlb_reg.bit.TRIGSRC = DATAFLASH_DMA_SERCOM_TXTRIG;                              // Select RX trigger
+     738:	4b2b      	ldr	r3, [pc, #172]	; (7e8 <dma_compute_crc32_from_spi+0x150>)
+    DMAC->CHCTRLB = dma_chctrlb_reg;                                                        // Write register
+     73a:	6453      	str	r3, [r2, #68]	; 0x44
+
+    uint32_t nb_bytes_to_transfer = size;
+    while (size > 0)
+     73c:	2900      	cmp	r1, #0
+     73e:	d032      	beq.n	7a6 <dma_compute_crc32_from_spi+0x10e>
+        }
+        
+        /* Arm transfers */
+        /* SPI RX DMA TRANSFER */
+        /* Setup transfer size */
+        dma_descriptors[0].BTCNT.bit.BTCNT = (uint16_t)nb_bytes_to_transfer;
+     740:	4e22      	ldr	r6, [pc, #136]	; (7cc <dma_compute_crc32_from_spi+0x134>)
+        /* Source address: DATA register from SPI */
+        dma_descriptors[0].SRCADDR.reg = (uint32_t)spi_data_p;
+        /* Destination address: given value */
+        dma_descriptors[0].DSTADDR.reg = (uint32_t)&temp_src_dst_reg;
+     742:	ab02      	add	r3, sp, #8
+     744:	3307      	adds	r3, #7
+     746:	9301      	str	r3, [sp, #4]
+        /* Resume DMA channel operation */
+        DMAC->CHID.reg= DMAC_CHID_ID(0);
+        DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
+     748:	2340      	movs	r3, #64	; 0x40
+     74a:	469a      	mov	sl, r3
+     74c:	3402      	adds	r4, #2
+     74e:	46a1      	mov	r9, r4
+        DMAC->CHID.reg= DMAC_CHID_ID(1);
+        DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
+        
+        /* Wait for transfer to finish */
+        DMAC->CHID.reg = DMAC_CHID_ID(0);
+        while ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) == 0);
+     750:	254e      	movs	r5, #78	; 0x4e
+     752:	e022      	b.n	79a <dma_compute_crc32_from_spi+0x102>
+        dma_descriptors[0].BTCNT.bit.BTCNT = (uint16_t)nb_bytes_to_transfer;
+     754:	b2bb      	uxth	r3, r7
+     756:	469b      	mov	fp, r3
+     758:	8073      	strh	r3, [r6, #2]
+        dma_descriptors[0].SRCADDR.reg = (uint32_t)spi_data_p;
+     75a:	4643      	mov	r3, r8
+     75c:	6073      	str	r3, [r6, #4]
+        dma_descriptors[0].DSTADDR.reg = (uint32_t)&temp_src_dst_reg;
+     75e:	9b01      	ldr	r3, [sp, #4]
+     760:	60b3      	str	r3, [r6, #8]
+        DMAC->CHID.reg= DMAC_CHID_ID(0);
+     762:	2000      	movs	r0, #0
+     764:	4684      	mov	ip, r0
+     766:	233f      	movs	r3, #63	; 0x3f
+     768:	54d0      	strb	r0, [r2, r3]
+        DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
+     76a:	4650      	mov	r0, sl
+     76c:	464b      	mov	r3, r9
+     76e:	5413      	strb	r3, [r2, r0]
+        dma_descriptors[1].BTCNT.bit.BTCNT = (uint16_t)nb_bytes_to_transfer;
+     770:	465b      	mov	r3, fp
+     772:	8273      	strh	r3, [r6, #18]
+        dma_descriptors[1].DSTADDR.reg = (uint32_t)spi_data_p;
+     774:	4643      	mov	r3, r8
+     776:	61b3      	str	r3, [r6, #24]
+        dma_descriptors[1].SRCADDR.reg = (uint32_t)&temp_src_dst_reg;
+     778:	9b01      	ldr	r3, [sp, #4]
+     77a:	6173      	str	r3, [r6, #20]
+        DMAC->CHID.reg= DMAC_CHID_ID(1);
+     77c:	2301      	movs	r3, #1
+     77e:	203f      	movs	r0, #63	; 0x3f
+     780:	5413      	strb	r3, [r2, r0]
+        DMAC->CHCTRLA.reg = DMAC_CHCTRLA_ENABLE;
+     782:	4653      	mov	r3, sl
+     784:	4648      	mov	r0, r9
+     786:	54d0      	strb	r0, [r2, r3]
+        DMAC->CHID.reg = DMAC_CHID_ID(0);
+     788:	4663      	mov	r3, ip
+     78a:	203f      	movs	r0, #63	; 0x3f
+     78c:	5413      	strb	r3, [r2, r0]
+        while ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) == 0);
+     78e:	5d53      	ldrb	r3, [r2, r5]
+     790:	4223      	tst	r3, r4
+     792:	d0fc      	beq.n	78e <dma_compute_crc32_from_spi+0xf6>
+        DMAC->CHINTFLAG.reg = DMAC_CHINTFLAG_TCMPL;
+     794:	5554      	strb	r4, [r2, r5]
+        
+        /* Update size */
+        size -= nb_bytes_to_transfer;
+     796:	1bc9      	subs	r1, r1, r7
+    while (size > 0)
+     798:	d005      	beq.n	7a6 <dma_compute_crc32_from_spi+0x10e>
+     79a:	000f      	movs	r7, r1
+     79c:	4b13      	ldr	r3, [pc, #76]	; (7ec <dma_compute_crc32_from_spi+0x154>)
+     79e:	4299      	cmp	r1, r3
+     7a0:	d9d8      	bls.n	754 <dma_compute_crc32_from_spi+0xbc>
+     7a2:	001f      	movs	r7, r3
+     7a4:	e7d6      	b.n	754 <dma_compute_crc32_from_spi+0xbc>
+    }
+    
+    /* Get crc32 from dma */
+    while ((DMAC->CRCSTATUS.reg & DMAC_CRCSTATUS_CRCBUSY) == DMAC_CRCSTATUS_CRCBUSY);    
+     7a6:	4907      	ldr	r1, [pc, #28]	; (7c4 <dma_compute_crc32_from_spi+0x12c>)
+     7a8:	2201      	movs	r2, #1
+     7aa:	7b0b      	ldrb	r3, [r1, #12]
+     7ac:	4213      	tst	r3, r2
+     7ae:	d1fc      	bne.n	7aa <dma_compute_crc32_from_spi+0x112>
+    return DMAC->CRCCHKSUM.reg;
+     7b0:	4b04      	ldr	r3, [pc, #16]	; (7c4 <dma_compute_crc32_from_spi+0x12c>)
+     7b2:	6898      	ldr	r0, [r3, #8]
+}
+     7b4:	b005      	add	sp, #20
+     7b6:	bc3c      	pop	{r2, r3, r4, r5}
+     7b8:	4690      	mov	r8, r2
+     7ba:	4699      	mov	r9, r3
+     7bc:	46a2      	mov	sl, r4
+     7be:	46ab      	mov	fp, r5
+     7c0:	bdf0      	pop	{r4, r5, r6, r7, pc}
+     7c2:	46c0      	nop			; (mov r8, r8)
+     7c4:	41004800 	.word	0x41004800
+     7c8:	00002004 	.word	0x00002004
+     7cc:	20000100 	.word	0x20000100
+     7d0:	20000090 	.word	0x20000090
+     7d4:	00000f06 	.word	0x00000f06
+     7d8:	fffff7ff 	.word	0xfffff7ff
+     7dc:	fffffbff 	.word	0xfffffbff
+     7e0:	fffffcff 	.word	0xfffffcff
+     7e4:	00800700 	.word	0x00800700
+     7e8:	00800800 	.word	0x00800800
+     7ec:	0000ffff 	.word	0x0000ffff
+
+000007f0 <custom_fs_read_from_flash>:
+*   \param  address     Where to read the data
+    \param  size        How many bytes to read
+*   \return success status
+*/
+RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
+{
+     7f0:	b510      	push	{r4, lr}
+     7f2:	0004      	movs	r4, r0
+    /* Check for emergency font file exception */
+    if ((address >= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR) && (address+size <= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR + sizeof(custom_fs_emergency_font_file)))
+     7f4:	2900      	cmp	r1, #0
+     7f6:	db07      	blt.n	808 <custom_fs_read_from_flash+0x18>
+    {
+        memcpy(datap, &custom_fs_emergency_font_file[address-CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR], size);
+    } 
+    else
+    {
+        dataflash_read_data_array(custom_fs_dataflash_desc, address, datap, size);
+     7f8:	4b0a      	ldr	r3, [pc, #40]	; (824 <custom_fs_read_from_flash+0x34>)
+     7fa:	6818      	ldr	r0, [r3, #0]
+     7fc:	0013      	movs	r3, r2
+     7fe:	0022      	movs	r2, r4
+     800:	4c09      	ldr	r4, [pc, #36]	; (828 <custom_fs_read_from_flash+0x38>)
+     802:	47a0      	blx	r4
+        //memcpy(datap, &mooltipass_bundle[address], size);
+    }
+    return RETURN_OK;
+}
+     804:	2000      	movs	r0, #0
+     806:	bd10      	pop	{r4, pc}
+    if ((address >= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR) && (address+size <= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR + sizeof(custom_fs_emergency_font_file)))
+     808:	188b      	adds	r3, r1, r2
+     80a:	4808      	ldr	r0, [pc, #32]	; (82c <custom_fs_read_from_flash+0x3c>)
+     80c:	4283      	cmp	r3, r0
+     80e:	d8f3      	bhi.n	7f8 <custom_fs_read_from_flash+0x8>
+        memcpy(datap, &custom_fs_emergency_font_file[address-CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR], size);
+     810:	2380      	movs	r3, #128	; 0x80
+     812:	061b      	lsls	r3, r3, #24
+     814:	469c      	mov	ip, r3
+     816:	4461      	add	r1, ip
+     818:	4b05      	ldr	r3, [pc, #20]	; (830 <custom_fs_read_from_flash+0x40>)
+     81a:	18c9      	adds	r1, r1, r3
+     81c:	0020      	movs	r0, r4
+     81e:	4b05      	ldr	r3, [pc, #20]	; (834 <custom_fs_read_from_flash+0x44>)
+     820:	4798      	blx	r3
+     822:	e7ef      	b.n	804 <custom_fs_read_from_flash+0x14>
+     824:	20000070 	.word	0x20000070
+     828:	00000c2d 	.word	0x00000c2d
+     82c:	80000aa9 	.word	0x80000aa9
+     830:	000013d0 	.word	0x000013d0
+     834:	000013bd 	.word	0x000013bd
+
+00000838 <custom_fs_get_other_data_from_continuous_read_from_flash>:
+*   \param  datap       Pointer to where to store the data
+    \param  size        How many bytes to read
+    \param  use_dma     Boolean to specify if we use DMA: if set, function will return before data is transferred!
+*/
+void custom_fs_get_other_data_from_continuous_read_from_flash(uint8_t* datap, uint32_t size, BOOL use_dma)
+{
+     838:	b510      	push	{r4, lr}
+     83a:	0004      	movs	r4, r0
+    /* Check if we have opened the SPI bus */
+    if (custom_fs_data_bus_opened == FALSE)
+     83c:	4b0a      	ldr	r3, [pc, #40]	; (868 <custom_fs_get_other_data_from_continuous_read_from_flash+0x30>)
+     83e:	681b      	ldr	r3, [r3, #0]
+     840:	2b00      	cmp	r3, #0
+     842:	d007      	beq.n	854 <custom_fs_get_other_data_from_continuous_read_from_flash+0x1c>
+    {
+        return;
+    }
+    
+    /* If we are using DMA */
+    if (use_dma != FALSE)
+     844:	2a00      	cmp	r2, #0
+     846:	d106      	bne.n	856 <custom_fs_get_other_data_from_continuous_read_from_flash+0x1e>
+        dma_custom_fs_init_transfer(custom_fs_dataflash_desc->sercom_pt, (void*)datap, size);
+    }
+    else
+    {
+        /* Read data */
+        dataflash_read_bytes_from_opened_transfer(custom_fs_dataflash_desc, datap, size);
+     848:	4b08      	ldr	r3, [pc, #32]	; (86c <custom_fs_get_other_data_from_continuous_read_from_flash+0x34>)
+     84a:	6818      	ldr	r0, [r3, #0]
+     84c:	000a      	movs	r2, r1
+     84e:	0021      	movs	r1, r4
+     850:	4b07      	ldr	r3, [pc, #28]	; (870 <custom_fs_get_other_data_from_continuous_read_from_flash+0x38>)
+     852:	4798      	blx	r3
+    }
+}
+     854:	bd10      	pop	{r4, pc}
+        dma_custom_fs_init_transfer(custom_fs_dataflash_desc->sercom_pt, (void*)datap, size);
+     856:	b28a      	uxth	r2, r1
+     858:	4b04      	ldr	r3, [pc, #16]	; (86c <custom_fs_get_other_data_from_continuous_read_from_flash+0x34>)
+     85a:	681b      	ldr	r3, [r3, #0]
+     85c:	6818      	ldr	r0, [r3, #0]
+     85e:	0021      	movs	r1, r4
+     860:	4b04      	ldr	r3, [pc, #16]	; (874 <custom_fs_get_other_data_from_continuous_read_from_flash+0x3c>)
+     862:	4798      	blx	r3
+     864:	e7f6      	b.n	854 <custom_fs_get_other_data_from_continuous_read_from_flash+0x1c>
+     866:	46c0      	nop			; (mov r8, r8)
+     868:	2000006c 	.word	0x2000006c
+     86c:	20000070 	.word	0x20000070
+     870:	00000ce5 	.word	0x00000ce5
+     874:	00000651 	.word	0x00000651
+
+00000878 <custom_fs_continuous_read_from_flash>:
+    \param  size        How many bytes to read
+    \param  use_dma     Boolean to specify if we use DMA: if set, function will return before data is transferred!
+*   \return success status
+*/
+RET_TYPE custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size, BOOL use_dma)
+{
+     878:	b570      	push	{r4, r5, r6, lr}
+     87a:	0005      	movs	r5, r0
+     87c:	0014      	movs	r4, r2
+     87e:	001e      	movs	r6, r3
+    /* Check for emergency font file exception */
+    if ((address >= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR) && (address+size <= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR + sizeof(custom_fs_emergency_font_file)))
+     880:	2900      	cmp	r1, #0
+     882:	db0d      	blt.n	8a0 <custom_fs_continuous_read_from_flash+0x28>
+        }
+    }
+    else
+    {
+        /* Check if we have opened the SPI bus */
+        if (custom_fs_data_bus_opened == FALSE)
+     884:	4b17      	ldr	r3, [pc, #92]	; (8e4 <custom_fs_continuous_read_from_flash+0x6c>)
+     886:	681b      	ldr	r3, [r3, #0]
+     888:	2b00      	cmp	r3, #0
+     88a:	d01b      	beq.n	8c4 <custom_fs_continuous_read_from_flash+0x4c>
+            dataflash_read_data_array_start(custom_fs_dataflash_desc, address);
+            custom_fs_data_bus_opened = TRUE;
+        }
+        
+        /* If we are using DMA */
+        if (use_dma != FALSE)
+     88c:	2e00      	cmp	r6, #0
+     88e:	d121      	bne.n	8d4 <custom_fs_continuous_read_from_flash+0x5c>
+            dma_custom_fs_init_transfer(custom_fs_dataflash_desc->sercom_pt, (void*)datap, size);
+        }
+        else
+        {
+            /* Read data */
+            dataflash_read_bytes_from_opened_transfer(custom_fs_dataflash_desc, datap, size);
+     890:	4b15      	ldr	r3, [pc, #84]	; (8e8 <custom_fs_continuous_read_from_flash+0x70>)
+     892:	6818      	ldr	r0, [r3, #0]
+     894:	0022      	movs	r2, r4
+     896:	0029      	movs	r1, r5
+     898:	4b14      	ldr	r3, [pc, #80]	; (8ec <custom_fs_continuous_read_from_flash+0x74>)
+     89a:	4798      	blx	r3
+        }        
+    }
+    
+    return RETURN_OK;
+}
+     89c:	2000      	movs	r0, #0
+     89e:	bd70      	pop	{r4, r5, r6, pc}
+    if ((address >= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR) && (address+size <= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR + sizeof(custom_fs_emergency_font_file)))
+     8a0:	188b      	adds	r3, r1, r2
+     8a2:	4a13      	ldr	r2, [pc, #76]	; (8f0 <custom_fs_continuous_read_from_flash+0x78>)
+     8a4:	4293      	cmp	r3, r2
+     8a6:	d8ed      	bhi.n	884 <custom_fs_continuous_read_from_flash+0xc>
+        memcpy(datap, &custom_fs_emergency_font_file[address-CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR], size);
+     8a8:	2380      	movs	r3, #128	; 0x80
+     8aa:	061b      	lsls	r3, r3, #24
+     8ac:	469c      	mov	ip, r3
+     8ae:	4461      	add	r1, ip
+     8b0:	4b10      	ldr	r3, [pc, #64]	; (8f4 <custom_fs_continuous_read_from_flash+0x7c>)
+     8b2:	18c9      	adds	r1, r1, r3
+     8b4:	0022      	movs	r2, r4
+     8b6:	4b10      	ldr	r3, [pc, #64]	; (8f8 <custom_fs_continuous_read_from_flash+0x80>)
+     8b8:	4798      	blx	r3
+        if (use_dma != FALSE)
+     8ba:	2e00      	cmp	r6, #0
+     8bc:	d0ee      	beq.n	89c <custom_fs_continuous_read_from_flash+0x24>
+            dma_set_custom_fs_flag_done();
+     8be:	4b0f      	ldr	r3, [pc, #60]	; (8fc <custom_fs_continuous_read_from_flash+0x84>)
+     8c0:	4798      	blx	r3
+     8c2:	e7eb      	b.n	89c <custom_fs_continuous_read_from_flash+0x24>
+            dataflash_read_data_array_start(custom_fs_dataflash_desc, address);
+     8c4:	4b08      	ldr	r3, [pc, #32]	; (8e8 <custom_fs_continuous_read_from_flash+0x70>)
+     8c6:	6818      	ldr	r0, [r3, #0]
+     8c8:	4b0d      	ldr	r3, [pc, #52]	; (900 <custom_fs_continuous_read_from_flash+0x88>)
+     8ca:	4798      	blx	r3
+            custom_fs_data_bus_opened = TRUE;
+     8cc:	2201      	movs	r2, #1
+     8ce:	4b05      	ldr	r3, [pc, #20]	; (8e4 <custom_fs_continuous_read_from_flash+0x6c>)
+     8d0:	601a      	str	r2, [r3, #0]
+     8d2:	e7db      	b.n	88c <custom_fs_continuous_read_from_flash+0x14>
+            dma_custom_fs_init_transfer(custom_fs_dataflash_desc->sercom_pt, (void*)datap, size);
+     8d4:	b2a2      	uxth	r2, r4
+     8d6:	4b04      	ldr	r3, [pc, #16]	; (8e8 <custom_fs_continuous_read_from_flash+0x70>)
+     8d8:	681b      	ldr	r3, [r3, #0]
+     8da:	6818      	ldr	r0, [r3, #0]
+     8dc:	0029      	movs	r1, r5
+     8de:	4b09      	ldr	r3, [pc, #36]	; (904 <custom_fs_continuous_read_from_flash+0x8c>)
+     8e0:	4798      	blx	r3
+     8e2:	e7db      	b.n	89c <custom_fs_continuous_read_from_flash+0x24>
+     8e4:	2000006c 	.word	0x2000006c
+     8e8:	20000070 	.word	0x20000070
+     8ec:	00000ce5 	.word	0x00000ce5
+     8f0:	80000aa9 	.word	0x80000aa9
+     8f4:	000013d0 	.word	0x000013d0
+     8f8:	000013bd 	.word	0x000013bd
+     8fc:	00000519 	.word	0x00000519
+     900:	00000ca1 	.word	0x00000ca1
+     904:	00000651 	.word	0x00000651
+
+00000908 <custom_fs_compute_and_check_external_bundle_crc32>:
+/*! \fn     custom_fs_compute_and_check_external_bundle_crc32(void)
+*   \brief  Compute the crc32 of our bundle
+*   \return Success status
+*/
+RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void)
+{
+     908:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+#ifndef EMULATOR_BUILD
+    /* Start a read on external flash */
+    dataflash_read_data_array_start(custom_fs_dataflash_desc, CUSTOM_FS_FILES_ADDR_OFFSET + sizeof(custom_fs_flash_header.magic_header) + sizeof(custom_fs_flash_header.total_size) + sizeof(custom_fs_flash_header.crc32));
+     90a:	4c0c      	ldr	r4, [pc, #48]	; (93c <custom_fs_compute_and_check_external_bundle_crc32+0x34>)
+     90c:	210c      	movs	r1, #12
+     90e:	6820      	ldr	r0, [r4, #0]
+     910:	4b0b      	ldr	r3, [pc, #44]	; (940 <custom_fs_compute_and_check_external_bundle_crc32+0x38>)
+     912:	4798      	blx	r3
+
+    /* Reset DMA controller */
+    dma_reset();
+     914:	4e0b      	ldr	r6, [pc, #44]	; (944 <custom_fs_compute_and_check_external_bundle_crc32+0x3c>)
+     916:	47b0      	blx	r6
+
+    /* Use the DMA controller to compute the crc32 */
+    uint32_t crc32 = dma_compute_crc32_from_spi(custom_fs_dataflash_desc->sercom_pt, custom_fs_flash_header.total_size - sizeof(custom_fs_flash_header.magic_header) - sizeof(custom_fs_flash_header.total_size) - sizeof(custom_fs_flash_header.crc32));
+     918:	4d0b      	ldr	r5, [pc, #44]	; (948 <custom_fs_compute_and_check_external_bundle_crc32+0x40>)
+     91a:	6869      	ldr	r1, [r5, #4]
+     91c:	390c      	subs	r1, #12
+     91e:	6823      	ldr	r3, [r4, #0]
+     920:	6818      	ldr	r0, [r3, #0]
+     922:	4b0a      	ldr	r3, [pc, #40]	; (94c <custom_fs_compute_and_check_external_bundle_crc32+0x44>)
+     924:	4798      	blx	r3
+     926:	0007      	movs	r7, r0
+    
+    /* Stop transfer */
+    dataflash_stop_ongoing_transfer(custom_fs_dataflash_desc);
+     928:	6820      	ldr	r0, [r4, #0]
+     92a:	4b09      	ldr	r3, [pc, #36]	; (950 <custom_fs_compute_and_check_external_bundle_crc32+0x48>)
+     92c:	4798      	blx	r3
+    
+    /* Reset DMA controller */
+    dma_reset();
+     92e:	47b0      	blx	r6
+    
+    /* Do the final check */
+    if (custom_fs_flash_header.crc32 == crc32)
+     930:	68a8      	ldr	r0, [r5, #8]
+     932:	1bc0      	subs	r0, r0, r7
+     934:	1e43      	subs	r3, r0, #1
+     936:	4198      	sbcs	r0, r3
+     938:	4240      	negs	r0, r0
+
+#else
+    /* We don't emulate the DMA controller, and don't bother with reimplementing the crc32 routines */
+    return RETURN_OK;
+#endif
+}
+     93a:	bdf8      	pop	{r3, r4, r5, r6, r7, pc}
+     93c:	20000070 	.word	0x20000070
+     940:	00000ca1 	.word	0x00000ca1
+     944:	00000525 	.word	0x00000525
+     948:	200001f4 	.word	0x200001f4
+     94c:	00000699 	.word	0x00000699
+     950:	00000d09 	.word	0x00000d09
+
+00000954 <custom_fs_stop_continuous_read_from_flash>:
+
+/*! \fn     custom_fs_stop_continuous_read_from_flash(void)
+*   \brief  Stop a continuous flash read
+*/
+void custom_fs_stop_continuous_read_from_flash(void)
+{
+     954:	b510      	push	{r4, lr}
+    dataflash_stop_ongoing_transfer(custom_fs_dataflash_desc);
+     956:	4b04      	ldr	r3, [pc, #16]	; (968 <custom_fs_stop_continuous_read_from_flash+0x14>)
+     958:	6818      	ldr	r0, [r3, #0]
+     95a:	4b04      	ldr	r3, [pc, #16]	; (96c <custom_fs_stop_continuous_read_from_flash+0x18>)
+     95c:	4798      	blx	r3
+    custom_fs_data_bus_opened = FALSE;
+     95e:	2200      	movs	r2, #0
+     960:	4b03      	ldr	r3, [pc, #12]	; (970 <custom_fs_stop_continuous_read_from_flash+0x1c>)
+     962:	601a      	str	r2, [r3, #0]
+}
+     964:	bd10      	pop	{r4, pc}
+     966:	46c0      	nop			; (mov r8, r8)
+     968:	20000070 	.word	0x20000070
+     96c:	00000d09 	.word	0x00000d09
+     970:	2000006c 	.word	0x2000006c
+
+00000974 <custom_fs_set_dataflash_descriptor>:
+*   \param  desc    Pointer to the SPI flash port descriptor
+*/
+void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc)
+{
+    /* Locally copy the flash descriptor */
+    custom_fs_dataflash_desc = desc;    
+     974:	4b01      	ldr	r3, [pc, #4]	; (97c <custom_fs_set_dataflash_descriptor+0x8>)
+     976:	6018      	str	r0, [r3, #0]
+}
+     978:	4770      	bx	lr
+     97a:	46c0      	nop			; (mov r8, r8)
+     97c:	20000070 	.word	0x20000070
+
+00000980 <custom_fs_init>:
+/*! \fn     custom_fs_init(void)
+*   \brief  Initialize our custom file system... system
+*   \return RETURN_(N)OK
+*/
+ret_type_te custom_fs_init(void)
+{    
+     980:	b510      	push	{r4, lr}
+    /* Initialize internal data structures responsible for "custom storage slots".
+     * At the moment this doesn't do anything on the regular, non-emulator build. */
+    custom_fs_init_custom_storage_slots();
+    
+    /* Read flash header */
+    custom_fs_read_from_flash((uint8_t*)&custom_fs_flash_header, CUSTOM_FS_FILES_ADDR_OFFSET, sizeof(custom_fs_flash_header));
+     982:	4c0a      	ldr	r4, [pc, #40]	; (9ac <custom_fs_init+0x2c>)
+     984:	2280      	movs	r2, #128	; 0x80
+     986:	2100      	movs	r1, #0
+     988:	0020      	movs	r0, r4
+     98a:	4b09      	ldr	r3, [pc, #36]	; (9b0 <custom_fs_init+0x30>)
+     98c:	4798      	blx	r3
+    
+    /* Check correct header */
+    if (custom_fs_flash_header.magic_header != CUSTOM_FS_MAGIC_HEADER)
+     98e:	4b09      	ldr	r3, [pc, #36]	; (9b4 <custom_fs_init+0x34>)
+     990:	6822      	ldr	r2, [r4, #0]
+     992:	429a      	cmp	r2, r3
+     994:	d106      	bne.n	9a4 <custom_fs_init+0x24>
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Check correct payload length */
+    if (CUSTOM_FS_FILES_ADDR_OFFSET + custom_fs_flash_header.total_size > W25Q16_FLASH_SIZE)
+     996:	4b05      	ldr	r3, [pc, #20]	; (9ac <custom_fs_init+0x2c>)
+     998:	685b      	ldr	r3, [r3, #4]
+     99a:	2080      	movs	r0, #128	; 0x80
+     99c:	0380      	lsls	r0, r0, #14
+     99e:	4298      	cmp	r0, r3
+     9a0:	4180      	sbcs	r0, r0
+        }    
+    
+    /* Set default language */
+        return custom_fs_set_current_language(default_device_language);
+    #endif
+}
+     9a2:	bd10      	pop	{r4, pc}
+        return RETURN_NOK;
+     9a4:	2001      	movs	r0, #1
+     9a6:	4240      	negs	r0, r0
+     9a8:	e7fb      	b.n	9a2 <custom_fs_init+0x22>
+     9aa:	46c0      	nop			; (mov r8, r8)
+     9ac:	200001f4 	.word	0x200001f4
+     9b0:	000007f1 	.word	0x000007f1
+     9b4:	12345678 	.word	0x12345678
+
+000009b8 <custom_fs_get_start_address_of_signed_data>:
+*   \return The start address
+*/
+custom_fs_address_t custom_fs_get_start_address_of_signed_data(void)
+{
+    return START_OF_SIGNED_DATA_IN_DATA_FLASH;
+}
+     9b8:	2020      	movs	r0, #32
+     9ba:	4770      	bx	lr
+
+000009bc <custom_fs_get_file_address>:
+*   \param  address     Pointer to where to store the address
+*   \param  file_type   File type (see enum)
+*   \return success status
+*/
+RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* address, custom_fs_file_type_te file_type)
+{
+     9bc:	b510      	push	{r4, lr}
+     9be:	000c      	movs	r4, r1
+    custom_fs_address_t file_table_address;
+    uint32_t language_offset = 0;
+
+    // Check for invalid file index or flash not formatted
+    if (file_type == CUSTOM_FS_STRING_TYPE)
+     9c0:	2a00      	cmp	r2, #0
+     9c2:	d111      	bne.n	9e8 <custom_fs_get_file_address+0x2c>
+    {
+        if ((file_id >= custom_fs_flash_header.string_file_count) || (custom_fs_flash_header.string_file_count == CUSTOM_FS_MAX_FILE_COUNT))
+     9c4:	4b36      	ldr	r3, [pc, #216]	; (aa0 <custom_fs_get_file_address+0xe4>)
+     9c6:	6d5b      	ldr	r3, [r3, #84]	; 0x54
+     9c8:	4283      	cmp	r3, r0
+     9ca:	d947      	bls.n	a5c <custom_fs_get_file_address+0xa0>
+     9cc:	3301      	adds	r3, #1
+     9ce:	d048      	beq.n	a62 <custom_fs_get_file_address+0xa6>
+        {
+            return RETURN_NOK;
+        }
+        else
+        {
+            file_table_address = custom_fs_flash_header.string_file_offset;
+     9d0:	4b33      	ldr	r3, [pc, #204]	; (aa0 <custom_fs_get_file_address+0xe4>)
+     9d2:	6d9a      	ldr	r2, [r3, #88]	; 0x58
+    uint32_t language_offset = 0;
+     9d4:	2300      	movs	r3, #0
+    {
+        return RETURN_NOK;
+    }
+
+    /* Read the file address : <filecount> <fileid0><address0> <fileid1><address1> ... */
+    custom_fs_read_from_flash((uint8_t*)address, CUSTOM_FS_FILES_ADDR_OFFSET + file_table_address + (file_id + language_offset) * sizeof(*address), sizeof(*address));
+     9d6:	1819      	adds	r1, r3, r0
+     9d8:	0089      	lsls	r1, r1, #2
+     9da:	1889      	adds	r1, r1, r2
+     9dc:	2204      	movs	r2, #4
+     9de:	0020      	movs	r0, r4
+     9e0:	4b30      	ldr	r3, [pc, #192]	; (aa4 <custom_fs_get_file_address+0xe8>)
+     9e2:	4798      	blx	r3
+    
+    /* Add the file address offset */
+    *address += CUSTOM_FS_FILES_ADDR_OFFSET;
+    
+    return RETURN_OK;
+     9e4:	2000      	movs	r0, #0
+}
+     9e6:	bd10      	pop	{r4, pc}
+    else if (file_type == CUSTOM_FS_FONTS_TYPE)
+     9e8:	2a01      	cmp	r2, #1
+     9ea:	d00f      	beq.n	a0c <custom_fs_get_file_address+0x50>
+    else if (file_type == CUSTOM_FS_BITMAP_TYPE)
+     9ec:	2a02      	cmp	r2, #2
+     9ee:	d019      	beq.n	a24 <custom_fs_get_file_address+0x68>
+    else if (file_type == CUSTOM_FS_BINARY_TYPE)
+     9f0:	2a03      	cmp	r2, #3
+     9f2:	d029      	beq.n	a48 <custom_fs_get_file_address+0x8c>
+    else if (file_type == CUSTOM_FS_FW_UPDATE_TYPE)
+     9f4:	2a04      	cmp	r2, #4
+     9f6:	d149      	bne.n	a8c <custom_fs_get_file_address+0xd0>
+        if ((file_id >= custom_fs_flash_header.update_file_count) || (custom_fs_flash_header.update_file_count == CUSTOM_FS_MAX_FILE_COUNT))
+     9f8:	4b29      	ldr	r3, [pc, #164]	; (aa0 <custom_fs_get_file_address+0xe4>)
+     9fa:	6cdb      	ldr	r3, [r3, #76]	; 0x4c
+     9fc:	4298      	cmp	r0, r3
+     9fe:	d248      	bcs.n	a92 <custom_fs_get_file_address+0xd6>
+     a00:	3301      	adds	r3, #1
+     a02:	d049      	beq.n	a98 <custom_fs_get_file_address+0xdc>
+            file_table_address = custom_fs_flash_header.update_file_offset;
+     a04:	4b26      	ldr	r3, [pc, #152]	; (aa0 <custom_fs_get_file_address+0xe4>)
+     a06:	6d1a      	ldr	r2, [r3, #80]	; 0x50
+    uint32_t language_offset = 0;
+     a08:	2300      	movs	r3, #0
+     a0a:	e7e4      	b.n	9d6 <custom_fs_get_file_address+0x1a>
+        language_offset = custom_fs_cur_language_entry.starting_font;
+     a0c:	4b26      	ldr	r3, [pc, #152]	; (aa8 <custom_fs_get_file_address+0xec>)
+     a0e:	8cdb      	ldrh	r3, [r3, #38]	; 0x26
+        if (((file_id + language_offset) >= custom_fs_flash_header.fonts_file_count) || (custom_fs_flash_header.fonts_file_count == CUSTOM_FS_MAX_FILE_COUNT))
+     a10:	4a23      	ldr	r2, [pc, #140]	; (aa0 <custom_fs_get_file_address+0xe4>)
+     a12:	6dd2      	ldr	r2, [r2, #92]	; 0x5c
+     a14:	18c1      	adds	r1, r0, r3
+     a16:	4291      	cmp	r1, r2
+     a18:	d226      	bcs.n	a68 <custom_fs_get_file_address+0xac>
+     a1a:	3201      	adds	r2, #1
+     a1c:	d027      	beq.n	a6e <custom_fs_get_file_address+0xb2>
+            file_table_address = custom_fs_flash_header.fonts_file_offset;
+     a1e:	4a20      	ldr	r2, [pc, #128]	; (aa0 <custom_fs_get_file_address+0xe4>)
+     a20:	6e12      	ldr	r2, [r2, #96]	; 0x60
+     a22:	e7d8      	b.n	9d6 <custom_fs_get_file_address+0x1a>
+        if (file_id >= custom_fs_flash_header.language_bitmap_starting_id)
+     a24:	4b1e      	ldr	r3, [pc, #120]	; (aa0 <custom_fs_get_file_address+0xe4>)
+     a26:	6fdb      	ldr	r3, [r3, #124]	; 0x7c
+     a28:	2200      	movs	r2, #0
+     a2a:	4298      	cmp	r0, r3
+     a2c:	d301      	bcc.n	a32 <custom_fs_get_file_address+0x76>
+            language_offset = custom_fs_cur_language_entry.starting_bitmap;
+     a2e:	4b1e      	ldr	r3, [pc, #120]	; (aa8 <custom_fs_get_file_address+0xec>)
+     a30:	8d1a      	ldrh	r2, [r3, #40]	; 0x28
+     a32:	0013      	movs	r3, r2
+        if (((file_id + language_offset) >= custom_fs_flash_header.bitmap_file_count) || (custom_fs_flash_header.bitmap_file_count == CUSTOM_FS_MAX_FILE_COUNT))
+     a34:	491a      	ldr	r1, [pc, #104]	; (aa0 <custom_fs_get_file_address+0xe4>)
+     a36:	6e49      	ldr	r1, [r1, #100]	; 0x64
+     a38:	1812      	adds	r2, r2, r0
+     a3a:	428a      	cmp	r2, r1
+     a3c:	d21a      	bcs.n	a74 <custom_fs_get_file_address+0xb8>
+     a3e:	1c4a      	adds	r2, r1, #1
+     a40:	d01b      	beq.n	a7a <custom_fs_get_file_address+0xbe>
+            file_table_address = custom_fs_flash_header.bitmap_file_offset;
+     a42:	4a17      	ldr	r2, [pc, #92]	; (aa0 <custom_fs_get_file_address+0xe4>)
+     a44:	6e92      	ldr	r2, [r2, #104]	; 0x68
+     a46:	e7c6      	b.n	9d6 <custom_fs_get_file_address+0x1a>
+        if ((file_id >= custom_fs_flash_header.binary_img_file_count) || (custom_fs_flash_header.binary_img_file_count == CUSTOM_FS_MAX_FILE_COUNT))
+     a48:	4b15      	ldr	r3, [pc, #84]	; (aa0 <custom_fs_get_file_address+0xe4>)
+     a4a:	6edb      	ldr	r3, [r3, #108]	; 0x6c
+     a4c:	4298      	cmp	r0, r3
+     a4e:	d217      	bcs.n	a80 <custom_fs_get_file_address+0xc4>
+     a50:	3301      	adds	r3, #1
+     a52:	d018      	beq.n	a86 <custom_fs_get_file_address+0xca>
+            file_table_address = custom_fs_flash_header.binary_img_file_offset;
+     a54:	4b12      	ldr	r3, [pc, #72]	; (aa0 <custom_fs_get_file_address+0xe4>)
+     a56:	6f1a      	ldr	r2, [r3, #112]	; 0x70
+    uint32_t language_offset = 0;
+     a58:	2300      	movs	r3, #0
+     a5a:	e7bc      	b.n	9d6 <custom_fs_get_file_address+0x1a>
+            return RETURN_NOK;
+     a5c:	2001      	movs	r0, #1
+     a5e:	4240      	negs	r0, r0
+     a60:	e7c1      	b.n	9e6 <custom_fs_get_file_address+0x2a>
+     a62:	2001      	movs	r0, #1
+     a64:	4240      	negs	r0, r0
+     a66:	e7be      	b.n	9e6 <custom_fs_get_file_address+0x2a>
+            return RETURN_NOK;
+     a68:	2001      	movs	r0, #1
+     a6a:	4240      	negs	r0, r0
+     a6c:	e7bb      	b.n	9e6 <custom_fs_get_file_address+0x2a>
+     a6e:	2001      	movs	r0, #1
+     a70:	4240      	negs	r0, r0
+     a72:	e7b8      	b.n	9e6 <custom_fs_get_file_address+0x2a>
+            return RETURN_NOK;
+     a74:	2001      	movs	r0, #1
+     a76:	4240      	negs	r0, r0
+     a78:	e7b5      	b.n	9e6 <custom_fs_get_file_address+0x2a>
+     a7a:	2001      	movs	r0, #1
+     a7c:	4240      	negs	r0, r0
+     a7e:	e7b2      	b.n	9e6 <custom_fs_get_file_address+0x2a>
+            return RETURN_NOK;
+     a80:	2001      	movs	r0, #1
+     a82:	4240      	negs	r0, r0
+     a84:	e7af      	b.n	9e6 <custom_fs_get_file_address+0x2a>
+     a86:	2001      	movs	r0, #1
+     a88:	4240      	negs	r0, r0
+     a8a:	e7ac      	b.n	9e6 <custom_fs_get_file_address+0x2a>
+        return RETURN_NOK;
+     a8c:	2001      	movs	r0, #1
+     a8e:	4240      	negs	r0, r0
+     a90:	e7a9      	b.n	9e6 <custom_fs_get_file_address+0x2a>
+            return RETURN_NOK;
+     a92:	2001      	movs	r0, #1
+     a94:	4240      	negs	r0, r0
+     a96:	e7a6      	b.n	9e6 <custom_fs_get_file_address+0x2a>
+     a98:	2001      	movs	r0, #1
+     a9a:	4240      	negs	r0, r0
+     a9c:	e7a3      	b.n	9e6 <custom_fs_get_file_address+0x2a>
+     a9e:	46c0      	nop			; (mov r8, r8)
+     aa0:	200001f4 	.word	0x200001f4
+     aa4:	000007f1 	.word	0x000007f1
+     aa8:	20000040 	.word	0x20000040
+
+00000aac <custom_fs_get_custom_storage_slot_ptr>:
+    #if 256 != NVMCTRL_ROW_SIZE
+        #error "NVM ROW SIZE ERROR"
+    #endif
+    
+    /* Get RWWEEE memory settings */
+    uint32_t fuse = ((*((uint32_t *)NVMCTRL_AUX0_ADDRESS)) & NVMCTRL_FUSES_EEPROM_SIZE_Msk) >> 4;
+     aac:	4b0c      	ldr	r3, [pc, #48]	; (ae0 <custom_fs_get_custom_storage_slot_ptr+0x34>)
+     aae:	681b      	ldr	r3, [r3, #0]
+     ab0:	065b      	lsls	r3, r3, #25
+     ab2:	0f5b      	lsrs	r3, r3, #29
+    
+    if (fuse == 7)
+     ab4:	2b07      	cmp	r3, #7
+     ab6:	d00e      	beq.n	ad6 <custom_fs_get_custom_storage_slot_ptr+0x2a>
+        return 0;
+    }
+    else
+    {
+        /* Compute amount of simulated EEPROM */
+        emulated_eeprom_size = NVMCTRL_ROW_SIZE << (6 - fuse);
+     ab8:	2206      	movs	r2, #6
+     aba:	1ad2      	subs	r2, r2, r3
+     abc:	2380      	movs	r3, #128	; 0x80
+     abe:	005b      	lsls	r3, r3, #1
+     ac0:	4093      	lsls	r3, r2
+    }
+    
+    /* Check slot_id */
+    if (slot_id >= emulated_eeprom_size/NVMCTRL_ROW_SIZE)
+     ac2:	0a1a      	lsrs	r2, r3, #8
+     ac4:	4282      	cmp	r2, r0
+     ac6:	d908      	bls.n	ada <custom_fs_get_custom_storage_slot_ptr+0x2e>
+    {
+        return 0;
+    }
+    
+    /* Compute address of where we want to write data */
+    return (void*)(FLASH_ADDR + FLASH_SIZE - emulated_eeprom_size + slot_id*NVMCTRL_ROW_SIZE);
+     ac8:	0200      	lsls	r0, r0, #8
+     aca:	2280      	movs	r2, #128	; 0x80
+     acc:	02d2      	lsls	r2, r2, #11
+     ace:	4694      	mov	ip, r2
+     ad0:	4460      	add	r0, ip
+     ad2:	1ac0      	subs	r0, r0, r3
+}
+     ad4:	4770      	bx	lr
+        return 0;
+     ad6:	2000      	movs	r0, #0
+     ad8:	e7fc      	b.n	ad4 <custom_fs_get_custom_storage_slot_ptr+0x28>
+        return 0;
+     ada:	2000      	movs	r0, #0
+     adc:	e7fa      	b.n	ad4 <custom_fs_get_custom_storage_slot_ptr+0x28>
+     ade:	46c0      	nop			; (mov r8, r8)
+     ae0:	00804000 	.word	0x00804000
+
+00000ae4 <custom_fs_settings_init>:
+{        
+     ae4:	b570      	push	{r4, r5, r6, lr}
+    void* flash_ptr = custom_fs_get_custom_storage_slot_ptr(SETTINGS_STORAGE_SLOT);
+     ae6:	2000      	movs	r0, #0
+     ae8:	4b0e      	ldr	r3, [pc, #56]	; (b24 <custom_fs_settings_init+0x40>)
+     aea:	4798      	blx	r3
+    if (flash_ptr != 0)
+     aec:	2800      	cmp	r0, #0
+     aee:	d016      	beq.n	b1e <custom_fs_settings_init+0x3a>
+        custom_fs_platform_settings_p = (custom_platform_settings_t*)flash_ptr;
+     af0:	4b0d      	ldr	r3, [pc, #52]	; (b28 <custom_fs_settings_init+0x44>)
+     af2:	6018      	str	r0, [r3, #0]
+        flash_ptr = custom_fs_get_custom_storage_slot_ptr(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT);
+     af4:	2004      	movs	r0, #4
+     af6:	4d0b      	ldr	r5, [pc, #44]	; (b24 <custom_fs_settings_init+0x40>)
+     af8:	47a8      	blx	r5
+     afa:	0004      	movs	r4, r0
+        custom_fs_cpz_lut = (cpz_lut_entry_t*)flash_ptr;
+     afc:	4b0b      	ldr	r3, [pc, #44]	; (b2c <custom_fs_settings_init+0x48>)
+     afe:	6018      	str	r0, [r3, #0]
+        flash_ptr = custom_fs_get_custom_storage_slot_ptr(FLAGS_STORAGE_SLOT);
+     b00:	2001      	movs	r0, #1
+     b02:	47a8      	blx	r5
+        if ((uintptr_t)&custom_fs_cpz_lut[MAX_NUMBER_OF_USERS] != FLASH_ADDR + FLASH_SIZE)
+     b04:	23e0      	movs	r3, #224	; 0xe0
+     b06:	015b      	lsls	r3, r3, #5
+     b08:	469c      	mov	ip, r3
+     b0a:	4464      	add	r4, ip
+     b0c:	2380      	movs	r3, #128	; 0x80
+     b0e:	02db      	lsls	r3, r3, #11
+     b10:	429c      	cmp	r4, r3
+     b12:	d000      	beq.n	b16 <custom_fs_settings_init+0x32>
+     b14:	e7fe      	b.n	b14 <custom_fs_settings_init+0x30>
+        custom_fs_platform_flags_p = (custom_platform_flags_t*)flash_ptr;
+     b16:	4b06      	ldr	r3, [pc, #24]	; (b30 <custom_fs_settings_init+0x4c>)
+     b18:	6018      	str	r0, [r3, #0]
+        return CUSTOM_FS_INIT_OK;
+     b1a:	2000      	movs	r0, #0
+}
+     b1c:	bd70      	pop	{r4, r5, r6, pc}
+        return CUSTOM_FS_INIT_NO_RWEE;
+     b1e:	2001      	movs	r0, #1
+     b20:	e7fc      	b.n	b1c <custom_fs_settings_init+0x38>
+     b22:	46c0      	nop			; (mov r8, r8)
+     b24:	00000aad 	.word	0x00000aad
+     b28:	20000078 	.word	0x20000078
+     b2c:	200001f0 	.word	0x200001f0
+     b30:	20000074 	.word	0x20000074
+
+00000b34 <custom_fs_write_256B_at_internal_custom_storage_slot>:
+*   \param  array       256 bytes array (matches NVMCTRL_ROW_SIZE)
+*   \note   Please make sure the fuses are correctly configured
+*   \note   NVM configured as EEPROM allows access to NVM when EEPROM is being written or erased (convenient when interrupts occur)
+*/
+void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array)
+{
+     b34:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+     b36:	000c      	movs	r4, r1
+#ifndef FEATURE_NVM_RWWEE    
+    /* Compute address of where we want to write data */
+    void *flash_ptr = custom_fs_get_custom_storage_slot_ptr(slot_id);
+     b38:	4b1b      	ldr	r3, [pc, #108]	; (ba8 <custom_fs_write_256B_at_internal_custom_storage_slot+0x74>)
+     b3a:	4798      	blx	r3
+    uint32_t flash_addr = (uint32_t)flash_ptr;
+     b3c:	1e06      	subs	r6, r0, #0
+    
+    /* Check if we were successful */
+    if (flash_addr == 0)
+     b3e:	d032      	beq.n	ba6 <custom_fs_write_256B_at_internal_custom_storage_slot+0x72>
+    {
+        return;
+    }
+    
+    /* Automatic write, disable caching */
+    NVMCTRL->CTRLB.bit.MANW = 0;
+     b40:	4b1a      	ldr	r3, [pc, #104]	; (bac <custom_fs_write_256B_at_internal_custom_storage_slot+0x78>)
+     b42:	685a      	ldr	r2, [r3, #4]
+     b44:	2180      	movs	r1, #128	; 0x80
+     b46:	438a      	bics	r2, r1
+     b48:	605a      	str	r2, [r3, #4]
+    NVMCTRL->CTRLB.bit.CACHEDIS = 1;
+     b4a:	6859      	ldr	r1, [r3, #4]
+     b4c:	2280      	movs	r2, #128	; 0x80
+     b4e:	02d2      	lsls	r2, r2, #11
+     b50:	430a      	orrs	r2, r1
+     b52:	605a      	str	r2, [r3, #4]
+    
+    /* Erase complete row */
+    while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+     b54:	0019      	movs	r1, r3
+     b56:	2201      	movs	r2, #1
+     b58:	7d0b      	ldrb	r3, [r1, #20]
+     b5a:	4213      	tst	r3, r2
+     b5c:	d0fc      	beq.n	b58 <custom_fs_write_256B_at_internal_custom_storage_slot+0x24>
+    NVMCTRL->ADDR.reg  = flash_addr/2;
+     b5e:	0842      	lsrs	r2, r0, #1
+     b60:	4b12      	ldr	r3, [pc, #72]	; (bac <custom_fs_write_256B_at_internal_custom_storage_slot+0x78>)
+     b62:	61da      	str	r2, [r3, #28]
+    NVMCTRL->CTRLA.reg = NVMCTRL_CTRLA_CMD_ER | NVMCTRL_CTRLA_CMDEX_KEY;
+     b64:	4a12      	ldr	r2, [pc, #72]	; (bb0 <custom_fs_write_256B_at_internal_custom_storage_slot+0x7c>)
+     b66:	801a      	strh	r2, [r3, #0]
+     b68:	1c43      	adds	r3, r0, #1
+     b6a:	33ff      	adds	r3, #255	; 0xff
+     b6c:	469c      	mov	ip, r3
+        
+    /* Flash bytes */
+    for (uint32_t j = 0; j < 4; j++)
+    {
+        /* Flash 4 consecutive pages */
+        while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+     b6e:	4f0f      	ldr	r7, [pc, #60]	; (bac <custom_fs_write_256B_at_internal_custom_storage_slot+0x78>)
+     b70:	2201      	movs	r2, #1
+     b72:	7d3b      	ldrb	r3, [r7, #20]
+     b74:	4213      	tst	r3, r2
+     b76:	d0fc      	beq.n	b72 <custom_fs_write_256B_at_internal_custom_storage_slot+0x3e>
+     b78:	0005      	movs	r5, r0
+     b7a:	3540      	adds	r5, #64	; 0x40
+        for(uint32_t i = 0; i < NVMCTRL_ROW_SIZE/4; i+=2)
+        {
+            NVM_MEMORY[(flash_addr+j*(NVMCTRL_ROW_SIZE/4)+i)/2] = ((uint16_t*)array)[(j*(NVMCTRL_ROW_SIZE/4)+i)/2];
+     b7c:	0001      	movs	r1, r0
+     b7e:	4391      	bics	r1, r2
+     b80:	1b83      	subs	r3, r0, r6
+     b82:	4393      	bics	r3, r2
+     b84:	5ae3      	ldrh	r3, [r4, r3]
+     b86:	800b      	strh	r3, [r1, #0]
+     b88:	3002      	adds	r0, #2
+        for(uint32_t i = 0; i < NVMCTRL_ROW_SIZE/4; i+=2)
+     b8a:	42a8      	cmp	r0, r5
+     b8c:	d1f6      	bne.n	b7c <custom_fs_write_256B_at_internal_custom_storage_slot+0x48>
+     b8e:	0028      	movs	r0, r5
+    for (uint32_t j = 0; j < 4; j++)
+     b90:	45ac      	cmp	ip, r5
+     b92:	d1ee      	bne.n	b72 <custom_fs_write_256B_at_internal_custom_storage_slot+0x3e>
+        }
+    }
+
+    /* Disable automatic write, enable caching */
+    NVMCTRL->CTRLB.bit.MANW = 1;
+     b94:	4b05      	ldr	r3, [pc, #20]	; (bac <custom_fs_write_256B_at_internal_custom_storage_slot+0x78>)
+     b96:	685a      	ldr	r2, [r3, #4]
+     b98:	2180      	movs	r1, #128	; 0x80
+     b9a:	430a      	orrs	r2, r1
+     b9c:	605a      	str	r2, [r3, #4]
+    NVMCTRL->CTRLB.bit.CACHEDIS = 0;
+     b9e:	685a      	ldr	r2, [r3, #4]
+     ba0:	4904      	ldr	r1, [pc, #16]	; (bb4 <custom_fs_write_256B_at_internal_custom_storage_slot+0x80>)
+     ba2:	400a      	ands	r2, r1
+     ba4:	605a      	str	r2, [r3, #4]
+#endif
+}
+     ba6:	bdf8      	pop	{r3, r4, r5, r6, r7, pc}
+     ba8:	00000aad 	.word	0x00000aad
+     bac:	41004000 	.word	0x41004000
+     bb0:	ffffa502 	.word	0xffffa502
+     bb4:	fffbffff 	.word	0xfffbffff
+
+00000bb8 <custom_fs_read_256B_at_internal_custom_storage_slot>:
+*   \param  array       256 bytes array (matches NVMCTRL_ROW_SIZE)
+*   \note   Please make sure the fuses are correctly configured
+*   \note   NVM configured as EEPROM allows access to NVM when EEPROM is being written or erased (convenient when interrupts occur)
+*/
+void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array)
+{
+     bb8:	b510      	push	{r4, lr}
+     bba:	000c      	movs	r4, r1
+#ifndef FEATURE_NVM_RWWEE
+    /* Compute address of where we want to read data */
+    void* flash_addr = custom_fs_get_custom_storage_slot_ptr(slot_id);
+     bbc:	4b05      	ldr	r3, [pc, #20]	; (bd4 <custom_fs_read_256B_at_internal_custom_storage_slot+0x1c>)
+     bbe:	4798      	blx	r3
+    
+    /* Check if we were successful */
+    if (flash_addr == 0)
+     bc0:	2800      	cmp	r0, #0
+     bc2:	d005      	beq.n	bd0 <custom_fs_read_256B_at_internal_custom_storage_slot+0x18>
+    {
+        return;
+    }
+    
+    /* Perform the copy */
+    memcpy(array, (const void*)flash_addr, NVMCTRL_ROW_SIZE);
+     bc4:	2280      	movs	r2, #128	; 0x80
+     bc6:	0052      	lsls	r2, r2, #1
+     bc8:	0001      	movs	r1, r0
+     bca:	0020      	movs	r0, r4
+     bcc:	4b02      	ldr	r3, [pc, #8]	; (bd8 <custom_fs_read_256B_at_internal_custom_storage_slot+0x20>)
+     bce:	4798      	blx	r3
+#endif
+}
+     bd0:	bd10      	pop	{r4, pc}
+     bd2:	46c0      	nop			; (mov r8, r8)
+     bd4:	00000aad 	.word	0x00000aad
+     bd8:	000013bd 	.word	0x000013bd
+
+00000bdc <custom_fs_settings_clear_fw_upgrade_flag>:
+
+/*! \fn     custom_fs_settings_clear_fw_upgrade_flag(void)
+*   \brief  Clear the fw upgrade flag inside our settings
+*/
+void custom_fs_settings_clear_fw_upgrade_flag(void)
+{
+     bdc:	b500      	push	{lr}
+     bde:	b0c1      	sub	sp, #260	; 0x104
+    volatile custom_platform_settings_t temp_settings;
+    custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+     be0:	4669      	mov	r1, sp
+     be2:	2000      	movs	r0, #0
+     be4:	4b05      	ldr	r3, [pc, #20]	; (bfc <custom_fs_settings_clear_fw_upgrade_flag+0x20>)
+     be6:	4798      	blx	r3
+    temp_settings.start_upgrade_flag = 0;
+     be8:	2200      	movs	r2, #0
+     bea:	23fc      	movs	r3, #252	; 0xfc
+     bec:	4669      	mov	r1, sp
+     bee:	50ca      	str	r2, [r1, r3]
+    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+     bf0:	2000      	movs	r0, #0
+     bf2:	4b03      	ldr	r3, [pc, #12]	; (c00 <custom_fs_settings_clear_fw_upgrade_flag+0x24>)
+     bf4:	4798      	blx	r3
+}
+     bf6:	b041      	add	sp, #260	; 0x104
+     bf8:	bd00      	pop	{pc}
+     bfa:	46c0      	nop			; (mov r8, r8)
+     bfc:	00000bb9 	.word	0x00000bb9
+     c00:	00000b35 	.word	0x00000b35
+
+00000c04 <custom_fs_settings_check_fw_upgrade_flag>:
+*   \brief  Check for fw upgrade flag inside our settings
+*   \return The boolean
+*/
+BOOL custom_fs_settings_check_fw_upgrade_flag(void)
+{
+    if ((custom_fs_platform_settings_p != 0) && (custom_fs_platform_settings_p->start_upgrade_flag == FIRMWARE_UPGRADE_FLAG))
+     c04:	4b07      	ldr	r3, [pc, #28]	; (c24 <custom_fs_settings_check_fw_upgrade_flag+0x20>)
+     c06:	681b      	ldr	r3, [r3, #0]
+     c08:	2b00      	cmp	r3, #0
+     c0a:	d008      	beq.n	c1e <custom_fs_settings_check_fw_upgrade_flag+0x1a>
+     c0c:	22fc      	movs	r2, #252	; 0xfc
+     c0e:	5898      	ldr	r0, [r3, r2]
+     c10:	4b05      	ldr	r3, [pc, #20]	; (c28 <custom_fs_settings_check_fw_upgrade_flag+0x24>)
+     c12:	469c      	mov	ip, r3
+     c14:	4460      	add	r0, ip
+     c16:	4243      	negs	r3, r0
+     c18:	4158      	adcs	r0, r3
+     c1a:	b2c0      	uxtb	r0, r0
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+     c1c:	4770      	bx	lr
+     c1e:	2000      	movs	r0, #0
+     c20:	e7fc      	b.n	c1c <custom_fs_settings_check_fw_upgrade_flag+0x18>
+     c22:	46c0      	nop			; (mov r8, r8)
+     c24:	20000078 	.word	0x20000078
+     c28:	ab875456 	.word	0xab875456
+
+00000c2c <dataflash_read_data_array>:
+*   \param  address         Address at which we should read data
+*   \param  data            Pointer to the buffer to store the data to
+*   \param  length          Length of data to read
+*/
+void dataflash_read_data_array(spi_flash_descriptor_t* descriptor_pt, uint32_t address, uint8_t* data, uint32_t length)
+{
+     c2c:	b5f0      	push	{r4, r5, r6, r7, lr}
+     c2e:	b083      	sub	sp, #12
+     c30:	0005      	movs	r5, r0
+     c32:	000f      	movs	r7, r1
+     c34:	9201      	str	r2, [sp, #4]
+     c36:	001e      	movs	r6, r3
+    /* SS low */
+    PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;
+     c38:	7903      	ldrb	r3, [r0, #4]
+     c3a:	01db      	lsls	r3, r3, #7
+     c3c:	4916      	ldr	r1, [pc, #88]	; (c98 <dataflash_read_data_array+0x6c>)
+     c3e:	468c      	mov	ip, r1
+     c40:	4463      	add	r3, ip
+     c42:	6881      	ldr	r1, [r0, #8]
+     c44:	6159      	str	r1, [r3, #20]
+    
+    /* Send write command */
+    sercom_spi_send_single_byte(descriptor_pt->sercom_pt, 0x0B);
+     c46:	210b      	movs	r1, #11
+     c48:	6800      	ldr	r0, [r0, #0]
+     c4a:	4c14      	ldr	r4, [pc, #80]	; (c9c <dataflash_read_data_array+0x70>)
+     c4c:	47a0      	blx	r4
+    sercom_spi_send_single_byte(descriptor_pt->sercom_pt, (uint8_t)((address >> 16) & 0x0FF));
+     c4e:	0c39      	lsrs	r1, r7, #16
+     c50:	b2c9      	uxtb	r1, r1
+     c52:	6828      	ldr	r0, [r5, #0]
+     c54:	47a0      	blx	r4
+    sercom_spi_send_single_byte(descriptor_pt->sercom_pt, (uint8_t)((address >> 8) & 0x0FF));
+     c56:	0a39      	lsrs	r1, r7, #8
+     c58:	b2c9      	uxtb	r1, r1
+     c5a:	6828      	ldr	r0, [r5, #0]
+     c5c:	47a0      	blx	r4
+    sercom_spi_send_single_byte(descriptor_pt->sercom_pt, (uint8_t)((address >> 0) & 0x0FF));
+     c5e:	b2f9      	uxtb	r1, r7
+     c60:	6828      	ldr	r0, [r5, #0]
+     c62:	47a0      	blx	r4
+    sercom_spi_send_single_byte(descriptor_pt->sercom_pt, 0);
+     c64:	2100      	movs	r1, #0
+     c66:	6828      	ldr	r0, [r5, #0]
+     c68:	47a0      	blx	r4
+    
+    /* Send data */
+    for (uint32_t i = 0; i < length; i++)
+     c6a:	2e00      	cmp	r6, #0
+     c6c:	d00b      	beq.n	c86 <dataflash_read_data_array+0x5a>
+     c6e:	9b01      	ldr	r3, [sp, #4]
+     c70:	001c      	movs	r4, r3
+     c72:	469c      	mov	ip, r3
+     c74:	4466      	add	r6, ip
+    {
+        *data++ = sercom_spi_send_single_byte(descriptor_pt->sercom_pt, 0);
+     c76:	4f09      	ldr	r7, [pc, #36]	; (c9c <dataflash_read_data_array+0x70>)
+     c78:	2100      	movs	r1, #0
+     c7a:	6828      	ldr	r0, [r5, #0]
+     c7c:	47b8      	blx	r7
+     c7e:	7020      	strb	r0, [r4, #0]
+     c80:	3401      	adds	r4, #1
+    for (uint32_t i = 0; i < length; i++)
+     c82:	42b4      	cmp	r4, r6
+     c84:	d1f8      	bne.n	c78 <dataflash_read_data_array+0x4c>
+    }
+    
+    /* SS high */
+    PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;    
+     c86:	792b      	ldrb	r3, [r5, #4]
+     c88:	68aa      	ldr	r2, [r5, #8]
+     c8a:	01db      	lsls	r3, r3, #7
+     c8c:	4902      	ldr	r1, [pc, #8]	; (c98 <dataflash_read_data_array+0x6c>)
+     c8e:	468c      	mov	ip, r1
+     c90:	4463      	add	r3, ip
+     c92:	619a      	str	r2, [r3, #24]
+}
+     c94:	b003      	add	sp, #12
+     c96:	bdf0      	pop	{r4, r5, r6, r7, pc}
+     c98:	41004400 	.word	0x41004400
+     c9c:	000011ed 	.word	0x000011ed
+
+00000ca0 <dataflash_read_data_array_start>:
+*   \brief  Function to start a read process on the flash
+*   \param  descriptor_pt   Pointer to dataflash descriptor
+*   \param  address         Address at which we should read data
+*/
+void dataflash_read_data_array_start(spi_flash_descriptor_t* descriptor_pt, uint32_t address)
+{
+     ca0:	b570      	push	{r4, r5, r6, lr}
+     ca2:	0004      	movs	r4, r0
+     ca4:	000e      	movs	r6, r1
+    /* SS low */
+    PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;
+     ca6:	7903      	ldrb	r3, [r0, #4]
+     ca8:	01db      	lsls	r3, r3, #7
+     caa:	4a0c      	ldr	r2, [pc, #48]	; (cdc <dataflash_read_data_array_start+0x3c>)
+     cac:	4694      	mov	ip, r2
+     cae:	4463      	add	r3, ip
+     cb0:	6882      	ldr	r2, [r0, #8]
+     cb2:	615a      	str	r2, [r3, #20]
+    
+    /* Send write command */
+    sercom_spi_send_single_byte(descriptor_pt->sercom_pt, 0x0B);
+     cb4:	210b      	movs	r1, #11
+     cb6:	6800      	ldr	r0, [r0, #0]
+     cb8:	4d09      	ldr	r5, [pc, #36]	; (ce0 <dataflash_read_data_array_start+0x40>)
+     cba:	47a8      	blx	r5
+    sercom_spi_send_single_byte(descriptor_pt->sercom_pt, (uint8_t)((address >> 16) & 0x0FF));
+     cbc:	0c31      	lsrs	r1, r6, #16
+     cbe:	b2c9      	uxtb	r1, r1
+     cc0:	6820      	ldr	r0, [r4, #0]
+     cc2:	47a8      	blx	r5
+    sercom_spi_send_single_byte(descriptor_pt->sercom_pt, (uint8_t)((address >> 8) & 0x0FF));
+     cc4:	0a31      	lsrs	r1, r6, #8
+     cc6:	b2c9      	uxtb	r1, r1
+     cc8:	6820      	ldr	r0, [r4, #0]
+     cca:	47a8      	blx	r5
+    sercom_spi_send_single_byte(descriptor_pt->sercom_pt, (uint8_t)((address >> 0) & 0x0FF));
+     ccc:	b2f1      	uxtb	r1, r6
+     cce:	6820      	ldr	r0, [r4, #0]
+     cd0:	47a8      	blx	r5
+    sercom_spi_send_single_byte(descriptor_pt->sercom_pt, 0);
+     cd2:	6820      	ldr	r0, [r4, #0]
+     cd4:	2100      	movs	r1, #0
+     cd6:	47a8      	blx	r5
+}
+     cd8:	bd70      	pop	{r4, r5, r6, pc}
+     cda:	46c0      	nop			; (mov r8, r8)
+     cdc:	41004400 	.word	0x41004400
+     ce0:	000011ed 	.word	0x000011ed
+
+00000ce4 <dataflash_read_bytes_from_opened_transfer>:
+*   \param  descriptor_pt   Pointer to dataflash descriptor
+*   \param  data            Pointer to the buffer to store the data to
+*   \param  length          Length of data to read
+*/
+void dataflash_read_bytes_from_opened_transfer(spi_flash_descriptor_t* descriptor_pt, uint8_t* data, uint32_t length)
+{    
+     ce4:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+     ce6:	0006      	movs	r6, r0
+    /* Send data */
+    for (uint32_t i = 0; i < length; i++)
+     ce8:	2a00      	cmp	r2, #0
+     cea:	d009      	beq.n	d00 <dataflash_read_bytes_from_opened_transfer+0x1c>
+     cec:	000c      	movs	r4, r1
+     cee:	188d      	adds	r5, r1, r2
+    {
+        *data++ = sercom_spi_send_single_byte(descriptor_pt->sercom_pt, 0);
+     cf0:	4f04      	ldr	r7, [pc, #16]	; (d04 <dataflash_read_bytes_from_opened_transfer+0x20>)
+     cf2:	2100      	movs	r1, #0
+     cf4:	6830      	ldr	r0, [r6, #0]
+     cf6:	47b8      	blx	r7
+     cf8:	7020      	strb	r0, [r4, #0]
+     cfa:	3401      	adds	r4, #1
+    for (uint32_t i = 0; i < length; i++)
+     cfc:	42ac      	cmp	r4, r5
+     cfe:	d1f8      	bne.n	cf2 <dataflash_read_bytes_from_opened_transfer+0xe>
+    }    
+}
+     d00:	bdf8      	pop	{r3, r4, r5, r6, r7, pc}
+     d02:	46c0      	nop			; (mov r8, r8)
+     d04:	000011ed 	.word	0x000011ed
+
+00000d08 <dataflash_stop_ongoing_transfer>:
+*   \param  descriptor_pt   Pointer to dataflash descriptor
+*/
+void dataflash_stop_ongoing_transfer(spi_flash_descriptor_t* descriptor_pt)
+{
+    /* SS high */
+    PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;    
+     d08:	7903      	ldrb	r3, [r0, #4]
+     d0a:	6882      	ldr	r2, [r0, #8]
+     d0c:	01db      	lsls	r3, r3, #7
+     d0e:	4902      	ldr	r1, [pc, #8]	; (d18 <dataflash_stop_ongoing_transfer+0x10>)
+     d10:	468c      	mov	ip, r1
+     d12:	4463      	add	r3, ip
+     d14:	619a      	str	r2, [r3, #24]
+}
+     d16:	4770      	bx	lr
+     d18:	41004400 	.word	0x41004400
+
+00000d1c <dataflash_send_command>:
+*   \param  descriptor_pt   Pointer to dataflash descriptor
+*   \param  data            Pointer to the buffer containing the data
+*   \param  length          Length of data to send
+*/
+void dataflash_send_command(spi_flash_descriptor_t* descriptor_pt, uint8_t* data, uint32_t length)
+{
+     d1c:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+     d1e:	0005      	movs	r5, r0
+     d20:	000c      	movs	r4, r1
+    /* SS low */
+    PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;
+     d22:	7903      	ldrb	r3, [r0, #4]
+     d24:	01db      	lsls	r3, r3, #7
+     d26:	490c      	ldr	r1, [pc, #48]	; (d58 <dataflash_send_command+0x3c>)
+     d28:	468c      	mov	ip, r1
+     d2a:	4463      	add	r3, ip
+     d2c:	6881      	ldr	r1, [r0, #8]
+     d2e:	6159      	str	r1, [r3, #20]
+    
+    for(uint32_t i = 0; i < length; i++)
+     d30:	2a00      	cmp	r2, #0
+     d32:	d008      	beq.n	d46 <dataflash_send_command+0x2a>
+     d34:	18a6      	adds	r6, r4, r2
+    {
+        *data = sercom_spi_send_single_byte(descriptor_pt->sercom_pt, *data);
+     d36:	4f09      	ldr	r7, [pc, #36]	; (d5c <dataflash_send_command+0x40>)
+     d38:	7821      	ldrb	r1, [r4, #0]
+     d3a:	6828      	ldr	r0, [r5, #0]
+     d3c:	47b8      	blx	r7
+     d3e:	7020      	strb	r0, [r4, #0]
+        data++;
+     d40:	3401      	adds	r4, #1
+    for(uint32_t i = 0; i < length; i++)
+     d42:	42a6      	cmp	r6, r4
+     d44:	d1f8      	bne.n	d38 <dataflash_send_command+0x1c>
+    }
+    
+    /* SS high */
+    PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
+     d46:	792b      	ldrb	r3, [r5, #4]
+     d48:	68aa      	ldr	r2, [r5, #8]
+     d4a:	01db      	lsls	r3, r3, #7
+     d4c:	4902      	ldr	r1, [pc, #8]	; (d58 <dataflash_send_command+0x3c>)
+     d4e:	468c      	mov	ip, r1
+     d50:	4463      	add	r3, ip
+     d52:	619a      	str	r2, [r3, #24]
+}
+     d54:	bdf8      	pop	{r3, r4, r5, r6, r7, pc}
+     d56:	46c0      	nop			; (mov r8, r8)
+     d58:	41004400 	.word	0x41004400
+     d5c:	000011ed 	.word	0x000011ed
+
+00000d60 <dataflash_exit_power_down>:
+/*! \fn     dataflash_exit_power_down(spi_flash_descriptor_t* descriptor_pt)
+*   \brief  Exit power down
+*   \param  descriptor_pt   Pointer to dataflash descriptor
+*/
+void dataflash_exit_power_down(spi_flash_descriptor_t* descriptor_pt)
+{
+     d60:	b500      	push	{lr}
+     d62:	b083      	sub	sp, #12
+    /* Send command and wait for tres1 */
+    uint8_t exit_power_down[] = {0xAB};
+     d64:	a901      	add	r1, sp, #4
+     d66:	23ab      	movs	r3, #171	; 0xab
+     d68:	700b      	strb	r3, [r1, #0]
+    dataflash_send_command(descriptor_pt, exit_power_down, sizeof(exit_power_down));    
+     d6a:	2201      	movs	r2, #1
+     d6c:	4b05      	ldr	r3, [pc, #20]	; (d84 <dataflash_exit_power_down+0x24>)
+     d6e:	4798      	blx	r3
+    DELAYUS(3);
+     d70:	2312      	movs	r3, #18
+     d72:	9300      	str	r3, [sp, #0]
+     d74:	9b00      	ldr	r3, [sp, #0]
+     d76:	1e5a      	subs	r2, r3, #1
+     d78:	9200      	str	r2, [sp, #0]
+     d7a:	2b00      	cmp	r3, #0
+     d7c:	d1fa      	bne.n	d74 <dataflash_exit_power_down+0x14>
+}
+     d7e:	b003      	add	sp, #12
+     d80:	bd00      	pop	{pc}
+     d82:	46c0      	nop			; (mov r8, r8)
+     d84:	00000d1d 	.word	0x00000d1d
+
+00000d88 <dataflash_check_presence>:
+{
+     d88:	b530      	push	{r4, r5, lr}
+     d8a:	b083      	sub	sp, #12
+     d8c:	0005      	movs	r5, r0
+    dataflash_exit_power_down(descriptor_pt);    
+     d8e:	4b11      	ldr	r3, [pc, #68]	; (dd4 <dataflash_check_presence+0x4c>)
+     d90:	4798      	blx	r3
+    uint8_t jedec_query_command[] = {0x9F, 0x00, 0x00, 0x00};
+     d92:	ac01      	add	r4, sp, #4
+     d94:	239f      	movs	r3, #159	; 0x9f
+     d96:	7023      	strb	r3, [r4, #0]
+     d98:	2300      	movs	r3, #0
+     d9a:	7063      	strb	r3, [r4, #1]
+     d9c:	70a3      	strb	r3, [r4, #2]
+     d9e:	70e3      	strb	r3, [r4, #3]
+    dataflash_send_command(descriptor_pt, jedec_query_command, sizeof(jedec_query_command));
+     da0:	2204      	movs	r2, #4
+     da2:	0021      	movs	r1, r4
+     da4:	0028      	movs	r0, r5
+     da6:	4b0c      	ldr	r3, [pc, #48]	; (dd8 <dataflash_check_presence+0x50>)
+     da8:	4798      	blx	r3
+    if((jedec_query_command[1] != 0xEF) || (jedec_query_command[2] != 0x40) || (jedec_query_command[3] != 0x15))
+     daa:	7863      	ldrb	r3, [r4, #1]
+     dac:	2bef      	cmp	r3, #239	; 0xef
+     dae:	d10b      	bne.n	dc8 <dataflash_check_presence+0x40>
+     db0:	ab01      	add	r3, sp, #4
+     db2:	789b      	ldrb	r3, [r3, #2]
+     db4:	2b40      	cmp	r3, #64	; 0x40
+     db6:	d10a      	bne.n	dce <dataflash_check_presence+0x46>
+     db8:	ab01      	add	r3, sp, #4
+     dba:	78d8      	ldrb	r0, [r3, #3]
+     dbc:	3815      	subs	r0, #21
+     dbe:	1e43      	subs	r3, r0, #1
+     dc0:	4198      	sbcs	r0, r3
+     dc2:	4240      	negs	r0, r0
+}
+     dc4:	b003      	add	sp, #12
+     dc6:	bd30      	pop	{r4, r5, pc}
+        return RETURN_NOK;
+     dc8:	2001      	movs	r0, #1
+     dca:	4240      	negs	r0, r0
+     dcc:	e7fa      	b.n	dc4 <dataflash_check_presence+0x3c>
+     dce:	2001      	movs	r0, #1
+     dd0:	4240      	negs	r0, r0
+     dd2:	e7f7      	b.n	dc4 <dataflash_check_presence+0x3c>
+     dd4:	00000d61 	.word	0x00000d61
+     dd8:	00000d1d 	.word	0x00000d1d
+
+00000ddc <logic_device_set_wakeup_reason>:
+*   \brief  Set device wakeup reason
+*   \param  reason  wakeup reason
+*/
+void logic_device_set_wakeup_reason(platform_wakeup_reason_te reason)
+{
+    if (logic_device_wakeup_reason == WAKEUP_REASON_NONE)
+     ddc:	4b03      	ldr	r3, [pc, #12]	; (dec <logic_device_set_wakeup_reason+0x10>)
+     dde:	781b      	ldrb	r3, [r3, #0]
+     de0:	2b00      	cmp	r3, #0
+     de2:	d101      	bne.n	de8 <logic_device_set_wakeup_reason+0xc>
+    {
+        logic_device_wakeup_reason = reason;
+     de4:	4b01      	ldr	r3, [pc, #4]	; (dec <logic_device_set_wakeup_reason+0x10>)
+     de6:	7018      	strb	r0, [r3, #0]
+    }
+}
+     de8:	4770      	bx	lr
+     dea:	46c0      	nop			; (mov r8, r8)
+     dec:	2000000c 	.word	0x2000000c
+
+00000df0 <EIC_Handler>:
+
+/*! \fn     EIC_Handler(void)
+*   \brief  Routine called for an extint
+*/
+void EIC_Handler(void)
+{
+     df0:	b510      	push	{r4, lr}
+    /* Identify wakeup reason */
+    if ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0)
+     df2:	4b18      	ldr	r3, [pc, #96]	; (e54 <EIC_Handler+0x64>)
+     df4:	691b      	ldr	r3, [r3, #16]
+     df6:	055b      	lsls	r3, r3, #21
+     df8:	d528      	bpl.n	e4c <EIC_Handler+0x5c>
+    {
+        logic_device_set_wakeup_reason(WAKEUP_REASON_AUX_MCU);
+     dfa:	2001      	movs	r0, #1
+     dfc:	4b16      	ldr	r3, [pc, #88]	; (e58 <EIC_Handler+0x68>)
+     dfe:	4798      	blx	r3
+    {
+        logic_device_set_wakeup_reason(WAKEUP_REASON_OTHER);
+    }
+    
+    /* All the interrupts below are used to wake up the platform from sleep. If we detect any of them, we disable all of them */
+    if (((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << USB_3V3_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << SMC_DET_EXTINT_NUM)) != 0))
+     e00:	4b14      	ldr	r3, [pc, #80]	; (e54 <EIC_Handler+0x64>)
+     e02:	691b      	ldr	r3, [r3, #16]
+     e04:	075b      	lsls	r3, r3, #29
+     e06:	d40f      	bmi.n	e28 <EIC_Handler+0x38>
+     e08:	4b12      	ldr	r3, [pc, #72]	; (e54 <EIC_Handler+0x64>)
+     e0a:	691b      	ldr	r3, [r3, #16]
+     e0c:	05db      	lsls	r3, r3, #23
+     e0e:	d40b      	bmi.n	e28 <EIC_Handler+0x38>
+     e10:	4b10      	ldr	r3, [pc, #64]	; (e54 <EIC_Handler+0x64>)
+     e12:	691b      	ldr	r3, [r3, #16]
+     e14:	079b      	lsls	r3, r3, #30
+     e16:	d407      	bmi.n	e28 <EIC_Handler+0x38>
+     e18:	4b0e      	ldr	r3, [pc, #56]	; (e54 <EIC_Handler+0x64>)
+     e1a:	691b      	ldr	r3, [r3, #16]
+     e1c:	055b      	lsls	r3, r3, #21
+     e1e:	d403      	bmi.n	e28 <EIC_Handler+0x38>
+     e20:	4b0c      	ldr	r3, [pc, #48]	; (e54 <EIC_Handler+0x64>)
+     e22:	691b      	ldr	r3, [r3, #16]
+     e24:	071b      	lsls	r3, r3, #28
+     e26:	d510      	bpl.n	e4a <EIC_Handler+0x5a>
+    {
+        EIC->INTFLAG.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
+     e28:	4b0a      	ldr	r3, [pc, #40]	; (e54 <EIC_Handler+0x64>)
+     e2a:	2204      	movs	r2, #4
+     e2c:	611a      	str	r2, [r3, #16]
+        EIC->INTENCLR.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
+     e2e:	609a      	str	r2, [r3, #8]
+        EIC->INTFLAG.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
+     e30:	32fc      	adds	r2, #252	; 0xfc
+     e32:	611a      	str	r2, [r3, #16]
+        EIC->INTENCLR.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
+     e34:	609a      	str	r2, [r3, #8]
+        EIC->INTFLAG.reg = (1 << USB_3V3_EXTINT_NUM);
+     e36:	3afe      	subs	r2, #254	; 0xfe
+     e38:	611a      	str	r2, [r3, #16]
+        EIC->INTENCLR.reg = (1 << USB_3V3_EXTINT_NUM);
+     e3a:	609a      	str	r2, [r3, #8]
+        EIC->INTFLAG.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
+     e3c:	2280      	movs	r2, #128	; 0x80
+     e3e:	00d2      	lsls	r2, r2, #3
+     e40:	611a      	str	r2, [r3, #16]
+        EIC->INTENCLR.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
+     e42:	609a      	str	r2, [r3, #8]
+        EIC->INTFLAG.reg = (1 << SMC_DET_EXTINT_NUM);
+     e44:	2208      	movs	r2, #8
+     e46:	611a      	str	r2, [r3, #16]
+        EIC->INTENCLR.reg = (1 << SMC_DET_EXTINT_NUM);
+     e48:	609a      	str	r2, [r3, #8]
+    }
+}
+     e4a:	bd10      	pop	{r4, pc}
+        logic_device_set_wakeup_reason(WAKEUP_REASON_OTHER);
+     e4c:	2003      	movs	r0, #3
+     e4e:	4b02      	ldr	r3, [pc, #8]	; (e58 <EIC_Handler+0x68>)
+     e50:	4798      	blx	r3
+     e52:	e7d5      	b.n	e00 <EIC_Handler+0x10>
+     e54:	40001800 	.word	0x40001800
+     e58:	00000ddd 	.word	0x00000ddd
+
+00000e5c <platform_io_enable_switch>:
+/*! \fn     platform_io_enable_switch(void)
+*   \brief  Enable switch (and 3v3 stepup)
+*/
+void platform_io_enable_switch(void)
+{
+    PORT->Group[SWDET_EN_GROUP].DIRSET.reg = SWDET_EN_MASK;
+     e5c:	4b02      	ldr	r3, [pc, #8]	; (e68 <platform_io_enable_switch+0xc>)
+     e5e:	2280      	movs	r2, #128	; 0x80
+     e60:	0212      	lsls	r2, r2, #8
+     e62:	609a      	str	r2, [r3, #8]
+    PORT->Group[SWDET_EN_GROUP].OUTSET.reg = SWDET_EN_MASK;
+     e64:	619a      	str	r2, [r3, #24]
+}
+     e66:	4770      	bx	lr
+     e68:	41004400 	.word	0x41004400
+
+00000e6c <platform_io_disable_switch_and_die>:
+
+/*! \fn     platform_io_disable_switch_and_die(void)
+*   \brief  Disable switch and 3v3 (die)
+*/
+void platform_io_disable_switch_and_die(void)
+{
+     e6c:	b082      	sub	sp, #8
+    /* Charge capacitor: pull down for slow ramp down */
+    PORT->Group[WHEEL_SW_GROUP].OUTCLR.reg = WHEEL_SW_MASK;
+     e6e:	2280      	movs	r2, #128	; 0x80
+     e70:	0552      	lsls	r2, r2, #21
+     e72:	4b0d      	ldr	r3, [pc, #52]	; (ea8 <platform_io_disable_switch_and_die+0x3c>)
+     e74:	615a      	str	r2, [r3, #20]
+    DELAYMS_8M(10);
+     e76:	4b0d      	ldr	r3, [pc, #52]	; (eac <platform_io_disable_switch_and_die+0x40>)
+     e78:	9300      	str	r3, [sp, #0]
+     e7a:	9b00      	ldr	r3, [sp, #0]
+     e7c:	1e5a      	subs	r2, r3, #1
+     e7e:	9200      	str	r2, [sp, #0]
+     e80:	2b00      	cmp	r3, #0
+     e82:	d1fa      	bne.n	e7a <platform_io_disable_switch_and_die+0xe>
+    
+    /* Charge capacitor: strong pull to ground */
+    PORT->Group[WHEEL_SW_GROUP].DIRSET.reg = WHEEL_SW_MASK;
+     e84:	2280      	movs	r2, #128	; 0x80
+     e86:	0552      	lsls	r2, r2, #21
+     e88:	4b07      	ldr	r3, [pc, #28]	; (ea8 <platform_io_disable_switch_and_die+0x3c>)
+     e8a:	609a      	str	r2, [r3, #8]
+    DELAYMS_8M(10);
+     e8c:	4b07      	ldr	r3, [pc, #28]	; (eac <platform_io_disable_switch_and_die+0x40>)
+     e8e:	9301      	str	r3, [sp, #4]
+     e90:	9b01      	ldr	r3, [sp, #4]
+     e92:	1e5a      	subs	r2, r3, #1
+     e94:	9201      	str	r2, [sp, #4]
+     e96:	2b00      	cmp	r3, #0
+     e98:	d1fa      	bne.n	e90 <platform_io_disable_switch_and_die+0x24>
+    
+    /* Disable 3V3 stepup */
+    PORT->Group[SWDET_EN_GROUP].OUTCLR.reg = SWDET_EN_MASK;
+     e9a:	2280      	movs	r2, #128	; 0x80
+     e9c:	0212      	lsls	r2, r2, #8
+     e9e:	4b02      	ldr	r3, [pc, #8]	; (ea8 <platform_io_disable_switch_and_die+0x3c>)
+     ea0:	615a      	str	r2, [r3, #20]
+}
+     ea2:	b002      	add	sp, #8
+     ea4:	4770      	bx	lr
+     ea6:	46c0      	nop			; (mov r8, r8)
+     ea8:	41004400 	.word	0x41004400
+     eac:	00002710 	.word	0x00002710
+
+00000eb0 <ADC_Handler>:
+*   \brief  Called once a conversion result is ready
+*/
+void ADC_Handler(void)
+{
+    /* Set conv ready bool and clear interrupt */
+    platform_io_voledin_conv_ready = TRUE;
+     eb0:	2301      	movs	r3, #1
+     eb2:	4a02      	ldr	r2, [pc, #8]	; (ebc <ADC_Handler+0xc>)
+     eb4:	6013      	str	r3, [r2, #0]
+    ADC->INTFLAG.reg = ADC_INTFLAG_RESRDY;
+     eb6:	4a02      	ldr	r2, [pc, #8]	; (ec0 <ADC_Handler+0x10>)
+     eb8:	7613      	strb	r3, [r2, #24]
+}
+     eba:	4770      	bx	lr
+     ebc:	2000007c 	.word	0x2000007c
+     ec0:	42004000 	.word	0x42004000
+
+00000ec4 <platform_io_init_flash_ports>:
+
+/*! \fn     platform_io_init_flash_ports(void)
+*   \brief  Initialize the platform flash IO ports
+*/
+void platform_io_init_flash_ports(void)
+{    
+     ec4:	b5f0      	push	{r4, r5, r6, r7, lr}
+     ec6:	46de      	mov	lr, fp
+     ec8:	4657      	mov	r7, sl
+     eca:	464e      	mov	r6, r9
+     ecc:	4645      	mov	r5, r8
+     ece:	b5e0      	push	{r5, r6, r7, lr}
+     ed0:	b085      	sub	sp, #20
+    /* DATAFLASH */
+    PORT->Group[DATAFLASH_nCS_GROUP].DIRSET.reg = DATAFLASH_nCS_MASK;                                                       // DATAFLASH nCS, OUTPUT high by default
+     ed2:	4c4a      	ldr	r4, [pc, #296]	; (ffc <platform_io_init_flash_ports+0x138>)
+     ed4:	2380      	movs	r3, #128	; 0x80
+     ed6:	041b      	lsls	r3, r3, #16
+     ed8:	60a3      	str	r3, [r4, #8]
+    PORT->Group[DATAFLASH_nCS_GROUP].OUTSET.reg = DATAFLASH_nCS_MASK;                                                       // DATAFLASH nCS, OUTPUT high by default
+     eda:	61a3      	str	r3, [r4, #24]
+    PORT->Group[DATAFLASH_SCK_GROUP].DIRSET.reg = DATAFLASH_SCK_MASK;                                                       // DATAFLASH SCK, OUTPUT
+     edc:	2380      	movs	r3, #128	; 0x80
+     ede:	039b      	lsls	r3, r3, #14
+     ee0:	60a3      	str	r3, [r4, #8]
+    PORT->Group[DATAFLASH_SCK_GROUP].PINCFG[DATAFLASH_SCK_PINID].bit.PMUXEN = 1;                                            // Enable peripheral multiplexer
+     ee2:	2255      	movs	r2, #85	; 0x55
+     ee4:	5ca3      	ldrb	r3, [r4, r2]
+     ee6:	2101      	movs	r1, #1
+     ee8:	4688      	mov	r8, r1
+     eea:	2601      	movs	r6, #1
+     eec:	4333      	orrs	r3, r6
+     eee:	54a3      	strb	r3, [r4, r2]
+    PORT->Group[DATAFLASH_SCK_GROUP].PMUX[DATAFLASH_SCK_PINID/2].bit.DATAFLASH_SCK_PMUXREGID = DATAFLASH_SCK_PMUX_ID;       // DATAFLASH SCK, OUTPUT
+     ef0:	3a1b      	subs	r2, #27
+     ef2:	5ca3      	ldrb	r3, [r4, r2]
+     ef4:	310e      	adds	r1, #14
+     ef6:	4689      	mov	r9, r1
+     ef8:	400b      	ands	r3, r1
+     efa:	2130      	movs	r1, #48	; 0x30
+     efc:	430b      	orrs	r3, r1
+     efe:	54a3      	strb	r3, [r4, r2]
+    PORT->Group[DATAFLASH_MOSI_GROUP].DIRSET.reg = DATAFLASH_MOSI_MASK;                                                     // DATAFLASH MOSI, OUTPUT
+     f00:	2380      	movs	r3, #128	; 0x80
+     f02:	035b      	lsls	r3, r3, #13
+     f04:	60a3      	str	r3, [r4, #8]
+    PORT->Group[DATAFLASH_MOSI_GROUP].PINCFG[DATAFLASH_MOSI_PINID].bit.PMUXEN = 1;                                          // Enable peripheral multiplexer
+     f06:	2154      	movs	r1, #84	; 0x54
+     f08:	5c63      	ldrb	r3, [r4, r1]
+     f0a:	4333      	orrs	r3, r6
+     f0c:	5463      	strb	r3, [r4, r1]
+    PORT->Group[DATAFLASH_MOSI_GROUP].PMUX[DATAFLASH_MOSI_PINID/2].bit.DATAFLASH_MOSI_PMUXREGID = DATAFLASH_MOSI_PMUX_ID;   // DATAFLASH MOSI, OUTPUT
+     f0e:	5ca3      	ldrb	r3, [r4, r2]
+     f10:	4649      	mov	r1, r9
+     f12:	438b      	bics	r3, r1
+     f14:	2103      	movs	r1, #3
+     f16:	430b      	orrs	r3, r1
+     f18:	54a3      	strb	r3, [r4, r2]
+    PORT->Group[DATAFLASH_MISO_GROUP].DIRCLR.reg = DATAFLASH_MISO_MASK;                                                     // DATAFLASH MISO, INPUT with pull-down
+     f1a:	2380      	movs	r3, #128	; 0x80
+     f1c:	03db      	lsls	r3, r3, #15
+     f1e:	6063      	str	r3, [r4, #4]
+    PORT->Group[DATAFLASH_MISO_GROUP].OUTCLR.reg = DATAFLASH_MISO_MASK;                                                     // DATAFLASH MISO, INPUT with pull-down
+     f20:	6163      	str	r3, [r4, #20]
+    PORT->Group[DATAFLASH_MISO_GROUP].PINCFG[DATAFLASH_MISO_PINID].bit.PULLEN = 1;                                          // DATAFLASH MISO, INPUT with pull-down
+     f22:	2356      	movs	r3, #86	; 0x56
+     f24:	5ce2      	ldrb	r2, [r4, r3]
+     f26:	2104      	movs	r1, #4
+     f28:	430a      	orrs	r2, r1
+     f2a:	54e2      	strb	r2, [r4, r3]
+    PORT->Group[DATAFLASH_MISO_GROUP].PINCFG[DATAFLASH_MISO_PINID].bit.PMUXEN = 1;                                          // Enable peripheral multiplexer
+     f2c:	5ce2      	ldrb	r2, [r4, r3]
+     f2e:	4332      	orrs	r2, r6
+     f30:	54e2      	strb	r2, [r4, r3]
+    PORT->Group[DATAFLASH_MISO_GROUP].PMUX[DATAFLASH_MISO_PINID/2].bit.DATAFLASH_MISO_PMUXREGID = DATAFLASH_MISO_PMUX_ID;   // DATAFLASH MOSI, OUTPUT 
+     f32:	223b      	movs	r2, #59	; 0x3b
+     f34:	5ca3      	ldrb	r3, [r4, r2]
+     f36:	4649      	mov	r1, r9
+     f38:	438b      	bics	r3, r1
+     f3a:	390d      	subs	r1, #13
+     f3c:	430b      	orrs	r3, r1
+     f3e:	54a3      	strb	r3, [r4, r2]
+    PM->APBCMASK.bit.DATAFLASH_APB_SERCOM_BIT = 1;                                                                          // APB Clock Enable
+     f40:	4f2f      	ldr	r7, [pc, #188]	; (1000 <platform_io_init_flash_ports+0x13c>)
+     f42:	6a3b      	ldr	r3, [r7, #32]
+     f44:	3a1b      	subs	r2, #27
+     f46:	4313      	orrs	r3, r2
+     f48:	623b      	str	r3, [r7, #32]
+    clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, DATAFLASH_GCLK_SERCOM_ID);                                             // Map 48MHz to SERCOM unit
+     f4a:	3115      	adds	r1, #21
+     f4c:	2000      	movs	r0, #0
+     f4e:	4b2d      	ldr	r3, [pc, #180]	; (1004 <platform_io_init_flash_ports+0x140>)
+     f50:	469b      	mov	fp, r3
+     f52:	4798      	blx	r3
+    sercom_spi_init(DATAFLASH_SERCOM, DATAFLASH_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, DATAFLASH_MISO_PAD, DATAFLASH_MOSI_SCK_PADS, TRUE);    
+     f54:	4643      	mov	r3, r8
+     f56:	9302      	str	r3, [sp, #8]
+     f58:	9301      	str	r3, [sp, #4]
+     f5a:	2300      	movs	r3, #0
+     f5c:	9300      	str	r3, [sp, #0]
+     f5e:	2200      	movs	r2, #0
+     f60:	2101      	movs	r1, #1
+     f62:	4829      	ldr	r0, [pc, #164]	; (1008 <platform_io_init_flash_ports+0x144>)
+     f64:	4d29      	ldr	r5, [pc, #164]	; (100c <platform_io_init_flash_ports+0x148>)
+     f66:	46aa      	mov	sl, r5
+     f68:	47a8      	blx	r5
+
+    /* DBFLASH */
+    PORT->Group[DBFLASH_nCS_GROUP].DIRSET.reg = DBFLASH_nCS_MASK;                                                           // DBFLASH nCS, OUTPUT high by default
+     f6a:	2380      	movs	r3, #128	; 0x80
+     f6c:	025b      	lsls	r3, r3, #9
+     f6e:	60a3      	str	r3, [r4, #8]
+    PORT->Group[DBFLASH_nCS_GROUP].OUTSET.reg = DBFLASH_nCS_MASK;                                                           // DBFLASH nCS, OUTPUT high by default
+     f70:	61a3      	str	r3, [r4, #24]
+    PORT->Group[DBFLASH_SCK_GROUP].DIRSET.reg = DBFLASH_SCK_MASK;                                                           // DBFLASH SCK, OUTPUT
+     f72:	2380      	movs	r3, #128	; 0x80
+     f74:	029b      	lsls	r3, r3, #10
+     f76:	60a3      	str	r3, [r4, #8]
+    PORT->Group[DBFLASH_SCK_GROUP].PINCFG[DBFLASH_SCK_PINID].bit.PMUXEN = 1;                                                // Enable peripheral multiplexer
+     f78:	2251      	movs	r2, #81	; 0x51
+     f7a:	5ca3      	ldrb	r3, [r4, r2]
+     f7c:	4333      	orrs	r3, r6
+     f7e:	54a3      	strb	r3, [r4, r2]
+    PORT->Group[DBFLASH_SCK_GROUP].PMUX[DBFLASH_SCK_PINID/2].bit.DBFLASH_SCK_PMUXREGID = DBFLASH_SCK_PMUX_ID;               // DBFLASH SCK, OUTPUT
+     f80:	3a19      	subs	r2, #25
+     f82:	5ca3      	ldrb	r3, [r4, r2]
+     f84:	210f      	movs	r1, #15
+     f86:	400b      	ands	r3, r1
+     f88:	2120      	movs	r1, #32
+     f8a:	430b      	orrs	r3, r1
+     f8c:	54a3      	strb	r3, [r4, r2]
+    PORT->Group[DBFLASH_MOSI_GROUP].DIRSET.reg = DBFLASH_MOSI_MASK;                                                         // DBFLASH MOSI, OUTPUT
+     f8e:	2380      	movs	r3, #128	; 0x80
+     f90:	031b      	lsls	r3, r3, #12
+     f92:	60a3      	str	r3, [r4, #8]
+    PORT->Group[DBFLASH_MOSI_GROUP].PINCFG[DBFLASH_MOSI_PINID].bit.PMUXEN = 1;                                              // Enable peripheral multiplexer
+     f94:	321b      	adds	r2, #27
+     f96:	5ca3      	ldrb	r3, [r4, r2]
+     f98:	4333      	orrs	r3, r6
+     f9a:	54a3      	strb	r3, [r4, r2]
+    PORT->Group[DBFLASH_MOSI_GROUP].PMUX[DBFLASH_MOSI_PINID/2].bit.DBFLASH_MOSI_PMUXREGID = DBFLASH_MOSI_PMUX_ID;           // DBFLASH MOSI, OUTPUT
+     f9c:	3a1a      	subs	r2, #26
+     f9e:	5ca3      	ldrb	r3, [r4, r2]
+     fa0:	250f      	movs	r5, #15
+     fa2:	401d      	ands	r5, r3
+     fa4:	430d      	orrs	r5, r1
+     fa6:	54a5      	strb	r5, [r4, r2]
+    PORT->Group[DBFLASH_MISO_GROUP].DIRCLR.reg = DBFLASH_MISO_MASK;                                                         // DBFLASH MISO, INPUT
+     fa8:	2380      	movs	r3, #128	; 0x80
+     faa:	02db      	lsls	r3, r3, #11
+     fac:	6063      	str	r3, [r4, #4]
+    PORT->Group[DBFLASH_MISO_GROUP].OUTCLR.reg = DBFLASH_MISO_MASK;                                                         // DBFLASH MISO, INPUT with pull-down
+     fae:	6163      	str	r3, [r4, #20]
+    PORT->Group[DBFLASH_MISO_GROUP].PINCFG[DBFLASH_MISO_PINID].bit.PULLEN = 1;                                              // DBFLASH MISO, INPUT with pull-down
+     fb0:	2352      	movs	r3, #82	; 0x52
+     fb2:	5ce1      	ldrb	r1, [r4, r3]
+     fb4:	2004      	movs	r0, #4
+     fb6:	4301      	orrs	r1, r0
+     fb8:	54e1      	strb	r1, [r4, r3]
+    PORT->Group[DBFLASH_MISO_GROUP].PINCFG[DBFLASH_MISO_PINID].bit.PMUXEN = 1;                                              // Enable peripheral multiplexer
+     fba:	5ce1      	ldrb	r1, [r4, r3]
+     fbc:	430e      	orrs	r6, r1
+     fbe:	54e6      	strb	r6, [r4, r3]
+    PORT->Group[DBFLASH_MISO_GROUP].PMUX[DBFLASH_MISO_PINID/2].bit.DBFLASH_MISO_PMUXREGID = DBFLASH_MISO_PMUX_ID;           // DBFLASH MOSI, OUTPUT
+     fc0:	5ca3      	ldrb	r3, [r4, r2]
+     fc2:	4649      	mov	r1, r9
+     fc4:	438b      	bics	r3, r1
+     fc6:	390d      	subs	r1, #13
+     fc8:	430b      	orrs	r3, r1
+     fca:	54a3      	strb	r3, [r4, r2]
+    PM->APBCMASK.bit.DBFLASH_APB_SERCOM_BIT = 1;                                                                            // APB Clock Enable
+     fcc:	6a3b      	ldr	r3, [r7, #32]
+     fce:	3a31      	subs	r2, #49	; 0x31
+     fd0:	4313      	orrs	r3, r2
+     fd2:	623b      	str	r3, [r7, #32]
+    clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, DBFLASH_GCLK_SERCOM_ID);                                               // Map 48MHz to SERCOM unit
+     fd4:	3113      	adds	r1, #19
+     fd6:	2000      	movs	r0, #0
+     fd8:	47d8      	blx	fp
+    sercom_spi_init(DBFLASH_SERCOM, DBFLASH_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, DBFLASH_MISO_PAD, DBFLASH_MOSI_SCK_PADS, TRUE);
+     fda:	4643      	mov	r3, r8
+     fdc:	9302      	str	r3, [sp, #8]
+     fde:	3301      	adds	r3, #1
+     fe0:	9301      	str	r3, [sp, #4]
+     fe2:	9300      	str	r3, [sp, #0]
+     fe4:	2300      	movs	r3, #0
+     fe6:	2200      	movs	r2, #0
+     fe8:	2101      	movs	r1, #1
+     fea:	4809      	ldr	r0, [pc, #36]	; (1010 <platform_io_init_flash_ports+0x14c>)
+     fec:	47d0      	blx	sl
+}
+     fee:	b005      	add	sp, #20
+     ff0:	bc3c      	pop	{r2, r3, r4, r5}
+     ff2:	4690      	mov	r8, r2
+     ff4:	4699      	mov	r9, r3
+     ff6:	46a2      	mov	sl, r4
+     ff8:	46ab      	mov	fp, r5
+     ffa:	bdf0      	pop	{r4, r5, r6, r7, pc}
+     ffc:	41004400 	.word	0x41004400
+    1000:	40000400 	.word	0x40000400
+    1004:	00000415 	.word	0x00000415
+    1008:	42001400 	.word	0x42001400
+    100c:	0000115d 	.word	0x0000115d
+    1010:	42000c00 	.word	0x42000c00
+
+00001014 <platform_io_disable_rx_usart_rx_interrupt>:
+*   \brief  Disable USART RX interrupt, used to assert no comms
+*/
+void platform_io_disable_rx_usart_rx_interrupt(void)
+{    
+    /* Disable RX interrupt */
+    AUXMCU_SERCOM->USART.INTENCLR.bit.RXC = 1;
+    1014:	4a05      	ldr	r2, [pc, #20]	; (102c <platform_io_disable_rx_usart_rx_interrupt+0x18>)
+    1016:	7d13      	ldrb	r3, [r2, #20]
+    1018:	2104      	movs	r1, #4
+    101a:	430b      	orrs	r3, r1
+    101c:	7513      	strb	r3, [r2, #20]
+  NVIC->ICER[0] = (1 << ((uint32_t)(IRQn) & 0x1F));
+    101e:	2180      	movs	r1, #128	; 0x80
+    1020:	01c9      	lsls	r1, r1, #7
+    1022:	2380      	movs	r3, #128	; 0x80
+    1024:	4a02      	ldr	r2, [pc, #8]	; (1030 <platform_io_disable_rx_usart_rx_interrupt+0x1c>)
+    1026:	50d1      	str	r1, [r2, r3]
+    
+    /* Enable interrupt line that may be enabled later */
+    NVIC_DisableIRQ(AUXMCU_SERCOM_INTERUPT);
+}
+    1028:	4770      	bx	lr
+    102a:	46c0      	nop			; (mov r8, r8)
+    102c:	42001c00 	.word	0x42001c00
+    1030:	e000e100 	.word	0xe000e100
+
+00001034 <SERCOM5_Handler>:
+{
+    1034:	b510      	push	{r4, lr}
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;               // NO COMMS as an input as it'll be pulled-up by aux MCU
+    1036:	2280      	movs	r2, #128	; 0x80
+    1038:	05d2      	lsls	r2, r2, #23
+    103a:	4b02      	ldr	r3, [pc, #8]	; (1044 <SERCOM5_Handler+0x10>)
+    103c:	605a      	str	r2, [r3, #4]
+    platform_io_disable_rx_usart_rx_interrupt();
+    103e:	4b02      	ldr	r3, [pc, #8]	; (1048 <SERCOM5_Handler+0x14>)
+    1040:	4798      	blx	r3
+}
+    1042:	bd10      	pop	{r4, pc}
+    1044:	41004400 	.word	0x41004400
+    1048:	00001015 	.word	0x00001015
+
+0000104c <platform_io_init_no_comms_signal>:
+*/
+void platform_io_init_no_comms_signal(void)
+{    
+    /* Platform v3 */
+    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;    // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
+    104c:	4b07      	ldr	r3, [pc, #28]	; (106c <platform_io_init_no_comms_signal+0x20>)
+    104e:	225e      	movs	r2, #94	; 0x5e
+    1050:	5c99      	ldrb	r1, [r3, r2]
+    1052:	2001      	movs	r0, #1
+    1054:	4381      	bics	r1, r0
+    1056:	5499      	strb	r1, [r3, r2]
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.INEN = 1;      // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
+    1058:	5c99      	ldrb	r1, [r3, r2]
+    105a:	2002      	movs	r0, #2
+    105c:	4301      	orrs	r1, r0
+    105e:	5499      	strb	r1, [r3, r2]
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
+    1060:	2280      	movs	r2, #128	; 0x80
+    1062:	05d2      	lsls	r2, r2, #23
+    1064:	605a      	str	r2, [r3, #4]
+        PORT->Group[AUX_MCU_NOCOMMS_GROUP].OUTCLR.reg = AUX_MCU_NOCOMMS_MASK;               // We enable no comms by simply changing the DIR register...
+    1066:	615a      	str	r2, [r3, #20]
+    #endif    
+}
+    1068:	4770      	bx	lr
+    106a:	46c0      	nop			; (mov r8, r8)
+    106c:	41004400 	.word	0x41004400
+
+00001070 <fuses_check_program>:
+*   \brief  Check for correct fuse settings (and flash)
+*   \param  flash_fuses Set to TRUE to allow fuse programming
+*   \return If the check / flash was correctly performed
+*/
+RET_TYPE fuses_check_program(BOOL flash_fuses)
+{
+    1070:	b530      	push	{r4, r5, lr}
+    /* Get current words */
+    uint32_t userWord0 = *((uint32_t *)NVMCTRL_AUX0_ADDRESS);
+    1072:	4b2d      	ldr	r3, [pc, #180]	; (1128 <fuses_check_program+0xb8>)
+    1074:	681a      	ldr	r2, [r3, #0]
+    uint32_t userWord1 = *(((uint32_t *)NVMCTRL_AUX0_ADDRESS) + 1);
+    1076:	4b2d      	ldr	r3, [pc, #180]	; (112c <fuses_check_program+0xbc>)
+    1078:	681c      	ldr	r4, [r3, #0]
+    
+    /* Check current words and security bit */
+    #ifdef NO_SECURITY_BIT_CHECK
+    if (((userWord0 & ~USER_MASK_0) == USER_WORD_0) && ((userWord1 & ~USER_MASK_1) == USER_WORD_1))
+    107a:	4b2d      	ldr	r3, [pc, #180]	; (1130 <fuses_check_program+0xc0>)
+    107c:	4013      	ands	r3, r2
+    107e:	492d      	ldr	r1, [pc, #180]	; (1134 <fuses_check_program+0xc4>)
+    1080:	428b      	cmp	r3, r1
+    1082:	d008      	beq.n	1096 <fuses_check_program+0x26>
+        /* Conf words & security bit ok */
+        return RETURN_OK;
+    }
+    
+    /* Incorrect words, check if we are allowed to flash them */
+    if (flash_fuses == FALSE)
+    1084:	2800      	cmp	r0, #0
+    1086:	d04c      	beq.n	1122 <fuses_check_program+0xb2>
+    {
+        return RETURN_NOK;
+    }
+    
+    /* We are allowed to program, check for security bit */
+    if (NVMCTRL->STATUS.reg & NVMCTRL_STATUS_SB)
+    1088:	4b2b      	ldr	r3, [pc, #172]	; (1138 <fuses_check_program+0xc8>)
+    108a:	8b1b      	ldrh	r3, [r3, #24]
+    {
+        return RETURN_NOK;
+    108c:	2001      	movs	r0, #1
+    108e:	4240      	negs	r0, r0
+    if (NVMCTRL->STATUS.reg & NVMCTRL_STATUS_SB)
+    1090:	05db      	lsls	r3, r3, #23
+    1092:	d507      	bpl.n	10a4 <fuses_check_program+0x34>
+    NVIC_SystemReset();
+    while(1);
+    
+    /* To avoid warnings */
+    return RETURN_NOK;
+}
+    1094:	bd30      	pop	{r4, r5, pc}
+    if (((userWord0 & ~USER_MASK_0) == USER_WORD_0) && ((userWord1 & ~USER_MASK_1) == USER_WORD_1))
+    1096:	4b29      	ldr	r3, [pc, #164]	; (113c <fuses_check_program+0xcc>)
+    1098:	4023      	ands	r3, r4
+    109a:	4929      	ldr	r1, [pc, #164]	; (1140 <fuses_check_program+0xd0>)
+    109c:	428b      	cmp	r3, r1
+    109e:	d1f1      	bne.n	1084 <fuses_check_program+0x14>
+        return RETURN_OK;
+    10a0:	2000      	movs	r0, #0
+    10a2:	e7f7      	b.n	1094 <fuses_check_program+0x24>
+    uint32_t temp = NVMCTRL->CTRLB.reg;
+    10a4:	4b24      	ldr	r3, [pc, #144]	; (1138 <fuses_check_program+0xc8>)
+    10a6:	6858      	ldr	r0, [r3, #4]
+    NVMCTRL->CTRLB.bit.MANW = 0;
+    10a8:	6859      	ldr	r1, [r3, #4]
+    10aa:	2580      	movs	r5, #128	; 0x80
+    10ac:	43a9      	bics	r1, r5
+    10ae:	6059      	str	r1, [r3, #4]
+    NVMCTRL->CTRLB.bit.CACHEDIS = 1;
+    10b0:	685d      	ldr	r5, [r3, #4]
+    10b2:	2180      	movs	r1, #128	; 0x80
+    10b4:	02c9      	lsls	r1, r1, #11
+    10b6:	4329      	orrs	r1, r5
+    10b8:	6059      	str	r1, [r3, #4]
+    NVMCTRL->STATUS.reg |= NVMCTRL_STATUS_MASK;
+    10ba:	8b19      	ldrh	r1, [r3, #24]
+    10bc:	2520      	movs	r5, #32
+    10be:	35ff      	adds	r5, #255	; 0xff
+    10c0:	4329      	orrs	r1, r5
+    10c2:	8319      	strh	r1, [r3, #24]
+    NVMCTRL->ADDR.reg = NVMCTRL_AUX0_ADDRESS / 2;
+    10c4:	491f      	ldr	r1, [pc, #124]	; (1144 <fuses_check_program+0xd4>)
+    10c6:	61d9      	str	r1, [r3, #28]
+    NVMCTRL->CTRLA.reg = NVM_COMMAND_ERASE_AUX_ROW | NVMCTRL_CTRLA_CMDEX_KEY;
+    10c8:	491f      	ldr	r1, [pc, #124]	; (1148 <fuses_check_program+0xd8>)
+    10ca:	8019      	strh	r1, [r3, #0]
+    while (!(NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY));
+    10cc:	0019      	movs	r1, r3
+    10ce:	2301      	movs	r3, #1
+    10d0:	7d0d      	ldrb	r5, [r1, #20]
+    10d2:	421d      	tst	r5, r3
+    10d4:	d0fc      	beq.n	10d0 <fuses_check_program+0x60>
+    NVMCTRL->STATUS.reg |= NVMCTRL_STATUS_MASK;
+    10d6:	4b18      	ldr	r3, [pc, #96]	; (1138 <fuses_check_program+0xc8>)
+    10d8:	8b19      	ldrh	r1, [r3, #24]
+    10da:	2520      	movs	r5, #32
+    10dc:	35ff      	adds	r5, #255	; 0xff
+    10de:	4329      	orrs	r1, r5
+    10e0:	8319      	strh	r1, [r3, #24]
+    NVMCTRL->ADDR.reg = NVMCTRL_AUX0_ADDRESS / 2;
+    10e2:	4918      	ldr	r1, [pc, #96]	; (1144 <fuses_check_program+0xd4>)
+    10e4:	61d9      	str	r1, [r3, #28]
+    userWord0 &= USER_MASK_0;
+    10e6:	4919      	ldr	r1, [pc, #100]	; (114c <fuses_check_program+0xdc>)
+    10e8:	400a      	ands	r2, r1
+    userWord1 &= USER_MASK_1;
+    10ea:	21fe      	movs	r1, #254	; 0xfe
+    10ec:	0209      	lsls	r1, r1, #8
+    10ee:	400c      	ands	r4, r1
+    userWord0 |= USER_WORD_0;
+    10f0:	4910      	ldr	r1, [pc, #64]	; (1134 <fuses_check_program+0xc4>)
+    10f2:	430a      	orrs	r2, r1
+    *((uint32_t *)NVMCTRL_AUX0_ADDRESS) = userWord0;
+    10f4:	490c      	ldr	r1, [pc, #48]	; (1128 <fuses_check_program+0xb8>)
+    10f6:	600a      	str	r2, [r1, #0]
+    userWord1 |= USER_WORD_1;
+    10f8:	4a11      	ldr	r2, [pc, #68]	; (1140 <fuses_check_program+0xd0>)
+    10fa:	4314      	orrs	r4, r2
+    *(((uint32_t *)NVMCTRL_AUX0_ADDRESS) + 1) = userWord1;
+    10fc:	4a0b      	ldr	r2, [pc, #44]	; (112c <fuses_check_program+0xbc>)
+    10fe:	6014      	str	r4, [r2, #0]
+    NVMCTRL->CTRLA.reg = NVM_COMMAND_WRITE_AUX_ROW | NVMCTRL_CTRLA_CMDEX_KEY;
+    1100:	4a13      	ldr	r2, [pc, #76]	; (1150 <fuses_check_program+0xe0>)
+    1102:	801a      	strh	r2, [r3, #0]
+    while (!(NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY));
+    1104:	001a      	movs	r2, r3
+    1106:	2301      	movs	r3, #1
+    1108:	7d11      	ldrb	r1, [r2, #20]
+    110a:	4219      	tst	r1, r3
+    110c:	d0fc      	beq.n	1108 <fuses_check_program+0x98>
+    NVMCTRL->CTRLB.reg = temp;
+    110e:	4b0a      	ldr	r3, [pc, #40]	; (1138 <fuses_check_program+0xc8>)
+    1110:	6058      	str	r0, [r3, #4]
+    1112:	f3bf 8f4f 	dsb	sy
+  SCB->AIRCR  = ((0x5FA << SCB_AIRCR_VECTKEY_Pos)      |
+    1116:	4a0f      	ldr	r2, [pc, #60]	; (1154 <fuses_check_program+0xe4>)
+    1118:	4b0f      	ldr	r3, [pc, #60]	; (1158 <fuses_check_program+0xe8>)
+    111a:	60da      	str	r2, [r3, #12]
+    111c:	f3bf 8f4f 	dsb	sy
+    1120:	e7fe      	b.n	1120 <fuses_check_program+0xb0>
+        return RETURN_NOK;
+    1122:	2001      	movs	r0, #1
+    1124:	4240      	negs	r0, r0
+    1126:	e7b5      	b.n	1094 <fuses_check_program+0x24>
+    1128:	00804000 	.word	0x00804000
+    112c:	00804004 	.word	0x00804004
+    1130:	fe01ff77 	.word	0xfe01ff77
+    1134:	d800a717 	.word	0xd800a717
+    1138:	41004000 	.word	0x41004000
+    113c:	ffff01ff 	.word	0xffff01ff
+    1140:	ffff005a 	.word	0xffff005a
+    1144:	00402000 	.word	0x00402000
+    1148:	ffffa505 	.word	0xffffa505
+    114c:	01fe0088 	.word	0x01fe0088
+    1150:	ffffa506 	.word	0xffffa506
+    1154:	05fa0004 	.word	0x05fa0004
+    1158:	e000ed00 	.word	0xe000ed00
+
+0000115c <sercom_spi_init>:
+*   \param  hss             Hardware SS disable/enable (see enum)
+*   \param  miso_pad        MISO pad (see enum)
+*   \param  mosi_sck_ss_pad MOSI/SCK/PAD (see enum)
+*/
+void sercom_spi_init(Sercom* sercom_pt, uint32_t sercom_baud_div, spi_mode_te mode, spi_hss_te hss, spi_miso_pad_te miso_pad, spi_mosi_sck_ss_pad_te mosi_sck_ss_pad, BOOL receiver_enabled)
+{
+    115c:	b570      	push	{r4, r5, r6, lr}
+    115e:	0016      	movs	r6, r2
+    1160:	aa04      	add	r2, sp, #16
+    1162:	7812      	ldrb	r2, [r2, #0]
+    1164:	ac05      	add	r4, sp, #20
+    1166:	7825      	ldrb	r5, [r4, #0]
+    sercom_pt->SPI.BAUD.reg = sercom_baud_div;                              // Write baud divider
+    1168:	b2c9      	uxtb	r1, r1
+    116a:	7301      	strb	r1, [r0, #12]
+    
+    SERCOM_SPI_CTRLB_Type spi_ctrlb_reg;                                    // SPI CTRLB register
+    if (receiver_enabled == FALSE)
+    {
+        spi_ctrlb_reg.reg = 0;                                              // Disable RX
+    116c:	9906      	ldr	r1, [sp, #24]
+    116e:	1e4c      	subs	r4, r1, #1
+    1170:	41a1      	sbcs	r1, r4
+    } 
+    else
+    {
+        spi_ctrlb_reg.reg = SERCOM_SPI_CTRLB_RXEN;                          // Enable RX
+    }
+    spi_ctrlb_reg.bit.MSSEN = hss;                                          // Hardware SS control
+    1172:	2401      	movs	r4, #1
+    1174:	401c      	ands	r4, r3
+    1176:	0364      	lsls	r4, r4, #13
+    1178:	044b      	lsls	r3, r1, #17
+    spi_ctrlb_reg.bit.CHSIZE = 0;                                           // 8 bits character size
+    117a:	4323      	orrs	r3, r4
+    while ((sercom_pt->SPI.SYNCBUSY.reg & SERCOM_SPI_SYNCBUSY_CTRLB) != 0); // Wait for sync
+    117c:	2404      	movs	r4, #4
+    117e:	69c1      	ldr	r1, [r0, #28]
+    1180:	420c      	tst	r4, r1
+    1182:	d1fc      	bne.n	117e <sercom_spi_init+0x22>
+    sercom_pt->SPI.CTRLB = spi_ctrlb_reg;                                   // Write register
+    1184:	6043      	str	r3, [r0, #4]
+    
+    SERCOM_SPI_CTRLA_Type spi_ctrla_reg;                                    // SPI CTRLA register
+    spi_ctrla_reg.reg = SERCOM_SPI_CTRLA_ENABLE;                            // Enable SPI module
+    spi_ctrla_reg.bit.DORD = 0;                                             // MSB transferred first
+    1186:	2102      	movs	r1, #2
+    if ((mode == SPI_MODE0) || (mode == SPI_MODE1))                         // CPOL depending on SPI mode
+    1188:	2e01      	cmp	r6, #1
+    118a:	d902      	bls.n	1192 <sercom_spi_init+0x36>
+    {
+        spi_ctrla_reg.bit.CPOL = 0;
+    } 
+    else
+    {
+        spi_ctrla_reg.bit.CPOL = 1;
+    118c:	2380      	movs	r3, #128	; 0x80
+    118e:	059b      	lsls	r3, r3, #22
+    1190:	4319      	orrs	r1, r3
+    }
+    if ((mode == SPI_MODE0) || (mode == SPI_MODE2))                         // CPHA depending on SPI mode
+    1192:	2302      	movs	r3, #2
+    1194:	439e      	bics	r6, r3
+    1196:	d11c      	bne.n	11d2 <sercom_spi_init+0x76>
+    {
+        spi_ctrla_reg.bit.CPHA = 0;
+    1198:	4b10      	ldr	r3, [pc, #64]	; (11dc <sercom_spi_init+0x80>)
+    119a:	4019      	ands	r1, r3
+    } 
+    else
+    {
+        spi_ctrla_reg.bit.CPHA = 1;
+    }
+    spi_ctrla_reg.bit.FORM = 0;                                             // SPI frame format
+    119c:	4b10      	ldr	r3, [pc, #64]	; (11e0 <sercom_spi_init+0x84>)
+    119e:	4019      	ands	r1, r3
+    spi_ctrla_reg.bit.DIPO = miso_pad;                                      // Select MISO pad
+    11a0:	2303      	movs	r3, #3
+    11a2:	401a      	ands	r2, r3
+    11a4:	0512      	lsls	r2, r2, #20
+    11a6:	4c0f      	ldr	r4, [pc, #60]	; (11e4 <sercom_spi_init+0x88>)
+    11a8:	4021      	ands	r1, r4
+    11aa:	4311      	orrs	r1, r2
+    spi_ctrla_reg.bit.DOPO = mosi_sck_ss_pad;                               // MOSI SCK SS pads
+    11ac:	402b      	ands	r3, r5
+    11ae:	041b      	lsls	r3, r3, #16
+    11b0:	4a0d      	ldr	r2, [pc, #52]	; (11e8 <sercom_spi_init+0x8c>)
+    11b2:	4011      	ands	r1, r2
+    11b4:	4319      	orrs	r1, r3
+    spi_ctrla_reg.bit.RUNSTDBY = 0;                                         // Do not run during standby
+    11b6:	2380      	movs	r3, #128	; 0x80
+    11b8:	4399      	bics	r1, r3
+    spi_ctrla_reg.bit.IBON = 1;                                             // Immediate buffer overflow notification
+    11ba:	3380      	adds	r3, #128	; 0x80
+    11bc:	4319      	orrs	r1, r3
+    spi_ctrla_reg.bit.MODE = SERCOM_SPI_CTRLA_MODE_SPI_MASTER_Val;          // SPI Master
+    11be:	3be4      	subs	r3, #228	; 0xe4
+    11c0:	4399      	bics	r1, r3
+    11c2:	3b10      	subs	r3, #16
+    11c4:	4319      	orrs	r1, r3
+    while ((sercom_pt->SPI.SYNCBUSY.reg & SERCOM_SPI_SYNCBUSY_ENABLE) != 0);// Wait for sync
+    11c6:	2202      	movs	r2, #2
+    11c8:	69c3      	ldr	r3, [r0, #28]
+    11ca:	421a      	tst	r2, r3
+    11cc:	d1fc      	bne.n	11c8 <sercom_spi_init+0x6c>
+    sercom_pt->SPI.CTRLA = spi_ctrla_reg;                                   // Write register
+    11ce:	6001      	str	r1, [r0, #0]
+}
+    11d0:	bd70      	pop	{r4, r5, r6, pc}
+        spi_ctrla_reg.bit.CPHA = 1;
+    11d2:	2380      	movs	r3, #128	; 0x80
+    11d4:	055b      	lsls	r3, r3, #21
+    11d6:	4319      	orrs	r1, r3
+    11d8:	e7e0      	b.n	119c <sercom_spi_init+0x40>
+    11da:	46c0      	nop			; (mov r8, r8)
+    11dc:	efffffff 	.word	0xefffffff
+    11e0:	f0ffffff 	.word	0xf0ffffff
+    11e4:	ffcfffff 	.word	0xffcfffff
+    11e8:	fffcffff 	.word	0xfffcffff
+
+000011ec <sercom_spi_send_single_byte>:
+*   \param  data            Byte to send
+*   \return received data
+*/
+uint8_t sercom_spi_send_single_byte(Sercom* sercom_pt, uint8_t data)
+{
+    sercom_pt->SPI.INTFLAG.reg = SERCOM_SPI_INTFLAG_TXC;                    // Clear transmit complete flag
+    11ec:	2302      	movs	r3, #2
+    11ee:	7603      	strb	r3, [r0, #24]
+    sercom_pt->SPI.DATA.reg = data;                                         // Write data byte to transmit
+    11f0:	6281      	str	r1, [r0, #40]	; 0x28
+    while ((sercom_pt->SPI.INTFLAG.reg & SERCOM_SPI_INTFLAG_TXC) == 0);     // Wait for received data
+    11f2:	2202      	movs	r2, #2
+    11f4:	7e03      	ldrb	r3, [r0, #24]
+    11f6:	4213      	tst	r3, r2
+    11f8:	d0fc      	beq.n	11f4 <sercom_spi_send_single_byte+0x8>
+    return sercom_pt->SPI.DATA.reg;
+    11fa:	6a80      	ldr	r0, [r0, #40]	; 0x28
+    11fc:	b2c0      	uxtb	r0, r0
+}
+    11fe:	4770      	bx	lr
+
+00001200 <TCC0_Handler>:
+            
+            /* Power logic */
+            logic_power_ms_tick();
+        }
+    #endif
+}
+    1200:	4770      	bx	lr
+
+00001202 <TCC2_Handler>:
+                logic_user_set_user_to_be_logged_off_flag();
+            }
+        }
+    }
+    #endif    
+}
+    1202:	4770      	bx	lr
+
+00001204 <SysTick_Handler>:
+*	\brief	Called by MCU systick at timeout
+*/
+void SysTick_Handler(void)
+{
+    /* Disable systick */
+    SysTick->CTRL = 0;
+    1204:	2200      	movs	r2, #0
+    1206:	4b03      	ldr	r3, [pc, #12]	; (1214 <SysTick_Handler+0x10>)
+    1208:	601a      	str	r2, [r3, #0]
+    timer_systick_expired = TRUE;
+    120a:	3201      	adds	r2, #1
+    120c:	4b02      	ldr	r3, [pc, #8]	; (1218 <SysTick_Handler+0x14>)
+    120e:	601a      	str	r2, [r3, #0]
+}
+    1210:	4770      	bx	lr
+    1212:	46c0      	nop			; (mov r8, r8)
+    1214:	e000e010 	.word	0xe000e010
+    1218:	20000010 	.word	0x20000010
+
+0000121c <cpu_irq_enter_critical>:
+volatile bool g_interrupt_enabled = true;
+#endif
+
+void cpu_irq_enter_critical(void)
+{
+	if (cpu_irq_critical_section_counter == 0) {
+    121c:	4b0c      	ldr	r3, [pc, #48]	; (1250 <cpu_irq_enter_critical+0x34>)
+    121e:	681b      	ldr	r3, [r3, #0]
+    1220:	2b00      	cmp	r3, #0
+    1222:	d106      	bne.n	1232 <cpu_irq_enter_critical+0x16>
+ */
+__attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __get_PRIMASK(void)
+{
+  uint32_t result;
+
+  __ASM volatile ("MRS %0, primask" : "=r" (result) );
+    1224:	f3ef 8310 	mrs	r3, PRIMASK
+		if (cpu_irq_is_enabled()) {
+    1228:	2b00      	cmp	r3, #0
+    122a:	d007      	beq.n	123c <cpu_irq_enter_critical+0x20>
+			cpu_irq_disable();
+			cpu_irq_prev_interrupt_state = true;
+		} else {
+			/* Make sure the to save the prev state as false */
+			cpu_irq_prev_interrupt_state = false;
+    122c:	2200      	movs	r2, #0
+    122e:	4b09      	ldr	r3, [pc, #36]	; (1254 <cpu_irq_enter_critical+0x38>)
+    1230:	701a      	strb	r2, [r3, #0]
+		}
+
+	}
+
+	cpu_irq_critical_section_counter++;
+    1232:	4a07      	ldr	r2, [pc, #28]	; (1250 <cpu_irq_enter_critical+0x34>)
+    1234:	6813      	ldr	r3, [r2, #0]
+    1236:	3301      	adds	r3, #1
+    1238:	6013      	str	r3, [r2, #0]
+}
+    123a:	4770      	bx	lr
+  __ASM volatile ("cpsid i" : : : "memory");
+    123c:	b672      	cpsid	i
+    This function ensures the apparent order of the explicit memory operations before
+    and after the instruction, without ensuring their completion.
+ */
+__attribute__( ( always_inline ) ) __STATIC_INLINE void __DMB(void)
+{
+  __ASM volatile ("dmb");
+    123e:	f3bf 8f5f 	dmb	sy
+			cpu_irq_disable();
+    1242:	2200      	movs	r2, #0
+    1244:	4b04      	ldr	r3, [pc, #16]	; (1258 <cpu_irq_enter_critical+0x3c>)
+    1246:	701a      	strb	r2, [r3, #0]
+			cpu_irq_prev_interrupt_state = true;
+    1248:	3201      	adds	r2, #1
+    124a:	4b02      	ldr	r3, [pc, #8]	; (1254 <cpu_irq_enter_critical+0x38>)
+    124c:	701a      	strb	r2, [r3, #0]
+    124e:	e7f0      	b.n	1232 <cpu_irq_enter_critical+0x16>
+    1250:	20000080 	.word	0x20000080
+    1254:	20000084 	.word	0x20000084
+    1258:	20000014 	.word	0x20000014
+
+0000125c <cpu_irq_leave_critical>:
+void cpu_irq_leave_critical(void)
+{
+	/* Check if the user is trying to leave a critical section when not in a critical section */
+	Assert(cpu_irq_critical_section_counter > 0);
+
+	cpu_irq_critical_section_counter--;
+    125c:	4b08      	ldr	r3, [pc, #32]	; (1280 <cpu_irq_leave_critical+0x24>)
+    125e:	681a      	ldr	r2, [r3, #0]
+    1260:	3a01      	subs	r2, #1
+    1262:	601a      	str	r2, [r3, #0]
+
+	/* Only enable global interrupts when the counter reaches 0 and the state of the global interrupt flag
+	   was enabled when entering critical state */
+	if ((cpu_irq_critical_section_counter == 0) && (cpu_irq_prev_interrupt_state)) {
+    1264:	681b      	ldr	r3, [r3, #0]
+    1266:	2b00      	cmp	r3, #0
+    1268:	d109      	bne.n	127e <cpu_irq_leave_critical+0x22>
+    126a:	4b06      	ldr	r3, [pc, #24]	; (1284 <cpu_irq_leave_critical+0x28>)
+    126c:	781b      	ldrb	r3, [r3, #0]
+    126e:	2b00      	cmp	r3, #0
+    1270:	d005      	beq.n	127e <cpu_irq_leave_critical+0x22>
+		cpu_irq_enable();
+    1272:	2201      	movs	r2, #1
+    1274:	4b04      	ldr	r3, [pc, #16]	; (1288 <cpu_irq_leave_critical+0x2c>)
+    1276:	701a      	strb	r2, [r3, #0]
+    1278:	f3bf 8f5f 	dmb	sy
+  __ASM volatile ("cpsie i" : : : "memory");
+    127c:	b662      	cpsie	i
+	}
+}
+    127e:	4770      	bx	lr
+    1280:	20000080 	.word	0x20000080
+    1284:	20000084 	.word	0x20000084
+    1288:	20000014 	.word	0x20000014
+
+0000128c <Dummy_Handler>:
+
+/**
+ * \brief Default interrupt handler for unused IRQs.
+ */
+void Dummy_Handler(void)
+{
+    128c:	e7fe      	b.n	128c <Dummy_Handler>
+	...
+
+00001290 <Reset_Handler>:
+{
+    1290:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+        if (pSrc != pDest) {
+    1292:	4a2a      	ldr	r2, [pc, #168]	; (133c <Reset_Handler+0xac>)
+    1294:	4b2a      	ldr	r3, [pc, #168]	; (1340 <Reset_Handler+0xb0>)
+    1296:	429a      	cmp	r2, r3
+    1298:	d011      	beq.n	12be <Reset_Handler+0x2e>
+                for (; pDest < &_erelocate;) {
+    129a:	001a      	movs	r2, r3
+    129c:	4b29      	ldr	r3, [pc, #164]	; (1344 <Reset_Handler+0xb4>)
+    129e:	429a      	cmp	r2, r3
+    12a0:	d20d      	bcs.n	12be <Reset_Handler+0x2e>
+    12a2:	4a29      	ldr	r2, [pc, #164]	; (1348 <Reset_Handler+0xb8>)
+    12a4:	3303      	adds	r3, #3
+    12a6:	1a9b      	subs	r3, r3, r2
+    12a8:	089b      	lsrs	r3, r3, #2
+    12aa:	3301      	adds	r3, #1
+    12ac:	009b      	lsls	r3, r3, #2
+    12ae:	2200      	movs	r2, #0
+                        *pDest++ = *pSrc++;
+    12b0:	4823      	ldr	r0, [pc, #140]	; (1340 <Reset_Handler+0xb0>)
+    12b2:	4922      	ldr	r1, [pc, #136]	; (133c <Reset_Handler+0xac>)
+    12b4:	588c      	ldr	r4, [r1, r2]
+    12b6:	5084      	str	r4, [r0, r2]
+    12b8:	3204      	adds	r2, #4
+                for (; pDest < &_erelocate;) {
+    12ba:	429a      	cmp	r2, r3
+    12bc:	d1fa      	bne.n	12b4 <Reset_Handler+0x24>
+        for (pDest = &_szero; pDest < &_ezero;) {
+    12be:	4a23      	ldr	r2, [pc, #140]	; (134c <Reset_Handler+0xbc>)
+    12c0:	4b23      	ldr	r3, [pc, #140]	; (1350 <Reset_Handler+0xc0>)
+    12c2:	429a      	cmp	r2, r3
+    12c4:	d20a      	bcs.n	12dc <Reset_Handler+0x4c>
+    12c6:	43d3      	mvns	r3, r2
+    12c8:	4921      	ldr	r1, [pc, #132]	; (1350 <Reset_Handler+0xc0>)
+    12ca:	185b      	adds	r3, r3, r1
+    12cc:	2103      	movs	r1, #3
+    12ce:	438b      	bics	r3, r1
+    12d0:	3304      	adds	r3, #4
+    12d2:	189b      	adds	r3, r3, r2
+                *pDest++ = 0;
+    12d4:	2100      	movs	r1, #0
+    12d6:	c202      	stmia	r2!, {r1}
+        for (pDest = &_szero; pDest < &_ezero;) {
+    12d8:	4293      	cmp	r3, r2
+    12da:	d1fc      	bne.n	12d6 <Reset_Handler+0x46>
+        SCB->VTOR = ((uint32_t) pSrc & SCB_VTOR_TBLOFF_Msk);
+    12dc:	4a1d      	ldr	r2, [pc, #116]	; (1354 <Reset_Handler+0xc4>)
+    12de:	21ff      	movs	r1, #255	; 0xff
+    12e0:	4b1d      	ldr	r3, [pc, #116]	; (1358 <Reset_Handler+0xc8>)
+    12e2:	438b      	bics	r3, r1
+    12e4:	6093      	str	r3, [r2, #8]
+        SBMATRIX->SFR[SBMATRIX_SLAVE_HMCRAMC0].reg = 2;
+    12e6:	39fd      	subs	r1, #253	; 0xfd
+    12e8:	2390      	movs	r3, #144	; 0x90
+    12ea:	005b      	lsls	r3, r3, #1
+    12ec:	4a1b      	ldr	r2, [pc, #108]	; (135c <Reset_Handler+0xcc>)
+    12ee:	50d1      	str	r1, [r2, r3]
+        USB->DEVICE.QOSCTRL.bit.CQOS = 2;
+    12f0:	4a1b      	ldr	r2, [pc, #108]	; (1360 <Reset_Handler+0xd0>)
+    12f2:	78d3      	ldrb	r3, [r2, #3]
+    12f4:	2503      	movs	r5, #3
+    12f6:	43ab      	bics	r3, r5
+    12f8:	2402      	movs	r4, #2
+    12fa:	4323      	orrs	r3, r4
+    12fc:	70d3      	strb	r3, [r2, #3]
+        USB->DEVICE.QOSCTRL.bit.DQOS = 2;
+    12fe:	78d3      	ldrb	r3, [r2, #3]
+    1300:	270c      	movs	r7, #12
+    1302:	43bb      	bics	r3, r7
+    1304:	2608      	movs	r6, #8
+    1306:	4333      	orrs	r3, r6
+    1308:	70d3      	strb	r3, [r2, #3]
+        DMAC->QOSCTRL.bit.DQOS = 2;
+    130a:	4b16      	ldr	r3, [pc, #88]	; (1364 <Reset_Handler+0xd4>)
+    130c:	7b98      	ldrb	r0, [r3, #14]
+    130e:	2230      	movs	r2, #48	; 0x30
+    1310:	4390      	bics	r0, r2
+    1312:	2220      	movs	r2, #32
+    1314:	4310      	orrs	r0, r2
+    1316:	7398      	strb	r0, [r3, #14]
+        DMAC->QOSCTRL.bit.FQOS = 2;
+    1318:	7b99      	ldrb	r1, [r3, #14]
+    131a:	43b9      	bics	r1, r7
+    131c:	4331      	orrs	r1, r6
+    131e:	7399      	strb	r1, [r3, #14]
+        DMAC->QOSCTRL.bit.WRBQOS = 2;
+    1320:	7b9a      	ldrb	r2, [r3, #14]
+    1322:	43aa      	bics	r2, r5
+    1324:	4322      	orrs	r2, r4
+    1326:	739a      	strb	r2, [r3, #14]
+        NVMCTRL->CTRLB.bit.MANW = 1;
+    1328:	4a0f      	ldr	r2, [pc, #60]	; (1368 <Reset_Handler+0xd8>)
+    132a:	6853      	ldr	r3, [r2, #4]
+    132c:	2180      	movs	r1, #128	; 0x80
+    132e:	430b      	orrs	r3, r1
+    1330:	6053      	str	r3, [r2, #4]
+        __libc_init_array();
+    1332:	4b0e      	ldr	r3, [pc, #56]	; (136c <Reset_Handler+0xdc>)
+    1334:	4798      	blx	r3
+        main();
+    1336:	4b0e      	ldr	r3, [pc, #56]	; (1370 <Reset_Handler+0xe0>)
+    1338:	4798      	blx	r3
+    133a:	e7fe      	b.n	133a <Reset_Handler+0xaa>
+    133c:	00001e9c 	.word	0x00001e9c
+    1340:	20000000 	.word	0x20000000
+    1344:	20000018 	.word	0x20000018
+    1348:	20000004 	.word	0x20000004
+    134c:	20000020 	.word	0x20000020
+    1350:	20000274 	.word	0x20000274
+    1354:	e000ed00 	.word	0xe000ed00
+    1358:	00000000 	.word	0x00000000
+    135c:	41007000 	.word	0x41007000
+    1360:	41005000 	.word	0x41005000
+    1364:	41004800 	.word	0x41004800
+    1368:	41004000 	.word	0x41004000
+    136c:	00001375 	.word	0x00001375
+    1370:	00000139 	.word	0x00000139
+
+00001374 <__libc_init_array>:
+    1374:	b570      	push	{r4, r5, r6, lr}
+    1376:	2600      	movs	r6, #0
+    1378:	4d0c      	ldr	r5, [pc, #48]	; (13ac <__libc_init_array+0x38>)
+    137a:	4c0d      	ldr	r4, [pc, #52]	; (13b0 <__libc_init_array+0x3c>)
+    137c:	1b64      	subs	r4, r4, r5
+    137e:	10a4      	asrs	r4, r4, #2
+    1380:	42a6      	cmp	r6, r4
+    1382:	d109      	bne.n	1398 <__libc_init_array+0x24>
+    1384:	2600      	movs	r6, #0
+    1386:	f000 fd79 	bl	1e7c <_init>
+    138a:	4d0a      	ldr	r5, [pc, #40]	; (13b4 <__libc_init_array+0x40>)
+    138c:	4c0a      	ldr	r4, [pc, #40]	; (13b8 <__libc_init_array+0x44>)
+    138e:	1b64      	subs	r4, r4, r5
+    1390:	10a4      	asrs	r4, r4, #2
+    1392:	42a6      	cmp	r6, r4
+    1394:	d105      	bne.n	13a2 <__libc_init_array+0x2e>
+    1396:	bd70      	pop	{r4, r5, r6, pc}
+    1398:	00b3      	lsls	r3, r6, #2
+    139a:	58eb      	ldr	r3, [r5, r3]
+    139c:	4798      	blx	r3
+    139e:	3601      	adds	r6, #1
+    13a0:	e7ee      	b.n	1380 <__libc_init_array+0xc>
+    13a2:	00b3      	lsls	r3, r6, #2
+    13a4:	58eb      	ldr	r3, [r5, r3]
+    13a6:	4798      	blx	r3
+    13a8:	3601      	adds	r6, #1
+    13aa:	e7f2      	b.n	1392 <__libc_init_array+0x1e>
+    13ac:	00001e88 	.word	0x00001e88
+    13b0:	00001e88 	.word	0x00001e88
+    13b4:	00001e88 	.word	0x00001e88
+    13b8:	00001e8c 	.word	0x00001e8c
+
+000013bc <memcpy>:
+    13bc:	2300      	movs	r3, #0
+    13be:	b510      	push	{r4, lr}
+    13c0:	429a      	cmp	r2, r3
+    13c2:	d100      	bne.n	13c6 <memcpy+0xa>
+    13c4:	bd10      	pop	{r4, pc}
+    13c6:	5ccc      	ldrb	r4, [r1, r3]
+    13c8:	54c4      	strb	r4, [r0, r3]
+    13ca:	3301      	adds	r3, #1
+    13cc:	e7f8      	b.n	13c0 <memcpy+0x4>
+	...
+
+000013d0 <custom_fs_emergency_font_file>:
+    13d0:	010d 00c2 00b3 0020 007e 00a1 00ff 0131     ...... .~.....1.
+    13e0:	0131 0152 0153 0178 0178 ffff ffff ffff     1.R.S.x.x.......
+    13f0:	ffff ffff ffff ffff ffff ffff ffff ffff     ................
+    1400:	ffff ffff ffff ffff ffff ffff ffff ffff     ................
+    1410:	ffff 0000 0001 0002 0003 0004 0005 0006     ................
+    1420:	0007 0008 0009 000a 000b 000c 000d 000e     ................
+    1430:	000f 0010 0011 0012 0013 0014 0015 0016     ................
+    1440:	0017 0018 0019 001a 001b 001c 001d 001e     ................
+    1450:	001f 0020 0021 0022 0023 0024 0025 0026     .. .!.".#.$.%.&.
+    1460:	0027 0028 0029 002a 002b 002c 002d 002e     '.(.).*.+.,.-...
+    1470:	002f 0030 0031 0032 0033 0034 0035 0036     /.0.1.2.3.4.5.6.
+    1480:	0037 0038 0039 003a 003b 003c 003d 003e     7.8.9.:.;.<.=.>.
+    1490:	003f 0040 0041 0042 0043 0044 0045 0046     ?.@.A.B.C.D.E.F.
+    14a0:	0047 0048 0049 004a 004b 004c 004d 004e     G.H.I.J.K.L.M.N.
+    14b0:	004f 0050 0051 0052 0053 0054 0055 0056     O.P.Q.R.S.T.U.V.
+    14c0:	0057 0058 0059 005a 005b 005c 005d 005e     W.X.Y.Z.[.\.].^.
+    14d0:	005f 0060 0061 0062 0063 ffff 0064 0065     _.`.a.b.c...d.e.
+    14e0:	0066 0067 0068 0069 ffff 006a 006b 006c     f.g.h.i...j.k.l.
+    14f0:	006d ffff ffff 006e 006f 0070 0071 0072     m.....n.o.p.q.r.
+    1500:	ffff 0073 0074 ffff ffff ffff 0075 0076     ..s.t.......u.v.
+    1510:	0077 0078 0079 007a 007b 007c 007d 007e     w.x.y.z.{.|.}.~.
+    1520:	007f 0080 0081 0082 0083 0084 0085 ffff     ................
+    1530:	0086 0087 0088 0089 008a 008b ffff 008c     ................
+    1540:	008d 008e 008f 0090 ffff ffff 0091 0092     ................
+    1550:	0093 0094 0095 0096 0097 0098 0099 009a     ................
+    1560:	009b 009c 009d 009e 009f 00a0 00a1 ffff     ................
+    1570:	00a2 00a3 00a4 00a5 00a6 00a7 00a8 00a9     ................
+    1580:	00aa 00ab 00ac 00ad ffff ffff 00ae 00af     ................
+    1590:	00b0 00b1 00b2 0007 0000 ffff ffff 0801     ................
+    15a0:	0302 0000 0000 0303 0201 0001 0000 0505     ................
+    15b0:	0300 0003 0000 0a05 0200 0007 0000 0805     ................
+    15c0:	0300 000e 0000 0805 0300 0013 0000 0301     ................
+    15d0:	0202 0018 0000 0a03 0201 0019 0000 0a03     ................
+    15e0:	0201 001d 0000 0505 0300 0021 0000 0505     ..........!.....
+    15f0:	0500 0025 0000 0402 0901 0029 0000 0105     ..%.......).....
+    1600:	0700 002a 0000 0202 0902 002b 0000 0a05     ..*.......+.....
+    1610:	0300 002c 0000 0805 0300 0033 0000 0805     ..,.......3.....
+    1620:	0300 0038 0000 0805 0300 003d 0000 0805     ..8.......=.....
+    1630:	0300 0042 0000 0805 0300 0047 0000 0805     ..B.......G.....
+    1640:	0300 004c 0000 0805 0300 0051 0000 0805     ..L.......Q.....
+    1650:	0300 0056 0000 0805 0300 005b 0000 0805     ..V.......[.....
+    1660:	0300 0060 0000 0602 0502 0065 0000 0802     ..`.......e.....
+    1670:	0501 0067 0000 0704 0301 0069 0000 0305     ..g.......i.....
+    1680:	0500 006d 0000 0704 0301 006f 0000 0805     ..m.......o.....
+    1690:	0300 0073 0000 0805 0300 0078 0000 0805     ..s.......x.....
+    16a0:	0300 007d 0000 0805 0300 0082 0000 0805     ..}.............
+    16b0:	0300 0087 0000 0805 0300 008c 0000 0805     ................
+    16c0:	0300 0091 0000 0805 0300 0096 0000 0805     ................
+    16d0:	0300 009b 0000 0805 0300 00a0 0000 0805     ................
+    16e0:	0300 00a5 0000 0805 0300 00aa 0000 0805     ................
+    16f0:	0300 00af 0000 0805 0300 00b4 0000 0805     ................
+    1700:	0300 00b9 0000 0805 0300 00be 0000 0805     ................
+    1710:	0300 00c3 0000 0805 0300 00c8 0000 0905     ................
+    1720:	0300 00cd 0000 0805 0300 00d3 0000 0805     ................
+    1730:	0300 00d8 0000 0805 0300 00dd 0000 0805     ................
+    1740:	0300 00e2 0000 0805 0300 00e7 0000 0805     ................
+    1750:	0300 00ec 0000 0805 0300 00f1 0000 0805     ................
+    1760:	0300 00f6 0000 0805 0300 00fb 0000 0a02     ................
+    1770:	0202 0100 0000 0a05 0301 0103 0000 0a02     ................
+    1780:	0201 010a 0000 0305 0300 010d 0000 0106     ................
+    1790:	0c00 010f 0000 0303 0201 0110 0000 0505     ................
+    17a0:	0600 0112 0000 0805 0300 0116 0000 0505     ................
+    17b0:	0600 011b 0000 0805 0300 011f 0000 0505     ................
+    17c0:	0600 0124 0000 0804 0301 0128 0000 0705     ..$.......(.....
+    17d0:	0600 012c 0000 0805 0300 0131 0000 0803     ..,.......1.....
+    17e0:	0301 0136 0000 0a03 0300 0139 0000 0805     ..6.......9.....
+    17f0:	0300 013d 0000 0803 0301 0142 0000 0505     ..=.......B.....
+    1800:	0600 0145 0000 0505 0600 0149 0000 0505     ..E.......I.....
+    1810:	0600 014d 0000 0705 0600 0151 0000 0705     ..M.......Q.....
+    1820:	0600 0156 0000 0505 0600 015b 0000 0505     ..V.......[.....
+    1830:	0600 015f 0000 0804 0301 0163 0000 0505     .._.......c.....
+    1840:	0600 0167 0000 0505 0600 016b 0000 0505     ..g.......k.....
+    1850:	0600 016f 0000 0505 0600 0173 0000 0705     ..o.......s.....
+    1860:	0600 0177 0000 0505 0600 017c 0000 0b03     ..w.......|.....
+    1870:	0201 0180 0000 0a01 0202 0185 0000 0b03     ................
+    1880:	0201 0187 0000 0205 0500 018c 0000 0801     ................
+    1890:	0303 018e 0000 0705 0500 018f 0000 0905     ................
+    18a0:	0200 0194 0000 0505 0500 019a 0000 0805     ................
+    18b0:	0300 019e 0000 0b05 0100 01a3 0000 0103     ................
+    18c0:	0301 01aa 0000 0805 0300 01ab 0000 0704     ................
+    18d0:	0101 01b0 0000 0405 0700 01b4 0000 0305     ................
+    18e0:	0600 01b7 0000 0705 0300 01b9 0000 0103     ................
+    18f0:	0301 01be 0000 0404 0201 01bf 0000 0605     ................
+    1900:	0400 01c1 0000 0202 0302 01c5 0000 0705     ................
+    1910:	0600 01c6 0000 0905 0200 01cb 0000 0202     ................
+    1920:	0602 01d1 0000 0302 0a01 01d2 0000 0604     ................
+    1930:	0101 01d3 0000 0405 0700 01d6 0000 0805     ................
+    1940:	0300 01d9 0000 0a05 0100 01de 0000 0a05     ................
+    1950:	0100 01e5 0000 0a05 0100 01ec 0000 0a05     ................
+    1960:	0100 01f3 0000 0a05 0100 01fa 0000 0a05     ................
+    1970:	0100 0201 0000 0805 0300 0208 0000 0a05     ................
+    1980:	0300 020d 0000 0a05 0100 0214 0000 0a05     ................
+    1990:	0100 021b 0000 0a05 0100 0222 0000 0a05     ..........".....
+    19a0:	0100 0229 0000 0a05 0100 0230 0000 0a05     ..).......0.....
+    19b0:	0100 0237 0000 0a05 0100 023e 0000 0a05     ..7.......>.....
+    19c0:	0100 0245 0000 0a05 0100 024c 0000 0a05     ..E.......L.....
+    19d0:	0100 0253 0000 0a05 0100 025a 0000 0a05     ..S.......Z.....
+    19e0:	0100 0261 0000 0a05 0100 0268 0000 0a05     ..a.......h.....
+    19f0:	0100 026f 0000 0805 0300 0276 0000 0a05     ..o.......v.....
+    1a00:	0100 027b 0000 0a05 0100 0282 0000 0a05     ..{.............
+    1a10:	0100 0289 0000 0a05 0100 0290 0000 0a05     ................
+    1a20:	0200 0297 0000 0905 0200 029e 0000 0905     ................
+    1a30:	0200 02a4 0000 0905 0200 02aa 0000 0905     ................
+    1a40:	0200 02b0 0000 0805 0300 02b6 0000 0905     ................
+    1a50:	0200 02bb 0000 0505 0600 02c1 0000 0705     ................
+    1a60:	0600 02c5 0000 0905 0200 02ca 0000 0905     ................
+    1a70:	0200 02d0 0000 0905 0200 02d6 0000 0805     ................
+    1a80:	0300 02dc 0000 0903 0201 02e1 0000 0903     ................
+    1a90:	0201 02e5 0000 0903 0201 02e9 0000 0803     ................
+    1aa0:	0301 02ed 0000 0905 0200 02f0 0000 0905     ................
+    1ab0:	0200 02f6 0000 0905 0200 02fc 0000 0905     ................
+    1ac0:	0200 0302 0000 0905 0200 0308 0000 0805     ................
+    1ad0:	0300 030e 0000 0505 0500 0313 0000 0505     ................
+    1ae0:	0600 0317 0000 0905 0200 031b 0000 0905     ................
+    1af0:	0200 0321 0000 0905 0200 0327 0000 0805     ..!.......'.....
+    1b00:	0300 032d 0000 0a05 0300 0332 0000 0503     ..-.......2.....
+    1b10:	0601 0339 0000 0805 0300 033b 0000 0505     ..9.......;.....
+    1b20:	0600 0340 0000 0a05 0100 0344 0000 b6fd     ..@.......D.....
+    1b30:	5780 f5d5 2300 47ab b514 0071 6a7d 36a3     .W...#.G..q.}j.6
+    1b40:	64b2 8aa8 4d56 2ae0 2449 8844 4992 2550     .d..VM.*I$D..IP%
+    1b50:	525d 2100 423e f600 f0f8 4408 1122 8408     ]R.!>B.....D"...
+    1b60:	7400 5c67 2ec6 0827 1042 749f 2242 1f22     .tg\..'.B..tB"".
+    1b70:	4274 8660 112e 2f95 4788 21fc 86e0 742e     tB`..../.G.!...t
+    1b80:	e821 2ec6 42f8 1022 7484 e862 2ec6 6374     !....B"..tb...tc
+    1b90:	8417 f02e f0f0 12f6 4248 f810 843e 2421     ........HB..>.!$
+    1ba0:	7480 1142 0410 6f74 c25b 220f 1895 31fe     .tB...to[.."...1
+    1bb0:	63f4 c6e8 743e 0861 2e42 63f4 c618 fc3e     .c..>ta.B..c..>.
+    1bc0:	e821 1f42 21fc 42e8 7410 0961 2ec6 638c     !.B..!.B.ta....c
+    1bd0:	c6f8 f931 4208 9f10 4208 c610 8c2e 8ca9     ..1..B...B......
+    1be0:	5152 2184 4208 8e1f 58eb 31c6 6b8e c638     RQ.!.B...X.1.k8.
+    1bf0:	7431 1863 2ec6 63f4 42e8 7410 1863 aec6     1tc....c.B.tc...
+    1c00:	f408 e863 31c6 6074 86e0 f92e 4208 8410     ..c..1t`.....B..
+    1c10:	638c c618 8c2e 1563 8428 638c d71a 8c71     .c....c.(..c..q.
+    1c20:	a262 312a 638c 1015 f884 4444 1f42 aaea     b.*1.c....DDB...
+    1c30:	84b0 8210 4210 4008 55d5 2270 fca2 8088     .....B.@.Up"....
+    1c40:	637c 8036 2184 c6e8 743e 0761 0880 f842     |c6..!..>ta...B.
+    1c50:	2fc6 7f74 8007 4e34 4444 637c 8517 84c0     ./t...4NDD|c....
+    1c60:	e821 31c6 6440 2097 4932 8438 2a21 5172     !..1@d. 2I8.!*rQ
+    1c70:	24c9 f597 5a6b b680 1863 7480 1763 f400     .$..kZ..c..tc...
+    1c80:	1f63 0042 637c 8417 b620 0861 7c00 1f1c     c.B.|c.. .a..|..
+    1c90:	4400 444e 8c43 3663 8c80 a254 ad00 556b     .DNDC.c6..T...kU
+    1ca0:	8a00 a888 8c80 1763 c085 88f8 808f 2529     ......c.......)%
+    1cb0:	4812 ff80 89c0 5224 004a 806d 23bf 4aab     .H....$RJ.m..#.J
+    1cc0:	803c a164 42c8 f011 948b 80e8 be8a 904f     <.d..B........O.
+    1cd0:	7484 4953 2545 5c94 e0a0 189b 5cb4 9779     .tSIE%.\.....\y.
+    1ce0:	f000 a44c f890 e042 5ab3 c0e6 69e0 2196     ..L...B..Z...i.!
+    1cf0:	423e 607c a594 c22e 7d00 576b a594 f028     >B|`.....}kW..(.
+    1d00:	69d8 0f96 5392 2020 8808 2e42 0841 46a5     .i...S  ..B.A..F
+    1d10:	8c3f 1140 a508 3f46 408c 8022 2a45 8c3f     ?.@...F?.@".E*?.
+    1d20:	6d40 a588 3f46 408c 0850 46a5 8c3f 2240     @m..F?.@P..F?.@"
+    1d30:	a588 3f46 408c 297d 52ea 7497 0861 2e42     ..F?.@}).R.ta.B.
+    1d40:	0022 3f41 7a08 8710 11c0 083f 107a c087     ".A?.z....?.z...
+    1d50:	bf22 7a08 8710 50c0 083f 107a c087 3e41     "..z...P?.z...A>
+    1d60:	1042 2784 11c0 423e 8410 c027 8122 10f2     B..'..>B..'."...
+    1d70:	2784 50c0 423e 8410 c027 a36d ce9a 8c31     .'.P>B..'.m...1.
+    1d80:	4140 181d 31c6 808b 1d11 c618 8b31 2280     @A...1......1.."
+    1d90:	e880 31c6 808b 9d6d c618 8b31 5080 181d     ...1..m...1..P..
+    1da0:	31c6 808b 6774 c65c 412e 1823 31c6 808b     .1..tg\..A#..1..
+    1db0:	2311 c618 8b31 2280 1881 31c6 808b 2350     .#..1.."...1..P#
+    1dc0:	c618 8b31 3280 2963 3146 00b4 8020 c607     ..1..2c)F1.. ...
+    1dd0:	6833 0011 c607 6833 8022 c607 6833 806d     3h....3h"...3hm.
+    1de0:	c607 6833 0050 c6f8 226d 0788 33c6 7568     ..3hP...m"...3hu
+    1df0:	476f 7480 0761 0091 0041 4707 78f0 0011     oG.ta...A..G.x..
+    1e00:	4707 78f0 8022 4707 78f0 0050 fee8 880f     .G.x"..G.xP.....
+    1e10:	920c 28e0 920c 54e0 920c a0e0 9764 806d     ...(...T....d.m.
+    1e20:	660b 8831 0041 4607 7031 0011 4607 7031     .f1.A..F1p...F1p
+    1e30:	8022 4607 7031 806d 4607 7031 0050 c6e8     "..F1pm..F1pP...
+    1e40:	202e 023e 7400 97eb 4100 0800 33c6 1168     . >..t...A...3h.
+    1e50:	0800 33c6 2268 0880 33c6 5068 1801 6dc6     ...3h"...3hP...m
+    1e60:	0150 c618 0b2f c980 7d2e 6a29 8f52 6f55     P.../....})jR.Uo
+    1e70:	8045 0150 c518 2144 0000 0000               E.P...D!....
+
+00001e7c <_init>:
+    1e7c:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+    1e7e:	46c0      	nop			; (mov r8, r8)
+    1e80:	bcf8      	pop	{r3, r4, r5, r6, r7}
+    1e82:	bc08      	pop	{r3}
+    1e84:	469e      	mov	lr, r3
+    1e86:	4770      	bx	lr
+
+00001e88 <__init_array_start>:
+    1e88:	000000dd 	.word	0x000000dd
+
+00001e8c <_fini>:
+    1e8c:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+    1e8e:	46c0      	nop			; (mov r8, r8)
+    1e90:	bcf8      	pop	{r3, r4, r5, r6, r7}
+    1e92:	bc08      	pop	{r3}
+    1e94:	469e      	mov	lr, r3
+    1e96:	4770      	bx	lr
+
+00001e98 <__fini_array_start>:
+    1e98:	000000b5 	.word	0x000000b5
