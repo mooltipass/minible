@@ -1,13 +1,9 @@
 source_code/aux_mcu/Debug/
 source_code/aux_mcu/Release/
-source_code/aux_mcu_v2/Debug/
-source_code/aux_mcu_v2/Release/
-source_code/aux_mcu_v3/Debug/
-source_code/aux_mcu_v3/Release/
-source_code/aux_mcu_v4/Debug/
-source_code/aux_mcu_v4/Release/
-source_code/main_mcu/Debug/
-source_code/main_mcu/Release/
+source_code/main_mcu/Debug_V6/
+source_code/main_mcu/Release_V6/
+source_code/main_mcu/Debug_V7/
+source_code/main_mcu/Release_V7/
 scripts/battery_monitor/*.txt
 *Thumbs.db
 *~
