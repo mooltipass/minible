@@ -89,7 +89,6 @@ typedef uint32_t nat_type_t;
 typedef int32_t BOOL;
 
 /* Structures */
-
 typedef struct TOTPcredentials_s
 {
     union
