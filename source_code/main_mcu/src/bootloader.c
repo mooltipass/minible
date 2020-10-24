@@ -97,7 +97,7 @@ static void brick_main_mcu_disp_error_switch_off(BOOL disp_error)
     /* Screen debug */
     if (disp_error != FALSE)
     {
-        sh1122_erase_screen_and_put_top_left_emergency_string(&plat_oled_descriptor, u"Bundle check");
+        sh1122_erase_screen_and_put_top_left_emergency_string(&plat_oled_descriptor, u"Update error!");
         DELAYMS(5000);
     }
     #endif
@@ -111,8 +111,8 @@ static void brick_main_mcu_disp_error_switch_off(BOOL disp_error)
 int main(void)
 {
     custom_fs_address_t current_data_flash_addr;                                    // Current data flash address
-    uint8_t* available_data_buffer;                                                 // Available buffer to receive data
-    uint8_t* received_data_buffer;                                                  // Buffer in which we received data
+    uint16_t* available_data_buffer;                                                // Available buffer to receive data
+    uint16_t* received_data_buffer;                                                 // Buffer in which we received data
     //uint8_t old_version_number[4];                                      // Old firmware version identifier
     //uint8_t new_version_number[4];                                      // New firmware version identifier
 
@@ -262,8 +262,8 @@ int main(void)
 
         /* Arm first DMA transfer */
         custom_fs_continuous_read_from_flash((uint8_t*)bundle_data_b1, current_data_flash_addr, sizeof(bundle_data_b1), TRUE);
-        available_data_buffer = (uint8_t*)bundle_data_b2;
-        received_data_buffer = (uint8_t*)bundle_data_b1;
+        available_data_buffer = bundle_data_b2;
+        received_data_buffer = bundle_data_b1;
 
         /* CBCMAC the complete memory */
         while (current_data_flash_addr < W25Q16_FLASH_SIZE)
@@ -287,7 +287,7 @@ int main(void)
             while(dma_custom_fs_check_and_clear_dma_transfer_flag() == FALSE);
 
             /* Arm next DMA transfer */
-            if (available_data_buffer == (uint8_t*)bundle_data_b1)
+            if (available_data_buffer == bundle_data_b1)
             {
                 custom_fs_get_other_data_from_continuous_read_from_flash((uint8_t*)bundle_data_b1, sizeof(bundle_data_b1), TRUE);
             } 
@@ -312,7 +312,7 @@ int main(void)
             /* Check if we are in the right address space for fw data */
             if ((address_valid_for_fw_data == FALSE) && (address_passed_for_fw_data == FALSE) && ((current_data_flash_addr + nb_bytes_to_read) > fw_file_address))
             {
-                /* Our firmware is longer than a page, we should be good ;) */
+                /* Our firmware is longer than 8k, we should be good ;) */
                 address_valid_for_fw_data = TRUE;
 
                 /* Compute the fw data offset */
@@ -398,15 +398,15 @@ int main(void)
             current_data_flash_addr += nb_bytes_to_read;
 
             /* Set correct buffer pointers, DMA transfers were already triggered */
-            if (available_data_buffer == (uint8_t*)bundle_data_b1)
+            if (available_data_buffer == bundle_data_b1)
             {
-                available_data_buffer = (uint8_t*)bundle_data_b2;
-                received_data_buffer = (uint8_t*)bundle_data_b1;
+                available_data_buffer = bundle_data_b2;
+                received_data_buffer = bundle_data_b1;
             }
             else
             {
-                available_data_buffer = (uint8_t*)bundle_data_b1;
-                received_data_buffer = (uint8_t*)bundle_data_b2;
+                available_data_buffer = bundle_data_b1;
+                received_data_buffer = bundle_data_b2;
             }
         }
 
