@@ -167,20 +167,20 @@ int main(void)
     /* Fuses not programmed, start application who will check them anyway */
     if (fuses_check_program(FALSE) != RETURN_OK)
     {
-        //start_application();
+        start_application();
     }
     
     /* Initialize our settings system: should not returned failed as fuses are programmed for rwee */
     if (custom_fs_settings_init() != CUSTOM_FS_INIT_OK)
     {
-        //platform_io_disable_switch_and_die();
-        //while(1);
+        platform_io_disable_switch_and_die();
+        while(1);
     }
     
     /* If no upgrade flag set, jump to application */
     if (custom_fs_settings_check_fw_upgrade_flag() == FALSE)
     {
-        //start_application();
+        start_application();
     }
     
     /* Store the dataflash descriptor for our custom fs library */
@@ -233,13 +233,11 @@ int main(void)
     platform_io_init_oled_ports();
     
     /* Initialize the OLED only if 3V3 is present */
-    BOOL is_usb_power_present = platform_io_is_usb_3v3_present_raw();
-    if (is_usb_power_present != FALSE)
+    BOOL is_usb_power_present_at_boot = platform_io_is_usb_3v3_present_raw();
+    if (is_usb_power_present_at_boot != FALSE)
     {
         platform_io_power_up_oled(TRUE);
         sh1122_init_display(&plat_oled_descriptor, FALSE);
-        sh1122_erase_screen_and_put_top_left_emergency_string(&plat_oled_descriptor, u"First pass...");
-        while(1);
     }
     #endif
 
@@ -261,6 +259,17 @@ int main(void)
         /* Initialize encryption context, set IV to 0 */
         br_aes_ct_ctrcbc_init(&bootloader_signing_aes_context, signing_aes_key, AES_KEY_LENGTH/8);
         memset((void*)cur_cbc_mac, 0x00, sizeof(cur_cbc_mac));
+        #endif
+        
+        #if defined(PLAT_V7_SETUP)
+        /* Screen debug */
+        if ((is_usb_power_present_at_boot != FALSE) && (platform_io_is_usb_3v3_present_raw() != FALSE))
+        {
+            if (nb_pass == 0)
+                sh1122_erase_screen_and_put_top_left_emergency_string(&plat_oled_descriptor, u"Checking...");
+            else
+                sh1122_erase_screen_and_put_top_left_emergency_string(&plat_oled_descriptor, u"Flashing...");
+        }
         #endif
 
         /* Set current dataflash address at the beginning of the signed data */
@@ -417,6 +426,16 @@ int main(void)
         while(dma_custom_fs_check_and_clear_dma_transfer_flag() == FALSE);
         custom_fs_stop_continuous_read_from_flash();
     }
+    
+    #if defined(PLAT_V7_SETUP)    
+    /* Switch off OLED */
+    if (is_usb_power_present_at_boot != FALSE)
+    {
+        sh1122_oled_off(&plat_oled_descriptor);
+        platform_io_power_down_oled();
+        
+    }
+    #endif
     
     /* Final wait, clear flag, reset */
     while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
