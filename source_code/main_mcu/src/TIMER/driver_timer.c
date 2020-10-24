@@ -471,6 +471,10 @@ uint32_t timer_get_timer_val(timer_id_te uid)
 */
 void timer_delay_ms(uint32_t ms)
 {
+    #ifndef BOOTLOADER
     timer_start_timer(TIMER_WAIT_FUNCTS, ms+1);
     while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED);
+    #else
+    DELAYMS(ms);
+    #endif
 }

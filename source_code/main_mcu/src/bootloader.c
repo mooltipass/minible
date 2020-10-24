@@ -167,20 +167,20 @@ int main(void)
     /* Fuses not programmed, start application who will check them anyway */
     if (fuses_check_program(FALSE) != RETURN_OK)
     {
-        start_application();
+        //start_application();
     }
     
     /* Initialize our settings system: should not returned failed as fuses are programmed for rwee */
     if (custom_fs_settings_init() != CUSTOM_FS_INIT_OK)
     {
-        platform_io_disable_switch_and_die();
-        while(1);
+        //platform_io_disable_switch_and_die();
+        //while(1);
     }
     
     /* If no upgrade flag set, jump to application */
     if (custom_fs_settings_check_fw_upgrade_flag() == FALSE)
     {
-        start_application();
+        //start_application();
     }
     
     /* Store the dataflash descriptor for our custom fs library */
@@ -226,6 +226,22 @@ int main(void)
 
     /* Setup DMA controller for data flash transfers */
     dma_init();
+    
+    #if defined(PLAT_V7_SETUP)
+    /* Initialize OLED ports & power ports, used for OLED PSU */
+    platform_io_init_power_ports();
+    platform_io_init_oled_ports();
+    
+    /* Initialize the OLED only if 3V3 is present */
+    BOOL is_usb_power_present = platform_io_is_usb_3v3_present_raw();
+    if (is_usb_power_present != FALSE)
+    {
+        platform_io_power_up_oled(TRUE);
+        sh1122_init_display(&plat_oled_descriptor, FALSE);
+        sh1122_erase_screen_and_put_top_left_emergency_string(&plat_oled_descriptor, u"First pass...");
+        while(1);
+    }
+    #endif
 
     /* Fetch encryption & signing keys & IVs: TODO */
     #if defined(PLAT_V7_SETUP)

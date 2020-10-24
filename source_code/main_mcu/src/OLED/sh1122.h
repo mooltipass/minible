@@ -135,6 +135,7 @@ uint16_t sh1122_get_number_of_printable_characters_for_string(sh1122_descriptor_
 uint16_t sh1122_put_centered_string(sh1122_descriptor_t* oled_descriptor, uint8_t y, const cust_char_t* string, BOOL write_to_buffer);
 void sh1122_put_centered_char(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, cust_char_t c, BOOL write_to_buffer);
 uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, cust_char_t ch, BOOL write_to_buffer);
+void sh1122_erase_screen_and_put_top_left_emergency_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string);
 void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream);
 void sh1122_init_display(sh1122_descriptor_t* oled_descriptor, BOOL leave_internal_logic_and_reflush_frame_buffer);
 int16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str, BOOL write_to_buffer);

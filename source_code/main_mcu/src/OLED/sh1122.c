@@ -31,7 +31,7 @@
 
 #ifdef EMULATOR_BUILD
 #include "../EMU/emu_oled.h"
-#else
+#elif !defined(BOOTLOADER)
 static void emu_oled_flush(void) {}
 #endif
 
@@ -2252,6 +2252,36 @@ int16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, in
     
     /* Return the number of characters printed */
     return return_val;
+}
+
+/*! \fn     sh1122_erase_screen_and_put_top_left_emergency_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string)
+*   \brief  Display an emergency string on the screen
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  string              Null terminated string
+*/
+void sh1122_erase_screen_and_put_top_left_emergency_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string)
+{
+    int16_t string_width = 0;
+    oled_descriptor->cur_text_x = 0;
+    oled_descriptor->cur_text_y = 0;
+    
+    /* Set emergency font, clear string */
+    sh1122_set_emergency_font(oled_descriptor);
+    sh1122_clear_current_screen(oled_descriptor);
+    
+    /* Use put char for smaller memory footprint */
+    while (*string)
+    {
+        int16_t pixel_width = sh1122_put_char(oled_descriptor, *string++, FALSE);
+        if(pixel_width < 0)
+        {
+            return;
+        }
+        else
+        {
+            string_width += pixel_width;
+        }
+    }
 }
 
 #ifdef OLED_PRINTF_ENABLED

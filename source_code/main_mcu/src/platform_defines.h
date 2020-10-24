@@ -336,9 +336,13 @@ typedef struct
 /* Use DMA transfers to read from external flash */
 #define FLASH_DMA_FETCHES
 /* Use DMA transfers to send data to OLED screen */
-#define OLED_DMA_TRANSFER
-/* Use a frame buffer on the platform */
-#define OLED_INTERNAL_FRAME_BUFFER
+#ifndef BOOTLOADER
+    #define OLED_DMA_TRANSFER
+#endif
+/* Use a frame buffer on the platform for non bootloader solutions */
+#ifndef BOOTLOADER
+    #define OLED_INTERNAL_FRAME_BUFFER
+#endif
 /* allow printf for the screen */
 //#define OLED_PRINTF_ENABLED
 /* Allow debug USB commands */
