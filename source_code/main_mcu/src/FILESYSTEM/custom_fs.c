@@ -221,13 +221,17 @@ RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void)
 #endif
 }
 
-/*! \fn     custom_fs_stop_continuous_read_from_flash(void)
+/*! \fn     custom_fs_stop_continuous_read_from_flash(BOOL was_using_emergency_bundle_data)
 *   \brief  Stop a continuous flash read
+*   \param  was_using_emergency_bundle_data Boolean to inform if we were using emergency bundle data
 */
-void custom_fs_stop_continuous_read_from_flash(void)
+void custom_fs_stop_continuous_read_from_flash(BOOL was_using_emergency_bundle_data)
 {
-    dataflash_stop_ongoing_transfer(custom_fs_dataflash_desc);
-    custom_fs_data_bus_opened = FALSE;
+    if (was_using_emergency_bundle_data == FALSE)
+    {
+        dataflash_stop_ongoing_transfer(custom_fs_dataflash_desc);
+        custom_fs_data_bus_opened = FALSE;
+    }         
 }
 
 /*! \fn     custom_fs_settings_init(spi_flash_descriptor_t* desc)

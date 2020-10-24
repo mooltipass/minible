@@ -151,6 +151,7 @@ void sh1122_set_discharge_vsl_level(sh1122_descriptor_t* oled_descriptor, uint8_
 void sh1122_set_screen_invert(sh1122_descriptor_t* oled_descriptor, BOOL screen_inverted);
 void sh1122_move_display_start_line(sh1122_descriptor_t* oled_descriptor, int16_t offset);
 RET_TYPE sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor, uint16_t font_id);
+void sh1122_add_emergency_dot_to_current_position(sh1122_descriptor_t* oled_descriptor);
 void sh1122_write_single_command(sh1122_descriptor_t* oled_descriptor, uint8_t reg);
 void sh1122_set_column_address(sh1122_descriptor_t* oled_descriptor, uint8_t start);
 void sh1122_write_single_word(sh1122_descriptor_t* oled_descriptor, uint16_t data);

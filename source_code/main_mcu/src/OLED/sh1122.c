@@ -2284,6 +2284,17 @@ void sh1122_erase_screen_and_put_top_left_emergency_string(sh1122_descriptor_t* 
     }
 }
 
+/*! \fn     sh1122_add_emergency_dot_to_current_position(sh1122_descriptor_t* oled_descriptor)
+*   \brief  Add "." to the current position on screen, used for bootloader progress
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*/
+void sh1122_add_emergency_dot_to_current_position(sh1122_descriptor_t* oled_descriptor)
+{
+    oled_descriptor->line_feed_allowed = TRUE;
+    sh1122_put_char(oled_descriptor, '.', FALSE);
+    oled_descriptor->line_feed_allowed = FALSE;
+}
+
 #ifdef OLED_PRINTF_ENABLED
 /*! \fn     sh1122_printf_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, uint8_t justify, BOOL write_to_buffer, const char *fmt, ...) 
 *   \brief  Printf string on the display

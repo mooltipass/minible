@@ -296,11 +296,12 @@ void bitstream_bitmap_array_read(bitstream_bitmap_t* bs, uint8_t* data, uint16_t
 void bitstream_bitmap_close(bitstream_bitmap_t* bs)
 {
     #ifdef FLASH_ALONE_ON_SPI_BUS
+        BOOL using_emergency_data = (bs->addr < CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR)?FALSE:TRUE;
         if (bs->_dma_transfer != FALSE)
         {        
             while(dma_custom_fs_check_and_clear_dma_transfer_flag() == FALSE);
         }
-        custom_fs_stop_continuous_read_from_flash();
+        custom_fs_stop_continuous_read_from_flash(using_emergency_data);
     #endif    
 }
 

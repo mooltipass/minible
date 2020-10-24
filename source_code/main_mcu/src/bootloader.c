@@ -288,6 +288,14 @@ int main(void)
         /* CBCMAC the complete memory */
         while (current_data_flash_addr < W25Q16_FLASH_SIZE)
         {
+            #if defined(PLAT_V7_SETUP)
+            /* Screen debug */
+            if ((is_usb_power_present_at_boot != FALSE) && (platform_io_is_usb_3v3_present_raw() != FALSE))
+            {
+                sh1122_add_emergency_dot_to_current_position(&plat_oled_descriptor);
+            }
+            #endif
+            
             /* Compute number of bytes to read */
             uint32_t nb_bytes_to_read = W25Q16_FLASH_SIZE - current_data_flash_addr;
             if (nb_bytes_to_read > sizeof(bundle_data_b1))
@@ -424,7 +432,7 @@ int main(void)
 
         /* End of pass */
         while(dma_custom_fs_check_and_clear_dma_transfer_flag() == FALSE);
-        custom_fs_stop_continuous_read_from_flash();
+        custom_fs_stop_continuous_read_from_flash(FALSE);
     }
     
     #if defined(PLAT_V7_SETUP)    
@@ -433,7 +441,6 @@ int main(void)
     {
         sh1122_oled_off(&plat_oled_descriptor);
         platform_io_power_down_oled();
-        
     }
     #endif
     

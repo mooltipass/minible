@@ -44,6 +44,7 @@ void custom_fs_define_nb_ms_since_last_full_charge(uint32_t nb_ms, uint16_t vbat
 ret_type_te custom_fs_get_language_description(uint8_t language_id, cust_char_t* string_pt);
 void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
 void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
+void custom_fs_stop_continuous_read_from_flash(BOOL was_using_emergency_bundle_data);
 ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id, BOOL usb_layout);
 RET_TYPE custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_pt);
 uint16_t custom_fs_get_nb_free_cpz_lut_entries(uint8_t* first_available_user_id);
@@ -70,7 +71,6 @@ void custom_fs_detele_user_cpz_lut_entry(uint8_t user_id);
 uint32_t custom_fs_get_nb_ms_since_last_full_charge(void);
 custom_fs_init_ret_type_te custom_fs_settings_init(void);
 uint8_t custom_fs_get_current_layout_id(BOOL usb_layout);
-void custom_fs_stop_continuous_read_from_flash(void);
 BOOL custom_fs_settings_check_fw_upgrade_flag(void);
 void custom_fs_settings_clear_fw_upgrade_flag(void);
 uint32_t custom_fs_get_number_of_keyb_layouts(void);
