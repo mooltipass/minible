@@ -254,7 +254,7 @@ typedef struct
 #define NVM_MEMORY ((volatile uint16_t *)FLASH_ADDR)
 /* Our firmware start address */
 #if defined(PLAT_V7_SETUP)
-    #define APP_START_ADDR (0x4000)
+    #define APP_START_ADDR (0x8000)
 #else
     #define APP_START_ADDR (0x2000)
 #endif

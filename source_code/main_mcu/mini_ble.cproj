@@ -1132,7 +1132,7 @@
     <ListValues>
       <Value>.start_app_function_addr=0x200</Value>
       <Value>.flash_start_addr=0x0</Value>
-      <Value>.text=0x4000</Value>
+      <Value>.text=0x8000</Value>
     </ListValues>
   </armgcc.linker.memorysettings.Flash>
   <armgcc.linker.memorysettings.ExternalRAM />
@@ -1329,7 +1329,7 @@
     <ListValues>
       <Value>.start_app_function_addr=0x200</Value>
       <Value>.flash_start_addr=0x0</Value>
-      <Value>.text=0x4000</Value>
+      <Value>.text=0x8000</Value>
     </ListValues>
   </armgcc.linker.memorysettings.Flash>
   <armgcc.linker.memorysettings.ExternalRAM />

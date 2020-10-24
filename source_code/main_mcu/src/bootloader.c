@@ -36,24 +36,14 @@
 #include "fuses.h"
 #include "main.h"
 #include "dma.h"
-/* Defines for flashing */
-volatile uint32_t current_address = APP_START_ADDR;
 /* Our oled & dataflash & dbflash descriptors */
 sh1122_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigger_id = OLED_DMA_SERCOM_TX_TRIG, .sh1122_cs_pin_group = OLED_nCS_GROUP, .sh1122_cs_pin_mask = OLED_nCS_MASK, .sh1122_cd_pin_group = OLED_CD_GROUP, .sh1122_cd_pin_mask = OLED_CD_MASK};
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
-#ifdef DEVELOPER_FEATURES_ENABLED
-BOOL special_dev_card_inserted = FALSE;
-#endif
-/* Our struct needed for flashing */
-typedef struct
-{
-    union
-    {
-        uint8_t uint8_row[NVMCTRL_ROW_SIZE];
-        uint16_t uint16_row[NVMCTRL_ROW_SIZE/2];
-    };
-} uint8_uint16_aligned_mcu_row;
+/* Big buffers */
+#define BUNDLE_RX_TEMP_BUFFER_SIZE  8192                                        // Size of receive buffer
+uint16_t bundle_data_b1[BUNDLE_RX_TEMP_BUFFER_SIZE/2];                          // First buffer for bundle data
+uint16_t bundle_data_b2[BUNDLE_RX_TEMP_BUFFER_SIZE/2];                          // Second buffer for bundle data
 
 
 /**
@@ -96,28 +86,23 @@ static void brick_main_mcu(void)
     }
 }
 
-/*! \fn     store_row_buffer_into_main_memory(uint32_t store_address, uint16_t* row_buffer)
-*   \brief  Store a row buffer into main mcu memory
-*   \param  store_address   Where to store in the main MCU memory
-*   \param  row_buffer      A full row buffer
+/*! \fn     brick_main_mcu_disp_error_switch_off(BOOL disp_error)
+*   \brief  Brick the main mcu, display an error message and switch off
+*   \param  disp_error  If we should display an error message
 */
-static void store_row_buffer_into_main_memory(uint32_t store_address, uint16_t* row_buffer)
+static void brick_main_mcu_disp_error_switch_off(BOOL disp_error)
 {
-    /* Erase complete row, composed of 4 pages */
-    while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
-    NVMCTRL->ADDR.reg  = store_address/2;
-    NVMCTRL->CTRLA.reg = NVMCTRL_CTRLA_CMD_ER | NVMCTRL_CTRLA_CMDEX_KEY;
-    
-    /* Flash bytes */
-    for (uint32_t j = 0; j < 4; j++)
+    brick_main_mcu();
+    #if defined(PLAT_V7_SETUP)
+    /* Screen debug */
+    if (disp_error != FALSE)
     {
-        /* Flash 4 consecutive pages */
-        while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
-        for(uint32_t i = 0; i < NVMCTRL_ROW_SIZE/4; i+=2)
-        {
-            NVM_MEMORY[(store_address+j*(NVMCTRL_ROW_SIZE/4)+i)/2] = row_buffer[(j*(NVMCTRL_ROW_SIZE/4)+i)/2];
-        }
-    }    
+        sh1122_erase_screen_and_put_top_left_emergency_string(&plat_oled_descriptor, u"Bundle check");
+        DELAYMS(5000);
+    }
+    #endif
+    platform_io_disable_switch_and_die();
+    while(1);    
 }
 
 /*! \fn     main(void)
@@ -125,37 +110,29 @@ static void store_row_buffer_into_main_memory(uint32_t store_address, uint16_t* 
 */
 int main(void)
 {
-    custom_fs_address_t current_data_flash_addr;                        // Current data flash address
-    uint8_uint16_aligned_mcu_row row_to_be_flashed;                     // MCU Row of data to be flashed
-    uint8_uint16_aligned_mcu_row bundle_data_b1;                        // First buffer for bundle data
-    uint8_uint16_aligned_mcu_row bundle_data_b2;                        // Second buffer for bundle data
-    uint8_t* available_data_buffer;                                     // Available buffer to receive data
-    uint8_t* received_data_buffer;                                      // Buffer in which we received data
-    uint16_t nb_fw_bytes_in_row_buffer = 0;                             // Number of fw bytes available in row buffer
+    custom_fs_address_t current_data_flash_addr;                                    // Current data flash address
+    uint8_t* available_data_buffer;                                                 // Available buffer to receive data
+    uint8_t* received_data_buffer;                                                  // Buffer in which we received data
     //uint8_t old_version_number[4];                                      // Old firmware version identifier
     //uint8_t new_version_number[4];                                      // New firmware version identifier
 
 #if defined(PLAT_V7_SETUP)
     /* Mass production units get signed firmware updates */
-    br_aes_ct_ctrcbc_keys bootloader_encryption_aes_context;            // The AES encryption context
-    br_aes_ct_ctrcbc_keys bootloader_signing_aes_context;               // The AES signing context
-    //uint8_t new_aes_key[AES_KEY_LENGTH/8];                              // New AES signing key
-    uint8_t encryption_aes_key[AES_KEY_LENGTH/8];                       // AES encryption key
-    uint8_t signing_aes_key[AES_KEY_LENGTH/8];                          // AES signing key
-    uint8_t encryption_aes_iv[16];                                      // AES IV for encryption
-    uint8_t cbc_mac_to_end_of_mcu_fpass[16];                            // CBCMAC until the end of fw at first pass
-    uint8_t cur_cbc_mac[16];                                            // Currently computed CBCMAC val
-    //BOOL aes_key_update_bool;                                           // Boolean specifying that we want to update the aes key
+    #define NUMBER_OF_INT_MACS      (FLASH_SIZE/BUNDLE_RX_TEMP_BUFFER_SIZE)         // Number of intermediary MACs for fw update file checks (more than enough as the bootloader is already taking space)
+    br_aes_ct_ctrcbc_keys bootloader_encryption_aes_context;                        // The AES encryption context
+    br_aes_ct_ctrcbc_keys bootloader_signing_aes_context;                           // The AES signing context
+    uint8_t int_mcu_fw_macs[NUMBER_OF_INT_MACS][16];                                // The intermediary MACs
+    uint16_t current_intermerdiary_mac_slot = 0;                                    // Current slot to fill
+    uint8_t encryption_aes_key[AES_KEY_LENGTH/8];                                   // AES encryption key
+    uint8_t signing_aes_key[AES_KEY_LENGTH/8];                                      // AES signing key
+    uint8_t cur_cbc_mac[16];                                                        // Currently computed CBCMAC val
+    //uint8_t new_aes_key[AES_KEY_LENGTH/8];                                          // New AES signing key
+    //BOOL aes_key_update_bool;                                                       // Boolean specifying that we want to update the aes key
     
     /* Sanity checks */
     _Static_assert((W25Q16_FLASH_SIZE-START_OF_SIGNED_DATA_IN_DATA_FLASH) % 16 == 0, "CBCMAC address space isn't a multiple of block size");
-    _Static_assert(sizeof(row_to_be_flashed) == sizeof(bundle_data_b2), "Diff buffer sizes, flashing logic needs to be redone");
-    _Static_assert(sizeof(row_to_be_flashed) == NVMCTRL_ROW_SIZE, "Incorrect row_to_be_flashed size to flash main MCU row");
-    _Static_assert(sizeof(row_to_be_flashed) % 16 == 0, "Bundle buffer size is not a multiple of block size");
     _Static_assert(sizeof(bundle_data_b2) % 16 == 0, "Bundle buffer size is not a multiple of block size");
     _Static_assert(sizeof(bundle_data_b1) % 16 == 0, "Bundle buffer size is not a multiple of block size");
-    _Static_assert(sizeof(encryption_aes_iv) == 16, "Invalid IV buffer size");
-    _Static_assert(sizeof(cbc_mac_to_end_of_mcu_fpass) == 16, "Invalid MAC buffer size");
     _Static_assert(sizeof(cur_cbc_mac) == 16, "Invalid MAC buffer size");
 #endif
     
@@ -241,10 +218,9 @@ int main(void)
     }
     #endif
 
-    /* Fetch encryption & signing keys & IVs: TODO */
     #if defined(PLAT_V7_SETUP)
+    /* Fetch encryption & signing keys & IVs: TODO */
     memset(encryption_aes_key, 0, sizeof(encryption_aes_key));
-    memset(encryption_aes_iv, 0, sizeof(encryption_aes_iv));
     memset(signing_aes_key, 0, sizeof(signing_aes_key));
     #endif
     
@@ -266,9 +242,9 @@ int main(void)
         if ((is_usb_power_present_at_boot != FALSE) && (platform_io_is_usb_3v3_present_raw() != FALSE))
         {
             if (nb_pass == 0)
-                sh1122_erase_screen_and_put_top_left_emergency_string(&plat_oled_descriptor, u"Checking...");
+                sh1122_erase_screen_and_put_top_left_emergency_string(&plat_oled_descriptor, u"Bundle check");
             else
-                sh1122_erase_screen_and_put_top_left_emergency_string(&plat_oled_descriptor, u"Flashing...");
+                sh1122_erase_screen_and_put_top_left_emergency_string(&plat_oled_descriptor, u"Flashing MCU");
         }
         #endif
 
@@ -277,13 +253,17 @@ int main(void)
 
         /* Booleans to know if we are in the right address space to fetch firmware data */
         uint32_t address_in_mcu_memory = APP_START_ADDR;
+        uint32_t nb_bytes_written_in_mcu_memory = 0;
         BOOL address_passed_for_fw_data = FALSE;
         BOOL address_valid_for_fw_data = FALSE;
+        #if defined(PLAT_V7_SETUP)
+        current_intermerdiary_mac_slot = 0;
+        #endif
 
         /* Arm first DMA transfer */
-        custom_fs_continuous_read_from_flash(bundle_data_b1.uint8_row, current_data_flash_addr, sizeof(bundle_data_b1), TRUE);
-        available_data_buffer = bundle_data_b2.uint8_row;
-        received_data_buffer = bundle_data_b1.uint8_row;
+        custom_fs_continuous_read_from_flash((uint8_t*)bundle_data_b1, current_data_flash_addr, sizeof(bundle_data_b1), TRUE);
+        available_data_buffer = (uint8_t*)bundle_data_b2;
+        received_data_buffer = (uint8_t*)bundle_data_b1;
 
         /* CBCMAC the complete memory */
         while (current_data_flash_addr < W25Q16_FLASH_SIZE)
@@ -307,18 +287,23 @@ int main(void)
             while(dma_custom_fs_check_and_clear_dma_transfer_flag() == FALSE);
 
             /* Arm next DMA transfer */
-            if (available_data_buffer == bundle_data_b1.uint8_row)
+            if (available_data_buffer == (uint8_t*)bundle_data_b1)
             {
-                custom_fs_get_other_data_from_continuous_read_from_flash(bundle_data_b1.uint8_row, sizeof(bundle_data_b1), TRUE);
+                custom_fs_get_other_data_from_continuous_read_from_flash((uint8_t*)bundle_data_b1, sizeof(bundle_data_b1), TRUE);
             } 
             else
             {
-                custom_fs_get_other_data_from_continuous_read_from_flash(bundle_data_b2.uint8_row, sizeof(bundle_data_b2), TRUE);
+                custom_fs_get_other_data_from_continuous_read_from_flash((uint8_t*)bundle_data_b2, sizeof(bundle_data_b2), TRUE);
             }
 
-            /* CBCMAC the crap out of it */
             #if defined(PLAT_V7_SETUP)
+            /* CBCMAC the crap out of it */
             br_aes_ct_ctrcbc_mac(&bootloader_signing_aes_context, cur_cbc_mac, received_data_buffer, nb_bytes_to_read);
+            
+            /* Check end of flash cbcmac */
+            if ((current_data_flash_addr + nb_bytes_to_read) == W25Q16_FLASH_SIZE)
+            {
+            }
             #endif
 
             /* Where the fw data is valid inside our read buffer */
@@ -334,99 +319,94 @@ int main(void)
                 valid_fw_data_offset = fw_file_address - current_data_flash_addr;
             }
             
-            /* Do we need to flash stuff? */
+            #if defined(PLAT_V7_SETUP)
+            /* First pass: store intermediary MACs */
+            if ((nb_pass == 0) && (address_valid_for_fw_data != FALSE))
+            {
+                if (current_intermerdiary_mac_slot >= NUMBER_OF_INT_MACS)
+                {
+                    /* Somehow we need more intermediary MACs than we budgeted? */
+                    brick_main_mcu_disp_error_switch_off(((is_usb_power_present_at_boot != FALSE) && (platform_io_is_usb_3v3_present_raw() != FALSE))?TRUE:FALSE);
+                } 
+                else
+                {
+                    /* Store intermediary MAC */
+                    memcpy(int_mcu_fw_macs[current_intermerdiary_mac_slot++], cur_cbc_mac, sizeof(cur_cbc_mac));
+                }
+                
+                /* Check if we just passed the end of fw data */
+                if ((address_valid_for_fw_data != FALSE) && ((current_data_flash_addr + nb_bytes_to_read) > (fw_file_address + fw_file_size)))
+                {
+                    address_passed_for_fw_data = TRUE;
+                    address_valid_for_fw_data = FALSE;
+                }                    
+            }
+            #endif
+            
+            /* Second pass: flash stuff */
             if ((nb_pass == 1) && (address_valid_for_fw_data != FALSE))
             {
-                /* Number of valid fw bytes in the current buffer. Flashing more data than required is fine... we'll pad inside the bundle anyway */
-                uint16_t nb_valid_fw_bytes_to_copy = sizeof(bundle_data_b1) - valid_fw_data_offset;
-                
-                /* Check for overflow, then in that case update the spillover variable and the number of bytes to store */
-                uint16_t nb_bytes_over = 0;
-                if (nb_valid_fw_bytes_to_copy + nb_fw_bytes_in_row_buffer > sizeof(row_to_be_flashed))
+                /* Check the CBCMAC from the previous pass matches the current one's */
+                #if defined(PLAT_V7_SETUP)
+                if (utils_side_channel_safe_memcmp(int_mcu_fw_macs[current_intermerdiary_mac_slot++], cur_cbc_mac, sizeof(cur_cbc_mac)) != 0)
                 {
-                    nb_bytes_over = nb_valid_fw_bytes_to_copy + nb_fw_bytes_in_row_buffer - sizeof(row_to_be_flashed);
-                    nb_valid_fw_bytes_to_copy -= nb_bytes_over;                    
+                    /* Somehow the CBCMAC changed between both passes, which can only be explained by a malicious attempt */
+                    brick_main_mcu_disp_error_switch_off(((is_usb_power_present_at_boot != FALSE) && (platform_io_is_usb_3v3_present_raw() != FALSE))?TRUE:FALSE);
                 }
+                #endif
                 
-                /* Actually copy the bytes... */
-                memcpy(&row_to_be_flashed.uint8_row[nb_fw_bytes_in_row_buffer], &received_data_buffer[valid_fw_data_offset], nb_valid_fw_bytes_to_copy);
-                
-                /* Update the number of fw_bytes now in the buffer */
-                nb_fw_bytes_in_row_buffer += nb_valid_fw_bytes_to_copy;
-                
-                /* Flashing required?, note that sizeof(row_to_be_flashed) == NVMCTRL_ROW_SIZE */
-                if (nb_fw_bytes_in_row_buffer == NVMCTRL_ROW_SIZE)
-                {
-                    /* Flash a full memory row */
-                    store_row_buffer_into_main_memory(address_in_mcu_memory, row_to_be_flashed.uint16_row);
-                    
-                    /* Increment address counter */
-                    address_in_mcu_memory += NVMCTRL_ROW_SIZE;
-                            
-                    /* Row buffer now empty */
-                    nb_fw_bytes_in_row_buffer = 0;
-                }
-                
-                /* Check for spillover */
-                if (nb_bytes_over != 0)
-                {
-                    memcpy(&row_to_be_flashed.uint8_row[nb_fw_bytes_in_row_buffer], &received_data_buffer[valid_fw_data_offset + nb_valid_fw_bytes_to_copy], nb_bytes_over);
-                    nb_fw_bytes_in_row_buffer += nb_bytes_over;
-                }
-            }
-            
-            /* Check if we just passed the end of fw data */
-            if ((address_valid_for_fw_data != FALSE) && ((current_data_flash_addr + nb_bytes_to_read) > (fw_file_address + fw_file_size)))
-            {
-                address_passed_for_fw_data = TRUE;
-                address_valid_for_fw_data = FALSE;
-                
-                /* First pass: store cbcmac at end of fw file (kind of), second pass: flash & check cbcmac */
-                if (nb_pass == 0)
-                {
-                    #if defined(PLAT_V7_SETUP)
-                    memcpy(cbc_mac_to_end_of_mcu_fpass, cur_cbc_mac, sizeof(cbc_mac_to_end_of_mcu_fpass));
-                    #endif
-                }
-                
-                /* Second pass: check the previously stored CBCMAC to make sure data wasn't altered in between (which is why we used CBC) */
-                if (nb_pass == 1)
-                {
-                    /* Flash the remaining data if needed */
-                    if (nb_fw_bytes_in_row_buffer != 0)
-                    {
-                        store_row_buffer_into_main_memory(address_in_mcu_memory, row_to_be_flashed.uint16_row);
-                    }
-                    
-                    #if defined(PLAT_V7_SETUP)
-                    if (utils_side_channel_safe_memcmp(cbc_mac_to_end_of_mcu_fpass, cur_cbc_mac, sizeof(cbc_mac_to_end_of_mcu_fpass)) != 0)
-                    {
-                        /* Somehow the CBCMAC changed between both passes, which can only be explained by a malicious attempt */
-                        brick_main_mcu();
-                        platform_io_disable_switch_and_die();
-                        while(1);
-                    }
-                    #endif
+                 /* Keep in mind we are 16 bytes aligned here */
+                 for (uint32_t i = valid_fw_data_offset/2; i < nb_bytes_to_read/2; i++)
+                 {
+                     /* Erase row? */
+                     if (address_in_mcu_memory % NVMCTRL_ROW_SIZE == 0)
+                     {
+                         /* Erase complete row, composed of 4 pages */
+                         while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+                         NVMCTRL->ADDR.reg  = address_in_mcu_memory/2;
+                         NVMCTRL->CTRLA.reg = NVMCTRL_CTRLA_CMD_ER | NVMCTRL_CTRLA_CMDEX_KEY;
+                     }
 
-                    /* Do not perform CBC mac until end of bundle */
-                    nb_pass = 33;
-                    break;                    
-                }            
+                     /* Wait for flash? */
+                     if (address_in_mcu_memory % (NVMCTRL_ROW_SIZE/4) == 0)
+                     {
+                         while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+                     }
+
+                     /* Write the data, finally. */
+                     NVM_MEMORY[address_in_mcu_memory/2] = received_data_buffer[i];
+
+                     /* Increment address counter */
+                     nb_bytes_written_in_mcu_memory += 2;
+                     address_in_mcu_memory += 2;
+
+                     /* Check for end of fw file... */
+                     if (nb_bytes_written_in_mcu_memory >= fw_file_size)
+                     {
+                         /* Set booleans */
+                         address_passed_for_fw_data = TRUE;
+                         address_valid_for_fw_data = FALSE;
+
+                         /* Do not perform CBC mac until end of bundle */
+                         current_data_flash_addr = W25Q16_FLASH_SIZE;
+                         break;
+                     }
+                 }
             }
 
             /* Increment scan address */
             current_data_flash_addr += nb_bytes_to_read;
 
             /* Set correct buffer pointers, DMA transfers were already triggered */
-            if (available_data_buffer == bundle_data_b1.uint8_row)
+            if (available_data_buffer == (uint8_t*)bundle_data_b1)
             {
-                available_data_buffer = bundle_data_b2.uint8_row;
-                received_data_buffer = bundle_data_b1.uint8_row;
+                available_data_buffer = (uint8_t*)bundle_data_b2;
+                received_data_buffer = (uint8_t*)bundle_data_b1;
             }
             else
             {
-                available_data_buffer = bundle_data_b1.uint8_row;
-                received_data_buffer = bundle_data_b2.uint8_row;
+                available_data_buffer = (uint8_t*)bundle_data_b1;
+                received_data_buffer = (uint8_t*)bundle_data_b2;
             }
         }
 
