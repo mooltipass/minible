@@ -7,8 +7,8 @@ Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "mini_ble", "mini_ble.cproj"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug_V6|ARM = Debug_V5|ARM
-		Release_V6|ARM = Release_V5|ARM
+		Debug_V5|ARM = Debug_V5|ARM
+		Release_V5|ARM = Release_V5|ARM
 		Debug_V6|ARM = Debug_V6|ARM
 		Release_V6|ARM = Release_V6|ARM
 		Debug_V7|ARM = Debug_V7|ARM
