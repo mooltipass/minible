@@ -40,11 +40,12 @@
 sh1122_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigger_id = OLED_DMA_SERCOM_TX_TRIG, .sh1122_cs_pin_group = OLED_nCS_GROUP, .sh1122_cs_pin_mask = OLED_nCS_MASK, .sh1122_cd_pin_group = OLED_CD_GROUP, .sh1122_cd_pin_mask = OLED_CD_MASK};
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
+/* Pointer to the platform unique data, stored at the last page of our bootloader */
+bl_section_last_row_t* bl_last_row_ptr = (bl_section_last_row_t*)(FLASH_ADDR + APP_START_ADDR - NVMCTRL_ROW_SIZE);
 /* Big buffers */
 #define BUNDLE_RX_TEMP_BUFFER_SIZE  8192                                        // Size of receive buffer
 uint16_t bundle_data_b1[BUNDLE_RX_TEMP_BUFFER_SIZE/2];                          // First buffer for bundle data
 uint16_t bundle_data_b2[BUNDLE_RX_TEMP_BUFFER_SIZE/2];                          // Second buffer for bundle data
-
 
 /**
  * \brief Function to start the application.
@@ -86,6 +87,7 @@ static void brick_main_mcu(void)
     }
 }
 
+#if defined(PLAT_V7_SETUP)
 /*! \fn     brick_main_mcu_disp_error_switch_off(BOOL disp_error)
 *   \brief  Brick the main mcu, display an error message and switch off
 *   \param  disp_error  If we should display an error message
@@ -105,6 +107,51 @@ static void brick_main_mcu_disp_error_switch_off(BOOL disp_error)
     while(1);    
 }
 
+/*! \fn     perform_end_of_flash_operations(custom_file_flash_header_t* buffered_flash_header_ptr)
+*   \brief  Perform the end of flash operations
+*   \param  buffered_flash_header_ptr Pointer to the buffered flash header
+*/
+static void perform_end_of_flash_operations(custom_file_flash_header_t* buffered_flash_header_ptr)
+{
+    uint8_t temp_ctr[AES256_CTR_LENGTH/8];
+    uint8_t encryption_aes_key[AES_KEY_LENGTH/8];
+    br_aes_ct_ctrcbc_keys bootloader_encryption_aes_context;
+    memcpy(encryption_aes_key, bl_last_row_ptr->platform_unique_data.bundle_signing_key, sizeof(encryption_aes_key));
+    
+    /* Copy of our platform unique data in RAM */
+    bl_section_last_row_t bl_section_last_row_to_flash;
+    memcpy(&bl_section_last_row_to_flash, bl_last_row_ptr, sizeof(bl_section_last_row_to_flash));
+    
+    /* Update bundle version */
+    bl_section_last_row_to_flash.platform_unique_data.current_bundle_version = buffered_flash_header_ptr->bundle_version;
+    
+    /* Should we update the signing key? */
+    if (buffered_flash_header_ptr->signing_key_update_bool != FALSE)
+    {
+        memset(temp_ctr, 0, sizeof(temp_ctr));
+        br_aes_ct_ctrcbc_init(&bootloader_encryption_aes_context, encryption_aes_key, AES_KEY_LENGTH/8);
+        br_aes_ct_ctrcbc_ctr(&bootloader_encryption_aes_context, (void*)temp_ctr, (void*)buffered_flash_header_ptr->encrypted_new_signing_key, sizeof(buffered_flash_header_ptr->encrypted_new_signing_key));
+        memcpy(bl_section_last_row_to_flash.platform_unique_data.bundle_signing_key, buffered_flash_header_ptr->encrypted_new_signing_key, sizeof(buffered_flash_header_ptr->encrypted_new_signing_key));
+    }
+    
+    /* Update the platform data */
+    while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+    NVMCTRL->ADDR.reg  = ((uint32_t)bl_last_row_ptr)/2;
+    NVMCTRL->CTRLA.reg = NVMCTRL_CTRLA_CMD_ER | NVMCTRL_CTRLA_CMDEX_KEY;
+    
+    /* Flash bytes */
+    for (uint32_t j = 0; j < 4; j++)
+    {
+        /* Flash 4 consecutive pages */
+        while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+        for(uint32_t i = 0; i < NVMCTRL_ROW_SIZE/4; i+=2)
+        {
+            NVM_MEMORY[(((uint32_t)bl_last_row_ptr)+j*(NVMCTRL_ROW_SIZE/4)+i)/2] = bl_section_last_row_to_flash.row_data[(j*(NVMCTRL_ROW_SIZE/4)+i)/2];
+        }
+    }
+}
+#endif
+
 /*! \fn     main(void)
 *   \brief  Program Main
 */
@@ -119,11 +166,9 @@ int main(void)
 #if defined(PLAT_V7_SETUP)
     /* Mass production units get signed firmware updates */
     #define NUMBER_OF_INT_MACS      (FLASH_SIZE/BUNDLE_RX_TEMP_BUFFER_SIZE)         // Number of intermediary MACs for fw update file checks (more than enough as the bootloader is already taking space)
-    br_aes_ct_ctrcbc_keys bootloader_encryption_aes_context;                        // The AES encryption context
     br_aes_ct_ctrcbc_keys bootloader_signing_aes_context;                           // The AES signing context
     uint8_t int_mcu_fw_macs[NUMBER_OF_INT_MACS][16];                                // The intermediary MACs
     uint16_t current_intermerdiary_mac_slot = 0;                                    // Current slot to fill
-    uint8_t encryption_aes_key[AES_KEY_LENGTH/8];                                   // AES encryption key
     uint8_t signing_aes_key[AES_KEY_LENGTH/8];                                      // AES signing key
     uint8_t cur_cbc_mac[16];                                                        // Currently computed CBCMAC val
     //uint8_t new_aes_key[AES_KEY_LENGTH/8];                                          // New AES signing key
@@ -131,6 +176,7 @@ int main(void)
     
     /* Sanity checks */
     _Static_assert((W25Q16_FLASH_SIZE-START_OF_SIGNED_DATA_IN_DATA_FLASH) % 16 == 0, "CBCMAC address space isn't a multiple of block size");
+    _Static_assert(sizeof(bl_section_last_row_t) == NVMCTRL_ROW_SIZE, "Platform unique data struct doesn't have the correct size");
     _Static_assert(sizeof(bundle_data_b2) % 16 == 0, "Bundle buffer size is not a multiple of block size");
     _Static_assert(sizeof(bundle_data_b1) % 16 == 0, "Bundle buffer size is not a multiple of block size");
     _Static_assert(sizeof(cur_cbc_mac) == 16, "Invalid MAC buffer size");
@@ -173,18 +219,20 @@ int main(void)
     if (dataflash_check_presence(&dataflash_descriptor) == RETURN_NOK)
     {
         custom_fs_settings_clear_fw_upgrade_flag();
-        start_application();
+        NVIC_SystemReset();
     }
     
     /* Custom file system initialization */
     if (custom_fs_init() != RETURN_OK)
     {
         custom_fs_settings_clear_fw_upgrade_flag();
-        start_application();        
+        NVIC_SystemReset();     
     }
     
     /* Get a pointer to the buffer bundle header */
+    #if defined(PLAT_V7_SETUP)
     custom_file_flash_header_t* buffered_flash_header = custom_fs_get_buffered_flash_header_pt();
+    #endif
     
     /* Look for update file address */
     custom_fs_address_t fw_file_address;
@@ -193,7 +241,7 @@ int main(void)
     {
         /* If we couldn't find the update file */
         custom_fs_settings_clear_fw_upgrade_flag();
-        start_application();
+        NVIC_SystemReset();
     }
     
     /* Read file size */
@@ -205,7 +253,7 @@ int main(void)
     {
         /* Wrong CRC32 : invalid bundle, start application which will also detect it */
         custom_fs_settings_clear_fw_upgrade_flag();
-        start_application();
+        NVIC_SystemReset();
     }
 
     /* Setup DMA controller for data flash transfers */
@@ -226,9 +274,8 @@ int main(void)
     #endif
 
     #if defined(PLAT_V7_SETUP)
-    /* Fetch encryption & signing keys & IVs: TODO */
-    memset(encryption_aes_key, 0, sizeof(encryption_aes_key));
-    memset(signing_aes_key, 0, sizeof(signing_aes_key));
+    /* Fetch bundle signing key */
+    memcpy(signing_aes_key, bl_last_row_ptr->platform_unique_data.bundle_signing_key, sizeof(signing_aes_key));
     #endif
     
     /* Automatic flash write, disable caching */
@@ -307,9 +354,10 @@ int main(void)
             /* CBCMAC the crap out of it */
             br_aes_ct_ctrcbc_mac(&bootloader_signing_aes_context, cur_cbc_mac, received_data_buffer, nb_bytes_to_read);
             
-            /* Check end of flash cbcmac */
+            /* End of flash cbcmac */
             if ((nb_pass == 0) && ((current_data_flash_addr + nb_bytes_to_read) == W25Q16_FLASH_SIZE))
             {
+                /* Check for correct CBCMAC */
                 if (utils_side_channel_safe_memcmp(buffered_flash_header->signed_hash, cur_cbc_mac, sizeof(cur_cbc_mac)) != 0)
                 {
                     if ((is_usb_power_present_at_boot != FALSE) && (platform_io_is_usb_3v3_present_raw() != FALSE))
@@ -318,7 +366,14 @@ int main(void)
                     }
                     dataflash_bulk_erase_with_wait(&dataflash_descriptor);
                     custom_fs_settings_clear_fw_upgrade_flag();
-                    start_application();
+                    NVIC_SystemReset();
+                }
+                
+                /* Check for bundle version superior to the one we have */
+                if ((bl_last_row_ptr->platform_unique_data.current_bundle_version != 0xFFFF) && (buffered_flash_header->bundle_version < bl_last_row_ptr->platform_unique_data.current_bundle_version))
+                {
+                    custom_fs_settings_clear_fw_upgrade_flag();
+                    NVIC_SystemReset();
                 }
             }
             #endif
@@ -403,6 +458,11 @@ int main(void)
                          /* Set booleans */
                          address_passed_for_fw_data = TRUE;
                          address_valid_for_fw_data = FALSE;
+                         
+                         /* Perform final operations (aes key update, bundle version store...) */
+                         #if defined(PLAT_V7_SETUP)
+                         perform_end_of_flash_operations(buffered_flash_header);
+                         #endif
 
                          /* Do not perform CBC mac until end of bundle */
                          current_data_flash_addr = W25Q16_FLASH_SIZE;

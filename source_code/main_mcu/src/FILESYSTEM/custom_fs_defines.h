@@ -23,6 +23,7 @@
 #define CUSTOM_FS_DEFINES_H_
 
 /* Includes */
+#include <asf.h>
 #include "defines.h"
 
 /* Defines */
@@ -98,6 +99,9 @@ typedef enum {CUSTOM_FS_STRING_TYPE = 0, CUSTOM_FS_FONTS_TYPE = 1, CUSTOM_FS_BIT
 // total size: total size of the bundle
 // crc32: crc32 of what is after the signed hash
 // signed hash: guess what it is...
+// signing key update bool: boolean to define if the signing key should be updated
+// encrypted new signing key: this
+// bundle version: the bundle version number
 // string file count: number of string files
 // string file offset: starting address at which to find the address of each string file
 // same for fonts, bitmaps, binary imgs...
@@ -111,7 +115,10 @@ typedef struct
     uint32_t crc32;
     uint8_t reserved[4];
     uint8_t signed_hash[16];
-    uint8_t tbd[44];
+    uint16_t signing_key_update_bool;
+    uint8_t encrypted_new_signing_key[AES_KEY_LENGTH/8];
+    uint16_t bundle_version;
+    uint8_t available_for_future_use[8];
     custom_fs_file_count_t update_file_count;
     custom_fs_address_t update_file_offset;
     custom_fs_file_count_t string_file_count;
@@ -126,6 +133,28 @@ typedef struct
     custom_fs_address_t language_map_offset;
     uint32_t language_bitmap_starting_id;
 } custom_file_flash_header_t;
+
+// A struct contained in the last row of the bootloader section
+typedef struct
+{
+    uint8_t bundle_signing_key[AES_KEY_LENGTH/8];
+    uint8_t available_signing_key[AES_KEY_LENGTH/8];
+    uint8_t available_signing_key2[AES_KEY_LENGTH/8];
+    uint8_t available_signing_key3[AES_KEY_LENGTH/8];
+    uint32_t platform_serial_number;
+    uint8_t platform_ble_mac_addr[6];
+    uint16_t current_bundle_version;
+    uint8_t available_data[116];
+} platform_unique_data_t;
+
+typedef struct
+{
+    union
+    {
+        uint16_t row_data[NVMCTRL_ROW_SIZE/2];
+        platform_unique_data_t platform_unique_data;
+    };
+} bl_section_last_row_t;
 
 // Platform settings: do not store anything critical here in case of glitching
 typedef struct  

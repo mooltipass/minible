@@ -30,7 +30,7 @@
 #include "defines.h"
 
 /* Defines */
-#define START_OF_SIGNED_DATA_IN_DATA_FLASH    (CUSTOM_FS_FILES_ADDR_OFFSET + offsetof(custom_file_flash_header_t, tbd))
+#define START_OF_SIGNED_DATA_IN_DATA_FLASH    (CUSTOM_FS_FILES_ADDR_OFFSET + offsetof(custom_file_flash_header_t, signing_key_update_bool))
 
 /* Prototypes */
 ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer, BOOL usb_layout);
