@@ -160,8 +160,6 @@ int main(void)
     custom_fs_address_t current_data_flash_addr;                                    // Current data flash address
     uint16_t* available_data_buffer;                                                // Available buffer to receive data
     uint16_t* received_data_buffer;                                                 // Buffer in which we received data
-    //uint8_t old_version_number[4];                                      // Old firmware version identifier
-    //uint8_t new_version_number[4];                                      // New firmware version identifier
 
 #if defined(PLAT_V7_SETUP)
     /* Mass production units get signed firmware updates */
@@ -171,8 +169,6 @@ int main(void)
     uint16_t current_intermerdiary_mac_slot = 0;                                    // Current slot to fill
     uint8_t signing_aes_key[AES_KEY_LENGTH/8];                                      // AES signing key
     uint8_t cur_cbc_mac[16];                                                        // Currently computed CBCMAC val
-    //uint8_t new_aes_key[AES_KEY_LENGTH/8];                                          // New AES signing key
-    //BOOL aes_key_update_bool;                                                       // Boolean specifying that we want to update the aes key
     
     /* Sanity checks */
     _Static_assert((W25Q16_FLASH_SIZE-START_OF_SIGNED_DATA_IN_DATA_FLASH) % 16 == 0, "CBCMAC address space isn't a multiple of block size");
