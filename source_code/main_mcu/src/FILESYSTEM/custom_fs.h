@@ -53,6 +53,7 @@ RET_TYPE custom_fs_store_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id);
 void custom_fs_set_device_flag_value(custom_fs_flag_id_te flag_id, BOOL value);
 void custom_fs_set_settings_value(uint8_t settings_id, uint8_t setting_value);
 void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id);
+custom_file_flash_header_t* custom_fs_get_buffered_flash_header_pt(void);
 RET_TYPE custom_fs_get_user_id_for_cpz(uint8_t* cpz, uint8_t* user_id);
 void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc);
 custom_fs_address_t custom_fs_get_start_address_of_signed_data(void);

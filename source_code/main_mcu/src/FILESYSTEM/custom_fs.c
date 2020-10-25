@@ -559,6 +559,15 @@ void custom_fs_set_dataflash_descriptor(spi_flash_descriptor_t* desc)
 
 static void custom_fs_init_custom_storage_slots(void);
 
+/*! \fn     custom_fs_get_buffered_flash_header_pt(void)
+*   \brief  Get a point to the buffered flash header that was previouly read
+*   \return RETURN_(N)OK
+*/
+custom_file_flash_header_t* custom_fs_get_buffered_flash_header_pt(void)
+{
+    return &custom_fs_flash_header;
+}
+
 /*! \fn     custom_fs_init(void)
 *   \brief  Initialize our custom file system... system
 *   \return RETURN_(N)OK

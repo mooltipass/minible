@@ -177,7 +177,14 @@ int main(void)
     }
     
     /* Custom file system initialization */
-    custom_fs_init();
+    if (custom_fs_init() != RETURN_OK)
+    {
+        custom_fs_settings_clear_fw_upgrade_flag();
+        start_application();        
+    }
+    
+    /* Get a pointer to the buffer bundle header */
+    custom_file_flash_header_t* buffered_flash_header = custom_fs_get_buffered_flash_header_pt();
     
     /* Look for update file address */
     custom_fs_address_t fw_file_address;
@@ -191,7 +198,7 @@ int main(void)
     
     /* Read file size */
     custom_fs_read_from_flash((uint8_t*)&fw_file_size, fw_file_address, sizeof(fw_file_size));
-    fw_file_address += sizeof(fw_file_size);
+    fw_file_address += sizeof(fw_file_size);   
     
     /* Check CRC32 */
     if (custom_fs_compute_and_check_external_bundle_crc32() == RETURN_NOK)
@@ -301,8 +308,18 @@ int main(void)
             br_aes_ct_ctrcbc_mac(&bootloader_signing_aes_context, cur_cbc_mac, received_data_buffer, nb_bytes_to_read);
             
             /* Check end of flash cbcmac */
-            if ((current_data_flash_addr + nb_bytes_to_read) == W25Q16_FLASH_SIZE)
+            if ((nb_pass == 0) && ((current_data_flash_addr + nb_bytes_to_read) == W25Q16_FLASH_SIZE))
             {
+                if (utils_side_channel_safe_memcmp(buffered_flash_header->signed_hash, cur_cbc_mac, sizeof(cur_cbc_mac)) != 0)
+                {
+                    if ((is_usb_power_present_at_boot != FALSE) && (platform_io_is_usb_3v3_present_raw() != FALSE))
+                    {
+                        sh1122_erase_screen_and_put_top_left_emergency_string(&plat_oled_descriptor, u"Corrupted Bundle!");
+                    }
+                    dataflash_bulk_erase_with_wait(&dataflash_descriptor);
+                    custom_fs_settings_clear_fw_upgrade_flag();
+                    start_application();
+                }
             }
             #endif
 
