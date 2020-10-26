@@ -56,13 +56,14 @@ Device answer:
 | bytes  | value  |
 |:-------|:-------|
 | 0->1   | 0x0003 |
-| 2->3   | 14     |
+| 2->3   | 16     |
 | 4->5   | Main MCU fw major |
 | 6->7   | Main MCU fw minor |
 | 8->9   | Aux MCU fw major |
 | 10->11 | Aux MCU fw minor |
 | 12->15 | Platform serial number |
 | 16->17 | DB memory size |
+| 18->19 | Bundle version |
 
 
 
