@@ -459,6 +459,9 @@ int main(void)
                          #if defined(PLAT_V7_SETUP)
                          perform_end_of_flash_operations(buffered_flash_header);
                          #endif
+                                                  
+                         /* Set success flag */
+                         custom_fs_set_device_flag_value(SUCCESSFUL_UPDATE_FLAG_ID, TRUE);
 
                          /* Do not perform CBC mac until end of bundle */
                          current_data_flash_addr = W25Q16_FLASH_SIZE;
