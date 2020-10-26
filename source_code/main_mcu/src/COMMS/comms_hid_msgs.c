@@ -239,7 +239,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     {
         /* Send please retry */
         aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, HID_CMD_ID_RETRY, sizeof(uint32_t));
-        temp_tx_message_pt->hid_message.payload_as_uint32[0] = UNIT_SN;
+        temp_tx_message_pt->hid_message.payload_as_uint32[0] = custom_fs_get_platform_serial_number();
         comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
@@ -335,8 +335,9 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             temp_tx_message_pt->hid_message.platform_info.main_mcu_fw_minor = FW_MINOR;
             temp_tx_message_pt->hid_message.platform_info.aux_mcu_fw_major = temp_rx_message->aux_details_message.aux_fw_ver_major;
             temp_tx_message_pt->hid_message.platform_info.aux_mcu_fw_minor = temp_rx_message->aux_details_message.aux_fw_ver_minor;
-            temp_tx_message_pt->hid_message.platform_info.plat_serial_number = UNIT_SN;
+            temp_tx_message_pt->hid_message.platform_info.plat_serial_number = custom_fs_get_platform_serial_number();
             temp_tx_message_pt->hid_message.platform_info.memory_size = DBFLASH_CHIP;
+            temp_tx_message_pt->hid_message.platform_info.bundle_version = custom_fs_get_platform_bundle_version();
             
             /* Send message */
             comms_aux_mcu_send_message(temp_tx_message_pt);

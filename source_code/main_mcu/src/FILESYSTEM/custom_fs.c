@@ -61,6 +61,8 @@ const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = { 0,      
                                                                         FALSE,                                   // SETTINGS_DISABLE_BLE_ON_LOCK  
                                                                         0,                                       // SETTINGS_NB_20MINS_TICKS_FOR_LOCK 
                                                                         FALSE};                                  // SETTINGS_SWITCH_OFF_AFTER_USB_DISC
+/* Pointer to our platform unique settings structure */
+platform_unique_data_t* custom_fs_plat_data_ptr = (platform_unique_data_t*)(FLASH_ADDR + APP_START_ADDR - NVMCTRL_ROW_SIZE);
 /* Current selected language entry */ 
 language_map_entry_t custom_fs_cur_language_entry = {.starting_bitmap = 0, .starting_font = 0, .string_file_index = 0};
 /* Temp values to speed up string files reading */
@@ -87,6 +89,42 @@ uint8_t custom_fs_cur_ble_keyboard_id = 0;
 /* CPZ look up table */
 cpz_lut_entry_t* custom_fs_cpz_lut;
 
+
+/*! \fn     custom_fs_get_platform_serial_number(void)
+*   \brief  Get the platform serial number
+*   \return The serial number
+*/
+uint32_t custom_fs_get_platform_serial_number(void)
+{
+    return custom_fs_plat_data_ptr->platform_serial_number;
+}
+
+/*! \fn     custom_fs_get_platform_ble_mac_addr(uint8_t* buffer)
+*   \brief  Get the platform mac address
+*   \param  buffer  Where to store the 6 bytes mac address
+*   \return If the mac address returned is valid
+*/
+RET_TYPE custom_fs_get_platform_ble_mac_addr(uint8_t* buffer)
+{
+    memcpy(buffer, custom_fs_plat_data_ptr->platform_ble_mac_addr, sizeof(custom_fs_plat_data_ptr->platform_ble_mac_addr));
+    if (memcmp(buffer, "\xFF\xFF\xFF\xFF\xFF\xFF", sizeof(custom_fs_plat_data_ptr->platform_ble_mac_addr)) == 0)
+    {
+        return RETURN_NOK;
+    } 
+    else
+    {
+        return RETURN_OK;
+    }
+}
+
+/*! \fn     custom_fs_get_platform_bundle_version(void)
+*   \brief  Get the platform bundle version
+*   \return The bundle version
+*/
+uint16_t custom_fs_get_platform_bundle_version(void)
+{
+    return custom_fs_plat_data_ptr->current_bundle_version;    
+}
 
 /*! \fn     custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
 *   \brief  Read data from the external flash

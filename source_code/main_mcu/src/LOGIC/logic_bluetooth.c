@@ -86,8 +86,10 @@ bt_state_te logic_bluetooth_get_state(void)
 */
 void logic_bluetooth_get_unit_mac_address(uint8_t* buffer)
 {
-    // TODO2: check for device own settings
-    
-    /* In the meanwhile, get the debug one */
-    custom_fs_get_debug_bt_addr(buffer);
+    /* Try to get platform programmed MAC address */
+    if (custom_fs_get_platform_ble_mac_addr(buffer) != RETURN_OK)
+    {
+        /* In case of fail, take the debug one */
+        custom_fs_get_debug_bt_addr(buffer);
+    }
 }

@@ -1102,7 +1102,7 @@ void debug_debug_screen(void)
         /* Line 5: Unit SN & MAC */
         uint8_t mac[6];
         custom_fs_get_debug_bt_addr(mac);
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, TRUE, "Unit SN: %u, MAC: %02x%02x%02x%02x%02x%02x", UNIT_SN, mac[5], mac[4], mac[3], mac[2], mac[1], mac[0]);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, TRUE, "Unit SN: %u, MAC: %02x%02x%02x%02x%02x%02x", custom_fs_get_platform_serial_number(), mac[5], mac[4], mac[3], mac[2], mac[1], mac[0]);
         
         /* Display stats */
         stat_times[5] = timer_get_systick();

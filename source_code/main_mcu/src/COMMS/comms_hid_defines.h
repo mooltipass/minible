@@ -117,6 +117,7 @@ typedef struct
     uint16_t aux_mcu_fw_minor;
     uint32_t plat_serial_number;
     uint16_t memory_size;
+    uint16_t bundle_version;
 } hid_message_plat_info_t;
 
 typedef struct
