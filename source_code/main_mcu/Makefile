@@ -173,13 +173,22 @@ src/ASF/sam0/utils/syscalls/gcc/syscalls.c \
 src/main.c \
 src/LOGIC/logic_fido2.c
 
+ifeq ($(PLATFORM),)
+	PLATFORM = PLAT_V6_SETUP
+endif
+
+TEXT_SEC_START = 0x2000
+ifeq ($(PLATFORM),PLAT_V7_SETUP)
+	TEXT_SEC_START = 0x4000
+endif
+
 C_FLAGS := -mthumb
 
 ifeq ($(DEBUG), 1)
-    C_FLAGS += -DDEBUG -g3 -O1
+    C_FLAGS += -DDEBUG -D$(PLATFORM) -g3 -O1
     OUTPUT_DIR := Debug
 else
-    C_FLAGS += -DDEBUG_LOG_DISABLED -DNDEBUG -Os
+    C_FLAGS += -DDEBUG_LOG_DISABLED -DNDEBUG -D$(PLATFORM) -Os
     OUTPUT_DIR := Release
 endif
 
@@ -231,7 +240,7 @@ all: $(TARGET)
 $(TARGET): $(OBJS) $(LIB_DEP) $(LINKER_SCRIPT_DEP)
 	@echo Building target: $@
 	@echo Invoking: ARM/GNU Linker
-	$(CC) -o$(TARGET) $(OBJS) $(LIBS) -mthumb -Wl,-Map=$(TARGET_MAP) --specs=nano.specs -Wl,--start-group -larm_cortexM0l_math -lm  -Wl,--end-group $(LIB_DIRS) -Wl,--gc-sections -Wl,-section-start=.start_app_function_addr=0x200 -Wl,-section-start=.flash_start_addr=0x0 -Wl,-section-start=.text=0x2000 -mcpu=cortex-m0plus -Wl,--entry=Reset_Handler -Wl,--cref -T$(LINKER_SCRIPT_DEP) -Xlinker --undefined=jump_to_application_function_addr -Xlinker --undefined=jump_to_application_function
+	$(CC) -o$(TARGET) $(OBJS) $(LIBS) -mthumb -Wl,-Map=$(TARGET_MAP) --specs=nano.specs -Wl,--start-group -larm_cortexM0l_math -lm  -Wl,--end-group $(LIB_DIRS) -Wl,--gc-sections -Wl,-section-start=.start_app_function_addr=0x200 -Wl,-section-start=.flash_start_addr=0x0 -Wl,-section-start=.text=$(TEXT_SEC_START) -mcpu=cortex-m0plus -Wl,--entry=Reset_Handler -Wl,--cref -T$(LINKER_SCRIPT_DEP) -Xlinker --undefined=jump_to_application_function_addr -Xlinker --undefined=jump_to_application_function
 	@echo Finished building target: $@
 	$(OBJCOPY) -O binary $(TARGET) $(TARGET_BIN)
 	$(OBJCOPY) -O ihex -R .eeprom -R .fuse -R .lock -R .signature $(TARGET) $(TARGET_HEX)

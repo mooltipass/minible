@@ -149,11 +149,15 @@ CPP_SRCS = \
 
 MOC_SRCS =
 
+ifeq ($(PLATFORM),)
+	PLATFORM = PLAT_V6_SETUP
+endif
+
 ifeq ($(DEBUG), 1)
-    FLAGS += -DDEBUG -g3 -O0
+    FLAGS += -DDEBUG -D$(PLATFORM) -g3 -O0
     OUTPUT_DIR := Debug-emu
 else
-    FLAGS += -DNDEBUG -Os
+    FLAGS += -DNDEBUG -D$(PLATFORM) -Os
     OUTPUT_DIR := Release-emu
 endif
 
