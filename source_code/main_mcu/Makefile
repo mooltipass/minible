@@ -179,7 +179,7 @@ endif
 
 TEXT_SEC_START = 0x2000
 ifeq ($(PLATFORM),PLAT_V7_SETUP)
-	TEXT_SEC_START = 0x4000
+	TEXT_SEC_START = 0x8000
 endif
 
 C_FLAGS := -mthumb
