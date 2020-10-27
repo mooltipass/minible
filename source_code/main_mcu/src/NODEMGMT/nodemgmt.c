@@ -571,6 +571,10 @@ void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_
     uint16_t nb_languages_known = custom_fs_get_number_of_languages();
     uint16_t nb_keyboards_layout_known = custom_fs_get_number_of_keyb_layouts();
     
+    /* Reset category strings */
+    nodemgmt_user_category_strings_t temp_category_strings;
+    memset(&temp_category_strings, 0xFF, sizeof(temp_category_strings));
+    
     if(uid >= NB_MAX_USERS)
     {
         /* No debug... no reason it should get stuck here as the data format doesn't allow such values */
@@ -590,6 +594,10 @@ void nodemgmt_format_user_profile(uint16_t uid, uint16_t secPreferences, uint16_
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.ble_layout_id), sizeof(bleKeyboardId), (void*)&bleKeyboardId);
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.language_id), sizeof(languageId), (void*)&languageId);
     dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset + (size_t)offsetof(nodemgmt_userprofile_t, main_data.layout_id), sizeof(keyboardId), (void*)&keyboardId);   
+    
+    /* Reset category strings */
+    nodemgmt_get_user_category_names_starting_offset(uid, &temp_page, &temp_offset);
+    dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_offset, sizeof(nodemgmt_user_category_strings_t), &temp_category_strings);
 }
 
 /*! \fn     nodemgmt_delete_all_bluetooth_bonding_information(void)
