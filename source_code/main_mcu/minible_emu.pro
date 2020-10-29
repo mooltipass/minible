@@ -147,6 +147,7 @@ QMAKE_CXXFLAGS += -fdata-sections \
 DEFINES += EMULATOR_BUILD
 DEFINES += DESTDIR=""
 DEFINES += PREFIX="/usr"
+DEFINES += PLAT_V6_SETUP
 
 HEADERS  += src/MainWindow.h \ \
     src/BearSSL/inc/bearssl.h \
