@@ -62,7 +62,9 @@ const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = { 0,      
                                                                         0,                                       // SETTINGS_NB_20MINS_TICKS_FOR_LOCK 
                                                                         FALSE};                                  // SETTINGS_SWITCH_OFF_AFTER_USB_DISC
 /* Pointer to our platform unique settings structure */
+#ifndef EMULATOR_BUILD
 platform_unique_data_t* custom_fs_plat_data_ptr = (platform_unique_data_t*)(FLASH_ADDR + APP_START_ADDR - NVMCTRL_ROW_SIZE);
+#endif
 /* Current selected language entry */ 
 language_map_entry_t custom_fs_cur_language_entry = {.starting_bitmap = 0, .starting_font = 0, .string_file_index = 0};
 /* Temp values to speed up string files reading */
@@ -96,7 +98,11 @@ cpz_lut_entry_t* custom_fs_cpz_lut;
 */
 uint32_t custom_fs_get_platform_serial_number(void)
 {
+#ifndef EMULATOR_BUILD
     return custom_fs_plat_data_ptr->platform_serial_number;
+#else
+    return UINT32_MAX;
+#endif    
 }
 
 /*! \fn     custom_fs_get_platform_ble_mac_addr(uint8_t* buffer)
@@ -106,6 +112,7 @@ uint32_t custom_fs_get_platform_serial_number(void)
 */
 RET_TYPE custom_fs_get_platform_ble_mac_addr(uint8_t* buffer)
 {
+#ifndef EMULATOR_BUILD
     memcpy(buffer, custom_fs_plat_data_ptr->platform_ble_mac_addr, sizeof(custom_fs_plat_data_ptr->platform_ble_mac_addr));
     if (memcmp(buffer, "\xFF\xFF\xFF\xFF\xFF\xFF", sizeof(custom_fs_plat_data_ptr->platform_ble_mac_addr)) == 0)
     {
@@ -115,6 +122,9 @@ RET_TYPE custom_fs_get_platform_ble_mac_addr(uint8_t* buffer)
     {
         return RETURN_OK;
     }
+#else
+    return RETURN_OK;
+#endif
 }
 
 /*! \fn     custom_fs_get_platform_bundle_version(void)
@@ -123,7 +133,11 @@ RET_TYPE custom_fs_get_platform_ble_mac_addr(uint8_t* buffer)
 */
 uint16_t custom_fs_get_platform_bundle_version(void)
 {
-    return custom_fs_plat_data_ptr->current_bundle_version;    
+#ifndef EMULATOR_BUILD
+    return custom_fs_plat_data_ptr->current_bundle_version;
+#else
+    return 0;
+#endif
 }
 
 /*! \fn     custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
