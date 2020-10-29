@@ -8,6 +8,7 @@ source_code/main_mcu/Release/
 source_code/main_mcu/Release_V5/
 source_code/main_mcu/Release_V6/
 source_code/main_mcu/Release_V7/
+source_code/main_mcu/.vs/*
 scripts/battery_monitor/*.txt
 *Thumbs.db
 *~
