@@ -87,23 +87,27 @@
 #define UNUSED6(a,b,c,x,y,z) (void)(a),(void)(b),(void)(c),(void)(x),(void)(y),(void)(z)
 #define UNUSED7(a,b,c,d,x,y,z) (void)(a),(void)(b),(void)(c),(void)(d),(void)(x),(void)(y),(void)(z)
 #define UNUSED8(a,b,c,d,e,x,y,z) (void)(a),(void)(b),(void)(c),(void)(d),(void)(e),(void)(x),(void)(y),(void)(z)
+#define UNUSED9(a,b,c,d,e,x,y,z,f) (void)(a),(void)(b),(void)(c),(void)(d),(void)(e),(void)(x),(void)(y),(void)(z),(void)(f)
+#define UNUSED10(a,b,c,d,e,x,y,z,f,g) (void)(a),(void)(b),(void)(c),(void)(d),(void)(e),(void)(x),(void)(y),(void)(z),(void)(f),(void)(g)
+#define UNUSED16(a,b,c,d,e,x,y,z,f,g,h,i,j,k,l,m) (void)(a),(void)(b),(void)(c),(void)(d),(void)(e),(void)(x),(void)(y),(void)(z),(void)(f),(void)(g),(void)(h),(void)(i),(void)(j),(void)(k),(void)(l),(void)(m)
+#define UNUSED17(a,b,c,d,e,x,y,z,f,g,h,i,j,k,l,m,n) (void)(a),(void)(b),(void)(c),(void)(d),(void)(e),(void)(x),(void)(y),(void)(z),(void)(f),(void)(g),(void)(h),(void)(i),(void)(j),(void)(k),(void)(l),(void)(m),(void)(n)
 
-#define VA_NUM_ARGS_IMPL(_1,_2,_3,_4,_5,_6,_7,_8, N,...) N
-#define VA_NUM_ARGS(...) VA_NUM_ARGS_IMPL(__VA_ARGS__, 8, 7, 6, 5, 4, 3, 2, 1)
+#define VA_NUM_ARGS_IMPL(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_16,_17,N,...) N
+#define VA_NUM_ARGS(...) VA_NUM_ARGS_IMPL(__VA_ARGS__, 17, 16, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
 #define ALL_UNUSED_IMPL_(nargs) UNUSED ## nargs
 #define ALL_UNUSED_IMPL(nargs) ALL_UNUSED_IMPL_(nargs)
 #define ALL_UNUSED(...) ALL_UNUSED_IMPL( VA_NUM_ARGS(__VA_ARGS__))(__VA_ARGS__ )
 
-//#define DEBUG_LOG_DISABLED
+#define DEBUG_LOG_DISABLED
 #if defined DEBUG_LOG_DISABLED
-	#define DBG_LOG_CONT	    ALL_UNUSED
-	#define DBG_LOG		        ALL_UNUSED
-	#define DBG_LOG_ADV	        ALL_UNUSED
-	#define DBG_LOG_DEV			ALL_UNUSED
-	#define DBG_LOG_CONT_DEV	ALL_UNUSED
-	#define DBG_LOG_PTS			ALL_UNUSED
-    #define DBG_LOG_LOGIC_BT_AD ALL_UNUSED
+	#define DBG_LOG_CONT(...)	        //ALL_UNUSED
+	#define DBG_LOG(...)		        //ALL_UNUSED
+	#define DBG_LOG_ADV(...)	        //ALL_UNUSED
+	#define DBG_LOG_DEV(...)			//ALL_UNUSED
+	#define DBG_LOG_CONT_DEV(...)	    //ALL_UNUSED
+	#define DBG_LOG_PTS(...)			//ALL_UNUSED
+    #define DBG_LOG_LOGIC_BT_AD(...)    //ALL_UNUSED
 #else
     #ifndef USB_PRINTF
         #define DBG_LOG_CONT	    platform_io_uart_debug_printf

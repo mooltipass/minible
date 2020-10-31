@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    43
+#define FW_MINOR    44
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -77,6 +77,9 @@
 - v0.42:- NiMH recovery charge
         - improved nimh charging
 - v0.43:- DFLL closed loop mode with USB SoF
+- v0.44:- Bluetooth debug UART disabled
+        - detecting too many callback allocation
+        - more battery sanity checks
 */
 
 /**************** SETUP DEFINES ****************/

@@ -251,6 +251,12 @@ battery_action_te logic_battery_task(void)
         logic_battery_diag_current_cur = (high_voltage - low_voltage);
         logic_battery_diag_current_vbat = low_voltage;
         
+        /* Sanity checks on measured voltages (due to slow interrupt) */
+        if (high_voltage < low_voltage)
+        {
+            high_voltage = low_voltage;
+        }
+        
         /* What's our current state? */
         switch(logic_battery_state)
         {
@@ -476,12 +482,6 @@ battery_action_te logic_battery_task(void)
                     else if (logic_battery_charging_type == NIMH_RECOVERY_45C_CHARGING)
                     {
                         voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_45C;                        
-                    }
-                    
-                    /* Sanity checks on measured voltages (due to slow interrupt) */
-                    if (high_voltage < low_voltage)
-                    {
-                        high_voltage = low_voltage;
                     }
                     
                     /* End of charge detection here */
