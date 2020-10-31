@@ -80,6 +80,7 @@
 - v0.44:- Bluetooth debug UART disabled
         - detecting too many callback allocation
         - more battery sanity checks
+        - migrated to release version
 */
 
 /**************** SETUP DEFINES ****************/

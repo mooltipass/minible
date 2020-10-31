@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    49
+#define FW_MINOR    50
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -143,6 +143,7 @@
         - emergency power down
         - making sure computer lock status was received for no password prompt setting
         - battery status improvement
+- v0.50:- small delay after enabling bluetooth
 */
 
 /**************** SETUP DEFINES ****************/
