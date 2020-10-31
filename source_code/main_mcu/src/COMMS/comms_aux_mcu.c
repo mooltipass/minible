@@ -360,6 +360,10 @@ aux_status_return_te comms_aux_mcu_get_aux_status(void)
     {
         ret_val = RETURN_AUX_STAT_INV_MAIN_MSG;
     }
+    else if (temp_rx_message_pt->aux_mcu_event_message.payload[3] != FALSE)
+    {
+        ret_val = RETURN_AUX_STAT_TOO_MANY_CB;
+    }
     else if (temp_rx_message_pt->aux_mcu_event_message.payload[0] != FALSE)
     {
         /* Second priority: check if BLE is enabled */

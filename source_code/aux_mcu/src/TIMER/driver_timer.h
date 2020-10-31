@@ -15,7 +15,7 @@
 
 /* Defines */
 #define MCU_SYSTICK_MAX_PERIOD      0x00FFFFFFUL
-#define TIMER_NB_CALLBACK_TIMERS    2
+#define TIMER_NB_CALLBACK_TIMERS    3
 
 /** Type of the callback functions. */
 typedef void (*timer_callback_t)(void* timer_id);
@@ -54,6 +54,7 @@ typedef enum {TIMER_EXPIRED = 0, TIMER_RUNNING = 1} timer_flag_te;
 
 /* Prototypes */
 timer_flag_te timer_has_timer_expired(timer_id_te uid, BOOL clear);
+BOOL timer_get_and_clear_too_many_cb_timers_requested_flag(void);
 void timer_start_callback_timer(void* timer_id, uint32_t ms);
 void* timer_create_callback_timer(void(*timer_cb)(void*));
 void timer_start_timer(timer_id_te uid, uint32_t val);

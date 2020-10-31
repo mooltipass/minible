@@ -484,7 +484,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* Status request */
                 comms_main_mcu_message_for_main_replies.message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
                 comms_main_mcu_message_for_main_replies.aux_mcu_event_message.event_id = AUX_MCU_EVEN_HERES_MY_STATUS;
-                comms_main_mcu_message_for_main_replies.payload_length1 = sizeof(comms_main_mcu_message_for_main_replies.aux_mcu_event_message.event_id) + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint8_t);
+                comms_main_mcu_message_for_main_replies.payload_length1 = sizeof(comms_main_mcu_message_for_main_replies.aux_mcu_event_message.event_id) + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint8_t);
                 
                 /* Update BLE status payload */
                 if (logic_is_ble_enabled() != FALSE)
@@ -504,6 +504,9 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* Incorrect message received flag */
                 comms_main_mcu_message_for_main_replies.aux_mcu_event_message.payload[2] = comms_main_mcu_invalid_message_received_from_main;
                 comms_main_mcu_invalid_message_received_from_main = FALSE;
+                
+                /* Too many cb timers requested flag */
+                comms_main_mcu_message_for_main_replies.aux_mcu_event_message.payload[3] = timer_get_and_clear_too_many_cb_timers_requested_flag();
                 
                 /* Send message */
                 comms_main_mcu_send_message((void*)&comms_main_mcu_message_for_main_replies, (uint16_t)sizeof(comms_main_mcu_message_for_main_replies));

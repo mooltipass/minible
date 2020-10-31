@@ -16,6 +16,8 @@ volatile timer_callback_struct_t callback_timers[TIMER_NB_CALLBACK_TIMERS];
 volatile timer_struct_t context_timers[TOTAL_NUMBER_OF_TIMERS];
 /* System tick */
 volatile uint32_t sysTick;
+/* Debug info: too many timers requested */
+volatile BOOL timer_too_many_cb_timers_requested = FALSE;
 
 
 /*! \fn     TCC0_Handler(void)
@@ -36,6 +38,17 @@ void TCC0_Handler(void)
             udc_checks();
         }
     #endif
+}
+
+/*! \brief  timer_get_and_clear_too_many_cb_timers_requested_flag(void)
+*   \param  Get and clear too many cb timers requested flag
+*   \return The flag
+*/
+BOOL timer_get_and_clear_too_many_cb_timers_requested_flag(void)
+{
+    BOOL return_val = timer_too_many_cb_timers_requested;
+    timer_too_many_cb_timers_requested = FALSE;
+    return return_val;
 }
 
 /*! \brief  Callback timer creation to match the damn asf lib
@@ -59,7 +72,8 @@ void* timer_create_callback_timer(void(*timer_cb)(void*))
     }
     
     /* We shouldn't be there */
-    while(1);
+    timer_too_many_cb_timers_requested = TRUE;
+    return (void*)(0x20000000 + 32);
 }
 
 /*! \brief  Callback timer deletion to match the damn asf lib
