@@ -167,6 +167,7 @@ void logic_power_set_power_source(power_source_te power_source)
 void logic_power_skip_queue_logic_for_upcoming_adc_measurements(void)
 {
     logic_power_nb_times_to_skip_adc_measurement_queue = 3;
+    logic_power_discard_measurement_counter = 1;
 }
 
 /*! \fn     logic_power_get_power_source(void)
@@ -472,12 +473,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
     else if ((logic_power_last_seen_voled_stepup_pwr_source == OLED_STEPUP_SOURCE_NONE) && (current_voled_pwr_source != logic_power_last_seen_voled_stepup_pwr_source))
     {
         /* If we have been told to bypass queue logic it means we want a quick measurement */
-        if (logic_power_nb_times_to_skip_adc_measurement_queue != 0)
-        {
-            /* Device quick wake up every 20 minutes for 100ms */
-            logic_power_discard_measurement_counter = 1;
-        } 
-        else
+        if (logic_power_nb_times_to_skip_adc_measurement_queue == 0)
         {
             /* Device power-on or wakeup */
             logic_power_discard_measurement_counter = 5;
