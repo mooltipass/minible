@@ -160,16 +160,11 @@ void main_platform_init(void)
         logic_power_register_vbat_adc_measurement((uint16_t)battery_voltage);
     }
     
-    /* Override previous measurement from the one before switched off (if valid) or if we were switched off due to out of battery */
-    uint16_t vbat_measurement_before_power_off = custom_fs_get_last_vbat_measurement_before_poweroff();
+    /* Override previous measurement if we were switched off due to out of battery */
     if (poweredoff_due_to_battery != FALSE)
     {
         logic_power_inform_of_over_discharge();
         logic_power_register_vbat_adc_measurement(0);
-    }
-    else if (vbat_measurement_before_power_off != UINT16_MAX)
-    {
-        logic_power_register_vbat_adc_measurement(vbat_measurement_before_power_off);
     }
     
     /* Check fuses, program them if incorrectly set */

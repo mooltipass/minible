@@ -1093,51 +1093,28 @@ BOOL custom_fs_get_device_flag_value(custom_fs_flag_id_te flag_id)
     return FALSE;
 }
 
-/*! \fn     custom_fs_define_nb_ms_since_last_full_charge(uint32_t nb_ms, uint16_t vbat_measurement)
-*   \brief  Store the number of ms since last full charge, and the current vbat measurement
-*   \param  nb_ms               Number of ms
-*   \param  vbat_measurement    Current vbat measurement
+/*! \fn     custom_fs_store_power_consumption_log(power_consumption_log_t power_log_pt)
+*   \brief  Store the power consumption log into flash
+*   \param  power_log   Pointer to the power consumption log
 */
-void custom_fs_define_nb_ms_since_last_full_charge(uint32_t nb_ms, uint16_t vbat_measurement)
+void custom_fs_store_power_consumption_log(power_consumption_log_t* power_log_pt)
 {
     volatile custom_platform_settings_t temp_settings;
     custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
-    temp_settings.nb_ms_since_last_full_charge = nb_ms;
-    temp_settings.last_seen_vbat_mes = vbat_measurement;
+    memcpy((void*)&temp_settings.power_log, power_log_pt, sizeof(power_consumption_log_t));
     custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
-    return;    
 }
 
-/*! \fn     custom_fs_get_nb_ms_since_last_full_charge(void)
-*   \brief  Get number of ms since last full charge (first boot: this will be at 0xFFFF and this is actually perfect
-*   \return Number of ms
+/*! \fn     custom_fs_get_power_consumption_log(power_consumption_log_t* power_log_pt)
+*   \brief  Get the power consumption log from internal flash (at FFFF... at first boot)
+*   \param  power_log   Pointer to where to store the power consumption log
 */
-uint32_t custom_fs_get_nb_ms_since_last_full_charge(void)
+void custom_fs_get_power_consumption_log(power_consumption_log_t* power_log_pt)
 {
     if (custom_fs_platform_settings_p != 0)
     {
-        return custom_fs_platform_settings_p->nb_ms_since_last_full_charge;
+        memcpy(power_log_pt, &custom_fs_platform_settings_p->power_log, sizeof(power_consumption_log_t));
     }
-    else
-    {
-        return 0;
-    }
-}
-
-/*! \fn     custom_fs_get_last_vbat_measurement_before_poweroff(void)
-*   \brief  Get the last vbat measurement before off
-*   \return Last vbat measurement or 0xFFFF if issue
-*/
-uint16_t custom_fs_get_last_vbat_measurement_before_poweroff(void)
-{
-    if (custom_fs_platform_settings_p != 0)
-    {
-        return custom_fs_platform_settings_p->last_seen_vbat_mes;
-    }
-    else
-    {
-        return 0xFFFF;
-    }    
 }
 
 /*! \fn     custom_fs_settings_check_fw_upgrade_flag(void)

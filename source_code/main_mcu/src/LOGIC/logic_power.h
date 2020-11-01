@@ -53,7 +53,8 @@ typedef struct
     uint32_t nb_ms_no_screen_aux_main_awake;    // 100mA, 30mA AUX only before MAIN wakeup then 86mA both
     uint32_t nb_ms_no_screen_main_awake;        // 50mA averaged over 163ms wakeup time, with a nice 256mA peak for 3ms
     uint32_t nb_ms_full_pawa;                   // 160mA as a guideline
-    uint16_t aux_mcu_reported_pct;              // Last AUX mcu reported battery pct
+    uint32_t nb_ms_spent_since_last_full_charge;// Number of ms since last full charge
+    uint32_t aux_mcu_reported_pct;              // Last AUX mcu reported battery pct
 } power_consumption_log_t;
 
 /* Prototypes */

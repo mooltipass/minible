@@ -25,6 +25,7 @@
 /* Includes */
 #include <asf.h>
 #include "defines.h"
+#include "logic_power.h"
 
 /* Defines */
 // Value indicating that there are no files within a descriptor
@@ -160,10 +161,11 @@ typedef struct
 typedef struct  
 {
     uint8_t device_settings[NB_DEVICE_SETTINGS];
-    uint32_t nb_ms_since_last_full_charge;
+    uint32_t reserved_uint32;
     uint32_t nb_settings_last_covered;
-    uint16_t last_seen_vbat_mes;
-    uint8_t reserved[172];
+    uint32_t other_reserved_uint32;
+    power_consumption_log_t power_log;
+    uint8_t reserved_array[122];
     uint8_t dbg_bluetooth_addr[6];
     uint32_t start_upgrade_flag;
 } custom_platform_settings_t;
