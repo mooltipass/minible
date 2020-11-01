@@ -28,6 +28,8 @@
 BOOL logic_bluetooth_is_connected = FALSE;
 // Flag to prevent device lock after disconnect
 BOOL logic_bluetooth_prevent_dev_lock_after_disconnect = FALSE;
+// Our guess at the platform the device is connected to
+platform_type_te logic_bluetooth_connected_to_platform;
 
 
 /*! \fn     logic_bluetooth_set_connected_state(BOOL state)
@@ -37,6 +39,18 @@ BOOL logic_bluetooth_prevent_dev_lock_after_disconnect = FALSE;
 void logic_bluetooth_set_connected_state(BOOL state)
 {
     logic_bluetooth_is_connected = state;
+    
+    /* Eventually we want to know which platform we're connected to */
+    logic_bluetooth_connected_to_platform = PLAT_WIN;
+}
+
+/*! \fn     logic_bluetooth_get_connected_to_platform_type(void)
+*   \brief  Get the platform type we're connected to
+*   \return The connected to platform type
+*/
+platform_type_te logic_bluetooth_get_connected_to_platform_type(void)
+{
+    return logic_bluetooth_connected_to_platform;
 }
 
 /*! \fn     logic_bluetooth_set_do_not_lock_device_after_disconnect_flag(BOOL flag)

@@ -40,6 +40,21 @@ typedef enum    {POWER_ACT_NONE, POWER_ACT_POWER_OFF, POWER_ACT_NEW_BAT_LEVEL} p
 typedef enum    {BATTERY_0PCT = 0, BATTERY_25PCT = 1, BATTERY_50PCT = 2, BATTERY_75PCT = 3, BATTERY_100PCT = 4, BATTERY_ERROR = 5} battery_state_te;
 typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7} lb_state_machine_te;
 
+/* Typedefs */
+typedef struct
+{
+    uint32_t nb_20mins_powered_on;              // Lowest level state: 96uA
+    uint32_t nb_20mins_card_inserted;           // Adding 42uA
+    uint32_t nb_20mins_ble_advertising;         // Adding 623uA to first 2
+    uint32_t nb_20mins_ios_connect;             // Adding xuA to first 2
+    uint32_t nb_20mins_macos_connect;           // Adding xuA to first 2
+    uint32_t nb_20mins_android_connect;         // Adding 74uA to first 2
+    uint32_t nb_20mins_windows_connect;         // Adding 2360uA to first 2 (!)
+    uint32_t nb_ms_no_screen_aux_main_awake;    // 100mA, 30mA AUX only before MAIN wakeup then 86mA both
+    uint32_t nb_ms_no_screen_main_awake;        // 50mA averaged over 163ms wakeup time, with a nice 256mA peak for 3ms
+    uint32_t nb_ms_full_pawa;                   // 160mA as a guideline
+} power_consumption_log_t;
+
 /* Prototypes */
 power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_conversion_and_dont_start_another);
 void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_success);
@@ -60,6 +75,7 @@ uint16_t logic_power_get_battery_level(void);
 void logic_power_signal_battery_error(void);
 BOOL logic_power_is_battery_charging(void);
 void logic_power_power_down_actions(void);
+void logic_power_20m_tick(void);
 void logic_power_routine(void);
 void logic_power_ms_tick(void);
 void logic_power_init(void);

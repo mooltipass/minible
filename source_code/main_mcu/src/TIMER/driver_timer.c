@@ -93,6 +93,9 @@ void TCC2_Handler(void)
         /* In case this wakes up device, setup the flag */
         logic_device_set_wakeup_reason(WAKEUP_REASON_20M_TIMER);
         
+        /* Logic power 20min tick */
+        logic_power_20m_tick();
+        
         /* Deal with inactivity logoff timer */
         if (timer_inactivity_20mins_tick_remain != 0)
         {

@@ -20,6 +20,8 @@
 *    Author:   Mathieu Stephan
 */
 #include "logic_accelerometer.h"
+#include "smartcard_lowlevel.h"
+#include "logic_bluetooth.h"
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
 #include "logic_security.h"
@@ -75,18 +77,87 @@ BOOL logic_power_full_charge_voltage_gotten = FALSE;
 uint16_t logic_power_full_charge_voltage_val = 0;
 /* Over discharge boolean */
 BOOL logic_power_over_discharge_flag = FALSE;
+/* Power consumption log */
+power_consumption_log_t logic_power_consumption_log;
 
 
 /*! \fn     logic_power_ms_tick(void)
 *   \brief  Function called every ms by interrupt
+*   \note   This function won't be called when the device is sleeping
 */
 void logic_power_ms_tick(void)
 {
+    /* We're only interested when we're battery powered */
+    if (logic_power_current_power_source == BATTERY_POWERED)
+    {
+        if (platform_io_get_voled_stepup_pwr_source() == OLED_STEPUP_SOURCE_NONE)
+        {
+            /* We're awake with the screen off: check why we're awake */
+            platform_wakeup_reason_te wakeup_reason = logic_device_get_wakeup_reason();
+            
+            if (wakeup_reason == WAKEUP_REASON_AUX_MCU)
+            {
+                logic_power_consumption_log.nb_ms_no_screen_aux_main_awake++;
+            }
+            else if (wakeup_reason == WAKEUP_REASON_20M_TIMER)
+            {
+                logic_power_consumption_log.nb_ms_no_screen_main_awake++;
+            }
+        }
+        else
+        {
+            logic_power_consumption_log.nb_ms_full_pawa++;
+        }
+    }
+    
     /* Increment nb ms since last full charge counter */
     if ((logic_power_nb_ms_spent_since_last_full_charge != UINT32_MAX) && (logic_power_current_power_source == BATTERY_POWERED))
     {
         logic_power_nb_ms_spent_since_last_full_charge++;
     }
+}
+
+/*! \fn     logic_power_20m_tick(void)
+*   \brief  Function called every 20mins by interrupt, even when the device sleeps
+*   \note   As mentioned, this function doesn't lose track of time
+*/
+void logic_power_20m_tick(void)
+{
+    /* This routine is only interested in the low power background power consumption */
+    if (logic_power_current_power_source == BATTERY_POWERED)
+    {
+        /* Lowest power consumption timer (no BLE, no card) */
+        logic_power_consumption_log.nb_20mins_powered_on++;
+        
+        /* Card inserted penalty */
+        if (smartcard_low_level_is_smc_absent() != RETURN_OK)
+        {
+            logic_power_consumption_log.nb_20mins_card_inserted++;
+        }
+        
+        /* Get bluetooth state */
+        bt_state_te current_bt_state = logic_bluetooth_get_state();
+        
+        /* Bluetooth enabled? */
+        if (current_bt_state == BT_STATE_ON)
+        {
+            /* Advertising */
+            logic_power_consumption_log.nb_20mins_ble_advertising++;
+        }
+        else if (current_bt_state == BT_STATE_CONNECTED)
+        {
+            /* Connected: difference power consumptions based on connected to platform */
+            platform_type_te plat_type = logic_bluetooth_get_connected_to_platform_type();
+            switch (plat_type)
+            {
+                case PLAT_IOS: logic_power_consumption_log.nb_20mins_ios_connect++; break;
+                case PLAT_MACOS: logic_power_consumption_log.nb_20mins_macos_connect++; break;
+                case PLAT_WIN: logic_power_consumption_log.nb_20mins_windows_connect++; break;
+                case PLAT_ANDROID: logic_power_consumption_log.nb_20mins_android_connect++; break;
+                default: break;
+            }
+        }
+    }    
 }
 
 /*! \fn     logic_power_set_power_source(power_source_te power_source)
