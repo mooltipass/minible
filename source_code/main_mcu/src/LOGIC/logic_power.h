@@ -53,12 +53,12 @@ typedef struct
     uint32_t nb_ms_no_screen_aux_main_awake;    // 100mA, 30mA AUX only before MAIN wakeup then 86mA both
     uint32_t nb_ms_no_screen_main_awake;        // 50mA averaged over 163ms wakeup time, with a nice 256mA peak for 3ms
     uint32_t nb_ms_full_pawa;                   // 160mA as a guideline
+    uint16_t aux_mcu_reported_pct;              // Last AUX mcu reported battery pct
 } power_consumption_log_t;
 
 /* Prototypes */
 power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_conversion_and_dont_start_another);
 void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_success);
-void logic_power_set_max_charging_voltage_from_aux(uint16_t measured_voltage);
 void logic_power_set_battery_level_update_from_aux(uint8_t battery_level);
 void logic_power_skip_queue_logic_for_upcoming_adc_measurements(void);
 void logic_power_register_vbat_adc_measurement(uint16_t adc_val);
