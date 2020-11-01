@@ -92,21 +92,20 @@ void logic_power_ms_tick(void)
     {
         if (platform_io_get_voled_stepup_pwr_source() == OLED_STEPUP_SOURCE_NONE)
         {
-            /* We're awake with the screen off: check why we're awake */
-            platform_wakeup_reason_te wakeup_reason = logic_device_get_wakeup_reason();
-            
-            if (wakeup_reason == WAKEUP_REASON_AUX_MCU)
-            {
-                logic_power_consumption_log.nb_ms_no_screen_aux_main_awake++;
-            }
-            else if (wakeup_reason == WAKEUP_REASON_20M_TIMER)
-            {
-                logic_power_consumption_log.nb_ms_no_screen_main_awake++;
-            }
+            /* We're awake with the screen off: the AUX woke us up (or we're going to sleep) */
+            logic_power_consumption_log.nb_ms_no_screen_aux_main_awake++;
         }
         else
         {
-            logic_power_consumption_log.nb_ms_full_pawa++;
+            /* Check if comms with aux are disabled, as it means we're in the periodic wakeup */
+            if (comms_aux_mcu_are_comms_disabled() == FALSE)
+            {
+                logic_power_consumption_log.nb_ms_full_pawa++;
+            }
+            else
+            {
+                logic_power_consumption_log.nb_ms_no_screen_main_awake++;
+            }
         }
     }
     
