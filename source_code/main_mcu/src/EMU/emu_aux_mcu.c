@@ -16,7 +16,6 @@ static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *response
 static BOOL process_ble_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *response);
 
 /* copied from aux mcu/src/LOGIC/logic_battery.h */
-typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7} lb_state_machine_te;
 static lb_state_machine_te emu_charger_status;
 
 void emu_send_aux(char *data, int size)

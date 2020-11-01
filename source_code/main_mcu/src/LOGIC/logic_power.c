@@ -63,9 +63,6 @@ BOOL logic_power_error_with_battery = FALSE;
 BOOL logic_power_enumerate_usb_command_just_sent = FALSE;
 /* Number of measurements left to discard */
 uint16_t logic_power_discard_measurement_counter = 0;
-/* Bools set for device boot */
-BOOL logic_power_device_boot_flag_for_initial_battery_level_notif = TRUE;
-BOOL logic_power_device_boot_flag_for_aux_charge_status_override = TRUE;
 /* Number of times we still can skip the queue logic when taking into account an adc measurement */
 uint16_t logic_power_nb_times_to_skip_adc_measurement_queue = 0;
 /* ADC measurement counter */
@@ -189,6 +186,7 @@ void logic_power_init(void)
     cpu_irq_enter_critical();
     custom_fs_get_power_consumption_log((power_consumption_log_t*)&logic_power_consumption_log);
     cpu_irq_leave_critical();
+    logic_power_compute_battery_state();
 }
 
 /*! \fn     logic_power_power_down_actions(void)
@@ -208,8 +206,6 @@ void logic_power_power_down_actions(void)
 uint16_t logic_power_get_and_ack_new_battery_level(void)
 {
     logic_power_current_battery_level = logic_power_battery_level_to_be_acked;
-    logic_power_device_boot_flag_for_initial_battery_level_notif = FALSE;
-    logic_power_aux_mcu_battery_level_update = 0;
     return logic_power_current_battery_level;
 }
 
@@ -236,7 +232,16 @@ uint16_t logic_power_get_battery_level(void)
 */
 void logic_power_set_battery_level_update_from_aux(uint8_t battery_level)
 {
+    /* Set log value to max to force new readings */
+    logic_power_register_vbat_adc_measurement(UINT16_MAX);
+    
+    /* Reset power consumption logs */
+    uint32_t nb_ms_since_full_charge_copy = logic_power_consumption_log.nb_ms_spent_since_last_full_charge;
+    memset((void*)&logic_power_consumption_log, 0x00, sizeof(logic_power_consumption_log));
+    logic_power_consumption_log.nb_ms_spent_since_last_full_charge = nb_ms_since_full_charge_copy;
     logic_power_consumption_log.aux_mcu_reported_pct = battery_level * 10;
+    
+    /* Store level update */
     logic_power_aux_mcu_battery_level_update = battery_level;
 }
 
@@ -255,7 +260,6 @@ void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_su
         cpu_irq_enter_critical();
         logic_power_consumption_log.nb_ms_spent_since_last_full_charge = 0;
         cpu_irq_leave_critical();
-        utils_fill_uint16_array_with_value(logic_power_last_vbat_measurements, ARRAY_SIZE(logic_power_last_vbat_measurements), UINT16_MAX);
     }
 }
 
@@ -282,24 +286,21 @@ void logic_power_signal_battery_error(void)
 */
 battery_state_te logic_power_get_battery_state(void)
 {
-    uint16_t vbat_measurement_from_a_bit_ago = logic_power_last_vbat_measurements[0];
-    
-    /* In case we haven't had the time to properly select a battery level, use raw adc value (this occurs at device boot) */
-    if (logic_power_current_battery_level >= ARRAY_SIZE(logic_power_battery_level_mapping))
+    if (logic_power_error_with_battery == FALSE)
     {
-        if (vbat_measurement_from_a_bit_ago < BATTERY_ADC_20PCT_VOLTAGE)
+        if (logic_power_current_battery_level < 2)
         {
             return BATTERY_0PCT;
         }
-        else if (vbat_measurement_from_a_bit_ago < BATTERY_ADC_40PCT_VOLTAGE)
+        else if (logic_power_current_battery_level < 4)
         {
             return BATTERY_25PCT;
         }
-        else if (vbat_measurement_from_a_bit_ago < BATTERY_ADC_60PCT_VOLTAGE)
+        else if (logic_power_current_battery_level < 6)
         {
             return BATTERY_50PCT;
         }
-        else if (vbat_measurement_from_a_bit_ago < BATTERY_ADC_80PCT_VOLTAGE)
+        else if (logic_power_current_battery_level < 8)
         {
             return BATTERY_75PCT;
         }
@@ -307,36 +308,10 @@ battery_state_te logic_power_get_battery_state(void)
         {
             return BATTERY_100PCT;
         }
-    }
+    } 
     else
     {
-        if (logic_power_error_with_battery == FALSE)
-        {
-            if (logic_power_current_battery_level < 2)
-            {
-                return BATTERY_0PCT;
-            }
-            else if (logic_power_current_battery_level < 4)
-            {
-                return BATTERY_25PCT;
-            }
-            else if (logic_power_current_battery_level < 6)
-            {
-                return BATTERY_50PCT;
-            }
-            else if (logic_power_current_battery_level < 8)
-            {
-                return BATTERY_75PCT;
-            }
-            else
-            {
-                return BATTERY_100PCT;
-            }
-        } 
-        else
-        {
-            return BATTERY_ERROR;
-        }
+        return BATTERY_ERROR;
     }
 }
 
@@ -385,6 +360,35 @@ BOOL logic_power_is_usb_enumerate_sent_clear_bool(void)
     return return_bool;
 }
 
+/*! \fn     logic_power_compute_battery_state(void)
+*   \brief  Compute battery state, if we can
+*/
+void logic_power_compute_battery_state(void)
+{
+    if ((logic_power_last_vbat_measurements[0] > BATTERY_ADC_FOR_BATTERY_STATUS_READ_STRAT_SWITCH) && (logic_power_consumption_log.aux_mcu_reported_pct <= 10))
+    {
+        /* Battery voltage high enough so we can try to use our power consumption log */
+    }
+    else
+    {
+        /* Use battery readings */
+        uint16_t possible_new_battery_level = 0;
+        for (uint16_t i = 0; i < ARRAY_SIZE(logic_power_battery_level_mapping); i++)
+        {
+            if (logic_power_last_vbat_measurements[0] > logic_power_battery_level_mapping[i])
+            {
+                possible_new_battery_level = i;
+            }
+        }
+        
+        /* Only allow decrease in voltage except at device boot */
+        if ((possible_new_battery_level < logic_power_current_battery_level) || (logic_power_current_battery_level > 10))
+        {
+            logic_power_battery_level_to_be_acked = possible_new_battery_level;
+        }
+    }
+}
+
 /*! \fn     logic_power_check_power_switch_and_battery(BOOL wait_for_adc_conversion_and_dont_start_another)
 *   \brief  Power handling routine
 *   \param  wait_for_adc_conversion_and_dont_start_another  Set to TRUE to do what it says
@@ -393,12 +397,6 @@ BOOL logic_power_is_usb_enumerate_sent_clear_bool(void)
 power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_conversion_and_dont_start_another)
 {        
     volatile uint32_t nb_ms_since_full_charge_copy = logic_power_consumption_log.nb_ms_spent_since_last_full_charge;
-    
-    /* Do not do anything if we're transitioning power sources */
-    if (logic_power_get_power_source() == TRANSITIONING_TO_BATTERY_POWER)
-    {
-        return POWER_ACT_NONE;
-    }
     
     /* Get current oled power source */
     oled_stepup_pwr_source_te current_voled_pwr_source = platform_io_get_voled_stepup_pwr_source();
@@ -516,6 +514,8 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
             comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
             comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STARTED);
         }
+        
+        /* Set boolean */
         logic_power_battery_charging = TRUE;
     }
     
@@ -587,21 +587,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
             }
             
             /* Check for new battery level */
-            uint16_t possible_new_battery_level = 0;
-            for (uint16_t i = 0; i < ARRAY_SIZE(logic_power_battery_level_mapping); i++)
-            {
-                if (vbat_measurement_from_a_bit_ago > logic_power_battery_level_mapping[i])
-                {
-                    possible_new_battery_level = i;
-                }
-            }
-            
-            /* Only allow decrease in voltage or increase in case we sent a charge message */
-            if (possible_new_battery_level < logic_power_current_battery_level)
-            {
-                logic_power_battery_level_to_be_acked = possible_new_battery_level;
-                return POWER_ACT_NEW_BAT_LEVEL;
-            }
+            logic_power_compute_battery_state();
         }
         
         /* Counter decrement */
@@ -610,50 +596,24 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
             logic_power_discard_measurement_counter--;
         }
     }
-    
-    /* First device boot, flag is reset in the ack function */
-    if (logic_power_device_boot_flag_for_initial_battery_level_notif != FALSE)
-    {        
-        /* Get device battery level */
-        for (uint16_t i = 0; i < ARRAY_SIZE(logic_power_battery_level_mapping); i++)
-        {
-            if (logic_power_last_vbat_measurements[0] > logic_power_battery_level_mapping[i])
-            {
-                logic_power_battery_level_to_be_acked = i;
-            }
-        }
-        
-        /* Notify */
-        return POWER_ACT_NEW_BAT_LEVEL;
-    }
 
     /* New battery level reported by aux MCU */
     if (logic_power_aux_mcu_battery_level_update != 0)
-    {
-        /* Only allow it if above our current one or if the device just booted */
-        if ((logic_power_aux_mcu_battery_level_update >= logic_power_current_battery_level) || (logic_power_device_boot_flag_for_aux_charge_status_override != FALSE))
-        {
-            /* Clear bool */
-            logic_power_device_boot_flag_for_aux_charge_status_override = FALSE;
-            
-            /* Spoof measured voltage so if the device is unplugged the reported level is still correct */
-            if (logic_power_aux_mcu_battery_level_update < ARRAY_SIZE(logic_power_battery_level_mapping))
-            {
-                utils_fill_uint16_array_with_value(logic_power_last_vbat_measurements, ARRAY_SIZE(logic_power_last_vbat_measurements), logic_power_battery_level_mapping[logic_power_aux_mcu_battery_level_update]);
-            }
-            
-            /* Set new level to be acked */
-            logic_power_battery_level_to_be_acked = logic_power_aux_mcu_battery_level_update;
-            return POWER_ACT_NEW_BAT_LEVEL;
-        } 
-        else
-        {
-            logic_power_aux_mcu_battery_level_update = 0;
-        }
+    {            
+        /* Set new level to be acked */
+        logic_power_battery_level_to_be_acked = logic_power_aux_mcu_battery_level_update;
+        logic_power_aux_mcu_battery_level_update = 0;
     }
     
-    /* Nothing to do */
-    return POWER_ACT_NONE;
+    /* If new level to be acked, return right value */
+    if (logic_power_battery_level_to_be_acked != logic_power_current_battery_level)
+    {
+        return POWER_ACT_NEW_BAT_LEVEL;
+    }
+    else
+    {
+        return POWER_ACT_NONE;
+    }
 }
 
 /*! \fn     logic_power_routine(void)

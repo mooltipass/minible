@@ -35,7 +35,7 @@
 #define LAST_VOLTAGE_CONV_BUFF_SIZE         10
 
 /* Enums */
-typedef enum    {USB_POWERED = 0, BATTERY_POWERED, TRANSITIONING_TO_BATTERY_POWER} power_source_te;
+typedef enum    {USB_POWERED = 0, BATTERY_POWERED,} power_source_te;
 typedef enum    {POWER_ACT_NONE, POWER_ACT_POWER_OFF, POWER_ACT_NEW_BAT_LEVEL} power_action_te;
 typedef enum    {BATTERY_0PCT = 0, BATTERY_25PCT = 1, BATTERY_50PCT = 2, BATTERY_75PCT = 3, BATTERY_100PCT = 4, BATTERY_ERROR = 5} battery_state_te;
 typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7} lb_state_machine_te;
@@ -72,6 +72,7 @@ power_source_te logic_power_get_power_source(void);
 void logic_power_inform_of_over_discharge(void);
 void logic_power_usb_enumerate_just_sent(void);
 RET_TYPE logic_power_battery_recondition(void);
+void logic_power_compute_battery_state(void);
 uint16_t logic_power_get_battery_level(void);
 void logic_power_signal_battery_error(void);
 BOOL logic_power_is_battery_charging(void);
