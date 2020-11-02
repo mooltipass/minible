@@ -366,6 +366,8 @@ BOOL logic_power_is_usb_enumerate_sent_clear_bool(void)
 */
 void logic_power_compute_battery_state(void)
 {
+    uint16_t possible_new_battery_level = 0;
+    
     if ((logic_power_last_vbat_measurements[0] > BATTERY_ADC_FOR_BATTERY_STATUS_READ_STRAT_SWITCH) && (logic_power_consumption_log.aux_mcu_reported_pct <= 10))
     {
         /* Battery voltage high enough so we can try to use our power consumption log */
@@ -373,7 +375,6 @@ void logic_power_compute_battery_state(void)
     else
     {
         /* Use battery readings */
-        uint16_t possible_new_battery_level = 0;
         for (uint16_t i = 0; i < ARRAY_SIZE(logic_power_battery_level_mapping); i++)
         {
             if (logic_power_last_vbat_measurements[0] > logic_power_battery_level_mapping[i])
@@ -387,6 +388,12 @@ void logic_power_compute_battery_state(void)
         {
             logic_power_battery_level_to_be_acked = possible_new_battery_level;
         }
+    }
+    
+    /* In case of invalid power level, force overwrite */
+    if (logic_power_current_battery_level > 10)
+    {
+        logic_power_current_battery_level = possible_new_battery_level;
     }
 }
 
