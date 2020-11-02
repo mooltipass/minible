@@ -43,13 +43,13 @@ typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2
 /* Typedefs */
 typedef struct
 {
-    uint32_t nb_20mins_powered_on;              // Lowest level state: 96uA
-    uint32_t nb_20mins_card_inserted;           // Adding 42uA
-    uint32_t nb_20mins_ble_advertising;         // Adding 623uA to first 2
-    uint32_t nb_20mins_ios_connect;             // Adding xuA to first 2
-    uint32_t nb_20mins_macos_connect;           // Adding xuA to first 2
-    uint32_t nb_20mins_android_connect;         // Adding 74uA to first 2
-    uint32_t nb_20mins_windows_connect;         // Adding 2360uA to first 2 (!)
+    uint32_t nb_30mins_powered_on;              // Lowest level state: 96uA
+    uint32_t nb_30mins_card_inserted;           // Adding 42uA
+    uint32_t nb_30mins_ble_advertising;         // Adding 623uA to first 2
+    uint32_t nb_30mins_ios_connect;             // Adding xuA to first 2
+    uint32_t nb_30mins_macos_connect;           // Adding xuA to first 2
+    uint32_t nb_30mins_android_connect;         // Adding 74uA to first 2
+    uint32_t nb_30mins_windows_connect;         // Adding 2360uA to first 2 (!)
     uint32_t nb_ms_no_screen_aux_main_awake;    // 100mA, 30mA AUX only before MAIN wakeup then 86mA both
     uint32_t nb_ms_no_screen_main_awake;        // 50mA averaged over 163ms wakeup time, with a nice 256mA peak for 3ms
     uint32_t nb_ms_full_pawa;                   // 160mA as a guideline
@@ -77,7 +77,7 @@ uint16_t logic_power_get_battery_level(void);
 void logic_power_signal_battery_error(void);
 BOOL logic_power_is_battery_charging(void);
 void logic_power_power_down_actions(void);
-void logic_power_20m_tick(void);
+void logic_power_30m_tick(void);
 void logic_power_routine(void);
 void logic_power_ms_tick(void);
 void logic_power_init(void);

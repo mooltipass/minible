@@ -424,6 +424,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
     }
     
     // No activity, turn off screen
+    //should_go_to_sleep = FALSE;
     if  (should_go_to_sleep != FALSE)
     {
         /* Display "going to sleep", switch off screen */

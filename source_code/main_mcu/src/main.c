@@ -565,7 +565,7 @@ void main_standby_sleep(void)
         platform_wakeup_reason_te wakeup_reason = logic_device_get_wakeup_reason();
         
         /* Re-enable AUX comms */
-        if (wakeup_reason != WAKEUP_REASON_20M_TIMER)
+        if (wakeup_reason != WAKEUP_REASON_30M_TIMER)
         {
             comms_aux_arm_rx_and_clear_no_comms();
             
@@ -574,7 +574,7 @@ void main_standby_sleep(void)
         }
     
         /* Switch on OLED depending on wakeup reason */
-        if (wakeup_reason == WAKEUP_REASON_20M_TIMER)
+        if (wakeup_reason == WAKEUP_REASON_30M_TIMER)
         {
             /* Timer whose sole purpose is to periodically wakeup device to check battery level */
             platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());

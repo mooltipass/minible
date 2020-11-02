@@ -43,7 +43,7 @@ static int rtc_offset;
 /* Timer array */
 volatile timerEntry_t context_timers[TOTAL_NUMBER_OF_TIMERS];
 /* Inactivity timer remaining ticks */
-volatile uint16_t timer_inactivity_20mins_tick_remain = 0;
+volatile uint16_t timer_inactivity_30mins_tick_remain = 0;
 /* Bool set when MCU systic expired */
 volatile BOOL timer_systick_expired = TRUE;
 /* System tick */
@@ -91,15 +91,15 @@ void TCC2_Handler(void)
         TCC2->INTFLAG.reg = TCC_INTFLAG_OVF;
         
         /* In case this wakes up device, setup the flag */
-        logic_device_set_wakeup_reason(WAKEUP_REASON_20M_TIMER);
+        logic_device_set_wakeup_reason(WAKEUP_REASON_30M_TIMER);
         
-        /* Logic power 20min tick */
-        logic_power_20m_tick();
+        /* Logic power 30min tick */
+        logic_power_30m_tick();
         
         /* Deal with inactivity logoff timer */
-        if (timer_inactivity_20mins_tick_remain != 0)
+        if (timer_inactivity_30mins_tick_remain != 0)
         {
-            if (timer_inactivity_20mins_tick_remain-- == 1)
+            if (timer_inactivity_30mins_tick_remain-- == 1)
             {
                 logic_user_set_user_to_be_logged_off_flag();
             }
@@ -117,7 +117,7 @@ void TCC2_Handler(void)
 void timer_start_logoff_timer(uint16_t nb_20mins_ticks_before_lock)
 {
     cpu_irq_enter_critical();
-    timer_inactivity_20mins_tick_remain = nb_20mins_ticks_before_lock + 1;
+    timer_inactivity_30mins_tick_remain = nb_20mins_ticks_before_lock + 1;
     cpu_irq_leave_critical();
 }
 
@@ -194,10 +194,10 @@ void timer_initialize_timebase(void)
     TCC0->INTENSET.reg = TCC_INTENSET_OVF;                              // Enable overflow interrupt
     NVIC_EnableIRQ(TCC0_IRQn);                                          // Enable int
     
-    /* Setup TCC2 for 20 minutes (!) interrupt */
+    /* Setup TCC2 for 30 minutes (!) interrupt */
     PM->APBCMASK.bit.TCC2_ = 1;                                         // Enable APBC clock for TCC2
     while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_PER);                       // Wait for sync
-    TCC2->PER.reg = TCC_PER_PER((60*20)-1);                             // Set period to be 1024/1024/60/20 = 20mins
+    TCC2->PER.reg = TCC_PER_PER((60*30)-1);                             // Set period to be 1024/1024/60/30 = 30mins
     tcc_ctrl_reg.reg = TCC_CTRLA_ENABLE;                                // Enable tcc0
     tcc_ctrl_reg.bit.RUNSTDBY = 1;                                      // Run during standby
     tcc_ctrl_reg.bit.PRESCALER = TCC_CTRLA_PRESCALER_DIV1024_Val;       // 1024 prescaling to have a 1sec tick

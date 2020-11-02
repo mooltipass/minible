@@ -108,22 +108,22 @@ void logic_power_ms_tick(void)
     }
 }
 
-/*! \fn     logic_power_20m_tick(void)
-*   \brief  Function called every 20mins by interrupt, even when the device sleeps
+/*! \fn     logic_power_30m_tick(void)
+*   \brief  Function called every 30mins by interrupt, even when the device sleeps
 *   \note   As mentioned, this function doesn't lose track of time
 */
-void logic_power_20m_tick(void)
+void logic_power_30m_tick(void)
 {
     /* This routine is only interested in the low power background power consumption */
     if (logic_power_current_power_source == BATTERY_POWERED)
     {
         /* Lowest power consumption timer (no BLE, no card) */
-        logic_power_consumption_log.nb_20mins_powered_on++;
+        logic_power_consumption_log.nb_30mins_powered_on++;
         
         /* Card inserted penalty */
         if (smartcard_low_level_is_smc_absent() != RETURN_OK)
         {
-            logic_power_consumption_log.nb_20mins_card_inserted++;
+            logic_power_consumption_log.nb_30mins_card_inserted++;
         }
         
         /* Get bluetooth state */
@@ -133,7 +133,7 @@ void logic_power_20m_tick(void)
         if (current_bt_state == BT_STATE_ON)
         {
             /* Advertising */
-            logic_power_consumption_log.nb_20mins_ble_advertising++;
+            logic_power_consumption_log.nb_30mins_ble_advertising++;
         }
         else if (current_bt_state == BT_STATE_CONNECTED)
         {
@@ -141,10 +141,10 @@ void logic_power_20m_tick(void)
             platform_type_te plat_type = logic_bluetooth_get_connected_to_platform_type();
             switch (plat_type)
             {
-                case PLAT_IOS: logic_power_consumption_log.nb_20mins_ios_connect++; break;
-                case PLAT_MACOS: logic_power_consumption_log.nb_20mins_macos_connect++; break;
-                case PLAT_WIN: logic_power_consumption_log.nb_20mins_windows_connect++; break;
-                case PLAT_ANDROID: logic_power_consumption_log.nb_20mins_android_connect++; break;
+                case PLAT_IOS: logic_power_consumption_log.nb_30mins_ios_connect++; break;
+                case PLAT_MACOS: logic_power_consumption_log.nb_30mins_macos_connect++; break;
+                case PLAT_WIN: logic_power_consumption_log.nb_30mins_windows_connect++; break;
+                case PLAT_ANDROID: logic_power_consumption_log.nb_30mins_android_connect++; break;
                 default: break;
             }
         }
@@ -367,12 +367,44 @@ BOOL logic_power_is_usb_enumerate_sent_clear_bool(void)
 void logic_power_compute_battery_state(void)
 {
     uint16_t possible_new_battery_level = 0;
+    BOOL adc_measurement_fallback = TRUE;
     
-    if ((logic_power_last_vbat_measurements[0] > BATTERY_ADC_FOR_BATTERY_STATUS_READ_STRAT_SWITCH) && (logic_power_consumption_log.aux_mcu_reported_pct <= 10))
+    if ((logic_power_last_vbat_measurements[0] > BATTERY_ADC_FOR_BATTERY_STATUS_READ_STRAT_SWITCH) && (logic_power_consumption_log.aux_mcu_reported_pct <= 100))
     {
         /* Battery voltage high enough so we can try to use our power consumption log */
+        volatile uint32_t nb_uah_used_total = 0;
+        nb_uah_used_total += (logic_power_consumption_log.nb_30mins_powered_on * 96 / 2);
+        nb_uah_used_total += (logic_power_consumption_log.nb_30mins_card_inserted * 42 / 2);
+        nb_uah_used_total += (logic_power_consumption_log.nb_30mins_ble_advertising * 623 / 2);
+        nb_uah_used_total += (logic_power_consumption_log.nb_30mins_ios_connect * 0 / 2);
+        nb_uah_used_total += (logic_power_consumption_log.nb_30mins_macos_connect * 0 / 2);
+        nb_uah_used_total += (logic_power_consumption_log.nb_30mins_android_connect * 74 / 2);
+        nb_uah_used_total += (logic_power_consumption_log.nb_30mins_windows_connect * 2360 / 2);
+        
+        /* 3600000 is approximated to 4194304 below */
+        nb_uah_used_total += ((logic_power_consumption_log.nb_ms_no_screen_aux_main_awake >> 22) * 100000);
+        nb_uah_used_total += ((logic_power_consumption_log.nb_ms_no_screen_main_awake >> 22) * 50000);
+        nb_uah_used_total += ((logic_power_consumption_log.nb_ms_full_pawa >> 22) * 160000);
+        
+        /* Number of available uAh */
+        uint32_t battery_last_reported_uah = logic_power_consumption_log.aux_mcu_reported_pct * 3000;
+        
+        /* Are we at least getting a positive result? */
+        if (nb_uah_used_total < battery_last_reported_uah)
+        {
+            /* Number of pct left */
+            uint32_t nb_tenth_pct_left = (battery_last_reported_uah - nb_uah_used_total)/3000/10;
+            
+            /* Not too low, below previous result? */
+            if ((nb_tenth_pct_left >= 3) && (nb_tenth_pct_left < logic_power_current_battery_level))
+            {
+                logic_power_battery_level_to_be_acked = nb_tenth_pct_left;
+                adc_measurement_fallback = FALSE;
+            }
+        }
     }
-    else
+    
+    if (adc_measurement_fallback != FALSE)
     {
         /* Use battery readings */
         for (uint16_t i = 0; i < ARRAY_SIZE(logic_power_battery_level_mapping); i++)
