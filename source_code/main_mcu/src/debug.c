@@ -1601,13 +1601,7 @@ void debug_nimh_status(void)
     uint16_t bat_adc_result = 0;
         
     while (TRUE)
-    {
-        /* Battery measurement, actually perturbating the power routine */
-        if (platform_io_is_voledin_conversion_result_ready() != FALSE)
-        {
-            bat_adc_result = platform_io_get_voledin_conversion_result_and_trigger_conversion();
-        }
-        
+    {        
         /* Keep calling the routines */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         logic_power_routine();
@@ -1626,12 +1620,12 @@ void debug_nimh_status(void)
             if (logic_power_get_power_source() == BATTERY_POWERED)
             {
                 /* Line 1: battery level */
-                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Discharging, %dpcts, ADC: %u", logic_power_get_battery_level()*10, bat_adc_result);
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Discharging, %dpcts, ADC: %u", logic_power_get_battery_level()*10, logic_power_debug_get_last_adc_measurement());
             } 
             else
             {
                 /* Line 1: battery level */
-                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Not charging, %dpcts, ADC: %u", logic_power_get_battery_level()*10, bat_adc_result);
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Not charging, %dpcts, ADC: %u", logic_power_get_battery_level()*10, logic_power_debug_get_last_adc_measurement());
             }
         }
         else

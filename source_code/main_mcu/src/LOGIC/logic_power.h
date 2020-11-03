@@ -66,6 +66,7 @@ power_consumption_log_t* logic_power_get_power_consumption_log_pt(void);
 void logic_power_skip_queue_logic_for_upcoming_adc_measurements(void);
 void logic_power_register_vbat_adc_measurement(uint16_t adc_val);
 void logic_power_set_power_source(power_source_te power_source);
+uint16_t logic_power_debug_get_last_adc_measurement(void);
 BOOL logic_power_get_and_reset_over_discharge_flag(void);
 uint16_t logic_power_get_and_ack_new_battery_level(void);
 nimh_charge_te logic_power_get_current_charge_type(void);

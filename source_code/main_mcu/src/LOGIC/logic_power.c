@@ -152,6 +152,15 @@ void logic_power_30m_tick(void)
     }    
 }
 
+/*! \fn     logic_power_debug_get_last_adc_measurement(void)
+*   \brief  Debug function: get last adc measurement
+*   \return The raw ADC value for last measurement
+*/
+uint16_t logic_power_debug_get_last_adc_measurement(void)
+{
+    return logic_power_last_vbat_measurements[LAST_VOLTAGE_CONV_BUFF_SIZE-1];
+}
+
 /*! \fn     logic_power_get_current_charge_type(void)
 *   \brief  Get current charge type
 *   \return The charge type (see enum)
