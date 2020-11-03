@@ -47,6 +47,7 @@ void debug_test_prompts(void);
 void debug_debug_screen(void);
 void debug_glyph_scroll(void);
 void debug_reset_device(void);
+void debug_nimh_status(void);
 void debug_atbtlc_info(void);
 void debug_glyphs_show(void);
 void debug_debug_menu(void);

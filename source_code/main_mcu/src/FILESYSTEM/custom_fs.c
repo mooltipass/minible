@@ -20,6 +20,7 @@
  * Created: 16/05/2017 11:39:30
  *  Author: stephan
  */
+#include <stddef.h>
 #include <string.h>
 #include <asf.h>
 #include "mooltipass_graphics_bundle.h"

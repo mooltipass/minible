@@ -152,7 +152,7 @@ void debug_debug_menu(void)
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Battery", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main and Aux MCU Info", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU BLE Info", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"NiMH Danger", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"NiMH Status", TRUE);
             }
             else if (selected_item < 8)
             {
@@ -225,7 +225,7 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 3)
             {
-                debug_battery_repair();
+                debug_nimh_status();
             }
             else if (selected_item == 4)
             {
@@ -1586,6 +1586,99 @@ void debug_glyph_scroll(void)
         {
             while(sh1122_refresh_used_font(&plat_oled_descriptor, ++current_font) != RETURN_OK);
             cur_glyph = ' ';
+        }
+    }
+}
+
+/*! \fn     debug_nimh_status(void)
+*   \brief  NiMH status debug
+*/
+void debug_nimh_status(void)
+{
+    power_consumption_log_t* consumption_log_pt = logic_power_get_power_consumption_log_pt();
+    aux_mcu_message_t* temp_tx_message_pt;
+    aux_mcu_message_t* temp_rx_message_pt;
+    uint16_t bat_adc_result = 0;
+        
+    while (TRUE)
+    {
+        /* Battery measurement, actually perturbating the power routine */
+        if (platform_io_is_voledin_conversion_result_ready() != FALSE)
+        {
+            bat_adc_result = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+        }
+        
+        /* Keep calling the routines */
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        logic_power_routine();
+        
+        /* Clear screen */
+        #ifdef OLED_INTERNAL_FRAME_BUFFER
+        sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
+        sh1122_clear_frame_buffer(&plat_oled_descriptor);
+        #else
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        #endif
+        
+        /* Line 1 & 2: Discharge / Charge type with information */
+        if (logic_power_is_battery_charging() == FALSE)
+        {
+            if (logic_power_get_power_source() == BATTERY_POWERED)
+            {
+                /* Line 1: battery level */
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Discharging, %dpcts, ADC: %u", logic_power_get_battery_level()*10, bat_adc_result);
+            } 
+            else
+            {
+                /* Line 1: battery level */
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Not charging, %dpcts, ADC: %u", logic_power_get_battery_level()*10, bat_adc_result);
+            }
+        }
+        else
+        {
+            /* Line 1: charge type */
+            nimh_charge_te charge_type = logic_power_get_current_charge_type();
+            if (charge_type == NORMAL_CHARGE)
+            {
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Standard Charge");
+            }
+            else if (charge_type == SLOW_START_CHARGE)
+            {
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Slow Start Charge");
+            }
+            else if (charge_type == RECOVERY_CHARGE)
+            {
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Recovery Charge");
+            }
+        }
+            
+        /* Get charge information from AUX MCU */
+        temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_NIMH_CHARGE);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
+        while(comms_aux_mcu_active_wait(&temp_rx_message_pt, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE, -1) != RETURN_OK){}
+            
+        /* Line 2: charge information from AUX */
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, TRUE, "AUX state %d, ADC: %u, cur: %u", temp_rx_message_pt->nimh_charge_message.charge_status, temp_rx_message_pt->nimh_charge_message.battery_voltage, temp_rx_message_pt->nimh_charge_message.charge_current);
+            
+        /* Rearm aux communications */
+        comms_aux_arm_rx_and_clear_no_comms();
+        
+        /* Line 3: nb 30mins counters */
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, TRUE, "30mns %don %dcard %dadv %dcon", consumption_log_pt->nb_30mins_powered_on, consumption_log_pt->nb_30mins_card_inserted, consumption_log_pt->nb_30mins_ble_advertising, consumption_log_pt->nb_30mins_windows_connect);
+        
+        /* Line 4: ms counters */
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, TRUE, "s %unos %dmain %dfull", consumption_log_pt->nb_ms_no_screen_aux_main_awake >> 10, consumption_log_pt->nb_ms_no_screen_main_awake >> 10, consumption_log_pt->nb_ms_full_pawa >> 10);
+        
+        /* Line 5: others */
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, TRUE, "s %usince full %upct aux", consumption_log_pt->nb_ms_spent_since_last_full_charge, consumption_log_pt->aux_mcu_reported_pct);
+        
+        #ifdef OLED_INTERNAL_FRAME_BUFFER
+        sh1122_flush_frame_buffer(&plat_oled_descriptor);
+        #endif
+        
+        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+        {
+            return;
         }
     }
 }

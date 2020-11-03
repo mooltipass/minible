@@ -36,6 +36,7 @@
 
 /* Enums */
 typedef enum    {USB_POWERED = 0, BATTERY_POWERED,} power_source_te;
+typedef enum    {NORMAL_CHARGE, SLOW_START_CHARGE, RECOVERY_CHARGE} nimh_charge_te;
 typedef enum    {POWER_ACT_NONE, POWER_ACT_POWER_OFF, POWER_ACT_NEW_BAT_LEVEL} power_action_te;
 typedef enum    {BATTERY_0PCT = 0, BATTERY_25PCT = 1, BATTERY_50PCT = 2, BATTERY_75PCT = 3, BATTERY_100PCT = 4, BATTERY_ERROR = 5} battery_state_te;
 typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7} lb_state_machine_te;
@@ -61,11 +62,13 @@ typedef struct
 power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_conversion_and_dont_start_another);
 void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_success);
 void logic_power_set_battery_level_update_from_aux(uint8_t battery_level);
+power_consumption_log_t* logic_power_get_power_consumption_log_pt(void);
 void logic_power_skip_queue_logic_for_upcoming_adc_measurements(void);
 void logic_power_register_vbat_adc_measurement(uint16_t adc_val);
 void logic_power_set_power_source(power_source_te power_source);
 BOOL logic_power_get_and_reset_over_discharge_flag(void);
 uint16_t logic_power_get_and_ack_new_battery_level(void);
+nimh_charge_te logic_power_get_current_charge_type(void);
 BOOL logic_power_is_usb_enumerate_sent_clear_bool(void);
 battery_state_te logic_power_get_battery_state(void);
 power_source_te logic_power_get_power_source(void);

@@ -56,6 +56,7 @@ power_source_te logic_power_current_power_source;
 /* Last Vbat measured ADC values */
 uint16_t logic_power_last_vbat_measurements[LAST_VOLTAGE_CONV_BUFF_SIZE];
 /* Battery charging bool */
+nimh_charge_te logic_power_current_charge_type;
 BOOL logic_power_battery_charging = FALSE;
 /* Error with battery flag */
 BOOL logic_power_error_with_battery = FALSE;
@@ -151,6 +152,24 @@ void logic_power_30m_tick(void)
     }    
 }
 
+/*! \fn     logic_power_get_current_charge_type(void)
+*   \brief  Get current charge type
+*   \return The charge type (see enum)
+*/
+nimh_charge_te logic_power_get_current_charge_type(void)
+{
+    return logic_power_current_charge_type;
+}
+
+/*! \fn     logic_power_get_power_consumption_log_pt(void)
+*   \brief  Get a pointer to the current power consumption log
+*   \return The power consumption log pointer
+*/
+power_consumption_log_t* logic_power_get_power_consumption_log_pt(void)
+{
+    return (power_consumption_log_t*)&logic_power_consumption_log;
+}
+
 /*! \fn     logic_power_set_power_source(power_source_te power_source)
 *   \brief  Set current power source
 *   \param  power_source    Power source (see enum)
@@ -184,9 +203,12 @@ power_source_te logic_power_get_power_source(void)
 */
 void logic_power_init(void)
 {
+    /* Recall power consumption log from flash */
     cpu_irq_enter_critical();
     custom_fs_get_power_consumption_log((power_consumption_log_t*)&logic_power_consumption_log);
     cpu_irq_leave_critical();
+    
+    /* Compute battery state */
     logic_power_compute_battery_state();
 }
 
@@ -538,16 +560,19 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         {
             comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_RECOVERY_CHG);
             comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STARTED);
+            logic_power_current_charge_type = RECOVERY_CHARGE;
         }
         else if (logic_power_get_battery_state() <= BATTERY_25PCT)
         {
             comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHG_SLW_STRT);
             comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STARTED);   
+            logic_power_current_charge_type = SLOW_START_CHARGE;
         } 
         else
         {
             comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
             comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STARTED);
+            logic_power_current_charge_type = NORMAL_CHARGE;
         }
         
         /* Set boolean */
