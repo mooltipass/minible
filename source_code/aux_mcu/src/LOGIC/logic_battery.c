@@ -272,11 +272,11 @@ battery_action_te logic_battery_task(void)
                         {
                             /* Recovery: 0.1C until battery reaches given voltage */
                         }
-                        else if ((logic_battery_charging_type == NIMH_DANGEROUS_FORCED_CHARGE) && (logic_battery_low_charge_current_counter++ <= (LOGIC_BATTERY_NB_MIN_DANGER_CHARGE*60*1000)/LOGIC_BATTERY_CUR_REACH_TICK))
+                        else if ((logic_battery_charging_type == NIMH_DANGEROUS_FORCED_CHARGE) && (logic_battery_low_charge_current_counter <= (LOGIC_BATTERY_NB_MIN_DANGER_CHARGE*60*1000)/LOGIC_BATTERY_CUR_REACH_TICK))
                         {
                             /* Dangerous charge: 333mA for fixed amount of time */
                         }
-                        else if ((logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING) && (logic_battery_low_charge_current_counter++ <= (LOGIC_BATTERY_NB_MIN_SLOW_START*60*1000)/LOGIC_BATTERY_CUR_REACH_TICK))
+                        else if ((logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING) && (logic_battery_low_charge_current_counter <= (LOGIC_BATTERY_NB_MIN_SLOW_START*60*1000)/LOGIC_BATTERY_CUR_REACH_TICK))
                         {
                             /* Slow start: keep current at low value for a fixed time before increasing it */
                         }
@@ -303,9 +303,6 @@ battery_action_te logic_battery_task(void)
                                 return_value = BAT_ACT_CHARGE_DONE;
                             }                     
                         }                        
-                        
-                        /* Arm decision timer */
-                        timer_start_timer(TIMER_BATTERY_TICK, LOGIC_BATTERY_CUR_REACH_TICK);
                     }
                     else
                     {
@@ -317,7 +314,7 @@ battery_action_te logic_battery_task(void)
                         else
                         {
                             /* Well that's pretty bad... we keep increasing voltage but we can't reach the target current. This can only happen because of NIMH_DANGEROUS_FORCED_CHARGE */
-                            if ((logic_battery_charging_type == NIMH_DANGEROUS_FORCED_CHARGE) && (logic_battery_low_charge_current_counter++ >= (LOGIC_BATTERY_NB_MIN_DANGER_CHARGE*60*1000)/LOGIC_BATTERY_CUR_REACH_TICK))
+                            if ((logic_battery_charging_type == NIMH_DANGEROUS_FORCED_CHARGE) && (logic_battery_low_charge_current_counter >= (LOGIC_BATTERY_NB_MIN_DANGER_CHARGE*60*1000)/LOGIC_BATTERY_CUR_REACH_TICK))
                             {
                                 /* Done state */
                                 logic_battery_state = LB_CHARGING_DONE;
@@ -358,7 +355,11 @@ battery_action_te logic_battery_task(void)
                             platform_io_update_step_down_voltage(logic_battery_charge_voltage);
                         }
                     }
-                }                            
+                    
+                    /* Arm decision timer, increment counter */
+                    timer_start_timer(TIMER_BATTERY_TICK, LOGIC_BATTERY_CUR_REACH_TICK);
+                    logic_battery_low_charge_current_counter++;  
+                }                
                 break;
             }
             
