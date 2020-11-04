@@ -87,6 +87,8 @@ void emu_send_aux(char *data, int size)
             response.aux_mcu_event_message.event_id = AUX_MCU_EVENT_IM_HERE;
             response_valid = TRUE;
             break;
+
+        default: break;
     }
 }
 
@@ -144,7 +146,8 @@ static BOOL process_ble_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *resp)
             resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
             return TRUE;
         }
-            
+
+        default: break;
     }
 
     return FALSE;
@@ -164,19 +167,49 @@ static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *resp)
             memcpy(resp->hid_message.payload, msg->main_mcu_command_message.payload, cache_payload_size);
             resp->payload_length1 = sizeof(resp->hid_message.message_type) + sizeof(resp->hid_message.payload_length) + resp->hid_message.payload_length;
             send_hid_message(resp);
-            return FALSE;
+            resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+            resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_NEW_STATUS_RCVD;
+            resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
+            return TRUE;
         }
+
+        case MAIN_MCU_COMMAND_NO_COMMS_UNAV:
+            resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+            resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_NO_COMMS_INFO_RCVD;
+            resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
+            return TRUE;
+
+        case MAIN_MCU_COMMAND_NIMH_CHG_SLW_STRT:
+            resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+            resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_CHARGE_STARTED;
+            resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
+            return TRUE;
+
+        case MAIN_MCU_COMMAND_NIMH_RECOVERY_CHG:
+            resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+            resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_CHARGE_STARTED;
+            resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
+            return TRUE;
 
         case MAIN_MCU_COMMAND_NIMH_CHARGE:
             emu_charger_status = LB_CHARGE_START_RAMPING;
             emu_charger_enable(TRUE);
-            return FALSE;
+            resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+            resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_CHARGE_STARTED;
+            resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
+            return TRUE;
 
         case MAIN_MCU_COMMAND_ATTACH_USB:
             emu_charger_status = LB_IDLE;
             emu_charger_enable(FALSE);
             resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
             resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_USB_ENUMERATED;
+            resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
+            return TRUE;
+
+        case MAIN_MCU_COMMAND_SET_BATTERYLVL:
+            resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+            resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_NEW_BATTERY_LVL_RCVD;
             resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
             return TRUE;
 
@@ -187,6 +220,8 @@ static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *resp)
             resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_USB_DETACHED;
             resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
             return TRUE;
+
+        default: break;
     }
 
     return FALSE;

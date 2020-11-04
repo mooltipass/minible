@@ -255,7 +255,8 @@ void main_platform_init(void)
         sh1122_put_error_string(&plat_oled_descriptor, u"No Accelerometer");
         while(1);
     }
-    
+
+#ifndef EMULATOR_BUILD    
     /* Is Aux MCU present? */
     if (comms_aux_mcu_send_receive_ping() != RETURN_OK)
     {
@@ -276,6 +277,7 @@ void main_platform_init(void)
             }                
         }
     }
+#endif
     
     /* If debugger attached, let the aux mcu know it shouldn't use the no comms signal */
     if (debugger_present != FALSE)
@@ -831,7 +833,7 @@ int main(void)
         {
             platform_io_get_voledin_conversion_result_and_trigger_conversion();
         }
-        
+
         /* Accelerometer routine */
         BOOL is_screen_on_copy = sh1122_is_oled_on(&plat_oled_descriptor);
         acc_detection_te accelerometer_routine_return = logic_accelerometer_routine();
