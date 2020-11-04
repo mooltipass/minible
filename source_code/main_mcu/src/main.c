@@ -377,7 +377,7 @@ void main_platform_init(void)
                 platform_io_disable_switch_and_die();
             }
         }
-    } 
+    }
     
     /* Set settings that may not have been set to an initial value (after going into the bootloader for example) */
     custom_fs_set_undefined_settings();

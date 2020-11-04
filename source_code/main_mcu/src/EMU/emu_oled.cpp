@@ -176,7 +176,7 @@ extern "C" void inputs_scan(void);
 
 extern "C" void inputs_scan(void)
 {
-    if (inputs_wheel_click_return == RETURN_INVALID)
+    if (inputs_wheel_click_return == RETURN_INV_DET)
     {
         if (!emu_wheel_state)
         {
@@ -186,7 +186,7 @@ extern "C" void inputs_scan(void)
     else
     {
         if (emu_wheel_state) {
-            if(inputs_wheel_click_return == RETURN_REL) {
+            if(inputs_wheel_click_return == RETURN_REL || inputs_wheel_click_return == WHEEL_ACTION_NONE) {
                 inputs_wheel_click_return = RETURN_JDETECT;
             }
 
