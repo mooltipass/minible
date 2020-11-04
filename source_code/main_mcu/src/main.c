@@ -117,7 +117,7 @@ void main_platform_init(void)
     platform_io_enable_switch();                                            // Enable switch and 3v3 stepup
     platform_io_init_power_ports();                                         // Init power port, needed to test if we are battery or usb powered
     platform_io_init_no_comms_signal();                                     // Init no comms signal, used later as wakeup for the aux MCU
-    
+
     /* Check if fuses are correctly programmed (required to read flags), if so initialize our flag system, then finally check if we previously powered off due to low battery and still haven't charged since then */
     if ((fuses_check_program(FALSE) == RETURN_OK) && (custom_fs_settings_init() == CUSTOM_FS_INIT_OK) && (custom_fs_get_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID) != FALSE))
     {
@@ -135,11 +135,11 @@ void main_platform_init(void)
     }
     
     /* Measure battery voltage */
-    platform_io_init_bat_adc_measurements();                                // Initialize ADC measurements  
+    platform_io_init_bat_adc_measurements();                                // Initialize ADC measurements
     platform_io_enable_vbat_to_oled_stepup();                               // Enable vbat to oled stepup
     platform_io_get_voledin_conversion_result_and_trigger_conversion();     // Start one measurement
     while(platform_io_is_voledin_conversion_result_ready() == FALSE);       // Do measurement even if we are USB powered, to leave exactly 180ms for platform boot
-    
+
     /* Check if battery powered and under-voltage */
     uint32_t battery_voltage = platform_io_get_voledin_conversion_result_and_trigger_conversion();
     if ((platform_io_is_usb_3v3_present_raw() == FALSE) && (battery_voltage < BATTERY_ADC_OUT_CUTOUT))
@@ -147,19 +147,19 @@ void main_platform_init(void)
         platform_io_disable_switch_and_die();
         while(1);
     }
-    
+
     /* Register vbat measurement and adjust it if we are USB powered */
     if (platform_io_is_usb_3v3_present_raw() == FALSE)
     {
         logic_power_register_vbat_adc_measurement((uint16_t)battery_voltage);
-    } 
+    }
     else
     {
         /* Real ratio is 3300 / 3188 */
         battery_voltage = (battery_voltage*265) >> 8;
         logic_power_register_vbat_adc_measurement((uint16_t)battery_voltage);
     }
-    
+
     /* Override previous measurement if we were switched off due to out of battery */
     if (poweredoff_due_to_battery != FALSE)
     {
@@ -285,14 +285,14 @@ void main_platform_init(void)
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NO_COMMS_UNAV);
         comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_NO_COMMS_INFO_RCVD);
     }    
-    
+
     /* If USB present, send USB attach message */
     if (platform_io_is_usb_3v3_present_raw() != FALSE)
     {
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
         comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_ATTACH_CMD_RCVD);
         logic_power_usb_enumerate_just_sent();
-    } 
+    }
     
 #ifndef EMULATOR_BUILD
     /* Check for non-RF functional testing passed */

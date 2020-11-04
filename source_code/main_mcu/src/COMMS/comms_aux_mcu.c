@@ -1043,6 +1043,14 @@ aux_mcu_message_t* comms_aux_mcu_wait_for_aux_event(uint16_t aux_mcu_event)
         comms_aux_arm_rx_and_clear_no_comms();
     }
     
+    #ifndef EMULATOR_BUILD
+    if (aux_mcu_event == AUX_MCU_EVENT_ATTACH_CMD_RCVD)
+    {
+        logic_aux_mcu_set_usb_enumerated_bool(TRUE);
+        logic_device_set_state_changed();
+    }
+    #endif
+    
     return temp_rx_message_pt;
 }
 

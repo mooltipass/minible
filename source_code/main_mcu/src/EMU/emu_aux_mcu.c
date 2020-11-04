@@ -203,7 +203,7 @@ static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *resp)
             emu_charger_status = LB_IDLE;
             emu_charger_enable(FALSE);
             resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-            resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_USB_ENUMERATED;
+            resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_ATTACH_CMD_RCVD;
             resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
             return TRUE;
 
