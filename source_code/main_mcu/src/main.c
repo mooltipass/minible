@@ -730,6 +730,7 @@ int main(void)
             }
             
             /* Aux MCU ping */
+            #ifndef EMULATOR_BUILD
             if (timer_has_timer_expired(TIMER_AUX_MCU_PING, TRUE) == TIMER_EXPIRED)
             {
                 if ((comms_aux_mcu_are_comms_disabled() == FALSE) && (debugger_present == FALSE))
@@ -763,6 +764,7 @@ int main(void)
                 /* Rearm aux MCU ping timer */
                 timer_start_timer(TIMER_AUX_MCU_PING, NB_MS_AUX_MCU_PING);
             }
+            #endif
             
             /* Do appropriate actions on smartcard insertion / removal */
             if (card_detection_res == RETURN_JDETECT)
