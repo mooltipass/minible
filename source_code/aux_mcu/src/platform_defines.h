@@ -81,6 +81,7 @@
         - detecting too many callback allocation
         - more battery sanity checks
         - migrated to release version
+        - battery slow start charge bug fix
 */
 
 /**************** SETUP DEFINES ****************/

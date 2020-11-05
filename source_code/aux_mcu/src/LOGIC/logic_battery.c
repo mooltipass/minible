@@ -25,6 +25,7 @@ uint16_t logic_battery_charge_voltage = 0;
 /* Peak voltage at the battery */
 uint16_t logic_battery_peak_voltage = 0;
 /* Number of ticks since we saw the peak voltage */
+uint16_t logic_battery_nb_end_condition_counter = 0;
 uint32_t logic_battery_nb_secs_since_peak = 0;
 uint16_t logic_battery_last_second_seen = 0;
 /* Flag to start/stop using the ADC */
@@ -169,6 +170,7 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
 
     /* Reset vars */
     logic_battery_low_charge_current_counter = 0;
+    logic_battery_nb_end_condition_counter = 0;
     logic_battery_nb_secs_since_peak = 0;
     logic_battery_peak_voltage = 0;
 }
@@ -399,6 +401,7 @@ battery_action_te logic_battery_task(void)
                         logic_battery_state = LB_CUR_MAINTAIN;
                         logic_battery_nb_secs_since_peak = 0;
                         logic_battery_peak_voltage = low_voltage;
+                        logic_battery_nb_end_condition_counter = 0;
                         
                         /* Arm decision timer */
                         timer_start_timer(TIMER_BATTERY_TICK, LOGIC_BATTERY_CUR_MAINTAIN_TICK);
@@ -486,7 +489,7 @@ battery_action_te logic_battery_task(void)
                     }
                     
                     /* End of charge detection here */
-                    if ((logic_battery_peak_voltage - low_voltage) > LOGIC_BATTERY_END_OF_CHARGE_NEG_V)
+                    if (((logic_battery_peak_voltage - low_voltage) > LOGIC_BATTERY_END_OF_CHARGE_NEG_V) && (logic_battery_nb_end_condition_counter++ > 20))
                     {
                         /* Done state */
                         logic_battery_state = LB_CHARGING_DONE;
