@@ -696,11 +696,11 @@ int main(void)
         {
             /* Device state is going to change... */
             logic_device_set_state_changed();
-            
+
             /* Clear bool */
             logic_device_activity_detected();
             logic_security_clear_management_mode();
-            
+
             /* Set next screen */
             gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, TRUE, GUI_INTO_MENU_TRANSITION);
             gui_dispatcher_get_back_to_current_screen();
