@@ -144,6 +144,7 @@
         - making sure computer lock status was received for no password prompt setting
         - battery status improvement
 - v0.50:- small delay after enabling bluetooth
+        - improved battery charging & status reading
 */
 
 /**************** SETUP DEFINES ****************/
