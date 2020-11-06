@@ -1436,11 +1436,10 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_user_get_data_from_service(service_pointer, buffer, &decrypted_bytes_nb, is_message_from_usb) == RETURN_OK))
             {
                 /* Create reply message */
-                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint16_t) + sizeof(uint16_t) + decrypted_bytes_nb);
                 memcpy((void*)&temp_tx_message_pt->hid_message.payload_as_uint16[2], (void*)buffer, decrypted_bytes_nb);
                 temp_tx_message_pt->hid_message.payload_as_uint16[1] = decrypted_bytes_nb;
-                temp_tx_message_pt->hid_message.payload_as_uint16[0] = HID_1BYTE_ACK;                
-                comms_hid_msgs_update_message_fields(temp_tx_message_pt, is_message_from_usb, rcv_message_type, sizeof(uint16_t) + sizeof(uint16_t) + decrypted_bytes_nb);
+                temp_tx_message_pt->hid_message.payload_as_uint16[0] = HID_1BYTE_ACK;
                 comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
