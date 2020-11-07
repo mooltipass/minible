@@ -94,6 +94,8 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     gui_screen_te next_screen = GUI_SCREEN_INSERTED_INVALID;
     // Return fail by default
     RET_TYPE return_value = RETURN_NOK;
+    // User language for inserted card
+    uint16_t potential_user_language;
     
     // Language: set default one
     custom_fs_set_current_language(utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTING_DEVICE_DEFAULT_LANGUAGE), 0, custom_fs_get_number_of_languages()-1));
@@ -161,15 +163,17 @@ RET_TYPE logic_smartcard_handle_inserted(void)
         }
     }
     else if (detection_result == RETURN_MOOLTIPASS_USER)
-    {
+    {        
         /* Check if we know this card and if we need to enable bluetooth */
-        RET_TYPE bluetooth_enable_return = logic_user_is_bluetooth_enabled_for_inserted_card();
+        RET_TYPE bluetooth_enable_return = logic_user_is_bluetooth_enabled_for_inserted_card(&potential_user_language);
         if (bluetooth_enable_return == RETURN_OK)
         {
+            custom_fs_set_current_language(potential_user_language);
             logic_gui_enable_bluetooth();
         } 
         else if (bluetooth_enable_return == RETURN_NOK)
         {
+            custom_fs_set_current_language(potential_user_language);
             logic_gui_disable_bluetooth();
         }
         

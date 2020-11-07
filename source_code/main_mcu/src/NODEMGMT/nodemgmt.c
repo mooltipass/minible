@@ -1960,6 +1960,38 @@ void nodemgmt_scan_for_last_parent_nodes(void)
     }
 }
 
+/*! \fn     nodemgmt_get_user_language_for_user_id(uint16_t userIdNum)
+ *  \brief  Get the user language for a given user id
+ *  \return The user language id
+ */
+uint16_t nodemgmt_get_user_language_for_user_id(uint16_t userIdNum)
+{
+    uint16_t offsetUserProfile;             // The offset of the user profile
+    uint16_t pageUserProfile;               // The page of the user profile
+    uint16_t language_id;                   // Fetched languageid
+    
+    if(userIdNum >= NB_MAX_USERS)
+    {
+        /* No debug... no reason it should get stuck here as the data format doesn't allow such values */
+        main_reboot();
+    }
+    
+    /* Get page and page offset for the specified user profile */
+    nodemgmt_get_user_profile_starting_offset(userIdNum, &pageUserProfile, &offsetUserProfile);
+    
+    /* Each user profile is within a page, data starting parent node is at the end of the favorites */
+    dbflash_read_data_from_flash(&dbflash_descriptor, pageUserProfile, offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.language_id), sizeof(language_id), &language_id);
+    
+    /* Check for invalid language id */
+    if (language_id >= custom_fs_get_number_of_languages())
+    {
+        language_id = 0;
+    }
+    
+    /* Return language id */
+    return language_id;
+}
+    
 /*! \fn     nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout, uint16_t* userBLELayout)
  *  \brief  Initializes the Node Management Handle, scans memory for the next free node
  *  \param  userIdNum       The user id to initialize the handle for

@@ -44,11 +44,11 @@ RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* log
 ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key, BOOL simple_mode);
 RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, cust_char_t* password);
 void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOOL send_creds_to_usb);
+RET_TYPE logic_user_is_bluetooth_enabled_for_inserted_card(uint16_t* user_language_id);
 RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb);
 void logic_user_change_node_password(uint16_t node_address, cust_char_t* password);
 void logic_user_inform_computer_locked_state(BOOL usb_interface, BOOL locked);
 void logic_user_set_layout_id(uint16_t layout_id, BOOL usb_layout);
-RET_TYPE logic_user_is_bluetooth_enabled_for_inserted_card(void);
 void logic_user_reset_computer_locked_state(BOOL usb_interface);
 BOOL logic_user_get_and_clear_user_to_be_logged_off_flag(void);
 void logic_user_clear_user_security_flag(uint16_t bitmask);

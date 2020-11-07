@@ -138,11 +138,12 @@ void logic_user_init_context(uint8_t user_id)
     logic_user_adding_data_to_service = FALSE;
 }
 
-/*! \fn     logic_user_is_bluetooth_enabled_for_inserted_card(void)
+/*! \fn     logic_user_is_bluetooth_enabled_for_inserted_card(uint16_t* user_language_id)
 *   \brief  Know if bluetooth is enabled for the user identified by the inserted card
+*   \param  user_language_id    Where to store the language ID associated to that card
 *   \return RETURN_OK to require bluetooth enabling, RETURN_NOK for the opposite, RETURN_INVALID to not perform any action
 */
-RET_TYPE logic_user_is_bluetooth_enabled_for_inserted_card(void)
+RET_TYPE logic_user_is_bluetooth_enabled_for_inserted_card(uint16_t* user_language_id)
 {
     uint8_t temp_buffer[SMARTCARD_CPZ_LENGTH];
     uint8_t potential_user_id;
@@ -155,6 +156,9 @@ RET_TYPE logic_user_is_bluetooth_enabled_for_inserted_card(void)
     {
         return RETURN_INVALID;
     }
+    
+    /* Store the language ID */
+    *user_language_id = nodemgmt_get_user_language_for_user_id(potential_user_id);
     
     /* See if we need to enable bluetooth */
     if ((nodemgmt_get_sec_preference_for_user_id(potential_user_id) & USER_SEC_FLG_BLE_ENABLED) == 0)
