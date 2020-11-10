@@ -353,7 +353,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             if (rcv_msg->payload_length == 6*sizeof(uint16_t))
             {
                 /* Set Date */
-                timer_set_calendar(rcv_msg->payload_as_uint16[0], rcv_msg->payload_as_uint16[1], rcv_msg->payload_as_uint16[2], rcv_msg->payload_as_uint16[3], rcv_msg->payload_as_uint16[4], rcv_msg->payload_as_uint16[5]);
+                driver_timer_set_rtc_timestamp(rcv_msg->payload_as_uint16[0], rcv_msg->payload_as_uint16[1], rcv_msg->payload_as_uint16[2], rcv_msg->payload_as_uint16[3], rcv_msg->payload_as_uint16[4], rcv_msg->payload_as_uint16[5]);
                 nodemgmt_set_current_date(nodemgmt_construct_date(rcv_msg->payload_as_uint16[0],rcv_msg->payload_as_uint16[1],rcv_msg->payload_as_uint16[2]));
                 
                 /* Set success byte */

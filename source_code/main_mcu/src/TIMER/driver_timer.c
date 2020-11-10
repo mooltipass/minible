@@ -39,7 +39,6 @@
  */
 static int rtc_offset;
 #endif
-
 /* Timer array */
 volatile timerEntry_t context_timers[TOTAL_NUMBER_OF_TIMERS];
 /* Inactivity timer remaining ticks */
@@ -48,6 +47,11 @@ volatile uint16_t timer_inactivity_30mins_tick_remain = 0;
 volatile BOOL timer_systick_expired = TRUE;
 /* System tick */
 volatile uint32_t sysTick;
+/* timestamp set at the last "set date" message */
+uint32_t timer_last_set_timestamp = 0;
+/* Fine adjustment for our time base */
+int16_t timer_fine_30mins_s_adjust = 0;
+
 
 #ifndef EMULATOR_BUILD
 /*! \fn     TCC0_Handler(void)
@@ -104,6 +108,13 @@ void TCC2_Handler(void)
                 logic_user_set_user_to_be_logged_off_flag();
             }
         }
+        
+        /* Timestamp adjustment */
+        while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
+        uint32_t current_timestamp = RTC->MODE0.COUNT.reg;
+        current_timestamp -= timer_fine_30mins_s_adjust;
+        while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
+        RTC->MODE0.COUNT.reg = current_timestamp;
     }
     #endif    
 }
@@ -159,21 +170,20 @@ void timer_initialize_timebase(void)
     while ((GCLK->STATUS.reg & GCLK_STATUS_SYNCBUSY) != 0);             // Wait for sync
     GCLK->CLKCTRL = clkctrl;                                            // Write register
     
-    /* Setup RTC module in calendar mode */
-    while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
-    RTC->MODE2.CTRL.reg = 0;                                            // Disable RTC
-    while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
-    RTC->MODE2.CTRL.reg = RTC_MODE2_CTRL_SWRST;                         // Reset RTC
-    while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
-    while((RTC->MODE2.CTRL.reg & RTC_MODE2_CTRL_SWRST) != 0);           // Wait for end of reset
-    RTC_MODE2_CTRL_Type rtc_ctrl_reg;                                   // rtc ctrl struct
-    rtc_ctrl_reg.reg = RTC_MODE2_CTRL_ENABLE;                           // Enable module
-    rtc_ctrl_reg.bit.CLKREP = 0;                                        // 24 hour mode
-    rtc_ctrl_reg.bit.MODE = RTC_MODE2_CTRL_MODE_CLOCK_Val;              // Calendar mode
-    rtc_ctrl_reg.bit.PRESCALER = RTC_MODE2_CTRL_PRESCALER_DIV1024_Val;  // Divide 1.024kHz signal by 1024
-    while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
-    RTC->MODE2.CTRL = rtc_ctrl_reg;                                     // Write register
-    //RTC->MODE2.DBGCTRL.bit.DBGRUN = 1;                                  // Allow normal operation during debug mode
+    /* Setup RTC module in 32bits counter mode */
+    while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
+    RTC->MODE0.CTRL.reg = 0;                                            // Disable RTC
+    while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
+    RTC->MODE0.CTRL.reg = RTC_MODE0_CTRL_SWRST;                         // Reset RTC
+    while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
+    while((RTC->MODE0.CTRL.reg & RTC_MODE0_CTRL_SWRST) != 0);           // Wait for end of reset
+    RTC_MODE0_CTRL_Type rtc_ctrl_reg;                                   // rtc ctrl struct
+    rtc_ctrl_reg.reg = RTC_MODE0_CTRL_ENABLE;                           // Enable module
+    rtc_ctrl_reg.bit.MODE = RTC_MODE0_CTRL_MODE_COUNT32_Val;            // 32bits counter mode
+    rtc_ctrl_reg.bit.PRESCALER = RTC_MODE0_CTRL_PRESCALER_DIV1024_Val;  // Divide 1.024kHz signal by 1024
+    while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
+    RTC->MODE0.CTRL = rtc_ctrl_reg;                                     // Write register
+    //RTC->MODE0.DBGCTRL.bit.DBGRUN = 1;                                  // Allow normal operation during debug mode
     
     /* Set GCLK Multiplexer 0x1A (for GCLK_TCC0) to 48MHz GCLK0 */
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, GCLK_CLKCTRL_ID_TCC0_TCC1_Val);
@@ -208,8 +218,38 @@ void timer_initialize_timebase(void)
 #endif
 }
 
-/*!	\fn		timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
-*	\brief	Set the current date
+/*!	\fn		driver_timer_get_rtc_timestamp_uin32t(void)
+*	\brief	Get current RTC timestamp
+*   \return Something sad
+*/
+uint32_t driver_timer_get_rtc_timestamp_uint32t(void)
+{
+    /* Get current time stamp */
+    while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
+    uint32_t current_timestamp = RTC->MODE0.COUNT.reg;
+    
+    /* Add timestamp from 1/1/2020 */
+    current_timestamp += 1577836800;
+    return current_timestamp;
+}
+
+/*!	\fn		driver_timer_get_rtc_timestamp_uin32t(void)
+*	\brief	Get current RTC timestamp
+*   \return Something sad
+*/
+uint64_t driver_timer_get_rtc_timestamp_uint64t(void)
+{
+    /* Get current time stamp */
+    while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
+    uint64_t current_timestamp = RTC->MODE0.COUNT.reg;
+    
+    /* Add timestamp from 1/1/2020 */
+    current_timestamp += 1577836800;
+    return current_timestamp;
+}
+
+/*!	\fn		driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
+*	\brief	Set our RTC timestamp (kinda)
 *   \param  year    Current year
 *   \param  month   Current month
 *   \param  day     Current day
@@ -217,18 +257,65 @@ void timer_initialize_timebase(void)
 *   \param  minute  Current minute
 *   \param  second  Current second
 */
-void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
+void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
 {
 #ifndef EMULATOR_BUILD
-    calendar_t new_date;
-    new_date.bit.YEAR = year-2000;
-    new_date.bit.MONTH = month;
-    new_date.bit.DAY = day;
-    new_date.bit.HOUR = hour;
-    new_date.bit.MINUTE = minute;
-    new_date.bit.SECOND = second;
-    while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
-    RTC->MODE2.CLOCK = new_date;
+    uint8_t is_curr_year_leap = IS_LEAP_YEAR(year);
+    uint32_t num_days = 0;
+    
+    /* Get current time stamp */
+    while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
+    uint32_t current_timestamp = RTC->MODE0.COUNT.reg;
+
+    /* UNIX time does NOT include LEAP seconds. See https://pubs.opengroup.org/onlinepubs/9699919799/xrat/V4_xbd_chap04.html#tag_21_04_16 */
+    /* use RTC timer to count number of seconds since 1/1/2020 */
+    for (uint16_t i = 2020; i < year; ++i)
+    {
+        num_days += IS_LEAP_YEAR(i) ? 366 : 365;
+    }
+
+    /* Add up days in all months */
+    for (uint16_t i = 0; i < month - 1; ++i)
+    {
+        num_days += driver_timer_dph[i];
+        num_days += ((i == LEAP_MONTH) && is_curr_year_leap) ? 1 : 0;
+    }
+
+    /* Add days in month */
+    num_days += day - 1;
+
+    /* Add the days hours, minutes, and seconds */
+    uint32_t kinda_unix_time = num_days * SEC_IN_DAY;
+    kinda_unix_time += hour * SEC_IN_HOUR;
+    kinda_unix_time += minute * 60;
+    kinda_unix_time += second;
+    
+    /* Store timestamp */
+    while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
+    RTC->MODE0.COUNT.reg = kinda_unix_time;
+    
+    /* We supposedly here have an hour between last TS and current TS */
+    int32_t nb_seconds_difference = current_timestamp - kinda_unix_time;
+    
+    /* Sanity check */
+    if ((nb_seconds_difference > -300) && (nb_seconds_difference < 300))
+    {
+        /* Coarse adjustment: calib register */
+        int16_t calib_register_offset = nb_seconds_difference/113;
+        SYSCTRL->OSCULP32K.bit.CALIB += calib_register_offset;
+        nb_seconds_difference -= calib_register_offset*113;
+        
+        /* Fine correction */
+        timer_fine_30mins_s_adjust = nb_seconds_difference/2;
+    }
+    else
+    {
+        /* Reset default calibration value */
+        SYSCTRL->OSCULP32K.bit.CALIB = 0x10;
+    }
+    
+    /* Store last set timestamp */
+    timer_last_set_timestamp = kinda_unix_time;
 #else
     struct tm date;
     time_t rtc_time;
@@ -242,77 +329,6 @@ void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t ho
 
     rtc_time = mktime(&date);
     rtc_offset = (int)rtc_time - (int)time(NULL);
-#endif
-}
-
-/*! \fn	driver_timer_get_time(void)
-*   \brief  Get the current unix time
-*
-*   Compute the number of seconds since EPOCH (Jan 1st. 1970), also
-*   commonly known as UNIX time. UNIX time does NOT include LEAP seconds.
-*   See https://pubs.opengroup.org/onlinepubs/9699919799/xrat/V4_xbd_chap04.html#tag_21_04_16
-*   \param  None
-*   \return Seconds since Jan 1st. 1970
-*/
-uint64_t driver_timer_get_time(void)
-{
-    uint64_t unix_time = 0;
-    int32_t i;
-    uint32_t num_days = 0;
-    calendar_t tm;
-    uint8_t is_curr_year_leap;
-    uint16_t year;
-
-    /* Assuming timer_get_calendar() returns UTC time */
-    timer_get_calendar(&tm);
-    year = tm.bit.YEAR + 2000;
-    is_curr_year_leap = IS_LEAP_YEAR(year);
-
-    //Add up days in all years
-    for (i = EPOCH_YEAR; i < year; ++i)
-    {
-        num_days += IS_LEAP_YEAR(i) ? 366 : 365;
-    }
-
-    //Add up days in all months
-    for (i = 0; i < tm.bit.MONTH - 1; ++i)
-    {
-        num_days += driver_timer_dph[i];
-        num_days += ((i == LEAP_MONTH) && is_curr_year_leap) ? 1 : 0;
-    }
-
-    //Add days in month
-    num_days += tm.bit.DAY - 1;
-
-    //Add the days hours, minutes, and seconds
-    unix_time = num_days * SEC_IN_DAY;
-    unix_time += tm.bit.HOUR * SEC_IN_HOUR;
-    unix_time += tm.bit.MINUTE * 60;
-    unix_time += tm.bit.SECOND;
-
-    return unix_time;
-}
-
-/*!	\fn		timer_get_calendar(calendar_t* calendar_pt)
-*	\brief	Get the current date
-*   \param  calendar_pt Pointer to a calendar struct
-*/
-void timer_get_calendar(calendar_t* calendar_pt)
-{
-#ifndef EMULATOR_BUILD
-    while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
-    RTC->MODE2.READREQ.reg |= RTC_READREQ_RREQ;                         // Trigger read request
-    while((RTC->MODE2.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);          // Wait for sync
-    *calendar_pt = RTC->MODE2.CLOCK;                                    // Store current time
-#else
-    time_t rtc_time = time(NULL) + rtc_offset;
-    struct tm *date = gmtime(&rtc_time);
-    calendar_pt->bit.YEAR = date->tm_year + 1900 - 2000;
-    calendar_pt->bit.MONTH = date->tm_mon + 1;
-    calendar_pt->bit.DAY = date->tm_mday;
-    calendar_pt->bit.HOUR = date->tm_hour;
-    calendar_pt->bit.MINUTE = date->tm_min;
-    calendar_pt->bit.SECOND = date->tm_sec;
 #endif
 }
 
@@ -474,10 +490,10 @@ uint32_t timer_get_timer_val(timer_id_te uid)
 */
 void timer_delay_ms(uint32_t ms)
 {
-    #ifndef BOOTLOADER
+#ifndef BOOTLOADER
     timer_start_timer(TIMER_WAIT_FUNCTS, ms+1);
     while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED);
-    #else
+#else
     DELAYMS(ms);
-    #endif
+#endif
 }

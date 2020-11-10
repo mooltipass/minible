@@ -82,16 +82,16 @@ static uint8_t const LEAP_MONTH = 1; //Feburary
 static uint16_t const EPOCH_YEAR = 1970;
 
 /* Prototypes */
-void timer_set_calendar(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second);
+void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second);
 void timer_start_logoff_timer(uint16_t nb_20mins_ticks_before_lock);
 timer_flag_te timer_has_timer_expired(timer_id_te uid, BOOL clear);
 void timer_arm_mcu_systick_for_aux_tx_flood_protection(void);
 void timer_start_timer(timer_id_te uid, uint32_t val);
+uint64_t driver_timer_get_rtc_timestamp_uint64t(void);
+uint32_t driver_timer_get_rtc_timestamp_uint32t(void);
 void timer_wait_for_aux_tx_flood_protection(void);
-void timer_get_calendar(calendar_t* calendar_pt);
 uint32_t timer_get_timer_val(timer_id_te uid);
 BOOL timer_get_mcu_systick(uint32_t* value);
-uint64_t driver_timer_get_time(void);
 void timer_initialize_timebase(void);
 uint32_t timer_get_systick(void);
 void timer_delay_ms(uint32_t ms);

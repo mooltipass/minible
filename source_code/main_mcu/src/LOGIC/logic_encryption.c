@@ -438,7 +438,7 @@ uint32_t logic_encryption_generate_totp(uint8_t *key, uint8_t key_len, uint8_t n
      * steps passed until now. Step size is highly recommended to be 30 second
      * and thus this is what we are supporting here.
      */
-    uint64_t unix_time = driver_timer_get_time();
+    uint64_t unix_time = driver_timer_get_rtc_timestamp_uint64t();
     uint64_t counter = unix_time / time_step;
     uint8_t remaining_secs = time_step - (unix_time % time_step);
 

@@ -1025,10 +1025,8 @@ void debug_debug_screen(void)
     uint32_t acc_int_nb_interrupts_latched = 0;
     uint32_t acc_int_nb_interrupts = 0;
     uint16_t bat_adc_result = 0;
-    calendar_t temp_calendar;
     uint32_t stat_times[6];    
-    timer_get_calendar(&temp_calendar);
-    uint32_t last_stat_s = temp_calendar.bit.SECOND;
+    uint32_t last_stat_s = driver_timer_get_rtc_timestamp_uint32t();
     uint16_t default_osculp_calib_val = SYSCTRL->OSCULP32K.bit.CALIB;
     
     while(1)
@@ -1061,9 +1059,6 @@ void debug_debug_screen(void)
             bat_adc_result = platform_io_get_voledin_conversion_result_and_trigger_conversion();
         }
         
-        /* Get calendar */
-        timer_get_calendar(&temp_calendar);
-        
         /* Check for Accelerometer SERCOM buffer overflow */   
         if (ACC_SERCOM->SPI.STATUS.bit.BUFOVF != 0)
         {
@@ -1083,15 +1078,15 @@ void debug_debug_screen(void)
         stat_times[4] = timer_get_systick();
         
         /* Stats latched at second changes */        
-        if (temp_calendar.bit.SECOND != last_stat_s)
+        if (driver_timer_get_rtc_timestamp_uint32t() != last_stat_s)
         {
             acc_int_nb_interrupts_latched = acc_int_nb_interrupts;
-            last_stat_s = temp_calendar.bit.SECOND;
+            last_stat_s = driver_timer_get_rtc_timestamp_uint32t();
             acc_int_nb_interrupts = 0;
         }
          
         /* Line 2: date */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, TRUE, "CURRENT TIME: %u:%u:%u %u/%u/%u", temp_calendar.bit.HOUR, temp_calendar.bit.MINUTE, temp_calendar.bit.SECOND, temp_calendar.bit.DAY, temp_calendar.bit.MONTH, temp_calendar.bit.YEAR + 2000);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, TRUE, "CURRENT TIMESTAMP: %u", driver_timer_get_rtc_timestamp_uint32t());
         
         /* Line 3: accelerometer */
         sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, TRUE, "ACC: %uHz X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_x, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_y, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_z);
@@ -1598,7 +1593,6 @@ void debug_nimh_status(void)
     power_consumption_log_t* consumption_log_pt = logic_power_get_power_consumption_log_pt();
     aux_mcu_message_t* temp_tx_message_pt;
     aux_mcu_message_t* temp_rx_message_pt;
-    uint16_t bat_adc_result = 0;
         
     while (TRUE)
     {        

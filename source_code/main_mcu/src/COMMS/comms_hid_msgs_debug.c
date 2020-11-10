@@ -334,20 +334,13 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             comms_aux_arm_rx_and_clear_no_comms();
             return;
         }
-        case HID_CMD_ID_GET_PLAT_TIME:
+        case HID_CMD_ID_GET_TIMESTAMP:
         {
             aux_mcu_message_t* temp_tx_message_pt;
-            calendar_t temp_calendar;
             
             /* Get empty message, fill it and send it */
-            temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 6);
-            timer_get_calendar(&temp_calendar);
-            temp_tx_message_pt->hid_message.payload[0] = temp_calendar.bit.HOUR;
-            temp_tx_message_pt->hid_message.payload[1] = temp_calendar.bit.MINUTE;
-            temp_tx_message_pt->hid_message.payload[2] = temp_calendar.bit.SECOND;
-            temp_tx_message_pt->hid_message.payload[3] = temp_calendar.bit.DAY;
-            temp_tx_message_pt->hid_message.payload[4] = temp_calendar.bit.MONTH;
-            temp_tx_message_pt->hid_message.payload[5] = temp_calendar.bit.YEAR;
+            temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 4);
+            temp_tx_message_pt->hid_message.payload_as_uint32[0] = driver_timer_get_rtc_timestamp_uint32t();
             comms_aux_mcu_send_message(temp_tx_message_pt);
             return;          
         }
