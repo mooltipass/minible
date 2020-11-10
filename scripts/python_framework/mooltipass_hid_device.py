@@ -265,16 +265,8 @@ class mooltipass_hid_device:
 				# Handle please retry message
 				if packet["cmd"] != CMD_ID_RETRY and packet["cmd"] != CMD_GET_DEVICE_STATUS:			
 					# Create timestamps
-					device_hour = struct.unpack('B', packet["data"][0:1])[0] - 2
-					device_minute = struct.unpack('B', packet["data"][1:2])[0]
-					device_second = struct.unpack('B', packet["data"][2:3])[0]
-					device_day = struct.unpack('B', packet["data"][3:4])[0]
-					device_month = struct.unpack('B', packet["data"][4:5])[0]
-					device_year = struct.unpack('B', packet["data"][5:6])[0]
-					device_year += 2000
-					device_time = datetime(device_year, device_month, device_day, device_hour, device_minute, device_second, tzinfo=timezone.utc)
+					device_timestamp = struct.unpack('I', packet["data"][0:4])[0]
 					utc_timestamp = round(datetime.timestamp(utc_now))
-					device_timestamp = round(datetime.timestamp(device_time))
 					ts_difference = utc_timestamp - device_timestamp
 					
 					# Store offset

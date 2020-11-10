@@ -51,6 +51,9 @@ volatile uint32_t sysTick;
 uint32_t timer_last_set_timestamp = 0;
 /* Fine adjustment for our time base */
 int16_t timer_fine_30mins_s_adjust = 0;
+#ifdef EMULATOR_BUILD
+uint32_t timer_emulator_fake_rtc_cnt = 0;
+#endif
 
 
 #ifndef EMULATOR_BUILD
@@ -224,6 +227,7 @@ void timer_initialize_timebase(void)
 */
 uint32_t driver_timer_get_rtc_timestamp_uint32t(void)
 {
+#ifndef EMULATOR_BUILD
     /* Get current time stamp */
     while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
     uint32_t current_timestamp = RTC->MODE0.COUNT.reg;
@@ -231,6 +235,9 @@ uint32_t driver_timer_get_rtc_timestamp_uint32t(void)
     /* Add timestamp from 1/1/2020 */
     current_timestamp += 1577836800;
     return current_timestamp;
+#else
+    return timer_emulator_fake_rtc_cnt + 1577836800;
+#endif
 }
 
 /*!	\fn		driver_timer_get_rtc_timestamp_uin32t(void)
@@ -239,6 +246,7 @@ uint32_t driver_timer_get_rtc_timestamp_uint32t(void)
 */
 uint64_t driver_timer_get_rtc_timestamp_uint64t(void)
 {
+#ifndef EMULATOR_BUILD
     /* Get current time stamp */
     while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
     uint64_t current_timestamp = RTC->MODE0.COUNT.reg;
@@ -246,6 +254,9 @@ uint64_t driver_timer_get_rtc_timestamp_uint64t(void)
     /* Add timestamp from 1/1/2020 */
     current_timestamp += 1577836800;
     return current_timestamp;
+#else
+    return (uint64_t)timer_emulator_fake_rtc_cnt + 1577836800;
+#endif
 }
 
 /*!	\fn		driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
@@ -259,13 +270,14 @@ uint64_t driver_timer_get_rtc_timestamp_uint64t(void)
 */
 void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
 {
-#ifndef EMULATOR_BUILD
     uint8_t is_curr_year_leap = IS_LEAP_YEAR(year);
     uint32_t num_days = 0;
     
+#ifndef EMULATOR_BUILD
     /* Get current time stamp */
     while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
     uint32_t current_timestamp = RTC->MODE0.COUNT.reg;
+#endif
 
     /* UNIX time does NOT include LEAP seconds. See https://pubs.opengroup.org/onlinepubs/9699919799/xrat/V4_xbd_chap04.html#tag_21_04_16 */
     /* use RTC timer to count number of seconds since 1/1/2020 */
@@ -290,6 +302,7 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
     kinda_unix_time += minute * 60;
     kinda_unix_time += second;
     
+#ifndef EMULATOR_BUILD
     /* Store timestamp */
     while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
     RTC->MODE0.COUNT.reg = kinda_unix_time;
@@ -313,22 +326,13 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
         /* Reset default calibration value */
         SYSCTRL->OSCULP32K.bit.CALIB = 0x10;
     }
+#endif
     
     /* Store last set timestamp */
     timer_last_set_timestamp = kinda_unix_time;
-#else
-    struct tm date;
-    time_t rtc_time;
-    date.tm_sec = second;
-    date.tm_min = minute;
-    date.tm_hour = hour;
-    date.tm_mday = day;
-    date.tm_mon = month-1;
-    date.tm_year = year-1900;
-    date.tm_isdst = 0;
-
-    rtc_time = mktime(&date);
-    rtc_offset = (int)rtc_time - (int)time(NULL);
+    
+#ifdef EMULATOR_BUILD
+    timer_emulator_fake_rtc_cnt = timer_last_set_timestamp;
 #endif
 }
 
@@ -351,6 +355,10 @@ void timer_ms_tick(void)
             }
         }
     }
+    
+    #ifdef EMULATOR_BUILD
+    timer_emulator_fake_rtc_cnt++;
+    #endif
 }
 
 #ifndef EMULATOR_BUILD
