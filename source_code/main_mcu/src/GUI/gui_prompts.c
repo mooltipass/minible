@@ -567,8 +567,8 @@ void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
     
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
-    timer_start_timer(TIMER_WAIT_FUNCTS, 3000);
-    while ((timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK))
+    uint16_t temp_timer_id = timer_get_and_start_timer(3000);
+    while ((timer_has_allocated_timer_expired(temp_timer_id, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK))
     {
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         logic_accelerometer_routine();
@@ -587,6 +587,9 @@ void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+i, FALSE);
         }
     }
+
+    /* Free timer */
+    timer_deallocate_timer(temp_timer_id);
 }
 
 /*! \fn     gui_prompts_get_char_to_display(uint8_t const * current_pin, uint8_t index)

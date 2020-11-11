@@ -328,9 +328,9 @@ void debug_kickstarter_video(void)
         /* One full animation */
         for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
         {
-            timer_start_timer(TIMER_WAIT_FUNCTS, 88);
+            timer_start_timer(TIMER_ANIMATIONS, 88);
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
-            while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
+            while(timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_RUNNING)
             {
                 logic_accelerometer_routine();
                 
@@ -666,9 +666,9 @@ void debug_test_battery(void)
         /* One full animation */
         for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
         {
-            timer_start_timer(TIMER_WAIT_FUNCTS, 28);
+            timer_start_timer(TIMER_ANIMATIONS, 28);
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
-            while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING)
+            while(timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_RUNNING)
             {
                 /* power routines, new battery level acking in case we get a new one */
                 if (logic_power_check_power_switch_and_battery(FALSE) == POWER_ACT_NEW_BAT_LEVEL)
@@ -983,8 +983,8 @@ void debug_language_test(void)
             sh1122_put_string_xy(&plat_oled_descriptor, 50, 50, OLED_ALIGN_LEFT, temp_string, FALSE);
             
             /* Return ? */
-            timer_start_timer(TIMER_WAIT_FUNCTS, 2000);
-            while (timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED)
+            timer_start_timer(TIMER_ANIMATIONS, 2000);
+            while (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) != TIMER_EXPIRED)
             {
                 if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
                 {

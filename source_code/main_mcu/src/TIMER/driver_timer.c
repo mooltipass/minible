@@ -30,6 +30,7 @@
 #include "platform_io.h"
 #include "logic_user.h"
 #include "inputs.h"
+#include "main.h"
 
 #ifdef EMULATOR_BUILD
 #include "emulator.h"
@@ -40,6 +41,8 @@
 static int rtc_offset;
 #endif
 /* Timer array */
+#define NUMBER_OF_ALLOCATABLE_TIMERS    3
+volatile allocatedTimerEntry_t context_allocatable_timers[NUMBER_OF_ALLOCATABLE_TIMERS];
 volatile timerEntry_t context_timers[TOTAL_NUMBER_OF_TIMERS];
 /* Inactivity timer remaining ticks */
 volatile uint16_t timer_inactivity_30mins_tick_remain = 0;
@@ -356,6 +359,18 @@ void timer_ms_tick(void)
         }
     }
     
+    // Loop through the allocated timers
+    for (i = 0; i < NUMBER_OF_ALLOCATABLE_TIMERS; i++)
+    {
+        if (context_allocatable_timers[i].timer_val != 0)
+        {
+            if (context_allocatable_timers[i].timer_val-- == 1)
+            {
+                context_allocatable_timers[i].flag = TIMER_EXPIRED;
+            }
+        }
+    }
+    
     #ifdef EMULATOR_BUILD
     timer_emulator_fake_rtc_cnt++;
     #endif
@@ -456,6 +471,93 @@ timer_flag_te timer_has_timer_expired(timer_id_te uid, BOOL clear)
     }
 }
 
+/*!	\fn		timer_has_allocated_timer_expired(uint16_t uid, BOOL clear)
+*	\brief	Know if a timer expired and clear the flag if so
+*   \param  uid     Unique ID
+*   \param  clear   Boolean to say if we clear the flag
+*   \return TIMER_EXPIRED or TIMER_RUNNING (see enum)
+*/
+timer_flag_te timer_has_allocated_timer_expired(uint16_t uid, BOOL clear)
+{
+    // Check for valid uid
+    if (uid >= NUMBER_OF_ALLOCATABLE_TIMERS)
+    {
+        main_reboot();
+    }
+    
+    // Compare & write is done in one cycle
+    if (context_allocatable_timers[uid].flag == TIMER_EXPIRED)
+    {
+        if (clear == TRUE)
+        {
+            context_allocatable_timers[uid].flag = TIMER_RUNNING;
+        }
+        return TIMER_EXPIRED;
+    }
+    else
+    {
+        return TIMER_RUNNING;
+    }
+}
+
+/*!	\fn		timer_start_timer(timer_id_te uid, uint32_t val)
+*	\brief	Get and start a timer
+*   \param  val Delay in ms
+*   \return A timer number, to be freed later
+*/
+uint16_t timer_get_and_start_timer(uint32_t val)
+{
+    /* Loop over our timers */
+    for (uint16_t i = 0; i < NUMBER_OF_ALLOCATABLE_TIMERS; i++)
+    {
+        /* Check for allocation */
+        if (context_allocatable_timers[i].allocated == FALSE)
+        {
+            // Compare is done in one cycle
+            if (context_allocatable_timers[i].timer_val != val)
+            {
+                cpu_irq_enter_critical();
+                
+                context_allocatable_timers[i].timer_val = val;
+                if (val == 0)
+                {
+                    context_allocatable_timers[i].flag = TIMER_EXPIRED;
+                }
+                else
+                {
+                    context_allocatable_timers[i].flag = TIMER_RUNNING;
+                }
+                
+                cpu_irq_leave_critical();
+            }
+            
+            /* Set allocated flag, return uid */
+            context_allocatable_timers[i].allocated = TRUE;
+            return i;
+        }
+    }
+    
+    /* No timer found, reboot */
+    main_reboot();
+    return 0;
+}
+
+/*!	\fn		timer_deallocate_timer(uint16_t timer_id)
+*	\brief	Deallocate previously provided timer
+*   \param  timer_id    The timer id
+*/
+void timer_deallocate_timer(uint16_t timer_id)
+{
+    // Check for valid uid
+    if (timer_id >= NUMBER_OF_ALLOCATABLE_TIMERS)
+    {
+        main_reboot();
+    }
+    
+    // Reset flag
+    context_allocatable_timers[timer_id].allocated = FALSE;
+}
+
 /*!	\fn		timer_start_timer(timer_id_te uid, uint32_t val)
 *	\brief	Start timer
 *   \param  uid Unique ID
@@ -499,8 +601,8 @@ uint32_t timer_get_timer_val(timer_id_te uid)
 void timer_delay_ms(uint32_t ms)
 {
 #ifndef BOOTLOADER
-    timer_start_timer(TIMER_WAIT_FUNCTS, ms+1);
-    while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) != TIMER_EXPIRED);
+    timer_start_timer(TIMER_WAITING_FUNCT, ms+1);
+    while(timer_has_timer_expired(TIMER_WAITING_FUNCT, TRUE) != TIMER_EXPIRED);
 #else
     DELAYMS(ms);
 #endif
