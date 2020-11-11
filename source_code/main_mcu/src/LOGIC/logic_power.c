@@ -803,9 +803,9 @@ RET_TYPE logic_power_battery_recondition(void)
     sh1122_init_display(&plat_oled_descriptor, TRUE);
 
     /* Battery rest */
-    timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 10*60*1000);
+    uint16_t temp_timer_id = timer_get_and_start_timer(10*60*1000);
     gui_prompts_display_information_on_screen(RECOND_REST_TEXT_ID, DISP_MSG_INFO);
-    while (timer_has_timer_expired(TIMER_DEVICE_ACTION_TIMEOUT, TRUE) != TIMER_EXPIRED)
+    while (timer_has_allocated_timer_expired(temp_timer_id, TRUE) != TIMER_EXPIRED)
     {
         /* Idle animation */
         if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
@@ -830,9 +830,13 @@ RET_TYPE logic_power_battery_recondition(void)
             platform_io_power_up_oled(FALSE);
             sh1122_init_display(&plat_oled_descriptor, TRUE);
             gui_dispatcher_get_back_to_current_screen();
+            timer_deallocate_timer(temp_timer_id);
             return RETURN_NOK;
         }
     }
+    
+    /* Free timer */
+    timer_deallocate_timer(temp_timer_id);
     
     /* Actually start charging */
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHG_SLW_STRT);

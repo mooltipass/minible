@@ -47,16 +47,15 @@ typedef RTC_MODE2_CLOCK_Type calendar_t;
 
 /* Enums */
 typedef enum {  TIMER_WAITING_FUNCT = 0, 
-                TIMER_USER_INTERACTION = 2, 
-                TIMER_SCROLLING = 3, 
-                TIMER_ANIMATIONS = 4, 
-                TIMER_SCREEN = 5, 
-                TIMER_CHECK_PASSWORD = 6, 
-                TIMER_BATTERY_ANIM = 7, 
-                TIMER_HANDED_MODE_CHANGE = 8, 
-                TIMER_ADC_WATCHDOG = 10, 
-                TIMER_DEVICE_ACTION_TIMEOUT = 11, 
-                TIMER_AUX_MCU_PING = 12,
+                TIMER_USER_INTERACTION = 1, 
+                TIMER_SCROLLING = 2, 
+                TIMER_ANIMATIONS = 3, 
+                TIMER_SCREEN = 4, 
+                TIMER_CHECK_PASSWORD = 5, 
+                TIMER_BATTERY_ANIM = 6, 
+                TIMER_HANDED_MODE_CHANGE = 7, 
+                TIMER_ADC_WATCHDOG = 8, 
+                TIMER_AUX_MCU_PING = 9,
                 TOTAL_NUMBER_OF_TIMERS} timer_id_te;
 typedef enum {TIMER_EXPIRED = 0, TIMER_RUNNING = 1} timer_flag_te;
     

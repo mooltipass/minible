@@ -94,7 +94,7 @@ void gui_prompts_display_tutorial(void)
     inputs_clear_detections();    
     
     /* Set timer */
-    timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 30000);
+    uint16_t temp_timer_id = timer_get_and_start_timer(30000);
     
     /* Scroll through the pages */
     while (current_tutorial_page < 4)
@@ -173,7 +173,7 @@ void gui_prompts_display_tutorial(void)
         }
         
         /* Battery powered, no action, switch off */
-        if ((timer_has_timer_expired(TIMER_DEVICE_ACTION_TIMEOUT, FALSE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
+        if ((timer_has_allocated_timer_expired(temp_timer_id, FALSE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
         {
             /* Switch off OLED, switch off platform */
             platform_io_power_down_oled(); timer_delay_ms(200);
@@ -195,7 +195,7 @@ void gui_prompts_display_tutorial(void)
         /* Reset timer if action detected */
         if (detection_result != WHEEL_ACTION_NONE)
         {
-            timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 30000);
+            timer_rearm_allocated_timer(temp_timer_id, 30000);
         }
             
         /* Next page */
@@ -231,6 +231,9 @@ void gui_prompts_display_tutorial(void)
             redraw_needed = TRUE;
         }        
     }  
+
+    /* Free timer */
+    timer_deallocate_timer(temp_timer_id);
 }
 
 /*! \fn     gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type)
@@ -422,8 +425,8 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
     
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
-    timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 3000);
-    while ((timer_has_timer_expired(TIMER_DEVICE_ACTION_TIMEOUT, FALSE) != TIMER_EXPIRED) || (i != gui_prompts_notif_idle_anim_length[message_type]-1))
+    uint16_t temp_timer_id = timer_get_and_start_timer(3000);
+    while ((timer_has_allocated_timer_expired(temp_timer_id, FALSE) != TIMER_EXPIRED) || (i != gui_prompts_notif_idle_anim_length[message_type]-1))
     {
         /* Deal with incoming messages but do not deal with them */
         comms_msg_rcvd_te rcvd_message = comms_aux_mcu_routine(MSG_RESTRICT_ALL); 
@@ -431,6 +434,9 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
         /* Did we receive a message worthy of stopping the animation? */
         if ((allow_scroll_or_msg_to_interrupt != FALSE) && (rcvd_message != NO_MSG_RCVD) && (rcvd_message != EVENT_MSG_RCVD) && (rcvd_message != HID_DBG_MSG_RCVD))
         {
+            /* Free timer */
+            timer_deallocate_timer(temp_timer_id);
+            
             return GUI_INFO_DISP_RET_SCROLL_OR_MSG;
         }
         
@@ -444,20 +450,32 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
         wheel_return = inputs_get_wheel_action(FALSE, FALSE);
         if (wheel_return == WHEEL_ACTION_SHORT_CLICK)
         {
+            /* Free timer */
+            timer_deallocate_timer(temp_timer_id);
+            
             return GUI_INFO_DISP_RET_CLICK;
         }
         else if (wheel_return == WHEEL_ACTION_LONG_CLICK)
         {
+            /* Free timer */
+            timer_deallocate_timer(temp_timer_id);
+            
             return GUI_INFO_DISP_RET_LONG_CLICK;
         }
         else if ((allow_scroll_or_msg_to_interrupt != FALSE) && ((wheel_return == WHEEL_ACTION_UP) || (wheel_return == WHEEL_ACTION_DOWN)))
         {
+            /* Free timer */
+            timer_deallocate_timer(temp_timer_id);
+            
             return GUI_INFO_DISP_RET_SCROLL_OR_MSG;
         }
         
         /* Card insertion status change */
         if (card_absent != smartcard_low_level_is_smc_absent())
         {
+            /* Free timer */
+            timer_deallocate_timer(temp_timer_id);
+            
             return GUI_INFO_DISP_RET_CARD_CHANGE;
         }
         
@@ -475,6 +493,9 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+i, FALSE);                 
         }
     }
+    
+    /* Free timer */
+    timer_deallocate_timer(temp_timer_id);
     
     /* Normal animation timeout */
     return GUI_INFO_DISP_RET_OK;
@@ -497,8 +518,8 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
     
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
-    timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 30000);
-    while (timer_has_timer_expired(TIMER_DEVICE_ACTION_TIMEOUT, TRUE) != TIMER_EXPIRED)
+    uint16_t temp_timer_id = timer_get_and_start_timer(30000);
+    while (timer_has_allocated_timer_expired(temp_timer_id, TRUE) != TIMER_EXPIRED)
     {
         comms_msg_rcvd_te received_packet = comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BOND_STORE);
         if (received_packet == BLE_BOND_STORE_RCVD)
@@ -512,7 +533,7 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
             gui_prompts_display_information_on_screen(PAIRING_WAIT_TEXT_ID, DISP_MSG_ACTION);     
             
             /* Add an extra 10 seconds for pairing to finish */
-            timer_start_timer(TIMER_DEVICE_ACTION_TIMEOUT, 10000);   
+            timer_rearm_allocated_timer(temp_timer_id, 10000);   
         }
         
         /* Accelerometer stuff */
@@ -525,12 +546,18 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
         wheel_return = inputs_get_wheel_action(FALSE, FALSE);
         if (wheel_return == WHEEL_ACTION_LONG_CLICK)
         {
+            /* Free timer */
+            timer_deallocate_timer(temp_timer_id);
+            
             return GUI_INFO_DISP_RET_LONG_CLICK;
         }
         
         /* Card insertion status change */
         if (card_absent != smartcard_low_level_is_smc_absent())
         {
+            /* Free timer */
+            timer_deallocate_timer(temp_timer_id);
+            
             return GUI_INFO_DISP_RET_CARD_CHANGE;
         }
         
@@ -548,6 +575,9 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[DISP_MSG_ACTION]+i, FALSE);                 
         }
     }
+    
+    /* Free timer */
+    timer_deallocate_timer(temp_timer_id);
 
     /* Normal animation timeout */
     return GUI_INFO_DISP_RET_OK;
