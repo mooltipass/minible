@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    50
+#define FW_MINOR    51
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -145,6 +145,8 @@
         - battery status improvement
 - v0.50:- small delay after enabling bluetooth
         - improved battery charging & status reading
+- v0.51:- using allocated timers for timeouts (002 error fix)
+        - RTC switched to uint32_t mode
 */
 
 /**************** SETUP DEFINES ****************/
