@@ -1067,6 +1067,8 @@ aux_mcu_message_t* comms_aux_mcu_wait_for_aux_event(uint16_t aux_mcu_event)
 */
 RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, uint16_t expected_packet, BOOL single_try, int16_t expected_event)
 {
+    uint16_t temp_timer_id;
+    
     /* Bool for the do{} */
     BOOL reloop = FALSE;
     
@@ -1082,11 +1084,11 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, uint16_
     /* Arm timer */
     if (single_try == FALSE)
     {
-        timer_start_timer(TIMER_TIMEOUT_FUNCTS, AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS);
+        temp_timer_id = timer_get_and_start_timer(AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS);
     }
     else
     {
-        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 0);
+        temp_timer_id = timer_get_and_start_timer(0);
     }
 
     do
@@ -1100,12 +1102,15 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, uint16_
         while((dma_check_return == FALSE) && (timer_flag_return == TIMER_RUNNING))
         {
             dma_check_return = dma_aux_mcu_check_and_clear_dma_transfer_flag();
-            timer_flag_return = timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE);
+            timer_flag_return = timer_has_allocated_timer_expired(temp_timer_id, FALSE);
         }
 
         /* Did the timer expire? */
         if (dma_check_return == FALSE)
         {
+            /* Free timer */
+            timer_deallocate_timer(temp_timer_id);
+            
             return RETURN_NOK;
         }
 
@@ -1192,6 +1197,9 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, uint16_
 
     /* Store pointer to message */
     *rx_message_pt_pt = &aux_mcu_receive_message;
+    
+    /* Free timer */
+    timer_deallocate_timer(temp_timer_id);
 
     /* Return OK */
     return RETURN_OK;

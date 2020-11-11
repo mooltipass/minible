@@ -314,11 +314,11 @@ void main_platform_init(void)
     {
         /* Start continuous tone, wait for test to press long click or timeout to die */
         functional_rf_testing_start();
-        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50000);
+        uint16_t temp_timer_id = timer_get_and_start_timer(50000);
         while (inputs_get_wheel_action(FALSE, TRUE) != WHEEL_ACTION_LONG_CLICK)
         {
             /* Timer timeout, switch off platform */
-            if ((timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
+            if ((timer_has_allocated_timer_expired(temp_timer_id, FALSE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
             {
                 /* Switch off OLED, switch off platform */
                 platform_io_power_down_oled(); timer_delay_ms(200);
@@ -331,6 +331,7 @@ void main_platform_init(void)
             /* Comms functions */
             comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         }
+        timer_deallocate_timer(temp_timer_id);
         custom_fs_set_device_flag_value(RF_TESTING_PASSED_FLAG_ID, TRUE);
         sh1122_clear_current_screen(&plat_oled_descriptor);
         #ifdef OLED_INTERNAL_FRAME_BUFFER
@@ -343,7 +344,7 @@ void main_platform_init(void)
     if ((custom_fs_init_return != RETURN_OK) || (bundle_integrity_check_return != RETURN_OK))
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
-        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 30000);
+        uint16_t temp_timer_id = timer_get_and_start_timer(30000);
         
         /* Wait to load bundle from USB */
         while(1)
@@ -354,7 +355,7 @@ void main_platform_init(void)
             /* If we received any message, reset timer */
             if (msg_received != NO_MSG_RCVD)
             {
-                timer_start_timer(TIMER_TIMEOUT_FUNCTS, 30000);
+                timer_rearm_allocated_timer(temp_timer_id, 30000);
             }            
             
             /* Check for reindex bundle message */
@@ -372,13 +373,16 @@ void main_platform_init(void)
             logic_power_check_power_switch_and_battery(FALSE);
             
             /* Timer timeout, switch off platform */
-            if ((timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
+            if ((timer_has_allocated_timer_expired(temp_timer_id, FALSE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
             {
                 /* Switch off OLED, switch off platform */
                 platform_io_power_down_oled(); timer_delay_ms(200);
                 platform_io_disable_switch_and_die();
             }
         }
+        
+        /* Free timer */
+        timer_deallocate_timer(temp_timer_id);
     }
     
     /* Set settings that may not have been set to an initial value (after going into the bootloader for example) */

@@ -156,19 +156,25 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     }
     
     /* Arm timer */
-    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 100);
+    uint16_t temp_timer_id = timer_get_and_start_timer(100);
     
     /* Loop until timer is running */
-    while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING)
+    while (timer_has_allocated_timer_expired(temp_timer_id, TRUE) == TIMER_RUNNING)
     {
         /* Check for data received */
         if (lis2hh12_check_data_received_flag_and_arm_other_transfer(descriptor_pt, TRUE) != FALSE)
         {
+            /* Free timer */
+            timer_deallocate_timer(temp_timer_id);
+            
             return RETURN_OK;
         }
         
         timer_delay_ms(1);
     }
+    
+    /* Free timer */
+    timer_deallocate_timer(temp_timer_id);
     
     /* Timeout */    
     return RETURN_NOK;

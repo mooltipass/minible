@@ -1695,7 +1695,7 @@ void debug_nimh_charging(void)
     }
     
     /* Arm charge status request timer */
-    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 1000);
+    uint16_t temp_timer_id = timer_get_and_start_timer(1000);
     
     /* Local vars */
     uint16_t bat_mv = 0;
@@ -1709,7 +1709,7 @@ void debug_nimh_charging(void)
         }
         
         /* Send a packet to aux MCU? */
-        if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_EXPIRED)
+        if (timer_has_allocated_timer_expired(temp_timer_id, TRUE) == TIMER_EXPIRED)
         {            
             /* Generate our packet */
             temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_NIMH_CHARGE);
@@ -1788,17 +1788,21 @@ void debug_nimh_charging(void)
                 {
                     if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
                     {
+                        /* Free timer */
+                        timer_deallocate_timer(temp_timer_id);
                         return;
                     }
                 }
             }
             
             /* Arm charge status request timer */
-            timer_start_timer(TIMER_TIMEOUT_FUNCTS, 1000);       
+            timer_rearm_allocated_timer(temp_timer_id, 1000);       
         }
         
         if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
         {
+            /* Free timer */
+            timer_deallocate_timer(temp_timer_id);
             return;
         }
     }

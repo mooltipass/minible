@@ -47,7 +47,6 @@ typedef RTC_MODE2_CLOCK_Type calendar_t;
 
 /* Enums */
 typedef enum {  TIMER_WAITING_FUNCT = 0, 
-                TIMER_TIMEOUT_FUNCTS = 1, 
                 TIMER_USER_INTERACTION = 2, 
                 TIMER_SCROLLING = 3, 
                 TIMER_ANIMATIONS = 4, 
@@ -55,7 +54,6 @@ typedef enum {  TIMER_WAITING_FUNCT = 0,
                 TIMER_CHECK_PASSWORD = 6, 
                 TIMER_BATTERY_ANIM = 7, 
                 TIMER_HANDED_MODE_CHANGE = 8, 
-                TIMER_FREE_TO_BE_USED = 9, 
                 TIMER_ADC_WATCHDOG = 10, 
                 TIMER_DEVICE_ACTION_TIMEOUT = 11, 
                 TIMER_AUX_MCU_PING = 12,
@@ -94,6 +92,7 @@ timer_flag_te timer_has_allocated_timer_expired(uint16_t uid, BOOL clear);
 void timer_start_logoff_timer(uint16_t nb_20mins_ticks_before_lock);
 timer_flag_te timer_has_timer_expired(timer_id_te uid, BOOL clear);
 void timer_arm_mcu_systick_for_aux_tx_flood_protection(void);
+void timer_rearm_allocated_timer(uint16_t uid, uint32_t val);
 void timer_start_timer(timer_id_te uid, uint32_t val);
 uint64_t driver_timer_get_rtc_timestamp_uint64t(void);
 uint32_t driver_timer_get_rtc_timestamp_uint32t(void);

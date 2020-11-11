@@ -241,8 +241,8 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     
     /* Test accelerometer */
     sh1122_put_error_string(&plat_oled_descriptor, u"Testing accelerometer...");
-    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 2000);
-    while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) != TIMER_EXPIRED)
+    uint16_t temp_timer_id = timer_get_and_start_timer(2000);
+    while (timer_has_allocated_timer_expired(temp_timer_id, TRUE) != TIMER_EXPIRED)
     {
         if (logic_accelerometer_routine() == ACC_FAILING)
         {
@@ -253,6 +253,9 @@ void functional_testing_start(BOOL clear_first_boot_flag)
             while(1);
         }
     }
+    
+    /* Free timer */
+    timer_deallocate_timer(temp_timer_id);
     
     /* Ask for card, tests all SMC related signals */
     sh1122_clear_current_screen(&plat_oled_descriptor);

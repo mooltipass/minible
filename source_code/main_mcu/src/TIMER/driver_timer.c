@@ -471,8 +471,8 @@ timer_flag_te timer_has_timer_expired(timer_id_te uid, BOOL clear)
     }
 }
 
-/*!	\fn		timer_has_allocated_timer_expired(uint16_t uid, BOOL clear)
-*	\brief	Know if a timer expired and clear the flag if so
+/*! \fn     timer_has_allocated_timer_expired(uint16_t uid, BOOL clear)
+*   \brief  Know if a timer expired and clear the flag if so
 *   \param  uid     Unique ID
 *   \param  clear   Boolean to say if we clear the flag
 *   \return TIMER_EXPIRED or TIMER_RUNNING (see enum)
@@ -500,10 +500,43 @@ timer_flag_te timer_has_allocated_timer_expired(uint16_t uid, BOOL clear)
     }
 }
 
-/*!	\fn		timer_start_timer(timer_id_te uid, uint32_t val)
-*	\brief	Get and start a timer
+/*! \fn     timer_rearm_allocated_timer(uint16_t uid, BOOL clear)
+*   \brief	Rearm an allocated timer
+*   \param  uid Allocated timer id
+*   \param  val Delay in ms
+*/
+void timer_rearm_allocated_timer(uint16_t uid, uint32_t val)
+{
+    // Check for valid uid
+    if (uid >= NUMBER_OF_ALLOCATABLE_TIMERS)
+    {
+        main_reboot();
+    }
+    
+    // Compare is done in one cycle
+    if (context_allocatable_timers[uid].timer_val != val)
+    {
+        cpu_irq_enter_critical();
+        
+        context_allocatable_timers[uid].timer_val = val;
+        if (val == 0)
+        {
+            context_allocatable_timers[uid].flag = TIMER_EXPIRED;
+        }
+        else
+        {
+            context_allocatable_timers[uid].flag = TIMER_RUNNING;
+        }
+        
+        cpu_irq_leave_critical();
+    }
+}
+
+/*! \fn     timer_get_and_start_timer(uint32_t val)
+*   \brief	Get and start a timer
 *   \param  val Delay in ms
 *   \return A timer number, to be freed later
+*   \note   To not f*ck everything up, allocate and free in the same calling function
 */
 uint16_t timer_get_and_start_timer(uint32_t val)
 {
