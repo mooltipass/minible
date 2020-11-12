@@ -116,11 +116,14 @@ void TCC2_Handler(void)
         }
         
         /* Timestamp adjustment */
-        while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
-        uint32_t current_timestamp = RTC->MODE0.COUNT.reg;
-        current_timestamp -= timer_fine_30mins_s_adjust;
-        while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
-        RTC->MODE0.COUNT.reg = current_timestamp;
+        if (timer_fine_30mins_s_adjust != 0)
+        {
+            while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
+            uint32_t current_timestamp = RTC->MODE0.COUNT.reg;
+            current_timestamp -= timer_fine_30mins_s_adjust;
+            while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
+            RTC->MODE0.COUNT.reg = current_timestamp;
+        }
     }
     #endif    
 }
@@ -276,6 +279,9 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
     uint8_t is_curr_year_leap = IS_LEAP_YEAR(year);
     uint32_t num_days = 0;
     
+    /* Proactively disable timestamp adjustment in case an interrupt was to happen now */
+    timer_fine_30mins_s_adjust = 0;
+    
 #ifndef EMULATOR_BUILD
     /* Get current time stamp */
     while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
@@ -320,6 +326,11 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
         int16_t calib_register_offset = nb_seconds_difference/113;
         SYSCTRL->OSCULP32K.bit.CALIB += calib_register_offset;
         nb_seconds_difference -= calib_register_offset*113;
+        
+        /* Re-align the TCC2 count as it has a period of 30mins and this is be called every hour */
+        /* It's not important if we miss a 30minutes interrupt as it's mainly used to wake up device */
+        while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_COUNT);
+        TCC2->COUNT.bit.COUNT = 0;
         
         /* Fine correction */
         timer_fine_30mins_s_adjust = nb_seconds_difference/2;
