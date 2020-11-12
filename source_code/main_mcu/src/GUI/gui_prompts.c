@@ -524,6 +524,9 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
         comms_msg_rcvd_te received_packet = comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BOND_STORE);
         if (received_packet == BLE_BOND_STORE_RCVD)
         {
+            /* Free timer */
+            timer_deallocate_timer(temp_timer_id);
+            
             /* We received a bonding storage message */
             return GUI_INFO_DISP_RET_BLE_PAIRED;
         }
