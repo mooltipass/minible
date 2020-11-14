@@ -1086,7 +1086,7 @@ void debug_debug_screen(void)
         }
          
         /* Line 2: date */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, TRUE, "TIMESTAMP: %u, ADJ: %d", driver_timer_get_rtc_timestamp_uint32t(), timer_get_fine_30mins_s_adjust());
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, TRUE, "TIMESTAMP: %u, ADJ: %d", driver_timer_get_rtc_timestamp_uint32t(), timer_get_fine_adjust());
         
         /* Line 3: accelerometer */
         sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, TRUE, "ACC: %uHz X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_x, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_y, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_z);

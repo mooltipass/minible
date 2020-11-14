@@ -53,7 +53,9 @@ volatile uint32_t sysTick;
 /* timestamp set at the last "set date" message */
 uint32_t timer_last_set_timestamp = 0;
 /* Fine adjustment for our time base */
-volatile int16_t timer_fine_30mins_s_adjust = 0;
+volatile int32_t timer_accumulated_corrections = 0;
+volatile uint32_t timer_nb_30mins_interrupts = 0;
+volatile int32_t timer_fine_adjust = 0;
 #ifdef EMULATOR_BUILD
 uint32_t timer_emulator_fake_rtc_cnt = 0;
 #endif
@@ -116,37 +118,35 @@ void TCC2_Handler(void)
         }
         
         /* Timestamp adjustment */
-        if (timer_fine_30mins_s_adjust != 0)
+        if (((timer_nb_30mins_interrupts & 0x01) == 0) && ((timer_fine_adjust & 0x01) != 0))
         {
-            while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
-            uint32_t current_timestamp = RTC->MODE0.COUNT.reg;
-            current_timestamp -= timer_fine_30mins_s_adjust;
-            while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
-            RTC->MODE0.COUNT.reg = current_timestamp;
+            timer_accumulated_corrections += 1;
         }
+        timer_accumulated_corrections += timer_fine_adjust/2;
+        timer_nb_30mins_interrupts++;
     }
     #endif    
 }
 
 #endif
 
-/*! \fn     timer_get_fine_30mins_s_adjust(void)
+/*! \fn     timer_get_fine_adjust(void)
 *   \brief  Get current 30mins sec adjusts
 *   \return By how many secs we adjust the rtc every 30s
 */
-int16_t timer_get_fine_30mins_s_adjust(void)
+int16_t timer_get_fine_adjust(void)
 {
-    return timer_fine_30mins_s_adjust;
+    return timer_fine_adjust;
 }
 
-/*! \fn     timer_start_logoff_timer(uint16_t nb_20mins_ticks_before_lock)
+/*! \fn     timer_start_logoff_timer(uint16_t nb_30mins_ticks_before_lock)
 *   \brief  Start inactivity logoff timer
-*   \param  nb_20mins_ticks_before_lock     Number of 20mins ticks before lock
+*   \param  nb_30mins_ticks_before_lock     Number of 30mins ticks before lock
 */
-void timer_start_logoff_timer(uint16_t nb_20mins_ticks_before_lock)
+void timer_start_logoff_timer(uint16_t nb_30mins_ticks_before_lock)
 {
     cpu_irq_enter_critical();
-    timer_inactivity_30mins_tick_remain = nb_20mins_ticks_before_lock + 1;
+    timer_inactivity_30mins_tick_remain = nb_30mins_ticks_before_lock + 1;
     cpu_irq_leave_critical();
 }
 
@@ -222,10 +222,10 @@ void timer_initialize_timebase(void)
     TCC0->INTENSET.reg = TCC_INTENSET_OVF;                              // Enable overflow interrupt
     NVIC_EnableIRQ(TCC0_IRQn);                                          // Enable int
     
-    /* Setup TCC2 for 30 minutes (!) interrupt */
+    /* Setup TCC2 for 34 minutes (!) interrupt */
     PM->APBCMASK.bit.TCC2_ = 1;                                         // Enable APBC clock for TCC2
     while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_PER);                       // Wait for sync
-    TCC2->PER.reg = TCC_PER_PER((60*30)-1);                             // Set period to be 1024/1024/60/30 = 30mins
+    TCC2->PER.reg = TCC_PER_PER((SET_DATE_MSG_INTERVAL_S/2)-1);         // Set period to be 1024/1024/2048 = 34mins
     tcc_ctrl_reg.reg = TCC_CTRLA_ENABLE;                                // Enable tcc0
     tcc_ctrl_reg.bit.RUNSTDBY = 1;                                      // Run during standby
     tcc_ctrl_reg.bit.PRESCALER = TCC_CTRLA_PRESCALER_DIV1024_Val;       // 1024 prescaling to have a 1sec tick
@@ -243,12 +243,27 @@ void timer_initialize_timebase(void)
 uint32_t driver_timer_get_rtc_timestamp_uint32t(void)
 {
 #ifndef EMULATOR_BUILD
+    cpu_irq_enter_critical();
+    
     /* Get current time stamp */
     while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
     uint32_t current_timestamp = RTC->MODE0.COUNT.reg;
     
     /* Add timestamp from 1/1/2020 */
     current_timestamp += 1577836800;
+    
+    /* Add correction: coarse */
+    current_timestamp += timer_accumulated_corrections;
+    
+    /* Add correction: fine */
+    while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_COUNT);
+    int32_t timer_counter_val = (int32_t)TCC2->COUNT.bit.COUNT;
+    
+    /* Scale it down */
+    timer_counter_val = timer_counter_val * timer_fine_adjust / 2 / SET_DATE_MSG_INTERVAL_S;
+    current_timestamp += timer_counter_val;
+    
+    cpu_irq_leave_critical();
     return current_timestamp;
 #else
     return timer_emulator_fake_rtc_cnt + 1577836800;
@@ -262,12 +277,27 @@ uint32_t driver_timer_get_rtc_timestamp_uint32t(void)
 uint64_t driver_timer_get_rtc_timestamp_uint64t(void)
 {
 #ifndef EMULATOR_BUILD
+    cpu_irq_enter_critical();
+
     /* Get current time stamp */
     while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
     uint64_t current_timestamp = RTC->MODE0.COUNT.reg;
     
     /* Add timestamp from 1/1/2020 */
     current_timestamp += 1577836800;
+    
+    /* Add correction: coarse */
+    current_timestamp += timer_accumulated_corrections;
+    
+    /* Add correction: fine */
+    while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_COUNT);
+    int32_t timer_counter_val = (int32_t)TCC2->COUNT.bit.COUNT;
+    
+    /* Scale it down */
+    timer_counter_val = timer_counter_val * timer_fine_adjust / 2 / SET_DATE_MSG_INTERVAL_S;
+    current_timestamp += timer_counter_val;
+    
+    cpu_irq_leave_critical();
     return current_timestamp;
 #else
     return (uint64_t)timer_emulator_fake_rtc_cnt + 1577836800;
@@ -287,10 +317,6 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
 {
     uint8_t is_curr_year_leap = IS_LEAP_YEAR(year);
     uint32_t num_days = 0;
-    
-    /* Proactively disable timestamp adjustment in case an interrupt was to happen now */
-    int16_t previous_fine_adjust = timer_fine_30mins_s_adjust;
-    timer_fine_30mins_s_adjust = 0;
     
 #ifndef EMULATOR_BUILD
     /* Get current time stamp */
@@ -329,61 +355,49 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
     /* We supposedly here have an hour between last TS and current TS */
     int32_t nb_seconds_difference = current_timestamp - kinda_unix_time;
     
-    /* Check for message sent every hour */
-    if ((timer_last_set_timestamp + 3598 < kinda_unix_time) && (timer_last_set_timestamp + 3602 > kinda_unix_time))
-    {
-        /* Compute the offset we're currently dealing with */
-        int32_t current_offset = nb_seconds_difference + previous_fine_adjust*2;
-        
+    /* Check for message sent every 4096s */
+    if ((timer_last_set_timestamp + 4094 < kinda_unix_time) && (timer_last_set_timestamp + 4098 > kinda_unix_time))
+    {        
         /* Sanity check */
-        if ((current_offset > -300) && (current_offset < 300))
+        if ((nb_seconds_difference > -300) && (nb_seconds_difference < 300))
         {
             /* Coarse adjustment: calib register */
-            int16_t calib_register_offset = current_offset/113;
+            int16_t calib_register_offset = nb_seconds_difference/113;
             SYSCTRL->OSCULP32K.bit.CALIB += calib_register_offset;
-            current_offset -= calib_register_offset*113;
+            nb_seconds_difference -= calib_register_offset*113;
             
-            /* Re-align the TCC2 count as it has a period of 30mins and this is be called every hour */
+            /* Re-align the TCC2 count as it has a period of 4096/2s and this is be called every hour */
             /* It's not important if we miss a 30minutes interrupt as it's mainly used to wake up device */
             while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_COUNT);
             TCC2->COUNT.bit.COUNT = 0;
             
-            if (calib_register_offset == 0)
-            {
-                /* Calib register not touched, adjust fine adjustment */
-                previous_fine_adjust += nb_seconds_difference/2;
-                timer_fine_30mins_s_adjust = previous_fine_adjust;
-            }     
-            else
-            {
-                /* If we had to touch the calib register, only fine adjust if we were not before */
-                if (previous_fine_adjust == 0)
-                {
-                    /* Fine correction */
-                    timer_fine_30mins_s_adjust = nb_seconds_difference/2;
-                }
-                else
-                {
-                    timer_fine_30mins_s_adjust = 0;
-                }
-            }  
+            /* Adjust fine adjustment */
+            timer_fine_adjust  = nb_seconds_difference;
         }
         else
         {
             /* Reset default calibration value */
             SYSCTRL->OSCULP32K.bit.CALIB = 0x10;
-            timer_fine_30mins_s_adjust = 0;
+            timer_fine_adjust = 0;
         }
     }
     else
     {
-        /* We received the set date message another time than an hour ago, restore fine adjust */
-        timer_fine_30mins_s_adjust = previous_fine_adjust;
     }
 #endif
     
     /* Store last set timestamp */
     timer_last_set_timestamp = kinda_unix_time;
+    
+    /* Pause interrupts */
+    cpu_irq_enter_critical();
+    
+    /* Reset accumulated correction count */
+    timer_accumulated_corrections = 0;
+    timer_nb_30mins_interrupts = 0;
+    
+    /* Resume interrupts */
+    cpu_irq_leave_critical();
     
 #ifdef EMULATOR_BUILD
     timer_emulator_fake_rtc_cnt = timer_last_set_timestamp;

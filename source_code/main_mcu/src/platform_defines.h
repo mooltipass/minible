@@ -276,6 +276,7 @@ typedef struct
 /*****************/
 #define AUX_MCU_MSG_PAYLOAD_LENGTH  552
 #define HID_PAYLOAD_SIZE            64
+#define SET_DATE_MSG_INTERVAL_S     4096
 
 /********************/
 /* Settings defines */
