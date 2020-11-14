@@ -99,6 +99,7 @@ void timer_wait_for_aux_tx_flood_protection(void);
 uint16_t timer_get_and_start_timer(uint32_t val);
 void timer_deallocate_timer(uint16_t timer_id);
 uint32_t timer_get_timer_val(timer_id_te uid);
+int16_t timer_get_fine_30mins_s_adjust(void);
 BOOL timer_get_mcu_systick(uint32_t* value);
 void timer_initialize_timebase(void);
 uint32_t timer_get_systick(void);

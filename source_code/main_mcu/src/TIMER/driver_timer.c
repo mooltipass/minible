@@ -53,7 +53,7 @@ volatile uint32_t sysTick;
 /* timestamp set at the last "set date" message */
 uint32_t timer_last_set_timestamp = 0;
 /* Fine adjustment for our time base */
-int16_t timer_fine_30mins_s_adjust = 0;
+volatile int16_t timer_fine_30mins_s_adjust = 0;
 #ifdef EMULATOR_BUILD
 uint32_t timer_emulator_fake_rtc_cnt = 0;
 #endif
@@ -129,6 +129,15 @@ void TCC2_Handler(void)
 }
 
 #endif
+
+/*! \fn     timer_get_fine_30mins_s_adjust(void)
+*   \brief  Get current 30mins sec adjusts
+*   \return By how many secs we adjust the rtc every 30s
+*/
+int16_t timer_get_fine_30mins_s_adjust(void)
+{
+    return timer_fine_30mins_s_adjust;
+}
 
 /*! \fn     timer_start_logoff_timer(uint16_t nb_20mins_ticks_before_lock)
 *   \brief  Start inactivity logoff timer
@@ -280,6 +289,7 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
     uint32_t num_days = 0;
     
     /* Proactively disable timestamp adjustment in case an interrupt was to happen now */
+    int16_t previous_fine_adjust = timer_fine_30mins_s_adjust;
     timer_fine_30mins_s_adjust = 0;
     
 #ifndef EMULATOR_BUILD
@@ -319,26 +329,56 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
     /* We supposedly here have an hour between last TS and current TS */
     int32_t nb_seconds_difference = current_timestamp - kinda_unix_time;
     
-    /* Sanity check */
-    if ((nb_seconds_difference > -300) && (nb_seconds_difference < 300))
+    /* Check for message sent every hour */
+    if ((timer_last_set_timestamp + 3598 < kinda_unix_time) && (timer_last_set_timestamp + 3602 > kinda_unix_time))
     {
-        /* Coarse adjustment: calib register */
-        int16_t calib_register_offset = nb_seconds_difference/113;
-        SYSCTRL->OSCULP32K.bit.CALIB += calib_register_offset;
-        nb_seconds_difference -= calib_register_offset*113;
+        /* Compute the offset we're currently dealing with */
+        int32_t current_offset = nb_seconds_difference + previous_fine_adjust*2;
         
-        /* Re-align the TCC2 count as it has a period of 30mins and this is be called every hour */
-        /* It's not important if we miss a 30minutes interrupt as it's mainly used to wake up device */
-        while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_COUNT);
-        TCC2->COUNT.bit.COUNT = 0;
-        
-        /* Fine correction */
-        timer_fine_30mins_s_adjust = nb_seconds_difference/2;
+        /* Sanity check */
+        if ((current_offset > -300) && (current_offset < 300))
+        {
+            /* Coarse adjustment: calib register */
+            int16_t calib_register_offset = current_offset/113;
+            SYSCTRL->OSCULP32K.bit.CALIB += calib_register_offset;
+            current_offset -= calib_register_offset*113;
+            
+            /* Re-align the TCC2 count as it has a period of 30mins and this is be called every hour */
+            /* It's not important if we miss a 30minutes interrupt as it's mainly used to wake up device */
+            while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_COUNT);
+            TCC2->COUNT.bit.COUNT = 0;
+            
+            if (calib_register_offset == 0)
+            {
+                /* Calib register not touched, adjust fine adjustment */
+                previous_fine_adjust += nb_seconds_difference/2;
+                timer_fine_30mins_s_adjust = previous_fine_adjust;
+            }     
+            else
+            {
+                /* If we had to touch the calib register, only fine adjust if we were not before */
+                if (previous_fine_adjust == 0)
+                {
+                    /* Fine correction */
+                    timer_fine_30mins_s_adjust = nb_seconds_difference/2;
+                }
+                else
+                {
+                    timer_fine_30mins_s_adjust = 0;
+                }
+            }  
+        }
+        else
+        {
+            /* Reset default calibration value */
+            SYSCTRL->OSCULP32K.bit.CALIB = 0x10;
+            timer_fine_30mins_s_adjust = 0;
+        }
     }
     else
     {
-        /* Reset default calibration value */
-        SYSCTRL->OSCULP32K.bit.CALIB = 0x10;
+        /* We received the set date message another time than an hour ago, restore fine adjust */
+        timer_fine_30mins_s_adjust = previous_fine_adjust;
     }
 #endif
     
