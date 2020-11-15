@@ -147,6 +147,7 @@
         - improved battery charging & status reading
 - v0.51:- using allocated timers for timeouts (002 error fix)
         - RTC switched to uint32_t mode
+        - RTC calibration code
 */
 
 /**************** SETUP DEFINES ****************/

@@ -52,6 +52,8 @@ volatile BOOL timer_systick_expired = TRUE;
 volatile uint32_t sysTick;
 /* timestamp set at the last "set date" message */
 uint32_t timer_last_set_timestamp = 0;
+/* Default value for 32K oscillator calibration */
+volatile uint32_t timer_default_OSCULP32K_calib_val;
 /* Fine adjustment for our time base */
 volatile int32_t timer_accumulated_corrections = 0;
 volatile uint32_t timer_nb_30mins_interrupts = 0;
@@ -233,6 +235,9 @@ void timer_initialize_timebase(void)
     TCC2->CTRLA = tcc_ctrl_reg;                                         // Write register
     TCC2->INTENSET.reg = TCC_INTENSET_OVF;                              // Enable overflow interrupt
     NVIC_EnableIRQ(TCC2_IRQn);                                          // Enable int
+    
+    /* Store default osculp32k calibration value */
+    timer_default_OSCULP32K_calib_val = SYSCTRL->OSCULP32K.bit.CALIB;
 #endif
 }
 
@@ -377,7 +382,7 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
         else
         {
             /* Reset default calibration value */
-            SYSCTRL->OSCULP32K.bit.CALIB = 0x10;
+            SYSCTRL->OSCULP32K.bit.CALIB = timer_default_OSCULP32K_calib_val;
             timer_fine_adjust = 0;
         }
     }
