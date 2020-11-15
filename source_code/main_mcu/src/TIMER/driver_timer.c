@@ -260,7 +260,7 @@ uint32_t driver_timer_get_rtc_timestamp_uint32t(void)
     int32_t timer_counter_val = (int32_t)TCC2->COUNT.bit.COUNT;
     
     /* Scale it down */
-    timer_counter_val = timer_counter_val * timer_fine_adjust / 2 / SET_DATE_MSG_INTERVAL_S;
+    timer_counter_val = (timer_counter_val * timer_fine_adjust) / SET_DATE_MSG_INTERVAL_S;
     current_timestamp += timer_counter_val;
     
     cpu_irq_leave_critical();
@@ -294,7 +294,7 @@ uint64_t driver_timer_get_rtc_timestamp_uint64t(void)
     int32_t timer_counter_val = (int32_t)TCC2->COUNT.bit.COUNT;
     
     /* Scale it down */
-    timer_counter_val = timer_counter_val * timer_fine_adjust / 2 / SET_DATE_MSG_INTERVAL_S;
+    timer_counter_val = (timer_counter_val * timer_fine_adjust) / SET_DATE_MSG_INTERVAL_S;
     current_timestamp += timer_counter_val;
     
     cpu_irq_leave_critical();
@@ -352,8 +352,8 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
     while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
     RTC->MODE0.COUNT.reg = kinda_unix_time;
     
-    /* We supposedly here have an hour between last TS and current TS */
-    int32_t nb_seconds_difference = current_timestamp - kinda_unix_time;
+    /* Compute difference between our timebase and the one just sent */
+    int32_t nb_seconds_difference = kinda_unix_time - current_timestamp;
     
     /* Check for message sent every 4096s */
     if ((timer_last_set_timestamp + 4094 < kinda_unix_time) && (timer_last_set_timestamp + 4098 > kinda_unix_time))
