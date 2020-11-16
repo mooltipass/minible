@@ -171,6 +171,7 @@ void timer_get_timestamp_debug_data(uint32_t* timestamp, int32_t* counter_correc
     *cumulative_correct = timer_accumulated_corrections;
     
     /* Add correction: fine */
+    TCC2->CTRLBSET.reg = TCC_CTRLBSET_CMD_READSYNC;
     while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_COUNT);
     uint32_t timer_counter_val = (uint32_t)TCC2->COUNT.bit.COUNT;
     
@@ -316,6 +317,7 @@ uint32_t driver_timer_get_rtc_timestamp_uint32t(void)
     current_timestamp += timer_accumulated_corrections;
     
     /* Add correction: fine */
+    TCC2->CTRLBSET.reg = TCC_CTRLBSET_CMD_READSYNC;
     while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_COUNT);
     uint32_t timer_counter_val = (uint32_t)TCC2->COUNT.bit.COUNT;
     
@@ -357,6 +359,7 @@ uint64_t driver_timer_get_rtc_timestamp_uint64t(void)
     current_timestamp += timer_accumulated_corrections;
     
     /* Add correction: fine */
+    TCC2->CTRLBSET.reg = TCC_CTRLBSET_CMD_READSYNC;
     while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_COUNT);
     uint32_t timer_counter_val = (uint32_t)TCC2->COUNT.bit.COUNT;
     
