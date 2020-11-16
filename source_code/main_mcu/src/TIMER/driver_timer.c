@@ -57,7 +57,8 @@ volatile uint32_t timer_default_OSCULP32K_calib_val;
 /* Fine adjustment for our time base */
 volatile int32_t timer_accumulated_corrections = 0;
 volatile uint32_t timer_nb_30mins_interrupts = 0;
-volatile int32_t timer_fine_adjust = 0;
+volatile BOOL timer_fine_adjust_positive;
+volatile uint32_t timer_fine_adjust = 0;
 #ifdef EMULATOR_BUILD
 uint32_t timer_emulator_fake_rtc_cnt = 0;
 #endif
@@ -122,9 +123,23 @@ void TCC2_Handler(void)
         /* Timestamp adjustment */
         if (((timer_nb_30mins_interrupts & 0x01) == 0) && ((timer_fine_adjust & 0x01) != 0))
         {
-            timer_accumulated_corrections += 1;
+            if (timer_fine_adjust_positive == FALSE)
+            {
+                timer_accumulated_corrections -= 1;
+            } 
+            else
+            {
+                timer_accumulated_corrections += 1;
+            }
         }
-        timer_accumulated_corrections += timer_fine_adjust/2;
+        if (timer_fine_adjust_positive == FALSE)
+        {
+            timer_accumulated_corrections -= timer_fine_adjust/2;
+        } 
+        else
+        {
+            timer_accumulated_corrections += timer_fine_adjust/2;
+        }
         timer_nb_30mins_interrupts++;
     }
     #endif    
@@ -136,9 +151,16 @@ void TCC2_Handler(void)
 *   \brief  Get current 30mins sec adjusts
 *   \return By how many secs we adjust the rtc every 30s
 */
-int16_t timer_get_fine_adjust(void)
+int32_t timer_get_fine_adjust(void)
 {
-    return timer_fine_adjust;
+    if (timer_fine_adjust_positive == FALSE)
+    {
+        return -((int32_t)timer_fine_adjust);
+    }
+    else
+    {
+        return (int32_t)timer_fine_adjust;
+    }
 }
 
 /*! \fn     timer_start_logoff_timer(uint16_t nb_30mins_ticks_before_lock)
@@ -262,11 +284,18 @@ uint32_t driver_timer_get_rtc_timestamp_uint32t(void)
     
     /* Add correction: fine */
     while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_COUNT);
-    int32_t timer_counter_val = (int32_t)TCC2->COUNT.bit.COUNT;
+    uint32_t timer_counter_val = (uint32_t)TCC2->COUNT.bit.COUNT;
     
     /* Scale it down */
     timer_counter_val = (timer_counter_val * timer_fine_adjust) / SET_DATE_MSG_INTERVAL_S;
-    current_timestamp += timer_counter_val;
+    if (timer_fine_adjust_positive == FALSE)
+    {
+        current_timestamp -= timer_counter_val;
+    } 
+    else
+    {
+        current_timestamp += timer_counter_val;
+    }
     
     cpu_irq_leave_critical();
     return current_timestamp;
@@ -296,11 +325,18 @@ uint64_t driver_timer_get_rtc_timestamp_uint64t(void)
     
     /* Add correction: fine */
     while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_COUNT);
-    int32_t timer_counter_val = (int32_t)TCC2->COUNT.bit.COUNT;
+    uint32_t timer_counter_val = (uint32_t)TCC2->COUNT.bit.COUNT;
     
     /* Scale it down */
     timer_counter_val = (timer_counter_val * timer_fine_adjust) / SET_DATE_MSG_INTERVAL_S;
-    current_timestamp += timer_counter_val;
+    if (timer_fine_adjust_positive == FALSE)
+    {
+        current_timestamp -= timer_counter_val;
+    }
+    else
+    {
+        current_timestamp += timer_counter_val;
+    }
     
     cpu_irq_leave_critical();
     return current_timestamp;
@@ -358,7 +394,7 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
     RTC->MODE0.COUNT.reg = kinda_unix_time;
     
     /* Compute difference between our timebase and the one just sent */
-    int32_t nb_seconds_difference = kinda_unix_time - current_timestamp;
+    int32_t nb_seconds_difference = (int32_t)(kinda_unix_time - current_timestamp);
     
     /* Check for message sent every 4096s */
     if ((timer_last_set_timestamp + 4094 < kinda_unix_time) && (timer_last_set_timestamp + 4098 > kinda_unix_time))
@@ -367,17 +403,51 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
         if ((nb_seconds_difference > -300) && (nb_seconds_difference < 300))
         {
             /* Coarse adjustment: calib register */
-            int16_t calib_register_offset = nb_seconds_difference/113;
+            int32_t calib_register_offset = nb_seconds_difference/113;
             SYSCTRL->OSCULP32K.bit.CALIB += calib_register_offset;
             nb_seconds_difference -= calib_register_offset*113;
             
+            /* Pause interrupts */
+            cpu_irq_enter_critical();
+            
+            /* Get counter value before realign */
+            while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_COUNT);
+            uint32_t counter_before_realign = TCC2->COUNT.bit.COUNT;
+            
             /* Re-align the TCC2 count as it has a period of 4096/2s and this is be called every hour */
-            /* It's not important if we miss a 30minutes interrupt as it's mainly used to wake up device */
             while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_COUNT);
             TCC2->COUNT.bit.COUNT = 0;
             
+            /* If realignment is making us miss an interrupt, trigger the code */
+            if (counter_before_realign > 1000)
+            {
+                /* Logic power 30min tick */
+                logic_power_30m_tick();
+                
+                /* Deal with inactivity logoff timer */
+                if (timer_inactivity_30mins_tick_remain != 0)
+                {
+                    if (timer_inactivity_30mins_tick_remain-- == 1)
+                    {
+                        logic_user_set_user_to_be_logged_off_flag();
+                    }
+                }
+            }
+            
+            /* Overflow interrupt: clear potential flag */
+            TCC2->INTFLAG.reg = TCC_INTFLAG_OVF;
+            
+            /* Resume interrupts */
+            cpu_irq_leave_critical();
+            
             /* Adjust fine adjustment */
-            timer_fine_adjust  = nb_seconds_difference;
+            timer_fine_adjust_positive = TRUE;
+            timer_fine_adjust = (uint32_t)nb_seconds_difference;
+            if (nb_seconds_difference < 0)
+            {
+                timer_fine_adjust_positive = FALSE;
+                timer_fine_adjust = (uint32_t)(-nb_seconds_difference);
+            }
         }
         else
         {

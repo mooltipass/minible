@@ -101,7 +101,7 @@ void timer_deallocate_timer(uint16_t timer_id);
 uint32_t timer_get_timer_val(timer_id_te uid);
 BOOL timer_get_mcu_systick(uint32_t* value);
 void timer_initialize_timebase(void);
-int16_t timer_get_fine_adjust(void);
+int32_t timer_get_fine_adjust(void);
 uint32_t timer_get_systick(void);
 void timer_delay_ms(uint32_t ms);
 void timer_ms_tick(void);
