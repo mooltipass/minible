@@ -147,20 +147,53 @@ void TCC2_Handler(void)
 
 #endif
 
-/*! \fn     timer_get_fine_adjust(void)
-*   \brief  Get current 30mins sec adjusts
-*   \return By how many secs we adjust the rtc every 30s
+/*! \fn     timer_get_timestamp_debug_data(uint32_t* timestamp, int32_t* counter_correct, int32_t* cumulative_correct, int32_t* fine_adjust_val)
+*   \brief  Get debug data for timestamp computation
+*   \param  timestamp           Where to store timestamp
+*   \param  counter_correct     Where to store counter based correction
+*   \param  cumulative_correct  Where to store cumulative correction
+*   \param  fine_adjust_val     Where to store our fine adjust value
 */
-int32_t timer_get_fine_adjust(void)
+void timer_get_timestamp_debug_data(uint32_t* timestamp, int32_t* counter_correct, int32_t* cumulative_correct, int32_t* fine_adjust_val)
 {
+#ifndef EMULATOR_BUILD
+    cpu_irq_enter_critical();
+    
+    /* Get current time stamp */
+    while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
+    uint32_t current_timestamp = RTC->MODE0.COUNT.reg;
+    
+    /* Add timestamp from 1/1/2020 */
+    current_timestamp += 1577836800;
+    
+    /* Add correction: coarse */
+    current_timestamp += timer_accumulated_corrections;
+    *cumulative_correct = timer_accumulated_corrections;
+    
+    /* Add correction: fine */
+    while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_COUNT);
+    uint32_t timer_counter_val = (uint32_t)TCC2->COUNT.bit.COUNT;
+    
+    /* Scale it down */
+    timer_counter_val = (timer_counter_val * timer_fine_adjust) / SET_DATE_MSG_INTERVAL_S;
     if (timer_fine_adjust_positive == FALSE)
     {
-        return -((int32_t)timer_fine_adjust);
+        current_timestamp -= timer_counter_val;
+        *counter_correct = -timer_counter_val;
+        *fine_adjust_val = -timer_fine_adjust;
     }
     else
     {
-        return (int32_t)timer_fine_adjust;
+        current_timestamp += timer_counter_val;
+        *counter_correct = timer_counter_val;
+        *fine_adjust_val = timer_fine_adjust;
     }
+    
+    /* Store timestamp */
+    *timestamp = current_timestamp;
+    
+    cpu_irq_leave_critical();
+#endif
 }
 
 /*! \fn     timer_start_logoff_timer(uint16_t nb_30mins_ticks_before_lock)

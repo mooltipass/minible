@@ -86,6 +86,7 @@ static uint8_t const LEAP_MONTH = 1; //Feburary
 static uint16_t const EPOCH_YEAR = 1970;
 
 /* Prototypes */
+void timer_get_timestamp_debug_data(uint32_t* timestamp, int32_t* counter_correct, int32_t* cumulative_correct, int32_t* fine_adjust_val);
 void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second);
 timer_flag_te timer_has_allocated_timer_expired(uint16_t uid, BOOL clear);
 void timer_start_logoff_timer(uint16_t nb_30mins_ticks_before_lock);
@@ -101,7 +102,6 @@ void timer_deallocate_timer(uint16_t timer_id);
 uint32_t timer_get_timer_val(timer_id_te uid);
 BOOL timer_get_mcu_systick(uint32_t* value);
 void timer_initialize_timebase(void);
-int32_t timer_get_fine_adjust(void);
 uint32_t timer_get_systick(void);
 void timer_delay_ms(uint32_t ms);
 void timer_ms_tick(void);
