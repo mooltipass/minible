@@ -146,6 +146,7 @@
 - v0.50:- small delay after enabling bluetooth
         - improved battery charging & status reading
 - v0.51:- using allocated timers for timeouts (002 error fix)
+        - handling all BLE pin requests
         - RTC switched to uint32_t mode
         - RTC calibration code
 */
