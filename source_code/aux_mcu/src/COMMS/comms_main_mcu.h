@@ -335,7 +335,7 @@ uint16_t comms_main_mcu_get_bonding_info_irks(uint8_t** irk_keys_buffer);
 aux_mcu_message_t* comms_main_mcu_get_temp_tx_message_object_pt(void);
 aux_mcu_message_t* comms_main_mcu_get_temp_rx_message_object_pt(void);
 void comms_main_mcu_get_32_rng_bytes_from_main_mcu(uint8_t* buffer);
-void comms_main_mcu_fetch_6_digits_pin(uint8_t* pin_array);
+RET_TYPE comms_main_mcu_fetch_6_digits_pin(uint8_t* pin_array);
 void comms_main_mcu_send_simple_event(uint16_t event_id);
 void comms_main_init_rx(void);
 

@@ -866,8 +866,9 @@ void comms_main_mcu_get_32_rng_bytes_from_main_mcu(uint8_t* buffer)
 /*! \fn     comms_main_mcu_fetch_6_digits_pin(uint8_t* pin_array)
 *   \brief  Fetch the 6 digits pin from main MCU for BT connection
 *   \param  pin_array   Where to store the PIN
+*   \return If we managed to get the PIN
 */
-void comms_main_mcu_fetch_6_digits_pin(uint8_t* pin_array)
+RET_TYPE comms_main_mcu_fetch_6_digits_pin(uint8_t* pin_array)
 {
     aux_mcu_message_t* temp_rx_message_pt = comms_main_mcu_get_temp_rx_message_object_pt();
     aux_mcu_message_t* temp_tx_message_pt;
@@ -888,11 +889,21 @@ void comms_main_mcu_fetch_6_digits_pin(uint8_t* pin_array)
     if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) != TIMER_RUNNING)
     {
         memset(pin_array, 0, 6);
-        return;
+        return RETURN_NOK;
     }
     
     /* Store returned data */
     memcpy(pin_array, temp_rx_message_pt->ble_message.payload, 6);
+    
+    /* Received valid payload? */
+    if (temp_rx_message_pt->payload_length1 != sizeof(temp_rx_message_pt->ble_message.message_id) + 6)
+    {
+        return RETURN_NOK;
+    } 
+    else
+    {
+        return RETURN_OK;
+    }
 }
 
 /*! \fn     comms_main_mcu_fetch_bonding_info_for_mac(uint8_t address_resolv_type, uint8_t* mac_addr, nodemgmt_bluetooth_bonding_information_t* bonding_info)

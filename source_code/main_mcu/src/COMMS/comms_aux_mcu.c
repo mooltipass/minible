@@ -407,20 +407,35 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
             {
                 /* Get Bluetooth PIN from user */
                 uint8_t bluetooth_pin[6];
-                gui_prompts_get_six_digits_pin(bluetooth_pin, ENTER_BT_PIN_TEXT_ID);
+                RET_TYPE prompt_return_val = gui_prompts_get_six_digits_pin(bluetooth_pin, ENTER_BT_PIN_TEXT_ID);
                 
                 /* Prepare answer and send it */
                 aux_mcu_message_t* temp_send_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(received_message_type);
                 memcpy(temp_send_message_pt->ble_message.payload, bluetooth_pin, sizeof(bluetooth_pin));
-                temp_send_message_pt->payload_length1 = sizeof(received_message_id) + 6;
+                if (prompt_return_val == RETURN_OK)
+                {
+                    temp_send_message_pt->payload_length1 = sizeof(received_message_id) + 6;
+                } 
+                else
+                {
+                    temp_send_message_pt->payload_length1 = sizeof(received_message_id);
+                }
                 temp_send_message_pt->ble_message.message_id = received_message_id;
                 comms_aux_mcu_send_message(temp_send_message_pt);
                 return_val = BLE_6PIN_REQ_RCVD;
                 
                 /* Clear buffer */
                 memset(bluetooth_pin, 0, sizeof(bluetooth_pin));
-                break;
-            }                
+            } 
+            else
+            {
+                /* Prepare answer and send it */
+                aux_mcu_message_t* temp_send_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(received_message_type);
+                temp_send_message_pt->payload_length1 = sizeof(received_message_id);
+                temp_send_message_pt->ble_message.message_id = received_message_id;
+                comms_aux_mcu_send_message(temp_send_message_pt);
+                return_val = BLE_6PIN_REQ_RCVD;            
+            }               
             break;
         }
         case BLE_MESSAGE_STORE_BOND_INFO:
@@ -511,7 +526,6 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
         {
             /* Flag invalid message */
             comms_aux_mcu_set_invalid_message_received();
-            
             break;
         }            
     }    

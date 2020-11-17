@@ -15,7 +15,7 @@
 #define BT_NB_MS_BEFORE_DEASSERTING_WAKEUP  10000
 
 /* debug defines */
-//#define DEBUG_SLEEP_LOG_DISABLED
+#define DEBUG_SLEEP_LOG_DISABLED
 #if defined DEBUG_SLEEP_LOG_DISABLED
 	#define DBG_SLP_LOG(...)
 #else

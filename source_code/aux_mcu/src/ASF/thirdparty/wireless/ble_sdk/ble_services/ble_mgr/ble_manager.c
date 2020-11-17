@@ -1557,6 +1557,7 @@ at_ble_status_t ble_pair_key_request_handler(void *params)
     at_ble_pair_key_request_t *pair_key;
     pair_key = (at_ble_pair_key_request_t *)params;
     /* Passkey has fixed value in this example MSB */
+    RET_TYPE getting_digits_from_main_return;
     uint8_t passkey[6];
     uint8_t idx = 0;
         
@@ -1568,7 +1569,7 @@ at_ble_status_t ble_pair_key_request_handler(void *params)
     if (pair_key_request.passkey_type == AT_BLE_PAIR_PASSKEY_ENTRY) 
     {
         /* Ask 6 digits pin from main MCU */
-        comms_main_mcu_fetch_6_digits_pin(passkey);
+        getting_digits_from_main_return = comms_main_mcu_fetch_6_digits_pin(passkey);
     
     /*    
     #if defined DEBUG_LOG_DISABLED
@@ -1596,8 +1597,9 @@ at_ble_status_t ble_pair_key_request_handler(void *params)
     }   
     
     /* Display passkey */
-    if(((pair_key_request.passkey_type == AT_BLE_PAIR_PASSKEY_DISPLAY) &&
-       (pair_key_request.type == AT_BLE_PAIR_PASSKEY)) || (pair_key_request.passkey_type == AT_BLE_PAIR_PASSKEY_ENTRY))
+    if((((pair_key_request.passkey_type == AT_BLE_PAIR_PASSKEY_DISPLAY) &&
+       (pair_key_request.type == AT_BLE_PAIR_PASSKEY)) || (pair_key_request.passkey_type == AT_BLE_PAIR_PASSKEY_ENTRY)) &&
+       (getting_digits_from_main_return == RETURN_OK))
     {
           if(pair_key_request.passkey_type == AT_BLE_PAIR_PASSKEY_ENTRY)
           {
@@ -1618,7 +1620,9 @@ at_ble_status_t ble_pair_key_request_handler(void *params)
           if(!((at_ble_pair_key_reply(pair_key->handle, pair_key_request.type, passkey)) == AT_BLE_SUCCESS))
           {
                   DBG_LOG("Pair-key reply failed");
+                  return AT_BLE_FAILURE;
           }
+          return AT_BLE_SUCCESS;  
     }
     else 
     {
@@ -1626,12 +1630,20 @@ at_ble_status_t ble_pair_key_request_handler(void *params)
         {
             DBG_LOG("OOB Feature Not supported");
         }
+        else if (getting_digits_from_main_return != RETURN_OK)
+        {
+            DBG_LOG("Request denied by main");
+        }
         else
         {
             DBG_LOG("Unknown pair request type: %d", pair_key_request.type);
         }
+        if (!(at_ble_disconnect(pair_key->handle, AT_BLE_TERMINATED_BY_USER) == AT_BLE_SUCCESS)) 
+        {
+            DBG_LOG("Disconnect Request Failed");
+        }
+        return AT_BLE_FAILURE;
     }
-    return AT_BLE_SUCCESS;  
 }
 
 /** @brief function handles pair done event */
