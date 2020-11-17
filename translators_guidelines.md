@@ -51,4 +51,6 @@ Before overwriting miniblebundle.img, do not forget to close both windows opened
 As you'll have noticed by now, the device contains around 125 strings. All of them (except maybe 10) can be displayed on the emulator screen following the indications shown in "0_EN_US_english_strings.txt".  
 To facilitate the review process, we would appreciate if you could save screen captures of your translations by using a simple software such as <a href="https://clipclip.com/">clipclip</a> on Windows to automatically save window captures taken with the Alt-PrtScrn shortcut.  
 The Mooltipass team thanks you for your time and contribution!
-
+  
+## [](#header-2)Common Issues
+If getting a "TypeError: 'iv' is an invalid keyword argument for this function" when running bundle.py, it likely means you have pycrypto installed. Simply type "pip uninstall pycrypto" followed by "pip install pycryptodome" 
