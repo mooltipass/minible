@@ -101,12 +101,6 @@ static BOOL process_ble_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *resp)
             resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_ENABLED;
             resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
             return TRUE;
-
-        case BLE_MESSAGE_CMD_DISABLE:
-            resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-            resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISABLED;
-            resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
-            return TRUE;
             
         case BLE_MESSAGE_ENABLE_PAIRING:
         {
@@ -169,6 +163,14 @@ static BOOL process_main_cmd(aux_mcu_message_t *msg, aux_mcu_message_t *resp)
             send_hid_message(resp);
             resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
             resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_NEW_STATUS_RCVD;
+            resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
+            return TRUE;
+        }
+        
+        case MAIN_MCU_COMMAND_DISABLE_BLE:
+        {
+            resp->message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+            resp->aux_mcu_event_message.event_id = AUX_MCU_EVENT_BLE_DISABLED;
             resp->payload_length1 = sizeof(resp->aux_mcu_event_message.event_id);
             return TRUE;
         }
