@@ -1557,7 +1557,7 @@ at_ble_status_t ble_pair_key_request_handler(void *params)
     at_ble_pair_key_request_t *pair_key;
     pair_key = (at_ble_pair_key_request_t *)params;
     /* Passkey has fixed value in this example MSB */
-    RET_TYPE getting_digits_from_main_return;
+    RET_TYPE getting_digits_from_main_return = RETURN_OK;
     uint8_t passkey[6];
     uint8_t idx = 0;
         

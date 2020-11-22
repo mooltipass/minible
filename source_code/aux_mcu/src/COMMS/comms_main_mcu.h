@@ -51,6 +51,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define MAIN_MCU_COMMAND_SET_BATTERYLVL     0x000C
 #define MAIN_MCU_COMMAND_GET_STATUS         0x000D
 #define MAIN_MCU_COMMAND_NIMH_DANGER_CHARGE 0x000E
+#define MAIN_MCU_COMMAND_DISABLE_BLE        0x000F
 
 // Debug MCU commands
 #define MAIN_MCU_COMMAND_TX_SWEEP_SGL       0x1000
@@ -85,7 +86,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 
 // BLE commands
 #define BLE_MESSAGE_CMD_ENABLE              0x0001
-#define BLE_MESSAGE_CMD_DISABLE             0x0002
+#define BLE_MESSAGE_CMD_RESERVED            0x0002
 #define BLE_MESSAGE_STORE_BOND_INFO         0x0003
 #define BLE_MESSAGE_RECALL_BOND_INFO        0x0004
 #define BLE_MESSAGE_CLEAR_BOND_INFO         0x0005

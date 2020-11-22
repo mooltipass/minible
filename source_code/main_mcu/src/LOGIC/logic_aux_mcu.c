@@ -133,15 +133,8 @@ void logic_aux_mcu_disable_ble(BOOL wait_for_disabled)
 {
     if (logic_aux_mcu_ble_enabled != FALSE)
     {
-        aux_mcu_message_t* temp_tx_message_pt;
-        
         /* Send command to aux MCU */
-        temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BLE_CMD);
-        temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_CMD_DISABLE;
-        temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
-        
-        /* Send message */
-        comms_aux_mcu_send_message(temp_tx_message_pt);
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DISABLE_BLE);
         
         if (wait_for_disabled != FALSE)
         {

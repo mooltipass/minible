@@ -295,6 +295,7 @@ void logic_bluetooth_set_battery_level(uint8_t pct);
 ret_type_te logic_bluetooth_stop_advertising(void);
 BOOL logic_bluetooth_get_open_to_pairing(void);
 void logic_bluetooth_start_advertising(void);
+void logic_bluetooth_set_disable_flag(void);
 BOOL logic_bluetooth_can_talk_to_host(void);
 void logic_bluetooth_stop_bluetooth(void);
 void logic_bluetooth_routine(void);

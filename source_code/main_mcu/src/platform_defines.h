@@ -149,6 +149,7 @@
         - handling all BLE pin requests
         - RTC switched to uint32_t mode
         - RTC calibration code
+        - BLE disable as a command
 */
 
 /**************** SETUP DEFINES ****************/

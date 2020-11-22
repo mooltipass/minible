@@ -83,6 +83,7 @@
         - migrated to release version
         - battery slow start charge bug fix
 - v0.45:- improved BLE connection steps
+        - BLE disable on disconnect bug fix
 */
 
 /**************** SETUP DEFINES ****************/

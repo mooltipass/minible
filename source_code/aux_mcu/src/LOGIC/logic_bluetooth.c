@@ -82,6 +82,7 @@ BOOL logic_bluetooth_just_connected = FALSE;
 BOOL logic_bluetooth_just_paired = FALSE;
 BOOL logic_bluetooth_connected = FALSE;
 BOOL logic_bluetooth_paired = FALSE;
+BOOL logic_bluetooth_disable_flag = FALSE;
 /* Bool to specify if we setup the callbacks */
 BOOL logic_bluetooth_callbacks_set = FALSE;
 /* Boolean to know if we're currently temporarily banning someone */
@@ -93,6 +94,14 @@ static at_ble_status_t hid_custom_event(void *param)
 {
     at_ble_status_t status = AT_BLE_SUCCESS;
     return status;
+}
+
+/*! \fn     logic_bluetooth_set_disable_flag(void)
+*   \brief  Set flag to disable bluetooth
+*/
+void logic_bluetooth_set_disable_flag(void)
+{
+    logic_bluetooth_disable_flag = TRUE;
 }
 
 /*! \fn     logic_bluetooth_store_temp_ban_connected_address(uint8_t* address)
@@ -1845,4 +1854,14 @@ void logic_bluetooth_routine(void)
     
     ble_event_task();
     logic_sleep_routine_ble_call();
+    
+    /* If we were asked to disable bluetooth */
+    if (logic_bluetooth_disable_flag != FALSE)
+    {
+        logic_bluetooth_disable_flag = FALSE;
+        logic_bluetooth_stop_bluetooth();
+        logic_set_ble_disabled();
+        timer_reset_callback_timers();
+        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_DISABLED);
+    }
 }

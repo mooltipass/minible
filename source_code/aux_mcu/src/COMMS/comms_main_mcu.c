@@ -326,17 +326,6 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_BLE_ENABLED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
                 break;
             }
-            case BLE_MESSAGE_CMD_DISABLE:
-            {
-                /* Enable BLE */
-                if (logic_is_ble_enabled() != FALSE)
-                {
-                    logic_bluetooth_stop_bluetooth();
-                    logic_set_ble_disabled();
-                }
-                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_BLE_DISABLED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
-                break;
-            }
             case BLE_MESSAGE_CLEAR_BOND_INFO:
             {
                 logic_bluetooth_clear_bonding_information();     
@@ -435,6 +424,15 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
 
                 /* Inform main MCU */
                 comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_USB_DETACHED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
+                break;
+            }
+            case MAIN_MCU_COMMAND_DISABLE_BLE:
+            {
+                /* Enable BLE */
+                if (logic_is_ble_enabled() != FALSE)
+                {
+                    logic_bluetooth_set_disable_flag();
+                }
                 break;
             }
             case MAIN_MCU_COMMAND_NIMH_CHG_SLW_STRT:
