@@ -467,10 +467,14 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Set user categories strings */
             if ((rcv_msg->payload_length == sizeof(nodemgmt_user_category_strings_t)) && (logic_security_is_smc_inserted_unlocked() != FALSE))
             {
+                /* Copy locally */
+                nodemgmt_user_category_strings_t category_strings;
+                memcpy(&category_strings, &rcv_msg->get_set_cat_strings, sizeof(category_strings));
+                
                 if ((logic_security_is_management_mode_set() != FALSE) || (gui_prompts_ask_for_one_line_confirmation(SET_CAT_STRINGS_TEXT_ID, TRUE, FALSE, TRUE) == MINI_INPUT_RET_YES))
                 {
                     /* Store category strings */
-                    nodemgmt_set_category_strings((nodemgmt_user_category_strings_t*)&rcv_msg->get_set_cat_strings);
+                    nodemgmt_set_category_strings(&category_strings);
                     
                     /* Set ack, leave same command id */
                     comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
@@ -1571,23 +1575,27 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 logic_device_activity_detected();
                 uint8_t new_user_id;
                 
+                /* Copy locally */
+                hid_message_setup_existing_user_req_t setup_existing_user_req;
+                memcpy(&setup_existing_user_req, &rcv_msg->setup_existing_user_req, sizeof(setup_existing_user_req));
+                
                 /* Sanity checks */
                 _Static_assert(sizeof(temp_buffer) >= SMARTCARD_CPZ_LENGTH, "Invalid buffer reuse");
                 
                 /* If feature is enabled */
                 #ifndef AES_PROVISIONED_KEY_IMPORT_EXPORT_ALLOWED
-                rcv_msg->setup_existing_user_req.cpz_lut_entry.use_provisioned_key_flag = 0;
-                memset(rcv_msg->setup_existing_user_req.cpz_lut_entry.provisioned_key, 0, MEMBER_SIZE(cpz_lut_entry_t,provisioned_key));
+                setup_existing_user_req.cpz_lut_entry.use_provisioned_key_flag = 0;
+                memset(setup_existing_user_req.cpz_lut_entry.provisioned_key, 0, MEMBER_SIZE(cpz_lut_entry_t,provisioned_key));
                 #endif
                 
                 /* Read code protected zone to compare with provided one */
                 smartcard_highlevel_read_code_protected_zone(temp_buffer);
                 
                 /* Check that the provided CPZ is the current one, ask the user to unlock the card and check that we can add the user */
-                if (    (memcmp(temp_buffer, rcv_msg->setup_existing_user_req.cpz_lut_entry.cards_cpz, SMARTCARD_CPZ_LENGTH) == 0) && \
+                if (    (memcmp(temp_buffer, setup_existing_user_req.cpz_lut_entry.cards_cpz, SMARTCARD_CPZ_LENGTH) == 0) && \
                         (smartcard_highlevel_check_hidden_aes_key_contents() == RETURN_OK) && \
                         (logic_smartcard_user_unlock_process() == UNLOCK_OK_RET) && \
-                        (logic_user_create_new_user_for_existing_card(&rcv_msg->setup_existing_user_req.cpz_lut_entry, rcv_msg->setup_existing_user_req.security_preferences, rcv_msg->setup_existing_user_req.language_id, rcv_msg->setup_existing_user_req.usb_keyboard_id, rcv_msg->setup_existing_user_req.ble_keyboard_id, &new_user_id) == RETURN_OK))
+                        (logic_user_create_new_user_for_existing_card(&setup_existing_user_req.cpz_lut_entry, setup_existing_user_req.security_preferences, setup_existing_user_req.language_id, setup_existing_user_req.usb_keyboard_id, setup_existing_user_req.ble_keyboard_id, &new_user_id) == RETURN_OK))
                 {
                     /* Initialize user context, also sets user language */
                     logic_user_init_context(new_user_id);
@@ -1628,6 +1636,29 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             else
             {
                 /* Set failure byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }
+        }
+        
+        case HID_CMD_START_BUNDLE_UL:
+        {
+            /* Required actions when we start dealing with graphics memory */
+            if ((rcv_msg->payload_length == (AES_BLOCK_SIZE/8)) && (logic_device_bundle_update_start(FALSE) == RETURN_OK))
+            {
+                /* Set upload allowed boolean */
+                //comms_hid_msgs_debug_upload_allowed = TRUE;
+                
+                /* Erase data flash */
+                //dataflash_bulk_erase_without_wait(&dataflash_descriptor);
+                
+                /* Set ack, leave same command id */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
+            }
+            else
+            {
+                /* Set ack, leave same command id */
                 comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
                 return;
             }
