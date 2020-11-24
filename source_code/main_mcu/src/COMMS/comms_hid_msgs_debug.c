@@ -162,7 +162,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
         case HID_CMD_ID_ERASE_DATA_FLASH:
         {
             /* Required actions when we start dealing with graphics memory */
-            if (logic_device_bundle_update_start(TRUE) == RETURN_OK)
+            if (logic_device_bundle_update_start(TRUE, 0) == RETURN_OK)
             {
                 /* Set upload allowed boolean */
                 comms_hid_msgs_debug_upload_allowed = TRUE;

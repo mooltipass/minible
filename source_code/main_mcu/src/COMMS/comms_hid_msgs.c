@@ -34,6 +34,7 @@
 #include "logic_power.h"
 #include "logic_user.h"
 #include "custom_fs.h"
+#include "dataflash.h"
 #include "text_ids.h"
 #include "nodemgmt.h"
 #include "dbflash.h"
@@ -41,6 +42,8 @@
 #include "main.h"
 #include "dma.h"
 #include "rng.h"
+/* Boolean to specify if bundle data upload is allowed */
+BOOL comms_hid_msgs_bundle_upload_allowed = FALSE;
 
 
 /*! \fn     comms_hid_msgs_fill_get_status_message_answer(uint16_t* msg_array_uint16)
@@ -1644,13 +1647,13 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         case HID_CMD_START_BUNDLE_UL:
         {
             /* Required actions when we start dealing with graphics memory */
-            if ((rcv_msg->payload_length == (AES_BLOCK_SIZE/8)) && (logic_device_bundle_update_start(FALSE) == RETURN_OK))
+            if ((is_message_from_usb != FALSE) && (rcv_msg->payload_length == (AES_BLOCK_SIZE/8)) && (logic_device_bundle_update_start(FALSE, rcv_msg->payload) == RETURN_OK))
             {
-                /* Set upload allowed boolean */
-                //comms_hid_msgs_debug_upload_allowed = TRUE;
+                /* Set bundle upload allowed boolean */
+                comms_hid_msgs_bundle_upload_allowed = TRUE;
                 
                 /* Erase data flash */
-                //dataflash_bulk_erase_without_wait(&dataflash_descriptor);
+                dataflash_bulk_erase_with_wait(&dataflash_descriptor);
                 
                 /* Set ack, leave same command id */
                 comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
@@ -1659,6 +1662,51 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             else
             {
                 /* Set ack, leave same command id */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }
+        }
+        
+        case HID_CMD_BUNDLE_WRITE_256B:
+        {
+            if (comms_hid_msgs_bundle_upload_allowed != FALSE)
+            {
+                /* First 4 bytes is the write address, remaining 256 bytes is the payload */
+                uint32_t* write_address = (uint32_t*)&rcv_msg->payload_as_uint32[0];
+                dataflash_write_array_to_memory(&dataflash_descriptor, *write_address, &rcv_msg->payload[4], 256);
+                
+                /* Set ack, leave same command id */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
+            }
+            else
+            {
+                /* Set nack, leave same command id */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }
+        }
+        
+        case HID_CMD_BUNDLE_UL_DONE:
+        {
+            if (comms_hid_msgs_bundle_upload_allowed != FALSE)
+            {
+                /* Do required actions: depending on the mini BLE version, it's possible we don't come back from this function (bootloader launched) */
+                logic_device_bundle_update_end(FALSE);
+                
+                /* Call activity detected to prevent going to sleep directly after */
+                logic_device_activity_detected();
+                
+                /* Reset boolean */
+                comms_hid_msgs_bundle_upload_allowed = FALSE;
+                
+                /* Set ack, leave same command id */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
+            }
+            else
+            {
+                /* Set nack, leave same command id */
                 comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
                 return;
             }

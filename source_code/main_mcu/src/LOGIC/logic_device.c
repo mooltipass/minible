@@ -166,12 +166,13 @@ void logic_device_activity_detected(void)
     }
 }
 
-/*! \fn     logic_device_bundle_update_start(BOOL from_debug_messages)
+/*! \fn     logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* password)
 *   \brief  Function called when start updating the device graphics memory
 *   \param  from_debug_messages Set to TRUE if this function was called from debug messages
+*   \param  password to start the bundle upload
 *   \return RETURN_OK if we are allowed to start bundle update
 */
-ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages)
+ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* password)
 {
     logic_device_activity_detected();
     
@@ -200,6 +201,14 @@ ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages)
     } 
     else
     {
+        /* Bruteforce delay */
+        timer_delay_ms(2000);
+        
+        #ifdef PLAT_V7_SETUP
+        /* Reset successful update flag, used to specify that the bundle is OK */
+        custom_fs_set_device_flag_value(SUCCESSFUL_UPDATE_FLAG_ID, FALSE);
+        #endif
+        
         // TODO3
         return RETURN_OK;
     }

@@ -34,7 +34,7 @@
 #define SETTING_MAX_USER_INTERACTION_TIMOUT_EMU 30
 
 /* Prototypes */
-ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages);
+ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* password);
 void logic_device_set_wakeup_reason(platform_wakeup_reason_te reason);
 platform_wakeup_reason_te logic_device_get_wakeup_reason(void);
 void logic_device_bundle_update_end(BOOL from_debug_messages);
