@@ -147,25 +147,6 @@ void main_platform_init(void)
         platform_io_disable_switch_and_die();
         while(1);
     }
-
-    /* Register vbat measurement and adjust it if we are USB powered */
-    if (platform_io_is_usb_3v3_present_raw() == FALSE)
-    {
-        logic_power_register_vbat_adc_measurement((uint16_t)battery_voltage);
-    }
-    else
-    {
-        /* Real ratio is 3300 / 3188 */
-        battery_voltage = (battery_voltage*265) >> 8;
-        logic_power_register_vbat_adc_measurement((uint16_t)battery_voltage);
-    }
-
-    /* Override previous measurement if we were switched off due to out of battery */
-    if (poweredoff_due_to_battery != FALSE)
-    {
-        logic_power_inform_of_over_discharge();
-        logic_power_register_vbat_adc_measurement(0);
-    }
     
     /* Check fuses, program them if incorrectly set */
     fuses_ok = fuses_check_program(TRUE);
@@ -204,7 +185,7 @@ void main_platform_init(void)
     
     /* DMA transfers inits, timebase, platform ios, enable comms */
     dma_init();
-    logic_power_init();
+    logic_power_init(poweredoff_due_to_battery);
     timer_initialize_timebase();
     platform_io_init_ports();
     comms_aux_arm_rx_and_clear_no_comms();

@@ -25,12 +25,6 @@
 #define LOGIC_POWER_H_
 
 /* Defines */
-#ifdef EMULATOR_BUILD
-/* Reduce the wait to 5 seconds on emulator */
-#define NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE     (5UL * 1000UL)
-#else
-#define NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE     (30UL * 60UL * 1000UL)
-#endif
 /* Size of the buffer of last ADC conversions */
 #define LAST_VOLTAGE_CONV_BUFF_SIZE         10
 
@@ -71,6 +65,7 @@ BOOL logic_power_get_and_reset_over_discharge_flag(void);
 uint16_t logic_power_get_and_ack_new_battery_level(void);
 nimh_charge_te logic_power_get_current_charge_type(void);
 BOOL logic_power_is_usb_enumerate_sent_clear_bool(void);
+void logic_power_init(BOOL poweredoff_due_to_battery);
 battery_state_te logic_power_get_battery_state(void);
 power_source_te logic_power_get_power_source(void);
 void logic_power_inform_of_over_discharge(void);
@@ -84,6 +79,5 @@ void logic_power_power_down_actions(void);
 void logic_power_30m_tick(void);
 void logic_power_routine(void);
 void logic_power_ms_tick(void);
-void logic_power_init(void);
 
 #endif /* LOGIC_POWER_H_ */

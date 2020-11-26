@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    51
+#define FW_MINOR    52
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -150,6 +150,8 @@
         - RTC switched to uint32_t mode
         - RTC calibration code
         - BLE disable as a command
+- v0.52:- improved battery readings across rebots
+        - improved battery charging logic
 */
 
 /**************** SETUP DEFINES ****************/

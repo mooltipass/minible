@@ -207,15 +207,30 @@ power_source_te logic_power_get_power_source(void)
     return logic_power_current_power_source;
 }
 
-/*! \fn     logic_power_init(void)
+/*! \fn     logic_power_init(BOOL poweredoff_due_to_battery)
 *   \brief  Init power logic
+*   \param  poweredoff_due_to_battery   TRUE if the device was previously switched off due to low battery
 */
-void logic_power_init(void)
+void logic_power_init(BOOL poweredoff_due_to_battery)
 {
     /* Recall power consumption log from flash */
     cpu_irq_enter_critical();
     custom_fs_get_power_consumption_log((power_consumption_log_t*)&logic_power_consumption_log);
     cpu_irq_leave_critical();
+
+    /* If powered off due to battery, set initial measurement array to different values */
+    if (poweredoff_due_to_battery != FALSE)
+    {
+        logic_power_inform_of_over_discharge();
+        logic_power_register_vbat_adc_measurement(0);
+    }
+    else
+    {
+        logic_power_register_vbat_adc_measurement(UINT16_MAX);
+    }
+    
+    /* Skip next measurements for battery voltage to settle */
+    logic_power_discard_measurement_counter = 5;
     
     /* Compute battery state */
     logic_power_compute_battery_state();
@@ -557,7 +572,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
     /* Battery charging start logic */
     if ((logic_power_get_power_source() == USB_POWERED) && (logic_power_is_usb_enumerate_sent_clear_bool() != FALSE) && 
         (logic_power_battery_charging == FALSE) && 
-        (((nb_ms_since_full_charge_copy >= NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE) && (logic_power_get_battery_state() <= BATTERY_75PCT)) || (logic_power_get_battery_state() <= BATTERY_25PCT)))
+        (logic_power_get_battery_state() <= BATTERY_75PCT))
     {
         /* Reset counter in case we entered here because of safety case */
         cpu_irq_enter_critical();
