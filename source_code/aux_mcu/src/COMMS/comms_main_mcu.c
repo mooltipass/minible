@@ -403,6 +403,9 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* Start ADC conversions for when we're later asked to charge battery */
                 logic_battery_start_using_adc();
                 
+                /* Clear booleans */
+                comms_usb_clear_enumerated();
+                
                 /* Attach USB resistors */
                 udc_attach();
                 
