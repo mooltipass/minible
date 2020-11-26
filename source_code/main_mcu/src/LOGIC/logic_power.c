@@ -481,9 +481,7 @@ void logic_power_compute_battery_state(void)
 *   \return An action if needed (see enum)
 */
 power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_conversion_and_dont_start_another)
-{        
-    volatile uint32_t nb_ms_since_full_charge_copy = logic_power_consumption_log.nb_ms_spent_since_last_full_charge;
-    
+{            
     /* Get current oled power source */
     oled_stepup_pwr_source_te current_voled_pwr_source = platform_io_get_voled_stepup_pwr_source();
     
@@ -573,12 +571,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
     if ((logic_power_get_power_source() == USB_POWERED) && (logic_power_is_usb_enumerate_sent_clear_bool() != FALSE) && 
         (logic_power_battery_charging == FALSE) && 
         (logic_power_get_battery_state() <= BATTERY_75PCT))
-    {
-        /* Reset counter in case we entered here because of safety case */
-        cpu_irq_enter_critical();
-        logic_power_consumption_log.nb_ms_spent_since_last_full_charge = NB_MS_BATTERY_OPERATED_BEFORE_CHARGE_ENABLE;
-        cpu_irq_leave_critical();
-        
+    {        
         /* Send message to start charging */
         if (logic_power_get_and_reset_over_discharge_flag() != FALSE)
         {
