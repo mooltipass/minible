@@ -239,13 +239,7 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
                     /* Prompt user */
                     if (gui_prompts_ask_for_one_line_confirmation(QSWITCH_OFF_DEVICE_TEXT_ID, FALSE, FALSE, TRUE) == MINI_INPUT_RET_YES)
                     {
-                        sh1122_oled_off(&plat_oled_descriptor);     // Display off command
-                        platform_io_power_down_oled();              // Switch off stepup
-                        platform_io_set_wheel_click_pull_down();    // Pull down on wheel click to slowly discharge capacitor
-                        timer_delay_ms(100);                        // From OLED datasheet wait before removing 3V3
-                        platform_io_set_wheel_click_low();          // Completely discharge cap
-                        timer_delay_ms(10);                         // Wait a tad
-                        platform_io_disable_switch_and_die();       // Die!                        
+                        logic_device_power_off();                     
                     }
                     else
                     {
