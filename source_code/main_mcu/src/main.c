@@ -322,7 +322,7 @@ void main_platform_init(void)
 #endif
     
     /* Display error messages if something went wrong during custom fs init and bundle check */
-    if ((custom_fs_init_return != RETURN_OK) || (bundle_integrity_check_return != RETURN_OK))
+    if ((custom_fs_init_return != RETURN_OK) || (bundle_integrity_check_return != RETURN_OK) || ((custom_fs_get_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID) != FALSE) && (custom_fs_get_device_flag_value(SUCCESSFUL_UPDATE_FLAG_ID) == FALSE)))
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
         uint16_t temp_timer_id = timer_get_and_start_timer(30000);
@@ -340,6 +340,7 @@ void main_platform_init(void)
             }            
             
             /* Check for reindex bundle message */
+            #ifdef DEBUG_USB_COMMANDS_ENABLED
             if (msg_received == HID_REINDEX_BUNDLE_RCVD)
             {
                 /* Try to init our file system */
@@ -349,6 +350,7 @@ void main_platform_init(void)
                     break;
                 }
             }
+            #endif
             
             /* Handle possible power switches */
             logic_power_check_power_switch_and_battery(FALSE);
