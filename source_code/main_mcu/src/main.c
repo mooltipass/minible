@@ -662,7 +662,13 @@ int main(void)
         logic_power_routine();
         
         /* Check flag to be logged off */
-        if (logic_user_get_and_clear_user_to_be_logged_off_flag() != FALSE)
+        if ((logic_user_get_and_clear_user_to_be_logged_off_flag() != FALSE) && \
+            (gui_dispatcher_get_current_screen() != GUI_SCREEN_NINSERTED) && \
+            (gui_dispatcher_get_current_screen() != GUI_SCREEN_INSERTED_LCK) && \
+            (gui_dispatcher_get_current_screen() != GUI_SCREEN_INSERTED_INVALID) && \
+            (gui_dispatcher_get_current_screen() != GUI_SCREEN_INSERTED_UNKNOWN) && \
+            (gui_dispatcher_get_current_screen() != GUI_SCREEN_MEMORY_MGMT) && \
+            (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE))            
         {
             /* Disable bluetooth? */
             if (custom_fs_settings_get_device_setting(SETTINGS_DISABLE_BLE_ON_LOCK) != FALSE)
