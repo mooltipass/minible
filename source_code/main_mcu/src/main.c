@@ -382,6 +382,25 @@ void main_platform_init(void)
     
     /* Set screen brightness */
     sh1122_set_contrast_current(&plat_oled_descriptor, custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT));
+    
+    /* Program AUX if needed */
+    if (custom_fs_get_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID) != FALSE)
+    {
+        #if defined(PLAT_V7_SETUP)
+        if (custom_fs_get_device_flag_value(SUCCESSFUL_UPDATE_FLAG_ID) != FALSE)
+        {
+            /* Detach from USB to get a free bus */
+            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
+            comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
+            
+            /* Disable bluetooth if enabled */
+            logic_aux_mcu_disable_ble(TRUE);
+            
+            /* Flash AUX */
+            logic_aux_mcu_flash_firmware_update(TRUE);
+        }
+        #endif
+    }
 
     /* Actions for first user device boot */
     #ifdef DEVELOPER_FEATURES_ENABLED
