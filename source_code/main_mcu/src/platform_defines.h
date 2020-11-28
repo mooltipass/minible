@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    53
+#define FW_MINOR    54
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -153,6 +153,7 @@
 - v0.52:- improved battery readings across reboots
         - improved battery charging logic
 - v0.53:- bug fix: battery status across reboots
+- v0.54:- new bundle upload technique
 */
 
 /**************** SETUP DEFINES ****************/
