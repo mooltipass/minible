@@ -760,6 +760,83 @@ Store new or updated TOTP credentials for a service/login combination.
 
 
 
+0x0028: NiMH Recondition Start
+------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0028   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0028   | 1 | 0x01 (procedure started) |
+
+Start the NiMH reconditioning procedure
+
+
+
+0x0029: Start Bundle Upload
+---------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-17                |
+|:---------|:------------------------|
+| 0x0029   | upload password |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0029   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Start the bundle upload procedure (firmware flashing) and erases the data flash. Answer takes several seconds to arrive!
+
+
+
+0x002A: Write 256B to flash
+---------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-5                 | byte 6-261               |
+|:---------|:-------------------------|:-------------------------|
+| 0x002A   | Memory address for write | Data to write |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x002A   | 1 | 0x00 (failure) / 0x01 (success) |
+
+Write a chunk of data into the data flash.
+
+
+
+0x002B: End Bundle Upload
+-------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x002B   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x002B   | 1 | 0x00 (failure) / 0x01 (success) **or device reboot** |
+
+End the bundle upload procedure. Device may reboot at the end of this message.
+
+
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
