@@ -139,7 +139,7 @@ typedef struct
 typedef struct
 {
     uint8_t bundle_signing_key[AES_KEY_LENGTH/8];
-    uint8_t available_signing_key[AES_KEY_LENGTH/8];
+    uint8_t device_operations_key[AES_KEY_LENGTH/8];
     uint8_t available_signing_key2[AES_KEY_LENGTH/8];
     uint8_t available_signing_key3[AES_KEY_LENGTH/8];
     uint32_t platform_serial_number;

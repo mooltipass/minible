@@ -25,9 +25,11 @@
 #include "platform_io.h"
 #include "logic_power.h"
 #include "custom_fs.h"
+#include "bearssl.h"
 #include "sh1122.h"
 #include "utils.h"
 #include "main.h"
+#include "rng.h"
 /* Platform wakeup reason */
 volatile platform_wakeup_reason_te logic_device_wakeup_reason = WAKEUP_REASON_OTHER;
 /* USB timeout detected bool */
@@ -177,6 +179,7 @@ ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* 
     logic_device_activity_detected();
     
     /* Function called from HID debug messages? */
+#ifdef DEBUG_USB_COMMANDS_ENABLED
     if (from_debug_messages != FALSE)
     {
         gui_screen_te current_screen = gui_dispatcher_get_current_screen();
@@ -200,16 +203,68 @@ ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* 
         }
     } 
     else
+#else
+    (void)from_debug_messages;
+#endif
     {
         /* Bruteforce delay */
-        timer_delay_ms(2000);
+        timer_delay_ms(2000 + rng_get_random_uint8_t());
         
-        #ifdef PLAT_V7_SETUP
-        /* Reset successful update flag, used to specify that the bundle is OK */
-        custom_fs_set_device_flag_value(SUCCESSFUL_UPDATE_FLAG_ID, FALSE);
-        #endif
+        /* Get the current screen we're in */
+        gui_screen_te current_screen = gui_dispatcher_get_current_screen();
         
-        // TODO3
+        /* Bundle upload can be started in either of 2 conditions: no bundle detected at boot / invalid card inserted */
+        if ((current_screen == GUI_SCREEN_INVALID) || (current_screen == GUI_SCREEN_INSERTED_INVALID))
+        {
+            br_aes_ct_ctrcbc_keys device_operations_aes_context;
+            uint32_t password_buffer[AES_BLOCK_SIZE/8/sizeof(uint32_t)];
+            uint8_t device_operations_aes_key[AES_KEY_LENGTH/8];
+            uint8_t temp_ctr[AES256_CTR_LENGTH/8];
+            
+            /* Fetch device operations key */
+            custom_fs_get_device_operations_aes_key(device_operations_aes_key);
+            
+            /* Initialize AES context */
+            memset(temp_ctr, 0, sizeof(temp_ctr));
+            br_aes_ct_ctrcbc_init(&device_operations_aes_context, device_operations_aes_key, AES_KEY_LENGTH/8);
+            
+            /* Prepare what we want to encrypt: bundle version + device SN */
+            _Static_assert(sizeof(password_buffer) == (AES_BLOCK_SIZE/8), "Invalid buffer size");
+            memset(password_buffer, 0, sizeof(password_buffer));
+            password_buffer[0] = custom_fs_get_platform_bundle_version();
+            password_buffer[1] = custom_fs_get_platform_serial_number();
+            br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
+            
+            /* We have the data we want to compare to, memset everything */
+            memset(&device_operations_aes_context, 0, sizeof(device_operations_aes_context));
+            memset(device_operations_aes_key, 0, sizeof(device_operations_aes_key));
+            
+            /* Check for match */
+            if (utils_side_channel_safe_memcmp((uint8_t*)password_buffer, password, sizeof(password_buffer)) != 0)
+            {
+                memset(password_buffer, 0, sizeof(password_buffer));
+                return RETURN_NOK;
+            }
+            
+            #ifdef PLAT_V7_SETUP
+            /* Reset successful update flag, used to specify that the bundle is OK */
+            custom_fs_set_device_flag_value(SUCCESSFUL_UPDATE_FLAG_ID, FALSE);
+            #endif
+            
+            /* Display notification if invalid card inserted */
+            if (current_screen == GUI_SCREEN_INSERTED_INVALID)
+            {
+                gui_dispatcher_set_current_screen(GUI_SCREEN_FW_FILE_UPDATE, TRUE, GUI_OUTOF_MENU_TRANSITION);
+                gui_dispatcher_get_back_to_current_screen();
+            }
+            
+            return RETURN_OK;
+        }
+        else
+        {
+            return RETURN_NOK;
+        }
+        
         return RETURN_OK;
     }
 }

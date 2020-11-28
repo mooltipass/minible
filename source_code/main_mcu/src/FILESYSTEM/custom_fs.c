@@ -62,8 +62,8 @@ const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = { 0,      
                                                                         FALSE,                                   // SETTINGS_DISABLE_BLE_ON_LOCK  
                                                                         0,                                       // SETTINGS_NB_20MINS_TICKS_FOR_LOCK 
                                                                         FALSE};                                  // SETTINGS_SWITCH_OFF_AFTER_USB_DISC
-/* Pointer to our platform unique settings structure */
 #ifndef EMULATOR_BUILD
+/* Pointer to the platform unique data, stored at the last page of our bootloader */
 platform_unique_data_t* custom_fs_plat_data_ptr = (platform_unique_data_t*)(FLASH_ADDR + APP_START_ADDR - NVMCTRL_ROW_SIZE);
 #endif
 /* Current selected language entry */ 
@@ -125,6 +125,19 @@ RET_TYPE custom_fs_get_platform_ble_mac_addr(uint8_t* buffer)
     }
 #else
     return RETURN_OK;
+#endif
+}
+
+/*! \fn     custom_fs_get_device_operations_aes_key(uint8_t* buffer)
+*   \brief  Get the platform device operations AES key
+*   \param  buffer  Where to store the 32 bytes key
+*/
+void custom_fs_get_device_operations_aes_key(uint8_t* buffer)
+{
+#ifndef EMULATOR_BUILD
+    memcpy(buffer, custom_fs_plat_data_ptr->device_operations_key, sizeof(custom_fs_plat_data_ptr->device_operations_key));
+#else
+    (void)buffer;
 #endif
 }
 

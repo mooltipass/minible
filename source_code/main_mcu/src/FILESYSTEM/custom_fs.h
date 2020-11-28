@@ -66,6 +66,7 @@ ret_type_te custom_fs_set_current_language(uint8_t language_id);
 void custom_fs_set_device_default_language(uint8_t language_id);
 RET_TYPE custom_fs_get_platform_ble_mac_addr(uint8_t* buffer);
 void* custom_fs_get_custom_storage_slot_ptr(uint32_t slot_id);
+void custom_fs_get_device_operations_aes_key(uint8_t* buffer);
 void custom_fs_settings_store_dump(uint8_t* settings_buffer);
 cust_char_t* custom_fs_get_current_language_text_desc(void);
 uint16_t custom_fs_settings_get_dump(uint8_t* dump_buffer);
