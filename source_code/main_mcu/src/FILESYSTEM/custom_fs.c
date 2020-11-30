@@ -639,7 +639,8 @@ custom_file_flash_header_t* custom_fs_get_buffered_flash_header_pt(void)
 *   \return RETURN_(N)OK
 */
 ret_type_te custom_fs_init(void)
-{    
+{
+    _Static_assert(sizeof(bl_section_last_row_t) == NVMCTRL_ROW_SIZE, "Platform unique data struct doesn't have the correct size");
     _Static_assert(sizeof(custom_platform_settings_t) == NVMCTRL_ROW_SIZE, "Platform settings isn't a page long");
     _Static_assert(sizeof(custom_platform_flags_t) == NVMCTRL_ROW_SIZE, "Platform flags isn't a page long");
 
