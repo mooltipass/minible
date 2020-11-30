@@ -269,7 +269,9 @@ void debug_debug_menu(void)
             else if (selected_item == 13)
             {
                 sh1122_clear_current_screen(&plat_oled_descriptor);
+                #ifndef EMULATOR_BUILD
                 functional_testing_start(FALSE);
+                #endif
             }
             else if (selected_item == 14)
             {
@@ -508,7 +510,9 @@ void debug_battery_repair(void)
             sh1122_oled_off(&plat_oled_descriptor);
             platform_io_assert_oled_reset();
             timer_delay_ms(15);
+            #ifndef EMULATOR_BUILD
             platform_io_transcienty_battery_oled_power_up();
+            #endif
             sh1122_init_display(&plat_oled_descriptor, TRUE);
             sh1122_put_error_string(&plat_oled_descriptor, u"Blinking");
             timer_delay_ms(15);
@@ -732,6 +736,7 @@ void debug_test_pattern_display(void)
 */
 void debug_reset_device(void)
 {
+    #ifndef EMULATOR_BUILD
     sh1122_clear_current_screen(&plat_oled_descriptor);
     sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please wait...", FALSE);
     dataflash_bulk_erase_with_wait(&dataflash_descriptor);
@@ -744,6 +749,7 @@ void debug_reset_device(void)
     nodemgmt_format_user_profile(100, 0xFFFF & (~USER_SEC_FLG_BLE_ENABLED), 0, 0, 0);
     cpu_irq_disable();
     NVIC_SystemReset();
+    #endif
 }
 
 /*! \fn     debug_setup_dev_card(void)
@@ -1027,7 +1033,11 @@ void debug_debug_screen(void)
     uint16_t bat_adc_result = 0;
     uint32_t stat_times[6];    
     uint32_t last_stat_s = driver_timer_get_rtc_timestamp_uint32t();
+    #ifndef EMULATOR_BUILD
     uint16_t default_osculp_calib_val = SYSCTRL->OSCULP32K.bit.CALIB;
+    #else
+    uint16_t default_osculp_calib_val = 15;
+    #endif
     
     while(1)
     {
@@ -1059,7 +1069,8 @@ void debug_debug_screen(void)
             bat_adc_result = platform_io_get_voledin_conversion_result_and_trigger_conversion();
         }
         
-        /* Check for Accelerometer SERCOM buffer overflow */   
+        /* Check for Accelerometer SERCOM buffer overflow */
+        #ifndef EMULATOR_BUILD
         if (ACC_SERCOM->SPI.STATUS.bit.BUFOVF != 0)
         {
             sh1122_put_error_string(&plat_oled_descriptor, u"ACC Overflow");      
@@ -1070,6 +1081,7 @@ void debug_debug_screen(void)
         {
             sh1122_put_error_string(&plat_oled_descriptor, u"AUX COM Overflow");      
         }
+        #endif
         
         /* End data acq */
         stat_times[3] = timer_get_systick();
@@ -1097,7 +1109,9 @@ void debug_debug_screen(void)
         sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, TRUE, "ACC: %uHz X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_x, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_y, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_z);
         
         /* Line 4: battery */
+        #ifndef EMULATOR_BUILD
         sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, TRUE, "BAT: ADC %u, %u mV, OSC: %u", bat_adc_result, (((uint32_t)bat_adc_result)*199)>>9, SYSCTRL->OSCULP32K.bit.CALIB);
+        #endif
         
         /* Line 5: Unit SN & MAC */
         uint8_t mac[6];
@@ -1150,6 +1164,7 @@ void debug_mcu_and_aux_info(void)
     aux_mcu_message_t* temp_tx_message_pt;
     
     /* Get part number */
+    #ifndef EMULATOR_BUILD
     char part_number[20] = "unknown";
     if (DSU->DID.bit.DEVSEL == 0x05)
     {
@@ -1161,6 +1176,7 @@ void debug_mcu_and_aux_info(void)
     sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Main MCU, fw %d.%d", FW_MAJOR, FW_MINOR);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "DID 0x%08x (%s), rev %c", DSU->DID.reg, part_number, 'A' + DSU->DID.bit.REVISION);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", *(uint32_t*)0x0080A00C, *(uint32_t*)0x0080A040, *(uint32_t*)0x0080A044, *(uint32_t*)0x0080A048);
+    #endif
     
     /* Prepare status message request */
     temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_PLAT_DETAILS);
@@ -1172,6 +1188,7 @@ void debug_mcu_and_aux_info(void)
     while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
         
     /* Cast aux MCU DID */
+    #ifndef EMULATOR_BUILD
     DSU_DID_Type aux_mcu_did;
     aux_mcu_did.reg = temp_rx_message->aux_details_message.aux_did_register;
     
@@ -1187,12 +1204,13 @@ void debug_mcu_and_aux_info(void)
     else
     {
         strcpy(part_number, "unknown");
-    }    
+    }   
         
     /* This is debug, no need to check if it is the correct received message */
     sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "Aux MCU fw %d.%d", temp_rx_message->aux_details_message.aux_fw_ver_major, temp_rx_message->aux_details_message.aux_fw_ver_minor);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, FALSE, "DID 0x%08x (%s), rev %c", aux_mcu_did.reg, part_number, 'A' + aux_mcu_did.bit.REVISION);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", temp_rx_message->aux_details_message.aux_uid_registers[0], temp_rx_message->aux_details_message.aux_uid_registers[1], temp_rx_message->aux_details_message.aux_uid_registers[2], temp_rx_message->aux_details_message.aux_uid_registers[3]);
+    #endif
     
     /* Info printed, rearm DMA RX */
     comms_aux_arm_rx_and_clear_no_comms();
@@ -1710,7 +1728,9 @@ void debug_nimh_charging(void)
         /* Battery measurement */
         if (platform_io_is_voledin_conversion_result_ready() != FALSE)
         {
+            #ifndef EMULATOR_BUILD
             bat_mv = platform_io_get_voledinmv_conversion_result_and_trigger_conversion();
+            #endif
         }
         
         /* Send a packet to aux MCU? */

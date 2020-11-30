@@ -100,6 +100,7 @@ SOURCES += src/EMU/lis2hh12.c \
     src/EMU/smartcard_lowlevel.c \
     src/TIMER/driver_timer.c \
     src/utils.c \
+    src/debug.c \
     src/main.c \
     src/EMU/emu_aux_mcu.c \
     src/EMU/emulator.cpp \
@@ -190,5 +191,6 @@ HEADERS  += src/MainWindow.h \ \
     src/SMARTCARD/smartcard_highlevel.h \
     src/TIMER/driver_timer.h \
     src/defines.h \
+    src/debug.h \
     src/main.h \
     src/utils.h
