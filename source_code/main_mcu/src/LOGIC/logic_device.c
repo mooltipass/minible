@@ -221,14 +221,17 @@ ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* 
         {
             br_aes_ct_ctrcbc_keys device_operations_aes_context;
             uint32_t password_buffer[AES_BLOCK_SIZE/8/sizeof(uint32_t)];
+            uint32_t temp_ctr[AES256_CTR_LENGTH/8/sizeof(uint32_t)];
             uint8_t device_operations_aes_key[AES_KEY_LENGTH/8];
-            uint8_t temp_ctr[AES256_CTR_LENGTH/8];
             
             /* Fetch device operations key */
             custom_fs_get_device_operations_aes_key(device_operations_aes_key);
+            custom_fs_get_device_operations_iv((uint8_t*)temp_ctr);
+            
+            /* Bundle upload operations: we use the bundle version as counter, for the first uint32_t of the CTR */
+            temp_ctr[0] ^= custom_fs_get_platform_bundle_version();
             
             /* Initialize AES context */
-            memset(temp_ctr, 0, sizeof(temp_ctr));
             br_aes_ct_ctrcbc_init(&device_operations_aes_context, device_operations_aes_key, AES_KEY_LENGTH/8);
             
             /* Prepare what we want to encrypt: bundle version + device SN */
@@ -241,6 +244,7 @@ ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* 
             /* We have the data we want to compare to, memset everything */
             memset(&device_operations_aes_context, 0, sizeof(device_operations_aes_context));
             memset(device_operations_aes_key, 0, sizeof(device_operations_aes_key));
+            memset(temp_ctr, 0, sizeof(temp_ctr));
             
             /* Check for match */
             if (utils_side_channel_safe_memcmp((uint8_t*)password_buffer, password, sizeof(password_buffer)) != 0)

@@ -37,6 +37,7 @@
 #include "dataflash.h"
 #include "text_ids.h"
 #include "nodemgmt.h"
+#include "bearssl.h"
 #include "dbflash.h"
 #include "utils.h"
 #include "main.h"
@@ -1653,6 +1654,92 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 /* Set failure byte */
                 comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
                 return;
+            }
+        }
+        
+        case HID_CMD_DEV_AUTH_CHALLENGE:
+        {
+            if (rcv_msg->payload_length == sizeof(uint32_t) + (AES_BLOCK_SIZE/8))
+            {
+                uint32_t suggested_counter_value = rcv_msg->payload_as_uint32[0];
+                uint32_t password_buffer[AES_BLOCK_SIZE/8/sizeof(uint32_t)];
+                uint32_t temp_ctr[AES256_CTR_LENGTH/8/sizeof(uint32_t)];
+                uint8_t device_operations_aes_key[AES_KEY_LENGTH/8];
+                br_aes_ct_ctrcbc_keys device_operations_aes_context;
+                
+                /* Bruteforce delay */
+                timer_delay_ms(2000 + rng_get_random_uint8_t());
+                
+                /* Get current authentication challenge counter */
+                uint32_t current_counter_value = custom_fs_get_auth_challenge_counter();
+                
+                /* Check that suggested counter value is above our current one */
+                if (suggested_counter_value > current_counter_value)
+                {
+                    /* Fetch device operations key & static random data */
+                    custom_fs_get_device_operations_aes_key(device_operations_aes_key);
+                    custom_fs_get_device_operations_iv((uint8_t*)temp_ctr);
+                    
+                    /* Authentication challenge operations: we use the suggested counter value as counter, for the second uint32_t of the CTR */
+                    temp_ctr[1] ^= suggested_counter_value;
+                    
+                    /* Initialize AES context */
+                    memset(temp_ctr, 0, sizeof(temp_ctr));
+                    br_aes_ct_ctrcbc_init(&device_operations_aes_context, device_operations_aes_key, AES_KEY_LENGTH/8);
+                    
+                    /* Prepare what we want to encrypt: suggested counter value + device SN */
+                    memset(password_buffer, 0, sizeof(password_buffer));
+                    _Static_assert(sizeof(password_buffer) == (AES_BLOCK_SIZE/8), "Invalid buffer size");
+                    password_buffer[0] = suggested_counter_value;
+                    password_buffer[1] = custom_fs_get_platform_serial_number();
+                    br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
+                    
+                    /* Check for match */
+                    if (utils_side_channel_safe_memcmp((uint8_t*)password_buffer, &rcv_msg->payload[sizeof(uint32_t)], sizeof(password_buffer)) == 0)
+                    {
+                        /* Sign challenge: sign the same thing but use the third uint32_t of the CTR as counter */
+                        custom_fs_get_device_operations_iv((uint8_t*)temp_ctr);
+                        temp_ctr[2] ^= suggested_counter_value;
+                        memset(password_buffer, 0, sizeof(password_buffer));
+                        password_buffer[0] = suggested_counter_value;
+                        password_buffer[1] = custom_fs_get_platform_serial_number();
+                        br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
+                        
+                        /* Send answer */
+                        aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(password_buffer));
+                        memcpy(temp_tx_message_pt->hid_message.payload, password_buffer, sizeof(password_buffer));
+                        comms_aux_mcu_send_message(temp_tx_message_pt);
+                        
+                        /* memset everything */
+                        memset(&device_operations_aes_context, 0, sizeof(device_operations_aes_context));
+                        memset(device_operations_aes_key, 0, sizeof(device_operations_aes_key));
+                        memset(temp_ctr, 0, sizeof(temp_ctr));                        
+                        return;
+                    }
+                    else
+                    {
+                        /* memset everything */
+                        memset(&device_operations_aes_context, 0, sizeof(device_operations_aes_context));
+                        memset(device_operations_aes_key, 0, sizeof(device_operations_aes_key));
+                        memset(temp_ctr, 0, sizeof(temp_ctr));
+                        
+                        /* Set nack, leave same command id */
+                        comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                        return;                        
+                    }
+                } 
+                else
+                {
+                    /* Set nack, leave same command id */
+                    comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                    return;
+                }                            
+            }
+            else
+            {
+                /* Set nack, leave same command id */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;                
             }
         }
         

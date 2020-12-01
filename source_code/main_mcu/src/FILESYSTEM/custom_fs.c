@@ -141,6 +141,19 @@ void custom_fs_get_device_operations_aes_key(uint8_t* buffer)
 #endif
 }
 
+/*! \fn     custom_fs_get_device_operations_iv(uint8_t* buffer)
+*   \brief  Get the IV for the device operations CTR
+*   \param  buffer  Where to store the 16 bytes
+*/
+void custom_fs_get_device_operations_iv(uint8_t* buffer)
+{
+#ifndef EMULATOR_BUILD
+    memcpy(buffer, custom_fs_plat_data_ptr->device_operations_iv, sizeof(custom_fs_plat_data_ptr->device_operations_iv));
+#else
+    (void)buffer;
+#endif
+}
+
 /*! \fn     custom_fs_get_platform_bundle_version(void)
 *   \brief  Get the platform bundle version
 *   \return The bundle version
@@ -1184,6 +1197,22 @@ uint16_t custom_fs_settings_get_dump(uint8_t* dump_buffer)
         memcpy(dump_buffer, custom_fs_platform_settings_p->device_settings, sizeof(custom_fs_platform_settings_p->device_settings));
         return sizeof(custom_fs_platform_settings_p->device_settings);
     }
+}
+
+/*! \fn     custom_fs_get_auth_challenge_counter(void)
+*   \brief  Get device authentication challenge counter
+*   \return Authentication challenge counter
+*/
+uint32_t custom_fs_get_auth_challenge_counter(void)
+{
+    if (custom_fs_platform_settings_p != 0)
+    {
+        return custom_fs_platform_settings_p->device_auth_challenge_counter;
+    }
+    else
+    {
+        return 0;
+    }        
 }
 
 /*! \fn     custom_fs_settings_store_dump(uint8_t* settings_buffer)
