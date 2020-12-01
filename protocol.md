@@ -784,9 +784,9 @@ Start the NiMH reconditioning procedure
 
 From the PC: 
 
-| byte 0-1 | byte 2-17                |
-|:---------|:------------------------|
-| 0x0029   | upload password |
+| byte 0-1 | byte 2-3 | byte 4-19                |
+|:---------|:---------|:------------------------|
+| 0x0029   |       16 | upload password |
 
 Device Answer:
 
@@ -803,9 +803,9 @@ Start the bundle upload procedure (firmware flashing) and erases the data flash.
 
 From the PC: 
 
-| byte 0-1 | byte 2-5                 | byte 6-261               |
-|:---------|:-------------------------|:-------------------------|
-| 0x002A   | Memory address for write | Data to write |
+| byte 0-1 | byte 2-3 | byte 4-7                 | byte 8-263               |
+|:---------|:---------|:-------------------------|:-------------------------|
+| 0x002A   |      260 | Memory address for write | Data to write |
 
 Device Answer:
 
@@ -833,6 +833,23 @@ Device Answer:
 | 0x002B   | 1 | 0x00 (failure) / 0x01 (success) **or device reboot** |
 
 End the bundle upload procedure. Device may reboot at the end of this message.
+
+
+
+0x002C: Device Authentication Challenge
+---------------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3 | byte 4-23               |
+|:---------|:---------|:-------------------------|
+| 0x002C   |       20 | challenge (4bytes counter + signed challenge) |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4 - X                      |
+|:---------|:----------------------------|:--------------------------------|
+| 0x002C   | 1 or 16 | 0x00 (failure) or the challenge response |
 
 
 
