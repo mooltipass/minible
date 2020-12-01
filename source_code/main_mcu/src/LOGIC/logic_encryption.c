@@ -82,7 +82,7 @@ static inline uint32_t logic_encryption_ctr_array_to_uint32(uint8_t* array)
 }
 
 /*! \fn     logic_encryption_add_vector_to_other(uint8_t* destination, uint8_t* source, uint16_t vector_length)
-*   \brief  Add two vectors together
+*   \brief  Add two vectors together (using big endianness)
 *   \param  destination     Array, which will also contain the result
 *   \param  source          The other array
 *   \param  vector_length   Vectors length

@@ -20,6 +20,7 @@
 *    Author:   Mathieu Stephan
 */
 #include "comms_aux_mcu_defines.h"
+#include "logic_encryption.h"
 #include "gui_dispatcher.h"
 #include "comms_aux_mcu.h"
 #include "logic_aux_mcu.h"
@@ -221,15 +222,18 @@ ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* 
         {
             br_aes_ct_ctrcbc_keys device_operations_aes_context;
             uint32_t password_buffer[AES_BLOCK_SIZE/8/sizeof(uint32_t)];
-            uint32_t temp_ctr[AES256_CTR_LENGTH/8/sizeof(uint32_t)];
             uint8_t device_operations_aes_key[AES_KEY_LENGTH/8];
+            uint8_t temp_ctr_to_be_added[AES256_CTR_LENGTH/8];
+            uint8_t temp_ctr[AES256_CTR_LENGTH/8];
             
             /* Fetch device operations key */
             custom_fs_get_device_operations_aes_key(device_operations_aes_key);
             custom_fs_get_device_operations_iv((uint8_t*)temp_ctr);
             
-            /* Bundle upload operations: we use the bundle version as counter, for the first uint32_t of the CTR */
-            temp_ctr[0] ^= custom_fs_get_platform_bundle_version();
+            /* Bundle upload operations: we use the bundle version as counter, for the first uint32_t of the CTR (+1 is here to make sure there's no reuse when other functions use another uint32_t) */
+            memset(temp_ctr_to_be_added, 0, sizeof(temp_ctr_to_be_added));
+            utils_add_uint32_t_to_be_array(temp_ctr_to_be_added, ((uint32_t)custom_fs_get_platform_bundle_version()) + 1);
+            logic_encryption_add_vector_to_other(temp_ctr, temp_ctr_to_be_added, sizeof(temp_ctr_to_be_added));
             
             /* Initialize AES context */
             br_aes_ct_ctrcbc_init(&device_operations_aes_context, device_operations_aes_key, AES_KEY_LENGTH/8);

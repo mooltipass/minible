@@ -1680,8 +1680,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     custom_fs_get_device_operations_aes_key(device_operations_aes_key);
                     custom_fs_get_device_operations_iv((uint8_t*)temp_ctr);
                     
-                    /* Authentication challenge operations: we use the suggested counter value as counter, for the second uint32_t of the CTR */
-                    temp_ctr[1] ^= suggested_counter_value;
+                    /* Authentication challenge operations: we use the suggested counter value as counter, for the second uint32_t of the CTR (+1 is here to make sure there's no reuse when other functions use another uint32_t) */
+                    temp_ctr[1] ^= suggested_counter_value + 1;
                     
                     /* Initialize AES context */
                     memset(temp_ctr, 0, sizeof(temp_ctr));
@@ -1697,9 +1697,9 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     /* Check for match */
                     if (utils_side_channel_safe_memcmp((uint8_t*)password_buffer, &rcv_msg->payload[sizeof(uint32_t)], sizeof(password_buffer)) == 0)
                     {
-                        /* Sign challenge: sign the same thing but use the third uint32_t of the CTR as counter */
+                        /* Sign challenge: sign the same thing but use the third uint32_t of the CTR as counter (+1 is here to make sure there's no reuse when other functions use another uint32_t) */
                         custom_fs_get_device_operations_iv((uint8_t*)temp_ctr);
-                        temp_ctr[2] ^= suggested_counter_value;
+                        temp_ctr[2] ^= suggested_counter_value + 1;
                         memset(password_buffer, 0, sizeof(password_buffer));
                         password_buffer[0] = suggested_counter_value;
                         password_buffer[1] = custom_fs_get_platform_serial_number();
