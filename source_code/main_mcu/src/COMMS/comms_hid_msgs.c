@@ -1683,7 +1683,14 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     
                     /* Authentication challenge operations: we use the suggested counter value as counter, for the second uint32_t of the CTR (+1 is here to make sure there's no reuse when other functions use another uint32_t) */
                     memset(temp_ctr_to_be_added, 0, sizeof(temp_ctr_to_be_added));
-                    utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[4], suggested_counter_value + 1);
+                    if (current_counter_value == UINT32_MAX)
+                    {
+                        utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[4], suggested_counter_value);
+                    } 
+                    else
+                    {
+                        utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[4], suggested_counter_value + 1);
+                    }
                     logic_encryption_add_vector_to_other(temp_ctr, temp_ctr_to_be_added, sizeof(temp_ctr_to_be_added));
                     
                     /* Initialize AES context */
@@ -1709,7 +1716,14 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                         /* Sign challenge: sign the same thing but use the third uint32_t of the CTR as counter (+1 is here to make sure there's no reuse when other functions use another uint32_t) */
                         custom_fs_get_device_operations_iv(temp_ctr);
                         memset(temp_ctr_to_be_added, 0, sizeof(temp_ctr_to_be_added));
-                        utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[8], suggested_counter_value + 1);
+                        if (current_counter_value == UINT32_MAX)
+                        {
+                            utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[8], suggested_counter_value);
+                        }
+                        else
+                        {
+                            utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[8], suggested_counter_value + 1);
+                        }
                         logic_encryption_add_vector_to_other(temp_ctr, temp_ctr_to_be_added, sizeof(temp_ctr_to_be_added));
                         memset(password_buffer, 0, sizeof(password_buffer));
                         if (current_counter_value == UINT32_MAX)
