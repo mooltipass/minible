@@ -1701,7 +1701,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     memset(password_buffer, 0, sizeof(password_buffer));
                     if (current_counter_value == UINT32_MAX)
                     {
-                        password_buffer[0] = current_counter_value;
+                        password_buffer[0] = UINT32_MAX;
                     } 
                     else
                     {
@@ -1728,7 +1728,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                         memset(password_buffer, 0, sizeof(password_buffer));
                         if (current_counter_value == UINT32_MAX)
                         {
-                            password_buffer[0] = current_counter_value;
+                            password_buffer[0] = UINT32_MAX;
                         }
                         else
                         {
