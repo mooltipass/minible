@@ -1685,7 +1685,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     memset(temp_ctr_to_be_added, 0, sizeof(temp_ctr_to_be_added));
                     if (current_counter_value == UINT32_MAX)
                     {
-                        utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[4], suggested_counter_value);
+                        utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[4], UINT32_MAX);
                     } 
                     else
                     {
@@ -1718,7 +1718,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                         memset(temp_ctr_to_be_added, 0, sizeof(temp_ctr_to_be_added));
                         if (current_counter_value == UINT32_MAX)
                         {
-                            utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[8], suggested_counter_value);
+                            utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[8], UINT32_MAX);
                         }
                         else
                         {
