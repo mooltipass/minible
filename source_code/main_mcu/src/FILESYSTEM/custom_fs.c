@@ -141,19 +141,6 @@ void custom_fs_get_device_operations_aes_key(uint8_t* buffer)
 #endif
 }
 
-/*! \fn     custom_fs_get_device_operations_iv(uint8_t* buffer)
-*   \brief  Get the IV for the device operations CTR
-*   \param  buffer  Where to store the 16 bytes
-*/
-void custom_fs_get_device_operations_iv(uint8_t* buffer)
-{
-#ifndef EMULATOR_BUILD
-    memcpy(buffer, custom_fs_plat_data_ptr->device_operations_iv, sizeof(custom_fs_plat_data_ptr->device_operations_iv));
-#else
-    (void)buffer;
-#endif
-}
-
 /*! \fn     custom_fs_get_platform_bundle_version(void)
 *   \brief  Get the platform bundle version
 *   \return The bundle version

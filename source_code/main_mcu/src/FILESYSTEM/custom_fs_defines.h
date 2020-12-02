@@ -141,8 +141,7 @@ typedef struct
     uint8_t bundle_signing_key[AES_KEY_LENGTH/8];
     uint8_t device_operations_key[AES_KEY_LENGTH/8];
     uint8_t available_signing_key2[AES_KEY_LENGTH/8];
-    uint8_t device_operations_iv[AES_BLOCK_SIZE/8];
-    uint8_t random_data_bis[AES_BLOCK_SIZE/8];
+    uint8_t available_signing_key3[AES_KEY_LENGTH/8];
     uint32_t platform_serial_number;
     uint8_t platform_ble_mac_addr[6];
     uint16_t current_bundle_version;

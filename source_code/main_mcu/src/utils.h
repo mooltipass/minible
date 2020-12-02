@@ -42,8 +42,8 @@ void utils_surround_text_with_pointers(cust_char_t* text, uint16_t field_length)
 uint16_t utils_check_value_for_range(uint16_t val, uint16_t min, uint16_t max);
 uint16_t utils_strcpy(cust_char_t* destination, cust_char_t const* source);
 uint8_t utils_get_cbor_encoded_value_for_val_btw_m24_p23(int8_t value);
-void utils_add_uint32_t_to_be_array(uint8_t* array, uint32_t value);
 uint16_t utils_u8strnlen(uint8_t const* string, uint16_t maxlen);
+void utils_uint32_t_to_be_array(uint8_t* array, uint32_t value);
 void utils_ascii_to_unicode(uint8_t* string, uint16_t nb_chars);
 cust_char_t* utils_get_string_next_line_pt(cust_char_t* string);
 int16_t utils_utf8_to_bmp(uint8_t* input, cust_char_t* output);

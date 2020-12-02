@@ -74,7 +74,6 @@ uint16_t custom_fs_settings_get_dump(uint8_t* dump_buffer);
 void custom_fs_detele_user_cpz_lut_entry(uint8_t user_id);
 custom_fs_init_ret_type_te custom_fs_settings_init(void);
 uint8_t custom_fs_get_current_layout_id(BOOL usb_layout);
-void custom_fs_get_device_operations_iv(uint8_t* buffer);
 uint16_t custom_fs_get_platform_bundle_version(void);
 uint32_t custom_fs_get_auth_challenge_counter(void);
 uint32_t custom_fs_get_platform_serial_number(void);
