@@ -1683,7 +1683,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     
                     /* Authentication challenge operations: we use the suggested counter value as counter, for the second uint32_t of the CTR (+1 is here to make sure there's no reuse when other functions use another uint32_t) */
                     memset(temp_ctr_to_be_added, 0, sizeof(temp_ctr_to_be_added));
-                    if (current_counter_value == UINT32_MAX)
+                    if ((current_counter_value == UINT32_MAX) || (suggested_counter_value == UINT32_MAX))
                     {
                         utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[4], UINT32_MAX);
                     } 
@@ -1716,7 +1716,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                         /* Sign challenge: sign the same thing but use the third uint32_t of the CTR as counter (+1 is here to make sure there's no reuse when other functions use another uint32_t) */
                         custom_fs_get_device_operations_iv(temp_ctr);
                         memset(temp_ctr_to_be_added, 0, sizeof(temp_ctr_to_be_added));
-                        if (current_counter_value == UINT32_MAX)
+                        if ((current_counter_value == UINT32_MAX) || (suggested_counter_value == UINT32_MAX))
                         {
                             utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[8], UINT32_MAX);
                         }
