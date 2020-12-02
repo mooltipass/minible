@@ -48,16 +48,18 @@ uint16_t utils_u8strlen(uint8_t* string)
 
 /*! \fn     utils_add_uint32_t_to_be_array(uint8_t* array, uint32_t value)
 *   \brief  Add a uint32_t to a big endian array
-*   \param  array   The array into which the value should be added
+*   \param  array   The 5 bytes array into which the value should be added
 *   \param  value   The value
 */
 void utils_add_uint32_t_to_be_array(uint8_t* array, uint32_t value)
 {
+    _Static_assert(UINT32_MAX != (UINT32_MAX>>8), "Compiler uses arithmetic bishift instead of logical one");
+    _Static_assert(~0ul != (~0ul>>8), "Compiler uses arithmetic bishift instead of logical one");
     uint16_t carry_value = 0;
-    for (uint16_t i = 0; i < 4; i++)
+    for (uint16_t i = 0; i < 5; i++)
     {
-        carry_value += array[3-i] + (value & 0x0FF);
-        array[3-i] = (uint8_t)carry_value;
+        carry_value += array[4-i] + (value & 0x0FF);
+        array[4-i] = (uint8_t)carry_value;
         carry_value >>= 8;
         value >>= 8;
     }
