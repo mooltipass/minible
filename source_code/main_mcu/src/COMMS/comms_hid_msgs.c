@@ -1661,11 +1661,12 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         {
             if (rcv_msg->payload_length == sizeof(uint32_t) + (AES_BLOCK_SIZE/8))
             {
+                br_aes_ct_ctrcbc_keys device_operations_aes_context;
                 uint32_t suggested_counter_value = rcv_msg->payload_as_uint32[0];
                 uint32_t password_buffer[AES_BLOCK_SIZE/8/sizeof(uint32_t)];
-                uint32_t temp_ctr[AES256_CTR_LENGTH/8/sizeof(uint32_t)];
                 uint8_t device_operations_aes_key[AES_KEY_LENGTH/8];
-                br_aes_ct_ctrcbc_keys device_operations_aes_context;
+                uint8_t temp_ctr_to_be_added[AES256_CTR_LENGTH/8];
+                uint8_t temp_ctr[AES256_CTR_LENGTH/8];
                 
                 /* Bruteforce delay */
                 timer_delay_ms(2000 + rng_get_random_uint8_t());
@@ -1674,22 +1675,23 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 uint32_t current_counter_value = custom_fs_get_auth_challenge_counter();
                 
                 /* Check that suggested counter value is above our current one */
-                if (suggested_counter_value > current_counter_value)
+                if ((suggested_counter_value > current_counter_value) || (current_counter_value == 0xFFFF))
                 {
                     /* Fetch device operations key & static random data */
                     custom_fs_get_device_operations_aes_key(device_operations_aes_key);
-                    custom_fs_get_device_operations_iv((uint8_t*)temp_ctr);
+                    custom_fs_get_device_operations_iv(temp_ctr);
                     
                     /* Authentication challenge operations: we use the suggested counter value as counter, for the second uint32_t of the CTR (+1 is here to make sure there's no reuse when other functions use another uint32_t) */
-                    temp_ctr[1] ^= suggested_counter_value + 1;
+                    memset(temp_ctr_to_be_added, 0, sizeof(temp_ctr_to_be_added));
+                    utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[4], suggested_counter_value + 1);
+                    logic_encryption_add_vector_to_other(temp_ctr, temp_ctr_to_be_added, sizeof(temp_ctr_to_be_added));
                     
                     /* Initialize AES context */
-                    memset(temp_ctr, 0, sizeof(temp_ctr));
                     br_aes_ct_ctrcbc_init(&device_operations_aes_context, device_operations_aes_key, AES_KEY_LENGTH/8);
                     
                     /* Prepare what we want to encrypt: suggested counter value + device SN */
-                    memset(password_buffer, 0, sizeof(password_buffer));
                     _Static_assert(sizeof(password_buffer) == (AES_BLOCK_SIZE/8), "Invalid buffer size");
+                    memset(password_buffer, 0, sizeof(password_buffer));
                     password_buffer[0] = suggested_counter_value;
                     password_buffer[1] = custom_fs_get_platform_serial_number();
                     br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
@@ -1698,12 +1700,19 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     if (utils_side_channel_safe_memcmp((uint8_t*)password_buffer, &rcv_msg->payload[sizeof(uint32_t)], sizeof(password_buffer)) == 0)
                     {
                         /* Sign challenge: sign the same thing but use the third uint32_t of the CTR as counter (+1 is here to make sure there's no reuse when other functions use another uint32_t) */
-                        custom_fs_get_device_operations_iv((uint8_t*)temp_ctr);
-                        temp_ctr[2] ^= suggested_counter_value + 1;
+                        custom_fs_get_device_operations_iv(temp_ctr);
+                        memset(temp_ctr_to_be_added, 0, sizeof(temp_ctr_to_be_added));
+                        utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[8], suggested_counter_value + 1);
+                        logic_encryption_add_vector_to_other(temp_ctr, temp_ctr_to_be_added, sizeof(temp_ctr_to_be_added));
                         memset(password_buffer, 0, sizeof(password_buffer));
                         password_buffer[0] = suggested_counter_value;
-                        password_buffer[1] = custom_fs_get_platform_serial_number();
                         br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
+                        
+                        /* Increment challenge counter */
+                        if (current_counter_value != 0xFFFF)
+                        {
+                            custom_fs_set_auth_challenge_counter(suggested_counter_value);
+                        }
                         
                         /* Send answer */
                         aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(password_buffer));

@@ -61,6 +61,7 @@ custom_fs_address_t custom_fs_get_start_address_of_signed_data(void);
 uint8_t custom_fs_get_recommended_layout_for_current_language(void);
 BOOL custom_fs_get_device_flag_value(custom_fs_flag_id_te flag_id);
 uint8_t custom_fs_settings_get_device_setting(uint16_t setting_id);
+void custom_fs_set_auth_challenge_counter(uint32_t counter_value);
 RET_TYPE custom_fs_compute_and_check_external_bundle_crc32(void);
 ret_type_te custom_fs_set_current_language(uint8_t language_id);
 void custom_fs_set_device_default_language(uint8_t language_id);

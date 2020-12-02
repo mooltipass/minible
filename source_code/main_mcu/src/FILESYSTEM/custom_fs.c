@@ -1199,6 +1199,18 @@ uint16_t custom_fs_settings_get_dump(uint8_t* dump_buffer)
     }
 }
 
+/*! \fn     custom_fs_set_auth_challenge_counter(uint32_t counter_value)
+*   \brief  Set new authentication counter challenge value
+*   \counter_value  New counter value to store
+*/
+void custom_fs_set_auth_challenge_counter(uint32_t counter_value)
+{
+    volatile custom_platform_settings_t temp_settings;
+    custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    temp_settings.device_auth_challenge_counter = counter_value;
+    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);    
+}
+
 /*! \fn     custom_fs_get_auth_challenge_counter(void)
 *   \brief  Get device authentication challenge counter
 *   \return Authentication challenge counter

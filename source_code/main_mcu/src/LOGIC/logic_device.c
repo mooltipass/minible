@@ -228,7 +228,7 @@ ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* 
             
             /* Fetch device operations key */
             custom_fs_get_device_operations_aes_key(device_operations_aes_key);
-            custom_fs_get_device_operations_iv((uint8_t*)temp_ctr);
+            custom_fs_get_device_operations_iv(temp_ctr);
             
             /* Bundle upload operations: we use the bundle version as counter, for the first uint32_t of the CTR (+1 is here to make sure there's no reuse when other functions use another uint32_t) */
             memset(temp_ctr_to_be_added, 0, sizeof(temp_ctr_to_be_added));
