@@ -1675,7 +1675,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 uint32_t current_counter_value = custom_fs_get_auth_challenge_counter();
                 
                 /* Check that suggested counter value is above our current one */
-                if ((suggested_counter_value > current_counter_value) || (current_counter_value == 0xFFFF))
+                if ((suggested_counter_value > current_counter_value) || (current_counter_value == UINT32_MAX))
                 {
                     /* Fetch device operations key & static random data */
                     custom_fs_get_device_operations_aes_key(device_operations_aes_key);
@@ -1692,7 +1692,14 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     /* Prepare what we want to encrypt: suggested counter value + device SN */
                     _Static_assert(sizeof(password_buffer) == (AES_BLOCK_SIZE/8), "Invalid buffer size");
                     memset(password_buffer, 0, sizeof(password_buffer));
-                    password_buffer[0] = suggested_counter_value;
+                    if (current_counter_value == UINT32_MAX)
+                    {
+                        password_buffer[0] = current_counter_value;
+                    } 
+                    else
+                    {
+                        password_buffer[0] = suggested_counter_value;
+                    }
                     password_buffer[1] = custom_fs_get_platform_serial_number();
                     br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
                     
@@ -1705,11 +1712,18 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                         utils_add_uint32_t_to_be_array(&temp_ctr_to_be_added[8], suggested_counter_value + 1);
                         logic_encryption_add_vector_to_other(temp_ctr, temp_ctr_to_be_added, sizeof(temp_ctr_to_be_added));
                         memset(password_buffer, 0, sizeof(password_buffer));
-                        password_buffer[0] = suggested_counter_value;
+                        if (current_counter_value == UINT32_MAX)
+                        {
+                            password_buffer[0] = current_counter_value;
+                        }
+                        else
+                        {
+                            password_buffer[0] = suggested_counter_value;
+                        }
                         br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
                         
                         /* Increment challenge counter */
-                        if (current_counter_value != 0xFFFF)
+                        if (current_counter_value != UINT32_MAX)
                         {
                             custom_fs_set_auth_challenge_counter(suggested_counter_value);
                         }
