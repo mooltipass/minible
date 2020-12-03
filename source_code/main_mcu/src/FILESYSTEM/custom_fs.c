@@ -137,7 +137,7 @@ void custom_fs_get_device_operations_aes_key(uint8_t* buffer)
 #ifndef EMULATOR_BUILD
     memcpy(buffer, custom_fs_plat_data_ptr->device_operations_key, sizeof(custom_fs_plat_data_ptr->device_operations_key));
 #else
-    (void)buffer;
+    memset(buffer, 0xFF, AES_KEY_LENGTH/8);
 #endif
 }
 
@@ -150,7 +150,7 @@ uint16_t custom_fs_get_platform_bundle_version(void)
 #ifndef EMULATOR_BUILD
     return custom_fs_plat_data_ptr->current_bundle_version;
 #else
-    return 0;
+    return UINT16_MAX;
 #endif
 }
 
