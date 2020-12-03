@@ -348,6 +348,7 @@ Status Byte:
 | 0x04     | Smartcard unlocked |
 | 0x08     | Unknown card inserted |
 | 0x10     | Device in management mode |
+| 0x20     | Device in no bundle or fw upload mode |
 
 User Security Preferences (valid if byte 4 = 0x05):
 See 0x0013
