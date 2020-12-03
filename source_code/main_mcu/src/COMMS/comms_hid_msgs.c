@@ -79,6 +79,11 @@ uint16_t comms_hid_msgs_fill_get_status_message_answer(uint16_t* msg_array_uint1
     {
         msg_array_uint8[0] |= 0x10;
     }
+    // No bundle / firmware upload mode
+    if ((gui_dispatcher_get_current_screen() == GUI_SCREEN_INVALID) || (gui_dispatcher_get_current_screen() == GUI_SCREEN_FW_FILE_UPDATE))
+    {
+        msg_array_uint8[0] |= 0x20;
+    }
     
     /* Battery level */
     msg_array_uint8[1] = logic_power_get_battery_level() * 10;
@@ -1782,6 +1787,9 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             {
                 /* Set bundle upload allowed boolean */
                 comms_hid_msgs_bundle_upload_allowed = TRUE;
+                
+                /* Set state changed */
+                logic_device_set_state_changed();
                 
                 /* Erase data flash */
                 dataflash_bulk_erase_with_wait(&dataflash_descriptor);

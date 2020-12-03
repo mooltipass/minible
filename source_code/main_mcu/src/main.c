@@ -331,6 +331,9 @@ void main_platform_init(void)
         sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
         uint16_t temp_timer_id = timer_get_and_start_timer(30000);
         
+        /* Inform AUX MCU that we're in a pickle */
+        comms_aux_mcu_update_device_status_buffer();
+        
         /* Wait to load bundle from USB */
         while(1)
         {
@@ -675,6 +678,7 @@ int main(void)
     /* Set startup screen */
     gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_INTO_MENU_TRANSITION);
     logic_device_activity_detected();
+    logic_device_set_state_changed();
     if (card_detection_res != RETURN_JDETECT)
     {
         gui_dispatcher_get_back_to_current_screen();
