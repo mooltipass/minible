@@ -138,6 +138,7 @@ src/EMU/smartcard_lowlevel.c \
 src/TIMER/driver_timer.c \
 src/utils.c \
 src/main.c \
+src/debug.c \
 src/EMU/emu_aux_mcu.c 
 
 CPP_SRCS = \
