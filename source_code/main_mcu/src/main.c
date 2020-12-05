@@ -638,7 +638,6 @@ int main(void)
     
     /* Activity detected */
     logic_device_activity_detected();
-    debug_debug_menu();
     
     /* Start animation */    
     if ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_BOOT_ANIMATION) != FALSE)

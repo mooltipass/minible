@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    45
+#define FW_MINOR    46
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -84,6 +84,8 @@
         - battery slow start charge bug fix
 - v0.45:- improved BLE connection steps
         - BLE disable on disconnect bug fix
+- v0.46:- updated dtm tx
+        - new dtm rx
 */
 
 /**************** SETUP DEFINES ****************/
