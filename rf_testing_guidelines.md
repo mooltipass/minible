@@ -33,5 +33,5 @@ Once the test packets are sent, click again on the wheel to display the number o
 
 
 ### [](#header-3)DTM RX Menu Options:
-- Frequency Index: Bluetooth channel ID, or sweep (0->1->2....->39 sequential sweep 512ms appart)  
+- Frequency Index: Bluetooth channel ID  
 - Screen contents: what the screen should display during the sweep (static: constant test, off: screen off, empty: screen on but empty)
