@@ -14,5 +14,4 @@ Click on the wheel to access the menu:
 - Frequency Index: Bluetooth channel ID, or sweep (0->1->2....->39 sequential sweep)  
 - Payload: Bluetooth Test Payload  
 - Payload Length: Bluetooth Payload Length  
-- NB loops: number of test packets to be sent, or continous
-- Screen contents: what the screen should display during the sweep (static: constant test, dynamic: number of loops displayed, off: screen off, empty: screen on but empty)
+- Screen contents: what the screen should display during the sweep (static: constant test, off: screen off, empty: screen on but empty)
