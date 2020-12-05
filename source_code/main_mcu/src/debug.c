@@ -170,10 +170,10 @@ void debug_debug_menu(void)
             }
             else if (selected_item < 16)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"RF Frequency Sweep", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Functional Test", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Sleep", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"BLE DTM TX Mode", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"BLE DTM RX Mode", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Functional Test", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
             }
             else
             {
@@ -268,12 +268,16 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 13)
             {
+                debug_rf_dtm_rx();
+            }
+            else if (selected_item == 14)
+            {
                 sh1122_clear_current_screen(&plat_oled_descriptor);
                 #ifndef EMULATOR_BUILD
                 functional_testing_start(FALSE);
                 #endif
             }
-            else if (selected_item == 14)
+            else if (selected_item == 15)
             {
                 /* Check for USB power */
                 if (platform_io_is_usb_3v3_present_raw() != FALSE)
@@ -290,10 +294,6 @@ void debug_debug_menu(void)
                 platform_io_set_wheel_click_low();          // Completely discharge cap
                 timer_delay_ms(10);                         // Wait a tad
                 platform_io_disable_switch_and_die();       // Die!
-            }
-            else if (selected_item == 15)
-            {
-                main_standby_sleep();
             }
             else if (selected_item == 16)
             {
@@ -1225,6 +1225,140 @@ void debug_mcu_and_aux_info(void)
     }
 }
 
+/*! \fn     debug_rf_dtm_rx(void)
+*   \brief  BLE DTX RX mode
+*/
+void debug_rf_dtm_rx(void)
+{
+    aux_mcu_message_t* sweep_message_to_be_sent;
+    aux_mcu_message_t* temp_rx_message_pt;
+    
+    /* Parameters to be sent to aux mcu */
+    int16_t frequency_index = 0;
+    int16_t screen_contents = 0;
+    
+    /* Logic */
+    int16_t* values_pts[] = {&frequency_index, &screen_contents};
+    int16_t upper_bounds[] = {39, 2};
+    int16_t lower_bounds[] = {0, 0};
+    uint16_t selected_item = 0;
+    BOOL redraw_needed = TRUE;
+    
+    /* Enable BLE */
+    logic_aux_mcu_enable_ble(TRUE);
+    
+    /* Frequency index choice */
+    while(TRUE)
+    {
+        if (redraw_needed != FALSE)
+        {
+            sh1122_clear_current_screen(&plat_oled_descriptor);
+            
+            /* Line 1: frequency index */
+            sh1122_printf_xy(&plat_oled_descriptor, 10, 0, OLED_ALIGN_LEFT, FALSE, "Frequency Index: %d", frequency_index);
+            
+            /* Line 2: screen contents */
+            switch (screen_contents)
+            {
+                case 0: sh1122_printf_xy(&plat_oled_descriptor, 10, 11, OLED_ALIGN_LEFT, FALSE, "Screen contents: static"); break;
+                case 1: sh1122_printf_xy(&plat_oled_descriptor, 10, 11, OLED_ALIGN_LEFT, FALSE, "Screen contents: empty"); break;
+                case 2: sh1122_printf_xy(&plat_oled_descriptor, 10, 11, OLED_ALIGN_LEFT, FALSE, "Screen contents: off"); break;
+                default: break;
+            }
+            
+            /* Selected line */
+            sh1122_printf_xy(&plat_oled_descriptor, 0, selected_item*11, OLED_ALIGN_LEFT, FALSE, "-");
+            
+            redraw_needed = FALSE;
+        }
+        
+        wheel_action_ret_te action_ret = inputs_get_wheel_action(TRUE, FALSE);
+        if (action_ret == WHEEL_ACTION_UP)
+        {
+            if ((*values_pts[selected_item])++ == upper_bounds[selected_item])
+            *values_pts[selected_item] = lower_bounds[selected_item];
+            redraw_needed = TRUE;
+        }
+        else if (action_ret == WHEEL_ACTION_DOWN)
+        {
+            if ((*values_pts[selected_item])-- == lower_bounds[selected_item])
+            *values_pts[selected_item] = upper_bounds[selected_item];
+            redraw_needed = TRUE;
+        }
+        else if (action_ret == WHEEL_ACTION_SHORT_CLICK)
+        {
+            if (selected_item++ == 1)
+            break;
+            redraw_needed = TRUE;
+        }
+        else if (action_ret == WHEEL_ACTION_LONG_CLICK)
+        {
+            if (selected_item-- == 0)
+            return;
+            redraw_needed = TRUE;
+        }
+    }
+    
+    /* Depending on display options */
+    if (screen_contents == 0)
+    {
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Receiving...");
+    }
+    else if (screen_contents == 1)
+    {
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        sh1122_oled_off(&plat_oled_descriptor);
+    }
+    else if (screen_contents == 2)
+    {
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        sh1122_oled_off(&plat_oled_descriptor);
+        platform_io_power_down_oled();
+    }
+    
+    /* Start tone send */
+    sweep_message_to_be_sent = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_MAIN_MCU_CMD);
+    sweep_message_to_be_sent->payload_length1 = MEMBER_SIZE(main_mcu_command_message_t, command) + sizeof(uint16_t);
+    sweep_message_to_be_sent->main_mcu_command_message.command = MAIN_MCU_COMMAND_DTM_RX_START;
+    sweep_message_to_be_sent->main_mcu_command_message.payload_as_uint16[0] = frequency_index;  // Frequency index, up to 39
+    comms_aux_mcu_send_message(sweep_message_to_be_sent);
+    
+    while (TRUE)
+    {        
+        /* Click for return */
+        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
+        {
+            if (screen_contents == 1)
+            {
+                sh1122_oled_on(&plat_oled_descriptor);
+            }
+            else if (screen_contents == 2)
+            {
+                platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
+                sh1122_oled_on(&plat_oled_descriptor);
+            }
+            
+            /* Send message to stop */
+            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DTM_STOP);
+            
+            /* Wait for message from aux MCU */
+            while(comms_aux_mcu_active_wait(&temp_rx_message_pt, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_RX_DTM_DONE) != RETURN_OK){}
+                
+            /* Display number of received packets */
+            sh1122_clear_current_screen(&plat_oled_descriptor);
+            sh1122_printf_xy(&plat_oled_descriptor, 10, 30, OLED_ALIGN_LEFT, FALSE, "Received packets: %d", temp_rx_message_pt->aux_mcu_event_message.payload_as_uint16[0]);
+            
+            /* Wait for click */
+            while (inputs_get_wheel_action(TRUE, FALSE) != WHEEL_ACTION_SHORT_CLICK);
+            
+            /* Rearm RX */
+            comms_aux_arm_rx_and_clear_no_comms();
+            return;
+        }
+    }
+}
+
 /*! \fn     debug_rf_freq_sweep(void)
 *   \brief  Use ATBTLC1000 test mode to do a tx frequency sweep
 */
@@ -1369,7 +1503,7 @@ void debug_rf_freq_sweep(void)
                 }
             
                 /* Send message to stop */
-                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_TX_TONE_CONT_STOP);
+                comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DTM_STOP);
             
                 /* Wait for callback */
                 comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_TX_SWEEP_DONE);
@@ -1402,7 +1536,7 @@ void debug_rf_freq_sweep(void)
             }
             
             /* Send message to stop */
-            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_TX_TONE_CONT_STOP);
+            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DTM_STOP);
         
             /* Wait for callback */
             comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_TX_SWEEP_DONE);

@@ -52,6 +52,7 @@ void debug_atbtlc_info(void);
 void debug_glyphs_show(void);
 void debug_debug_menu(void);
 void debug_stack_info(void);
+void debug_rf_dtm_rx(void);
 
 
 #endif /* DEBUG_H_ */

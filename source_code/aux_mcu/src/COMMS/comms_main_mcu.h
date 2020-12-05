@@ -54,9 +54,9 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define MAIN_MCU_COMMAND_DISABLE_BLE        0x000F
 
 // Debug MCU commands
-//#define MAIN_MCU_COMMAND_TX_SWEEP_SGL       0x1000
+#define MAIN_MCU_COMMAND_DTM_RX_START       0x1000
 #define MAIN_MCU_COMMAND_TX_TONE_CONT       0x1001
-#define MAIN_MCU_COMMAND_TX_TONE_CONT_STOP  0x1002
+#define MAIN_MCU_COMMAND_DTM_STOP           0x1002
 #define MAIN_MCU_COMMAND_FORCE_CHARGE_VOLT  0x1003
 #define MAIN_MCU_COMMAND_STOP_FORCE_CHARGE  0x1004
 
@@ -83,6 +83,7 @@ extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
 #define AUX_MCU_EVENT_NEW_STATUS_RCVD       0x0014
 #define AUX_MCU_EVENT_CHARGE_STOPPED        0x0015
 #define AUX_MCU_EVENT_NEW_BATTERY_LVL_RCVD  0x0016
+#define AUX_MCU_EVENT_RX_DTM_DONE           0x0017
 
 // BLE commands
 #define BLE_MESSAGE_CMD_ENABLE              0x0001

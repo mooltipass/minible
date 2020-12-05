@@ -521,13 +521,19 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_NO_COMMS_INFO_RCVD, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
                 break;
             }
+            case MAIN_MCU_COMMAND_DTM_RX_START:
+            {
+                /* ble_manager will send the event to main MCU */
+                debug_dtm_rx(message->main_mcu_command_message.payload_as_uint16[0]);
+                break;
+            }
             case MAIN_MCU_COMMAND_TX_TONE_CONT:
             {
                 /* ble_manager will send the event to main MCU */
                 debug_tx_band_send(message->main_mcu_command_message.payload_as_uint16[0], message->main_mcu_command_message.payload_as_uint16[1], message->main_mcu_command_message.payload_as_uint16[2]);
                 break;
             }
-            case MAIN_MCU_COMMAND_TX_TONE_CONT_STOP:
+            case MAIN_MCU_COMMAND_DTM_STOP:
             {
                 debug_tx_stop_continuous_tone();
                 break;
