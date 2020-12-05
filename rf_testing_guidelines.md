@@ -27,7 +27,7 @@ Scroll down to select the "BLE DTM RX Mode" menu item:
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/rf_debug_guide/rf_sweep_menu.png?raw=true)  
 Click on the wheel to access the menu:  
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/rf_debug_guide/dtm_rx_mode.png?raw=true)  
-Select the right settings, then click the wheel:
+Select the right settings, then click the wheel:  
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/rf_debug_guide/dtm_rx_rec.png?raw=true)  
 Once the test packets are sent, click again on the wheel to display the number of received packets.
 
