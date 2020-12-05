@@ -154,6 +154,9 @@
         - improved battery charging logic
 - v0.53:- bug fix: battery status across reboots
 - v0.54:- new bundle upload technique
+        - authentication challenge
+        - updated dtm tx
+        - new dtm rx
 */
 
 /**************** SETUP DEFINES ****************/

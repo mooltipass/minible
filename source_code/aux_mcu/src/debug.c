@@ -15,7 +15,6 @@
 BOOL debug_tx_test_just_started = FALSE;
 BOOL debug_tx_test_just_stopped = FALSE;
 BOOL debug_tx_test_in_progress = FALSE;
-BOOL debug_continuous_tone = FALSE;
 uint8_t debug_current_freq_set = 0;
 uint16_t debug_inner_loop_goal = 0;
 BOOL debug_tx_test_cb_set = FALSE;
@@ -64,23 +63,14 @@ static at_ble_status_t debug_dtm_test_status(void *param)
                 /* Reset bool */
                 debug_tx_test_just_started = FALSE;
             }
-            else if (debug_tx_test_just_stopped != FALSE)
-            {
-                /* Send success report */
-                aux_mcu_message_t message;
-                message.message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
-                message.aux_mcu_event_message.event_id = AUX_MCU_EVENT_TW_SWEEP_DONE;
-                message.payload_length1 = sizeof(message.aux_mcu_event_message.event_id);
-                comms_main_mcu_send_message((void*)&message, (uint16_t)sizeof(aux_mcu_message_t));
-                
-                /* Reset bool */
-                debug_tx_test_just_stopped = FALSE;
-                debug_tx_test_in_progress = FALSE;
-            }
             else
             {
                 DBG_LOG("ERROR: not sure why received");
             }
+            break;
+        }
+        case AT_BLE_RX_TEST_CMD_OPCODE:
+        {
             break;
         }
         case AT_BLE_TX_TEST_CMD_OPCODE:
@@ -90,26 +80,7 @@ static at_ble_status_t debug_dtm_test_status(void *param)
             /* Are we actually sweeping */
             if (debug_tx_test_in_progress != FALSE)
             {
-                /* Tx test callback */
-                if (debug_continuous_tone == FALSE)
-                {
-                    /* Let some time pass for dtm transmit */
-                    timer_delay_ms(10);
-                    
-                    /* Reset test mode */
-                    while(at_ble_dtm_reset() != AT_BLE_SUCCESS)
-                    {
-                        DBG_LOG("ERROR: couldn't request DTM reset");
-                    }
-                    DBG_LOG("End of test: DTM reset requested");
-
-                    /* Set bool, wait for callback */
-                    debug_tx_test_just_stopped = TRUE;
-                }
-                else
-                {
-                    /* do nothing, let it transmit its tone */
-                }
+                DBG_LOG("DTM TX started");
             } 
             else
             {
@@ -133,6 +104,23 @@ static at_ble_status_t debug_dtm_test_report(void *param)
 {
     at_ble_dtm_t* test_report = (at_ble_dtm_t*)param;
     DBG_LOG("DTM Test report callback, opcode 0x%04x status %d", test_report->op_code, test_report->status);
+    
+    if (debug_tx_test_just_stopped != FALSE)
+    {
+        DBG_LOG("TX test report: test stopped");
+        
+        /* Send success report */
+        aux_mcu_message_t message;
+        message.message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
+        message.aux_mcu_event_message.event_id = AUX_MCU_EVENT_TX_SWEEP_DONE;
+        message.payload_length1 = sizeof(message.aux_mcu_event_message.event_id);
+        comms_main_mcu_send_message((void*)&message, (uint16_t)sizeof(aux_mcu_message_t));
+        
+        /* Reset bool */
+        debug_tx_test_just_stopped = FALSE;
+        debug_tx_test_in_progress = FALSE;
+    }
+    
     return AT_BLE_SUCCESS;
 }
 
@@ -141,10 +129,9 @@ static const ble_dtm_event_cb_t dtm_custom_event_cb = {
     .le_packet_report = debug_dtm_test_report
 };
 
-void debug_tx_band_send(uint16_t frequency_index, uint16_t payload_type, uint16_t payload_length, BOOL continuous_tone)
+void debug_tx_band_send(uint16_t frequency_index, uint16_t payload_type, uint16_t payload_length)
 {
     DBG_LOG_DEV("TX sweep start command received, freq %d, payload type %d, payload length %d", frequency_index, payload_type, payload_length);
-    debug_continuous_tone = continuous_tone;
     debug_payload_set = (uint8_t)payload_type;
     debug_payload_length = (uint8_t)payload_length;
     debug_current_freq_set = (uint8_t)frequency_index;
@@ -173,13 +160,12 @@ void debug_tx_band_send(uint16_t frequency_index, uint16_t payload_type, uint16_
 void debug_tx_stop_continuous_tone(void)
 {
     /* Reset test mode */
-    while(at_ble_dtm_reset() != AT_BLE_SUCCESS)
+    while(at_ble_dtm_stop_test() != AT_BLE_SUCCESS)
     {
-        DBG_LOG("ERROR: couldn't request DTM reset");
+        DBG_LOG("ERROR: couldn't request DTM stop");
     }
-    DBG_LOG("End of test: DTM reset requested");
+    DBG_LOG("End of test: DTM stop requested");
 
     /* Set bool, wait for callback */
     debug_tx_test_just_stopped = TRUE;
-    debug_continuous_tone = FALSE;
 }
