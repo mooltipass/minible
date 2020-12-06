@@ -187,7 +187,12 @@ void gui_prompts_display_tutorial(void)
         logic_accelerometer_routine();
             
         /* Handle possible power switches */
+        power_source_te before_power_source = logic_power_get_power_source();
         logic_power_check_power_switch_and_battery(FALSE);
+        if (before_power_source != logic_power_get_power_source())
+        {
+            timer_rearm_allocated_timer(temp_timer_id, 30000);
+        }
             
         /* Detection result */
         detection_result = inputs_get_wheel_action(FALSE, FALSE);
