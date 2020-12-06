@@ -148,8 +148,13 @@ void main_platform_init(void)
         while(1);
     }
     
-    /* Check fuses, program them if incorrectly set */
+    /* Check fuses, depending on platform program them if incorrectly set */
+    #ifdef PLAT_V7_SETUP
+    // TODO2: change this to FALSE once the 50 beta units have been upgraded
     fuses_ok = fuses_check_program(TRUE);
+    #else
+    fuses_ok = fuses_check_program(TRUE);
+    #endif
     while(fuses_ok != RETURN_OK);
     
 #ifndef EMULATOR_BUILD
@@ -314,6 +319,8 @@ void main_platform_init(void)
         }
         timer_deallocate_timer(temp_timer_id);
         custom_fs_set_device_flag_value(RF_TESTING_PASSED_FLAG_ID, TRUE);
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DTM_STOP);
+        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_TX_SWEEP_DONE);
         sh1122_clear_current_screen(&plat_oled_descriptor);
         #ifdef OLED_INTERNAL_FRAME_BUFFER
         sh1122_clear_frame_buffer(&plat_oled_descriptor);
