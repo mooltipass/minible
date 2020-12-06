@@ -228,9 +228,10 @@ ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* 
             /* Fetch device operations key */
             custom_fs_get_device_operations_aes_key(device_operations_aes_key);
             
-            /* Bundle upload operations: we use the bundle version as counter, for the bytes 12-15 of the Big Endian CTR (+1 is here to make sure there's no reuse when other functions use another uint32_t) */
+            /* Bundle upload operations: we use the bundle version as counter, for the bytes 12-15 of the Big Endian CTR (byte 1 is set to the purpose value) */
             memset(temp_ctr, 0, sizeof(temp_ctr));
-            utils_uint32_t_to_be_array(&temp_ctr[12], ((uint32_t)custom_fs_get_platform_bundle_version()) + 1);
+            temp_ctr[1] = BUNDLE_UPLOAD_CTR_B1_ID;
+            utils_uint32_t_to_be_array(&temp_ctr[12], (uint32_t)custom_fs_get_platform_bundle_version());
             
             /* Initialize AES context */
             br_aes_ct_ctrcbc_init(&device_operations_aes_context, device_operations_aes_key, AES_KEY_LENGTH/8);
