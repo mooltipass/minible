@@ -135,5 +135,7 @@
 #define RECOND_CHARGE_TEXT_ID           137
 #define CONTACT_SUPPORT_008_TEXT_ID     138
 #define MANY_FAILED_CONNS_TEXT_ID       139
+#define HASH_1_TEXT_ID                  140
+#define HASH_2_TEXT_ID                  141
 
 #endif

@@ -61,7 +61,8 @@ const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = { 0,      
                                                                         FALSE,                                   // SETTINGS_DISABLE_BLE_ON_CARD_REMOVE
                                                                         FALSE,                                   // SETTINGS_DISABLE_BLE_ON_LOCK  
                                                                         0,                                       // SETTINGS_NB_20MINS_TICKS_FOR_LOCK 
-                                                                        FALSE};                                  // SETTINGS_SWITCH_OFF_AFTER_USB_DISC
+                                                                        FALSE,                                   // SETTINGS_SWITCH_OFF_AFTER_USB_DISC
+                                                                        FALSE};                                  // SETTINGS_HASH_DISPLAY_FEATURE
 #ifndef EMULATOR_BUILD
 /* Pointer to the platform unique data, stored at the last page of our bootloader */
 platform_unique_data_t* custom_fs_plat_data_ptr = (platform_unique_data_t*)(FLASH_ADDR + APP_START_ADDR - NVMCTRL_ROW_SIZE);

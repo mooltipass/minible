@@ -36,6 +36,7 @@
 #include "logic_gui.h"
 #include "nodemgmt.h"
 #include "text_ids.h"
+#include "bearssl.h"
 #include "utils.h"
 
 
@@ -223,9 +224,10 @@ RET_TYPE logic_smartcard_handle_inserted(void)
 */
 valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag, BOOL fast_mode)
 {
-    #ifdef MINI_VERSION
-    uint8_t plateform_aes_key[AES_KEY_LENGTH/8];
-    #endif
+    br_aes_ct_ctrcbc_keys device_operations_aes_context;
+    uint32_t password_buffer[AES_BLOCK_SIZE/8/sizeof(uint32_t)];
+    uint8_t device_operations_aes_key[AES_KEY_LENGTH/8];
+    uint8_t temp_ctr[AES256_CTR_LENGTH/8];
     uint8_t temp_buffer[AES_KEY_LENGTH/8];
     cpz_lut_entry_t* cpz_user_entry;
     
@@ -235,18 +237,35 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
     /* See if we know the card and if so fetch the user profile */
     if (custom_fs_get_cpz_lut_entry(temp_buffer, &cpz_user_entry) == RETURN_OK)
     {
-        // Display AESenc(CTR) if desired
-        #ifdef MINI_VERSION
-        if ((getMooltipassParameterInEeprom(HASH_DISPLAY_FEATURE_PARAM) != FALSE) && (hash_allow_flag != FALSE))
+        /* Display AESenc(CTR) if desired */
+        if ((custom_fs_settings_get_device_setting(SETTINGS_HASH_DISPLAY_FEATURE) != FALSE) && (hash_allow_flag != FALSE))
         {
-            // Fetch AES key from eeprom: 30 bytes after the first 32bytes of EEP_BOOT_PWD, then last 2 bytes at EEP_LAST_AES_KEY2_2BYTES_ADDR
-            eeprom_read_block(plateform_aes_key, (void*)(EEP_BOOT_PWD+(AES_KEY_LENGTH/8)), 30);
-            eeprom_read_block(plateform_aes_key+30, (void*)EEP_LAST_AES_KEY2_2BYTES_ADDR, 2);
-
-            // Display AESenc(CTRVAL)
-            computeAndDisplayBlockSizeEncryptionResult(plateform_aes_key, temp_ctr_val, ID_STRING_HASH1);
+            /* Fetch device operations key */
+            custom_fs_get_device_operations_aes_key(device_operations_aes_key);
+            
+            /* Use the CPZ as counter for the bytes 8-15 of the Big Endian CTR (byte 1 is set to the purpose value) */
+            memset(temp_ctr, 0, sizeof(temp_ctr));
+            memcpy(&temp_ctr[8], temp_buffer, SMARTCARD_CPZ_LENGTH);
+            temp_ctr[1] = HASH1_CTR_B1_ID;
+            
+            /* Initialize AES context */
+            br_aes_ct_ctrcbc_init(&device_operations_aes_context, device_operations_aes_key, AES_KEY_LENGTH/8);
+            
+            /* Prepare what we want to encrypt: device SN */
+            _Static_assert(sizeof(temp_ctr) == 8 + SMARTCARD_CPZ_LENGTH, "Invalid encryption technique");
+            _Static_assert(sizeof(password_buffer) == (AES_BLOCK_SIZE/8), "Invalid buffer size");
+            memset(password_buffer, 0, sizeof(password_buffer));
+            password_buffer[0] = custom_fs_get_platform_serial_number();
+            br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
+                        
+            /* Display AESenc(CTRVAL) */
+            //gui_prompts_display_hash(password_buffer, HASH_1_TEXT_ID);
+            
+            /* memset everything */
+            memset(&device_operations_aes_context, 0, sizeof(device_operations_aes_context));
+            memset(device_operations_aes_key, 0, sizeof(device_operations_aes_key));
+            memset(temp_ctr, 0, sizeof(temp_ctr));
         }
-        #endif
         
         /* Already initialize user context, as there's no secret there. Also sets user language */
         logic_user_init_context(cpz_user_entry->user_id);
@@ -267,17 +286,34 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
             smartcard_highlevel_read_aes_key(temp_buffer);
             
             // Display AESenc(AESkey) if desired: as this check is made to make sure the device isn't compromised, it is OK to display it.
-            #ifdef MINI_VERSION
-            if ((getMooltipassParameterInEeprom(HASH_DISPLAY_FEATURE_PARAM) != FALSE) && (hash_allow_flag != FALSE))
+            if ((custom_fs_settings_get_device_setting(SETTINGS_HASH_DISPLAY_FEATURE) != FALSE) && (hash_allow_flag != FALSE))
             {
-                // Fetch AES key from eeprom: 30 bytes after the first 32bytes of EEP_BOOT_PWD, then last 2 bytes at EEP_LAST_AES_KEY2_2BYTES_ADDR
-                eeprom_read_block(plateform_aes_key, (void*)(EEP_BOOT_PWD+(AES_KEY_LENGTH/8)), 30);
-                eeprom_read_block(plateform_aes_key+30, (void*)EEP_LAST_AES_KEY2_2BYTES_ADDR, 2);
-
-                // Display AESenc(AESkey)
-                computeAndDisplayBlockSizeEncryptionResult(plateform_aes_key, temp_buffer, ID_STRING_HASH2);
+                /* Fetch device operations key */
+                custom_fs_get_device_operations_aes_key(device_operations_aes_key);
+                
+                /* Use the first 8 bytes of the aes key as counter for the bytes 8-15 of the Big Endian CTR (byte 1 is set to the purpose value) */
+                memset(temp_ctr, 0, sizeof(temp_ctr));
+                memcpy(&temp_ctr[8], temp_buffer, 8);
+                temp_ctr[1] = HASH2_CTR_B1_ID;
+                
+                /* Initialize AES context */
+                br_aes_ct_ctrcbc_init(&device_operations_aes_context, device_operations_aes_key, AES_KEY_LENGTH/8);
+                
+                /* Prepare what we want to encrypt: device SN */
+                _Static_assert(sizeof(password_buffer) == (AES_BLOCK_SIZE/8), "Invalid buffer size");
+                _Static_assert(sizeof(temp_ctr) == 8 + 8, "Invalid encryption technique");
+                memset(password_buffer, 0, sizeof(password_buffer));
+                password_buffer[0] = custom_fs_get_platform_serial_number();
+                br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
+                
+                /* Display AESenc(CTRVAL) */
+                //gui_prompts_display_hash(password_buffer, HASH_2_TEXT_ID);
+                
+                /* memset everything */
+                memset(&device_operations_aes_context, 0, sizeof(device_operations_aes_context));
+                memset(device_operations_aes_key, 0, sizeof(device_operations_aes_key));
+                memset(temp_ctr, 0, sizeof(temp_ctr));
             }
-            #endif
 
             /* Init encryption handling, set smartcard unlocked flag */
             logic_encryption_init_context(temp_buffer, cpz_user_entry);
