@@ -84,7 +84,8 @@
         - battery slow start charge bug fix
 - v0.45:- improved BLE connection steps
         - BLE disable on disconnect bug fix
-- v0.46:- updated dtm tx
+- v0.46:- too many failed connections warning support
+        - updated dtm tx
         - new dtm rx
 */
 

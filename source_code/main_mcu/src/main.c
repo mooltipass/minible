@@ -8,6 +8,7 @@
 #include "platform_defines.h"
 #include "logic_encryption.h"
 #include "logic_smartcard.h"
+#include "logic_bluetooth.h"
 #include "gui_dispatcher.h"
 #include "logic_security.h"
 #include "logic_aux_mcu.h"
@@ -758,6 +759,13 @@ int main(void)
                 gui_dispatcher_get_back_to_current_screen();
             }
             
+            /* Many failed connection attempts */
+            if (logic_bluetooth_get_and_clear_too_many_failed_connections() != FALSE)
+            {
+                gui_prompts_display_information_on_screen_and_wait(MANY_FAILED_CONNS_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                gui_dispatcher_get_back_to_current_screen();
+            }
+            
             /* Aux MCU ping */
             #ifndef EMULATOR_BUILD
             if (timer_has_timer_expired(TIMER_AUX_MCU_PING, TRUE) == TIMER_EXPIRED)
@@ -785,7 +793,7 @@ int main(void)
                     }
                     else if (get_status_return == RETURN_AUX_STAT_TOO_MANY_CB)
                     {
-                        gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_008_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        gui_prompts_display_information_on_screen_and_wait(MANY_FAILED_CONNS_TEXT_ID, DISP_MSG_WARNING, FALSE);
                         gui_dispatcher_get_back_to_current_screen();                        
                     }
                 }
@@ -886,7 +894,7 @@ int main(void)
                 virtual_wheel_action = WHEEL_ACTION_VIRTUAL;
             }
         }
-        else if ((accelerometer_routine_return == ACC_INVERT_SCREEN) || (accelerometer_routine_return == ACC_NINVERT_SCREEN))
+        else if (((accelerometer_routine_return == ACC_INVERT_SCREEN) || (accelerometer_routine_return == ACC_NINVERT_SCREEN)) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE))
         {
             uint16_t prompt_id = accelerometer_routine_return == ACC_INVERT_SCREEN? QPROMPT_LEFT_HAND_MODE_TEXT_ID:QPROMPT_RIGHT_HAND_MODE_TEXT_ID;
             BOOL invert_bool = accelerometer_routine_return == ACC_INVERT_SCREEN? TRUE:FALSE;

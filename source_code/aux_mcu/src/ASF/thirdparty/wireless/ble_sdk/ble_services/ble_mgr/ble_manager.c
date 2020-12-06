@@ -1370,6 +1370,7 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
         /* No intention to pair... disconnect */
         at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
         DBG_LOG("Unknown device and we don't allow pairing... bye!");
+        logic_bluetooth_denied_connection_trigger();
         return AT_BLE_FAILURE;
     }  
     
@@ -1484,6 +1485,7 @@ at_ble_status_t ble_pair_request_handler(void *params)
         /* No intention to pair... disconnect */
         at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
         DBG_LOG("Unknown device and we don't allow pairing... bye!");
+        logic_bluetooth_denied_connection_trigger();
         return AT_BLE_FAILURE;
     }
     
@@ -1713,7 +1715,6 @@ at_ble_status_t ble_encryption_status_change_handler(void *params)
     
     if(enc_status->status == AT_BLE_SUCCESS)
     {
-        
         DBG_LOG("Encryption completed successfully");
         if (device_found)
         {
@@ -1783,6 +1784,7 @@ at_ble_status_t ble_encryption_request_handler(void *params)
     
     if(key_found == false)
     {
+        logic_bluetooth_denied_connection_trigger();
         DBG_LOG("Pairing information of peer device is not available.");
         DBG_LOG("Please unpair the device from peer device(mobile) settings menu and start pairing again");
         if (at_ble_disconnect(ble_device_info.conn_info.handle, AT_BLE_AUTH_FAILURE) != AT_BLE_SUCCESS)

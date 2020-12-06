@@ -133,6 +133,7 @@
 #define RECOND_DISCHARGE_TEXT_ID        135
 #define RECOND_REST_TEXT_ID             136
 #define RECOND_CHARGE_TEXT_ID           137
-#define CONTACT_SUPPORT_008_TEXT_ID     132
+#define CONTACT_SUPPORT_008_TEXT_ID     138
+#define MANY_FAILED_CONNS_TEXT_ID       139
 
 #endif

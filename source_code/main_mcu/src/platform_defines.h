@@ -153,7 +153,8 @@
 - v0.52:- improved battery readings across reboots
         - improved battery charging logic
 - v0.53:- bug fix: battery status across reboots
-- v0.54:- new bundle upload technique
+- v0.54:- notification on failed BLE connections
+        - new bundle upload technique
         - authentication challenge
         - updated dtm tx
         - new dtm rx

@@ -30,7 +30,28 @@ BOOL logic_bluetooth_is_connected = FALSE;
 BOOL logic_bluetooth_prevent_dev_lock_after_disconnect = FALSE;
 // Our guess at the platform the device is connected to
 platform_type_te logic_bluetooth_connected_to_platform;
+// To indicate that too many failed ble connections happened
+BOOL logic_bluetooth_too_many_failed_connections_flag = FALSE;
 
+
+/*! \fn     logic_bluetooth_set_too_many_failed_connections(void)
+*   \brief  Inform of too many failed BLE connections
+*/
+void logic_bluetooth_set_too_many_failed_connections(void)
+{
+    logic_bluetooth_too_many_failed_connections_flag = TRUE;
+}
+
+/*! \fn     logic_bluetooth_get_and_clear_too_many_failed_connections(void)
+*   \brief  Get and clear too many failed BLE connections flag
+*   \return Too many failed connections flag
+*/
+BOOL logic_bluetooth_get_and_clear_too_many_failed_connections(void)
+{
+    BOOL return_val = logic_bluetooth_too_many_failed_connections_flag;
+    logic_bluetooth_too_many_failed_connections_flag = FALSE;
+    return return_val;
+}
 
 /*! \fn     logic_bluetooth_set_connected_state(BOOL state)
 *   \brief  Set connected state

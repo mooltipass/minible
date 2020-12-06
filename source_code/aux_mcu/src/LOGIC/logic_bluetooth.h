@@ -290,6 +290,7 @@ uint8_t logic_bluetooth_get_hid_serv_instance(uint16_t handle);
 void logic_bluetooth_encryption_changed_success(uint8_t* mac);
 BOOL logic_bluetooth_is_device_temp_banned(uint8_t* mac);
 at_ble_status_t ble_char_changed_app_event(void* param);
+void logic_bluetooth_denied_connection_trigger(void);
 void logic_bluetooth_clear_bonding_information(void);
 void logic_bluetooth_set_battery_level(uint8_t pct);
 ret_type_te logic_bluetooth_stop_advertising(void);

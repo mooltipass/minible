@@ -88,12 +88,27 @@ BOOL logic_bluetooth_callbacks_set = FALSE;
 /* Boolean to know if we're currently temporarily banning someone */
 BOOL logic_bluetooth_temp_banning_device = FALSE;
 uint8_t logic_bluetooth_temp_banned_mac[6];
+/* Logic to know if some device is trying to connect to us too often */
+BOOL logic_bluetooth_too_many_invalid_connect_notif_sent = FALSE;
+uint8_t logic_bluetooth_invalid_connect_counter = 0;
 
 
 static at_ble_status_t hid_custom_event(void *param)
 {
     at_ble_status_t status = AT_BLE_SUCCESS;
     return status;
+}
+
+/*! \fn     logic_bluetooth_denied_connection_trigger(void)
+*   \brief  Called whenever a device tried to connect to the mini BLE and we didn't have the keys
+*/
+void logic_bluetooth_denied_connection_trigger(void)
+{
+    if (++logic_bluetooth_invalid_connect_counter == 0)
+    {
+        /* Use wrapover to our advantage */
+        logic_bluetooth_too_many_invalid_connect_notif_sent = FALSE;
+    }
 }
 
 /*! \fn     logic_bluetooth_set_disable_flag(void)
@@ -244,7 +259,9 @@ void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info
     DBG_LOG("Paired to device");
         
     /* Set booleans */
+    logic_bluetooth_too_many_invalid_connect_notif_sent = FALSE;
     logic_bluetooth_can_communicate_with_host = TRUE;
+    logic_bluetooth_invalid_connect_counter = 0;
     logic_bluetooth_just_paired = TRUE;
     logic_bluetooth_paired = TRUE;
     
@@ -336,7 +353,9 @@ void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info
 void logic_bluetooth_encryption_changed_success(uint8_t* mac)
 {        
     /* Set boolean */
+    logic_bluetooth_too_many_invalid_connect_notif_sent = FALSE;
     logic_bluetooth_can_communicate_with_host = TRUE;
+    logic_bluetooth_invalid_connect_counter = 0;
 }
 
 /* Callbacks for GAP */
@@ -1832,6 +1851,14 @@ void logic_bluetooth_routine(void)
     {
         /* Inform main MCU */
         comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_CONNECTED);
+    }
+    
+    /* If something is spamming us with connections */
+    if ((logic_bluetooth_invalid_connect_counter > 10) && (logic_bluetooth_too_many_invalid_connect_notif_sent == FALSE))
+    {
+        /* Inform main MCU */
+        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_CON_SPAM);        
+        logic_bluetooth_too_many_invalid_connect_notif_sent = TRUE;
     }
     
     /* Notifications just enabled */

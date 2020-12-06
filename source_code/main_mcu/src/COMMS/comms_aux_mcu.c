@@ -594,6 +594,11 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
             logic_device_set_usb_timeout_detected();
             break;
         }
+        case AUX_MCU_EVENT_BLE_CON_SPAM:
+        {
+            logic_bluetooth_set_too_many_failed_connections();
+            break;
+        }
         default: 
         {
             /* Flag invalid message */

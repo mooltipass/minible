@@ -226,6 +226,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     BOOL should_ignore_message = FALSE;
     if ((answer_restrict_type == MSG_RESTRICT_ALL) && 
     (rcv_msg->message_type != HID_CMD_ID_PING) &&
+    (rcv_msg->message_type != HID_CMD_GET_DEVICE_STATUS) &&
     (rcv_msg->message_type != HID_CMD_IM_LOCKED) &&
     (rcv_msg->message_type != HID_CMD_IM_UNLOCKED))
     {
@@ -234,7 +235,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     
     /* Checks based on restriction type: ignore all messages except cancel request */
     if ((answer_restrict_type == MSG_RESTRICT_ALLBUT_CANCEL) && 
-        (rcv_msg->message_type != HID_CMD_ID_PING) && 
+        (rcv_msg->message_type != HID_CMD_ID_PING) &&
+        (rcv_msg->message_type != HID_CMD_GET_DEVICE_STATUS) &&
         (rcv_msg->message_type != HID_CMD_ID_CANCEL_REQ) && 
         (rcv_msg->message_type != HID_CMD_IM_LOCKED) &&
         (rcv_msg->message_type != HID_CMD_IM_UNLOCKED))
@@ -245,6 +247,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     /* All but bundle restriction */
     if ((answer_restrict_type == MSG_RESTRICT_ALLBUT_BUNDLE) &&
     (rcv_msg->message_type != HID_CMD_ID_PING) &&
+    (rcv_msg->message_type != HID_CMD_GET_DEVICE_STATUS) &&
     (rcv_msg->message_type != HID_CMD_START_BUNDLE_UL) &&
     (rcv_msg->message_type != HID_CMD_BUNDLE_WRITE_256B) &&
     (rcv_msg->message_type != HID_CMD_BUNDLE_UL_DONE) &&
