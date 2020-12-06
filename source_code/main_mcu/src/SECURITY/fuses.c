@@ -130,6 +130,18 @@ RET_TYPE fuses_check_program(BOOL flash_fuses)
 
     /* Set address, command will be issued elsewhere */
     NVMCTRL->ADDR.reg = NVMCTRL_AUX0_ADDRESS / 2;
+
+    /* Erase the page buffer before buffering new data */
+    NVMCTRL->CTRLA.reg = NVM_COMMAND_PAGE_BUFFER_CLEAR | NVMCTRL_CTRLA_CMDEX_KEY;
+
+    /* Wait for NVM command to complete */
+    while (!(NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY));
+
+    /* Clear error flags */
+    NVMCTRL->STATUS.reg |= NVMCTRL_STATUS_MASK;
+
+    /* Set address, command will be issued elsewhere */
+    NVMCTRL->ADDR.reg = NVMCTRL_AUX0_ADDRESS / 2;
     
     /* Prepare words to be written */
     userWord0 &= USER_MASK_0;
