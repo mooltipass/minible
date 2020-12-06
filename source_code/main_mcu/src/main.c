@@ -793,7 +793,7 @@ int main(void)
                     }
                     else if (get_status_return == RETURN_AUX_STAT_TOO_MANY_CB)
                     {
-                        gui_prompts_display_information_on_screen_and_wait(MANY_FAILED_CONNS_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_008_TEXT_ID, DISP_MSG_WARNING, FALSE);
                         gui_dispatcher_get_back_to_current_screen();                        
                     }
                 }
