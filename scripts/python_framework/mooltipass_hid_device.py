@@ -338,9 +338,15 @@ class mooltipass_hid_device:
 
 		if False:
 			print(''.join('{:02x}'.format(x) for x in return_array))
+			
+		return return_array
 
 	def flashUniqueData(self):
-		self.getRandomData(133)
+		device_sn = input("Device serial number: ")
+		# First 128B: random data
+		data_to_flash = self.getRandomData(128)
+		# Device serial number
+		data_to_flash.extend(struct.pack('I', int(device_sn)))
 		
 	# Get accelerometer data
 	def getAccData(self):

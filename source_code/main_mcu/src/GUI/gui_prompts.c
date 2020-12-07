@@ -510,8 +510,9 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
 *   \brief  Display a hash on the screen
 *   \param  buffer          Pointer to the 16 bytes hash buffer
 *   \param  hash_text_id    Text ID to display on screen
+*   \return If the card is still inserted
 */
-void gui_prompts_display_hash(uint8_t* buffer, uint16_t hash_text_id)
+BOOL gui_prompts_display_hash(uint8_t* buffer, uint16_t hash_text_id)
 {
     cust_char_t* three_line_notif_1;
     cust_char_t text_buffer1[(AES256_CTR_LENGTH/8)+1];
@@ -527,7 +528,7 @@ void gui_prompts_display_hash(uint8_t* buffer, uint16_t hash_text_id)
     }
     
     /* Call display code */
-    gui_prompts_display_3line_information_on_screen_and_wait(&notif_text_3_lines, DISP_MSG_INFO, TRUE);
+    return gui_prompts_display_3line_information_on_screen_and_wait(&notif_text_3_lines, DISP_MSG_INFO, TRUE);
 }
 
 /*! \fn     gui_prompts_wait_for_pairing_screen(void)
@@ -620,13 +621,17 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
 *   \param  confirmationText_t      Pointer to the struct containing the 3 lines
 *   \param  message_type            Message type (see enum)
 *   \param  no_return_on_timeout    Set to TRUE to not return after timeout
+*   \return If the card insertion status didn't change
 */
-void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type, BOOL no_return_on_timeout)
+BOOL gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type, BOOL no_return_on_timeout)
 {
     uint16_t i = 0;
     
     // Display string
     gui_prompts_display_information_lines_on_screen(text_lines, message_type, 3);
+    
+    /* Store current smartcard inserted state */
+    ret_type_te card_absent = smartcard_low_level_is_smc_absent();
     
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
@@ -655,10 +660,19 @@ void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
             /* Animation depending on message type */
             sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+i, FALSE);
         }
+        
+        /* Card insertion status change */
+        if (card_absent != smartcard_low_level_is_smc_absent())
+        {
+            /* Free timer */
+            timer_deallocate_timer(temp_timer_id);
+            return FALSE;
+        }
     }
 
     /* Free timer */
     timer_deallocate_timer(temp_timer_id);
+    return TRUE;
 }
 
 /*! \fn     gui_prompts_get_char_to_display(uint8_t const * current_pin, uint8_t index)
