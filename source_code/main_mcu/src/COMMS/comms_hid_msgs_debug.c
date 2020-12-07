@@ -445,6 +445,35 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }
+        case HID_CMD_ID_SET_PLAT_UNIQUE_DATA:
+        {
+            #ifdef PLAT_V7_SETUP
+            bl_section_last_row_t* bl_last_row_ptr = (bl_section_last_row_t*)(FLASH_ADDR + APP_START_ADDR - NVMCTRL_ROW_SIZE);
+            bl_section_last_row_t* bl_section_last_row_to_flash_pt = (bl_section_last_row_t*)rcv_msg->payload_as_uint32;
+            
+            /* Update the platform data */
+            while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+            NVMCTRL->ADDR.reg  = ((uint32_t)bl_last_row_ptr)/2;
+            NVMCTRL->CTRLA.reg = NVMCTRL_CTRLA_CMD_ER | NVMCTRL_CTRLA_CMDEX_KEY;
+            
+            /* Flash bytes */
+            for (uint32_t j = 0; j < 4; j++)
+            {
+                /* Flash 4 consecutive pages */
+                while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+                for(uint32_t i = 0; i < NVMCTRL_ROW_SIZE/4; i+=2)
+                {
+                    NVM_MEMORY[(((uint32_t)bl_last_row_ptr)+j*(NVMCTRL_ROW_SIZE/4)+i)/2] = bl_section_last_row_to_flash_pt->row_data[(j*(NVMCTRL_ROW_SIZE/4)+i)/2];
+                }
+            }
+            
+            /* Final wait, reset */
+            while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+            NVIC_SystemReset();
+            while(1);            
+            #endif
+            return;
+        }            
         default: break;
     }
     
