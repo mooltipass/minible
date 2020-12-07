@@ -319,7 +319,28 @@ class mooltipass_hid_device:
 		print("Aux MCU minor:", struct.unpack('H', packet["data"][2:4])[0])
 		print("Main MCU major:", struct.unpack('H', packet["data"][64:66])[0])
 		print("Main MCU minor:", struct.unpack('H', packet["data"][66:68])[0])
+		
+	def getRandomData(self, nb_bytes_requested):
+		nb_bytes_gotten = 0
+		return_array = []
+		
+		while nb_bytes_gotten < nb_bytes_requested:
+			nb_bytes_to_get = nb_bytes_requested - nb_bytes_gotten
+			
+			if nb_bytes_to_get > 32:
+				nb_bytes_to_get = 32
+				
+			# Ask for random bytes
+			return_array.extend(self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_GET_RANDOM_32B, None))["data"][0:nb_bytes_to_get])
+			
+			# Update counter
+			nb_bytes_gotten += nb_bytes_to_get
 
+		if False:
+			print(''.join('{:02x}'.format(x) for x in return_array))
+
+	def flashUniqueData(self):
+		self.getRandomData(133)
 		
 	# Get accelerometer data
 	def getAccData(self):
