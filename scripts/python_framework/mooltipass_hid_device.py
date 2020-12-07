@@ -348,12 +348,12 @@ class mooltipass_hid_device:
 		# Device serial number
 		data_to_flash.extend(struct.pack('I', int(device_sn)))
 		# mac address
-		data_to_flash.append(0x68)
-		data_to_flash.append(0x79)
-		data_to_flash.append(0x12)
-		data_to_flash.append(0x30)
-		data_to_flash.append(0x00)
 		data_to_flash.append(int(device_sn))
+		data_to_flash.append(0x00)
+		data_to_flash.append(0x30)
+		data_to_flash.append(0x12)
+		data_to_flash.append(0x79)
+		data_to_flash.append(0x68)
 		# bundle version
 		data_to_flash.extend(struct.pack('H', 0))
 		# nothing
