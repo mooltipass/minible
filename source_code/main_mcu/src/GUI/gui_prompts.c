@@ -506,6 +506,30 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
     return GUI_INFO_DISP_RET_OK;
 }
 
+/*! \fn     gui_prompts_display_hash(uint8_t* buffer, uint16_t hash_text_id)
+*   \brief  Display a hash on the screen
+*   \param  buffer          Pointer to the 16 bytes hash buffer
+*   \param  hash_text_id    Text ID to display on screen
+*/
+void gui_prompts_display_hash(uint8_t* buffer, uint16_t hash_text_id)
+{
+    cust_char_t* three_line_notif_1;
+    cust_char_t text_buffer1[(AES256_CTR_LENGTH/8)+1];
+    cust_char_t text_buffer2[(AES256_CTR_LENGTH/8)+1];
+    custom_fs_get_string_from_file(hash_text_id, &three_line_notif_1, TRUE);
+    confirmationText_t notif_text_3_lines = {.lines[0]=three_line_notif_1, .lines[1]=text_buffer1, .lines[2]=text_buffer2};
+    
+    /* Format and display hash */
+    for (uint16_t i = 0; i < AES256_CTR_LENGTH / 8 / 2; i++)
+    {
+        utils_hexachar_to_string((unsigned char)buffer[i], &text_buffer1[i*2]);
+        utils_hexachar_to_string((unsigned char)buffer[i+(AES_BLOCK_SIZE/8/2)], &text_buffer2[i*2]);
+    }
+    
+    /* Call display code */
+    gui_prompts_display_3line_information_on_screen_and_wait(&notif_text_3_lines, DISP_MSG_INFO, TRUE);
+}
+
 /*! \fn     gui_prompts_wait_for_pairing_screen(void)
 *   \brief  Waiting screen for pairing
 *   \return What caused the function to return (see enum)
@@ -591,12 +615,13 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
     return GUI_INFO_DISP_RET_OK;
 }
 
-/*! \fn     gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type
+/*! \fn     gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type, BOOL no_return_on_timeout_line23_same_size)
 *   \brief  Display text information on screen - 3 lines version
-*   \param  confirmationText_t  Pointer to the struct containing the 3 lines
-*   \param  message_type        Message type (see enum)
+*   \param  confirmationText_t      Pointer to the struct containing the 3 lines
+*   \param  message_type            Message type (see enum)
+*   \param  no_return_on_timeout    Set to TRUE to not return after timeout
 */
-void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type)
+void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type, BOOL no_return_on_timeout)
 {
     uint16_t i = 0;
     
@@ -606,10 +631,16 @@ void gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
     uint16_t temp_timer_id = timer_get_and_start_timer(3000);
-    while ((timer_has_allocated_timer_expired(temp_timer_id, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK))
+    while (((no_return_on_timeout != FALSE) || (timer_has_allocated_timer_expired(temp_timer_id, TRUE) != TIMER_EXPIRED)) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK))
     {
+        /* Deal with incoming messages but do not deal with them */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        
+        /* Accelerometer routine for RNG stuff */
         logic_accelerometer_routine();
+        
+        /* Handle possible power switches */
+        logic_power_check_power_switch_and_battery(FALSE);
         
         /* Animation timer */
         if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)

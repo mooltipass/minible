@@ -156,6 +156,7 @@
 - v0.54:- notification on failed BLE connections
         - new bundle upload technique
         - authentication challenge
+        - hash display feature
         - updated dtm tx
         - new dtm rx
 */

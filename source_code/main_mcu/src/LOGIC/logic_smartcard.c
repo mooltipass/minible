@@ -259,7 +259,7 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
             br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
                         
             /* Display AESenc(CTRVAL) */
-            //gui_prompts_display_hash(password_buffer, HASH_1_TEXT_ID);
+            gui_prompts_display_hash((uint8_t*)password_buffer, HASH_1_TEXT_ID);
             
             /* memset everything */
             memset(&device_operations_aes_context, 0, sizeof(device_operations_aes_context));
@@ -306,8 +306,8 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
                 password_buffer[0] = custom_fs_get_platform_serial_number();
                 br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
                 
-                /* Display AESenc(CTRVAL) */
-                //gui_prompts_display_hash(password_buffer, HASH_2_TEXT_ID);
+                /* Display AESenc(AESkey) */
+                gui_prompts_display_hash((uint8_t*)password_buffer, HASH_2_TEXT_ID);
                 
                 /* memset everything */
                 memset(&device_operations_aes_context, 0, sizeof(device_operations_aes_context));

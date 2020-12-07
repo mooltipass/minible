@@ -620,3 +620,35 @@ uint8_t utils_side_channel_safe_memcmp(uint8_t* dataA, uint8_t* dataB, uint32_t 
 
     return return_value;
 }
+
+/*! \fn     utils_hexachar_to_string(unsigned char c, cust_char_t* string)
+*   \brief  Convert a char to a string that we can display
+*   \param  c   The char
+*   \param  string  Pointer to the string in which we will write
+*/
+void utils_hexachar_to_string(unsigned char c, cust_char_t* string)
+{
+    unsigned char temp = c & 0x0F;
+
+    if(temp > 9)
+    {
+        string[1] = temp + 0x37;
+    }
+    else
+    {
+        string[1] = temp + 0x30;
+    }
+
+    temp = (c >> 4) & 0x0F;
+
+    if(temp > 9)
+    {
+        string[0] = temp + 0x37;
+    }
+    else
+    {
+        string[0] = temp + 0x30;
+    }
+
+    string[2] = 0x00;
+}
