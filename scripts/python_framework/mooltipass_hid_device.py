@@ -347,6 +347,30 @@ class mooltipass_hid_device:
 		data_to_flash = self.getRandomData(128)
 		# Device serial number
 		data_to_flash.extend(struct.pack('I', int(device_sn)))
+		# mac address
+		data_to_flash.append(0x68)
+		data_to_flash.append(0x79)
+		data_to_flash.append(0x12)
+		data_to_flash.append(0x30)
+		data_to_flash.append(0x00)
+		data_to_flash.append(int(device_sn))
+		# bundle version
+		data_to_flash.extend(struct.pack('H', 0))
+		# nothing
+		data_to_flash.extend([0]*116)
+		
+		# Debug
+		print()
+		print("Device ID: " + str(device_sn))
+		print("Signing key: " + ''.join('{:02x}'.format(x) for x in data_to_flash[0:32]))
+		print("Device operations key: " + ''.join('{:02x}'.format(x) for x in data_to_flash[32:64]))
+		print("Available key: " + ''.join('{:02x}'.format(x) for x in data_to_flash[64:96]))
+		print("Other available key: " + ''.join('{:02x}'.format(x) for x in data_to_flash[96:128]))
+		print("MAC Addr: " + ''.join('{:02x}'.format(x) for x in data_to_flash[132:138]))
+		print()
+		
+		# Send data
+		self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_FLASH_PLAT_UNIQUE_DATA, data_to_flash))
 		
 	# Get accelerometer data
 	def getAccData(self):

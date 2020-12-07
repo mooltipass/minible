@@ -497,6 +497,7 @@ int main(void)
     {
         sh1122_oled_off(&plat_oled_descriptor);
         platform_io_power_down_oled();
+        DELAYMS(500);
     }
     #endif
     

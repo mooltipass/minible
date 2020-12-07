@@ -451,6 +451,10 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             bl_section_last_row_t* bl_last_row_ptr = (bl_section_last_row_t*)(FLASH_ADDR + APP_START_ADDR - NVMCTRL_ROW_SIZE);
             bl_section_last_row_t* bl_section_last_row_to_flash_pt = (bl_section_last_row_t*)rcv_msg->payload_as_uint32;
             
+            /* Automatic flash write, disable caching */
+            NVMCTRL->CTRLB.bit.MANW = 0;
+            NVMCTRL->CTRLB.bit.CACHEDIS = 1;
+            
             /* Update the platform data */
             while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
             NVMCTRL->ADDR.reg  = ((uint32_t)bl_last_row_ptr)/2;
@@ -469,6 +473,17 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             
             /* Final wait, reset */
             while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+            
+            /* Switch off screen */
+            sh1122_oled_off(&plat_oled_descriptor);
+            platform_io_power_down_oled();
+            
+            /* Detach USB */
+            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
+            comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
+            timer_delay_ms(500);
+            
+            /* Reboot */
             NVIC_SystemReset();
             while(1);            
             #endif
