@@ -477,6 +477,9 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             /* Disable bluetooth if enabled */
             logic_aux_mcu_disable_ble(TRUE);
             
+            /* Re-enable tutorial */
+            custom_fs_set_settings_value(SETTINGS_DEVICE_TUTORIAL, TRUE);
+            
             /* Switch off screen */
             sh1122_oled_off(&plat_oled_descriptor);
             platform_io_power_down_oled();

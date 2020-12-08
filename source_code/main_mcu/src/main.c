@@ -257,10 +257,22 @@ void main_platform_init(void)
             /* Use hard comms reset procedure */
             comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot();
             
+            BOOL prev_usb_present_state = platform_io_is_usb_3v3_present_raw();
             if (comms_aux_mcu_send_receive_ping() != RETURN_OK)
             {
                 sh1122_put_error_string(&plat_oled_descriptor, u"No Aux MCU");
-                while(1);
+                while(1)
+                {
+                    /* Switch off when disconnected form USB */
+                    if ((prev_usb_present_state != FALSE) && (platform_io_is_usb_3v3_present_raw() == FALSE))
+                    {
+                        sh1122_oled_off(&plat_oled_descriptor);
+                        platform_io_power_down_oled();
+                        timer_delay_ms(100);
+                        platform_io_disable_switch_and_die();
+                        while(1);
+                    }
+                }
             }                
         }
     }
