@@ -302,6 +302,10 @@ void main_platform_init(void)
     #endif
     {
         functional_testing_start(TRUE);
+        
+        /* First boot initializations */
+        custom_fs_set_auth_challenge_counter(0);
+        custom_fs_set_undefined_settings(TRUE);
     }
 
     /* Check for RF functional testing passed */
@@ -396,7 +400,7 @@ void main_platform_init(void)
     }
     
     /* Set settings that may not have been set to an initial value (after going into the bootloader for example) */
-    custom_fs_set_undefined_settings();
+    custom_fs_set_undefined_settings(FALSE);
     
     /* Apply possible screen inversion */
     BOOL screen_inverted = logic_power_get_power_source() == BATTERY_POWERED?(BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_BATTERY):(BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_USB);
@@ -451,6 +455,10 @@ void main_platform_init(void)
         
         /* Clear frame buffer */
         sh1122_fade_into_darkness(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+        
+        /* Reset settings (leave disabled, no real need */
+        //custom_fs_set_undefined_settings(TRUE);
+        //custom_fs_set_auth_challenge_counter(0);
     }
     
     /* Special developer features */

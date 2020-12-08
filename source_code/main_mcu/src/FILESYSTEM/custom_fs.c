@@ -1279,10 +1279,11 @@ void custom_fs_get_debug_bt_addr(uint8_t* bt_addr)
     memcpy(bt_addr, custom_fs_platform_settings_p->dbg_bluetooth_addr, sizeof(custom_fs_platform_settings_p->dbg_bluetooth_addr));
 }
 
-/*! \fn     custom_fs_set_undefined_settings(void)
+/*! \fn     custom_fs_set_undefined_settings(BOOL force_flash)
 *   \brief  Set settings that may not have been set to a default value
+*   \param  force_flash Set to TRUE to force settings flash
 */
-void custom_fs_set_undefined_settings(void)
+void custom_fs_set_undefined_settings(BOOL force_flash)
 {
     custom_platform_settings_t platform_settings_copy;
     
@@ -1291,13 +1292,13 @@ void custom_fs_set_undefined_settings(void)
         /* Customfs not initialized (shouldn't happen) */
         return;
     }
-    else if (custom_fs_platform_settings_p->nb_settings_last_covered != SETTINGS_NB_USED)
+    else if ((custom_fs_platform_settings_p->nb_settings_last_covered != SETTINGS_NB_USED) || (force_flash != FALSE))
     {        
         /* Copy settings structure stored in flash into ram, overwrite relevant settings part, flash again later */
         memcpy(&platform_settings_copy, custom_fs_platform_settings_p, sizeof(platform_settings_copy));
 
         /* Check for blank memory & overflow */
-        if (custom_fs_platform_settings_p->nb_settings_last_covered >= NB_DEVICE_SETTINGS)
+        if ((custom_fs_platform_settings_p->nb_settings_last_covered >= NB_DEVICE_SETTINGS) || (force_flash != FALSE))
         {
             platform_settings_copy.nb_settings_last_covered = 0;
         }

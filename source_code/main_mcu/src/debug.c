@@ -383,7 +383,7 @@ void debug_always_bluetooth_enable_and_click_to_send_cred(void)
     aux_mcu_message_t* temp_tx_message_pt;
     
     /* Set undefined settings in case this function is called early during device init */
-    custom_fs_set_undefined_settings();
+    custom_fs_set_undefined_settings(FALSE);
     
     /* Clear all bonding information */
     nodemgmt_delete_all_bluetooth_bonding_information();

@@ -74,6 +74,7 @@ uint16_t custom_fs_settings_get_dump(uint8_t* dump_buffer);
 void custom_fs_detele_user_cpz_lut_entry(uint8_t user_id);
 custom_fs_init_ret_type_te custom_fs_settings_init(void);
 uint8_t custom_fs_get_current_layout_id(BOOL usb_layout);
+void custom_fs_set_undefined_settings(BOOL force_flash);
 uint16_t custom_fs_get_platform_bundle_version(void);
 uint32_t custom_fs_get_auth_challenge_counter(void);
 uint32_t custom_fs_get_platform_serial_number(void);
@@ -84,7 +85,6 @@ void custom_fs_get_debug_bt_addr(uint8_t* bt_addr);
 void custom_fs_settings_set_fw_upgrade_flag(void);
 uint32_t custom_fs_get_number_of_languages(void);
 uint8_t custom_fs_get_current_language_id(void);
-void custom_fs_set_undefined_settings(void);
 void custom_fs_hard_reset_settings(void);
 ret_type_te custom_fs_init(void);
 
