@@ -175,9 +175,8 @@ void gui_prompts_display_tutorial(void)
         /* Battery powered, no action, switch off */
         if ((timer_has_allocated_timer_expired(temp_timer_id, FALSE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
         {
-            /* Switch off OLED, switch off platform */
-            platform_io_power_down_oled(); timer_delay_ms(200);
-            platform_io_disable_switch_and_die();
+            /* Switch off platform */
+            logic_device_power_off();
         }
                 
         /* Still process the USB commands, reply with please retries */

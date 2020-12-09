@@ -668,9 +668,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
             if ((logic_power_get_power_source() == BATTERY_POWERED) && (vbat_measurement_from_a_bit_ago < BATTERY_ADC_EMGCY_CUTOUT) && (platform_io_is_usb_3v3_present_raw() == FALSE))
             {
                 custom_fs_set_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID, TRUE);
-                logic_power_power_down_actions();
-                platform_io_power_down_oled();
-                platform_io_disable_switch_and_die();
+                logic_device_power_off();
             }
             
             /* Check for new battery level */

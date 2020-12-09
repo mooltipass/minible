@@ -266,10 +266,7 @@ void main_platform_init(void)
                     /* Switch off when disconnected form USB */
                     if ((prev_usb_present_state != FALSE) && (platform_io_is_usb_3v3_present_raw() == FALSE))
                     {
-                        sh1122_oled_off(&plat_oled_descriptor);
-                        platform_io_power_down_oled();
-                        timer_delay_ms(100);
-                        platform_io_disable_switch_and_die();
+                        logic_device_power_off();
                         while(1);
                     }
                 }
@@ -323,9 +320,8 @@ void main_platform_init(void)
             /* Timer timeout, switch off platform */
             if ((timer_has_allocated_timer_expired(temp_timer_id, FALSE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
             {
-                /* Switch off OLED, switch off platform */
-                platform_io_power_down_oled(); timer_delay_ms(200);
-                platform_io_disable_switch_and_die();
+                /* Switch off platform */
+                logic_device_power_off();
             }
             
             /* Handle possible power switches */
@@ -389,9 +385,8 @@ void main_platform_init(void)
             /* Timer timeout, switch off platform */
             if ((timer_has_allocated_timer_expired(temp_timer_id, FALSE) == TIMER_EXPIRED) && (platform_io_is_usb_3v3_present() == FALSE))
             {
-                /* Switch off OLED, switch off platform */
-                platform_io_power_down_oled(); timer_delay_ms(200);
-                platform_io_disable_switch_and_die();
+                /* Switch off platform */
+                logic_device_power_off();
             }
         }
         
@@ -440,10 +435,7 @@ void main_platform_init(void)
         if (gui_prompts_select_language_or_keyboard_layout(FALSE, TRUE, TRUE, FALSE) != RETURN_OK)
         {
             /* We're battery powered, the user didn't select anything, switch off device */
-            sh1122_oled_off(&plat_oled_descriptor);
-            platform_io_power_down_oled();
-            timer_delay_ms(100);
-            platform_io_disable_switch_and_die();
+            logic_device_power_off();
             while(1);            
         }
         
