@@ -228,7 +228,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     (rcv_msg->message_type != HID_CMD_ID_PING) &&
     (rcv_msg->message_type != HID_CMD_GET_DEVICE_STATUS) &&
     (rcv_msg->message_type != HID_CMD_IM_LOCKED) &&
-    (rcv_msg->message_type != HID_CMD_IM_UNLOCKED))
+    (rcv_msg->message_type != HID_CMD_IM_UNLOCKED) &&
+    (rcv_msg->message_type != HID_CMD_ID_SET_DATE))
     {
         should_ignore_message = TRUE;
     }
@@ -239,7 +240,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         (rcv_msg->message_type != HID_CMD_GET_DEVICE_STATUS) &&
         (rcv_msg->message_type != HID_CMD_ID_CANCEL_REQ) && 
         (rcv_msg->message_type != HID_CMD_IM_LOCKED) &&
-        (rcv_msg->message_type != HID_CMD_IM_UNLOCKED))
+        (rcv_msg->message_type != HID_CMD_IM_UNLOCKED) &&
+        (rcv_msg->message_type != HID_CMD_ID_SET_DATE))
     {
         should_ignore_message = TRUE;
     }
@@ -253,7 +255,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     (rcv_msg->message_type != HID_CMD_BUNDLE_UL_DONE) &&
     (rcv_msg->message_type != HID_CMD_ID_CANCEL_REQ) &&
     (rcv_msg->message_type != HID_CMD_IM_LOCKED) &&
-    (rcv_msg->message_type != HID_CMD_IM_UNLOCKED))
+    (rcv_msg->message_type != HID_CMD_IM_UNLOCKED) &&
+    (rcv_msg->message_type != HID_CMD_ID_SET_DATE))
     {
         should_ignore_message = TRUE;
     }
