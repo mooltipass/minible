@@ -121,7 +121,7 @@ class generic_hid_device:
 			self.sendHidPacket(packet)
 		
 	# Send message to device
-	def sendHidMessageWaitForAck(self, message):
+	def sendHidMessageWaitForAck(self, message, retry_if_retry_received=True):
 		# Get packets for message
 		packets = self.get_packets_from_message(message)
 
@@ -132,7 +132,28 @@ class generic_hid_device:
 		# Wait for aux MCU ack and main ack
 		if self.ack_flag_in_comms:
 			self.receiveHidPacket(True)
-		return self.receiveHidMessage(True)
+			
+		# Loop
+		while True:	
+			receive_return = self.receiveHidMessage(True)
+			if receive_return == None:
+				sys.exit(0)
+			elif receive_return == True and retry_if_retry_received:
+				print("please retry received... retrying")
+				time.sleep(1)
+				
+				# Get packets for message
+				packets = self.get_packets_from_message(message)
+		
+				# Send all packets again
+				for packet in packets:
+					self.sendHidPacket(packet)
+
+				# Wait for aux MCU ack and main ack
+				if self.ack_flag_in_comms:
+					self.receiveHidPacket(True)
+			else:
+				return receive_return
 
 	# Receive HID packet, crash when nothing is sent
 	def receiveHidPacket(self, exit_on_timeout):
@@ -170,7 +191,7 @@ class generic_hid_device:
 		while True:
 			answer = self.receiveHidPacket(exit_on_timeout)			
 			if exit_on_timeout == False and answer == None:
-				return
+				return None
 			payload_length = answer[0] & 0x3F
 			current_packet = (answer[1] & 0xF0) >> 4
 			total_packets = (answer[1] & 0x0F)
@@ -203,6 +224,8 @@ class generic_hid_device:
 							else:
 								temp_string += chr(packet["data"][i*2] + packet["data"][i*2+1]*256)
 						print(temp_string)
+					elif packet["cmd"] == CMD_ID_RETRY:
+						return True
 					return packet
 
 	# Receive HID packet, return None when nothing is sent
@@ -295,7 +318,17 @@ class generic_hid_device:
 		flipbit_reset_packet = array('B')
 		flipbit_reset_packet.append(0xFF)
 		flipbit_reset_packet.append(0xFF)
-		self.epout.write(flipbit_reset_packet)
+		first_packet_send_counter = 0
+		first_packet_not_sent = True
+		while first_packet_not_sent and first_packet_send_counter < 10:
+			try:
+				self.epout.write(flipbit_reset_packet)
+				first_packet_not_sent = False
+			except:
+				first_packet_send_counter+=1
+				time.sleep(1)
+		if first_packet_not_sent:
+			return False
 		
 		try:
 			# try to send ping packet

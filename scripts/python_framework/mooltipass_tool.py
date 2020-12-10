@@ -12,18 +12,28 @@ nonConnectionCommands = []
 
 def main():
 	skipConnection = False
+	waitForDeviceConnection = False
 	
 	# If an arg is supplied and if the command doesn't require to connect to a device
 	if len(sys.argv) > 1 and sys.argv[1] in nonConnectionCommands:
 		skipConnection = True
+		
+	# Waiting for device connection
+	if len(sys.argv) > 1 and sys.argv[1] == "initCode":
+		waitForDeviceConnection = True
+	
 
 	if not skipConnection:
 		# HID device constructor
 		mooltipass_device = mooltipass_hid_device()	
 		
 		# Connect to device
-		if mooltipass_device.connect(True) == False:
-			sys.exit(0)
+		if waitForDeviceConnection == False:
+			if mooltipass_device.connect(True) == False:
+				sys.exit(0)
+		else:
+			while mooltipass_device.connect(False) == False:
+				time.sleep(1)
 			
 		print("Connected to device")
 		
@@ -80,6 +90,9 @@ def main():
 			
 		elif sys.argv[1] == "timediff":
 			mooltipass_device.timeDiff()
+			
+		elif sys.argv[1] == "initCode":
+			mooltipass_device.initCode()
 			
 		elif sys.argv[1] == "debugListen":
 			while True:

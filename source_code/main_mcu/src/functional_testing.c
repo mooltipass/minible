@@ -256,6 +256,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     uint16_t temp_timer_id = timer_get_and_start_timer(2000);
     while (timer_has_allocated_timer_expired(temp_timer_id, TRUE) != TIMER_EXPIRED)
     {
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         if (logic_accelerometer_routine() == ACC_FAILING)
         {
             sh1122_put_error_string(&plat_oled_descriptor, u"LIS2HH12 failed!");
@@ -273,7 +274,10 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #endif
     sh1122_put_error_string(&plat_oled_descriptor, u"insert card");
-    while (smartcard_low_level_is_smc_absent() == RETURN_OK);
+    while (smartcard_low_level_is_smc_absent() == RETURN_OK)
+    {
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+    }
     sh1122_clear_current_screen(&plat_oled_descriptor);
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
@@ -284,7 +288,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         sh1122_put_error_string(&plat_oled_descriptor, u"Invalid card!");
         while (platform_io_is_usb_3v3_present_raw() != FALSE)
         {
-            comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_BUNDLE);
+            comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         }
         DELAYMS(200); platform_io_disable_switch_and_die(); while(1);
     }
@@ -296,8 +300,13 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     }
     
     /* We're good! */
-    sh1122_put_error_string(&plat_oled_descriptor, u"All Good!");    
-    timer_delay_ms(4000);
+    sh1122_put_error_string(&plat_oled_descriptor, u"All Good!");
+    temp_timer_id = timer_get_and_start_timer(5000);
+    while (timer_has_allocated_timer_expired(temp_timer_id, TRUE) != TIMER_EXPIRED)
+    {
+        comms_aux_mcu_routine(MSG_NO_RESTRICT);
+    }
+    timer_deallocate_timer(temp_timer_id);
     sh1122_clear_current_screen(&plat_oled_descriptor);
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);

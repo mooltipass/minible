@@ -75,6 +75,12 @@ class mooltipass_hid_device:
 	def createPingPacket(self):	
 		return self.getPacketForCommand(CMD_PING, [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)])
 		
+	# Initialization code
+	def initCode(self):
+		# Ask for the info
+		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_PLAT_INFO, None), True)	
+		print("device SN:", struct.unpack('I', packet["data"][8:12])[0])
+		
 	# Send full frame picture to display
 	def sendAndMonitorFrame(self, filename, bitdepth):	
 		# Check for file
