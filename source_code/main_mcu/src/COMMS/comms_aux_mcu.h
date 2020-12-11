@@ -40,6 +40,7 @@ void comms_aux_mcu_send_message(aux_mcu_message_t* message_to_send);
 BOOL comms_aux_mcu_get_and_clear_second_tx_buffer_rerequested(void);
 void comms_aux_mcu_send_simple_command_message(uint16_t command);
 BOOL comms_aux_mcu_get_and_clear_rx_transfer_already_armed(void);
+void comms_aux_mcu_update_timeout_delay(uint16_t timeout_delay);
 BOOL comms_aux_mcu_get_and_clear_invalid_message_received(void);
 void comms_aux_mcu_hard_comms_reset_with_aux_mcu_reboot(void);
 void comms_aux_mcu_prepare_for_active_rx_packet_receive(void);

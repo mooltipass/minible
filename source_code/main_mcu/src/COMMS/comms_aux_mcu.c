@@ -62,6 +62,8 @@ BOOL aux_mcu_comms_invalid_message_received = FALSE;
 BOOL aux_mcu_comms_rx_already_armed = FALSE;
 /* Flag set when the second tx buffer is requested */
 BOOL aux_mcu_comms_second_buffer_rerequested = FALSE;
+/* Timeout delay for aux MCU communications */
+BOOL aux_mcu_comms_timeout_delay = AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS;
 
 
 /*! \fn     comms_aux_mcu_set_invalid_message_received(void)
@@ -70,6 +72,15 @@ BOOL aux_mcu_comms_second_buffer_rerequested = FALSE;
 void comms_aux_mcu_set_invalid_message_received(void)
 {
     aux_mcu_comms_invalid_message_received = TRUE;
+}
+
+/*! \fn     comms_aux_mcu_update_timeout_delay(uint16_t timeout_delay)
+*   \brief  Update the timeout delay for communications with the aux MCU
+*   \param  timeout_delay   New timeout delay for comms
+*/
+void comms_aux_mcu_update_timeout_delay(uint16_t timeout_delay)
+{
+    aux_mcu_comms_timeout_delay = timeout_delay;
 }
 
 /*! \fn     comms_aux_mcu_get_and_clear_invalid_message_received(void)
@@ -348,12 +359,19 @@ aux_status_return_te comms_aux_mcu_get_aux_status(void)
 
     /* Send get status message */
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_GET_STATUS);
+    
+    /* Change delay: when connected over bluetooth, we've seen 3s once or twice */
+    comms_aux_mcu_update_timeout_delay(4000);
 
     /* Wait for answer: no need to parse answer as filter is done in comms_aux_mcu_active_wait */
     if (comms_aux_mcu_active_wait(&temp_rx_message_pt, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_HERES_MY_STATUS) == RETURN_NOK)
     {
+        comms_aux_mcu_update_timeout_delay(AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS);
         return RETURN_AUX_STAT_TIMEOUT;
     }
+    
+    /* Reset timeout delay */
+    comms_aux_mcu_update_timeout_delay(AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS);
     
     /* Most important thing: incorrect received messages */
     if (temp_rx_message_pt->aux_mcu_event_message.payload[2] != FALSE)
@@ -1103,7 +1121,7 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, uint16_
     /* Arm timer */
     if (single_try == FALSE)
     {
-        temp_timer_id = timer_get_and_start_timer(AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS);
+        temp_timer_id = timer_get_and_start_timer(aux_mcu_comms_timeout_delay);
     }
     else
     {
