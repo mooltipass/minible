@@ -165,7 +165,7 @@ uint16_t custom_fs_get_platform_bundle_version(void)
 RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
 {
     /* Check for emergency font file exception */
-    if ((address >= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR) && (address+size <= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR + sizeof(custom_fs_emergency_font_file)))
+    if ((address >= CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR) && (size <= sizeof(custom_fs_emergency_font_file)) && ((address-CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR) + size <= sizeof(custom_fs_emergency_font_file)))
     {
         memcpy(datap, &custom_fs_emergency_font_file[address-CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR], size);
     } 
@@ -572,6 +572,12 @@ ret_type_te custom_fs_set_current_language(uint8_t language_id)
     /* Load address to language map table */
     custom_fs_address_t language_map_table_addr;
     custom_fs_read_from_flash((uint8_t*)&language_map_table_addr, CUSTOM_FS_FILES_ADDR_OFFSET + custom_fs_flash_header.language_map_offset, sizeof(language_map_table_addr));
+    
+    /* Check for valid data */
+    if (language_map_table_addr == CUSTOM_FS_ADDRESS_TMAX)
+    {
+        return RETURN_NOK;
+    }
     
     /* Load language map entry, 0 terminate it in case */
     custom_fs_read_from_flash((uint8_t*)&custom_fs_cur_language_entry, CUSTOM_FS_FILES_ADDR_OFFSET + language_map_table_addr + (language_id*sizeof(custom_fs_cur_language_entry)), sizeof(custom_fs_cur_language_entry));

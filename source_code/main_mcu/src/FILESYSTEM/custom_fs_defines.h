@@ -83,6 +83,7 @@
 typedef enum {PWR_OFF_DUE_TO_BATTERY_FLG_ID = 0, FUNCTIONAL_TEST_PASSED_FLAG_ID = 1, DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID = 2, NOT_FIRST_BOOT_FLAG_ID = 3, RF_TESTING_PASSED_FLAG_ID = 4, SUCCESSFUL_UPDATE_FLAG_ID = 5} custom_fs_flag_id_te;
 
 /* Typedefs */
+#define CUSTOM_FS_ADDRESS_TMAX              UINT32_MAX
 typedef uint32_t custom_fs_file_count_t;
 typedef uint32_t custom_fs_address_t;
 typedef uint16_t custom_fs_file_type_t;
