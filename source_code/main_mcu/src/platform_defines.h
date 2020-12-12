@@ -153,7 +153,8 @@
 - v0.52:- improved battery readings across reboots
         - improved battery charging logic
 - v0.53:- bug fix: battery status across reboots
-- v0.54:- notification on failed BLE connections
+- v0.54:- 002/005 bug fix: configurable aux mcu timeout value
+        - notification on failed BLE connections
         - new bundle upload technique
         - authentication challenge
         - hash display feature

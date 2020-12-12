@@ -286,42 +286,38 @@ ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* 
 *   \param  from_debug_messages Set to TRUE if this function was called from debug messages
 */
 void logic_device_bundle_update_end(BOOL from_debug_messages)
-{
-    /* If we are in invalid screen, it means we don't have a bundle */
-    if (gui_dispatcher_get_current_screen() != GUI_SCREEN_INVALID)
-    {    
-    #ifdef DEBUG_USB_COMMANDS_ENABLED
-        if (from_debug_messages != FALSE)
-        {        
-            /* Refresh file system and font */
-            custom_fs_init();
+{  
+#ifdef DEBUG_USB_COMMANDS_ENABLED
+    if (from_debug_messages != FALSE)
+    {        
+        /* Refresh file system and font */
+        custom_fs_init();
         
-            /* Go to default screen */
-            gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_OUTOF_MENU_TRANSITION);
-            gui_dispatcher_get_back_to_current_screen();
-        } 
-        else
-    #else
-        (void)from_debug_messages;
-    #endif
-        {
-            /* Detach from USB to get a free bus */
-            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
-            comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
+        /* Go to default screen */
+        gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_OUTOF_MENU_TRANSITION);
+        gui_dispatcher_get_back_to_current_screen();
+    } 
+    else
+#else
+    (void)from_debug_messages;
+#endif
+    {
+        /* Detach from USB to get a free bus */
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
+        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
             
-            /* Disable bluetooth if enabled */
-            logic_aux_mcu_disable_ble(TRUE);
+        /* Disable bluetooth if enabled */
+        logic_aux_mcu_disable_ble(TRUE);
             
-            /* Devices not using signed bootloader: directly flash the AUX */
-            #if !defined(PLAT_V7_SETUP)
-            logic_aux_mcu_flash_firmware_update(FALSE);
-            #endif
+        /* Devices not using signed bootloader: directly flash the AUX */
+        #if !defined(PLAT_V7_SETUP)
+        logic_aux_mcu_flash_firmware_update(FALSE);
+        #endif
             
-            /* Then move on to main */
-            custom_fs_set_settings_value(SETTINGS_DEVICE_TUTORIAL, TRUE);
-            custom_fs_settings_set_fw_upgrade_flag();
-            main_reboot();
-        }
+        /* Then move on to main */
+        custom_fs_set_settings_value(SETTINGS_DEVICE_TUTORIAL, TRUE);
+        custom_fs_settings_set_fw_upgrade_flag();
+        main_reboot();
     }
 }
 
