@@ -302,6 +302,13 @@ void logic_device_bundle_update_end(BOOL from_debug_messages)
     (void)from_debug_messages;
 #endif
     {
+        /* Go to default screen, only used to send an updated status to AUX */
+        gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_OUTOF_MENU_TRANSITION);
+        
+        /* Push the updated status to aux MCU */
+        comms_aux_mcu_update_device_status_buffer();
+        timer_delay_ms(10);
+        
         /* Detach from USB to get a free bus */
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
         comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
