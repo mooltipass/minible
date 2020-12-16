@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    55
+#define FW_MINOR    56
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -161,6 +161,9 @@
         - updated dtm tx
         - new dtm rx
 - v0.55:- switching to release build
+- v0.56:- 005 error upon usb disconnecting during BLE enable
+        - Unlock screen: bluetooth enable in the background
+        - Unlock screen: bluetooth disable if enabled
 */
 
 /**************** SETUP DEFINES ****************/

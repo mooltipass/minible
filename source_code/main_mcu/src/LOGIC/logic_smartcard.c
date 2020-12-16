@@ -27,6 +27,7 @@
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
 #include "logic_security.h"
+#include "logic_aux_mcu.h"
 #include "driver_timer.h"
 #include "logic_device.h"
 #include "gui_prompts.h"
@@ -169,13 +170,20 @@ RET_TYPE logic_smartcard_handle_inserted(void)
         RET_TYPE bluetooth_enable_return = logic_user_is_bluetooth_enabled_for_inserted_card(&potential_user_language);
         if (bluetooth_enable_return == RETURN_OK)
         {
+            /* Set user language */
             custom_fs_set_current_language(potential_user_language);
-            logic_gui_enable_bluetooth();
+            
+            /* Launch bluetooth enable in the background */
+            /* The code called after will possibly send commands to the AUX. This is alright as on the AUX MCU side the enable is done in a different routine */
+            logic_aux_mcu_enable_ble(FALSE);
+            
+            /* The packet sent above is going to keep the aux busy for a while */
+            comms_aux_mcu_update_timeout_delay(10000);
         } 
         else if (bluetooth_enable_return == RETURN_NOK)
         {
             custom_fs_set_current_language(potential_user_language);
-            logic_gui_disable_bluetooth();
+            logic_gui_disable_bluetooth(FALSE);
         }
         
         /* Call valid card detection function */
@@ -199,10 +207,38 @@ RET_TYPE logic_smartcard_handle_inserted(void)
         {
             /* User chose to not answer his PIN */
             next_screen = GUI_SCREEN_INSERTED_LCK;
+            
+            /* Disable Bluetooth: wait for enable then disable */
+            if (bluetooth_enable_return == RETURN_OK)
+            {
+                /* Wait for enable notification */
+                while (logic_aux_mcu_is_ble_enabled() == FALSE)
+                {
+                    /* Do not deal with any message, just wait for the notification */
+                    comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+                }
+                
+                /* Now disable bluetooth :D */
+                logic_gui_disable_bluetooth(FALSE);
+            }
         }
         else
         {
-            // Default values are ok
+            // Default value is ok
+            
+            /* Disable Bluetooth: wait for enable then disable */
+            if (bluetooth_enable_return == RETURN_OK)
+            {
+                /* Wait for enable notification */
+                while (logic_aux_mcu_is_ble_enabled() == FALSE)
+                {
+                    /* Do not deal with any message, just wait for the notification */
+                    comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+                }
+                
+                /* Now disable bluetooth :D */
+                logic_gui_disable_bluetooth(FALSE);
+            }
         }
     }
     

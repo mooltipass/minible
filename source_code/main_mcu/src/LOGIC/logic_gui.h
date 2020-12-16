@@ -30,7 +30,7 @@
 
 /* Prototypes */
 void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node);
-void logic_gui_disable_bluetooth(void);
+void logic_gui_disable_bluetooth(BOOL display_notification);
 void logic_gui_enable_bluetooth(void);
 void logic_gui_clone_card(void);
 void logic_gui_change_pin(void);

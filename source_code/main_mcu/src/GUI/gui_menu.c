@@ -331,7 +331,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             /* Bluetooth Menu */          
             case GUI_BT_DISABLE_ICON_ID:
             {                
-                logic_gui_disable_bluetooth();
+                logic_gui_disable_bluetooth(TRUE);
                 logic_user_clear_user_security_flag(USER_SEC_FLG_BLE_ENABLED);
                 gui_dispatcher_set_current_screen(GUI_SCREEN_MAIN_MENU, FALSE, GUI_OUTOF_MENU_TRANSITION);
                 return TRUE;       

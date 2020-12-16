@@ -160,10 +160,6 @@ int main(void)
     /* Initialize our platform */
     main_platform_init();
     
-    //udc_attach();
-    //logic_battery_start_charging(NIMH_23C_CHARGING);
-    #define bla
-    #ifdef bla
     while(TRUE)
     {
         logic_battery_task();
@@ -181,58 +177,22 @@ int main(void)
             platform_io_get_cursense_conversion_result(TRUE);
         }
         
+        /* Do we need to enable bluetooth? */
+        uint8_t* mac_address;
+        if ((logic_is_ble_enabled() == FALSE) && (logic_get_and_clear_bluetooth_to_be_enabled(&mac_address) != FALSE))
+        {
+            logic_bluetooth_start_bluetooth(mac_address);
+            logic_set_ble_enabled();
+            comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_ENABLED);
+            dma_wait_for_main_mcu_packet_sent();
+        }
+        
         /* If BLE enabled: deal with events */
         if (logic_is_ble_enabled() != FALSE)
         {
            logic_bluetooth_routine();
         }
     }
-    #endif
-    
-    /* Test code: remove later */
-    /*udc_attach();
-    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 5000);
-    while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING)
-    {
-        comms_main_mcu_routine(FALSE, 0);
-        comms_usb_communication_routine();
-    }    
-    logic_bluetooth_start_bluetooth();
-    while(TRUE)
-    {
-        logic_bluetooth_routine();
-    }*/
-    
-    //ble_device_init(NULL);
-    //hid_prf_init(NULL);
-    //ble_advertisement_data_set();
-    //at_ble_adv_start(AT_BLE_ADV_TYPE_UNDIRECTED, AT_BLE_ADV_GEN_DISCOVERABLE, NULL, AT_BLE_ADV_FP_ANY, 100, 0, false);
-    while(TRUE)
-    {
-        //mini_ble_task();
-        comms_main_mcu_routine(FALSE, 0, FALSE);
-        comms_usb_communication_routine();
-    }
-    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 2000);
-    while (TRUE)
-    {
-        if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_EXPIRED)
-        {
-            comms_usb_debug_printf("Hello %i, %i, %i", 1,2,3);
-            timer_start_timer(TIMER_TIMEOUT_FUNCTS, 2000);
-        }
-        comms_main_mcu_routine(FALSE, 0, FALSE);
-        comms_usb_communication_routine();
-    }
-    
-    while(1)
-    {
-        comms_main_mcu_routine(FALSE, 0, FALSE);
-        comms_usb_communication_routine();
-    }
-	system_init();
-
-	/* Insert application code here, after the board has been initialized. */
 }
 
 #if defined(STACK_MEASURE_ENABLED)

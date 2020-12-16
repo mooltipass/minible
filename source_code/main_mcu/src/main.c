@@ -722,7 +722,7 @@ int main(void)
             /* Disable bluetooth? */
             if (custom_fs_settings_get_device_setting(SETTINGS_DISABLE_BLE_ON_LOCK) != FALSE)
             {
-                logic_gui_disable_bluetooth();
+                logic_gui_disable_bluetooth(TRUE);
             }
             gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
             gui_dispatcher_get_back_to_current_screen();
@@ -828,7 +828,7 @@ int main(void)
                 /* Disable bluetooth? */
                 if (custom_fs_settings_get_device_setting(SETTINGS_DISABLE_BLE_ON_CARD_REMOVE) != FALSE)
                 {
-                    logic_gui_disable_bluetooth();
+                    logic_gui_disable_bluetooth(TRUE);
                 }
                 
                 /* Light up the Mooltipass and call the dedicated function */

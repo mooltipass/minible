@@ -318,12 +318,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             case BLE_MESSAGE_CMD_ENABLE:
             {
                 /* Enable BLE */
-                if (logic_is_ble_enabled() == FALSE)
-                {
-                    logic_bluetooth_start_bluetooth(message->ble_message.payload);
-                    logic_set_ble_enabled();
-                }
-                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_BLE_ENABLED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
+                logic_set_bluetooth_to_be_enabled(message->ble_message.payload);
                 break;
             }
             case BLE_MESSAGE_CLEAR_BOND_INFO:

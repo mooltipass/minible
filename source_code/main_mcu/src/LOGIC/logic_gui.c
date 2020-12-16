@@ -43,10 +43,12 @@
 #include "utils.h"
 #include "main.h"
 
-/*! \fn     logic_gui_disable_bluetooth(void)
+
+/*! \fn     logic_gui_disable_bluetooth(BOOL display_notification)
 *   \brief  Disable Bluetooth
+*   \param  display_notification    Set to true to display notification
 */
-void logic_gui_disable_bluetooth(void)
+void logic_gui_disable_bluetooth(BOOL display_notification)
 {
     if (logic_aux_mcu_is_ble_enabled() != FALSE)
     {
@@ -54,7 +56,10 @@ void logic_gui_disable_bluetooth(void)
         logic_aux_mcu_disable_ble(TRUE);
         
         /* Display information message */
-        gui_prompts_display_information_on_screen_and_wait(BLUETOOTH_DISABLED_TEXT_ID, DISP_MSG_INFO, FALSE);
+        if (display_notification != FALSE)
+        {
+            gui_prompts_display_information_on_screen_and_wait(BLUETOOTH_DISABLED_TEXT_ID, DISP_MSG_INFO, FALSE);
+        }
         
         /* Update UI */
         logic_bluetooth_set_connected_state(FALSE);
