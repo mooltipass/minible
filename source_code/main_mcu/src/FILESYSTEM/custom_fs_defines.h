@@ -74,8 +74,9 @@
 #define SETTINGS_NB_20MINS_TICKS_FOR_LOCK   20
 #define SETTINGS_SWITCH_OFF_AFTER_USB_DISC  21
 #define SETTINGS_HASH_DISPLAY_FEATURE       22
+#define SETTINGS_INFORMATION_TIME_DELAY     23
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    23
+#define SETTINGS_NB_USED                    24
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32

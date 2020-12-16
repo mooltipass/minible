@@ -427,9 +427,16 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
     /* Display string */
     gui_prompts_display_information_on_screen(string_id, message_type);
     
+    /* Configurable display time depending on message type */
+    uint16_t display_time = 3000;
+    if (message_type == DISP_MSG_INFO)
+    {
+        display_time = utils_check_value_for_range(custom_fs_settings_get_device_setting(SETTINGS_INFORMATION_TIME_DELAY), 2, 50) * 100;
+    }
+    
     /* Optional wait */
     timer_start_timer(TIMER_ANIMATIONS, 50);
-    uint16_t temp_timer_id = timer_get_and_start_timer(3000);
+    uint16_t temp_timer_id = timer_get_and_start_timer(display_time);
     while ((timer_has_allocated_timer_expired(temp_timer_id, FALSE) != TIMER_EXPIRED) || (i != gui_prompts_notif_idle_anim_length[message_type]-1))
     {
         /* Deal with incoming messages but do not deal with them */
