@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    54
+#define FW_MINOR    55
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -160,6 +160,7 @@
         - hash display feature
         - updated dtm tx
         - new dtm rx
+- v0.55:- switching to release build
 */
 
 /**************** SETUP DEFINES ****************/

@@ -562,6 +562,7 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
         case AUX_MCU_EVENT_BLE_ENABLED:
         {
             /* BLE just got enabled */
+            comms_aux_mcu_update_timeout_delay(AUX_MCU_MESSAGE_REPLY_TIMEOUT_MS);
             logic_aux_mcu_set_ble_enabled_bool(TRUE);
             break;
         }
