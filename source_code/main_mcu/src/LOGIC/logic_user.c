@@ -1858,7 +1858,10 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         /* Display warning if some chars were missing */
                         if ((string_to_key_points_transform_success != RETURN_OK) || (could_type_all_symbols == FALSE))
                         {
-                            gui_prompts_display_information_on_screen_and_wait(COULDNT_TYPE_CHARS_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                            if (gui_prompts_display_information_on_screen_and_wait(COULDNT_TYPE_CHARS_TEXT_ID, DISP_MSG_WARNING, FALSE) == GUI_INFO_DISP_RET_CARD_CHANGE)
+                            {
+                                return RETURN_OK;
+                            }
                         }
                         
                         /* Set bool */
@@ -1993,7 +1996,10 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         /* Display warning if some chars were missing */
                         if ((string_to_key_points_transform_success != RETURN_OK) || (could_type_all_symbols == FALSE))
                         {
-                            gui_prompts_display_information_on_screen_and_wait(COULDNT_TYPE_CHARS_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                            if (gui_prompts_display_information_on_screen_and_wait(COULDNT_TYPE_CHARS_TEXT_ID, DISP_MSG_WARNING, FALSE) == GUI_INFO_DISP_RET_CARD_CHANGE)
+                            {
+                                return RETURN_OK;
+                            }
                         }
                             
                         /* Set bool */

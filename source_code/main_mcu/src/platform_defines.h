@@ -164,6 +164,7 @@
 - v0.56:- 005 error upon usb disconnecting during BLE enable
         - Unlock screen: bluetooth enable in the background
         - Unlock screen: bluetooth disable if enabled
+        - Configurable information display delay
 */
 
 /**************** SETUP DEFINES ****************/
