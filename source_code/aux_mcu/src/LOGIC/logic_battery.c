@@ -227,6 +227,13 @@ battery_action_te logic_battery_task(void)
 {
     battery_action_te return_value = BAT_ACT_NONE;
     
+    /* Very odd case that might happen if logic_battery_task is never called */
+    if ((logic_battery_stop_using_adc_flag != FALSE) && (logic_battery_start_using_adc_flag != FALSE))
+    {
+        logic_battery_stop_using_adc_flag = FALSE;
+        logic_battery_start_using_adc_flag = FALSE;
+    }
+    
     /* Wait if we've been instructed to */
     if (logic_battery_stop_using_adc_flag != FALSE)
     {

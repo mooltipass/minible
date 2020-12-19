@@ -89,6 +89,7 @@
         - new dtm rx
 - v0.47:- bluetooth enable in main, allowing one single message to be sent from main MCU during enable
 - v0.48:- bonding info clear confirmation
+        - aux mcu freeze bug fix when start & stop using adc flags are present at the same time
 */
 
 /**************** SETUP DEFINES ****************/
