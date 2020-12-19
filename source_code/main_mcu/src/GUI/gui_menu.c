@@ -380,6 +380,9 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                     
                     /* Send message */
                     comms_aux_mcu_send_message(temp_tx_message_pt);
+                    
+                    /* Wait for ACK */
+                    comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_BONDING_CLEARED);
 
                     /* Show confirmation */
                     gui_prompts_display_information_on_screen_and_wait(PAIRINGS_CLEARED_TEXT_ID, DISP_MSG_INFO, FALSE);

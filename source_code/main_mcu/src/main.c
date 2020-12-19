@@ -448,7 +448,7 @@ void main_platform_init(void)
         /* Clear frame buffer */
         sh1122_fade_into_darkness(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
         
-        /* Reset settings (leave disabled, no real need */
+        /* Reset settings (leave disabled, no real need) */
         //custom_fs_set_undefined_settings(TRUE);
         //custom_fs_set_auth_challenge_counter(0);
     }

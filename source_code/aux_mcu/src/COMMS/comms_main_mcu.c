@@ -323,7 +323,10 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             }
             case BLE_MESSAGE_CLEAR_BOND_INFO:
             {
-                logic_bluetooth_clear_bonding_information();     
+                logic_bluetooth_clear_bonding_information();
+                
+                /* Inform main MCU */
+                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_BONDING_CLEARED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);  
                 break;
             }
             case BLE_MESSAGE_ENABLE_PAIRING:

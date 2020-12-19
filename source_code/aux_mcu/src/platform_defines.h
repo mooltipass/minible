@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    47
+#define FW_MINOR    48
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -88,6 +88,7 @@
         - updated dtm tx
         - new dtm rx
 - v0.47:- bluetooth enable in main, allowing one single message to be sent from main MCU during enable
+- v0.48:- bonding info clear confirmation
 */
 
 /**************** SETUP DEFINES ****************/

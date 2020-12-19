@@ -94,6 +94,7 @@
 #define AUX_MCU_EVENT_NEW_BATTERY_LVL_RCVD  0x0016
 #define AUX_MCU_EVENT_RX_DTM_DONE           0x0017
 #define AUX_MCU_EVENT_BLE_CON_SPAM          0x0018
+#define AUX_MCU_EVENT_BONDING_CLEARED       0x0019
 
 // BLE commands
 #define BLE_MESSAGE_CMD_ENABLE              0x0001
