@@ -237,7 +237,10 @@ battery_action_te logic_battery_task(void)
     /* Wait if we've been instructed to */
     if (logic_battery_stop_using_adc_flag != FALSE)
     {
-        while(platform_io_is_current_sense_conversion_result_ready() == FALSE);
+        if (logic_battery_using_adc_flag != FALSE)
+        {
+            while(platform_io_is_current_sense_conversion_result_ready() == FALSE);
+        }
         logic_battery_using_adc_flag = FALSE;
     }
     
