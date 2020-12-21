@@ -78,7 +78,7 @@
         - detection of computer shutdown
 - v0.21:- fix of various glitches due to power disconnections
         - Bluetooth security increase
-- v0.22:- René's release, various bug fixes
+- v0.22:- RenÃ©'s release, various bug fixes
 - v0.23:- more gracefully handling USB to battery power transition
 - v0.24:- bt disconnect/switch feature
         - data storage feature
@@ -166,6 +166,7 @@
         - Unlock screen: bluetooth disable if enabled
         - Configurable information display delay
 - v0.57:- ACK for bonding clear
+        - improved battery status read
 */
 
 /**************** SETUP DEFINES ****************/
