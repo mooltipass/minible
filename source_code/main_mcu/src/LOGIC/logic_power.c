@@ -437,10 +437,11 @@ void logic_power_compute_battery_state(void)
         nb_uah_used_total += (logic_power_consumption_log.nb_30mins_android_connect * 74 / 2);
         nb_uah_used_total += (logic_power_consumption_log.nb_30mins_windows_connect * 2360 / 2);
         
-        /* 3600000 is approximated to 4194304 below */
-        nb_uah_used_total += ((logic_power_consumption_log.nb_ms_no_screen_aux_main_awake >> 22) * 100000);
-        nb_uah_used_total += ((logic_power_consumption_log.nb_ms_no_screen_main_awake >> 22) * 50000);
-        nb_uah_used_total += ((logic_power_consumption_log.nb_ms_full_pawa >> 22) * 160000);
+        /* Below each number is divided by 60*60*1000=3600000 then multiplied by the standard power consumption in mA */
+        /* FYI for a maximum of 12 hours (impossible, but who knows?) maximum allowed multiplication is 99 for an uint32_t */
+        nb_uah_used_total += ((logic_power_consumption_log.nb_ms_no_screen_aux_main_awake * 57) >> 11); // 100mA
+        nb_uah_used_total += ((logic_power_consumption_log.nb_ms_no_screen_main_awake * 57) >> 12);     // 50mA
+        nb_uah_used_total += ((logic_power_consumption_log.nb_ms_full_pawa * 91) >> 11);                // 160mA
         
         /* Number of available uAh */
         uint32_t battery_last_reported_uah = logic_power_consumption_log.aux_mcu_reported_pct * 3000;
