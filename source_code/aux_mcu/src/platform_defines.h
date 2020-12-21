@@ -40,7 +40,7 @@
 - v0.16:- improved Bluetooth support
 - v0.17:- increased Bluetooth security
         - USB typing bug fix
-- v0.18:- René's release, various bug fixes
+- v0.18:- RenÃ©'s release, various bug fixes
 - v0.19:- prevent deadlock on usb disconnect with ctap messages
 - v0.20:- MacOS Bluetooth bug fix
 - v0.21:- Release candidate firmware
@@ -90,6 +90,7 @@
 - v0.47:- bluetooth enable in main, allowing one single message to be sent from main MCU during enable
 - v0.48:- bonding info clear confirmation
         - aux mcu freeze bug fix when start & stop using adc flags are present at the same time
+        - aux mcu freeze bug fix when stopping adc use requested and adc not triggered
 */
 
 /**************** SETUP DEFINES ****************/
