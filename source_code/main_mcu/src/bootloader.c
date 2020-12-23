@@ -360,6 +360,8 @@ int main(void)
                     {
                         sh1122_erase_screen_and_put_top_left_emergency_string(&plat_oled_descriptor, u"Corrupted Bundle!");
                     }
+                    while(dma_custom_fs_check_and_clear_dma_transfer_flag() == FALSE);
+                    custom_fs_stop_continuous_read_from_flash(FALSE);
                     dataflash_bulk_erase_with_wait(&dataflash_descriptor);
                     custom_fs_settings_clear_fw_upgrade_flag();
                     NVIC_SystemReset();
