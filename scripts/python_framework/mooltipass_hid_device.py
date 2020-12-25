@@ -81,6 +81,22 @@ class mooltipass_hid_device:
 		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_PLAT_INFO, None), True)	
 		print("device SN:", struct.unpack('I', packet["data"][8:12])[0])
 		
+	# Get platform information
+	def getPlatformInfo(self):
+		# Ask for the info
+		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_PLAT_INFO, None), True)	
+		
+		# Prepare reply
+		reply_dict = {}
+		reply_dict["sn"] = struct.unpack('I', packet["data"][8:12])[0]
+		reply_dict["main_maj"] = struct.unpack('H', packet["data"][0:2])[0]
+		reply_dict["main_min"] = struct.unpack('H', packet["data"][2:4])[0]
+		reply_dict["aux_maj"] = struct.unpack('H', packet["data"][4:6])[0]
+		reply_dict["aux_min"] = struct.unpack('H', packet["data"][6:8])[0]
+		reply_dict["mem"] = struct.unpack('H', packet["data"][12:14])[0]
+		reply_dict["bundle"] = struct.unpack('H', packet["data"][14:16])[0]
+		return reply_dict
+		
 	# Send full frame picture to display
 	def sendAndMonitorFrame(self, filename, bitdepth):	
 		# Check for file
@@ -238,7 +254,8 @@ class mooltipass_hid_device:
 		
 		# Close file
 		bundlefile.close()
-		print("Sending done!")		 
+		print("Sending done!")	
+		return True
 
 	# Send bundle to display
 	def uploadDebugBundle(self, filename):	
