@@ -2,6 +2,7 @@ from __future__ import print_function
 from mooltipass_defines import *
 from datetime import datetime
 from array import array
+from udelays import *
 import platform
 import usb.core
 import usb.util
@@ -128,6 +129,7 @@ class generic_hid_device:
 		# Send all packets
 		for packet in packets:
 			self.sendHidPacket(packet)
+			delayMicroseconds(50)
 
 		# Wait for aux MCU ack and main ack
 		if self.ack_flag_in_comms:

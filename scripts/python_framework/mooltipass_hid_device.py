@@ -9,6 +9,7 @@ from array import array
 from PIL import Image
 import struct
 import random
+import time
 import glob
 import math
 import os
@@ -214,6 +215,8 @@ class mooltipass_hid_device:
 		
 		# First 4 bytes: address for writing, start reading bytes
 		byte = bundlefile.read(1)
+		current_ts = int(time.time())
+		number_of_packets_last_second = 0
 		current_address = 0
 		bytecounter = 4
 		
@@ -222,7 +225,7 @@ class mooltipass_hid_device:
 		packet_to_send["data"].frombytes(struct.pack('I', current_address))
 		
 		# While we haven't finished looping through the bytes
-		while byte != '':
+		while len(byte) != 0:
 			# Add byte to current packet
 			packet_to_send["data"].append(struct.unpack('B', byte)[0])
 			# Increment byte counter
@@ -235,12 +238,25 @@ class mooltipass_hid_device:
 				packet_to_send["len"] = array('B')
 				packet_to_send["len"].frombytes(struct.pack('H', bytecounter))
 				self.device.sendHidMessageWaitForAck(packet_to_send)
+				number_of_packets_last_second += 1
 				# Reset byte counter, increment address
 				current_address += 256
 				bytecounter = 4
 				# Prepare new packet to send
 				packet_to_send = self.getPacketForCommand(CMD_ID_WRITE_BUNDLE_256B, None)
 				packet_to_send["data"].frombytes(struct.pack('I', current_address))
+				# Progress counter
+				if current_address == 262144:
+					print("25%")
+				elif current_address == 262144*2:
+					print("50%")
+				elif current_address == 262144*3:
+					print("75%")
+			# Upload stats
+			if int(time.time()) != current_ts:
+				print(str(number_of_packets_last_second*256) + " bytes per second")
+				number_of_packets_last_second = 0
+				current_ts = int(time.time())
 					
 		# Send the remaining bytes if needed
 		if bytecounter != 4 + 0:
