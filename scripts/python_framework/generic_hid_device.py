@@ -111,6 +111,7 @@ class generic_hid_device:
 
 		# send data
 		self.epout.write(data, 10000)
+		delayMicroseconds(100)
 
 	# Send message to device
 	def sendHidMessage(self, message):
@@ -129,7 +130,6 @@ class generic_hid_device:
 		# Send all packets
 		for packet in packets:
 			self.sendHidPacket(packet)
-			delayMicroseconds(50)
 
 		# Wait for aux MCU ack and main ack
 		if self.ack_flag_in_comms:
@@ -395,6 +395,7 @@ class generic_hid_device:
 			print("Disconnecting from device...")
 
 		# reset device
+		usb.util.dispose_resources(self.hid_device)
 		self.hid_device.reset()
 
 	# Benchmark ping pong speed

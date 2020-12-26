@@ -352,6 +352,27 @@ class mooltipass_hid_device:
 	def flashAuxMcuFromBundle(self):
 		self.device.sendHidMessage(self.getPacketForCommand(CMD_DBG_FLASH_AUX_MCU, None))	
 		
+		
+	# Get device status
+	def getDeviceStatus(self):
+		# Ask for the info
+		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_GET_DEVICE_STATUS, None))	
+	
+		# Get raw data
+		status_byte = packet["data"][0]
+		battery_pct = packet["data"][1]
+		user_sec_preferences = struct.unpack('H', packet["data"][2:4])[0]
+		settings_changed_flag = packet["data"][4]
+		
+		# Create answer dict
+		answer_dict = {}
+		answer_dict["battery_pct"] = battery_pct*10
+		answer_dict["no_bundle"] = True if status_byte & 0x20 != 0 else False
+		
+		# Return status!
+		return answer_dict
+		
+		
 	# Plot time difference with time
 	def timeDiff(self):
 		# log file
