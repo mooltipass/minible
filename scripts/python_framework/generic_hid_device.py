@@ -28,8 +28,6 @@ class generic_hid_device:
 	def __init__(self):
 		# Install SIGINT catcher
 		signal.signal(signal.SIGINT, self.signal_handler)
-		self.connected = False
-		self.flipbit = 0x00
 		# Set to true to enable ack flag request
 		self.ack_flag_in_comms = False
 
@@ -111,7 +109,7 @@ class generic_hid_device:
 
 		# send data
 		self.epout.write(data, 10000)
-		delayMicroseconds(100)
+		delayMicroseconds(500)
 
 	# Send message to device
 	def sendHidMessage(self, message):
@@ -247,6 +245,10 @@ class generic_hid_device:
 	# Try to connect to HID device.
 	# ping_packet: an array containing a ping packet to send to the device over HID
 	def connect(self, print_debug, device_vid, device_pid, read_timeout, ping_packet):
+		# Reset vars
+		self.connected = False
+		self.flipbit = 0x00
+		
 		# Find our device
 		self.hid_device = usb.core.find(idVendor=device_vid, idProduct=device_pid)
 		self.read_timeout = read_timeout
