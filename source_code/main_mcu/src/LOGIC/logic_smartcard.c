@@ -218,8 +218,11 @@ RET_TYPE logic_smartcard_handle_inserted(void)
                     comms_aux_mcu_routine(MSG_RESTRICT_ALL);
                 }
                 
-                /* Now disable bluetooth :D */
-                logic_gui_disable_bluetooth(FALSE);
+                /* Now disable bluetooth if needed */
+                if (custom_fs_settings_get_device_setting(SETTINGS_DISABLE_BLE_ON_LOCK) != FALSE)
+                {
+                    logic_gui_disable_bluetooth(FALSE);
+                }
             }
         }
         else

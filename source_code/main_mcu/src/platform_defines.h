@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    57
+#define FW_MINOR    58
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -167,6 +167,7 @@
         - Configurable information display delay
 - v0.57:- ACK for bonding clear
         - improved battery status read
+- v0.58:- bug fix: bluetooth disable on pin enter cancel
 */
 
 /**************** SETUP DEFINES ****************/
