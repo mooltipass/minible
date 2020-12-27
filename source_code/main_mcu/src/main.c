@@ -883,6 +883,7 @@ int main(void)
 
         /* Accelerometer routine */
         BOOL is_screen_on_copy = sh1122_is_oled_on(&plat_oled_descriptor);
+        BOOL is_screen_saver_on_copy = gui_dispatcher_is_screen_saver_running();
         acc_detection_te accelerometer_routine_return = logic_accelerometer_routine();
         if (accelerometer_routine_return == ACC_FAILING)
         {
@@ -904,6 +905,12 @@ int main(void)
             {
                 /* Card inserted and device locked, simulate wheel action to prompt PIN entering */
                 virtual_wheel_action = WHEEL_ACTION_VIRTUAL;
+            }
+            
+            /* Movement stopped the screen saver */
+            if (is_screen_saver_on_copy != FALSE)
+            {
+                gui_dispatcher_get_back_to_current_screen();
             }
         }
         else if (((accelerometer_routine_return == ACC_INVERT_SCREEN) || (accelerometer_routine_return == ACC_NINVERT_SCREEN)) && (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE))

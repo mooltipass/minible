@@ -76,8 +76,9 @@
 #define SETTINGS_HASH_DISPLAY_FEATURE       22
 #define SETTINGS_INFORMATION_TIME_DELAY     23
 #define SETTINGS_BLUETOOTH_SHORTCUTS        24
+#define SETTINGS_SCREEN_SAVER_ID            25
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    25
+#define SETTINGS_NB_USED                    26
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32

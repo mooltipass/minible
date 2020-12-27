@@ -31,9 +31,12 @@
 #define GUI_ANIMATION_FFRAME_ID     0
 #define GUI_ANIMATION_NBFRAMES      120
 #define GUI_LOCKED_MINI_BITMAP_ID   453
+#define GUI_NYANCAT_FFRAME_ID       899
+#define GUI_NYANCAT_LFRAME_ID       910
 
 // Animations
 #define GUI_BATTERY_ANIM_DELAY_MS   500
+#define GUI_NYANCAT_ANIM_DELAY_MS   66
 
 /* Enums */
 typedef enum {  GUI_SCREEN_INVALID = 0,
@@ -65,6 +68,8 @@ void gui_dispatcher_display_battery_bt_overlay(BOOL write_to_buffer);
 void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action);
 gui_screen_te gui_dispatcher_get_current_screen(void);
 void gui_dispatcher_get_back_to_current_screen(void);
+BOOL gui_dispatcher_is_screen_saver_running(void);
+void gui_dispatcher_stop_screen_saver(void);
 void gui_dispatcher_idle_call(void);
 
 

@@ -48,6 +48,9 @@ uint16_t gui_dispatcher_current_idle_anim_loop = 0;
 battery_state_te gui_dispatcher_battery_charging_anim_index = 0;
 // Buffer of last user actions (kind of)
 wheel_action_ret_te gui_dispatcher_last_user_actions[5];
+// Current screen saver animation id & frame
+uint16_t gui_dispatcher_current_screen_saver_frame = 0;
+uint16_t gui_dispatcher_current_screen_saver_anim = 0;
 
 
 /*! \fn     gui_dispatcher_get_current_screen(void)
@@ -57,6 +60,30 @@ wheel_action_ret_te gui_dispatcher_last_user_actions[5];
 gui_screen_te gui_dispatcher_get_current_screen(void)
 {
     return gui_dispatcher_current_screen;
+}
+
+/*! \fn     gui_dispatcher_is_screen_saver_running(void)
+*   \brief  Know if the screen saver is running
+*   \return If the screen saver is running
+*/
+BOOL gui_dispatcher_is_screen_saver_running(void)
+{
+    if (gui_dispatcher_current_screen_saver_anim != 0)
+    {
+        return TRUE;
+    } 
+    else
+    {
+        return FALSE;
+    }
+}
+
+/*! \fn     gui_dispatcher_stop_screen_saver(void)
+*   \brief  Stop screen saver
+*/
+void gui_dispatcher_stop_screen_saver(void)
+{
+    gui_dispatcher_current_screen_saver_anim = 0;
 }
 
 /*! \fn     gui_dispatcher_display_battery_bt_overlay(BOOL write_to_buffer)
@@ -390,6 +417,7 @@ void gui_dispatcher_idle_call(void)
 */
 void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
 {
+    uint16_t screen_saver_anim_copy = gui_dispatcher_current_screen_saver_anim;
     BOOL is_screen_on_copy = sh1122_is_oled_on(&plat_oled_descriptor);
     
     // Get user action
@@ -402,6 +430,12 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
     }
     else
     {
+        // Wheel action, screen saver was on
+        if (screen_saver_anim_copy != 0)
+        {
+            gui_dispatcher_get_back_to_current_screen();
+        }
+        
         // Update last user actions buffer
         if (user_action != gui_dispatcher_last_user_actions[0])
         {
@@ -449,6 +483,36 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
         }
     }
     
+    /* Screen saver in progress */
+    if (gui_dispatcher_current_screen_saver_anim != 0)
+    {
+        if ((user_action != WHEEL_ACTION_NONE) && (user_action != WHEEL_ACTION_DISCARDED))
+        {
+            /* Action detected? Exit */
+            gui_dispatcher_current_screen_saver_anim = 0;
+            gui_dispatcher_get_back_to_current_screen();
+            logic_device_activity_detected();
+        }
+        else
+        {
+            /* Next frame? */
+            if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+            {
+                /* Frame loopover */
+                if (++gui_dispatcher_current_screen_saver_frame > GUI_NYANCAT_LFRAME_ID)
+                {
+                    gui_dispatcher_current_screen_saver_frame = GUI_NYANCAT_FFRAME_ID;
+                }
+                
+                /* Display frame */
+                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_dispatcher_current_screen_saver_frame, FALSE);
+                
+                /* Rearm timer */
+                timer_start_timer(TIMER_ANIMATIONS, GUI_NYANCAT_ANIM_DELAY_MS);
+            }
+        }
+    }
+    
     /* Going to sleep logic, in multiple lines to be clear */
     BOOL should_go_to_sleep = FALSE;
     
@@ -479,8 +543,30 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
             if (gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO, TRUE) == GUI_INFO_DISP_RET_OK)
             {
                 /* Uninterrupted animation */
-                sh1122_oled_off(&plat_oled_descriptor);
-                gui_dispatcher_get_back_to_current_screen();
+                if ((logic_power_get_power_source() != USB_POWERED) || (custom_fs_settings_get_device_setting(SETTINGS_SCREEN_SAVER_ID) == 0))
+                {
+                    /* Battery powered or no screen saver selected: switch off OLED */
+                    sh1122_oled_off(&plat_oled_descriptor);
+                    gui_dispatcher_get_back_to_current_screen();
+                } 
+                else
+                {
+                    /* Screen saver: set vars */
+                    gui_dispatcher_current_screen_saver_anim = custom_fs_settings_get_device_setting(SETTINGS_SCREEN_SAVER_ID);
+                    screen_saver_anim_copy = gui_dispatcher_current_screen_saver_anim;
+                    gui_dispatcher_current_screen_saver_frame = GUI_NYANCAT_FFRAME_ID;
+                    
+                    /* Display bitmap */
+                    #ifdef OLED_INTERNAL_FRAME_BUFFER
+                    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+                    #endif
+                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_dispatcher_current_screen_saver_frame, TRUE);
+                    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+                    timer_start_timer(TIMER_ANIMATIONS, GUI_NYANCAT_ANIM_DELAY_MS);
+                    #ifdef OLED_INTERNAL_FRAME_BUFFER
+                    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+                    #endif
+                }
             }
             else
             {
@@ -514,8 +600,8 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
         }
     }
     
-    // Run main GUI screen loop if there was an action. TODO3: screen saver
-    if (((is_screen_on_copy != FALSE) && (TRUE /* screen saver place holder */)) || (gui_dispatcher_current_screen == GUI_SCREEN_INSERTED_LCK))
+    // Run main GUI screen loop if there was an action.
+    if (((is_screen_on_copy != FALSE) || (gui_dispatcher_current_screen == GUI_SCREEN_INSERTED_LCK)) && (screen_saver_anim_copy == 0))
     {
         if (user_action != WHEEL_ACTION_NONE)
         {
