@@ -168,6 +168,8 @@
 - v0.57:- ACK for bonding clear
         - improved battery status read
 - v0.58:- bug fix: bluetooth disable on pin enter cancel
+        - bug fix: screen oddities when saving settings
+        - screen saver
 */
 
 /**************** SETUP DEFINES ****************/
