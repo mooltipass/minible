@@ -901,7 +901,7 @@ int main(void)
         else if (accelerometer_routine_return == ACC_DET_MOVEMENT)
         {
             /* Movement was detected by the accelerometer routine */
-            if ((gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_LCK) && (is_screen_on_copy == FALSE))
+            if ((gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_LCK) && ((is_screen_on_copy == FALSE) || (is_screen_saver_on_copy != FALSE)))
             {
                 /* Card inserted and device locked, simulate wheel action to prompt PIN entering */
                 virtual_wheel_action = WHEEL_ACTION_VIRTUAL;

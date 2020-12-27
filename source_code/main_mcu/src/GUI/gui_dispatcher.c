@@ -591,7 +591,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
     }
     
     // Run main GUI screen loop if there was an action.
-    if (((is_screen_on_copy != FALSE) || (gui_dispatcher_current_screen == GUI_SCREEN_INSERTED_LCK)) && (screen_saver_anim_copy == 0))
+    if (((is_screen_on_copy != FALSE) && (screen_saver_anim_copy == 0)) || (gui_dispatcher_current_screen == GUI_SCREEN_INSERTED_LCK))
     {
         if (user_action != WHEEL_ACTION_NONE)
         {
