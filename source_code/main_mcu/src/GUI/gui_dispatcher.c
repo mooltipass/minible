@@ -486,30 +486,20 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
     /* Screen saver in progress */
     if (gui_dispatcher_current_screen_saver_anim != 0)
     {
-        if ((user_action != WHEEL_ACTION_NONE) && (user_action != WHEEL_ACTION_DISCARDED))
+        /* Next frame? */
+        if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
         {
-            /* Action detected? Exit */
-            gui_dispatcher_current_screen_saver_anim = 0;
-            gui_dispatcher_get_back_to_current_screen();
-            logic_device_activity_detected();
-        }
-        else
-        {
-            /* Next frame? */
-            if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+            /* Frame loopover */
+            if (++gui_dispatcher_current_screen_saver_frame > GUI_NYANCAT_LFRAME_ID)
             {
-                /* Frame loopover */
-                if (++gui_dispatcher_current_screen_saver_frame > GUI_NYANCAT_LFRAME_ID)
-                {
-                    gui_dispatcher_current_screen_saver_frame = GUI_NYANCAT_FFRAME_ID;
-                }
-                
-                /* Display frame */
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_dispatcher_current_screen_saver_frame, FALSE);
-                
-                /* Rearm timer */
-                timer_start_timer(TIMER_ANIMATIONS, GUI_NYANCAT_ANIM_DELAY_MS);
+                gui_dispatcher_current_screen_saver_frame = GUI_NYANCAT_FFRAME_ID;
             }
+                
+            /* Display frame */
+            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_dispatcher_current_screen_saver_frame, FALSE);
+                
+            /* Rearm timer */
+            timer_start_timer(TIMER_ANIMATIONS, GUI_NYANCAT_ANIM_DELAY_MS);
         }
     }
     
