@@ -37,18 +37,6 @@ void logic_security_clear_security_bools(void)
 {
     logic_security_smartcard_inserted_unlocked = FALSE;
     logic_security_management_mode = FALSE;
-    // TODO2
-    /*
-    context_valid_flag = FALSE;
-    selected_login_flag = FALSE;
-    login_just_added_flag = FALSE;
-    leaveMemoryManagementMode();
-    data_context_valid_flag = FALSE;
-    current_adding_data_flag = FALSE;
-    activateTimer(TIMER_CREDENTIALS, 0);
-    smartcard_inserted_unlocked = FALSE;
-    currently_writing_first_block = FALSE;
-    */
 }
 
 /*! \fn     logic_security_smartcard_unlocked_actions(void)
