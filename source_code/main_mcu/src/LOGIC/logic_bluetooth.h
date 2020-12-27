@@ -36,6 +36,7 @@ platform_type_te logic_bluetooth_get_connected_to_platform_type(void);
 BOOL logic_bluetooth_get_and_clear_too_many_failed_connections(void);
 void logic_bluetooth_set_too_many_failed_connections(void);
 void logic_bluetooth_get_unit_mac_address(uint8_t* buffer);
+void logic_bluetooth_disconnect_from_current_device(void);
 void logic_bluetooth_set_connected_state(BOOL state);
 bt_state_te logic_bluetooth_get_state(void);
 

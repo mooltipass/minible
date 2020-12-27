@@ -19,6 +19,7 @@
 *    Created:  16/11/2018
 *    Author:   Mathieu Stephan
 */
+#include <string.h>
 #include "comms_hid_msgs_debug.h"
 #include "logic_smartcard.h"
 #include "logic_bluetooth.h"
@@ -30,6 +31,8 @@
 #include "gui_prompts.h"
 #include "logic_power.h"
 #include "platform_io.h"
+#include "logic_user.h"
+#include "logic_gui.h"
 #include "gui_menu.h"
 #include "text_ids.h"
 #include "inputs.h"
@@ -43,6 +46,8 @@ uint16_t gui_dispatcher_current_idle_anim_frame_id = 0;
 uint16_t gui_dispatcher_current_idle_anim_loop = 0;
 // Current battery charging animation index
 battery_state_te gui_dispatcher_battery_charging_anim_index = 0;
+// Buffer of last user actions (kind of)
+wheel_action_ret_te gui_dispatcher_last_user_actions[5];
 
 
 /*! \fn     gui_dispatcher_get_current_screen(void)
@@ -391,9 +396,57 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
     wheel_action_ret_te user_action = inputs_get_wheel_action(FALSE, FALSE);
     
     // In case of no action, accept override
-    if (user_action == WHEEL_ACTION_NONE)
+    if ((user_action == WHEEL_ACTION_NONE) || (user_action == WHEEL_ACTION_DISCARDED))
     {
         user_action = wheel_action;
+    }
+    else
+    {
+        // Update last user actions buffer
+        if (user_action != gui_dispatcher_last_user_actions[0])
+        {
+            for (int16_t i = ARRAY_SIZE(gui_dispatcher_last_user_actions)-2; i >= 0; i--)
+            {
+                gui_dispatcher_last_user_actions[i+1] = gui_dispatcher_last_user_actions[i];
+            }
+            gui_dispatcher_last_user_actions[0] = user_action;
+        }
+        
+        // Are shortcuts enabled?
+        if (custom_fs_settings_get_device_setting(SETTINGS_BLUETOOTH_SHORTCUTS) != FALSE)
+        {
+            // click up - click down - click up: disconnect from current device
+            if ((gui_dispatcher_last_user_actions[0] == WHEEL_ACTION_CLICK_UP) &&
+                (gui_dispatcher_last_user_actions[1] == WHEEL_ACTION_CLICK_DOWN) && 
+                (gui_dispatcher_last_user_actions[2] == WHEEL_ACTION_CLICK_UP))
+            {
+                if (logic_bluetooth_get_state() == BT_STATE_CONNECTED)
+                {
+                    logic_bluetooth_disconnect_from_current_device();
+                }
+                memset(&gui_dispatcher_last_user_actions, 0, sizeof(gui_dispatcher_last_user_actions));
+            }
+            
+            // click down - click up - click down: disable bluetooth
+            if ((gui_dispatcher_last_user_actions[0] == WHEEL_ACTION_CLICK_DOWN) &&
+                (gui_dispatcher_last_user_actions[1] == WHEEL_ACTION_CLICK_UP) &&
+                (gui_dispatcher_last_user_actions[2] == WHEEL_ACTION_CLICK_DOWN))
+            {
+                if (logic_bluetooth_get_state() != BT_STATE_OFF)
+                {
+                    logic_gui_disable_bluetooth(TRUE);
+                    logic_user_clear_user_security_flag(USER_SEC_FLG_BLE_ENABLED);
+                    gui_dispatcher_get_back_to_current_screen();
+                }
+                else
+                {
+                    logic_gui_enable_bluetooth();
+                    logic_user_set_user_security_flag(USER_SEC_FLG_BLE_ENABLED);
+                    gui_dispatcher_get_back_to_current_screen();
+                }
+                memset(&gui_dispatcher_last_user_actions, 0, sizeof(gui_dispatcher_last_user_actions));
+            }            
+        }
     }
     
     /* Going to sleep logic, in multiple lines to be clear */

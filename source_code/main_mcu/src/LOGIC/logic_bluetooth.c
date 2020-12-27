@@ -21,6 +21,7 @@
 */
 #include <string.h>
 #include "logic_bluetooth.h"
+#include "comms_aux_mcu.h"
 #include "logic_aux_mcu.h"
 #include "custom_fs.h"
 #include "rng.h"
@@ -128,3 +129,21 @@ void logic_bluetooth_get_unit_mac_address(uint8_t* buffer)
         custom_fs_get_debug_bt_addr(buffer);
     }
 }
+
+/*! \fn     logic_bluetooth_disconnect_from_current_device(void)
+*   \brief  Disconnect from current device
+*/
+void logic_bluetooth_disconnect_from_current_device(void)
+{
+    aux_mcu_message_t* temp_tx_message_pt;
+    
+    /* Set flag */
+    logic_bluetooth_set_do_not_lock_device_after_disconnect_flag(TRUE);
+    
+    /* Send command to aux MCU */
+    temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BLE_CMD);
+    temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_DISCONNECT_FOR_NEXT;
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
+    comms_aux_mcu_send_message(temp_tx_message_pt);
+}
+
