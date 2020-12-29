@@ -272,6 +272,14 @@ class mooltipass_hid_device:
 		bundlefile.close()
 		print("Sending done!")	
 		return True
+		
+	def authenticationChallenge(self, challenge):		
+		# Try our luck
+		answer = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_AUTH_CHALLENGE, challenge))
+		if answer["len"] == 1:
+			return False
+		else:
+			return answer["data"]
 
 	# Send bundle to display
 	def uploadDebugBundle(self, filename):	
