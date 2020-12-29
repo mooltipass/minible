@@ -125,7 +125,6 @@ typedef struct
     uint16_t bundle_version;
 } hid_message_plat_info_t;
 
-
 typedef struct
 {
     uint32_t lifetime_nb_ms_screen_on_msb;

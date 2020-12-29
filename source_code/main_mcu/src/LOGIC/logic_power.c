@@ -116,9 +116,12 @@ void logic_power_ms_tick(void)
     }
     
     /* Lifetime statistics: nb ms screen on */
-    if (logic_power_consumption_log.lifetime_nb_ms_screen_on_lsb++ == UINT32_MAX)
+    if (sh1122_is_oled_on(&plat_oled_descriptor) != FALSE)
     {
-        logic_power_consumption_log.lifetime_nb_ms_screen_on_msb++;
+        if (logic_power_consumption_log.lifetime_nb_ms_screen_on_lsb++ == UINT32_MAX)
+        {
+            logic_power_consumption_log.lifetime_nb_ms_screen_on_msb++;
+        }
     }
 }
 
