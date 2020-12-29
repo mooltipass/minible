@@ -94,6 +94,9 @@ def main():
 		elif sys.argv[1] == "initCode":
 			mooltipass_device.initCode()
 			
+		elif sys.argv[1] == "printDiagData":
+			mooltipass_device.printDiagData()
+			
 		elif sys.argv[1] == "debugListen":
 			while True:
 				try:

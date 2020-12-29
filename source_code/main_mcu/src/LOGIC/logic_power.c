@@ -107,6 +107,19 @@ void logic_power_ms_tick(void)
     {
         logic_power_consumption_log.nb_ms_spent_since_last_full_charge++;
     }
+    
+    /* Lifetime statistics: first boot */
+    if ((logic_power_consumption_log.lifetime_nb_ms_screen_on_msb == UINT32_MAX) && (logic_power_consumption_log.lifetime_nb_ms_screen_on_lsb == UINT32_MAX))
+    {
+        logic_power_consumption_log.lifetime_nb_ms_screen_on_msb = 0;
+        logic_power_consumption_log.lifetime_nb_ms_screen_on_lsb = 0;
+    }
+    
+    /* Lifetime statistics: nb ms screen on */
+    if (logic_power_consumption_log.lifetime_nb_ms_screen_on_lsb++ == UINT32_MAX)
+    {
+        logic_power_consumption_log.lifetime_nb_ms_screen_on_msb++;
+    }
 }
 
 /*! \fn     logic_power_30m_tick(void)
@@ -118,6 +131,16 @@ void logic_power_30m_tick(void)
     /* This routine is only interested in the low power background power consumption */
     if (logic_power_current_power_source == BATTERY_POWERED)
     {
+        /* Lifetime statistics: first boot & timer increment */
+        if (logic_power_consumption_log.lifetime_nb_30mins_bat == UINT32_MAX)
+        {
+            logic_power_consumption_log.lifetime_nb_30mins_bat = 0;
+        }
+        else
+        {
+            logic_power_consumption_log.lifetime_nb_30mins_bat++;
+        }
+        
         /* Lowest power consumption timer (no BLE, no card) */
         logic_power_consumption_log.nb_30mins_powered_on++;
         
@@ -149,7 +172,19 @@ void logic_power_30m_tick(void)
                 default: break;
             }
         }
-    }    
+    } 
+    else
+    {
+        /* Lifetime statistics: first boot & timer increment */
+        if (logic_power_consumption_log.lifetime_nb_30mins_usb == UINT32_MAX)
+        {
+            logic_power_consumption_log.lifetime_nb_30mins_usb = 0;
+        }
+        else
+        {
+            logic_power_consumption_log.lifetime_nb_30mins_usb++;
+        }
+    }   
 }
 
 /*! \fn     logic_power_debug_get_last_adc_measurement(void)

@@ -170,7 +170,7 @@ typedef struct
     uint32_t nb_settings_last_covered;
     uint32_t other_reserved_uint32;
     power_consumption_log_t power_log;
-    uint8_t reserved_array[116];
+    uint8_t reserved_array[100];
     uint32_t device_auth_challenge_counter;
     uint8_t bluetooth_addr_padding[2];
     uint8_t dbg_bluetooth_addr[6];

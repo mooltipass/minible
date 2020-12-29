@@ -50,6 +50,10 @@ typedef struct
     uint32_t nb_ms_full_pawa;                   // 160mA as a guideline
     uint32_t nb_ms_spent_since_last_full_charge;// Number of ms since last full charge
     uint32_t aux_mcu_reported_pct;              // Last AUX mcu reported battery pct
+    uint32_t lifetime_nb_ms_screen_on_msb;      // Total number of ms spent with screen on, msb
+    uint32_t lifetime_nb_ms_screen_on_lsb;      // Total number of ms spent with screen on, lsb
+    uint32_t lifetime_nb_30mins_bat;            // Total number of 30mins spent battery powered
+    uint32_t lifetime_nb_30mins_usb;            // Total number of 30mins spent usb powered
 } power_consumption_log_t;
 
 /* Prototypes */

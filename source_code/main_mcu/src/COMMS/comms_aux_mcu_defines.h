@@ -314,10 +314,10 @@ typedef struct
     uint16_t payload_length1;
     union
     {
-        aux_mcu_bootloader_message_t bootloader_message;
-        aux_plat_details_message_t aux_details_message;
         main_mcu_command_message_t main_mcu_command_message;
+        aux_mcu_bootloader_message_t bootloader_message;
         ping_with_info_message_t ping_with_info_message;
+        aux_plat_details_message_t aux_details_message;
         aux_mcu_event_message_t aux_mcu_event_message;
         keyboard_type_message_t keyboard_type_message;
         nimh_charge_message_t nimh_charge_message;

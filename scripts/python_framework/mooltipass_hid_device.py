@@ -280,6 +280,16 @@ class mooltipass_hid_device:
 			return False
 		else:
 			return answer["data"]
+			
+	def printDiagData(self):
+		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_GET_DIAG_DATA, None))
+		total_nb_ms_screen_on = struct.unpack('I', packet["data"][0:4])[0] << 32
+		total_nb_ms_screen_on += struct.unpack('I', packet["data"][4:8])[0]
+		total_nb_30mins_bat_on = struct.unpack('I', packet["data"][8:12])[0]
+		total_nb_30mins_usb_on = struct.unpack('I', packet["data"][12:16])[0]		
+		print("Total ms with screen on: " + str(total_nb_ms_screen_on))	
+		print("Total 30mins battery powered: " + str(total_nb_30mins_bat_on))
+		print("Total 30mins USB powered: " + str(total_nb_30mins_usb_on))
 
 	# Send bundle to display
 	def uploadDebugBundle(self, filename):	
