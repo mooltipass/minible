@@ -120,6 +120,9 @@ void debug_debug_menu(void)
         /* Still deal with comms */
         comms_aux_mcu_routine(MSG_NO_RESTRICT);
         
+        /* And accelerometer */
+        logic_accelerometer_routine();
+        
         /* Draw menu */
         if (redraw_needed != FALSE)
         {
@@ -1031,6 +1034,7 @@ void debug_debug_screen(void)
     uint32_t acc_int_nb_interrupts_latched = 0;
     uint32_t acc_int_nb_interrupts = 0;
     uint16_t bat_adc_result = 0;
+    uint32_t acc_total_sum = 0;
     uint32_t stat_times[6];    
     uint32_t last_stat_s = driver_timer_get_rtc_timestamp_uint32t();
     #ifndef EMULATOR_BUILD
@@ -1061,6 +1065,36 @@ void debug_debug_screen(void)
         if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE) != FALSE)
         {
             acc_int_nb_interrupts++;
+            
+            /* Compute max sum of all axis */
+            uint32_t temp_sum = 0;
+            for (uint16_t i = 0; i < ARRAY_SIZE(plat_acc_descriptor.fifo_read.acc_data_array); i++)
+            {
+                /* Get xyz data acceleration values */
+                int16_t x_data_val = plat_acc_descriptor.fifo_read.acc_data_array[i].acc_x;
+                int16_t y_data_val = plat_acc_descriptor.fifo_read.acc_data_array[i].acc_y;
+                int16_t z_data_val = plat_acc_descriptor.fifo_read.acc_data_array[i].acc_z;
+                
+                /* Add to total sum : 3*32*int16_t can't get to a uint32_t */
+                if (x_data_val < 0)
+                    temp_sum += (-x_data_val);
+                else
+                    temp_sum += x_data_val;
+                if (y_data_val < 0)
+                    temp_sum += (-y_data_val);
+                else
+                    temp_sum += y_data_val;
+                if (z_data_val < 0)
+                    temp_sum += (-z_data_val);
+                else
+                    temp_sum += z_data_val;
+            }   
+            
+            /* Store min or max or whatever */
+            if (temp_sum > acc_total_sum)
+            {
+                //acc_total_sum = temp_sum;
+            }                          
         }
         
         /* Battery measurement */
@@ -1094,6 +1128,7 @@ void debug_debug_screen(void)
         {
             acc_int_nb_interrupts_latched = acc_int_nb_interrupts;
             last_stat_s = driver_timer_get_rtc_timestamp_uint32t();
+            (void)acc_int_nb_interrupts_latched;
             acc_int_nb_interrupts = 0;
         }
          
@@ -1106,7 +1141,7 @@ void debug_debug_screen(void)
         sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, TRUE, "TS: %u, adj %d, %d + %d", timestamp, fine_adjust_val, cumulative_correct, counter_correct);
         
         /* Line 3: accelerometer */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, TRUE, "ACC: %uHz X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_x, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_y, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_z);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, TRUE, "ACC: %u X: %i Y: %i Z: %i", acc_total_sum/*acc_int_nb_interrupts_latched*32*/, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_x, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_y, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_z);
         
         /* Line 4: battery */
         #ifndef EMULATOR_BUILD

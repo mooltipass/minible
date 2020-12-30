@@ -56,6 +56,9 @@ uint16_t logic_accelerometer_knock_last_det_counter;
 uint16_t logic_accelerometer_first_knock_width;
 // x movement detection to wakeup device only
 uint16_t logic_accelerometer_x_movement_wakeup_only = FALSE;
+// penalty counter for free fall / strong move detector
+uint16_t logic_accelerometer_strong_move_det_penalty = 0;
+uint16_t logic_accelerometer_ff_det_penalty = 0;
 
 
 /*! \fn     logic_accelerometer_routine(void)
@@ -106,6 +109,9 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
 {
     acc_detection_te return_val = ACC_DET_NOTHING;
     
+    /* Totals for free fall detection */
+    uint32_t acc_total_sum = 0;
+    
     /* Loop through all the received values */
     for (uint16_t i = 0; i < ARRAY_SIZE(plat_acc_descriptor.fifo_read.acc_data_array); i++)
     {
@@ -113,6 +119,20 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
         int16_t x_data_val = plat_acc_descriptor.fifo_read.acc_data_array[i].acc_x;
         int16_t y_data_val = plat_acc_descriptor.fifo_read.acc_data_array[i].acc_y;
         int16_t z_data_val = plat_acc_descriptor.fifo_read.acc_data_array[i].acc_z;
+        
+        /* Add to total sum : 3*32*int16_t can't get to a uint32_t */
+        if (x_data_val < 0)
+            acc_total_sum += (-x_data_val);
+        else
+            acc_total_sum += x_data_val;
+        if (y_data_val < 0)
+            acc_total_sum += (-y_data_val);
+        else
+            acc_total_sum += y_data_val;
+        if (z_data_val < 0)
+            acc_total_sum += (-z_data_val);
+        else
+            acc_total_sum += z_data_val;
 
         /* Make sure we're not getting an overflow */
         if (logic_accelerometer_x_cum_diff_avg < (UINT32_MAX - UINT16_MAX))
@@ -275,6 +295,26 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
             }
         }
     }
+    
+    /* Free fall detection penalty counter */
+    if (logic_accelerometer_ff_det_penalty != 0)
+    {
+        if (logic_accelerometer_ff_det_penalty++ > 100)
+        {
+            /* Reset penalty counter after 8 seconds */
+            logic_accelerometer_ff_det_penalty = 0;
+        }
+    }
+    
+    /* Strong move detection penalty counter */
+    if (logic_accelerometer_strong_move_det_penalty != 0)
+    {
+        if (logic_accelerometer_strong_move_det_penalty++ > 100)
+        {
+            /* Reset penalty counter after 8 seconds */
+            logic_accelerometer_strong_move_det_penalty = 0;
+        }
+    }
 
     /* If our previous loop detected a knock or a failing accelerometer, it gets priority */
     if ((return_val == ACC_DET_KNOCK) || (return_val == ACC_FAILING))
@@ -298,6 +338,18 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
             if (return_val != ACC_DET_NOTHING)
             {
                 return return_val;
+            }
+            else if ((acc_total_sum < 50000) && (logic_accelerometer_ff_det_penalty == 0))
+            {
+                /* Free fall detection penalty */
+                logic_accelerometer_ff_det_penalty = 1;
+                return ACC_FREEFALL;
+            }
+            else if ((acc_total_sum > 3000000) && (logic_accelerometer_strong_move_det_penalty == 0))
+            {
+                /* Strong move detection penalty */
+                logic_accelerometer_strong_move_det_penalty = 1;
+                return ACC_STRONG_MOVE;
             }
             else
             {
