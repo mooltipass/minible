@@ -456,15 +456,17 @@ class mooltipass_hid_device:
 	# Get platform info
 	def getPlatInfo(self):
 		# Ask for the info
-		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_DBG_GET_PLAT_INFO, None))	
+		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_PLAT_INFO, None))	
 	
 		# print(it!
 		print("")
 		print("Platform Info")
-		print("Aux MCU major:", struct.unpack('H', packet["data"][0:2])[0])
-		print("Aux MCU minor:", struct.unpack('H', packet["data"][2:4])[0])
-		print("Main MCU major:", struct.unpack('H', packet["data"][64:66])[0])
-		print("Main MCU minor:", struct.unpack('H', packet["data"][66:68])[0])
+		print("Aux MCU major:", struct.unpack('H', packet["data"][4:6])[0])
+		print("Aux MCU minor:", struct.unpack('H', packet["data"][6:8])[0])
+		print("Main MCU major:", struct.unpack('H', packet["data"][0:2])[0])
+		print("Main MCU minor:", struct.unpack('H', packet["data"][2:4])[0])
+		print("Platform serial:", struct.unpack('I', packet["data"][8:12])[0])
+		print("Bundle version:", struct.unpack('H', packet["data"][14:16])[0])
 		
 	def getRandomData(self, nb_bytes_requested):
 		nb_bytes_gotten = 0
