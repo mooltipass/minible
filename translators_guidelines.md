@@ -7,7 +7,7 @@ For an easier translation process, you'll be able to test your translations on *
 ### [](#header-3)Prerequisites
 To start your work, you'll need to:  
 - Install <a href="https://www.themooltipass.com/setup/">Moolticute</a>    
-- Install <a href="https://www.python.org/ftp/python/2.7.18/python-2.7.18.amd64.msi">Python 2</a>  
+- Install <a href="https://www.python.org">Python</a>  
 - Download the zip file sent to you by email  
 
 ### [](#header-3)Launching the Emulator
