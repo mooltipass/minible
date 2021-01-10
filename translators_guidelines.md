@@ -30,7 +30,7 @@ Before overwriting miniblebundle.img, do not forget to close both windows opened
 ### [](#header-3)Prerequisites
 - Install <a href="https://launchpad.net/~mooltipass/+archive/ubuntu/moolticute">Moolticute</a>  
 - Install the <a href="https://launchpad.net/~mooltipass/+archive/ubuntu/minible-beta">Mooltipass Mini BLE Emulator</a>  
-- Install Python2 by typing "sudo apt install python2" in a terminal  
+- Install Python3 by typing "sudo apt install python3" in a terminal  
 
 ### [](#header-3)Launching the Emulator
 - Open a terminal and type "minible"  
