@@ -41,7 +41,7 @@ The device emulator uses the "miniblebundle.img" file located inside /share/misc
 To change these strings, you'll therefore need to generate a new miniblebundle.img file:  
 - Unzip the folder sent to you by email  
 - Change the contents of "0_EN_US_english_strings.txt" inside the "strings" folder  
-- In a terminal, type "python2 bundle.py"  
+- In a terminal, type "python3 bundle.py"  
 - Overwrite the miniblebundle.img file located in /share/misc with the one that was just generated  
 - Start the emulator  
 
