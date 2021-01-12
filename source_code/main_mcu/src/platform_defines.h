@@ -170,6 +170,7 @@
 - v0.58:- bug fix: bluetooth disable on pin enter cancel
         - bug fix: screen oddities when saving settings
         - screen saver
+        - removal of second clear comms on sleep wakeup
 */
 
 /**************** SETUP DEFINES ****************/

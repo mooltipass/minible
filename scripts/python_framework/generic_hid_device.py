@@ -109,7 +109,7 @@ class generic_hid_device:
 
 		# send data
 		self.epout.write(data, 10000)
-		delayMicroseconds(500)
+		delayMicroseconds(700)
 
 	# Send message to device
 	def sendHidMessage(self, message):

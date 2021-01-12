@@ -42,6 +42,12 @@ void logic_sleep_wakeup_main_mcu_if_needed(void)
         /* Leave some time for correct no comms readout */
         timer_delay_ms(1);
         
+        /* Wait for no comms release */
+        while (platform_io_is_no_comms_asserted() == RETURN_OK);
+        
+        /* Leave some time before sending our message */
+        timer_delay_ms(1);
+        
         /* Reset bool now that the main MCU is awake */
         logic_sleep_full_platform_sleep_requested = FALSE;
     }

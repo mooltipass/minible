@@ -603,9 +603,6 @@ void main_standby_sleep(void)
         if (wakeup_reason != WAKEUP_REASON_30M_TIMER)
         {
             comms_aux_arm_rx_and_clear_no_comms();
-            
-            /* Leave the line below */
-            platform_io_clear_no_comms();
         }
     
         /* Switch on OLED depending on wakeup reason */
