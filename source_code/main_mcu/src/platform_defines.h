@@ -171,6 +171,7 @@
         - bug fix: screen oddities when saving settings
         - screen saver
         - removal of second clear comms on sleep wakeup
+        - breaking change: TOTP secret size increase
 */
 
 /**************** SETUP DEFINES ****************/

@@ -192,7 +192,7 @@ typedef struct
     };
     cust_char_t pwdTerminatingZero; // Set to 0
     TOTP_cred_node_t TOTP;          // TOTP entry
-    uint8_t TBD[86];                // TBD
+    uint8_t TBD[54];                // TBD
 } child_cred_node_t;
 
 // Webauthn credential
