@@ -238,14 +238,8 @@
      #define DBFLASH_CHIP_8M
      #define STACK_MEASURE_ENABLED
 #elif defined(PLAT_V7_SETUP)
-     #define OLED_PRINTF_ENABLED
-     #define DEBUG_USB_COMMANDS_ENABLED
-     #define DEBUG_MENU_ENABLED
-     #define DEBUG_USB_PRINTF_ENABLED
-     #define DEVELOPER_FEATURES_ENABLED
      #define BOD_NOT_ENABLED
      #define DBFLASH_CHIP_8M
-     #define STACK_MEASURE_ENABLED
 #endif
 
 #if defined(EMULATOR_BUILD)

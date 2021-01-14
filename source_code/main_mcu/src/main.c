@@ -151,8 +151,7 @@ void main_platform_init(void)
     
     /* Check fuses, depending on platform program them if incorrectly set */
     #ifdef PLAT_V7_SETUP
-    // TODO2: change this to FALSE once the 50 beta units have been upgraded
-    fuses_ok = fuses_check_program(TRUE);
+    fuses_ok = fuses_check_program(FALSE);
     #else
     fuses_ok = fuses_check_program(TRUE);
     #endif

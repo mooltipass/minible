@@ -19,6 +19,7 @@
 *    Created:  21/04/2018
 *    Author:   Mathieu Stephan
 */
+#ifdef DEBUG_MENU_ENABLED
 #include <string.h>
 #include <asf.h>
 #include "comms_hid_msgs_debug.h"
@@ -2011,3 +2012,4 @@ void debug_stack_info(void)
         }
     }
 }
+#endif
