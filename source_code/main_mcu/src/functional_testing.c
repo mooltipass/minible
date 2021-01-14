@@ -94,7 +94,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Power using battery first!");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
-        DELAYMS(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
     }
     
     /* Check for removed card */
@@ -102,13 +102,13 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Please remove the card first!");
         while (smartcard_low_level_is_smc_absent() != RETURN_OK);
-        DELAYMS(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
     }
     
     /* Internal 1V1 measurement & VOLED VIN when battery powered and screen not powered */
     platform_io_power_down_oled();
     platform_io_set_voled_vin_as_pulldown();
-    DELAYMS(400); sh1122_oled_off(&plat_oled_descriptor); DELAYMS(50);
+    timer_delay_ms(400); sh1122_oled_off(&plat_oled_descriptor); timer_delay_ms(50);
     uint16_t bandgap_measurement_bat_powered = platform_io_get_single_bandgap_measurement();
     
     /* Use Voled_vin back as adc input, get the voltage when all power sources are off (falls to 800mV instantly than slowly drifts down... check for 800mV) */
@@ -130,11 +130,11 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     if (battery_voltage > BATTERY_ADC_800MV_VALUE)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Q2/Q8/U1 issue");
-        DELAYMS(5000); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(5000); platform_io_disable_switch_and_die(); while(1);
     }
     
     /* Wheel testing */
-    DELAYMS(500);
+    timer_delay_ms(500);
     inputs_clear_detections();
     sh1122_put_error_string(&plat_oled_descriptor, u"scroll up");
     while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_UP);
@@ -142,7 +142,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #endif
-    DELAYMS(500);
+    timer_delay_ms(500);
     inputs_clear_detections();
     sh1122_put_error_string(&plat_oled_descriptor, u"scroll down");
     while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_DOWN);
@@ -150,7 +150,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #endif
-    DELAYMS(500);
+    timer_delay_ms(500);
     inputs_clear_detections();
     sh1122_put_error_string(&plat_oled_descriptor, u"click");
     if (inputs_get_wheel_action(TRUE, FALSE) != WHEEL_ACTION_SHORT_CLICK)
@@ -160,13 +160,13 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         sh1122_clear_frame_buffer(&plat_oled_descriptor);
         #endif
         sh1122_put_error_string(&plat_oled_descriptor, u"wheel issue");        
-        DELAYMS(5000); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(5000); platform_io_disable_switch_and_die(); while(1);
     }
     sh1122_clear_current_screen(&plat_oled_descriptor);
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #endif
-    DELAYMS(500);
+    timer_delay_ms(500);
     inputs_clear_detections();
     sh1122_put_error_string(&plat_oled_descriptor, u"long click");
     if (inputs_get_wheel_action(TRUE, FALSE) != WHEEL_ACTION_LONG_CLICK)
@@ -176,7 +176,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         sh1122_clear_frame_buffer(&plat_oled_descriptor);
         #endif
         sh1122_put_error_string(&plat_oled_descriptor, u"wheel issue");        
-        DELAYMS(5000); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(5000); platform_io_disable_switch_and_die(); while(1);
     }
     sh1122_clear_current_screen(&plat_oled_descriptor);
     #ifdef OLED_INTERNAL_FRAME_BUFFER
@@ -204,7 +204,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     sh1122_oled_on(&plat_oled_descriptor);
     
     /* Perform bandgap measurement with OLED screen on not displaying anything */
-    DELAYMS(50);
+    timer_delay_ms(50);
     uint16_t bandgap_measurement_usb_powered = platform_io_get_single_bandgap_measurement();
     
     /* Check that stepup voltage actually is lower than the ldo voltage (theoretical value is 103, typical value is 97) */
@@ -212,7 +212,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Stepup error!");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
-        DELAYMS(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
     }
     
     /* Signal the aux MCU do its functional testing */
@@ -233,19 +233,19 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"ATBTLC1000 error!");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
-        DELAYMS(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
     }
     else if (func_test_result == 2)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Battery circuit error!");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
-        DELAYMS(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
     }
     else if (func_test_result == 3)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Q5/Q9 error");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
-        DELAYMS(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
     }
     
     /* Re-disable bluetooth */
@@ -261,7 +261,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         {
             sh1122_put_error_string(&plat_oled_descriptor, u"LIS2HH12 failed!");
             while (platform_io_is_usb_3v3_present_raw() != FALSE);
-            DELAYMS(200); platform_io_disable_switch_and_die(); while(1);
+            timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
         }
     }
     
@@ -290,7 +290,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         {
             comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         }
-        DELAYMS(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
     }
     
     /* Clear flag */
