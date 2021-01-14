@@ -19,6 +19,8 @@
 *    Created:  21/04/2018
 *    Author:   Mathieu Stephan
 */
+#include "platform_defines.h"
+
 #ifdef DEBUG_MENU_ENABLED
 #include <string.h>
 #include <asf.h>
@@ -27,7 +29,6 @@
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
 #include "functional_testing.h"
-#include "platform_defines.h"
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
 #include "logic_aux_mcu.h"
