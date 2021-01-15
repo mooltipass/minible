@@ -172,6 +172,7 @@
         - screen saver
         - removal of second clear comms on sleep wakeup
         - breaking change: TOTP secret size increase
+        - settings: login menu to start with last queried service
 */
 
 /**************** SETUP DEFINES ****************/

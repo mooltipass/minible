@@ -28,6 +28,7 @@
 #include "driver_timer.h"
 #include "platform_io.h"
 #include "logic_power.h"
+#include "logic_user.h"
 #include "custom_fs.h"
 #include "bearssl.h"
 #include "sh1122.h"
@@ -337,6 +338,9 @@ void logic_device_bundle_update_end(BOOL from_debug_messages)
 void logic_device_set_state_changed(void)
 {
     logic_device_state_changed = TRUE;
+    
+    /* Invalidate preferred starting login */
+    logic_user_invalidate_preferred_starting_service();
 }
 
 

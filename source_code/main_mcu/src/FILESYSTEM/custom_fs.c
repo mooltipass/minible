@@ -65,7 +65,8 @@ const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = { 0,      
                                                                         FALSE,                                   // SETTINGS_HASH_DISPLAY_FEATURE
                                                                         30,                                      // SETTINGS_INFORMATION_TIME_DELAY
                                                                         FALSE,                                   // SETTINGS_BLUETOOTH_SHORTCUTS
-                                                                        0};                                      // SETTINGS_SCREEN_SAVER_ID
+                                                                        0,                                       // SETTINGS_SCREEN_SAVER_ID
+                                                                        TRUE};                                   // SETTINGS_PREF_ST_SERV_FEATURE
 #ifndef EMULATOR_BUILD
 /* Pointer to the platform unique data, stored at the last page of our bootloader */
 platform_unique_data_t* custom_fs_plat_data_ptr = (platform_unique_data_t*)(FLASH_ADDR + APP_START_ADDR - NVMCTRL_ROW_SIZE);

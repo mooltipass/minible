@@ -62,9 +62,30 @@ BOOL logic_user_usb_computer_lock_status_received = FALSE;
 BOOL logic_user_ble_computer_lock_status_received = FALSE;
 BOOL logic_user_usb_computer_unlocked = FALSE;
 BOOL logic_user_ble_computer_unlocked = FALSE;
+// preferred starting service
+uint16_t logic_user_preferred_starting_service = NODE_ADDR_NULL;
+uint32_t logic_user_prefered_st_service_ts = 0;
 // User security preferences
 uint16_t logic_user_cur_sec_preferences;
 
+
+/*! \fn     logic_user_invalidate_preferred_starting_service(void)
+*   \brief  Invalidate preferred starting login
+*/
+void logic_user_invalidate_preferred_starting_service(void)
+{
+    logic_user_preferred_starting_service = NODE_ADDR_NULL;
+}
+
+/*! \fn     logic_user_set_preferred_starting_service(uint16_t service_addr)
+*   \brief  Set preferred starting service
+*   \param  service_addr    The preferred starting service address
+*/
+void logic_user_set_preferred_starting_service(uint16_t service_addr)
+{
+    logic_user_preferred_starting_service = service_addr;
+    logic_user_prefered_st_service_ts = timer_get_systick();
+}
 
 /*! \fn     logic_user_reset_computer_locked_state(BOOL usb_interface)
 *   \brief  Reset computer locked state to unknown
@@ -1338,6 +1359,9 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
         return;
     }    
     
+    /* Set preferred starting address */
+    logic_user_set_preferred_starting_service(parent_address);
+    
     /* See how many credentials there are for this service */
     uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &child_address, !logic_security_is_management_mode_set());
     
@@ -1528,6 +1552,17 @@ void logic_user_manual_select_login(void)
     BOOL usb_interface_output = TRUE;
     uint16_t nb_logins_for_cred = 0;
     uint16_t state_machine = 0;
+    
+    /* Check if a preferred starting address is present, valid, and not too old */
+    node_type_te temp_node_type;
+    if ((custom_fs_settings_get_device_setting(SETTINGS_PREF_ST_SERV_FEATURE) != FALSE) && 
+        (logic_user_preferred_starting_service != NODE_ADDR_NULL) && 
+        (nodemgmt_check_user_permission(logic_user_preferred_starting_service, &temp_node_type) == RETURN_OK) && 
+        (temp_node_type == NODE_TYPE_PARENT) &&
+        (timer_get_systick() - logic_user_prefered_st_service_ts < 30000))
+    {
+        chosen_service_addr = logic_user_preferred_starting_service;
+    }
 
     while (TRUE)
     {

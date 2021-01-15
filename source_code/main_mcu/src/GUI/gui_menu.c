@@ -180,7 +180,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
             case GUI_LOGIN_ICON_ID:         
             {
                 /* Do we actually have credentials to show? */
-                if (nodemgmt_get_next_parent_node_for_cur_category(NODE_ADDR_NULL, NODEMGMT_STANDARD_CRED_TYPE_ID) != NODE_ADDR_NULL)
+                if (nodemgmt_get_starting_parent_addr_for_category(NODEMGMT_STANDARD_CRED_TYPE_ID) != NODE_ADDR_NULL)
                 {
                     logic_user_manual_select_login();
                     #ifdef OLED_INTERNAL_FRAME_BUFFER
@@ -206,7 +206,11 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 int16_t selected_category = gui_prompts_select_category();
                 if (selected_category >= 0)
                 {
+                    /* Set new category */
                     nodemgmt_set_current_category_id(selected_category);
+                    
+                    /* Invalidate preferred starting login */
+                    logic_user_invalidate_preferred_starting_service();
                 }
                 return TRUE;
             }

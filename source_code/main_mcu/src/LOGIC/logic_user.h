@@ -48,10 +48,12 @@ RET_TYPE logic_user_is_bluetooth_enabled_for_inserted_card(uint16_t* user_langua
 RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb);
 void logic_user_change_node_password(uint16_t node_address, cust_char_t* password);
 void logic_user_inform_computer_locked_state(BOOL usb_interface, BOOL locked);
+void logic_user_set_preferred_starting_service(uint16_t service_addr);
 void logic_user_set_layout_id(uint16_t layout_id, BOOL usb_layout);
 void logic_user_reset_computer_locked_state(BOOL usb_interface);
 BOOL logic_user_get_and_clear_user_to_be_logged_off_flag(void);
 void logic_user_clear_user_security_flag(uint16_t bitmask);
+void logic_user_invalidate_preferred_starting_service(void);
 void logic_user_set_user_security_flag(uint16_t bitmask);
 BOOL logic_user_get_lock_unlock_shortcut_enabled(void);
 void logic_user_set_user_to_be_logged_off_flag(void);
