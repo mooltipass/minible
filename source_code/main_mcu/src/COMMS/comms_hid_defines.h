@@ -84,6 +84,7 @@
 #define HID_CMD_BUNDLE_UL_DONE      0x002B
 #define HID_CMD_DEV_AUTH_CHALLENGE  0x002C
 #define HID_CMD_GET_DIAG_DATA       0x002D
+#define HID_CMD_INFORM_CUR_SVC      0x002E
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101

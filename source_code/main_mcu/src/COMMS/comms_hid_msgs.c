@@ -27,6 +27,7 @@
 #include "gui_dispatcher.h"
 #include "comms_hid_msgs.h"
 #include "logic_security.h"
+#include "logic_database.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "logic_device.h"
@@ -990,6 +991,29 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             uint16_t payload_length = nodemgmt_get_favorites(temp_tx_message_pt->hid_message.payload_as_uint16)*sizeof(favorite_addr_t);
             comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, payload_length);
             comms_aux_mcu_send_message(temp_tx_message_pt);
+            return;
+        }
+        
+        case HID_CMD_INFORM_CUR_SVC:
+        {
+            /* Get service string length */
+            uint16_t service_length = utils_strnlen(rcv_msg->payload_as_cust_char_t, max_payload_size/sizeof(cust_char_t));
+            
+            /* Length checks */
+            if ((service_length < max_payload_size/sizeof(cust_char_t)) && (service_length < MEMBER_ARRAY_SIZE(parent_cred_node_t, service)))
+            {
+                /* Do we know the service? */
+                uint16_t parent_address = logic_database_search_service(rcv_msg->payload_as_cust_char_t, COMPARE_MODE_MATCH, TRUE, NODEMGMT_STANDARD_CRED_TYPE_ID);
+                
+                /* We know the service, set preferred service */
+                if (parent_address != NODE_ADDR_NULL)
+                {
+                    logic_user_set_preferred_starting_service(parent_address);
+                }
+            }
+            
+            /* Send ACK */
+            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
             return;
         }
         
