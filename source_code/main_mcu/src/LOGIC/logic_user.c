@@ -1357,13 +1357,16 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
         aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
         comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
-    }    
-    
-    /* Set preferred starting address */
-    logic_user_set_preferred_starting_service(parent_address);
+    }
     
     /* See how many credentials there are for this service */
     uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &child_address, !logic_security_is_management_mode_set());
+    
+    /* Set preferred starting address */
+    if (nb_logins_for_cred != 0)
+    {
+        logic_user_set_preferred_starting_service(parent_address);
+    }
     
     /* Check if wanted login has been specified or if there's only one credential for that service */
     if ((login != 0) || (nb_logins_for_cred == 1))
