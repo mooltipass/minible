@@ -742,14 +742,14 @@ From the PC:
 | bytes    | value                                 |
 |:---------|:--------------------------------------|
 | 0->1     | 0x0027                                |
-| 2->3     | 416                                   |
+| 2->3     | 448                                   |
 | 4->255   | service name (null-terminated)        |
 | 256->383 | login name (null-terminated)          |
-| 384->415 | TOTP secret key                       |
-| 416->416 | TOTP secret key length (max 32 bytes) |
-| 417->417 | TOTP number of digits [6-8]           |
-| 418->418 | TOTP time step [30 - 99]              |
-| 419->419 | TOTP SHA version [0 - 2]              |
+| 384->431 | TOTP secret key                       |
+| 432->432 | TOTP secret key length (max 64 bytes) |
+| 433->433 | TOTP number of digits [6-8]           |
+| 434->434 | TOTP time step [30 - 99]              |
+| 435->435 | TOTP SHA version [0 - 2]              |
 
 Device Answer:
 
@@ -852,6 +852,46 @@ Device Answer:
 |:---------|:----------------------------|:--------------------------------|
 | 0x002C   | 1 or 16 | 0x00 (failure) or the challenge response |
 
+
+
+0x002D: Get Diagnostics Data
+----------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X |
+|:---------|:---------|
+| 0x002D   |     N/A  |
+
+Device Answer:
+
+| bytes    | value  |
+|:---------|:-------|
+| 0->1     | 0x002D |
+| 2->3     | 16 |
+| 4->7     | Nb ms screen ON MSBs |
+| 8->11    | Nb ms screen ON LSBs |
+| 12->15   | Nb 30mins on battery |
+| 16->19   | Nb 30mins on USB |
+
+
+
+0x002E: Inform of current service
+---------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3 | byte 4-X               |
+|:---------|:---------|:-------------------------|
+| 0x002E   | (service length + 1) x2 | 0 terminated string, each char as uint16_t |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x002E   | 1 | 0x01 (success) |
+
+Inform device of currently visited service
 
 
 
