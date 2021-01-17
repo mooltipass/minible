@@ -288,7 +288,9 @@ void logic_power_init(BOOL poweredoff_due_to_battery)
 void logic_power_power_down_actions(void)
 {
     volatile power_consumption_log_t logic_power_consumption_log_copy;
+    cpu_irq_enter_critical();
     memcpy((void*)&logic_power_consumption_log_copy, (void*)&logic_power_consumption_log, sizeof(logic_power_consumption_log_copy));
+    cpu_irq_leave_critical();
     custom_fs_store_power_consumption_log((power_consumption_log_t*)&logic_power_consumption_log_copy);
 }
 
