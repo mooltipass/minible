@@ -626,10 +626,10 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
     /* Store last seen voled power source */
     logic_power_last_seen_voled_stepup_pwr_source = current_voled_pwr_source;
     
-    /* Battery charging start logic */
+    /* Battery charging start logic: USB powered, just sent enumerate command, not charging, with power to be acked < 80% (important at device boot!) */
     if ((logic_power_get_power_source() == USB_POWERED) && (logic_power_is_usb_enumerate_sent_clear_bool() != FALSE) && 
         (logic_power_battery_charging == FALSE) && 
-        (logic_power_get_battery_state() <= BATTERY_75PCT))
+        (logic_power_battery_level_to_be_acked < 8))
     {        
         /* Send message to start charging */
         if (logic_power_get_and_reset_over_discharge_flag() != FALSE)

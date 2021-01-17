@@ -1791,15 +1791,15 @@ void debug_nimh_status(void)
             nimh_charge_te charge_type = logic_power_get_current_charge_type();
             if (charge_type == NORMAL_CHARGE)
             {
-                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Standard Charge");
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Standard Charge, %dpcts, ADC: %u", logic_power_get_battery_level()*10, logic_power_debug_get_last_adc_measurement());
             }
             else if (charge_type == SLOW_START_CHARGE)
             {
-                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Slow Start Charge");
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Slow Start Charge, %dpcts, ADC: %u", logic_power_get_battery_level()*10, logic_power_debug_get_last_adc_measurement());
             }
             else if (charge_type == RECOVERY_CHARGE)
             {
-                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Recovery Charge");
+                sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Recovery Charge, %dpcts, ADC: %u", logic_power_get_battery_level()*10, logic_power_debug_get_last_adc_measurement());
             }
         }
             
