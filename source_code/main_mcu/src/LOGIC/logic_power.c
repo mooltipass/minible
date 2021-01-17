@@ -331,8 +331,16 @@ void logic_power_set_battery_level_update_from_aux(uint8_t battery_level)
     /* Reset power consumption logs */
     cpu_irq_enter_critical();
     uint32_t nb_ms_since_full_charge_copy = logic_power_consumption_log.nb_ms_spent_since_last_full_charge;
+    uint32_t lifetime_nb_ms_screen_on_msb_copy = logic_power_consumption_log.lifetime_nb_ms_screen_on_msb;
+    uint32_t lifetime_nb_ms_screen_on_lsb_copy = logic_power_consumption_log.lifetime_nb_ms_screen_on_lsb;
+    uint32_t lifetime_nb_30mins_bat_copy = logic_power_consumption_log.lifetime_nb_30mins_bat;
+    uint32_t lifetime_nb_30mins_usb_copy = logic_power_consumption_log.lifetime_nb_30mins_usb;
     memset((void*)&logic_power_consumption_log, 0x00, sizeof(logic_power_consumption_log));
     logic_power_consumption_log.nb_ms_spent_since_last_full_charge = nb_ms_since_full_charge_copy;
+    logic_power_consumption_log.lifetime_nb_ms_screen_on_msb = lifetime_nb_ms_screen_on_msb_copy;
+    logic_power_consumption_log.lifetime_nb_ms_screen_on_lsb = lifetime_nb_ms_screen_on_lsb_copy;
+    logic_power_consumption_log.lifetime_nb_30mins_bat = lifetime_nb_30mins_bat_copy;
+    logic_power_consumption_log.lifetime_nb_30mins_usb = lifetime_nb_30mins_usb_copy;
     logic_power_consumption_log.aux_mcu_reported_pct = battery_level * 10;
     cpu_irq_leave_critical();
     
