@@ -20,6 +20,7 @@
 #include "logic_database.h"
 #include "gui_dispatcher.h"
 #include "comms_aux_mcu.h"
+#include "logic_device.h"
 #include "driver_timer.h"
 #include "logic_fido2.h"
 #include "gui_prompts.h"
@@ -224,6 +225,21 @@ void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* re
     int16_t user_name_conv_length = utils_utf8_string_to_bmp_string(request->user_name, user_name_copy, MEMBER_SIZE(fido2_make_credential_req_message_t, user_name), ARRAY_SIZE(user_name_copy));
     int16_t rpid_conv_length = utils_utf8_string_to_bmp_string(request->rpID, rp_id_copy, MEMBER_SIZE(fido2_make_credential_req_message_t, rpID), ARRAY_SIZE(rp_id_copy));
     
+    /* Has the time been set? */
+    if (logic_device_is_time_set() == FALSE)
+    {
+        /* Display warning */
+        gui_prompts_display_information_on_screen_and_wait(TIME_NOT_SET_TEXT_ID, DISP_MSG_WARNING, FALSE);
+        
+        /* Send answer */
+        aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+        temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.error_code = FIDO2_OPERATION_DENIED;
+        temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_MC_RSP;
+        temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
+        return;
+    }
+    
     /* Did any conversion go badly? */
     if ((display_name_conv_length < 0) || (user_name_conv_length < 0) || (rpid_conv_length < 0))
     {
@@ -366,6 +382,21 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     {
         aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
         temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.error_code = FIDO2_NO_CREDENTIALS;
+        temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
+        temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
+        comms_aux_mcu_send_message(temp_tx_message_pt);
+        return;
+    }
+    
+    /* Has the time been set? */
+    if (logic_device_is_time_set() == FALSE)
+    {
+        /* Display warning */
+        gui_prompts_display_information_on_screen_and_wait(TIME_NOT_SET_TEXT_ID, DISP_MSG_WARNING, FALSE);
+        
+        /* Send answer */
+        aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
+        temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.error_code = FIDO2_OPERATION_DENIED;
         temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_GA_RSP;
         temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
         comms_aux_mcu_send_message(temp_tx_message_pt);

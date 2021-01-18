@@ -137,6 +137,6 @@
 #define MANY_FAILED_CONNS_TEXT_ID       139
 #define HASH_1_TEXT_ID                  140
 #define HASH_2_TEXT_ID                  141
-#define CONNECT_TO_MC_TEXT_ID           142
+#define TIME_NOT_SET_TEXT_ID            142
 
 #endif

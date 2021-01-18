@@ -2122,7 +2122,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                     /* Has the time been set? */
                     if (logic_device_is_time_set() == FALSE)
                     {
-                        gui_prompts_display_information_on_screen_and_wait(CONNECT_TO_MC_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        gui_prompts_display_information_on_screen_and_wait(TIME_NOT_SET_TEXT_ID, DISP_MSG_WARNING, FALSE);
                         return RETURN_OK;
                     }
 

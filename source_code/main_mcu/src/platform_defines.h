@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    58
+#define FW_MINOR    59
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -174,6 +174,8 @@
         - breaking change: TOTP secret size increase
         - settings: login menu to start with last queried service
         - bug fix: device incorrectly charging at boot when powered off
+- v0.59:- check that time is set for TOTP
+        - using a kind of time based counter for FIDO2
 */
 
 /**************** SETUP DEFINES ****************/
