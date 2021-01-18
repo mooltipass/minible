@@ -164,7 +164,7 @@ void timer_get_timestamp_debug_data(uint32_t* timestamp, int32_t* counter_correc
     uint32_t current_timestamp = RTC->MODE0.COUNT.reg;
     
     /* Add timestamp from 1/1/2020 */
-    current_timestamp += 1577836800;
+    current_timestamp += FIRST_JAN_2020_TS;
     
     /* Add correction: coarse */
     current_timestamp += timer_accumulated_corrections;
@@ -311,7 +311,7 @@ uint32_t driver_timer_get_rtc_timestamp_uint32t(void)
     uint32_t current_timestamp = RTC->MODE0.COUNT.reg;
     
     /* Add timestamp from 1/1/2020 */
-    current_timestamp += 1577836800;
+    current_timestamp += FIRST_JAN_2020_TS;
     
     /* Add correction: coarse */
     current_timestamp += timer_accumulated_corrections;
@@ -335,7 +335,7 @@ uint32_t driver_timer_get_rtc_timestamp_uint32t(void)
     cpu_irq_leave_critical();
     return current_timestamp;
 #else
-    return timer_emulator_fake_rtc_cnt + 1577836800;
+    return timer_emulator_fake_rtc_cnt + FIRST_JAN_2020_TS;
 #endif
 }
 
@@ -353,7 +353,7 @@ uint64_t driver_timer_get_rtc_timestamp_uint64t(void)
     uint64_t current_timestamp = RTC->MODE0.COUNT.reg;
     
     /* Add timestamp from 1/1/2020 */
-    current_timestamp += 1577836800;
+    current_timestamp += FIRST_JAN_2020_TS;
     
     /* Add correction: coarse */
     current_timestamp += timer_accumulated_corrections;
@@ -377,32 +377,26 @@ uint64_t driver_timer_get_rtc_timestamp_uint64t(void)
     cpu_irq_leave_critical();
     return current_timestamp;
 #else
-    return (uint64_t)timer_emulator_fake_rtc_cnt + 1577836800;
+    return (uint64_t)timer_emulator_fake_rtc_cnt + FIRST_JAN_2020_TS;
 #endif
 }
 
-/*!	\fn		driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
-*	\brief	Set our RTC timestamp (kinda)
+/*!	\fn		driver_timer_date_to_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
+*	\brief	Convert a date to a timestamp
 *   \param  year    Current year
 *   \param  month   Current month
 *   \param  day     Current day
 *   \param  hour    Current hour
 *   \param  minute  Current minute
 *   \param  second  Current second
+*   \return The timestamp
 */
-void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
+uint64_t driver_timer_date_to_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
 {
     uint8_t is_curr_year_leap = IS_LEAP_YEAR(year);
-    uint32_t num_days = 0;
-    
-#ifndef EMULATOR_BUILD
-    /* Get current time stamp */
-    while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
-    uint32_t current_timestamp = RTC->MODE0.COUNT.reg;
-#endif
+    uint64_t num_days = 0;
 
     /* UNIX time does NOT include LEAP seconds. See https://pubs.opengroup.org/onlinepubs/9699919799/xrat/V4_xbd_chap04.html#tag_21_04_16 */
-    /* use RTC timer to count number of seconds since 1/1/2020 */
     for (uint16_t i = 2020; i < year; ++i)
     {
         num_days += IS_LEAP_YEAR(i) ? 366 : 365;
@@ -419,10 +413,50 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
     num_days += day - 1;
 
     /* Add the days hours, minutes, and seconds */
-    uint32_t kinda_unix_time = num_days * SEC_IN_DAY;
-    kinda_unix_time += hour * SEC_IN_HOUR;
-    kinda_unix_time += minute * 60;
-    kinda_unix_time += second;
+    uint64_t current_timestamp = num_days * SEC_IN_DAY;
+    current_timestamp += hour * SEC_IN_HOUR;
+    current_timestamp += minute * 60;
+    current_timestamp += second;
+    
+    /* Add timestamp from 1/1/2020 */
+    current_timestamp += FIRST_JAN_2020_TS;
+    
+    return current_timestamp;
+}
+    
+/*!	\fn		driver_timer_get_nb_kinda17mins_slots_from_date(uint16_t year, uint16_t month, uint16_t day)
+*	\brief	Get number of ~17mins slots that passed from a given date
+*   \param  year    Current year
+*   \param  month   Current month
+*   \param  day     Current day
+*/
+uint32_t driver_timer_get_nb_kinda17mins_slots_from_date(uint16_t year, uint16_t month, uint16_t day)
+{    
+    /* Get provided date time stamp */
+    uint64_t date_ts = driver_timer_date_to_timestamp(year, month, day, 0, 0, 0);
+    uint64_t ts_difference = driver_timer_get_rtc_timestamp_uint64t() - date_ts;
+    return (uint32_t)(ts_difference >> 10);
+}
+
+/*!	\fn		driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
+*	\brief	Set our RTC timestamp (kinda)
+*   \param  year    Current year
+*   \param  month   Current month
+*   \param  day     Current day
+*   \param  hour    Current hour
+*   \param  minute  Current minute
+*   \param  second  Current second
+*/
+void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second)
+{    
+#ifndef EMULATOR_BUILD
+    /* Get current time stamp */
+    while((RTC->MODE0.STATUS.reg & RTC_STATUS_SYNCBUSY) != 0);
+    uint32_t current_timestamp = RTC->MODE0.COUNT.reg;
+#endif
+
+/* use RTC timer to count number of seconds since 1/1/2020 */
+    uint32_t kinda_unix_time = (uint32_t)(driver_timer_date_to_timestamp(year, month, day, hour, minute, second) - FIRST_JAN_2020_TS);
     
 #ifndef EMULATOR_BUILD
     /* Store timestamp */

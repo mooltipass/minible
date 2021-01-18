@@ -76,8 +76,9 @@ typedef enum {TIMER_EXPIRED = 0, TIMER_RUNNING = 1} timer_flag_te;
 #endif
 
 #define IS_LEAP_YEAR(year)  ((((year) % 4 == 0) && ((year) % 100 != 0)) || ((year) % 400 == 0))
-#define SEC_IN_HOUR (60 * 60)
-#define SEC_IN_DAY (24 * SEC_IN_HOUR)
+#define SEC_IN_HOUR         (60 * 60)
+#define SEC_IN_DAY          (24 * SEC_IN_HOUR)
+#define FIRST_JAN_2020_TS   1577836800UL
 
 /* Constants */
 //Days Per Month
@@ -87,7 +88,9 @@ static uint16_t const EPOCH_YEAR = 1970;
 
 /* Prototypes */
 void timer_get_timestamp_debug_data(uint32_t* timestamp, int32_t* counter_correct, int32_t* cumulative_correct, int32_t* fine_adjust_val);
+uint64_t driver_timer_date_to_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second);
 void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second);
+uint32_t driver_timer_get_nb_kinda17mins_slots_from_date(uint16_t year, uint16_t month, uint16_t day);
 timer_flag_te timer_has_allocated_timer_expired(uint16_t uid, BOOL clear);
 void timer_start_logoff_timer(uint16_t nb_30mins_ticks_before_lock);
 timer_flag_te timer_has_timer_expired(timer_id_te uid, BOOL clear);

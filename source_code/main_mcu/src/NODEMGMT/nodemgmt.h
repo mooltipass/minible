@@ -440,6 +440,7 @@ void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOO
 void nodemgmt_set_cred_start_address(uint16_t parentAddress, uint16_t credential_type_id);
 uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_child_addr);
 uint16_t nodemgmt_get_next_child_node_for_cur_category(uint16_t search_start_child_addr);
+void nodemgmt_extract_date(uint16_t date, uint8_t* year, uint8_t* month, uint8_t* day);
 uint16_t nodemgmt_get_last_parent_addr(BOOL data_parent, uint16_t credential_type_id);
 uint16_t nodemgmt_get_starting_parent_addr_for_category(uint16_t credential_type_id);
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);

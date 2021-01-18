@@ -359,7 +359,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
     /* Generate TOTP */
     cust_char_t TOTP_str[LOGIC_GUI_TOTP_STR_LEN];
     memset(TOTP_str, 0, sizeof TOTP_str);
-    if (child_node->TOTP.TOTPsecretLen > 0)
+    if ((child_node->TOTP.TOTPsecretLen > 0) && (logic_device_is_time_set() != FALSE))
     {
         uint8_t remaining_secs = logic_encryption_generate_totp(child_node->TOTP.TOTPsecret_ct, child_node->TOTP.TOTPsecretLen, child_node->TOTP.TOTPnumDigits, child_node->TOTP.TOTPtimeStep, TOTP_str, LOGIC_GUI_TOTP_STR_LEN);
         logic_gui_create_TOTP_display_str(TOTP_str, LOGIC_GUI_TOTP_STR_LEN, child_node->TOTP.TOTPnumDigits, remaining_secs);
@@ -370,7 +370,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
 
     uint8_t num_lines_to_display = 1; //Login always displayed
     num_lines_to_display += (child_node->passwordBlankFlag == FALSE) ? 1 : 0; //Are we displaying password?
-    num_lines_to_display += (child_node->TOTP.TOTPsecretLen > 0) ? 1 : 0;     //Are we displaying TOTP?
+    num_lines_to_display += ((child_node->TOTP.TOTPsecretLen > 0) && (logic_device_is_time_set() != FALSE)) ? 1 : 0;     //Are we displaying TOTP?
 
     /*
      * Line configuration
@@ -457,7 +457,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
         /* Redraw if needed */
         if (redraw_needed != FALSE)
         {
-            if (child_node->TOTP.TOTPsecretLen > 0)
+            if ((child_node->TOTP.TOTPsecretLen > 0) && (logic_device_is_time_set() != FALSE))
             {
                 memset(TOTP_str, 0, sizeof TOTP_str);
                 uint8_t remaining_secs = logic_encryption_generate_totp(child_node->TOTP.TOTPsecret_ct, child_node->TOTP.TOTPsecretLen, child_node->TOTP.TOTPnumDigits, child_node->TOTP.TOTPtimeStep, TOTP_str, LOGIC_GUI_TOTP_STR_LEN);
