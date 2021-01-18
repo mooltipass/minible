@@ -141,14 +141,14 @@ uint16_t nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day)
     return swap16(day | (((month-1) << NODEMGMT_MONTH_SHT) & NODEMGMT_MONTH_MASK) | (((year-2010) << NODEMGMT_YEAR_SHT) & NODEMGMT_YEAR_MASK));
 }
 
-/*! \fn     nodemgmt_extract_date(uint16_t date, uint8_t* year, uint8_t* month, uint8_t* day)
+/*! \fn     nodemgmt_extract_date(uint16_t date, uint16_t* year, uint16_t* month, uint16_t* day)
 *   \brief  Unpacks a uint16_t to extract the year, month, and day information in format of YYYYYYYMMMMDDDDD. Year Offset from 2010
 *   \param  date            The date
 *   \param  year            The unpacked year
 *   \param  month           The unpacked month
 *   \param  day             The unpacked day
 */
-void nodemgmt_extract_date(uint16_t date, uint8_t* year, uint8_t* month, uint8_t* day)
+void nodemgmt_extract_date(uint16_t date, uint16_t* year, uint16_t* month, uint16_t* day)
 {
     date = swap16(date);
     *year = ((date >> NODEMGMT_YEAR_SHT) & NODEMGMT_YEAR_MASK_FINAL) + 2010;
@@ -416,7 +416,7 @@ void nodemgmt_read_webauthn_child_node_except_display_name(uint16_t address, chi
             - A user having multiple devices, which has forgotten to synchronize his databases together
             - ... which could lead to the same counter value being used twice, and the RP deleting said authenticator
             So what we do, is use as a counter value max(the number of 17minutes slot that passed since credential creation, last counter value + 1) */
-            uint8_t created_year, created_month, created_day;
+            uint16_t created_year, created_month, created_day;
             nodemgmt_extract_date(child_node->dateCreated, &created_year, &created_month, &created_day);
             uint32_t nb_17mins_slot_since_creation = driver_timer_get_nb_kinda17mins_slots_from_date(created_year, created_month, created_day);
             

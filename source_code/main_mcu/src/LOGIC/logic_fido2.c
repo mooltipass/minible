@@ -230,6 +230,7 @@ void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* re
     {
         /* Display warning */
         gui_prompts_display_information_on_screen_and_wait(TIME_NOT_SET_TEXT_ID, DISP_MSG_WARNING, FALSE);
+        gui_dispatcher_get_back_to_current_screen();
         
         /* Send answer */
         aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
@@ -393,6 +394,7 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     {
         /* Display warning */
         gui_prompts_display_information_on_screen_and_wait(TIME_NOT_SET_TEXT_ID, DISP_MSG_WARNING, FALSE);
+        gui_dispatcher_get_back_to_current_screen();
         
         /* Send answer */
         aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);

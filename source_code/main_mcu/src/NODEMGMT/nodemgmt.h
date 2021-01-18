@@ -437,10 +437,10 @@ void nodemgmt_write_parent_node_data_block_to_flash(uint16_t address, parent_nod
 void nodemgmt_read_child_node_data_block_from_flash(uint16_t address, child_node_t* child_node);
 void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean);
+void nodemgmt_extract_date(uint16_t date, uint16_t* year, uint16_t* month, uint16_t* day);
 void nodemgmt_set_cred_start_address(uint16_t parentAddress, uint16_t credential_type_id);
 uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_child_addr);
 uint16_t nodemgmt_get_next_child_node_for_cur_category(uint16_t search_start_child_addr);
-void nodemgmt_extract_date(uint16_t date, uint8_t* year, uint8_t* month, uint8_t* day);
 uint16_t nodemgmt_get_last_parent_addr(BOOL data_parent, uint16_t credential_type_id);
 uint16_t nodemgmt_get_starting_parent_addr_for_category(uint16_t credential_type_id);
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
