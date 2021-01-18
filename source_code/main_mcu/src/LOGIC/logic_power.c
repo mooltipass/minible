@@ -267,7 +267,11 @@ void logic_power_init(BOOL poweredoff_due_to_battery)
         /* First boot? */
         if (logic_power_consumption_log.nb_30mins_powered_on == UINT32_MAX)
         {
+            #ifdef DEVELOPER_FEATURES_ENABLED
+            logic_power_register_vbat_adc_measurement(UINT16_MAX);
+            #else
             logic_power_register_vbat_adc_measurement(0);
+            #endif
         } 
         else
         {

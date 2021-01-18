@@ -2118,6 +2118,13 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                 if (prompt_return == MINI_INPUT_RET_YES)
                 {
                     aux_mcu_message_t* typing_message_to_be_sent;
+                    
+                    /* Has the time been set? */
+                    if (logic_device_is_time_set() == FALSE)
+                    {
+                        gui_prompts_display_information_on_screen_and_wait(CONNECT_TO_MC_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        return RETURN_OK;
+                    }
 
                     /* Decrypt TOTPsecret */
                     logic_encryption_ctr_decrypt(temp_cnode.TOTP.TOTPsecret_ct, temp_cnode.TOTP.TOTPsecret_ctr, MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret), FALSE);

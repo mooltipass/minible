@@ -43,7 +43,17 @@ BOOL logic_device_usb_timeout_detected = FALSE;
 BOOL logic_device_state_changed = FALSE;
 /* Settings changed bool */
 BOOL logic_device_settings_changed = FALSE;
+/* Time set bool */
+BOOL logic_device_time_set = FALSE;
 
+
+/*! \fn     logic_device_set_time_set(void)
+*   \brief  Inform that the time was set
+*/
+void logic_device_set_time_set(void)
+{
+    logic_device_time_set = TRUE;
+}
 
 /*! \fn     logic_device_set_settings_changed(void)
 *   \brief  Inform that the settings have changed
@@ -51,6 +61,14 @@ BOOL logic_device_settings_changed = FALSE;
 void logic_device_set_settings_changed(void)
 {
     logic_device_settings_changed = TRUE;
+}
+
+/*! \fn     logic_device_is_time_set(void)
+*   \brief  Know if the time was set
+*/
+BOOL logic_device_is_time_set(void)
+{
+    return logic_device_time_set;
 }
 
 /*! \fn     logic_device_get_and_clear_settings_changed_flag(void)
