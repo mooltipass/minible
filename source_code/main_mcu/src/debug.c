@@ -1821,7 +1821,7 @@ void debug_nimh_status(void)
         sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, TRUE, "s %unos %dmain %dfull", consumption_log_pt->nb_ms_no_screen_aux_main_awake >> 10, consumption_log_pt->nb_ms_no_screen_main_awake >> 10, consumption_log_pt->nb_ms_full_pawa >> 10);
         
         /* Line 5: others */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, TRUE, "s %usince full %upct aux", consumption_log_pt->nb_ms_spent_since_last_full_charge, consumption_log_pt->aux_mcu_reported_pct);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, TRUE, "s %u since full %upct aux", consumption_log_pt->nb_ms_spent_since_last_full_charge, consumption_log_pt->aux_mcu_reported_pct);
         
         #ifdef OLED_INTERNAL_FRAME_BUFFER
         sh1122_flush_frame_buffer(&plat_oled_descriptor);

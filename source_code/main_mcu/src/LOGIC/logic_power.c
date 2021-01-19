@@ -479,24 +479,30 @@ void logic_power_compute_battery_state(void)
     
     if ((logic_power_last_vbat_measurements[0] > BATTERY_ADC_FOR_BATTERY_STATUS_READ_STRAT_SWITCH) && (logic_power_consumption_log.aux_mcu_reported_pct <= 100))
     {
+        /* Copy the volatile struct */
+        volatile power_consumption_log_t logic_power_consumption_log_copy;
+        cpu_irq_enter_critical();
+        memcpy(&logic_power_consumption_log_copy, &logic_power_consumption_log, sizeof(logic_power_consumption_log_copy));
+        cpu_irq_leave_critical();
+        
         /* Battery voltage high enough so we can try to use our power consumption log */
         volatile uint32_t nb_uah_used_total = 0;
-        nb_uah_used_total += (logic_power_consumption_log.nb_30mins_powered_on * 96 / 2);
-        nb_uah_used_total += (logic_power_consumption_log.nb_30mins_card_inserted * 42 / 2);
-        nb_uah_used_total += (logic_power_consumption_log.nb_30mins_ble_advertising * 623 / 2);
-        nb_uah_used_total += (logic_power_consumption_log.nb_30mins_ios_connect * 0 / 2);
-        nb_uah_used_total += (logic_power_consumption_log.nb_30mins_macos_connect * 0 / 2);
-        nb_uah_used_total += (logic_power_consumption_log.nb_30mins_android_connect * 74 / 2);
-        nb_uah_used_total += (logic_power_consumption_log.nb_30mins_windows_connect * 2360 / 2);
+        nb_uah_used_total += (logic_power_consumption_log_copy.nb_30mins_powered_on * 96 / 2);
+        nb_uah_used_total += (logic_power_consumption_log_copy.nb_30mins_card_inserted * 42 / 2);
+        nb_uah_used_total += (logic_power_consumption_log_copy.nb_30mins_ble_advertising * 623 / 2);
+        nb_uah_used_total += (logic_power_consumption_log_copy.nb_30mins_ios_connect * 0 / 2);
+        nb_uah_used_total += (logic_power_consumption_log_copy.nb_30mins_macos_connect * 0 / 2);
+        nb_uah_used_total += (logic_power_consumption_log_copy.nb_30mins_android_connect * 74 / 2);
+        nb_uah_used_total += (logic_power_consumption_log_copy.nb_30mins_windows_connect * 2360 / 2);
         
         /* Below each number is divided by 60*60*1000=3600000 then multiplied by the standard power consumption in mA */
         /* FYI for a maximum of 12 hours (impossible, but who knows?) maximum allowed multiplication is 99 for an uint32_t */
-        nb_uah_used_total += ((logic_power_consumption_log.nb_ms_no_screen_aux_main_awake * 57) >> 11); // 100mA
-        nb_uah_used_total += ((logic_power_consumption_log.nb_ms_no_screen_main_awake * 57) >> 12);     // 50mA
-        nb_uah_used_total += ((logic_power_consumption_log.nb_ms_full_pawa * 91) >> 11);                // 160mA
+        nb_uah_used_total += ((logic_power_consumption_log_copy.nb_ms_no_screen_aux_main_awake * 57) >> 11); // 100mA
+        nb_uah_used_total += ((logic_power_consumption_log_copy.nb_ms_no_screen_main_awake * 57) >> 12);     // 50mA
+        nb_uah_used_total += ((logic_power_consumption_log_copy.nb_ms_full_pawa * 91) >> 11);                // 160mA
         
         /* Number of available uAh */
-        uint32_t battery_last_reported_uah = logic_power_consumption_log.aux_mcu_reported_pct * 3000;
+        uint32_t battery_last_reported_uah = logic_power_consumption_log_copy.aux_mcu_reported_pct * 3000;
         
         /* Are we at least getting a positive result? */
         if (nb_uah_used_total < battery_last_reported_uah)
