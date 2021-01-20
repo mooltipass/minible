@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    49
+#define FW_MINOR    50
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -92,6 +92,8 @@
         - aux mcu freeze bug fix when start & stop using adc flags are present at the same time
         - aux mcu freeze bug fix when stopping adc use requested and adc not triggered
 - v0.49:- delay after no comms check when waking up MAIN
+- v0.50:- main send buffer declared as volatile
+        - bug fix: long switch between resolvable & non resolvable mac host BLE devices
 */
 
 /**************** SETUP DEFINES ****************/

@@ -332,7 +332,7 @@ ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t address_resolv_typ
 ret_type_te comms_main_mcu_fetch_bonding_info_for_irk(uint8_t* irk_key, nodemgmt_bluetooth_bonding_information_t* bonding_info);
 void comms_main_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type);
 void comms_main_mcu_send_simple_event_alt_buffer(uint16_t event_id, aux_mcu_message_t* buffer);
-void comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length);
+void comms_main_mcu_send_message(volatile aux_mcu_message_t* message, uint16_t message_length);
 BOOL comms_aux_mcu_get_received_packet(aux_mcu_message_t** message, BOOL arm_new_rx);
 void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message);
 uint16_t comms_main_mcu_get_bonding_info_irks(uint8_t** irk_keys_buffer);

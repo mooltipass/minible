@@ -146,10 +146,18 @@ aux_mcu_command_description.append([])
 aux_mcu_command_description.append([])
 # BLE command
 aux_mcu_command_description.append([	"0x0000: invalid",
-										"0x0001: invalid",
+										"0x0001: enable bluetooth",
 										"0x0002: invalid",
 										"0x0003: store bond info",
-										"0x0004: recall bond info"])
+										"0x0004: recall bond info",
+										"0x0005: clear bond info",
+										"0x0006: enable pairing",
+										"0x0007: disable pairing",
+										"0x0008: get irk keys",
+										"0x0009: recall bond info irk",
+										"0x000A: get 6 digit code", 
+										"0x000B: disconnect for next device"										
+										])
 
 
 main_mcu_command_description = []
@@ -251,10 +259,18 @@ main_mcu_command_description.append([])
 main_mcu_command_description.append([])
 # BLE command
 main_mcu_command_description.append([	"0x0000: invalid",
-										"0x0001: enable BLE",
-										"0x0002: disable BLE",
-										"0x0003: store bond info answer",
-										"0x0004: recall bond info answer"])
+										"0x0001: enable bluetooth",
+										"0x0002: invalid",
+										"0x0003: store bond info",
+										"0x0004: recall bond info",
+										"0x0005: clear bond info",
+										"0x0006: enable pairing",
+										"0x0007: disable pairing",
+										"0x0008: get irk keys",
+										"0x0009: recall bond info irk",
+										"0x000A: get 6 digit code", 
+										"0x000B: disconnect for next device"										
+										])
 
 MAIN_MCU_COMMAND_SLEEP          = 0x0001
 MAIN_MCU_COMMAND_ATTACH_USB     = 0x0002

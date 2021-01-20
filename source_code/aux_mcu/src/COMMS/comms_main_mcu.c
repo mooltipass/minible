@@ -29,7 +29,7 @@
 #include "dma.h"
 #include "udc.h"
 /* Message about to be sent to main MCU */
-aux_mcu_message_t main_mcu_send_message;
+volatile aux_mcu_message_t main_mcu_send_message;
 /* Temporary message, used when dealing with message shorter than max size */
 volatile aux_mcu_message_t comms_main_mcu_temp_message;
 /* Message dedicated to sending answers to non USB & non BLE messages to main MCU */
@@ -76,7 +76,7 @@ void comms_main_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** messag
     dma_wait_for_main_mcu_packet_sent();
     
     /* Get pointer to our message to be sent buffer */
-    aux_mcu_message_t* temp_tx_message_pt = &main_mcu_send_message;
+    aux_mcu_message_t* temp_tx_message_pt = (aux_mcu_message_t*)&main_mcu_send_message;
     
     /* Clear it */
     memset((void*)temp_tx_message_pt, 0, sizeof(*temp_tx_message_pt));
@@ -95,6 +95,7 @@ void comms_main_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** messag
 void comms_main_mcu_send_simple_event(uint16_t event_id)
 {
     dma_wait_for_main_mcu_packet_sent();
+    memset((void*)&main_mcu_send_message, 0x00, sizeof(main_mcu_send_message));
     main_mcu_send_message.aux_mcu_event_message.event_id = event_id;
     main_mcu_send_message.message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
     main_mcu_send_message.payload_length1 = sizeof(main_mcu_send_message.aux_mcu_event_message.event_id);
@@ -116,13 +117,13 @@ void comms_main_mcu_send_simple_event_alt_buffer(uint16_t event_id, aux_mcu_mess
     comms_main_mcu_send_message((void*)buffer, (uint16_t)sizeof(aux_mcu_message_t));
 }
 
-/*! \fn     comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length)
+/*! \fn     comms_main_mcu_send_message(volatile aux_mcu_message_t* message, uint16_t message_length)
 *   \brief  Send a message to the MCU
 *   \param  message         Pointer to the message to send
 *   \param  message_length  Message length
 *   \note   Transfer is done through DMA so data will be accessed after this function returns
 */
-void comms_main_mcu_send_message(aux_mcu_message_t* message, uint16_t message_length)
+void comms_main_mcu_send_message(volatile aux_mcu_message_t* message, uint16_t message_length)
 {
     /* Wait for possible previous message to be sent */
     dma_wait_for_main_mcu_packet_sent();

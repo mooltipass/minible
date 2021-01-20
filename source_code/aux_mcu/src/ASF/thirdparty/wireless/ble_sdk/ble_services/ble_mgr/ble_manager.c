@@ -1032,6 +1032,8 @@ at_ble_status_t ble_connected_state_handler(void *params)
         
         if (conn_params->peer_addr.type == AT_BLE_ADDRESS_PUBLIC)
         {
+            resolve_addr_flag = false;
+            
             /* Check for temp ban */
             if (logic_bluetooth_is_device_temp_banned(conn_params->peer_addr.addr) != FALSE)
             {
@@ -1117,7 +1119,7 @@ at_ble_status_t ble_connected_state_handler(void *params)
             if (nb_irk_keys == 0)
             {
                 DBG_LOG("No IRK keys gotten");
-                resolve_addr_flag = FALSE;
+                resolve_addr_flag = false;
                 return AT_BLE_FAILURE;
             }
             

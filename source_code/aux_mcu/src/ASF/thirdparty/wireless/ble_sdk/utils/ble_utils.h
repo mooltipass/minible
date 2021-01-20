@@ -148,12 +148,17 @@
 
 static inline void dump_hex_buffer(void *buf, uint32_t len)
 {
-	uint32_t idx;
-	uint8_t *buffer = (uint8_t *)buf;
-	for (idx = 0; idx < len; ++idx)
-	{
-		DBG_LOG_CONT("0x%X ", *buffer++);
-	}
+    #if defined DEBUG_LOG_DISABLED
+    (void)buf;
+    (void)len;
+    #else
+    uint32_t idx;
+    uint8_t *buffer = (uint8_t *)buf;
+    for (idx = 0; idx < len; ++idx)
+    {
+        DBG_LOG_CONT("0x%X ", *buffer++);
+    }
+    #endif
 }
 
 static inline uint32_t convert_ieee754_ieee11073_float(float f_val)
