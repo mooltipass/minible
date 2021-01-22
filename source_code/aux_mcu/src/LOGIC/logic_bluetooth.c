@@ -85,9 +85,10 @@ BOOL logic_bluetooth_paired = FALSE;
 BOOL logic_bluetooth_disable_flag = FALSE;
 /* Bool to specify if we setup the callbacks */
 BOOL logic_bluetooth_callbacks_set = FALSE;
-/* Boolean to know if we're currently temporarily banning someone */
-BOOL logic_bluetooth_temp_banning_device = FALSE;
-uint8_t logic_bluetooth_temp_banned_mac[6];
+/* Banning timeouts */
+uint16_t logic_bluetooth_last_temp_banned_mac_entered_index;
+uint8_t logic_bluetooth_temp_banned_mac[3][6];
+uint16_t logic_bluetooth_banning_timeouts[3];
 /* Logic to know if some device is trying to connect to us too often */
 BOOL logic_bluetooth_too_many_invalid_connect_notif_sent = FALSE;
 uint8_t logic_bluetooth_invalid_connect_counter = 0;
@@ -97,6 +98,21 @@ static at_ble_status_t hid_custom_event(void *param)
 {
     at_ble_status_t status = AT_BLE_SUCCESS;
     return status;
+}
+
+/*! \fn     logic_bluetooth_ms_tick(void)
+*   \brief  Function called every ms
+*/
+void logic_bluetooth_ms_tick(void)
+{
+    /* Decrease banning timeouts */
+    for (uint16_t i = 0; i < ARRAY_SIZE(logic_bluetooth_banning_timeouts); i++)
+    {
+        if (logic_bluetooth_banning_timeouts[i] != 0)
+        {
+            logic_bluetooth_banning_timeouts[i]--;
+        }
+    }
 }
 
 /*! \fn     logic_bluetooth_denied_connection_trigger(void)
@@ -124,8 +140,18 @@ void logic_bluetooth_set_disable_flag(void)
 */
 void logic_bluetooth_store_temp_ban_connected_address(uint8_t* address)
 {
-    /* Copy MAC into temp ban buffer */
-    memcpy(logic_bluetooth_temp_banned_mac, address, sizeof(logic_bluetooth_temp_banned_mac));    
+    /* Find an empty slot to store the mac address */
+    for (uint16_t i = 0; i < ARRAY_SIZE(logic_bluetooth_banning_timeouts); i++)
+    {
+        if (logic_bluetooth_banning_timeouts[i] == 0)
+        {
+            /* Store last temp banned index */
+            logic_bluetooth_last_temp_banned_mac_entered_index = i;
+            
+            /* Copy MAC into temp ban buffer */
+            memcpy(logic_bluetooth_temp_banned_mac[i], address, sizeof(logic_bluetooth_temp_banned_mac[0]));
+        }
+    }  
 }
 
 /*! \fn     logic_bluetooth_temporarily_ban_connected_device(void)
@@ -135,11 +161,10 @@ void logic_bluetooth_store_temp_ban_connected_address(uint8_t* address)
 RET_TYPE logic_bluetooth_temporarily_ban_connected_device(void)
 {
     /* Mac is filled when device is connected */
-    if ((logic_is_ble_enabled() != FALSE) && (logic_bluetooth_can_communicate_with_host != FALSE))
+    if ((logic_is_ble_enabled() != FALSE) && (logic_bluetooth_can_communicate_with_host != FALSE) && (logic_bluetooth_last_temp_banned_mac_entered_index < ARRAY_SIZE(logic_bluetooth_banning_timeouts)))
     {
         /* Temp ban for 34 seconds */
-        timer_start_timer(TIMER_BLE_TEMP_BAN, 34567);
-        logic_bluetooth_temp_banning_device = TRUE;
+        logic_bluetooth_banning_timeouts[logic_bluetooth_last_temp_banned_mac_entered_index] = 34567;
         ble_disconnect_all_devices();
         return RETURN_OK;
     }
@@ -156,14 +181,16 @@ RET_TYPE logic_bluetooth_temporarily_ban_connected_device(void)
 */
 BOOL logic_bluetooth_is_device_temp_banned(uint8_t* mac)
 {
-    if ((memcmp(logic_bluetooth_temp_banned_mac, mac, sizeof(logic_bluetooth_temp_banned_mac)) == 0) && (logic_bluetooth_temp_banning_device != FALSE))
+    /* Check all slots */
+    for (uint16_t i = 0; i < ARRAY_SIZE(logic_bluetooth_banning_timeouts); i++)
     {
-        return TRUE;
+        if ((logic_bluetooth_banning_timeouts[i] != 0) && (memcmp(logic_bluetooth_temp_banned_mac[i], mac, sizeof(logic_bluetooth_temp_banned_mac[0])) == 0))
+        {
+            return TRUE;
+        }
     }
-    else
-    {
-        return FALSE;
-    }
+    
+    return FALSE;
 }
 
 /*! \fn     logic_bluetooth_get_open_to_pairing(void)
@@ -1872,12 +1899,6 @@ void logic_bluetooth_routine(void)
     
     /* Store previous state */
     logic_bluetooth_can_communicate_with_host_prev = logic_bluetooth_can_communicate_with_host;
-    
-    /* Temp ban routine */
-    if (timer_has_timer_expired(TIMER_BLE_TEMP_BAN, TRUE) == TIMER_EXPIRED)
-    {
-        logic_bluetooth_temp_banning_device = FALSE;
-    }
     
     ble_event_task();
     logic_sleep_routine_ble_call();

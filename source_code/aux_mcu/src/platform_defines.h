@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    50
+#define FW_MINOR    51
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -94,6 +94,7 @@
 - v0.49:- delay after no comms check when waking up MAIN
 - v0.50:- main send buffer declared as volatile
         - bug fix: long switch between resolvable & non resolvable mac host BLE devices
+- v0.51:- BLE disconnect feature used as a stack of ban timeouts
 */
 
 /**************** SETUP DEFINES ****************/

@@ -6,6 +6,7 @@
  */ 
 #include <asf.h>
 #include "platform_defines.h"
+#include "logic_bluetooth.h"
 #include "driver_clocks.h"
 #include "driver_timer.h"
 #include "defines.h"
@@ -36,6 +37,9 @@ void TCC0_Handler(void)
 
             /* USB checks tick */
             udc_checks();
+            
+            /* Bluetooth logic tick */
+            logic_bluetooth_ms_tick();
         }
     #endif
 }

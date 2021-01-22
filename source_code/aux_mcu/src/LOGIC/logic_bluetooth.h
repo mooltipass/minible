@@ -300,6 +300,7 @@ void logic_bluetooth_set_disable_flag(void);
 BOOL logic_bluetooth_can_talk_to_host(void);
 void logic_bluetooth_stop_bluetooth(void);
 void logic_bluetooth_routine(void);
+void logic_bluetooth_ms_tick(void);
 
 
 #endif /* LOGIC_BLUETOOTH_H_ */
