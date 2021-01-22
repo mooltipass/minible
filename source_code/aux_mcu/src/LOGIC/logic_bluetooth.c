@@ -140,6 +140,7 @@ void logic_bluetooth_set_disable_flag(void)
 */
 void logic_bluetooth_store_temp_ban_connected_address(uint8_t* address)
 {
+    cpu_irq_enter_critical();
     /* Find an empty slot to store the mac address */
     for (uint16_t i = 0; i < ARRAY_SIZE(logic_bluetooth_banning_timeouts); i++)
     {
@@ -152,6 +153,7 @@ void logic_bluetooth_store_temp_ban_connected_address(uint8_t* address)
             memcpy(logic_bluetooth_temp_banned_mac[i], address, sizeof(logic_bluetooth_temp_banned_mac[0]));
         }
     }  
+    cpu_irq_leave_critical();
 }
 
 /*! \fn     logic_bluetooth_temporarily_ban_connected_device(void)
@@ -164,7 +166,7 @@ RET_TYPE logic_bluetooth_temporarily_ban_connected_device(void)
     if ((logic_is_ble_enabled() != FALSE) && (logic_bluetooth_can_communicate_with_host != FALSE) && (logic_bluetooth_last_temp_banned_mac_entered_index < ARRAY_SIZE(logic_bluetooth_banning_timeouts)))
     {
         /* Temp ban for 34 seconds */
-        logic_bluetooth_banning_timeouts[logic_bluetooth_last_temp_banned_mac_entered_index] = 34567;
+        logic_bluetooth_banning_timeouts[logic_bluetooth_last_temp_banned_mac_entered_index] = 45678;
         ble_disconnect_all_devices();
         return RETURN_OK;
     }
@@ -181,16 +183,20 @@ RET_TYPE logic_bluetooth_temporarily_ban_connected_device(void)
 */
 BOOL logic_bluetooth_is_device_temp_banned(uint8_t* mac)
 {
+    BOOL return_val = FALSE;
+    
     /* Check all slots */
+    cpu_irq_enter_critical();
     for (uint16_t i = 0; i < ARRAY_SIZE(logic_bluetooth_banning_timeouts); i++)
     {
         if ((logic_bluetooth_banning_timeouts[i] != 0) && (memcmp(logic_bluetooth_temp_banned_mac[i], mac, sizeof(logic_bluetooth_temp_banned_mac[0])) == 0))
         {
-            return TRUE;
+            return_val = TRUE;
         }
     }
+    cpu_irq_leave_critical();
     
-    return FALSE;
+    return return_val;
 }
 
 /*! \fn     logic_bluetooth_get_open_to_pairing(void)
