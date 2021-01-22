@@ -482,7 +482,7 @@ void logic_power_compute_battery_state(void)
         /* Copy the volatile struct */
         volatile power_consumption_log_t logic_power_consumption_log_copy;
         cpu_irq_enter_critical();
-        memcpy(&logic_power_consumption_log_copy, &logic_power_consumption_log, sizeof(logic_power_consumption_log_copy));
+        memcpy((void*)&logic_power_consumption_log_copy, (void*)&logic_power_consumption_log, sizeof(logic_power_consumption_log_copy));
         cpu_irq_leave_critical();
         
         /* Battery voltage high enough so we can try to use our power consumption log */
