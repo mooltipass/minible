@@ -245,5 +245,5 @@ wipe:
 	$(RM) $(OUTPUT_DIR)
 
 flash: $(TARGET)
-	edbg -b -t samd21 -p -f $(TARGET_BIN)
+	edbg -b -t samd21 -e -p -f $(TARGET_BIN)
 
