@@ -243,13 +243,6 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
 {
     DBG_LOG("Disconnected from device");
     
-    /* Set booleans */
-    logic_bluetooth_can_communicate_with_host = FALSE;
-    logic_bluetooth_just_connected = FALSE;
-    logic_bluetooth_just_paired = FALSE;
-    logic_bluetooth_connected = FALSE;
-    logic_bluetooth_paired = FALSE;
-    
     /* Callback in case we're waiting for a packet send */
     comms_raw_hid_send_callback(BLE_INTERFACE);
 
@@ -260,7 +253,17 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
     logic_bluetooth_start_advertising();
     
     /* Inform main MCU */
-    comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_DISCONNECTED);
+    if (logic_bluetooth_can_communicate_with_host != FALSE)
+    {
+        comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_DISCONNECTED);
+    }
+    
+    /* Set booleans */
+    logic_bluetooth_can_communicate_with_host = FALSE;
+    logic_bluetooth_just_connected = FALSE;
+    logic_bluetooth_just_paired = FALSE;
+    logic_bluetooth_connected = FALSE;
+    logic_bluetooth_paired = FALSE;
 
     return AT_BLE_SUCCESS;
 }
