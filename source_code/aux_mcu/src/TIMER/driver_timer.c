@@ -93,6 +93,11 @@ void timer_remove_callback_timer(void* timer_id)
         callback_timers[callback_timer_id].timer_enabled = FALSE;
         callback_timers[callback_timer_id].timer_armed = FALSE;
     }
+    else
+    {
+        /* We shouldn't be there */
+        timer_too_many_cb_timers_requested = TRUE;
+    }
     cpu_irq_leave_critical();
 }
 
@@ -124,6 +129,11 @@ void timer_start_callback_timer(void* timer_id, uint32_t ms)
         callback_timers[callback_timer_id].timer_armed = TRUE;
         callback_timers[callback_timer_id].timer_set_val = ms;        
     }
+    else
+    {
+        /* We shouldn't be there */
+        timer_too_many_cb_timers_requested = TRUE;
+    }
     cpu_irq_leave_critical();    
 }
 
@@ -138,6 +148,11 @@ void timer_stop_callback_timer(void* timer_id)
     if (callback_timer_id < TIMER_NB_CALLBACK_TIMERS)
     {
         callback_timers[callback_timer_id].timer_armed = FALSE;
+    }
+    else
+    {
+        /* We shouldn't be there */
+        timer_too_many_cb_timers_requested = TRUE;
     }
     cpu_irq_leave_critical();    
 }
