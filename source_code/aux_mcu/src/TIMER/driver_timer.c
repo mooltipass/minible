@@ -62,11 +62,11 @@ BOOL timer_get_and_clear_too_many_cb_timers_requested_flag(void)
 void* timer_create_callback_timer(void(*timer_cb)(void*))
 {
     /* Find an available spot */
+    cpu_irq_enter_critical();
     for (uint32_t i = 0; i < TIMER_NB_CALLBACK_TIMERS; i++)
     {        
         if (callback_timers[i].timer_enabled == FALSE)
         {
-            cpu_irq_enter_critical();
             callback_timers[i].timer_callback = timer_cb;
             callback_timers[i].timer_enabled = TRUE;
             callback_timers[i].timer_armed = FALSE;
@@ -76,6 +76,7 @@ void* timer_create_callback_timer(void(*timer_cb)(void*))
     }
     
     /* We shouldn't be there */
+    cpu_irq_leave_critical();
     timer_too_many_cb_timers_requested = TRUE;
     return (void*)(0x20000000 + 32);
 }
@@ -105,13 +106,13 @@ void timer_remove_callback_timer(void* timer_id)
 */
 void timer_reset_callback_timers(void)
 {
+    cpu_irq_enter_critical();
     for (uint32_t i = 0; i < TIMER_NB_CALLBACK_TIMERS; i++)
     {
-        cpu_irq_enter_critical();
         callback_timers[i].timer_enabled = FALSE;
         callback_timers[i].timer_armed = FALSE;
-        cpu_irq_leave_critical();
     }
+    cpu_irq_leave_critical();
 }
 
 /*! \brief  Callback timer start to match the damn asf lib
