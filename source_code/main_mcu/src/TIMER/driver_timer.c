@@ -283,7 +283,7 @@ void timer_initialize_timebase(void)
     /* Setup TCC2 for 34 minutes (!) interrupt */
     PM->APBCMASK.bit.TCC2_ = 1;                                         // Enable APBC clock for TCC2
     while(TCC2->SYNCBUSY.reg & TCC_SYNCBUSY_PER);                       // Wait for sync
-    TCC2->PER.reg = TCC_PER_PER(2-1);         // Set period to be 1024/1024/2048 = 34mins
+    TCC2->PER.reg = TCC_PER_PER((SET_DATE_MSG_INTERVAL_S/2)-1);         // Set period to be 1024/1024/2048 = 34mins
     tcc_ctrl_reg.reg = TCC_CTRLA_ENABLE;                                // Enable tcc0
     tcc_ctrl_reg.bit.RUNSTDBY = 1;                                      // Run during standby
     tcc_ctrl_reg.bit.PRESCALER = TCC_CTRLA_PRESCALER_DIV1024_Val;       // 1024 prescaling to have a 1sec tick
