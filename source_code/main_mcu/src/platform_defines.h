@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    59
+#define FW_MINOR    60
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -176,6 +176,7 @@
         - bug fix: device incorrectly charging at boot when powered off
 - v0.59:- check that time is set for TOTP
         - using a kind of time based counter for FIDO2
+- v0.60:- bug fix: high power consumption during sleep
 */
 
 /**************** SETUP DEFINES ****************/

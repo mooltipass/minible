@@ -37,6 +37,7 @@
 #include "rng.h"
 /* Platform wakeup reason */
 volatile platform_wakeup_reason_te logic_device_wakeup_reason = WAKEUP_REASON_OTHER;
+volatile BOOL logic_device_aux_mcu_wakeup_rcvd = FALSE;
 /* USB timeout detected bool */
 BOOL logic_device_usb_timeout_detected = FALSE;
 /* Device state changed bool */
@@ -101,6 +102,23 @@ void logic_device_set_usb_timeout_detected(void)
     logic_device_usb_timeout_detected = TRUE;
 }
 
+/*! \fn     logic_device_get_aux_wakeup_rcvd(void)
+*   \brief  know if we received a wakeup event from aux mcu
+*   \return the right boolean
+*/
+volatile BOOL logic_device_get_aux_wakeup_rcvd(void)
+{
+    return logic_device_aux_mcu_wakeup_rcvd;
+}
+
+/*! \fn     logic_device_clear_aux_wakeup_rcvd(void)
+*   \brief  Clear aux wakeup received flag
+*/
+void logic_device_clear_aux_wakeup_rcvd(void)
+{
+    logic_device_aux_mcu_wakeup_rcvd = FALSE;
+}
+
 /*! \fn     logic_device_set_wakeup_reason(platform_wakeup_reason_te reason)
 *   \brief  Set device wakeup reason
 *   \param  reason  wakeup reason
@@ -111,6 +129,10 @@ void logic_device_set_wakeup_reason(platform_wakeup_reason_te reason)
     {
         logic_device_wakeup_reason = reason;
     }
+    else if (reason == WAKEUP_REASON_AUX_MCU)
+    {
+        logic_device_aux_mcu_wakeup_rcvd = TRUE;
+    }
 }
 
 /*! \fn     logic_device_clear_wakeup_reason(void)
@@ -119,13 +141,14 @@ void logic_device_set_wakeup_reason(platform_wakeup_reason_te reason)
 void logic_device_clear_wakeup_reason(void)
 {
     logic_device_wakeup_reason = WAKEUP_REASON_NONE;
+    logic_device_aux_mcu_wakeup_rcvd = FALSE;
 }
 
 /*! \fn     logic_device_get_wakeup_reason(void)
 *   \brief  Get device wakeup reason
 *   \return wakeup reason
 */
-platform_wakeup_reason_te logic_device_get_wakeup_reason(void)
+volatile platform_wakeup_reason_te logic_device_get_wakeup_reason(void)
 {
     return logic_device_wakeup_reason;
 }

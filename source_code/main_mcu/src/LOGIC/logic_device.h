@@ -35,13 +35,15 @@
 
 /* Prototypes */
 ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* password);
+volatile platform_wakeup_reason_te logic_device_get_wakeup_reason(void);
 void logic_device_set_wakeup_reason(platform_wakeup_reason_te reason);
-platform_wakeup_reason_te logic_device_get_wakeup_reason(void);
 void logic_device_bundle_update_end(BOOL from_debug_messages);
 BOOL logic_device_get_and_clear_settings_changed_flag(void);
 BOOL logic_device_get_and_clear_usb_timeout_detected(void);
 BOOL logic_device_get_state_changed_and_reset_bool(void);
+volatile BOOL logic_device_get_aux_wakeup_rcvd(void);
 void logic_device_set_usb_timeout_detected(void);
+void logic_device_clear_aux_wakeup_rcvd(void);
 void logic_device_set_settings_changed(void);
 void logic_device_clear_wakeup_reason(void);
 void logic_device_set_state_changed(void);

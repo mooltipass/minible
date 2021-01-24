@@ -34,6 +34,8 @@ volatile BOOL platform_io_voledin_conv_ready = FALSE;
 volatile BOOL platform_io_debounced_3v3_present = FALSE;
 volatile uint16_t platform_io_3v3_not_detected_counter = 0;
 volatile uint16_t platform_io_3v3_detected_counter = 0;
+/* Bool to know if no comms interrupt is set */
+BOOL platform_io_no_comms_interrupt_set = FALSE;
 
 
 /*! \fn     EIC_Handler(void)
@@ -45,23 +47,38 @@ void EIC_Handler(void)
     if ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0)
     {
         logic_device_set_wakeup_reason(WAKEUP_REASON_AUX_MCU);
+        EIC->INTFLAG.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
+        EIC->INTENCLR.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
     }
     else
     {
         logic_device_set_wakeup_reason(WAKEUP_REASON_OTHER);
     }
     
-    /* All the interrupts below are used to wake up the platform from sleep. If we detect any of them, we disable all of them */
-    if (((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << USB_3V3_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << AUX_MCU_NO_COMMS_EXTINT_NUM)) != 0) || ((EIC->INTFLAG.reg & (1 << SMC_DET_EXTINT_NUM)) != 0))
+    /* Wheel tick interrupt clear */
+    if ((EIC->INTFLAG.reg & (1 << WHEEL_TICKB_EXTINT_NUM)) != 0)
     {
         EIC->INTFLAG.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << WHEEL_TICKB_EXTINT_NUM);
+    }
+    
+    /* Wheel click interrupt clear */
+    if ((EIC->INTFLAG.reg & (1 << WHEEL_CLICK_EXTINT_NUM)) != 0)
+    {
         EIC->INTFLAG.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
+    }
+    
+    /* USB interrupt clear */
+    if ((EIC->INTFLAG.reg & (1 << USB_3V3_EXTINT_NUM)) != 0)
+    {
         EIC->INTFLAG.reg = (1 << USB_3V3_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << USB_3V3_EXTINT_NUM);
-        EIC->INTFLAG.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
-        EIC->INTENCLR.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
+    }
+    
+    /* Smartcard insertion clear */
+    if ((EIC->INTFLAG.reg & (1 << SMC_DET_EXTINT_NUM)) != 0)
+    {
         EIC->INTFLAG.reg = (1 << SMC_DET_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << SMC_DET_EXTINT_NUM);
     }
@@ -370,8 +387,8 @@ void platform_io_enable_smartcard_interrupt(void)
 */
 void platform_io_disable_smartcard_interrupt(void)
 {
-    PORT->Group[SMC_DET_GROUP].PMUX[AUX_MCU_NOCOMMS_PINID/2].bit.SMC_DET_PMUXREGID = EIC_CONFIG_SENSE0_NONE_Val;    // No detection
-    PORT->Group[SMC_DET_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;                                        // Disable peripheral multiplexer
+    PORT->Group[SMC_DET_GROUP].PMUX[SMC_DET_PINID/2].bit.SMC_DET_PMUXREGID = EIC_CONFIG_SENSE0_NONE_Val;    // No detection
+    PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PMUXEN = 0;                                        // Disable peripheral multiplexer
     EIC->WAKEUP.reg &= ~(1 << SMC_DET_EXTINT_NUM);                                                                  // Disable wakeup from ext pin
 }
 
@@ -972,6 +989,22 @@ void platform_io_disable_rx_usart_rx_interrupt(void)
     NVIC_DisableIRQ(AUXMCU_SERCOM_INTERUPT);
 }
 
+/*! \fn     platform_io_is_no_comms_asserted(void)
+*   \brief  Check if no comms is asserted
+*   \return TRUE if no comms is asserted low, FALSE otherwise
+*/
+BOOL platform_io_is_no_comms_asserted(void)
+{
+    if ((PORT->Group[AUX_MCU_NOCOMMS_GROUP].IN.reg & AUX_MCU_NOCOMMS_MASK) == 0)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
 /*! \fn     platform_io_init_no_comms_signal(void)
 *   \brief  Initialize the aux comms signal, used as wakeup for aux MCU at boot
 */
@@ -993,6 +1026,8 @@ void platform_io_set_no_comms_as_wakeup_interrupt(void)
 {
     /* Platform v3 */
     #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+    if (platform_io_no_comms_interrupt_set == FALSE)
+    {
         /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].PMUX[AUX_MCU_NOCOMMS_PINID/2].bit.AUX_MCU_NOCOMMS_PMUXREGID = PORT_PMUX_PMUXO_A_Val; // Pin mux to EIC
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 1;                                        // Enable peripheral multiplexer
@@ -1000,6 +1035,8 @@ void platform_io_set_no_comms_as_wakeup_interrupt(void)
         EIC->INTFLAG.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);                                                                  // Clear interrupt just in case
         EIC->INTENSET.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);                                                                 // Enable interrupt from ext pin
         EIC->WAKEUP.reg |= (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);                                                                  // Allow device wakeup
+        platform_io_no_comms_interrupt_set = TRUE;
+    }
     #endif
 }
 
@@ -1011,6 +1048,7 @@ void platform_io_disable_no_comms_as_wakeup_interrupt(void)
     PORT->Group[AUX_MCU_NOCOMMS_GROUP].PMUX[AUX_MCU_NOCOMMS_PINID/2].bit.AUX_MCU_NOCOMMS_PMUXREGID = EIC_CONFIG_SENSE0_NONE_Val;// No detection
     PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;                                            // Disable peripheral multiplexer
     EIC->WAKEUP.reg &= ~(1 << AUX_MCU_NO_COMMS_EXTINT_NUM);                                                                     // Disable wakeup from ext pin
+    platform_io_no_comms_interrupt_set = FALSE;
 }
 
 /*! \fn     platform_io_init_aux_comms_ports(void)
@@ -1120,9 +1158,6 @@ void platform_io_prepare_ports_for_sleep_exit(void)
     
     /* Disable wheel interrupt */
     platform_io_disable_scroll_wheel_wakeup_interrupts();
-    
-    /* Disable AUX MCU through NO COMMS interrupt */
-    platform_io_disable_no_comms_as_wakeup_interrupt();
     
     /* Reconfigure wheel port */
     platform_io_init_scroll_wheel_ports();

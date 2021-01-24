@@ -549,6 +549,18 @@ void main_standby_sleep(void)
             /* Disable aux MCU dma transfers */
             dma_aux_mcu_disable_transfer();
         }
+        else
+        {
+            /* Double check that we don't have an AUX MCU trying to talk to us (ex: periodic wake up that matches with aux mcu wakeup) */
+            if (logic_device_get_aux_wakeup_rcvd() != FALSE)
+            {                
+                /* Re-arm timer and communications then! */
+                timer_start_timer(TIMER_SCREEN, SLEEP_AFTER_AUX_WAKEUP_MS);
+                comms_aux_arm_rx_and_clear_no_comms();
+                logic_device_clear_aux_wakeup_rcvd();
+                return;
+            }            
+        }
     
         /* Wait for accelerometer DMA transfer end and put it to sleep */
         lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
@@ -596,11 +608,12 @@ void main_standby_sleep(void)
         lis2hh12_sleep_exit_and_dma_arm(&plat_acc_descriptor);
     
         /* Get wakeup reason */
-        platform_wakeup_reason_te wakeup_reason = logic_device_get_wakeup_reason();
+        volatile platform_wakeup_reason_te wakeup_reason = logic_device_get_wakeup_reason();
         
         /* Re-enable AUX comms */
         if (wakeup_reason != WAKEUP_REASON_30M_TIMER)
         {
+            platform_io_disable_no_comms_as_wakeup_interrupt();
             comms_aux_arm_rx_and_clear_no_comms();
         }
     

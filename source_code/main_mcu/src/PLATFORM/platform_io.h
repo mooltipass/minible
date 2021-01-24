@@ -67,6 +67,7 @@ BOOL platform_io_is_usb_3v3_present_raw(void);
 void platform_io_disable_switch_and_die(void);
 void platform_io_smc_inserted_function(void);
 void platform_io_init_no_comms_signal(void);
+BOOL platform_io_is_no_comms_asserted(void);
 void platform_io_smc_remove_function(void);
 void platform_io_set_wheel_click_low(void);
 BOOL platform_io_is_usb_3v3_present(void);
