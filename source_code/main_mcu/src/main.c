@@ -535,10 +535,14 @@ void main_standby_sleep(void)
     if (debugger_present == FALSE)
     {
         aux_mcu_message_t* temp_rx_message;
+        BOOL comms_disabled_on_entry = TRUE;
     
         /* Only if we actually wokeup the aux mcu */
         if (comms_aux_mcu_are_comms_disabled() == FALSE)
         {
+            /* Set boolean */
+            comms_disabled_on_entry = FALSE;
+            
             /* Send a go to sleep message to aux MCU, wait for ack, leave no comms high (automatically set when receiving the sleep received event) */
             comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_SLEEP);
             while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_SLEEP_RECEIVED) != RETURN_OK);
@@ -548,18 +552,6 @@ void main_standby_sleep(void)
             
             /* Disable aux MCU dma transfers */
             dma_aux_mcu_disable_transfer();
-        }
-        else
-        {
-            /* Double check that we don't have an AUX MCU trying to talk to us (ex: periodic wake up that matches with aux mcu wakeup) */
-            if (logic_device_get_aux_wakeup_rcvd() != FALSE)
-            {                
-                /* Re-arm timer and communications then! */
-                timer_start_timer(TIMER_SCREEN, SLEEP_AFTER_AUX_WAKEUP_MS);
-                comms_aux_arm_rx_and_clear_no_comms();
-                logic_device_clear_aux_wakeup_rcvd();
-                return;
-            }            
         }
     
         /* Wait for accelerometer DMA transfer end and put it to sleep */
@@ -578,19 +570,29 @@ void main_standby_sleep(void)
         /* Errata 10416: disable interrupt routines */
         cpu_irq_enter_critical();
         
-        /* Prepare the ports for sleep */
-        platform_io_prepare_ports_for_sleep();
+        /* Double check that we don't have an AUX MCU trying to talk to us (ex: periodic wake up that matches with aux mcu wakeup) */
+        if ((logic_device_get_aux_wakeup_rcvd() == FALSE) || (comms_disabled_on_entry == FALSE))
+        {
+            /* Prepare the ports for sleep */
+            platform_io_prepare_ports_for_sleep();
     
-        /* Clear wakeup reason */
-        logic_device_clear_wakeup_reason();
+            /* Clear wakeup reason */
+            logic_device_clear_wakeup_reason();
         
-        /* Specify that comms are disabled */
-        comms_aux_mcu_set_comms_disabled();
-    
-        /* Enter deep sleep */
-        SCB->SCR = SCB_SCR_SLEEPDEEP_Msk;
-        __DSB();
-        __WFI();
+            /* Specify that comms are disabled */
+            comms_aux_mcu_set_comms_disabled();
+            
+            /* Enter deep sleep */
+            SCB->SCR = SCB_SCR_SLEEPDEEP_Msk;
+            __DSB();
+            __WFI();
+        }
+        else
+        {
+            logic_device_clear_wakeup_reason();
+            logic_device_clear_aux_wakeup_rcvd();
+            logic_device_set_wakeup_reason(WAKEUP_REASON_AUX_MCU);
+        }    
     
         /* Damn errata... enable interrupts */
         cpu_irq_leave_critical();
