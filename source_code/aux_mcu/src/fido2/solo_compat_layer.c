@@ -34,7 +34,13 @@ void device_wink()
     //main_mcu message to flash something on display?
 }
 
-#if !defined DEBUG_LOG_DISABLED
+#if defined DEBUG_LOG_DISABLED
+
+void dump_hex(uint8_t * buf, uint32_t size)
+{
+}
+
+#else
 
 void dump_hex(uint8_t * buf, uint32_t size)
 {

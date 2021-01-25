@@ -228,7 +228,7 @@ $(TARGET): $(OBJS) $(LIB_DEP) $(LINKER_SCRIPT_DEP)
 	@echo Invoking: ARM/GNU Linker
 	$(CC) -o$(TARGET) $(OBJS) $(LIBS) -mthumb -Wl,-Map=$(TARGET_MAP) --specs=nano.specs -Wl,--start-group -larm_cortexM0l_math -lble_sdk -lm -l$(LIBCBOR) -Wl,--end-group $(LIB_DIRS) -Wl,--gc-sections -Wl,-section-start=.start_app_function_addr=0x200 -Wl,-section-start=.flash_start_addr=0x0 -Wl,-section-start=.text=$(TEXT_SEC_START) -Wl,-section-start=.data=0x20000004 -Wl,-section-start=.relocate=0x20000004 -Wl,-section-start=.bootloader_flag=0x20000000  -mcpu=cortex-m0plus -Wl,--entry=Reset_Handler -Wl,--cref -T$(LINKER_SCRIPT_DEP) -Xlinker --undefined=jump_to_application_function_addr -Xlinker --undefined=jump_to_application_function
 	@echo Finished building target: $@
-	$(OBJCOPY) -O binary $(TARGET) $(TARGET_BIN)
+	$(OBJCOPY) --verbose --gap-fill 0xFF -j .text -j .stack -j .bss -j .relocate -j .start_app_function_addr -j .flash_start_addr -j .ARM.attributes -O binary $(TARGET) $(TARGET_BIN)
 	$(OBJCOPY) -O ihex -R .eeprom -R .fuse -R .lock -R .signature $(TARGET) $(TARGET_HEX)
 	$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom=alloc,load --change-section-lma .eeprom=0 --no-change-warnings -O binary $(TARGET) $(TARGET_EEP) || exit 0
 	$(OBJDUMP) -h -S $(TARGET) > $(TARGET_LSS)
