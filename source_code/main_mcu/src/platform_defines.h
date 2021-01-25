@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    60
+#define FW_MINOR    61
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -177,6 +177,7 @@
 - v0.59:- check that time is set for TOTP
         - using a kind of time based counter for FIDO2
 - v0.60:- bug fix: high power consumption during sleep
+- v0.61:- bug fix: eternal sleep
 */
 
 /**************** SETUP DEFINES ****************/
