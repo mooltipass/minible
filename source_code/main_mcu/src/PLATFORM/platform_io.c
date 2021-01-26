@@ -1029,9 +1029,11 @@ void platform_io_set_no_comms_as_wakeup_interrupt(void)
 */
 void platform_io_disable_no_comms_as_wakeup_interrupt(void)
 {
+    EIC->INTENCLR.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
+    EIC->INTFLAG.reg = (1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
+    EIC->WAKEUP.reg &= ~(1 << AUX_MCU_NO_COMMS_EXTINT_NUM);
     PORT->Group[AUX_MCU_NOCOMMS_GROUP].PMUX[AUX_MCU_NOCOMMS_PINID/2].bit.AUX_MCU_NOCOMMS_PMUXREGID = EIC_CONFIG_SENSE0_NONE_Val;// No detection
     PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;                                            // Disable peripheral multiplexer
-    EIC->WAKEUP.reg &= ~(1 << AUX_MCU_NO_COMMS_EXTINT_NUM);                                                                     // Disable wakeup from ext pin
     platform_io_no_comms_interrupt_set = FALSE;
 }
 
