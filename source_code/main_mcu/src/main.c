@@ -534,6 +534,7 @@ void main_standby_sleep(void)
 #ifndef EMULATOR_BUILD
     if (debugger_present == FALSE)
     {
+        BOOL ports_set_for_sleep = FALSE;
         aux_mcu_message_t* temp_rx_message;
         BOOL comms_disabled_on_entry = TRUE;
     
@@ -575,6 +576,7 @@ void main_standby_sleep(void)
         {
             /* Prepare the ports for sleep */
             platform_io_prepare_ports_for_sleep();
+            ports_set_for_sleep = TRUE;
     
             /* Clear wakeup reason */
             logic_device_clear_wakeup_reason();
@@ -598,7 +600,10 @@ void main_standby_sleep(void)
         cpu_irq_leave_critical();
     
         /* Prepare ports for sleep exit */
-        platform_io_prepare_ports_for_sleep_exit();
+        if (ports_set_for_sleep != FALSE)
+        {
+            platform_io_prepare_ports_for_sleep_exit();
+        }
     
         /* Dataflash power up */
         dataflash_exit_power_down(&dataflash_descriptor);
