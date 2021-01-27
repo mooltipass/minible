@@ -445,6 +445,7 @@ uint16_t nodemgmt_get_starting_parent_addr_for_category(uint16_t credential_type
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
 void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
 RET_TYPE nodemgmt_store_data_node(child_data_node_t* node, uint16_t* storedAddress);
+void nodemgmt_delete_children_list(uint16_t first_children_addr, BOOL data_child);
 void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId);
 void nodemgmt_get_category_strings(nodemgmt_user_category_strings_t* strings_pt);
 void nodemgmt_set_category_strings(nodemgmt_user_category_strings_t* strings_pt);
@@ -454,6 +455,7 @@ uint16_t nodemgmt_construct_date(uint16_t year, uint16_t month, uint16_t day);
 uint16_t nodemgmt_get_starting_parent_addr(uint16_t credential_type_id);
 uint16_t nodemgmt_get_sec_preference_for_user_id(uint16_t userIdNum);
 uint16_t nodemgmt_get_user_language_for_user_id(uint16_t userIdNum);
+uint16_t nodemgmt_get_first_child_address(uint16_t parent_address);
 void nodemgmt_store_user_sec_preferences(uint16_t sec_preferences);
 void nodemgmt_check_address_validity_and_lock(uint16_t node_addr);
 void nodemgmt_check_user_perm_from_flags_and_lock(uint16_t flags);

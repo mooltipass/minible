@@ -2113,13 +2113,56 @@ void nodemgmt_user_db_changed_actions(BOOL dataChanged)
     }
 }
 
+/*! \fn     nodemgmt_delete_children_list(uint16_t first_children_addr, BOOL data_child)
+*   \brief  Delete a children list
+*   \param  first_children_addr Address of the first children
+*   \param  data_child          TRUE if is a data children list
+*/
+void nodemgmt_delete_children_list(uint16_t first_children_addr, BOOL data_child)
+{
+    uint16_t temp_address;
+    uint16_t temp_buffer[4];
+    uint16_t next_child_addr = first_children_addr;
+    child_cred_node_t* child_node_pt = (child_cred_node_t*)temp_buffer;
+    _Static_assert(sizeof(temp_buffer) >= offsetof(child_cred_node_t, nextChildAddress) + sizeof(child_node_pt->nextChildAddress), "Buffer not long enough to store first bytes");
+    
+    // Browse through all children
+    while (next_child_addr != NODE_ADDR_NULL)
+    {
+        // Read child node
+        nodemgmt_check_address_validity_and_lock(next_child_addr);
+        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_child_addr), BASE_NODE_SIZE * nodemgmt_node_from_address(next_child_addr), sizeof(temp_buffer), (void*)child_node_pt);
+        nodemgmt_check_user_perm_from_flags_and_lock(child_node_pt->flags);
+        
+        // Store the next child address in temp
+        if (data_child == FALSE)
+        {
+            // credential child
+            temp_address = child_node_pt->nextChildAddress;
+        }
+        else
+        {
+            // data child
+            child_data_node_t* temp_dnode_ptr = (child_data_node_t*)child_node_pt;
+            temp_address = temp_dnode_ptr->nextDataAddress;
+        }
+        
+        // Delete child data block
+        dbflash_write_data_pattern_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_child_addr), BASE_NODE_SIZE * nodemgmt_node_from_address(next_child_addr), BASE_NODE_SIZE, 0xFF);
+        dbflash_write_data_pattern_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(nodemgmt_get_incremented_address(next_child_addr)), BASE_NODE_SIZE * nodemgmt_node_from_address(nodemgmt_get_incremented_address(next_child_addr)), BASE_NODE_SIZE, 0xFF);
+        
+        // Set correct next address
+        next_child_addr = temp_address;
+    }
+    
+}
+
 /*! \fn     nodemgmt_delete_current_user_from_flash(void)
 *   \brief  Delete user data from flash
 */
 void nodemgmt_delete_current_user_from_flash(void)
 {
     uint16_t next_parent_addr = NODE_ADDR_NULL;
-    uint16_t next_child_addr;
     uint16_t temp_buffer2[4];
     uint16_t temp_buffer[4];
     uint16_t temp_address;
@@ -2153,37 +2196,8 @@ void nodemgmt_delete_current_user_from_flash(void)
             dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_parent_addr), BASE_NODE_SIZE * nodemgmt_node_from_address(next_parent_addr), sizeof(temp_buffer), (void*)parent_node_pt);
             nodemgmt_check_user_perm_from_flags_and_lock(parent_node_pt->flags);
             
-            // Read his first child
-            next_child_addr = parent_node_pt->nextChildAddress;
-            
-            // Browse through all children
-            while (next_child_addr != NODE_ADDR_NULL)
-            {
-                // Read child node
-                nodemgmt_check_address_validity_and_lock(next_child_addr);
-                dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_child_addr), BASE_NODE_SIZE * nodemgmt_node_from_address(next_child_addr), sizeof(temp_buffer), (void*)child_node_pt);
-                nodemgmt_check_user_perm_from_flags_and_lock(child_node_pt->flags);
-                
-                // Store the next child address in temp
-                if (i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes))
-                {
-                    // First loop is cnode
-                    temp_address = child_node_pt->nextChildAddress;
-                }
-                else
-                {
-                    // Second loop is dnode
-                    child_data_node_t* temp_dnode_ptr = (child_data_node_t*)child_node_pt;
-                    temp_address = temp_dnode_ptr->nextDataAddress;
-                }
-                
-                // Delete child data block
-                dbflash_write_data_pattern_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_child_addr), BASE_NODE_SIZE * nodemgmt_node_from_address(next_child_addr), BASE_NODE_SIZE, 0xFF);
-                dbflash_write_data_pattern_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(nodemgmt_get_incremented_address(next_child_addr)), BASE_NODE_SIZE * nodemgmt_node_from_address(nodemgmt_get_incremented_address(next_child_addr)), BASE_NODE_SIZE, 0xFF);
-                
-                // Set correct next address
-                next_child_addr = temp_address;
-            }
+            // Delete children list
+            nodemgmt_delete_children_list(parent_node_pt->nextChildAddress, (i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes))?FALSE:TRUE);
             
             // Store the next parent address in temp
             temp_address = parent_node_pt->nextParentAddress;
@@ -2214,6 +2228,20 @@ void nodemgmt_update_data_parent_ctr_and_first_child_address(uint16_t parent_add
     
     /* Then write back to flash at same address */
     nodemgmt_write_parent_node_data_block_to_flash(parent_address, &nodemgmt_current_handle.temp_parent_node);
+}
+
+/*! \fn     nodemgmt_get_first_child_address(uint16_t parent_address)
+ *  \brief  Get first child address for a given parent
+ *  \param  parent_address                  Data parent address
+ *  \return The first child address
+ */
+uint16_t nodemgmt_get_first_child_address(uint16_t parent_address)
+{
+    /* Read node, ownership checks are done within */
+    nodemgmt_read_parent_node(parent_address, &nodemgmt_current_handle.temp_parent_node, FALSE);
+    
+    /* Return first child */
+    return nodemgmt_current_handle.temp_parent_node.cred_parent.nextChildAddress;    
 }
 
 /*! \fn     nodemgmt_get_data_parent_next_child_address_ctr_and_prev_gen_flag(uint16_t parent_address, uint8_t* ctr, BOOL* prev_gen_flag)

@@ -808,6 +808,66 @@ RET_TYPE logic_user_add_data_to_current_service(hid_message_store_data_into_file
     return return_val;
 }
 
+/*! \fn     logic_user_empty_data_service(cust_char_t* service, BOOL is_message_from_usb, nodemgmt_data_type_te data_type)
+*   \brief  Empty data service and store current state in user context, then allowing data storage
+*   \param  service             Pointer to service string
+*   \param  is_message_from_usb BOOL set to true if the request comes from USB
+*   \param  data_type           Service data type
+*   \return success or not
+*   \note   As we are using the RX buffer here, we are exiting this function the moment we receive a new RX message (think power switches) but also don't try listen to RX messages
+*/
+RET_TYPE logic_user_empty_data_service(cust_char_t* service, BOOL is_message_from_usb, nodemgmt_data_type_te data_type)
+{
+    /* Reset booleans */
+    logic_user_adding_data_to_service_from_usb = is_message_from_usb;
+    logic_user_last_data_child_addr = NODE_ADDR_NULL;
+    logic_user_data_service_addr = NODE_ADDR_NULL;
+    logic_user_getting_data_from_service = FALSE;
+    logic_user_adding_data_to_service = FALSE;
+    
+    /* Smartcard present and unlocked? */
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Does service actually exist? */
+    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, FALSE, data_type);
+    
+    /* If not, return error */
+    if (parent_address == NODE_ADDR_NULL)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Prepare prompt text */
+    cust_char_t* two_line_prompt_2;
+    custom_fs_get_string_from_file(ADD_NEW_FILE_TEXT_ID, &two_line_prompt_2, TRUE);
+    confirmationText_t conf_text_2_lines = {.lines[0]=service, .lines[1]=two_line_prompt_2};
+    
+    /* Request user approval */
+    mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, TRUE, FALSE, TRUE);
+    gui_dispatcher_get_back_to_current_screen();
+    
+    /* Did the user approve? */
+    if (prompt_return != MINI_INPUT_RET_YES)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Remove children list */
+    nodemgmt_delete_children_list(nodemgmt_get_first_child_address(parent_address), TRUE);    
+    
+    /* Set data service address to the one we found */
+    logic_user_data_service_addr = parent_address;
+    
+    /* Set booleans */
+    logic_user_adding_data_to_service = TRUE;
+    
+    /* Send success! */
+    return RETURN_OK;
+}
+
 /*! \fn     logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb, nodemgmt_data_type_te data_type)
 *   \brief  Store new data service and store current state in user context
 *   \param  service             Pointer to service string
