@@ -819,7 +819,9 @@ RET_TYPE logic_user_add_data_to_current_service(hid_message_store_data_into_file
 RET_TYPE logic_user_empty_data_service(cust_char_t* service, BOOL is_message_from_usb, nodemgmt_data_type_te data_type)
 {
     /* Reset booleans */
+    uint8_t temp_cred_ctr_val[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     logic_user_adding_data_to_service_from_usb = is_message_from_usb;
+    memset(temp_cred_ctr_val, 0, sizeof(temp_cred_ctr_val));
     logic_user_last_data_child_addr = NODE_ADDR_NULL;
     logic_user_data_service_addr = NODE_ADDR_NULL;
     logic_user_getting_data_from_service = FALSE;
@@ -857,6 +859,9 @@ RET_TYPE logic_user_empty_data_service(cust_char_t* service, BOOL is_message_fro
     
     /* Remove children list */
     nodemgmt_delete_children_list(nodemgmt_get_first_child_address(parent_address), TRUE);    
+    
+    /* Set parent node first child to 0 */
+    nodemgmt_update_data_parent_ctr_and_first_child_address(parent_address, temp_cred_ctr_val, NODE_ADDR_NULL);
     
     /* Set data service address to the one we found */
     logic_user_data_service_addr = parent_address;
