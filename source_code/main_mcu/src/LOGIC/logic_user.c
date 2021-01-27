@@ -53,6 +53,7 @@ BOOL logic_user_adding_data_to_service_from_usb = FALSE;
 uint16_t logic_user_data_service_addr = NODE_ADDR_NULL;
 BOOL logic_user_adding_data_to_service = FALSE;
 // Variables used when getting data from a service
+nodemgmt_data_type_te logic_user_getting_data_category = NODEMGMT_STANDARD_DATA_TYPE_ID;
 uint8_t logic_user_getting_data_ctr_value[MEMBER_SIZE(parent_data_node_t, startDataCtr)];
 BOOL logic_user_getting_data_from_service_prev_gen_flag = FALSE;
 BOOL logic_user_getting_data_from_service_from_usb = FALSE;
@@ -153,6 +154,7 @@ void logic_user_init_context(uint8_t user_id)
     custom_fs_set_current_keyboard_id(utils_check_value_for_range(user_ble_layout, 0, custom_fs_get_number_of_keyb_layouts()-1), FALSE);
     
     /* Reset booleans */
+    logic_user_getting_data_category = NODEMGMT_STANDARD_DATA_TYPE_ID;
     logic_user_last_data_child_addr = NODE_ADDR_NULL;
     logic_user_data_service_addr = NODE_ADDR_NULL;
     logic_user_getting_data_from_service = FALSE;
@@ -644,15 +646,16 @@ fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, ui
     }
 }
 
-/*! \fn     logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer, uint16_t* nb_bytes_written, BOOL is_message_from_usb)
+/*! \fn     logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer, uint16_t* nb_bytes_written, BOOL is_message_from_usb, nodemgmt_data_type_te data_type)
 *   \brief  Fetch data from service
 *   \param  service             If different than 0, service we want to fetch data from. If 0, request from next chunk of data
 *   \param  buffer              Where to store the decoded data
 *   \param  nb_bytes_written    Where to store the number of bytes written
 *   \param  is_message_from_usb BOOL set to true if the request comes from USB
+*   \param  data_type           Service data type
 *   \return success or not
 */
-RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer, uint16_t* nb_bytes_written, BOOL is_message_from_usb)
+RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer, uint16_t* nb_bytes_written, BOOL is_message_from_usb, nodemgmt_data_type_te data_type)
 {
     cust_char_t service_copy[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)];
     
@@ -682,7 +685,7 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
         service = service_copy;
         
         /* Does service actually exist? */
-        uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, FALSE, NODEMGMT_STANDARD_DATA_TYPE_ID);
+        uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, FALSE, data_type);
         if (parent_address == NODE_ADDR_NULL)
         {
             return RETURN_NOK;
@@ -723,11 +726,12 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
         /* Fetch first child address and set booleans */
         logic_user_next_data_child_addr = nodemgmt_get_data_parent_next_child_address_ctr_and_prev_gen_flag(parent_address, logic_user_getting_data_ctr_value, &logic_user_getting_data_from_service_prev_gen_flag);
         logic_user_getting_data_from_service_from_usb = is_message_from_usb;
+        logic_user_getting_data_category = data_type;
         logic_user_getting_data_from_service = TRUE;
     }
     
-    /* Check for same origin */
-    if (is_message_from_usb != logic_user_getting_data_from_service_from_usb)
+    /* Check for same origin & same type */
+    if ((is_message_from_usb != logic_user_getting_data_from_service_from_usb) || (logic_user_getting_data_category != data_type))
     {
         logic_user_next_data_child_addr = NODE_ADDR_NULL;
         logic_user_getting_data_from_service = FALSE;
@@ -804,14 +808,15 @@ RET_TYPE logic_user_add_data_to_current_service(hid_message_store_data_into_file
     return return_val;
 }
 
-/*! \fn     logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb)
+/*! \fn     logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb, nodemgmt_data_type_te data_type)
 *   \brief  Store new data service and store current state in user context
 *   \param  service             Pointer to service string
 *   \param  is_message_from_usb BOOL set to true if the request comes from USB
+*   \param  data_type           Service data type
 *   \return success or not
 *   \note   As we are using the RX buffer here, we are exiting this function the moment we receive a new RX message (think power switches) but also don't try listen to RX messages
 */
-RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb)
+RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb, nodemgmt_data_type_te data_type)
 {
     /* Reset booleans */
     logic_user_adding_data_to_service_from_usb = is_message_from_usb;
@@ -827,7 +832,7 @@ RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_
     }
     
     /* Does service already exist? */
-    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, FALSE, NODEMGMT_STANDARD_DATA_TYPE_ID);
+    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, FALSE, data_type);
     
     /* If so, return error */
     if (parent_address != NODE_ADDR_NULL)
