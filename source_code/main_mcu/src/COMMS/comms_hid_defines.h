@@ -86,6 +86,10 @@
 #define HID_CMD_GET_DIAG_DATA       0x002D
 #define HID_CMD_INFORM_CUR_SVC      0x002E
 #define HID_CMD_MODIFY_FILE_ID      0x002F
+#define HID_CMD_ADD_NOTE_ID         0x0030
+#define HID_CMD_ACCESS_NOTE_ID      0x0031
+#define HID_CMD_MODIFY_NOTE_ID      0x0032
+#define HID_CMD_ADD_NOTE_DATA_ID    0x0033
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101

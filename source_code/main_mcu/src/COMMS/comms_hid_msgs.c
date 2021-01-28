@@ -201,7 +201,9 @@ void comms_hid_msgs_send_ack_nack_message(BOOL usb_hid_message, uint16_t message
 *   \param  is_message_from_usb     Boolean set to TRUE if message comes from USB
 */
 void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb)
-{    
+{
+    nodemgmt_data_type_te data_type_for_operation = NODEMGMT_STANDARD_DATA_TYPE_ID;
+    
     /* Check correct payload length */
     if ((supposed_payload_length != rcv_msg->payload_length) || (supposed_payload_length > sizeof(rcv_msg->payload)))
     {
@@ -209,8 +211,29 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         return;
     }
     
+    /* Aliases for HID commands */
+    if (rcv_msg->message_type == HID_CMD_ADD_NOTE_ID)
+    {
+        rcv_msg->message_type = HID_CMD_CREATE_FILE_ID;
+        data_type_for_operation = NODEMGMT_NOTES_DATA_TYPE_ID;
+    }
+    else if (rcv_msg->message_type == HID_CMD_ACCESS_NOTE_ID)
+    {
+        rcv_msg->message_type = HID_CMD_GET_FILE_DATA_ID;
+        data_type_for_operation = NODEMGMT_NOTES_DATA_TYPE_ID;
+    }
+    else if (rcv_msg->message_type == HID_CMD_MODIFY_NOTE_ID)
+    {
+        rcv_msg->message_type = HID_CMD_MODIFY_FILE_ID;
+        data_type_for_operation = NODEMGMT_NOTES_DATA_TYPE_ID;
+    }
+    else if (rcv_msg->message_type == HID_CMD_ADD_NOTE_DATA_ID)
+    {
+        rcv_msg->message_type = HID_CMD_ADD_FILE_DATA_ID;
+        data_type_for_operation = NODEMGMT_NOTES_DATA_TYPE_ID;
+    }
+    
     /* Store received message type in case one of the routines below does some communication */
-    nodemgmt_data_type_te data_type_for_operation = NODEMGMT_STANDARD_DATA_TYPE_ID;
     uint16_t max_payload_size = MEMBER_ARRAY_SIZE(hid_message_t,payload);
     uint16_t rcv_message_type = rcv_msg->message_type;
     BOOL is_aes_gcm_message = FALSE;

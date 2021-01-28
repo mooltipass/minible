@@ -55,6 +55,7 @@ BOOL logic_user_adding_data_to_service = FALSE;
 // Variables used when getting data from a service
 nodemgmt_data_type_te logic_user_getting_data_category = NODEMGMT_STANDARD_DATA_TYPE_ID;
 uint8_t logic_user_getting_data_ctr_value[MEMBER_SIZE(parent_data_node_t, startDataCtr)];
+uint16_t logic_user_accessing_data_notes_service_address = NODE_ADDR_NULL;
 BOOL logic_user_getting_data_from_service_prev_gen_flag = FALSE;
 BOOL logic_user_getting_data_from_service_from_usb = FALSE;
 BOOL logic_user_getting_data_from_service = FALSE;
@@ -155,6 +156,7 @@ void logic_user_init_context(uint8_t user_id)
     
     /* Reset booleans */
     logic_user_getting_data_category = NODEMGMT_STANDARD_DATA_TYPE_ID;
+    logic_user_accessing_data_notes_service_address = NODE_ADDR_NULL;
     logic_user_last_data_child_addr = NODE_ADDR_NULL;
     logic_user_data_service_addr = NODE_ADDR_NULL;
     logic_user_getting_data_from_service = FALSE;
@@ -674,6 +676,7 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
     if (service != (cust_char_t*)0)
     {
         /* Reset variables */
+        logic_user_accessing_data_notes_service_address = NODE_ADDR_NULL;
         logic_user_next_data_child_addr = NODE_ADDR_NULL;
         logic_user_getting_data_from_service = FALSE;
         
@@ -691,12 +694,19 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
             return RETURN_NOK;
         }
     
-        /* If user specified to be prompted for login confirmation */
-        if ((logic_user_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0)
+        /* If user specified to be prompted for login confirmation, or for note type */
+        if (((logic_user_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0) || (data_type == NODEMGMT_NOTES_DATA_TYPE_ID))
         {
             /* Prepare prompt message */
             cust_char_t* two_line_prompt_2;
-            custom_fs_get_string_from_file(QPROMPT_EXPORT_DATA_TEXT_ID, &two_line_prompt_2, TRUE);
+            if (data_type == NODEMGMT_NOTES_DATA_TYPE_ID)
+            {
+                custom_fs_get_string_from_file(QPROMPT_ACCESS_NOTE_TEXT_ID, &two_line_prompt_2, TRUE);
+            } 
+            else
+            {
+                custom_fs_get_string_from_file(QPROMPT_EXPORT_DATA_TEXT_ID, &two_line_prompt_2, TRUE);
+            }
             confirmationText_t conf_text_2_lines = {.lines[0]=service, .lines[1]=two_line_prompt_2};
 
             /* Request user approval */
@@ -721,6 +731,12 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
 
             /* Set information screen, do not call get back to current screen as screen is already updated */
             gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);
+        }
+        
+        /* Data parent is of note type: we allow file editing after if desired */
+        if (data_type == NODEMGMT_NOTES_DATA_TYPE_ID)
+        {
+            logic_user_accessing_data_notes_service_address = parent_address;
         }
         
         /* Fetch first child address and set booleans */
@@ -842,20 +858,27 @@ RET_TYPE logic_user_empty_data_service(cust_char_t* service, BOOL is_message_fro
         return RETURN_NOK;
     }
     
-    /* Prepare prompt text */
-    cust_char_t* two_line_prompt_2;
-    custom_fs_get_string_from_file(ADD_NEW_FILE_TEXT_ID, &two_line_prompt_2, TRUE);
-    confirmationText_t conf_text_2_lines = {.lines[0]=service, .lines[1]=two_line_prompt_2};
-    
-    /* Request user approval */
-    mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, TRUE, FALSE, TRUE);
-    gui_dispatcher_get_back_to_current_screen();
-    
-    /* Did the user approve? */
-    if (prompt_return != MINI_INPUT_RET_YES)
+    /* Only prompt if data type is not of type notes and request for access was not previously performed */
+    if ((data_type != NODEMGMT_NOTES_DATA_TYPE_ID) || (logic_user_accessing_data_notes_service_address != parent_address))
     {
-        return RETURN_NOK;
+        /* Prepare prompt text */
+        cust_char_t* two_line_prompt_2;
+        custom_fs_get_string_from_file(MODIFY_FILE_TEXT_ID, &two_line_prompt_2, TRUE);
+        confirmationText_t conf_text_2_lines = {.lines[0]=service, .lines[1]=two_line_prompt_2};
+        
+        /* Request user approval */
+        mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, TRUE, FALSE, TRUE);
+        gui_dispatcher_get_back_to_current_screen();
+        
+        /* Did the user approve? */
+        if (prompt_return != MINI_INPUT_RET_YES)
+        {
+            return RETURN_NOK;
+        }
     }
+    
+    /* Reset notes related exception */
+    logic_user_accessing_data_notes_service_address = NODE_ADDR_NULL;
     
     /* Remove children list */
     nodemgmt_delete_children_list(nodemgmt_get_first_child_address(parent_address), TRUE);    
@@ -907,7 +930,14 @@ RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_
     
     /* Prepare prompt text */
     cust_char_t* two_line_prompt_2;
-    custom_fs_get_string_from_file(ADD_NEW_FILE_TEXT_ID, &two_line_prompt_2, TRUE);
+    if (data_type == NODEMGMT_NOTES_DATA_TYPE_ID)
+    {
+        custom_fs_get_string_from_file(QPROMPT_ADD_NOTE_TEXT_ID, &two_line_prompt_2, TRUE);        
+    } 
+    else
+    {
+        custom_fs_get_string_from_file(ADD_NEW_FILE_TEXT_ID, &two_line_prompt_2, TRUE);
+    }
     confirmationText_t conf_text_2_lines = {.lines[0]=service, .lines[1]=two_line_prompt_2};
         
     /* Request user approval */

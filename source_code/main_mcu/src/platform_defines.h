@@ -179,6 +179,8 @@
 - v0.60:- bug fix: high power consumption during sleep
 - v0.61:- bug fix: eternal sleep
 - v0.62:- fixed sleep stability issues
+        - modify file command (ssh feature support)
+        - notes files support
 */
 
 /**************** SETUP DEFINES ****************/

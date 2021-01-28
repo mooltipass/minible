@@ -138,5 +138,8 @@
 #define HASH_1_TEXT_ID                  140
 #define HASH_2_TEXT_ID                  141
 #define TIME_NOT_SET_TEXT_ID            142
+#define MODIFY_FILE_TEXT_ID             143
+#define QPROMPT_ACCESS_NOTE_TEXT_ID     144
+#define QPROMPT_ADD_NOTE_TEXT_ID        145
 
 #endif
