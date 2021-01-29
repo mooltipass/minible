@@ -389,8 +389,20 @@ void platform_io_enable_aux_tx_wakeup_interrupt(void)
     EIC->WAKEUP.reg |= (1 << AUX_MCU_TX_EXTINT_NUM);                                                            // Enable wakeup from ext pin
 }
 
+/*! \fn     platform_io_disable_usb_3v3_wakeup_interrupt(void)
+*   \brief  Disable USB 3V3 external interrupt to wake up platform
+*/
+void platform_io_disable_usb_3v3_wakeup_interrupt(void)
+{
+    EIC->INTENCLR.reg = (1 << USB_3V3_EXTINT_NUM);
+    EIC->INTFLAG.reg = (1 << USB_3V3_EXTINT_NUM);
+    EIC->WAKEUP.reg &= ~(1 << USB_3V3_EXTINT_NUM);
+    PORT->Group[USB_3V3_GROUP].PMUX[USB_3V3_PINID/2].bit.USB_3V3_PMUXREGID = EIC_CONFIG_SENSE0_NONE_Val;    // No detection
+    PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.PMUXEN = 0;                                        // Disable peripheral multiplexer    
+}
+
 /*! \fn     platform_io_enable_usb_3v3_wakeup_interrupt(void)
-*   \brief  Enable  USB 3V3 external interrupt to wake up platform
+*   \brief  Enable USB 3V3 external interrupt to wake up platform
 */
 void platform_io_enable_usb_3v3_wakeup_interrupt(void)
 {
@@ -1141,6 +1153,9 @@ void platform_io_prepare_ports_for_sleep_exit(void)
 {
     /* Disable smartcard interrupt */
     platform_io_disable_smartcard_interrupt();
+    
+    /* Disable USB 3V3 interrupt */
+    platform_io_disable_usb_3v3_wakeup_interrupt();
     
     /* Disable wheel interrupt */
     platform_io_disable_scroll_wheel_wakeup_interrupts();

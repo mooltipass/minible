@@ -596,14 +596,14 @@ void main_standby_sleep(void)
             logic_device_set_wakeup_reason(WAKEUP_REASON_AUX_MCU);
         }    
     
-        /* Damn errata... enable interrupts */
-        cpu_irq_leave_critical();
-    
         /* Prepare ports for sleep exit */
         if (ports_set_for_sleep != FALSE)
         {
             platform_io_prepare_ports_for_sleep_exit();
         }
+    
+        /* Damn errata... enable interrupts */
+        cpu_irq_leave_critical();
     
         /* Dataflash power up */
         dataflash_exit_power_down(&dataflash_descriptor);
