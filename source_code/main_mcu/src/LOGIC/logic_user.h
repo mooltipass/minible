@@ -47,6 +47,7 @@ RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_
 ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key, BOOL simple_mode);
 RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, cust_char_t* password);
 void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOOL send_creds_to_usb);
+RET_TYPE logic_user_check_data_service(cust_char_t* service, nodemgmt_data_type_te data_type);
 RET_TYPE logic_user_is_bluetooth_enabled_for_inserted_card(uint16_t* user_language_id);
 void logic_user_change_node_password(uint16_t node_address, cust_char_t* password);
 void logic_user_inform_computer_locked_state(BOOL usb_interface, BOOL locked);

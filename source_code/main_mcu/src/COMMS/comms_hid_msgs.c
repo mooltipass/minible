@@ -1546,6 +1546,29 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             }        
         }
         
+        case HID_CMD_TEST_FILE_ID:
+        {
+            /* Input sanitazing */
+            uint16_t max_cust_char_length = max_payload_size/sizeof(cust_char_t);
+            
+            /* Get string length */
+            uint16_t string_length = utils_strnlen(rcv_msg->payload_as_cust_char_t, max_cust_char_length);
+            
+            /* Check for valid length, not exceeding payload size, then prompt user */
+            if ((string_length < max_cust_char_length) && ((string_length + 1) == (rcv_msg->payload_length / (uint16_t)sizeof(cust_char_t))) && (logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_user_check_data_service(rcv_msg->payload_as_cust_char_t, data_type_for_operation) == RETURN_OK))
+            {
+                /* Set success byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
+            }
+            else
+            {
+                /* Set failure byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }
+        }
+        
         case HID_CMD_CREATE_FILE_ID:
         {
             /* Input sanitazing */

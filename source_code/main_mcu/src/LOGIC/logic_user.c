@@ -896,6 +896,35 @@ RET_TYPE logic_user_empty_data_service(cust_char_t* service, BOOL is_message_fro
     return RETURN_OK;
 }
 
+/*! \fn     logic_user_check_data_service(cust_char_t* service, nodemgmt_data_type_te data_type)
+*   \brief  Check for data service existence
+*   \param  service             Pointer to service string
+*   \param  data_type           Service data type
+*   \return success or not
+*   \note   As we are using the RX buffer here, we are exiting this function the moment we receive a new RX message (think power switches) but also don't try listen to RX messages
+*/
+RET_TYPE logic_user_check_data_service(cust_char_t* service, nodemgmt_data_type_te data_type)
+{    
+    /* Smartcard present and unlocked? */
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Does service already exist? */
+    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, FALSE, data_type);
+    
+    /* If so, return error */
+    if (parent_address != NODE_ADDR_NULL)
+    {
+        return RETURN_OK;
+    }
+    else
+    {
+        return RETURN_OK;
+    }
+}
+
 /*! \fn     logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb, nodemgmt_data_type_te data_type)
 *   \brief  Store new data service and store current state in user context
 *   \param  service             Pointer to service string
