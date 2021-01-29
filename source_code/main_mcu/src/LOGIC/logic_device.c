@@ -213,8 +213,15 @@ void logic_device_activity_detected(void)
         sh1122_oled_on(&plat_oled_descriptor);
     }
     
-    /* Stop screen saver if needed */
-    gui_dispatcher_stop_screen_saver();
+    /* Is screen saver running? */
+    if (gui_dispatcher_is_screen_saver_running() != FALSE)
+    {
+        /* Get back to current screen */
+        gui_dispatcher_get_back_to_current_screen();
+        
+        /* Stop screen saver if needed */
+        gui_dispatcher_stop_screen_saver();
+    }    
 }
 
 /*! \fn     logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* password)

@@ -429,13 +429,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
         user_action = wheel_action;
     }
     else
-    {
-        // Wheel action, screen saver was on
-        if (screen_saver_anim_copy != 0)
-        {
-            gui_dispatcher_get_back_to_current_screen();
-        }
-        
+    {        
         // Update last user actions buffer
         if (user_action != gui_dispatcher_last_user_actions[0])
         {
