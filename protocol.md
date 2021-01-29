@@ -913,6 +913,24 @@ Device Answer:
 Delete data file contents and allows 0x0022 packets
 
 
+
+0x0030: Check Data File Presence
+--------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                | byte 3-X                |
+|:---------|:------------------------|:------------------------|
+| 0x0030   | strlen(file_name)x2 + 2 | 0 terminated file name  |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0030   | 1 | 0x00 (failure) / 0x01 (file present) |
+
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
