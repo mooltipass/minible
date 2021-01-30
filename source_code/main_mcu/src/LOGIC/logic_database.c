@@ -209,7 +209,13 @@ uint16_t logic_database_search_for_next_data_parent_after_addr(uint16_t node_add
     /* Start address wanted? */
     if (node_addr == NODE_ADDR_NULL)
     {
-        return next_node_addr;
+        node_addr_found = TRUE;
+    }
+    
+    /* No files? */
+    if (next_node_addr == NODE_ADDR_NULL)
+    {
+        return NODE_ADDR_NULL;
     }
     
     /* Start going through the nodes */
