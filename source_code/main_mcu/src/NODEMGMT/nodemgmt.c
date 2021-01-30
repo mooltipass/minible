@@ -91,16 +91,6 @@ static inline uint16_t constructAddress(uint16_t pageNumber, uint8_t nodeNumber)
     return ((pageNumber << NODEMGMT_ADDR_PAGE_BITSHIFT) | ((uint16_t)nodeNumber & NODEMGMT_ADDR_NODE_MASK));
 }
 
-/*! \fn     nodeTypeFromFlags(uint16_t flags)
-*   \brief  Gets nodeType from flags  
-*   \param  flags           The flags field of a node
-*   \return nodeType        See enum
-*/
-static inline node_type_te nodeTypeFromFlags(uint16_t flags)
-{
-    return (flags >> NODEMGMT_TYPE_FLAG_BITSHIFT) & NODEMGMT_TYPE_FLAG_BITMASK_FINAL;
-}
-
 /*! \fn     validBitFromFlags(uint16_t flags)
 *   \brief  Gets the node valid bit from flags  
 *   \return The valid 

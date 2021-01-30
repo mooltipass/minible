@@ -95,7 +95,7 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 /* Credential types IDs */
 typedef enum    {NODEMGMT_STANDARD_CRED_TYPE_ID = 0, NODEMGMT_WEBAUTHN_CRED_TYPE_ID = 1} nodemgmt_cred_type_te;
 /* Data types IDs */
-typedef enum    {NODEMGMT_STANDARD_DATA_TYPE_ID = 0, NODEMGMT_NOTES_DATA_TYPE_ID = 1} nodemgmt_data_type_te;
+typedef enum    {NODEMGMT_STANDARD_DATA_TYPE_ID = 0, NODEMGMT_NOTES_DATA_TYPE_ID = 1} nodemgmt_data_category_te;
 
 /* Structs */
 // Parent node, see: https://mooltipass.github.io/minible/database_model
@@ -398,6 +398,16 @@ static inline uint16_t nodemgmt_node_from_address(uint16_t addr)
     #else
         return (addr & NODEMGMT_ADDR_NODE_MASK);
     #endif
+}
+
+/*! \fn     nodeTypeFromFlags(uint16_t flags)
+*   \brief  Gets nodeType from flags  
+*   \param  flags           The flags field of a node
+*   \return nodeType        See enum
+*/
+static inline node_type_te nodeTypeFromFlags(uint16_t flags)
+{
+    return (flags >> NODEMGMT_TYPE_FLAG_BITSHIFT) & NODEMGMT_TYPE_FLAG_BITMASK_FINAL;
 }
 
 /* Prototypes */

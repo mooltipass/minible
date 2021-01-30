@@ -202,7 +202,7 @@ void comms_hid_msgs_send_ack_nack_message(BOOL usb_hid_message, uint16_t message
 */
 void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb)
 {
-    nodemgmt_data_type_te data_type_for_operation = NODEMGMT_STANDARD_DATA_TYPE_ID;
+    nodemgmt_data_category_te data_type_for_operation = NODEMGMT_STANDARD_DATA_TYPE_ID;
     
     /* Check correct payload length */
     if ((supposed_payload_length != rcv_msg->payload_length) || (supposed_payload_length > sizeof(rcv_msg->payload)))
@@ -230,6 +230,11 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     else if (rcv_msg->message_type == HID_CMD_ADD_NOTE_DATA_ID)
     {
         rcv_msg->message_type = HID_CMD_ADD_FILE_DATA_ID;
+        data_type_for_operation = NODEMGMT_NOTES_DATA_TYPE_ID;
+    }
+    else if (rcv_msg->message_type == HID_CMD_SCAN_NOTE_ID)
+    {
+        rcv_msg->message_type = HID_CMD_SCAN_FILE_ID;
         data_type_for_operation = NODEMGMT_NOTES_DATA_TYPE_ID;
     }
     
@@ -802,6 +807,43 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             
             /* Return success or failure */
             return;
+        }
+        
+        case HID_CMD_SCAN_FILE_ID:
+        {
+            /* Check address length */
+            if (rcv_msg->payload_length == sizeof(uint16_t))
+            {
+                /* Prepare message to reply */
+                aux_mcu_message_t* temp_send_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+                                
+                /* Get next node address */
+                _Static_assert(sizeof(cust_char_t) == sizeof(uint16_t), "Invalid size reuse");
+                uint16_t next_node_address = logic_database_search_for_next_data_parent_after_addr(rcv_msg->payload_as_uint16[0], data_type_for_operation, &temp_send_message_pt->hid_message.payload_as_cust_char_t[1]);
+                
+                /* Update next node address in reply */
+                temp_send_message_pt->hid_message.payload_as_uint16[0] = next_node_address;
+                
+                /* Update payload length (if nothing is found, nothing is stored, and field therefore is 0s, and inner functions sanitize service name) */
+                if (next_node_address == NODE_ADDR_NULL)
+                {
+                    comms_hid_msgs_update_message_payload_length_fields(temp_send_message_pt, sizeof(cust_char_t));
+                } 
+                else
+                {
+                    comms_hid_msgs_update_message_payload_length_fields(temp_send_message_pt, sizeof(cust_char_t) + utils_strlen(&temp_send_message_pt->hid_message.payload_as_uint16[1])*sizeof(cust_char_t) + sizeof(cust_char_t));
+                    
+                }
+                
+                /* Send message */
+                comms_aux_mcu_send_message(temp_send_message_pt);
+            }
+            else
+            {
+                /* Set nack, leave same command id */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }            
         }
         
         case HID_CMD_READ_NODE:

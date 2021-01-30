@@ -25,6 +25,7 @@
 #define LOGIC_DATABASE_H_
 
 #include "comms_hid_msgs.h"
+#include "nodemgmt.h"
 #include "defines.h"
 
 
@@ -38,6 +39,7 @@ RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_c
 uint16_t logic_database_get_prev_2_fletters_services(uint16_t start_address, cust_char_t start_char, cust_char_t* char_array, uint16_t credential_type_id);
 uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cust_char_t cur_char, cust_char_t* char_array, uint16_t credential_type_id);
 RET_TYPE logic_database_add_TOTP_credential_for_service(uint16_t service_addr, cust_char_t* login, TOTPcredentials_t const *TOTPcreds, uint8_t *ctr);
+uint16_t logic_database_search_for_next_data_parent_after_addr(uint16_t node_addr, nodemgmt_data_category_te data_type, cust_char_t* service_name);
 void logic_database_fetch_encrypted_password(uint16_t child_node_addr, uint8_t* password, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag);
 void logic_database_fetch_encrypted_TOTPsecret(uint16_t child_node_addr, uint8_t* TOTPsecret, uint8_t *TOTPsecretLen, uint8_t* TOTP_ctr);
 uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_te compare_type, BOOL cred_type, uint16_t category_id);

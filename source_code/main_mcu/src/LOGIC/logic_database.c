@@ -192,6 +192,65 @@ uint16_t logic_database_get_next_2_fletters_services(uint16_t start_address, cus
     return return_value;
 }
 
+/*! \fn     logic_database_search_for_next_data_parent_after_addr(uint16_t node_addr, nodemgmt_data_category_te data_type, cust_char_t* service_name)
+*   \brief  Search for the next data parent after a given address
+*   \param  node_addr           VALID parent address after which we need to look
+*   \param  data_type           Data category (see enum)
+*   \param  service_name        Where to store the service name
+*   \return Address of the found node, NODE_ADDR_NULL otherwise
+*   \note   This function goes through the complete linked list to make sure of ownership
+*/
+uint16_t logic_database_search_for_next_data_parent_after_addr(uint16_t node_addr, nodemgmt_data_category_te data_type, cust_char_t* service_name)
+{
+    uint16_t next_node_addr = nodemgmt_get_starting_data_parent_addr(data_type);
+    BOOL node_addr_found = FALSE;
+    parent_node_t temp_pnode;
+    
+    /* Start address wanted? */
+    if (node_addr == NODE_ADDR_NULL)
+    {
+        return next_node_addr;
+    }
+    
+    /* Start going through the nodes */
+    do
+    {
+        /* Read parent node */
+        nodemgmt_read_parent_node(next_node_addr, &temp_pnode, TRUE);
+        
+        /* Did we find the node we were looking for? */
+        if (node_addr_found == FALSE)
+        {
+            /* Check if it is the node we're looking for */
+            if (node_addr == next_node_addr)
+            {
+                node_addr_found = TRUE;
+            }
+        } 
+        else
+        {
+            /* Check for correct data type */
+            if (nodeTypeFromFlags(temp_pnode.data_parent.flags) != NODE_TYPE_PARENT_DATA)
+            {
+                return NODE_ADDR_NULL;
+            }                
+            
+            /* Copy the service name, sanitized by previous nodemgmt_read_parent_node call */
+            utils_strcpy(service_name, temp_pnode.data_parent.service);
+            
+            /* Node was read, therefore checking ownership */
+            return next_node_addr;
+        }        
+        
+        /* Load next address */
+        next_node_addr = temp_pnode.data_parent.nextParentAddress;
+    }
+    while (next_node_addr != NODE_ADDR_NULL);
+    
+    /* We just don't have nodes */
+    return NODE_ADDR_NULL;
+}
+
 /*! \fn     logic_database_search_service(cust_char_t* name, service_compare_mode_te compare_type, BOOL cred_type, uint16_t category_id)
 *   \brief  Find a given service name
 *   \param  name                    Name of the service / website
