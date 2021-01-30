@@ -831,8 +831,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 } 
                 else
                 {
-                    comms_hid_msgs_update_message_payload_length_fields(temp_send_message_pt, sizeof(cust_char_t) + utils_strlen(&temp_send_message_pt->hid_message.payload_as_uint16[1])*sizeof(cust_char_t) + sizeof(cust_char_t));
-                    
+                    comms_hid_msgs_update_message_payload_length_fields(temp_send_message_pt, sizeof(cust_char_t) + utils_strlen(&temp_send_message_pt->hid_message.payload_as_uint16[1])*sizeof(cust_char_t) + sizeof(cust_char_t));                    
                 }
                 
                 /* Send message */
