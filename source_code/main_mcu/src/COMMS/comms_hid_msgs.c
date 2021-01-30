@@ -812,7 +812,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         case HID_CMD_SCAN_FILE_ID:
         {
             /* Check address length */
-            if (rcv_msg->payload_length == sizeof(uint16_t))
+            if ((rcv_msg->payload_length == sizeof(uint16_t)) && (logic_security_is_smc_inserted_unlocked() != FALSE))
             {
                 /* Prepare message to reply */
                 aux_mcu_message_t* temp_send_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
@@ -836,6 +836,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 
                 /* Send message */
                 comms_aux_mcu_send_message(temp_send_message_pt);
+                return;
             }
             else
             {
