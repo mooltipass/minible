@@ -173,15 +173,7 @@ void comms_aux_mcu_wait_for_message_sent(void)
 *   \brief  Get a pointer to our temporary tx message object
 */
 aux_mcu_message_t* comms_aux_mcu_get_free_tx_message_object_pt(void)
-{
-    /* Check for enabled comms */
-    if (aux_mcu_comms_disabled != FALSE)
-    {
-        /* Wake up aux MCU and give it some time to wakeup */
-        comms_aux_arm_rx_and_clear_no_comms();
-        timer_delay_ms(10);
-    }
-    
+{    
     /* Wait for possible ongoing message to be sent */
     comms_aux_mcu_wait_for_message_sent();
     
