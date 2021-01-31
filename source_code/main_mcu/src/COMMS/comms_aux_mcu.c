@@ -240,13 +240,11 @@ void comms_aux_mcu_send_message(aux_mcu_message_t* message_to_send)
     /* Do we need to wake-up aux mcu? */
     if (aux_mcu_comms_disabled != FALSE)
     {
+        platform_io_disable_no_comms_as_wakeup_interrupt();
         comms_aux_arm_rx_and_clear_no_comms();
         
-        /* Leave the line below */
-        platform_io_clear_no_comms();
-        
         /* give some time to AUX to wakeup */
-        timer_delay_ms(100);
+        timer_delay_ms(200);
     }        
         
     /* Check that we're indeed sending the aux_mcu_send_message.... */
