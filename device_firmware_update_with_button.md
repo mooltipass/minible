@@ -1,7 +1,7 @@
 ## [](#header-2)Guide to updating your Mini BLE  
 
 ### [](#header-3)Step 1: Enable Update Mode on your Mini BLE
-Connect your device to your computer **using USB** to get to the welcome screen:  
+Connect your device to your computer **through USB** to get to the welcome screen:  
   
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/rf_debug_guide/welcome_screen.png?raw=true)  
   
@@ -21,8 +21,8 @@ If using MacOS, install from [here](https://github.com/mooltipass/moolticute/rel
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/ble_about_tab_fw_version.png?raw=true)  
 
 On top of Moolticute, click on the About tab.   
-If your main MCU version is v0.54 or above, [follow the instructions for Moolticute v0.44.22](#moolticute-versions-v0.44.22-and-above)  
-If your main MCU version is below v0.54, [downgrade moolticute to v0.44.19](https://betas.themooltipass.com/v0.44.19-testing/), [follow the instructions for Moolticute below v0.44.22](#moolticute-versions-below-v0.44.22) and finally update Moolticute to the latest version.  
+If your main MCU version is v0.54 or above, [follow the instructions for Moolticute v0.44.22](#step-4-moolticute-versions-v04422-and-above)  
+If your main MCU version is below v0.54, [downgrade moolticute to v0.44.19](https://betas.themooltipass.com/v0.44.19-testing/), [follow the instructions for Moolticute below v0.44.22](#step-4-moolticute-versions-below-v04422) and finally update Moolticute to the latest version.  
   
   
 ### [](#header-3)Step 4: Moolticute versions below v0.44.22
@@ -45,7 +45,7 @@ The platform will then reboot and update itself.
 ### [](#header-3)Step 4: Moolticute versions v0.44.22 and above
 
 In Moolticute, press CTRL-SHIFT-F3 (SHIFT-Command-F3 on Mac) in such a way that all 3 keys are pressed at the end of the shortcut.  
-The BLE Dev tab will appear on the top part of the application. 
+The BLE Dev tab will appear on the top part of the application. **Make sure your device is fully charged**.  
   
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/ble_dev_tab_new_upload.png?raw=true)  
   
