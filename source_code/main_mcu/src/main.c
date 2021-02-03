@@ -260,6 +260,7 @@ void main_platform_init(void)
             if (comms_aux_mcu_send_receive_ping() != RETURN_OK)
             {
                 sh1122_put_error_string(&plat_oled_descriptor, u"No Aux MCU");
+                uint16_t battery_rescue_mode_counter = 0;
                 while(1)
                 {
                     /* Switch off when disconnected form USB */
@@ -267,6 +268,27 @@ void main_platform_init(void)
                     {
                         logic_device_power_off();
                         while(1);
+                    }
+                    
+                    /* Battery rescue mode */
+                    if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_CLICK_UP)
+                    {
+                        /* Dangerously directly pipe the PWMed LDO 3V3 output into the battery, averaging at 40mA (measured) */
+                        if ((battery_rescue_mode_counter++ == 5) && (prev_usb_present_state != FALSE))
+                        {
+                            sh1122_clear_current_screen(&plat_oled_descriptor);
+                            sh1122_put_error_string(&plat_oled_descriptor, u"Recovery in progress");
+                            /* PWM for 2 hours, doesn't get uglier than this */
+                            for (uint32_t i = 0; i < 36000000UL; i++)
+                            {
+                                platform_io_enable_vbat_to_oled_stepup();
+                                DELAYUS(100);
+                                platform_io_disable_vbat_to_oled_stepup();
+                                DELAYUS(100);
+                            }
+                            sh1122_clear_current_screen(&plat_oled_descriptor);
+                            sh1122_put_error_string(&plat_oled_descriptor, u"Disconnect USB");
+                        }
                     }
                 }
             }                
