@@ -1500,6 +1500,9 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     int16_t string_offset_cntrs[4] = {0,0,0,0};
     BOOL string_scrolling[4];
     uint8_t max_text_x[4];
+    
+    /* Activity detected */
+    logic_device_activity_detected();
         
     /* Currently selected choice */
     BOOL approve_selected = TRUE;
@@ -1563,9 +1566,6 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     mini_input_yes_no_ret_te input_answer = MINI_INPUT_RET_NONE;
     acc_detection_te knock_detect_result;
     wheel_action_ret_te detect_result;
-    
-    /* Activity detected */
-    logic_device_activity_detected();
     
     /* Clear possible remaining detection */
     inputs_clear_detections();

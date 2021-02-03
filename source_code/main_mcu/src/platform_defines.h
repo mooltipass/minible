@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    62
+#define FW_MINOR    63
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -181,6 +181,7 @@
 - v0.62:- fixed sleep stability issues
         - modify file command (ssh feature support)
         - notes files support
+- v0.63:- visual glitch fix on screen saver exit
 */
 
 /**************** SETUP DEFINES ****************/

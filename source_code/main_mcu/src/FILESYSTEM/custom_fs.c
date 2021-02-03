@@ -86,7 +86,9 @@ custom_file_flash_header_t custom_fs_flash_header;
 /* Bool to specify if the SPI bus is left opened */
 BOOL custom_fs_data_bus_opened = FALSE;
 /* Temp string buffers for string reading */
+BOOL custom_fs_temp_string1_avail = FALSE;
 cust_char_t custom_fs_temp_string1[64];
+cust_char_t custom_fs_temp_string2[64];
 /* Current language id */
 uint8_t custom_fs_cur_language_id = 0;
 /* Current keyboard layout id */
@@ -744,14 +746,28 @@ RET_TYPE custom_fs_get_string_from_file(uint32_t string_id, cust_char_t** string
         string_length = sizeof(custom_fs_temp_string1);
     }
     
+    /* Round robin available string */
+    cust_char_t* temp_string_pointer;
+    if (custom_fs_temp_string1_avail == FALSE)
+    {
+        temp_string_pointer = custom_fs_temp_string2;
+        custom_fs_temp_string1_avail = TRUE;
+    } 
+    else
+    {
+        temp_string_pointer = custom_fs_temp_string1;
+        custom_fs_temp_string1_avail = FALSE;
+    }
+    
     /* Read string : *2 because of uint16_t used to store chars */
-    custom_fs_read_from_flash((uint8_t*)custom_fs_temp_string1, custom_fs_current_text_file_addr + string_offset + sizeof(string_length), string_length*2);
+    custom_fs_read_from_flash((uint8_t*)temp_string_pointer, custom_fs_current_text_file_addr + string_offset + sizeof(string_length), string_length*2);
     
     /* Add terminating 0 just in case */
     custom_fs_temp_string1[(sizeof(custom_fs_temp_string1)/sizeof(custom_fs_temp_string1[0]))-1] = 0;
+    custom_fs_temp_string2[(sizeof(custom_fs_temp_string1)/sizeof(custom_fs_temp_string1[0]))-1] = 0;
     
     /* Store pointer to string */
-    *string_pt = custom_fs_temp_string1;
+    *string_pt = temp_string_pointer;
     
     return RETURN_OK;
 }
