@@ -1099,10 +1099,10 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     else if (child_address == NODE_ADDR_NULL)
     {
         /* New credential but password somehow not specified: generate a random one, 32 chars long */
-		for (uint16_t i = 0; i < ARRAY_SIZE(encrypted_password)/2; i++)
-		{
-			encrypted_password[i] = (rng_get_random_uint8_t() / 4) + 32;
-		}
+        for (uint16_t i = 0; i < ARRAY_SIZE(encrypted_password)/2; i++)
+        {
+            encrypted_password[i] = (rng_get_random_uint8_t() / 4) + 32;
+        }
         encrypted_password[ARRAY_SIZE(encrypted_password)/2] = 0;
         
         /* CTR encrypt password */
