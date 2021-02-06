@@ -182,6 +182,7 @@
         - modify file command (ssh feature support)
         - notes files support
 - v0.63:- visual glitch fix on screen saver exit
+		- on-board random password generation when no password specified
 */
 
 /**************** SETUP DEFINES ****************/
