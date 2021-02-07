@@ -443,7 +443,7 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
         comms_msg_rcvd_te rcvd_message = comms_aux_mcu_routine(MSG_RESTRICT_ALL); 
         
         /* Did we receive a message worthy of stopping the animation? */
-        if ((allow_scroll_or_msg_to_interrupt != FALSE) && (rcvd_message != NO_MSG_RCVD) && (rcvd_message != EVENT_MSG_RCVD) && (rcvd_message != HID_DBG_MSG_RCVD))
+        if ((allow_scroll_or_msg_to_interrupt != FALSE) && (rcvd_message != NO_MSG_RCVD) && (rcvd_message != EVENT_MSG_RCVD) && (rcvd_message != HID_DBG_MSG_RCVD) && (rcvd_message != BLE_CMD_MSG_RCVD))
         {
             /* Free timer */
             timer_deallocate_timer(temp_timer_id);
