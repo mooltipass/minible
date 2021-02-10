@@ -325,7 +325,7 @@ class mooltipass_hid_device:
 		packet_to_send["data"].frombytes(struct.pack('I', current_address))
 		
 		# While we haven't finished looping through the bytes
-		while byte != '':
+		while byte != b'':
 			# Add byte to current packet
 			packet_to_send["data"].append(struct.unpack('B', byte)[0])
 			# Increment byte counter
@@ -348,9 +348,10 @@ class mooltipass_hid_device:
 				time.sleep(0.002)
 					
 		# Send the remaining bytes
-		packet_to_send["len"] = array('B')
-		packet_to_send["len"].frombytes(struct.pack('H', bytecounter))
-		self.device.sendHidMessageWaitForAck(packet_to_send)
+		if bytecounter != 4:
+			packet_to_send["len"] = array('B')
+			packet_to_send["len"].frombytes(struct.pack('H', bytecounter))
+			self.device.sendHidMessageWaitForAck(packet_to_send)
 		
 		# Let the device know to reindex bundle
 		print("Letting the device know to reindex bundle...")

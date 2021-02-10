@@ -73,6 +73,15 @@ def main():
 			else:
 				print("Please specify bundle filename")
 		
+		elif sys.argv[1] == "uploadBundle":
+			# mooltipass_tool.py uploadDebugBundle filename
+			if len(sys.argv) > 3:
+				filename = sys.argv[2]
+				passwd = sys.argv[3]
+				mooltipass_device.uploadAndUpgradePlatform(filename, passwd)
+			else:
+				print("Please specify bundle filename")
+		
 		elif sys.argv[1] == "rebootToBootloader":
 			mooltipass_device.rebootToBootloader()
 			
