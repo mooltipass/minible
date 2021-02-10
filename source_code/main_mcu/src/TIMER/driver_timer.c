@@ -44,8 +44,6 @@ static int rtc_offset;
 #define NUMBER_OF_ALLOCATABLE_TIMERS    3
 volatile allocatedTimerEntry_t context_allocatable_timers[NUMBER_OF_ALLOCATABLE_TIMERS];
 volatile timerEntry_t context_timers[TOTAL_NUMBER_OF_TIMERS];
-/* Inactivity timer remaining ticks */
-volatile uint16_t timer_inactivity_30mins_tick_remain = 0;
 /* Bool set when MCU systic expired */
 volatile BOOL timer_systick_expired = TRUE;
 /* System tick */
@@ -111,15 +109,6 @@ void TCC2_Handler(void)
         /* Logic power 30min tick */
         logic_power_30m_tick();
         
-        /* Deal with inactivity logoff timer */
-        if (timer_inactivity_30mins_tick_remain != 0)
-        {
-            if (timer_inactivity_30mins_tick_remain-- == 1)
-            {
-                logic_user_set_user_to_be_logged_off_flag();
-            }
-        }
-        
         /* Timestamp adjustment */
         if (((timer_nb_30mins_interrupts & 0x01) == 0) && ((timer_fine_adjust & 0x01) != 0))
         {
@@ -141,6 +130,30 @@ void TCC2_Handler(void)
             timer_accumulated_corrections += timer_fine_adjust/2;
         }
         timer_nb_30mins_interrupts++;
+    }
+    #endif    
+}
+
+/*! \fn     TC3_Handler(void)
+*   \brief  Called when inactivity is detected
+*/
+void TC3_Handler(void)
+{
+    #ifndef BOOTLOADER
+    if (TC3->COUNT16.INTFLAG.reg & TC_INTFLAG_MC0)
+    {
+        /* Overflow interrupt: clear flag */
+        TC3->COUNT16.INTFLAG.reg = TC_INTFLAG_MC0;
+        
+        /* Stop counter */
+        while((TC3->COUNT16.STATUS.reg & TC_STATUS_SYNCBUSY) != 0);
+        TC3->COUNT16.CTRLA.reg = TC_CTRLA_SWRST;
+        
+        /* In case this wakes up device, setup the flag */
+        logic_device_set_wakeup_reason(WAKEUP_REASON_INACTIVITY);
+        
+        /* Set to be logged off flag */
+        logic_user_set_user_to_be_logged_off_flag();
     }
     #endif    
 }
@@ -197,15 +210,35 @@ void timer_get_timestamp_debug_data(uint32_t* timestamp, int32_t* counter_correc
 #endif
 }
 
-/*! \fn     timer_start_logoff_timer(uint16_t nb_30mins_ticks_before_lock)
-*   \brief  Start inactivity logoff timer
-*   \param  nb_30mins_ticks_before_lock     Number of 30mins ticks before lock
+/*! \fn     timer_arm_inactivity_timer(uint16_t nb_minutes)
+*   \brief  Arm inactivity timer that may wakeup the device
+*   \param  nb_minutes  Number of minutes
 */
-void timer_start_logoff_timer(uint16_t nb_30mins_ticks_before_lock)
+void timer_arm_inactivity_timer(uint16_t nb_minutes)
 {
-    cpu_irq_enter_critical();
-    timer_inactivity_30mins_tick_remain = nb_30mins_ticks_before_lock + 1;
-    cpu_irq_leave_critical();
+    /* Read request on COUNT */
+    TC3->COUNT16.READREQ.reg = TC_READREQ_RREQ | 0x10;
+    while((TC3->COUNT16.STATUS.reg & TC_STATUS_SYNCBUSY) != 0);
+    
+    /* Run timer only if it is not running or doesn't have the right value */
+    if (((TC3->COUNT16.STATUS.reg & TC_STATUS_STOP) != 0) || (TC3->COUNT16.COUNT.reg != 0))
+    {
+        /* Disable first, in case */
+        while((TC3->COUNT16.STATUS.reg & TC_STATUS_SYNCBUSY) != 0);
+        TC3->COUNT16.CTRLA.reg = TC_CTRLA_SWRST;
+        
+        /* Set compare channel 0 value */
+        while((TC3->COUNT16.STATUS.reg & TC_STATUS_SYNCBUSY) != 0);
+        TC3->COUNT16.CC[0].reg = nb_minutes * 60;
+        
+        /* Enable counter, 16 bits, 1024 prescaler (so we get seconds), run in standby */
+        while((TC3->COUNT16.STATUS.reg & TC_STATUS_SYNCBUSY) != 0);
+        TC3->COUNT16.CTRLA.reg = TC_CTRLA_ENABLE | TC_CTRLA_MODE_COUNT16_Val | TC_CTRLA_PRESCALER_DIV1024 | TC_CTRLA_RUNSTDBY;
+        
+        /* Enable interrupt & IRQ */
+        TC3->COUNT16.INTENSET.reg = TC_INTENSET_MC0;
+        NVIC_EnableIRQ(TC3_IRQn);
+    }
 }
 
 /*! \fn     timer_initialize_timebase(void)
@@ -264,7 +297,7 @@ void timer_initialize_timebase(void)
     /* Set GCLK Multiplexer 0x1A (for GCLK_TCC0) to 48MHz GCLK0 */
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, GCLK_CLKCTRL_ID_TCC0_TCC1_Val);
     
-    /* Set GCLK 0x1B (for GCLK_TCC2) to 1kHz GCLK3 */
+    /* Set GCLK 0x1B (for GCLK_TCC2 AND GCLK_TC3) to 1kHz GCLK3 */
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_32K, GCLK_CLKCTRL_ID_TCC2_TC3_Val);
     
     /* Setup TCC0 for 1ms interrupt */
@@ -291,6 +324,9 @@ void timer_initialize_timebase(void)
     TCC2->CTRLA = tcc_ctrl_reg;                                         // Write register
     TCC2->INTENSET.reg = TCC_INTENSET_OVF;                              // Enable overflow interrupt
     NVIC_EnableIRQ(TCC2_IRQn);                                          // Enable int
+    
+    /* Prepare for potential inactivity timer */
+    PM->APBCMASK.bit.TC3_ = 1;                                          // Enable APBC clock for TC3
     
     /* Store default osculp32k calibration value */
     timer_default_OSCULP32K_calib_val = SYSCTRL->OSCULP32K.bit.CALIB;
@@ -493,15 +529,6 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
             {
                 /* Logic power 30min tick */
                 logic_power_30m_tick();
-                
-                /* Deal with inactivity logoff timer */
-                if (timer_inactivity_30mins_tick_remain != 0)
-                {
-                    if (timer_inactivity_30mins_tick_remain-- == 1)
-                    {
-                        logic_user_set_user_to_be_logged_off_flag();
-                    }
-                }
             }
             
             /* Overflow interrupt: clear potential flag */

@@ -92,13 +92,13 @@ uint64_t driver_timer_date_to_timestamp(uint16_t year, uint16_t month, uint16_t 
 void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second);
 uint32_t driver_timer_get_nb_kinda17mins_slots_from_date(uint16_t year, uint16_t month, uint16_t day);
 timer_flag_te timer_has_allocated_timer_expired(uint16_t uid, BOOL clear);
-void timer_start_logoff_timer(uint16_t nb_30mins_ticks_before_lock);
 timer_flag_te timer_has_timer_expired(timer_id_te uid, BOOL clear);
 void timer_arm_mcu_systick_for_aux_tx_flood_protection(void);
 void timer_rearm_allocated_timer(uint16_t uid, uint32_t val);
 void timer_start_timer(timer_id_te uid, uint32_t val);
 uint64_t driver_timer_get_rtc_timestamp_uint64t(void);
 uint32_t driver_timer_get_rtc_timestamp_uint32t(void);
+void timer_arm_inactivity_timer(uint16_t nb_minutes);
 void timer_wait_for_aux_tx_flood_protection(void);
 uint16_t timer_get_and_start_timer(uint32_t val);
 void timer_deallocate_timer(uint16_t timer_id);

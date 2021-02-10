@@ -21,6 +21,7 @@
 */
 #include "comms_aux_mcu_defines.h"
 #include "logic_encryption.h"
+#include "logic_security.h"
 #include "gui_dispatcher.h"
 #include "comms_aux_mcu.h"
 #include "logic_aux_mcu.h"
@@ -190,10 +191,10 @@ void logic_device_activity_detected(void)
     #endif
     
     /* Re-arm logoff timer if feature is enabled */
-    uint16_t nb_20mins_ticks_before_lock_setting = custom_fs_settings_get_device_setting(SETTINGS_NB_20MINS_TICKS_FOR_LOCK);
-    if (nb_20mins_ticks_before_lock_setting != 0)
+    uint16_t nb_minutes_before_lock_setting = custom_fs_settings_get_device_setting(SETTINGS_NB_MINUTES_FOR_LOCK);
+    if ((nb_minutes_before_lock_setting != 0) && (logic_security_is_smc_inserted_unlocked() != FALSE))
     {
-        timer_start_logoff_timer(nb_20mins_ticks_before_lock_setting);
+        timer_arm_inactivity_timer(nb_minutes_before_lock_setting);
     }
     
     /* Check for screen off, switch it on if so */

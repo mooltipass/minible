@@ -60,7 +60,7 @@ const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = { 0,      
                                                                         FALSE,                                   // SETTINGS_SHOW_PIN_ON_ENTRY         
                                                                         FALSE,                                   // SETTINGS_DISABLE_BLE_ON_CARD_REMOVE
                                                                         FALSE,                                   // SETTINGS_DISABLE_BLE_ON_LOCK  
-                                                                        0,                                       // SETTINGS_NB_20MINS_TICKS_FOR_LOCK 
+                                                                        0,                                       // SETTINGS_NB_MINUTES_FOR_LOCK 
                                                                         FALSE,                                   // SETTINGS_SWITCH_OFF_AFTER_USB_DISC
                                                                         FALSE,                                   // SETTINGS_HASH_DISPLAY_FEATURE
                                                                         30,                                      // SETTINGS_INFORMATION_TIME_DELAY

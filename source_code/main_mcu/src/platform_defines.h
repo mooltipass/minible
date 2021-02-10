@@ -184,6 +184,7 @@
 - v0.63:- visual glitch fix on screen saver exit
         - on-board random password generation when no password specified
         - going to sleep: do not get interrupted by BLE command messages
+        - new inactivity timer allowing minute granularity
 */
 
 /**************** SETUP DEFINES ****************/
