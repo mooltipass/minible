@@ -452,7 +452,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
                 {
                     logic_bluetooth_disconnect_from_current_device();
                 }
-                memset(&gui_dispatcher_last_user_actions, 0, sizeof(gui_dispatcher_last_user_actions));
+                memset(gui_dispatcher_last_user_actions, 0, sizeof(gui_dispatcher_last_user_actions));
             }
             
             // click down - click up - click down: disable bluetooth
@@ -472,7 +472,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
                     logic_user_set_user_security_flag(USER_SEC_FLG_BLE_ENABLED);
                     gui_dispatcher_get_back_to_current_screen();
                 }
-                memset(&gui_dispatcher_last_user_actions, 0, sizeof(gui_dispatcher_last_user_actions));
+                memset(gui_dispatcher_last_user_actions, 0, sizeof(gui_dispatcher_last_user_actions));
             }            
         }
     }
