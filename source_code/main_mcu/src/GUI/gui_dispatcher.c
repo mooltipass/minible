@@ -519,7 +519,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
     }
     
     // No activity, turn off screen
-    if  (should_go_to_sleep != FALSE)
+    if (should_go_to_sleep != FALSE)
     {
         /* Display "going to sleep", switch off screen */
         if (sh1122_is_oled_on(&plat_oled_descriptor) != FALSE)

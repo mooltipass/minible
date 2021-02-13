@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    63
+#define FW_MINOR    64
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -186,6 +186,7 @@
         - going to sleep: do not get interrupted by BLE command messages
         - new inactivity timer allowing minute granularity
         - bug fix: bluetooth shortcuts
+- v0.64:- visual glitch fix on device lock with screen saver
 */
 
 /**************** SETUP DEFINES ****************/
