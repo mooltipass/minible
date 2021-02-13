@@ -216,6 +216,7 @@ void timer_get_timestamp_debug_data(uint32_t* timestamp, int32_t* counter_correc
 */
 void timer_arm_inactivity_timer(uint16_t nb_minutes)
 {
+#ifndef EMULATOR_BUILD 
     /* Read request on COUNT */
     TC3->COUNT16.READREQ.reg = TC_READREQ_RREQ | 0x10;
     while((TC3->COUNT16.STATUS.reg & TC_STATUS_SYNCBUSY) != 0);
@@ -239,6 +240,7 @@ void timer_arm_inactivity_timer(uint16_t nb_minutes)
         TC3->COUNT16.INTENSET.reg = TC_INTENSET_MC0;
         NVIC_EnableIRQ(TC3_IRQn);
     }
+#endif
 }
 
 /*! \fn     timer_initialize_timebase(void)
