@@ -1063,6 +1063,9 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         
         case HID_CMD_INFORM_CUR_SVC:
         {
+            /* Fixed duration to answer */
+            uint16_t temp_timer_id = timer_get_and_start_timer(100);
+            
             /* Get service string length */
             uint16_t service_length = utils_strnlen(rcv_msg->payload_as_cust_char_t, max_payload_size/sizeof(cust_char_t));
             
@@ -1086,6 +1089,10 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     }
                 }
             }
+            
+            /* Wait for fixed timeout */
+            while (timer_has_allocated_timer_expired(temp_timer_id, TRUE) == TIMER_RUNNING);
+            timer_deallocate_timer(temp_timer_id);
             
             /* Send ACK */
             comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
