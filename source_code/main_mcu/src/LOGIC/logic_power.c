@@ -510,11 +510,16 @@ void logic_power_compute_battery_state(void)
             /* Number of pct left */
             uint32_t nb_tenth_pct_left = (battery_last_reported_uah - nb_uah_used_total)/3000/10;
             
+            /* No ADC measurement fallback */
+            if (nb_tenth_pct_left >= 2)
+            {
+                adc_measurement_fallback = FALSE;
+            }
+            
             /* Not too low, below previous result? */
             if ((nb_tenth_pct_left >= 2) && (nb_tenth_pct_left < logic_power_current_battery_level))
             {
                 logic_power_battery_level_to_be_acked = nb_tenth_pct_left;
-                adc_measurement_fallback = FALSE;
             }
         }
     }

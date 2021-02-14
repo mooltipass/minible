@@ -187,6 +187,7 @@
         - new inactivity timer allowing minute granularity
         - bug fix: bluetooth shortcuts
 - v0.64:- visual glitch fix on device lock with screen saver
+        - correct decision on ADC measurement fallback
 */
 
 /**************** SETUP DEFINES ****************/
