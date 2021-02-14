@@ -1697,6 +1697,30 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             }
         }
         
+        case HID_CMD_TEMP_SET_KBD_LYT:
+        {
+            /* Same as above, but temporary */
+            BOOL is_usb_interface_wanted = (BOOL)rcv_msg->payload[0];
+            uint8_t desired_layout_id = rcv_msg->payload[1];
+            
+            /* user logged in, id valid? */
+            if ((logic_security_is_smc_inserted_unlocked() != FALSE) && (desired_layout_id < custom_fs_get_number_of_keyb_layouts()))
+            {
+                /* Set keyboard id for ongoing session */
+                custom_fs_set_current_keyboard_id(desired_layout_id, is_usb_interface_wanted);
+                
+                /* Set success byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
+            }
+            else
+            {
+                /* Set failure byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }
+        }
+        
         case HID_CMD_SET_USER_LANG_ID:
         {
             uint8_t desired_lang_id = rcv_msg->payload[0];
