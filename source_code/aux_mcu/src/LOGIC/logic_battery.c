@@ -256,8 +256,8 @@ battery_action_te logic_battery_task(void)
     {
         /* Extract low and high voltage sense */
         uint32_t cur_sense_vs = platform_io_get_cursense_conversion_result(FALSE);
-        uint32_t high_voltage = (cur_sense_vs >> 16);
-        uint32_t low_voltage = cur_sense_vs;
+        uint32_t high_voltage = (cur_sense_vs >> 16) & 0x00000FFFF;
+        uint32_t low_voltage = cur_sense_vs & 0x00000FFFF;
         
         /* Diagnostic values */
         logic_battery_diag_current_cur = (high_voltage - low_voltage);
