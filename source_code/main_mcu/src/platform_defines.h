@@ -258,6 +258,7 @@
 #elif defined(PLAT_V7_SETUP)
      #define BOD_NOT_ENABLED
      #define DBFLASH_CHIP_8M
+     #define HALT_ON_00X_ERROR
 #endif
 
 #if defined(EMULATOR_BUILD)

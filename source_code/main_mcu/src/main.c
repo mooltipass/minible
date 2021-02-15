@@ -43,6 +43,8 @@ spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .c
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 /* A wheel action that may be used to pass to our GUI routine */
 wheel_action_ret_te virtual_wheel_action = WHEEL_ACTION_NONE;
+/* If we should power off asap */
+BOOL main_should_power_off_asap = FALSE;
 /* Know if debugger is present */
 BOOL debugger_present = FALSE;
 
@@ -749,6 +751,15 @@ int main(void)
         /* Power routine */
         logic_power_routine();
         
+        /* Should we power off ASAP? */
+        if ((main_should_power_off_asap != FALSE) && (platform_io_is_usb_3v3_present_raw() == FALSE))
+        {
+            sh1122_oled_off(&plat_oled_descriptor);
+            platform_io_power_down_oled();
+            timer_delay_ms(100);
+            platform_io_disable_switch_and_die();
+        }
+        
         /* Check flag to be logged off */
         if ((logic_user_get_and_clear_user_to_be_logged_off_flag() != FALSE) && \
             (gui_dispatcher_get_current_screen() != GUI_SCREEN_NINSERTED) && \
@@ -796,7 +807,10 @@ int main(void)
             if (comms_aux_mcu_get_and_clear_invalid_message_received() != FALSE)
             {
                 gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_005_TEXT_ID, DISP_MSG_WARNING, FALSE);
-                gui_dispatcher_get_back_to_current_screen();                
+                gui_dispatcher_get_back_to_current_screen();   
+                #ifdef HALT_ON_00X_ERROR
+                main_should_power_off_asap = TRUE;
+                #endif             
             }
             
             /* RX DMA problem */
@@ -804,6 +818,9 @@ int main(void)
             {
                 gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_006_TEXT_ID, DISP_MSG_WARNING, FALSE);
                 gui_dispatcher_get_back_to_current_screen();
+                #ifdef HALT_ON_00X_ERROR
+                main_should_power_off_asap = TRUE;
+                #endif
             }
             
             /* TX buffer re requested problem */
@@ -811,6 +828,9 @@ int main(void)
             {
                 gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_007_TEXT_ID, DISP_MSG_WARNING, FALSE);
                 gui_dispatcher_get_back_to_current_screen();
+                #ifdef HALT_ON_00X_ERROR
+                main_should_power_off_asap = TRUE;
+                #endif
             }
             
             /* Many failed connection attempts */
@@ -828,6 +848,9 @@ int main(void)
                 {
                     /* Ping the aux */
                     aux_status_return_te get_status_return = comms_aux_mcu_get_aux_status();
+                    #ifdef HALT_ON_00X_ERROR
+                    main_should_power_off_asap = TRUE;
+                    #endif
                     
                     /* Check result */
                     if (get_status_return == RETURN_AUX_STAT_TIMEOUT)
@@ -849,6 +872,10 @@ int main(void)
                     {
                         gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_008_TEXT_ID, DISP_MSG_WARNING, FALSE);
                         gui_dispatcher_get_back_to_current_screen();                        
+                    }
+                    else
+                    {
+                        main_should_power_off_asap = FALSE;
                     }
                 }
                 
