@@ -772,9 +772,9 @@ From the PC:
 
 Device Answer:
 
-| byte 0-1 | byte 2-3                    | byte 4                          |
+| byte 0-1 | byte 2-3                    | byte 4-7                        |
 |:---------|:----------------------------|:--------------------------------|
-| 0x0028   | 1 | 0x01 (procedure started) |
+| 0x0028   | 4 | UINT32_MAX upon failure, otherwise discharge time |
 
 Start the NiMH reconditioning procedure
 
