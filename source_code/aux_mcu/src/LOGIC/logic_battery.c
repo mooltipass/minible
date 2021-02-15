@@ -284,11 +284,11 @@ battery_action_te logic_battery_task(void)
                         {
                             /* Recovery: 0.1C until battery reaches given voltage */
                         }
-                        else if ((logic_battery_charging_type == NIMH_DANGEROUS_FORCED_CHARGE) && (logic_battery_low_charge_current_counter <= (LOGIC_BATTERY_NB_MIN_DANGER_CHARGE*60*1000)/LOGIC_BATTERY_CUR_REACH_TICK))
+                        else if ((logic_battery_charging_type == NIMH_DANGEROUS_FORCED_CHARGE) && (logic_battery_low_charge_current_counter <= (LOGIC_BATTERY_NB_MIN_DANGER_CHARGE*60UL*1000UL)/LOGIC_BATTERY_CUR_REACH_TICK))
                         {
                             /* Dangerous charge: 333mA for fixed amount of time */
                         }
-                        else if ((logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING) && (logic_battery_low_charge_current_counter <= (LOGIC_BATTERY_NB_MIN_SLOW_START*60*1000)/LOGIC_BATTERY_CUR_REACH_TICK))
+                        else if ((logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING) && (logic_battery_low_charge_current_counter <= (LOGIC_BATTERY_NB_MIN_SLOW_START*60UL*1000UL)/LOGIC_BATTERY_CUR_REACH_TICK))
                         {
                             /* Slow start: keep current at low value for a fixed time before increasing it */
                         }

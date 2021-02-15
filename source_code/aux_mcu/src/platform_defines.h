@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    51
+#define FW_MINOR    52
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -96,6 +96,7 @@
         - bug fix: long switch between resolvable & non resolvable mac host BLE devices
 - v0.51:- BLE disconnect feature used as a stack of ban timeouts
         - disconnect event only sent when device was able to talk to us
+- v0.52:- improved battery logic code: correct types
 */
 
 /**************** SETUP DEFINES ****************/
