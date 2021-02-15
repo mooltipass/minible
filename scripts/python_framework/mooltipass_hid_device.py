@@ -372,11 +372,11 @@ class mooltipass_hid_device:
 		self.device.sendHidMessage(self.getPacketForCommand(CMD_DBG_FLASH_AUX_MCU, None))	
 		
     # Start reconditioning process(self):
-    def recondition(self):
-        self.device.setReadTimeout(999999999999999999999999999999999999999999)
+	def recondition(self):
+		self.device.setReadTimeout(999999999999999999999999999999999999999999)
 		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_RECONDITION_BAT, None))	
-		self.device.sendHidMessage(self.getPacketForCommand(CMD_DBG_FLASH_AUX_MCU, None))	
-        CMD_ID_RECONDITION_BAT
+		discharge_time = struct.unpack('I', packet["data"][0:4])[0]
+		print("Discharge time of " + str(int(discharge_time/1000)) + " seconds")
 		
 	# Get device status
 	def getDeviceStatus(self):
