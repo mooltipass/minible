@@ -457,6 +457,23 @@ void sh1122_prevent_partial_text_y_draw(sh1122_descriptor_t* oled_descriptor)
     oled_descriptor->allow_text_partial_y_draw = FALSE;
 }
 
+/*! \fn     sh1122_set_colors_invert(sh1122_descriptor_t* oled_descriptor, BOOL colors_inverted)
+*   \brief  Invert the screen colors
+*   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
+*   \param  screen_inverted     Boolean to invert or not the colors
+*/
+void sh1122_set_colors_invert(sh1122_descriptor_t* oled_descriptor, BOOL colors_inverted)
+{
+    if (colors_inverted == FALSE)
+    {
+        sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_REVERSE_DISPLAY);
+    }
+    else
+    {
+        sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_REVERSE_DISPLAY | 0x01);
+    }
+}
+
 /*! \fn     sh1122_fill_screen(sh1122_descriptor_t* oled_descriptor, uint8_t color)
 *   \brief  Fill the sh1122 screen with a given color
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct

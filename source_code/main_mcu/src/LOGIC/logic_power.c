@@ -887,6 +887,7 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
     
     /* Display animation until 1V at the cell */
     uint16_t current_vbat = UINT16_MAX;
+    sh1122_set_colors_invert(&plat_oled_descriptor, TRUE);
     gui_prompts_display_information_on_screen(RECOND_DISCHARGE_TEXT_ID, DISP_MSG_INFO);
     while (current_vbat > BATTERY_1V_WHEN_MEASURED_FROM_MAIN_WITH_USB)
     {        
@@ -915,6 +916,7 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
             current_vbat = platform_io_get_voledin_conversion_result_and_trigger_conversion();
         }
     }
+    sh1122_set_colors_invert(&plat_oled_descriptor, FALSE);
     
     /* Time stamp of end of discharge */
     *discharge_time = timer_get_systick() - discharge_start_ts;

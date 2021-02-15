@@ -256,8 +256,8 @@ battery_action_te logic_battery_task(void)
     {
         /* Extract low and high voltage sense */
         uint32_t cur_sense_vs = platform_io_get_cursense_conversion_result(FALSE);
-        volatile int16_t high_voltage = (int16_t)(cur_sense_vs >> 16);
-        volatile int16_t low_voltage = (int16_t)cur_sense_vs;
+        uint32_t high_voltage = (cur_sense_vs >> 16);
+        uint32_t low_voltage = cur_sense_vs;
         
         /* Diagnostic values */
         logic_battery_diag_current_cur = (high_voltage - low_voltage);
@@ -476,7 +476,7 @@ battery_action_te logic_battery_task(void)
                     }
                     
                     /* Set voltage difference depending on charging scheme */
-                    uint16_t voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_12C;
+                    uint32_t voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_12C;
                     if (logic_battery_charging_type == NIMH_12C_CHARGING)
                     {
                         voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_12C;
