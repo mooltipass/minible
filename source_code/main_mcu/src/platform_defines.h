@@ -190,6 +190,8 @@
         - correct decision on ADC measurement fallback
 - v0.65:- temporary keyboard layout set command
         - updated reconditioning code to output discharge time
+        - updated reconditioning code for more current draw
+        - define to stop platform on 00X error
 */
 
 /**************** SETUP DEFINES ****************/
