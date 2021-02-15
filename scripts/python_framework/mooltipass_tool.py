@@ -106,6 +106,9 @@ def main():
 		elif sys.argv[1] == "printDiagData":
 			mooltipass_device.printDiagData()
 			
+		elif sys.argv[1] == "recondition":
+			mooltipass_device.recondition()
+			
 		elif sys.argv[1] == "debugListen":
 			while True:
 				try:

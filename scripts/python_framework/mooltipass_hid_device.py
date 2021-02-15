@@ -371,6 +371,12 @@ class mooltipass_hid_device:
 	def flashAuxMcuFromBundle(self):
 		self.device.sendHidMessage(self.getPacketForCommand(CMD_DBG_FLASH_AUX_MCU, None))	
 		
+    # Start reconditioning process(self):
+    def recondition(self):
+        self.device.setReadTimeout(999999999999999999999999999999999999999999)
+		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_RECONDITION_BAT, None))	
+		self.device.sendHidMessage(self.getPacketForCommand(CMD_DBG_FLASH_AUX_MCU, None))	
+        CMD_ID_RECONDITION_BAT
 		
 	# Get device status
 	def getDeviceStatus(self):
