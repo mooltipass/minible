@@ -62,6 +62,7 @@ void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_su
 void logic_power_set_battery_level_update_from_aux(uint8_t battery_level);
 power_consumption_log_t* logic_power_get_power_consumption_log_pt(void);
 void logic_power_skip_queue_logic_for_upcoming_adc_measurements(void);
+RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time);
 void logic_power_register_vbat_adc_measurement(uint16_t adc_val);
 void logic_power_set_power_source(power_source_te power_source);
 uint16_t logic_power_debug_get_last_adc_measurement(void);
@@ -74,7 +75,6 @@ battery_state_te logic_power_get_battery_state(void);
 power_source_te logic_power_get_power_source(void);
 void logic_power_inform_of_over_discharge(void);
 void logic_power_usb_enumerate_just_sent(void);
-RET_TYPE logic_power_battery_recondition(void);
 void logic_power_compute_battery_state(void);
 uint16_t logic_power_get_battery_level(void);
 void logic_power_signal_battery_error(void);

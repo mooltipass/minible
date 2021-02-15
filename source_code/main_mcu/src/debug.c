@@ -302,7 +302,8 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 16)
             {
-                logic_power_battery_recondition();
+                uint32_t temp_uint32;
+                logic_power_battery_recondition(&temp_uint32);
             }
             else if (selected_item == 17)
             {

@@ -812,11 +812,12 @@ void logic_power_routine(void)
     }    
 }
 
-/*! \fn     logic_power_battery_recondition(void)
+/*! \fn     logic_power_battery_recondition(uint32_t* discharge_time)
 *   \brief  Fully discharge and charge the battery
+*   \param  discharge_time  Pointer to where to store the discharge time
 *   \return Success status
 */
-RET_TYPE logic_power_battery_recondition(void)
+RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
 {
     uint16_t gui_dispatcher_current_idle_anim_frame_id = 0;
     uint16_t temp_uint16;
@@ -827,12 +828,50 @@ RET_TYPE logic_power_battery_recondition(void)
         return RETURN_NOK;
     }
     
-    /* Check for charging */
+    /* Check for (kinda) full charge */
+    if ((logic_power_is_battery_charging() == FALSE) && (logic_power_battery_level_to_be_acked < 9))
+    {
+        /* Battery could use a topup, charge it! */
+        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHARGE);
+        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STARTED);
+        logic_power_set_battery_charging_bool(TRUE, FALSE);
+    }
+    
+    /* Are we charging? */
     if (logic_power_is_battery_charging() != FALSE)
     {
-        comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_STOP_CHARGE);
-        comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STOPPED);
-        logic_power_set_battery_charging_bool(FALSE, FALSE);
+        /* Display notification */
+        gui_prompts_display_information_on_screen(RECOND_CHARGE_TEXT_ID, DISP_MSG_INFO);
+        
+        /* Wait for end of charge */
+        while (logic_power_is_battery_charging() != FALSE)
+        {
+            /* Idle animation */
+            if (timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_EXPIRED)
+            {
+                /* Display new animation frame bitmap, rearm timer with provided value */
+                gui_prompts_display_information_on_string_single_anim_frame(&gui_dispatcher_current_idle_anim_frame_id, &temp_uint16, DISP_MSG_INFO);
+                timer_start_timer(TIMER_ANIMATIONS, temp_uint16);
+            }
+            
+            /* Do not deal with incoming messages */
+            comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+            logic_accelerometer_routine();
+
+            /* User disconnected USB? */
+            if (platform_io_is_usb_3v3_present_raw() == FALSE)
+            {
+                /* Switch to battery power for screen */
+                sh1122_oled_off(&plat_oled_descriptor);
+                platform_io_disable_3v3_to_oled_stepup();
+                platform_io_assert_oled_reset();
+                timer_delay_ms(15);
+                platform_io_power_up_oled(FALSE);
+                sh1122_init_display(&plat_oled_descriptor, TRUE);
+                gui_dispatcher_get_back_to_current_screen();
+                return RETURN_NOK;
+            }
+        }
     }
     
     /* Switch to battery power for screen */
@@ -842,6 +881,9 @@ RET_TYPE logic_power_battery_recondition(void)
     timer_delay_ms(15);
     platform_io_power_up_oled(FALSE);
     sh1122_init_display(&plat_oled_descriptor, TRUE);
+    
+    /* Time stamp of beginning of discharge */
+    uint32_t discharge_start_ts = timer_get_systick();
     
     /* Display animation until 1V at the cell */
     uint16_t current_vbat = UINT16_MAX;
@@ -873,6 +915,9 @@ RET_TYPE logic_power_battery_recondition(void)
             current_vbat = platform_io_get_voledin_conversion_result_and_trigger_conversion();
         }
     }
+    
+    /* Time stamp of end of discharge */
+    *discharge_time = timer_get_systick() - discharge_start_ts;
     
     /* Switch back to USB power for screen */
     sh1122_oled_off(&plat_oled_descriptor);
@@ -919,7 +964,7 @@ RET_TYPE logic_power_battery_recondition(void)
     timer_deallocate_timer(temp_timer_id);
     
     /* Actually start charging */
-    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHG_SLW_STRT);
+    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_RECOVERY_CHG);
     comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STARTED);
     logic_power_set_battery_charging_bool(TRUE, FALSE);
     

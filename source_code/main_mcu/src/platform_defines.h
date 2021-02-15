@@ -188,7 +188,8 @@
         - bug fix: bluetooth shortcuts
 - v0.64:- visual glitch fix on device lock with screen saver
         - correct decision on ADC measurement fallback
-- v0.65:- temporary keyboard layout set
+- v0.65:- temporary keyboard layout set command
+        - updated reconditioning code to output discharge time
 */
 
 /**************** SETUP DEFINES ****************/
