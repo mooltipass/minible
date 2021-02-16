@@ -775,7 +775,7 @@ int main(void)
                 logic_gui_disable_bluetooth(TRUE);
             }
             gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
-            if (gui_dispatcher_is_screen_saver_running() != FALSE)
+            if (gui_dispatcher_is_screen_saver_running() == FALSE)
             {
                 gui_dispatcher_get_back_to_current_screen();
             }
