@@ -40,7 +40,7 @@ typedef struct
 {
     uint32_t nb_30mins_powered_on;              // Lowest level state: 96uA
     uint32_t nb_30mins_card_inserted;           // Adding 42uA
-    uint32_t nb_30mins_ble_advertising;         // Adding 623uA to first 2
+    uint32_t nb_30mins_ble_advertising;         // Adding 823uA to first 2
     uint32_t nb_30mins_ios_connect;             // Adding xuA to first 2
     uint32_t nb_30mins_macos_connect;           // Adding xuA to first 2
     uint32_t nb_30mins_android_connect;         // Adding 74uA to first 2

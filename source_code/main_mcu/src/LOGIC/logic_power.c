@@ -489,7 +489,7 @@ void logic_power_compute_battery_state(void)
         volatile uint32_t nb_uah_used_total = 0;
         nb_uah_used_total += (logic_power_consumption_log_copy.nb_30mins_powered_on * 96 / 2);
         nb_uah_used_total += (logic_power_consumption_log_copy.nb_30mins_card_inserted * 42 / 2);
-        nb_uah_used_total += (logic_power_consumption_log_copy.nb_30mins_ble_advertising * 623 / 2);
+        nb_uah_used_total += (logic_power_consumption_log_copy.nb_30mins_ble_advertising * 823 / 2);
         nb_uah_used_total += (logic_power_consumption_log_copy.nb_30mins_ios_connect * 0 / 2);
         nb_uah_used_total += (logic_power_consumption_log_copy.nb_30mins_macos_connect * 0 / 2);
         nb_uah_used_total += (logic_power_consumption_log_copy.nb_30mins_android_connect * 74 / 2);
