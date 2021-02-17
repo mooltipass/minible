@@ -113,7 +113,7 @@ def main():
 				# Print if different from before
 				if last_serial_number != device_serial_number:
 					print("device SN:", device_serial_number)
-					#print_labels_for_ble_device(device_serial_number)
+					print_labels_for_ble_device(device_serial_number)
 					last_serial_number = device_serial_number
 					
 				# Wait for disconnect
