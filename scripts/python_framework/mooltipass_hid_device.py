@@ -23,12 +23,21 @@ class mooltipass_hid_device:
 		self.device = generic_hid_device()
 	
 	# Try to connect to Mooltipass device
-	def connect(self, verbose):
-		return self.device.connect(verbose, USB_VID, USB_PID, USB_READ_TIMEOUT, self.createPingPacket());
+	def connect(self, verbose, read_timeout=USB_READ_TIMEOUT):
+		return self.device.connect(verbose, USB_VID, USB_PID, read_timeout, self.createPingPacket());
 		
 	# Disconnect
 	def disconnect(self):
 		self.device.disconnect()
+		
+	# Wait for disconnect
+	def waitForDisconnect(self):
+		while True:
+			try:
+				self.device.sendHidPacket([0xFF])
+				time.sleep(.2)
+			except:
+				return
 		
 	# Get private device object
 	def getInternalDevice(self):

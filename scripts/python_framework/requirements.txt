@@ -1,2 +1,4 @@
 python-resize-image
 pyusb
+python-barcode
+brother_ql

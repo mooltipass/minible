@@ -2,30 +2,28 @@ from __future__ import print_function
 from mooltipass_hid_device import *
 from datetime import datetime
 from array import array
+if platform.system() == "Linux":
+	from label_printer import *
 import platform
 import usb.core
 import usb.util
 import random
 import time
 import sys
-nonConnectionCommands = []
+nonConnectionCommands = ["deviceSNLabelPrinting"]
 
 def main():
 	skipConnection = False
 	waitForDeviceConnection = False
 	
+	# HID device constructor
+	mooltipass_device = mooltipass_hid_device()	
+	
 	# If an arg is supplied and if the command doesn't require to connect to a device
 	if len(sys.argv) > 1 and sys.argv[1] in nonConnectionCommands:
-		skipConnection = True
-		
-	# Waiting for device connection
-	if len(sys.argv) > 1 and sys.argv[1] == "initCode":
-		waitForDeviceConnection = True
-	
+		skipConnection = True	
 
 	if not skipConnection:
-		# HID device constructor
-		mooltipass_device = mooltipass_hid_device()	
 		
 		# Connect to device
 		if waitForDeviceConnection == False:
@@ -100,8 +98,27 @@ def main():
 		elif sys.argv[1] == "timediff":
 			mooltipass_device.timeDiff()
 			
-		elif sys.argv[1] == "initCode":
-			mooltipass_device.initCode()
+		elif sys.argv[1] == "deviceSNLabelPrinting":
+			last_serial_number = -1
+			while True:
+				while mooltipass_device.connect(False, read_timeout=1000) == False:
+						time.sleep(.1)
+					
+				# Ask for the info
+				packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_PLAT_INFO, None), True)	
+				if packet["cmd"] == CMD_GET_DEVICE_STATUS:
+					packet =  mooltipass_device.device.receiveHidMessage(True)
+				device_serial_number = struct.unpack('I', packet["data"][8:12])[0]
+				
+				# Print if different from before
+				if last_serial_number != device_serial_number:
+					print("device SN:", device_serial_number)
+					#print_labels_for_ble_device(device_serial_number)
+					last_serial_number = device_serial_number
+					
+				# Wait for disconnect
+				mooltipass_device.waitForDisconnect()
+				time.sleep(1)
 			
 		elif sys.argv[1] == "printDiagData":
 			mooltipass_device.printDiagData()
