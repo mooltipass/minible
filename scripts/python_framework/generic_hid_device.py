@@ -138,7 +138,7 @@ class generic_hid_device:
 			receive_return = self.receiveHidMessage(True)
 			if receive_return == None:
 				sys.exit(0)
-			elif receive_return == True and retry_if_retry_received:
+			elif (receive_return == True and retry_if_retry_received) or (receive_return["cmd"] == CMD_GET_DEVICE_STATUS and (message["cmd"][0] + message["cmd"][1] * 256) != CMD_GET_DEVICE_STATUS):
 				print("please retry received... retrying")
 				time.sleep(1)
 				
