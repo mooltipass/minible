@@ -321,11 +321,12 @@ void main_platform_init(void)
     if (custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE)
     #endif
     {
-        functional_testing_start(TRUE);
-        
         /* First boot initializations */
         custom_fs_set_auth_challenge_counter(0);
         custom_fs_set_undefined_settings(TRUE);
+        
+        /* Then functional testing */
+        functional_testing_start(TRUE);
     }
 
     /* Check for RF functional testing passed */
