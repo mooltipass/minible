@@ -275,7 +275,7 @@ class mooltipass_hid_device:
 		
 		# Let the device know we're done
 		print("Bundle upload done!")
-		self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_END_BUNDLE_UL, None))		
+		self.device.sendHidMessage(self.getPacketForCommand(CMD_ID_END_BUNDLE_UL, None))		
 		
 		# Close file
 		bundlefile.close()
