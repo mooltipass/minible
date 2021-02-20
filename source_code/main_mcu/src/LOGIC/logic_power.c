@@ -501,6 +501,9 @@ void logic_power_compute_battery_state(void)
         nb_uah_used_total += ((logic_power_consumption_log_copy.nb_ms_no_screen_main_awake * 57) >> 12);     // 50mA
         nb_uah_used_total += ((logic_power_consumption_log_copy.nb_ms_full_pawa * 91) >> 11);                // 160mA
         
+        /* 33% penalty for self discharge and pessimistic reading */
+        nb_uah_used_total += (nb_uah_used_total >> 1);
+        
         /* Number of available uAh */
         uint32_t battery_last_reported_uah = logic_power_consumption_log_copy.aux_mcu_reported_pct * 3000;
         
