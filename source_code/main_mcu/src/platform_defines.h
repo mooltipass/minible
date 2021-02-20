@@ -359,9 +359,9 @@ typedef struct
     #define BATTERY_ADC_50PCT_VOLTAGE   (3280)
     #define BATTERY_ADC_40PCT_VOLTAGE   (3260)
     #define BATTERY_ADC_30PCT_VOLTAGE   (3228)
-    #define BATTERY_ADC_20PCT_VOLTAGE   (3173)
-    #define BATTERY_ADC_10PCT_VOLTAGE   (3090)
-    #define BATTERY_ADC_OUT_CUTOUT      (3000)
+    #define BATTERY_ADC_20PCT_VOLTAGE   (3131)
+    #define BATTERY_ADC_10PCT_VOLTAGE   (3080)
+    #define BATTERY_ADC_OUT_CUTOUT      (2950)
     #define BATTERY_ADC_EMGCY_CUTOUT    (2700)
     #define BATTERY_ADC_800MV_VALUE     (2056)
 #endif
