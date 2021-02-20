@@ -98,6 +98,7 @@
         - disconnect event only sent when device was able to talk to us
 - v0.52:- improved battery logic code: correct types
 - v0.53:- updated empty battery charging constants
+        - check for issues during USB ctrl OUT
 */
 
 /**************** SETUP DEFINES ****************/
