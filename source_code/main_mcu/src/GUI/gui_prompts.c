@@ -1853,6 +1853,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
 mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_addr, uint16_t* chosen_child_node_addr)
 {
     child_cred_node_t* temp_half_cnode_pt;
+    acc_detection_te knock_detect_result;
     cust_char_t* select_login_string;
     parent_node_t temp_half_cnode;
     uint16_t first_child_address;
@@ -1971,7 +1972,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
         }
         
         // Call accelerometer routine for (among others) RNG stuff
-        logic_accelerometer_routine();
+        knock_detect_result = logic_accelerometer_routine();
         
         /* Handle possible power switches */
         logic_power_check_power_switch_and_battery(FALSE);
@@ -1984,7 +1985,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
         
         /* Check if something has been pressed */
         wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, FALSE);
-        if (detect_result == WHEEL_ACTION_SHORT_CLICK)
+        if ((detect_result == WHEEL_ACTION_SHORT_CLICK) || (knock_detect_result == ACC_DET_KNOCK))
         { 
             *chosen_child_node_addr = center_list_child_addr;
             return MINI_INPUT_RET_YES;

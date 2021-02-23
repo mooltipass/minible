@@ -596,25 +596,31 @@ void logic_database_get_webauthn_data_for_address_and_inc_count(uint16_t child_a
     *count += temp_half_cnode_pt->signature_counter_lsb;
 }
 
-/*! \fn     logic_database_get_number_of_creds_for_service(uint16_t parent_addr, uint16_t* fnode_addr, BOOL category_filter)
+/*! \fn     logic_database_get_number_of_creds_for_service(uint16_t parent_addr, uint16_t* fnode_addr, uint16_t* lnode_used_addr, BOOL category_filter)
 *   \brief  Get number of credentials for a given service
 *   \param  parent_addr     Parent node address
 *   \param  fnode_addr      Where to store first node address
+*   \param  lnode_used_addr Where to store the address of the child node that was last used for that parent
 *   \param  category_filter Set to TRUE to filter categories
 *   \return Number of credentials for service
 */
-uint16_t logic_database_get_number_of_creds_for_service(uint16_t parent_addr, uint16_t* fnode_addr, BOOL category_filter)
+uint16_t logic_database_get_number_of_creds_for_service(uint16_t parent_addr, uint16_t* fnode_addr, uint16_t* lnode_used_addr, BOOL category_filter)
 {
     child_cred_node_t* temp_half_cnode_pt;
+    uint16_t suggested_last_node_addr;
     parent_node_t temp_pnode;
     uint16_t next_node_addr;
     uint16_t return_val = 0;
+    
+    /* Set last node address to NULL in case */
+    *lnode_used_addr = NODE_ADDR_NULL;
     
     /* Dirty trick */
     temp_half_cnode_pt = (child_cred_node_t*)&temp_pnode;
     
     /* Read parent node and get first child address */
     nodemgmt_read_parent_node(parent_addr, &temp_pnode, TRUE);
+    suggested_last_node_addr = temp_pnode.cred_parent.last_cnode_used_addr;
     next_node_addr = temp_pnode.cred_parent.nextChildAddress;
     *fnode_addr = NODE_ADDR_NULL;
     
@@ -638,6 +644,12 @@ uint16_t logic_database_get_number_of_creds_for_service(uint16_t parent_addr, ui
             if (*fnode_addr == NODE_ADDR_NULL)
             {
                 *fnode_addr = next_node_addr;
+            }
+            
+            /* Check for last used match */
+            if (suggested_last_node_addr == next_node_addr)
+            {
+                *lnode_used_addr = next_node_addr;
             }
             
             /* Increment counter */

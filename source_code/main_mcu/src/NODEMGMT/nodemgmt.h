@@ -106,7 +106,8 @@ typedef struct
     uint16_t nextParentAddress;                 // Next parent node address (Alphabetically)
     uint16_t nextChildAddress;                  // Parent node first child address
     cust_char_t service[SERVICE_NAME_MAX_LEN];  // Unicode BMP text describing service, used for sorting and searching
-    uint8_t reserved[4];                        // Reserved for future use
+    uint16_t last_cnode_used_addr;              // Address of the child node last used for that parent
+    uint8_t reserved[2];                        // Reserved for future use
 } parent_cred_node_t;
 
 // Parent node, see: https://mooltipass.github.io/minible/database_model
@@ -439,6 +440,7 @@ void nodemgmt_get_bluetooth_bonding_info_starting_offset(uint16_t uid, uint16_t 
 void nodemgmt_get_user_category_names_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 void nodemgmt_get_bluetooth_bonding_information_irks(uint16_t* nb_keys, uint8_t* aggregated_keys_buffer);
 void nodemgmt_update_child_data_node_with_next_address(uint16_t child_address, uint16_t next_address);
+void nodemgmt_set_last_used_child_node_for_service(uint16_t parent_address, uint16_t child_address);
 void nodemgmt_get_user_profile_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 RET_TYPE nodemgmt_create_child_node(uint16_t pAddr, child_cred_node_t* c, uint16_t* storedAddress);
 void nodemgmt_read_parent_node_data_block_from_flash(uint16_t address, parent_node_t* parent_node);

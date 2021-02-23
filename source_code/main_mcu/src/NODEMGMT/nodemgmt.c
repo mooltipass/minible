@@ -327,6 +327,31 @@ void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOO
     }
 }
 
+/*! \fn     nodemgmt_set_last_used_child_node_for_service(uint16_t parent_address, uint16_t child_address)
+*   \brief  Set last used child node for a given parent service
+*   \param  parent_address  parent address
+*   \param  child_address   child address
+*/
+void nodemgmt_set_last_used_child_node_for_service(uint16_t parent_address, uint16_t child_address)
+{
+    /* First read parent node */
+    nodemgmt_read_parent_node(parent_address, &nodemgmt_current_handle.temp_parent_node, FALSE);
+    
+    /* Check address validity & node type */
+    nodemgmt_check_address_validity_and_lock(child_address);
+    if (nodeTypeFromFlags(nodemgmt_current_handle.temp_parent_node.cred_parent.flags) != NODE_TYPE_PARENT)
+    {
+        return;
+    }
+    
+    /* Update last used child address & write node */
+    if (nodemgmt_current_handle.temp_parent_node.cred_parent.last_cnode_used_addr != child_address)
+    {
+        nodemgmt_current_handle.temp_parent_node.cred_parent.last_cnode_used_addr = child_address;
+        nodemgmt_write_parent_node_data_block_to_flash(parent_address, &nodemgmt_current_handle.temp_parent_node);
+    }
+}
+
 /*! \fn     nodemgmt_read_child_node_data_block_from_flash(uint16_t address, child_node_t* child_node)
 *   \brief  Read a parent node data block to flash
 *   \param  address     Where to read

@@ -1077,13 +1077,13 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             {
                 /* Do we know the service? */
                 uint16_t parent_address = logic_database_search_service(rcv_msg->payload_as_cust_char_t, COMPARE_MODE_MATCH, TRUE, NODEMGMT_STANDARD_CRED_TYPE_ID);
-                uint16_t temp_child_address;
+                uint16_t temp_child_address, temp_other_child_address;
                 
                 /* Do we know the service? */
                 if (parent_address != NODE_ADDR_NULL)
                 {
                     /* See how many credentials there are for this service */
-                    uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &temp_child_address, TRUE);
+                    uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &temp_child_address, &temp_other_child_address, TRUE);
                     
                     /* Set preferred starting address */
                     if (nb_logins_for_cred != 0)

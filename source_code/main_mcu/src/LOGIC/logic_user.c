@@ -39,6 +39,7 @@
 #include "custom_fs.h"
 #include "logic_gui.h"
 #include "nodemgmt.h"
+#include "nodemgmt.h"
 #include "text_ids.h"
 #include "utils.h"
 #include "rng.h"
@@ -1295,6 +1296,7 @@ RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* log
 fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t credential_id_allow_list[FIDO2_ALLOW_LIST_MAX_SIZE][FIDO2_CREDENTIAL_ID_LENGTH], uint16_t credential_id_allow_list_length, uint8_t flags)
 {
     uint8_t temp_cred_ctr[MEMBER_SIZE(child_webauthn_node_t, ctr)];
+    uint16_t last_used_child_address_for_service;
     
     /* TODO2: allow an allow list that has more than 1, which requires extra code on the GUI as it isn't as simple as listing all children nodes */
     /* However, I'm not sure why this would happen, as the RP would need to keep track of all aliases of a given user... */
@@ -1322,7 +1324,7 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
     }
     
     /* See how many credentials there are for this service */
-    uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &child_address, FALSE);
+    uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &child_address, &last_used_child_address_for_service, FALSE);
     
     /* Check if wanted credential id has been specified or if there's only one credential for that service */
     if ((credential_id_allow_list_length == 1) || (nb_logins_for_cred == 1))
@@ -1407,7 +1409,13 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
             For added security, in such a case we set the sign count to 0 to prevent malicious usage */
             if ((flags & FIDO2_GA_FLAG_SILENT) != FIDO2_GA_FLAG_SILENT)
             {
-                /* Here chosen_login_addr already is populated with the first node... isn't that pretty? */
+                /* Select last used child node address if returned, or first node */
+                if (last_used_child_address_for_service != NODE_ADDR_NULL)
+                {
+                    child_address = last_used_child_address_for_service;
+                }
+                            
+                /* Ask user to select credential */
                 mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &child_address);
                 if (display_prompt_return != MINI_INPUT_RET_YES)
                 {
@@ -1421,6 +1429,7 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
                     return FIDO2_OPERATION_DENIED;
                 }
             }
+            
             /* Fetch webauthn data
              * If this is a silent request we don't prompt above. We instead just select the first credential (already in "child_address" according to above comment and send that
              * back. The credential is not used for login anyway. It is just to check that the authenticator has credentials for this RPID.
@@ -1430,6 +1439,9 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
 
             /* User approved, decrypt key */
             logic_encryption_ctr_decrypt(private_key, temp_cred_ctr, MEMBER_SIZE(child_webauthn_node_t, private_key), FALSE);
+            
+            /* For more than 1 login for a given service, set last used service */
+            nodemgmt_set_last_used_child_node_for_service(parent_address, child_address);
 
             return FIDO2_SUCCESS;
         }
@@ -1493,7 +1505,8 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
     }
     
     /* See how many credentials there are for this service */
-    uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &child_address, !logic_security_is_management_mode_set());
+    uint16_t last_used_child_address_for_service;
+    uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &child_address, &last_used_child_address_for_service, !logic_security_is_management_mode_set());
     
     /* Set preferred starting address */
     if (nb_logins_for_cred != 0)
@@ -1619,7 +1632,13 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
         {
             /* 2 children or more, as 1 is tackled in the previous if */
             
-            /* Here chosen_login_addr already is populated with the first node... isn't that pretty? */
+            /* Select last used child node address if returned, or first node */
+            if (last_used_child_address_for_service != NODE_ADDR_NULL)
+            {
+                child_address = last_used_child_address_for_service;
+            } 
+            
+            /* Ask user to select credential */
             mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &child_address);
             if (display_prompt_return != MINI_INPUT_RET_YES)
             {
@@ -1636,6 +1655,9 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             }
             else
             {
+                /* For more than 1 login for a given service, set last used service */
+                nodemgmt_set_last_used_child_node_for_service(parent_address, child_address);
+                
                 /* Prepare answer */
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
                 
@@ -1683,6 +1705,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
 void logic_user_manual_select_login(void)
 {
     uint16_t chosen_service_addr = nodemgmt_get_starting_parent_addr_for_category(NODEMGMT_STANDARD_CRED_TYPE_ID);
+    uint16_t last_used_child_address_for_service = NODE_ADDR_NULL;
     uint16_t chosen_login_addr = NODE_ADDR_NULL;
     BOOL only_password_prompt = FALSE;
     BOOL usb_interface_output = TRUE;
@@ -1722,13 +1745,19 @@ void logic_user_manual_select_login(void)
             /* See how many credentials there are for this service, only if we haven't done this before (we may be walking back...) */
             if (nb_logins_for_cred == UINT16_MAX)
             {
-                nb_logins_for_cred = logic_database_get_number_of_creds_for_service(chosen_service_addr, &chosen_login_addr, TRUE);
+                nb_logins_for_cred = logic_database_get_number_of_creds_for_service(chosen_service_addr, &chosen_login_addr, &last_used_child_address_for_service, TRUE);
             }
 
             /* More than one login */
             if (nb_logins_for_cred != 1)
             {
-                /* Here chosen_login_addr is populated with the first node... isn't that pretty? */
+                /* Select last used child node address if returned */
+                if (last_used_child_address_for_service != NODE_ADDR_NULL)
+                {
+                    chosen_login_addr = last_used_child_address_for_service;
+                }
+                    
+                /* Ask user to select credential */
                 mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(chosen_service_addr, &chosen_login_addr);
                 if (display_prompt_return == MINI_INPUT_RET_BACK)
                 {
@@ -1736,6 +1765,10 @@ void logic_user_manual_select_login(void)
                 }
                 else if (display_prompt_return == MINI_INPUT_RET_YES)
                 {
+                    /* For more than 1 login for a given service, set last used service */
+                    nodemgmt_set_last_used_child_node_for_service(chosen_service_addr, chosen_login_addr);
+                    
+                    /* Next state */
                     state_machine++;
                 }
                 else
@@ -2338,6 +2371,7 @@ void logic_user_unlocked_feature_trigger(void)
     
     /* Fetch possible parent address for unlock service */
     uint16_t parent_address = logic_database_search_service((cust_char_t*)u"_unlock_", COMPARE_MODE_MATCH, TRUE, NODEMGMT_STANDARD_CRED_TYPE_ID);
+    uint16_t last_used_child_address_for_service = NODE_ADDR_NULL;
     uint16_t child_address = NODE_ADDR_NULL;
     BOOL usb_interface_output = TRUE;
 
@@ -2387,12 +2421,18 @@ void logic_user_unlocked_feature_trigger(void)
         logic_user_lock_unlock_shortcuts = TRUE;
         
         /* See how many credentials there are for this service */
-        uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &child_address, TRUE);
+        uint16_t nb_logins_for_cred = logic_database_get_number_of_creds_for_service(parent_address, &child_address, &last_used_child_address_for_service, TRUE);
 
         /* More than one login */
         if (nb_logins_for_cred != 1)
-        {
-            /* Here chosen_login_addr is populated with the first node... isn't that pretty? */
+        {            
+            /* Select last used child node address if returned, or first node */
+            if (last_used_child_address_for_service != NODE_ADDR_NULL)
+            {
+                child_address = last_used_child_address_for_service;
+            }
+
+            /* Ask user to select credential */
             mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &child_address);
             if (display_prompt_return != MINI_INPUT_RET_YES)
             {
@@ -2410,6 +2450,12 @@ void logic_user_unlocked_feature_trigger(void)
         
         /* Ask the user permission to enter login / password, check for back action */
         logic_user_ask_for_credentials_keyb_output(parent_address, child_address, FALSE, &usb_interface_output, lock_unlock_feature_uint, ((lock_unlock_feature_uint & LF_LOGIN_MASK) != 0)?FALSE:TRUE, ((lock_unlock_feature_uint & LF_NO_PWD_PROMPT_MASK) != 0)?TRUE:FALSE);
+        
+        /* For more than 1 login for a given service, set last used service */
+        if (nb_logins_for_cred != 1)
+        {
+            nodemgmt_set_last_used_child_node_for_service(parent_address, child_address);
+        }
     }
 }
 
