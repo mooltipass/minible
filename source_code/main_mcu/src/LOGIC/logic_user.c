@@ -39,7 +39,6 @@
 #include "custom_fs.h"
 #include "logic_gui.h"
 #include "nodemgmt.h"
-#include "nodemgmt.h"
 #include "text_ids.h"
 #include "utils.h"
 #include "rng.h"
@@ -1440,7 +1439,7 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
             /* User approved, decrypt key */
             logic_encryption_ctr_decrypt(private_key, temp_cred_ctr, MEMBER_SIZE(child_webauthn_node_t, private_key), FALSE);
             
-            /* For more than 1 login for a given service, set last used service */
+            /* For more than 1 login for a given service, set last used credential */
             nodemgmt_set_last_used_child_node_for_service(parent_address, child_address);
 
             return FIDO2_SUCCESS;
@@ -1655,7 +1654,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             }
             else
             {
-                /* For more than 1 login for a given service, set last used service */
+                /* For more than 1 login for a given service, set last used credential */
                 nodemgmt_set_last_used_child_node_for_service(parent_address, child_address);
                 
                 /* Prepare answer */
@@ -1765,7 +1764,7 @@ void logic_user_manual_select_login(void)
                 }
                 else if (display_prompt_return == MINI_INPUT_RET_YES)
                 {
-                    /* For more than 1 login for a given service, set last used service */
+                    /* For more than 1 login for a given service, set last used credential */
                     nodemgmt_set_last_used_child_node_for_service(chosen_service_addr, chosen_login_addr);
                     
                     /* Next state */
