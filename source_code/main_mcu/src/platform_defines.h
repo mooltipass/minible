@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    66
+#define FW_MINOR    67
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -194,6 +194,7 @@
         - updated reconditioning code for more current draw
         - define to stop platform on 00X error
 - v0.66:- adjustement battery reading to be a bit more pessimistic
+- v0.67:- remembering last used credential for a given service
 */
 
 /**************** SETUP DEFINES ****************/

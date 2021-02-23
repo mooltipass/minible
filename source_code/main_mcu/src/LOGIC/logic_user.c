@@ -1746,17 +1746,17 @@ void logic_user_manual_select_login(void)
             if (nb_logins_for_cred == UINT16_MAX)
             {
                 nb_logins_for_cred = logic_database_get_number_of_creds_for_service(chosen_service_addr, &chosen_login_addr, &last_used_child_address_for_service, TRUE);
+                
+                /* Select last used child node address if returned */
+                if ((nb_logins_for_cred != 1) && (last_used_child_address_for_service != NODE_ADDR_NULL))
+                {
+                    chosen_login_addr = last_used_child_address_for_service;
+                }
             }
 
             /* More than one login */
             if (nb_logins_for_cred != 1)
-            {
-                /* Select last used child node address if returned */
-                if (last_used_child_address_for_service != NODE_ADDR_NULL)
-                {
-                    chosen_login_addr = last_used_child_address_for_service;
-                }
-                    
+            {                    
                 /* Ask user to select credential */
                 mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(chosen_service_addr, &chosen_login_addr);
                 if (display_prompt_return == MINI_INPUT_RET_BACK)
