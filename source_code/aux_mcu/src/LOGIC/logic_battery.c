@@ -184,10 +184,10 @@ void logic_battery_stop_charging(void)
         
         /* Disable step-down */
         platform_io_disable_step_down();
-        
-        /* Reset state machine */
-        logic_battery_state = LB_IDLE;
     }
+        
+    /* Reset state machine */
+    logic_battery_state = LB_IDLE;
 }
 
 /*! \fn     logic_battery_stop_using_adc(void)
