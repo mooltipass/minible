@@ -288,6 +288,7 @@ RET_TYPE logic_bluetooth_temporarily_ban_connected_device(void);
 void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len);
 uint8_t logic_bluetooth_get_hid_serv_instance(uint16_t handle);
 void logic_bluetooth_encryption_changed_success(uint8_t* mac);
+void logic_bluetooth_check_and_wait_for_notif_sent(void);
 BOOL logic_bluetooth_is_device_temp_banned(uint8_t* mac);
 at_ble_status_t ble_char_changed_app_event(void* param);
 void logic_bluetooth_denied_connection_trigger(void);

@@ -100,6 +100,7 @@
 - v0.53:- updated empty battery charging constants
         - check for issues during USB ctrl OUT
 - v0.54:- updated recovery charge algorithm to leave 10mins rest
+        - BLE: waiting for notifications to be sent
 */
 
 /**************** SETUP DEFINES ****************/

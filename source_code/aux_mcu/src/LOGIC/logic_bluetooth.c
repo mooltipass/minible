@@ -236,6 +236,17 @@ static at_ble_status_t logic_bluetooth_hid_connected_callback(void* params)
     return AT_BLE_SUCCESS;
 }
 
+/*! \fn     logic_bluetooth_check_and_wait_for_notif_sent(void)
+*   \brief  Check if a notification if being sent and wait for end
+*/
+void logic_bluetooth_check_and_wait_for_notif_sent(void)
+{
+    while (logic_bluetooth_notif_being_sent != NONE_NOTIF_SENDING)
+    {
+        ble_event_task();
+    }
+}
+
 /*! \fn     logic_bluetooth_hid_disconnected_callback(void* params)
 *   \brief  Called during device disconnection
 */
@@ -247,7 +258,7 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
     comms_raw_hid_send_callback(BLE_INTERFACE);
 
     /* From battery service */
-    logic_bluetooth_battery_notification_flag = TRUE;    
+    logic_bluetooth_battery_notification_flag = TRUE;
     
     /* Start advertising again */
     logic_bluetooth_start_advertising();
@@ -258,7 +269,8 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
         comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_DISCONNECTED);
     }
     
-    /* Set booleans */
+    /* Reset booleans */
+    logic_bluetooth_notif_being_sent = NONE_NOTIF_SENDING;
     logic_bluetooth_can_communicate_with_host = FALSE;
     logic_bluetooth_just_connected = FALSE;
     logic_bluetooth_just_paired = FALSE;
@@ -1791,6 +1803,7 @@ void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
         DBG_LOG("BLE send: %02x %02x %02x%02x %02x%02x", logic_bluetooth_raw_hid_data_out_buf[0], logic_bluetooth_raw_hid_data_out_buf[1], logic_bluetooth_raw_hid_data_out_buf[2], logic_bluetooth_raw_hid_data_out_buf[3], logic_bluetooth_raw_hid_data_out_buf[4], logic_bluetooth_raw_hid_data_out_buf[5]);
         
         /* Send data */
+        logic_bluetooth_check_and_wait_for_notif_sent();
         logic_bluetooth_notif_being_sent = RAW_HID_NOTIF_SENDING;
         logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_RAW_HID_SERVICE_INSTANCE, BLE_RAW_HID_IN_REPORT_NB, logic_bluetooth_raw_hid_data_out_buf, sizeof(logic_bluetooth_raw_hid_data_out_buf), TRUE);
     }
@@ -1814,6 +1827,7 @@ ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key,
     {
         if (TRUE)
         {
+            logic_bluetooth_check_and_wait_for_notif_sent();
             logic_bluetooth_notif_being_sent = KEYBOARD_NOTIF_SENDING;
             logic_bluetooth_keyboard_in_report[0] = modifier;
             logic_bluetooth_keyboard_in_report[2] = key;
@@ -1823,6 +1837,7 @@ ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key,
         } 
         else
         {
+            logic_bluetooth_check_and_wait_for_notif_sent();
             logic_bluetooth_notif_being_sent = KEYBOARD_NOTIF_SENDING;
             logic_bluetooth_boot_keyb_in_report[0] = modifier;
             logic_bluetooth_boot_keyb_in_report[2] = key;
@@ -1869,6 +1884,7 @@ void logic_bluetooth_routine(void)
         /* send the notification and Update the battery level  */
         if ((logic_bluetooth_battery_notification_flag != FALSE) && (logic_bluetooth_can_communicate_with_host != FALSE))
         {
+            logic_bluetooth_check_and_wait_for_notif_sent();
             if(bat_update_char_value(logic_bluetooth_ble_connection_handle, &logic_bluetooth_bas_service_handler, logic_bluetooth_ble_battery_level, logic_bluetooth_battery_notification_flag) == AT_BLE_SUCCESS)
             {
                 DBG_LOG("Notif battery level:%d%%", logic_bluetooth_ble_battery_level);
