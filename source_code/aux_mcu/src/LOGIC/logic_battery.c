@@ -271,6 +271,19 @@ battery_action_te logic_battery_task(void)
             /* Rest in between charging states */
             case LB_CHARGE_REST:
             {
+                if (timer_has_timer_expired(TIMER_BATTERY_TICK, FALSE) == TIMER_EXPIRED)
+                {
+                    if ((logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING) && (logic_battery_low_charge_current_counter > (LOGIC_BATTERY_NB_MIN_RECOV_REST*60UL*1000UL)/LOGIC_BATTERY_CUR_REACH_TICK))
+                    {
+                        /* Rest after first constant small current charge: go full speed! */
+                        logic_battery_start_charging(NIMH_45C_CHARGING);
+                        return;
+                    }
+                
+                    /* Arm decision timer, increment counter */
+                    timer_start_timer(TIMER_BATTERY_TICK, LOGIC_BATTERY_CUR_REACH_TICK);
+                    logic_battery_low_charge_current_counter++;
+                }
                 break;
             }
             
@@ -292,8 +305,24 @@ battery_action_te logic_battery_task(void)
                         }
                         else
                         {
-                            /* Change state machine */
-                            logic_battery_state = LB_CHARGING_REACH;                    
+                            if (logic_battery_charging_type == NIMH_RECOVERY_45C_CHARGING)
+                            {
+                                /* Recovery charge: let the battery rest before charging it at full speed */
+                                logic_battery_low_charge_current_counter = 0;
+                                logic_battery_state = LB_CHARGE_REST;
+                                
+                                /* Disable charging */
+                                platform_io_disable_charge_mosfets();
+                                timer_delay_ms(1);
+                                
+                                /* Disable step-down */
+                                platform_io_disable_step_down();
+                            }
+                            else
+                            {
+                                /* Move to the next state */
+                                logic_battery_state = LB_CHARGING_REACH;                                
+                            }                  
                         }                        
                     }
                     else
