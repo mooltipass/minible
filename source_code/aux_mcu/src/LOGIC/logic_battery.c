@@ -141,10 +141,6 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
     {
         logic_battery_ramping_current_goal = LOGIC_BATTERY_CUR_FOR_RECOVERY;
     }
-    else if (charging_type == NIMH_DANGEROUS_FORCED_CHARGE)
-    {
-        logic_battery_ramping_current_goal = LOGIC_BATTERY_CUR_FOR_DANGER_CHARGE;
-    }
     else
     {
         logic_battery_ramping_current_goal = LOGIC_BATTERY_CUR_FOR_ST_RAMP_END;
@@ -259,19 +255,25 @@ battery_action_te logic_battery_task(void)
         uint32_t high_voltage = (cur_sense_vs >> 16) & 0x00000FFFF;
         uint32_t low_voltage = cur_sense_vs & 0x00000FFFF;
         
-        /* Diagnostic values */
-        logic_battery_diag_current_cur = (high_voltage - low_voltage);
-        logic_battery_diag_current_vbat = low_voltage;
-        
         /* Sanity checks on measured voltages (due to slow interrupt) */
         if (high_voltage < low_voltage)
         {
             high_voltage = low_voltage;
         }
         
+        /* Diagnostic values */
+        logic_battery_diag_current_cur = (high_voltage - low_voltage);
+        logic_battery_diag_current_vbat = low_voltage;
+        
         /* What's our current state? */
         switch(logic_battery_state)
         {
+            /* Rest in between charging states */
+            case LB_CHARGE_REST:
+            {
+                break;
+            }
+            
             /* Quick current ramp */
             case LB_CHARGE_START_RAMPING:
             {
@@ -284,10 +286,6 @@ battery_action_te logic_battery_task(void)
                         {
                             /* Recovery: 0.1C until battery reaches given voltage */
                         }
-                        else if ((logic_battery_charging_type == NIMH_DANGEROUS_FORCED_CHARGE) && (logic_battery_low_charge_current_counter <= (LOGIC_BATTERY_NB_MIN_DANGER_CHARGE*60UL*1000UL)/LOGIC_BATTERY_CUR_REACH_TICK))
-                        {
-                            /* Dangerous charge: 333mA for fixed amount of time */
-                        }
                         else if ((logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING) && (logic_battery_low_charge_current_counter <= (LOGIC_BATTERY_NB_MIN_SLOW_START*60UL*1000UL)/LOGIC_BATTERY_CUR_REACH_TICK))
                         {
                             /* Slow start: keep current at low value for a fixed time before increasing it */
@@ -295,25 +293,7 @@ battery_action_te logic_battery_task(void)
                         else
                         {
                             /* Change state machine */
-                            logic_battery_state = LB_CHARGING_REACH;   
-                            
-                            /* Except if we are force charging... */
-                            if (logic_battery_charging_type == NIMH_DANGEROUS_FORCED_CHARGE)
-                            {
-                                /* Done state */
-                                logic_battery_state = LB_CHARGING_DONE;
-                                
-                                /* Disable charging */
-                                platform_io_disable_charge_mosfets();
-                                timer_delay_ms(1);
-                                
-                                /* Disable step-down */
-                                platform_io_disable_step_down();
-
-                                /* Inform main MCU */
-                                logic_battery_inform_main_of_charge_done(0);
-                                return_value = BAT_ACT_CHARGE_DONE;
-                            }                     
+                            logic_battery_state = LB_CHARGING_REACH;                    
                         }                        
                     }
                     else
@@ -323,29 +303,9 @@ battery_action_te logic_battery_task(void)
                         {
                             logic_battery_charge_voltage += LOGIC_BATTERY_BAT_START_CHG_V_INC;
                         }
-                        else
-                        {
-                            /* Well that's pretty bad... we keep increasing voltage but we can't reach the target current. This can only happen because of NIMH_DANGEROUS_FORCED_CHARGE */
-                            if ((logic_battery_charging_type == NIMH_DANGEROUS_FORCED_CHARGE) && (logic_battery_low_charge_current_counter >= (LOGIC_BATTERY_NB_MIN_DANGER_CHARGE*60*1000)/LOGIC_BATTERY_CUR_REACH_TICK))
-                            {
-                                /* Done state */
-                                logic_battery_state = LB_CHARGING_DONE;
-                                
-                                /* Disable charging */
-                                platform_io_disable_charge_mosfets();
-                                timer_delay_ms(1);
-                                
-                                /* Disable step-down */
-                                platform_io_disable_step_down();
-
-                                /* Inform main MCU */
-                                logic_battery_inform_main_of_charge_done(0);
-                                return_value = BAT_ACT_CHARGE_DONE;
-                            }
-                        }
                         
                         /* Check for over voltage - may be caused by disconnected discharge path */
-                        if ((low_voltage >= LOGIC_BATTERY_MAX_V_FOR_ST_RAMP) && (logic_battery_charging_type != NIMH_DANGEROUS_FORCED_CHARGE))
+                        if (low_voltage >= LOGIC_BATTERY_MAX_V_FOR_ST_RAMP)
                         {
                             /* Error state */
                             logic_battery_state = LB_ERROR_ST_RAMPING;

@@ -460,9 +460,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             }
             case MAIN_MCU_COMMAND_NIMH_DANGER_CHARGE:
             {
-                /* Charge NiMH battery */
-                logic_battery_start_charging(NIMH_DANGEROUS_FORCED_CHARGE);
-                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_CHARGE_STARTED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
+                /* Not supported anymore */
                 break;
             }
             case MAIN_MCU_COMMAND_STOP_CHARGE:
