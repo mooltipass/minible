@@ -660,7 +660,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         {
             comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_RECOVERY_CHG);
             comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STARTED);   
-            logic_power_current_charge_type = SLOW_START_CHARGE;
+            logic_power_current_charge_type = RECOVERY_CHARGE;
         } 
         else
         {
