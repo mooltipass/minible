@@ -277,7 +277,6 @@ battery_action_te logic_battery_task(void)
                     {
                         /* Rest after first constant small current charge: go full speed! */
                         logic_battery_start_charging(NIMH_45C_CHARGING);
-                        return BAT_ACT_NONE;
                     }
                 
                     /* Arm decision timer, increment counter */
