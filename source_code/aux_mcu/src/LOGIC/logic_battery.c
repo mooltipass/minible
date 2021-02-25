@@ -273,7 +273,7 @@ battery_action_te logic_battery_task(void)
             {
                 if (timer_has_timer_expired(TIMER_BATTERY_TICK, FALSE) == TIMER_EXPIRED)
                 {
-                    if ((logic_battery_charging_type == NIMH_SLOWSTART_45C_CHARGING) && (logic_battery_low_charge_current_counter > (LOGIC_BATTERY_NB_MIN_RECOV_REST*60UL*1000UL)/LOGIC_BATTERY_CUR_REACH_TICK))
+                    if ((logic_battery_charging_type == NIMH_RECOVERY_45C_CHARGING) && (logic_battery_low_charge_current_counter > (LOGIC_BATTERY_NB_MIN_RECOV_REST*60UL*1000UL)/LOGIC_BATTERY_CUR_REACH_TICK))
                     {
                         /* Rest after first constant small current charge: go full speed! */
                         logic_battery_start_charging(NIMH_45C_CHARGING);
