@@ -363,6 +363,9 @@ void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_su
 {
     logic_power_battery_charging = battery_charging;
     
+    /* New device state */
+    logic_device_set_state_changed();
+    
     /* In case of charge success, reset our counter */
     if ((battery_charging == FALSE) && (charge_success != FALSE))
     {
@@ -671,6 +674,9 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         
         /* Set boolean */
         logic_power_battery_charging = TRUE;
+        
+        /* Update state */
+        logic_device_set_state_changed();
     }
     
     /* Wait if we've been instructed to */

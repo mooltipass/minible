@@ -89,6 +89,12 @@ uint16_t comms_hid_msgs_fill_get_status_message_answer(uint16_t* msg_array_uint1
     /* Battery level */
     msg_array_uint8[1] = logic_power_get_battery_level() * 10;
     
+    /* MSb of battery level to indicate charging status */
+    if (logic_power_is_battery_charging() != FALSE)
+    {
+        msg_array_uint8[1] |= 0x80;
+    }
+    
     /* If user logged in, send user security preferences */
     if (logic_security_is_smc_inserted_unlocked() != FALSE)
     {
