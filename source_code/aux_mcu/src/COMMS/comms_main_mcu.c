@@ -659,6 +659,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 platform_io_disable_charge_mosfets();
                 timer_delay_ms(1);
                 platform_io_disable_step_down();
+                platform_io_get_cursense_conversion_result(TRUE);
                 
                 /* Send functional test result */
                 comms_main_mcu_send_message((void*)&comms_main_mcu_message_for_main_replies, (uint16_t)sizeof(comms_main_mcu_message_for_main_replies));      

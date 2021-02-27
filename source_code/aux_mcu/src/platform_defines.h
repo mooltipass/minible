@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    54
+#define FW_MINOR    55
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -101,6 +101,8 @@
         - check for issues during USB ctrl OUT
 - v0.54:- updated recovery charge algorithm to leave 10mins rest
         - BLE: waiting for notifications to be sent
+- v0.55:- adc bug fix after functional test
+        - kickstarter release
 */
 
 /**************** SETUP DEFINES ****************/
