@@ -136,8 +136,23 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     /* Wheel testing */
     timer_delay_ms(500);
     inputs_clear_detections();
+    uint16_t temp_timer_id = timer_get_and_start_timer(20000);
     sh1122_put_error_string(&plat_oled_descriptor, u"scroll up");
-    while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_UP);
+    while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_UP)
+    {
+        /* Timer timeout, switch off platform */
+        if (timer_has_allocated_timer_expired(temp_timer_id, FALSE) == TIMER_EXPIRED)
+        {
+            sh1122_oled_off(&plat_oled_descriptor);     // Display off command
+            platform_io_power_down_oled();              // Switch off stepup
+            platform_io_set_wheel_click_pull_down();    // Pull down on wheel click to slowly discharge capacitor
+            timer_delay_ms(100);                        // From OLED datasheet wait before removing 3V3
+            platform_io_set_wheel_click_low();          // Completely discharge cap
+            timer_delay_ms(10);                         // Wait a tad
+            platform_io_disable_switch_and_die();       // Die!
+        }            
+    }
+    timer_deallocate_timer(temp_timer_id);
     sh1122_clear_current_screen(&plat_oled_descriptor);
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
@@ -253,7 +268,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     
     /* Test accelerometer */
     sh1122_put_error_string(&plat_oled_descriptor, u"Testing accelerometer...");
-    uint16_t temp_timer_id = timer_get_and_start_timer(2000);
+    temp_timer_id = timer_get_and_start_timer(2000);
     while (timer_has_allocated_timer_expired(temp_timer_id, TRUE) != TIMER_EXPIRED)
     {
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
