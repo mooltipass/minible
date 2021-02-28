@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # pip install viivakoodi
-import brother_ql	
+import brother_ql   
 import logging
 import barcode
 import time
 import os
 from barcode.writer import ImageWriter
 try:
-	import Image, ImageDraw, ImageFont		
-except ImportError:		
-	from PIL import Image, ImageDraw, ImageFont
+    import Image, ImageDraw, ImageFont      
+except ImportError:     
+    from PIL import Image, ImageDraw, ImageFont
 logging.basicConfig(level='ERROR')
 PRINTER_MODEL = "QL-700"
 
@@ -34,49 +34,49 @@ pt300 = 0.24 # (pt300 = 0.24 pt72)
 
 # Check print status
 def checkPrintStatus():
-	CHECK_MAX_SECONDS = 4
-	data_received        = False
-	print_successful     = False
-	end_of_media_reached = False
+    CHECK_MAX_SECONDS = 4
+    data_received        = False
+    print_successful     = False
+    end_of_media_reached = False
 
-	dev = os.open("/dev/usb/lp0", os.O_RDWR)
-	try:
-		start = time.time()
-		while time.time() - start < CHECK_MAX_SECONDS:
-			data = os.read(dev, 32)
-			if len(data) == 32:
-				data_received = True
-				error_bytes = data[8], data[9]
-				if (error_bytes[0] & 0x2) or (error_bytes[1] & 0x40):
-					end_of_media_reached = True
-					break
-				if data[18] == 0x06 and data[19] == 0x00:
-					print_successful = True
-					break
-	except KeyboardInterrupt:
-		pass
-	finally:
-		os.close(dev)
-	
-	# Check for print success
-	if print_successful == True:
-		print("Print successful")
-	elif end_of_media_reached == True:
-		print(""                                                           )
-		print("|!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!|")
-		print("|---------------------------------------------------------|")
-		print("|---------------------------------------------------------|")                 
-		print("|                 CHANGE PRINTER LABEL ROLL!!!!           |")                    
-		print("|---------------------------------------------------------|")
-		print("|---------------------------------------------------------|")
-		print("|!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!|")
-		input("Press enter once done:")
+    dev = os.open("/dev/usb/lp0", os.O_RDWR)
+    try:
+        start = time.time()
+        while time.time() - start < CHECK_MAX_SECONDS:
+            data = os.read(dev, 32)
+            if len(data) == 32:
+                data_received = True
+                error_bytes = data[8], data[9]
+                if (error_bytes[0] & 0x2) or (error_bytes[1] & 0x40):
+                    end_of_media_reached = True
+                    break
+                if data[18] == 0x06 and data[19] == 0x00:
+                    print_successful = True
+                    break
+    except KeyboardInterrupt:
+        pass
+    finally:
+        os.close(dev)
+    
+    # Check for print success
+    if print_successful == True:
+        print("Print successful")
+    elif end_of_media_reached == True:
+        print(""                                                           )
+        print("|!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!|")
+        print("|---------------------------------------------------------|")
+        print("|---------------------------------------------------------|")                 
+        print("|                 CHANGE PRINTER LABEL ROLL!!!!           |")                    
+        print("|---------------------------------------------------------|")
+        print("|---------------------------------------------------------|")
+        print("|!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!|")
+        input("Press enter once done:")
 
 def create_raster_file(label_size, in_file, out_file, cut=True):
-	qlr = brother_ql.BrotherQLRaster(PRINTER_MODEL)
-	brother_ql.create_label(qlr, in_file, label_size, cut=cut)
-	with open(out_file, 'wb') as f:
-		f.write(qlr.data)
+    qlr = brother_ql.BrotherQLRaster(PRINTER_MODEL)
+    brother_ql.create_label(qlr, in_file, label_size, cut=cut)
+    with open(out_file, 'wb') as f:
+        f.write(qlr.data)
 
 def create_label_type1(label_size, barcode_value, line1=None, line2=None, line3=None):
     im = Image.new("L", label_sizes[label_size], 255)
@@ -105,8 +105,7 @@ def create_label_type2(label_size, text=None, font_size=11):
     return im
     
 def get_ble_color_for_serial_number(serial_number):
-	# To be implemented later
-	return ["Purple", "PUR"]
+    return ["Problem", "PBM"]
     
 def print_labels_for_ble_device(serial_number):    
     # 17*87mm label size
@@ -125,7 +124,7 @@ def print_labels_for_ble_device(serial_number):
     # Check print status
     checkPrintStatus()
     
-    # 17*87mm label size, text value: BLE - v1 - 8Mb - Color		
+    # 17*87mm label size, text value: BLE - v1 - 8Mb - Color        
     label_size, text = "17x87", "BLE-v1-8Mb-"+get_ble_color_for_serial_number(serial_number)[1]
     out_file = "label_number_2.bin"
     # Create label with content
