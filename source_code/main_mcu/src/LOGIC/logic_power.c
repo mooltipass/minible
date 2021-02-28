@@ -270,7 +270,7 @@ void logic_power_init(BOOL poweredoff_due_to_battery)
             #ifdef DEVELOPER_FEATURES_ENABLED
             logic_power_register_vbat_adc_measurement(UINT16_MAX);
             #else
-            logic_power_register_vbat_adc_measurement(0);
+            logic_power_register_vbat_adc_measurement(BATTERY_ADC_50PCT_VOLTAGE);
             #endif
         } 
         else
