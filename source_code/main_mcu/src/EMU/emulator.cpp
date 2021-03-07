@@ -184,11 +184,18 @@ int main(int ac, char ** av)
     ms_timer.start();
 
     QObject::connect(&ms_timer, &QTimer::timeout, [] () {
-        // the OS will most likely not schedule our timer with 1ms frequency,
-        // so we correct for this by running the "irq" function several times if needed
-        static QTime timer = QTime::currentTime();
-        for(int msPassed = timer.restart(); msPassed >= 0; --msPassed) 
+        if (true)
+        {
             pseudo_irq();
+        }
+        else
+        {
+            // the OS will most likely not schedule our timer with 1ms frequency,
+            // so we correct for this by running the "irq" function several times if needed
+            static QTime timer = QTime::currentTime();
+            for(int msPassed = timer.restart(); msPassed >= 0; --msPassed)
+                pseudo_irq();
+        }
     });
 
     oled = new OLEDWidget;
