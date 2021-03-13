@@ -127,8 +127,7 @@ void timer_start_callback_timer(void* timer_id, uint32_t ms)
     if (callback_timer_id < TIMER_NB_CALLBACK_TIMERS)
     {
         callback_timers[callback_timer_id].timer_val = ms;
-        callback_timers[callback_timer_id].timer_armed = TRUE;
-        callback_timers[callback_timer_id].timer_set_val = ms;        
+        callback_timers[callback_timer_id].timer_armed = TRUE;   
     }
     else
     {
@@ -285,10 +284,12 @@ void timer_ms_tick(void)
         if ((callback_timers[i].timer_armed != FALSE) && (callback_timers[i].timer_enabled != FALSE))
         {
             // Post decrement on purpose to add an extra ms
-            if (callback_timers[i].timer_val-- == 0)
+            if (callback_timers[i].timer_val != 0)
             {
-                callback_timers[i].timer_val = callback_timers[i].timer_set_val;
-                callback_timers[i].timer_callback((void*)i);
+                if (callback_timers[i].timer_val-- == 1)
+                {
+                    callback_timers[i].timer_callback((void*)i);
+                }
             }
         }
     }

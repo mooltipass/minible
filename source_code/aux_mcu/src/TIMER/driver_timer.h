@@ -32,7 +32,6 @@ typedef struct
     BOOL timer_armed;
     BOOL timer_enabled;
     uint32_t timer_val;
-    uint32_t timer_set_val;
     timer_callback_t timer_callback;
 } timer_callback_struct_t;
 

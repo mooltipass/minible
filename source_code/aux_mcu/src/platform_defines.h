@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    56
+#define FW_MINOR    57
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -103,6 +103,7 @@
         - BLE: waiting for notifications to be sent
 - v0.55:- adc bug fix after functional test
 - v0.56:- 002 error bug fix, caused by incorrect while in usb set report
+- v0.57:- 002 error bug fix, caused by incorrect timer function port from original library
 */
 
 /**************** SETUP DEFINES ****************/
