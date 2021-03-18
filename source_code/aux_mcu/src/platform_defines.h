@@ -104,6 +104,7 @@
 - v0.55:- adc bug fix after functional test
 - v0.56:- 002 error bug fix, caused by incorrect while in usb set report
 - v0.57:- 002 error bug fix, caused by incorrect timer function port from original library
+        - kickstarter release
 */
 
 /**************** SETUP DEFINES ****************/
