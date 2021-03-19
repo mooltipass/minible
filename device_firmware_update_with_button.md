@@ -44,7 +44,7 @@ The platform will then reboot and update itself.
     
 ### [](#header-3)Step 4: Moolticute versions v0.44.22 and above
 
-In Moolticute, press CTRL-SHIFT-F3 (SHIFT-Command-F3 on Mac) in such a way that all 3 keys are pressed at the end of the shortcut.  
+In Moolticute, press CTRL-SHIFT-F3 (Shift+Fn+Cmd+F3 on Mac) in such a way that all 3 keys are pressed at the end of the shortcut.  
 The BLE Dev tab will appear on the top part of the application. **Make sure your device is fully charged**.  
   
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/ble_dev_tab_new_upload.png?raw=true)  
