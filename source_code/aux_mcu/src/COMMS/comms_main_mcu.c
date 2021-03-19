@@ -479,6 +479,9 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             }
             case MAIN_MCU_COMMAND_GET_STATUS:
             {
+                /* Wait for previous message send */
+                dma_wait_for_main_mcu_packet_sent();
+                
                 /* Status request */
                 comms_main_mcu_message_for_main_replies.message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
                 comms_main_mcu_message_for_main_replies.aux_mcu_event_message.event_id = AUX_MCU_EVEN_HERES_MY_STATUS;

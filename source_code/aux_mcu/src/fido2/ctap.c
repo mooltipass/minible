@@ -552,8 +552,8 @@ uint8_t ctap_make_credential(CborEncoder * encoder, uint8_t * request, int lengt
      * W10 uses this to select a device if more than one device is hooked up to the PC.
      * Ignore this request and don't create the credential
      */
-    uint8_t rpid_is_SD = strcmp( (char const *) MC.common.rp.id, "SelectDevice") == 0;
-    uint8_t rpname_is_SD = strcmp( (char const *) MC.common.rp.name, "SelectDevice") == 0;
+    uint8_t rpid_is_SD = (strcmp((char const *) MC.common.rp.id, "SelectDevice") == 0) || (strcmp((char const *) MC.common.rp.id, ".dummy") == 0);
+    uint8_t rpname_is_SD = (strcmp((char const *) MC.common.rp.name, "SelectDevice") == 0) || (strcmp((char const *) MC.common.rp.name, ".dummy") == 0);
 
     if (rpid_is_SD && rpname_is_SD)
     {
