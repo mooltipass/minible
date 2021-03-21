@@ -343,6 +343,7 @@
       <Value>__cpp_static_assert=0</Value>
       <Value>CBOR_NO_FLOATING_POINT</Value>
       <Value>NDEBUG</Value>
+      <Value>DEBUG_LOG_DISABLED</Value>
     </ListValues>
   </armgcc.compiler.symbols.DefSymbols>
   <armgcc.compiler.directories.IncludePaths>

@@ -752,7 +752,6 @@ ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buf
                 /* Did we receive a please retry from the main mcu? */
                 if ((resend_send_msg_if_retry_of_type_received != FALSE) && (dma_main_mcu_other_message.message_type == AUX_MCU_MSG_TYPE_FIDO2) && (dma_main_mcu_other_message.fido2_message.message_type == AUX_MCU_FIDO2_RETRY))
                 {
-                    timer_delay_ms(5);
                     comms_main_mcu_send_message(&main_mcu_send_message, sizeof(main_mcu_send_message));
                 } 
                 else
@@ -822,7 +821,6 @@ ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buf
                 /* Did we receive a please retry from the main mcu? */
                 if ((resend_send_msg_if_retry_of_type_received != FALSE) && (comms_main_mcu_temp_message.message_type == AUX_MCU_MSG_TYPE_FIDO2) && (comms_main_mcu_temp_message.fido2_message.message_type == AUX_MCU_FIDO2_RETRY))
                 {
-                    timer_delay_ms(5);
                     comms_main_mcu_send_message(&main_mcu_send_message, sizeof(main_mcu_send_message));
                 }
                 else
