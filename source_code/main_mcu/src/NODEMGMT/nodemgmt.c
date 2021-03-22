@@ -2034,6 +2034,15 @@ uint16_t nodemgmt_get_user_language_for_user_id(uint16_t userIdNum)
     /* Return language id */
     return language_id;
 }
+
+/*! \fn     nodemgmt_allow_new_change_number_increment(void)
+ *  \brief  Allows new change number increment (called by usb / ble connect in case the user doesn't get logged out between device connections)
+ */
+void nodemgmt_allow_new_change_number_increment(void)
+{
+    nodemgmt_current_handle.datadbChanged = FALSE;
+    nodemgmt_current_handle.dbChanged = FALSE;
+}    
     
 /*! \fn     nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout, uint16_t* userBLELayout)
  *  \brief  Initializes the Node Management Handle, scans memory for the next free node

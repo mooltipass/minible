@@ -558,6 +558,7 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
         }
         case AUX_MCU_EVENT_USB_ENUMERATED:
         {
+            nodemgmt_allow_new_change_number_increment();
             logic_aux_mcu_set_usb_enumerated_bool(TRUE);
             logic_device_set_state_changed();
             break;
@@ -577,6 +578,7 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
         case AUX_MCU_EVENT_BLE_CONNECTED:
         {
             logic_bluetooth_set_do_not_lock_device_after_disconnect_flag(FALSE);
+            nodemgmt_allow_new_change_number_increment();
             logic_bluetooth_set_connected_state(TRUE);
             logic_device_set_state_changed();
             break;

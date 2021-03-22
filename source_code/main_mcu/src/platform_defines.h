@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    68
+#define FW_MINOR    69
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -197,6 +197,7 @@
 - v0.67:- remembering last used credential for a given service
 - v0.68:- status message informing charge
         - kickstarter fw release
+- v0.69:- rearms change number increment upon USB / BLE connection (in case the user isn't logged out between device connections)
 */
 
 /**************** SETUP DEFINES ****************/

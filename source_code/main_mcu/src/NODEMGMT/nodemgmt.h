@@ -486,6 +486,7 @@ void nodemgmt_user_db_changed_actions(BOOL dataChanged);
 void nodemgmt_store_user_language(uint16_t languageId);
 void nodemgmt_store_user_ble_layout(uint16_t layoutId);
 void nodemgmt_set_current_category_id(uint16_t catId);
+void nodemgmt_allow_new_change_number_increment(void);
 uint16_t nodemgmt_get_user_nb_known_languages(void);
 void nodemgmt_delete_current_user_from_flash(void);
 uint16_t nodemgmt_get_current_category_flags(void);
