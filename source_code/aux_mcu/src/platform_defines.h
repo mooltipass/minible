@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    57
+#define FW_MINOR    58
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -104,7 +104,7 @@
 - v0.55:- adc bug fix after functional test
 - v0.56:- 002 error bug fix, caused by incorrect while in usb set report
 - v0.57:- 002 error bug fix, caused by incorrect timer function port from original library
-        - 002 error bug fix, caused by timer_delay when dealing with partial message
+- v0.58:- 002 error bug fix, caused by timer_delay when dealing with partial message
         - kickstarter release
 */
 
