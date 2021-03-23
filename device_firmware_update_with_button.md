@@ -38,6 +38,7 @@ The upload will start automatically:
    
 At the end of the upload, your device will reboot and update itself.  
 **Do not disconnect your device during the update process**.  
+If the device reboots and displays "No aux MCU", simply disconnect and reconnect your USB cable.  
   
   
 ### [](#header-3)Step 4: Moolticute versions below v0.44.22
