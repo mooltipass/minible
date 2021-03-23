@@ -1,7 +1,7 @@
 ## [](#header-2)Guide to updating your Mini BLE  
 
 ### [](#header-3)Step 1: Enable Update Mode on your Mini BLE
-Connect your Mooltipass Mini BLE to your computer **through USB** and sure your device is fully charged:  
+Connect your Mooltipass Mini BLE to your computer **through USB** and make sure your device is fully charged:  
   
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/rf_debug_guide/welcome_screen.png?raw=true)  
   
