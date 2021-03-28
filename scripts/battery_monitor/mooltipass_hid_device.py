@@ -55,13 +55,13 @@ class mooltipass_hid_device:
 		packet["data"] = array('B')
 			
 		# command
-		packet["cmd"].fromstring(struct.pack('H', cmd))
+		packet["cmd"].frombytes(struct.pack('H', cmd))
 		
 		# data length
 		if data is not None:
-			packet["len"].fromstring(struct.pack('H', len(data)))
+			packet["len"].frombytes(struct.pack('H', len(data)))
 		else:
-			packet["len"].fromstring(struct.pack('H', 0))
+			packet["len"].frombytes(struct.pack('H', 0))
 
 		# data
 		if data is not None:

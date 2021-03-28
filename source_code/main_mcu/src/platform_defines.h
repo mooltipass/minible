@@ -198,6 +198,7 @@
 - v0.68:- status message informing charge
         - kickstarter fw release
 - v0.69:- rearms change number increment upon USB / BLE connection (in case the user isn't logged out between device connections)
+        - ADC watchdog timer timeout warning
 */
 
 /**************** SETUP DEFINES ****************/

@@ -341,6 +341,7 @@ aux_mcu_message_t* comms_main_mcu_get_temp_rx_message_object_pt(void);
 void comms_main_mcu_get_32_rng_bytes_from_main_mcu(uint8_t* buffer);
 RET_TYPE comms_main_mcu_fetch_6_digits_pin(uint8_t* pin_array);
 void comms_main_mcu_send_simple_event(uint16_t event_id);
+void comms_main_mcu_flag_adc_watchdog_fired(void);
 void comms_main_init_rx(void);
 
 

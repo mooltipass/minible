@@ -40,6 +40,8 @@ volatile BOOL comms_main_mcu_ble_msg_answered_using_first_bytes = FALSE;
 volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes = FALSE;
 /* Flag set when an invalid message was received */
 BOOL comms_main_mcu_invalid_message_received_from_main = FALSE;
+/* Flag set when adc watchdog fired */
+BOOL comms_main_mcu_adc_watchdog_fired = FALSE;
 
 /*! \fn     comms_main_init_rx(void)
 *   \brief  Init communications with aux MCU
@@ -47,6 +49,14 @@ BOOL comms_main_mcu_invalid_message_received_from_main = FALSE;
 void comms_main_init_rx(void)
 {
     dma_main_mcu_init_rx_transfer();
+}
+
+/*! \fn     comms_main_mcu_flag_adc_watchdog_fired(void)
+*   \brief  Flag that the ADC watchdog fired
+*/
+void comms_main_mcu_flag_adc_watchdog_fired(void)
+{
+    comms_main_mcu_adc_watchdog_fired = TRUE;
 }
 
 /*! \fn     comms_main_mcu_get_temp_tx_message_object_pt(void)
@@ -485,7 +495,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 /* Status request */
                 comms_main_mcu_message_for_main_replies.message_type = AUX_MCU_MSG_TYPE_AUX_MCU_EVENT;
                 comms_main_mcu_message_for_main_replies.aux_mcu_event_message.event_id = AUX_MCU_EVEN_HERES_MY_STATUS;
-                comms_main_mcu_message_for_main_replies.payload_length1 = sizeof(comms_main_mcu_message_for_main_replies.aux_mcu_event_message.event_id) + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint8_t);
+                comms_main_mcu_message_for_main_replies.payload_length1 = sizeof(comms_main_mcu_message_for_main_replies.aux_mcu_event_message.event_id) + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint8_t);
                 
                 /* Update BLE status payload */
                 if (logic_is_ble_enabled() != FALSE)
@@ -508,6 +518,10 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 
                 /* Too many cb timers requested flag */
                 comms_main_mcu_message_for_main_replies.aux_mcu_event_message.payload[3] = timer_get_and_clear_too_many_cb_timers_requested_flag();
+                
+                /* ADC watchdog fired flag */
+                comms_main_mcu_message_for_main_replies.aux_mcu_event_message.payload[4] = comms_main_mcu_adc_watchdog_fired;
+                comms_main_mcu_adc_watchdog_fired = FALSE;
                 
                 /* Send message */
                 comms_main_mcu_send_message((void*)&comms_main_mcu_message_for_main_replies, (uint16_t)sizeof(comms_main_mcu_message_for_main_replies));

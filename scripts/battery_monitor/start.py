@@ -33,13 +33,13 @@ class BatteryMonitorApp(tk.Tk):
 		# Continue Monitoring
 		if self.monitoring_bool:
 			self.action_button(False,False,False,False,0,False)
-			self.after(1000, self.monitoring_routine)		
+			self.after(2000, self.monitoring_routine)		
 
 	def action_button(self, start_charging, stop_charging, switch_to_usb_screen_power, switch_to_battery_screen_power, force_charge_voltage, stop_force_charge):
 		# Send action to device
 		packet = self.mooltipass_device.getBatteryStatus(start_charging, stop_charging, switch_to_usb_screen_power, switch_to_battery_screen_power, force_charge_voltage, stop_force_charge)
 		
-		if packet["cmd"] != CMD_ID_RETRY:
+		if packet["cmd"] != CMD_ID_RETRY and packet["cmd"] != CMD_ID_GET_STATUS:
 			power_source = struct.unpack('I', packet["data"][0:4])[0]
 			charging_bool = struct.unpack('I', packet["data"][4:8])[0]
 			main_adc_val = struct.unpack('H', packet["data"][8:10])[0]

@@ -175,6 +175,7 @@ int main(void)
         if ((logic_battery_is_using_adc() != FALSE) && (timer_has_timer_expired(TIMER_ADC_WATCHDOG, TRUE) == TIMER_EXPIRED))
         {
             platform_io_get_cursense_conversion_result(TRUE);
+            comms_main_mcu_flag_adc_watchdog_fired();
         }
         
         /* Do we need to enable bluetooth? */

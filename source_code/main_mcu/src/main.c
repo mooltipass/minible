@@ -45,6 +45,8 @@ spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pi
 wheel_action_ret_te virtual_wheel_action = WHEEL_ACTION_NONE;
 /* If we should power off asap */
 BOOL main_should_power_off_asap = FALSE;
+/* Flag when ADC watchdog fired */
+BOOL main_adc_watchdog_fired = FALSE;
 /* Know if debugger is present */
 BOOL debugger_present = FALSE;
 
@@ -834,6 +836,18 @@ int main(void)
                 #endif
             }
             
+            /* ADC watchdog timer fired */
+            if (main_adc_watchdog_fired != FALSE)
+            {
+                gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_010_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_010_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_010_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_010_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_010_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                gui_dispatcher_get_back_to_current_screen();
+                main_adc_watchdog_fired = FALSE;
+            }
+            
             /* Many failed connection attempts */
             if (logic_bluetooth_get_and_clear_too_many_failed_connections() != FALSE)
             {
@@ -872,6 +886,15 @@ int main(void)
                     else if (get_status_return == RETURN_AUX_STAT_TOO_MANY_CB)
                     {
                         gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_008_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        gui_dispatcher_get_back_to_current_screen();                        
+                    }
+                    else if (get_status_return == RETURN_AUX_STAT_ADC_WATCHDOG_FIRED)
+                    {
+                        gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_009_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_009_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_009_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_009_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_009_TEXT_ID, DISP_MSG_WARNING, FALSE);
                         gui_dispatcher_get_back_to_current_screen();                        
                     }
                     else
@@ -949,6 +972,7 @@ int main(void)
         if (timer_has_timer_expired(TIMER_ADC_WATCHDOG, TRUE) == TIMER_EXPIRED)
         {
             platform_io_get_voledin_conversion_result_and_trigger_conversion();
+            main_adc_watchdog_fired = TRUE;
         }
 
         /* Accelerometer routine */
