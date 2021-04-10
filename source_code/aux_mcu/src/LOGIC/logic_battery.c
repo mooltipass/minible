@@ -268,7 +268,7 @@ battery_action_te logic_battery_task(void)
         logic_battery_diag_current_vbat = low_voltage;
         
         /* If we're not told to skip next measurement due to DAC value change */
-        if (logic_battery_skip_next_adc_measurement != FALSE)
+        if (logic_battery_skip_next_adc_measurement == FALSE)
         {
             /* What's our current state? */
             switch(logic_battery_state)
