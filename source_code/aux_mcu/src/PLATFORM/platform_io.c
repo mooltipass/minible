@@ -184,7 +184,6 @@ void platform_io_enable_step_down(uint16_t voltage)
     temp_dac_ctrlb_reg.bit.REFSEL = DAC_CTRLB_REFSEL_INT1V_Val;                                     // 1V reference
     temp_dac_ctrlb_reg.bit.VPD = 1;                                                                 // Voltage pump disabled
     temp_dac_ctrlb_reg.bit.EOEN = 1;                                                                // Drive VOUT pin
-    temp_dac_ctrlb_reg.bit.BDWP = 1;                                                                // Bypass DATABUF
     DAC->CTRLB = temp_dac_ctrlb_reg;                                                                // Write register
     platform_io_update_step_down_voltage(voltage);                                                  // Set output voltage
     while ((DAC->STATUS.reg & DAC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync

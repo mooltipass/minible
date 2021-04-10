@@ -11,7 +11,7 @@
 
 /* Enums */
 typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7, LB_PEAK_TIMER_TRIGGERED = 8, LB_CHARGE_REST = 9} lb_state_machine_te;
-typedef enum    {NIMH_12C_CHARGING = 0, NIMH_23C_CHARGING, NIMH_45C_CHARGING, NIMH_SLOWSTART_45C_CHARGING, NIMH_RECOVERY_45C_CHARGING} lb_nimh_charge_scheme_te;
+typedef enum    {NIMH_23C_CHARGING, NIMH_SLOWSTART_23C_CHARGING, NIMH_RECOVERY_23C_CHARGING} lb_nimh_charge_scheme_te;
 typedef enum    {BAT_ACT_NONE = 0, BAT_ACT_NEW_BAT_LEVEL, BAT_ACT_CHARGE_FAIL, BAT_ACT_CHARGE_DONE} battery_action_te;
     
 /* Defines */
@@ -34,9 +34,7 @@ typedef enum    {BAT_ACT_NONE = 0, BAT_ACT_NEW_BAT_LEVEL, BAT_ACT_CHARGE_FAIL, B
 // Charging current reaching: after quick ramp up, trying to reach the targeted charging current
 #define LOGIC_BATTERY_CUR_REACH_TICK        5UL     // Time intervals between decisions
 #define LOGIC_BATTERY_BAT_CUR_REACH_V_INC   1       // Voltage increments for charge
-#define LOGIC_BATTERY_CUR_FOR_REACH_END_12C 275     // ADC value different between high & low cursense to stop current reach ramping: 1LSB = 0.5445mA
 #define LOGIC_BATTERY_CUR_FOR_REACH_END_23C 367     // ADC value different between high & low cursense to stop current reach ramping: 1LSB = 0.5445mA
-#define LOGIC_BATTERY_CUR_FOR_REACH_END_45C 441     // ADC value different between high & low cursense to stop current reach ramping: 1LSB = 0.5445mA
 #define LOGIC_BATTERY_MAX_V_FOR_CUR_REACH   3050    // Voltage at which we consider that something is wrong (around 1.66V)
 /* Charging current maintaining */
 #define LOGIC_BATTERY_CUR_MAINTAIN_TICK     10      // Time intervals between decisions

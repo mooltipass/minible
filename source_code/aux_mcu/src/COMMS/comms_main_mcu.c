@@ -450,21 +450,21 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             case MAIN_MCU_COMMAND_NIMH_CHG_SLW_STRT:
             {
                 /* Charge NiMH battery */
-                logic_battery_start_charging(NIMH_SLOWSTART_45C_CHARGING);
+                logic_battery_start_charging(NIMH_SLOWSTART_23C_CHARGING);
                 comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_CHARGE_STARTED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
                 break;                
             }
             case MAIN_MCU_COMMAND_NIMH_RECOVERY_CHG:
             {
                 /* Charge NiMH battery */
-                logic_battery_start_charging(NIMH_RECOVERY_45C_CHARGING);
+                logic_battery_start_charging(NIMH_RECOVERY_23C_CHARGING);
                 comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_CHARGE_STARTED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
                 break;                
             }
             case MAIN_MCU_COMMAND_NIMH_CHARGE:
             {
                 /* Charge NiMH battery */
-                logic_battery_start_charging(NIMH_45C_CHARGING);
+                logic_battery_start_charging(NIMH_23C_CHARGING);
                 comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_CHARGE_STARTED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
                 break;
             }
