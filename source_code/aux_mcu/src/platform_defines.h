@@ -107,7 +107,7 @@
 - v0.58:- 002 error bug fix, caused by timer_delay when dealing with partial message
         - kickstarter release
 - v0.59:- reporting ADC watchdog timeout to MAIN MCU
-        - charging bug fix: discarding single ADC sample changing DAC output
+        - charging bug fix: discarding ADC samples after changing DAC output
 */
 
 /**************** SETUP DEFINES ****************/

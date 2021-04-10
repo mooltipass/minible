@@ -32,8 +32,8 @@ uint16_t logic_battery_last_second_seen = 0;
 BOOL logic_battery_start_using_adc_flag = FALSE;
 BOOL logic_battery_stop_using_adc_flag = FALSE;
 BOOL logic_battery_using_adc_flag = FALSE;
-/* Boolean to know if we should skip the next ADC measurement */
-BOOL logic_battery_skip_next_adc_measurement = FALSE;
+/* Counter for how many ADC measurements should be discarded */
+BOOL logic_battery_discard_next_adc_measurement_counter = 0;
 /* Diagnostic values */
 BOOL logic_battery_diag_charging_forced = FALSE;
 uint16_t logic_battery_diag_current_vbat = 0;
@@ -268,7 +268,7 @@ battery_action_te logic_battery_task(void)
         logic_battery_diag_current_vbat = low_voltage;
         
         /* If we're not told to skip next measurement due to DAC value change */
-        if (logic_battery_skip_next_adc_measurement == FALSE)
+        if (logic_battery_discard_next_adc_measurement_counter == 0)
         {
             /* What's our current state? */
             switch(logic_battery_state)
@@ -358,7 +358,7 @@ battery_action_te logic_battery_task(void)
                             {
                                 /* Increment voltage */
                                 platform_io_update_step_down_voltage(logic_battery_charge_voltage);
-                                logic_battery_skip_next_adc_measurement = TRUE;
+                                logic_battery_discard_next_adc_measurement_counter = 1;
                             }
                         }
                     
@@ -436,7 +436,7 @@ battery_action_te logic_battery_task(void)
                             {
                                 /* Increment voltage */
                                 platform_io_update_step_down_voltage(logic_battery_charge_voltage);
-                                logic_battery_skip_next_adc_measurement = TRUE;
+                                logic_battery_discard_next_adc_measurement_counter = 1;
                             }
                     
                             /* Rearm timer */
@@ -516,18 +516,21 @@ battery_action_te logic_battery_task(void)
                             /* Decrease charge voltage */
                             logic_battery_charge_voltage -= LOGIC_BATTERY_BAT_CUR_REACH_V_INC;
                             platform_io_update_step_down_voltage(logic_battery_charge_voltage);
-                            logic_battery_skip_next_adc_measurement = TRUE;
+                            logic_battery_discard_next_adc_measurement_counter = 1;
                         }                        
                         else if ((high_voltage - low_voltage) < voltage_diff_goal - 2)
                         {
-                            /* Do some math to compute by how much we need to raise the charge voltage */
-                            uint16_t current_to_compensate = voltage_diff_goal - (high_voltage - low_voltage);
+                            /* Not used anymore to avoid big oscillations on old batteries: Do some math to compute by how much we need to raise the charge voltage */
+                            //uint16_t current_to_compensate = voltage_diff_goal - (high_voltage - low_voltage);
                         
-                            /* 1LSB is 0.5445mA, R shunt is 1R */
-                            if (logic_battery_charge_voltage < 3000)
-                            {
-                                logic_battery_charge_voltage += (current_to_compensate * 70) >> 7;
-                            }
+                            /* Not used anymore to avoid big oscillations on old batteries: 1LSB is 0.5445mA, R shunt is 1R */
+                            //if (logic_battery_charge_voltage < 3000)
+                            //{
+                            //    logic_battery_charge_voltage += (current_to_compensate * 70) >> 7;
+                            //}
+                            
+                            /* Always increase charging voltage by 1 DAC LSb */
+                            logic_battery_charge_voltage += LOGIC_BATTERY_BAT_CUR_REACH_V_INC;
                         
                             /* Check for over voltage - may be caused by disconnected discharge path */
                             if (low_voltage >= LOGIC_BATTERY_MAX_V_FOR_CUR_REACH)
@@ -551,7 +554,7 @@ battery_action_te logic_battery_task(void)
                             {
                                 /* Increment voltage */
                                 platform_io_update_step_down_voltage(logic_battery_charge_voltage);
-                                logic_battery_skip_next_adc_measurement = TRUE;
+                                logic_battery_discard_next_adc_measurement_counter = 10;
                             }
                         }
                         else if (logic_battery_nb_secs_since_peak >= LOGIC_BATTERY_NB_SECS_AFTER_PEAK)
@@ -616,8 +619,11 @@ battery_action_te logic_battery_task(void)
         }
     }
     
-    /* Clear flag */
-    logic_battery_skip_next_adc_measurement = FALSE;
+    /* Clear flags & decrease counters */
+    if (logic_battery_discard_next_adc_measurement_counter != 0)
+    {
+        logic_battery_discard_next_adc_measurement_counter--;
+    }
     logic_battery_start_using_adc_flag = FALSE;
     logic_battery_stop_using_adc_flag = FALSE;
 
