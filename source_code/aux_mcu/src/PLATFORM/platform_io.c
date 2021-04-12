@@ -126,6 +126,9 @@ uint32_t platform_io_get_cursense_conversion_result(BOOL trigger_conversion)
     /* Reset flag */
     platform_cur_sense_conv_ready = FALSE;
     
+    /* Prepare result */
+    uint32_t result_to_return = ((uint32_t)platform_io_high_cur_val << 16) | (uint32_t)platform_io_low_cur_val;
+    
     /* Trigger new conversion (mux is already set at the right input in the interrupt */
     if (trigger_conversion != FALSE)
     {
@@ -141,7 +144,7 @@ uint32_t platform_io_get_cursense_conversion_result(BOOL trigger_conversion)
         ADC->SWTRIG.reg = ADC_SWTRIG_START;
     }
     
-    return ((uint32_t)platform_io_high_cur_val << 16) | (uint32_t)platform_io_low_cur_val;
+    return result_to_return;
 }
 
 /*! \fn     platform_io_enable_charge_mosfets()

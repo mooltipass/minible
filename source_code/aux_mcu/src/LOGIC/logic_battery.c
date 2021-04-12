@@ -538,7 +538,7 @@ battery_action_te logic_battery_task(void)
                             {
                                 /* Increment voltage */
                                 platform_io_update_step_down_voltage(logic_battery_charge_voltage);
-                                logic_battery_discard_next_adc_measurement_counter = 10;
+                                logic_battery_discard_next_adc_measurement_counter = 3;
                             }
                         }
                         else if (logic_battery_nb_secs_since_peak >= LOGIC_BATTERY_NB_SECS_AFTER_PEAK)
