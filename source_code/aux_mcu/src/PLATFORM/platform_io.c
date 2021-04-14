@@ -288,7 +288,7 @@ void platform_io_enable_battery_charging_ports(void)
     temp_adc_ctrb_reg.bit.RESSEL = ADC_CTRLB_RESSEL_16BIT_Val;                                      // Set to 16bit result to allow averaging mode
     temp_adc_ctrb_reg.bit.PRESCALER = ADC_CTRLB_PRESCALER_DIV32_Val;                                // Set fclk_adc to 48M / 32 = 1.5MHz
     ADC->CTRLB = temp_adc_ctrb_reg;                                                                 // Write ctrlb
-    ADC->AVGCTRL.reg = ADC_AVGCTRL_ADJRES(4) | ADC_AVGCTRL_SAMPLENUM_1024;                          // Average on 1024 samples. Expected time for avg: 1.5M/(12-1)/1024 = 133Hz = 7.5ms. Single conversion mode, single ended, 12bit
+    ADC->AVGCTRL.reg = ADC_AVGCTRL_ADJRES(4) | ADC_AVGCTRL_SAMPLENUM_1024;                          // Average on 1024 samples. Expected time for avg: 1.5M/7/1024 = 209Hz = 4.8ms. Single conversion mode, single ended, 12bit
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                           // Wait for sync
     ADC->INPUTCTRL.reg = ADC_INPUTCTRL_MUXPOS(HCURSENSE_ADC_PIN_MUXPOS) | ADC_INPUTCTRL_MUXNEG_GND; // 1x gain, one channel set to high cur sense
     ADC->INTENSET.reg = ADC_INTENSET_RESRDY;                                                        // Enable in result ready interrupt
