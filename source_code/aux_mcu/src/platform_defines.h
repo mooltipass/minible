@@ -108,6 +108,7 @@
         - kickstarter release
 - v0.59:- reporting ADC watchdog timeout to MAIN MCU
         - charging bug fix: discarding ADC samples after changing DAC output
+        - logic_rng_get_uint16 bug fix
 */
 
 /**************** SETUP DEFINES ****************/

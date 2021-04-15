@@ -263,6 +263,12 @@ battery_action_te logic_battery_task(void)
             high_voltage = low_voltage;
         }
         
+        /* Boolean to know if we already sent a status message to the main MCU */
+        BOOL status_message_sent_to_main_mcu = FALSE;
+        
+        /* Possible new battery level */
+        uint16_t possible_new_battery_level = 0;
+        
         /* Diagnostic values */
         logic_battery_diag_current_cur = (high_voltage - low_voltage);
         logic_battery_diag_current_vbat = low_voltage;
@@ -444,8 +450,6 @@ battery_action_te logic_battery_task(void)
                     /* Check for decision timer tick */
                     if (timer_has_timer_expired(TIMER_BATTERY_TICK, TRUE) == TIMER_EXPIRED)
                     {
-                        BOOL status_message_sent_to_main_mcu = FALSE;
-
                         /* Get current calendar */
                         calendar_t current_calendar;
                         timer_get_calendar(&current_calendar);
@@ -560,30 +564,12 @@ battery_action_te logic_battery_task(void)
                         }
 
                         /* Check for new battery level */
-                        uint16_t possible_new_battery_level = 0;
                         for (uint16_t i = 0; i < ARRAY_SIZE(logic_battery_battery_level_mapping); i++)
                         {
                             if (low_voltage > logic_battery_battery_level_mapping[i])
                             {
                                 possible_new_battery_level = i;
                             }
-                        }
-                    
-                        /* Only allow increase in voltage */
-                        if ((possible_new_battery_level > logic_battery_current_battery_level) && (status_message_sent_to_main_mcu == FALSE))
-                        {
-                            aux_mcu_message_t* temp_tx_message_pt;
-
-                            /* Update main MCU with new battery level */
-                            comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT);
-                            temp_tx_message_pt->aux_mcu_event_message.event_id = AUX_MCU_EVENT_CHARGE_LVL_UPDATE;
-                            temp_tx_message_pt->aux_mcu_event_message.payload[0] = possible_new_battery_level;
-                            temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->aux_mcu_event_message.event_id) + sizeof(uint8_t);
-                            comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
-
-                            /* Store new level */
-                            logic_battery_current_battery_level = possible_new_battery_level;
-                            return_value = BAT_ACT_NEW_BAT_LEVEL;
                         }
                     
                         /* Rearm timer */
@@ -600,6 +586,23 @@ battery_action_te logic_battery_task(void)
         if (logic_battery_stop_using_adc_flag == FALSE)
         {
             platform_io_get_cursense_conversion_result(TRUE);
+        }
+        
+        /* Leave outside the switch to allow fast actions on current: check if we need to send a notification to the main */
+        if ((logic_battery_state == LB_CUR_MAINTAIN) && (possible_new_battery_level > logic_battery_current_battery_level) && (status_message_sent_to_main_mcu == FALSE))
+        {
+            aux_mcu_message_t* temp_tx_message_pt;
+
+            /* Update main MCU with new battery level */
+            comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT);
+            temp_tx_message_pt->aux_mcu_event_message.event_id = AUX_MCU_EVENT_CHARGE_LVL_UPDATE;
+            temp_tx_message_pt->aux_mcu_event_message.payload[0] = possible_new_battery_level;
+            temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->aux_mcu_event_message.event_id) + sizeof(uint8_t);
+            comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
+
+            /* Store new level */
+            logic_battery_current_battery_level = possible_new_battery_level;
+            return_value = BAT_ACT_NEW_BAT_LEVEL;
         }
     }
     

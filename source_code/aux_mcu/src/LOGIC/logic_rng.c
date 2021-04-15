@@ -28,7 +28,7 @@ uint16_t logic_rng_get_uint16(void)
     /* Prepare answer and send it */
     uint16_t return_val = logic_rng_buffer[sizeof(logic_rng_buffer) - logic_rng_bytes_available];
     logic_rng_bytes_available--;
-    return_val = (return_val << 8) & 0x00FF;
+    return_val = (return_val << 8) & 0xFF00;
     return_val |= logic_rng_buffer[sizeof(logic_rng_buffer) - logic_rng_bytes_available];
     logic_rng_bytes_available--;
     return return_val;
