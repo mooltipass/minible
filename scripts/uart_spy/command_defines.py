@@ -101,7 +101,12 @@ aux_mcu_command_description[0].extend([	"0x8000: debug message",
 										"0x8008: get acc 32 samples",
 										"0x8009: flash aux mcu",
 										"0x800A: get debug platform info",
-										"0x800B: reindex bundle"])
+										"0x800B: reindex bundle",
+										"0x800C: set OLED params",
+										"0x800D: get battery status",
+										"0x800E: flash aux and main",
+										"0x800F: get timestamp",
+										"0x800B: set platform unique data"])
 # BLE message
 aux_mcu_command_description.append(aux_mcu_command_description[0])
 # Bootloader message
@@ -211,8 +216,8 @@ main_mcu_command_description[0].extend(["0x0100: get start parents answer",
 										"0x010D: write node answer",
 										"0x010E: get cpz ctr answer",
 										"0x010F: get favorites answer"])
-main_mcu_command_description[0].extend(["invalid"]*(0x8000-len(main_mcu_command_description)))
-aux_mcu_command_description[0].extend([	"0x8000: debug message",
+main_mcu_command_description[0].extend(["invalid"]*(0x8000-len(main_mcu_command_description[0])))
+main_mcu_command_description[0].extend([	"0x8000: debug message",
 										"0x8001: open display buffer answer",
 										"0x8002: send to display buffer answer",
 										"0x8003: close display buffer answer",
@@ -223,7 +228,12 @@ aux_mcu_command_description[0].extend([	"0x8000: debug message",
 										"0x8008: get acc 32 samples answer",
 										"0x8009: flash aux mcu answer",
 										"0x800A: get debug platform info answer",
-										"0x800B: reindex bundle answer"])
+										"0x800B: reindex bundle answer",
+										"0x800C: set OLED params answer",
+										"0x800D: get battery status answer",
+										"0x800E: flash aux and main answer",
+										"0x800F: get timestamp answer",
+										"0x800B: set platform unique data answer"])
 # BLE message
 main_mcu_command_description.append(main_mcu_command_description[0])
 # Bootloader message

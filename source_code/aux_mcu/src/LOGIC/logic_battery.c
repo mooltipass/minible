@@ -457,6 +457,7 @@ battery_action_te logic_battery_task(void)
                         /* Update peak vars if required */
                         if (low_voltage > logic_battery_peak_voltage)
                         {
+                            logic_battery_nb_end_condition_counter = 0;
                             logic_battery_peak_voltage = low_voltage;
                             logic_battery_nb_secs_since_peak = 0;
                         }

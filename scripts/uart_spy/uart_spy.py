@@ -207,14 +207,14 @@ while True:
 						sys.stdout.write(" - "+ aux_mcu_command_description[message_type][command])
 
 				if message_type == AUX_MCU_MSG_TYPE_NIMH_CHARGE:
-					charge_status_lut = ["idle", "current charge ramp start", "current charge ramp", "ramping start error", "current maintaining", "current ramp error", "current maintaining error", "charging done"]
+					charge_status_lut = ["idle", "current charge ramp start", "current charge ramp", "ramping start error", "current maintaining", "current ramp error", "current maintaining error", "charging done", "peak timer triggered", "temp rest"]
 					[type, payload, charge_status, battery_voltage, charge_current] = struct.unpack("HHHHH", frame[0:10])
-					battery_voltage = battery_voltage*103/256
+					battery_voltage = battery_voltage*3300/(1.48*4095)
 
 					print(" - details below:")
 					print("	                                  Current status:", charge_status_lut[charge_status])
 					print("	                                  Battery voltage:", str(battery_voltage)+"mV")
-					print("	                                  Charging current:", str(charge_current*0.4)+"mA")
+					print("	                                  Charging current:", str(charge_current*0.5445)+"mA")
 
 				if message_type == AUX_MCU_MSG_TYPE_PLAT_DETAILS:
 					[type, payload, fw_major, fw_minor, did, uid1, uid2, uid3, uid4, blusdk_maj, blusdk_min, blusdk_fw_maj, blusdk_fw_min, blusdk_fw_bld, rf_ver, atbtlc_chip_id, addr1, addr2, addr3, addr4, addr5, addr6 ] = struct.unpack("HHHHIIIIIHHHHHIIBBBBBB", frame[0:54])

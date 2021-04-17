@@ -106,8 +106,8 @@
 - v0.57:- 002 error bug fix, caused by incorrect timer function port from original library
 - v0.58:- 002 error bug fix, caused by timer_delay when dealing with partial message
         - kickstarter release
-- v0.59:- reporting ADC watchdog timeout to MAIN MCU
-        - charging bug fix: discarding ADC samples after changing DAC output
+- v0.59:- charging on old batteries bug fix: discarding ADC samples after changing DAC output, resetting end of condition counter on new voltage peak
+        - reporting ADC watchdog timeout to MAIN MCU
         - logic_rng_get_uint16 bug fix
 */
 
