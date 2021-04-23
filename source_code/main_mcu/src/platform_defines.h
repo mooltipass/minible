@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    69
+#define FW_MINOR    70
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -199,6 +199,7 @@
         - kickstarter fw release
 - v0.69:- rearms change number increment upon USB / BLE connection (in case the user isn't logged out between device connections)
         - ADC watchdog timer timeout warning
+- v0.70:- only set not first boot flag when it is not set
 */
 
 /**************** SETUP DEFINES ****************/
