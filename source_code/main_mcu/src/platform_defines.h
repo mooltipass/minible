@@ -200,6 +200,7 @@
 - v0.69:- rearms change number increment upon USB / BLE connection (in case the user isn't logged out between device connections)
         - ADC watchdog timer timeout warning
 - v0.70:- only set not first boot flag when it is not set
+        - HID message: get platform SN
 */
 
 /**************** SETUP DEFINES ****************/
