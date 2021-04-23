@@ -468,8 +468,11 @@ void main_platform_init(void)
         /* Store set language as device default one */
         custom_fs_set_device_default_language(custom_fs_get_current_language_id());
         
-        /* Set flag */
-        custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
+        /* Set flag if needed */
+        if (custom_fs_get_device_flag_value(NOT_FIRST_BOOT_FLAG_ID) == FALSE)
+        {
+            custom_fs_set_device_flag_value(NOT_FIRST_BOOT_FLAG_ID, TRUE);
+        }
         
         /* Clear frame buffer */
         sh1122_fade_into_darkness(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
