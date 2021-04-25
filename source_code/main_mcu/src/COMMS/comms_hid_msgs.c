@@ -391,6 +391,16 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             return;
         }
         
+        case HID_CMD_SWITCH_OFF_NXT_DSC:
+        {
+            /* Set flag */
+            logic_power_switch_off_after_usb_disconnect();
+            
+            /* Set success byte */
+            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+            return;            
+        }
+        
         case HID_CMD_ID_PLAT_INFO:
         {
             aux_mcu_message_t* temp_rx_message;

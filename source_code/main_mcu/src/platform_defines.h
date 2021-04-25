@@ -199,8 +199,8 @@
         - kickstarter fw release
 - v0.69:- rearms change number increment upon USB / BLE connection (in case the user isn't logged out between device connections)
         - ADC watchdog timer timeout warning
-- v0.70:- only set not first boot flag when it is not set
-        - HID message: get platform SN
+- v0.70:- new HID messages: get platform SN, switch off on next USB disconnect
+        - only set not first boot flag when it is not set
 */
 
 /**************** SETUP DEFINES ****************/

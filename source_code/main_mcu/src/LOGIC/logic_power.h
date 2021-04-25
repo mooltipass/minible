@@ -70,6 +70,7 @@ BOOL logic_power_get_and_reset_over_discharge_flag(void);
 uint16_t logic_power_get_and_ack_new_battery_level(void);
 nimh_charge_te logic_power_get_current_charge_type(void);
 BOOL logic_power_is_usb_enumerate_sent_clear_bool(void);
+void logic_power_switch_off_after_usb_disconnect(void);
 void logic_power_init(BOOL poweredoff_due_to_battery);
 battery_state_te logic_power_get_battery_state(void);
 power_source_te logic_power_get_power_source(void);

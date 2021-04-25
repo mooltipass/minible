@@ -70,6 +70,8 @@ uint16_t logic_power_nb_times_to_skip_adc_measurement_queue = 0;
 uint16_t logic_power_adc_measurement_counter = 0;
 /* Over discharge boolean */
 BOOL logic_power_over_discharge_flag = FALSE;
+/* Flag to switch off device after next device disconnection */
+BOOL logic_power_switch_off_after_usb_disconnect_flag = FALSE;
 /* Power consumption log */
 volatile power_consumption_log_t logic_power_consumption_log;
 
@@ -243,6 +245,14 @@ void logic_power_skip_queue_logic_for_upcoming_adc_measurements(void)
 power_source_te logic_power_get_power_source(void)
 {
     return logic_power_current_power_source;
+}
+
+/*! \fn     logic_power_switch_off_after_disconnect(void)
+*   \brief  Set flag: switch off device after next disconnection
+*/
+void logic_power_switch_off_after_usb_disconnect(void)
+{
+    logic_power_switch_off_after_usb_disconnect_flag = TRUE;
 }
 
 /*! \fn     logic_power_init(BOOL poweredoff_due_to_battery)
@@ -593,7 +603,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
     else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
     {        
         /* Switch off device if needed */
-        if (((BOOL)custom_fs_settings_get_device_setting(SETTINGS_SWITCH_OFF_AFTER_USB_DISC) != FALSE) && (logic_bluetooth_get_state() != BT_STATE_CONNECTED))
+        if ((((BOOL)custom_fs_settings_get_device_setting(SETTINGS_SWITCH_OFF_AFTER_USB_DISC) != FALSE) || (logic_power_switch_off_after_usb_disconnect_flag != FALSE)) && (logic_bluetooth_get_state() != BT_STATE_CONNECTED))
         {
             logic_device_power_off();
         }

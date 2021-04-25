@@ -186,6 +186,9 @@ def main():
 		elif sys.argv[1] == "printDiagData":
 			mooltipass_device.printDiagData()
 			
+		elif sys.argv[1] == "switchOffAfterDisconnect":
+			mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(0x0039, None), True)				
+			
 		elif sys.argv[1] == "recondition":
 			mooltipass_device.recondition()
 			
