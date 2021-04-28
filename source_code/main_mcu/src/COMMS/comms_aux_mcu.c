@@ -1188,7 +1188,7 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, uint16_
                                 
                 /* Parse message */
                 #ifndef DEBUG_USB_COMMANDS_ENABLED
-                comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), MSG_RESTRICT_ALLBUT_SN, is_message_from_usb);
+                comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), MSG_RESTRICT_ALL, is_message_from_usb);
                 #else
                 if (aux_mcu_receive_message.hid_message.message_type >= HID_MESSAGE_START_CMD_ID_DBG)
                 {
@@ -1196,7 +1196,7 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, uint16_
                 }
                 else
                 {
-                    comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), MSG_RESTRICT_ALLBUT_SN, is_message_from_usb);
+                    comms_hid_msgs_parse(&aux_mcu_receive_message.hid_message, payload_length - sizeof(aux_mcu_receive_message.hid_message.message_type) - sizeof(aux_mcu_receive_message.hid_message.payload_length), MSG_RESTRICT_ALL, is_message_from_usb);
                 }
                 #endif
             }
@@ -1221,7 +1221,7 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, uint16_
             else if (aux_mcu_receive_message.message_type == AUX_MCU_MSG_TYPE_BLE_CMD)
             {
                 /* We can still tackle these requests as they do not generate prompts */
-                comms_aux_mcu_deal_with_ble_message(&aux_mcu_receive_message, MSG_RESTRICT_ALLBUT_SN);
+                comms_aux_mcu_deal_with_ble_message(&aux_mcu_receive_message, MSG_RESTRICT_ALL);
             }
             
             /* Rearm receive */
