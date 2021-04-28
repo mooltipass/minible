@@ -265,6 +265,17 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     (rcv_msg->message_type != HID_CMD_GET_DEVICE_STATUS) &&
     (rcv_msg->message_type != HID_CMD_IM_LOCKED) &&
     (rcv_msg->message_type != HID_CMD_IM_UNLOCKED) &&
+    (rcv_msg->message_type != HID_CMD_ID_SET_DATE))
+    {
+        should_ignore_message = TRUE;
+    }
+    
+    /* Checks based on restriction type: ignore all messages but SN query */
+    if ((answer_restrict_type == MSG_RESTRICT_ALLBUT_SN) && 
+    (rcv_msg->message_type != HID_CMD_ID_PING) &&
+    (rcv_msg->message_type != HID_CMD_GET_DEVICE_STATUS) &&
+    (rcv_msg->message_type != HID_CMD_IM_LOCKED) &&
+    (rcv_msg->message_type != HID_CMD_IM_UNLOCKED) &&
     (rcv_msg->message_type != HID_CMD_ID_SET_DATE) &&
     (rcv_msg->message_type != HID_CMD_GET_DEVICE_SN))
     {

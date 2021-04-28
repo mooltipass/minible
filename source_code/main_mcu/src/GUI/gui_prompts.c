@@ -180,7 +180,7 @@ void gui_prompts_display_tutorial(void)
         }
                 
         /* Still process the USB commands, reply with please retries */
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
         
         /* Deal with accelerometer data */
         logic_accelerometer_routine();
@@ -440,7 +440,7 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
     while ((timer_has_allocated_timer_expired(temp_timer_id, FALSE) != TIMER_EXPIRED) || (i != gui_prompts_notif_idle_anim_length[message_type]-1))
     {
         /* Deal with incoming messages but do not deal with them */
-        comms_msg_rcvd_te rcvd_message = comms_aux_mcu_routine(MSG_RESTRICT_ALL); 
+        comms_msg_rcvd_te rcvd_message = comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN); 
         
         /* Did we receive a message worthy of stopping the animation? */
         if ((allow_scroll_or_msg_to_interrupt != FALSE) && (rcvd_message != NO_MSG_RCVD) && (rcvd_message != EVENT_MSG_RCVD) && (rcvd_message != HID_DBG_MSG_RCVD) && (rcvd_message != BLE_CMD_MSG_RCVD))
@@ -645,7 +645,7 @@ BOOL gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
     while (((no_return_on_timeout != FALSE) || (timer_has_allocated_timer_expired(temp_timer_id, TRUE) != TIMER_EXPIRED)) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK))
     {
         /* Deal with incoming messages but do not deal with them */
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
         
         /* Accelerometer routine for RNG stuff */
         logic_accelerometer_routine();
@@ -998,7 +998,7 @@ RET_TYPE gui_prompts_get_six_digits_pin(uint8_t* pin_code, uint16_t stringID)
     while(!finished)
     {
         // Still process the USB commands, reply with please retries
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
         logic_accelerometer_routine();
         
         /* Handle possible power switches */
@@ -1136,7 +1136,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     while(!finished)
     {
         // Still process the USB commands, reply with please retries
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
         logic_accelerometer_routine();
         
         /* Handle possible power switches */
@@ -2802,7 +2802,7 @@ int16_t gui_prompts_select_category(void)
         logic_power_check_power_switch_and_battery(FALSE);
         
         /* Deal with simple messages */
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
         
         /* Check if something has been pressed */
         wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, FALSE);
@@ -3101,7 +3101,7 @@ int32_t gui_prompts_favorite_selection_screen(int16_t start_favid, int16_t start
         logic_power_check_power_switch_and_battery(FALSE);
         
         /* Deal with simple messages */
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
         
         /* Check if something has been pressed */
         wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, FALSE);
@@ -3504,7 +3504,7 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
         logic_power_check_power_switch_and_battery(FALSE);
         
         /* Deal with simple messages */
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
         
         /* Check if something has been pressed */
         wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, FALSE);

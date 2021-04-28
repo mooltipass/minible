@@ -354,7 +354,7 @@ void main_platform_init(void)
             logic_power_check_power_switch_and_battery(FALSE);
             
             /* Comms functions */
-            comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+            comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
         }
         timer_deallocate_timer(temp_timer_id);
         custom_fs_set_device_flag_value(RF_TESTING_PASSED_FLAG_ID, TRUE);
@@ -716,7 +716,7 @@ int main(void)
             while(timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_RUNNING)
             {
                 logic_power_check_power_switch_and_battery(FALSE);
-                comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+                comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
                 logic_accelerometer_routine();
                 
                 /* Click to exit animation */

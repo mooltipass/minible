@@ -874,7 +874,7 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
             }
             
             /* Do not deal with incoming messages */
-            comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+            comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
             logic_accelerometer_routine();
 
             /* User disconnected USB? */
@@ -919,7 +919,7 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
         }
 
         /* Do not deal with incoming messages */
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
         logic_accelerometer_routine();
 
         /* User disconnected USB? */
@@ -962,7 +962,7 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
         }
 
         /* Do not deal with incoming messages */
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
         logic_accelerometer_routine();
 
         /* User disconnected USB? */
@@ -1002,7 +1002,7 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
         }
         
         /* Do not deal with incoming messages */
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
         logic_accelerometer_routine();
 
         /* User disconnected USB? */

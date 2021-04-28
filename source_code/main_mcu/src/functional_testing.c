@@ -319,7 +319,8 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     temp_timer_id = timer_get_and_start_timer(5000);
     while (timer_has_allocated_timer_expired(temp_timer_id, TRUE) != TIMER_EXPIRED)
     {
-        comms_aux_mcu_routine(MSG_NO_RESTRICT);
+        /* Now all SN query to print label */
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
     }
     timer_deallocate_timer(temp_timer_id);
     sh1122_clear_current_screen(&plat_oled_descriptor);

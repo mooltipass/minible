@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    70
+#define FW_MINOR    71
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -201,6 +201,7 @@
         - ADC watchdog timer timeout warning
 - v0.70:- new HID messages: get platform SN, switch off on next USB disconnect
         - only set not first boot flag when it is not set
+- v0.71:- new message filter for all except SN query (used for label printing)
 */
 
 /**************** SETUP DEFINES ****************/
