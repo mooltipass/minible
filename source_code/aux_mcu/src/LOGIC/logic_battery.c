@@ -402,8 +402,8 @@ battery_action_te logic_battery_task(void)
                             /* Change state machine */
                             logic_battery_state = LB_CUR_MAINTAIN;
                             logic_battery_nb_secs_since_peak = 0;
-                            logic_battery_peak_voltage = low_voltage;
                             logic_battery_nb_end_condition_counter = 0;
+                            logic_battery_peak_voltage = low_voltage - 5;
                         
                             /* Arm decision timer */
                             timer_start_timer(TIMER_BATTERY_TICK, LOGIC_BATTERY_CUR_MAINTAIN_TICK);
@@ -483,7 +483,7 @@ battery_action_te logic_battery_task(void)
                         }
                     
                         /* End of charge detection here */
-                        if (((logic_battery_peak_voltage - low_voltage) > LOGIC_BATTERY_END_OF_CHARGE_NEG_V) && (logic_battery_nb_end_condition_counter++ > 20))
+                        if (((logic_battery_peak_voltage - low_voltage) > LOGIC_BATTERY_END_OF_CHARGE_NEG_V) && (logic_battery_nb_end_condition_counter++ > 30))
                         {
                             /* Done state */
                             logic_battery_state = LB_CHARGING_DONE;

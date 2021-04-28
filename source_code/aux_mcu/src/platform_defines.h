@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    59
+#define FW_MINOR    60
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -109,6 +109,7 @@
 - v0.59:- charging on old batteries bug fix: discarding ADC samples after changing DAC output, resetting end of condition counter on new voltage peak
         - reporting ADC watchdog timeout to MAIN MCU
         - logic_rng_get_uint16 bug fix
+- v0.60:- updated charging algo for more tolerance for old batteries
 */
 
 /**************** SETUP DEFINES ****************/
