@@ -31,13 +31,11 @@ typedef enum    {BAT_ACT_NONE = 0, BAT_ACT_NEW_BAT_LEVEL, BAT_ACT_CHARGE_FAIL, B
 #define LOGIC_BATTERY_NB_MIN_SLOW_START     50UL    // Number of minutes we keep a low current for slow start charge
 #define LOGIC_BATTERY_NB_MIN_DANGER_CHARGE  30UL    // Number of minutes we are charging a high current into the battery
 #define LOGIC_BATTERY_NB_MIN_RECOV_REST     10UL    // Number of minutes to rest after the first ramp for recovery
+#define LOGIC_BATTERY_AVG_TIME_BTW_ADC_INT  20UL    // Average number of ms between ADC measurements
 // Charging current reaching: after quick ramp up, trying to reach the targeted charging current
-#define LOGIC_BATTERY_CUR_REACH_TICK        5UL     // Time intervals between decisions
 #define LOGIC_BATTERY_BAT_CUR_REACH_V_INC   1       // Voltage increments for charge
 #define LOGIC_BATTERY_CUR_FOR_REACH_END_23C 367     // ADC value different between high & low cursense to stop current reach ramping: 1LSB = 0.5445mA
 #define LOGIC_BATTERY_MAX_V_FOR_CUR_REACH   3050    // Voltage at which we consider that something is wrong (around 1.66V)
-/* Charging current maintaining */
-#define LOGIC_BATTERY_CUR_MAINTAIN_TICK     10      // Time intervals between decisions
 /* End of charge detection */
 #define LOGIC_BATTERY_END_OF_CHARGE_NEG_V   2       // Decrease in ADC value during charging (around 1.5mV)
 /* Safety feature */

@@ -110,6 +110,7 @@
         - reporting ADC watchdog timeout to MAIN MCU
         - logic_rng_get_uint16 bug fix
 - v0.60:- updated charging algo for more tolerance for old batteries
+        - getting rid of decision timers for aux mcu charging algo
 */
 
 /**************** SETUP DEFINES ****************/
