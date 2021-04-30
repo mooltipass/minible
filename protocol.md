@@ -948,6 +948,92 @@ Device Answer:
 
 
 
+0x0032: Add New Note
+--------------------
+
+Same as 0x0021, but for notes
+
+
+
+0x0033: Access Note
+-------------------
+
+Same as 0x0023, but for notes
+
+
+
+0x0034: Modify Note
+-------------------
+
+Same as 0x002F, but for notes
+
+
+
+0x0035: Add Data to Note
+------------------------
+
+Same as 0x0022, but for notes
+
+
+
+0x0036: Get Next Note Node Address & Name
+-----------------------------------------
+
+Same as 0x0031, but for notes
+
+
+
+0x0037: Temporarily Set User Keyboard Layout ID
+-----------------------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3     | byte 4    | byte 5 |
+|:---------|:-------------|:----------|:-------|
+| 0x0037   |        1     | 0 for BLE, other for USB  | layout ID |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0037   | 1 | 0x00 (failure) / 0x01 (success) |
+
+
+
+0x0038: Get Device Serial Number
+--------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0038   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4-7                        |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0038   | 4 | device serial number |
+
+
+
+0x0039: Switch Off Device at Next Disconnect
+--------------------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-X     |
+|:---------|:-------------|
+| 0x0039   |        N/A   |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x0039   | 1 | 0x00 (failure) / 0x01 (success) |
+
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
