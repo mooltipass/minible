@@ -115,7 +115,7 @@ void main_platform_init(void)
     RET_TYPE bundle_integrity_check_return = RETURN_NOK;
     RET_TYPE custom_fs_init_return = RETURN_NOK;
     RET_TYPE dataflash_init_return = RETURN_NOK;
-    BOOL poweredoff_due_to_battery = FALSE;
+    BOOL low_battery_at_boot = FALSE;
     RET_TYPE fuses_ok = RETURN_NOK;
     
     /* Low level port initializations for power supplies */
@@ -134,7 +134,7 @@ void main_platform_init(void)
         }
         else
         {
-            poweredoff_due_to_battery = TRUE;
+            low_battery_at_boot = TRUE;
             custom_fs_set_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID, FALSE);
         }
     }
@@ -151,6 +151,19 @@ void main_platform_init(void)
     {
         platform_io_disable_switch_and_die();
         while(1);
+    }
+    
+    /* If we're USB powered and measured voltage is too low, flag it (device switched off for months...) */
+    if (platform_io_is_usb_3v3_present_raw() != FALSE)
+    {
+        /* Real ratio is 3300 / 3188 */
+        battery_voltage = (battery_voltage*265) >> 8;
+        
+        /* Check for low voltage */
+        if (battery_voltage < BATTERY_ADC_OUT_CUTOUT)
+        {
+            low_battery_at_boot = TRUE;
+        }
     }
     
     /* Check fuses, depending on platform program them if incorrectly set */
@@ -194,7 +207,7 @@ void main_platform_init(void)
     
     /* DMA transfers inits, timebase, platform ios, enable comms */
     dma_init();
-    logic_power_init(poweredoff_due_to_battery);
+    logic_power_init(low_battery_at_boot);
     timer_initialize_timebase();
     platform_io_init_ports();
     comms_aux_arm_rx_and_clear_no_comms();

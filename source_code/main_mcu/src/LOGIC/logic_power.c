@@ -255,11 +255,11 @@ void logic_power_switch_off_after_usb_disconnect(void)
     logic_power_switch_off_after_usb_disconnect_flag = TRUE;
 }
 
-/*! \fn     logic_power_init(BOOL poweredoff_due_to_battery)
+/*! \fn     logic_power_init(BOOL depleted_battery_flag)
 *   \brief  Init power logic
-*   \param  poweredoff_due_to_battery   TRUE if the device was previously switched off due to low battery
+*   \param  depleted_battery_flag   TRUE if the device has a very low battery
 */
-void logic_power_init(BOOL poweredoff_due_to_battery)
+void logic_power_init(BOOL depleted_battery_flag)
 {
     /* Recall power consumption log from flash */
     cpu_irq_enter_critical();
@@ -267,7 +267,7 @@ void logic_power_init(BOOL poweredoff_due_to_battery)
     cpu_irq_leave_critical();
 
     /* If powered off due to battery, set initial measurement array to different values */
-    if (poweredoff_due_to_battery != FALSE)
+    if (depleted_battery_flag != FALSE)
     {
         logic_power_inform_of_over_discharge();
         logic_power_register_vbat_adc_measurement(0);
