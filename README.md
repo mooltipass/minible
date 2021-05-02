@@ -77,7 +77,7 @@ The Mooltipass team selected <a href="https://bearssl.org/">BearSSL</a> for cryp
 The Mooltipass Mini BLE includes the following authentication features:
 - Standard login/password authentication, by key presses or with its own communication channel
 - Webauthn / FIDO2 password-less authentication 
-- (WIP) TOTP second factor authentication
+- TOTP second factor authentication
 
 ### Note Worty Items
 Creating these firmwares from the ground up allowed us to create a smooth user-experience, tailored to privacy-minded indviduals. Here are some things that are worth mentioning:  
