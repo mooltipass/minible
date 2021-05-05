@@ -980,7 +980,7 @@ RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_
     }
     
     /* Add data service */
-    logic_user_data_service_addr = logic_database_add_service(service, SERVICE_DATA_TYPE, NODEMGMT_STANDARD_DATA_TYPE_ID);
+    logic_user_data_service_addr = logic_database_add_service(service, SERVICE_DATA_TYPE, data_type);
     
     /* Check for operation success */
     if (logic_user_data_service_addr == NODE_ADDR_NULL)

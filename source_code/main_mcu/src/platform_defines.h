@@ -203,6 +203,7 @@
         - only set not first boot flag when it is not set
 - v0.71:- new message filter for all except SN query (used for label printing)
         - very low battery voltage detection at boot when USB powered
+        - bug fix: wrong category when creating note
 */
 
 /**************** SETUP DEFINES ****************/
