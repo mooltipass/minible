@@ -218,29 +218,12 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     }
     
     /* Aliases for HID commands */
-    if (rcv_msg->message_type == HID_CMD_ADD_NOTE_ID)
+    if ((rcv_msg->message_type == HID_CMD_ADD_NOTE_ID) ||
+    (rcv_msg->message_type == HID_CMD_ACCESS_NOTE_ID) ||
+    (rcv_msg->message_type == HID_CMD_MODIFY_NOTE_ID) ||
+    (rcv_msg->message_type == HID_CMD_ADD_NOTE_DATA_ID) ||
+    (rcv_msg->message_type == HID_CMD_SCAN_NOTE_ID))
     {
-        rcv_msg->message_type = HID_CMD_CREATE_FILE_ID;
-        data_type_for_operation = NODEMGMT_NOTES_DATA_TYPE_ID;
-    }
-    else if (rcv_msg->message_type == HID_CMD_ACCESS_NOTE_ID)
-    {
-        rcv_msg->message_type = HID_CMD_GET_FILE_DATA_ID;
-        data_type_for_operation = NODEMGMT_NOTES_DATA_TYPE_ID;
-    }
-    else if (rcv_msg->message_type == HID_CMD_MODIFY_NOTE_ID)
-    {
-        rcv_msg->message_type = HID_CMD_MODIFY_FILE_ID;
-        data_type_for_operation = NODEMGMT_NOTES_DATA_TYPE_ID;
-    }
-    else if (rcv_msg->message_type == HID_CMD_ADD_NOTE_DATA_ID)
-    {
-        rcv_msg->message_type = HID_CMD_ADD_FILE_DATA_ID;
-        data_type_for_operation = NODEMGMT_NOTES_DATA_TYPE_ID;
-    }
-    else if (rcv_msg->message_type == HID_CMD_SCAN_NOTE_ID)
-    {
-        rcv_msg->message_type = HID_CMD_SCAN_FILE_ID;
         data_type_for_operation = NODEMGMT_NOTES_DATA_TYPE_ID;
     }
     
@@ -851,6 +834,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         }
         
         case HID_CMD_SCAN_FILE_ID:
+        case HID_CMD_SCAN_NOTE_ID:
         {
             /* Check address length */
             if ((rcv_msg->payload_length == sizeof(uint16_t)) && (logic_security_is_smc_inserted_unlocked() != FALSE))
@@ -1584,6 +1568,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         }
         
         case HID_CMD_GET_FILE_DATA_ID:
+        case HID_CMD_ACCESS_NOTE_ID:
         {
             cust_char_t* service_pointer = (cust_char_t*)0;
             
@@ -1660,6 +1645,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         }
         
         case HID_CMD_CREATE_FILE_ID:
+        case HID_CMD_ADD_NOTE_ID:
         {
             /* Input sanitazing */
             uint16_t max_cust_char_length = max_payload_size/sizeof(cust_char_t);
@@ -1683,6 +1669,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         }
         
         case HID_CMD_MODIFY_FILE_ID:
+        case HID_CMD_MODIFY_NOTE_ID:
         {
             /* Input sanitazing */
             uint16_t max_cust_char_length = max_payload_size/sizeof(cust_char_t);
@@ -1706,6 +1693,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         }
         
         case HID_CMD_ADD_FILE_DATA_ID:
+        case HID_CMD_ADD_NOTE_DATA_ID:
         {
             /* Check for correct packet size and try to store data */
             if ((rcv_msg->payload_length == sizeof(rcv_msg->store_data_in_file)) && (logic_user_add_data_to_current_service(&rcv_msg->store_data_in_file, is_message_from_usb) == RETURN_OK))

@@ -204,6 +204,7 @@
 - v0.71:- new message filter for all except SN query (used for label printing)
         - very low battery voltage detection at boot when USB powered
         - bug fix: wrong category when creating note
+        - bug fix: reply with correct message for notes
 */
 
 /**************** SETUP DEFINES ****************/
