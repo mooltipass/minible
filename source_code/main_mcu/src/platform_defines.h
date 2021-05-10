@@ -205,6 +205,7 @@
         - very low battery voltage detection at boot when USB powered
         - bug fix: wrong category when creating note
         - bug fix: reply with correct message for notes
+        - functional testing bug fix: lower diff goal for bandgap measurement
 */
 
 /**************** SETUP DEFINES ****************/
