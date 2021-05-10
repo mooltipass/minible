@@ -222,8 +222,8 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     timer_delay_ms(50);
     uint16_t bandgap_measurement_usb_powered = platform_io_get_single_bandgap_measurement();
     
-    /* Check that stepup voltage actually is lower than the ldo voltage (theoretical value is 103, typical value is 97) */
-    if ((bandgap_measurement_bat_powered - bandgap_measurement_usb_powered) < 80)
+    /* Check that stepup voltage actually is lower than the ldo voltage (theoretical value is 93) */
+    if ((bandgap_measurement_bat_powered - bandgap_measurement_usb_powered) < 70)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Stepup error!");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
