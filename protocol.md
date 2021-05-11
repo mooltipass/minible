@@ -56,7 +56,7 @@ Device answer:
 | bytes  | value  |
 |:-------|:-------|
 | 0->1   | 0x0003 |
-| 2->3   | 16     |
+| 2->3   | 16 (or 20)    |
 | 4->5   | Main MCU fw major |
 | 6->7   | Main MCU fw minor |
 | 8->9   | Aux MCU fw major |
@@ -64,6 +64,7 @@ Device answer:
 | 12->15 | Platform serial number |
 | 16->17 | DB memory size |
 | 18->19 | Bundle version |
+| 20->24 | (for bundle v2 or above) Platform internal SN |
 
 
 
@@ -1000,8 +1001,8 @@ Device Answer:
 
 
 
-0x0038: Get Device Serial Number
---------------------------------
+0x0038: Get Device Internal Serial Number
+-----------------------------------------
 
 From the PC: 
 
@@ -1013,7 +1014,7 @@ Device Answer:
 
 | byte 0-1 | byte 2-3                    | byte 4-7                        |
 |:---------|:----------------------------|:--------------------------------|
-| 0x0038   | 4 | device serial number |
+| 0x0038   | 4 | device internal serial number |
 
 
 
@@ -1031,6 +1032,23 @@ Device Answer:
 | byte 0-1 | byte 2-3                    | byte 4                          |
 |:---------|:----------------------------|:--------------------------------|
 | 0x0039   | 1 | 0x00 (failure) / 0x01 (success) |
+
+
+
+0x003A: Program Device Serial Number
+------------------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3     | byte 4-7  |
+|:---------|:-------------|:----------|
+| 0x003A   |        4     | Platform SN |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x003A   | 1 | 0x00 (failure) / 0x01 (success) |
 
 
 
