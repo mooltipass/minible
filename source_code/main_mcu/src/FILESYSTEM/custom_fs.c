@@ -100,14 +100,14 @@ uint8_t custom_fs_cur_ble_keyboard_id = 0;
 cpz_lut_entry_t* custom_fs_cpz_lut;
 
 
-/*! \fn     custom_fs_get_platform_serial_number(void)
+/*! \fn     custom_fs_get_platform_internal_serial_number(void)
 *   \brief  Get the platform serial number
 *   \return The serial number
 */
-uint32_t custom_fs_get_platform_serial_number(void)
+uint32_t custom_fs_get_platform_internal_serial_number(void)
 {
 #ifndef EMULATOR_BUILD
-    return custom_fs_plat_data_ptr->platform_serial_number;
+    return custom_fs_plat_data_ptr->platform_internal_serial_number;
 #else
     return UINT32_MAX;
 #endif    
@@ -1234,6 +1234,34 @@ uint32_t custom_fs_get_auth_challenge_counter(void)
     if (custom_fs_platform_settings_p != 0)
     {
         return custom_fs_platform_settings_p->device_auth_challenge_counter;
+    }
+    else
+    {
+        return 0;
+    }        
+}
+
+/*! \fn     custom_fs_program_serial_number(uint32_t serial_number)
+*   \brief  Set device soft serial number (not the internal one!)
+*   \serial_number  Serial number to store
+*/
+void custom_fs_program_serial_number(uint32_t serial_number)
+{
+    volatile custom_platform_settings_t temp_settings;
+    custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    temp_settings.platform_serial_number = serial_number;
+    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);    
+}
+
+/*! \fn     custom_fs_get_platform_programmed_serial_number(void)
+*   \brief  Get device programmed serial number (not the internal one!)
+*   \return The device programmed SN
+*/
+uint32_t custom_fs_get_platform_programmed_serial_number(void)
+{
+    if (custom_fs_platform_settings_p != 0)
+    {
+        return custom_fs_platform_settings_p->platform_serial_number;
     }
     else
     {

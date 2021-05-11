@@ -148,7 +148,7 @@ typedef struct
     uint8_t device_operations_key[AES_KEY_LENGTH/8];
     uint8_t available_signing_key2[AES_KEY_LENGTH/8];
     uint8_t available_signing_key3[AES_KEY_LENGTH/8];
-    uint32_t platform_serial_number;
+    uint32_t platform_internal_serial_number;
     uint8_t platform_ble_mac_addr[6];
     uint16_t current_bundle_version;
     uint8_t available_data[116];
@@ -171,7 +171,8 @@ typedef struct
     uint32_t nb_settings_last_covered;
     uint32_t other_reserved_uint32;
     power_consumption_log_t power_log;
-    uint8_t reserved_array[100];
+    uint8_t reserved_array[96];
+    uint32_t platform_serial_number;
     uint32_t device_auth_challenge_counter;
     uint8_t bluetooth_addr_padding[2];
     uint8_t dbg_bluetooth_addr[6];

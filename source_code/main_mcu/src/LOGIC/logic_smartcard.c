@@ -294,7 +294,7 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
             _Static_assert(sizeof(temp_ctr) == 8 + SMARTCARD_CPZ_LENGTH, "Invalid encryption technique");
             _Static_assert(sizeof(password_buffer) == (AES_BLOCK_SIZE/8), "Invalid buffer size");
             memset(password_buffer, 0, sizeof(password_buffer));
-            password_buffer[0] = custom_fs_get_platform_serial_number();
+            password_buffer[0] = custom_fs_get_platform_internal_serial_number();
             br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
                         
             /* Display AESenc(CTRVAL) */
@@ -345,7 +345,7 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
                 _Static_assert(sizeof(password_buffer) == (AES_BLOCK_SIZE/8), "Invalid buffer size");
                 _Static_assert(sizeof(temp_ctr) == 8 + 8, "Invalid encryption technique");
                 memset(password_buffer, 0, sizeof(password_buffer));
-                password_buffer[0] = custom_fs_get_platform_serial_number();
+                password_buffer[0] = custom_fs_get_platform_internal_serial_number();
                 br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
                 
                 /* Display AESenc(AESkey) */

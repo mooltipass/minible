@@ -206,6 +206,7 @@
         - bug fix: wrong category when creating note
         - bug fix: reply with correct message for notes
         - functional testing bug fix: lower diff goal for bandgap measurement
+        - use of two SNs: an internally programmed one and one set during mass production
 */
 
 /**************** SETUP DEFINES ****************/

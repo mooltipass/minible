@@ -260,7 +260,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     (rcv_msg->message_type != HID_CMD_IM_LOCKED) &&
     (rcv_msg->message_type != HID_CMD_IM_UNLOCKED) &&
     (rcv_msg->message_type != HID_CMD_ID_SET_DATE) &&
-    (rcv_msg->message_type != HID_CMD_GET_DEVICE_SN))
+    (rcv_msg->message_type != HID_CMD_GET_DEVICE_INT_SN) &&
+    (rcv_msg->message_type != HID_CMD_SET_DEVICE_SN))
     {
         should_ignore_message = TRUE;
     }
@@ -273,7 +274,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         (rcv_msg->message_type != HID_CMD_IM_LOCKED) &&
         (rcv_msg->message_type != HID_CMD_IM_UNLOCKED) &&
         (rcv_msg->message_type != HID_CMD_ID_SET_DATE) &&
-        (rcv_msg->message_type != HID_CMD_GET_DEVICE_SN))
+        (rcv_msg->message_type != HID_CMD_GET_DEVICE_INT_SN) &&
+        (rcv_msg->message_type != HID_CMD_SET_DEVICE_SN))
     {
         should_ignore_message = TRUE;
     }
@@ -289,7 +291,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     (rcv_msg->message_type != HID_CMD_IM_LOCKED) &&
     (rcv_msg->message_type != HID_CMD_IM_UNLOCKED) &&
     (rcv_msg->message_type != HID_CMD_ID_SET_DATE) &&
-    (rcv_msg->message_type != HID_CMD_GET_DEVICE_SN))
+    (rcv_msg->message_type != HID_CMD_GET_DEVICE_INT_SN))
     {
         should_ignore_message = TRUE;
     }
@@ -377,12 +379,32 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             }
         }
         
-        case HID_CMD_GET_DEVICE_SN:
+        case HID_CMD_GET_DEVICE_INT_SN:
         {
             aux_mcu_message_t* temp_send_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(uint32_t));
-            temp_send_message_pt->hid_message.payload_as_uint32[0] = custom_fs_get_platform_serial_number();
+            temp_send_message_pt->hid_message.payload_as_uint32[0] = custom_fs_get_platform_internal_serial_number();
             comms_aux_mcu_send_message(temp_send_message_pt);
             return;
+        }
+        
+        case HID_CMD_SET_DEVICE_SN:
+        {
+            /* Check address length */
+            if ((rcv_msg->payload_length == sizeof(uint32_t)) && (custom_fs_get_platform_programmed_serial_number() != UINT32_MAX))
+            {
+                /* Store new SN */
+                custom_fs_program_serial_number(rcv_msg->payload_as_uint32[0]);
+
+                /* Set success byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
+            }
+            else
+            {
+                /* Set failure byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }
         }
         
         case HID_CMD_SWITCH_OFF_NXT_DSC:
@@ -415,9 +437,15 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             temp_tx_message_pt->hid_message.platform_info.main_mcu_fw_minor = FW_MINOR;
             temp_tx_message_pt->hid_message.platform_info.aux_mcu_fw_major = temp_rx_message->aux_details_message.aux_fw_ver_major;
             temp_tx_message_pt->hid_message.platform_info.aux_mcu_fw_minor = temp_rx_message->aux_details_message.aux_fw_ver_minor;
-            temp_tx_message_pt->hid_message.platform_info.plat_serial_number = custom_fs_get_platform_serial_number();
+            /* Programmed SN: if not set, return the internal one (also convenient for backward compatibility */
+            temp_tx_message_pt->hid_message.platform_info.plat_serial_number = custom_fs_get_platform_programmed_serial_number();
+            if (custom_fs_get_platform_programmed_serial_number() == UINT32_MAX)
+            {
+                temp_tx_message_pt->hid_message.platform_info.plat_serial_number = custom_fs_get_platform_internal_serial_number();
+            }
             temp_tx_message_pt->hid_message.platform_info.memory_size = DBFLASH_CHIP;
             temp_tx_message_pt->hid_message.platform_info.bundle_version = custom_fs_get_platform_bundle_version();
+            temp_tx_message_pt->hid_message.platform_info.plat_internal_serial_number = custom_fs_get_platform_internal_serial_number();
             
             /* Send message */
             comms_aux_mcu_send_message(temp_tx_message_pt);
@@ -1926,7 +1954,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     {
                         password_buffer[0] = suggested_counter_value;
                     }
-                    password_buffer[1] = custom_fs_get_platform_serial_number();
+                    password_buffer[1] = custom_fs_get_platform_internal_serial_number();
                     br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
                     
                     /* Check for match */

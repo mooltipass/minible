@@ -293,7 +293,7 @@ ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* 
             _Static_assert(sizeof(password_buffer) == (AES_BLOCK_SIZE/8), "Invalid buffer size");
             memset(password_buffer, 0, sizeof(password_buffer));
             password_buffer[0] = custom_fs_get_platform_bundle_version();
-            password_buffer[1] = custom_fs_get_platform_serial_number();
+            password_buffer[1] = custom_fs_get_platform_internal_serial_number();
             br_aes_ct_ctrcbc_ctr(&device_operations_aes_context, (void*)temp_ctr, password_buffer, sizeof(password_buffer));
             
             /* We have the data we want to compare to, memset everything */

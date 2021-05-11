@@ -94,8 +94,9 @@
 #define HID_CMD_ADD_NOTE_DATA_ID    0x0035
 #define HID_CMD_SCAN_NOTE_ID        0x0036
 #define HID_CMD_TEMP_SET_KBD_LYT    0x0037
-#define HID_CMD_GET_DEVICE_SN       0x0038
+#define HID_CMD_GET_DEVICE_INT_SN   0x0038
 #define HID_CMD_SWITCH_OFF_NXT_DSC  0x0039
+#define HID_CMD_SET_DEVICE_SN       0x003A
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101
@@ -135,6 +136,7 @@ typedef struct
     uint32_t plat_serial_number;
     uint16_t memory_size;
     uint16_t bundle_version;
+    uint32_t plat_internal_serial_number;
 } hid_message_plat_info_t;
 
 typedef struct
