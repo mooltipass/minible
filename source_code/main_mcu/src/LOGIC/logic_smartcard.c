@@ -215,7 +215,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
                 while (logic_aux_mcu_is_ble_enabled() == FALSE)
                 {
                     /* Do not deal with any message, just wait for the notification */
-                    comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
+                    comms_aux_mcu_routine(MSG_RESTRICT_ALL);
                 }
                 
                 /* Now disable bluetooth if needed */
@@ -236,7 +236,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
                 while (logic_aux_mcu_is_ble_enabled() == FALSE)
                 {
                     /* Do not deal with any message, just wait for the notification */
-                    comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
+                    comms_aux_mcu_routine(MSG_RESTRICT_ALL);
                 }
                 
                 /* Now disable bluetooth :D */
@@ -553,7 +553,7 @@ RET_TYPE logic_smartcard_clone_card(volatile uint16_t* pincode)
     while (smartcard_lowlevel_is_card_plugged() != RETURN_JRELEASED)
     {
         /* Deal with incoming messages but do not deal with them */
-        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         
         /* Accelerometer routine for RNG stuff */
         logic_accelerometer_routine();
@@ -578,7 +578,7 @@ RET_TYPE logic_smartcard_clone_card(volatile uint16_t* pincode)
     while (smartcard_lowlevel_is_card_plugged() != RETURN_JDETECT)
     {
         /* Deal with incoming messages but do not deal with them */
-        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         
         /* Accelerometer routine for RNG stuff */
         logic_accelerometer_routine();
