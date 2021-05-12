@@ -404,7 +404,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
     while (TRUE)
     {
         /* Deal with ping messages only */
-        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         
         /* Call accelerometer routine for (among others) RNG stuff */
         logic_accelerometer_routine();
