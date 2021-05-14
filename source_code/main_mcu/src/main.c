@@ -368,6 +368,22 @@ void main_platform_init(void)
             
             /* Comms functions */
             comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
+            
+            /* In the past we had some units passing func test but having a failed ACC later on */
+            if (logic_accelerometer_routine() == ACC_FAILING)
+            {
+                sh1122_clear_current_screen(&plat_oled_descriptor);
+                sh1122_put_error_string(&plat_oled_descriptor, u"LIS2HH12 failed!");
+                timer_delay_ms(2000);
+            }
+            
+            /* Our assembler may solder the battery after the functional test */
+            if (logic_power_get_battery_state() == BATTERY_ERROR)
+            {
+                sh1122_clear_current_screen(&plat_oled_descriptor);
+                sh1122_put_error_string(&plat_oled_descriptor, u"Battery error!");
+                timer_delay_ms(2000);                
+            }
         }
         timer_deallocate_timer(temp_timer_id);
         custom_fs_set_device_flag_value(RF_TESTING_PASSED_FLAG_ID, TRUE);
@@ -856,10 +872,6 @@ int main(void)
             if (main_adc_watchdog_fired != FALSE)
             {
                 gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_010_TEXT_ID, DISP_MSG_WARNING, FALSE);
-                gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_010_TEXT_ID, DISP_MSG_WARNING, FALSE);
-                gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_010_TEXT_ID, DISP_MSG_WARNING, FALSE);
-                gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_010_TEXT_ID, DISP_MSG_WARNING, FALSE);
-                gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_010_TEXT_ID, DISP_MSG_WARNING, FALSE);
                 gui_dispatcher_get_back_to_current_screen();
                 main_adc_watchdog_fired = FALSE;
             }
@@ -906,10 +918,6 @@ int main(void)
                     }
                     else if (get_status_return == RETURN_AUX_STAT_ADC_WATCHDOG_FIRED)
                     {
-                        gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_009_TEXT_ID, DISP_MSG_WARNING, FALSE);
-                        gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_009_TEXT_ID, DISP_MSG_WARNING, FALSE);
-                        gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_009_TEXT_ID, DISP_MSG_WARNING, FALSE);
-                        gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_009_TEXT_ID, DISP_MSG_WARNING, FALSE);
                         gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_009_TEXT_ID, DISP_MSG_WARNING, FALSE);
                         gui_dispatcher_get_back_to_current_screen();                        
                     }

@@ -3506,6 +3506,14 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
         /* Deal with simple messages */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         
+        /* Our assembler may solder the battery after the functional test */
+        if (logic_power_get_battery_state() == BATTERY_ERROR)
+        {
+            sh1122_clear_current_screen(&plat_oled_descriptor);
+            sh1122_put_error_string(&plat_oled_descriptor, u"Battery error!");
+            timer_delay_ms(2000);
+        }
+        
         /* Check if something has been pressed */
         wheel_action_ret_te detect_result = inputs_get_wheel_action(FALSE, FALSE);
         if (detect_result == WHEEL_ACTION_SHORT_CLICK)
