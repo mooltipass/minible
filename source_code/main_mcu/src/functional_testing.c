@@ -268,7 +268,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     
     /* Test accelerometer */
     sh1122_put_error_string(&plat_oled_descriptor, u"Testing accelerometer...");
-    temp_timer_id = timer_get_and_start_timer(2000);
+    temp_timer_id = timer_get_and_start_timer(3000);
     while (timer_has_allocated_timer_expired(temp_timer_id, TRUE) != TIMER_EXPIRED)
     {
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
