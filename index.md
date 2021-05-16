@@ -26,3 +26,4 @@ You'll find below different test reports done on the Mooltipass BLE.
 
 ## [](#header-2)Tutorials 
 * [Using FIDO2 to setup password-less authentication on Linux from a Windows computer](fido2_openssh_from_windows)
+* [Using FIDO2 for SSH Git operations](https://github.blog/2021-05-10-security-keys-supported-ssh-git-operations/)
