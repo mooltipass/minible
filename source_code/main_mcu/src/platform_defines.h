@@ -197,6 +197,7 @@
 - v0.67:- remembering last used credential for a given service
 - v0.68:- status message informing charge
         - kickstarter fw release
+        - bundle v0
 - v0.69:- rearms change number increment upon USB / BLE connection (in case the user isn't logged out between device connections)
         - ADC watchdog timer timeout warning
 - v0.70:- new HID messages: get platform SN, switch off on next USB disconnect
@@ -207,6 +208,7 @@
         - bug fix: reply with correct message for notes
         - functional testing bug fix: lower diff goal for bandgap measurement
         - use of two SNs: an internally programmed one and one set during mass production
+        - bundle v1
 */
 
 /**************** SETUP DEFINES ****************/
