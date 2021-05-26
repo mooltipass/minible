@@ -115,7 +115,7 @@ The following languages are currently supported:
 If your language is not listed, **get in touch with us** to then be able to follow <a href="https://mooltipass.github.io/minible/translators_guidelines">these instructions</a>.
 
 ## [](#header-2)Keeping in Touch
-Get in touch with the development team and other Mooltipass enthuasiasts on our **Mooltipass IRC channel**: **#mooltipass** on **irc.freenode.net**
+Get in touch with the development team and other Mooltipass enthuasiasts on our **Mooltipass IRC channel**: **#mooltipass** on **irc.libera.chat**
 
 ## [](#header-2)Licenses
 <p align="center">
