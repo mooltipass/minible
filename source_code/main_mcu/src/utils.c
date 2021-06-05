@@ -652,3 +652,30 @@ void utils_hexachar_to_string(unsigned char c, cust_char_t* string)
 
     string[2] = 0x00;
 }
+
+
+/*!	\fn 	utils_aes_ctr_single_increment(uint8_t* ctr, uint16_t len)
+*	\brief	Increment ctr by 1
+*   \param  ctr - pointer to counter+iv, size must be len bytes
+*   \param  len - the size of the ctr buffer to be incremented
+*/
+void utils_aes_ctr_single_increment(uint8_t* ctr, uint16_t len)
+{
+    uint8_t i;
+
+    if (len == 0)
+    {
+        return;
+    }
+
+    i = len-1;
+    while (ctr[i]++ == 0xFF)
+    {
+        if (i == 0)
+        {
+            break;
+        }
+
+        i--;
+    }
+}

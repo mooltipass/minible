@@ -265,19 +265,41 @@ void logic_encryption_ctr_decrypt(uint8_t* data, uint8_t* cred_ctr, uint16_t dat
 {
     uint8_t credential_ctr[AES256_CTR_LENGTH/8];
     
-    /* Construct CTR for this encryption */
-    memcpy(credential_ctr, logic_encryption_cur_cpz_entry->nonce, sizeof(credential_ctr));
+    /* Current gen decrypt: add nonce to ctr, decrypt */
     if (old_gen_decrypt == FALSE)
     {
+        memcpy(credential_ctr, logic_encryption_cur_cpz_entry->nonce, sizeof(credential_ctr));
         logic_encryption_add_vector_to_other(credential_ctr + (sizeof(credential_ctr) - sizeof(logic_encryption_next_ctr_val)), cred_ctr, sizeof(logic_encryption_next_ctr_val));
+        br_aes_ct_ctrcbc_ctr(&logic_encryption_cur_aes_context, (void*)credential_ctr, (void*)data, data_length);
     } 
     else
     {
-        logic_encryption_xor_vector_to_other(credential_ctr + (sizeof(credential_ctr) - sizeof(logic_encryption_next_ctr_val)), cred_ctr, sizeof(logic_encryption_next_ctr_val));
+        /* In the old gen mini, the CTR is XORed with the NONCE and the CTR is incremented twice every 32B (not the [CTR (X) NONCE]) */
+        while (data_length > 0)
+        {
+            /* Do 32B block by 32B block */
+            uint16_t nb_bytes_to_decrypt = data_length;
+            if (nb_bytes_to_decrypt >= 32)
+            {
+                nb_bytes_to_decrypt = 32;
+            }
+            
+            /* Construct CTR */
+            memcpy(credential_ctr, logic_encryption_cur_cpz_entry->nonce, sizeof(credential_ctr));
+            logic_encryption_xor_vector_to_other(credential_ctr + (sizeof(credential_ctr) - sizeof(logic_encryption_next_ctr_val)), cred_ctr, sizeof(logic_encryption_next_ctr_val));
+            
+            /* Decrypt data */
+            br_aes_ct_ctrcbc_ctr(&logic_encryption_cur_aes_context, (void*)credential_ctr, (void*)data, nb_bytes_to_decrypt);
+            
+            /* Increment pointers and counters */
+            utils_aes_ctr_single_increment(cred_ctr, sizeof(logic_encryption_next_ctr_val));
+            utils_aes_ctr_single_increment(cred_ctr, sizeof(logic_encryption_next_ctr_val));
+            data += nb_bytes_to_decrypt;
+            
+            /* Decrease data length to decrypt */
+            data_length -= nb_bytes_to_decrypt;
+        }
     }
-    
-    /* Decrypt data */
-    br_aes_ct_ctrcbc_ctr(&logic_encryption_cur_aes_context, (void*)credential_ctr, (void*)data, data_length);
     
     /* Reset vars */
     memset(credential_ctr, 0, sizeof(credential_ctr));  
