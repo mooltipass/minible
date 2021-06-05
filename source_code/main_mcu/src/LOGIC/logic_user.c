@@ -666,6 +666,9 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
     logic_user_last_data_child_addr = NODE_ADDR_NULL;
     logic_user_data_service_addr = NODE_ADDR_NULL;
     
+    /* If we're just starting to get data */
+    BOOL just_starting_to_get_data = FALSE;
+    
     /* Smartcard present and unlocked? */
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
@@ -718,6 +721,9 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
             {
                 return RETURN_NOK;
             }
+            
+            /* Set flag */
+            just_starting_to_get_data = TRUE;
         }
         else
         {
@@ -731,6 +737,9 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
 
             /* Set information screen, do not call get back to current screen as screen is already updated */
             gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);
+            
+            /* Set flag */
+            just_starting_to_get_data = TRUE;
         }
         
         /* Data parent is of note type: we allow file editing after if desired */
@@ -772,6 +781,27 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
     
     /* Decrypt data (nb_bytes_written is sanitized by nodemgmt call) */
     logic_encryption_ctr_decrypt(buffer, logic_user_getting_data_ctr_value, *nb_bytes_written, logic_user_getting_data_from_service_prev_gen_flag);
+    
+    /* Odd case to make moolticute's life easier: directly trim data if the data size is less than 128B */
+    if ((logic_user_getting_data_from_service_prev_gen_flag != FALSE) && (logic_user_next_data_child_addr == NODE_ADDR_NULL) && (just_starting_to_get_data != FALSE))
+    {
+        /* first 4B contain payload size */
+        *nb_bytes_written = buffer[2];
+        *nb_bytes_written <<= 8;
+        *nb_bytes_written += buffer[3];
+        
+        /* Sanitize nb_bytes_written */
+        if (*nb_bytes_written > NODEMGMG_OLD_GEN_DATA_BLOCK_LENGTH)
+        {
+            *nb_bytes_written = NODEMGMG_OLD_GEN_DATA_BLOCK_LENGTH;
+        }
+        
+        /* Shift data */
+        for (uint16_t i = 0; i < NODEMGMG_OLD_GEN_DATA_BLOCK_LENGTH; i++)
+        {
+            buffer[i] = buffer[i + 4];
+        }
+    }
     
     /* Increment CTR */
     uint16_t ctr_inc = ((*nb_bytes_written)*8 + AES256_CTR_LENGTH - 1)/AES256_CTR_LENGTH;

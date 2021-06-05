@@ -208,7 +208,7 @@
         - bug fix: reply with correct message for notes
         - functional testing bug fix: lower diff goal for bandgap measurement
         - use of two SNs: an internally programmed one and one set during mass production
-        - previous mini generation data decryption bug fix
+        - previous mini generation data decryption bug fix and automatic trim for data nodes < 128B
         - bundle v1 (except for the mini 50 batch that doesn't contain prev gen decrypt bug fix)
 */
 
