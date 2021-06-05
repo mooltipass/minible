@@ -797,7 +797,7 @@ RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer,
         }
         
         /* Shift data */
-        for (uint16_t i = 0; i < NODEMGMG_OLD_GEN_DATA_BLOCK_LENGTH; i++)
+        for (uint16_t i = 0; i < NODEMGMG_OLD_GEN_DATA_BLOCK_LENGTH - 4; i++)
         {
             buffer[i] = buffer[i + 4];
         }
