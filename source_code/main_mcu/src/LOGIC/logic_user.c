@@ -1049,8 +1049,8 @@ RET_TYPE logic_user_delete_data_service(cust_char_t* service, nodemgmt_data_cate
     /* Does service already exist? */
     uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, FALSE, data_type);
     
-    /* If so, return error */
-    if (parent_address != NODE_ADDR_NULL)
+    /* If not, return error */
+    if (parent_address == NODE_ADDR_NULL)
     {
         return RETURN_NOK;
     }
