@@ -1052,6 +1052,30 @@ Device Answer:
 
 
 
+0x003B: Delete Data File
+------------------------
+
+From the PC: 
+
+| byte 0-1 | byte 2-3                | byte 3-X                |
+|:---------|:------------------------|:------------------------|
+| 0x003B   | strlen(file_name)x2 + 2 | 0 terminated file name  |
+
+Device Answer:
+
+| byte 0-1 | byte 2-3                    | byte 4                          |
+|:---------|:----------------------------|:--------------------------------|
+| 0x003B   | 1 | 0x00 (failure) / 0x01 (success) |
+
+
+
+0x003C: Delete Note
+--------------------
+
+Same as 0x003B, but for notes
+
+
+
 ## [](#header-2) Memory Management Commands
 
 If any of the commands below are sent when the device isn't in memory management mode, the reply will be a single 0x00 byte.
