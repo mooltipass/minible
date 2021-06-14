@@ -448,6 +448,7 @@ void nodemgmt_write_parent_node_data_block_to_flash(uint16_t address, parent_nod
 void nodemgmt_read_child_node_data_block_from_flash(uint16_t address, child_node_t* child_node);
 void nodemgmt_read_cred_child_node_except_pwd(uint16_t address, child_cred_node_t* child_node);
 void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOOL data_clean);
+void nodemgmt_delete_data_parent_and_its_children(uint16_t parent_address, uint16_t typeId);
 void nodemgmt_extract_date(uint16_t date, uint16_t* year, uint16_t* month, uint16_t* day);
 void nodemgmt_set_cred_start_address(uint16_t parentAddress, uint16_t credential_type_id);
 uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_child_addr);

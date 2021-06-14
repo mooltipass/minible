@@ -2137,6 +2137,67 @@ void nodemgmt_user_db_changed_actions(BOOL dataChanged)
     }
 }
 
+/*! \fn     nodemgmt_delete_data_parent_and_its_children(uint16_t parent_address, uint16_t typeId)
+*   \brief  Delete a data parent and all its children
+*   \param  parent_address      Parent address
+*   \param  typeId              The type ID
+*/
+void nodemgmt_delete_data_parent_and_its_children(uint16_t parent_address, uint16_t typeId)
+{
+    uint16_t temp_buffer[4];
+    uint16_t first_child_address = NODE_ADDR_NULL;
+    parent_node_t* parent_node_pt = (parent_node_t*)temp_buffer;
+    _Static_assert(BASE_NODE_SIZE == sizeof(parent_node_t), "Invalid database assumption");
+    _Static_assert(sizeof(temp_buffer) >= offsetof(parent_data_node_t, nextChildAddress) + sizeof(parent_node_pt->data_parent.nextChildAddress), "Buffer not long enough to store first bytes");
+    _Static_assert(sizeof(temp_buffer) >= offsetof(parent_data_node_t, prevParentAddress) + sizeof(parent_node_pt->data_parent.prevParentAddress), "Buffer not long enough to store first bytes");
+    _Static_assert(sizeof(temp_buffer) >= offsetof(parent_data_node_t, nextParentAddress) + sizeof(parent_node_pt->data_parent.nextParentAddress), "Buffer not long enough to store first bytes");
+    
+    // Read first bytes of parent node
+    nodemgmt_check_address_validity_and_lock(parent_address);
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(parent_address), BASE_NODE_SIZE * nodemgmt_node_from_address(parent_address), sizeof(temp_buffer), (void*)parent_node_pt);
+    nodemgmt_check_user_perm_from_flags_and_lock(parent_node_pt->data_parent.flags);
+    
+    // Extract first child address
+    first_child_address = parent_node_pt->data_parent.nextChildAddress;
+    
+    // Deal with previous node
+    if (parent_node_pt->data_parent.prevParentAddress == NODE_ADDR_NULL)
+    {
+        // First parent, update first parent node with this node next parent
+        nodemgmt_set_data_start_address(parent_node_pt->data_parent.nextParentAddress, typeId);
+    }
+    else
+    {
+        // Not the first parent, update the previous parent to point to the next parent of being deleted node
+        nodemgmt_read_parent_node(parent_node_pt->data_parent.prevParentAddress, &nodemgmt_current_handle.temp_parent_node, FALSE);
+        
+        // update the previous parent to point to the next parent of being deleted node
+        nodemgmt_current_handle.temp_parent_node.data_parent.nextParentAddress = parent_node_pt->data_parent.nextParentAddress;
+        
+        // and write at the same location
+        nodemgmt_write_parent_node_data_block_to_flash(parent_node_pt->data_parent.prevParentAddress, &nodemgmt_current_handle.temp_parent_node);
+    }
+    
+    // Deal with the next node
+    if (parent_node_pt->data_parent.nextParentAddress != NODE_ADDR_NULL)
+    {
+        // Update the next parent to point to the deleted previous node
+        nodemgmt_read_parent_node(parent_node_pt->data_parent.nextParentAddress, &nodemgmt_current_handle.temp_parent_node, FALSE);
+        
+        // update the previous parent to point to the next parent of being deleted node
+        nodemgmt_current_handle.temp_parent_node.data_parent.prevParentAddress = parent_node_pt->data_parent.prevParentAddress;
+        
+        // and write at the same location
+        nodemgmt_write_parent_node_data_block_to_flash(parent_node_pt->data_parent.nextParentAddress, &nodemgmt_current_handle.temp_parent_node);
+    }
+    
+    // Delete parent data block
+    dbflash_write_data_pattern_to_flash(&dbflash_descriptor, nodemgmt_page_from_address(parent_address), BASE_NODE_SIZE * nodemgmt_node_from_address(parent_address), BASE_NODE_SIZE, 0xFF);
+    
+    // Delete the children (evil laugh)
+    nodemgmt_delete_children_list(first_child_address, TRUE);
+}
+
 /*! \fn     nodemgmt_delete_children_list(uint16_t first_children_addr, BOOL data_child)
 *   \brief  Delete a children list
 *   \param  first_children_addr Address of the first children
@@ -2179,6 +2240,8 @@ void nodemgmt_delete_children_list(uint16_t first_children_addr, BOOL data_child
         next_child_addr = temp_address;
     }
     
+    // Rescan node usage
+    nodemgmt_scan_node_usage();
 }
 
 /*! \fn     nodemgmt_delete_current_user_from_flash(void)
@@ -2261,6 +2324,8 @@ void nodemgmt_update_data_parent_ctr_and_first_child_address(uint16_t parent_add
  */
 uint16_t nodemgmt_get_first_child_address(uint16_t parent_address)
 {
+    _Static_assert(offsetof(parent_cred_node_t, nextChildAddress) == offsetof(parent_data_node_t, nextChildAddress), "Wrong database assumption");
+    
     /* Read node, ownership checks are done within */
     nodemgmt_read_parent_node(parent_address, &nodemgmt_current_handle.temp_parent_node, FALSE);
     

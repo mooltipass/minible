@@ -1025,6 +1025,66 @@ RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_
     return RETURN_OK;
 }
 
+/*! \fn     logic_user_delete_data_service(cust_char_t* service, nodemgmt_data_category_te data_type)
+*   \brief  Delete a data service
+*   \param  service             Pointer to service string
+*   \param  data_type           Service data type
+*   \return success or not
+*   \note   As we are using the RX buffer here, we are exiting this function the moment we receive a new RX message (think power switches) but also don't try listen to RX messages
+*/
+RET_TYPE logic_user_delete_data_service(cust_char_t* service, nodemgmt_data_category_te data_type)
+{
+    /* Reset booleans */
+    logic_user_last_data_child_addr = NODE_ADDR_NULL;
+    logic_user_data_service_addr = NODE_ADDR_NULL;
+    logic_user_getting_data_from_service = FALSE;
+    logic_user_adding_data_to_service = FALSE;
+    
+    /* Smartcard present and unlocked? */
+    if (logic_security_is_smc_inserted_unlocked() == FALSE)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Does service already exist? */
+    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, FALSE, data_type);
+    
+    /* If so, return error */
+    if (parent_address != NODE_ADDR_NULL)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Prepare prompt text */
+    cust_char_t* two_line_prompt_2;
+    if (data_type == NODEMGMT_NOTES_DATA_TYPE_ID)
+    {
+        custom_fs_get_string_from_file(QPROMPT_DELETE_NOTE_TEXT_ID, &two_line_prompt_2, TRUE);
+    }
+    else
+    {
+        custom_fs_get_string_from_file(QPROMPT_DELETE_FILE_TEXT_ID, &two_line_prompt_2, TRUE);
+    }
+    confirmationText_t conf_text_2_lines = {.lines[0]=service, .lines[1]=two_line_prompt_2};
+    
+    /* Request user approval */
+    mini_input_yes_no_ret_te prompt_return = gui_prompts_ask_for_confirmation(2, &conf_text_2_lines, TRUE, FALSE, TRUE);
+    gui_dispatcher_get_back_to_current_screen();
+    
+    /* Did the user approve? */
+    if (prompt_return != MINI_INPUT_RET_YES)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Remove parent */
+    nodemgmt_delete_data_parent_and_its_children(parent_address, data_type);
+    
+    /* Send success! */
+    return RETURN_OK;
+}
+
+
 /*! \fn     logic_user_change_node_password(uint16_t node_address, cust_char_t* password)
 *   \brief  Change node password
 *   \param  node_address    The node address

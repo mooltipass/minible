@@ -222,7 +222,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     (rcv_msg->message_type == HID_CMD_ACCESS_NOTE_ID) ||
     (rcv_msg->message_type == HID_CMD_MODIFY_NOTE_ID) ||
     (rcv_msg->message_type == HID_CMD_ADD_NOTE_DATA_ID) ||
-    (rcv_msg->message_type == HID_CMD_SCAN_NOTE_ID))
+    (rcv_msg->message_type == HID_CMD_SCAN_NOTE_ID) ||
+    (rcv_msg->message_type == HID_CMD_DELETE_NOTE_ID))
     {
         data_type_for_operation = NODEMGMT_NOTES_DATA_TYPE_ID;
     }
@@ -1683,6 +1684,30 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             
             /* Check for valid length, not exceeding payload size, then prompt user */
             if ((string_length < max_cust_char_length) && ((string_length + 1) == (rcv_msg->payload_length / (uint16_t)sizeof(cust_char_t))) && (logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_user_add_data_service(rcv_msg->payload_as_cust_char_t, is_message_from_usb, data_type_for_operation) == RETURN_OK))
+            {
+                /* Set success byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
+            }
+            else
+            {
+                /* Set failure byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }
+        }
+        
+        case HID_CMD_DELETE_NOTE_ID:
+        case HID_CMD_DELETE_FILE_ID:
+        {
+            /* Input sanitazing */
+            uint16_t max_cust_char_length = max_payload_size/sizeof(cust_char_t);
+            
+            /* Get string length */
+            uint16_t string_length = utils_strnlen(rcv_msg->payload_as_cust_char_t, max_cust_char_length);
+            
+            /* Check for valid length, not exceeding payload size, then prompt user */
+            if ((string_length < max_cust_char_length) && ((string_length + 1) == (rcv_msg->payload_length / (uint16_t)sizeof(cust_char_t))) && (logic_security_is_smc_inserted_unlocked() != FALSE) && (logic_user_delete_data_service(rcv_msg->payload_as_cust_char_t, data_type_for_operation) == RETURN_OK))
             {
                 /* Set success byte */
                 comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
