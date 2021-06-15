@@ -196,8 +196,12 @@ try:
 	
 	# Fetch nonce
 	nonce = []
-	for i in range(8, 24):
-		nonce.append(decrypted_backup_file[1][0][str(i)])
+	if len(decrypted_backup_file[1][0]) != 64:
+		for i in range(8, 24):
+			nonce.append(decrypted_backup_file[1][0][str(i)])
+	else:
+		for i in range(10, 26):
+			nonce.append(decrypted_backup_file[1][0][str(i)])
 	nonce_string = ''.join('{:02x}'.format(x) for x in nonce)
 	print("Nonce:", nonce_string.upper())
 	
