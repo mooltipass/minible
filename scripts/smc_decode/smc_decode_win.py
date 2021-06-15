@@ -257,7 +257,10 @@ try:
 									decoded_password += chr(code_point)
 						
 						# print data
-						print(decrypted_backup_file[5][service_id]["name"] + ":", decrypted_backup_file[6][j]["name"], "/", decoded_password)
+						try:
+							print(decrypted_backup_file[5][service_id]["name"] + ":", decrypted_backup_file[6][j]["name"], "/", decoded_password)
+						except:
+							print("Couldn't parse password for", decrypted_backup_file[5][service_id]["name"], " / ", decrypted_backup_file[6][j]["name"])
 						child_address = node_data[4:6]
 						break
 
