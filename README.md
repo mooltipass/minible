@@ -99,8 +99,10 @@ Device emulators are available for <a href="https://github.com/mooltipass/minibl
 The Mooltipass team welcomes contributions from open source enthusiasts!  
 Features requested by Mooltipass users can easily be seen by clicking on <a href="https://github.com/mooltipass/minible/issues?q=is%3Aissue+is%3Aopen+label%3A%22feature+request%22">this link.</a>  
 If you have even more spare time to contribute, the Mooltipass team is actively looking for contributors to:  
+  
 - add a Bluetooth FIDO2 communication channel    
 - develop a companion Android/iOS app to use Autofill services    
+  
 Depending on the task, we could ship you one of our developpement boards (shown above), or you could also develop <a href="https://mooltipass.github.io/minible/developing_using_emulator">using our device emulator</a>. Do not forget to review our contributing guidelines!
 
 ## Adding a New Language to the Mini BLE
