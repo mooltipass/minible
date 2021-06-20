@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    60
+#define FW_MINOR    61
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -113,6 +113,7 @@
 - v0.60:- updated charging algo for more tolerance for old batteries
         - getting rid of decision timers for aux mcu charging algo
         - bundle v1
+- v0.61:- possible 002 bug fix: resetting notification being sent value on connect
 */
 
 /**************** SETUP DEFINES ****************/

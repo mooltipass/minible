@@ -1144,7 +1144,6 @@ RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, uint16_
         {
             /* Free timer */
             timer_deallocate_timer(temp_timer_id);
-            
             return RETURN_NOK;
         }
 

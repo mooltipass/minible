@@ -260,9 +260,6 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
     /* From battery service */
     logic_bluetooth_battery_notification_flag = TRUE;
     
-    /* Start advertising again */
-    logic_bluetooth_start_advertising();
-    
     /* Inform main MCU */
     if (logic_bluetooth_can_communicate_with_host != FALSE)
     {
@@ -276,6 +273,9 @@ static at_ble_status_t logic_bluetooth_hid_disconnected_callback(void *params)
     logic_bluetooth_just_paired = FALSE;
     logic_bluetooth_connected = FALSE;
     logic_bluetooth_paired = FALSE;
+    
+    /* Start advertising again */
+    logic_bluetooth_start_advertising();
 
     return AT_BLE_SUCCESS;
 }
@@ -308,6 +308,7 @@ void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info
         
     /* Set booleans */
     logic_bluetooth_too_many_invalid_connect_notif_sent = FALSE;
+    logic_bluetooth_notif_being_sent = NONE_NOTIF_SENDING;
     logic_bluetooth_can_communicate_with_host = TRUE;
     logic_bluetooth_invalid_connect_counter = 0;
     logic_bluetooth_just_paired = TRUE;
@@ -402,6 +403,7 @@ void logic_bluetooth_encryption_changed_success(uint8_t* mac)
 {        
     /* Set boolean */
     logic_bluetooth_too_many_invalid_connect_notif_sent = FALSE;
+    logic_bluetooth_notif_being_sent = NONE_NOTIF_SENDING;
     logic_bluetooth_can_communicate_with_host = TRUE;
     logic_bluetooth_invalid_connect_counter = 0;
 }
@@ -1500,6 +1502,7 @@ void logic_bluetooth_stop_bluetooth(void)
     }
     
     /* Set booleans */
+    logic_bluetooth_notif_being_sent = NONE_NOTIF_SENDING;
     logic_bluetooth_can_communicate_with_host = FALSE;
     logic_bluetooth_open_to_pairing = FALSE;
     logic_bluetooth_just_connected = FALSE;
