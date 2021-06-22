@@ -343,7 +343,6 @@ void main_platform_init(void)
         /* Then functional testing */
         functional_testing_start(TRUE);
     }
-    functional_testing_start(TRUE);
 
     /* Check for RF functional testing passed */
     #ifdef DEVELOPER_FEATURES_ENABLED
