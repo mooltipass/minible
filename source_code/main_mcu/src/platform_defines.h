@@ -210,7 +210,8 @@
         - use of two SNs: an internally programmed one and one set during mass production
         - previous mini generation data decryption bug fix and automatic trim for data nodes < 128B
         - bundle v1 (except for the mini 50 batch that doesn't contain prev gen decrypt bug fix)
-- v0.72:- USB commands to delete notes & files
+- v0.72:- more rigurous click wheel functional test
+        - USB commands to delete notes & files
         - bundle v2
 */
 

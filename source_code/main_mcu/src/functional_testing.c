@@ -165,38 +165,43 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #endif
-    timer_delay_ms(500);
-    inputs_clear_detections();
-    sh1122_put_error_string(&plat_oled_descriptor, u"click");
-    if (inputs_get_wheel_action(TRUE, FALSE) != WHEEL_ACTION_SHORT_CLICK)
+    
+    /* Annoying click test due to bad experiences */
+    for (uint16_t i = 0; i < 3; i++)
     {
+        timer_delay_ms(500);
+        inputs_clear_detections();
+        sh1122_put_error_string(&plat_oled_descriptor, u"click");
+        if (inputs_get_wheel_action(TRUE, FALSE) != WHEEL_ACTION_SHORT_CLICK)
+        {
+            sh1122_clear_current_screen(&plat_oled_descriptor);
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
+            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            #endif
+            sh1122_put_error_string(&plat_oled_descriptor, u"wheel issue");        
+            timer_delay_ms(5000); platform_io_disable_switch_and_die(); while(1);
+        }
         sh1122_clear_current_screen(&plat_oled_descriptor);
         #ifdef OLED_INTERNAL_FRAME_BUFFER
         sh1122_clear_frame_buffer(&plat_oled_descriptor);
         #endif
-        sh1122_put_error_string(&plat_oled_descriptor, u"wheel issue");        
-        timer_delay_ms(5000); platform_io_disable_switch_and_die(); while(1);
-    }
-    sh1122_clear_current_screen(&plat_oled_descriptor);
-    #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
-    #endif
-    timer_delay_ms(500);
-    inputs_clear_detections();
-    sh1122_put_error_string(&plat_oled_descriptor, u"long click");
-    if (inputs_get_wheel_action(TRUE, FALSE) != WHEEL_ACTION_LONG_CLICK)
-    {
+        timer_delay_ms(500);
+        inputs_clear_detections();
+        sh1122_put_error_string(&plat_oled_descriptor, u"long click");
+        if (inputs_get_wheel_action(TRUE, FALSE) != WHEEL_ACTION_LONG_CLICK)
+        {
+            sh1122_clear_current_screen(&plat_oled_descriptor);
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
+            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            #endif
+            sh1122_put_error_string(&plat_oled_descriptor, u"wheel issue");        
+            timer_delay_ms(5000); platform_io_disable_switch_and_die(); while(1);
+        }
         sh1122_clear_current_screen(&plat_oled_descriptor);
         #ifdef OLED_INTERNAL_FRAME_BUFFER
         sh1122_clear_frame_buffer(&plat_oled_descriptor);
         #endif
-        sh1122_put_error_string(&plat_oled_descriptor, u"wheel issue");        
-        timer_delay_ms(5000); platform_io_disable_switch_and_die(); while(1);
     }
-    sh1122_clear_current_screen(&plat_oled_descriptor);
-    #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
-    #endif
     
     /* Ask to connect USB to test USB LDO + LDO 3V3 to 8V  */
     sh1122_put_error_string(&plat_oled_descriptor, u"connect USB");

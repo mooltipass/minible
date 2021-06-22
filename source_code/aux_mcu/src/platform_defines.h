@@ -113,7 +113,8 @@
 - v0.60:- updated charging algo for more tolerance for old batteries
         - getting rid of decision timers for aux mcu charging algo
         - bundle v1
-- v0.61:- possible 002 bug fix: resetting notification being sent value on connect
+- v0.61:- resetting notification being sent value on bluetooth connect
+        - stricter restriction for battery service
 */
 
 /**************** SETUP DEFINES ****************/

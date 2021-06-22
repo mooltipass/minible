@@ -69,9 +69,18 @@ void bat_init_service(bat_gatt_service_handler_t *battery_serv, uint8_t *battery
 	battery_serv->serv_chars.init_value = battery_value;             /* value */
 	battery_serv->serv_chars.value_init_len = sizeof(uint8_t);
 	battery_serv->serv_chars.value_max_len = sizeof(uint8_t);
+#if BLE_PAIR_ENABLE
+    #if BLE_MITM_REQ
+        battery_serv->serv_chars.value_permissions = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR |
+                                                    AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);   /* permissions */
+    #else
+        battery_serv->serv_chars.value_permissions = (AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR |
+                                                    AT_BLE_ATTR_WRITABLE_REQ_ENC_NO_AUTHN_NO_AUTHR);   /* permissions */
+    #endif
+#else
     // Allow anyone to read the device information
-	battery_serv->serv_chars.value_permissions = (AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR |
-												 AT_BLE_ATTR_WRITABLE_NO_AUTHN_NO_AUTHR);   /* permissions */
+    battery_serv->serv_chars.value_permissions = (AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_NO_AUTHN_NO_AUTHR);   /* permissions */
+#endif   
 	battery_serv->serv_chars.user_desc = NULL;           /* user defined name */
 	battery_serv->serv_chars.user_desc_len = 0;
 	battery_serv->serv_chars.user_desc_max_len = 0;
