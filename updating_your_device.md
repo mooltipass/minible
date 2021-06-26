@@ -23,7 +23,7 @@ The BLE Dev tab will appear on the top part of the application.
   
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/ble_dev_tab_new_upload.png?raw=true)  
 
-In the "Upload Password" text field, enter the hexadecimal string present in your update file name (the 'xxxxxx' in update_serial_xxxxxx.img).  
+In the "Upload Password" text field, enter the hexadecimal string present in your update file name (the 'xxxxxx' in update_deviceserial_xxxxxx.img).  
 Then click on the "Select Bundle File" button and select the bundle file we sent you by email. The upload will start automatically:  
   
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/firmware_file_update.png?raw=true)  
