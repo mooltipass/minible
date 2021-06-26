@@ -269,8 +269,8 @@ void inputs_scan(void)
         /* Check that detection wasn't set to invalid */
         if (inputs_wheel_click_return != RETURN_INV_DET)
         {
-            /* Was previously 50, decreased to 5 as we have hardware debouncing */
-            if ((inputs_wheel_click_counter == 5) && (inputs_wheel_click_return != RETURN_JRELEASED))
+            /* Was previously 50, decreased to 5 then 15 as we have hardware debouncing */
+            if ((inputs_wheel_click_counter == 15) && (inputs_wheel_click_return != RETURN_JRELEASED))
             {
                 inputs_wheel_click_return = RETURN_JDETECT;
             }
