@@ -47,6 +47,8 @@ wheel_action_ret_te virtual_wheel_action = WHEEL_ACTION_NONE;
 BOOL main_should_power_off_asap = FALSE;
 /* Flag when ADC watchdog fired */
 BOOL main_adc_watchdog_fired = FALSE;
+/* Flag when accelerometer watchdog fired */
+BOOL main_acc_watchdog_fired = FALSE;
 /* Know if debugger is present */
 BOOL debugger_present = FALSE;
 
@@ -876,6 +878,15 @@ int main(void)
                 main_adc_watchdog_fired = FALSE;
             }
             
+            /* Accelerometer watchdog timer fired */
+            if (main_acc_watchdog_fired != FALSE)
+            {
+                gui_prompts_display_information_on_screen_and_wait(CONTACT_SUPPORT_011_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                timer_start_timer(TIMER_ACC_WATCHDOG, 60000);
+                gui_dispatcher_get_back_to_current_screen();
+                main_acc_watchdog_fired = FALSE;
+            }
+            
             /* Many failed connection attempts */
             if (logic_bluetooth_get_and_clear_too_many_failed_connections() != FALSE)
             {
@@ -997,6 +1008,12 @@ int main(void)
         {
             platform_io_get_voledin_conversion_result_and_trigger_conversion();
             main_adc_watchdog_fired = TRUE;
+        }
+        
+        /* Accelerometer watchdog */
+        if (timer_has_timer_expired(TIMER_ACC_WATCHDOG, TRUE) == TIMER_EXPIRED)
+        {
+            main_acc_watchdog_fired = TRUE;
         }
 
         /* Accelerometer routine */

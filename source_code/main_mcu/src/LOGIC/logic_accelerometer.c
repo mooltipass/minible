@@ -21,6 +21,7 @@
 */ 
 #include "logic_accelerometer.h"
 #include "logic_security.h"
+#include "driver_timer.h"
 #include "logic_device.h"
 #include "logic_power.h"
 #include "logic_user.h"
@@ -84,6 +85,9 @@ acc_detection_te logic_accelerometer_routine(void)
         {
             logic_device_activity_detected();
         }
+        
+        /* Rearm watchdog */
+        timer_start_timer(TIMER_ACC_WATCHDOG, 60000);
         
         return return_val;
     }
