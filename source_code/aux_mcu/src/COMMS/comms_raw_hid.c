@@ -337,7 +337,6 @@ BOOL comms_usb_is_enumerated(void)
 void comms_usb_clear_enumerated(void)
 {
     comms_raw_hid_at_least_one_msg_rcvd_from_prop_hid = FALSE;
-    comms_usb_timeout_detected = FALSE;
     comms_usb_just_enumerated = FALSE;
     comms_usb_enumerated = FALSE;
 }
@@ -351,7 +350,6 @@ void comms_raw_hid_connection_set_callback(hid_interface_te hid_interface)
     if (hid_interface == USB_INTERFACE)
     {
         /* Set enumerated booleans */
-        comms_usb_timeout_detected = FALSE;
         comms_usb_just_enumerated = TRUE;
         comms_usb_enumerated = TRUE;
     } 
