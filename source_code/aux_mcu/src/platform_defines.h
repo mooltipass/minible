@@ -116,6 +116,7 @@
 - v0.61:- resetting notification being sent value on bluetooth connect
         - new internal logic for actions on USB timeout
         - stricter restriction for battery service
+        - bundle v2
 */
 
 /**************** SETUP DEFINES ****************/
