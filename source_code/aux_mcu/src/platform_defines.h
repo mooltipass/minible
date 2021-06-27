@@ -114,6 +114,7 @@
         - getting rid of decision timers for aux mcu charging algo
         - bundle v1
 - v0.61:- resetting notification being sent value on bluetooth connect
+        - new internal logic for actions on USB timeout
         - stricter restriction for battery service
 */
 

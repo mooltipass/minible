@@ -154,7 +154,7 @@ void udc_init(void)
 //-----------------------------------------------------------------------------
 void udc_attach(void)
 {
-    platform_io_init_usb_ports();
+  platform_io_init_usb_ports();
   USB->DEVICE.CTRLB.bit.DETACH = 0;
   udc_usb_attached = TRUE;
 }
@@ -162,7 +162,7 @@ void udc_attach(void)
 //-----------------------------------------------------------------------------
 void udc_detach(void)
 {
-    platform_io_disable_usb_ports();
+  platform_io_disable_usb_ports();
   USB->DEVICE.CTRLB.bit.DETACH = 1;
   udc_usb_attached = FALSE;
   usb_reset_config();

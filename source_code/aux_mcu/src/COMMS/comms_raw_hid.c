@@ -36,8 +36,6 @@ volatile BOOL comms_raw_hid_packet_received[NB_HID_INTERFACES] = {FALSE, FALSE, 
 volatile BOOL comms_raw_hid_packet_receive_length[NB_HID_INTERFACES] = {0, 0, 0};
 /* Set when we just got enumerated */
 volatile BOOL comms_usb_just_enumerated = FALSE;
-/* Set when a USB timeout is detected */
-volatile BOOL comms_usb_timeout_detected = FALSE;
 /* Device status cache so we don't need to query main mcu */
 uint8_t comms_hid_device_status_cache[5];
 /* Set when we are enumerated */
@@ -386,10 +384,10 @@ comms_usb_ret_te comms_usb_communication_routine(void)
     }
     
     /* USB time out detected? */
-    if ((comms_usb_timeout_detected == FALSE) && (comms_usb_enumerated != FALSE) && (udc_get_nb_ms_before_last_usb_activity() > 65000))
+    if ((comms_usb_enumerated != FALSE) && (udc_get_nb_ms_before_last_usb_activity() > 60000))
     {
         comms_main_mcu_send_simple_event(AUX_MCU_EVENT_USB_TIMEOUT);
-        comms_usb_timeout_detected = TRUE;
+        comms_usb_clear_enumerated();
     }
     
     /* We received a new device status, push it to the host */
