@@ -189,9 +189,29 @@ void comms_raw_hid_arm_packet_receive(hid_interface_te hid_interface)
 void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* packet, BOOL wait_send, uint16_t payload_size)
 {
     /* Wait for possible previous packet to be sent */
-    timer_start_timer(TIMER_USB_SEND_TIMEOUT, 1000);
+    if (hid_interface == USB_INTERFACE)
+    {
+        timer_start_timer(TIMER_USB_SEND_TIMEOUT, 500);
+    }
+    else if (hid_interface == CTAP_INTERFACE)
+    {
+        timer_start_timer(TIMER_USB_SEND_TIMEOUT, 100);
+    }
+    timer_start_timer(TIMER_BT_TYPING_TIMEOUT, 3000);
     while(comms_raw_hid_packet_being_sent[hid_interface] == TRUE)
     {
+        if (hid_interface == BLE_INTERFACE)
+        {
+            ble_event_task();
+        }
+        
+        /* Check for BLE timeout */
+        if ((hid_interface == BLE_INTERFACE) && (timer_has_timer_expired(TIMER_BT_TYPING_TIMEOUT, FALSE) == TIMER_EXPIRED))
+        {
+            comms_raw_hid_packet_being_sent[hid_interface] = FALSE;
+            return;
+        }
+        
         /* Check for usb disconnection, or in some cases a timeout due to the computer not wanting to read the OUT endpoint (wtf...) */
         if (((hid_interface == USB_INTERFACE) || (hid_interface == CTAP_INTERFACE)) && ((usb_get_config() == 0) || (udc_get_nb_ms_before_last_usb_activity() > 100) || (timer_has_timer_expired(TIMER_USB_SEND_TIMEOUT, TRUE) == TIMER_EXPIRED)))
         {
@@ -227,8 +247,16 @@ void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* pac
     /* If asked, wait */
     if (wait_send != FALSE)
     {
-        timer_start_timer(TIMER_USB_SEND_TIMEOUT, 1000);
-        timer_start_timer(TIMER_BT_TYPING_TIMEOUT, 3000);        
+        if (hid_interface == USB_INTERFACE)
+        {
+            timer_start_timer(TIMER_USB_SEND_TIMEOUT, 500);
+        }
+        else if (hid_interface == CTAP_INTERFACE)
+        {
+            timer_start_timer(TIMER_USB_SEND_TIMEOUT, 100);
+        }        
+        timer_start_timer(TIMER_BT_TYPING_TIMEOUT, 3000);    
+            
         while(comms_raw_hid_packet_being_sent[hid_interface] == TRUE)
         {
             if (hid_interface == BLE_INTERFACE)

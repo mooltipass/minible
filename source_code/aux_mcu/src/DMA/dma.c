@@ -27,6 +27,7 @@ volatile BOOL dma_aux_mcu_packet_received = FALSE;
 /* Boolean to specify if we sent a packet to main MCU */
 volatile BOOL dma_main_mcu_packet_sent = TRUE;
 /* Message we're currently receiving through DMA */
+volatile aux_mcu_message_t dma_main_mcu_fido_blectrl_rng_message;
 volatile aux_mcu_message_t dma_main_mcu_temp_rcv_message;
 volatile aux_mcu_message_t dma_main_mcu_usb_rcv_message;
 volatile aux_mcu_message_t dma_main_mcu_ble_rcv_message;
@@ -35,6 +36,7 @@ volatile aux_mcu_message_t dma_main_mcu_other_message;
 volatile BOOL dma_main_mcu_usb_msg_received = FALSE;
 volatile BOOL dma_main_mcu_ble_msg_received = FALSE;
 volatile BOOL dma_main_mcu_other_msg_received = FALSE;
+volatile BOOL dma_main_mcu_fido_blectrl_rng_msg_received = FALSE;
 /* Pointer to message being sent to main MCU */
 void* dma_pt_to_message_being_sent_to_main_mcu;
 
@@ -42,7 +44,7 @@ void* dma_pt_to_message_being_sent_to_main_mcu;
 *   \brief  Function called by interrupt when RX is done
 */
 void DMAC_Handler(void)
-{    
+{
     /* MAIN MCU RX routine */
     DMAC->CHID.reg = DMAC_CHID_ID(DMA_DESCID_RX_COMMS);
     if ((DMAC->CHINTFLAG.reg & DMAC_CHINTFLAG_TCMPL) != 0)
@@ -81,6 +83,19 @@ void DMAC_Handler(void)
             {
                 dma_main_mcu_ble_msg_received = TRUE;
             }
+        }
+        else if ((dma_main_mcu_temp_rcv_message.message_type == AUX_MCU_MSG_TYPE_FIDO2) || (dma_main_mcu_temp_rcv_message.message_type == AUX_MCU_MSG_TYPE_RNG_TRANSFER) || (dma_main_mcu_temp_rcv_message.message_type == AUX_MCU_MSG_TYPE_BLE_CMD))
+        {
+            memcpy((void*)&dma_main_mcu_fido_blectrl_rng_message, (void*)&dma_main_mcu_temp_rcv_message, sizeof(dma_main_mcu_fido_blectrl_rng_message));
+            /* Check if received message has already been dealt with, do not set received flag if so */
+            if (comms_main_mcu_fido_blectrl_rng_msg_answered_using_first_bytes != FALSE)
+            {
+                comms_main_mcu_fido_blectrl_rng_msg_answered_using_first_bytes = FALSE;
+            }
+            else
+            {
+                dma_main_mcu_fido_blectrl_rng_msg_received = TRUE;
+            }          
         }
         else
         {

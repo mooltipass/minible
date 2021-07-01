@@ -14,10 +14,12 @@
 #include "defines.h"
 
 /* Global vars */
+extern volatile aux_mcu_message_t dma_main_mcu_fido_blectrl_rng_message;
 extern volatile aux_mcu_message_t dma_main_mcu_temp_rcv_message;
 extern volatile aux_mcu_message_t dma_main_mcu_usb_rcv_message;
 extern volatile aux_mcu_message_t dma_main_mcu_ble_rcv_message;
 extern volatile aux_mcu_message_t dma_main_mcu_other_message;
+extern volatile BOOL dma_main_mcu_fido_blectrl_rng_msg_received;
 extern volatile BOOL dma_main_mcu_other_msg_received;
 extern volatile BOOL dma_main_mcu_usb_msg_received;
 extern volatile BOOL dma_main_mcu_ble_msg_received;

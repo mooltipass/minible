@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    61
+#define FW_MINOR    62
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -116,6 +116,7 @@
 - v0.61:- resetting notification being sent value on bluetooth connect
         - new internal logic for actions on USB timeout
         - stricter restriction for battery service
+- v0.62:- dedicated DMA buffers for RNG/FIDO2/BLE message to prevent overwrite on main FIDO answer followed by status request
         - bundle v2
 */
 

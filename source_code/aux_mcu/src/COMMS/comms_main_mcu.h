@@ -18,6 +18,7 @@
 extern volatile BOOL comms_main_mcu_usb_msg_answered_using_first_bytes;
 extern volatile BOOL comms_main_mcu_ble_msg_answered_using_first_bytes;
 extern volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes;
+extern volatile BOOL comms_main_mcu_fido_blectrl_rng_msg_answered_using_first_bytes;
 
 /* Timeout when waiting for something from main MCU */
 #define MAIN_MCU_COMMS_WAIT_TIMEOUT     5000
@@ -327,9 +328,9 @@ typedef struct
 } aux_mcu_message_t;
 
 /* Prototypes */
-ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buffer, uint16_t expected_message_type, BOOL resend_send_msg_if_retry_of_type_received);
 ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t address_resolv_type, uint8_t* mac_addr, nodemgmt_bluetooth_bonding_information_t* bonding_info);
 ret_type_te comms_main_mcu_fetch_bonding_info_for_irk(uint8_t* irk_key, nodemgmt_bluetooth_bonding_information_t* bonding_info);
+ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_spare_receive_buffer, uint16_t expected_message_type);
 void comms_main_mcu_get_empty_packet_ready_to_be_sent(aux_mcu_message_t** message_pt_pt, uint16_t message_type);
 void comms_main_mcu_send_simple_event_alt_buffer(uint16_t event_id, aux_mcu_message_t* buffer);
 void comms_main_mcu_send_message(volatile aux_mcu_message_t* message, uint16_t message_length);

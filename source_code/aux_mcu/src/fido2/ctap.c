@@ -192,12 +192,12 @@ static ret_type_te ctap_make_credential_aux_comm(CTAP_requestCommon *common, CTA
     timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50);
     do
     {
+        ctaphid_update_status(2);
+        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50);
         while ((timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING) && (ret != RETURN_OK))
         {
-            ret = comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2, TRUE);
+            ret = comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2);
         }
-        timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50);
-        ctaphid_update_status(2);
     } while (ret != RETURN_OK);
 
     /* Received message is in temporary buffer */
@@ -322,7 +322,7 @@ static ret_type_te ctap_get_assertion_aux_comm(CTAP_requestCommon *common, CTAP_
     {
         while ((timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING) && (ret != RETURN_OK))
         {
-            ret = comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2, TRUE);
+            ret = comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2);
         }
         timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50);
         ctaphid_update_status(2);
@@ -495,7 +495,7 @@ int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * d
     {
         while ((timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, TRUE) == TIMER_RUNNING) && (ret != RETURN_OK))
         {
-            ret = comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2, TRUE);
+            ret = comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_FIDO2);
         }
         timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50);
         ctaphid_update_status(2);

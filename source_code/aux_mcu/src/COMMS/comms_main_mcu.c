@@ -38,6 +38,7 @@ volatile aux_mcu_message_t comms_main_mcu_message_for_main_replies;
 volatile BOOL comms_main_mcu_usb_msg_answered_using_first_bytes = FALSE;
 volatile BOOL comms_main_mcu_ble_msg_answered_using_first_bytes = FALSE;
 volatile BOOL comms_main_mcu_other_msg_answered_using_first_bytes = FALSE;
+volatile BOOL comms_main_mcu_fido_blectrl_rng_msg_answered_using_first_bytes = FALSE;
 /* Flag set when an invalid message was received */
 BOOL comms_main_mcu_invalid_message_received_from_main = FALSE;
 /* Flag set when adc watchdog fired */
@@ -724,15 +725,14 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
     }
 }
 
-/*! \fn     comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buffer, uint16_t expected_message_type, BOOL resend_send_msg_if_retry_of_type_received)
+/*! \fn     comms_main_mcu_routine(BOOL wait_for_blectrl_fido2_rng, uint16_t expected_message_type)
 *   \brief  Routine dealing with main mcu comms
-*   \param  filter_and_force_use_of_temp_receive_buffer     Set to TRUE to force all received messages to be stored in the temp buffer and to not parse message if it matches expected_message_type
-*   \param  expected_message_type                           If filter_and_force_use_of_temp_receive_buffer is set to TRUE, expected message type to return RETURN_OK (NOT AUX_MCU_MSG_TYPE_USB & AUX_MCU_MSG_TYPE_BLE)
-*   \param  resend_send_msg_if_retry_of_type_received       If filter_and_force_use_of_temp_receive_buffer is set to TRUE and we detect a please retry for the expected message type, resend main_mcu_send_message to main mcu
-*   \return RETURN_OK if filter_and_force_use_of_temp_receive_buffer is set to TRUE and received message type is of type expected_message_type, otherwise RETURN_NOK
+*   \param  wait_for_blectrl_fido2_rng                      Set to TRUE to specify that we're waiting for a FIDO2 BLECTRL or RNG message and to not parse message if it matches expected_message_type
+*   \param  expected_message_type                           If wait_for_blectrl_fido2_rng is set to TRUE, expected message type to return RETURN_OK
+*   \return RETURN_OK if wait_for_blectrl_fido2_rng is set to TRUE and received message type is of type expected_message_type, otherwise RETURN_NOK
 */
-ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buffer, uint16_t expected_message_type, BOOL resend_send_msg_if_retry_of_type_received)
-{	
+ret_type_te comms_main_mcu_routine(BOOL wait_for_blectrl_fido2_rng, uint16_t expected_message_type)
+{
     /* First: deal with fully received messages */
     if (dma_main_mcu_usb_msg_received != FALSE)
     {
@@ -754,6 +754,32 @@ ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buf
             comms_raw_hid_send_hid_message(BLE_INTERFACE, (aux_mcu_message_t*)&dma_main_mcu_ble_rcv_message);
         }
     }
+    if (dma_main_mcu_fido_blectrl_rng_msg_received != FALSE)
+    {
+        /* Set bool and do necessary action: no point in setting the bool after the function call as the dma receiver will overwrite the packet anyways */
+        dma_main_mcu_fido_blectrl_rng_msg_received = FALSE;
+        
+        if (comms_main_mcu_fido_blectrl_rng_msg_answered_using_first_bytes == FALSE)
+        {
+            if ((wait_for_blectrl_fido2_rng != FALSE) && (dma_main_mcu_fido_blectrl_rng_message.message_type == expected_message_type))
+            {
+                /* Did we receive a please retry from the main mcu? */
+                if ((dma_main_mcu_fido_blectrl_rng_message.message_type == AUX_MCU_MSG_TYPE_FIDO2) && (dma_main_mcu_fido_blectrl_rng_message.fido2_message.message_type == AUX_MCU_FIDO2_RETRY))
+                {
+                    comms_main_mcu_send_message(&main_mcu_send_message, sizeof(main_mcu_send_message));
+                }
+                else
+                {
+                    memcpy((void*)&comms_main_mcu_temp_message, (void*)&dma_main_mcu_fido_blectrl_rng_message, sizeof(comms_main_mcu_temp_message));
+                    return RETURN_OK;
+                }
+            }
+            else
+            {
+                comms_main_mcu_deal_with_non_usb_non_ble_message((aux_mcu_message_t*)&dma_main_mcu_fido_blectrl_rng_message);
+            }
+        }
+    }
     if (dma_main_mcu_other_msg_received != FALSE)
     {
         /* Set bool and do necessary action: no point in setting the bool after the function call as the dma receiver will overwrite the packet anyways */
@@ -761,23 +787,7 @@ ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buf
         
         if (comms_main_mcu_other_msg_answered_using_first_bytes == FALSE)
         {
-            if ((filter_and_force_use_of_temp_receive_buffer != FALSE) && (dma_main_mcu_other_message.message_type == expected_message_type))
-            {
-                /* Did we receive a please retry from the main mcu? */
-                if ((resend_send_msg_if_retry_of_type_received != FALSE) && (dma_main_mcu_other_message.message_type == AUX_MCU_MSG_TYPE_FIDO2) && (dma_main_mcu_other_message.fido2_message.message_type == AUX_MCU_FIDO2_RETRY))
-                {
-                    comms_main_mcu_send_message(&main_mcu_send_message, sizeof(main_mcu_send_message));
-                } 
-                else
-                {
-                    memcpy((void*)&comms_main_mcu_temp_message, (void*)&dma_main_mcu_other_message, sizeof(comms_main_mcu_temp_message));
-                    return RETURN_OK;
-                }
-            } 
-            else
-            {
-                comms_main_mcu_deal_with_non_usb_non_ble_message((aux_mcu_message_t*)&dma_main_mcu_other_message);
-            }
+            comms_main_mcu_deal_with_non_usb_non_ble_message((aux_mcu_message_t*)&dma_main_mcu_other_message);
         }
     }
     
@@ -797,6 +807,11 @@ ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buf
     {
         answered_with_the_first_bytes_pointer = &comms_main_mcu_ble_msg_answered_using_first_bytes;
         packet_fully_received_in_the_mean_time_pointer = &dma_main_mcu_ble_msg_received;
+    }
+    else if ((dma_main_mcu_temp_rcv_message.message_type == AUX_MCU_MSG_TYPE_FIDO2) || (dma_main_mcu_temp_rcv_message.message_type == AUX_MCU_MSG_TYPE_RNG_TRANSFER) || (dma_main_mcu_temp_rcv_message.message_type == AUX_MCU_MSG_TYPE_BLE_CMD))
+    {
+        answered_with_the_first_bytes_pointer = &comms_main_mcu_fido_blectrl_rng_msg_answered_using_first_bytes;
+        packet_fully_received_in_the_mean_time_pointer = &dma_main_mcu_fido_blectrl_rng_msg_received;        
     }
     
     /* Check if we should deal with this packet */    
@@ -830,10 +845,10 @@ ret_type_te comms_main_mcu_routine(BOOL filter_and_force_use_of_temp_receive_buf
         }
         else
         {
-            if ((filter_and_force_use_of_temp_receive_buffer != FALSE) && (comms_main_mcu_temp_message.message_type == expected_message_type))
+            if ((wait_for_blectrl_fido2_rng != FALSE) && (comms_main_mcu_temp_message.message_type == expected_message_type))
             {
                 /* Did we receive a please retry from the main mcu? */
-                if ((resend_send_msg_if_retry_of_type_received != FALSE) && (comms_main_mcu_temp_message.message_type == AUX_MCU_MSG_TYPE_FIDO2) && (comms_main_mcu_temp_message.fido2_message.message_type == AUX_MCU_FIDO2_RETRY))
+                if ((comms_main_mcu_temp_message.message_type == AUX_MCU_MSG_TYPE_FIDO2) && (comms_main_mcu_temp_message.fido2_message.message_type == AUX_MCU_FIDO2_RETRY))
                 {
                     comms_main_mcu_send_message(&main_mcu_send_message, sizeof(main_mcu_send_message));
                 }
@@ -871,7 +886,7 @@ void comms_main_mcu_get_32_rng_bytes_from_main_mcu(uint8_t* buffer)
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
     
     /* Wait for message from main MCU */
-    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_RNG_TRANSFER, FALSE) != RETURN_OK);
+    while (comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_RNG_TRANSFER) != RETURN_OK);
     
     /* Received message is in temporary buffer */
     memcpy((void*)buffer, (void*)temp_rx_message_pt->payload_as_uint16, 32);
@@ -899,7 +914,7 @@ RET_TYPE comms_main_mcu_fetch_6_digits_pin(uint8_t* pin_array)
     
     /* Wait for message from main MCU: long timeout as user input required */
     timer_start_timer(TIMER_TIMEOUT_FUNCTS, 60000);
-    while ((comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
+    while ((comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD) != RETURN_OK) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
     if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) != TIMER_RUNNING)
     {
         memset(pin_array, 0, 6);
@@ -946,7 +961,7 @@ ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t address_resolv_typ
     
     /* Wait for message from main MCU */
     timer_start_timer(TIMER_TIMEOUT_FUNCTS, MAIN_MCU_COMMS_WAIT_TIMEOUT);
-    while ((comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
+    while ((comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD) != RETURN_OK) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
     if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) != TIMER_RUNNING)
     {
         return RETURN_NOK;
@@ -988,7 +1003,7 @@ ret_type_te comms_main_mcu_fetch_bonding_info_for_irk(uint8_t* irk_key, nodemgmt
     
     /* Wait for message from main MCU */
     timer_start_timer(TIMER_TIMEOUT_FUNCTS, MAIN_MCU_COMMS_WAIT_TIMEOUT);
-    while ((comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
+    while ((comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD) != RETURN_OK) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
     if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) != TIMER_RUNNING)
     {
         return RETURN_NOK;
@@ -1029,7 +1044,7 @@ uint16_t comms_main_mcu_get_bonding_info_irks(uint8_t** irk_keys_buffer)
     
     /* Wait for message from main MCU */
     timer_start_timer(TIMER_TIMEOUT_FUNCTS, MAIN_MCU_COMMS_WAIT_TIMEOUT);
-    while ((comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD, FALSE) != RETURN_OK) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
+    while ((comms_main_mcu_routine(TRUE, AUX_MCU_MSG_TYPE_BLE_CMD) != RETURN_OK) && (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) == TIMER_RUNNING));
     if (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) != TIMER_RUNNING)
     {
         return 0;

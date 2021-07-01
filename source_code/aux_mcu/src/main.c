@@ -168,7 +168,7 @@ int main(void)
         /* We can only communicate with main MCU when platform sleep isn't requested */
         if (logic_sleep_is_full_platform_sleep_requested() == FALSE)
         {
-            comms_main_mcu_routine(FALSE, 0, FALSE);
+            comms_main_mcu_routine(FALSE, 0);
         }
         
         /* ADC watchdog */
