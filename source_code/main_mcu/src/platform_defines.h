@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    72
+#define FW_MINOR    73
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -214,6 +214,7 @@
         - more rigorous click wheel functional test        
         - USB commands to delete notes & files
         - longer wheel debounce
+- v0.73:- fix visual glitch fix when saving language
         - bundle v2
 */
 

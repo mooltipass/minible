@@ -22,6 +22,7 @@
 #include <string.h>
 #include "logic_accelerometer.h"
 #include "smartcard_lowlevel.h"
+#include "platform_defines.h"
 #include "logic_bluetooth.h"
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"

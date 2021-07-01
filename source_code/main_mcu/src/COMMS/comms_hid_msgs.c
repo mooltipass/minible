@@ -22,6 +22,7 @@
 #include <asf.h>
 #include <string.h>
 #include "smartcard_highlevel.h"
+#include "platform_defines.h"
 #include "logic_encryption.h"
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
@@ -527,10 +528,12 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             
             /* Actions run when settings are updated */
             sh1122_set_contrast_current(&plat_oled_descriptor, custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT));
+            timer_delay_ms(15);
             
             /* Apply possible screen inversion */
             BOOL screen_inverted = logic_power_get_power_source() == BATTERY_POWERED?(BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_BATTERY):(BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_USB);
             sh1122_set_screen_invert(&plat_oled_descriptor, screen_inverted);
+            timer_delay_ms(15);
             
             /* Set ack, leave same command id */
             comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
@@ -1821,7 +1824,10 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 logic_user_set_language(desired_lang_id);
                 
                 /* Update display */
-                gui_dispatcher_get_back_to_current_screen();
+                if (gui_dispatcher_is_screen_saver_running() == FALSE)
+                {
+                    gui_dispatcher_get_back_to_current_screen();
+                }
                 
                 /* Set success byte */
                 comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
