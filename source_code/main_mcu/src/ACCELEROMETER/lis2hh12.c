@@ -241,11 +241,11 @@ BOOL lis2hh12_check_data_received_flag_and_arm_other_transfer(accelerometer_desc
             /* Deassert nCS : done through the DMA interrupt */
             //PORT->Group[descriptor_pt->cs_pin_group].OUTSET.reg = descriptor_pt->cs_pin_mask;
             
-            /* Arm next DMA transfer */
-            dma_acc_init_transfer(descriptor_pt->sercom_pt, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd));
-                
             /* Assert nCS */
             PORT->Group[descriptor_pt->cs_pin_group].OUTCLR.reg = descriptor_pt->cs_pin_mask;
+            
+            /* Arm next DMA transfer */
+            dma_acc_init_transfer(descriptor_pt->sercom_pt, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd));
                 
             /* Check if we were not quick enough to deal rearm RX DMA: check event channel interrupt flag, cleared by our DMA RX routine: if the flag is set it means another acc INT happened */
             /* In case we have a false positive (interrupt happening just after we re-arm) this is not a problem as the DMA will simply discard the trigger */
