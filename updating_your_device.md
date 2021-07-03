@@ -1,12 +1,14 @@
 ## [](#header-2)Guide to updating your Mini BLE  
    
-### [](#header-3)Introduction: verifying the bundle version present on your device, understanding your update file name
-
+### [](#header-3)Introduction
+  
+Before updating your device, **make sure to backup your user profile** by following the instructions in our [user manual](https://github.com/mooltipass/minible/raw/master/MooltipassMiniBLEUserManual.pdf), section III. F).  
+  
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/ble_bundle_version.png?raw=true)  
   
 Updating your Mooltipass Mini BLE means upgrading its internal bundle and internal firmwares.  
 To discover your device bundle version, start Moolticute and head to its **About** tab.  
-In it you will discover your bundle version. **If your bundle version isn't displayed, your version is 0**.  
+In it you will discover your bundle version. **If it isn't displayed, your version is 0**.  
   
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/update_file_win.png?raw=true)  
   
