@@ -155,6 +155,9 @@ RET_TYPE lis2hh12_check_presence_and_configure(accelerometer_descriptor_t* descr
         return RETURN_NOK;
     }
     
+    /* Arm watchdog */
+    timer_start_timer(TIMER_ACC_WATCHDOG, 60000);
+    
     /* Arm timer */
     uint16_t temp_timer_id = timer_get_and_start_timer(100);
     
