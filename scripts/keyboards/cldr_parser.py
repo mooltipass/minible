@@ -701,6 +701,7 @@ keyboard_generation_array = [ \
 								[ "windows", "Belgian French", "Belgium French"],\
 								[ "windows", "Portuguese (Brazil ABNT)", "Brazil"],\
 								[ "windows", "Canadian Multilingual Standard", "Canada"],\
+								[ "windows", "Canadian French", "Canada French"],\
 								[ "windows", "Czech", "Czech"],\
 								[ "windows", "Czech (QWERTY)", "Czech QWERTY"],\
 								[ "windows", "Danish", "Denmark"],\
