@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    73
+#define FW_MINOR    74
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -216,6 +216,8 @@
         - longer wheel debounce
 - v0.73:- fix visual glitch fix when saving language
         - bundle v2
+- v0.74:- _unlock_ service check only if feature is enabled
+        - mechanism to prevent infinite loop when searching for service
 */
 
 /**************** SETUP DEFINES ****************/

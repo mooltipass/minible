@@ -268,6 +268,8 @@ uint16_t logic_database_search_for_next_data_parent_after_addr(uint16_t node_add
 */
 uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_te compare_type, BOOL cred_type, uint16_t category_id)
 {
+    cust_char_t last_service_encountered[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)];
+    memset(last_service_encountered, 0, sizeof(last_service_encountered));
     parent_node_t temp_pnode;
     uint16_t next_node_addr;
     int16_t compare_result;
@@ -294,6 +296,13 @@ uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_t
         {
             /* Read parent node */
             nodemgmt_read_parent_node(next_node_addr, &temp_pnode, TRUE);
+            
+            /* Check for database loop */
+            if (utils_custchar_strncmp(last_service_encountered, temp_pnode.cred_parent.service, ARRAY_SIZE(temp_pnode.cred_parent.service)) >= 0)
+            {
+                return NODE_ADDR_NULL;
+            }
+            memcpy(last_service_encountered, temp_pnode.cred_parent.service, sizeof(temp_pnode.cred_parent.service));
             
             /* Compare its service name with the name that was provided */
             if (compare_type == COMPARE_MODE_MATCH)

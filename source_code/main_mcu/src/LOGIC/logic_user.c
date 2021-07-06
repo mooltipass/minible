@@ -2459,7 +2459,7 @@ void logic_user_unlocked_feature_trigger(void)
     uint8_t lock_unlock_feature_uint = custom_fs_settings_get_device_setting(SETTINGS_UNLOCK_FEATURE_PARAM);
     
     /* Fetch possible parent address for unlock service */
-    uint16_t parent_address = logic_database_search_service((cust_char_t*)u"_unlock_", COMPARE_MODE_MATCH, TRUE, NODEMGMT_STANDARD_CRED_TYPE_ID);
+    uint16_t parent_address = ((lock_unlock_feature_uint & LF_EN_MASK) == 0)?NODE_ADDR_NULL:logic_database_search_service((cust_char_t*)u"_unlock_", COMPARE_MODE_MATCH, TRUE, NODEMGMT_STANDARD_CRED_TYPE_ID);
     uint16_t last_used_child_address_for_service = NODE_ADDR_NULL;
     uint16_t child_address = NODE_ADDR_NULL;
     BOOL usb_interface_output = TRUE;
