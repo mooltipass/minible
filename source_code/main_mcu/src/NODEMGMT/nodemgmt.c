@@ -327,6 +327,40 @@ void nodemgmt_read_parent_node(uint16_t address, parent_node_t* parent_node, BOO
     }
 }
 
+/*! \fn     nodemgmt_read_parent_node_permissive(uint16_t address, parent_node_t* parent_node, BOOL data_clean)
+*   \brief  Read a parent node
+*   \param  address     Where to read
+*   \param  parent_node Pointer to the node
+*   \param  data_clean  Clean the strings
+*   \note   what's different from function above: sec checks
+*   \return RETURN_OK if the data is valid
+*/
+RET_TYPE nodemgmt_read_parent_node_permissive(uint16_t address, parent_node_t* parent_node, BOOL data_clean)
+{
+    /* Check for correct address */
+    if (nodemgmt_check_address_validity(address) != RETURN_OK)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Read node */
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(address), BASE_NODE_SIZE * nodemgmt_node_from_address(address), sizeof(parent_node->node_as_bytes), (void*)parent_node->node_as_bytes);
+    
+    /* Check permission */
+    if (nodemgmt_check_user_perm_from_flags(parent_node->cred_parent.flags) != RETURN_OK)
+    {
+        return RETURN_NOK;
+    }
+    
+    /* Clean data if needed */
+    if (data_clean != FALSE)
+    {
+        parent_node->cred_parent.service[(sizeof(parent_node->cred_parent.service)/sizeof(parent_node->cred_parent.service[0]))-1] = 0;
+    }
+    
+    return RETURN_OK;
+}
+
 /*! \fn     nodemgmt_set_last_used_child_node_for_service(uint16_t parent_address, uint16_t child_address)
 *   \brief  Set last used child node for a given parent service
 *   \param  parent_address  parent address

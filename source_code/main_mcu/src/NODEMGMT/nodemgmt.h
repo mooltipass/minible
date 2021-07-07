@@ -437,6 +437,7 @@ void nodemgmt_read_favorite_for_current_category(uint16_t favId, uint16_t* paren
 void nodemgmt_write_child_node_block_to_flash(uint16_t address, child_node_t* child_node, BOOL write_category);
 void nodemgmt_set_favorite(uint16_t categoryId, uint16_t favId, uint16_t parentAddress, uint16_t childAddress);
 void nodemgmt_get_bluetooth_bonding_info_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
+RET_TYPE nodemgmt_read_parent_node_permissive(uint16_t address, parent_node_t* parent_node, BOOL data_clean);
 void nodemgmt_get_user_category_names_starting_offset(uint16_t uid, uint16_t *page, uint16_t *pageOffset);
 void nodemgmt_get_bluetooth_bonding_information_irks(uint16_t* nb_keys, uint8_t* aggregated_keys_buffer);
 void nodemgmt_update_child_data_node_with_next_address(uint16_t child_address, uint16_t next_address);

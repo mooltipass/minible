@@ -295,7 +295,10 @@ uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_t
         do
         {
             /* Read parent node */
-            nodemgmt_read_parent_node(next_node_addr, &temp_pnode, TRUE);
+            if (nodemgmt_read_parent_node_permissive(next_node_addr, &temp_pnode, TRUE) != RETURN_OK)
+            {
+                return NODE_ADDR_NULL;
+            }
             
             /* Check for database loop */
             if (utils_custchar_strncmp(last_service_encountered, temp_pnode.cred_parent.service, ARRAY_SIZE(temp_pnode.cred_parent.service)) >= 0)
