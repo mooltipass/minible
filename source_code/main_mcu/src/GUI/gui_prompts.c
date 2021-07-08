@@ -865,6 +865,10 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
     /* Animation code */
     for (int16_t anim_step = 0; anim_step < nb_animation_steps; anim_step+=2)
     {
+        #ifdef EMULATOR_BUILD
+        timer_delay_ms(20);
+        #endif
+        
         /* Wait for a possible ongoing previous flush */
         #ifdef OLED_INTERNAL_FRAME_BUFFER
         sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
@@ -2729,10 +2733,16 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             if (animation_step > 0)
             {
                 animation_step-=2;
+                #ifdef EMULATOR_BUILD
+                timer_delay_ms(10);
+                #endif
             }
             else if (animation_step < 0)
             {
                 animation_step+=2;
+                #ifdef EMULATOR_BUILD
+                timer_delay_ms(10);
+                #endif
             }
             else
             {
@@ -3695,10 +3705,16 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
             if (animation_step > 0)
             {
                 animation_step-=2;
+                #ifdef EMULATOR_BUILD
+                timer_delay_ms(10);
+                #endif
             }
             else if (animation_step < 0)
             {
                 animation_step+=2;
+                #ifdef EMULATOR_BUILD
+                timer_delay_ms(10);
+                #endif
             }
             else
             {

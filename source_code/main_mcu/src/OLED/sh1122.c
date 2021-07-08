@@ -782,6 +782,9 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
                 high_y++;
             }
             emu_oled_flush();
+            #ifdef EMULATOR_BUILD
+            timer_delay_ms(2);
+            #endif
         }
     }
     else if (oled_descriptor->loaded_transition == OLED_OUT_IN_TRANS)
@@ -808,6 +811,9 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
                 high_y--;
             }
             emu_oled_flush();
+            #ifdef EMULATOR_BUILD
+            timer_delay_ms(2);
+            #endif
         }
     }
     
