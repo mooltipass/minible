@@ -870,6 +870,7 @@ int main(void)
                 #endif
             }
             
+            #ifndef EMULATOR_BUILD
             /* ADC watchdog timer fired */
             if (main_adc_watchdog_fired != FALSE)
             {
@@ -878,6 +879,7 @@ int main(void)
                 main_adc_watchdog_fired = FALSE;
             }
             
+            #ifndef EMULATOR_BUILD
             /* Accelerometer watchdog timer fired */
             if (main_acc_watchdog_fired != FALSE)
             {
@@ -886,6 +888,7 @@ int main(void)
                 gui_dispatcher_get_back_to_current_screen();
                 main_acc_watchdog_fired = FALSE;
             }
+            #endif
             
             /* Many failed connection attempts */
             if (logic_bluetooth_get_and_clear_too_many_failed_connections() != FALSE)
@@ -893,6 +896,7 @@ int main(void)
                 gui_prompts_display_information_on_screen_and_wait(MANY_FAILED_CONNS_TEXT_ID, DISP_MSG_WARNING, FALSE);
                 gui_dispatcher_get_back_to_current_screen();
             }
+            #endif
             
             /* Aux MCU ping */
             #ifndef EMULATOR_BUILD
