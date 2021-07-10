@@ -706,6 +706,7 @@ uint8_t parse_credential_descriptor(CborValue * arr, CTAP_credentialDescriptor *
     size_t buflen;
     char type[12];
     CborValue val;
+    uint8_t tmp[100];
     cred->type = 0;
 
     if (cbor_value_get_type(arr) != CborMapType)
@@ -723,15 +724,19 @@ uint8_t parse_credential_descriptor(CborValue * arr, CTAP_credentialDescriptor *
         return CTAP2_ERR_MISSING_PARAMETER;
     }
 
-    buflen = sizeof(CredentialId);
-    ret = cbor_value_copy_byte_string(&val, (uint8_t*)&cred->id, &buflen, NULL);
+    /*
+     * We might get a credential ID that was not made by MiniBLE and thus could
+     * be longer than sizeof(CredentialId). Handle this by parsing the full ID
+     * and then just copy the first sizeof(CredentialId) bytes. Later code will
+     * check that the credential does not belong to this device and return the
+     * appropriate error
+     */
+    buflen = sizeof(tmp);
+    ret = cbor_value_copy_byte_string(&val, tmp, &buflen, NULL);
     check_ret(ret);
 
-    if (buflen != sizeof(CredentialId))
-    {
-        printf2(TAG_ERR,"Error, incorrect CredentialID length");
-        return CTAP2_ERR_INVALID_CREDENTIAL;
-    }
+    buflen = sizeof(CredentialId);
+    memcpy((uint8_t *)&cred->id, tmp, buflen);
 
     ret = cbor_value_map_find_value(arr, "type", &val);
     check_ret(ret);
