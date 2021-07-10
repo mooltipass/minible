@@ -931,10 +931,8 @@ void nodemgmt_store_user_layout(uint16_t layoutId)
  */
 void nodemgmt_store_user_ble_layout(uint16_t layoutId)
 {
-    nodemgmt_userprofile_t* const dirty_address_finding_trick = (nodemgmt_userprofile_t*)0;
-    
     // Write data parent address in the user profile page
-    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)&(dirty_address_finding_trick->main_data.ble_layout_id), sizeof(layoutId), (void*)&layoutId);
+    dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.ble_layout_id), sizeof(layoutId), (void*)&layoutId);
 }
 
 /*! \fn     nodemgmt_get_user_language(void)
@@ -2108,17 +2106,15 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
     nodemgmt_current_handle.datadbChanged = FALSE;
     nodemgmt_current_handle.dbChanged = FALSE;
     
+    // Fetch user profile main data
+    nodemgmt_profile_main_data_t profile_main_data;
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data), sizeof(profile_main_data), (void*)&profile_main_data);
+    
     // Get starting cred parents
-    for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstCredParentNodes); i++)
-    {
-        nodemgmt_current_handle.firstCredParentNodes[i] = nodemgmt_get_starting_parent_addr(i);
-    }
+    memcpy(nodemgmt_current_handle.firstCredParentNodes, profile_main_data.cred_start_addresses, sizeof(nodemgmt_current_handle.firstCredParentNodes));
     
     // Get starting data parents
-    for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(nodemgmtHandle_t, firstDataParentNodes); i++)
-    {        
-        nodemgmt_current_handle.firstDataParentNodes[i] = nodemgmt_get_starting_data_parent_addr(i);
-    }
+    memcpy(nodemgmt_current_handle.firstDataParentNodes, profile_main_data.data_start_addresses, sizeof(nodemgmt_current_handle.firstDataParentNodes));
     
     // Scan for last parent nodes
     nodemgmt_scan_for_last_parent_nodes();
@@ -2129,20 +2125,19 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
     // Check if the number of known languages/layouts is different from the one we currently have, and reset the language if so
     if ((nodemgmt_get_user_nb_known_languages() != custom_fs_get_number_of_languages()) || (nodemgmt_get_user_nb_known_keyboard_layouts() != custom_fs_get_number_of_keyb_layouts()))
     {
-        uint16_t nb_languages_known = custom_fs_get_number_of_languages();
-        uint16_t nb_keyboards_layout_known = custom_fs_get_number_of_keyb_layouts();
-        nodemgmt_store_user_language(custom_fs_get_current_language_id());
-        nodemgmt_store_user_layout(custom_fs_get_recommended_layout_for_current_language());
-        nodemgmt_store_user_ble_layout(custom_fs_get_recommended_layout_for_current_language());
-        dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.nb_languages_known), sizeof(nb_languages_known), (void*)&nb_languages_known);
-        dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data.nb_keyboards_layout_known), sizeof(nb_keyboards_layout_known), (void*)&nb_keyboards_layout_known);
+        profile_main_data.nb_languages_known = custom_fs_get_number_of_languages();
+        profile_main_data.nb_keyboards_layout_known = custom_fs_get_number_of_keyb_layouts();
+        profile_main_data.language_id = custom_fs_get_current_language_id();
+        profile_main_data.layout_id = custom_fs_get_recommended_layout_for_current_language();
+        profile_main_data.ble_layout_id = custom_fs_get_recommended_layout_for_current_language();
+        dbflash_write_data_to_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, main_data), sizeof(profile_main_data), (void*)&profile_main_data);
     }
 
     // Store user security preference and language
-    *userSecFlags = nodemgmt_get_user_sec_preferences();
-    *userBLELayout = nodemgmt_get_user_ble_layout();
-    *userLanguage = nodemgmt_get_user_language();
-    *userLayout = nodemgmt_get_user_layout();
+    *userSecFlags = profile_main_data.sec_preferences;
+    *userBLELayout = profile_main_data.ble_layout_id;
+    *userLanguage = profile_main_data.language_id;
+    *userLayout = profile_main_data.layout_id;
 }
 
 /*! \fn     nodemgmt_user_db_changed_actions(BOOL dataChanged)
