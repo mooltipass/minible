@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    62
+#define FW_MINOR    63
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -118,6 +118,8 @@
         - stricter restriction for battery service
 - v0.62:- dedicated DMA buffers for RNG/FIDO2/BLE message to prevent overwrite on main FIDO answer followed by status request
         - bundle v2
+- v0.63:- accepting set reports on RAW HID interface 0 for old computers
+        - bundle v3
 */
 
 /**************** SETUP DEFINES ****************/

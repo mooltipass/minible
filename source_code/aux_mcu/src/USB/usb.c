@@ -355,7 +355,19 @@ void usb_handle_standard_request(usb_request_t *request)
         }
         else
         {
+            // This should not happen as we're not expecting anything
+            /* Rearm receive */      
+            udc_rearm_ctrl0_out_handler();
+            
+            /* Wait for OUT transfer */
+            USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_TRCPT0;
+            USB->DEVICE.DeviceEndpoint[0].EPSTATUSCLR.bit.BK0RDY = 1;
+            while ((USB->DEVICE.DeviceEndpoint[0].EPSTATUS.bit.BK0RDY) != 0);
+            while ((0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRCPT0) && (0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.TRFAIL0) && (0 == USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.STALL0) && (0 == USB->DEVICE.INTFLAG.bit.EORST));
             udc_control_send_zlp();
+            
+            /* Rearm receive */
+            udc_rearm_ctrl0_out_handler();
         }
         break;
     }
