@@ -165,7 +165,7 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
         comms_aux_mcu_send_message(temp_tx_message_pt);
         
         /* Display warning */
-        gui_prompts_display_information_on_screen_and_wait(CRED_ALREAD_PRESENT_TEXT_ID, DISP_MSG_WARNING);
+        gui_prompts_display_information_on_screen_and_wait(CRED_ALREAD_PRESENT_TEXT_ID, DISP_MSG_WARNING, FALSE);
         
         /* Back to current screen */
         gui_dispatcher_get_back_to_current_screen();
