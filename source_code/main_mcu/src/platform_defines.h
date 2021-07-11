@@ -219,6 +219,7 @@
 - v0.74:- _unlock_ service check only if feature is enabled
         - mechanism to prevent infinite loop when searching for service
         - cleaner way of initializing user context
+        - ignoring click up/down during pin entry
         - bundle v3
 */
 

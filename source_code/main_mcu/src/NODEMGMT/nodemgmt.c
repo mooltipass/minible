@@ -2123,7 +2123,7 @@ void nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t*
     nodemgmt_scan_node_usage();
     
     // Check if the number of known languages/layouts is different from the one we currently have, and reset the language if so
-    if ((nodemgmt_get_user_nb_known_languages() != custom_fs_get_number_of_languages()) || (nodemgmt_get_user_nb_known_keyboard_layouts() != custom_fs_get_number_of_keyb_layouts()))
+    if ((profile_main_data.nb_languages_known != custom_fs_get_number_of_languages()) || (profile_main_data.nb_keyboards_layout_known != custom_fs_get_number_of_keyb_layouts()))
     {
         profile_main_data.nb_languages_known = custom_fs_get_number_of_languages();
         profile_main_data.nb_keyboards_layout_known = custom_fs_get_number_of_keyb_layouts();
