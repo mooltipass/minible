@@ -1156,10 +1156,11 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
             detection_during_animation = WHEEL_ACTION_NONE;
         }
 
-        /* Transform click up / click down to click */
+        /* Click + up/down action */
         if ((detection_result == WHEEL_ACTION_CLICK_UP) || (detection_result == WHEEL_ACTION_CLICK_DOWN))
         {
-            detection_result = WHEEL_ACTION_SHORT_CLICK;
+            // Do nothing
+            detection_result = WHEEL_ACTION_NONE;
         }
         
         // Position increment / decrement
