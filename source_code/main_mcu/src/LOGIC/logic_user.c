@@ -1426,9 +1426,9 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
             /* Check for existing login */
             if (child_address == NODE_ADDR_NULL)
             {
-                /* From 3s to 7s, do not leak information and return that the operation was denied */
-                timer_delay_ms(3000 + (rng_get_random_uint16_t()&0x0FFF));
-                return FIDO2_OPERATION_DENIED;
+                /* From 1s to 3s */
+                timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
+                return FIDO2_NO_CREDENTIALS;
             }
         }
         
