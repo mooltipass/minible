@@ -165,7 +165,7 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
         comms_aux_mcu_send_message(temp_tx_message_pt);
         
         /* Display warning */
-        gui_prompts_display_information_on_screen(CRED_ALREAD_PRESENT_TEXT_ID, DISP_MSG_WARNING);
+        gui_prompts_display_information_on_screen_and_wait(CRED_ALREAD_PRESENT_TEXT_ID, DISP_MSG_WARNING);
         
         /* Back to current screen */
         gui_dispatcher_get_back_to_current_screen();
@@ -270,7 +270,7 @@ void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* re
     logic_encryption_ecc256_generate_private_key(private_key, (uint16_t)sizeof(private_key));
     
     /* Try to store new credential */
-    fido2_return_code_te temp_return = logic_user_store_webauthn_credential(rp_id_copy, user_handle_copy, user_handle_len, user_name_copy, display_name_copy, private_key, attested_data.cred_ID.tag);
+    fido2_return_code_te temp_return = logic_user_store_webau       thn_credential(rp_id_copy, user_handle_copy, user_handle_len, user_name_copy, display_name_copy, private_key, attested_data.cred_ID.tag);
 
     /* Success? */
     if (temp_return == FIDO2_SUCCESS)
