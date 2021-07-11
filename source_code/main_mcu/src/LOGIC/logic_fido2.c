@@ -270,7 +270,7 @@ void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* re
     logic_encryption_ecc256_generate_private_key(private_key, (uint16_t)sizeof(private_key));
     
     /* Try to store new credential */
-    fido2_return_code_te temp_return = logic_user_store_webau       thn_credential(rp_id_copy, user_handle_copy, user_handle_len, user_name_copy, display_name_copy, private_key, attested_data.cred_ID.tag);
+    fido2_return_code_te temp_return = logic_user_store_webauthn_credential(rp_id_copy, user_handle_copy, user_handle_len, user_name_copy, display_name_copy, private_key, attested_data.cred_ID.tag);
 
     /* Success? */
     if (temp_return == FIDO2_SUCCESS)
