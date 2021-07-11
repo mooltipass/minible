@@ -154,7 +154,16 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
         return;
     }
     else
-    {        
+    {
+        /* Wait for user ACK */
+        cust_char_t* display_cred_prompt_text;
+        custom_fs_get_string_from_file(CRED_ALREAD_PRESENT_TEXT_ID, &display_cred_prompt_text, TRUE);
+        confirmationText_t prompt_object = {.lines[0] = display_cred_prompt_text};
+        gui_prompts_ask_for_confirmation(1, &prompt_object, FALSE, TRUE, FALSE);
+
+        /* Back to current screen */
+        gui_dispatcher_get_back_to_current_screen();
+
         /* Send answer */
         aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
         temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
@@ -163,12 +172,6 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
         memcpy(&temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.cred_ID, &request->cred_ID, sizeof(temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.cred_ID));
         temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.result = FIDO2_CREDENTIAL_EXISTS;
         comms_aux_mcu_send_message(temp_tx_message_pt);
-        
-        /* Display warning */
-        gui_prompts_display_information_on_screen_and_wait(CRED_ALREAD_PRESENT_TEXT_ID, DISP_MSG_WARNING, FALSE);
-        
-        /* Back to current screen */
-        gui_dispatcher_get_back_to_current_screen();
     }
 }
 
