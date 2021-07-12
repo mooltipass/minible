@@ -75,6 +75,7 @@ typedef enum    {OLED_STEPUP_SOURCE_NONE = 0, OLED_STEPUP_SOURCE_VBAT, OLED_STEP
 typedef enum    {RETURN_NEW_PIN_NOK = -1, RETURN_NEW_PIN_OK = 0, RETURN_NEW_PIN_DIFF = 1} new_pinreturn_type_te;
 typedef enum    {RETURN_REL = 0, RETURN_DET, RETURN_JDETECT, RETURN_JRELEASED, RETURN_INV_DET} det_ret_type_te;
 typedef enum    {GUI_SEL_FAVORITE, GUI_SEL_SERVICE, GUI_SEL_DATA_SERVICE, GUI_SEL_CRED } gui_sel_item_te;
+typedef enum    {RETURN_CLONING_DONE, RETURN_CLONING_INV_CARD, RETURN_CLONING_SAME_CARD} cloning_ret_te;
 typedef enum    {RETURN_INVALID = -3, RETURN_BACK = -2, RETURN_NOK = -1, RETURN_OK = 0} ret_type_te;
 typedef enum    {DISP_MSG_INFO = 0, DISP_MSG_WARNING = 1, DISP_MSG_ACTION = 2} display_message_te;
 typedef enum    {CUSTOM_FS_INIT_OK = 0, CUSTOM_FS_INIT_NO_RWEE = 1} custom_fs_init_ret_type_te;

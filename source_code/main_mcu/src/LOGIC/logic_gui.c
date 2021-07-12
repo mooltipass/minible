@@ -131,8 +131,11 @@ void logic_gui_clone_card(void)
         temp_rettype = logic_smartcard_ask_for_new_pin(&pin_code, NEW_CARD_PIN_TEXT_ID);
         if (temp_rettype == RETURN_NEW_PIN_OK)
         {
-            // Start the cloning process
-            if (logic_smartcard_clone_card(&pin_code) == RETURN_OK)
+            /* Start the cloning process */
+            cloning_ret_te cloning_return = logic_smartcard_clone_card(&pin_code);
+            
+            /* How did it go? */
+            if (cloning_return == RETURN_CLONING_DONE)
             {
                 /* Well it worked... */
                 return;
@@ -140,7 +143,14 @@ void logic_gui_clone_card(void)
             else
             {
                 /* Card wasn't blank */
-                gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_INVALID, TRUE, GUI_OUTOF_MENU_TRANSITION);
+                if (cloning_return == RETURN_CLONING_SAME_CARD)
+                {
+                    gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_LCK, TRUE, GUI_OUTOF_MENU_TRANSITION);
+                } 
+                else
+                {
+                    gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_INVALID, TRUE, GUI_OUTOF_MENU_TRANSITION);
+                }
                 gui_prompts_display_information_on_screen_and_wait(CARD_NOT_BLANK_TEXT_ID, DISP_MSG_WARNING, FALSE);
             }
             pin_code = 0x0000;

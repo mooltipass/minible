@@ -524,7 +524,7 @@ RET_TYPE logic_smartcard_remove_card_and_reauth_user(BOOL display_notification)
 *   \param  pincode The current pin code
 *   \return success or not
 */
-RET_TYPE logic_smartcard_clone_card(volatile uint16_t* pincode)
+cloning_ret_te logic_smartcard_clone_card(volatile uint16_t* pincode)
 {    
     // Temp buffers to store AZ1 & AZ2
     uint8_t temp_az1[SMARTCARD_AZ_BIT_LENGTH/8];
@@ -534,7 +534,7 @@ RET_TYPE logic_smartcard_clone_card(volatile uint16_t* pincode)
     // Check that the current smart card is unlocked
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
-        return RETURN_NOK;
+        return RETURN_CLONING_INV_CARD;
     }
     
     // Read code protected zone
@@ -595,13 +595,32 @@ RET_TYPE logic_smartcard_clone_card(volatile uint16_t* pincode)
     }
     gui_prompts_display_information_on_screen(PROCESSING_TEXT_ID, DISP_MSG_INFO);
     
-    // Check that we have a blank card
-    if (smartcard_highlevel_card_detected_routine() != RETURN_MOOLTIPASS_BLANK)
+    /* Check what card we got */
+    mooltipass_card_detect_return_te card_det_ret = smartcard_highlevel_card_detected_routine();
+    if (card_det_ret == RETURN_MOOLTIPASS_USER)
     {
+        /* Read card CPZ */
+        uint8_t temp_cpz2[SMARTCARD_CPZ_LENGTH];
+        smartcard_highlevel_read_code_protected_zone(temp_cpz2);
+        
         /* Device state has changed */
         logic_device_set_state_changed();
         
-        return RETURN_NOK;
+        /* Same card inserted? */
+        if (memcmp(temp_cpz, temp_cpz2, sizeof(temp_cpz)) == 0)
+        {
+            return RETURN_CLONING_SAME_CARD;
+        } 
+        else
+        {
+            return RETURN_CLONING_INV_CARD;
+        }
+    } 
+    else if (card_det_ret != RETURN_MOOLTIPASS_BLANK)
+    {
+        /* Device state has changed */
+        logic_device_set_state_changed();
+        return RETURN_CLONING_INV_CARD;
     }
     
     // Erase AZ1 & AZ2 in the new card
@@ -622,5 +641,5 @@ RET_TYPE logic_smartcard_clone_card(volatile uint16_t* pincode)
     // Inform the user that it is done
     gui_prompts_display_information_on_screen_and_wait(CARD_CLONED_TEXT_ID, DISP_MSG_INFO, FALSE);
     
-    return RETURN_OK;
+    return RETURN_CLONING_DONE;
 }
