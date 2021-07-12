@@ -189,7 +189,6 @@ static ret_type_te ctap_make_credential_aux_comm(CTAP_requestCommon *common, CTA
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
 
     /* Wait for message from main MCU */
-    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50);
     do
     {
         ctaphid_update_status(2);
@@ -317,7 +316,6 @@ static ret_type_te ctap_get_assertion_aux_comm(CTAP_requestCommon *common, CTAP_
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
 
     /* Wait for message from main MCU */
-    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50);
     do
     {
         ctaphid_update_status(2);
@@ -490,7 +488,6 @@ int ctap_authenticate_credential(struct rpId * rp, CTAP_credentialDescriptor * d
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
 
     /* Wait for message from main MCU */
-    timer_start_timer(TIMER_TIMEOUT_FUNCTS, 50);
     do
     {
         ctaphid_update_status(2);
