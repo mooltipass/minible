@@ -1339,20 +1339,9 @@ uint16_t nodemgmt_get_last_parent_addr(BOOL data_parent, uint16_t credential_typ
 {
     _Static_assert(offsetof(parent_cred_node_t, nextParentAddress) == offsetof(parent_data_node_t, nextParentAddress), "Incorrect reuse of parent node structure");
     _Static_assert(offsetof(parent_cred_node_t, service) == offsetof(parent_data_node_t, service), "Incorrect reuse of parent node structure");
+    cust_char_t last_service_encountered[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)];
+    memset(last_service_encountered, 0, sizeof(last_service_encountered));
     uint16_t next_parent_node_addr_to_scan = NODE_ADDR_NULL;
-    cust_char_t last_parent_fchar = 0;
-    uint16_t parent_read_buffer[5];
-    
-    /* Sanity check for this hack */
-    _Static_assert(0 == offsetof(parent_cred_node_t, flags), "Incorrect buffer for flags & addr read");
-    _Static_assert(2 == offsetof(parent_cred_node_t, prevParentAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(4 == offsetof(parent_cred_node_t, nextParentAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(6 == offsetof(parent_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(8 == offsetof(parent_cred_node_t, service), "Incorrect buffer for flags & addr read");
-    _Static_assert(sizeof(parent_read_buffer) == MEMBER_SIZE(parent_cred_node_t, flags) + MEMBER_SIZE(parent_cred_node_t, prevParentAddress) + MEMBER_SIZE(parent_cred_node_t, nextParentAddress) + MEMBER_SIZE(parent_cred_node_t, nextChildAddress) + sizeof(cust_char_t), "Incorrect buffer for flags & addr read");
-
-    /* Hack to read flags & prev / next address */
-    parent_cred_node_t* parent_node_pt = (parent_cred_node_t*)parent_read_buffer;
 
     /* Get starting parent depending on type + boundary checks */
     if (data_parent == FALSE)
@@ -1381,32 +1370,30 @@ uint16_t nodemgmt_get_last_parent_addr(BOOL data_parent, uint16_t credential_typ
              return NODE_ADDR_NULL;
          }
          
-         /* Read flags and prev/next address */
-         dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_parent_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(next_parent_node_addr_to_scan), sizeof(parent_read_buffer), &parent_read_buffer);
+         /* Read flags, prev/next address, service name */
+         dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(next_parent_node_addr_to_scan), BASE_NODE_SIZE*nodemgmt_node_from_address(next_parent_node_addr_to_scan), sizeof(nodemgmt_current_handle.temp_parent_node), &nodemgmt_current_handle.temp_parent_node);
 
          /* Check ownership & validity */
-         if (nodemgmt_check_user_perm_from_flags(parent_node_pt->flags) != RETURN_OK)
+         if (nodemgmt_check_user_perm_from_flags(nodemgmt_current_handle.temp_parent_node.cred_parent.flags) != RETURN_OK)
          {
              return NODE_ADDR_NULL;
          }
          
-         /* Check for invalid linked list */
-         if (parent_node_pt->service[0] < last_parent_fchar)
+         /* Check for database loop */
+         if (utils_custchar_strncmp(last_service_encountered, nodemgmt_current_handle.temp_parent_node.cred_parent.service, ARRAY_SIZE(nodemgmt_current_handle.temp_parent_node.cred_parent.service)) >= 0)
          {
              return NODE_ADDR_NULL;
          }
-         
-         /* Store last parent first char */
-         last_parent_fchar = parent_node_pt->service[0];
+         memcpy(last_service_encountered, nodemgmt_current_handle.temp_parent_node.cred_parent.service, sizeof(nodemgmt_current_handle.temp_parent_node.cred_parent.service));
          
          /* Check for end condition */
-         if (parent_node_pt->nextParentAddress == NODE_ADDR_NULL)
+         if (nodemgmt_current_handle.temp_parent_node.cred_parent.nextParentAddress == NODE_ADDR_NULL)
          {
              return next_parent_node_addr_to_scan;
          }
 
          /* Store next address to scan */
-         next_parent_node_addr_to_scan = parent_node_pt->nextParentAddress;
+         next_parent_node_addr_to_scan = nodemgmt_current_handle.temp_parent_node.cred_parent.nextParentAddress;
      }
 
      return NODE_ADDR_NULL;    
