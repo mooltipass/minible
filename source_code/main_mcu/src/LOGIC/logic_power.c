@@ -889,6 +889,7 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
                 platform_io_power_up_oled(FALSE);
                 sh1122_init_display(&plat_oled_descriptor, TRUE);
                 gui_dispatcher_get_back_to_current_screen();
+                logic_power_set_power_source(BATTERY_POWERED);
                 return RETURN_NOK;
             }
         }
@@ -926,6 +927,7 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
         /* User disconnected USB? */
         if (platform_io_is_usb_3v3_present_raw() == FALSE)
         {
+            logic_power_set_power_source(BATTERY_POWERED);
             gui_dispatcher_get_back_to_current_screen();
             return RETURN_NOK;
         }

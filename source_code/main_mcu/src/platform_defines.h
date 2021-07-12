@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    74
+#define FW_MINOR    75
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -220,6 +220,7 @@
         - mechanism to prevent infinite loop when searching for service
         - cleaner way of initializing user context
         - ignoring click up/down during pin entry
+- v0.75:- mechanism to check for database loop when scanning for last nodes 
         - bundle v3
 */
 
