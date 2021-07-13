@@ -103,6 +103,8 @@ static uint32_t logic_fido2_cbor_encode_public_key(uint8_t* buf, uint32_t bufLen
 */
 void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* request)
 {
+    fido2_credential_ID_t cred_ID_copy;
+
     /* Input sanitation & buffer for UTF8 to Unicode BMP conversion */
     cust_char_t rp_id_copy[MEMBER_ARRAY_SIZE(parent_data_node_t, service)];
     request->rpID[MEMBER_SIZE(fido2_auth_cred_req_message_t, rpID)-1] = 0;
@@ -155,6 +157,11 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
     }
     else
     {
+        /* gui_prompts_ask_for_confirmation() reuses buffer that contains the "request" object. Make a copy
+         * of the request->cred_ID since we are using this value afterwards
+         */
+        memcpy(&cred_ID_copy, &request->cred_ID, sizeof(cred_ID_copy));
+
         /* Wait for user ACK */
         cust_char_t* display_cred_prompt_text;
         custom_fs_get_string_from_file(CRED_ALREAD_PRESENT_TEXT_ID, &display_cred_prompt_text, TRUE);
@@ -169,7 +176,7 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
         temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
         temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
         logic_database_get_webauthn_userhandle_for_address(child_address, temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.user_handle, &temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.user_handle_len);
-        memcpy(&temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.cred_ID, &request->cred_ID, sizeof(temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.cred_ID));
+        memcpy(&temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.cred_ID, &cred_ID_copy, sizeof(temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.cred_ID));
         temp_tx_message_pt->fido2_message.fido2_auth_cred_rsp_message.result = FIDO2_CREDENTIAL_EXISTS;
         comms_aux_mcu_send_message(temp_tx_message_pt);
     }
