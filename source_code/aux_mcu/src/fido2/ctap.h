@@ -142,7 +142,7 @@ enum ErrorCode
     OPERATION_DENIED = 1,
     USER_NOT_PRESENT = 2,
     STORAGE_EXHAUSTED = 3,
-    NO_CREDENTIALS = 4,
+    FIDO2_NO_CREDENTIALS = 4,
 };
 
 typedef struct

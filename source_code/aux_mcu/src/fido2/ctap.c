@@ -235,7 +235,7 @@ static int ctap_make_credential_auth_data(CTAP_requestCommon *req_common, uint8_
                 return CTAP2_ERR_USER_ACTION_TIMEOUT;
             case STORAGE_EXHAUSTED:
                 return CTAP2_ERR_KEY_STORE_FULL;
-            case NO_CREDENTIALS:
+            case FIDO2_NO_CREDENTIALS:
                 return CTAP2_ERR_NO_CREDENTIALS;
             default:
                 return CTAP2_ERR_NOT_ALLOWED; //TOOD:?
@@ -361,7 +361,7 @@ static int ctap_make_get_assertion_auth_data(CTAP_requestCommon *req_common, CTA
                 return CTAP2_ERR_USER_ACTION_TIMEOUT;
             case STORAGE_EXHAUSTED:
                 return CTAP2_ERR_KEY_STORE_FULL;
-            case NO_CREDENTIALS:
+            case FIDO2_NO_CREDENTIALS:
                 return CTAP2_ERR_NO_CREDENTIALS;
             default:
                 return CTAP2_ERR_NOT_ALLOWED; //TOOD:?

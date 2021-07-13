@@ -40,8 +40,7 @@ typedef enum
     FIDO2_OPERATION_DENIED = 1,
     FIDO2_USER_NOT_PRESENT = 2,
     FIDO2_STORAGE_EXHAUSTED = 3,
-    FIDO2_CRED_NOT_FOUND = 4,
-    FIDO2_NO_CREDENTIALS = 5,
+    FIDO2_NO_CREDENTIALS = 4,
 } fido2_return_code_te;
 
 /* Prototypes */
