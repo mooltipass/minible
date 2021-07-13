@@ -1885,17 +1885,17 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
     if (child_addresses_overwrite == NULLPTR)
     {
         first_child_address = nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags());
-
-        /* Check if there are stored credentials */
-        if (first_child_address == NODE_ADDR_NULL)
-        {
-            gui_prompts_display_information_on_screen_and_wait(NO_CREDS_TEXT_ID, DISP_MSG_INFO, FALSE);
-            return NODE_ADDR_NULL;
-        }
     } 
     else
     {
         first_child_address = child_addresses_overwrite[0];
+    }
+
+    /* Check if there are stored credentials */
+    if (first_child_address == NODE_ADDR_NULL)
+    {
+        gui_prompts_display_information_on_screen_and_wait(NO_CREDS_TEXT_ID, DISP_MSG_INFO, FALSE);
+        return NODE_ADDR_NULL;
     }
     
     /* Clear frame buffer */
@@ -1943,7 +1943,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
         else
         {
             /* Look for current index */
-            for (uint16_t i = 0; child_addresses_overwrite[i] != NODE_ADDR_NULL; i++)
+            for (uint16_t i = 0; child_addresses_overwrite[i+1] != NODE_ADDR_NULL; i++)
             {
                 if (child_addresses_overwrite[i] == *chosen_child_node_addr)
                 {
