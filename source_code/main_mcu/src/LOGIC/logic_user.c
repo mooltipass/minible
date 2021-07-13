@@ -1498,18 +1498,63 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
             For added security, in such a case we set the sign count to 0 to prevent malicious usage */
             if ((flags & FIDO2_GA_FLAG_SILENT) != FIDO2_GA_FLAG_SILENT)
             {
-                /* Select last used child node address if returned, or first node */
-                if (last_used_child_address_for_service != NODE_ADDR_NULL)
+                /* Credential allow list present? */
+                if (credential_id_allow_list_length == 0)
                 {
-                    child_address = last_used_child_address_for_service;
-                }
-                            
-                /* Ask user to select credential */
-                mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &child_address);
-                if (display_prompt_return != MINI_INPUT_RET_YES)
+                    /* Select last used child node address if returned, or first node */
+                    if (last_used_child_address_for_service != NODE_ADDR_NULL)
+                    {
+                        child_address = last_used_child_address_for_service;
+                    }
+                    
+                    /* Ask user to select credential */
+                    mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &child_address, NULLPTR);
+                    if (display_prompt_return != MINI_INPUT_RET_YES)
+                    {
+                        child_address = NODE_ADDR_NULL;
+                    }
+                } 
+                else
                 {
-                    child_address = NODE_ADDR_NULL;
+                    _Static_assert(0 == NODE_ADDR_NULL, "Invalid node addr null value");
+                    uint16_t child_addresses[FIDO2_ALLOW_LIST_MAX_SIZE+1];
+                    memset(child_addresses, 0, sizeof(child_addresses));
+                    
+                    /* Input sanitizing */
+                    if (credential_id_allow_list_length >= FIDO2_ALLOW_LIST_MAX_SIZE)
+                    {
+                        credential_id_allow_list_length = FIDO2_ALLOW_LIST_MAX_SIZE;
+                    }
+                    
+                    /* Populate the child addresses */
+                    uint16_t populating_index = 0;
+                    uint16_t suggested_child_address = NODE_ADDR_NULL;
+                    for (uint16_t i = 0; i < credential_id_allow_list_length; i++)
+                    {
+                        /* Look for child address that has that credential id */
+                        child_address = logic_database_search_webauthn_credential_id_in_service(parent_address, credential_id_allow_list[i]);
+                        if (child_address != NODE_ADDR_NULL)
+                        {
+                            child_addresses[populating_index] = child_address;
+                            populating_index++;
+                        }
+                        
+                        /* If that child address is identical to the one that was last used, select it by default */
+                        if (child_address == last_used_child_address_for_service)
+                        {
+                            suggested_child_address = child_address;
+                        }
+                    }
+                    
+                    /* Ask user to select credential */
+                    mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &suggested_child_address, child_addresses);
+                    if (display_prompt_return != MINI_INPUT_RET_YES)
+                    {
+                        child_address = NODE_ADDR_NULL;
+                    }
                 }
+                
+                /* Go back to current screen */
                 gui_dispatcher_get_back_to_current_screen();
 
                 /* So.... what did the user select? */
@@ -1728,7 +1773,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             } 
             
             /* Ask user to select credential */
-            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &child_address);
+            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &child_address, NULLPTR);
             if (display_prompt_return != MINI_INPUT_RET_YES)
             {
                 child_address = NODE_ADDR_NULL;
@@ -1847,7 +1892,7 @@ void logic_user_manual_select_login(void)
             if (nb_logins_for_cred != 1)
             {                    
                 /* Ask user to select credential */
-                mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(chosen_service_addr, &chosen_login_addr);
+                mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(chosen_service_addr, &chosen_login_addr, NULLPTR);
                 if (display_prompt_return == MINI_INPUT_RET_BACK)
                 {
                     state_machine--;
@@ -2522,7 +2567,7 @@ void logic_user_unlocked_feature_trigger(void)
             }
 
             /* Ask user to select credential */
-            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &child_address);
+            mini_input_yes_no_ret_te display_prompt_return = gui_prompts_ask_for_login_select(parent_address, &child_address, NULLPTR);
             if (display_prompt_return != MINI_INPUT_RET_YES)
             {
                 return;

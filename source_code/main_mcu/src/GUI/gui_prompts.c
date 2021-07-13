@@ -1849,13 +1849,14 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     return input_answer;
 }
 
-/*! \fn     gui_prompts_ask_for_login_select(uint16_t parent_node_addr, uint16_t* chosen_child_node_addr)
+/*! \fn     gui_prompts_ask_for_login_select(uint16_t parent_node_addr, uint16_t* chosen_child_node_addr, uint16_t* child_addresses_overwrite)
 *   \brief  Ask for user login selection / approval
-*   \param  parent_node_addr        Address of the parent node
-*   \param  chosen_child_node_addr  Address of the selected child node by default (or NODE_ADDR_NULL), then populated with selected child node if return is MINI_INPUT_RET_YES
+*   \param  parent_node_addr            Address of the parent node
+*   \param  chosen_child_node_addr      Address of the selected child node by default (or NODE_ADDR_NULL), then populated with selected child node if return is MINI_INPUT_RET_YES
+*   \param  child_addresses_overwrite   If different than 0, 0 terminated list of child addresses we present to the user
 *   \return MINI_INPUT_RET_YES on correct selection, otherwise see enum
 */
-mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_addr, uint16_t* chosen_child_node_addr)
+mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_addr, uint16_t* chosen_child_node_addr, uint16_t* child_addresses_overwrite)
 {
     child_cred_node_t* temp_half_cnode_pt;
     acc_detection_te knock_detect_result;
@@ -1880,14 +1881,21 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
     inputs_clear_detections();
 
     /* Read the parent node and read its first child address */
-    nodemgmt_read_parent_node(parent_node_addr, &temp_pnode, TRUE);
-    first_child_address = nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags());
-
-    /* Check if there are stored credentials */
-    if (first_child_address == NODE_ADDR_NULL)
+    nodemgmt_read_parent_node(parent_node_addr, &temp_pnode, TRUE);    
+    if (child_addresses_overwrite == NULLPTR)
     {
-        gui_prompts_display_information_on_screen_and_wait(NO_CREDS_TEXT_ID, DISP_MSG_INFO, FALSE);
-        return NODE_ADDR_NULL;
+        first_child_address = nodemgmt_check_for_logins_with_category_in_parent_node(temp_pnode.cred_parent.nextChildAddress, nodemgmt_get_current_category_flags());
+
+        /* Check if there are stored credentials */
+        if (first_child_address == NODE_ADDR_NULL)
+        {
+            gui_prompts_display_information_on_screen_and_wait(NO_CREDS_TEXT_ID, DISP_MSG_INFO, FALSE);
+            return NODE_ADDR_NULL;
+        }
+    } 
+    else
+    {
+        first_child_address = child_addresses_overwrite[0];
     }
     
     /* Clear frame buffer */
@@ -1904,6 +1912,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
     uint16_t center_list_child_addr = NODE_ADDR_NULL;
     uint16_t bottom_list_child_addr = NODE_ADDR_NULL;
     uint16_t after_bottom_list_child_addr = NODE_ADDR_NULL;
+    uint16_t current_selected_item_overwrite_list = 0;
     BOOL end_of_list_reached_at_center = FALSE;
     BOOL animation_just_started = TRUE;
     BOOL first_function_run = TRUE;
@@ -1925,8 +1934,34 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
     /* If the selected login was specified */
     if (*chosen_child_node_addr != NODE_ADDR_NULL)
     {
-        top_of_list_child_addr = nodemgmt_get_prev_child_node_for_cur_category(*chosen_child_node_addr);
-        before_top_of_list_child_addr = nodemgmt_get_prev_child_node_for_cur_category(top_of_list_child_addr);
+        /* Overwrite list provided ? */
+        if (child_addresses_overwrite == NULLPTR)
+        {
+            top_of_list_child_addr = nodemgmt_get_prev_child_node_for_cur_category(*chosen_child_node_addr);
+            before_top_of_list_child_addr = nodemgmt_get_prev_child_node_for_cur_category(top_of_list_child_addr);
+        } 
+        else
+        {
+            /* Look for current index */
+            for (uint16_t i = 0; child_addresses_overwrite[i] != NODE_ADDR_NULL; i++)
+            {
+                if (child_addresses_overwrite[i] == *chosen_child_node_addr)
+                {
+                    current_selected_item_overwrite_list = i;
+                    break;
+                }
+            }
+            
+            /* Get top of list address and before top of list */
+            if (current_selected_item_overwrite_list > 0)
+            {
+                top_of_list_child_addr = child_addresses_overwrite[current_selected_item_overwrite_list-1];
+            }
+            if (current_selected_item_overwrite_list > 1)
+            {
+                before_top_of_list_child_addr = child_addresses_overwrite[current_selected_item_overwrite_list-2];
+            }
+        }
     }
     
     /* Reset temp vars */
@@ -2003,6 +2038,10 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
         {
             if (end_of_list_reached_at_center == FALSE)
             {
+                if (child_addresses_overwrite != NULLPTR)
+                {
+                    current_selected_item_overwrite_list++;
+                }
                 before_top_of_list_child_addr = top_of_list_child_addr;
                 top_of_list_child_addr = center_list_child_addr;
                 animation_step = ((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2;
@@ -2013,6 +2052,10 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
         {
             if (top_of_list_child_addr != NODE_ADDR_NULL)
             {
+                if (child_addresses_overwrite != NULLPTR)
+                {
+                    current_selected_item_overwrite_list--;
+                }
                 top_of_list_child_addr = before_top_of_list_child_addr;
                 animation_step = -((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2;
                 animation_just_started = TRUE;
@@ -2108,7 +2151,21 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
                     /* First address: store the "before top address */
                     if (i == 1)
                     {
-                        before_top_of_list_child_addr = nodemgmt_get_prev_child_node_for_cur_category(top_of_list_child_addr);
+                        if (child_addresses_overwrite == NULLPTR)
+                        {
+                            before_top_of_list_child_addr = nodemgmt_get_prev_child_node_for_cur_category(top_of_list_child_addr);
+                        } 
+                        else
+                        {
+                            if (current_selected_item_overwrite_list > 1)
+                            {
+                                before_top_of_list_child_addr = child_addresses_overwrite[current_selected_item_overwrite_list-2];
+                            } 
+                            else
+                            {
+                                before_top_of_list_child_addr = NODE_ADDR_NULL;
+                            }
+                        }
                     }
                     
                     /* Last address: store correct bool */
@@ -2161,8 +2218,16 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
                     /* Store next item addresses */
                     if (i > 0)
                     {
-                        /* Array has an extra slot */
-                        *(address_to_check_to_display[i+1]) = nodemgmt_get_next_child_node_for_cur_category(*(address_to_check_to_display[i]));
+                        if (child_addresses_overwrite == NULLPTR)
+                        {
+                            /* Array has an extra slot */
+                            *(address_to_check_to_display[i+1]) = nodemgmt_get_next_child_node_for_cur_category(*(address_to_check_to_display[i]));
+                        }
+                        else
+                        {
+                            /* List is NODE_ADDR_NULL terminated */
+                            *(address_to_check_to_display[i+1]) = child_addresses_overwrite[current_selected_item_overwrite_list+i-1];
+                        }                        
                     }                    
                     
                     /* Last item & animation scrolling up: display upcoming item */

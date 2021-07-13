@@ -221,6 +221,7 @@
         - cleaner way of initializing user context
         - ignoring click up/down during pin entry
 - v0.75:- mechanism to check for database loop when scanning for last nodes 
+        - support for FIDO2 allowlist > 1
         - bundle v3
 */
 

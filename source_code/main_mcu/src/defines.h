@@ -51,6 +51,7 @@
 #define AES256_CTR_LENGTH       AES_BLOCK_SIZE
 #define FALSE                   0
 #define TRUE                    (!FALSE)
+#define NULLPTR                 (void*)0
 
 /* Debugging defines */
 #define DEBUG_STACK_TRACKING_COOKIE 0x5D
