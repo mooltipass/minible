@@ -1554,7 +1554,7 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
                     }
                     else
                     {
-                        child_address = suggested_address;
+                        child_address = suggested_child_address;
                     }
                 }
                 
