@@ -140,6 +140,10 @@ class CLDR():
 								if c.attrib.get('iso') in forbidden_isocodes:
 									continue
 									
+								# Issue #270
+								if platform_name == "windows" and layout_name == "French" and len(mf) == 0 and c.attrib.get('iso') == "C12":
+									continue
+									
 								# Debug
 								if False:
 									print("locale", obj.attrib.get('locale'))
