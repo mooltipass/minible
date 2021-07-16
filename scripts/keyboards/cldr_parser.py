@@ -142,7 +142,7 @@ class CLDR():
 									
 								# Issue #270
 								if platform_name == "windows" and layout_name == "French" and len(mf) == 0 and c.attrib.get('iso') == "C12":
-									continue
+									continue							
 									
 								# Debug
 								if False:
@@ -155,7 +155,8 @@ class CLDR():
 								
 								# Debug
 								debug_print_temp_bool = False
-								if False and platform_name == "osx" and layout_name == "French" and len(mf) > 0 and mf[0] == "shift" and chr(points[0]).isdigit():
+								if False and platform_name == "windows" and layout_name == "United Kingdom Extended" and chr(points[0]) == "^":
+								#and len(mf) > 0 and mf[0] == "shift" and chr(points[0]).isdigit():
 									debug_print_temp_bool = True
 									print("locale", obj.attrib.get('locale'))
 									print("modifier", mf)
@@ -177,12 +178,24 @@ class CLDR():
 										self.layouts[platform_name][layout_name] = {} # unicode point -> set(modifier hex byte, keycode hex byte)
 										
 									# check for presence in dictionary 
-									if points[0] in self.layouts[platform_name][layout_name] and len(self.layouts[platform_name][layout_name][points[0]][0]) < len(mf):
+									if points[0] in self.layouts[platform_name][layout_name] and len(self.layouts[platform_name][layout_name][points[0]][0]) <= len(mf):
+										# Issue #272: if we already have that point and it is tagged as a dead key AND the one we stored is tagged as no transform, overwrite it
+										if True and self.layouts[platform_name][layout_name][points[0]][4] and not self.layouts[platform_name][layout_name][points[0]][5] and c.attrib.get('transform') != "no":
+											if debug_print_temp_bool:
+												print("Overwriting previous point as it was marked as no transform")
+											self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'), hidcode, True, True)
+											# To maybe handle: it seems the "opt" key on macOs allows to specify we want a given key as a dead key...
+										
 										if debug_print_temp_bool:
 											print(glyphs, "-", points[0], "mapped to", mf, int(keycode), c.attrib.get('iso'), "already present in our dictionary:", self.layouts[platform_name][layout_name][points[0]][0], self.layouts[platform_name][layout_name][points[0]][1], self.layouts[platform_name][layout_name][points[0]][2]) 
 										if False and obj.attrib.get('locale') == "fr-t-k0-osx":
 											print(glyphs, "-", points[0], "mapped to", mf, int(keycode), c.attrib.get('iso'), "already present in our dictionary:", self.layouts[platform_name][layout_name][points[0]][0], self.layouts[platform_name][layout_name][points[0]][1], self.layouts[platform_name][layout_name][points[0]][2]) 
 									else:
+										# Check if can be used for transform
+										can_be_used_for_transform = True
+										if c.attrib.get('transform') == "no":
+											can_be_used_for_transform = False
+										
 										# Check for deadkey
 										is_dead_key = False
 										for to_transform in self.transforms[platform_name][layout_name]:
@@ -194,12 +207,12 @@ class CLDR():
 												print("Deadkey detected")
 											# Found deadkey: remove it from our transform list and add tag it
 											del self.transforms[platform_name][layout_name][chr(points[0])]
-											self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'), hidcode, True)
+											self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'), hidcode, True, can_be_used_for_transform)
 										else:
 											if debug_print_temp_bool:
 												print("Added to dict")
 												print(glyphs, "-", points[0], "mapped to", mf, int(hidcode)) 
-											self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'), hidcode, False)
+											self.layouts[platform_name][layout_name][points[0]] = (mf, int(keycode), c.attrib.get('iso'), hidcode, False, can_be_used_for_transform)
 								else:
 									if debug_print_temp_bool:
 										print("Multiple points")
@@ -217,7 +230,7 @@ class CLDR():
 						# Check that all basic ASCII codes are present, and fill them if not
 						for i in range(0x20, 0x7F):
 							if i not in self.layouts[platform_name][layout_name]:
-								self.layouts[platform_name][layout_name][i] = ([], 0, "", 0, False)
+								self.layouts[platform_name][layout_name][i] = ([], 0, "", 0, False, True)
 						
 						# print our LUT, debug
 						if False and obj.attrib.get('locale') == "fr-t-k0-windows":
@@ -533,7 +546,7 @@ class CLDR():
 			
 		# Start by adding standard keys
 		for key in sorted_keys:
-			mod, keycode, isocode, hidcode, deadkey = layout[key]
+			mod, keycode, isocode, hidcode, deadkey, canbeusedfortransform = layout[key]
 			modifier_mask = 0x00
 			for modifier in mod:
 				modifier_mask |= mini_modifier_map[modifier]
