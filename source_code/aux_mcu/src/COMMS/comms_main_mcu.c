@@ -578,7 +578,6 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 uint32_t blusdk_fw_ver;
                 uint8_t temp_mac_address[6] = {0xDE, 0xAD, 0xBE, 0xEF, 0x12, 0x13};
                 logic_bluetooth_start_bluetooth(temp_mac_address);
-                logic_set_ble_enabled();
                 if ((ble_sdk_version() == 0) || (at_ble_firmware_version_get(&blusdk_fw_ver) != AT_BLE_SUCCESS))
                 {
                     comms_main_mcu_message_for_main_replies.aux_mcu_event_message.payload[0] = 1;
