@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    75
+#define FW_MINOR    76
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -223,6 +223,7 @@
 - v0.75:- mechanism to check for database loop when scanning for last nodes 
         - support for FIDO2 allowlist > 1
         - bundle v3
+- v0.76:- updated functional test for quick wheel clicks
 */
 
 /**************** SETUP DEFINES ****************/

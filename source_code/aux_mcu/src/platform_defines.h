@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    64
+#define FW_MINOR    65
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -121,6 +121,7 @@
 - v0.63:- accepting set reports on RAW HID interface 0 for old computers
 - v0.64:- Implement CTAP HID bug fixes for the other messages
         - bundle v3
+- v0.65:- DTM RX mode during functional testing
 */
 
 /**************** SETUP DEFINES ****************/

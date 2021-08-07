@@ -301,6 +301,22 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
     }
     
+    /* Wait for DTM RX message from aux MCU */
+    sh1122_put_error_string(&plat_oled_descriptor, u"Waiting DTM RX...");
+    while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_RX_DTM_DONE) != RETURN_OK){}
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
+        
+    /* Check for received messages */
+    if (temp_rx_message->aux_mcu_event_message.payload_as_uint16[0] < 50)
+    {
+        sh1122_put_error_string(&plat_oled_descriptor, u"ATBTLC1000 error / NO RX!");
+        while (platform_io_is_usb_3v3_present_raw() != FALSE);
+        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
+    }
+        
     /* Re-disable bluetooth */
     platform_io_disable_ble();
     

@@ -575,18 +575,27 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 platform_io_set_high_cur_sense_as_pull_down();
                 
                 /* Functional test: start by turning on bluetooth */
+                uint32_t blusdk_fw_ver;
                 uint8_t temp_mac_address[6] = {0xDE, 0xAD, 0xBE, 0xEF, 0x12, 0x13};
                 logic_bluetooth_start_bluetooth(temp_mac_address);
-                if (ble_sdk_version() == 0)
+                logic_set_ble_enabled();
+                if ((ble_sdk_version() == 0) || (at_ble_firmware_version_get(&blusdk_fw_ver) != AT_BLE_SUCCESS))
                 {
                     comms_main_mcu_message_for_main_replies.aux_mcu_event_message.payload[0] = 1;
                     comms_main_mcu_send_message((void*)&comms_main_mcu_message_for_main_replies, (uint16_t)sizeof(comms_main_mcu_message_for_main_replies));
                     break;
                 }
                 
+                /* Then set the device in DTM RX mode on channel 0 */
+                debug_dtm_rx(0);
+                
                 /* Set the high current sense pin as its original purpose */
                 platform_io_set_high_cur_sense_as_sense();
-                timer_delay_ms(500);
+                timer_start_timer(TIMER_TIMEOUT_FUNCTS, 500);
+                while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) != TIMER_EXPIRED)
+                {
+                    ble_event_task();
+                }
                 
                 /* Get ADC conversion result */
                 while (platform_io_is_current_sense_conversion_result_ready() == FALSE);
@@ -679,8 +688,30 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 platform_io_disable_step_down();
                 platform_io_get_cursense_conversion_result(TRUE);
                 
+                /* Another bluetooth test just to make sure */
+                if ((ble_sdk_version() == 0) || (at_ble_firmware_version_get(&blusdk_fw_ver) != AT_BLE_SUCCESS))
+                {
+                    comms_main_mcu_message_for_main_replies.aux_mcu_event_message.payload[0] = 1;
+                    comms_main_mcu_send_message((void*)&comms_main_mcu_message_for_main_replies, (uint16_t)sizeof(comms_main_mcu_message_for_main_replies));
+                    break;
+                }
+                
                 /* Send functional test result */
                 comms_main_mcu_send_message((void*)&comms_main_mcu_message_for_main_replies, (uint16_t)sizeof(comms_main_mcu_message_for_main_replies));      
+                
+                /* Check for received packets */
+                debug_tx_stop_continuous_tone();
+                
+                /* Give some time for main MCU to deal with the answer, knowing that we'll automatically send it the result of DTM RX */
+                timer_delay_ms(1000);
+                
+                /* Give it a second to automatically send DTM RX report */
+                timer_start_timer(TIMER_TIMEOUT_FUNCTS, 1000);
+                while (timer_has_timer_expired(TIMER_TIMEOUT_FUNCTS, FALSE) != TIMER_EXPIRED)
+                {
+                    ble_event_task();
+                }
+                
                 break;          
             }
             case MAIN_MCU_COMMAND_UPDT_DEV_STAT:

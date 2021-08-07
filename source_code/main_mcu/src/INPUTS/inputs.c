@@ -54,7 +54,7 @@ BOOL inputs_discard_release_event = FALSE;
 // Wheel direction reverse bool
 BOOL inputs_wheel_reverse_bool = FALSE;
 // Wheel debounce ms value
-BOOL inputs_wheel_debounce_value = 100;
+volatile BOOL inputs_wheel_debounce_value = 100;
 // Last detection type returned (cleared when calling cleardetections)
 wheel_action_ret_te inputs_last_detection_type_ret = WHEEL_ACTION_NONE;
 #ifndef BOOTLOADER
