@@ -376,7 +376,7 @@ void main_platform_init(void)
             {
                 sh1122_clear_current_screen(&plat_oled_descriptor);
                 sh1122_put_error_string(&plat_oled_descriptor, u"LIS2HH12 failed!");
-                timer_delay_ms(2000);
+                timer_delay_ms(20000);
             }
             
             /* Our assembler may solder the battery after the functional test */
@@ -384,7 +384,7 @@ void main_platform_init(void)
             {
                 sh1122_clear_current_screen(&plat_oled_descriptor);
                 sh1122_put_error_string(&plat_oled_descriptor, u"Battery error!");
-                timer_delay_ms(2000);                
+                timer_delay_ms(20000);                
             }
         }
         timer_deallocate_timer(temp_timer_id);

@@ -135,8 +135,15 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
     /* Set charge voltage var */
     logic_battery_charge_voltage = LOGIC_BATTERY_BAT_START_CHG_VOLTAGE;
     
-    /* State machine change */
-    logic_battery_state = LB_CHARGE_START_RAMPING;
+    /* Initial state machine: for recovery & slow starts, do an initial battery test as these 2 methods have a pause of some sorts, making it long to detect disconnected batteries) */
+    if ((charging_type == NIMH_RECOVERY_23C_CHARGING) || (charging_type == NIMH_SLOWSTART_23C_CHARGING))
+    {
+        logic_battery_state = LB_INIT_BAT_TEST;
+    } 
+    else
+    {
+        logic_battery_state = LB_CHARGE_START_RAMPING;
+    }
     
     /* Ramping current goal */
     if (charging_type == NIMH_RECOVERY_23C_CHARGING)
@@ -175,7 +182,7 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
 */
 void logic_battery_stop_charging(void)
 {
-    if ((logic_battery_state == LB_CHARGE_START_RAMPING) || (logic_battery_state == LB_CHARGING_REACH) || (logic_battery_state == LB_CUR_MAINTAIN))
+    if ((logic_battery_state == LB_INIT_BAT_TEST) || (logic_battery_state == LB_CHARGE_START_RAMPING) || (logic_battery_state == LB_CHARGING_REACH) || (logic_battery_state == LB_CUR_MAINTAIN))
     {        
         /* Disable charging */
         platform_io_disable_charge_mosfets();
@@ -287,6 +294,51 @@ battery_action_te logic_battery_task(void)
                 
                     /* Increment counter */
                     logic_battery_low_charge_current_counter++;
+                    break;
+                }
+                
+                /* Start of recovery or slow start charge: we ramp up the voltage to check if a battery is actually there */
+                case LB_INIT_BAT_TEST:
+                {
+                    /* Is enough current flowing into the battery? */
+                    if (((high_voltage - low_voltage) > LOGIC_BATTERY_CUR_FOR_ST_RAMP_END) && (low_voltage > LOGIC_BATTERY_MIN_V_FOR_CUR_MES))
+                    {
+                        /* Start the initial charging procedure */
+                        logic_battery_state = LB_CHARGE_START_RAMPING;
+                        logic_battery_discard_next_adc_measurement_counter = 30;
+                        logic_battery_charge_voltage = LOGIC_BATTERY_BAT_START_CHG_VOLTAGE;
+                        platform_io_update_step_down_voltage(logic_battery_charge_voltage);
+                    }
+                    else
+                    {
+                        /* Increase charge voltage */
+                        logic_battery_charge_voltage += 10;
+                        
+                        /* Check for over voltage - may be caused by disconnected discharge path */
+                        if ((low_voltage >= LOGIC_BATTERY_MAX_V_FOR_ST_RAMP) || (logic_battery_charge_voltage > 1700))
+                        {
+                            /* Error state */
+                            logic_battery_state = LB_ERROR_BAT_TEST;
+                            
+                            /* Disable charging */
+                            platform_io_disable_charge_mosfets();
+                            timer_delay_ms(1);
+                            
+                            /* Disable step-down */
+                            platform_io_disable_step_down();
+                            
+                            /* Inform main MCU */
+                            comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_FAIL);
+                            return_value = BAT_ACT_CHARGE_FAIL;
+                        }
+                        else
+                        {
+                            /* Increment voltage */
+                            platform_io_update_step_down_voltage(logic_battery_charge_voltage);
+                            logic_battery_discard_next_adc_measurement_counter = 1;
+                        }
+                    }
+                    
                     break;
                 }
             

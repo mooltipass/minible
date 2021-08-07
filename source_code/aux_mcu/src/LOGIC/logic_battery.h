@@ -10,7 +10,7 @@
 #define LOGIC_BATTERY_H_
 
 /* Enums */
-typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7, LB_PEAK_TIMER_TRIGGERED = 8, LB_CHARGE_REST = 9} lb_state_machine_te;
+typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7, LB_PEAK_TIMER_TRIGGERED = 8, LB_CHARGE_REST = 9, LB_INIT_BAT_TEST = 10, LB_ERROR_BAT_TEST = 11} lb_state_machine_te;
 typedef enum    {NIMH_23C_CHARGING, NIMH_SLOWSTART_23C_CHARGING, NIMH_RECOVERY_23C_CHARGING} lb_nimh_charge_scheme_te;
 typedef enum    {BAT_ACT_NONE = 0, BAT_ACT_NEW_BAT_LEVEL, BAT_ACT_CHARGE_FAIL, BAT_ACT_CHARGE_DONE} battery_action_te;
     
@@ -25,6 +25,7 @@ typedef enum    {BAT_ACT_NONE = 0, BAT_ACT_NEW_BAT_LEVEL, BAT_ACT_CHARGE_FAIL, B
 #define LOGIC_BATTERY_CUR_FOR_RECOVERY      50      // ADC value difference between high & low cursense for recovery ramping: 1LSB = 0.5445mA
 #define LOGIC_BATTERY_CUR_FOR_ST_RAMP_END   100     // ADC value difference between high & low cursense to stop the initial ramping: 1LSB = 0.5445mA
 #define LOGIC_BATTERY_CUR_FOR_DANGER_CHARGE 611     // ADC value difference between high & low cursense for forced dangerous charge (to test battery recovery): 1LSB = 0.5445mA
+#define LOGIC_BATTERY_MIN_V_FOR_CUR_MES     1469    // Mininimum voltage to validate current measurement (around 0.8V)
 #define LOGIC_BATTERY_MAX_V_FOR_RECOVERY_CG 2431    // Voltage at which we stop the recovery charge (around 1.324V)
 #define LOGIC_BATTERY_MAX_V_FOR_ST_RAMP     2938    // Voltage at which we consider that something is wrong during initial ramp (around 1.6V)
 #define LOGIC_BATTERY_START_CHARGE_DELAY    100     // Delay before taking the first decision in our charging algorithm

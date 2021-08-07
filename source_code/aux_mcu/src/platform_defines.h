@@ -122,6 +122,7 @@
 - v0.64:- Implement CTAP HID bug fixes for the other messages
         - bundle v3
 - v0.65:- DTM RX mode during functional testing
+        - Quick battery test implemented at the beginning of slow & recovery charges
 */
 
 /**************** SETUP DEFINES ****************/
