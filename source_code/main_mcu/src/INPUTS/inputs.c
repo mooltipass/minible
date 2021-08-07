@@ -53,6 +53,8 @@ volatile int16_t inputs_wheel_cur_increment;
 BOOL inputs_discard_release_event = FALSE;
 // Wheel direction reverse bool
 BOOL inputs_wheel_reverse_bool = FALSE;
+// Wheel debounce ms value
+BOOL inputs_wheel_debounce_value = 100;
 // Last detection type returned (cleared when calling cleardetections)
 wheel_action_ret_te inputs_last_detection_type_ret = WHEEL_ACTION_NONE;
 #ifndef BOOTLOADER
@@ -270,7 +272,7 @@ void inputs_scan(void)
         if (inputs_wheel_click_return != RETURN_INV_DET)
         {
             /* Still needed even though we have hardware debouncing */
-            if ((inputs_wheel_click_counter == 100) && (inputs_wheel_click_return != RETURN_JRELEASED))
+            if ((inputs_wheel_click_counter == inputs_wheel_debounce_value) && (inputs_wheel_click_return != RETURN_JRELEASED))
             {
                 inputs_wheel_click_return = RETURN_JDETECT;
             }
@@ -303,6 +305,15 @@ void inputs_scan(void)
     }
 }
 #endif
+
+/*! \fn     inputs_set_wheel_debounce_value(uint16_t debounce_value)
+*   \brief  Set wheel debounce value
+*   \param  debounce_value  Wheel debounce value in ms
+*/
+void inputs_set_wheel_debounce_value(uint16_t debounce_value)
+{
+    inputs_wheel_debounce_value = debounce_value;
+}
 
 /*! \fn     inputs_set_inputs_invert_bool(BOOL invert_bool)
 *   \brief  Set bool to invert input logic

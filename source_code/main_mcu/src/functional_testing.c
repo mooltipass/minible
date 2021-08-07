@@ -166,43 +166,76 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #endif
     
-    /* Annoying click test due to bad experiences */
-    for (uint16_t i = 0; i < 3; i++)
+    /* Annoying click test due to bad experiences: 9 quick clicks */
+    timer_delay_ms(500);
+    inputs_clear_detections();
+    uint16_t click_counter = 0;
+    inputs_set_wheel_debounce_value(100);
+    temp_timer_id = timer_get_and_start_timer(10000);
+    cust_char_t quick_click_string[] = u"Quick click 9 times QUICKLY";
+    sh1122_put_error_string(&plat_oled_descriptor, (const cust_char_t*)quick_click_string);
+    while ((click_counter < 9) && (timer_has_allocated_timer_expired(temp_timer_id, FALSE) != TIMER_EXPIRED))
     {
-        timer_delay_ms(500);
-        inputs_clear_detections();
-        sh1122_put_error_string(&plat_oled_descriptor, u"click");
-        if (inputs_get_wheel_action(TRUE, FALSE) != WHEEL_ACTION_SHORT_CLICK)
+        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
         {
             sh1122_clear_current_screen(&plat_oled_descriptor);
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
             #endif
-            sh1122_put_error_string(&plat_oled_descriptor, u"wheel issue");        
-            timer_delay_ms(5000); platform_io_disable_switch_and_die(); while(1);
-        }
+            click_counter++;
+            quick_click_string[12] = '0' + 9 - click_counter;
+            if (click_counter != 9)
+            {
+                sh1122_put_error_string(&plat_oled_descriptor, quick_click_string);
+            }
+        }            
+    }
+    timer_deallocate_timer(temp_timer_id);
+    if (click_counter < 9)
+    {
         sh1122_clear_current_screen(&plat_oled_descriptor);
         #ifdef OLED_INTERNAL_FRAME_BUFFER
         sh1122_clear_frame_buffer(&plat_oled_descriptor);
         #endif
-        timer_delay_ms(500);
-        inputs_clear_detections();
-        sh1122_put_error_string(&plat_oled_descriptor, u"long click");
-        if (inputs_get_wheel_action(TRUE, FALSE) != WHEEL_ACTION_LONG_CLICK)
-        {
-            sh1122_clear_current_screen(&plat_oled_descriptor);
-            #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_clear_frame_buffer(&plat_oled_descriptor);
-            #endif
-            sh1122_put_error_string(&plat_oled_descriptor, u"wheel issue");        
-            timer_delay_ms(5000); platform_io_disable_switch_and_die(); while(1);
-        }
-        sh1122_clear_current_screen(&plat_oled_descriptor);
-        #ifdef OLED_INTERNAL_FRAME_BUFFER
-        sh1122_clear_frame_buffer(&plat_oled_descriptor);
-        #endif
+        sh1122_put_error_string(&plat_oled_descriptor, u"wheel issue");
+        timer_delay_ms(5000); platform_io_disable_switch_and_die(); while(1);
     }
     
+    /* Annoying click test due to bad experiences: 3 long clicks with a short debounce value (there's HW debouncing!) */
+    click_counter = 0;
+    timer_delay_ms(500);
+    inputs_clear_detections();
+    inputs_set_wheel_debounce_value(40);
+    temp_timer_id = timer_get_and_start_timer(10000);
+    cust_char_t long_click_string[] = u"Long click 3 times QUICKLY";
+    sh1122_put_error_string(&plat_oled_descriptor, (const cust_char_t*)long_click_string);
+    while ((click_counter < 3) && (timer_has_allocated_timer_expired(temp_timer_id, FALSE) != TIMER_EXPIRED))
+    {
+        if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_LONG_CLICK)
+        {
+            sh1122_clear_current_screen(&plat_oled_descriptor);
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
+            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            #endif
+            click_counter++;
+            long_click_string[11] = '0' + 3 - click_counter;
+            if (click_counter != 3)
+            {
+                sh1122_put_error_string(&plat_oled_descriptor, long_click_string);
+            }
+        }
+    }
+    timer_deallocate_timer(temp_timer_id);
+    if (click_counter < 3)
+    {
+        sh1122_clear_current_screen(&plat_oled_descriptor);
+        #ifdef OLED_INTERNAL_FRAME_BUFFER
+        sh1122_clear_frame_buffer(&plat_oled_descriptor);
+        #endif
+        sh1122_put_error_string(&plat_oled_descriptor, u"wheel issue");
+        timer_delay_ms(5000); platform_io_disable_switch_and_die(); while(1);
+    }
+       
     /* Ask to connect USB to test USB LDO + LDO 3V3 to 8V  */
     sh1122_put_error_string(&plat_oled_descriptor, u"connect USB");
     while (platform_io_is_usb_3v3_present_raw() == FALSE);
