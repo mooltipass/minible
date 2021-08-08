@@ -310,7 +310,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     #endif
         
     /* Check for received messages */
-    if (temp_rx_message->aux_mcu_event_message.payload_as_uint16[0] < 50)
+    if (temp_rx_message->aux_mcu_event_message.payload_as_uint16[0] < 1400)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"ATBTLC1000 error / NO RX!");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
