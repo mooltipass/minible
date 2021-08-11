@@ -154,7 +154,7 @@ void debug_debug_menu(void)
             /* Print items */
             if (selected_item < 4)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Battery", TRUE);
+                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Debug", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main and Aux MCU Info", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU BLE Info", TRUE);
                 sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"NiMH Status", TRUE);
@@ -1096,7 +1096,7 @@ void debug_debug_screen(void)
             /* Store min or max or whatever */
             if (temp_sum > acc_total_sum)
             {
-                //acc_total_sum = temp_sum;
+                acc_total_sum = temp_sum;
             }                          
         }
         
@@ -1104,6 +1104,7 @@ void debug_debug_screen(void)
         if (platform_io_is_voledin_conversion_result_ready() != FALSE)
         {
             bat_adc_result = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+            (void)bat_adc_result;
         }
         
         /* Check for Accelerometer SERCOM buffer overflow */
@@ -1131,7 +1132,6 @@ void debug_debug_screen(void)
         {
             acc_int_nb_interrupts_latched = acc_int_nb_interrupts;
             last_stat_s = driver_timer_get_rtc_timestamp_uint32t();
-            (void)acc_int_nb_interrupts_latched;
             acc_int_nb_interrupts = 0;
         }
          
@@ -1141,20 +1141,21 @@ void debug_debug_screen(void)
         int32_t counter_correct;
         int32_t cumulative_correct;
         timer_get_timestamp_debug_data(&timestamp, &counter_correct, &cumulative_correct, &fine_adjust_val);
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, TRUE, "TS: %u, adj %d, %d + %d", timestamp, fine_adjust_val, cumulative_correct, counter_correct);
-        
-        /* Line 3: accelerometer */
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, TRUE, "ACC: %u X: %i Y: %i Z: %i", acc_total_sum/*acc_int_nb_interrupts_latched*32*/, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_x, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_y, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_z);
-        
-        /* Line 4: battery */
         #ifndef EMULATOR_BUILD
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, TRUE, "BAT: ADC %u, %u mV, OSC: %u", bat_adc_result, (((uint32_t)bat_adc_result)*199)>>9, SYSCTRL->OSCULP32K.bit.CALIB);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, TRUE, "TS: %u, adj %d, %d + %d / %u", timestamp, fine_adjust_val, cumulative_correct, counter_correct, SYSCTRL->OSCULP32K.bit.CALIB);
         #endif
         
-        /* Line 5: Unit SN & MAC */
-        uint8_t mac[6];
+        /* Line 3: accelerometer */
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, TRUE, "ACC: %u X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_x, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_y, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_z);
+        
+        /* Line 4: Auth counter & MAC */
+        uint8_t mac[6]; 
+        custom_fs_get_platform_ble_mac_addr(mac);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, TRUE, "Auth: %u, MAC: %02x%02x%02x%02x%02x%02x", custom_fs_get_auth_challenge_counter(), mac[5], mac[4], mac[3], mac[2], mac[1], mac[0]);
+        
+        /* Line 5: Unit SN & debug MAC */
         custom_fs_get_debug_bt_addr(mac);
-        sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, TRUE, "Unit SN: %u, MAC: %02x%02x%02x%02x%02x%02x", custom_fs_get_platform_internal_serial_number(), mac[5], mac[4], mac[3], mac[2], mac[1], mac[0]);
+        sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, TRUE, "SN: %u, DBG MAC: %02x%02x%02x%02x%02x%02x", custom_fs_get_platform_internal_serial_number(), mac[5], mac[4], mac[3], mac[2], mac[1], mac[0]);
         
         /* Display stats */
         stat_times[5] = timer_get_systick();

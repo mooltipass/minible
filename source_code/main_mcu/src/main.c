@@ -478,6 +478,12 @@ void main_platform_init(void)
             /* Flash AUX */
             logic_aux_mcu_flash_firmware_update(TRUE);
         }
+        
+        /* Issue for some devices that had bundle < 4: some of them wouldn't have their auth counter set to 0 */
+        if (custom_fs_get_platform_bundle_version() == 4)
+        {
+            custom_fs_set_auth_challenge_counter(100);
+        }
         #endif
     }
 

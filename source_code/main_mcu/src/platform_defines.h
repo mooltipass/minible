@@ -223,7 +223,8 @@
 - v0.75:- mechanism to check for database loop when scanning for last nodes 
         - support for FIDO2 allowlist > 1
         - bundle v3
-- v0.76:- updated functional test for quick wheel clicks
+- v0.76:- Reset authentication counter to 100 when on bundle v4 after upgrade
+        - updated functional test for quick wheel clicks
         - NVM wait for erase and writes
         - bundle v4
 */
