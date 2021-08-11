@@ -224,6 +224,8 @@
         - support for FIDO2 allowlist > 1
         - bundle v3
 - v0.76:- updated functional test for quick wheel clicks
+        - NVM wait for erase and writes
+        - bundle v4
 */
 
 /**************** SETUP DEFINES ****************/

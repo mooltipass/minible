@@ -149,6 +149,9 @@ static void perform_end_of_flash_operations(custom_file_flash_header_t* buffered
             NVM_MEMORY[(((uint32_t)bl_last_row_ptr)+j*(NVMCTRL_ROW_SIZE/4)+i)/2] = bl_section_last_row_to_flash.row_data[(j*(NVMCTRL_ROW_SIZE/4)+i)/2];
         }
     }
+
+    /* Final wait */
+    while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
 }
 #endif
 

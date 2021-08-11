@@ -938,6 +938,9 @@ void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id)
     NVMCTRL->ADDR.reg  = flash_addr/2;
     NVMCTRL->CTRLA.reg = NVMCTRL_CTRLA_CMD_ER | NVMCTRL_CTRLA_CMDEX_KEY;
 
+    /* Wait for erase */
+    while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+    
     /* Disable automatic write, enable caching */
     NVMCTRL->CTRLB.bit.MANW = 1;
     NVMCTRL->CTRLB.bit.CACHEDIS = 0;
@@ -983,6 +986,9 @@ void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void
             NVM_MEMORY[(flash_addr+j*(NVMCTRL_ROW_SIZE/4)+i)/2] = ((uint16_t*)array)[(j*(NVMCTRL_ROW_SIZE/4)+i)/2];
         }
     }
+
+    /* Final wait */
+    while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
 
     /* Disable automatic write, enable caching */
     NVMCTRL->CTRLB.bit.MANW = 1;
