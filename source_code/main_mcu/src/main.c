@@ -338,8 +338,8 @@ void main_platform_init(void)
     if (custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE)
     #endif
     {
-        /* First boot initializations */
-        custom_fs_set_auth_challenge_counter(0);
+        /* First boot initializations: set auth counter value to 100 due to possible (non-security critical) hiccups on first mass production batch */
+        custom_fs_set_auth_challenge_counter(100);
         custom_fs_set_undefined_settings(TRUE);
         
         /* Then functional testing */
@@ -516,7 +516,7 @@ void main_platform_init(void)
         
         /* Reset settings (leave disabled, no real need) */
         //custom_fs_set_undefined_settings(TRUE);
-        //custom_fs_set_auth_challenge_counter(0);
+        //custom_fs_set_auth_challenge_counter(100);
     }
     
     /* Special developer features */
