@@ -1370,7 +1370,7 @@ at_ble_status_t ble_slave_security_request_handler(void* params)
     if (logic_bluetooth_get_open_to_pairing() == FALSE)
     {
         /* No intention to pair... disconnect */
-        at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
+        at_ble_disconnect(connected_state_info.handle, AT_BLE_AUTH_FAILURE);
         DBG_LOG("Unknown device and we don't allow pairing... bye!");
         logic_bluetooth_denied_connection_trigger();
         return AT_BLE_FAILURE;
@@ -1485,7 +1485,7 @@ at_ble_status_t ble_pair_request_handler(void *params)
     if (logic_bluetooth_get_open_to_pairing() == FALSE)
     {
         /* No intention to pair... disconnect */
-        at_ble_disconnect(connected_state_info.handle, AT_BLE_TERMINATED_BY_USER);
+        at_ble_disconnect(connected_state_info.handle, AT_BLE_AUTH_FAILURE);
         DBG_LOG("Unknown device and we don't allow pairing... bye!");
         logic_bluetooth_denied_connection_trigger();
         return AT_BLE_FAILURE;
