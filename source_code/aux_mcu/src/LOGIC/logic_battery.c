@@ -346,7 +346,7 @@ battery_action_te logic_battery_task(void)
                 case LB_CHARGE_START_RAMPING:
                 {
                     /* Is enough current flowing into the battery? */
-                    if ((high_voltage - low_voltage) > logic_battery_ramping_current_goal)
+                    if (((high_voltage - low_voltage) > logic_battery_ramping_current_goal) && (low_voltage > LOGIC_BATTERY_MIN_V_FOR_CUR_MES))
                     {
                         if ((logic_battery_charging_type == NIMH_RECOVERY_23C_CHARGING) && (low_voltage <= LOGIC_BATTERY_MAX_V_FOR_RECOVERY_CG))
                         {

@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    65
+#define FW_MINOR    66
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -123,6 +123,9 @@
         - bundle v3
 - v0.65:- DTM RX mode during functional testing
         - Quick battery test implemented at the beginning of slow & recovery charges
+        - bundle v4
+- v0.66:- DTM RX channel change to 20 for functional testing
+        - minimum voltage check for ramping logic during NiMH charging
 */
 
 /**************** SETUP DEFINES ****************/
