@@ -397,11 +397,11 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Check address length */
             if (custom_fs_get_platform_programmed_serial_number() == UINT32_MAX)
             {
-                /* Enable BLE */
-                logic_aux_mcu_enable_ble(TRUE);
-
-                /* Set success byte */
+                /* Send success byte as bluetooth enable is going to delay comms... */
                 comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                
+                /* Enable BLE */
+                logic_aux_mcu_enable_ble(FALSE);
                 return;
             }
             else

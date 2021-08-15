@@ -12,7 +12,7 @@ import time
 import sys
 
 # Set to true to get advanced debugging information
-HID_DEVICE_DEBUG = False
+HID_DEVICE_DEBUG = True
 
 # Packet max payload
 HID_PACKET_DATA_PAYLOAD	= 62
