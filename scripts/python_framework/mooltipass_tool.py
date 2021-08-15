@@ -195,8 +195,8 @@ def main():
 		elif sys.argv[1] == "massProdProg":
 			last_serial_number = -1
 			while True:
-				#while mooltipass_device.connect(False, read_timeout=1000) == False:
-				#		time.sleep(.1)
+				while mooltipass_device.connect(False, read_timeout=1000) == False:
+						time.sleep(.1)
 				
 				# Ask for platform internal SN
 				packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_GET_DEVICE_INT_SN, None), True)	
