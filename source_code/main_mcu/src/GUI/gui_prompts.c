@@ -3580,7 +3580,7 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
         logic_power_check_power_switch_and_battery(FALSE);
         
         /* Deal with simple messages */
-        comms_aux_mcu_routine(MSG_RESTRICT_ALL);
+        comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
         
         /* Our assembler may solder the battery after the functional test */
         if (logic_power_get_battery_state() == BATTERY_ERROR)

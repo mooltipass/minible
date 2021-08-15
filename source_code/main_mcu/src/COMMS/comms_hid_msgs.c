@@ -265,7 +265,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     (rcv_msg->message_type != HID_CMD_ID_SET_DATE) &&
     (rcv_msg->message_type != HID_CMD_GET_DEVICE_INT_SN) &&
     (rcv_msg->message_type != HID_CMD_SET_DEVICE_SN) &&
-    (rcv_msg->message_type != HID_CMD_PREPARE_SN_FLASH))
+    (rcv_msg->message_type != HID_CMD_PREPARE_SN_FLASH) &&
+    (rcv_msg->message_type != HID_CMD_SWITCH_OFF_NXT_DSC))
     {
         should_ignore_message = TRUE;
     }
@@ -280,7 +281,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         (rcv_msg->message_type != HID_CMD_ID_SET_DATE) &&
         (rcv_msg->message_type != HID_CMD_GET_DEVICE_INT_SN) &&
         (rcv_msg->message_type != HID_CMD_SET_DEVICE_SN) &&
-        (rcv_msg->message_type != HID_CMD_PREPARE_SN_FLASH))
+        (rcv_msg->message_type != HID_CMD_PREPARE_SN_FLASH) &&
+        (rcv_msg->message_type != HID_CMD_SWITCH_OFF_NXT_DSC))
     {
         should_ignore_message = TRUE;
     }
@@ -402,6 +404,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 
                 /* Enable BLE */
                 logic_aux_mcu_enable_ble(FALSE);
+                
                 return;
             }
             else

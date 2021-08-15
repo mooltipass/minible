@@ -369,7 +369,7 @@ void main_platform_init(void)
             logic_power_check_power_switch_and_battery(FALSE);
             
             /* Comms functions */
-            comms_aux_mcu_routine(MSG_RESTRICT_ALLBUT_SN);
+            comms_aux_mcu_routine(MSG_RESTRICT_ALL);
             
             /* In the past we had some units passing func test but having a failed ACC later on */
             if (logic_accelerometer_routine() == ACC_FAILING)

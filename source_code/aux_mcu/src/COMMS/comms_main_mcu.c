@@ -585,8 +585,8 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                     break;
                 }
                 
-                /* Then set the device in DTM RX mode on channel 0 */
-                debug_dtm_rx(20);
+                /* Then set the device in DTM RX mode on channel 21 */
+                debug_dtm_rx(21);
                 
                 /* Set the high current sense pin as its original purpose */
                 platform_io_set_high_cur_sense_as_sense();

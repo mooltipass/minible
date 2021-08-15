@@ -195,15 +195,8 @@ def main():
 		elif sys.argv[1] == "massProdProg":
 			last_serial_number = -1
 			while True:
-				while mooltipass_device.connect(False, read_timeout=1000) == False:
-						time.sleep(.1)
-					
-				# Ask for the platform info
-				packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_PLAT_INFO, None), True)	
-				if packet["cmd"] == CMD_GET_DEVICE_STATUS:
-					packet =  mooltipass_device.device.receiveHidMessage(True)
-				device_serial_number = struct.unpack('I', packet["data"][8:12])[0]
-				print("Device external serial number: " + str(device_serial_number))
+				#while mooltipass_device.connect(False, read_timeout=1000) == False:
+				#		time.sleep(.1)
 				
 				# Ask for platform internal SN
 				packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_GET_DEVICE_INT_SN, None), True)	
@@ -212,18 +205,8 @@ def main():
 				device_internal_serial_number = struct.unpack('I', packet["data"][0:4])[0]
 				print("Device internal serial number: " + str(device_internal_serial_number))
 				
-				# Check for same SNs (device already programmed)
-				if device_serial_number == device_internal_serial_number and device_internal_serial_number != 0xFFFFFFFF:
-					print("Connected device: unit already programmed!")
-					mooltipass_device.waitForDisconnect()
-					time.sleep(1)
-					continue
-				
 				# Do operations if device different than before
-				if last_serial_number != device_internal_serial_number:
-					# Change timeout
-					mooltipass_device.device.setReadTimeout(3000)
-				
+				if last_serial_number != device_internal_serial_number:				
 					# Inform device to prepare for SN flash
 					packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_PREPARE_SN_FLASH, None), True)	
 					if packet["cmd"] == CMD_GET_DEVICE_STATUS:
@@ -239,7 +222,7 @@ def main():
 					# Wait for device to come up over bluetooth... TODO
 					
 					# Ask for SN input and program it
-					device_programmed_sn = int(input("Input device serial number: "))
+					device_programmed_sn = int(input("Input new device serial number: "))
 					packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_SET_DEVICE_INT_SN, struct.pack('I', device_programmed_sn)), True)	
 					if packet["cmd"] == CMD_GET_DEVICE_STATUS:
 						packet =  mooltipass_device.device.receiveHidMessage(True)
