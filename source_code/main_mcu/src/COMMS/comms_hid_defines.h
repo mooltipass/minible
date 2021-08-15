@@ -99,6 +99,7 @@
 #define HID_CMD_SET_DEVICE_SN       0x003A
 #define HID_CMD_DELETE_FILE_ID      0x003B
 #define HID_CMD_DELETE_NOTE_ID      0x003C
+#define HID_CMD_PREPARE_SN_FLASH    0x003D
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101

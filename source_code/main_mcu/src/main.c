@@ -392,6 +392,7 @@ void main_platform_init(void)
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DTM_STOP);
         comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_TX_SWEEP_DONE);
         sh1122_clear_current_screen(&plat_oled_descriptor);
+        logic_gui_disable_bluetooth(FALSE);
         #ifdef OLED_INTERNAL_FRAME_BUFFER
         sh1122_clear_frame_buffer(&plat_oled_descriptor);
         #endif

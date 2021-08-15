@@ -29,6 +29,7 @@
 #include "comms_hid_msgs.h"
 #include "logic_security.h"
 #include "logic_database.h"
+#include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
 #include "logic_device.h"
@@ -263,7 +264,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
     (rcv_msg->message_type != HID_CMD_IM_UNLOCKED) &&
     (rcv_msg->message_type != HID_CMD_ID_SET_DATE) &&
     (rcv_msg->message_type != HID_CMD_GET_DEVICE_INT_SN) &&
-    (rcv_msg->message_type != HID_CMD_SET_DEVICE_SN))
+    (rcv_msg->message_type != HID_CMD_SET_DEVICE_SN) &&
+    (rcv_msg->message_type != HID_CMD_PREPARE_SN_FLASH))
     {
         should_ignore_message = TRUE;
     }
@@ -277,7 +279,8 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         (rcv_msg->message_type != HID_CMD_IM_UNLOCKED) &&
         (rcv_msg->message_type != HID_CMD_ID_SET_DATE) &&
         (rcv_msg->message_type != HID_CMD_GET_DEVICE_INT_SN) &&
-        (rcv_msg->message_type != HID_CMD_SET_DEVICE_SN))
+        (rcv_msg->message_type != HID_CMD_SET_DEVICE_SN) &&
+        (rcv_msg->message_type != HID_CMD_PREPARE_SN_FLASH))
     {
         should_ignore_message = TRUE;
     }
@@ -389,10 +392,30 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             return;
         }
         
+        case HID_CMD_PREPARE_SN_FLASH:
+        {
+            /* Check address length */
+            if (custom_fs_get_platform_programmed_serial_number() == UINT32_MAX)
+            {
+                /* Enable BLE */
+                logic_aux_mcu_enable_ble(TRUE);
+
+                /* Set success byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
+            }
+            else
+            {
+                /* Set failure byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }        
+        }
+        
         case HID_CMD_SET_DEVICE_SN:
         {
             /* Check address length */
-            if ((rcv_msg->payload_length == sizeof(uint32_t)) && (custom_fs_get_platform_programmed_serial_number() != UINT32_MAX))
+            if ((rcv_msg->payload_length == sizeof(uint32_t)) && (custom_fs_get_platform_programmed_serial_number() == UINT32_MAX))
             {
                 /* Store new SN */
                 custom_fs_program_serial_number(rcv_msg->payload_as_uint32[0]);
