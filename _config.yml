@@ -1,3 +1,5 @@
 theme: jekyll-theme-slate
 title: Mooltipass Mini BLE
 description: Project Documentation, Contributors Guidelines and Project Log
+plugins:
+  - jemoji
