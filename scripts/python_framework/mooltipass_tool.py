@@ -3,28 +3,16 @@ from mooltipass_hid_device import *
 from datetime import datetime
 from array import array
 if platform.system() == "Linux":
+	from bluetooth_scan import *
 	from label_printer import *
-	import bluetooth
 import platform
 import usb.core
 import usb.util
 import random
 import time
 import sys
+import os
 nonConnectionCommands = ["deviceSNLabelPrinting"]
-
-def bluetooth_scan():
-	devices = bluetooth.discover_devices(lookup_names = True, lookup_class = True)
-	number_of_devices = len(devices)
-	print(number_of_devices,"devices found")
-	for addr, name, device_class in devices:
-		print("\n")
-		print("Device:")
-		print("Device Name: %s" % (name))
-		print("Device MAC Address: %s" % (addr))
-		print("Device Class: %s" % (device_class))
-		print("\n")
-	return
 
 def main():
 	skipConnection = False
@@ -207,11 +195,15 @@ def main():
 			mooltipass_device.recondition()
 
 		elif sys.argv[1] == "massProdProg":
+			# Setup bluetooth scanning
+			setup_bluetooth_scanning()
+		
+			# Create export directory
+			if not os.path.isdir("export"):
+				os.mkdir("export")
+			
 			last_serial_number = -1
 			while True:
-				while mooltipass_device.connect(False, read_timeout=1000) == False:
-						time.sleep(.1)
-
 				# Ask for platform internal SN
 				packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_GET_DEVICE_INT_SN, None), True)
 				if packet["cmd"] == CMD_GET_DEVICE_STATUS:
@@ -233,7 +225,13 @@ def main():
 						time.sleep(1)
 						continue
 
-					# Wait for device to come up over bluetooth... TODO
+					# Wait for device to come up over bluetooth...
+					print("Waiting for Bluetooth to be picked up...")
+					if not find_bluetooth_address("68:79:12:30:" + "{0:02x}".format((device_internal_serial_number >> 8) & 0x0FF) + ":" + "{0:02x}".format(device_internal_serial_number & 0x0FF), 30, 10):
+						print("ATBTLC1000 error")
+						mooltipass_device.waitForDisconnect()
+						time.sleep(1)
+						continue
 
 					# Ask for SN input and program it
 					device_programmed_sn = int(input("Input new device serial number: "))
@@ -249,17 +247,30 @@ def main():
 						continue
 
 					# Finally, print labels
-					print_labels_for_ble_device(device_serial_number)
+					print_labels_for_ble_device(device_programmed_sn)
 					last_serial_number = device_internal_serial_number
-
+					
+					# And write LUT file
+					with open(os.path.join("export", time.strftime("%Y-%m-%d-%H-%M-%S-Mooltipass-")) + str(device_internal_serial_number) + " to " + str(device_programmed_sn) +  ".txt", 'w') as f:
+						# Write it down
+						f.write(str(device_internal_serial_number) + ":" + str(device_programmed_sn) + "\r\n")
+						
 					# Switch off after disconnect
 					mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(0x0039, None), True)
 					if packet["cmd"] == CMD_GET_DEVICE_STATUS:
 						packet =  mooltipass_device.device.receiveHidMessage(True)
+						
+					# Debug
+					print("Done, please disconnect")
+					print("")
 
 				# Wait for disconnect
 				mooltipass_device.waitForDisconnect()
 				time.sleep(1)
+				
+				# Wait for next connection
+				while mooltipass_device.connect(False, read_timeout=1000) == False:
+						time.sleep(.1)
 
 		elif sys.argv[1] == "debugListen":
 			while True:
