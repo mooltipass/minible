@@ -731,7 +731,9 @@ void platform_io_init_ports(void)
     platform_io_init_ble_ports_for_disabled();
     
     /* Debug UART */
+#ifdef DEBUG
     platform_io_enable_debug_uart();
+#endif
 }    
 
 /*! \fn     platform_io_prepare_ports_for_sleep(void)
