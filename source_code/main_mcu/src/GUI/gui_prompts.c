@@ -724,6 +724,7 @@ static cust_char_t gui_prompts_get_char_to_display(uint8_t const * current_pin, 
 */
 wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t vert_anim_direction, int16_t hor_anim_direction, BOOL six_digit_prompt)
 {
+    uint16_t extra_y_for_extra_digit = ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_SHOW_PIN_ON_ENTRY) != FALSE)? 0:PIN_PROMPT_ASTX_Y_INC;
     uint16_t x_offset_for_digits = six_digit_prompt == FALSE? PIN_PROMPT_OFFSET_FOR_FOUR_DIG:0;
     wheel_action_ret_te wheel_action_ret = WHEEL_ACTION_NONE;
     uint16_t nb_of_digits = six_digit_prompt == FALSE? 4:6;
@@ -827,7 +828,7 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
             for (uint16_t i = 0; i < nb_of_digits; i++)
             {
                 cust_char_t disp_char = gui_prompts_get_char_to_display(current_pin, i);
-                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_ASTX_Y_INC, disp_char, TRUE);
+                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+extra_y_for_extra_digit, disp_char, TRUE);
             }
         } 
         else
@@ -885,7 +886,7 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
                 if (six_digit_prompt == FALSE)
                 {
                     cust_char_t disp_char = gui_prompts_get_char_to_display(current_pin, i);
-                    sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_ASTX_Y_INC, disp_char, TRUE);
+                    sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+extra_y_for_extra_digit, disp_char, TRUE);
                 } 
                 else
                 {
