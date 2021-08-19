@@ -555,10 +555,11 @@ RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, c
 *   \param  display_name    Pointer to display name string
 *   \param  private_key     32 bytes private key
 *   \param  credential_id   Pointer to credential ID
+*   \param  keyType         Type of key (ES256 or EDDSA)
 *   \return FIDO2 success code
 *   \note   As we are using the RX buffer here, we are exiting this function the moment we receive a new RX message (think power switches) but also don't try listen to RX messages
 */
-fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, uint8_t user_handle_len, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key, uint8_t* credential_id)
+fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, uint8_t user_handle_len, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key, uint8_t* credential_id, uint8_t keyType)
 {
     uint8_t encrypted_private_key[MEMBER_SIZE(child_webauthn_node_t, private_key)];
     uint8_t temp_cred_ctr_val[MEMBER_SIZE(child_webauthn_node_t, ctr)];
@@ -630,11 +631,11 @@ fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, ui
     RET_TYPE temp_ret = RETURN_OK;
     if (child_address == NODE_ADDR_NULL)
     {
-        temp_ret = logic_database_add_webauthn_credential_for_service(parent_address, user_handle, user_handle_len, user_name, display_name, encrypted_private_key, temp_cred_ctr_val, credential_id);
+        temp_ret = logic_database_add_webauthn_credential_for_service(parent_address, user_handle, user_handle_len, user_name, display_name, encrypted_private_key, temp_cred_ctr_val, credential_id, keyType);
     }
     else
     {
-        logic_database_update_webauthn_credential(child_address, user_name, display_name, encrypted_private_key, temp_cred_ctr_val, credential_id);
+        logic_database_update_webauthn_credential(child_address, user_name, display_name, encrypted_private_key, temp_cred_ctr_val, credential_id, keyType);
     }        
     
     /* Correct return depending on credential add result */
@@ -1380,9 +1381,10 @@ RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* log
 *   \param  credential_id_allow_list        If credential_id_allow_list_length != 0, list of credential ids we allow
 *   \param  credential_id_allow_list_length Length of the credential allow lista
 *   \param  flags                           Flag meta data for request
+*   \param  keyType                         Key Type (ES256 or EDDSA)
 *   \return success status
 */
-fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t credential_id_allow_list[FIDO2_ALLOW_LIST_MAX_SIZE][FIDO2_CREDENTIAL_ID_LENGTH], uint16_t credential_id_allow_list_length, uint8_t flags)
+fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t credential_id_allow_list[FIDO2_ALLOW_LIST_MAX_SIZE][FIDO2_CREDENTIAL_ID_LENGTH], uint16_t credential_id_allow_list_length, uint8_t flags, uint8_t *keyType)
 {
     uint8_t temp_cred_ctr[MEMBER_SIZE(child_webauthn_node_t, ctr)];
     uint16_t last_used_child_address_for_service;
@@ -1473,7 +1475,7 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
             }
         }
         /* Fetch webauthn data */
-        logic_database_get_webauthn_data_for_address_and_inc_count(child_address, user_handle, user_handle_len, credential_id, private_key, count, temp_cred_ctr);
+        logic_database_get_webauthn_data_for_address_and_inc_count(child_address, user_handle, user_handle_len, credential_id, private_key, count, temp_cred_ctr, keyType);
         
         /* User approved, decrypt key */
         logic_encryption_ctr_decrypt(private_key, temp_cred_ctr, MEMBER_SIZE(child_webauthn_node_t, private_key), FALSE);
@@ -1573,7 +1575,7 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
              * back. The credential is not used for login anyway. It is just to check that the authenticator has credentials for this RPID.
              * No need to check for child_address == NULL since either it is a silent assertion (and child_address is already populated) OR we returned above if the user backed out of the prompt.
              */
-            logic_database_get_webauthn_data_for_address_and_inc_count(child_address, user_handle, user_handle_len, credential_id, private_key, count, temp_cred_ctr);
+            logic_database_get_webauthn_data_for_address_and_inc_count(child_address, user_handle, user_handle_len, credential_id, private_key, count, temp_cred_ctr, keyType);
 
             /* User approved, decrypt key */
             logic_encryption_ctr_decrypt(private_key, temp_cred_ctr, MEMBER_SIZE(child_webauthn_node_t, private_key), FALSE);

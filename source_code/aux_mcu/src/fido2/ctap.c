@@ -107,33 +107,45 @@ uint8_t ctap_get_info(CborEncoder * encoder)
     return CTAP1_ERR_SUCCESS;
 }
 
-static int ctap_add_cose_key(CborEncoder * cose_key, uint8_t * x, uint8_t * y)
+static int ctap_add_cose_key(CborEncoder * cose_key, uint8_t * x, uint8_t * y, uint8_t keyType)
 {
     int ret;
     CborEncoder map;
+    uint8_t nElements = 5;
+    int8_t kty = COSE_KEY_KTY_EC2;
+    int8_t alg = COSE_ALG_ES256;
+    int8_t crv = COSE_KEY_CRV_P256;
 
-    ret = cbor_encoder_create_map(cose_key, &map, 5);
+    if (keyType == FIDO2_KEYTYPE_EDDSA)
+    {
+        nElements = 4;
+        kty = COSE_KEY_KTY_OKP;
+        alg = COSE_ALG_EDDSA;
+        crv = COSE_KEY_CRV_ED25519;
+    }
+
+    ret = cbor_encoder_create_map(cose_key, &map, nElements);
     check_ret(ret);
 
 
     {
         ret = cbor_encode_int(&map, COSE_KEY_LABEL_KTY);
         check_ret(ret);
-        ret = cbor_encode_int(&map, COSE_KEY_KTY_EC2);
+        ret = cbor_encode_int(&map, kty);
         check_ret(ret);
     }
 
     {
         ret = cbor_encode_int(&map, COSE_KEY_LABEL_ALG);
         check_ret(ret);
-        ret = cbor_encode_int(&map, COSE_ALG_ES256);
+        ret = cbor_encode_int(&map, alg);
         check_ret(ret);
     }
 
     {
         ret = cbor_encode_int(&map, COSE_KEY_LABEL_CRV);
         check_ret(ret);
-        ret = cbor_encode_int(&map, COSE_KEY_CRV_P256);
+        ret = cbor_encode_int(&map, crv);
         check_ret(ret);
     }
 
@@ -145,6 +157,7 @@ static int ctap_add_cose_key(CborEncoder * cose_key, uint8_t * x, uint8_t * y)
         check_ret(ret);
     }
 
+    if (keyType == FIDO2_KEYTYPE_ES256)
     {
         ret = cbor_encode_int(&map, COSE_KEY_LABEL_Y);
         check_ret(ret);
@@ -178,7 +191,11 @@ static ret_type_te ctap_make_credential_aux_comm(CTAP_requestCommon *common, CTA
     memcpy(req_msg->user_name, credInfo->user.name, FIDO2_USER_NAME_LEN);
     memcpy(req_msg->display_name, credInfo->user.displayName, FIDO2_DISPLAY_NAME_LEN);
     memcpy(req_msg->client_data_hash, common->clientDataHash, FIDO2_CLIENT_DATA_HASH_LEN);
-
+    if (credInfo->COSEAlgorithmIdentifier == COSE_ALG_ES256) {
+        req_msg->keyType = FIDO2_KEYTYPE_ES256;
+    } else {
+        req_msg->keyType = FIDO2_KEYTYPE_EDDSA;
+    }
     /* Set length of message */
     temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
 
@@ -256,7 +273,7 @@ static int ctap_make_credential_auth_data(CTAP_requestCommon *req_common, uint8_
 
     cbor_encoder_init(&cose_key, cose_key_buf, *len - sizeof(CTAP_authData), 0);
 
-    ret = ctap_add_cose_key(&cose_key, resp_msg.pub_key_x, resp_msg.pub_key_y);
+    ret = ctap_add_cose_key(&cose_key, resp_msg.pub_key_x, resp_msg.pub_key_y, resp_msg.keyType);
     check_ret(ret);
 
     auth_data_sz = sizeof(CTAP_authData) + cbor_encoder_get_buffer_size(&cose_key, cose_key_buf);
@@ -331,6 +348,14 @@ static ret_type_te ctap_get_assertion_aux_comm(CTAP_requestCommon *common, CTAP_
     memcpy(credInfo->user.id, resp_msg->user_handle, resp_msg->user_handle_len);
     credInfo->user.id_size = resp_msg->user_handle_len;
     memcpy(credInfo->id.tag, resp_msg->tag, sizeof(credInfo->id.tag));
+    if (resp_msg->keyType == FIDO2_KEYTYPE_ES256)
+    {
+        credInfo->COSEAlgorithmIdentifier = COSE_ALG_ES256;
+    }
+    else
+    {
+        credInfo->COSEAlgorithmIdentifier = COSE_ALG_EDDSA;
+    }
     return ret;
 }
 
@@ -516,7 +541,7 @@ uint8_t ctap_make_credential(CborEncoder * encoder, uint8_t * request, int lengt
     unsigned int i;
     uint8_t auth_data_buf[310];
     CTAP_credentialDescriptor * excl_cred = (CTAP_credentialDescriptor *) auth_data_buf;
-    uint8_t sigbuf[64];// = auth_data_buf + 32;
+    uint8_t sigbuf[FIDO2_ATTEST_SIG_LEN];// = auth_data_buf + 32;
     uint8_t sigder[72];// = auth_data_buf + 32 + 64;
 
     ret = ctap_parse_make_credential(&MC,encoder,request,length);
@@ -611,9 +636,15 @@ uint8_t ctap_make_credential(CborEncoder * encoder, uint8_t * request, int lengt
     }
 
     //sigbuf was calculated by main_mcu. Convert to DER format
-    int sigder_sz = ctap_encode_der_sig(sigbuf, sigder);
-
-    ret = ctap_add_attest_statement(&map, sigder, sigder_sz);
+    if (MC.credInfo.COSEAlgorithmIdentifier == COSE_ALG_ES256)
+    {
+        int sigder_sz = ctap_encode_der_sig(sigbuf, sigder);
+        ret = ctap_add_attest_statement(&map, sigder, sigder_sz);
+    }
+    else
+    {
+        ret = ctap_add_attest_statement(&map, sigbuf, FIDO2_ATTEST_SIG_LEN);
+    }
     check_retr(ret);
 
     ret = cbor_encoder_close_container(encoder, &map);
@@ -698,13 +729,19 @@ static uint8_t ctap_end_get_assertion(CborEncoder * map, CTAP_credInfo *cred_inf
         check_ret(ret);
     }
 
-    //sigbuf was calculated by main_mcu. Convert to DER format
-    sigder_sz = ctap_encode_der_sig(sigbuf, sigder);
 
+    ret = cbor_encode_int(map, RESP_signature);  // 3
+    check_ret(ret);
+    if (cred_info->COSEAlgorithmIdentifier == COSE_ALG_ES256)
     {
-        ret = cbor_encode_int(map, RESP_signature);  // 3
-        check_ret(ret);
+        //sigbuf was calculated by main_mcu. Convert to DER format
+        sigder_sz = ctap_encode_der_sig(sigbuf, sigder);
         ret = cbor_encode_byte_string(map, sigder, sigder_sz);
+        check_ret(ret);
+    }
+    else
+    {
+        ret = cbor_encode_byte_string(map, sigbuf, FIDO2_ATTEST_SIG_LEN);
         check_ret(ret);
     }
 

@@ -27,7 +27,8 @@ INCLUDEPATH += src/EMU \
     src/NODEMGMT \
     src/RNG \
     src/BearSSL/src \
-    src/BearSSL/inc
+    src/BearSSL/inc \
+    src/CRYPTO
 
 SOURCES += src/EMU/lis2hh12.c \
     src/BearSSL/src/symcipher/aes_ct.c \
@@ -66,6 +67,8 @@ SOURCES += src/EMU/lis2hh12.c \
     src/COMMS/comms_aux_mcu.c \
     src/COMMS/comms_hid_msgs.c \
     src/COMMS/comms_hid_msgs_debug.c \
+    src/CRYPTO/monocypher.c \
+    src/CRYPTO/monocypher-ed25519.c \
     src/EMU/dma.c \
     src/FILESYSTEM/custom_bitstream.c \
     src/FILESYSTEM/custom_fs.c \

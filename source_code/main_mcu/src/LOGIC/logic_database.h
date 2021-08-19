@@ -30,10 +30,10 @@
 
 
 /* Prototypes */
-RET_TYPE logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, uint8_t user_handle_len, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id);
-void logic_database_get_webauthn_data_for_address_and_inc_count(uint16_t child_addr, uint8_t* user_handle, uint8_t* user_handle_len, uint8_t* credential_id, uint8_t* key, uint32_t* count, uint8_t* ctr);
+RET_TYPE logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, uint8_t user_handle_len, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id, uint8_t keyType);
+void logic_database_get_webauthn_data_for_address_and_inc_count(uint16_t child_addr, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* key, uint32_t* count, uint8_t* ctr, uint8_t *keyType);
+void logic_database_update_webauthn_credential(uint16_t child_address, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id, uint8_t keyType);
 RET_TYPE logic_database_add_child_node_to_data_service(uint16_t logic_user_data_service_addr, uint16_t* logic_user_last_data_child_addr, hid_message_store_data_into_file_t* store_data_request);
-void logic_database_update_webauthn_credential(uint16_t child_address, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id);
 uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag, BOOL* password_valid);
 RET_TYPE logic_database_add_credential_for_service(uint16_t service_addr, cust_char_t* login, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr);
 uint16_t logic_database_get_prev_2_fletters_services(uint16_t start_address, cust_char_t start_char, cust_char_t* char_array, uint16_t credential_type_id);

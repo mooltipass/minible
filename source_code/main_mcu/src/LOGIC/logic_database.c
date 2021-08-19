@@ -569,8 +569,9 @@ void logic_database_get_webauthn_userhandle_for_address(uint16_t child_addr, uin
 *   \param  key             Where to store the fetched key
 *   \param  count           Where to store the sign count
 *   \param  ctr             Where to store the ctr value
+*   \param  keyType         Where to store the key type
 */
-void logic_database_get_webauthn_data_for_address_and_inc_count(uint16_t child_addr, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* key, uint32_t* count, uint8_t* ctr)
+void logic_database_get_webauthn_data_for_address_and_inc_count(uint16_t child_addr, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* key, uint32_t* count, uint8_t* ctr, uint8_t *keyType)
 {
     child_webauthn_node_t* temp_half_cnode_pt;
     parent_node_t temp_pnode;
@@ -606,6 +607,9 @@ void logic_database_get_webauthn_data_for_address_and_inc_count(uint16_t child_a
     *count = temp_half_cnode_pt->signature_counter_msb;
     *count = (*count << 16) & 0xFFFF0000;
     *count += temp_half_cnode_pt->signature_counter_lsb;
+
+    /* Store key type */
+    *keyType = temp_half_cnode_pt->keyType;
 }
 
 /*! \fn     logic_database_get_number_of_creds_for_service(uint16_t parent_addr, uint16_t* fnode_addr, uint16_t* lnode_used_addr, BOOL category_filter)
@@ -769,8 +773,9 @@ RET_TYPE logic_database_add_child_node_to_data_service(uint16_t logic_user_data_
 *   \param  private_key     Pointer to encrypted private key
 *   \param  ctr             CTR value
 *   \param  credential_id   Pointer to credential_id buffer
+*   \param  keyType         Key Type (ES256 or EDDSA)
 */
-void logic_database_update_webauthn_credential(uint16_t child_address, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id)
+void logic_database_update_webauthn_credential(uint16_t child_address, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id, uint8_t keyType)
 {
     child_webauthn_node_t temp_cnode;
     
@@ -783,6 +788,7 @@ void logic_database_update_webauthn_credential(uint16_t child_address, cust_char
     memcpy(temp_cnode.private_key, private_key, sizeof(temp_cnode.private_key));
     memcpy(temp_cnode.ctr, ctr, sizeof(temp_cnode.ctr));
     memcpy(temp_cnode.credential_id, credential_id, sizeof(temp_cnode.credential_id));
+    temp_cnode.keyType = keyType;
     
     /* Set signature count to 1 */
     temp_cnode.signature_counter_msb = 0;
@@ -887,9 +893,10 @@ RET_TYPE logic_database_update_TOTP_credentials(uint16_t child_addr, TOTPcredent
 *   \param  private_key     Pointer to encrypted private key
 *   \param  ctr             CTR value
 *   \param  credential_id   Pointer to credential_id buffer
+*   \param  keyType         Key Type (ES256 or EDDSA)
 *   \return Success status
 */
-RET_TYPE logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, uint8_t user_handle_len, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id)
+RET_TYPE logic_database_add_webauthn_credential_for_service(uint16_t service_addr, uint8_t* user_handle, uint8_t user_handle_len, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key,  uint8_t* ctr, uint8_t* credential_id, uint8_t keyType)
 {
     uint16_t storage_addr = NODE_ADDR_NULL;
     child_webauthn_node_t temp_cnode;
@@ -911,6 +918,7 @@ RET_TYPE logic_database_add_webauthn_credential_for_service(uint16_t service_add
     memcpy(temp_cnode.private_key, private_key, sizeof(temp_cnode.private_key));
     memcpy(temp_cnode.ctr, ctr, sizeof(temp_cnode.ctr));
     memcpy(temp_cnode.credential_id, credential_id, sizeof(temp_cnode.credential_id));
+    temp_cnode.keyType = keyType;
     
     /* Set signature count to 1 */
     temp_cnode.signature_counter_msb = 0;

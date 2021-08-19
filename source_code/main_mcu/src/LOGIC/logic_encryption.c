@@ -20,6 +20,7 @@
 *    Author:   Mathieu Stephan
 */
 #include <string.h>
+#include "monocypher-ed25519.h"
 #include "logic_encryption.h"
 #include "bearssl_block.h"
 #include "driver_timer.h"
@@ -50,7 +51,10 @@ static br_hmac_drbg_context logic_encryption_hmac_drbg_ctx;
 // Private signing key for signing during FIDO2 operation, set every time a signing operation is performed and cleard afterwards
 static br_ec_private_key logic_encryption_fido2_signing_key;
 // Private key buffer. Above has a pointer to this buffer
-static uint8_t logic_encryption_fido2_priv_key_buf[FIDO2_PRIV_KEY_LEN];     
+static uint8_t logic_encryption_fido2_priv_key_buf[FIDO2_PRIV_KEY_LEN];
+static uint8_t logic_encryption_fido2_edDSA_priv_key[FIDO2_PRIV_KEY_LEN];
+static uint8_t logic_encryption_fido2_edDSA_pub_key[FIDO2_PRIV_KEY_LEN];
+
 // Modulus used to extract 6, 7, or 8 digits for TOTP value
 static uint32_t LOGIC_ENCRYPTION_DIGITS_POWER[] = { 1000000, 10000000, 100000000 };
 
@@ -173,6 +177,8 @@ void logic_encryption_init_context(uint8_t* card_aes_key, cpz_lut_entry_t* cpz_u
     
     /* Initialize ecc256 crypto engine. Uses RNG to initialize seed */
     logic_encryption_ecc256_init();
+    /* Initialize edDSA crypto engine. */
+    logic_encryption_edDSA_init();
 }
 
 /*! \fn     logic_encryption_delete_context(void)
@@ -349,6 +355,13 @@ void logic_encryption_ecc256_init(void)
     br_hmac_drbg_init(&logic_encryption_hmac_drbg_ctx, &br_sha256_vtable, seed, ECC256_SEED_LENGTH);
 }
 
+/*! \fn     logic_encryption_edDSA_init(void)
+*   \brief  Initialize the EdDSA crypto object
+*/
+void logic_encryption_edDSA_init(void)
+{
+}
+
 /*! \fn     logic_encryption_ecc256_sign(uint8_t const* data, uint8_t* sig, uint16_t sig_buf_len)
 *   \brief  Cryptographically sign input data and return the signature in arg.
 *   \param  data        data to sign
@@ -368,6 +381,21 @@ void logic_encryption_ecc256_sign(uint8_t const* data, uint8_t* sig, uint16_t si
     memset(logic_encryption_fido2_priv_key_buf, 0, sizeof(logic_encryption_fido2_priv_key_buf));
 }
 
+/*! \fn     logic_encryption_edDSA_sign(uint8_t const* data, uint8_t* sig, uint16_t sig_buf_len)
+*   \brief  Cryptographically sign input data and return the signature in arg.
+*   \param  data        data to sign
+*   \param  data_len    length of data
+*   \param  sig         output signature
+*   \param  sig_buf_len size of signature buffer
+*   \note   The encryption key will be cleared after this function call
+*/
+void logic_encryption_edDSA_sign(uint8_t const* data, uint32_t data_len, uint8_t* sig, uint16_t sig_buf_len)
+{
+    crypto_ed25519_sign(sig, logic_encryption_fido2_edDSA_priv_key, logic_encryption_fido2_edDSA_pub_key, data, data_len);
+    /* Wipe the secret key if it is no longer needed */
+    crypto_wipe(logic_encryption_fido2_edDSA_priv_key, FIDO2_PRIV_KEY_LEN);
+}
+
 /*! \fn     logic_encryption_ecc256_load_key(uint8_t const* key)
 *   \brief  Load a key from a buffer
 *   \param  key     The key to load
@@ -378,6 +406,16 @@ void logic_encryption_ecc256_load_key(uint8_t const* key)
     logic_encryption_fido2_signing_key.x = logic_encryption_fido2_priv_key_buf;
     logic_encryption_fido2_signing_key.curve = logic_encryption_br_ec_algo_id;
     logic_encryption_fido2_signing_key.xlen = FIDO2_PRIV_KEY_LEN;
+}
+
+/*! \fn     logic_encryption_edDSA_load_key(uint8_t const* key)
+*   \brief  Load a key from a buffer
+*   \param  key     The key to load
+*/
+void logic_encryption_edDSA_load_key(uint8_t const* key)
+{
+    memcpy(logic_encryption_fido2_edDSA_priv_key, key, sizeof(logic_encryption_fido2_edDSA_priv_key));
+    crypto_ed25519_public_key(logic_encryption_fido2_edDSA_pub_key, logic_encryption_fido2_edDSA_priv_key);
 }
 
 /*! \fn     logic_encryption_ecc256_generate_private_key(uint8_t* priv_key, uint16_t priv_key_size)
@@ -392,6 +430,16 @@ void logic_encryption_ecc256_generate_private_key(uint8_t* priv_key, uint16_t pr
     {
         main_reboot();
     }
+}
+
+/*! \fn     logic_encryption_edDSA_generate_private_key(uint8_t* priv_key, uint16_t priv_key_size)
+*   \brief  Generate a private key for edDSA
+*   \param  priv_key        Output private key
+*   \param  priv_key_size   Size of expected private key
+*/
+void logic_encryption_edDSA_generate_private_key(uint8_t* priv_key, uint16_t priv_key_size)
+{
+    rng_fill_array(priv_key, priv_key_size);
 }
 
 /*! \fn     logic_encryption_ecc256_derive_public_key(uint8_t const* priv_key, ecc256_pub_key* pub_key)
@@ -423,6 +471,15 @@ void logic_encryption_ecc256_derive_public_key(uint8_t const* priv_key, ecc256_p
     memmove(pub_key->y, pubkey + 1 + FIDO2_PUB_KEY_X_LEN, FIDO2_PUB_KEY_Y_LEN);
 }
 
+/*! \fn     logic_encryption_edDSA_derive_public_key(uint8_t const* priv_key, uint8_t *pub_key)
+*   \brief  Derive public key from the private key
+*   \param  priv_key    Private key to derive from
+*   \param  pub_key     Output public key
+*/
+void logic_encryption_edDSA_derive_public_key(uint8_t const* priv_key, uint8_t* pub_key)
+{
+    crypto_ed25519_public_key(pub_key, priv_key);
+}
 
 /*! \fn     logic_encryption_sha1 truncate(uint8_t const *sha1)
 *   \brief  Truncate sha1 hash value to uint32 (from RFC6238)

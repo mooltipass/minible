@@ -34,9 +34,9 @@
 #define CHECK_PASSWORD_TIMER_VAL    4000
 
 /* Prototypes */
-fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t credential_id_allow_list[FIDO2_ALLOW_LIST_MAX_SIZE][FIDO2_CREDENTIAL_ID_LENGTH], uint16_t credential_id_allow_list_length, uint8_t flags);
+fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* rp_id, uint8_t* user_handle, uint8_t *user_handle_len, uint8_t* credential_id, uint8_t* private_key, uint32_t* count, uint8_t credential_id_allow_list[FIDO2_ALLOW_LIST_MAX_SIZE][FIDO2_CREDENTIAL_ID_LENGTH], uint16_t credential_id_allow_list_length, uint8_t flags, uint8_t *keyType);
 RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uint16_t child_address, BOOL skip_login_prompt_and_int_choice, BOOL* usb_selected, lock_feature_te keys_to_send_before_login, BOOL skip_login_prompt, BOOL no_password_prompt);
-fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, uint8_t user_handle_len, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key, uint8_t* credential_id);
+fido2_return_code_te logic_user_store_webauthn_credential(cust_char_t* rp_id, uint8_t* user_handle, uint8_t user_handle_len, cust_char_t* user_name, cust_char_t* display_name, uint8_t* private_key, uint8_t* credential_id, uint8_t keyType);
 ret_type_te logic_user_create_new_user_for_existing_card(cpz_lut_entry_t* cpz_entry, uint16_t sec_preferences, uint16_t language_id, uint16_t usb_layout_id, uint16_t ble_layout_id, uint8_t* new_user_id);
 RET_TYPE logic_user_get_data_from_service(cust_char_t* service, uint8_t* buffer, uint16_t* nb_bytes_written, BOOL is_message_from_usb, nodemgmt_data_category_te data_type);
 RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, cust_char_t* desc, cust_char_t* third, cust_char_t* password);
