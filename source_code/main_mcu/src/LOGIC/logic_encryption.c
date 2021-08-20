@@ -177,6 +177,7 @@ void logic_encryption_init_context(uint8_t* card_aes_key, cpz_lut_entry_t* cpz_u
     
     /* Initialize ecc256 crypto engine. Uses RNG to initialize seed */
     logic_encryption_ecc256_init();
+    
     /* Initialize edDSA crypto engine. */
     logic_encryption_edDSA_init();
 }
