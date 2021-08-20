@@ -64,8 +64,8 @@
 #define COSE_ALG_EDDSA            -8
 #define COSE_ALG_ECDH_ES_HKDF_256 -25
 
-#define FIDO2_KEYTYPE_ES256         1
-#define FIDO2_KEYTYPE_EDDSA         2
+#define FIDO2_KEYTYPE_ES256         0
+#define FIDO2_KEYTYPE_EDDSA         1
 
 
 #endif /* FIDO2_VALUES_DEFINES_H_ */

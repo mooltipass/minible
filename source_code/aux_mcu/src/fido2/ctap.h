@@ -136,8 +136,8 @@
 
 #define CTAP2_UP_DELAY_MS           5000
 
-#define FIDO2_KEYTYPE_ES256         1
-#define FIDO2_KEYTYPE_EDDSA         2
+#define FIDO2_KEYTYPE_ES256         0
+#define FIDO2_KEYTYPE_EDDSA         1
 
 enum ErrorCode
 {
