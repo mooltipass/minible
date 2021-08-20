@@ -49,7 +49,8 @@ INC_DIRS := \
 -I"src/NODEMGMT" \
 -I"src/RNG" \
 -I"src/BearSSL/src" \
--I"src/BearSSL/inc"
+-I"src/BearSSL/inc" \
+-I"src/CRYPTO"
 
 LIB_DIRS := 
 
@@ -100,6 +101,8 @@ src/BearSSL/src/int/i15_tmont.c \
 src/BearSSL/src/codec/ccopy.c \
 src/BearSSL/src/codec/dec32be.c \
 src/BearSSL/src/codec/enc32be.c \
+src/CRYPTO/monocypher.c \
+src/CRYPTO/monocypher-ed25519.c \
 src/COMMS/comms_aux_mcu.c \
 src/COMMS/comms_hid_msgs.c \
 src/COMMS/comms_hid_msgs_debug.c \
@@ -164,7 +167,7 @@ endif
 
 FLAGS += -fdata-sections -ffunction-sections -Wall -c -pipe -fno-strict-aliasing -Werror-implicit-function-declaration -Wpointer-arith -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wundef -Wshadow -Wwrite-strings -Wsign-compare -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wunreachable-code -Wcast-align -Wlogical-op -fPIC
 
-C_FLAGS += -Wstrict-prototypes -Wmissing-prototypes -Wimplicit-int -Wbad-function-cast -Wnested-externs -Wjump-misses-init -Wlong-long -Wfloat-equal -Waggregate-return -std=gnu99
+C_FLAGS += -Wstrict-prototypes -Wmissing-prototypes -Wimplicit-int -Wbad-function-cast -Wnested-externs -Wjump-misses-init -Wfloat-equal -Waggregate-return -std=gnu99
 CPP_FLAGS += -std=gnu++11
 
 C_DEFINES := -DBR_BE_UNALIGNED=0 -DBR_CT_MUL15=0 -DBR_ENABLE_INTRINSICS=0 -DBR_CT_MUL31=0 -DBR_LE_UNALIGNED=0 -DBR_NO_ARITH_SHIFT=0 -DBR_POWER_ASM_MACROS=0 -D_ARCH_PWR8=0 -DBR_POWER8=0

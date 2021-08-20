@@ -242,7 +242,7 @@ static int pub_key_cred_param_supported(uint8_t cred, int32_t alg)
 {
     if (cred == PUB_KEY_CRED_PUB_KEY)
     {
-        if (alg == COSE_ALG_ES256)
+        if (alg == COSE_ALG_ES256 || alg == COSE_ALG_EDDSA)
         {
             return  CREDENTIAL_IS_SUPPORTED;
         }

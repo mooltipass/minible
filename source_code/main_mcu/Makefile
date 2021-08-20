@@ -74,6 +74,7 @@ INC_DIRS := \
 -I"src/RNG" \
 -I"src/BearSSL/src" \
 -I"src/BearSSL/inc" \
+-I"src/CRYPTO"
 
 LIB_DIRS := \
 -L"src/ASF/thirdparty/CMSIS/Lib/GCC" \
@@ -171,7 +172,9 @@ src/ASF/sam0/utils/cmsis/samd21/source/gcc/startup_samd21.c \
 src/ASF/sam0/utils/cmsis/samd21/source/system_samd21.c \
 src/ASF/sam0/utils/syscalls/gcc/syscalls.c \
 src/main.c \
-src/LOGIC/logic_fido2.c
+src/LOGIC/logic_fido2.c \
+src/CRYPTO/monocypher.c \
+src/CRYPTO/monocypher-ed25519.c
 
 ifeq ($(PLATFORM),)
 	PLATFORM = PLAT_V6_SETUP
@@ -192,7 +195,7 @@ else
     OUTPUT_DIR := Release
 endif
 
-C_FLAGS += -fdata-sections -ffunction-sections -mlong-calls -Wall -mcpu=cortex-m0plus -c -pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wlong-long -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wjump-misses-init
+C_FLAGS += -fdata-sections -ffunction-sections -mlong-calls -Wall -mcpu=cortex-m0plus -c -pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wjump-misses-init
 
 C_DEFINES := -D__SAMD21G18A__ -DBOARD=USER_BOARD -DARM_MATH_CM0PLUS=true -D__CORTEX_SC=0 -DBR_ARMEL_CORTEXM_GCC=1 -DBR_amd64=0 -DBR_BE_UNALIGNED=0 -DBR_CT_MUL15=0 -DBR_ENABLE_INTRINSICS=0 -DBR_CT_MUL31=0 -DBR_i386=0 -DBR_LE_UNALIGNED=0 -DBR_NO_ARITH_SHIFT=0 -DBR_POWER_ASM_MACROS=0 -D_ARCH_PWR8=0 -D_MSC_VER=0 -D_M_IX86=0 -D_M_X64=0 -D__clang__=0 -DBR_POWER8=0
 

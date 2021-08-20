@@ -247,6 +247,7 @@ typedef struct fido2_make_credential_req_message_s
     uint8_t user_name[FIDO2_USER_NAME_LEN];
     uint8_t display_name[FIDO2_DISPLAY_NAME_LEN];
     uint8_t client_data_hash[FIDO2_CLIENT_DATA_HASH_LEN];
+    uint8_t keyType;
 } fido2_make_credential_req_message_t;
 
 typedef struct fido2_make_credential_rsp_message_s
@@ -260,6 +261,7 @@ typedef struct fido2_make_credential_rsp_message_s
     uint8_t attest_sig[FIDO2_ATTEST_SIG_LEN];
     uint8_t aaguid[FIDO2_AAGUID_LEN];
     uint32_t cred_ID_len;
+    uint8_t keyType;
     uint8_t error_code;
 } fido2_make_credential_rsp_message_t;
 
@@ -281,6 +283,7 @@ typedef struct fido2_get_assertion_rsp_message_s
     uint32_t flags;
     uint8_t attest_sig[FIDO2_ATTEST_SIG_LEN];
     uint8_t aaguid[FIDO2_AAGUID_LEN];
+    uint8_t keyType;
     uint8_t error_code;
 } fido2_get_assertion_rsp_message_t;
 

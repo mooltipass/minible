@@ -44,16 +44,27 @@ uint8_t fido2_minible_aaguid[16] = {0x6d,0xb0,0x42,0xd0,0x61,0xaf,0x40,0x4c,0xa8
 *   \param  size of signature buffer
 *   \return void
 */
-static void logic_fido2_calc_attestation_signature(uint8_t const* data, int datalen, uint8_t const* client_data_hash, uint8_t* sigbuf, uint16_t sigbuflen)
+static void logic_fido2_calc_attestation_signature(uint8_t const* data, int datalen, uint8_t const* client_data_hash, uint8_t* sigbuf, uint16_t sigbuflen, uint8_t keyType)
 {
-    uint8_t hashbuf[SHA256_OUTPUT_LENGTH];
+    if (keyType == FIDO2_KEYTYPE_ES256)
+    {
+        uint8_t hashbuf[SHA256_OUTPUT_LENGTH];
 
-    logic_encryption_sha256_init();
-    logic_encryption_sha256_update(data, datalen);
-    logic_encryption_sha256_update(client_data_hash, FIDO2_CLIENT_DATA_HASH_LEN);
-    logic_encryption_sha256_final(hashbuf);
+        logic_encryption_sha256_init();
+        logic_encryption_sha256_update(data, datalen);
+        logic_encryption_sha256_update(client_data_hash, FIDO2_CLIENT_DATA_HASH_LEN);
+        logic_encryption_sha256_final(hashbuf);
 
-    logic_encryption_ecc256_sign(hashbuf, sigbuf, sigbuflen);
+        logic_encryption_ecc256_sign(hashbuf, sigbuf, sigbuflen);
+    }
+    else
+    {
+        uint32_t total_data_len = datalen + FIDO2_CLIENT_DATA_HASH_LEN;
+        uint8_t data_to_be_signed[total_data_len];
+        memcpy(data_to_be_signed, data, datalen);
+        memcpy(&data_to_be_signed[datalen], client_data_hash, FIDO2_CLIENT_DATA_HASH_LEN);
+        logic_encryption_edDSA_sign(data_to_be_signed, total_data_len, sigbuf, sigbuflen);
+    }
 }
 
 /*! \fn     logic_fido2_cbor_encode_public_key(uint8_t* buf, uint32_t bufLen, ecc256_pub_key const* pub_key)
@@ -63,34 +74,52 @@ static void logic_fido2_calc_attestation_signature(uint8_t const* data, int data
 *           Essentially the same as Solo function ctap_add_coseKey() but
 *           removed error checking and pass in buffer instead of the cbor encoder object
 *           in addition to hardcoding algtype.
-*   \param  buffer for encoded output
-*   \param  buffer length
-*   \param  public key
-*   \return Number of bytes written in the buffer (77)
+*   \param  buffer  for encoded output
+*   \param  buffer  length
+*   \param  public  key x coordinate
+*   \param  public  key y coordinate (not used for EDDSA)
+*   \param  keyType Key Type (either ES256 or EDDSA)
+*   \return Number of bytes written in the buffer (77 for ES256 or 42 for EDDSA)
 */
-static uint32_t logic_fido2_cbor_encode_public_key(uint8_t* buf, uint32_t bufLen, ecc256_pub_key const* pub_key)
+static uint32_t logic_fido2_cbor_encode_public_key(uint8_t* buf, uint32_t bufLen, uint8_t * const pub_key_x, uint8_t * const pub_key_y, uint8_t keyType)
 {
     uint16_t output_data_length = 0;
-    
+    uint32_t buf_len_needed = 1+1+1+1+1+1+1+1+34+1+34;
+    uint8_t nElements = 5;
+    int8_t kty = COSE_KEY_KTY_EC2;
+    int8_t alg = COSE_ALG_ES256;
+    int8_t crv = COSE_KEY_CRV_P256;
+
+    if (keyType == FIDO2_KEYTYPE_EDDSA)
+    {
+        nElements = 4;
+        kty = COSE_KEY_KTY_OKP;
+        alg = COSE_ALG_EDDSA;
+        crv = COSE_KEY_CRV_ED25519;
+        buf_len_needed -= (1+34); // y coordinate is not used for EDDSA
+    }
+
     /* Ok, I know it's cheating... but if you read all functions descriptions below you'll see we know already the size required */
-    if (bufLen < (1+1+1+1+1+1+1+1+34+1+34))
+    if (bufLen < buf_len_needed)
     {
         main_reboot();
     }
 
     /* Store the bytes ! */
-    buf[output_data_length++] = FIDO2_CBOR_CONTAINER_START | 5; //start and number of elements in container
+    buf[output_data_length++] = FIDO2_CBOR_CONTAINER_START | nElements; //start and number of elements in container
     buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_LABEL_KTY);
-    buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_KTY_EC2);
+    buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(kty);
     buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_LABEL_ALG);
-    buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_ALG_ES256);
+    buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(alg);
     buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_LABEL_CRV);
-    buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_CRV_P256);
+    buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(crv);
     buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_LABEL_X);
-    output_data_length+= utils_cbor_encode_32byte_bytestring((uint8_t*)pub_key->x, &buf[output_data_length]);
-    buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_LABEL_Y);
-    output_data_length+= utils_cbor_encode_32byte_bytestring((uint8_t*)pub_key->y, &buf[output_data_length]);
-    
+    output_data_length+= utils_cbor_encode_32byte_bytestring((uint8_t*)pub_key_x, &buf[output_data_length]);
+    if (keyType == FIDO2_KEYTYPE_ES256)
+    {
+        buf[output_data_length++] = utils_get_cbor_encoded_value_for_val_btw_m24_p23(COSE_KEY_LABEL_Y);
+        output_data_length+= utils_cbor_encode_32byte_bytestring((uint8_t*)pub_key_y, &buf[output_data_length]);
+    }
     return output_data_length;
 }
 
@@ -193,6 +222,7 @@ void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* re
     attested_data_t attested_data;
     ecc256_pub_key pub_key;
     uint8_t user_handle_len;
+    uint8_t keyType;
 
     /* Clear attested data that will be signed later */
     memset(&attested_data, 0, sizeof(attested_data));
@@ -229,6 +259,7 @@ void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* re
     memcpy(client_hash_copy, request->client_data_hash, sizeof(client_hash_copy));
     memcpy(user_handle_copy, request->user_handle, request->user_handle_len);
     user_handle_len = request->user_handle_len;
+    keyType = request->keyType;
     
     /* Conversions from UTF8 to BMP (who stores emoticons anyway....) */
     int16_t display_name_conv_length = utils_utf8_string_to_bmp_string(request->display_name, display_name_copy, MEMBER_SIZE(fido2_make_credential_req_message_t, display_name), ARRAY_SIZE(display_name_copy));
@@ -277,10 +308,17 @@ void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* re
     rng_fill_array(attested_data.cred_ID.tag, sizeof(attested_data.cred_ID.tag));
 
     /* Create encryption key pair */
-    logic_encryption_ecc256_generate_private_key(private_key, (uint16_t)sizeof(private_key));
-    
+    if (keyType == FIDO2_KEYTYPE_ES256)
+    {
+        logic_encryption_ecc256_generate_private_key(private_key, (uint16_t)sizeof(private_key));
+    }
+    else
+    {
+        logic_encryption_edDSA_generate_private_key(private_key, (uint16_t)sizeof(private_key));
+    }
+
     /* Try to store new credential */
-    fido2_return_code_te temp_return = logic_user_store_webauthn_credential(rp_id_copy, user_handle_copy, user_handle_len, user_name_copy, display_name_copy, private_key, attested_data.cred_ID.tag);
+    fido2_return_code_te temp_return = logic_user_store_webauthn_credential(rp_id_copy, user_handle_copy, user_handle_len, user_name_copy, display_name_copy, private_key, attested_data.cred_ID.tag, keyType);
 
     /* Success? */
     if (temp_return == FIDO2_SUCCESS)
@@ -326,10 +364,18 @@ void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* re
     /* 3) Credential ID, previously set with random values */
     
     /* 4) Encoded public key + generate signature */
-    logic_encryption_ecc256_load_key(private_key);
-    logic_encryption_ecc256_derive_public_key(private_key, &pub_key);
-    attested_data.enc_PK_len = logic_fido2_cbor_encode_public_key(attested_data.enc_pub_key, sizeof(attested_data.enc_pub_key), &pub_key);
-    logic_fido2_calc_attestation_signature((uint8_t const *)&attested_data, sizeof(attested_data) - sizeof(attested_data.enc_pub_key) + attested_data.enc_PK_len - sizeof(attested_data.enc_PK_len), request->client_data_hash, temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.attest_sig, sizeof(temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.attest_sig));
+    if (keyType == FIDO2_KEYTYPE_ES256)
+    {
+        logic_encryption_ecc256_load_key(private_key);
+        logic_encryption_ecc256_derive_public_key(private_key, &pub_key);
+    }
+    else
+    {
+        logic_encryption_edDSA_load_key(private_key);
+        logic_encryption_edDSA_derive_public_key(private_key, pub_key.x);
+    }
+    attested_data.enc_PK_len = logic_fido2_cbor_encode_public_key(attested_data.enc_pub_key, sizeof(attested_data.enc_pub_key), pub_key.x, pub_key.y, keyType);
+    logic_fido2_calc_attestation_signature((uint8_t const *)&attested_data, sizeof(attested_data) - sizeof(attested_data.enc_pub_key) + attested_data.enc_PK_len - sizeof(attested_data.enc_PK_len), request->client_data_hash, temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.attest_sig, sizeof(temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.attest_sig), keyType);
     
     /*****************/
     /* Sanity checks */
@@ -352,6 +398,7 @@ void logic_fido2_process_make_credential(fido2_make_credential_req_message_t* re
     // Attest signature already filled out above when calculating attestation signature
     memcpy(temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.aaguid, attested_data.attest_header.aaguid, sizeof(attested_data.attest_header.aaguid));
     temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.cred_ID_len = sizeof(attested_data.cred_ID.tag);
+    temp_tx_message_pt->fido2_message.fido2_make_credential_rsp_message.keyType = keyType;
     comms_aux_mcu_send_message(temp_tx_message_pt);
     
     //Clear private key to limit chance of leaking key
@@ -374,6 +421,7 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     uint32_t temp_sign_count;
     uint8_t user_handle_len;
     ecc256_pub_key pub_key;
+    uint8_t keyType;
     
     /* Zero out that stuff */
     memset(&auth_data_header, 0, sizeof(auth_data_header));
@@ -433,7 +481,7 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     
     /* Ask for user permission, automatically pre increment signing counter upon success recall */
     fido2_return_code_te temp_return = FIDO2_SUCCESS;
-    temp_return = logic_user_get_webauthn_credential_key_for_rp(rp_id_copy, user_handle, &user_handle_len, credential_id, private_key, &temp_sign_count, request->allow_list.tag, request->allow_list.len, request->flags);
+    temp_return = logic_user_get_webauthn_credential_key_for_rp(rp_id_copy, user_handle, &user_handle_len, credential_id, private_key, &temp_sign_count, request->allow_list.tag, request->allow_list.len, request->flags, &keyType);
 
     /* Success? */
     if (temp_return == FIDO2_SUCCESS)
@@ -479,9 +527,17 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
 
     /* Sign header */
-    logic_encryption_ecc256_load_key(private_key);
-    logic_encryption_ecc256_derive_public_key(private_key, &pub_key);
-    logic_fido2_calc_attestation_signature((uint8_t const *)&auth_data_header, sizeof(auth_data_header), request->client_data_hash, temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.attest_sig, sizeof(temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.attest_sig));
+    if (keyType == FIDO2_KEYTYPE_ES256)
+    {
+        logic_encryption_ecc256_load_key(private_key);
+        logic_encryption_ecc256_derive_public_key(private_key, &pub_key);
+    }
+    else
+    {
+        logic_encryption_edDSA_load_key(private_key);
+        logic_encryption_edDSA_derive_public_key(private_key, pub_key.x);
+    }
+    logic_fido2_calc_attestation_signature((uint8_t const *)&auth_data_header, sizeof(auth_data_header), request->client_data_hash, temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.attest_sig, sizeof(temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.attest_sig), keyType);
 
     /*****************/
     /* Sanity checks */
@@ -510,6 +566,7 @@ void logic_fido2_process_get_assertion(fido2_get_assertion_req_message_t* reques
     memcpy(temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.aaguid, fido2_minible_aaguid, sizeof(temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.aaguid));
     // We no longer have the credential ID. Not needed for assertion
     temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.flags = auth_data_header.flags;
+    temp_tx_message_pt->fido2_message.fido2_get_assertion_rsp_message.keyType = keyType;
     comms_aux_mcu_send_message(temp_tx_message_pt);
     
     //Clear private key to limit chance of leaking key
