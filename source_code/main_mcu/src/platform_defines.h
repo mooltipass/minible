@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    76
+#define FW_MINOR    77
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -227,6 +227,8 @@
         - updated functional test for quick wheel clicks
         - NVM wait for erase and writes
         - bundle v4
+- v0.77:- full PIN prompt visual bug fix
+        - FIDO2 EdDSA support
 */
 
 /**************** SETUP DEFINES ****************/
