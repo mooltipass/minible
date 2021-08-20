@@ -127,6 +127,7 @@
 - v0.66:- DTM RX channel change to 20 for functional testing
         - minimum voltage check for ramping logic during NiMH charging
         - correct bluetooth disconnect code for non existing pairing data
+        - FIDO2 EdDSA support
 */
 
 /**************** SETUP DEFINES ****************/
