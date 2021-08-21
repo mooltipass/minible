@@ -352,7 +352,14 @@ void timer_initialize_timebase(void)
     {
         timer_fine_adjust_positive = calibration_data.timer_fine_adjust_positive;
         calibrated_OSCULP32K_adj = calibration_data.calibrated_OSCULP32K_adj;
+        SYSCTRL->OSCULP32K.bit.CALIB += calibrated_OSCULP32K_adj;
         timer_fine_adjust = calibration_data.timer_fine_adjust;
+    }
+    else
+    {
+        timer_fine_adjust_positive = FALSE;
+        calibrated_OSCULP32K_adj = 0;
+        timer_fine_adjust = 0;        
     }
 #endif
 }

@@ -1141,7 +1141,7 @@ BOOL custom_fs_get_device_flag_value(custom_fs_flag_id_te flag_id)
     return FALSE;
 }
 
-/*! \fn     custom_fs_store_power_consumption_log_and_calib_data(power_consumption_log_t power_log_pt, time_calibration_data_t* time_calib_data_pt)
+/*! \fn     custom_fs_store_power_consumption_log_and_calib_data(power_consumption_log_t* power_log_pt, time_calibration_data_t* time_calib_data_pt)
 *   \brief  Store the power consumption log into flash
 *   \param  power_log   Pointer to the power consumption log
 */
