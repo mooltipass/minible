@@ -293,7 +293,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                         else if (display_prompt_return == MINI_INPUT_RET_YES)
                         {
                             nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
-                            logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode, false);
+                            logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode, FALSE);
                             memset(&temp_cnode, 0, sizeof(temp_cnode));
                             return TRUE;
                         }
@@ -320,7 +320,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                             else if (display_prompt_return == MINI_INPUT_RET_YES)
                             {
                                 nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
-                                logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode, true);
+                                logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode, TRUE);
                                 memset(&temp_cnode, 0, sizeof(temp_cnode));
                                 return TRUE;
                             }

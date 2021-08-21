@@ -307,7 +307,7 @@ static void logic_gui_create_TOTP_display_str(cust_char_t *TOTP_str, uint16_t TO
 *   \param  child_node  Pointer to the child node
 *   \param  display_totp_only True if we only want to display TOTP
 */
-void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, bool display_totp_only)
+void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL display_totp_only)
 {
     /* Activity detected */
     logic_device_activity_detected();
@@ -330,7 +330,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, bool d
         prev_gen_credential_flag = TRUE;
     }
     
-    if (!display_totp_only) {
+    if (display_totp_only == FALSE) {
         /* User approved, decrypt password and TOTPsecret */
         logic_encryption_ctr_decrypt(child_node->password, child_node->ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
         
@@ -381,7 +381,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, bool d
     uint16_t strings_y_positions[LOGIC_GUI_CRED_SHOW_NB_DISP_CFG][LOGIC_GUI_DISP_CRED_NUM_LINES_MAX] = { {12, 36, 0}, {5, 20, 35} };
 
     uint8_t num_lines_to_display = 1; //Login always displayed (unless display_totp_only is true we display TOTP but not login)
-    if (!display_totp_only)
+    if (display_totp_only == FALSE)
     {
         num_lines_to_display += (child_node->passwordBlankFlag == FALSE) ? 1 : 0; //Are we displaying password?
         num_lines_to_display += ((child_node->TOTP.TOTPsecretLen > 0) && (logic_device_is_time_set() != FALSE)) ? 1 : 0;     //Are we displaying TOTP?
@@ -393,7 +393,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, bool d
      * If we don't have both password and TOTP we display whichever we have on the second line
     */
     cust_char_t* strings_to_be_displayed[LOGIC_GUI_DISP_CRED_NUM_LINES_MAX];
-    if (!display_totp_only)
+    if (display_totp_only == FALSE)
     {
         strings_to_be_displayed[0] = child_node->login;
         if (child_node->passwordBlankFlag == FALSE)
