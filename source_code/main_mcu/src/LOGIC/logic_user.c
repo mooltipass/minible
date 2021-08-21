@@ -2002,15 +2002,55 @@ void logic_user_manual_select_login(void)
             else if (display_prompt_return == MINI_INPUT_RET_YES)
             {
                 nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
-                logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode);
+                logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode, false);
                 memset(&temp_cnode, 0, sizeof(temp_cnode));
                 return;
             }
             else
             {
-                return;
+                // Ask the user if he wants to display TOTP on screen
+                cust_char_t* display_totp_prompt_text;
+                custom_fs_get_string_from_file(QPROMPT_SNGL_DISP_TOTP_TEXT_ID, &display_totp_prompt_text, TRUE);
+                confirmationText_t totp_prompt_object = {.lines[0] = temp_pnode_pt->cred_parent.service, .lines[1] = display_totp_prompt_text};
+                display_prompt_return = gui_prompts_ask_for_confirmation(2, &totp_prompt_object, FALSE, TRUE, FALSE);
+
+                if (display_prompt_return == MINI_INPUT_RET_BACK)
+                {
+                    /* If we aren't connected to anything, don't ask to type again and go back in history */
+                    if ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE))
+                    {
+                        /* Depending on number of child nodes, go back in history */
+                        if (nb_logins_for_cred == 1)
+                        {
+                            /* Go back to service selection */
+                            state_machine = 0;
+                        }
+                        else
+                        {
+                            /* Go back to login selection */
+                            state_machine = 1;
+                        }
+                    }
+                    else
+                    {
+                        /* Otherwise go back to ask to type password */
+                        only_password_prompt = TRUE;
+                        state_machine--;
+                    }
+                }
+                else if (display_prompt_return == MINI_INPUT_RET_YES)
+                {
+                    nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
+                    logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode, true);
+                    memset(&temp_cnode, 0, sizeof(temp_cnode));
+                    return;
+                }
+                else
+                {
+                    return;
+                }
             }
-        }            
+        }
     }
 }
 
