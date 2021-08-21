@@ -26,6 +26,7 @@
 #include <asf.h>
 #include "defines.h"
 #include "logic_power.h"
+#include "driver_timer.h"
 
 /* Defines */
 // Value indicating that there are no files within a descriptor
@@ -171,7 +172,8 @@ typedef struct
     uint32_t nb_settings_last_covered;
     uint32_t other_reserved_uint32;
     power_consumption_log_t power_log;
-    uint8_t reserved_array[96];
+    time_calibration_data_t time_calib;
+    uint8_t reserved_array[84];
     uint32_t platform_serial_number;
     uint32_t device_auth_challenge_counter;
     uint8_t bluetooth_addr_padding[2];

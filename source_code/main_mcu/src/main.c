@@ -964,17 +964,17 @@ int main(void)
             }
             else if (card_detection_res == RETURN_JRELEASED)
             {
-                /* Disable bluetooth? */
-                if (custom_fs_settings_get_device_setting(SETTINGS_DISABLE_BLE_ON_CARD_REMOVE) != FALSE)
-                {
-                    logic_gui_disable_bluetooth(TRUE);
-                }
-                
                 /* Light up the Mooltipass and call the dedicated function */
                 logic_device_activity_detected();
                 logic_smartcard_handle_removed();
                 logic_device_set_state_changed();
                 logic_user_locked_feature_trigger();
+                
+                /* Disable bluetooth? */
+                if (custom_fs_settings_get_device_setting(SETTINGS_DISABLE_BLE_ON_CARD_REMOVE) != FALSE)
+                {
+                    logic_gui_disable_bluetooth(TRUE);
+                }
             
                 /* Set correct screen */
                 gui_prompts_display_information_on_screen_and_wait(CARD_REMOVED_TEXT_ID, DISP_MSG_INFO, FALSE);

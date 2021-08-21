@@ -33,6 +33,7 @@
 #define START_OF_SIGNED_DATA_IN_DATA_FLASH    (CUSTOM_FS_FILES_ADDR_OFFSET + offsetof(custom_file_flash_header_t, signing_key_update_bool))
 
 /* Prototypes */
+void custom_fs_store_power_consumption_log_and_calib_data(power_consumption_log_t* power_log_pt, time_calibration_data_t* time_calib_data_pt);
 ret_type_te custom_fs_get_keyboard_symbols_for_unicode_string(cust_char_t* string_pt, uint16_t* buffer, BOOL usb_layout);
 RET_TYPE custom_fs_continuous_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size, BOOL use_dma);
 RET_TYPE custom_fs_get_file_address(uint32_t file_id, custom_fs_address_t* address, custom_fs_file_type_te file_type);
@@ -43,10 +44,10 @@ RET_TYPE custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, 
 ret_type_te custom_fs_get_language_description(uint8_t language_id, cust_char_t* string_pt);
 void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
 void custom_fs_read_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array);
+void custom_fs_get_time_calibration_data(time_calibration_data_t* time_calib_data_pt);
 void custom_fs_stop_continuous_read_from_flash(BOOL was_using_emergency_bundle_data);
 ret_type_te custom_fs_set_current_keyboard_id(uint8_t keyboard_id, BOOL usb_layout);
 RET_TYPE custom_fs_get_cpz_lut_entry(uint8_t* cpz, cpz_lut_entry_t** cpz_entry_pt);
-void custom_fs_store_power_consumption_log(power_consumption_log_t* power_log_pt);
 uint16_t custom_fs_get_nb_free_cpz_lut_entries(uint8_t* first_available_user_id);
 RET_TYPE custom_fs_update_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id);
 RET_TYPE custom_fs_store_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id);

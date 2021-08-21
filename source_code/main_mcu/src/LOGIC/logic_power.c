@@ -303,10 +303,12 @@ void logic_power_init(BOOL depleted_battery_flag)
 void logic_power_power_down_actions(void)
 {
     volatile power_consumption_log_t logic_power_consumption_log_copy;
+    time_calibration_data_t current_time_calibration_data;
     cpu_irq_enter_critical();
+    timer_fill_calibration_data(&current_time_calibration_data);
     memcpy((void*)&logic_power_consumption_log_copy, (void*)&logic_power_consumption_log, sizeof(logic_power_consumption_log_copy));
     cpu_irq_leave_critical();
-    custom_fs_store_power_consumption_log((power_consumption_log_t*)&logic_power_consumption_log_copy);
+    custom_fs_store_power_consumption_log_and_calib_data((power_consumption_log_t*)&logic_power_consumption_log_copy, &current_time_calibration_data);
 }
 
 /*! \fn     logic_power_get_and_ack_new_battery_level(void)
