@@ -57,6 +57,7 @@ volatile int32_t timer_accumulated_corrections = 0;
 volatile uint32_t timer_nb_30mins_interrupts = 0;
 volatile BOOL timer_fine_adjust_positive;
 volatile uint32_t timer_fine_adjust = 0;
+int32_t calibrated_OSCULP32K_adj = 0;
 #ifdef EMULATOR_BUILD
 uint32_t timer_emulator_fake_rtc_cnt = 0;
 #endif
@@ -159,6 +160,17 @@ void TC3_Handler(void)
 }
 
 #endif
+
+/*! \fn     timer_fill_calibration_data(time_calibration_data_t* calib_data_pt)
+*   \brief  Fill calibration data structure with current values
+*   \param  calib_data_pt       Calibration data structure to fill
+*/
+void timer_fill_calibration_data(time_calibration_data_t* calib_data_pt)
+{
+    calib_data_pt->timer_fine_adjust_positive = timer_fine_adjust_positive;
+    calib_data_pt->calibrated_OSCULP32K_adj = calibrated_OSCULP32K_adj;
+    calib_data_pt->timer_fine_adjust = timer_fine_adjust;
+}
 
 /*! \fn     timer_get_timestamp_debug_data(uint32_t* timestamp, int32_t* counter_correct, int32_t* cumulative_correct, int32_t* fine_adjust_val)
 *   \brief  Get debug data for timestamp computation
@@ -332,6 +344,16 @@ void timer_initialize_timebase(void)
     
     /* Store default osculp32k calibration value */
     timer_default_OSCULP32K_calib_val = SYSCTRL->OSCULP32K.bit.CALIB;
+    
+    /* Restore calibration data */
+    time_calibration_data_t calibration_data;
+    custom_fs_get_time_calibration_data(&calibration_data);
+    if (calibration_data.timer_fine_adjust < 4096)
+    {
+        timer_fine_adjust_positive = calibration_data.timer_fine_adjust_positive;
+        calibrated_OSCULP32K_adj = calibration_data.calibrated_OSCULP32K_adj;
+        timer_fine_adjust = calibration_data.timer_fine_adjust;
+    }
 #endif
 }
 
@@ -514,6 +536,7 @@ void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day,
             int32_t calib_register_offset = nb_seconds_difference/113;
             SYSCTRL->OSCULP32K.bit.CALIB += calib_register_offset;
             nb_seconds_difference -= calib_register_offset*113;
+            calibrated_OSCULP32K_adj += calib_register_offset;
             
             /* Pause interrupts */
             cpu_irq_enter_critical();

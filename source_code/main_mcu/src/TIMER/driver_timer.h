@@ -42,6 +42,14 @@ typedef struct
     BOOL allocated;
 } allocatedTimerEntry_t;
 
+// Platform settings: do not store anything critical here in case of glitching
+typedef struct
+{
+    int32_t calibrated_OSCULP32K_adj;
+    BOOL timer_fine_adjust_positive;
+    uint32_t timer_fine_adjust;
+} time_calibration_data_t;
+
 /* Typedefs */
 typedef RTC_MODE2_CLOCK_Type calendar_t;
 
@@ -93,6 +101,7 @@ uint64_t driver_timer_date_to_timestamp(uint16_t year, uint16_t month, uint16_t 
 void driver_timer_set_rtc_timestamp(uint16_t year, uint16_t month, uint16_t day, uint16_t hour, uint16_t minute, uint16_t second);
 uint32_t driver_timer_get_nb_kinda17mins_slots_from_date(uint16_t year, uint16_t month, uint16_t day);
 timer_flag_te timer_has_allocated_timer_expired(uint16_t uid, BOOL clear);
+void timer_fill_calibration_data(time_calibration_data_t* calib_data_pt);
 timer_flag_te timer_has_timer_expired(timer_id_te uid, BOOL clear);
 void timer_arm_mcu_systick_for_aux_tx_flood_protection(void);
 void timer_rearm_allocated_timer(uint16_t uid, uint32_t val);

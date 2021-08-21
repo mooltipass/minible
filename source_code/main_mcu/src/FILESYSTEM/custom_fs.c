@@ -1141,16 +1141,29 @@ BOOL custom_fs_get_device_flag_value(custom_fs_flag_id_te flag_id)
     return FALSE;
 }
 
-/*! \fn     custom_fs_store_power_consumption_log(power_consumption_log_t power_log_pt)
+/*! \fn     custom_fs_store_power_consumption_log_and_calib_data(power_consumption_log_t power_log_pt, time_calibration_data_t* time_calib_data_pt)
 *   \brief  Store the power consumption log into flash
 *   \param  power_log   Pointer to the power consumption log
 */
-void custom_fs_store_power_consumption_log(power_consumption_log_t* power_log_pt)
+void custom_fs_store_power_consumption_log_and_calib_data(power_consumption_log_t* power_log_pt, time_calibration_data_t* time_calib_data_pt)
 {
     volatile custom_platform_settings_t temp_settings;
     custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
     memcpy((void*)&temp_settings.power_log, power_log_pt, sizeof(power_consumption_log_t));
+    memcpy((void*)&temp_settings.time_calib, time_calib_data_pt, sizeof(time_calibration_data_t));
     custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+}
+
+/*! \fn     custom_fs_get_time_calibration_data(time_calibration_data_t* time_calib_data_pt)
+*   \brief  Get the time calibration data from internal flash (at FFFF... at first boot)
+*   \param  time_calib_data_pt  Pointer to where to store the time calibration data
+*/
+void custom_fs_get_time_calibration_data(time_calibration_data_t* time_calib_data_pt)
+{
+    if (custom_fs_platform_settings_p != 0)
+    {
+        memcpy(time_calib_data_pt, &custom_fs_platform_settings_p->time_calib, sizeof(time_calibration_data_t));
+    }
 }
 
 /*! \fn     custom_fs_get_power_consumption_log(power_consumption_log_t* power_log_pt)
