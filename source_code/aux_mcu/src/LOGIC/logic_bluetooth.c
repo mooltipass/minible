@@ -1518,6 +1518,32 @@ void logic_bluetooth_stop_bluetooth(void)
     platform_io_init_ble_ports_for_disabled();
 }
 
+/*! \fn     logic_bluetooth_enable_atbtlc_32k_output(void)
+*   \brief  Enable ATBTLC1000 32k output
+*/
+void logic_bluetooth_enable_atbtlc_32k_output(void)
+{
+    uint32_t val;
+    
+    //read_32_from_BTLC1000(0X4000F404, &val);
+    //val |= (0b0<<20); // Bits 20-23 control the value of internal tuning capacitors. Valid value 0b0000 to 0b1111
+    //write_32_to_BTLC1000(0X4000F404,val);
+
+    // 32.768kHz RTC XO clock output = 8
+    write_32_to_BTLC1000(0x40020250, 8);
+    
+    /* Set pinmux_sel_2 (base address 0x4000B04C) bits 2:0 (Pinmux select for LP_GPIO_16) to value 7 (TEST OUT 16) */
+    read_32_from_BTLC1000(0x4000B04C, &val);
+    val |= 0x07;
+    write_32_to_BTLC1000(0x4000B04C, val);
+    
+    // Enable test MUX output
+    write_32_to_BTLC1000(0x400201A0, 1);
+
+    // Block BTLC1000 from entering ULP
+    logic_bluetooth_gpio_set(AT_BLE_EXTERNAL_WAKEUP, AT_BLE_HIGH);
+}
+
 /*! \fn     logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
 *   \brief  Start bluetooth
 *   \param  unit_mac_address    6 bytes unit mac address

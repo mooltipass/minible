@@ -282,6 +282,7 @@ void logic_bluetooth_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status
 at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params);
 void logic_bluetooth_store_temp_ban_connected_address(uint8_t* address);
 uint8_t logic_bluetooth_get_reportid(uint8_t serv, uint16_t handle);
+void write_32_to_BTLC1000(uint32_t u32address, uint32_t u32value);
 void logic_bluetooth_set_open_to_pairing_bool(BOOL pairing_bool);
 void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address);
 RET_TYPE logic_bluetooth_temporarily_ban_connected_device(void);
@@ -293,6 +294,7 @@ BOOL logic_bluetooth_is_device_temp_banned(uint8_t* mac);
 at_ble_status_t ble_char_changed_app_event(void* param);
 void logic_bluetooth_denied_connection_trigger(void);
 void logic_bluetooth_clear_bonding_information(void);
+void logic_bluetooth_enable_atbtlc_32k_output(void);
 void logic_bluetooth_set_battery_level(uint8_t pct);
 ret_type_te logic_bluetooth_stop_advertising(void);
 BOOL logic_bluetooth_get_open_to_pairing(void);
