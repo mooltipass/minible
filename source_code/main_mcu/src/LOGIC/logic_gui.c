@@ -330,7 +330,8 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL d
         prev_gen_credential_flag = TRUE;
     }
     
-    if (display_totp_only == FALSE) {
+    if (display_totp_only == FALSE)
+    {
         /* User approved, decrypt password and TOTPsecret */
         logic_encryption_ctr_decrypt(child_node->password, child_node->ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
         

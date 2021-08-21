@@ -299,35 +299,41 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                         }
                         else
                         {
-                            // Ask the user if he wants to display TOTP on screen
-                            cust_char_t* display_totp_prompt_text;
-                            custom_fs_get_string_from_file(QPROMPT_SNGL_DISP_TOTP_TEXT_ID, &display_totp_prompt_text, TRUE);
-                            confirmationText_t totp_prompt_object = {.lines[0] = temp_pnode_pt->cred_parent.service, .lines[1] = display_totp_prompt_text};
-                            display_prompt_return = gui_prompts_ask_for_confirmation(2, &totp_prompt_object, FALSE, TRUE, FALSE);
-                            
-                            if (display_prompt_return == MINI_INPUT_RET_BACK)
+                            // Read node so that we can check if TOTP is available
+                            nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
+
+                            if ((((child_cred_node_t *) &temp_cnode)->TOTP.TOTPsecretLen > 0) && (logic_device_is_time_set() != FALSE))
                             {
-                                if ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE))
+                                // Fetch parent node to prepare prompt text
+                                temp_pnode_pt = (parent_node_t*)&temp_cnode;
+                                nodemgmt_read_parent_node(chosen_service_addr, temp_pnode_pt, TRUE);
+
+                                // Ask the user if he wants to display TOTP on screen
+                                cust_char_t* display_totp_prompt_text;
+                                custom_fs_get_string_from_file(QPROMPT_SNGL_DISP_TOTP_TEXT_ID, &display_totp_prompt_text, TRUE);
+                                confirmationText_t totp_prompt_object = {.lines[0] = temp_pnode_pt->cred_parent.service, .lines[1] = display_totp_prompt_text};
+                                display_prompt_return = gui_prompts_ask_for_confirmation(2, &totp_prompt_object, FALSE, TRUE, FALSE);
+
+                                if (display_prompt_return == MINI_INPUT_RET_BACK)
                                 {
-                                    state_machine_index = 0;
+                                    if ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE))
+                                    {
+                                        state_machine_index = 0;
+                                    }
+                                    else
+                                    {
+                                        only_password_prompt = TRUE;
+                                        state_machine_index--;
+                                    }
                                 }
-                                else
+                                else if (display_prompt_return == MINI_INPUT_RET_YES)
                                 {
-                                    only_password_prompt = TRUE;
-                                    state_machine_index--;
+                                    nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
+                                    logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode, TRUE);
                                 }
                             }
-                            else if (display_prompt_return == MINI_INPUT_RET_YES)
-                            {
-                                nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
-                                logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode, TRUE);
-                                memset(&temp_cnode, 0, sizeof(temp_cnode));
-                                return TRUE;
-                            }
-                            else
-                            {
-                                return TRUE;
-                            }
+                            memset(&temp_cnode, 0, sizeof(temp_cnode));
+                            return TRUE;
                         }
                     }
                 }
