@@ -302,7 +302,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                             // Read node so that we can check if TOTP is available
                             nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
 
-                            if ((((child_cred_node_t *) &temp_cnode)->TOTP.TOTPsecretLen > 0) && (logic_device_is_time_set() != FALSE))
+                            if (((child_cred_node_t *) &temp_cnode)->TOTP.TOTPsecretLen > 0)
                             {
                                 // Fetch parent node to prepare prompt text
                                 temp_pnode_pt = (parent_node_t*)&temp_cnode;
@@ -328,8 +328,16 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                                 }
                                 else if (display_prompt_return == MINI_INPUT_RET_YES)
                                 {
-                                    nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
-                                    logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode, TRUE);
+                                    /* Has the time been set? */
+                                    if (logic_device_is_time_set() == FALSE)
+                                    {
+                                        gui_prompts_display_information_on_screen_and_wait(TIME_NOT_SET_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                                    }
+                                    else
+                                    {
+                                        nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
+                                        logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode, TRUE);
+                                    }
                                 }
                             }
                             memset(&temp_cnode, 0, sizeof(temp_cnode));
