@@ -369,10 +369,26 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
     /* Generate TOTP */
     cust_char_t TOTP_str[LOGIC_GUI_TOTP_STR_LEN];
     memset(TOTP_str, 0, sizeof TOTP_str);
-    if ((child_node->TOTP.TOTPsecretLen > 0) && (logic_device_is_time_set() != FALSE))
+    if ((child_node->TOTP.TOTPsecretLen > 0))
     {
-        uint8_t remaining_secs = logic_encryption_generate_totp(child_node->TOTP.TOTPsecret_ct, child_node->TOTP.TOTPsecretLen, child_node->TOTP.TOTPnumDigits, child_node->TOTP.TOTPtimeStep, TOTP_str, LOGIC_GUI_TOTP_STR_LEN);
-        logic_gui_create_TOTP_display_str(TOTP_str, LOGIC_GUI_TOTP_STR_LEN, child_node->TOTP.TOTPnumDigits, remaining_secs);
+        /* Has the time been set? */
+        if (logic_device_is_time_set() == FALSE)
+        {
+            gui_prompts_display_information_on_screen_and_wait(TIME_NOT_SET_TEXT_ID, DISP_MSG_WARNING, FALSE);
+            
+            /* Clear frame buffer */
+            #ifdef OLED_INTERNAL_FRAME_BUFFER
+            sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            #else
+            sh1122_clear_current_screen(&plat_oled_descriptor);
+            #endif
+        }
+        else
+        {
+            uint8_t remaining_secs = logic_encryption_generate_totp(child_node->TOTP.TOTPsecret_ct, child_node->TOTP.TOTPsecretLen, child_node->TOTP.TOTPnumDigits, child_node->TOTP.TOTPtimeStep, TOTP_str, LOGIC_GUI_TOTP_STR_LEN);
+            logic_gui_create_TOTP_display_str(TOTP_str, LOGIC_GUI_TOTP_STR_LEN, child_node->TOTP.TOTPnumDigits, remaining_secs);
+        }
     }
 
     /* Lines display settings */

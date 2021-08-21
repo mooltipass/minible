@@ -227,7 +227,8 @@
         - updated functional test for quick wheel clicks
         - NVM wait for erase and writes
         - bundle v4
-- v0.77:- press up/down bug fix in BLE pin entering
+- v0.77:- bug fix: Lock/Unlock with "Disable BLE on Card Removed"
+        - press up/down bug fix in BLE pin entering
         - full PIN prompt visual bug fix
         - FIDO2 EdDSA support
 */
