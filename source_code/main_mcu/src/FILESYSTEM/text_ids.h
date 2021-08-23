@@ -121,7 +121,6 @@
 #define QPROMPT_EXPORT_DATA_TEXT_ID     114
 #define EXPORTING_DATA_FOR_TEXT_ID      115
 #define TUTORIAL_FLINE_TEXT_ID          116
-#define QPROMPT_SNGL_DISP_TOTP_TEXT_ID  117
 ///////////////////////////////////////////
 #define TUTORIAL_LLINE_TEXT_ID          127
 #define CONTACT_SUPPORT_003_TEXT_ID     128
@@ -147,5 +146,6 @@
 #define QPROMPT_DELETE_FILE_TEXT_ID     148
 #define QPROMPT_DELETE_NOTE_TEXT_ID     149
 #define CONTACT_SUPPORT_011_TEXT_ID     150
+#define QPROMPT_SNGL_DISP_TOTP_TEXT_ID  151
 
 #endif
