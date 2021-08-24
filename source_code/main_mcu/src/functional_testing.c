@@ -309,16 +309,37 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #endif
         
-    /* Check for received messages */
-    if (temp_rx_message->aux_mcu_event_message.payload_as_uint16[0] < 500)
+    /* Check for received messages: average count is 1565 */
+    if (temp_rx_message->aux_mcu_event_message.payload_as_uint16[0] < 1000)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"ATBTLC1000 error / NO RX!");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
         timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
     }
+    
+    /* Rearm DMA RX */
+    comms_aux_arm_rx_and_clear_no_comms();
         
     /* Re-disable bluetooth */
     platform_io_disable_ble();
+    
+    /* Ask to disconnect USB to test... well I don't really know, but very few devices have this issue  */
+    sh1122_put_error_string(&plat_oled_descriptor, u"disconnect USB");
+    while (platform_io_is_usb_3v3_present_raw() != FALSE);
+    sh1122_oled_off(&plat_oled_descriptor);
+    comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
+    comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
+    platform_io_disable_3v3_to_oled_stepup();
+    logic_power_set_power_source(BATTERY_POWERED);
+    logic_aux_mcu_set_usb_enumerated_bool(FALSE);
+    platform_io_assert_oled_reset();
+    timer_delay_ms(15);
+    platform_io_power_up_oled(FALSE);
+    sh1122_init_display(&plat_oled_descriptor, TRUE);
+    sh1122_clear_current_screen(&plat_oled_descriptor);
+    #ifdef OLED_INTERNAL_FRAME_BUFFER
+    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    #endif
     
     /* Test accelerometer */
     sh1122_put_error_string(&plat_oled_descriptor, u"Testing accelerometer...");
