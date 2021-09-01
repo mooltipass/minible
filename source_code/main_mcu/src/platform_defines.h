@@ -232,6 +232,7 @@
         - store & recall time calibration data
         - full PIN prompt visual bug fix
         - FIDO2 EdDSA support
+        - bundle v5
 */
 
 /**************** SETUP DEFINES ****************/
