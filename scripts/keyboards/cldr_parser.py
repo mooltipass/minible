@@ -297,9 +297,19 @@ class CLDR():
 		if mds is None:
 			return False, []
 			
-		# Different options for modifier, just take the first one (simplest one!)
+		# Different options for modifier
 		options = mds.split(" ")
 		opt = options[0]
+		
+		# Select simplest option
+		if len(options) > 1:
+			index_to_select = 0
+			nb_modifiers = 999999
+			for i in range(len(options)):
+				if len(options[i].split("+")) < nb_modifiers:
+					index_to_select = i
+					nb_modifiers = len(options[i].split("+"))
+			opt = options[index_to_select]
 		
 		# Modifier key(s)
 		keys = opt.split("+")
