@@ -34,16 +34,16 @@ The auxiliary microcontroller mostly provides communication features.
 ### USB Communications
 Our <a href="https://github.com/mooltipass/minible/tree/master/source_code/aux_mcu/src/USB">USB interface</a> provides <b>three</b> communication channels:     
 - A keyboard HID interface for the Mooltipass Mini BLE to simulate keypresses
-- A <a href="https://github.com/mooltipass/minible/wiki/USB-HID-Protocol">custom HID interface</a> for <a href="https://github.com/mooltipass/minible/wiki/Mooltipass-Protocol">mooltipass communications</a>
+- A <a href="https://github.com/mooltipass/minible/wiki/USB-HID-Protocol">custom HID interface</a> for <a href="https://github.com/mooltipass/minible/wiki/Mooltipass-Protocol">Mooltipass communications</a>
 - A FIDO2 HID interface to support password-less authentication
 
 ### BLE Communications
 The Mooltipass Mini BLE uses the ATBTLC1000 to provide Bluetooth Low Energy connectivity. It currently provides <b>two</b> communication channels:   
 - A keyboard HID interface for the Mooltipass Mini BLE to simulate keypresses
-- A <a href="https://github.com/mooltipass/minible/wiki/USB-HID-Protocol">custom HID interface</a> for communications with computers
+- A <a href="https://github.com/mooltipass/minible/wiki/USB-HID-Protocol">custom HID interface</a> for <a href="https://github.com/mooltipass/minible/wiki/Mooltipass-Protocol">Mooltipass communications</a>
 
 ### BLE Communications: Help Needed!
-It is in our plans to provide two addition communication channels for Bluetooth:
+It is in our plans to provide two additional communication channels for Bluetooth:
 - One for FIDO2 features
 - One to provide communcation with a mobile app providing autofill services for <a href="https://developer.android.com/guide/topics/text/autofill-services">Android</a> and <a href="https://developer.apple.com/documentation/security/password_autofill">iOS</a>
 
@@ -103,7 +103,7 @@ If you have even more spare time to contribute, the Mooltipass team is actively 
 - add a Bluetooth FIDO2 communication channel    
 - develop a companion Android/iOS app to use Autofill services    
   
-Depending on the task, we could ship you one of our developpement boards (shown above), or you could also develop <a href="https://mooltipass.github.io/minible/developing_using_emulator">using our device emulator</a>. Do not forget to review our contributing guidelines!
+Depending on the task, we could ship you one of our developpement boards (shown above), or you could also develop <a href="https://github.com/mooltipass/minible/wiki/Developing-Without-a-Device">using our device emulator</a>. Do not forget to review our <a href="https://github.com/mooltipass/minible/wiki/Mooltipass-Team-Ground-Rules">contributing guidelines</a>!
 
 ## Adding a New Language to the Mini BLE
 The following languages are currently supported:
@@ -119,7 +119,7 @@ The following languages are currently supported:
 - Slovene
 - Finnish   
 
-If your language is not listed, **get in touch with us** to then be able to follow <a href="https://mooltipass.github.io/minible/translators_guidelines">these instructions</a>.
+If your language is not listed, **get in touch with us** to then be able to follow <a href="https://github.com/mooltipass/minible/wiki/Using-our-emulator-to-add-languages-to-the-Mini-BLE">these instructions</a>.
 
 ## [](#header-2)Keeping in Touch
 Get in touch with the development team and other Mooltipass enthuasiasts on our **Mooltipass IRC channel**: **#mooltipass** on **irc.libera.chat**
