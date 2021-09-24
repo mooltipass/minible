@@ -475,12 +475,17 @@ comms_usb_ret_te comms_usb_communication_routine(void)
                 return ret_val;
             }
             
-            /* Check for bit flip state: if it doesn't match, reset fill indexes */
+            /* Check for bit flip state: if it doesn't match, reset fill indexes and inform the host of the mistake */
             if (((comms_raw_hid_expect_flip_bit_state_set[hid_interface] != FALSE) && (raw_hid_recv_buffer[hid_interface].mtc_hid_packet.byte0.flip_bit == 0)) || ((comms_raw_hid_expect_flip_bit_state_set[hid_interface] == FALSE) && (raw_hid_recv_buffer[hid_interface].mtc_hid_packet.byte0.flip_bit != 0)))
             {
+                /* Reset fill indexes */
                 comms_raw_hid_temp_mcu_message_fill_index[hid_interface] = 0;
                 comms_raw_hid_expected_packet_number[hid_interface] = 0;
                 comms_raw_hid_arm_packet_receive(hid_interface);
+                
+                /* Inform host of the mistake: reuse hte same buffer as status update as the computer will need to restart comms anyway */
+                memset(comms_raw_hid_shorter_aux_mcu_message_for_status_update, 0xFF, sizeof(comms_raw_hid_shorter_aux_mcu_message_for_status_update));
+                comms_raw_hid_send_packet(hid_interface, comms_raw_hid_shorter_aux_mcu_message_for_status_update, TRUE, USB_RAWHID_RX_SIZE);
                 return ret_val;
             }
             
