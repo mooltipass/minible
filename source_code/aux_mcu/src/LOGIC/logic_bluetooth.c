@@ -92,6 +92,9 @@ uint16_t logic_bluetooth_banning_timeouts[3];
 /* Logic to know if some device is trying to connect to us too often */
 BOOL logic_bluetooth_too_many_invalid_connect_notif_sent = FALSE;
 uint8_t logic_bluetooth_invalid_connect_counter = 0;
+/* Custom communication service */
+at_ble_handle_t logic_bluetooth_comms_custom_service_handler;
+at_ble_characteristic_t logic_bluetooth_comms_service_characs[2];
 
 
 static at_ble_status_t hid_custom_event(void *param)
@@ -485,6 +488,20 @@ at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params)
             DBG_LOG("Battery service: notifications disabled");
         }
         return status;
+    }
+    
+    /* Check for custom comms service */
+    if (logic_bluetooth_comms_service_characs[1].char_val_handle == change_params.char_handle)
+    {
+        DBG_LOG("Characteristic belongs to custom comms service");
+        DBG_LOG("BLE receive: %02x %02x %02x%02x %02x%02x, %d bytes", change_params.char_new_value[0], change_params.char_new_value[1], change_params.char_new_value[2], change_params.char_new_value[3], change_params.char_new_value[4], change_params.char_new_value[5], change_params.char_len);
+        
+        uint8_t* recv_buf = comms_raw_hid_get_recv_buffer(BLE_INTERFACE);
+        memcpy(recv_buf, change_params.char_new_value, change_params.char_len);
+        //comms_raw_hid_recv_callback(BLE_INTERFACE, change_params.char_len);
+        // Loopback
+        logic_bluetooth_custom_comms_send_data(change_params.conn_handle, recv_buf, change_params.char_len);
+        return AT_BLE_SUCCESS;
     }
     
     /* See if this is for the hid service, and if so get the service instance */
@@ -1544,6 +1561,26 @@ void logic_bluetooth_enable_atbtlc_32k_output(void)
     logic_bluetooth_gpio_set(AT_BLE_EXTERNAL_WAKEUP, AT_BLE_HIGH);
 }
 
+/*! \fn     logic_bluetooth_custom_comms_send_data(at_ble_handle_t conn_handle, uint8_t* buffer, uint16_t data_length)
+*   \brief  Send some data over our custom communication channel
+*   \param  conn_handle Connection handle
+*   \param  buffer      Pointer to the data buffer
+*   \param  data_length Number of bytes to send
+*/
+void logic_bluetooth_custom_comms_send_data(at_ble_handle_t conn_handle, uint8_t* buffer, uint16_t data_length)
+{
+    /* Register GAP Callbacks */
+    DBG_LOG("Sending data over custom channel");
+    
+    /* Update attribute data base */
+    at_ble_status_t ble_status = at_ble_characteristic_value_set(logic_bluetooth_comms_service_characs[0].char_val_handle, buffer, data_length);
+    ble_status = at_ble_notification_send(conn_handle, logic_bluetooth_comms_service_characs[0].char_val_handle);
+    if(ble_status != AT_BLE_SUCCESS)
+    {
+        DBG_LOG("Failed to send custom data update notification ");
+    }
+}
+
 /*! \fn     logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
 *   \brief  Start bluetooth
 *   \param  unit_mac_address    6 bytes unit mac address
@@ -1714,6 +1751,63 @@ void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
     {
         DBG_LOG("ERROR: Fail to set Advertisement data");
     }
+    
+    /************* Mini BLE Custom Service for Comms ***************/
+    // 2566af2c-91bd-49fd-8ebb-020fa873044f
+    // 4c64e90a-5f9c-4d6b-9c29-bdaa6141f9f7
+    // fe8f1a02-6311-475f-a296-553e3566b895
+    
+    /* Custom communication service */
+    at_ble_uuid_t minible_custom_comms_service_uuid;
+    uint8_t minible_custom_comms_serv_uuid[] = {0x4F, 0x04, 0x73, 0xA8, 0x0F, 0x02, 0xBB, 0x8E, 0xFD, 0x49, 0xBD, 0x91, 0x2C, 0xAF, 0x66, 0x25};
+    uint8_t minible_custom_charac0_uuid[] = {0xF7, 0xF9, 0x41, 0x61, 0xAA, 0xBD, 0x29, 0x9C, 0x6B, 0x4D, 0x9C, 0x5F, 0x0A, 0xE9, 0x64, 0x4C};
+    uint8_t minible_custom_charac1_uuid[] = {0x95, 0xB8, 0x66, 0x35, 0x3E, 0x55, 0x96, 0xA2, 0x5F, 0x47, 0x11, 0x63, 0x02, 0x1A, 0x8F, 0xFE};
+        
+    /* Set service UUID */
+    minible_custom_comms_service_uuid.type = AT_BLE_UUID_128;
+    memcpy(minible_custom_comms_service_uuid.uuid, minible_custom_comms_serv_uuid, 16);
+    
+    /* Define read characteristic */
+    logic_bluetooth_comms_service_characs[0].user_desc = NULL;
+    logic_bluetooth_comms_service_characs[0].user_desc_len = 0;
+    logic_bluetooth_comms_service_characs[0].user_desc_max_len = 0;
+    logic_bluetooth_comms_service_characs[0].uuid.type = AT_BLE_UUID_128;
+    memcpy(logic_bluetooth_comms_service_characs[0].uuid.uuid, minible_custom_charac0_uuid, 16);
+    logic_bluetooth_comms_service_characs[0].properties = (AT_BLE_CHAR_READ | AT_BLE_CHAR_NOTIFY);
+    logic_bluetooth_comms_service_characs[0].value_max_len = sizeof(logic_bluetooth_raw_hid_data_out_buf);
+    if(BLE_PAIR_ENABLE)
+        if(BLE_MITM_REQ)
+            logic_bluetooth_comms_service_characs[0].value_permissions = AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR;
+        else
+            logic_bluetooth_comms_service_characs[0].value_permissions = AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR;
+    else
+        logic_bluetooth_comms_service_characs[0].value_permissions = AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR;
+    
+    /* Define write characteristic */
+    logic_bluetooth_comms_service_characs[1].user_desc = NULL;
+    logic_bluetooth_comms_service_characs[1].user_desc_len = 0;
+    logic_bluetooth_comms_service_characs[1].user_desc_max_len = 0;
+    logic_bluetooth_comms_service_characs[1].uuid.type = AT_BLE_UUID_128;
+    memcpy(logic_bluetooth_comms_service_characs[1].uuid.uuid, minible_custom_charac1_uuid, 16);
+    logic_bluetooth_comms_service_characs[1].properties = (AT_BLE_CHAR_READ|AT_BLE_CHAR_WRITE_WITHOUT_RESPONSE|AT_BLE_CHAR_WRITE);
+    logic_bluetooth_comms_service_characs[1].value_max_len = sizeof(logic_bluetooth_raw_hid_data_in_buf);
+    if(BLE_PAIR_ENABLE)
+        if(BLE_MITM_REQ)
+            logic_bluetooth_comms_service_characs[1].value_permissions = (AT_BLE_ATTR_READABLE_REQ_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_AUTHN_NO_AUTHR);
+        else
+            logic_bluetooth_comms_service_characs[1].value_permissions = (AT_BLE_ATTR_READABLE_REQ_ENC_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_REQ_ENC_NO_AUTHN_NO_AUTHR);
+    else
+        logic_bluetooth_comms_service_characs[1].value_permissions = (AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR | AT_BLE_ATTR_WRITABLE_NO_AUTHN_NO_AUTHR);
+        
+    /* Push service configuration in ATBTLC1000 */
+    if(at_ble_primary_service_define(&minible_custom_comms_service_uuid, &logic_bluetooth_comms_custom_service_handler, NULL, 0, logic_bluetooth_comms_service_characs, 2) != AT_BLE_SUCCESS)
+    {
+        DBG_LOG("Failed to Initialize comms custom service");
+    }        
+    else
+    {
+        DBG_LOG("Initialized comms custom service");
+    }        
     
     /* Set callbacks if we haven't already */
     if (logic_bluetooth_callbacks_set == FALSE)

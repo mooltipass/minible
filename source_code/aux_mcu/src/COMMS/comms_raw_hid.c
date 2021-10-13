@@ -483,9 +483,9 @@ comms_usb_ret_te comms_usb_communication_routine(void)
                 comms_raw_hid_expected_packet_number[hid_interface] = 0;
                 comms_raw_hid_arm_packet_receive(hid_interface);
                 
-                /* Inform host of the mistake: reuse hte same buffer as status update as the computer will need to restart comms anyway */
+                /* Inform host of the mistake: reuse the same buffer as status update as the computer will need to restart comms anyway */
                 memset(comms_raw_hid_shorter_aux_mcu_message_for_status_update, 0xFF, sizeof(comms_raw_hid_shorter_aux_mcu_message_for_status_update));
-                comms_raw_hid_send_packet(hid_interface, comms_raw_hid_shorter_aux_mcu_message_for_status_update, TRUE, USB_RAWHID_RX_SIZE);
+                comms_raw_hid_send_packet(hid_interface, (hid_packet_t*)comms_raw_hid_shorter_aux_mcu_message_for_status_update, TRUE, USB_RAWHID_RX_SIZE);
                 return ret_val;
             }
             

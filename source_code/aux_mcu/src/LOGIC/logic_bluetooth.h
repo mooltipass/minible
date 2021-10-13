@@ -14,7 +14,7 @@
 #include "defines.h"
 
 /* Typedefs */
-typedef enum    {NONE_NOTIF_SENDING = 0, KEYBOARD_NOTIF_SENDING, RAW_HID_NOTIF_SENDING, BATTERY_NOTIF_SENDING} notif_sending_te;
+typedef enum    {NONE_NOTIF_SENDING = 0, KEYBOARD_NOTIF_SENDING, RAW_HID_NOTIF_SENDING, BATTERY_NOTIF_SENDING, CUSTOM_COMMS_NOTIF_SENDING} notif_sending_te;
 
 /* Defines */
 #define BLE_KEYBOARD_HID_SERVICE_INSTANCE   0
@@ -275,6 +275,7 @@ void logic_bluetooth_hid_profile_init(uint8_t servinst, uint8_t device, uint8_t*
 void logic_bluetooth_update_report(uint16_t conn_handle, uint8_t serv_inst, uint8_t reportid, uint8_t* report, uint16_t len, BOOL use_report_charac);
 void logic_bluetooth_boot_key_report_update(at_ble_handle_t conn_handle, uint8_t serv_inst, uint8_t* bootreport, uint16_t len);
 void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info, at_ble_connected_t* connected_info);
+void logic_bluetooth_custom_comms_send_data(at_ble_handle_t conn_handle, uint8_t* buffer, uint16_t data_length);
 ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key, uint8_t second_key);
 uint8_t logic_bluetooth_get_report_characteristic(uint16_t handle, uint8_t serv, uint8_t reportid);
 uint8_t logic_bluetooth_get_notif_instance(uint8_t serv_num, uint16_t char_handle);
