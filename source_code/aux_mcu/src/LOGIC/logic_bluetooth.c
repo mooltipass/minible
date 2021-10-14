@@ -490,7 +490,21 @@ at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params)
         return status;
     }
     
-    /* Check for custom comms service */
+    /* Check for custom comms notification receive */
+    if (logic_bluetooth_comms_service_characs[0].client_config_handle == change_params.char_handle)
+    {
+        if (change_params.char_new_value[0] != 0)
+        {
+            DBG_LOG("Computer subscribed to custom comms notifications");
+        } 
+        else
+        {
+            DBG_LOG("Computer unsubscribed to custom comms notifications");
+        }
+        return AT_BLE_SUCCESS;
+    }
+    
+    /* Check for custom comms service data receive */
     if (logic_bluetooth_comms_service_characs[1].char_val_handle == change_params.char_handle)
     {
         DBG_LOG("Characteristic belongs to custom comms service");
