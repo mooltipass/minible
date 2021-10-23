@@ -314,19 +314,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                                 confirmationText_t totp_prompt_object = {.lines[0] = temp_pnode_pt->cred_parent.service, .lines[1] = display_totp_prompt_text};
                                 display_prompt_return = gui_prompts_ask_for_confirmation(2, &totp_prompt_object, FALSE, TRUE, FALSE);
 
-                                if (display_prompt_return == MINI_INPUT_RET_BACK)
-                                {
-                                    if ((logic_bluetooth_get_state() != BT_STATE_CONNECTED) && (logic_aux_mcu_is_usb_enumerated() == FALSE))
-                                    {
-                                        state_machine_index = 0;
-                                    }
-                                    else
-                                    {
-                                        only_password_prompt = TRUE;
-                                        state_machine_index--;
-                                    }
-                                }
-                                else if (display_prompt_return == MINI_INPUT_RET_YES)
+                                if (display_prompt_return == MINI_INPUT_RET_YES)
                                 {
                                     /* Has the time been set? */
                                     if (logic_device_is_time_set() == FALSE)
@@ -338,11 +326,27 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                                         nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
                                         logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode, TRUE);
                                     }
+                                    /* Last item displayed. Return to main menu */
+                                    memset(&temp_cnode, 0, sizeof(temp_cnode));
+                                    return TRUE;
                                 }
+                                else if (display_prompt_return == MINI_INPUT_RET_NO)
+                                {
+                                    /* User rejected displaying TOTP. Return to main menu */
+                                    memset(&temp_cnode, 0, sizeof(temp_cnode));
+                                    return TRUE;
+                                }
+                                /* "Back" button pressed. Return to ask to display credential */
                             }
-                            memset(&temp_cnode, 0, sizeof(temp_cnode));
-                            return TRUE;
+                            else
+                            {
+                                /* No TOTP available to display. Return to main menu */
+                                memset(&temp_cnode, 0, sizeof(temp_cnode));
+                                return TRUE;
+                            }
                         }
+                        /* Fallthrough from back button pressed. Return to ask to display credential */
+                        memset(&temp_cnode, 0, sizeof(temp_cnode));
                     }
                 }
             }

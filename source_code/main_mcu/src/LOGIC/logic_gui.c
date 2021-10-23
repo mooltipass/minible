@@ -336,7 +336,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL d
         logic_encryption_ctr_decrypt(child_node->password, child_node->ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
         
         /* 0 terminate password */
-        child_node->cust_char_password[MEMBER_ARRAY_SIZE(child_cred_node_t, cust_char_password) - 1] = 0;
+        child_node->pwdTerminatingZero = 0;
         
         /* Check for valid password */
         if (child_node->passwordBlankFlag != FALSE)
