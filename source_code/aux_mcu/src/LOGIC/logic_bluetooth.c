@@ -1945,6 +1945,7 @@ void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
         /* Send data on either HID or custom service */
         if (logic_bluetooth_last_packet_received_over_hid == FALSE)
         {
+            logic_bluetooth_check_and_wait_for_notif_sent();
             logic_bluetooth_notif_being_sent = CUSTOM_COMMS_NOTIF_SENDING;
             logic_bluetooth_custom_comms_send_data(logic_bluetooth_ble_connection_handle, logic_bluetooth_raw_hid_data_out_buf, sizeof(logic_bluetooth_raw_hid_data_out_buf));
         } 
