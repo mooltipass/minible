@@ -74,6 +74,7 @@ uint8_t logic_bluetooth_ctrl_point[1];
 BOOL logic_bluetooth_typed_report_sent = FALSE;
 /* Bluetooth connection bools */
 BOOL logic_bluetooth_can_communicate_with_host_prev = FALSE;
+BOOL logic_bluetooth_last_packet_received_over_hid = FALSE;
 BOOL logic_bluetooth_notifications_just_enabled = FALSE;
 BOOL logic_bluetooth_can_communicate_with_host = FALSE;
 BOOL logic_bluetooth_open_to_pairing = FALSE;
@@ -438,7 +439,7 @@ static at_ble_status_t logic_bluetooth_notification_confirmed_callback(void* par
         DBG_LOG("ERROR: failed sending notification to peer");
     }
     
-    if (logic_bluetooth_notif_being_sent == RAW_HID_NOTIF_SENDING)
+    if ((logic_bluetooth_notif_being_sent == RAW_HID_NOTIF_SENDING) || (logic_bluetooth_notif_being_sent == CUSTOM_COMMS_NOTIF_SENDING))
     {
         comms_raw_hid_send_callback(BLE_INTERFACE);
     }
@@ -512,9 +513,10 @@ at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params)
         
         uint8_t* recv_buf = comms_raw_hid_get_recv_buffer(BLE_INTERFACE);
         memcpy(recv_buf, change_params.char_new_value, change_params.char_len);
-        //comms_raw_hid_recv_callback(BLE_INTERFACE, change_params.char_len);
+        comms_raw_hid_recv_callback(BLE_INTERFACE, change_params.char_len);
+        logic_bluetooth_last_packet_received_over_hid = FALSE;
         // Loopback
-        logic_bluetooth_custom_comms_send_data(change_params.conn_handle, recv_buf, change_params.char_len);
+        // logic_bluetooth_custom_comms_send_data(change_params.conn_handle, recv_buf, change_params.char_len);
         return AT_BLE_SUCCESS;
     }
     
@@ -555,6 +557,7 @@ at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params)
                 uint8_t* recv_buf = comms_raw_hid_get_recv_buffer(BLE_INTERFACE);
                 memcpy(recv_buf, change_params.char_new_value, change_params.char_len);
                 comms_raw_hid_recv_callback(BLE_INTERFACE, change_params.char_len);
+                logic_bluetooth_last_packet_received_over_hid = TRUE;
             }
         }
         break;
@@ -1939,10 +1942,18 @@ void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len)
         /* Debug */
         DBG_LOG("BLE send: %02x %02x %02x%02x %02x%02x", logic_bluetooth_raw_hid_data_out_buf[0], logic_bluetooth_raw_hid_data_out_buf[1], logic_bluetooth_raw_hid_data_out_buf[2], logic_bluetooth_raw_hid_data_out_buf[3], logic_bluetooth_raw_hid_data_out_buf[4], logic_bluetooth_raw_hid_data_out_buf[5]);
         
-        /* Send data */
-        logic_bluetooth_check_and_wait_for_notif_sent();
-        logic_bluetooth_notif_being_sent = RAW_HID_NOTIF_SENDING;
-        logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_RAW_HID_SERVICE_INSTANCE, BLE_RAW_HID_IN_REPORT_NB, logic_bluetooth_raw_hid_data_out_buf, sizeof(logic_bluetooth_raw_hid_data_out_buf), TRUE);
+        /* Send data on either HID or custom service */
+        if (logic_bluetooth_last_packet_received_over_hid == FALSE)
+        {
+            logic_bluetooth_notif_being_sent = CUSTOM_COMMS_NOTIF_SENDING;
+            logic_bluetooth_custom_comms_send_data(logic_bluetooth_ble_connection_handle, logic_bluetooth_raw_hid_data_out_buf, sizeof(logic_bluetooth_raw_hid_data_out_buf));
+        } 
+        else
+        {
+            logic_bluetooth_check_and_wait_for_notif_sent();
+            logic_bluetooth_notif_being_sent = RAW_HID_NOTIF_SENDING;
+            logic_bluetooth_update_report(logic_bluetooth_ble_connection_handle, BLE_RAW_HID_SERVICE_INSTANCE, BLE_RAW_HID_IN_REPORT_NB, logic_bluetooth_raw_hid_data_out_buf, sizeof(logic_bluetooth_raw_hid_data_out_buf), TRUE);
+        }
     }
     else
     {
