@@ -297,12 +297,12 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                             memset(&temp_cnode, 0, sizeof(temp_cnode));
                             return TRUE;
                         }
-                        else
+                        else if (display_prompt_return == MINI_INPUT_RET_NO)
                         {
                             // Read node so that we can check if TOTP is available
                             nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
 
-                            if (((child_cred_node_t *) &temp_cnode)->TOTP.TOTPsecretLen > 0)
+                            if (temp_cnode.cred_child.TOTP.TOTPsecretLen > 0)
                             {
                                 // Fetch parent node to prepare prompt text
                                 temp_pnode_pt = (parent_node_t*)&temp_cnode;
@@ -323,7 +323,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                                     }
                                     else
                                     {
-                                        nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
+                                        nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child);
                                         logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode, TRUE);
                                     }
                                     /* Last item displayed. Return to main menu */
@@ -336,6 +336,12 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                                     memset(&temp_cnode, 0, sizeof(temp_cnode));
                                     return TRUE;
                                 }
+                                else if (display_prompt_return != MINI_INPUT_RET_BACK)
+                                {
+                                    /* Card removed or power switch. Return to main menu */
+                                    memset(&temp_cnode, 0, sizeof(temp_cnode));
+                                    return TRUE;
+                                }
                                 /* "Back" button pressed. Return to ask to display credential */
                             }
                             else
@@ -344,6 +350,12 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                                 memset(&temp_cnode, 0, sizeof(temp_cnode));
                                 return TRUE;
                             }
+                        }
+                        else if (display_prompt_return != MINI_INPUT_RET_BACK)
+                        {
+                            /* Card removed or power switch. Return to main menu */
+                            memset(&temp_cnode, 0, sizeof(temp_cnode));
+                            return TRUE;
                         }
                         /* Fallthrough from back button pressed. Return to ask to display credential */
                         memset(&temp_cnode, 0, sizeof(temp_cnode));

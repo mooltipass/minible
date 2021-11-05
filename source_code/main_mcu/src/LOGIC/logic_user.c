@@ -2006,13 +2006,13 @@ void logic_user_manual_select_login(void)
                 memset(&temp_cnode, 0, sizeof(temp_cnode));
                 return;
             }
-            else
+            else if (display_prompt_return == MINI_INPUT_RET_NO)
             {
                 // Read node so that we can check if TOTP is available
-                nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
+                nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child);
 
                 // Check if we have TOTP to display
-                if (((child_cred_node_t *) &temp_cnode)->TOTP.TOTPsecretLen > 0)
+                if (temp_cnode.cred_child.TOTP.TOTPsecretLen > 0)
                 {
                     // Fetch parent node to prepare prompt text
                     temp_pnode_pt = (parent_node_t*)&temp_cnode;
@@ -2046,6 +2046,12 @@ void logic_user_manual_select_login(void)
                         memset(&temp_cnode, 0, sizeof(temp_cnode));
                         return;
                     }
+                    else if (display_prompt_return != MINI_INPUT_RET_BACK)
+                    {
+                        /* Card removed or power switch. Return to main menu */
+                        memset(&temp_cnode, 0, sizeof(temp_cnode));
+                        return;
+                    }
                     /* "Back" button pressed. Return to ask to display credential */
                 }
                 else
@@ -2054,6 +2060,12 @@ void logic_user_manual_select_login(void)
                     memset(&temp_cnode, 0, sizeof(temp_cnode));
                     return;
                 }
+            }
+            else if (display_prompt_return != MINI_INPUT_RET_BACK)
+            {
+                /* Card removed or power switch. Return to main menu */
+                memset(&temp_cnode, 0, sizeof(temp_cnode));
+                return;
             }
             /* Fallthrough from back button pressed. Return to ask to display credential */
             memset(&temp_cnode, 0, sizeof(temp_cnode));
