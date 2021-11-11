@@ -193,6 +193,46 @@ def main():
 
 		elif sys.argv[1] == "recondition":
 			mooltipass_device.recondition()
+			
+		elif sys.argv[1] == "printMiniBleLabels":			
+			while True:
+				# Check if we can actually flash the SN...
+				packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_PREPARE_SN_FLASH, None), True)
+				if packet["cmd"] == CMD_GET_DEVICE_STATUS:
+					packet =  mooltipass_device.device.receiveHidMessage(True)
+					
+				# Check for answer
+				unit_already_programmed = True
+				if packet["data"][0] == CMD_HID_ACK:
+					print("Flash prepare: unit is not already programmed!")
+					unit_already_programmed = False
+
+				if unit_already_programmed:
+					# Ask for the programmed serial number
+					packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_PLAT_INFO, None))	
+					if packet["cmd"] == CMD_GET_DEVICE_STATUS:
+						packet =  mooltipass_device.device.receiveHidMessage(True)
+					device_sn = struct.unpack('I', packet["data"][8:12])[0]
+
+					# Print labels
+					print_labels_for_ble_device(device_sn)
+						
+					# Switch off after disconnect
+					mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(0x0039, None), True)
+					if packet["cmd"] == CMD_GET_DEVICE_STATUS:
+						packet =  mooltipass_device.device.receiveHidMessage(True)
+						
+					# Debug
+					print("Done, please disconnect")
+					print("")
+
+				# Wait for disconnect
+				mooltipass_device.waitForDisconnect()
+				time.sleep(1)
+				
+				# Wait for next connection
+				while mooltipass_device.connect(False, read_timeout=1000) == False:
+						time.sleep(.1)
 
 		elif sys.argv[1] == "massProdProg":
 			# Setup bluetooth scanning
@@ -245,15 +285,15 @@ def main():
 						mooltipass_device.waitForDisconnect()
 						time.sleep(1)
 						continue
+					
+					# Write LUT file
+					with open(os.path.join("export", time.strftime("%Y-%m-%d-%H-%M-%S-Mooltipass-")) + str(device_internal_serial_number) + " to " + str(device_programmed_sn) +  ".txt", 'w') as f:
+						# Write it down
+						f.write(str(device_internal_serial_number) + ":" + str(device_programmed_sn) + "\r\n")
 
 					# Finally, print labels
 					print_labels_for_ble_device(device_programmed_sn)
 					last_serial_number = device_internal_serial_number
-					
-					# And write LUT file
-					with open(os.path.join("export", time.strftime("%Y-%m-%d-%H-%M-%S-Mooltipass-")) + str(device_internal_serial_number) + " to " + str(device_programmed_sn) +  ".txt", 'w') as f:
-						# Write it down
-						f.write(str(device_internal_serial_number) + ":" + str(device_programmed_sn) + "\r\n")
 						
 					# Switch off after disconnect
 					mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(0x0039, None), True)
