@@ -111,7 +111,7 @@ def main():
 			last_serial_number = -1
 			while True:
 				while mooltipass_device.connect(False, read_timeout=1000) == False:
-						time.sleep(.1)
+					time.sleep(.1)
 
 				# Ask for the info
 				packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_PLAT_INFO, None), True)
@@ -206,6 +206,11 @@ def main():
 				if packet["data"][0] == CMD_HID_ACK:
 					print("Flash prepare: unit is not already programmed!")
 					unit_already_programmed = False
+						
+					# Switch off after disconnect
+					mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(0x0039, None), True)
+					if packet["cmd"] == CMD_GET_DEVICE_STATUS:
+						packet =  mooltipass_device.device.receiveHidMessage(True)
 
 				if unit_already_programmed:
 					# Ask for the programmed serial number
@@ -232,7 +237,7 @@ def main():
 				
 				# Wait for next connection
 				while mooltipass_device.connect(False, read_timeout=1000) == False:
-						time.sleep(.1)
+					time.sleep(.1)
 
 		elif sys.argv[1] == "massProdProg":
 			# Setup bluetooth scanning
