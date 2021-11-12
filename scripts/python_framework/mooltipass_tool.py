@@ -214,7 +214,7 @@ def main():
 
 				if unit_already_programmed:
 					# Ask for the programmed serial number
-					packet = self.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_PLAT_INFO, None))	
+					packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_PLAT_INFO, None))	
 					if packet["cmd"] == CMD_GET_DEVICE_STATUS:
 						packet =  mooltipass_device.device.receiveHidMessage(True)
 					device_sn = struct.unpack('I', packet["data"][8:12])[0]
