@@ -72,6 +72,12 @@ def main():
 				mooltipass_device.uploadDebugBundle(filename)
 			else:
 				print("Please specify bundle filename")
+				
+		elif sys.argv[1] == "spamWithTraffic":
+			while True:
+				packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_GET_DEVICE_LANG, None), True)
+				if packet["cmd"] == CMD_GET_DEVICE_STATUS:
+					packet =  mooltipass_device.device.receiveHidMessage(True)		
 
 		elif sys.argv[1] == "uploadBundle":
 			# mooltipass_tool.py uploadDebugBundle filename
@@ -118,62 +124,6 @@ def main():
 				if packet["cmd"] == CMD_GET_DEVICE_STATUS:
 					packet =  mooltipass_device.device.receiveHidMessage(True)
 				device_serial_number = struct.unpack('I', packet["data"][8:12])[0]
-
-				# Print if different from before
-				if last_serial_number != device_serial_number:
-					print("device SN:", device_serial_number)
-					print_labels_for_ble_device(device_serial_number)
-					last_serial_number = device_serial_number
-
-				# Wait for disconnect
-				mooltipass_device.waitForDisconnect()
-				time.sleep(1)
-
-		elif sys.argv[1] == "postLabelPrinting":
-			last_serial_number = -1
-			while True:
-				while mooltipass_device.connect(False, read_timeout=1000) == False:
-						time.sleep(.1)
-
-				# Ask for the platfor info
-				packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_PLAT_INFO, None), True)
-				if packet["cmd"] == CMD_GET_DEVICE_STATUS:
-					packet =  mooltipass_device.device.receiveHidMessage(True)
-				device_serial_number = struct.unpack('I', packet["data"][8:12])[0]
-
-				# Reset default settings
-				device_default_settings = [0]*64
-				device_default_settings[0] = 0		# SETTING_RESERVED_ID
-				device_default_settings[1] = 0		# SETTING_RANDOM_PIN_ID
-				device_default_settings[2] = 15		# SETTING_USER_INTERACTION_TIMEOUT_ID
-				device_default_settings[3] = 1		# SETTING_FLASH_SCREEN_ID
-				device_default_settings[4] = 0		# SETTING_DEVICE_DEFAULT_LANGUAGE
-				device_default_settings[5] = 0x09	# SETTINGS_CHAR_AFTER_LOGIN_PRESS
-				device_default_settings[6] = 0x0A	# SETTINGS_CHAR_AFTER_PASS_PRESS
-				device_default_settings[7] = 15		# SETTINGS_DELAY_BETWEEN_PRESSES
-				device_default_settings[8] = 1		# SETTINGS_BOOT_ANIMATION
-				device_default_settings[9] = 0x90	# SETTINGS_MASTER_CURRENT
-				device_default_settings[10] = 1		# SETTINGS_LOCK_ON_DISCONNECT
-				device_default_settings[11] = 9		# SETTINGS_KNOCK_DETECT_SENSITIVITY
-				device_default_settings[12] = 0		# SETTINGS_LEFT_HANDED_ON_BATTERY
-				device_default_settings[13] = 0		# SETTINGS_LEFT_HANDED_ON_USB
-				device_default_settings[14] = 0		# SETTINGS_PIN_SHOWN_WHEN_BACK
-				device_default_settings[15] = 0		# SETTINGS_UNLOCK_FEATURE_PARAM
-				device_default_settings[16] = 1		# SETTINGS_DEVICE_TUTORIAL
-				device_default_settings[17] = 0		# SETTINGS_SHOW_PIN_ON_ENTRY
-				device_default_settings[18] = 0		# SETTINGS_DISABLE_BLE_ON_CARD_REMOVE
-				device_default_settings[19] = 0		# SETTINGS_DISABLE_BLE_ON_LOCK
-				device_default_settings[20] = 0		# SETTINGS_NB_MINUTES_FOR_LOCK
-				device_default_settings[21] = 0		# SETTINGS_SWITCH_OFF_AFTER_USB_DISC
-				device_default_settings[22] = 0		# SETTINGS_HASH_DISPLAY_FEATURE
-				device_default_settings[23] = 30	# SETTINGS_INFORMATION_TIME_DELAY
-				device_default_settings[24] = 0		# SETTINGS_BLUETOOTH_SHORTCUTS
-				device_default_settings[25] = 0		# SETTINGS_SCREEN_SAVER_ID
-				device_default_settings[26] = 1		 # SETTINGS_PREF_ST_SERV_FEATURE
-				mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(0x0D, device_default_settings), True)
-
-				# Reset default language
-				mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(0x1F, [0]), True)
 
 				# Print if different from before
 				if last_serial_number != device_serial_number:
