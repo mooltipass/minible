@@ -305,8 +305,9 @@ static void logic_gui_create_TOTP_display_str(cust_char_t *TOTP_str, uint16_t TO
 /*! \fn     logic_gui_display_login_password_totp(child_cred_node_t* child_node)
 *   \brief  Display login, password, and TOTP on the screen
 *   \param  child_node  Pointer to the child node
+*   \param  display_totp_only True if we only want to display TOTP
 */
-void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
+void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL display_totp_only)
 {
     /* Activity detected */
     logic_device_activity_detected();
@@ -329,26 +330,28 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
         prev_gen_credential_flag = TRUE;
     }
     
-    /* User approved, decrypt password and TOTPsecret */
-    logic_encryption_ctr_decrypt(child_node->password, child_node->ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
-    
-    /* 0 terminate password */
-    child_node->cust_char_password[MEMBER_ARRAY_SIZE(child_cred_node_t, cust_char_password) - 1] = 0;
-    
-    /* Check for valid password */
-    if (child_node->passwordBlankFlag != FALSE)
+    if (display_totp_only == FALSE)
     {
-        child_node->cust_char_password[0] = 0;
+        /* User approved, decrypt password and TOTPsecret */
+        logic_encryption_ctr_decrypt(child_node->password, child_node->ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
+        
+        /* 0 terminate password */
+        child_node->pwdTerminatingZero = 0;
+        
+        /* Check for valid password */
+        if (child_node->passwordBlankFlag != FALSE)
+        {
+            child_node->cust_char_password[0] = 0;
+        }
+        
+        /* If old generation password, convert it to unicode */
+        if (prev_gen_credential_flag != FALSE)
+        {
+            _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
+            utils_ascii_to_unicode(child_node->password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+            child_node->cust_char_password[NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
+        }    
     }
-    
-    /* If old generation password, convert it to unicode */
-    if (prev_gen_credential_flag != FALSE)
-    {
-        _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
-        utils_ascii_to_unicode(child_node->password, NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
-        child_node->cust_char_password[NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
-    }    
-
     /* Decrypt TOTPsecret */
     logic_encryption_ctr_decrypt(child_node->TOTP.TOTPsecret_ct, child_node->TOTP.TOTPsecret_ctr, MEMBER_SIZE(TOTP_cred_node_t, TOTPsecret), FALSE);
 
@@ -394,25 +397,34 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node)
     /* Lines display settings */
     uint16_t strings_y_positions[LOGIC_GUI_CRED_SHOW_NB_DISP_CFG][LOGIC_GUI_DISP_CRED_NUM_LINES_MAX] = { {12, 36, 0}, {5, 20, 35} };
 
-    uint8_t num_lines_to_display = 1; //Login always displayed
-    num_lines_to_display += (child_node->passwordBlankFlag == FALSE) ? 1 : 0; //Are we displaying password?
-    num_lines_to_display += ((child_node->TOTP.TOTPsecretLen > 0) && (logic_device_is_time_set() != FALSE)) ? 1 : 0;     //Are we displaying TOTP?
-
+    uint8_t num_lines_to_display = 1; //Login always displayed (unless display_totp_only is true we display TOTP but not login)
+    if (display_totp_only == FALSE)
+    {
+        num_lines_to_display += (child_node->passwordBlankFlag == FALSE) ? 1 : 0; //Are we displaying password?
+        num_lines_to_display += ((child_node->TOTP.TOTPsecretLen > 0) && (logic_device_is_time_set() != FALSE)) ? 1 : 0;     //Are we displaying TOTP?
+    }
     /*
      * Line configuration
-     * We always display the login on the first line
+     * We always display the login on the first line (unless we are only displaying TOTP)
      * If we have both password and TOTP we display password on second line and then TOTP on third line.
      * If we don't have both password and TOTP we display whichever we have on the second line
     */
     cust_char_t* strings_to_be_displayed[LOGIC_GUI_DISP_CRED_NUM_LINES_MAX];
-    strings_to_be_displayed[0] = child_node->login;
-    if (child_node->passwordBlankFlag == FALSE)
+    if (display_totp_only == FALSE)
     {
-        strings_to_be_displayed[1] = child_node->cust_char_password;
+        strings_to_be_displayed[0] = child_node->login;
+        if (child_node->passwordBlankFlag == FALSE)
+        {
+            strings_to_be_displayed[1] = child_node->cust_char_password;
+        }
+        else
+        {
+            strings_to_be_displayed[1] = TOTP_str;
+        }
     }
     else
     {
-        strings_to_be_displayed[1] = TOTP_str;
+        strings_to_be_displayed[0] = TOTP_str;
     }
 
     /*

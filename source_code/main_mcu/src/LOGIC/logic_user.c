@@ -2002,15 +2002,74 @@ void logic_user_manual_select_login(void)
             else if (display_prompt_return == MINI_INPUT_RET_YES)
             {
                 nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
-                logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode);
+                logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode, FALSE);
                 memset(&temp_cnode, 0, sizeof(temp_cnode));
                 return;
             }
-            else
+            else if (display_prompt_return == MINI_INPUT_RET_NO)
             {
+                // Read node so that we can check if TOTP is available
+                nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child);
+
+                // Check if we have TOTP to display
+                if (temp_cnode.cred_child.TOTP.TOTPsecretLen > 0)
+                {
+                    // Fetch parent node to prepare prompt text
+                    temp_pnode_pt = (parent_node_t*)&temp_cnode;
+                    nodemgmt_read_parent_node(chosen_service_addr, temp_pnode_pt, TRUE);
+
+                    // Ask the user if he wants to display TOTP on screen
+                    cust_char_t* display_totp_prompt_text;
+                    custom_fs_get_string_from_file(QPROMPT_SNGL_DISP_TOTP_TEXT_ID, &display_totp_prompt_text, TRUE);
+                    confirmationText_t totp_prompt_object = {.lines[0] = temp_pnode_pt->cred_parent.service, .lines[1] = display_totp_prompt_text};
+                    display_prompt_return = gui_prompts_ask_for_confirmation(2, &totp_prompt_object, FALSE, TRUE, FALSE);
+
+                    if (display_prompt_return == MINI_INPUT_RET_YES)
+                    {
+                        /* Has the time been set? */
+                        if (logic_device_is_time_set() == FALSE)
+                        {
+                            gui_prompts_display_information_on_screen_and_wait(TIME_NOT_SET_TEXT_ID, DISP_MSG_WARNING, FALSE);
+                        }
+                        else
+                        {
+                            nodemgmt_read_cred_child_node(chosen_login_addr, (child_cred_node_t*)&temp_cnode);
+                            logic_gui_display_login_password_TOTP((child_cred_node_t*)&temp_cnode, TRUE);
+                        }
+                        /* Last item displayed. Return to main menu */
+                        memset(&temp_cnode, 0, sizeof(temp_cnode));
+                        return;
+                    }
+                    else if (display_prompt_return == MINI_INPUT_RET_NO)
+                    {
+                        /* User rejected displaying TOTP. Return to main menu */
+                        memset(&temp_cnode, 0, sizeof(temp_cnode));
+                        return;
+                    }
+                    else if (display_prompt_return != MINI_INPUT_RET_BACK)
+                    {
+                        /* Card removed or power switch. Return to main menu */
+                        memset(&temp_cnode, 0, sizeof(temp_cnode));
+                        return;
+                    }
+                    /* "Back" button pressed. Return to ask to display credential */
+                }
+                else
+                {
+                    /* No TOTP available to display. Return to main menu */
+                    memset(&temp_cnode, 0, sizeof(temp_cnode));
+                    return;
+                }
+            }
+            else if (display_prompt_return != MINI_INPUT_RET_BACK)
+            {
+                /* Card removed or power switch. Return to main menu */
+                memset(&temp_cnode, 0, sizeof(temp_cnode));
                 return;
             }
-        }            
+            /* Fallthrough from back button pressed. Return to ask to display credential */
+            memset(&temp_cnode, 0, sizeof(temp_cnode));
+        }
     }
 }
 
