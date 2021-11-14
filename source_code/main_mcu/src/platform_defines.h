@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    77
+#define FW_MINOR    78
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -233,6 +233,8 @@
         - full PIN prompt visual bug fix
         - FIDO2 EdDSA support
         - bundle v5
+- v0.78:- // place holder //
+        - bundle v6
 */
 
 /**************** SETUP DEFINES ****************/

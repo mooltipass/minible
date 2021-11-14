@@ -372,41 +372,6 @@ void udc_rearm_ctrl0_out_handler(void)
 //-----------------------------------------------------------------------------
 void USB_Handler(void)
 {
-  int epint, flags;
-
-  if (USB->DEVICE.INTFLAG.bit.EORST)
-  {
-    USB->DEVICE.INTFLAG.reg = USB_DEVICE_INTFLAG_EORST;
-    USB->DEVICE.DADD.reg = USB_DEVICE_DADD_ADDEN;
-
-    for (int i = 0; i < USB_EPT_NUM; i++)
-    {
-      udc_reset_endpoint(i, USB_IN_ENDPOINT);
-      udc_reset_endpoint(i, USB_OUT_ENDPOINT);
-    }
-    
-    usb_reset_config();
-
-    USB->DEVICE.DeviceEndpoint[0].EPCFG.reg =
-        USB_DEVICE_EPCFG_EPTYPE0(USB_DEVICE_EPCFG_EPTYPE_CONTROL) |
-        USB_DEVICE_EPCFG_EPTYPE1(USB_DEVICE_EPCFG_EPTYPE_CONTROL);
-    USB->DEVICE.DeviceEndpoint[0].EPSTATUSSET.bit.BK0RDY = 1;
-    USB->DEVICE.DeviceEndpoint[0].EPSTATUSCLR.bit.BK1RDY = 1;
-
-    udc_mem[0].in.ADDR.reg = (uint32_t)udc_ctrl_in_buf;
-    udc_mem[0].in.PCKSIZE.bit.SIZE = USB_DEVICE_PCKSIZE_SIZE_64;
-    udc_mem[0].in.PCKSIZE.bit.BYTE_COUNT = 0;
-    udc_mem[0].in.PCKSIZE.bit.MULTI_PACKET_SIZE = 0;
-
-    udc_mem[0].out.ADDR.reg = (uint32_t)udc_ctrl_out_buf;
-    udc_mem[0].out.PCKSIZE.bit.SIZE = USB_DEVICE_PCKSIZE_SIZE_64;
-    udc_mem[0].out.PCKSIZE.bit.MULTI_PACKET_SIZE = 8;
-    udc_mem[0].out.PCKSIZE.bit.BYTE_COUNT = 0;
-
-    USB->DEVICE.DeviceEndpoint[0].EPSTATUSCLR.bit.BK0RDY = 1;
-    USB->DEVICE.DeviceEndpoint[0].EPINTENSET.bit.RXSTP = 1;
-  }
-
   if (USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.bit.RXSTP)
   {
     USB->DEVICE.DeviceEndpoint[0].EPINTFLAG.reg = USB_DEVICE_EPINTFLAG_RXSTP;
@@ -415,8 +380,8 @@ void USB_Handler(void)
     USB->DEVICE.DeviceEndpoint[0].EPSTATUSCLR.bit.BK0RDY = 1;
   }
 
-  epint = USB->DEVICE.EPINTSMRY.reg;
-
+  int epint = USB->DEVICE.EPINTSMRY.reg;
+  int flags;
   for (int i = 0; epint && i < USB_EPT_NUM; i++)
   {
     if (0 == (epint & (1 << i)))
@@ -463,6 +428,39 @@ void USB_Handler(void)
       }
       //udc_send_callback(i);
     }
+  }
+  
+  if (USB->DEVICE.INTFLAG.bit.EORST)
+  {
+    USB->DEVICE.INTFLAG.reg = USB_DEVICE_INTFLAG_EORST;
+    USB->DEVICE.DADD.reg = USB_DEVICE_DADD_ADDEN;
+
+    for (int i = 0; i < USB_EPT_NUM; i++)
+    {
+      udc_reset_endpoint(i, USB_IN_ENDPOINT);
+      udc_reset_endpoint(i, USB_OUT_ENDPOINT);
+    }
+    
+    usb_reset_config();
+
+    USB->DEVICE.DeviceEndpoint[0].EPCFG.reg =
+        USB_DEVICE_EPCFG_EPTYPE0(USB_DEVICE_EPCFG_EPTYPE_CONTROL) |
+        USB_DEVICE_EPCFG_EPTYPE1(USB_DEVICE_EPCFG_EPTYPE_CONTROL);
+    USB->DEVICE.DeviceEndpoint[0].EPSTATUSSET.bit.BK0RDY = 1;
+    USB->DEVICE.DeviceEndpoint[0].EPSTATUSCLR.bit.BK1RDY = 1;
+
+    udc_mem[0].in.ADDR.reg = (uint32_t)udc_ctrl_in_buf;
+    udc_mem[0].in.PCKSIZE.bit.SIZE = USB_DEVICE_PCKSIZE_SIZE_64;
+    udc_mem[0].in.PCKSIZE.bit.BYTE_COUNT = 0;
+    udc_mem[0].in.PCKSIZE.bit.MULTI_PACKET_SIZE = 0;
+
+    udc_mem[0].out.ADDR.reg = (uint32_t)udc_ctrl_out_buf;
+    udc_mem[0].out.PCKSIZE.bit.SIZE = USB_DEVICE_PCKSIZE_SIZE_64;
+    udc_mem[0].out.PCKSIZE.bit.MULTI_PACKET_SIZE = 8;
+    udc_mem[0].out.PCKSIZE.bit.BYTE_COUNT = 0;
+
+    USB->DEVICE.DeviceEndpoint[0].EPSTATUSCLR.bit.BK0RDY = 1;
+    USB->DEVICE.DeviceEndpoint[0].EPINTENSET.bit.RXSTP = 1;
   }
 }
 

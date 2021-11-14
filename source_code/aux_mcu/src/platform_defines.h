@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    68
+#define FW_MINOR    69
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -128,8 +128,11 @@
         - minimum voltage check for ramping logic during NiMH charging
         - correct bluetooth disconnect code for non existing pairing data
         - FIDO2 EdDSA support
+        - bundle v5
 - v0.67:- informing host when bit flip is incorrectly set
 - v0.68:- custom service for android/iOS communications
+- v0.69:- USB interrupt routine modification to handle EORST at end of interrupt
+        - bundle v6
 */
 
 /**************** SETUP DEFINES ****************/
