@@ -233,7 +233,7 @@
         - full PIN prompt visual bug fix
         - FIDO2 EdDSA support
         - bundle v5
-- v0.78:- // place holder //
+- v0.78:- new feature: display TOTP separately from text credentials
         - bundle v6
 */
 
