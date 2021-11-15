@@ -166,7 +166,7 @@ def main():
 						packet =  mooltipass_device.device.receiveHidMessage(True)
 
 				if unit_already_programmed:
-					# Ask for the programmed serial number
+					# Ask for the internal serial number
 					packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_GET_DEVICE_INT_SN, None))	
 					if packet["cmd"] == CMD_GET_DEVICE_STATUS:
 						packet =  mooltipass_device.device.receiveHidMessage(True)
