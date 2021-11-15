@@ -640,8 +640,6 @@ void dma_acc_disable_transfer(void)
 void dma_acc_init_transfer(Sercom *sercom, void* datap, uint16_t size, uint8_t* read_cmd)
 {    
     volatile void *spi_data_p = &sercom->SPI.DATA.reg;
-    /* First, make sure we don't have an ongoing transfer */
-    //dma_acc_disable_transfer();
     
     cpu_irq_enter_critical();
     
