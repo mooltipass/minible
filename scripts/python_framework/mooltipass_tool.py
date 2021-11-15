@@ -1,3 +1,4 @@
+from os.path import isfile, join, isdir
 from __future__ import print_function
 from mooltipass_hid_device import *
 from datetime import datetime
@@ -5,6 +6,7 @@ from array import array
 if platform.system() == "Linux":
 	from bluetooth_scan import *
 	from label_printer import *
+from os import listdir
 import platform
 import usb.core
 import usb.util
@@ -144,7 +146,8 @@ def main():
 		elif sys.argv[1] == "recondition":
 			mooltipass_device.recondition()
 			
-		elif sys.argv[1] == "printMiniBleLabels":			
+		elif sys.argv[1] == "printMiniBleLabels":	
+			export_file_names = [f for f in listdir("export") if isfile(join("export", f))]
 			while True:
 				# Check if we can actually flash the SN...
 				packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_PREPARE_SN_FLASH, None), True)
@@ -164,13 +167,28 @@ def main():
 
 				if unit_already_programmed:
 					# Ask for the programmed serial number
-					packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_PLAT_INFO, None))	
+					packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_GET_DEVICE_INT_SN, None))	
 					if packet["cmd"] == CMD_GET_DEVICE_STATUS:
 						packet =  mooltipass_device.device.receiveHidMessage(True)
-					device_sn = struct.unpack('I', packet["data"][8:12])[0]
-
-					# Print labels
-					print_labels_for_ble_device(device_sn)
+					internal_device_sn = struct.unpack('I', packet["data"][0:4])[0]
+					
+					# Find the matched SN
+					matched_sn = -1
+					for file_name in export_file_names:
+						if "Mooltipass-" in file_name:
+							string = file_name.split("Mooltipass-")[1]
+							splits = string.split(" ")
+							prev_num = int(splits[0])
+							new_num = int(splits[2].replace(".txt", ""))
+							if prev_num == internal_device_sn:
+								matched_sn = new_num
+					
+					# Did we find the matched SN?
+					if matched_sn != -1:
+						# Print labels
+						print_labels_for_ble_device(matched_sn)
+					else:
+						print("Couldn't find matched SN!")
 						
 					# Switch off after disconnect
 					mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(0x0039, None), True)
