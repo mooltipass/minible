@@ -1,5 +1,5 @@
-from os.path import isfile, join, isdir
 from __future__ import print_function
+from os.path import isfile, join, isdir
 from mooltipass_hid_device import *
 from datetime import datetime
 from array import array
