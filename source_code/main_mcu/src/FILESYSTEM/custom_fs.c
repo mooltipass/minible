@@ -993,6 +993,7 @@ void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void
     /* Disable automatic write, enable caching */
     NVMCTRL->CTRLB.bit.MANW = 1;
     NVMCTRL->CTRLB.bit.CACHEDIS = 0;
+    __DSB();
 #endif
 }
 
@@ -1358,7 +1359,7 @@ void custom_fs_get_debug_bt_addr(uint8_t* bt_addr)
 */
 void custom_fs_set_undefined_settings(BOOL force_flash)
 {
-    custom_platform_settings_t platform_settings_copy;
+    volatile custom_platform_settings_t platform_settings_copy;
     
     if (custom_fs_platform_settings_p == 0)
     {
@@ -1368,7 +1369,7 @@ void custom_fs_set_undefined_settings(BOOL force_flash)
     else if ((custom_fs_platform_settings_p->nb_settings_last_covered != SETTINGS_NB_USED) || (force_flash != FALSE))
     {        
         /* Copy settings structure stored in flash into ram, overwrite relevant settings part, flash again later */
-        memcpy(&platform_settings_copy, custom_fs_platform_settings_p, sizeof(platform_settings_copy));
+        memcpy((void*)&platform_settings_copy, custom_fs_platform_settings_p, sizeof(platform_settings_copy));
 
         /* Check for blank memory & overflow */
         if ((custom_fs_platform_settings_p->nb_settings_last_covered >= NB_DEVICE_SETTINGS) || (force_flash != FALSE))
@@ -1377,7 +1378,7 @@ void custom_fs_set_undefined_settings(BOOL force_flash)
         }
         
         /* Only update the non defined settings */
-        memcpy(&platform_settings_copy.device_settings[platform_settings_copy.nb_settings_last_covered], &custom_fs_default_device_settings[platform_settings_copy.nb_settings_last_covered], NB_DEVICE_SETTINGS-platform_settings_copy.nb_settings_last_covered);
+        memcpy((void*)&platform_settings_copy.device_settings[platform_settings_copy.nb_settings_last_covered], &custom_fs_default_device_settings[platform_settings_copy.nb_settings_last_covered], NB_DEVICE_SETTINGS-platform_settings_copy.nb_settings_last_covered);
         
         /* Set number of settings covered */
         platform_settings_copy.nb_settings_last_covered = SETTINGS_NB_USED;
@@ -1385,7 +1386,7 @@ void custom_fs_set_undefined_settings(BOOL force_flash)
         /* Generate random mac address for debug purposes */
         if ((memcmp(custom_fs_platform_settings_p->dbg_bluetooth_addr, "\xFF\xFF\xFF\xFF\xFF\xFF", sizeof(custom_fs_platform_settings_p->dbg_bluetooth_addr)) == 0) || ((custom_fs_platform_settings_p->dbg_bluetooth_addr[5] & 0xC0) != 0xC0))
         {
-            rng_fill_array(platform_settings_copy.dbg_bluetooth_addr, sizeof(platform_settings_copy.dbg_bluetooth_addr));
+            rng_fill_array((uint8_t*)platform_settings_copy.dbg_bluetooth_addr, sizeof(platform_settings_copy.dbg_bluetooth_addr));
             
             /* 2 MSBit must be '11' for RANDOM_STATIC address. */
             platform_settings_copy.dbg_bluetooth_addr[5] |= 0xC0;

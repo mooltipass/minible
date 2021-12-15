@@ -166,7 +166,7 @@ while True:
 			[frame, mcu, resync_done] = msgqueue.get(True, 1)
 
 		if mcu != "DBG":
-			print(' '.join(str.format('{:02X}', x) for x in frame[0:20]))
+			print(' '.join(str.format('{:02X}', x) for x in frame[0:80]))
 
 		if mcu == "DBG":
 			print(datetime.now().strftime("%H:%M:%S.%f")[:-3] + ": debug MSG:    " + frame.replace("\r","").replace("\n",""))
