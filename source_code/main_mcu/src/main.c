@@ -338,8 +338,9 @@ void main_platform_init(void)
     if (custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE)
     #endif
     {
-        /* First boot initializations: set auth counter value to 100 due to possible (non-security critical) hiccups on first mass production batch */
-        custom_fs_set_auth_challenge_counter(100);
+        /* First boot initializations: set auth counter value to 200 due to possible (non-security critical) hiccups on first mass production batch */
+        custom_fs_set_auth_challenge_counter(200);
+        timer_delay_ms(1);
         custom_fs_set_undefined_settings(TRUE);
         
         /* Then functional testing */
@@ -480,10 +481,14 @@ void main_platform_init(void)
             logic_aux_mcu_flash_firmware_update(TRUE);
         }
         
-        /* Issue for some devices that had bundle < 4: some of them wouldn't have their auth counter set to 0 */
+        /* Issue for some devices that had bundle < 4 & 7: some of them wouldn't have their auth counter set to 0 */
         if (custom_fs_get_platform_bundle_version() == 4)
         {
             custom_fs_set_auth_challenge_counter(100);
+        }
+        if (custom_fs_get_platform_bundle_version() == 7)
+        {
+            custom_fs_set_auth_challenge_counter(200);
         }
         #endif
     }

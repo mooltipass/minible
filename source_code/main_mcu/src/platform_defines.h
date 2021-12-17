@@ -237,6 +237,7 @@
         - bundle v6
 - v0.79:- bluetooth disable on too many connections
         - screen wake-up on device lock        
+        - auth counter set to 200
         - bundle v7
 */
 
