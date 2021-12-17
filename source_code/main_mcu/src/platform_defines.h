@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    78
+#define FW_MINOR    79
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -235,6 +235,9 @@
         - bundle v5
 - v0.78:- new feature: display TOTP separately from text credentials
         - bundle v6
+- v0.79:- bluetooth disable on too many connections
+        - screen wake-up on device lock        
+        - bundle v7
 */
 
 /**************** SETUP DEFINES ****************/
