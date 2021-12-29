@@ -1,6 +1,6 @@
 # Moolticute Export File Decoding Utility for Windows
 # Required hardware
-# - ACR38U-I1 (not any other!): https://www.ebay.com/itm/ACR38U-I1-Protable-Contact-Smart-IC-Chip-Card-Reader-Writer-Support-MAC-Linux-OS/291249029385
+# - ACR38U-I1 (not any other!): https://www.ebay.com/itm/254583899400
 #
 # Install Process (15/02/2020):
 # - Install Python 3.6.x, at the time of writing version 3.6.9 and 3.6.10 couldn't be downloaded from the official website. You may take 3.6.8 from https://www.python.org/ftp/python/3.6.8/python-3.6.8-amd64.exe
