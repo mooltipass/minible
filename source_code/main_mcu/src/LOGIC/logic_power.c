@@ -747,6 +747,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
             if ((logic_power_get_power_source() == BATTERY_POWERED) && (vbat_measurement_from_a_bit_ago < BATTERY_ADC_OUT_CUTOUT) && (platform_io_is_usb_3v3_present_raw() == FALSE))
             {
                 /* platform_io_is_usb_3v3_present_raw() call is here to prevent erroneous measurements */
+                logic_power_battery_level_to_be_acked = 0;
                 return POWER_ACT_POWER_OFF;
             }
             
