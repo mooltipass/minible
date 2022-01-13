@@ -10,7 +10,7 @@
 #define LOGIC_BATTERY_H_
 
 /* Enums */
-typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7, LB_PEAK_TIMER_TRIGGERED = 8, LB_CHARGE_REST = 9, LB_INIT_BAT_TEST = 10, LB_ERROR_BAT_TEST = 11} lb_state_machine_te;
+typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7, LB_PEAK_TIMER_TRIGGERED = 8, LB_CHARGE_REST = 9, LB_INIT_BAT_TEST = 10, LB_ERROR_BAT_TEST = 11, LB_ERROR_RECOVERY_CHG = 12} lb_state_machine_te;
 typedef enum    {NIMH_23C_CHARGING, NIMH_SLOWSTART_23C_CHARGING, NIMH_RECOVERY_23C_CHARGING} lb_nimh_charge_scheme_te;
 typedef enum    {BAT_ACT_NONE = 0, BAT_ACT_NEW_BAT_LEVEL, BAT_ACT_CHARGE_FAIL, BAT_ACT_CHARGE_DONE} battery_action_te;
     
@@ -31,12 +31,15 @@ typedef enum    {BAT_ACT_NONE = 0, BAT_ACT_NEW_BAT_LEVEL, BAT_ACT_CHARGE_FAIL, B
 #define LOGIC_BATTERY_START_CHARGE_DELAY    100     // Delay before taking the first decision in our charging algorithm
 #define LOGIC_BATTERY_NB_MIN_SLOW_START     50UL    // Number of minutes we keep a low current for slow start charge
 #define LOGIC_BATTERY_NB_MIN_DANGER_CHARGE  30UL    // Number of minutes we are charging a high current into the battery
-#define LOGIC_BATTERY_NB_MIN_RECOV_REST     10UL    // Number of minutes to rest after the first ramp for recovery
+#define LOGIC_BATTERY_NB_MIN_RECOV_REST     1UL    // Number of minutes to rest after the first ramp for recovery
 #define LOGIC_BATTERY_AVG_TIME_BTW_ADC_INT  20UL    // Average number of ms between ADC measurements
 // Charging current reaching: after quick ramp up, trying to reach the targeted charging current
 #define LOGIC_BATTERY_BAT_CUR_REACH_V_INC   1       // Voltage increments for charge
 #define LOGIC_BATTERY_CUR_FOR_REACH_END_23C 367     // ADC value different between high & low cursense to stop current reach ramping: 1LSB = 0.5445mA
 #define LOGIC_BATTERY_MAX_V_FOR_CUR_REACH   3050    // Voltage at which we consider that something is wrong (around 1.66V)
+// Depleted batteries that lead to a too early end of charge event
+#define LOGIC_BATTERY_ABNORMAL_EOC_SECS     60      // Max number of seconds before which we consider an end of charge event is abnormal during recovery charging
+#define LOGIC_BATTERY_MAX_NB_ABN_EOC_RETR   10      // Maximum number of retries when detecting abnormal EOC events
 /* End of charge detection */
 #define LOGIC_BATTERY_END_OF_CHARGE_NEG_V   2       // Decrease in ADC value during charging (around 1.5mV)
 /* Safety feature */

@@ -24,10 +24,14 @@ uint32_t logic_battery_ramping_current_goal = 0;
 uint16_t logic_battery_charge_voltage = 0;
 /* Peak voltage at the battery */
 uint16_t logic_battery_peak_voltage = 0;
+/* Boolean to skip recovery charge initial logic */
+BOOL logic_battery_skip_initial_recovery_logic = FALSE;
 /* Number of ticks since we saw the peak voltage */
 uint16_t logic_battery_nb_end_condition_counter = 0;
+uint32_t logic_battery_nb_secs_in_cur_maintain = 0;
 uint32_t logic_battery_nb_secs_since_peak = 0;
 uint16_t logic_battery_last_second_seen = 0;
+uint16_t logic_battery_nb_abnormal_eoc = 0;
 /* Flag to start/stop using the ADC */
 BOOL logic_battery_start_using_adc_flag = FALSE;
 BOOL logic_battery_stop_using_adc_flag = FALSE;
@@ -171,9 +175,12 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
     platform_io_enable_charge_mosfets();
 
     /* Reset vars */
+    logic_battery_skip_initial_recovery_logic = FALSE;
     logic_battery_low_charge_current_counter = 0;
     logic_battery_nb_end_condition_counter = 0;
+    logic_battery_nb_secs_in_cur_maintain = 0;
     logic_battery_nb_secs_since_peak = 0;
+    logic_battery_nb_abnormal_eoc = 0;
     logic_battery_peak_voltage = 0;
 }
 
@@ -289,7 +296,20 @@ battery_action_te logic_battery_task(void)
                     if ((logic_battery_charging_type == NIMH_RECOVERY_23C_CHARGING) && (logic_battery_low_charge_current_counter > (LOGIC_BATTERY_NB_MIN_RECOV_REST*60UL*1000UL)/LOGIC_BATTERY_AVG_TIME_BTW_ADC_INT))
                     {
                         /* Rest after first constant small current charge: go full speed! */
-                        logic_battery_start_charging(NIMH_23C_CHARGING);
+                        logic_battery_low_charge_current_counter = 0;
+                        logic_battery_state = LB_CHARGE_START_RAMPING;
+                        logic_battery_skip_initial_recovery_logic = TRUE;
+                        logic_battery_discard_next_adc_measurement_counter = 30;
+                        logic_battery_charge_voltage = LOGIC_BATTERY_BAT_START_CHG_VOLTAGE;
+                        
+                        /* Enable stepdown at provided voltage */
+                        platform_io_enable_step_down(logic_battery_charge_voltage);
+                        
+                        /* Leave a little time for step down voltage to stabilize */
+                        timer_delay_ms(1);
+                        
+                        /* Enable charge mosfets */
+                        platform_io_enable_charge_mosfets();
                     }
                 
                     /* Increment counter */
@@ -348,7 +368,7 @@ battery_action_te logic_battery_task(void)
                     /* Is enough current flowing into the battery? */
                     if (((high_voltage - low_voltage) > logic_battery_ramping_current_goal) && (low_voltage > LOGIC_BATTERY_MIN_V_FOR_CUR_MES))
                     {
-                        if ((logic_battery_charging_type == NIMH_RECOVERY_23C_CHARGING) && (low_voltage <= LOGIC_BATTERY_MAX_V_FOR_RECOVERY_CG))
+                        if ((logic_battery_charging_type == NIMH_RECOVERY_23C_CHARGING) && (logic_battery_skip_initial_recovery_logic == FALSE) && (low_voltage <= LOGIC_BATTERY_MAX_V_FOR_RECOVERY_CG))
                         {
                             /* Recovery: 0.1C until battery reaches given voltage */
                         }
@@ -358,7 +378,7 @@ battery_action_te logic_battery_task(void)
                         }
                         else
                         {
-                            if (logic_battery_charging_type == NIMH_RECOVERY_23C_CHARGING)
+                            if ((logic_battery_charging_type == NIMH_RECOVERY_23C_CHARGING) && (logic_battery_skip_initial_recovery_logic == FALSE))
                             {
                                 /* Recovery charge: let the battery rest before charging it at full speed */
                                 logic_battery_low_charge_current_counter = 0;
@@ -374,6 +394,7 @@ battery_action_te logic_battery_task(void)
                             else
                             {
                                 /* Move to the next state */
+                                logic_battery_skip_initial_recovery_logic = FALSE;
                                 logic_battery_state = LB_CHARGING_REACH;                                
                             }                  
                         }                        
@@ -440,6 +461,7 @@ battery_action_te logic_battery_task(void)
                         /* Change state machine */
                         logic_battery_state = LB_CUR_MAINTAIN;
                         logic_battery_nb_secs_since_peak = 0;
+                        logic_battery_nb_secs_in_cur_maintain = 0;
                         logic_battery_nb_end_condition_counter = 0;
                         logic_battery_peak_voltage = low_voltage - 5;
                     }
@@ -480,7 +502,7 @@ battery_action_te logic_battery_task(void)
                 {
                     /* Get current calendar */
                     calendar_t current_calendar;
-                    timer_get_calendar(&current_calendar);
+                    timer_get_calendar(&current_calendar);                      
                     
                     /* Update peak vars if required */
                     if (low_voltage > logic_battery_peak_voltage)
@@ -491,9 +513,15 @@ battery_action_te logic_battery_task(void)
                     }
                     else if (logic_battery_last_second_seen != current_calendar.bit.SECOND)
                     {
-                        logic_battery_last_second_seen = current_calendar.bit.SECOND;
                         logic_battery_nb_secs_since_peak++;
                     }
+                    
+                    /* Timing counter */
+                    if (logic_battery_last_second_seen != current_calendar.bit.SECOND)
+                    {
+                        logic_battery_last_second_seen = current_calendar.bit.SECOND;
+                        logic_battery_nb_secs_in_cur_maintain++;
+                    }  
                     
                     /* Set voltage difference depending on charging scheme */
                     uint32_t voltage_diff_goal = LOGIC_BATTERY_CUR_FOR_REACH_END_23C;
@@ -513,20 +541,53 @@ battery_action_te logic_battery_task(void)
                     /* End of charge detection here */
                     if (((logic_battery_peak_voltage - low_voltage) > LOGIC_BATTERY_END_OF_CHARGE_NEG_V) && (logic_battery_nb_end_condition_counter++ > 30))
                     {
-                        /* Done state */
-                        logic_battery_state = LB_CHARGING_DONE;
-                        
-                        /* Disable charging */
-                        platform_io_disable_charge_mosfets();
-                        timer_delay_ms(1);
-                        
-                        /* Disable step-down */
-                        platform_io_disable_step_down();
-                        
-                        /* Inform main MCU */
-                        logic_battery_inform_main_of_charge_done(logic_battery_peak_voltage);
-                        status_message_sent_to_main_mcu = TRUE;
-                        return_value = BAT_ACT_CHARGE_DONE;
+                        /* Abnormal EOC? */
+                        if ((logic_battery_nb_abnormal_eoc < LOGIC_BATTERY_MAX_NB_ABN_EOC_RETR) && (logic_battery_nb_secs_in_cur_maintain < LOGIC_BATTERY_ABNORMAL_EOC_SECS) && (logic_battery_charging_type == NIMH_RECOVERY_23C_CHARGING))
+                        {
+                            /* Start the initial charging procedure */
+                            logic_battery_state = LB_CHARGE_START_RAMPING;
+                            logic_battery_discard_next_adc_measurement_counter = 30;
+                            logic_battery_charge_voltage = LOGIC_BATTERY_BAT_START_CHG_VOLTAGE;
+                            platform_io_update_step_down_voltage(logic_battery_charge_voltage);
+                            logic_battery_nb_abnormal_eoc++;
+                        } 
+                        else
+                        {
+                            if ((logic_battery_nb_abnormal_eoc == LOGIC_BATTERY_MAX_NB_ABN_EOC_RETR) && (logic_battery_charging_type == NIMH_RECOVERY_23C_CHARGING))
+                            {
+                                /* Error state */
+                                logic_battery_state = LB_ERROR_RECOVERY_CHG;
+                                
+                                /* Disable charging */
+                                platform_io_disable_charge_mosfets();
+                                timer_delay_ms(1);
+                                
+                                /* Disable step-down */
+                                platform_io_disable_step_down();
+                                
+                                /* Inform main MCU */
+                                comms_main_mcu_send_simple_event(AUX_MCU_EVENT_CHARGE_FAIL);
+                                status_message_sent_to_main_mcu = TRUE;
+                                return_value = BAT_ACT_CHARGE_FAIL;
+                            } 
+                            else
+                            {
+                                /* Done state */
+                                logic_battery_state = LB_CHARGING_DONE;
+                                
+                                /* Disable charging */
+                                platform_io_disable_charge_mosfets();
+                                timer_delay_ms(1);
+                                
+                                /* Disable step-down */
+                                platform_io_disable_step_down();
+                                
+                                /* Inform main MCU */
+                                logic_battery_inform_main_of_charge_done(logic_battery_peak_voltage);
+                                status_message_sent_to_main_mcu = TRUE;
+                                return_value = BAT_ACT_CHARGE_DONE;
+                            }
+                        }
                     }
                     else if ((high_voltage - low_voltage) > voltage_diff_goal + 4)
                     {
