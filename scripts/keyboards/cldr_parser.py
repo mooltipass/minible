@@ -531,7 +531,7 @@ class CLDR():
 		return {"mini_lut_bin": mini_lut_array_bin, "covered_glyphs":glyphs, "hid_to_glyph_lut":hid_to_glyph_lut, "glyphs_from_transforms":glyphs_from_transforms, "transforms":transforms}
 
 
-	def generate_mini_ble_lut(self, platform_name, layout_name, debug_print, layout_description, export_file_name):
+	def generate_mini_ble_lut(self, platform_name, layout_name, debug_print, layout_description, export_file_name, c12_to_d13):
 		layout = self.layouts[platform_name][layout_name]
 		sorted_keys = sorted(layout)
 		lut_bin_dict = {}
@@ -557,6 +557,12 @@ class CLDR():
 		# Start by adding standard keys
 		for key in sorted_keys:
 			mod, keycode, isocode, hidcode, deadkey, canbeusedfortransform = layout[key]
+			
+			# Issue #317
+			if c12_to_d13 and isocode == "B00":
+				isocode = "D13"
+				hidcode = iso_to_hid_dic[isocode]
+			
 			modifier_mask = 0x00
 			for modifier in mod:
 				modifier_mask |= mini_modifier_map[modifier]
@@ -725,59 +731,60 @@ cldr.parse_cldr_xml()
 
 # Generation descriptiona array: platform / layout / description
 keyboard_generation_array = [ \
-								[ "windows", "Belgian French", "Belgium French"],\
-								[ "windows", "Portuguese (Brazil ABNT)", "Brazil"],\
-								[ "windows", "Canadian Multilingual Standard", "Canada"],\
-								[ "windows", "Canadian French", "Canada French"],\
-								[ "windows", "Czech", "Czech"],\
-								[ "windows", "Czech (QWERTY)", "Czech QWERTY"],\
-								[ "windows", "Danish", "Denmark"],\
-								[ "windows", "United States-Dvorak", "Dvorak"],\
-								[ "windows", "French", "France"],\
-								[ "windows", "German", "Germany"],\
-								[ "windows", "Hungarian", "Hungary"],\
-								[ "windows", "Icelandic", "Iceland"],\
-								[ "windows", "Italian", "Italy"],\
-								[ "windows", "Latin American", "Latin America"],\
-								[ "windows", "Dutch", "Netherlands"],\
-								[ "windows", "Norwegian", "Norway"],\
-								[ "windows", "Polish (Programmers)", "Poland"],\
-								[ "windows", "Portuguese", "Portugal"],\
-								[ "windows", "Romanian (Standard)", "Romania"],\
-								[ "windows", "Slovenian", "Slovenia"],\
-								[ "windows", "Spanish", "Spain"],\
-								[ "windows", "Finnish", "Sweden & Finland"],\
-								[ "windows", "Swiss French", "Swiss French"],\
-								[ "windows", "United Kingdom", "United Kingdom"],\
-								[ "windows", "United Kingdom Extended", "UK Extended"],\
-								[ "windows", "US", "USA"],\
-								[ "windows", "United States-International", "US International"],\
-								[ "osx", "Belgian", "Belgium (MacOS)"],\
-								[ "osx", "Brazilian", "Brazil (MacOS)"],\
-								[ "osx", "Canadian", "Canada (MacOS)"],\
-								[ "osx", "Colemak", "Colemak (MacOS)"],\
-								[ "osx", "Czech", "Czech (MacOS)"],\
-								[ "osx", "Czech-QWERTY", "Czech QWERT (MacOS)"],\
-								[ "osx", "Danish", "Denmark (MacOS)"],\
-								[ "osx", "Dvorak", "Dvorak (MacOS)"],\
-								[ "osx", "French", "France (MacOS)"],\
-								[ "osx", "German", "Germany (MacOS)"],\
-								[ "osx", "Hungarian", "Hungary (MacOS)"],\
-								[ "osx", "Icelandic", "Iceland (MacOS)"],\
-								[ "osx", "Italian", "Italy (MacOS)"],\
-								[ "osx", "Dutch", "Nertherlands (Mac)"],\
-								[ "osx", "Norwegian", "Norway (MacOS)"],\
-								[ "osx", "Polish", "Poland (MacOS)"],\
-								[ "osx", "Portuguese", "Portugal (MacOS)"],\
-								[ "osx", "Romanian", "Romania (MacOS)"],\
-								[ "osx", "Slovenian", "Slovenia (MacOS)"],\
-								[ "osx", "Spanish", "Spain (MacOS)"],\
-								[ "osx", "Finnish", "Sweden/Fin (MacOS)"],\
-								[ "osx", "Swiss French", "Swiss FR (MacOS)"],\
-								[ "osx", "British", "UK (MacOS)"],\
-								[ "osx", "U.S.", "USA (MacOS)"],\
-								[ "osx", "US Extended", "US Extended (MacOS)"],\
-								[ "chromeos", "USA - Colemak", "Colemak (Chrome)"],\
+								[ "windows", "Belgian French", "Belgium French", False],\
+								[ "windows", "Portuguese (Brazil ABNT)", "Brazil", False],\
+								[ "windows", "Canadian Multilingual Standard", "Canada", False],\
+								[ "windows", "Canadian French", "Canada French", False],\
+								[ "windows", "Czech", "Czech", False],\
+								[ "windows", "Czech (QWERTY)", "Czech QWERTY", False],\
+								[ "windows", "Danish", "Denmark", False],\
+								[ "windows", "United States-Dvorak", "Dvorak", False],\
+								[ "windows", "French", "France", False],\
+								[ "windows", "German", "Germany", False],\
+								[ "windows", "Hungarian", "Hungary", False],\
+								[ "windows", "Icelandic", "Iceland", False],\
+								[ "windows", "Italian", "Italy", False],\
+								[ "windows", "Latin American", "Latin America", False],\
+								[ "windows", "Dutch", "Netherlands", False],\
+								[ "windows", "Norwegian", "Norway", False],\
+								[ "windows", "Polish (Programmers)", "Poland", False],\
+								[ "windows", "Portuguese", "Portugal", False],\
+								[ "windows", "Romanian (Standard)", "Romania", False],\
+								[ "windows", "Slovenian", "Slovenia", False],\
+								[ "windows", "Spanish", "Spain", False],\
+								[ "windows", "Finnish", "Sweden & Finland", False],\
+								[ "windows", "Swiss French", "Swiss French", False],\
+								[ "windows", "United Kingdom", "United Kingdom", False],\
+								[ "windows", "United Kingdom Extended", "UK Extended", False],\
+								[ "windows", "US", "USA", False],\
+								[ "windows", "United States-International", "US International", False],\
+								[ "osx", "Belgian", "Belgium (MacOS)", False],\
+								[ "osx", "Brazilian", "Brazil (MacOS)", False],\
+								[ "osx", "Canadian", "Canada (MacOS)", False],\
+								[ "osx", "Colemak", "Colemak (MacOS)", False],\
+								[ "osx", "Czech", "Czech (MacOS)", False],\
+								[ "osx", "Czech-QWERTY", "Czech QWERT (MacOS)", False],\
+								[ "osx", "Danish", "Denmark (MacOS)", False],\
+								[ "osx", "Dvorak", "Dvorak (MacOS)", False],\
+								[ "osx", "French", "France (MacOS)", False],\
+								[ "osx", "German", "Germany (MacOS)", False],\
+								[ "osx", "Hungarian", "Hungary (MacOS)", False],\
+								[ "osx", "Icelandic", "Iceland (MacOS)", False],\
+								[ "osx", "Italian", "Italy (MacOS)", False],\
+								[ "osx", "Dutch", "Nertherlands (Mac)", False],\
+								[ "osx", "Norwegian", "Norway (MacOS)", False],\
+								[ "osx", "Polish", "Poland (MacOS)", False],\
+								[ "osx", "Portuguese", "Portugal (MacOS)", False],\
+								[ "osx", "Romanian", "Romania (MacOS)", False],\
+								[ "osx", "Slovenian", "Slovenia (MacOS)", False],\
+								[ "osx", "Spanish", "Spain (MacOS)", False],\
+								[ "osx", "Finnish", "Sweden/Fin (MacOS)", False],\
+								[ "osx", "Swiss French", "Swiss FR (MacOS)", False],\
+								[ "osx", "British", "UK (MacOS)", False],\
+								[ "osx", "U.S.", "USA (MacOS)", False],\
+								[ "osx", "US Extended", "US Extended (MacOS)", False],\
+								[ "chromeos", "USA - Colemak", "Colemak (Chrome)", False],\
+								[ "windows", "US", "USA (Linux)", True, "linux_us"],\
 							]
 
 if False:
@@ -786,8 +793,12 @@ if False:
 
 counter = 0
 for array_item in keyboard_generation_array:
-	cldr.generate_mini_ble_lut(array_item[0], array_item[1], False, array_item[2], str(counter) + "_" + array_item[0] + "_" + array_item[1].replace(" ","").lower() + ".img")
-	print("Generated " + str(counter) + "_" + array_item[0] + "_" + array_item[1].lower() + ".img")
+	if len(array_item) == 4:
+		filename = array_item[0] + "_" + array_item[1].replace(" ","").lower()
+	else:
+		filename = array_item[4]
+	cldr.generate_mini_ble_lut(array_item[0], array_item[1], False, array_item[2], str(counter) + "_" + filename + ".img", array_item[3])
+	print("Generated " + str(counter) + "_" + filename + ".img")
 	counter += 1
 
 if False:
