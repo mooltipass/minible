@@ -929,6 +929,9 @@ void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id)
         return;
     }
     
+    /* Disable interrupts */
+    cpu_irq_enter_critical();
+    
     /* Automatic write, disable caching */
     NVMCTRL->CTRLB.bit.MANW = 0;
     NVMCTRL->CTRLB.bit.CACHEDIS = 1;
@@ -944,6 +947,9 @@ void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id)
     /* Disable automatic write, enable caching */
     NVMCTRL->CTRLB.bit.MANW = 1;
     NVMCTRL->CTRLB.bit.CACHEDIS = 0;
+    
+    /* Re-enable interrupts */
+    cpu_irq_leave_critical();
 #endif
 }
 
@@ -966,6 +972,9 @@ void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void
     {
         return;
     }
+    
+    /* Disable interrupts */
+    cpu_irq_enter_critical();
     
     /* Automatic write, disable caching */
     NVMCTRL->CTRLB.bit.MANW = 0;
@@ -994,6 +1003,9 @@ void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void
     NVMCTRL->CTRLB.bit.MANW = 1;
     NVMCTRL->CTRLB.bit.CACHEDIS = 0;
     __DSB();
+    
+    /* Re-enable interrupts */
+    cpu_irq_leave_critical();
 #endif
 }
 

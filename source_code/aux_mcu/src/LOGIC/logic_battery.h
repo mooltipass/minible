@@ -39,7 +39,7 @@ typedef enum    {BAT_ACT_NONE = 0, BAT_ACT_NEW_BAT_LEVEL, BAT_ACT_CHARGE_FAIL, B
 #define LOGIC_BATTERY_MAX_V_FOR_CUR_REACH   3050    // Voltage at which we consider that something is wrong (around 1.66V)
 // Depleted batteries that lead to a too early end of charge event
 #define LOGIC_BATTERY_ABNORMAL_EOC_SECS     60      // Max number of seconds before which we consider an end of charge event is abnormal during recovery charging
-#define LOGIC_BATTERY_MAX_NB_ABN_EOC_RETR   10      // Maximum number of retries when detecting abnormal EOC events
+#define LOGIC_BATTERY_MAX_NB_ABN_EOC_RETR   40      // Maximum number of retries when detecting abnormal EOC events
 /* End of charge detection */
 #define LOGIC_BATTERY_END_OF_CHARGE_NEG_V   2       // Decrease in ADC value during charging (around 1.5mV)
 /* Safety feature */
