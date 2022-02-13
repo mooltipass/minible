@@ -1,11 +1,14 @@
 # Moolticute Export File Decoding Utility for Windows
 # Required hardware
-# - ACR38U-I1 (not any other!): https://www.ebay.com/itm/254583899400
+# - ACR38U-I1 or ACR39U-U1 (not any other!)
 #
-# Install Process (15/02/2020):
-# - Install Python 3.6.x, at the time of writing version 3.6.9 and 3.6.10 couldn't be downloaded from the official website. You may take 3.6.8 from https://www.python.org/ftp/python/3.6.8/python-3.6.8-amd64.exe
-# - Install pyscard from https://sourceforge.net/projects/pyscard/files/pyscard/ (see https://github.com/LudovicRousseau/pyscard/blob/master/INSTALL.md - https://sourceforge.net/projects/pyscard/files/pyscard/pyscard%201.9.9/pyscard-1.9.9.win-amd64-py3.6.msi/download used for this tutorial)
+# Install Process (12/02/2022):
+# - Install Python 3.9.x from https://www.python.org (3.9.10 can be downloaded here: https://www.python.org/downloads/release/python-3910/)
+# - Install pyscard from https://sourceforge.net/projects/pyscard/files/pyscard/ (https://sourceforge.net/projects/pyscard/files/pyscard/pyscard%202.0.1/pyscard-2.0.1-cp39-cp39-win_amd64.whl/download - install the whl using pip install pyscard-2.0.1-cp39-cp39-win_amd64.whl, see https://github.com/LudovicRousseau/pyscard/blob/master/INSTALL.md)
 # - Install pycryptodome: python -m pip install pycryptodome
+#
+# Known bugs:
+# - if an incorrect pin is inserted, it's not possible to unlock the card anymore with the script. Simply put it back to your device, unlock it, then try again with the script
 #
 from smartcard.CardConnectionObserver import ConsoleCardConnectionObserver
 from smartcard.Exceptions import CardRequestTimeoutException

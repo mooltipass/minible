@@ -133,7 +133,7 @@
 - v0.68:- custom service for android/iOS communications
 - v0.69:- USB interrupt routine modification to handle EORST at end of interrupt
         - 002 bug fix: correct additional delay before reading no comms
-        - bundle v6
+        - bundle v6 & v7
 - v0.70:- recovery charge retries for severely depleted batteries triggering incorrect EOC events
 */
 
