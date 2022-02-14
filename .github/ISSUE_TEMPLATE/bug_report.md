@@ -13,11 +13,12 @@ assignees: ''
 
 ### Step by step guide to reproduce the problem
 
-### Moolticute Version - If Involved
-
 ### Firmware Version
 AUX MCU version:  
 Main MCU version:  
+Bundle version:  
+
+### Moolticute Version - If Involved
 
 ### Operating System
 Mention if you are using either:
