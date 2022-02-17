@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    79
+#define FW_MINOR    80
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -239,6 +239,7 @@
         - screen wake-up on device lock        
         - auth counter set to 200
         - bundle v7
+- v0.80:- bug fix: HID_CMD_TEST_FILE_ID correct return
 */
 
 /**************** SETUP DEFINES ****************/

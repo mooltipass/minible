@@ -952,7 +952,7 @@ RET_TYPE logic_user_check_data_service(cust_char_t* service, nodemgmt_data_categ
     }
     else
     {
-        return RETURN_OK;
+        return RETURN_NOK;
     }
 }
 
