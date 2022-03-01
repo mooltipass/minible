@@ -710,9 +710,11 @@ void nodemgmt_delete_all_bluetooth_bonding_information(void)
 RET_TYPE nodemgmt_store_bluetooth_bonding_information(nodemgmt_bluetooth_bonding_information_t* bonding_information)
 {
     uint8_t mac_address_read[MEMBER_ARRAY_SIZE(nodemgmt_bluetooth_bonding_information_t, mac_address)];
+    uint8_t irk_key_read[MEMBER_ARRAY_SIZE(nodemgmt_bluetooth_bonding_information_t, peer_irk_key)];
     bonding_information->zero_to_be_valid = 0x0000;
     uint16_t zero_to_be_valid_read_from_flash;
     uint16_t temp_page, temp_page_offset;
+    uint8_t address_resolv_type_read;
     BOOL found_empty_slot = FALSE;
     uint16_t temp_uid;
     
@@ -728,11 +730,17 @@ RET_TYPE nodemgmt_store_bluetooth_bonding_information(nodemgmt_bluetooth_bonding
         /* Check for filled slot */
         dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, zero_to_be_valid), sizeof(zero_to_be_valid_read_from_flash), &zero_to_be_valid_read_from_flash);
 		
+        /* Read address type */
+        dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, address_resolv_type), sizeof(address_resolv_type_read), &address_resolv_type_read);
+        
         /* Read mac address */
         dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, mac_address), sizeof(mac_address_read), mac_address_read);
+        
+        /* Read IRK keys */
+        dbflash_read_data_from_flash(&dbflash_descriptor, temp_page, temp_page_offset + (size_t)offsetof(nodemgmt_bluetooth_bonding_information_t, peer_irk_key), sizeof(irk_key_read), irk_key_read);
 		
-        /* Found it? */
-        if ((zero_to_be_valid_read_from_flash == 0x0000) && (memcmp(mac_address_read, bonding_information->mac_address, sizeof(mac_address_read)) == 0))
+        /* Found it? Check for MAC address for public or random static addresses, and IRK key for private addresses (see AUX MCU at_ble_api.h) */
+        if (((zero_to_be_valid_read_from_flash == 0x0000) && (address_resolv_type_read < 2) && (memcmp(mac_address_read, bonding_information->mac_address, sizeof(mac_address_read)) == 0)) || ((zero_to_be_valid_read_from_flash == 0x0000) && (address_resolv_type_read == 2) && (memcmp(irk_key_read, bonding_information->peer_irk_key, sizeof(irk_key_read)) == 0)))
         {
             /* Then overwrite the bonding information */
             dbflash_write_data_to_flash(&dbflash_descriptor, temp_page, temp_page_offset, sizeof(nodemgmt_bluetooth_bonding_information_t), (void*)bonding_information);
