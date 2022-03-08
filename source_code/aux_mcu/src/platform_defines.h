@@ -135,6 +135,7 @@
         - 002 bug fix: correct additional delay before reading no comms
         - bundle v6 & v7
 - v0.70:- recovery charge retries for severely depleted batteries triggering incorrect EOC events
+        - bundle v8
 */
 
 /**************** SETUP DEFINES ****************/

@@ -241,6 +241,7 @@
         - bundle v7
 - v0.80:- bluetooth connection bug fix: incorrect connection for private resolvable Bluetooth addresses
         - bug fix: HID_CMD_TEST_FILE_ID correct return
+        - bundle v8
 */
 
 /**************** SETUP DEFINES ****************/
