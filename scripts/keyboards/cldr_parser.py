@@ -452,7 +452,7 @@ class CLDR():
 		glyphs = ""
 		table.append(["Glyph", "Unicode", "HID code", "modifier+isocode", "modifier+scancode", "Description"])
 		for key in sorted_keys:
-			mod, keycode, isocode, hidcode, deadkey = layout[key]
+			mod, keycode, isocode, hidcode, deadkey, canbeusedfortransform = layout[key]
 			try:
 				des = unicodedata.name(chr(key))
 			except:
@@ -487,7 +487,7 @@ class CLDR():
 							'altR':		KEY_RIGHT_ALT,
 							'cmdR':		0x00}	
 		for key in sorted_keys:
-			mod, keycode, isocode, hidcode, deadkey = layout[key]
+			mod, keycode, isocode, hidcode, deadkey, canbeusedfortransform = layout[key]
 			modifier_mask = 0x00
 			for modifier in mod:
 				modifier_mask |= modifier_map[modifier]
@@ -513,7 +513,7 @@ class CLDR():
 								'cmdR':		0x00}	
 		mini_lut = ""
 		for key in sorted_keys:
-			mod, keycode, isocode, hidcode, deadkey = layout[key]
+			mod, keycode, isocode, hidcode, deadkey, canbeusedfortransform = layout[key]
 			modifier_mask = 0x00
 			for modifier in mod:
 				modifier_mask |= mini_modifier_map[modifier]
@@ -788,7 +788,7 @@ keyboard_generation_array = [ \
 							]
 
 if False:
-	cldr.show_lut("osx", "German", True)
+	cldr.show_lut("osx", "U.S.", True)
 	sys.exit(0)
 
 counter = 0
