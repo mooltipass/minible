@@ -1096,16 +1096,17 @@ void logic_database_fetch_encrypted_TOTPsecret(uint16_t child_node_addr, uint8_t
     memcpy(TOTP_ctr, temp_cnode.TOTP.TOTPsecret_ctr, sizeof(temp_cnode.TOTP.TOTPsecret_ctr));
 }
 
-/*! \fn     logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag, BOOL* password_valid)
+/*! \fn     logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag, BOOL* password_valid, BOOL* has_totp)
 *   \brief  Fill a get cred message packet
 *   \param  child_node_addr             Child node address
 *   \param  send_msg                    Pointer to send message
 *   \param  cred_ctr                    Where to store credential CTR
 *   \param  prev_gen_credential_flag    Where to store flag for previous gen cred
 *   \param  password_valid              Boolean set depending if the password is valid
+*   \param  has_totp                    Boolean set depending if the credential has a TOTP
 *   \return Payload size without pwd
 */
-uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag, BOOL* password_valid)
+uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, hid_message_t* send_msg, uint8_t* cred_ctr, BOOL* prev_gen_credential_flag, BOOL* password_valid, BOOL* has_totp)
 {
     child_cred_node_t temp_cnode;    
     uint16_t current_index = 0;
@@ -1166,6 +1167,16 @@ uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, h
     else
     {
         *password_valid = FALSE;
+    }
+    
+    /* Set TOTP flag */
+    if (temp_cnode.TOTP.TOTPsecretLen > 0)
+    {
+        *has_totp = TRUE;
+    } 
+    else
+    {
+        *has_totp = FALSE;
     }
     
     return current_index*sizeof(cust_char_t) + sizeof(send_msg->get_credential_answer.login_name_index) + sizeof(send_msg->get_credential_answer.description_index) + sizeof(send_msg->get_credential_answer.third_field_index) + sizeof(send_msg->get_credential_answer.password_index);

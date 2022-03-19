@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    80
+#define FW_MINOR    81
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -242,6 +242,7 @@
 - v0.80:- bluetooth connection bug fix: incorrect connection for private resolvable Bluetooth addresses
         - bug fix: HID_CMD_TEST_FILE_ID correct return
         - bundle v8
+- v0.81:- new setting: on-screen OTP display after login into website
 */
 
 /**************** SETUP DEFINES ****************/

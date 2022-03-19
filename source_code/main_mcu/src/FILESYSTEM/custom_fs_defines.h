@@ -79,8 +79,9 @@
 #define SETTINGS_BLUETOOTH_SHORTCUTS        24
 #define SETTINGS_SCREEN_SAVER_ID            25
 #define SETTINGS_PREF_ST_SERV_FEATURE       26
+#define SETTINGS_DISP_TOTP_AFTER_RECALL     27
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    27
+#define SETTINGS_NB_USED                    28
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32

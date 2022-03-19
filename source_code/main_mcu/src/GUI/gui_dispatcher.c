@@ -86,6 +86,16 @@ void gui_dispatcher_stop_screen_saver(void)
     gui_dispatcher_current_screen_saver_anim = 0;
 }
 
+/*! \fn     gui_dispatcher_reset_idle_vars(void)
+*   \brief  Reset the idle animation vars
+*/
+void gui_dispatcher_reset_idle_vars(void)
+{
+    gui_dispatcher_current_idle_anim_frame_id = 0;
+    gui_dispatcher_current_idle_anim_loop = 0;
+    timer_start_timer(TIMER_ANIMATIONS, 50);
+}
+
 /*! \fn     gui_dispatcher_display_battery_bt_overlay(BOOL write_to_buffer)
 *   \brief  Display battery / bt overlay in current frame buffer
 *   \param  write_to_buffer Set to TRUE to write to buffer
@@ -319,10 +329,10 @@ void gui_dispatcher_event_dispatch(wheel_action_ret_te wheel_action)
     }
 }
 
-/*! \fn     gui_dispatcher_idle_call(void)
+/*! \fn     gui_dispatcher_idle_call(gui_screen_te screen_override)
 *   \brief  Called for idle actions
 */
-void gui_dispatcher_idle_call(void)
+void gui_dispatcher_idle_call(gui_screen_te screen_override)
 {
     /* Copy of current frame id */
     uint16_t current_frame_id = gui_dispatcher_current_idle_anim_frame_id;
@@ -330,8 +340,14 @@ void gui_dispatcher_idle_call(void)
     /* Temp uint16_t */
     uint16_t temp_uint16;
     
+    /* If override is not specified */
+    if (screen_override == GUI_SCREEN_INVALID)
+    {
+        screen_override = gui_dispatcher_current_screen;
+    }
+    
     /* switch to let the compiler optimize instead of function pointer array */
-    switch (gui_dispatcher_current_screen)
+    switch (screen_override)
     {
         case GUI_SCREEN_NINSERTED:
         case GUI_SCREEN_INSERTED_LCK:       {
@@ -593,7 +609,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
         }
         else
         {
-            gui_dispatcher_idle_call();
+            gui_dispatcher_idle_call(GUI_SCREEN_INVALID);
         }
     }
 }

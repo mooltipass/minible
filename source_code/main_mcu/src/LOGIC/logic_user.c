@@ -1600,6 +1600,8 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
     uint8_t temp_cred_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     BOOL prev_gen_credential_flag = FALSE;
     BOOL password_valid_flag = FALSE;
+    BOOL has_totp_flag = FALSE;
+    child_node_t temp_cnode;
     uint16_t pwd_length = 0;
     
     /* Copy strings locally */
@@ -1715,16 +1717,31 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
 
             /* 3 lines notification website / logging you in with / username */
             gui_prompts_display_information_lines_on_screen(&notif_text_3_lines, DISP_MSG_INFO, 3);
-
-            /* Set information screen, do not call get back to current screen as screen is already updated */
-            gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);
+            
+            /* Display TOTP if requested */
+            if (custom_fs_settings_get_device_setting(SETTINGS_DISP_TOTP_AFTER_RECALL) != FALSE)
+            {
+                /* For a few seconds, let the animation be displayed */
+                gui_dispatcher_reset_idle_vars();
+                uint16_t temp_timer_id = timer_get_and_start_timer(3000);
+                while (timer_has_allocated_timer_expired(temp_timer_id, FALSE) != TIMER_EXPIRED)
+                {
+                    gui_dispatcher_idle_call(GUI_SCREEN_LOGIN_NOTIF);                    
+                }
+                timer_deallocate_timer(temp_timer_id);
+            }
+            else
+            {
+                /* Set information screen, do not call get back to current screen as screen is already updated */
+                gui_dispatcher_set_current_screen(GUI_SCREEN_LOGIN_NOTIF, FALSE, GUI_INTO_MENU_TRANSITION);                
+            }
         }
         
         /* Prepare answer */
         aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
         
         /* Get prefilled message */
-        uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, &temp_tx_message_pt->hid_message, temp_cred_ctr, &prev_gen_credential_flag, &password_valid_flag);
+        uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, &temp_tx_message_pt->hid_message, temp_cred_ctr, &prev_gen_credential_flag, &password_valid_flag, &has_totp_flag);
         
         /* Password valid? */
         if (password_valid_flag == FALSE)
@@ -1755,6 +1772,14 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
         /* Return payload size */
         comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, return_payload_size);
         comms_aux_mcu_send_message(temp_tx_message_pt);
+        
+        /* Display TOTP if requested */
+        if ((custom_fs_settings_get_device_setting(SETTINGS_DISP_TOTP_AFTER_RECALL) != FALSE) && (has_totp_flag != FALSE))
+        {
+            nodemgmt_read_cred_child_node(child_address, &temp_cnode.cred_child);
+            logic_gui_display_login_password_TOTP(&temp_cnode.cred_child, TRUE);
+            gui_dispatcher_get_back_to_current_screen();
+        }
         return;
     }
     else
@@ -1802,7 +1827,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
                 
                 /* Get prefilled message */
-                uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, &temp_tx_message_pt->hid_message, temp_cred_ctr, &prev_gen_credential_flag, &password_valid_flag);
+                uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, &temp_tx_message_pt->hid_message, temp_cred_ctr, &prev_gen_credential_flag, &password_valid_flag, &has_totp_flag);
                 
                 /* Password valid? */
                 if (password_valid_flag == FALSE)
@@ -1833,6 +1858,14 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
                 /* Return payload size */
                 comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, return_payload_size);
                 comms_aux_mcu_send_message(temp_tx_message_pt);
+                
+                /* Display TOTP if requested */
+                if ((custom_fs_settings_get_device_setting(SETTINGS_DISP_TOTP_AFTER_RECALL) != FALSE) && (has_totp_flag != FALSE))
+                {
+                    nodemgmt_read_cred_child_node(child_address, &temp_cnode.cred_child);
+                    logic_gui_display_login_password_TOTP(&temp_cnode.cred_child, TRUE);
+                    gui_dispatcher_get_back_to_current_screen();
+                }
                 return;
             }
         }
