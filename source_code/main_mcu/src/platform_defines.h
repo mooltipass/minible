@@ -243,6 +243,7 @@
         - bug fix: HID_CMD_TEST_FILE_ID correct return
         - bundle v8
 - v0.81:- new setting: on-screen OTP display after login into website
+        - bug fix: battery may drain out when hash display feature is set
 */
 
 /**************** SETUP DEFINES ****************/

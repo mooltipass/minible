@@ -622,14 +622,14 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
     return GUI_INFO_DISP_RET_OK;
 }
 
-/*! \fn     gui_prompts_display_3line_information_on_screen(confirmationText_t* text_lines, display_message_te message_type, BOOL no_return_on_timeout_line23_same_size)
+/*! \fn     gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type, BOOL long_timeout)
 *   \brief  Display text information on screen - 3 lines version
 *   \param  confirmationText_t      Pointer to the struct containing the 3 lines
 *   \param  message_type            Message type (see enum)
-*   \param  no_return_on_timeout    Set to TRUE to not return after timeout
+*   \param  long_timeout            Set to TRUE for long timeout
 *   \return If the card insertion status didn't change
 */
-BOOL gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type, BOOL no_return_on_timeout)
+BOOL gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type, BOOL long_timeout)
 {
     uint16_t i = 0;
     
@@ -639,10 +639,20 @@ BOOL gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
     /* Store current smartcard inserted state */
     ret_type_te card_absent = smartcard_low_level_is_smc_absent();
     
-    /* Optional wait */
+    /* Timer Init. */
     timer_start_timer(TIMER_ANIMATIONS, 50);
-    uint16_t temp_timer_id = timer_get_and_start_timer(3000);
-    while (((no_return_on_timeout != FALSE) || (timer_has_allocated_timer_expired(temp_timer_id, TRUE) != TIMER_EXPIRED)) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK))
+    uint16_t temp_timer_id;
+    if (long_timeout != FALSE)
+    {
+        temp_timer_id = timer_get_and_start_timer(30000);
+    } 
+    else
+    {
+        temp_timer_id = timer_get_and_start_timer(3000);
+    }
+    
+    /* Loop! */
+    while ((timer_has_allocated_timer_expired(temp_timer_id, TRUE) != TIMER_EXPIRED) && (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK))
     {
         /* Deal with incoming messages but do not deal with them */
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);

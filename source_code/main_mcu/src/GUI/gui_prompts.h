@@ -139,7 +139,7 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
 ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, BOOL ignore_timeout_if_usb_powered, BOOL ignore_card_removal, BOOL usb_layout_choice);
 mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t string_id, BOOL accept_cancel_message, BOOL usb_ble_prompt, BOOL first_item_selected);
 mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_addr, uint16_t* chosen_child_node_addr, uint16_t* child_addresses_overwrite);
-BOOL gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type, BOOL no_return_on_timeout);
+BOOL gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t* text_lines, display_message_te message_type, BOOL long_timeout);
 void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame_id, uint16_t* timer_timeout, display_message_te message_type);
 void gui_prompts_display_information_lines_on_screen(confirmationText_t* text_lines, display_message_te message_type, uint16_t nb_lines);
 void gui_prompts_display_information_on_screen(uint16_t string_id, display_message_te message_type);
