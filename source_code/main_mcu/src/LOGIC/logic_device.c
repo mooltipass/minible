@@ -145,6 +145,22 @@ void logic_device_clear_wakeup_reason(void)
     logic_device_aux_mcu_wakeup_rcvd = FALSE;
 }
 
+/*! \fn     logic_device_get_screen_current_for_current_use(void)
+*   \brief  Get the OLED screen current for our current use
+*   \return The current to be set
+*/
+uint8_t logic_device_get_screen_current_for_current_use(void)
+{
+    if (logic_power_get_power_source() == USB_POWERED)
+    {
+        return custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT_USB); 
+    }
+    else
+    {
+        return custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT_BAT);
+    }
+}
+
 /*! \fn     logic_device_get_wakeup_reason(void)
 *   \brief  Get device wakeup reason
 *   \return wakeup reason

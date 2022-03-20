@@ -268,7 +268,7 @@ int main(void)
     if (is_usb_power_present_at_boot != FALSE)
     {
         platform_io_power_up_oled(TRUE);
-        sh1122_init_display(&plat_oled_descriptor, FALSE);
+        sh1122_init_display(&plat_oled_descriptor, FALSE, 0x90);
     }
     #endif
 

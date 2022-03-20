@@ -38,6 +38,7 @@ ret_type_te logic_device_bundle_update_start(BOOL from_debug_messages, uint8_t* 
 volatile platform_wakeup_reason_te logic_device_get_wakeup_reason(void);
 void logic_device_set_wakeup_reason(platform_wakeup_reason_te reason);
 void logic_device_bundle_update_end(BOOL from_debug_messages);
+uint8_t logic_device_get_screen_current_for_current_use(void);
 BOOL logic_device_get_and_clear_settings_changed_flag(void);
 BOOL logic_device_get_and_clear_usb_timeout_detected(void);
 BOOL logic_device_get_state_changed_and_reset_bool(void);

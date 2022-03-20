@@ -26,6 +26,7 @@
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
+#include "logic_device.h"
 #include "logic_power.h"
 #include "platform_io.h"
 #include "custom_fs.h"
@@ -335,7 +336,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     platform_io_assert_oled_reset();
     timer_delay_ms(15);
     platform_io_power_up_oled(FALSE);
-    sh1122_init_display(&plat_oled_descriptor, TRUE);
+    sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
     sh1122_clear_current_screen(&plat_oled_descriptor);
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);

@@ -879,12 +879,13 @@ uint8_t sh1122_get_current_font_height(sh1122_descriptor_t* oled_descriptor)
     return oled_descriptor->current_font_header.height;
 }
 
-/*! \fn     sh1122_init_display(sh1122_descriptor_t oled_descriptor, BOOL leave_internal_logic_and_reflush_frame_buffer)
+/*! \fn     sh1122_init_display(sh1122_descriptor_t oled_descriptor, BOOL leave_internal_logic_and_reflush_frame_buffer, uint8_t master_current)
 *   \brief  Initialize a SSD1322 display
 *   \param  oled_descriptor                                 Pointer to a sh1122 descriptor struct
 *   \param  leave_internal_logic_and_reflush_frame_buffer   Set to TRUE to do what it says...
+*   \param  master_current                                  Display master current
 */
-void sh1122_init_display(sh1122_descriptor_t* oled_descriptor, BOOL leave_internal_logic_and_reflush_frame_buffer)
+void sh1122_init_display(sh1122_descriptor_t* oled_descriptor, BOOL leave_internal_logic_and_reflush_frame_buffer, uint8_t master_current)
 {
     /* Vars init : should already be to 0 but you never know... */
     if (leave_internal_logic_and_reflush_frame_buffer == FALSE)
@@ -953,6 +954,11 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor, BOOL leave_intern
     
     /* From datasheet : wait 100ms */
     timer_delay_ms(100);
+    
+    /* Set master current */
+    sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_CONTRAST_CURRENT);
+    sh1122_write_single_command(oled_descriptor, master_current);
+    timer_delay_ms(5);
 
     /* Switch screen on */
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_ON);

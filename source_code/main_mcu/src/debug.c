@@ -33,6 +33,7 @@
 #include "gui_dispatcher.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
+#include "logic_device.h"
 #include "driver_timer.h"
 #include "gui_prompts.h"
 #include "platform_io.h"
@@ -519,7 +520,7 @@ void debug_battery_repair(void)
             #ifndef EMULATOR_BUILD
             platform_io_transcienty_battery_oled_power_up();
             #endif
-            sh1122_init_display(&plat_oled_descriptor, TRUE);
+            sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
             sh1122_put_error_string(&plat_oled_descriptor, u"Blinking");
             timer_delay_ms(15);
         }
@@ -530,7 +531,7 @@ void debug_battery_repair(void)
         platform_io_assert_oled_reset();
         timer_delay_ms(15);
         platform_io_power_up_oled(TRUE);
-        sh1122_init_display(&plat_oled_descriptor, TRUE);
+        sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
         sh1122_put_error_string(&plat_oled_descriptor, u"Charging");
 
         /* Start danger change */
@@ -572,7 +573,7 @@ void debug_battery_recondition(void)
     platform_io_assert_oled_reset();
     timer_delay_ms(15);
     platform_io_power_up_oled(FALSE);
-    sh1122_init_display(&plat_oled_descriptor, TRUE);
+    sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
     
     /* Display animation until 1V cell */
     uint16_t current_vbat = 0xFFFF;
@@ -622,7 +623,7 @@ void debug_battery_recondition(void)
     platform_io_assert_oled_reset();
     timer_delay_ms(15);
     platform_io_power_up_oled(TRUE);
-    sh1122_init_display(&plat_oled_descriptor, TRUE);
+    sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
     
     /* Display info */
     sh1122_clear_current_screen(&plat_oled_descriptor);
@@ -713,7 +714,7 @@ void debug_test_battery(void)
 void debug_test_pattern_display(void)
 {
     wheel_action_ret_te action_ret = WHEEL_ACTION_NONE;
-    uint8_t master_current = custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT);
+    uint8_t master_current = custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT_USB);
     sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, TEST_PATTERN__BITMAP_ID, FALSE);
     
     while (action_ret != WHEEL_ACTION_SHORT_CLICK)

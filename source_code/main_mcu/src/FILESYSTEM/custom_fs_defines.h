@@ -61,7 +61,7 @@
 #define SETTINGS_CHAR_AFTER_PASS_PRESS      6
 #define SETTINGS_DELAY_BETWEEN_PRESSES      7
 #define SETTINGS_BOOT_ANIMATION             8
-#define SETTINGS_MASTER_CURRENT             9
+#define SETTINGS_MASTER_CURRENT_USB         9
 #define SETTINGS_LOCK_ON_DISCONNECT         10
 #define SETTINGS_KNOCK_DETECT_SENSITIVITY   11
 #define SETTINGS_LEFT_HANDED_ON_BATTERY     12
@@ -80,8 +80,9 @@
 #define SETTINGS_SCREEN_SAVER_ID            25
 #define SETTINGS_PREF_ST_SERV_FEATURE       26
 #define SETTINGS_DISP_TOTP_AFTER_RECALL     27
+#define SETTINGS_MASTER_CURRENT_BAT         28
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    28
+#define SETTINGS_NB_USED                    29
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32

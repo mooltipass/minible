@@ -228,7 +228,7 @@ void main_platform_init(void)
         logic_power_set_power_source(USB_POWERED);
         platform_io_power_up_oled(TRUE);
     }
-    sh1122_init_display(&plat_oled_descriptor, FALSE);
+    sh1122_init_display(&plat_oled_descriptor, FALSE, logic_device_get_screen_current_for_current_use());
     
     /* Release aux MCU reset (v2 platform only) */
     platform_io_release_aux_reset();
@@ -460,9 +460,6 @@ void main_platform_init(void)
     BOOL screen_inverted = logic_power_get_power_source() == BATTERY_POWERED?(BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_BATTERY):(BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_USB);
     sh1122_set_screen_invert(&plat_oled_descriptor, screen_inverted);    
     inputs_set_inputs_invert_bool(screen_inverted);
-    
-    /* Set screen brightness */
-    sh1122_set_contrast_current(&plat_oled_descriptor, custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT));
     
     /* Program AUX if needed */
     if (custom_fs_get_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID) != FALSE)
