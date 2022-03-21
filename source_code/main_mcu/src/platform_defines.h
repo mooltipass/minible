@@ -242,9 +242,10 @@
 - v0.80:- bluetooth connection bug fix: incorrect connection for private resolvable Bluetooth addresses
         - bug fix: HID_CMD_TEST_FILE_ID correct return
         - bundle v8
-- v0.81:- new setting: on-screen OTP display after login into website
-        - bug fix: battery may drain out when hash display feature is set
-        - new setting: USB and battery powered screen brightness
+- v0.81:- bug fix: battery may drain out when hash display feature is set
+        - setting: custom delay between enter key and password for _unlock_ 
+        - setting: on-screen OTP display after login into website
+        - setting: USB and battery powered screen brightness
         - USB command to select current category
 */
 

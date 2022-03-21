@@ -2292,7 +2292,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                             comms_aux_mcu_send_message(typing_message_to_be_sent);
                             comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_SHORTCUT_TYPED);
                             shortcut_sent = TRUE;
-                            timer_delay_ms(600);
+                            timer_delay_ms(custom_fs_settings_get_device_setting(SETTINGS_DELAY_BEF_UNLOCK_LOGIN)*10);
                         }
                         
                         /* Type login */

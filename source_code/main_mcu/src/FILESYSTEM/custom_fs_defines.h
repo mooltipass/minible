@@ -81,8 +81,9 @@
 #define SETTINGS_PREF_ST_SERV_FEATURE       26
 #define SETTINGS_DISP_TOTP_AFTER_RECALL     27
 #define SETTINGS_MASTER_CURRENT_BAT         28
+#define SETTINGS_DELAY_BEF_UNLOCK_LOGIN     29
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    29
+#define SETTINGS_NB_USED                    30
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32
