@@ -69,6 +69,9 @@ uint16_t logic_user_preferred_starting_service = NODE_ADDR_NULL;
 uint32_t logic_user_prefered_st_service_ts = 0;
 // User security preferences
 uint16_t logic_user_cur_sec_preferences;
+// User category to switch to
+BOOL logic_user_switch_to_category_requested = FALSE;
+uint16_t logic_user_category_to_switch_to = 0;
 
 
 /*! \fn     logic_user_invalidate_preferred_starting_service(void)
@@ -202,6 +205,32 @@ RET_TYPE logic_user_is_bluetooth_enabled_for_inserted_card(uint16_t* user_langua
 void logic_user_set_user_to_be_logged_off_flag(void)
 {
     logic_user_should_be_logged_off_flag = TRUE;
+}
+
+/*! \fn     logic_user_set_category_to_switch_to(uint16_t category_id)
+*   \brief  Set the credential category to switch to
+*   \param  category_id     The category ID
+*/
+void logic_user_set_category_to_switch_to(uint16_t category_id)
+{
+    if (category_id < NODEMGMT_NB_MAX_CATEGORIES)
+    {
+        logic_user_switch_to_category_requested = TRUE;
+        logic_user_category_to_switch_to = category_id;
+    }
+}
+
+/*! \fn     logic_user_is_category_to_be_switched(uint16_t* category_id)
+*   \brief  Know if there's a category to switch to and clear the switch bool
+*   \param  category_id Pointer to where to store the category to switch to
+*   \return If we should switch to a new category
+*/
+BOOL logic_user_is_category_to_be_switched(uint16_t* category_id)
+{
+    BOOL return_value = logic_user_switch_to_category_requested;
+    *category_id = logic_user_category_to_switch_to;
+    logic_user_switch_to_category_requested = FALSE;
+    return return_value;
 }
 
 /*! \fn     logic_user_get_and_clear_user_to_be_logged_off_flag(void)

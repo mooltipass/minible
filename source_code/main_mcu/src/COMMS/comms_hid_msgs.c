@@ -709,6 +709,26 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             }
         }
         
+        case HID_CMD_SET_CUR_CATEGORY:
+        {
+            /* Set current category, only if no category has been selected */
+            if ((nodemgmt_get_current_category() == 0) && (rcv_msg->payload[0] < NODEMGMT_NB_MAX_CATEGORIES))
+            {
+                /* Set flag */
+                logic_user_set_category_to_switch_to(rcv_msg->payload[0]);
+
+                /* Set success byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+                return;
+            }
+            else
+            {
+                /* Set failure byte */
+                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
+                return;
+            }
+        }        
+        
         case HID_CMD_GET_START_PARENTS:
         {            
             /* Return correct size & data */

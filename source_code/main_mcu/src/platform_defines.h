@@ -245,6 +245,7 @@
 - v0.81:- new setting: on-screen OTP display after login into website
         - bug fix: battery may drain out when hash display feature is set
         - new setting: USB and battery powered screen brightness
+        - USB command to select current category
 */
 
 /**************** SETUP DEFINES ****************/

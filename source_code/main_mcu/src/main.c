@@ -806,6 +806,17 @@ int main(void)
             platform_io_disable_switch_and_die();
         }
         
+        /* Check if we should switch categories */
+        uint16_t temp_category;
+        if (logic_user_is_category_to_be_switched(&temp_category) != FALSE)
+        {
+            /* Set new category */
+            nodemgmt_set_current_category_id(temp_category);
+            
+            /* Invalidate preferred starting login */
+            logic_user_invalidate_preferred_starting_service();
+        }
+        
         /* Check flag to be logged off */
         if ((logic_user_get_and_clear_user_to_be_logged_off_flag() != FALSE) && \
             (gui_dispatcher_get_current_screen() != GUI_SCREEN_NINSERTED) && \

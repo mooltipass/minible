@@ -54,6 +54,8 @@ void logic_user_change_node_password(uint16_t node_address, cust_char_t* passwor
 void logic_user_inform_computer_locked_state(BOOL usb_interface, BOOL locked);
 void logic_user_set_preferred_starting_service(uint16_t service_addr);
 void logic_user_set_layout_id(uint16_t layout_id, BOOL usb_layout);
+BOOL logic_user_is_category_to_be_switched(uint16_t* category_id);
+void logic_user_set_category_to_switch_to(uint16_t category_id);
 void logic_user_reset_computer_locked_state(BOOL usb_interface);
 BOOL logic_user_get_and_clear_user_to_be_logged_off_flag(void);
 void logic_user_clear_user_security_flag(uint16_t bitmask);
