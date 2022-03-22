@@ -69,7 +69,8 @@ const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = { 0,      
                                                                         TRUE,                                    // SETTINGS_PREF_ST_SERV_FEATURE
                                                                         FALSE,                                   // SETTINGS_DISP_TOTP_AFTER_RECALL      
                                                                         0x90,                                    // SETTINGS_MASTER_CURRENT_BAT
-                                                                        60};                                     // SETTINGS_DELAY_BEF_UNLOCK_LOGIN
+                                                                        60,                                      // SETTINGS_DELAY_BEF_UNLOCK_LOGIN
+                                                                        FALSE};                                  // SETTINGS_SWITCH_OFF_AFTER_BT_DISC
 #ifndef EMULATOR_BUILD
 /* Pointer to the platform unique data, stored at the last page of our bootloader */
 platform_unique_data_t* custom_fs_plat_data_ptr = (platform_unique_data_t*)(FLASH_ADDR + APP_START_ADDR - NVMCTRL_ROW_SIZE);

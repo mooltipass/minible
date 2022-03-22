@@ -246,6 +246,7 @@
         - setting: custom delay between enter key and password for _unlock_ 
         - setting: on-screen OTP display after login into website
         - setting: USB and battery powered screen brightness
+        - setting: switch off after BLE disconnect
         - USB command to select current category
 */
 

@@ -595,6 +595,12 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
                 logic_user_set_user_to_be_logged_off_flag();
             }
             
+            /* If user selected to, switch off device */
+            if (((BOOL)custom_fs_settings_get_device_setting(SETTINGS_SWITCH_OFF_AFTER_BT_DISC) != FALSE) && (logic_power_get_power_source() != USB_POWERED))
+            {
+                logic_device_power_off();
+            }
+            
             logic_user_reset_computer_locked_state(FALSE);
             logic_bluetooth_set_connected_state(FALSE);
             break;
