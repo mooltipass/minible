@@ -83,8 +83,9 @@
 #define SETTINGS_MASTER_CURRENT_BAT         28
 #define SETTINGS_DELAY_BEF_UNLOCK_LOGIN     29
 #define SETTINGS_SWITCH_OFF_AFTER_BT_DISC   30
+#define SETTINGS_MC_SUBDOMAIN_FORCE_STATUS  31
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    31
+#define SETTINGS_NB_USED                    32
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32
