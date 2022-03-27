@@ -66,6 +66,7 @@ BOOL logic_user_usb_computer_unlocked = FALSE;
 BOOL logic_user_ble_computer_unlocked = FALSE;
 // preferred starting service
 uint16_t logic_user_preferred_starting_service = NODE_ADDR_NULL;
+uint16_t logic_user_last_used_service = NODE_ADDR_NULL;
 uint32_t logic_user_prefered_st_service_ts = 0;
 // User security preferences
 uint16_t logic_user_cur_sec_preferences;
@@ -80,6 +81,7 @@ uint16_t logic_user_category_to_switch_to = 0;
 void logic_user_invalidate_preferred_starting_service(void)
 {
     logic_user_preferred_starting_service = NODE_ADDR_NULL;
+    logic_user_last_used_service = NODE_ADDR_NULL;
 }
 
 /*! \fn     logic_user_set_preferred_starting_service(uint16_t service_addr)
@@ -1916,13 +1918,19 @@ void logic_user_manual_select_login(void)
     
     /* Check if a preferred starting address is present, valid, and not too old */
     node_type_te temp_node_type;
-    if ((custom_fs_settings_get_device_setting(SETTINGS_PREF_ST_SERV_FEATURE) != FALSE) && 
-        (logic_user_preferred_starting_service != NODE_ADDR_NULL) && 
+    if ((logic_user_preferred_starting_service != NODE_ADDR_NULL) && 
         (nodemgmt_check_user_permission(logic_user_preferred_starting_service, &temp_node_type) == RETURN_OK) && 
         (temp_node_type == NODE_TYPE_PARENT) &&
         (timer_get_systick() - logic_user_prefered_st_service_ts < 30000))
     {
         chosen_service_addr = logic_user_preferred_starting_service;
+    }
+    else if ((custom_fs_settings_get_device_setting(SETTINGS_PREF_ST_SERV_FEATURE) != FALSE) &&
+             (logic_user_last_used_service != NODE_ADDR_NULL) &&
+             (nodemgmt_check_user_permission(logic_user_last_used_service, &temp_node_type) == RETURN_OK) &&
+             (temp_node_type == NODE_TYPE_PARENT))
+    {
+        chosen_service_addr = logic_user_last_used_service;
     }
 
     while (TRUE)
@@ -2020,6 +2028,7 @@ void logic_user_manual_select_login(void)
             }
             else
             {
+                logic_user_last_used_service = chosen_service_addr;
                 return;
             }
         }
@@ -2065,6 +2074,7 @@ void logic_user_manual_select_login(void)
             {
                 nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child);
                 logic_gui_display_login_password_TOTP(&temp_cnode.cred_child, FALSE);
+                logic_user_last_used_service = chosen_service_addr;
                 memset(&temp_cnode, 0, sizeof(temp_cnode));
                 return;
             }
@@ -2099,6 +2109,7 @@ void logic_user_manual_select_login(void)
                             logic_gui_display_login_password_TOTP(&temp_cnode.cred_child, TRUE);
                         }
                         /* Last item displayed. Return to main menu */
+                        logic_user_last_used_service = chosen_service_addr;
                         memset(&temp_cnode, 0, sizeof(temp_cnode));
                         return;
                     }

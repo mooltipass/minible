@@ -245,6 +245,7 @@
 - v0.81:- bug fix: battery may drain out when hash display feature is set
         - setting: custom delay between enter key and password for _unlock_
         - setting: allocated for MC, specify subdomain status on device
+        - setting: first credential in login menu to be the last used
         - setting: on-screen OTP display after login into website
         - setting: USB and battery powered screen brightness
         - setting: switch off after BLE disconnect
