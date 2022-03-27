@@ -336,8 +336,8 @@ typedef struct
     parent_node_t temp_parent_node;         // Temp parent node to be used when needed
     uint16_t currentCategoryId;             // Current category ID
     uint16_t currentCategoryFlags;          // Current category flags
-    uint16_t lastCredParentNodes[10];      // The address of the users last cred parent node (read from flash. eg cache)
-    uint16_t lastDataParentNodes[7];       // The addresses of the users last data parent nodes (read from flash. eg cache)
+    uint16_t lastCredParentNodes[10];       // The address of the users last cred parent node (read from flash. eg cache)
+    uint16_t lastDataParentNodes[7];        // The addresses of the users last data parent nodes (read from flash. eg cache)
 } nodemgmtHandle_t;
 
 /* Inlines */
@@ -428,6 +428,7 @@ void nodemgmt_update_data_parent_ctr_and_first_child_address(uint16_t parent_add
 int32_t nodemgmt_get_next_non_null_favorite_before_index(uint16_t favId, uint16_t category_id, BOOL navigate_across_categories);
 int32_t nodemgmt_get_next_non_null_favorite_after_index(uint16_t favId, uint16_t category_id, BOOL navigate_across_categories);
 uint16_t nodemgmt_get_encrypted_data_from_data_node(uint16_t data_child_address, uint8_t* buffer, uint16_t* nb_bytes_written);
+void nodemgmt_fetch_favorites_filtered_by_cat_sorted(favorite_addr_t* favorite_array, BOOL last_used_sort, uint16_t* nb_favs);
 uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
 uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);

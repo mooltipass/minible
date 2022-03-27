@@ -248,6 +248,7 @@
         - setting: first credential in login menu to be the last used
         - setting: on-screen OTP display after login into website
         - setting: USB and battery powered screen brightness
+        - setting: sort favorites by last used date
         - setting: switch off after BLE disconnect
         - USB command to select current category
 */

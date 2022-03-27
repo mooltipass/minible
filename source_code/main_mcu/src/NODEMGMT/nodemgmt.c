@@ -2070,6 +2070,89 @@ void nodemgmt_allow_new_change_number_increment(void)
     nodemgmt_current_handle.datadbChanged = FALSE;
     nodemgmt_current_handle.dbChanged = FALSE;
 }    
+
+/*! \fn     nodemgmt_fetch_favorites_filtered_by_cat_sorted_by_last_used(favorite_addr_t* favorite_array, BOOL last_used_sort, uint16_t* nb_favs)
+ *  \brief  Fetch user's favorites into our cache, filter them by current category and sort them by last used if needed
+ *  \param  favorite_array  Where to store the (sorted) favorites
+ *  \param  last_used_sort  Boolean to sort by last used data
+ *  \param  nb_favs         Where to store the number of favorites read
+ *  \note   Buffer needs to be MEMBER_ARRAY_SIZE(favorites_for_category_t,favorite)*MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t,category_favorites) long
+ */
+void nodemgmt_fetch_favorites_filtered_by_cat_sorted(favorite_addr_t* favorite_array, BOOL last_used_sort, uint16_t* nb_favs)
+{
+    uint16_t last_used_timestamps[MEMBER_ARRAY_SIZE(favorites_for_category_t, favorite)*MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites)];
+    favorites_for_category_t buffered_favorites[MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites)];
+    _Static_assert(sizeof(buffered_favorites) == sizeof(nodemgmt_userprofile_t)-sizeof(nodemgmt_profile_main_data_t), "Invalid buffer");
+    
+    // Memset provided array
+    memset(favorite_array, 0, sizeof(buffered_favorites));
+    
+    // Fetch favorites
+    dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_current_handle.pageUserProfile, nodemgmt_current_handle.offsetUserProfile + (size_t)offsetof(nodemgmt_userprofile_t, category_favorites), sizeof(buffered_favorites), (void*)buffered_favorites);
+    
+    // Loop variables
+    uint16_t end_category_id = (nodemgmt_current_handle.currentCategoryId == 0) ? ((uint16_t)MEMBER_ARRAY_SIZE(nodemgmt_userprofile_t, category_favorites)) : nodemgmt_current_handle.currentCategoryId + 1;
+    uint16_t store_index = 0;
+    
+    // Clean for the current category, store in provided array
+    for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(favorites_for_category_t, favorite); i++)
+    {
+        for (uint16_t j = nodemgmt_current_handle.currentCategoryId; j < end_category_id; j++)
+        {
+            // Valid favorite?
+            if ((buffered_favorites[j].favorite[i].child_addr != NODE_ADDR_NULL) && (buffered_favorites[j].favorite[i].parent_addr != NODE_ADDR_NULL))
+            {
+                // Fetch last used time stamp, store parent & child address
+                dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(buffered_favorites[j].favorite[i].child_addr), (BASE_NODE_SIZE * nodemgmt_node_from_address(buffered_favorites[j].favorite[i].child_addr)) + offsetof(child_cred_node_t, dateLastUsed), sizeof(uint16_t), (void*)&last_used_timestamps[store_index]);
+                memcpy(&favorite_array[store_index], &buffered_favorites[j].favorite[i], sizeof(favorite_addr_t));
+                if (last_used_timestamps[store_index] == UINT16_MAX)
+                {
+                    // Timestamp not set
+                    last_used_timestamps[store_index] = 0;
+                } 
+                else
+                {
+                    last_used_timestamps[store_index] = swap16(last_used_timestamps[store_index]);
+                }
+                store_index++;
+            }
+        }
+    }
+    
+    // Store number of favorites
+    *nb_favs = store_index;
+    
+    // Did we actually get something?
+    if (store_index == 0)
+    {
+        return;
+    }
+    
+    // Then go for the atrocious bubble sort if needed... but hey, 50 elements max!
+    if (last_used_sort != FALSE)
+    {
+        uint16_t temp_uint;
+        favorite_addr_t temp_fav_addr;
+        for (uint16_t i = 0; i < store_index-1; i++)
+        {
+            for (uint16_t j = 0; j < store_index-i-1; j++)
+            {
+                if (last_used_timestamps[j] < last_used_timestamps[j+1])
+                {
+                    // For timestamps
+                    temp_uint = last_used_timestamps[j];
+                    last_used_timestamps[j] = last_used_timestamps[j+1];
+                    last_used_timestamps[j+1] = temp_uint;
+                    
+                    // For favorite addresses
+                    memcpy(&temp_fav_addr, &favorite_array[j], sizeof(favorite_addr_t));
+                    memcpy(&favorite_array[j], &favorite_array[j+1], sizeof(favorite_addr_t));
+                    memcpy(&favorite_array[j+1], &temp_fav_addr, sizeof(favorite_addr_t));
+                }
+            }
+        }
+    }
+}   
     
 /*! \fn     nodemgmt_init_context(uint16_t userIdNum, uint16_t* userSecFlags, uint16_t* userLanguage, uint16_t* userLayout, uint16_t* userBLELayout)
  *  \brief  Initializes the Node Management Handle, scans memory for the next free node

@@ -408,7 +408,6 @@ void logic_device_set_state_changed(void)
     logic_user_invalidate_preferred_starting_service();
 }
 
-
 /*! \fn     logic_device_get_state_changed_and_reset_bool(void)
 *   \brief  Fetch and reset state changed bool
 */
