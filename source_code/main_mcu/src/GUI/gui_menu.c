@@ -256,6 +256,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                         }
                         else
                         {
+                            logic_user_set_preferred_starting_service(chosen_service_addr);
                             return TRUE;
                         }
                     }
@@ -288,6 +289,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                         {
                             nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child);
                             logic_gui_display_login_password_TOTP(&temp_cnode.cred_child, FALSE);
+                            logic_user_set_preferred_starting_service(chosen_service_addr);
                             memset(&temp_cnode, 0, sizeof(temp_cnode));
                             return TRUE;
                         }
@@ -319,6 +321,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                                     {
                                         nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child);
                                         logic_gui_display_login_password_TOTP(&temp_cnode.cred_child, TRUE);
+                                        logic_user_set_preferred_starting_service(chosen_service_addr);
                                     }
                                     /* Last item displayed. Return to main menu */
                                     memset(&temp_cnode, 0, sizeof(temp_cnode));
