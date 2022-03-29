@@ -107,6 +107,14 @@ void jump_to_application_function(void)
 }
 #endif
 
+/*! \fn     main_create_virtual_wheel_movement(void)
+*   \brief  Create virtual wheel movement
+*/
+void main_create_virtual_wheel_movement(void)
+{
+    virtual_wheel_action = WHEEL_ACTION_VIRTUAL;
+}
+
 /*! \fn     main_platform_init(void)
 *   \brief  Initialize our platform
 */

@@ -251,6 +251,7 @@
         - setting: sort favorites by last used date
         - setting: switch off after BLE disconnect
         - USB command to select current category
+        - USB command to wake-up device
 */
 
 /**************** SETUP DEFINES ****************/

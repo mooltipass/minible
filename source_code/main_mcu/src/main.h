@@ -32,6 +32,7 @@
 
 
 /* Prototypes */
+void main_create_virtual_wheel_movement(void);
 uint32_t main_check_stack_usage(void);
 void main_init_stack_tracking(void);
 void main_platform_init(void);

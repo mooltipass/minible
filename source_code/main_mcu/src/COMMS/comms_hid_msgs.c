@@ -357,6 +357,14 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
             return;
         }
+        
+        case HID_CMD_WAKE_UP_DEVICE:
+        {
+            /* Wake up the device */
+            main_create_virtual_wheel_movement();
+            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+            return;
+        }
 
         case HID_CMD_NIMH_RECONDITION:
         {
