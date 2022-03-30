@@ -392,6 +392,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             {
                 comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
             }
+            return;
         }
         
         case HID_CMD_GET_DEVICE_INT_SN:
