@@ -192,7 +192,7 @@ int main(int ac, char ** av)
         {
             // the OS will most likely not schedule our timer with 1ms frequency,
             // so we correct for this by running the "irq" function several times if needed
-            static QTime timer = QTime::currentTime();
+            static QElapsedTimer timer;
             for(int msPassed = timer.restart(); msPassed >= 0; --msPassed)
                 pseudo_irq();
         }
