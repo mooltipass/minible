@@ -15,8 +15,8 @@ fi
 # Debian package
 docker exec minible-deb bash /scripts/build_source.sh $VERSION xenial
 docker exec minible-deb bash /scripts/build_source.sh $VERSION bionic
-docker exec minible-deb bash /scripts/build_source.sh $VERSION disco
-docker exec minible-deb bash /scripts/build_source.sh $VERSION eoan
+docker exec minible-deb bash /scripts/build_source.sh $VERSION jammy
+docker exec minible-deb bash /scripts/build_source.sh $VERSION impish
 docker exec minible-deb bash /scripts/build_source.sh $VERSION focal
 
 #prepare files to upload volume
