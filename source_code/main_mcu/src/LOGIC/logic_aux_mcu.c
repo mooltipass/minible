@@ -90,6 +90,8 @@ BOOL logic_aux_mcu_is_usb_enumerated(void)
 */
 void logic_aux_mcu_enable_ble(BOOL wait_for_enabled)
 {
+    _Static_assert(MEMBER_SIZE(dis_device_information_t, custom_device_name)==MEMBER_SIZE(custom_platform_settings_t, custom_ble_name), "Non matching bluetooth name fields lengths");
+    
     if (logic_aux_mcu_ble_enabled == FALSE)
     {
         aux_mcu_message_t* temp_tx_message_pt;

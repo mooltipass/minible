@@ -365,6 +365,14 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
             return;
         }
+        
+        case HID_CMD_SET_CUST_BLE_NAME:
+        {
+            /* Setup custom bluetooth name: no check on payload as 0 termination on a fixed length string is in the called function */
+            custom_fs_set_custom_ble_name(rcv_msg->payload);
+            comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
+            return;
+        }
 
         case HID_CMD_NIMH_RECONDITION:
         {

@@ -41,6 +41,8 @@
 #define CUSTOM_FS_BITMAP_RLE_FLAG           0x01
 // Flag to use provisioned key
 #define  CUSTOM_FS_PROV_KEY_FLAG            0x91
+// Custom Bluetooth name length - DO NOT CHANGE TO FIX IN 31B PAYLOAD
+#define CUSTOM_BLE_NAME_MAX_LENGTH          22
 
 /* HID defines */
 #define KEY_RETURN                          0x28
@@ -179,7 +181,8 @@ typedef struct
     uint32_t other_reserved_uint32;
     power_consumption_log_t power_log;
     time_calibration_data_t time_calib;
-    uint8_t reserved_array[84];
+    uint8_t reserved_array[61];
+    uint8_t custom_ble_name[CUSTOM_BLE_NAME_MAX_LENGTH+1];
     uint32_t platform_serial_number;
     uint32_t device_auth_challenge_counter;
     uint8_t bluetooth_addr_padding[2];

@@ -79,6 +79,8 @@ platform_unique_data_t* custom_fs_plat_data_ptr = (platform_unique_data_t*)(FLAS
 #endif
 /* Current selected language entry */ 
 language_map_entry_t custom_fs_cur_language_entry = {.starting_bitmap = 0, .starting_font = 0, .string_file_index = 0};
+/* string describing our device */
+uint8_t custom_fs_mini_ble_string[MEMBER_SIZE(custom_platform_settings_t,custom_ble_name)] = "Mooltipass Mini BLE";
 /* Temp values to speed up string files reading */
 custom_fs_string_count_t custom_fs_current_text_file_string_count = 0;
 custom_fs_address_t custom_fs_current_text_file_addr = 0;
@@ -173,7 +175,32 @@ uint16_t custom_fs_get_platform_bundle_version(void)
 */
 uint8_t* custom_fs_get_custom_ble_name(void)
 {
-    return (uint8_t*)"this is 22 chars long!";
+    /* Check for invalid string */
+    for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(custom_platform_settings_t, custom_ble_name); i++)
+    {
+        if (custom_fs_platform_settings_p->custom_ble_name[i] == 0)
+        {
+            return custom_fs_platform_settings_p->custom_ble_name;
+        }
+        else if ((custom_fs_platform_settings_p->custom_ble_name[i] < ' ') || (custom_fs_platform_settings_p->custom_ble_name[0] > '}'))
+        {
+            return custom_fs_mini_ble_string;
+        }  
+    }
+    return custom_fs_mini_ble_string;
+}
+
+/*! \fn     custom_fs_set_custom_ble_name(uint8_t* name)
+*   \brief  Set our custom bluetooth name
+*   \param  name    Pointer to a CUSTOM_BLE_NAME_MAX_LENGTH max long string
+*/
+void custom_fs_set_custom_ble_name(uint8_t* name)
+{
+    volatile custom_platform_settings_t temp_settings;
+    custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    memcpy((uint8_t*)temp_settings.custom_ble_name, name, MEMBER_SIZE(custom_platform_settings_t, custom_ble_name)-1);
+    temp_settings.custom_ble_name[MEMBER_SIZE(custom_platform_settings_t, custom_ble_name)-1] = 0;
+    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
 }
 
 /*! \fn     custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)

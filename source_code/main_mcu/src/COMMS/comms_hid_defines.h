@@ -102,6 +102,7 @@
 #define HID_CMD_PREPARE_SN_FLASH    0x003D
 #define HID_CMD_SET_CUR_CATEGORY    0x003E
 #define HID_CMD_WAKE_UP_DEVICE      0x003F
+#define HID_CMD_SET_CUST_BLE_NAME   0x0040
 // Below: commands requiring MMM
 #define HID_CMD_GET_START_PARENTS   0x0100
 #define HID_CMD_END_MMM             0x0101

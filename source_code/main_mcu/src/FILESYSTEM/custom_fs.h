@@ -31,7 +31,6 @@
 
 /* Defines */
 #define START_OF_SIGNED_DATA_IN_DATA_FLASH  (CUSTOM_FS_FILES_ADDR_OFFSET + offsetof(custom_file_flash_header_t, signing_key_update_bool))
-#define CUSTOM_BLE_NAME_MAX_LENGTH          22
 
 /* Prototypes */
 void custom_fs_store_power_consumption_log_and_calib_data(power_consumption_log_t* power_log_pt, time_calibration_data_t* time_calib_data_pt);
@@ -87,6 +86,7 @@ void custom_fs_settings_clear_fw_upgrade_flag(void);
 uint32_t custom_fs_get_number_of_keyb_layouts(void);
 void custom_fs_get_debug_bt_addr(uint8_t* bt_addr);
 void custom_fs_settings_set_fw_upgrade_flag(void);
+void custom_fs_set_custom_ble_name(uint8_t* name);
 uint32_t custom_fs_get_number_of_languages(void);
 uint8_t custom_fs_get_current_language_id(void);
 uint8_t* custom_fs_get_custom_ble_name(void);
