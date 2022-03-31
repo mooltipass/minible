@@ -1598,11 +1598,11 @@ void logic_bluetooth_custom_comms_send_data(at_ble_handle_t conn_handle, uint8_t
     }
 }
 
-/*! \fn     logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
+/*! \fn     logic_bluetooth_start_bluetooth(dis_device_information_t* device_info)
 *   \brief  Start bluetooth
-*   \param  unit_mac_address    6 bytes unit mac address
+*   \param  device_info Pointer to our device information
 */
-void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
+void logic_bluetooth_start_bluetooth(dis_device_information_t* device_info)
 {
     DBG_LOG("Starting Bluetooth...");
     
@@ -1658,14 +1658,14 @@ void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
     /* Generate random mac address :D */
     at_ble_addr_t mac_address;
     mac_address.type = AT_BLE_ADDRESS_PUBLIC;
-    memcpy(mac_address.addr, unit_mac_address, AT_BLE_ADDR_LEN);
+    memcpy(mac_address.addr, device_info->mac_address, AT_BLE_ADDR_LEN);
     
     /* Initialize the ble chip and set the device mac address */
-    ble_device_init(&mac_address, &logic_bluetooth_advanced_info);
+    ble_device_init(&mac_address, &logic_bluetooth_advanced_info, device_info);
     
     /* Initialize the device information service */
     dis_gatt_service_handler_t device_info_serv;
-    dis_init_service(&device_info_serv);
+    dis_init_service(&device_info_serv, device_info);
     
     /* Define the primary service in the GATT server database */
     if(dis_primary_service_define(&device_info_serv) != AT_BLE_SUCCESS)
@@ -1764,7 +1764,7 @@ void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address)
     }
     
     /*  Set advertisement data from ble_manager */
-    if(!(ble_advertisement_data_set() == AT_BLE_SUCCESS))
+    if(!(ble_advertisement_data_set(device_info) == AT_BLE_SUCCESS))
     {
         DBG_LOG("ERROR: Fail to set Advertisement data");
     }

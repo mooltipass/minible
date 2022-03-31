@@ -30,6 +30,7 @@
 #include "comms_hid_defines.h"
 #include "nodemgmt_defines.h"
 #include "platform_defines.h"
+#include "custom_fs.h"
 
 // Aux MCU Message Type
 #define AUX_MCU_MSG_TYPE_USB                0x0000
@@ -168,14 +169,27 @@ typedef struct
     };
 } aux_mcu_event_message_t;
 
+typedef struct 
+{
+    uint8_t mac_address[6];
+    uint8_t fw_major;
+    uint8_t fw_minor;
+    uint32_t serial_number;
+    uint16_t bundle_version;
+    uint8_t custom_device_name[CUSTOM_BLE_NAME_MAX_LENGTH+1];
+} dis_device_information_t;
+
 typedef struct
 {
     uint16_t message_id;
+    uint16_t uint32_t_padding;
     union
     {
+        dis_device_information_t dis_device_information;
         nodemgmt_bluetooth_bonding_information_t bonding_information_to_store_message;
-        uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)];
-        uint16_t payload_as_uint16_t[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t))/2];
+        uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)-sizeof(uint16_t)];
+        uint16_t payload_as_uint16_t[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)-sizeof(uint16_t))/2];
+        uint32_t payload_as_uint32_t[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)-sizeof(uint16_t))/4];
     };
 } ble_message_t;
 

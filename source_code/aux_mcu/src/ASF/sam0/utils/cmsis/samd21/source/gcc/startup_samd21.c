@@ -267,9 +267,11 @@ void Reset_Handler(void)
  */
 void Dummy_Handler(void)
 {
+    #ifdef DEBUG
     volatile uint32_t phantomISR = 9999;
     while (1) 
     {
             phantomISR = __get_IPSR();
     }
+    #endif
 }

@@ -923,6 +923,9 @@
     <Compile Include="src\defines.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\device_info_struct.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\DMA\dma.c">
       <SubType>compile</SubType>
     </Compile>

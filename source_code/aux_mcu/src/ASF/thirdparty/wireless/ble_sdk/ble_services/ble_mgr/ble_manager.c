@@ -220,7 +220,7 @@ at_ble_init_config_t pf_cfg = {
 };
 
 /** @brief BLE device initialization */
-void ble_device_init(at_ble_addr_t *addr, at_ble_gap_deviceinfo_t* device_info)
+void ble_device_init(at_ble_addr_t *addr, at_ble_gap_deviceinfo_t* device_info, dis_device_information_t* dis_device_info)
 {
 #ifdef BTLC_REINIT_SUPPORT
     static bool btlc1000_initialized = false;
@@ -323,7 +323,7 @@ void ble_device_init(at_ble_addr_t *addr, at_ble_gap_deviceinfo_t* device_info)
         DBG_LOG("ERROR: Couldn't set advanced info");
     }
                                     
-    char* dev_name = (char *)BLE_DEVICE_NAME;
+    char* dev_name = (char *)dis_device_info->custom_device_name;
     if (ble_set_device_name((uint8_t *)dev_name, strlen(dev_name)) != AT_BLE_SUCCESS)
     {
         DBG_LOG("Device name set failed");
@@ -1280,11 +1280,13 @@ at_ble_status_t ble_resolv_rand_addr_handler(void *params)
 
 at_ble_status_t ble_mtu_changed_indication_handler(void *params)
 {
-    at_ble_mtu_changed_ind_t *mtu_changed_ind;
-    mtu_changed_ind = (at_ble_mtu_changed_ind_t *)params;
-    DBG_LOG_DEV("BLE-MTU Changed, Connection Handle: %d, New Value: %d", 
-                                        mtu_changed_ind->conhdl, 
-                                        mtu_changed_ind->mtu_value);
+    #if !defined(DEBUG_LOG_DISABLED)
+        at_ble_mtu_changed_ind_t *mtu_changed_ind;
+        mtu_changed_ind = (at_ble_mtu_changed_ind_t *)params;
+        DBG_LOG_DEV("BLE-MTU Changed, Connection Handle: %d, New Value: %d", 
+                                            mtu_changed_ind->conhdl, 
+                                            mtu_changed_ind->mtu_value);
+    #endif
     return AT_BLE_SUCCESS;
 }
 
@@ -1332,10 +1334,12 @@ at_ble_status_t ble_characteristic_write_cmd_complete_handler(void *params)
 /** @brief function handles disconnection event received from stack */
 at_ble_status_t ble_disconnected_state_handler(void *params)
 {
-    at_ble_disconnected_t* disconnect = (at_ble_disconnected_t *)params;
+    #if !defined(DEBUG_LOG_DISABLED)
+     at_ble_disconnected_t* disconnect = (at_ble_disconnected_t *)params;
+     DBG_LOG("Device disconnected Reason:0x%02x Handle=0x%x", disconnect->reason, disconnect->handle);
+    #endif
     send_slave_security_flag = true;
     ble_clear_bond_info();
-    DBG_LOG("Device disconnected Reason:0x%02x Handle=0x%x", disconnect->reason, disconnect->handle);
     return AT_BLE_SUCCESS;
 }
 
@@ -2016,7 +2020,7 @@ void ble_event_manager(at_ble_events_t events, void *event_params)
 }
 
 /* Advertisement Data will be set based on the advertisement configuration */
-at_ble_status_t ble_advertisement_data_set(void)
+at_ble_status_t ble_advertisement_data_set(dis_device_information_t* device_info)
 {
     uint8_t adv_buf[AT_BLE_ADV_MAX_SIZE];
     uint8_t scn_resp[AT_BLE_ADV_MAX_SIZE];
@@ -2192,11 +2196,11 @@ at_ble_status_t ble_advertisement_data_set(void)
     
     #if (BLE_GAP_ADV_COMPLETE_LOCAL_NAME_ENABLE && !BLE_GAP_ADV_SHORTENED_LOCAL_NAME_ENABLE)
     #if (BLE_GAP_ADV_COMPLETE_LOCAL_NAME_SCN_RSP_ENABLE != SCAN_RESPONSE_ONLY_ENABLE)
-    if((adv_data_element.len) <= (AT_BLE_ADV_MAX_SIZE - (ADV_TYPE_FLAG_SIZE + ADV_ELEMENT_SIZE + BLE_GAP_ADV_DATA_COMPLETE_LOCAL_NAME_LENGTH))) {
-        adv_buf[adv_data_element.len++] = BLE_GAP_ADV_DATA_COMPLETE_LOCAL_NAME_LENGTH + ADV_TYPE_SIZE;
+    if((adv_data_element.len) <= (AT_BLE_ADV_MAX_SIZE - (ADV_TYPE_FLAG_SIZE + ADV_ELEMENT_SIZE + strlen((char*)device_info->custom_device_name)))) {
+        adv_buf[adv_data_element.len++] = strlen((char*)device_info->custom_device_name) + ADV_TYPE_SIZE;
         adv_buf[adv_data_element.len++] = COMPLETE_LOCAL_NAME;
-        memcpy(&adv_buf[adv_data_element.len], BLE_GAP_ADV_DATA_COMPLETE_LOCAL_NAME, BLE_GAP_ADV_DATA_COMPLETE_LOCAL_NAME_LENGTH);
-        adv_data_element.len += BLE_GAP_ADV_DATA_COMPLETE_LOCAL_NAME_LENGTH;
+        memcpy(&adv_buf[adv_data_element.len], device_info->custom_device_name, strlen((char*)device_info->custom_device_name));
+        adv_data_element.len += strlen((char*)device_info->custom_device_name);
     }
     #else
     if(false){}

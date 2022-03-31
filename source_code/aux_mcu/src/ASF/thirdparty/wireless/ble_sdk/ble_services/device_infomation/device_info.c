@@ -52,7 +52,7 @@ bool volatile dis_notification_flag[DIS_TOTAL_CHARATERISTIC_NUM] = {false};
 uint16_t device_info_char_counter = 0;
 
 /**@brief Initialize the dis service related information. */
-void dis_init_service(dis_gatt_service_handler_t *device_info_serv)
+void dis_init_service(dis_gatt_service_handler_t *device_info_serv, dis_device_information_t* device_info)
 {    
     device_info_char_counter = 0;
     
@@ -121,10 +121,9 @@ void dis_init_service(dis_gatt_service_handler_t *device_info_serv)
 	device_info_serv->serv_chars[device_info_char_counter].uuid.uuid[1] = (uint8_t) (DIS_CHAR_SERIAL_NUMBER_UUID >> 8);          /* UUID : Hardware Revision String*/
 	device_info_serv->serv_chars[device_info_char_counter].properties = AT_BLE_CHAR_READ; /* Properties */
 	
-	memcpy(char_value.default_serial_number,DEFAULT_SERIAL_NUMBER,DIS_CHAR_SERIAL_NUMBER_INIT_LEN);
-	device_info_serv->serv_chars[device_info_char_counter].init_value = char_value.default_serial_number;
-	
-	device_info_serv->serv_chars[device_info_char_counter].value_init_len = DIS_CHAR_SERIAL_NUMBER_INIT_LEN;
+    itoa(device_info->serial_number, (char*)char_value.default_serial_number, 10);
+	device_info_serv->serv_chars[device_info_char_counter].init_value = char_value.default_serial_number;	
+	device_info_serv->serv_chars[device_info_char_counter].value_init_len = strlen((char*)char_value.default_serial_number);
 	device_info_serv->serv_chars[device_info_char_counter].value_max_len = DIS_CHAR_SERIAL_NUMBER_MAX_LEN;
     // Allow anyone to read the device information
 	device_info_serv->serv_chars[device_info_char_counter].value_permissions = AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR;   /* permissions */
@@ -175,10 +174,12 @@ void dis_init_service(dis_gatt_service_handler_t *device_info_serv)
 	device_info_serv->serv_chars[device_info_char_counter].uuid.uuid[1] = (uint8_t) (DIS_CHAR_FIRMWARE_REIVSION_UUID >> 8);          /* UUID : Software Revision */
 	device_info_serv->serv_chars[device_info_char_counter].properties = AT_BLE_CHAR_READ; /* Properties */
 	
-	memcpy(char_value.default_firmware_revision,DEFAULT_FIRMWARE_REIVSION,DIS_CHAR_FIRMWARE_REIVSION_INIT_LEN);
-	device_info_serv->serv_chars[device_info_char_counter].init_value = char_value.default_firmware_revision;
-	
-	device_info_serv->serv_chars[device_info_char_counter].value_init_len = DIS_CHAR_FIRMWARE_REIVSION_INIT_LEN;
+    
+    itoa(device_info->fw_major, (char*)char_value.default_firmware_revision, 10);
+    char_value.default_firmware_revision[1] = '.';
+    itoa(device_info->fw_minor, (char*)&char_value.default_firmware_revision[2], 10);
+	device_info_serv->serv_chars[device_info_char_counter].init_value = char_value.default_firmware_revision;	
+	device_info_serv->serv_chars[device_info_char_counter].value_init_len = strlen((char*)char_value.default_firmware_revision);
 	device_info_serv->serv_chars[device_info_char_counter].value_max_len = DIS_CHAR_FIRMWARE_REIVSION_MAX_LEN;
     // Allow anyone to read the device information
 	device_info_serv->serv_chars[device_info_char_counter].value_permissions = AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR;   /* permissions */
@@ -201,10 +202,11 @@ void dis_init_service(dis_gatt_service_handler_t *device_info_serv)
 	device_info_serv->serv_chars[device_info_char_counter].uuid.uuid[1] = (uint8_t) (DIS_CHAR_SOFTWARE_REVISION_UUID >> 8);          /* uuid : software revision */
 	device_info_serv->serv_chars[device_info_char_counter].properties = AT_BLE_CHAR_READ; /* properties */
 	
-	memcpy(char_value.default_software_revision,DEFAULT_SOFTWARE_REVISION,DIS_CHAR_SOFTWARE_REVISION_INIT_LEN);
-	device_info_serv->serv_chars[device_info_char_counter].init_value = char_value.default_software_revision;
-	
-	device_info_serv->serv_chars[device_info_char_counter].value_init_len = DIS_CHAR_SOFTWARE_REVISION_INIT_LEN;
+    
+    
+    itoa(device_info->bundle_version, (char*)char_value.default_software_revision, 10);
+	device_info_serv->serv_chars[device_info_char_counter].init_value = char_value.default_software_revision;	
+	device_info_serv->serv_chars[device_info_char_counter].value_init_len = strlen((char*)char_value.default_software_revision);
 	device_info_serv->serv_chars[device_info_char_counter].value_max_len = DIS_CHAR_SOFTWARE_REVISION_MAX_LEN;
     // Allow anyone to read the device information
 	device_info_serv->serv_chars[device_info_char_counter].value_permissions = AT_BLE_ATTR_READABLE_NO_AUTHN_NO_AUTHR;   /* permissions */

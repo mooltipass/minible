@@ -46,6 +46,7 @@
 *							        Includes	                                     							*
 ****************************************************************************************/
 
+#include "device_info_struct.h"
 #include "platform_defines.h"
 #include "ble_manager.h"
 
@@ -339,7 +340,7 @@ at_ble_status_t dis_info_update(dis_gatt_service_handler_t *dis_serv , dis_info_
  *
  * @return none
  */
-void dis_init_service(dis_gatt_service_handler_t *device_info_serv );
+void dis_init_service(dis_gatt_service_handler_t *device_info_serv, dis_device_information_t* device_info);
 
 /**@brief Register a dis service instance inside stack. 
  *

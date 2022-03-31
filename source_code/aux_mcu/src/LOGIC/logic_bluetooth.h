@@ -9,9 +9,11 @@
 #ifndef LOGIC_BLUETOOTH_H_
 #define LOGIC_BLUETOOTH_H_
 
+#include "comms_main_mcu.h"
 #include "ble_manager.h"
 #include "at_ble_api.h"
 #include "defines.h"
+#include "logic.h"
 
 /* Typedefs */
 typedef enum    {NONE_NOTIF_SENDING = 0, KEYBOARD_NOTIF_SENDING, RAW_HID_NOTIF_SENDING, BATTERY_NOTIF_SENDING, CUSTOM_COMMS_NOTIF_SENDING} notif_sending_te;
@@ -280,12 +282,12 @@ ret_type_te logic_bluetooth_send_modifier_and_key(uint8_t modifier, uint8_t key,
 uint8_t logic_bluetooth_get_report_characteristic(uint16_t handle, uint8_t serv, uint8_t reportid);
 uint8_t logic_bluetooth_get_notif_instance(uint8_t serv_num, uint16_t char_handle);
 void logic_bluetooth_gpio_set(at_ble_gpio_pin_t pin, at_ble_gpio_status_t status);
+void logic_bluetooth_start_bluetooth(dis_device_information_t* cust_setting_pt);
 at_ble_status_t logic_bluetooth_characteristic_changed_handler(void* params);
 void logic_bluetooth_store_temp_ban_connected_address(uint8_t* address);
 uint8_t logic_bluetooth_get_reportid(uint8_t serv, uint16_t handle);
 void write_32_to_BTLC1000(uint32_t u32address, uint32_t u32value);
 void logic_bluetooth_set_open_to_pairing_bool(BOOL pairing_bool);
-void logic_bluetooth_start_bluetooth(uint8_t* unit_mac_address);
 RET_TYPE logic_bluetooth_temporarily_ban_connected_device(void);
 void logic_bluetooth_raw_send(uint8_t* data, uint16_t data_len);
 uint8_t logic_bluetooth_get_hid_serv_instance(uint16_t handle);

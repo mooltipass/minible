@@ -10,6 +10,7 @@
 
 #include "comms_aux_mcu_defines.h"
 #include "comms_bootloader_msg.h"
+#include "device_info_struct.h"
 #include "comms_hid_msgs.h"
 #include "defines.h"
 #include "ctap.h"
@@ -185,11 +186,14 @@ typedef struct
 typedef struct
 {
     uint16_t message_id;
+    uint16_t uint32_t_padding;
     union
     {
+        dis_device_information_t dis_device_information;
         nodemgmt_bluetooth_bonding_information_t bonding_information_to_store_message;
-        uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)];
-        uint16_t payload_as_uint16_t[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t))/2];
+        uint8_t payload[AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)-sizeof(uint16_t)];
+        uint16_t payload_as_uint16_t[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)-sizeof(uint16_t))/2];
+        uint32_t payload_as_uint32_t[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)-sizeof(uint16_t))/4];
     };
 } ble_message_t;
 

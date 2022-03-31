@@ -167,6 +167,15 @@ uint16_t custom_fs_get_platform_bundle_version(void)
 #endif
 }
 
+/*! \fn     custom_fs_get_custom_ble_name(void)
+*   \brief  Get a pointer to our custom bluetooth name
+*   \return Pointer to our string
+*/
+uint8_t* custom_fs_get_custom_ble_name(void)
+{
+    return (uint8_t*)"this is 22 chars long!";
+}
+
 /*! \fn     custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
 *   \brief  Read data from the external flash
 *   \param  datap       Pointer to where to store the data

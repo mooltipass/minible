@@ -179,10 +179,10 @@ int main(void)
         }
         
         /* Do we need to enable bluetooth? */
-        uint8_t* mac_address;
-        if ((logic_is_ble_enabled() == FALSE) && (logic_get_and_clear_bluetooth_to_be_enabled(&mac_address) != FALSE))
+        dis_device_information_t* ble_cust_settings;
+        if ((logic_is_ble_enabled() == FALSE) && (logic_get_and_clear_bluetooth_to_be_enabled(&ble_cust_settings) != FALSE))
         {
-            logic_bluetooth_start_bluetooth(mac_address);
+            logic_bluetooth_start_bluetooth(ble_cust_settings);
             logic_set_ble_enabled();
             comms_main_mcu_send_simple_event(AUX_MCU_EVENT_BLE_ENABLED);
             dma_wait_for_main_mcu_packet_sent();
@@ -261,7 +261,7 @@ void main_init_stack_tracking(void)
 
     //Inline implementation of memset since we we *might* be destroying
     //our own stack when calling the memset function.
-    for (ptr = stack_end; ptr < stack_start; ++ptr)
+    for (ptr = (uint8_t*)stack_end; ptr < (uint8_t*)stack_start; ++ptr)
     {
         *ptr = DEBUG_STACK_TRACKING_COOKIE;
     }

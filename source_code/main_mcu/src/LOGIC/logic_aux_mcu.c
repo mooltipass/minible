@@ -101,9 +101,15 @@ void logic_aux_mcu_enable_ble(BOOL wait_for_enabled)
         
         /* Prepare packet to send to AUX, specify bluetooth mac */
         temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BLE_CMD);
-        temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_CMD_ENABLE;
-        logic_bluetooth_get_unit_mac_address(temp_tx_message_pt->ble_message.payload);
-        temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + 6;
+        temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_CMD_ENABLE;        
+        logic_bluetooth_get_unit_mac_address(temp_tx_message_pt->ble_message.dis_device_information.mac_address);
+        temp_tx_message_pt->ble_message.dis_device_information.fw_major = FW_MAJOR;
+        temp_tx_message_pt->ble_message.dis_device_information.fw_minor = FW_MINOR;
+        temp_tx_message_pt->ble_message.dis_device_information.serial_number = (custom_fs_get_platform_programmed_serial_number() == UINT32_MAX)? custom_fs_get_platform_internal_serial_number():custom_fs_get_platform_programmed_serial_number();
+        temp_tx_message_pt->ble_message.dis_device_information.bundle_version = custom_fs_get_platform_bundle_version();
+        memcpy(temp_tx_message_pt->ble_message.dis_device_information.custom_device_name, (void*)custom_fs_get_custom_ble_name(), MEMBER_ARRAY_SIZE(dis_device_information_t, custom_device_name)-1);
+        temp_tx_message_pt->ble_message.dis_device_information.custom_device_name[MEMBER_ARRAY_SIZE(dis_device_information_t, custom_device_name)-1] = 0;        
+        temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(temp_tx_message_pt->ble_message.uint32_t_padding) + sizeof(dis_device_information_t);
         
         /* Send message */
         comms_aux_mcu_send_message(temp_tx_message_pt);

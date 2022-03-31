@@ -134,6 +134,7 @@
 #include <asf.h>
 #include <string.h>
 #include <stddef.h>
+#include "device_info_struct.h"
 #include "at_ble_api.h"
 #include "ble_utils.h"
 
@@ -150,7 +151,7 @@
 #if defined HID_DEVICE
 	#ifdef HID_KEYBOARD_DEVICE
 	#ifndef BLE_DEVICE_NAME
-		#define BLE_DEVICE_NAME				"Mooltipass BLE"
+		//#define BLE_DEVICE_NAME				"Mooltipass BLE"
 	#endif	/* BLE_DEVICE_NAME */
 	#define BLE_AUTHENTICATION_LEVEL	(AT_BLE_MODE1_L2_AUTH_PAIR_ENC)
 	#define BLE_IO_CAPABALITIES			(AT_BLE_IO_CAP_KB_DISPLAY)
@@ -164,7 +165,7 @@
 */
 	#ifdef HID_MOUSE_DEVICE
 	#ifndef BLE_DEVICE_NAME
-		#define BLE_DEVICE_NAME				"Mooltipass_Mini_BLE"
+		//#define BLE_DEVICE_NAME				"Mooltipass_Mini_BLE"
 	#endif	/* BLE_DEVICE_NAME */
 	#define BLE_PAIR_ENABLE				(false)
 	#endif
@@ -174,7 +175,7 @@
 */
 #if defined PROXIMITY_REPORTER
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-PXP"
+//#define BLE_DEVICE_NAME				"ATMEL-PXP"
 #endif	/* BLE_DEVICE_NAME */
 #endif /* PROXIMITY_REPORTER */
 
@@ -182,7 +183,7 @@
 */
 #if defined HR_SENSOR
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-HRP"
+//#define BLE_DEVICE_NAME				"ATMEL-HRP"
 #endif	/* BLE_DEVICE_NAME */
 #endif /* HR_SENSOR */
 
@@ -190,7 +191,7 @@
 */
 #if defined BLP_SENSOR
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-BLP"
+//#define BLE_DEVICE_NAME				"ATMEL-BLP"
 #endif	/* BLE_DEVICE_NAME */
 #endif /* Blood_Pressure_Sensor*/
 
@@ -198,7 +199,7 @@
 */
 #if (BLE_DEVICE_ROLE == BLE_ROLE_OBSERVER)
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-OBS"
+//#define BLE_DEVICE_NAME				"ATMEL-OBS"
 #endif	/* BLE_DEVICE_NAME */
 #endif /* BLE_DEVICE_ROLE == BLE_ROLE_OBSERVER) */
 
@@ -206,7 +207,7 @@
 */
 #if defined ANP_CLIENT
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-ANCS"
+//#define BLE_DEVICE_NAME				"ATMEL-ANCS"
 #endif	/* BLE_DEVICE_NAME */
 #endif /* ANCS_CLIENT */
 
@@ -214,7 +215,7 @@
 */
 #if defined TIP_CLIENT
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-TIP"
+//#define BLE_DEVICE_NAME				"ATMEL-TIP"
 #endif	/* BLE_DEVICE_NAME */
 #endif /* TIP_CLIENT */
 
@@ -222,7 +223,7 @@
 */
 #if defined FIND_ME_TARGET
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-FMP"
+//#define BLE_DEVICE_NAME				"ATMEL-FMP"
 #endif	/* BLE_DEVICE_NAME */
 #endif /* FIND_ME_TARGET */
 
@@ -230,7 +231,7 @@
 */
 #if defined ANP_SIG_CLIENT
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-ANS"
+//#define BLE_DEVICE_NAME				"ATMEL-ANS"
 #endif	/* BLE_DEVICE_NAME */
 #endif /* ANP_SIG_CLIENT */
 
@@ -238,7 +239,7 @@
 */
 #if defined PAS_CLIENT
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-PAS"
+//#define BLE_DEVICE_NAME				"ATMEL-PAS"
 #endif	/* BLE_DEVICE_NAME */
 #endif /* PAS_CLIENT */
 
@@ -246,7 +247,7 @@
 */
 #if defined CSC_DEVICE
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"AT-CSC"
+//#define BLE_DEVICE_NAME				"AT-CSC"
 #endif	/* BLE_DEVICE_NAME */
 #endif /* CSC_DEVICE */
 
@@ -254,7 +255,7 @@
 */
 #if defined	BATTERY_SERVICE
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-BAS"
+//#define BLE_DEVICE_NAME				"ATMEL-BAS"
 #endif	/* BLE_DEVICE_NAME */
 #endif /*BATTERY_SERVICE*/
 
@@ -262,7 +263,7 @@
 */
 #if defined	L2CAP_PERIPHERAL
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-L2CAP-P"
+//#define BLE_DEVICE_NAME				"ATMEL-L2CAP-P"
 #define BLE_PAIR_ENABLE				(false)
 #endif	/* BLE_DEVICE_NAME */
 #endif /*L2CAP_PERIPHERAL*/
@@ -271,7 +272,7 @@
 */
 #if defined	L2CAP_CENTRAL
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-L2CAP-C"
+//#define BLE_DEVICE_NAME				"ATMEL-L2CAP-C"
 	#define BLE_PAIR_ENABLE				(false)
 #endif	/* BLE_DEVICE_NAME */
 #endif /*L2CAP_CENTRAL*/
@@ -280,7 +281,7 @@
 */
 #if defined	SCAN_PARAM_SERVICE
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-SCP"
+//#define BLE_DEVICE_NAME				"ATMEL-SCP"
 #endif	/* BLE_DEVICE_NAME */
 #endif	/*SCAN_PARAM_SERVICE*/
 
@@ -288,7 +289,7 @@
 */
 #if defined HTPT_SERVICE
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME "ATMEL-HTP"
+//#define BLE_DEVICE_NAME "ATMEL-HTP"
 #endif  
 #endif
 
@@ -296,7 +297,7 @@
 */
 #if defined	DEVICE_INFORMATION_SERVICE
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-DIS"
+//#define BLE_DEVICE_NAME				"ATMEL-DIS"
 #endif	/* BLE_DEVICE_NAME */
 #endif	/* DEVICE_INFORMATION_SERVICE */
 
@@ -304,14 +305,14 @@
 */
 #if defined PROXIMITY_MONITOR
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-MON"
+//#define BLE_DEVICE_NAME				"ATMEL-MON"
 #endif	/* BLE_DEVICE_NAME */
 #endif /* PROXIMITY_MONITOR */
 
 /*! \def  Custom Profile default Device Name configurations
 */
 #ifndef BLE_DEVICE_NAME
-#define BLE_DEVICE_NAME				"ATMEL-BLE"
+//#define BLE_DEVICE_NAME				"ATMEL-BLE"
 #endif
 
 /**   \enum ble_mgr_event_t 
@@ -1245,8 +1246,8 @@ typedef enum {
 #define BLE_GAP_ADV_COMPLETE_LOCAL_NAME_ENABLE				true
 #if BLE_GAP_ADV_COMPLETE_LOCAL_NAME_ENABLE
 #define BLE_GAP_ADV_COMPLETE_LOCAL_NAME_SCN_RSP_ENABLE		SCAN_RESPONSE_ENABLE
-#define  BLE_GAP_ADV_DATA_COMPLETE_LOCAL_NAME				BLE_DEVICE_NAME
-#define BLE_GAP_ADV_DATA_COMPLETE_LOCAL_NAME_LENGTH			strlen(BLE_GAP_ADV_DATA_COMPLETE_LOCAL_NAME)
+//#define  BLE_GAP_ADV_DATA_COMPLETE_LOCAL_NAME				BLE_DEVICE_NAME
+//#define BLE_GAP_ADV_DATA_COMPLETE_LOCAL_NAME_LENGTH			strlen(BLE_GAP_ADV_DATA_COMPLETE_LOCAL_NAME)
 #endif
 
 /* Tx Power Configuration */
@@ -2037,7 +2038,7 @@ at_ble_status_t ble_event_task(void);
   * \return none.
   *
   */
-void ble_device_init(at_ble_addr_t *addr, at_ble_gap_deviceinfo_t* device_info);
+void ble_device_init(at_ble_addr_t *addr, at_ble_gap_deviceinfo_t* device_info, dis_device_information_t* dis_device_info);
 
 /** \brief function handling all the events from the stack, responsible
   * for calling the respective functions initialized for the events.
@@ -2180,7 +2181,7 @@ at_ble_status_t ble_connected_state_handler(void *params);
   * \return \ref AT_BLE_FAILURE Failed to set the advertisement data
   *
   */
-at_ble_status_t ble_advertisement_data_set(void);
+at_ble_status_t ble_advertisement_data_set(dis_device_information_t* device_info);
 
 /** \brief ble_mtu_changed_indication_handler handler for Peer device MTU size change
   *

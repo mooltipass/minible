@@ -330,7 +330,7 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
             case BLE_MESSAGE_CMD_ENABLE:
             {
                 /* Enable BLE */
-                logic_set_bluetooth_to_be_enabled(message->ble_message.payload);
+                logic_set_bluetooth_to_be_enabled(&message->ble_message.dis_device_information);
                 break;
             }
             case BLE_MESSAGE_CLEAR_BOND_INFO:
@@ -576,8 +576,8 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 
                 /* Functional test: start by turning on bluetooth */
                 uint32_t blusdk_fw_ver;
-                uint8_t temp_mac_address[6] = {0xDE, 0xAD, 0xBE, 0xEF, 0x12, 0x13};
-                logic_bluetooth_start_bluetooth(temp_mac_address);
+                dis_device_information_t debug_device_information = {.mac_address = {0xDE, 0xAD, 0xBE, 0xEF, 0x12, 0x13}, .fw_major = 0, .fw_minor = 0, .serial_number = 0, .bundle_version = 0, .custom_device_name = {'f', 'u', 'n', 'c', 't', 'e', 's', 't', 0}};
+                logic_bluetooth_start_bluetooth(&debug_device_information);
                 if ((ble_sdk_version() == 0) || (at_ble_firmware_version_get(&blusdk_fw_ver) != AT_BLE_SUCCESS))
                 {
                     comms_main_mcu_message_for_main_replies.aux_mcu_event_message.payload[0] = 1;

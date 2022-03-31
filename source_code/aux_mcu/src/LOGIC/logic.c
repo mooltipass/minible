@@ -12,19 +12,21 @@ BOOL logic_ble_enabled = FALSE;
 BOOL logic_no_comms_unavailable = FALSE;
 /* Flags to enable bluetooth */
 BOOL logic_bluetooth_to_be_enabled = FALSE;
-uint8_t logic_bluetooth_mac_addr[6];
+/* Device information for bluetooth */
+dis_device_information_t logic_dis_device_information;
 
 
-void logic_set_bluetooth_to_be_enabled(uint8_t* mac_addr)
+void logic_set_bluetooth_to_be_enabled(dis_device_information_t* device_information_pt)
 {
-    memcpy(logic_bluetooth_mac_addr, mac_addr, sizeof(logic_bluetooth_mac_addr));
+    memcpy(&logic_dis_device_information, device_information_pt, sizeof(logic_dis_device_information));
+    logic_dis_device_information.custom_device_name[MEMBER_ARRAY_SIZE(dis_device_information_t,custom_device_name)-1] = 0;
     logic_bluetooth_to_be_enabled = TRUE;
 }
 
-BOOL logic_get_and_clear_bluetooth_to_be_enabled(uint8_t** mac_address_pt_pt)
+BOOL logic_get_and_clear_bluetooth_to_be_enabled(dis_device_information_t** dis_device_info_pt_pt)
 {
     BOOL return_value = logic_bluetooth_to_be_enabled;
-    *mac_address_pt_pt = logic_bluetooth_mac_addr;
+    *dis_device_info_pt_pt = &logic_dis_device_information;
     logic_bluetooth_to_be_enabled = FALSE;
     return return_value;
 }

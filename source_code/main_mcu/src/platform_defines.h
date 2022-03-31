@@ -252,6 +252,7 @@
         - setting: switch off after BLE disconnect
         - USB command to select current category
         - USB command to wake-up device
+        - Bluetooth name customizable
 */
 
 /**************** SETUP DEFINES ****************/
