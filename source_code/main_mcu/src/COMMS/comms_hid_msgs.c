@@ -1220,6 +1220,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         }
         
         case HID_CMD_ID_GET_CRED:
+        case HID_CMD_GET_TOTP_CODE:
         {            
             /* Incorrect service name index */
             if (rcv_msg->get_credential_request.service_name_index != 0)
@@ -1259,8 +1260,17 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Is the login specified? */
             if (rcv_msg->get_credential_request.login_name_index == UINT16_MAX)
             {                 
-                /* Request user to send credential */
-                logic_user_usb_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), 0, is_message_from_usb);
+                /* Only allowed for the get cred message */
+                if (rcv_message_type == HID_CMD_ID_GET_CRED)
+                {
+                    /* Request user to send credential */
+                    logic_user_usb_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), 0, is_message_from_usb, FALSE);
+                } 
+                else
+                {
+                    aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, 0);
+                    comms_aux_mcu_send_message(temp_tx_message_pt);
+                }
                 return;         
             } 
             else
@@ -1285,7 +1295,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 }
                 
                 /* Request user to send credential */
-                logic_user_usb_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), &(rcv_msg->get_credential_request.concatenated_strings[rcv_msg->get_credential_request.login_name_index]), is_message_from_usb);
+                logic_user_usb_get_credential(&(rcv_msg->get_credential_request.concatenated_strings[0]), &(rcv_msg->get_credential_request.concatenated_strings[rcv_msg->get_credential_request.login_name_index]), is_message_from_usb, (rcv_message_type==HID_CMD_GET_TOTP_CODE)?TRUE:FALSE);
                 return;
             }
         }

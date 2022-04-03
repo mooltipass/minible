@@ -44,9 +44,9 @@ RET_TYPE logic_user_add_data_to_current_service(hid_message_store_data_into_file
 RET_TYPE logic_user_empty_data_service(cust_char_t* service, BOOL is_message_from_usb, nodemgmt_data_category_te data_type);
 RET_TYPE logic_user_add_data_service(cust_char_t* service, BOOL is_message_from_usb, nodemgmt_data_category_te data_type);
 RET_TYPE logic_user_store_TOTP_credential(cust_char_t* service, cust_char_t* login, TOTPcredentials_t const *TOTPcreds);
+void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOOL send_creds_to_usb, BOOL get_totp);
 ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* provisioned_key, BOOL simple_mode);
 RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, cust_char_t* password);
-void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOOL send_creds_to_usb);
 RET_TYPE logic_user_delete_data_service(cust_char_t* service, nodemgmt_data_category_te data_type);
 RET_TYPE logic_user_check_data_service(cust_char_t* service, nodemgmt_data_category_te data_type);
 RET_TYPE logic_user_is_bluetooth_enabled_for_inserted_card(uint16_t* user_language_id);

@@ -1623,14 +1623,15 @@ fido2_return_code_te logic_user_get_webauthn_credential_key_for_rp(cust_char_t* 
     }
 }
 
-/*! \fn     logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOOL send_creds_to_usb)
+/*! \fn     logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOOL send_creds_to_usb, BOOL get_totp)
 *   \brief  Get credential for service, send answer
 *   \param  service             Pointer to service string
 *   \param  login               Pointer to login string, or 0 if not specified
 *   \param  send_creds_to_usb   If credentials should be sent through USB
+*   \param  get_totp            Set to TRUE to get a TOTP code
 *   \return payload size or -1 if error
 */
-void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOOL send_creds_to_usb)
+void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOOL send_creds_to_usb, BOOL get_totp)
 {
     uint8_t temp_cred_ctr[MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr)];
     BOOL prev_gen_credential_flag = FALSE;
@@ -1654,11 +1655,16 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
         login_copy[MEMBER_ARRAY_SIZE(child_cred_node_t, login)-1] = 0;
         login = login_copy;
     }
+    else if (get_totp != FALSE)
+    {
+        /* Get TOTP message only allowed if login is specified */
+        return;
+    }
     
     /* Smartcard present and unlocked? */
     if (logic_security_is_smc_inserted_unlocked() == FALSE)
     {
-        aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+        aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, (get_totp==FALSE)?HID_CMD_ID_GET_CRED:HID_CMD_GET_TOTP_CODE, 0);
         comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
@@ -1676,7 +1682,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             /* From 1s to 3s */
             timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
         }
-        aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+        aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, (get_totp==FALSE)?HID_CMD_ID_GET_CRED:HID_CMD_GET_TOTP_CODE, 0);
         comms_aux_mcu_send_message(temp_tx_message_pt);
         return;
     }
@@ -1704,7 +1710,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             {
                 /* From 3s to 7s */
                 timer_delay_ms(3000 + (rng_get_random_uint16_t()&0x0FFF));
-                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, (get_totp==FALSE)?HID_CMD_ID_GET_CRED:HID_CMD_GET_TOTP_CODE, 0);
                 comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
@@ -1716,12 +1722,21 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             logic_database_get_login_for_address(child_address, &login);
         }
         
-        /* If user specified to be prompted for login confirmation */
-        if ((logic_user_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0)
+        /* If user specified to be prompted for login confirmation, or if we have a TOTP query */
+        if (((logic_user_get_user_security_flags() & USER_SEC_FLG_LOGIN_CONF) != 0) || (get_totp != FALSE))
         {
             /* Prepare prompt message */
             cust_char_t* three_line_prompt_2;
-            custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &three_line_prompt_2, TRUE);
+            
+            /* Querying for credential or TOTP? */
+            if (get_totp == FALSE)
+            {
+                custom_fs_get_string_from_file(SEND_CREDS_FOR_TEXT_ID, &three_line_prompt_2, TRUE);
+            } 
+            else
+            {
+                custom_fs_get_string_from_file(QPROMPT_SEND_TOTP_FOR_TEXT_ID, &three_line_prompt_2, TRUE);
+            }
             confirmationText_t conf_text_3_lines = {.lines[0]=service, .lines[1]=three_line_prompt_2, .lines[2]=login};
 
             /* Request user approval */
@@ -1731,7 +1746,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             /* Did the user approve? */
             if (prompt_return != MINI_INPUT_RET_YES)
             {
-                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, (get_totp==FALSE)?HID_CMD_ID_GET_CRED:HID_CMD_GET_TOTP_CODE, 0);
                 comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
@@ -1773,48 +1788,70 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
         }
         
         /* Prepare answer */
-        aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+        aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, (get_totp==FALSE)?HID_CMD_ID_GET_CRED:HID_CMD_GET_TOTP_CODE, 0);
         
-        /* Get prefilled message */
-        uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, &temp_tx_message_pt->hid_message, temp_cred_ctr, &prev_gen_credential_flag, &password_valid_flag, &has_totp_flag);
-        
-        /* Password valid? */
-        if (password_valid_flag == FALSE)
+        /* Querying credential? */
+        if (get_totp == FALSE)
         {
-            temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index] = 0;
-            pwd_length = 0;
-        } 
+            /* Get prefilled message */
+            uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, &temp_tx_message_pt->hid_message, temp_cred_ctr, &prev_gen_credential_flag, &password_valid_flag, &has_totp_flag);
+        
+            /* Password valid? */
+            if (password_valid_flag == FALSE)
+            {
+                temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index] = 0;
+                pwd_length = 0;
+            } 
+            else
+            {
+                /* User approved, decrypt password */
+                logic_encryption_ctr_decrypt((uint8_t*)&(temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
+            
+                /* If old generation password, convert it to unicode */
+                if (prev_gen_credential_flag != FALSE)
+                {
+                    _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
+                    utils_ascii_to_unicode((uint8_t*)&(temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
+                    temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index + NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
+                }
+            
+                /* Get password length */
+                pwd_length = utils_strlen(&(temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index]));
+            }        
+        
+            /* Compute payload size */
+            uint16_t return_payload_size = return_payload_size_without_pwd + (pwd_length + 1)*sizeof(cust_char_t);
+        
+            /* Return payload size */
+            comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, return_payload_size);
+            comms_aux_mcu_send_message(temp_tx_message_pt);
+        
+            /* Display TOTP if requested */
+            if ((custom_fs_settings_get_device_setting(SETTINGS_DISP_TOTP_AFTER_RECALL) != FALSE) && (has_totp_flag != FALSE))
+            {
+                nodemgmt_read_cred_child_node(child_address, &temp_cnode.cred_child);
+                logic_gui_display_login_password_TOTP(&temp_cnode.cred_child, TRUE);
+                gui_dispatcher_get_back_to_current_screen();
+            }
+        }  
         else
         {
-            /* User approved, decrypt password */
-            logic_encryption_ctr_decrypt((uint8_t*)&(temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index]), temp_cred_ctr, MEMBER_SIZE(child_cred_node_t, password), prev_gen_credential_flag);
-            
-            /* If old generation password, convert it to unicode */
-            if (prev_gen_credential_flag != FALSE)
+            /* Querying TOTP */
+            if ((temp_cnode.cred_child.TOTP.TOTPsecretLen > 0) && (logic_device_is_time_set() != FALSE))
             {
-                _Static_assert(MEMBER_SIZE(child_cred_node_t, password) >= NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH*2 + 2, "Backward compatibility problem");
-                utils_ascii_to_unicode((uint8_t*)&(temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index]), NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH);
-                temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index + NODEMGMT_OLD_GEN_ASCII_PWD_LENGTH] = 0;
+                /* Destination buffer is already set to 0 by comms_hid_msgs_get_empty_hid_packet, LOGIC_GUI_TOTP_STR_LEN is arbitrarily chosen as the real value is ~500 */
+                logic_encryption_generate_totp(temp_cnode.cred_child.TOTP.TOTPsecret_ct, temp_cnode.cred_child.TOTP.TOTPsecretLen, temp_cnode.cred_child.TOTP.TOTPnumDigits, temp_cnode.cred_child.TOTP.TOTPtimeStep, temp_tx_message_pt->hid_message.payload_as_cust_char_t, LOGIC_GUI_TOTP_STR_LEN);
+                uint16_t TOTP_len = utils_strnlen(temp_tx_message_pt->hid_message.payload_as_cust_char_t, LOGIC_GUI_TOTP_STR_LEN);
+                comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, TOTP_len*sizeof(cust_char_t));
+                comms_aux_mcu_send_message(temp_tx_message_pt);
+                return;
             }
-            
-            /* Get password length */
-            pwd_length = utils_strlen(&(temp_tx_message_pt->hid_message.get_credential_answer.concatenated_strings[temp_tx_message_pt->hid_message.get_credential_answer.password_index]));
-        }        
-        
-        /* Compute payload size */
-        uint16_t return_payload_size = return_payload_size_without_pwd + (pwd_length + 1)*sizeof(cust_char_t);
-        
-        /* Return payload size */
-        comms_hid_msgs_update_message_payload_length_fields(temp_tx_message_pt, return_payload_size);
-        comms_aux_mcu_send_message(temp_tx_message_pt);
-        
-        /* Display TOTP if requested */
-        if ((custom_fs_settings_get_device_setting(SETTINGS_DISP_TOTP_AFTER_RECALL) != FALSE) && (has_totp_flag != FALSE))
-        {
-            nodemgmt_read_cred_child_node(child_address, &temp_cnode.cred_child);
-            logic_gui_display_login_password_TOTP(&temp_cnode.cred_child, TRUE);
-            gui_dispatcher_get_back_to_current_screen();
-        }
+            else
+            {
+                comms_aux_mcu_send_message(temp_tx_message_pt);
+                return;
+            }
+        }          
         return;
     }
     else
@@ -1824,13 +1861,18 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
         {
             /* From 1s to 3s */
             timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
-            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, (get_totp==FALSE)?HID_CMD_ID_GET_CRED:HID_CMD_GET_TOTP_CODE, 0);
             comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }
         else
         {
             /* 2 children or more, as 1 is tackled in the previous if */
+            if (get_totp != FALSE)
+            {
+                /* Get TOTP message only allowed if login is specified */
+                return;
+            }
             
             /* Select last used child node address if returned, or first node */
             if (last_used_child_address_for_service != NODE_ADDR_NULL)
@@ -1849,7 +1891,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             /* So.... what did the user select? */
             if (child_address == NODE_ADDR_NULL)
             {
-                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, (get_totp==FALSE)?HID_CMD_ID_GET_CRED:HID_CMD_GET_TOTP_CODE, 0);
                 comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
@@ -1859,7 +1901,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
                 nodemgmt_set_last_used_child_node_for_service(parent_address, child_address);
                 
                 /* Prepare answer */
-                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, HID_CMD_ID_GET_CRED, 0);
+                aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(send_creds_to_usb, (get_totp==FALSE)?HID_CMD_ID_GET_CRED:HID_CMD_GET_TOTP_CODE, 0);
                 
                 /* Get prefilled message */
                 uint16_t return_payload_size_without_pwd = logic_database_fill_get_cred_message_answer(child_address, &temp_tx_message_pt->hid_message, temp_cred_ctr, &prev_gen_credential_flag, &password_valid_flag, &has_totp_flag);
