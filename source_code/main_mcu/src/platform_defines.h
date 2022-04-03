@@ -250,6 +250,7 @@
         - setting: USB and battery powered screen brightness
         - setting: sort favorites by last used date
         - setting: switch off after BLE disconnect
+        - Extra 3 keys after login press if used
         - USB command to select current category
         - USB command to wake-up device
         - Bluetooth name customizable

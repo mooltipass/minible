@@ -190,9 +190,10 @@ typedef struct
         uint8_t password[128];              // Encrypted password
         cust_char_t cust_char_password[64];
     };
-    cust_char_t pwdTerminatingZero; // Set to 0
-    TOTP_cred_node_t TOTP;          // TOTP entry
-    uint8_t TBD[54];                // TBD
+    cust_char_t pwdTerminatingZero;         // Set to 0
+    TOTP_cred_node_t TOTP;                  // TOTP entry
+    uint8_t TBD[48];                        // TBD
+    uint16_t extraKeysAfterLogin[3];        // Extra keys after login
 } child_cred_node_t;
 
 // Webauthn credential

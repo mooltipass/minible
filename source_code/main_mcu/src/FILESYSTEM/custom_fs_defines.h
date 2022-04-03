@@ -41,7 +41,7 @@
 #define CUSTOM_FS_BITMAP_RLE_FLAG           0x01
 // Flag to use provisioned key
 #define  CUSTOM_FS_PROV_KEY_FLAG            0x91
-// Custom Bluetooth name length - DO NOT CHANGE TO FIX IN 31B PAYLOAD
+// Custom Bluetooth name length - DO NOT CHANGE TO FIT IN 31B BLE ADVERTISING PAYLOAD
 #define CUSTOM_BLE_NAME_MAX_LENGTH          22
 
 /* HID defines */
