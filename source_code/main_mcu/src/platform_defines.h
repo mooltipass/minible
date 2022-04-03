@@ -253,6 +253,7 @@
         - Extra 3 keys after login press if used
         - USB command to select current category
         - USB command to wake-up device
+        - USB command to get TOTP code
         - Bluetooth name customizable
 */
 
