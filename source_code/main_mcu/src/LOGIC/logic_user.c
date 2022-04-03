@@ -2496,7 +2496,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                             {
                                 if ((temp_cnode.extraKeysAfterLogin[i] != 0) && (temp_cnode.extraKeysAfterLogin[i] != 0xFFFF))
                                 {
-                                    typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[login_length + i] = temp_cnode.extraKeysAfterLogin[i];
+                                    typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[login_length + 1 + i] = temp_cnode.extraKeysAfterLogin[i];
                                 }
                                 else
                                 {
