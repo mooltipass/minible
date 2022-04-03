@@ -2488,14 +2488,15 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
                         } 
                         else
                         {
-                            typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login)] = temp_cnode.keyAfterLogin;
+                            uint16_t login_length = utils_strlen(temp_cnode.login);
+                            typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[login_length] = temp_cnode.keyAfterLogin;
                             
                             /* Extra keys? */
                             for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(child_cred_node_t, extraKeysAfterLogin); i++)
                             {
                                 if ((temp_cnode.extraKeysAfterLogin[i] != 0) && (temp_cnode.extraKeysAfterLogin[i] != 0xFFFF))
                                 {
-                                    typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[utils_strlen(temp_cnode.login) + i] = temp_cnode.extraKeysAfterLogin[i];
+                                    typing_message_to_be_sent->keyboard_type_message.keyboard_symbols[login_length + i] = temp_cnode.extraKeysAfterLogin[i];
                                 }
                                 else
                                 {
