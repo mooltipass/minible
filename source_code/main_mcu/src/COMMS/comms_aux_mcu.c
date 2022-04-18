@@ -832,7 +832,7 @@ comms_msg_rcvd_te comms_aux_mcu_routine(msg_restrict_type_te answer_restrict_typ
     BOOL arm_rx_transfer = FALSE;
 
     /* Received message payload length */
-    uint16_t payload_length;
+    uint16_t payload_length = 0;
     /* First part of message */
     if ((nb_received_bytes_for_ongoing_transfer >= sizeof(aux_mcu_receive_message.message_type) + sizeof(aux_mcu_receive_message.payload_length1)) && (aux_mcu_message_answered_using_first_bytes == FALSE))
     {

@@ -1836,6 +1836,9 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
         }  
         else
         {
+            /* Fetch child node */
+            nodemgmt_read_cred_child_node(child_address, &temp_cnode.cred_child);
+            
             /* Querying TOTP */
             if ((temp_cnode.cred_child.TOTP.TOTPsecretLen > 0) && (logic_device_is_time_set() != FALSE))
             {
