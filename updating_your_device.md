@@ -29,7 +29,7 @@ Insert a card **the wrong way around** (chip facing up) to get to this screen:
 In Moolticute, press CTRL-SHIFT-F3 (Shift+F3 on Mac) in such a way that **all** keys are pressed at the end of the shortcut.  
 The BLE Dev tab will appear in the top part of the application.  
   
-![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/ble_dev_tab_upload_flash_new.png?raw=true)  
+![](https://github.com/mooltipass/minible/blob/master/wiki/images/minible_update_guide/ble_dev_tab_upload_flash_new.png?raw=true)  
 
 Click on the "Select Bundle File" button and select your update file. The upload will start automatically and your unit will display this screen:    
   
