@@ -243,6 +243,7 @@
         - bug fix: HID_CMD_TEST_FILE_ID correct return
         - bundle v8
 - v0.81:- bug fix: battery may drain out when hash display feature is set
+        - bug fix: allow get plat info command during no bundle start message
         - setting: custom delay between enter key and password for _unlock_
         - setting: allocated for MC, specify subdomain status on device
         - setting: first credential in login menu to be the last used
