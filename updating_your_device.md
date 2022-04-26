@@ -2,7 +2,7 @@
    
 ### [](#header-3)Introduction
   
-Before updating your device, **make sure to backup your user profile** by following the instructions in our [user manual](https://github.com/mooltipass/minible/raw/master/MooltipassMiniBLEUserManual.pdf), section III. F).  
+Before updating your device, **make sure to backup your user profile** by following the instructions present in our [user manual](https://github.com/mooltipass/minible/raw/master/MooltipassMiniBLEUserManual.pdf), section III. F).  
   
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/ble_bundle_version.png?raw=true)  
   
@@ -24,7 +24,7 @@ Insert a card **the wrong way around** (chip facing up) to get to this screen:
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/rf_debug_guide/invalid.png?raw=true)  
   
     
-### [](#header-3)Update Step 2: Enable Moolticute's Developer Tab and Upload your File
+### [](#header-3)Update Step 2: Enable Moolticute's Developer Tab, Upload your File
 
 In Moolticute, press CTRL-SHIFT-F3 (Shift+F3 on Mac) in such a way that **all** keys are pressed at the end of the shortcut.  
 The BLE Dev tab will appear in the top part of the application.  
