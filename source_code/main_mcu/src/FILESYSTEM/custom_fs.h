@@ -84,6 +84,7 @@ uint32_t custom_fs_get_auth_challenge_counter(void);
 BOOL custom_fs_settings_check_fw_upgrade_flag(void);
 void custom_fs_settings_clear_fw_upgrade_flag(void);
 uint32_t custom_fs_get_number_of_keyb_layouts(void);
+void custom_fs_fetch_custom_ble_name(uint8_t* name);
 void custom_fs_get_debug_bt_addr(uint8_t* bt_addr);
 void custom_fs_settings_set_fw_upgrade_flag(void);
 void custom_fs_set_custom_ble_name(uint8_t* name);

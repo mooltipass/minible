@@ -190,6 +190,15 @@ uint8_t* custom_fs_get_custom_ble_name(void)
     return custom_fs_mini_ble_string;
 }
 
+/*! \fn     custom_fs_fetch_custom_ble_name(uint8_t* name)
+*   \brief  Get our custom bluetooth name
+*   \param  name    Where to store the custom name, MEMBER_SIZE(custom_platform_settings_t, custom_ble_name) long
+*/
+void custom_fs_fetch_custom_ble_name(uint8_t* name)
+{
+    memcpy(name, custom_fs_platform_settings_p->custom_ble_name, MEMBER_SIZE(custom_platform_settings_t, custom_ble_name));
+}
+
 /*! \fn     custom_fs_set_custom_ble_name(uint8_t* name)
 *   \brief  Set our custom bluetooth name
 *   \param  name    Pointer to a CUSTOM_BLE_NAME_MAX_LENGTH max long string
