@@ -378,7 +378,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         case HID_CMD_GET_CUST_BLE_NAME:
         {
             aux_mcu_message_t* temp_send_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, MEMBER_SIZE(custom_platform_settings_t, custom_ble_name));
-            custom_fs_fetch_custom_ble_name(rcv_msg->payload);
+            custom_fs_fetch_custom_ble_name(temp_send_message_pt->hid_message.payload);
             comms_aux_mcu_send_message(temp_send_message_pt);
             return;
         }        
