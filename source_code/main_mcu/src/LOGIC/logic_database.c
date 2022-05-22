@@ -813,7 +813,7 @@ void logic_database_update_webauthn_credential(uint16_t child_address, cust_char
 */
 void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr)
 {
-    BOOL pted_to_pwd_totp_address = NODE_ADDR_NULL;
+    uint16_t pted_to_pwd_totp_address = NODE_ADDR_NULL;
     node_type_te temp_node_type = NODE_TYPE_NULL;
     child_cred_node_t temp_cnode;
     
