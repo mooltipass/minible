@@ -164,7 +164,7 @@ typedef struct
     uint16_t flags;
     uint16_t prevChildAddress;      // Previous child node address (Alphabetically)
     uint16_t nextChildAddress;      // Next child node address (Alphabetically)
-    uint16_t mirroredChildAddress;  // If different than 0, pointer to the mirrored node
+    uint16_t ptedPwdChildAddress;   // If different than 0, address to the child we should use the password from
     uint16_t dateCreated;           // The date the child node was added to the DB
                                     /* Date Encoding:
                                     * 15 dn 9 -> Year (2010 + value)
@@ -202,7 +202,7 @@ typedef struct
     uint16_t flags;
     uint16_t prevChildAddress;      // Previous child node address (Alphabetically)
     uint16_t nextChildAddress;      // Next child node address (Alphabetically)
-    uint16_t mirroredChildAddress;  // If different than 0, pointer to the mirrored node
+    uint16_t ptedPwdChildAddress;   // If different than 0, pointer to the mirrored node
     uint16_t dateCreated;           // The date the child node was added to the DB
                                     /* Date Encoding:
                                     * 15 dn 9 -> Year (2010 + value)
@@ -433,6 +433,7 @@ void nodemgmt_fetch_favorites_filtered_by_cat_sorted(favorite_addr_t* favorite_a
 uint16_t nodemgmt_get_prev_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
 uint16_t nodemgmt_get_next_parent_node_for_cur_category(uint16_t search_start_parent_addr, uint16_t credential_type_id);
 RET_TYPE nodemgmt_create_parent_node(parent_node_t* p, service_type_te type, uint16_t* storedAddress, uint16_t typeId);
+void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node, BOOL overwrite_if_pted_pwd_totp);
 RET_TYPE nodemgmt_store_bluetooth_bonding_information(nodemgmt_bluetooth_bonding_information_t* bonding_information);
 uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_child_addr, uint16_t category_flags);
 void nodemgmt_read_favorite(uint16_t categoryId, uint16_t favId, uint16_t* parentAddress, uint16_t* childAddress);
@@ -460,7 +461,6 @@ uint16_t nodemgmt_get_next_child_node_for_cur_category(uint16_t search_start_chi
 uint16_t nodemgmt_get_last_parent_addr(BOOL data_parent, uint16_t credential_type_id);
 uint16_t nodemgmt_get_starting_parent_addr_for_category(uint16_t credential_type_id);
 RET_TYPE nodemgmt_check_user_permission(uint16_t node_addr, node_type_te* node_type);
-void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node);
 RET_TYPE nodemgmt_store_data_node(child_data_node_t* node, uint16_t* storedAddress);
 void nodemgmt_delete_children_list(uint16_t first_children_addr, BOOL data_child);
 void nodemgmt_set_data_start_address(uint16_t dataParentAddress, uint16_t typeId);

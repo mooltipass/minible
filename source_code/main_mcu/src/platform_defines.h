@@ -253,6 +253,7 @@
         - setting: switch off after BLE disconnect
         - Extra 3 keys after login press if used
         - USB command to select current category
+        - Password & TOTP pointing to feature
         - USB command to wake-up device
         - USB command to get TOTP code
         - Bluetooth name customizable

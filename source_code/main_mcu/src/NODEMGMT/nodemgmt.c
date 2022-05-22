@@ -397,16 +397,20 @@ void nodemgmt_read_child_node_data_block_from_flash(uint16_t address, child_node
     dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(address), BASE_NODE_SIZE * nodemgmt_node_from_address(address), sizeof(child_node->node_as_bytes), (void*)child_node->node_as_bytes);
 }
 
-/*! \fn     nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node)
+/*! \fn     nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node, BOOL overwrite_if_pted_pwd_totp)
 *   \brief  Read a child node
-*   \param  address     Where to read
-*   \param  child_node  Pointer to the node
+*   \param  address                     Where to read
+*   \param  child_node                  Pointer to the node
+*   \param  overwrite_if_pted_pwd_totp  Set to TRUE to fetch & overwrite pwd & totp fields if ptedPwdChildAddress is set
 *   \note   what's different from function above: sec checks & timestamp updates
 */
-void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node)
+void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_node, BOOL overwrite_if_pted_pwd_totp)
 {
+    _Static_assert((offsetof(child_cred_node_t, TBD) - offsetof(child_cred_node_t, fakeFlags)) == MEMBER_SIZE(child_cred_node_t, fakeFlags) + MEMBER_SIZE(child_cred_node_t, passwordBlankFlag) + MEMBER_SIZE(child_cred_node_t, ctr) + MEMBER_SIZE(child_cred_node_t, password) + MEMBER_SIZE(child_cred_node_t, pwdTerminatingZero) + MEMBER_SIZE(child_cred_node_t, TOTP), "Non contiguous overwrite blocks");
+    _Static_assert(offsetof(child_cred_node_t, fakeFlags) == BASE_NODE_SIZE, "Incorrect fakeflag position assumption");
     nodemgmt_read_child_node_data_block_from_flash(address, (child_node_t*)child_node);
     nodemgmt_check_user_perm_from_flags_and_lock(child_node->flags);
+    node_type_te temp_node_type = NODE_TYPE_NULL;
     
     // If we have a date, update last used field
     if ((nodemgmt_current_date != 0x0000) && (child_node->dateLastUsed != nodemgmt_current_date))
@@ -415,6 +419,12 @@ void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_no
         child_node->dateLastUsed = nodemgmt_current_date;
         nodemgmt_write_child_node_block_to_flash(address, (child_node_t*)child_node, FALSE);
     }
+    
+    // Password pointing feature: do we need to fetch another child node to get the actual password?
+    if ((child_node->ptedPwdChildAddress != UINT16_MAX) && (nodemgmt_check_user_permission(child_node->ptedPwdChildAddress, &temp_node_type) == RETURN_OK) && (temp_node_type == NODE_TYPE_CHILD))
+    {
+        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(nodemgmt_get_incremented_address(address)), BASE_NODE_SIZE * nodemgmt_node_from_address(nodemgmt_get_incremented_address(address)), MEMBER_SIZE(child_cred_node_t, fakeFlags) + MEMBER_SIZE(child_cred_node_t, passwordBlankFlag) + MEMBER_SIZE(child_cred_node_t, ctr) + MEMBER_SIZE(child_cred_node_t, password) + MEMBER_SIZE(child_cred_node_t, pwdTerminatingZero) + MEMBER_SIZE(child_cred_node_t, TOTP), (void*)&child_node->fakeFlags);
+    }   
     
     // String cleaning
     child_node->pwdTerminatingZero = 0;
@@ -1030,8 +1040,8 @@ uint16_t nodemgmt_get_prev_child_node_for_cur_category(uint16_t search_start_chi
     _Static_assert(0 == offsetof(child_cred_node_t, flags), "Incorrect buffer for flags & addr read");
     _Static_assert(2 == offsetof(child_cred_node_t, prevChildAddress), "Incorrect buffer for flags & addr read");
     _Static_assert(4 == offsetof(child_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(6 == offsetof(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(sizeof(child_read_buffer) == MEMBER_SIZE(child_cred_node_t, flags) + MEMBER_SIZE(child_cred_node_t, prevChildAddress) + MEMBER_SIZE(child_cred_node_t, nextChildAddress) + MEMBER_SIZE(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(6 == offsetof(child_cred_node_t, ptedPwdChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(sizeof(child_read_buffer) == MEMBER_SIZE(child_cred_node_t, flags) + MEMBER_SIZE(child_cred_node_t, prevChildAddress) + MEMBER_SIZE(child_cred_node_t, nextChildAddress) + MEMBER_SIZE(child_cred_node_t, ptedPwdChildAddress), "Incorrect buffer for flags & addr read");
     
     /* Hack to read flags & prev / next address */
     child_cred_node_t* child_node_pt = (child_cred_node_t*)child_read_buffer;
@@ -1082,8 +1092,8 @@ uint16_t nodemgmt_get_next_child_node_for_cur_category(uint16_t search_start_chi
     _Static_assert(0 == offsetof(child_cred_node_t, flags), "Incorrect buffer for flags & addr read");
     _Static_assert(2 == offsetof(child_cred_node_t, prevChildAddress), "Incorrect buffer for flags & addr read");
     _Static_assert(4 == offsetof(child_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(6 == offsetof(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(sizeof(child_read_buffer) == MEMBER_SIZE(child_cred_node_t, flags) + MEMBER_SIZE(child_cred_node_t, prevChildAddress) + MEMBER_SIZE(child_cred_node_t, nextChildAddress) + MEMBER_SIZE(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(6 == offsetof(child_cred_node_t, ptedPwdChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(sizeof(child_read_buffer) == MEMBER_SIZE(child_cred_node_t, flags) + MEMBER_SIZE(child_cred_node_t, prevChildAddress) + MEMBER_SIZE(child_cred_node_t, nextChildAddress) + MEMBER_SIZE(child_cred_node_t, ptedPwdChildAddress), "Incorrect buffer for flags & addr read");
         
     /* Hack to read flags & prev / next address */
     child_cred_node_t* child_node_pt = (child_cred_node_t*)child_read_buffer;
@@ -1112,8 +1122,8 @@ uint16_t nodemgmt_check_for_logins_with_category_in_parent_node(uint16_t start_c
     _Static_assert(0 == offsetof(child_cred_node_t, flags), "Incorrect buffer for flags & addr read");
     _Static_assert(2 == offsetof(child_cred_node_t, prevChildAddress), "Incorrect buffer for flags & addr read");
     _Static_assert(4 == offsetof(child_cred_node_t, nextChildAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(6 == offsetof(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
-    _Static_assert(sizeof(child_read_buffer) == MEMBER_SIZE(child_cred_node_t, flags) + MEMBER_SIZE(child_cred_node_t, prevChildAddress) + MEMBER_SIZE(child_cred_node_t, nextChildAddress) + MEMBER_SIZE(child_cred_node_t, mirroredChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(6 == offsetof(child_cred_node_t, ptedPwdChildAddress), "Incorrect buffer for flags & addr read");
+    _Static_assert(sizeof(child_read_buffer) == MEMBER_SIZE(child_cred_node_t, flags) + MEMBER_SIZE(child_cred_node_t, prevChildAddress) + MEMBER_SIZE(child_cred_node_t, nextChildAddress) + MEMBER_SIZE(child_cred_node_t, ptedPwdChildAddress), "Incorrect buffer for flags & addr read");
     
     /* Hack to read flags & prev / next address */
     child_cred_node_t* child_node_pt = (child_cred_node_t*)child_read_buffer;

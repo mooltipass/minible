@@ -813,14 +813,25 @@ void logic_database_update_webauthn_credential(uint16_t child_address, cust_char
 */
 void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cust_char_t* third, uint8_t* password, uint8_t* ctr)
 {
+    BOOL pted_to_pwd_totp_address = NODE_ADDR_NULL;
+    node_type_te temp_node_type = NODE_TYPE_NULL;
     child_cred_node_t temp_cnode;
     
     /* Read node, ownership checks are done within */
-    nodemgmt_read_cred_child_node(child_addr, &temp_cnode);
+    nodemgmt_read_cred_child_node(child_addr, &temp_cnode, FALSE);
+    
+    /* Check if this node uses pwd & totp pointing */
+    if ((temp_cnode.ptedPwdChildAddress != UINT16_MAX) && (nodemgmt_check_user_permission(temp_cnode.ptedPwdChildAddress, &temp_node_type) == RETURN_OK) && (temp_node_type == NODE_TYPE_CHILD))
+    {
+        pted_to_pwd_totp_address = temp_cnode.ptedPwdChildAddress;
+    }
     
     /* Update dates */
-    temp_cnode.dateCreated = nodemgmt_get_current_date();
-    temp_cnode.dateLastUsed = nodemgmt_get_current_date();
+    if ((desc != 0) || (third != 0) || ((password != 0) && (pted_to_pwd_totp_address == NODE_ADDR_NULL)))
+    {
+        temp_cnode.dateCreated = nodemgmt_get_current_date();
+        temp_cnode.dateLastUsed = nodemgmt_get_current_date();
+    }
     
     /* Update fields that are required */
     if (desc != 0)
@@ -831,7 +842,7 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
     {
         utils_strncpy(temp_cnode.thirdField, third, sizeof(temp_cnode.thirdField)/sizeof(cust_char_t));
     }
-    if (password != 0)
+    if ((password != 0) && (pted_to_pwd_totp_address == NODE_ADDR_NULL))
     {
         memcpy(temp_cnode.ctr, ctr, MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr));
         memcpy(temp_cnode.password, password, sizeof(temp_cnode.password));
@@ -843,6 +854,27 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
     /* Then write back to flash at same address */
     nodemgmt_write_child_node_block_to_flash(child_addr, (child_node_t*)&temp_cnode, FALSE);
     nodemgmt_user_db_changed_actions(FALSE);
+    
+    /* Do we need to update password for a pointed to node? */
+    if ((password != 0) && (pted_to_pwd_totp_address != NODE_ADDR_NULL))
+    {
+        /* Read node, ownership checks are done within */
+        nodemgmt_read_cred_child_node(pted_to_pwd_totp_address, &temp_cnode, FALSE);
+        
+        /* Update dates */
+        temp_cnode.dateCreated = nodemgmt_get_current_date();
+        temp_cnode.dateLastUsed = nodemgmt_get_current_date();
+        
+        /* Update password related fields */
+        memcpy(temp_cnode.ctr, ctr, MEMBER_SIZE(nodemgmt_profile_main_data_t, current_ctr));
+        memcpy(temp_cnode.password, password, sizeof(temp_cnode.password));
+        temp_cnode.fakeFlags &= ~NODEMGMT_PREVGEN_BIT_BITMASK;
+        temp_cnode.flags &= ~NODEMGMT_PREVGEN_BIT_BITMASK;
+        temp_cnode.passwordBlankFlag = FALSE;
+        
+        /* Then write back to flash at same address */
+        nodemgmt_write_child_node_block_to_flash(pted_to_pwd_totp_address, (child_node_t*)&temp_cnode, FALSE);
+    }
 }    
 
 /*! \fn     logic_database_update_TOTP_credentials(uint16_t child_addr, TOTPcredentials_t const *TOTPcreds, uint8_t* ctr)
@@ -855,10 +887,19 @@ void logic_database_update_credential(uint16_t child_addr, cust_char_t* desc, cu
 */
 RET_TYPE logic_database_update_TOTP_credentials(uint16_t child_addr, TOTPcredentials_t const *TOTPcreds, uint8_t* ctr)
 {
+    node_type_te temp_node_type = NODE_TYPE_NULL;
     child_cred_node_t temp_cnode;
 
     /* Read node, ownership checks are done within */
-    nodemgmt_read_cred_child_node(child_addr, &temp_cnode);
+    nodemgmt_read_cred_child_node(child_addr, &temp_cnode, FALSE);
+    
+    /* Check if this node uses pwd & totp pointing */
+    if ((temp_cnode.ptedPwdChildAddress != UINT16_MAX) && (nodemgmt_check_user_permission(temp_cnode.ptedPwdChildAddress, &temp_node_type) == RETURN_OK) && (temp_node_type == NODE_TYPE_CHILD))
+    {
+        /* It does... start working with the other node... */
+        child_addr = temp_cnode.ptedPwdChildAddress;
+        nodemgmt_read_cred_child_node(child_addr, &temp_cnode, FALSE);
+    }
 
     /* Update dates */
     temp_cnode.dateCreated = nodemgmt_get_current_date();
@@ -1047,7 +1088,7 @@ void logic_database_fetch_encrypted_password(uint16_t child_node_addr, uint8_t* 
     child_cred_node_t temp_cnode;
     
     /* Read node, ownership checks and text fields sanitizing are done within */
-    nodemgmt_read_cred_child_node(child_node_addr, &temp_cnode);
+    nodemgmt_read_cred_child_node(child_node_addr, &temp_cnode, TRUE);
 
     /* Copy encrypted password */
     memcpy(password, temp_cnode.password, sizeof(temp_cnode.password));
@@ -1078,7 +1119,7 @@ void logic_database_fetch_encrypted_TOTPsecret(uint16_t child_node_addr, uint8_t
     child_cred_node_t temp_cnode;
 
     /* Read node, ownership checks and text fields sanitizing are done within */
-    nodemgmt_read_cred_child_node(child_node_addr, &temp_cnode);
+    nodemgmt_read_cred_child_node(child_node_addr, &temp_cnode, TRUE);
 
     /* Copy encrypted password */
     memcpy(TOTPsecret, temp_cnode.TOTP.TOTPsecret, sizeof(temp_cnode.TOTP.TOTPsecret));
@@ -1112,7 +1153,7 @@ uint16_t logic_database_fill_get_cred_message_answer(uint16_t child_node_addr, h
     uint16_t current_index = 0;
     
     /* Read node, ownership checks and text fields sanitizing are done within */
-    nodemgmt_read_cred_child_node(child_node_addr, &temp_cnode);
+    nodemgmt_read_cred_child_node(child_node_addr, &temp_cnode, TRUE);
     
     /* Clear send_msg */
     memset(send_msg->payload, 0x00, sizeof(send_msg->payload));

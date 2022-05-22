@@ -1829,7 +1829,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
             /* Display TOTP if requested */
             if ((custom_fs_settings_get_device_setting(SETTINGS_DISP_TOTP_AFTER_RECALL) != FALSE) && (has_totp_flag != FALSE))
             {
-                nodemgmt_read_cred_child_node(child_address, &temp_cnode.cred_child);
+                nodemgmt_read_cred_child_node(child_address, &temp_cnode.cred_child, TRUE);
                 logic_gui_display_login_password_TOTP(&temp_cnode.cred_child, TRUE);
                 gui_dispatcher_get_back_to_current_screen();
             }
@@ -1837,7 +1837,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
         else
         {
             /* Fetch child node */
-            nodemgmt_read_cred_child_node(child_address, &temp_cnode.cred_child);
+            nodemgmt_read_cred_child_node(child_address, &temp_cnode.cred_child, TRUE);
             
             /* Querying TOTP */
             if ((temp_cnode.cred_child.TOTP.TOTPsecretLen > 0) && (logic_device_is_time_set() != FALSE))
@@ -1942,7 +1942,7 @@ void logic_user_usb_get_credential(cust_char_t* service, cust_char_t* login, BOO
                 /* Display TOTP if requested */
                 if ((custom_fs_settings_get_device_setting(SETTINGS_DISP_TOTP_AFTER_RECALL) != FALSE) && (has_totp_flag != FALSE))
                 {
-                    nodemgmt_read_cred_child_node(child_address, &temp_cnode.cred_child);
+                    nodemgmt_read_cred_child_node(child_address, &temp_cnode.cred_child, TRUE);
                     logic_gui_display_login_password_TOTP(&temp_cnode.cred_child, TRUE);
                     gui_dispatcher_get_back_to_current_screen();
                 }
@@ -2041,7 +2041,7 @@ void logic_user_manual_select_favorite(void)
             }
             else if (display_prompt_return == MINI_INPUT_RET_YES)
             {
-                nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child);
+                nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child, TRUE);
                 logic_gui_display_login_password_TOTP(&temp_cnode.cred_child, FALSE);
                 logic_user_set_preferred_starting_service(chosen_service_addr);
                 logic_user_fav_last_used_service = chosen_service_addr;
@@ -2052,7 +2052,7 @@ void logic_user_manual_select_favorite(void)
             else if (display_prompt_return == MINI_INPUT_RET_NO)
             {
                 // Read node so that we can check if TOTP is available
-                nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child);
+                nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child, TRUE);
 
                 if (temp_cnode.cred_child.TOTP.TOTPsecretLen > 0)
                 {
@@ -2075,7 +2075,7 @@ void logic_user_manual_select_favorite(void)
                         }
                         else
                         {
-                            nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child);
+                            nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child, TRUE);
                             logic_gui_display_login_password_TOTP(&temp_cnode.cred_child, TRUE);
                             logic_user_set_preferred_starting_service(chosen_service_addr);
                             logic_user_fav_last_used_service = chosen_service_addr;
@@ -2288,7 +2288,7 @@ void logic_user_manual_select_login(void)
             }
             else if (display_prompt_return == MINI_INPUT_RET_YES)
             {
-                nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child);
+                nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child, TRUE);
                 logic_gui_display_login_password_TOTP(&temp_cnode.cred_child, FALSE);
                 logic_user_last_used_service = chosen_service_addr;
                 memset(&temp_cnode, 0, sizeof(temp_cnode));
@@ -2297,7 +2297,7 @@ void logic_user_manual_select_login(void)
             else if (display_prompt_return == MINI_INPUT_RET_NO)
             {
                 // Read node so that we can check if TOTP is available
-                nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child);
+                nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child, TRUE);
 
                 // Check if we have TOTP to display
                 if (temp_cnode.cred_child.TOTP.TOTPsecretLen > 0)
@@ -2321,7 +2321,7 @@ void logic_user_manual_select_login(void)
                         }
                         else
                         {
-                            nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child);
+                            nodemgmt_read_cred_child_node(chosen_login_addr, &temp_cnode.cred_child, TRUE);
                             logic_gui_display_login_password_TOTP(&temp_cnode.cred_child, TRUE);
                         }
                         /* Last item displayed. Return to main menu */
@@ -2394,7 +2394,7 @@ RET_TYPE logic_user_ask_for_credentials_keyb_output(uint16_t parent_address, uin
 
     /* Read nodes */
     nodemgmt_read_parent_node(parent_address, &temp_pnode, TRUE);
-    nodemgmt_read_cred_child_node(child_address, &temp_cnode);
+    nodemgmt_read_cred_child_node(child_address, &temp_cnode, TRUE);
 
     /* Prepare first line display (service / user), store it in the service field. fields are 0 terminated by previous calls */
     if ((utils_strlen(temp_pnode.cred_parent.service) + utils_strlen(temp_cnode.login) + 4 <= (uint16_t)MEMBER_ARRAY_SIZE(parent_cred_node_t, service)) && (utils_strlen(temp_cnode.login) != 0))
