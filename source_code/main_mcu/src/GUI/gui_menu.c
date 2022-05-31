@@ -39,9 +39,13 @@
 
 /* Main Menu */
 const uint16_t simple_menu_pic_ids[] = {GUI_BT_ICON_ID, GUI_FAV_ICON_ID, GUI_LOGIN_ICON_ID, GUI_LOCK_ICON_ID, GUI_OPR_ICON_ID};
+const uint16_t simple_menu_pic_ids_inv[] = {GUI_BT_ICON_ID, GUI_LOGIN_ICON_ID, GUI_FAV_ICON_ID, GUI_LOCK_ICON_ID, GUI_OPR_ICON_ID};
 const uint16_t advanced_menu_pic_ids[] = {GUI_BT_ICON_ID, GUI_CAT_ICON_ID, GUI_FAV_ICON_ID, GUI_LOGIN_ICON_ID, GUI_LOCK_ICON_ID, GUI_OPR_ICON_ID, GUI_SETTINGS_ICON_ID};
+const uint16_t advanced_menu_pic_ids_inv[] = {GUI_BT_ICON_ID, GUI_CAT_ICON_ID, GUI_LOGIN_ICON_ID, GUI_FAV_ICON_ID, GUI_LOCK_ICON_ID, GUI_OPR_ICON_ID, GUI_SETTINGS_ICON_ID};
 const uint16_t simple_menu_text_ids[] = {BT_TEXT_ID, FAV_TEXT_ID, LOGIN_TEXT_ID, LOCK_TEXT_ID, OPR_TEXT_ID};
+const uint16_t simple_menu_text_ids_inv[] = {BT_TEXT_ID, LOGIN_TEXT_ID, FAV_TEXT_ID, LOCK_TEXT_ID, OPR_TEXT_ID};
 const uint16_t advanced_menu_text_ids[] = {BT_TEXT_ID, CAT_TEXT_ID, FAV_TEXT_ID, LOGIN_TEXT_ID, LOCK_TEXT_ID, OPR_TEXT_ID, SETTINGS_TEXT_ID};
+const uint16_t advanced_menu_text_ids_inv[] = {BT_TEXT_ID, CAT_TEXT_ID, LOGIN_TEXT_ID, FAV_TEXT_ID, LOCK_TEXT_ID, OPR_TEXT_ID, SETTINGS_TEXT_ID};
 /* Bluetooth Menu */
 const uint16_t bluetooth_on_menu_pic_ids[] = {GUI_BT_DISABLE_ICON_ID, GUI_BT_UNPAIR_ICON_ID, GUI_NEW_PAIR_ICON_ID, GUI_BT_SWITCH_ICON_ID, GUI_BACK_ICON_ID};
 const uint16_t bluetooth_on_menu_text_ids[] = {BT_DISABLE_TEXT_ID, BT_UNPAIR_DEV_TEXT_ID, BT_NEW_PAIR_TEXT_ID, BT_SWITCH_TEXT_ID, BACK_TEXT_ID};
@@ -102,15 +106,31 @@ void gui_menu_update_menus(void)
     /* Main menu: advanced mode or not? */
     if ((logic_user_get_user_security_flags() & USER_SEC_FLG_ADVANCED_MENU) != 0)
     {
-        gui_menu_menus_pics_ids[MAIN_MENU] = advanced_menu_pic_ids;
-        gui_menu_menus_text_ids[MAIN_MENU] = advanced_menu_text_ids;
+        if (custom_fs_settings_get_device_setting(SETTINGS_LOGIN_AND_FAV_INVERTED) != FALSE)
+        {
+            gui_menu_menus_pics_ids[MAIN_MENU] = advanced_menu_pic_ids_inv;
+            gui_menu_menus_text_ids[MAIN_MENU] = advanced_menu_text_ids_inv;
+        }
+        else
+        {
+            gui_menu_menus_pics_ids[MAIN_MENU] = advanced_menu_pic_ids;
+            gui_menu_menus_text_ids[MAIN_MENU] = advanced_menu_text_ids;
+        }   
         gui_menu_menus_nb_items[MAIN_MENU] = ARRAY_SIZE(advanced_menu_pic_ids);
-        gui_menu_menus_text_ids[OPERATION_MENU] = operations_advanced_menu_text_ids;       
+        gui_menu_menus_text_ids[OPERATION_MENU] = operations_advanced_menu_text_ids; 
     }
     else
     {
-        gui_menu_menus_pics_ids[MAIN_MENU] = simple_menu_pic_ids;
-        gui_menu_menus_text_ids[MAIN_MENU] = simple_menu_text_ids;
+        if (custom_fs_settings_get_device_setting(SETTINGS_LOGIN_AND_FAV_INVERTED) != FALSE)
+        {
+            gui_menu_menus_pics_ids[MAIN_MENU] = simple_menu_pic_ids_inv;
+            gui_menu_menus_text_ids[MAIN_MENU] = simple_menu_text_ids_inv;
+        }
+        else
+        {
+            gui_menu_menus_pics_ids[MAIN_MENU] = simple_menu_pic_ids;
+            gui_menu_menus_text_ids[MAIN_MENU] = simple_menu_text_ids;
+        }
         gui_menu_menus_nb_items[MAIN_MENU] = ARRAY_SIZE(simple_menu_pic_ids);
         gui_menu_menus_text_ids[OPERATION_MENU] = operations_simple_menu_text_ids;
     }

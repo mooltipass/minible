@@ -249,6 +249,7 @@
         - setting: first credential in login menu to be the last used
         - setting: on-screen OTP display after login into website
         - setting: USB and battery powered screen brightness
+        - setting: invert login and favorites icons
         - setting: sort favorites by last used date
         - setting: switch off after BLE disconnect
         - Extra 3 keys after login press if used
