@@ -220,6 +220,12 @@ void comms_raw_hid_send_packet(hid_interface_te hid_interface, hid_packet_t* pac
         }
     }
     
+    /* Wait for possible unrelated notification to be sent */
+    if (hid_interface == BLE_INTERFACE)
+    {
+        logic_bluetooth_check_and_wait_for_notif_sent();
+    }
+    
     /* Reset flag */
     comms_raw_hid_packet_being_sent[hid_interface] = TRUE;
     

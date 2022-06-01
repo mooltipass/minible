@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    70
+#define FW_MINOR    71
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -136,6 +136,8 @@
         - bundle v6 & v7
 - v0.70:- recovery charge retries for severely depleted batteries triggering incorrect EOC events
         - bundle v8
+- v0.71:- BLE HID message sending: wait for other notifications
+        - bundle v9
 */
 
 /**************** SETUP DEFINES ****************/
