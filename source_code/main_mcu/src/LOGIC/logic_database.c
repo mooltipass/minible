@@ -270,9 +270,33 @@ uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_t
 {
     cust_char_t last_service_encountered[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)];
     memset(last_service_encountered, 0, sizeof(last_service_encountered));
+    BOOL mult_domain_possible = FALSE;
+    uint16_t service_dot_index = 0;
     parent_node_t temp_pnode;
     uint16_t next_node_addr;
     int16_t compare_result;
+    
+    /* Check if we can actually use the multiple domain feature */
+    if ((compare_type == COMPARE_MODE_MATCH) && (cred_type == TRUE) && (category_id == NODEMGMT_STANDARD_CRED_TYPE_ID))
+    {
+        /* Store index of the last '.' and check for terminating 0 */
+        for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(parent_cred_node_t, service); i++)
+        {
+            /* Terminating 0 before end of array */
+            if (name[i] == 0)
+            {
+                if (service_dot_index != 0)
+                {
+                    mult_domain_possible = TRUE;
+                }
+                break;
+            } 
+            else if (name[i] == '.')
+            {
+                service_dot_index = i;
+            }
+        }
+    }
     
     /* Get start node */
     if (cred_type != FALSE)

@@ -537,7 +537,7 @@ RET_TYPE logic_user_check_credential(cust_char_t* service, cust_char_t* login, c
     }
     
     /* Does service already exist? */
-    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, TRUE, 0);
+    uint16_t parent_address = logic_database_search_service(service, COMPARE_MODE_MATCH, TRUE, NODEMGMT_STANDARD_CRED_TYPE_ID);
     
     /* Service doesn't exist, deny request with a variable timeout for privacy concerns */
     if (parent_address == NODE_ADDR_NULL)
