@@ -259,6 +259,7 @@
         - USB command to wake-up device
         - USB command to get TOTP code
         - Bluetooth name customizable
+        - auth counter set to 250
 */
 
 /**************** SETUP DEFINES ****************/
