@@ -2080,6 +2080,7 @@ void logic_bluetooth_routine(void)
     /* If we were asked to disable bluetooth */
     if (logic_bluetooth_disable_flag != FALSE)
     {
+        logic_bluetooth_check_and_wait_for_notif_sent();
         logic_bluetooth_disable_flag = FALSE;
         logic_bluetooth_stop_bluetooth();
         logic_set_ble_disabled();
