@@ -345,8 +345,8 @@ uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_t
                     return next_node_addr;
                 }
                 
-                /* Mult-domain feature: check here for alt-domain, as the domain set for the alt-domain may return a <0 compare result. We check for domain with "." match */
-                if ((mult_domain_possible != FALSE) && ((temp_pnode.cred_parent.flags & NODEMGMT_MULT_DOMAIN_FLAG) != 0) && (utils_custchar_strncmp(name, temp_pnode.cred_parent.service, service_dot_index + 1) == 0))
+                /* Multi-domain feature: check here for alt-domain, as the domain set for the alt-domain may return a <0 compare result. We check for domain with "." match */
+                if ((mult_domain_possible != FALSE) && ((temp_pnode.cred_parent.flags & NODEMGMT_MULT_DOMAIN_FLAG) != 0) && (utils_custchar_strncmp(name, temp_pnode.cred_parent.service_and_mult_dom.service, service_dot_index + 1) == 0))
                 {
                     uint16_t start_index = 0;
                         
