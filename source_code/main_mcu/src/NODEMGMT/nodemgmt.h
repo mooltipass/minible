@@ -51,6 +51,7 @@ typedef enum    {NODE_TYPE_PARENT = 0, NODE_TYPE_CHILD = 1, NODE_TYPE_PARENT_DAT
 #define NODEMGMT_CORRECT_FLAGS_BIT_BITSHIFT         5
 #define NODEMGMT_CORRECT_FLAGS_BIT_BITMASK_FINAL    0x0001
 #define NODEMGMT_PREVGEN_BIT_BITMASK                0x0010
+#define NODEMGMT_MULT_DOMAIN_FLAG                   0x0010
 #define NODEMGMT_YEAR_SHT                           9
 #define NODEMGMT_YEAR_MASK                          0xFE00
 #define NODEMGMT_YEAR_MASK_FINAL                    0x007F
@@ -98,6 +99,13 @@ typedef enum    {NODEMGMT_STANDARD_CRED_TYPE_ID = 0, NODEMGMT_WEBAUTHN_CRED_TYPE
 typedef enum    {NODEMGMT_STANDARD_DATA_TYPE_ID = 0, NODEMGMT_NOTES_DATA_TYPE_ID = 1} nodemgmt_data_category_te;
 
 /* Structs */
+// For multiple domain support, we shorten service length and support backward compatibility
+typedef struct  
+{
+    cust_char_t service[SERVICE_NAME_MAX_LEN-25];
+    cust_char_t mult_domain[25];
+} shorten_service_with_mult_dom_t;
+
 // Parent node, see: https://mooltipass.github.io/minible/database_model
 typedef struct
 {
@@ -105,7 +113,11 @@ typedef struct
     uint16_t prevParentAddress;                 // Previous parent node address (Alphabetically)
     uint16_t nextParentAddress;                 // Next parent node address (Alphabetically)
     uint16_t nextChildAddress;                  // Parent node first child address
-    cust_char_t service[SERVICE_NAME_MAX_LEN];  // Unicode BMP text describing service, used for sorting and searching
+    union
+    {
+        cust_char_t service[SERVICE_NAME_MAX_LEN];              // Unicode BMP text describing service, used for sorting and searching
+        shorten_service_with_mult_dom_t service_and_mult_dom;   // Same as above, but shorter with an extra field for comma-separated 0-terminated other domains
+    };
     uint16_t last_cnode_used_addr;              // Address of the child node last used for that parent
     uint8_t reserved[2];                        // Reserved for future use
 } parent_cred_node_t;

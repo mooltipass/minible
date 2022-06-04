@@ -252,6 +252,7 @@
         - setting: invert login and favorites icons
         - setting: sort favorites by last used date
         - setting: switch off after BLE disconnect
+        - multiple domain option for credentials
         - Extra 3 keys after login press if used
         - USB command to select current category
         - Password & TOTP pointing to feature
