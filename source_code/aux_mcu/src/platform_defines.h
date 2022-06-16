@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    71
+#define FW_MINOR    72
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -138,6 +138,8 @@
         - bundle v8
 - v0.71:- BLE HID message sending: wait for other notifications
         - bundle v9
+- v0.72:- increasing delay before main MCU no comms signal read
+        - bundle v10
 */
 
 /**************** SETUP DEFINES ****************/

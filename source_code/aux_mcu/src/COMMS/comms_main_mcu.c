@@ -140,7 +140,7 @@ void comms_main_mcu_send_message(volatile aux_mcu_message_t* message, uint16_t m
     dma_wait_for_main_mcu_packet_sent();
     
     /* DMA receive and beginning of interrupt was measured at 3.5us on main MCU side + adding reading delay & incertainty */
-    DELAYUS(11);
+    DELAYUS(15);
     
     /* Wake-up main MCU if it is currently sleeping */
     logic_sleep_wakeup_main_mcu_if_needed();
