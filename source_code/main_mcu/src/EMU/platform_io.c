@@ -92,6 +92,7 @@ void platform_io_init_ports(void){}
 void platform_io_enable_ble(void){}
 void platform_io_arm_rx_usart_rx_interrupt(void){}
 void platform_io_disable_rx_usart_rx_interrupt(void){}
+uint16_t platform_io_get_single_bandgap_measurement(void){return 0;}
 
 /*
 uint16_t platform_io_get_voledinmv_conversion_result_and_trigger_conversion(void){ return 0;}
