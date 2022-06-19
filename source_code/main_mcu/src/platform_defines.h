@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    81
+#define FW_MINOR    82
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -260,6 +260,9 @@
         - USB command to get TOTP code
         - Bluetooth name customizable
         - auth counter set to 250
+- v0.82:- more detailed battery diagnostic data message
+        - auth counter set to 256
+        - bundle v10
 */
 
 /**************** SETUP DEFINES ****************/

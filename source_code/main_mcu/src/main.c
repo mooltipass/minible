@@ -346,8 +346,8 @@ void main_platform_init(void)
     if (custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE)
     #endif
     {
-        /* First boot initializations: set auth counter value to 250 due to possible (non-security critical) hiccups on first mass production batch */
-        custom_fs_set_auth_challenge_counter(250);
+        /* First boot initializations: set auth counter value to 256 due to possible (non-security critical) hiccups on first mass production batch */
+        custom_fs_set_auth_challenge_counter(256);
         timer_delay_ms(1);
         custom_fs_set_undefined_settings(TRUE);
         
@@ -498,6 +498,10 @@ void main_platform_init(void)
         else if (custom_fs_get_platform_bundle_version() == 9)
         {
             custom_fs_set_auth_challenge_counter(250);
+        }
+        else if (custom_fs_get_platform_bundle_version() == 10)
+        {
+            custom_fs_set_auth_challenge_counter(256);
         }
         #endif
     }

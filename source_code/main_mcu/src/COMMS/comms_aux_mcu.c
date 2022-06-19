@@ -569,6 +569,13 @@ void comms_aux_mcu_deal_with_received_event(aux_mcu_message_t* received_message)
         }
         case AUX_MCU_EVENT_CHARGE_DONE:
         {
+            power_eoc_event_diag_data_t diag_data;
+            diag_data.peak_voltage_level = received_message->main_mcu_command_message.payload_as_uint16[0];
+            diag_data.nb_abnormal_eoc = received_message->main_mcu_command_message.payload_as_uint16[1];
+            diag_data.peak_voltage_level = received_message->main_mcu_command_message.payload_as_uint16[3];
+            diag_data.peak_voltage_level = diag_data.peak_voltage_level << 16;
+            diag_data.peak_voltage_level += received_message->main_mcu_command_message.payload_as_uint16[2];
+            logic_power_store_aux_charge_done_diag_data(&diag_data);
             logic_power_set_battery_level_update_from_aux(10);
             logic_power_set_battery_charging_bool(FALSE, TRUE);
             break;

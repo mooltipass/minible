@@ -34,6 +34,7 @@
 #include "driver_timer.h"
 #include "logic_device.h"
 #include "gui_prompts.h"
+#include "platform_io.h"
 #include "logic_power.h"
 #include "logic_user.h"
 #include "custom_fs.h"
@@ -2223,17 +2224,13 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
         
         case HID_CMD_GET_DIAG_DATA:
         {
-            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(temp_tx_message_pt->hid_message.diag_info_message));
-            
-            /* Get current power consumption log */
-            power_consumption_log_t* current_pwr_cons_log_pt = logic_power_get_power_consumption_log_pt();
+            aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(temp_tx_message_pt->hid_message.diag_bat_info_message));
             
             /* Copy interesting bits */
             cpu_irq_enter_critical();
-            temp_tx_message_pt->hid_message.diag_info_message.lifetime_nb_ms_screen_on_msb = current_pwr_cons_log_pt->lifetime_nb_ms_screen_on_msb;
-            temp_tx_message_pt->hid_message.diag_info_message.lifetime_nb_ms_screen_on_lsb = current_pwr_cons_log_pt->lifetime_nb_ms_screen_on_lsb;
-            temp_tx_message_pt->hid_message.diag_info_message.lifetime_nb_30mins_bat = current_pwr_cons_log_pt->lifetime_nb_30mins_bat;
-            temp_tx_message_pt->hid_message.diag_info_message.lifetime_nb_30mins_usb = current_pwr_cons_log_pt->lifetime_nb_30mins_usb;
+            memcpy(&temp_tx_message_pt->hid_message.diag_bat_info_message.power_consumption_log, logic_power_get_power_consumption_log_pt(), sizeof(power_consumption_log_t));
+            memcpy(&temp_tx_message_pt->hid_message.diag_bat_info_message.aux_eoc_data, logic_power_get_eoc_aux_diag_data_pt(), sizeof(power_eoc_event_diag_data_t));
+            temp_tx_message_pt->hid_message.diag_bat_info_message.bandgap_measurement = platform_io_get_single_bandgap_measurement();
             cpu_irq_leave_critical();
             
             /* ... and send message */

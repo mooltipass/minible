@@ -139,6 +139,7 @@
 - v0.71:- BLE HID message sending: wait for other notifications
         - bundle v9
 - v0.72:- increasing delay before main MCU no comms signal read
+        - charge done event: provide charge estimation info
         - bundle v10
 */
 

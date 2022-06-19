@@ -149,11 +149,10 @@ typedef struct
 
 typedef struct
 {
-    uint32_t lifetime_nb_ms_screen_on_msb;
-    uint32_t lifetime_nb_ms_screen_on_lsb;
-    uint32_t lifetime_nb_30mins_bat;
-    uint32_t lifetime_nb_30mins_usb;
-} hid_message_diag_info_t;
+    power_consumption_log_t power_consumption_log;
+    power_eoc_event_diag_data_t aux_eoc_data;
+    uint16_t bandgap_measurement;
+} hid_message_bat_diag_info_t;
 
 typedef struct
 {
@@ -251,10 +250,10 @@ typedef struct
         cust_char_t payload_as_cust_char_t[(AUX_MCU_MSG_PAYLOAD_LENGTH-sizeof(uint16_t)-sizeof(uint16_t))/sizeof(cust_char_t)];
         hid_message_detailed_plat_info_t detailed_platform_info;
         hid_message_plat_info_t platform_info;
-        hid_message_diag_info_t diag_info_message;
         hid_message_store_cred_t store_credential;
         hid_message_check_cred_req_t check_credential;
         hid_message_get_battery_status_t battery_status;
+        hid_message_bat_diag_info_t diag_bat_info_message;
         hid_message_get_cred_req_t get_credential_request;
         hid_message_change_node_pwd_t change_node_password;
         hid_message_store_TOTP_cred_t store_TOTP_credential;

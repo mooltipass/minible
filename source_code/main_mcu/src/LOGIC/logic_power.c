@@ -75,6 +75,8 @@ BOOL logic_power_over_discharge_flag = FALSE;
 BOOL logic_power_switch_off_after_usb_disconnect_flag = FALSE;
 /* Power consumption log */
 volatile power_consumption_log_t logic_power_consumption_log;
+/* Aux MCU charge done diag data */
+power_eoc_event_diag_data_t logic_power_aux_eoc_diag_data;
 
 
 /*! \fn     logic_power_ms_tick(void)
@@ -218,6 +220,15 @@ nimh_charge_te logic_power_get_current_charge_type(void)
 power_consumption_log_t* logic_power_get_power_consumption_log_pt(void)
 {
     return (power_consumption_log_t*)&logic_power_consumption_log;
+}
+
+/*! \fn     logic_power_get_eoc_aux_diag_data_pt(void)
+*   \brief  Get a pointer to the aux MCU EoC diag data
+*   \return The diag data pointer
+*/
+power_eoc_event_diag_data_t* logic_power_get_eoc_aux_diag_data_pt(void)
+{
+    return (power_eoc_event_diag_data_t*)&logic_power_aux_eoc_diag_data;
 }
 
 /*! \fn     logic_power_set_power_source(power_source_te power_source)
@@ -365,6 +376,15 @@ void logic_power_set_battery_level_update_from_aux(uint8_t battery_level)
     
     /* Store level update */
     logic_power_aux_mcu_battery_level_update = battery_level;
+}
+
+/*! \fn     logic_power_store_aux_charge_done_diag_data(power_eoc_event_diag_data_t* diag_data)
+*   \brief  Store diagnostic data from aux end of charge event
+*   \param  power_eoc_event_diag_data_t Pointer to the diagnostic data struct
+*/
+void logic_power_store_aux_charge_done_diag_data(power_eoc_event_diag_data_t* diag_data)
+{
+    memcpy(&logic_power_aux_eoc_diag_data, diag_data, sizeof(logic_power_aux_eoc_diag_data));
 }
 
 /*! \fn     logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_success)

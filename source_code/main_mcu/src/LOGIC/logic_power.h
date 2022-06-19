@@ -56,11 +56,20 @@ typedef struct
     uint32_t lifetime_nb_30mins_usb;            // Total number of 30mins spent usb powered
 } power_consumption_log_t;
 
+typedef struct
+{
+    uint16_t peak_voltage_level;                // Peak voltage level during charge
+    uint16_t nb_abnormal_eoc;                   // Number of abnormal end of charge events
+    uint32_t estimated_charge;                  // Estimated charge put into the battery
+} power_eoc_event_diag_data_t;
+
 /* Prototypes */
 power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_conversion_and_dont_start_another);
+void logic_power_store_aux_charge_done_diag_data(power_eoc_event_diag_data_t* diag_data);
 void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_success);
 void logic_power_set_battery_level_update_from_aux(uint8_t battery_level);
 power_consumption_log_t* logic_power_get_power_consumption_log_pt(void);
+power_eoc_event_diag_data_t* logic_power_get_eoc_aux_diag_data_pt(void);
 void logic_power_skip_queue_logic_for_upcoming_adc_measurements(void);
 RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time);
 void logic_power_register_vbat_adc_measurement(uint16_t adc_val);

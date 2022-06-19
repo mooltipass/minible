@@ -61,7 +61,7 @@ typedef enum    {BAT_ACT_NONE = 0, BAT_ACT_NEW_BAT_LEVEL, BAT_ACT_CHARGE_FAIL, B
 #define BATTERY_ADC_OUT_CUTOUT      (2220)
 
 /* Prototypes */
-void logic_battery_inform_main_of_charge_done(uint16_t peak_voltage_level);
+void logic_battery_inform_main_of_charge_done(uint16_t peak_voltage_level, uint32_t estimated_charge, uint16_t nb_abnormal_eoc);
 void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type);
 void logic_battery_debug_force_charge_voltage(uint16_t charge_voltage);
 lb_state_machine_te logic_battery_get_charging_status(void);

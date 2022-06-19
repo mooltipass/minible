@@ -32,6 +32,8 @@ uint32_t logic_battery_nb_secs_in_cur_maintain = 0;
 uint32_t logic_battery_nb_secs_since_peak = 0;
 uint16_t logic_battery_last_second_seen = 0;
 uint16_t logic_battery_nb_abnormal_eoc = 0;
+uint32_t logic_battery_diag_estimat_chg = 0;
+uint32_t logic_battery_diag_last_ts = 0;
 /* Flag to start/stop using the ADC */
 BOOL logic_battery_start_using_adc_flag = FALSE;
 BOOL logic_battery_stop_using_adc_flag = FALSE;
@@ -138,6 +140,7 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
 {
     /* Set charge voltage var */
     logic_battery_charge_voltage = LOGIC_BATTERY_BAT_START_CHG_VOLTAGE;
+    logic_battery_diag_estimat_chg = 0;
     
     /* Initial state machine: for recovery & slow starts, do an initial battery test as these 2 methods have a pause of some sorts, making it long to detect disconnected batteries) */
     if ((charging_type == NIMH_RECOVERY_23C_CHARGING) || (charging_type == NIMH_SLOWSTART_23C_CHARGING))
@@ -147,6 +150,7 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
     else
     {
         logic_battery_state = LB_CHARGE_START_RAMPING;
+        logic_battery_diag_last_ts = timer_get_systick();
     }
     
     /* Ramping current goal */
@@ -298,6 +302,7 @@ battery_action_te logic_battery_task(void)
                         /* Rest after first constant small current charge: go full speed! */
                         logic_battery_low_charge_current_counter = 0;
                         logic_battery_state = LB_CHARGE_START_RAMPING;
+                        logic_battery_diag_last_ts = timer_get_systick();
                         logic_battery_skip_initial_recovery_logic = TRUE;
                         logic_battery_discard_next_adc_measurement_counter = 30;
                         logic_battery_charge_voltage = LOGIC_BATTERY_BAT_START_CHG_VOLTAGE;
@@ -325,6 +330,7 @@ battery_action_te logic_battery_task(void)
                     {
                         /* Start the initial charging procedure */
                         logic_battery_state = LB_CHARGE_START_RAMPING;
+                        logic_battery_diag_last_ts = timer_get_systick();
                         logic_battery_discard_next_adc_measurement_counter = 30;
                         logic_battery_charge_voltage = LOGIC_BATTERY_BAT_START_CHG_VOLTAGE;
                         platform_io_update_step_down_voltage(logic_battery_charge_voltage);
@@ -383,6 +389,9 @@ battery_action_te logic_battery_task(void)
                                 /* Recovery charge: let the battery rest before charging it at full speed */
                                 logic_battery_low_charge_current_counter = 0;
                                 logic_battery_state = LB_CHARGE_REST;
+                                
+                                /* Update diagnostics */
+                                logic_battery_diag_estimat_chg += logic_battery_ramping_current_goal * ((timer_get_systick() - logic_battery_diag_last_ts) >> 9);
                                 
                                 /* Disable charging */
                                 platform_io_disable_charge_mosfets();
@@ -464,6 +473,7 @@ battery_action_te logic_battery_task(void)
                         logic_battery_nb_secs_in_cur_maintain = 0;
                         logic_battery_nb_end_condition_counter = 0;
                         logic_battery_peak_voltage = low_voltage - 5;
+                        logic_battery_diag_last_ts = timer_get_systick();
                     }
                     else
                     {
@@ -544,8 +554,12 @@ battery_action_te logic_battery_task(void)
                         /* Abnormal EOC? */
                         if ((logic_battery_nb_abnormal_eoc < LOGIC_BATTERY_MAX_NB_ABN_EOC_RETR) && (logic_battery_nb_secs_in_cur_maintain < LOGIC_BATTERY_ABNORMAL_EOC_SECS) && (logic_battery_charging_type == NIMH_RECOVERY_23C_CHARGING))
                         {
+                            /* Update diagnostics */
+                            logic_battery_diag_estimat_chg += voltage_diff_goal * ((timer_get_systick() - logic_battery_diag_last_ts) >> 9);
+
                             /* Start the initial charging procedure */
                             logic_battery_state = LB_CHARGE_START_RAMPING;
+                            logic_battery_diag_last_ts = timer_get_systick();
                             logic_battery_discard_next_adc_measurement_counter = 30;
                             logic_battery_charge_voltage = LOGIC_BATTERY_BAT_START_CHG_VOLTAGE;
                             platform_io_update_step_down_voltage(logic_battery_charge_voltage);
@@ -581,9 +595,12 @@ battery_action_te logic_battery_task(void)
                                 
                                 /* Disable step-down */
                                 platform_io_disable_step_down();
+
+                                /* Update diagnostics */
+                                logic_battery_diag_estimat_chg += voltage_diff_goal * ((timer_get_systick() - logic_battery_diag_last_ts) >> 9);
                                 
                                 /* Inform main MCU */
-                                logic_battery_inform_main_of_charge_done(logic_battery_peak_voltage);
+                                logic_battery_inform_main_of_charge_done(logic_battery_peak_voltage, logic_battery_diag_estimat_chg, logic_battery_nb_abnormal_eoc);
                                 status_message_sent_to_main_mcu = TRUE;
                                 return_value = BAT_ACT_CHARGE_DONE;
                             }
@@ -639,6 +656,9 @@ battery_action_te logic_battery_task(void)
                     {
                         /* Update state */
                         logic_battery_state = LB_PEAK_TIMER_TRIGGERED;
+
+                        /* Update diagnostics */
+                        logic_battery_diag_estimat_chg += voltage_diff_goal * ((timer_get_systick() - logic_battery_diag_last_ts) >> 9);
                         
                         /* Disable charging */
                         platform_io_disable_charge_mosfets();
@@ -648,7 +668,7 @@ battery_action_te logic_battery_task(void)
                         platform_io_disable_step_down();
                         
                         /* Inform main MCU */
-                        logic_battery_inform_main_of_charge_done(logic_battery_peak_voltage);
+                        logic_battery_inform_main_of_charge_done(logic_battery_peak_voltage, logic_battery_diag_estimat_chg, logic_battery_nb_abnormal_eoc);
                         status_message_sent_to_main_mcu = TRUE;
                         return_value = BAT_ACT_CHARGE_DONE;
                     }
@@ -703,16 +723,21 @@ battery_action_te logic_battery_task(void)
     return return_value;
 }
 
-/*! \fn     logic_battery_inform_main_of_charge_done(uint16_t peak_voltage_level)
+/*! \fn     logic_battery_inform_main_of_charge_done(uint16_t peak_voltage_level, uint32_t estimated_charge, uint16_t nb_abnormal_eoc)
 *   \brief  Inform main MCU of charge done
-*   \peak_voltage_level The ADC value for peak voltage level
+*   \param  peak_voltage_level The ADC value for peak voltage level
+*   \param  estimated_charge   Estimated charge that went into the battery
+*   \param  nb_abnormal_eoc    Number of abnormal EoC events
 */
-void logic_battery_inform_main_of_charge_done(uint16_t peak_voltage_level)
+void logic_battery_inform_main_of_charge_done(uint16_t peak_voltage_level, uint32_t estimated_charge, uint16_t nb_abnormal_eoc)
 {
     aux_mcu_message_t* temp_tx_message_pt;
     comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT);
     temp_tx_message_pt->aux_mcu_event_message.event_id = AUX_MCU_EVENT_CHARGE_DONE;
     temp_tx_message_pt->aux_mcu_event_message.payload_as_uint16[0] = peak_voltage_level;
-    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->aux_mcu_event_message.event_id) + sizeof(uint16_t);
+    temp_tx_message_pt->aux_mcu_event_message.payload_as_uint16[1] = nb_abnormal_eoc;
+    temp_tx_message_pt->aux_mcu_event_message.payload_as_uint16[2] = (uint16_t)estimated_charge;
+    temp_tx_message_pt->aux_mcu_event_message.payload_as_uint16[3] = (uint16_t)(estimated_charge >> 16);
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->aux_mcu_event_message.event_id) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t);
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
 }
