@@ -404,7 +404,10 @@ battery_action_te logic_battery_task(void)
                             {
                                 /* Move to the next state */
                                 logic_battery_skip_initial_recovery_logic = FALSE;
-                                logic_battery_state = LB_CHARGING_REACH;                                
+                                logic_battery_state = LB_CHARGING_REACH;
+                                
+                                /* Update diagnostics */
+                                logic_battery_diag_estimat_chg += logic_battery_ramping_current_goal * ((timer_get_systick() - logic_battery_diag_last_ts) >> 9);                             
                             }                  
                         }                        
                     }
