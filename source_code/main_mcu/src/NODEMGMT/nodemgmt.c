@@ -423,7 +423,16 @@ void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_no
     // Password pointing feature: do we need to fetch another child node to get the actual password?
     if ((child_node->ptedPwdChildAddress != UINT16_MAX) && (nodemgmt_check_user_permission(child_node->ptedPwdChildAddress, &temp_node_type) == RETURN_OK) && (temp_node_type == NODE_TYPE_CHILD))
     {
-        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(nodemgmt_get_incremented_address(address)), BASE_NODE_SIZE * nodemgmt_node_from_address(nodemgmt_get_incremented_address(address)), MEMBER_SIZE(child_cred_node_t, fakeFlags) + MEMBER_SIZE(child_cred_node_t, passwordBlankFlag) + MEMBER_SIZE(child_cred_node_t, ctr) + MEMBER_SIZE(child_cred_node_t, password) + MEMBER_SIZE(child_cred_node_t, pwdTerminatingZero) + MEMBER_SIZE(child_cred_node_t, TOTP), (void*)&child_node->fakeFlags);
+        /* Copy the old generation flag if present */
+        uint16_t dest_flags;
+        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(child_node->ptedPwdChildAddress),  BASE_NODE_SIZE * nodemgmt_node_from_address(child_node->ptedPwdChildAddress), MEMBER_SIZE(child_cred_node_t, flags), &dest_flags);
+        if ((dest_flags & NODEMGMT_PREVGEN_BIT_BITMASK) != 0)
+        {
+            child_node->flags |= NODEMGMT_PREVGEN_BIT_BITMASK;
+        }
+
+        /* Copy the password & TOTP related data */
+        dbflash_read_data_from_flash(&dbflash_descriptor, nodemgmt_page_from_address(nodemgmt_get_incremented_address(child_node->ptedPwdChildAddress)), BASE_NODE_SIZE * nodemgmt_node_from_address(nodemgmt_get_incremented_address(child_node->ptedPwdChildAddress)), MEMBER_SIZE(child_cred_node_t, fakeFlags) + MEMBER_SIZE(child_cred_node_t, passwordBlankFlag) + MEMBER_SIZE(child_cred_node_t, ctr) + MEMBER_SIZE(child_cred_node_t, password) + MEMBER_SIZE(child_cred_node_t, pwdTerminatingZero) + MEMBER_SIZE(child_cred_node_t, TOTP), (void*)&child_node->fakeFlags);
     }   
     
     // String cleaning

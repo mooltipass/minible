@@ -503,6 +503,10 @@ void main_platform_init(void)
         {
             custom_fs_set_auth_challenge_counter(256);
         }
+        else if (custom_fs_get_platform_bundle_version() == 11)
+        {
+            custom_fs_set_auth_challenge_counter(265);
+        }
         #endif
     }
 

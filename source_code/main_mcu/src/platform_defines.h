@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    82
+#define FW_MINOR    83
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -263,6 +263,9 @@
 - v0.82:- more detailed battery diagnostic data message
         - auth counter set to 256
         - bundle v10
+- v0.83:- pointed to password bug fix
+        - auth counter set to 265
+        - bundle v11
 */
 
 /**************** SETUP DEFINES ****************/
