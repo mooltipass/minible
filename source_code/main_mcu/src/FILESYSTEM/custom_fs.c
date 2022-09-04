@@ -73,7 +73,8 @@ const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = { 0,      
                                                                         FALSE,                                   // SETTINGS_SWITCH_OFF_AFTER_BT_DISC
                                                                         FALSE,                                   // SETTINGS_MC_SUBDOMAIN_FORCE_STATUS
                                                                         FALSE,                                   // SETTINGS_FAV_LAST_USED_SORTED
-                                                                        FALSE};                                  // SETTINGS_LOGIN_AND_FAV_INVERTED
+                                                                        FALSE,                                   // SETTINGS_LOGIN_AND_FAV_INVERTED
+                                                                        FALSE};                                  // SETTINGS_SWITCH_OFF_ON_LOCK
 #ifndef EMULATOR_BUILD
 /* Pointer to the platform unique data, stored at the last page of our bootloader */
 platform_unique_data_t* custom_fs_plat_data_ptr = (platform_unique_data_t*)(FLASH_ADDR + APP_START_ADDR - NVMCTRL_ROW_SIZE);
@@ -1446,6 +1447,9 @@ void custom_fs_set_undefined_settings(BOOL force_flash)
         
         /* Set number of settings covered */
         platform_settings_copy.nb_settings_last_covered = SETTINGS_NB_USED;
+
+        /* Overwrite some settings if needed */
+        platform_settings_copy.device_settings[SETTINGS_SCREEN_SAVER_ID] = 0;
         
         /* Generate random mac address for debug purposes */
         if ((memcmp(custom_fs_platform_settings_p->dbg_bluetooth_addr, "\xFF\xFF\xFF\xFF\xFF\xFF", sizeof(custom_fs_platform_settings_p->dbg_bluetooth_addr)) == 0) || ((custom_fs_platform_settings_p->dbg_bluetooth_addr[5] & 0xC0) != 0xC0))

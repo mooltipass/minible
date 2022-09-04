@@ -263,7 +263,8 @@
 - v0.82:- more detailed battery diagnostic data message
         - auth counter set to 256
         - bundle v10
-- v0.83:- pointed to password bug fix
+- v0.83:- setting: power off on device lock
+        - pointed to password bug fix
         - auth counter set to 265
         - bundle v11
 */

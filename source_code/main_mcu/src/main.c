@@ -346,8 +346,8 @@ void main_platform_init(void)
     if (custom_fs_get_device_flag_value(FUNCTIONAL_TEST_PASSED_FLAG_ID) == FALSE)
     #endif
     {
-        /* First boot initializations: set auth counter value to 256 due to possible (non-security critical) hiccups on first mass production batch */
-        custom_fs_set_auth_challenge_counter(256);
+        /* First boot initializations: set auth counter value to 265 due to possible (non-security critical) hiccups on first mass production batch */
+        custom_fs_set_auth_challenge_counter(265);
         timer_delay_ms(1);
         custom_fs_set_undefined_settings(TRUE);
         
@@ -846,6 +846,12 @@ int main(void)
             (gui_dispatcher_get_current_screen() != GUI_SCREEN_MEMORY_MGMT) && \
             (gui_dispatcher_get_current_screen() != GUI_SCREEN_FW_FILE_UPDATE))            
         {
+            /* Switch off device? */
+            if (((BOOL)custom_fs_settings_get_device_setting(SETTINGS_SWITCH_OFF_ON_LOCK) != FALSE) && (logic_power_get_power_source() != USB_POWERED))
+            {
+                logic_device_power_off();
+            }
+
             /* Disable bluetooth? */
             if (custom_fs_settings_get_device_setting(SETTINGS_DISABLE_BLE_ON_LOCK) != FALSE)
             {
