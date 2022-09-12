@@ -270,8 +270,8 @@ uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_t
 {
     cust_char_t last_service_encountered[MEMBER_ARRAY_SIZE(parent_cred_node_t, service)];
     memset(last_service_encountered, 0, sizeof(last_service_encountered));
+    uint16_t name_length_for_mult_domain_match = 0;
     BOOL mult_domain_possible = FALSE;
-    uint16_t service_dot_index = 0;
     parent_node_t temp_pnode;
     uint16_t next_node_addr;
     int16_t compare_result;
@@ -279,21 +279,15 @@ uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_t
     /* Check if we can actually use the multiple domain feature */
     if ((compare_type == COMPARE_MODE_MATCH) && (cred_type == TRUE) && (category_id == NODEMGMT_STANDARD_CRED_TYPE_ID))
     {
-        /* Store index of the last '.' and check for terminating 0. Iterate over the shorter service length */
+        /* Check that the terminating 0 is within the shorter service length */
         for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(shorten_service_with_mult_dom_t, service); i++)
         {
             /* Terminating 0 before end of array */
             if (name[i] == 0)
             {
-                if ((service_dot_index != 0) && (i != (service_dot_index + 1)))
-                {
-                    mult_domain_possible = TRUE;
-                }
+                name_length_for_mult_domain_match = i;
+                mult_domain_possible = TRUE;
                 break;
-            } 
-            else if (name[i] == '.')
-            {
-                service_dot_index = i;
             }
         }
     }
@@ -339,30 +333,28 @@ uint16_t logic_database_search_service(cust_char_t* name, service_compare_mode_t
                 /* Hey future Mathieu! Data parent category filter could be setup here... but then each file name must be unique across all categories... */
                 
                 /* Perfect match */
-                if (compare_result == 0)
+                if ((compare_result == 0) && ((temp_pnode.cred_parent.flags & NODEMGMT_MULT_DOMAIN_FLAG) == 0))
                 {
                     /* Result found */
                     return next_node_addr;
                 }
                 
-                /* Multi-domain feature: check here for alt-domain, as the domain set for the alt-domain may return a <0 compare result. We check for domain with "." match */
-                if ((mult_domain_possible != FALSE) && ((temp_pnode.cred_parent.flags & NODEMGMT_MULT_DOMAIN_FLAG) != 0) && (utils_custchar_strncmp(name, temp_pnode.cred_parent.service_and_mult_dom.service, service_dot_index + 1) == 0))
+                /* Multi-domain feature: possible, enabled, match on first part? Service is 0 terminated by previous read parent node call */
+                if ((mult_domain_possible != FALSE) && ((temp_pnode.cred_parent.flags & NODEMGMT_MULT_DOMAIN_FLAG) != 0) && (utils_custchar_strncmp(name, temp_pnode.cred_parent.service_and_mult_dom.service, utils_strlen(temp_pnode.cred_parent.service_and_mult_dom.service)) == 0))
                 {
+                    uint16_t candidate_domain_length = utils_strlen(temp_pnode.cred_parent.service_and_mult_dom.service);
                     uint16_t start_index = 0;
                         
-                    /* Where to check to: we know the return is valid given how mult_domain_possible is set to TRUE */
-                    uint16_t compare_to_index = utils_strnlen(name, MEMBER_ARRAY_SIZE(shorten_service_with_mult_dom_t, service));
-                        
-                    /* We've got a match, now let's go through the listed possible domains separated by ',' and try to find a match */
+                    /* Let's go through the listed possible domains separated by ',' and try to find a match */
                     for (uint16_t i = 0; i < MEMBER_ARRAY_SIZE(shorten_service_with_mult_dom_t, mult_domain); i++)
                     {
                         /* We got a separator */
-                        if (temp_pnode.cred_parent.service_and_mult_dom.mult_domain[i] == ',')
+                        if ((temp_pnode.cred_parent.service_and_mult_dom.mult_domain[i] == ',') || (temp_pnode.cred_parent.service_and_mult_dom.mult_domain[i] == 0))
                         {
                             /* Check for same domain length then same domain */
                             if (((i-start_index) != 0) &&
-                                ((compare_to_index-service_dot_index-1) == (i - start_index)) &&
-                                (utils_custchar_strncmp(&name[service_dot_index + 1], &temp_pnode.cred_parent.service_and_mult_dom.mult_domain[start_index], compare_to_index-service_dot_index-1) == 0))
+                                ((name_length_for_mult_domain_match-candidate_domain_length) == (i - start_index)) &&
+                                (utils_custchar_strncmp(&name[candidate_domain_length], &temp_pnode.cred_parent.service_and_mult_dom.mult_domain[start_index], name_length_for_mult_domain_match-candidate_domain_length) == 0))
                             {
                                 return next_node_addr;
                             }

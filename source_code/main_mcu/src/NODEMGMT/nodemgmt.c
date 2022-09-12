@@ -355,7 +355,14 @@ RET_TYPE nodemgmt_read_parent_node_permissive(uint16_t address, parent_node_t* p
     /* Clean data if needed */
     if (data_clean != FALSE)
     {
-        parent_node->cred_parent.service[(sizeof(parent_node->cred_parent.service)/sizeof(parent_node->cred_parent.service[0]))-1] = 0;
+        if ((parent_node->cred_parent.flags & NODEMGMT_MULT_DOMAIN_FLAG) != 0)
+        {
+            parent_node->cred_parent.service_and_mult_dom.service[(sizeof(parent_node->cred_parent.service_and_mult_dom.service)/sizeof(parent_node->cred_parent.service_and_mult_dom.service[0]))-1] = 0;
+        }
+        else
+        {
+            parent_node->cred_parent.service[(sizeof(parent_node->cred_parent.service)/sizeof(parent_node->cred_parent.service[0]))-1] = 0;
+        }
     }
     
     return RETURN_OK;
