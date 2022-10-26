@@ -19,7 +19,7 @@ Connect your Mooltipass Mini BLE to your computer **through USB** and make sure 
   
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/rf_debug_guide/welcome_screen.png?raw=true)  
   
-Insert a card **the wrong way around** (chip facing up) to get to this screen:  
+Insert a card **the wrong way around** (chip facing up) to get to this screen. **Do not remove the card**.  
   
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/rf_debug_guide/invalid.png?raw=true)  
   
