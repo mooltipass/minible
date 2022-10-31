@@ -426,11 +426,11 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
                 memcpy(temp_send_message_pt->ble_message.payload, bluetooth_pin, sizeof(bluetooth_pin));
                 if (prompt_return_val == RETURN_OK)
                 {
-                    temp_send_message_pt->payload_length1 = sizeof(received_message_id) + 6;
+                    temp_send_message_pt->payload_length1 = sizeof(received_message_id) + sizeof(temp_send_message_pt->ble_message.uint32_t_padding) + 6;
                 } 
                 else
                 {
-                    temp_send_message_pt->payload_length1 = sizeof(received_message_id);
+                    temp_send_message_pt->payload_length1 = sizeof(received_message_id) + sizeof(temp_send_message_pt->ble_message.uint32_t_padding);
                 }
                 temp_send_message_pt->ble_message.message_id = received_message_id;
                 comms_aux_mcu_send_message(temp_send_message_pt);
@@ -443,7 +443,7 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
             {
                 /* Prepare answer and send it */
                 aux_mcu_message_t* temp_send_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(received_message_type);
-                temp_send_message_pt->payload_length1 = sizeof(received_message_id);
+                temp_send_message_pt->payload_length1 = sizeof(received_message_id) + sizeof(temp_send_message_pt->ble_message.uint32_t_padding);
                 temp_send_message_pt->ble_message.message_id = received_message_id;
                 comms_aux_mcu_send_message(temp_send_message_pt);
                 return_val = BLE_6PIN_REQ_RCVD;            
@@ -478,11 +478,11 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
             /* Try to fetch bonding information */
             if (nodemgmt_get_bluetooth_bonding_information_for_mac_addr(received_message->ble_message.payload[0], &received_message->ble_message.payload[1], &temp_send_message_pt->ble_message.bonding_information_to_store_message) == RETURN_OK)
             {
-                temp_send_message_pt->payload_length1 = sizeof(temp_send_message_pt->ble_message.message_id) + sizeof(temp_send_message_pt->ble_message.bonding_information_to_store_message);
+                temp_send_message_pt->payload_length1 = sizeof(temp_send_message_pt->ble_message.message_id) + sizeof(temp_send_message_pt->ble_message.uint32_t_padding) + sizeof(temp_send_message_pt->ble_message.bonding_information_to_store_message);
             }
             else
             {
-                temp_send_message_pt->payload_length1 = sizeof(temp_send_message_pt->ble_message.message_id);
+                temp_send_message_pt->payload_length1 = sizeof(temp_send_message_pt->ble_message.message_id) + sizeof(temp_send_message_pt->ble_message.uint32_t_padding);
             }
 
             /* Send message */
@@ -498,11 +498,11 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
             /* Try to fetch bonding information */
             if (nodemgmt_get_bluetooth_bonding_information_for_irk(received_message->ble_message.payload, &temp_send_message_pt->ble_message.bonding_information_to_store_message) == RETURN_OK)
             {
-                temp_send_message_pt->payload_length1 = sizeof(temp_send_message_pt->ble_message.message_id) + sizeof(temp_send_message_pt->ble_message.bonding_information_to_store_message);
+                temp_send_message_pt->payload_length1 = sizeof(temp_send_message_pt->ble_message.message_id) + sizeof(temp_send_message_pt->ble_message.uint32_t_padding) + sizeof(temp_send_message_pt->ble_message.bonding_information_to_store_message);
             }
             else
             {
-                temp_send_message_pt->payload_length1 = sizeof(temp_send_message_pt->ble_message.message_id);
+                temp_send_message_pt->payload_length1 = sizeof(temp_send_message_pt->ble_message.message_id) + sizeof(temp_send_message_pt->ble_message.uint32_t_padding);
             }
 
             /* Send message */
@@ -527,7 +527,7 @@ comms_msg_rcvd_te comms_aux_mcu_deal_with_ble_message(aux_mcu_message_t* receive
             nb_irk_keys += 1;
             
             /* Update payload size */
-            temp_send_message_pt->payload_length1 = sizeof(nb_irk_keys) + nb_irk_keys*MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t,peer_irk_key);
+            temp_send_message_pt->payload_length1 = sizeof(temp_send_message_pt->ble_message.message_id) + sizeof(temp_send_message_pt->ble_message.uint32_t_padding) + sizeof(nb_irk_keys) + nb_irk_keys*MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t,peer_irk_key);
             temp_send_message_pt->ble_message.payload_as_uint16_t[0] = nb_irk_keys;
 
             /* Send message */

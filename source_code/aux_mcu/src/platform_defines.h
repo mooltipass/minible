@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    72
+#define FW_MINOR    73
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -141,6 +141,8 @@
 - v0.72:- increasing delay before main MCU no comms signal read
         - charge done event: provide charge estimation info
         - bundle v10
+- v0.73:- bug fix: correct BLE message payload
+        - bundle v12
 */
 
 /**************** SETUP DEFINES ****************/

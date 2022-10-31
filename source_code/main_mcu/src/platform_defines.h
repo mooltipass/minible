@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    83
+#define FW_MINOR    84
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -267,6 +267,9 @@
         - pointed to password bug fix
         - auth counter set to 265
         - bundle v11
+- v0.84:- bug fix: correct BLE message payload
+        - auth counter set to 270
+        - bundle v12
 */
 
 /**************** SETUP DEFINES ****************/

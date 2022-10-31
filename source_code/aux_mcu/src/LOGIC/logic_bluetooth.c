@@ -328,7 +328,7 @@ void logic_bluetooth_successfull_pairing_call(ble_connected_dev_info_t* dev_info
     comms_main_mcu_get_empty_packet_ready_to_be_sent(&temp_tx_message_pt, AUX_MCU_MSG_TYPE_BLE_CMD);
         
     /* Set payload size */
-    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(temp_tx_message_pt->ble_message.bonding_information_to_store_message);
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(temp_tx_message_pt->ble_message.uint32_t_padding) + sizeof(temp_tx_message_pt->ble_message.bonding_information_to_store_message);
         
     /* Message ID */
     temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_STORE_BOND_INFO;

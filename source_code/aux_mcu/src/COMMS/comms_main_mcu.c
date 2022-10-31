@@ -937,7 +937,7 @@ RET_TYPE comms_main_mcu_fetch_6_digits_pin(uint8_t* pin_array)
     temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_GET_BT_6_DIGIT_CODE;
     
     /* Set payload size */
-    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(temp_tx_message_pt->ble_message.uint32_t_padding);
     
     /* Send packet */
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
@@ -955,7 +955,7 @@ RET_TYPE comms_main_mcu_fetch_6_digits_pin(uint8_t* pin_array)
     memcpy(pin_array, temp_rx_message_pt->ble_message.payload, 6);
     
     /* Received valid payload? */
-    if (temp_rx_message_pt->payload_length1 != sizeof(temp_rx_message_pt->ble_message.message_id) + 6)
+    if (temp_rx_message_pt->payload_length1 != sizeof(temp_rx_message_pt->ble_message.message_id) + sizeof(temp_rx_message_pt->ble_message.uint32_t_padding) + 6)
     {
         return RETURN_NOK;
     } 
@@ -984,7 +984,7 @@ ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t address_resolv_typ
     memcpy(&temp_tx_message_pt->ble_message.payload[1], mac_addr, 6);
     
     /* Set payload size */
-    temp_tx_message_pt->payload_length1 = sizeof(address_resolv_type) + sizeof(temp_tx_message_pt->ble_message.message_id) + 6;
+    temp_tx_message_pt->payload_length1 = sizeof(address_resolv_type) + sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(temp_tx_message_pt->ble_message.uint32_t_padding) + 6;
     
     /* Send packet */
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
@@ -998,7 +998,7 @@ ret_type_te comms_main_mcu_fetch_bonding_info_for_mac(uint8_t address_resolv_typ
     }
     
     /* Check for success and do necessary actions */
-    if (temp_rx_message_pt->payload_length1 == sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(nodemgmt_bluetooth_bonding_information_t))
+    if (temp_rx_message_pt->payload_length1 == sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(temp_tx_message_pt->ble_message.uint32_t_padding) + sizeof(nodemgmt_bluetooth_bonding_information_t))
     {
         memcpy(bonding_info, &temp_rx_message_pt->ble_message.bonding_information_to_store_message, sizeof(nodemgmt_bluetooth_bonding_information_t));
         return RETURN_OK;
@@ -1026,7 +1026,7 @@ ret_type_te comms_main_mcu_fetch_bonding_info_for_irk(uint8_t* irk_key, nodemgmt
     memcpy(temp_tx_message_pt->ble_message.payload, irk_key, MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t, peer_irk_key));
     
     /* Set payload size */
-    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t, peer_irk_key);
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(temp_tx_message_pt->ble_message.uint32_t_padding) + MEMBER_SIZE(nodemgmt_bluetooth_bonding_information_t, peer_irk_key);
     
     /* Send packet */
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
@@ -1040,7 +1040,7 @@ ret_type_te comms_main_mcu_fetch_bonding_info_for_irk(uint8_t* irk_key, nodemgmt
     }
     
     /* Check for success and do necessary actions */
-    if (temp_rx_message_pt->payload_length1 == sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(nodemgmt_bluetooth_bonding_information_t))
+    if (temp_rx_message_pt->payload_length1 == sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(temp_tx_message_pt->ble_message.uint32_t_padding) + sizeof(nodemgmt_bluetooth_bonding_information_t))
     {
         memcpy(bonding_info, &temp_rx_message_pt->ble_message.bonding_information_to_store_message, sizeof(nodemgmt_bluetooth_bonding_information_t));
         return RETURN_OK;
@@ -1067,7 +1067,7 @@ uint16_t comms_main_mcu_get_bonding_info_irks(uint8_t** irk_keys_buffer)
     temp_tx_message_pt->ble_message.message_id = BLE_MESSAGE_GET_IRK_KEYS;
     
     /* Set payload size */
-    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
+    temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id) + sizeof(temp_tx_message_pt->ble_message.uint32_t_padding);
     
     /* Send packet */
     comms_main_mcu_send_message((void*)temp_tx_message_pt, (uint16_t)sizeof(aux_mcu_message_t));
