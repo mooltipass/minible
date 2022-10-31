@@ -761,6 +761,10 @@ void platform_io_transcienty_battery_oled_power_up(void)
 */
 void platform_io_power_up_oled(BOOL power_3v3)
 {
+    /* Just in case, disable 3V3 to oled */
+    PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;
+    timer_delay_ms(1);
+
     /* Limit inrush to the OLED caps: drive VBAT NMOSFETs with the MCU pullup then switch to push pull stage: for 3.1V measured for 36us */
     PORT->Group[VOLED_1V2_EN_GROUP].DIRCLR.reg = VOLED_1V2_EN_MASK;
     PORT->Group[VOLED_1V2_EN_GROUP].OUTSET.reg = VOLED_1V2_EN_MASK;

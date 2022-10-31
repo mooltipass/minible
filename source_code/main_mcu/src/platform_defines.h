@@ -268,6 +268,7 @@
         - auth counter set to 265
         - bundle v11
 - v0.84:- bug fix: correct BLE message payload
+        - disable 3V3 before powering up OLED
         - auth counter set to 270
         - bundle v12
 */
