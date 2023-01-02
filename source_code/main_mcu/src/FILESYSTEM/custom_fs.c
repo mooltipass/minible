@@ -1236,9 +1236,7 @@ void custom_fs_clear_power_consumption_log_and_calib_data(void)
     memset((void*)&temp_settings.power_log, 0xFF, sizeof(power_consumption_log_t));
     memset((void*)&temp_settings.time_calib, 0xFF, sizeof(time_calibration_data_t));
     /* Store a lifetime log copy to not take the risk of losing it indefinitely (device freeze for example) */
-    lifetime_log_t temp_lifetime_log;
-    logic_power_get_lifetime_log(&temp_lifetime_log);
-    memcpy((void*)&temp_settings.lifetime_log_copy, &temp_lifetime_log, sizeof(temp_lifetime_log));
+    logic_power_get_lifetime_log(&temp_settings.lifetime_log_copy);
     custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings, FALSE);
 }
 
