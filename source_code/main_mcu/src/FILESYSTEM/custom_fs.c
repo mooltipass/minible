@@ -1237,7 +1237,7 @@ void custom_fs_clear_power_consumption_log_and_calib_data(void)
     memset((void*)&temp_settings.time_calib, 0xFF, sizeof(time_calibration_data_t));
     /* Store a lifetime log copy to not take the risk of losing it indefinitely (device freeze for example) */
     lifetime_log_t temp_lifetime_log;
-    logic_power_get_lifetime_log_copy(&temp_lifetime_log);
+    logic_power_get_lifetime_log(&temp_lifetime_log);
     memcpy((void*)&temp_settings.lifetime_log_copy, &temp_lifetime_log, sizeof(temp_lifetime_log));
     custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings, FALSE);
 }
@@ -1270,14 +1270,10 @@ void custom_fs_get_power_consumption_log(power_consumption_log_t* power_log_pt)
             power_log_pt->lifetime_log.lifetime_nb_ms_screen_on_msb = custom_fs_platform_settings_p->lifetime_log_copy.lifetime_nb_ms_screen_on_msb;
             power_log_pt->lifetime_log.lifetime_nb_ms_screen_on_lsb = custom_fs_platform_settings_p->lifetime_log_copy.lifetime_nb_ms_screen_on_lsb;
         }
-        
-        /* Lifetime statistics: first boot */
         if (power_log_pt->lifetime_log.lifetime_nb_30mins_bat == UINT32_MAX)
         {
             power_log_pt->lifetime_log.lifetime_nb_30mins_bat = custom_fs_platform_settings_p->lifetime_log_copy.lifetime_nb_30mins_bat;
         }
-        
-        /* Lifetime statistics: first boot */
         if (power_log_pt->lifetime_log.lifetime_nb_30mins_usb == UINT32_MAX)
         {
             power_log_pt->lifetime_log.lifetime_nb_30mins_usb = custom_fs_platform_settings_p->lifetime_log_copy.lifetime_nb_30mins_usb;

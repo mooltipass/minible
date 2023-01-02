@@ -73,11 +73,11 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
 void logic_power_store_aux_charge_done_diag_data(power_eoc_event_diag_data_t* diag_data);
 void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_success);
 void logic_power_set_battery_level_update_from_aux(uint8_t battery_level);
-void logic_power_get_lifetime_log_copy(lifetime_log_t* lifetime_log_pt);
 power_consumption_log_t* logic_power_get_power_consumption_log_pt(void);
 power_eoc_event_diag_data_t* logic_power_get_eoc_aux_diag_data_pt(void);
 void logic_power_skip_queue_logic_for_upcoming_adc_measurements(void);
 RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time);
+void logic_power_get_lifetime_log(lifetime_log_t* lifetime_log_pt);
 void logic_power_register_vbat_adc_measurement(uint16_t adc_val);
 void logic_power_set_power_source(power_source_te power_source);
 uint16_t logic_power_debug_get_last_adc_measurement(void);

@@ -132,7 +132,7 @@ void logic_power_30m_tick(void)
     /* This routine is only interested in the low power background power consumption */
     if (logic_power_current_power_source == BATTERY_POWERED)
     {
-        /* Lifetime statistics: first timer increment */
+        /* Lifetime statistics: timer increment */
         logic_power_consumption_log.lifetime_log.lifetime_nb_30mins_bat++;
         
         /* Lowest power consumption timer (no BLE, no card) */
@@ -321,11 +321,11 @@ void logic_power_power_down_actions(void)
     custom_fs_store_power_consumption_log_and_calib_data((power_consumption_log_t*)&logic_power_consumption_log_copy, &current_time_calibration_data);
 }
 
-/*! \fn     logic_power_get_lifetime_log_copy(lifetime_log_t* lifetime_log_pt)
+/*! \fn     logic_power_get_lifetime_log(lifetime_log_t* lifetime_log_pt)
 *   \brief  Get a copy of the current lifetime log
 *   \param  lifetime_log_pt Where to store the lifetime log copy
 */
-void logic_power_get_lifetime_log_copy(lifetime_log_t* lifetime_log_pt)
+void logic_power_get_lifetime_log(lifetime_log_t* lifetime_log_pt)
 {
     cpu_irq_enter_critical();
     memcpy((void*)&lifetime_log_pt, (void*)&logic_power_consumption_log.lifetime_log, sizeof(lifetime_log_t));
