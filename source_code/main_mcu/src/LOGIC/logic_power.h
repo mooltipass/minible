@@ -38,6 +38,14 @@ typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2
 /* Typedefs */
 typedef struct
 {
+    uint32_t lifetime_nb_ms_screen_on_msb;      // Total number of ms spent with screen on, msb
+    uint32_t lifetime_nb_ms_screen_on_lsb;      // Total number of ms spent with screen on, lsb
+    uint32_t lifetime_nb_30mins_bat;            // Total number of 30mins spent battery powered
+    uint32_t lifetime_nb_30mins_usb;            // Total number of 30mins spent usb powered
+} lifetime_log_t;
+
+typedef struct
+{
     uint32_t nb_30mins_powered_on;              // Lowest level state: 96uA
     uint32_t nb_30mins_card_inserted;           // Adding 42uA
     uint32_t nb_30mins_ble_advertising;         // Adding 823uA to first 2
@@ -50,10 +58,7 @@ typedef struct
     uint32_t nb_ms_full_pawa;                   // 160mA as a guideline
     uint32_t nb_ms_spent_since_last_full_charge;// Number of ms since last full charge
     uint32_t aux_mcu_reported_pct;              // Last AUX mcu reported battery pct
-    uint32_t lifetime_nb_ms_screen_on_msb;      // Total number of ms spent with screen on, msb
-    uint32_t lifetime_nb_ms_screen_on_lsb;      // Total number of ms spent with screen on, lsb
-    uint32_t lifetime_nb_30mins_bat;            // Total number of 30mins spent battery powered
-    uint32_t lifetime_nb_30mins_usb;            // Total number of 30mins spent usb powered
+    lifetime_log_t lifetime_log;                // Stats on device lifetime
 } power_consumption_log_t;
 
 typedef struct
@@ -68,6 +73,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
 void logic_power_store_aux_charge_done_diag_data(power_eoc_event_diag_data_t* diag_data);
 void logic_power_set_battery_charging_bool(BOOL battery_charging, BOOL charge_success);
 void logic_power_set_battery_level_update_from_aux(uint8_t battery_level);
+void logic_power_get_lifetime_log_copy(lifetime_log_t* lifetime_log_pt);
 power_consumption_log_t* logic_power_get_power_consumption_log_pt(void);
 power_eoc_event_diag_data_t* logic_power_get_eoc_aux_diag_data_pt(void);
 void logic_power_skip_queue_logic_for_upcoming_adc_measurements(void);

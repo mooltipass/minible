@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    84
+#define FW_MINOR    85
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -271,6 +271,7 @@
         - disable 3V3 before powering up OLED
         - auth counter set to 270
         - bundle v12
+- v0.85:- possible bug fix: loss of platform settings at device emergency power-off
 */
 
 /**************** SETUP DEFINES ****************/

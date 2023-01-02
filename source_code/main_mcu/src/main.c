@@ -582,6 +582,9 @@ void main_platform_init(void)
     {
         custom_fs_set_device_flag_value(DEVICE_WENT_THROUGH_BOOTLOADER_FLAG_ID, FALSE);
     }
+
+    /* Now that the platform is up and ready to go, our consumption log & calib data fetched, we can clear our consumption log data to enable faster storage at platform switch-off */
+    custom_fs_clear_power_consumption_log_and_calib_data();
     
     /* Arm aux MCU ping timer */
     timer_start_timer(TIMER_AUX_MCU_PING, NB_MS_AUX_MCU_PING);

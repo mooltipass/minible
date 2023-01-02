@@ -183,7 +183,8 @@ typedef struct
     uint32_t other_reserved_uint32;
     power_consumption_log_t power_log;
     time_calibration_data_t time_calib;
-    uint8_t reserved_array[61];
+    lifetime_log_t lifetime_log_copy;
+    uint8_t reserved_array[45];
     uint8_t custom_ble_name[CUSTOM_BLE_NAME_MAX_LENGTH+1];
     uint32_t platform_serial_number;
     uint32_t device_auth_challenge_counter;

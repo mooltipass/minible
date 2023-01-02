@@ -211,7 +211,7 @@ void custom_fs_set_custom_ble_name(uint8_t* name)
     custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
     memcpy((uint8_t*)temp_settings.custom_ble_name, name, MEMBER_SIZE(custom_platform_settings_t, custom_ble_name)-1);
     temp_settings.custom_ble_name[MEMBER_SIZE(custom_platform_settings_t, custom_ble_name)-1] = 0;
-    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings, FALSE);
 }
 
 /*! \fn     custom_fs_read_from_flash(uint8_t* datap, custom_fs_address_t address, uint32_t size)
@@ -1006,14 +1006,15 @@ void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id)
 #endif
 }
 
-/*! \fn     custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array)
+/*! \fn     custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array, BOOL do_not_erase_first))
 *   \brief  Write 256 bytes in a custom storage slot, located in NVM configured as EEPROM
-*   \param  slot_id     slot ID
-*   \param  array       256 bytes array (matches NVMCTRL_ROW_SIZE)
+*   \param  slot_id             slot ID
+*   \param  array               256 bytes array (matches NVMCTRL_ROW_SIZE)
+*   \param  do_not_erase_first  set to true to not erase the page first
 *   \note   Please make sure the fuses are correctly configured
 *   \note   NVM configured as EEPROM allows access to NVM when EEPROM is being written or erased (convenient when interrupts occur)
 */
-void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array)
+void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array, BOOL do_not_erase_first)
 {
 #ifndef FEATURE_NVM_RWWEE    
     /* Compute address of where we want to write data */
@@ -1033,10 +1034,13 @@ void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void
     NVMCTRL->CTRLB.bit.MANW = 0;
     NVMCTRL->CTRLB.bit.CACHEDIS = 1;
     
-    /* Erase complete row */
-    while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
-    NVMCTRL->ADDR.reg  = flash_addr/2;
-    NVMCTRL->CTRLA.reg = NVMCTRL_CTRLA_CMD_ER | NVMCTRL_CTRLA_CMDEX_KEY;
+    /* Erase complete row, or not */
+    if (do_not_erase_first == FALSE)
+    {
+        while ((NVMCTRL->INTFLAG.reg & NVMCTRL_INTFLAG_READY) == 0);
+        NVMCTRL->ADDR.reg  = flash_addr/2;
+        NVMCTRL->CTRLA.reg = NVMCTRL_CTRLA_CMD_ER | NVMCTRL_CTRLA_CMDEX_KEY;
+    }
         
     /* Flash bytes */
     for (uint32_t j = 0; j < 4; j++)
@@ -1144,7 +1148,7 @@ void custom_fs_settings_set_fw_upgrade_flag(void)
     volatile custom_platform_settings_t temp_settings;
     custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
     temp_settings.start_upgrade_flag = FIRMWARE_UPGRADE_FLAG;
-    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings, FALSE);
     return;    
 }
 
@@ -1156,7 +1160,7 @@ void custom_fs_settings_clear_fw_upgrade_flag(void)
     volatile custom_platform_settings_t temp_settings;
     custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
     temp_settings.start_upgrade_flag = 0;
-    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings, FALSE);
 }
 
 /*! \fn     custom_fs_set_device_flag_value(custom_fs_flag_id_te flag_id, BOOL value)
@@ -1180,7 +1184,7 @@ void custom_fs_set_device_flag_value(custom_fs_flag_id_te flag_id, BOOL value)
         {
             temp_flags.device_flags[flag_id] = FLAG_SET_BOOL_VALUE;
         }
-        custom_fs_write_256B_at_internal_custom_storage_slot(FLAGS_STORAGE_SLOT, (void*)&temp_flags);
+        custom_fs_write_256B_at_internal_custom_storage_slot(FLAGS_STORAGE_SLOT, (void*)&temp_flags, FALSE);
     }    
 }
 
@@ -1208,8 +1212,10 @@ BOOL custom_fs_get_device_flag_value(custom_fs_flag_id_te flag_id)
 }
 
 /*! \fn     custom_fs_store_power_consumption_log_and_calib_data(power_consumption_log_t* power_log_pt, time_calibration_data_t* time_calib_data_pt)
-*   \brief  Store the power consumption log into flash
-*   \param  power_log   Pointer to the power consumption log
+*   \brief  Store the power consumption log & timer calibration data into flash
+*   \param  power_log           Pointer to the power consumption log
+*   \param  time_calib_data_pt  Pointer to the timer calibration data
+*   \note   the space allocated to the time calibration & power log structure is erased at platform boot to not have to wait for flash erase
 */
 void custom_fs_store_power_consumption_log_and_calib_data(power_consumption_log_t* power_log_pt, time_calibration_data_t* time_calib_data_pt)
 {
@@ -1217,7 +1223,23 @@ void custom_fs_store_power_consumption_log_and_calib_data(power_consumption_log_
     custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
     memcpy((void*)&temp_settings.power_log, power_log_pt, sizeof(power_consumption_log_t));
     memcpy((void*)&temp_settings.time_calib, time_calib_data_pt, sizeof(time_calibration_data_t));
-    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings, TRUE);
+}
+
+/*! \fn     custom_fs_clear_power_consumption_log_and_calib_data(void)
+*   \brief  Clear the power consumption log & timer calibration data currently in flash for faster storage at platform switch off
+*/
+void custom_fs_clear_power_consumption_log_and_calib_data(void)
+{
+    volatile custom_platform_settings_t temp_settings;
+    custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
+    memset((void*)&temp_settings.power_log, 0xFF, sizeof(power_consumption_log_t));
+    memset((void*)&temp_settings.time_calib, 0xFF, sizeof(time_calibration_data_t));
+    /* Store a lifetime log copy to not take the risk of losing it indefinitely (device freeze for example) */
+    lifetime_log_t temp_lifetime_log;
+    logic_power_get_lifetime_log_copy(&temp_lifetime_log);
+    memcpy((void*)&temp_settings.lifetime_log_copy, &temp_lifetime_log, sizeof(temp_lifetime_log));
+    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings, FALSE);
 }
 
 /*! \fn     custom_fs_get_time_calibration_data(time_calibration_data_t* time_calib_data_pt)
@@ -1241,6 +1263,25 @@ void custom_fs_get_power_consumption_log(power_consumption_log_t* power_log_pt)
     if (custom_fs_platform_settings_p != 0)
     {
         memcpy(power_log_pt, &custom_fs_platform_settings_p->power_log, sizeof(power_consumption_log_t));
+        
+        /* In case of erroneous lifetime log data (sudden device switch off), take the backup one */
+        if ((power_log_pt->lifetime_log.lifetime_nb_ms_screen_on_msb == UINT32_MAX) && (power_log_pt->lifetime_log.lifetime_nb_ms_screen_on_lsb == UINT32_MAX))
+        {
+            power_log_pt->lifetime_log.lifetime_nb_ms_screen_on_msb = custom_fs_platform_settings_p->lifetime_log_copy.lifetime_nb_ms_screen_on_msb;
+            power_log_pt->lifetime_log.lifetime_nb_ms_screen_on_lsb = custom_fs_platform_settings_p->lifetime_log_copy.lifetime_nb_ms_screen_on_lsb;
+        }
+        
+        /* Lifetime statistics: first boot */
+        if (power_log_pt->lifetime_log.lifetime_nb_30mins_bat == UINT32_MAX)
+        {
+            power_log_pt->lifetime_log.lifetime_nb_30mins_bat = custom_fs_platform_settings_p->lifetime_log_copy.lifetime_nb_30mins_bat;
+        }
+        
+        /* Lifetime statistics: first boot */
+        if (power_log_pt->lifetime_log.lifetime_nb_30mins_usb == UINT32_MAX)
+        {
+            power_log_pt->lifetime_log.lifetime_nb_30mins_usb = custom_fs_platform_settings_p->lifetime_log_copy.lifetime_nb_30mins_usb;
+        }
     }
 }
 
@@ -1307,7 +1348,7 @@ void custom_fs_set_auth_challenge_counter(uint32_t counter_value)
     volatile custom_platform_settings_t temp_settings;
     custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
     temp_settings.device_auth_challenge_counter = counter_value;
-    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);    
+    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings, FALSE);    
 }
 
 /*! \fn     custom_fs_get_auth_challenge_counter(void)
@@ -1335,7 +1376,7 @@ void custom_fs_program_serial_number(uint32_t serial_number)
     volatile custom_platform_settings_t temp_settings;
     custom_fs_read_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);
     temp_settings.platform_serial_number = serial_number;
-    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings);    
+    custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&temp_settings, FALSE);    
 }
 
 /*! \fn     custom_fs_get_platform_programmed_serial_number(void)
@@ -1368,7 +1409,7 @@ void custom_fs_settings_store_dump(uint8_t* settings_buffer)
         memcpy(&platform_settings_copy, custom_fs_platform_settings_p, sizeof(custom_platform_settings_t));
         memcpy(platform_settings_copy.device_settings, settings_buffer, sizeof(platform_settings_copy.device_settings));
         platform_settings_copy.nb_settings_last_covered = SETTINGS_NB_USED;
-        custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&platform_settings_copy);
+        custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&platform_settings_copy, FALSE);
     }
 }
 
@@ -1461,7 +1502,7 @@ void custom_fs_set_undefined_settings(BOOL force_flash)
         }
         
         /* Update memory */
-        custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&platform_settings_copy);
+        custom_fs_write_256B_at_internal_custom_storage_slot(SETTINGS_STORAGE_SLOT, (void*)&platform_settings_copy, FALSE);
     }
 }
 
@@ -1535,7 +1576,7 @@ void custom_fs_detele_user_cpz_lut_entry(uint8_t user_id)
     /* Read one page, write it back with modified bytes */
     custom_fs_read_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (user_id >> 2), (void*)one_page_of_lut_entries);
     memset(&one_page_of_lut_entries[user_id&0x03], 0xFF, sizeof(one_page_of_lut_entries[0]));
-    custom_fs_write_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (user_id >> 2), (void*)one_page_of_lut_entries);
+    custom_fs_write_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (user_id >> 2), (void*)one_page_of_lut_entries, FALSE);
 }
 
 /*! \fn     custom_fs_get_nb_free_cpz_lut_entries(uint8_t* first_available_user_id)
@@ -1583,7 +1624,7 @@ RET_TYPE custom_fs_update_cpz_entry(cpz_lut_entry_t* cpz_entry, uint8_t user_id)
     cpz_entry->user_id = user_id;
     custom_fs_read_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (user_id >> 2), (void*)one_page_of_lut_entries);
     memcpy(&one_page_of_lut_entries[user_id&0x03], cpz_entry, sizeof(one_page_of_lut_entries[0]));
-    custom_fs_write_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (user_id >> 2), (void*)one_page_of_lut_entries);
+    custom_fs_write_256B_at_internal_custom_storage_slot(FIRST_CPZ_LUT_ENTRY_STORAGE_SLOT + (user_id >> 2), (void*)one_page_of_lut_entries, FALSE);
     return RETURN_OK;
 }
 
