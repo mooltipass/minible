@@ -328,7 +328,7 @@ void logic_power_power_down_actions(void)
 void logic_power_get_lifetime_log(lifetime_log_t* lifetime_log_pt)
 {
     cpu_irq_enter_critical();
-    memcpy((void*)&lifetime_log_pt, (void*)&logic_power_consumption_log.lifetime_log, sizeof(lifetime_log_t));
+    memcpy((void*)lifetime_log_pt, (void*)&logic_power_consumption_log.lifetime_log, sizeof(lifetime_log_t));
     cpu_irq_leave_critical();
 }
 
