@@ -1,15 +1,4 @@
-# Moolticute Export File Decoding Utility for Windows
-# Required hardware
-# - ACR38U-I1 or ACR39U-U1 (not any other!)
-#
-# Install Process (12/02/2022):
-# - Install Python 3.9.x from https://www.python.org (3.9.10 can be downloaded here: https://www.python.org/downloads/release/python-3910/)
-# - Install pyscard from https://sourceforge.net/projects/pyscard/files/pyscard/ (https://sourceforge.net/projects/pyscard/files/pyscard/pyscard%202.0.1/pyscard-2.0.1-cp39-cp39-win_amd64.whl/download - install the whl using pip install pyscard-2.0.1-cp39-cp39-win_amd64.whl, see https://github.com/LudovicRousseau/pyscard/blob/master/INSTALL.md)
-# - Install pycryptodome: python -m pip install pycryptodome
-#
-# Known bugs:
-# - if an incorrect pin is inserted, it's not possible to unlock the card anymore with the script. Simply put it back to your device, unlock it, then try again with the script
-#
+# Moolticute Export File Decoding Utility
 from smartcard.CardConnectionObserver import ConsoleCardConnectionObserver
 from smartcard.Exceptions import CardRequestTimeoutException
 from smartcard.util import toHexString, toBytes
