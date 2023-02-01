@@ -1121,7 +1121,7 @@ void custom_fs_erase_256B_at_internal_custom_storage_slot(uint32_t slot_id)
     emu_eeprom_write(slot_id * 256, eeprom + slot_id * 256, 256);
 }
 
-void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array)
+void custom_fs_write_256B_at_internal_custom_storage_slot(uint32_t slot_id, void* array, BOOL do_not_erase_first)
 {
     if(slot_id * 256 > sizeof(eeprom))
         return;
