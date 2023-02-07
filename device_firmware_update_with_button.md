@@ -27,7 +27,7 @@ If your main MCU version is below v0.54, [downgrade moolticute to v0.44.19](http
     
 ### [](#header-3)Step 4: Moolticute versions v0.44.22 and above
 
-In Moolticute, press CTRL-SHIFT-F3 (Shift+Fn+Cmd+F3 on Mac) in such a way that all keys are pressed at the end of the shortcut. The BLE Dev tab will appear on the top part of the application.  
+In Moolticute, press SHIFT-F3 in such a way that all keys are pressed at the end of the shortcut. The BLE Dev tab will appear on the top part of the application.  
   
 ![](https://github.com/mooltipass/minible/blob/gh-pages/images/minible_update_guide/ble_dev_tab_new_upload.png?raw=true)  
   
