@@ -1,9 +1,14 @@
 from __future__ import print_function
+import platform
+if platform.system() != "Linux":
+    from usb.backend import libusb0 
+import os
+#os.environ["PYUSB_DEBUG"]="debug"
+#os.environ["LIBUSB_DEBUG"]="4"
 from mooltipass_defines import *
 from datetime import datetime
 from array import array
 from udelays import *
-import platform
 import usb.core
 import usb.util
 import random
@@ -250,7 +255,10 @@ class generic_hid_device:
 		self.flipbit = 0x00
 		
 		# Find our device
-		self.hid_device = usb.core.find(idVendor=device_vid, idProduct=device_pid)
+		if platform.system() == "Linux":
+			self.hid_device = usb.core.find(idVendor=device_vid, idProduct=device_pid)
+		else:
+			self.hid_device = usb.core.find(backend=libusb0.get_backend(), idVendor=device_vid, idProduct=device_pid)
 		self.read_timeout = read_timeout
 
 		# Generate our hid message from our ping message (cheating: we're only doing one HID packet)
@@ -322,16 +330,21 @@ class generic_hid_device:
 		flipbit_reset_packet = array('B')
 		flipbit_reset_packet.append(0xFF)
 		flipbit_reset_packet.append(0xFF)
+		#flipbit_reset_packet.extend([0]*62)
 		first_packet_send_counter = 0
 		first_packet_not_sent = True
 		while first_packet_not_sent and first_packet_send_counter < 10:
 			try:
 				self.epout.write(flipbit_reset_packet)
 				first_packet_not_sent = False
-			except:
+			except usb.core.USBError as e:
+				if print_debug:
+					print(e)
+					print("Couldn't write to endpoint trying again...")
 				first_packet_send_counter+=1
 				time.sleep(1)
 		if first_packet_not_sent:
+			print("Couldn't send reset bit packet")
 			return False
 		
 		try:

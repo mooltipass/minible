@@ -89,8 +89,8 @@ void rng_feed_from_acc_read(void)
     uint16_t current_bit_offset = 0;
     uint8_t current_byte = 0;
     
-    /* Loop through all the received values */
-    for (uint16_t i = 0; i < ARRAY_SIZE(plat_acc_descriptor.fifo_read.acc_data_array); i++)
+    /* Loop through all the received values except the last one because of a possible X value repeat */
+    for (uint16_t i = 0; i < ARRAY_SIZE(plat_acc_descriptor.fifo_read.acc_data_array) - 1; i++)
     {
         /* Extract the bits */
         uint16_t nb_extracted_bits = 6;
