@@ -12,6 +12,11 @@ ACR38U-I1 or ACR39U-U1
 * Install pyscard from https://sourceforge.net/projects/pyscard/files/pyscard/ (https://sourceforge.net/projects/pyscard/files/pyscard/pyscard%202.0.1/pyscard-2.0.1-cp39-cp39-win_amd64.whl/download - install the whl using `pip install pyscard-2.0.1-cp39-cp39-win_amd64.whl`, see https://github.com/LudovicRousseau/pyscard/blob/master/INSTALL.md)
 * Install pycryptodome: `python -m pip install pycryptodome`
 
+## Linux
+
+* Install package dependencies, in case of Debian/Ubuntu: `apt install python3 python3-pip swig python3-tk libpcsclite-dev pcscd`
+* Install python dependencies: `python3 -m pip install pyscard pycryptodome`
+
 ## OSX
 These instructions are using brew for some dependencies, but they could also be built from source if desired.
 * Install brew dependencies: `brew install python3 swig python-tk`
