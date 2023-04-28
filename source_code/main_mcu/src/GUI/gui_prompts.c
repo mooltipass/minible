@@ -1145,7 +1145,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     BOOL finished = FALSE;
     
     // Set current pin to 0000 or random
-    if (random_pin_feature_enabled == TRUE  && show_pin_entry == TRUE)
+    if (random_pin_feature_enabled == TRUE && show_pin_entry == TRUE)
     {
         rng_fill_array(current_pin, sizeof(current_pin));
         for (uint16_t i = 0; i < sizeof(current_pin); i++)
