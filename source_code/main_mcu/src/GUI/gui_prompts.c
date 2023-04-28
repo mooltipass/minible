@@ -1145,7 +1145,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     BOOL finished = FALSE;
     
     // Set current pin to 0000 or random
-    if (show_pin_entry == TRUE && random_pin_feature_enabled == TRUE)
+    if (random_pin_feature_enabled == TRUE  && show_pin_entry == TRUE)
     {
         rng_fill_array(current_pin, sizeof(current_pin));
         for (uint16_t i = 0; i < sizeof(current_pin); i++)
@@ -1193,6 +1193,12 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
         /* Click + up/down action */
         if ((detection_result == WHEEL_ACTION_CLICK_UP) || (detection_result == WHEEL_ACTION_CLICK_DOWN))
         {
+            if (show_pin_entry) 
+            {
+                // Do nothing
+                detection_result = WHEEL_ACTION_NONE;
+            }
+            else {
             // If Click + up
             if (detection_result == WHEEL_ACTION_CLICK_UP)
             {
@@ -1208,6 +1214,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
                 if (current_pin[selected_digit]-- == 0)
                 {
                     current_pin[selected_digit] = 0x0F;
+                    }
                 }
             }
         }
