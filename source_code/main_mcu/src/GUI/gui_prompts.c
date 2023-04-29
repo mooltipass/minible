@@ -730,7 +730,7 @@ static cust_char_t gui_prompts_get_char_to_display(uint8_t const * current_pin, 
 *   \param  vert_anim_direction Vertical anim direction (wheel up or down)
 *   \param  hor_anim_direction  Horizontal anim direction (next/previous digit)
 *   \param  six_digit_prompt    TRUE to specify 6 digits prompt
-*   \param  show_pin          TRUE to specify if the PIN digit should be hidden
+*   \param  show_pin            TRUE to specify if the PIN digit should be displayed (FALSE only if hide pin feature is enabled)
 *   \return A wheel action if there was one during the animation
 */
 wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, uint16_t selected_digit, uint16_t stringID, int16_t vert_anim_direction, int16_t hor_anim_direction, BOOL six_digit_prompt, BOOL show_pin)
@@ -1198,22 +1198,23 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
                 // Do nothing
                 detection_result = WHEEL_ACTION_NONE;
             }
-            else {
-            // If Click + up
-            if (detection_result == WHEEL_ACTION_CLICK_UP)
-            {
-                detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 1, 0, FALSE, TRUE);
-                if (current_pin[selected_digit]++ == 0x0F)
-                {
-                    current_pin[selected_digit] = 0;
-                }
-            }
             else
             {
-                detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, -1, 0, FALSE, TRUE);
-                if (current_pin[selected_digit]-- == 0)
+                // If Click + up
+                if (detection_result == WHEEL_ACTION_CLICK_UP)
                 {
-                    current_pin[selected_digit] = 0x0F;
+                    detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 1, 0, FALSE, TRUE);
+                    if (current_pin[selected_digit]++ == 0x0F)
+                    {
+                        current_pin[selected_digit] = 0;
+                    }
+                }
+                else
+                {
+                    detection_during_animation = gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, -1, 0, FALSE, TRUE);
+                    if (current_pin[selected_digit]-- == 0)
+                    {
+                        current_pin[selected_digit] = 0x0F;
                     }
                 }
             }
