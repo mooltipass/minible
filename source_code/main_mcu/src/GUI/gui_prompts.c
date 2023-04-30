@@ -1136,7 +1136,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     #endif
     
     BOOL random_pin_feature_enabled = (BOOL)custom_fs_settings_get_device_setting(SETTING_RANDOM_PIN_ID);
-    BOOL show_pin_entry = ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_PARANOID_PIN_ENTRY) == TRUE) ? FALSE : TRUE;
+    BOOL show_pin_entry = ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_PARANOID_PIN_ENTRY) != FALSE) ? FALSE : TRUE;
     wheel_action_ret_te detection_during_animation = WHEEL_ACTION_NONE;
     wheel_action_ret_te detection_result = WHEEL_ACTION_NONE;
     RET_TYPE ret_val = RETURN_NOK;
