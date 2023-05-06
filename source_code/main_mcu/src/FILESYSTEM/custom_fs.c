@@ -74,7 +74,8 @@ const uint8_t custom_fs_default_device_settings[NB_DEVICE_SETTINGS] = { 0,      
                                                                         FALSE,                                   // SETTINGS_MC_SUBDOMAIN_FORCE_STATUS
                                                                         FALSE,                                   // SETTINGS_FAV_LAST_USED_SORTED
                                                                         FALSE,                                   // SETTINGS_LOGIN_AND_FAV_INVERTED
-                                                                        FALSE};                                  // SETTINGS_SWITCH_OFF_ON_LOCK
+                                                                        FALSE,                                   // SETTINGS_SWITCH_OFF_ON_LOCK
+                                                                        FALSE};                                  // SETTINGS_PARANOID_PIN_ENTRY
 #ifndef EMULATOR_BUILD
 /* Pointer to the platform unique data, stored at the last page of our bootloader */
 platform_unique_data_t* custom_fs_plat_data_ptr = (platform_unique_data_t*)(FLASH_ADDR + APP_START_ADDR - NVMCTRL_ROW_SIZE);
