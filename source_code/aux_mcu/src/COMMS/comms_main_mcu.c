@@ -462,6 +462,13 @@ void comms_main_mcu_deal_with_non_usb_non_ble_message(aux_mcu_message_t* message
                 comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_CHARGE_STARTED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
                 break;                
             }
+            case MAIN_MCU_COMMAND_NIMH_TRICKLE:
+            {
+                /* NiMH trickle charging */
+                logic_battery_start_charging(NIMH_TRICKLE_CHARGING);
+                comms_main_mcu_send_simple_event_alt_buffer(AUX_MCU_EVENT_CHARGE_STARTED, (aux_mcu_message_t*)&comms_main_mcu_message_for_main_replies);
+                break;
+            }
             case MAIN_MCU_COMMAND_NIMH_CHARGE:
             {
                 /* Charge NiMH battery */

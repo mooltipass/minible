@@ -54,6 +54,7 @@ extern volatile BOOL comms_main_mcu_fido_blectrl_rng_msg_answered_using_first_by
 #define MAIN_MCU_COMMAND_GET_STATUS         0x000D
 #define MAIN_MCU_COMMAND_NIMH_DANGER_CHARGE 0x000E
 #define MAIN_MCU_COMMAND_DISABLE_BLE        0x000F
+#define MAIN_MCU_COMMAND_NIMH_TRICKLE       0x0010
 
 // Debug MCU commands
 #define MAIN_MCU_COMMAND_DTM_RX_START       0x1000

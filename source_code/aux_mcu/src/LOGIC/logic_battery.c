@@ -154,7 +154,11 @@ void logic_battery_start_charging(lb_nimh_charge_scheme_te charging_type)
     }
     
     /* Ramping current goal */
-    if (charging_type == NIMH_RECOVERY_23C_CHARGING)
+    if (charging_type == NIMH_TRICKLE_CHARGING)
+    {
+        logic_battery_ramping_current_goal = LOGIC_BATTERY_CUR_FOR_TRICKLE;
+    }
+    else if (charging_type == NIMH_RECOVERY_23C_CHARGING)
     {
         logic_battery_ramping_current_goal = LOGIC_BATTERY_CUR_FOR_RECOVERY;
     }
@@ -374,6 +378,10 @@ battery_action_te logic_battery_task(void)
                     /* Is enough current flowing into the battery? */
                     if (((high_voltage - low_voltage) > logic_battery_ramping_current_goal) && (low_voltage > LOGIC_BATTERY_MIN_V_FOR_CUR_MES))
                     {
+                        if (logic_battery_charging_type == NIMH_TRICKLE_CHARGING)
+                        {
+                            /* Trickle charging: do nothing */
+                        }
                         if ((logic_battery_charging_type == NIMH_RECOVERY_23C_CHARGING) && (logic_battery_skip_initial_recovery_logic == FALSE) && (low_voltage <= LOGIC_BATTERY_MAX_V_FOR_RECOVERY_CG))
                         {
                             /* Recovery: 0.1C until battery reaches given voltage */
@@ -416,7 +424,15 @@ battery_action_te logic_battery_task(void)
                         /* Increase charge voltage */
                         if (logic_battery_charge_voltage < UINT16_MAX - LOGIC_BATTERY_BAT_START_CHG_V_INC)
                         {
-                            logic_battery_charge_voltage += LOGIC_BATTERY_BAT_START_CHG_V_INC;
+                            /* Trickle charging: increment slowly */
+                            if (logic_battery_charging_type == NIMH_TRICKLE_CHARGING)
+                            {
+                                logic_battery_charge_voltage += 1;
+                            } 
+                            else
+                            {
+                                logic_battery_charge_voltage += LOGIC_BATTERY_BAT_START_CHG_V_INC;
+                            }
                         }
                         
                         /* Check for over voltage - may be caused by disconnected discharge path */

@@ -11,7 +11,7 @@
 
 /* Enums */
 typedef enum    {LB_IDLE = 0, LB_CHARGE_START_RAMPING = 1, LB_CHARGING_REACH = 2, LB_ERROR_ST_RAMPING = 3, LB_CUR_MAINTAIN = 4, LB_ERROR_CUR_REACH = 5, LB_ERROR_CUR_MAINTAIN = 6, LB_CHARGING_DONE = 7, LB_PEAK_TIMER_TRIGGERED = 8, LB_CHARGE_REST = 9, LB_INIT_BAT_TEST = 10, LB_ERROR_BAT_TEST = 11, LB_ERROR_RECOVERY_CHG = 12} lb_state_machine_te;
-typedef enum    {NIMH_23C_CHARGING, NIMH_SLOWSTART_23C_CHARGING, NIMH_RECOVERY_23C_CHARGING} lb_nimh_charge_scheme_te;
+typedef enum    {NIMH_23C_CHARGING, NIMH_SLOWSTART_23C_CHARGING, NIMH_RECOVERY_23C_CHARGING, NIMH_TRICKLE_CHARGING} lb_nimh_charge_scheme_te;
 typedef enum    {BAT_ACT_NONE = 0, BAT_ACT_NEW_BAT_LEVEL, BAT_ACT_CHARGE_FAIL, BAT_ACT_CHARGE_DONE} battery_action_te;
     
 /* Defines */
@@ -22,6 +22,7 @@ typedef enum    {BAT_ACT_NONE = 0, BAT_ACT_NEW_BAT_LEVEL, BAT_ACT_CHARGE_FAIL, B
 // Charging start: quick ramping up until we reach the desired pre-charge current or we end up at a too high voltage
 #define LOGIC_BATTERY_BAT_START_CHG_VOLTAGE 550     // Voltage at which we start ramping up the charge
 #define LOGIC_BATTERY_BAT_START_CHG_V_INC   3       // Voltage increments for charge
+#define LOGIC_BATTERY_CUR_FOR_TRICKLE       15      // ADC value difference between high & low cursense for trickle (0.02C): 1LSB = 0.5445mA
 #define LOGIC_BATTERY_CUR_FOR_RECOVERY      50      // ADC value difference between high & low cursense for recovery ramping: 1LSB = 0.5445mA
 #define LOGIC_BATTERY_CUR_FOR_ST_RAMP_END   100     // ADC value difference between high & low cursense to stop the initial ramping: 1LSB = 0.5445mA
 #define LOGIC_BATTERY_CUR_FOR_DANGER_CHARGE 611     // ADC value difference between high & low cursense for forced dangerous charge (to test battery recovery): 1LSB = 0.5445mA
