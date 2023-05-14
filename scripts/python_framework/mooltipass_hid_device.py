@@ -474,15 +474,17 @@ class mooltipass_hid_device:
 		# Ask for the info
 		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_PLAT_INFO, None))	
 	
-		# print(it!
+		# print it!
 		print("")
 		print("Platform Info")
+		print("Memory size: " + str(struct.unpack('H', packet["data"][12:14])[0]) + "Mb")
 		print("Aux MCU major:", struct.unpack('H', packet["data"][4:6])[0])
 		print("Aux MCU minor:", struct.unpack('H', packet["data"][6:8])[0])
 		print("Main MCU major:", struct.unpack('H', packet["data"][0:2])[0])
 		print("Main MCU minor:", struct.unpack('H', packet["data"][2:4])[0])
 		print("Platform serial:", struct.unpack('I', packet["data"][8:12])[0])
 		print("Bundle version:", struct.unpack('H', packet["data"][14:16])[0])
+		print("Platform internal serial:", struct.unpack('I', packet["data"][16:20])[0])
 		
 	def getRandomData(self, nb_bytes_requested):
 		nb_bytes_gotten = 0
@@ -504,6 +506,15 @@ class mooltipass_hid_device:
 			print(''.join('{:02x}'.format(x) for x in return_array))
 			
 		return return_array
+		
+	def getDeviceBundleAndIntSerial(self):
+		# Ask for the device info
+		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_PLAT_INFO, None))	
+		bundle_version = struct.unpack('H', packet["data"][14:16])[0]
+		device_serial = struct.unpack('I', packet["data"][16:20])[0]
+		print("Device bundle version: " + str(bundle_version))
+		print("Device internal serial: " + str(device_serial))		
+		return (bundle_version, device_serial)
 
 	def flashUniqueData(self):
 		device_sn = input("Device serial number: ")
