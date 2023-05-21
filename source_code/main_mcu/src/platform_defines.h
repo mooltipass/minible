@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    85
+#define FW_MINOR    86
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -272,6 +272,10 @@
         - auth counter set to 270
         - bundle v12
 - v0.85:- possible bug fix: loss of platform settings at device emergency power-off
+- v0.86:- RNG: discard last XYZ sample due to possible repeats
+        - setting: disable battery charging (trickle charge)
+        - setting: disable PIN display
+
 */
 
 /**************** SETUP DEFINES ****************/

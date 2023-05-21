@@ -695,8 +695,13 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         (logic_power_battery_charging == FALSE) && 
         (logic_power_battery_level_to_be_acked < 8))
     {        
-        /* Send message to start charging */
-        if (logic_power_get_and_reset_over_discharge_flag() != FALSE)
+        /* Send message to start (trickle) charging */
+        if ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_DISABLE_BAT_CHARGE) != FALSE)
+        {
+            comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_TRICKLE);
+            comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STARTED);
+        }
+        else if (logic_power_get_and_reset_over_discharge_flag() != FALSE)
         {
             comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_RECOVERY_CHG);
             comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_CHARGE_STARTED);
@@ -715,11 +720,15 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
             logic_power_current_charge_type = NORMAL_CHARGE;
         }
         
-        /* Set boolean */
-        logic_power_battery_charging = TRUE;
-        
-        /* Update state */
-        logic_device_set_state_changed();
+        /* In case of not trickle charging: set state and booleans */
+        if ((BOOL)custom_fs_settings_get_device_setting(SETTINGS_DISABLE_BAT_CHARGE) == FALSE)
+        {
+            /* Set boolean */
+            logic_power_battery_charging = TRUE;
+            
+            /* Update state */
+            logic_device_set_state_changed();
+        }
     }
     
     /* Wait if we've been instructed to */

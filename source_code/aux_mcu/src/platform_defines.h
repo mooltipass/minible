@@ -13,7 +13,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    73
+#define FW_MINOR    74
 
 /* Changelog:
 - v0.2: added padding to USB comms 64B packet
@@ -143,6 +143,8 @@
         - bundle v10
 - v0.73:- bug fix: correct BLE message payload
         - bundle v12
+- v0.74:- trickle charge support
+
 */
 
 /**************** SETUP DEFINES ****************/

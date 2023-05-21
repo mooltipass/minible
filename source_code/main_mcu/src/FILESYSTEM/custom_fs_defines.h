@@ -90,8 +90,9 @@
 #define SETTINGS_LOGIN_AND_FAV_INVERTED     33
 #define SETTINGS_SWITCH_OFF_ON_LOCK         34
 #define SETTINGS_PARANOID_PIN_ENTRY         35
+#define SETTINGS_DISABLE_BAT_CHARGE         36
 /* Set to define the number of settings used */
-#define SETTINGS_NB_USED                    36
+#define SETTINGS_NB_USED                    37
 
 /* Flags IDs */
 #define NB_DEVICE_FLAGS                     32
