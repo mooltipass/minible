@@ -110,7 +110,7 @@ def main():
 
 		elif sys.argv[1] == "getSN":
 			# Ask for the info
-			packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_GET_DEVICE_SN, None), True)
+			packet = mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(CMD_ID_GET_DEVICE_INT_SN, None), True)
 			if packet["cmd"] == CMD_GET_DEVICE_STATUS:
 				packet =  mooltipass_device.device.receiveHidMessage(True)
 			print("Device Serial Number: " + str(struct.unpack('I', packet["data"][0:4])[0]))

@@ -32,7 +32,10 @@ class generic_hid_device:
 	# Device constructor
 	def __init__(self):
 		# Install SIGINT catcher
-		signal.signal(signal.SIGINT, self.signal_handler)
+		try:
+			signal.signal(signal.SIGINT, self.signal_handler)
+		except:
+			pass
 		# Set to true to enable ack flag request
 		self.ack_flag_in_comms = False
 
@@ -143,7 +146,7 @@ class generic_hid_device:
 			receive_return = self.receiveHidMessage(True)
 			if receive_return == None:
 				sys.exit(0)
-			elif (receive_return == True and retry_if_retry_received) or (receive_return["cmd"] == CMD_GET_DEVICE_STATUS and (message["cmd"][0] + message["cmd"][1] * 256) != CMD_GET_DEVICE_STATUS):
+			elif (receive_return == True and retry_if_retry_received):
 				print("please retry received... retrying")
 				time.sleep(1)
 				
@@ -157,6 +160,10 @@ class generic_hid_device:
 				# Wait for aux MCU ack and main ack
 				if self.ack_flag_in_comms:
 					self.receiveHidPacket(True)
+			elif (receive_return["cmd"] == CMD_GET_DEVICE_STATUS and (message["cmd"][0] + message["cmd"][1] * 256) != CMD_GET_DEVICE_STATUS):
+				# Receive a new packet
+				print("Received status message... waiting for actual packet")
+				pass
 			else:
 				return receive_return
 
@@ -246,65 +253,106 @@ class generic_hid_device:
 	# Set new read timeout
 	def setReadTimeout(self, read_timeout):
 		self.read_timeout = read_timeout
+		
+	# Check if a given device is already opened
+	def is_device_opened(self, device):
+		try:
+			# Find the active configuration of the device
+			active_config = device.get_active_configuration()
+
+			# Get the interface that you want to claim
+			interface = active_config[(0, 0)]
+
+			# Try to claim the interface
+			usb.util.claim_interface(device, interface)
+
+			# If the interface is successfully claimed, it is not opened by another script
+			usb.util.release_interface(device, interface)
+			return False
+
+		except usb.core.USBError:
+			# If an exception is raised, it means the interface is already claimed by another script
+			return True
 
 	# Try to connect to HID device.
 	# ping_packet: an array containing a ping packet to send to the device over HID
 	def connect(self, print_debug, device_vid, device_pid, read_timeout, ping_packet):
 		# Reset vars
+		self.read_timeout = read_timeout
 		self.connected = False
 		self.flipbit = 0x00
-		
-		# Find our device
-		if platform.system() == "Linux":
-			self.hid_device = usb.core.find(idVendor=device_vid, idProduct=device_pid)
-		else:
-			self.hid_device = usb.core.find(backend=libusb0.get_backend(), idVendor=device_vid, idProduct=device_pid)
-		self.read_timeout = read_timeout
 
 		# Generate our hid message from our ping message (cheating: we're only doing one HID packet)
 		hid_packet = self.get_packets_from_message(ping_packet)[0]
 
 		# Force aux MCU ACK request
 		hid_packet[0] |= LAST_MESSAGE_ACK_FLAG
+		
+		# List all devices that could work
+		if platform.system() == "Linux":
+			devices = usb.core.find(find_all=True, idVendor=device_vid, idProduct=device_pid)
+		else:
+			devices = usb.core.find(find_all=True, backend=libusb0.get_backend(), idVendor=device_vid, idProduct=device_pid)
+			
+		# Go through returned devices, try to open them
+		device_found = False
+		device_cnt = 0
+		for device in devices:
+			# For some reason the device is listed twice...
+			if device_cnt%2 == 0:
+				# Increment counter 
+				device_cnt += 1
+				
+				# Different init codes depending on the platform
+				if platform.system() == "Linux":
+					try:
+						device.detach_kernel_driver(0)
+						device.reset()
+					except Exception as e:
+						pass # Probably already detached
+				else:
+					# Set the active configuration. With no arguments, the first configuration will be the active one
+					try:
+						device.set_configuration()
+					except Exception as e:
+						if print_debug:
+							print("Cannot set configuration the device:" , str(e))
+						return False
 
-		# Was it found?
-		if self.hid_device is None:
-			if print_debug:
-				print("Device not found")
-			return False
+				if HID_DEVICE_DEBUG:
+					for cfg in device:
+						print("configuration val:", str(cfg.bConfigurationValue))
+						for intf in cfg:
+							print("int num:", str(intf.bInterfaceNumber), ", int alt:", str(intf.bAlternateSetting))
+							for ep in intf:
+								print("endpoint addr:", str(ep.bEndpointAddress))
+
+				# Get an endpoint instance
+				cfg = device.get_active_configuration()
+				intf = cfg[(0,0)]
+				
+				# Check if the device isn't opened by another script
+				try:
+					# Try to claim the interface
+					usb.util.claim_interface(device, intf)
+
+					# If the interface is successfully claimed, it is not opened by another script
+					usb.util.release_interface(device, intf)
+				except usb.core.USBError as e:
+					if print_debug:
+						print("USB connection try: device already claimed")
+					continue
+				
+				# Select device, break from the loop
+				self.hid_device = device
+				device_found = True
+				break
 
 		# Device found
+		if device_found == False:
+			return False
 		if print_debug:
 			print("USB device found")
-
-		# Different init codes depending on the platform
-		if platform.system() == "Linux":
-			# Need to do things differently
-			try:
-				self.hid_device.detach_kernel_driver(0)
-				self.hid_device.reset()
-			except Exception as e:
-				pass # Probably already detached
-		else:
-			# Set the active configuration. With no arguments, the first configuration will be the active one
-			try:
-				self.hid_device.set_configuration()
-			except Exception as e:
-				if print_debug:
-					print("Cannot set configuration the device:" , str(e))
-				return False
-
-		if HID_DEVICE_DEBUG:
-			for cfg in self.hid_device:
-				print("configuration val:", str(cfg.bConfigurationValue))
-				for intf in cfg:
-					print("int num:", str(intf.bInterfaceNumber), ", int alt:", str(intf.bAlternateSetting))
-					for ep in intf:
-						print("endpoint addr:", str(ep.bEndpointAddress))
-
-		# Get an endpoint instance
-		cfg = self.hid_device.get_active_configuration()
-		intf = cfg[(0,0)]
 
 		# Match the first OUT endpoint
 		self.epout = usb.util.find_descriptor(intf, custom_match = lambda e: usb.util.endpoint_direction(e.bEndpointAddress) == usb.util.ENDPOINT_OUT)

@@ -273,6 +273,7 @@
         - bundle v12
 - v0.85:- possible bug fix: loss of platform settings at device emergency power-off
 - v0.86:- RNG: discard last XYZ sample due to possible repeats
+        - bug fix: 010 error after battery reconditioning proc
         - setting: disable battery charging (trickle charge)
         - setting: disable PIN display
 

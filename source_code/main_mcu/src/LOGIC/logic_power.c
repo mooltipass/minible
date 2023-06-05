@@ -1065,5 +1065,11 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
         }
     }
 
+    /* Restart ADC conversion as timeout may happen during reconditioning */ 
+    if (timer_has_timer_expired(TIMER_ADC_WATCHDOG, TRUE) == TIMER_EXPIRED)
+    {
+        platform_io_get_voledin_conversion_result_and_trigger_conversion();
+    }
+
     return RETURN_OK;
 }

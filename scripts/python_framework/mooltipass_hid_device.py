@@ -383,9 +383,12 @@ class mooltipass_hid_device:
     # Start reconditioning process(self):
 	def recondition(self):
 		self.device.setReadTimeout(999999999999999999999999999999999999999999)
-		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_RECONDITION_BAT, None))	
-		discharge_time = struct.unpack('I', packet["data"][0:4])[0]
-		print("Discharge time of " + str(int(discharge_time/1000)) + " seconds")
+		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_RECONDITION_BAT, None))
+		if packet["cmd"] == CMD_GET_DEVICE_STATUS:
+			packet =  mooltipass_device.device.receiveHidMessage(True)		
+		discharge_time = int(struct.unpack('I', packet["data"][0:4])[0]/1000)
+		print("Discharge time of " + str(discharge_time) + " seconds")
+		return discharge_time
 		
 	# Get device status
 	def getDeviceStatus(self):
@@ -484,7 +487,8 @@ class mooltipass_hid_device:
 		print("Main MCU minor:", struct.unpack('H', packet["data"][2:4])[0])
 		print("Platform serial:", struct.unpack('I', packet["data"][8:12])[0])
 		print("Bundle version:", struct.unpack('H', packet["data"][14:16])[0])
-		print("Platform internal serial:", struct.unpack('I', packet["data"][16:20])[0])
+		if struct.unpack('H', packet["data"][14:16])[0] >= 2:
+			print("Platform internal serial:", struct.unpack('I', packet["data"][16:20])[0])
 		
 	def getRandomData(self, nb_bytes_requested):
 		nb_bytes_gotten = 0
@@ -511,7 +515,10 @@ class mooltipass_hid_device:
 		# Ask for the device info
 		packet = self.device.sendHidMessageWaitForAck(self.getPacketForCommand(CMD_ID_PLAT_INFO, None))	
 		bundle_version = struct.unpack('H', packet["data"][14:16])[0]
-		device_serial = struct.unpack('I', packet["data"][16:20])[0]
+		if bundle_version >= 2:
+			device_serial = struct.unpack('I', packet["data"][16:20])[0]
+		else:
+			device_serial = struct.unpack('I', packet["data"][8:12])[0]
 		print("Device bundle version: " + str(bundle_version))
 		print("Device internal serial: " + str(device_serial))		
 		return (bundle_version, device_serial)

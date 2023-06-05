@@ -16,7 +16,7 @@ PRINTER_MODEL = "QL-700"
 CODE128 = barcode.get_barcode_class('code128')
 FONT = "FreeSans.ttf"
 
-options = {
+ptoptions = {
   "module_width":   0.254, # 3 dots / 300 dpi * 25.4mm/in
   "module_height": 10.0,   # The height of the barcode modules in mm
   "quiet_zone":     0.0,   # Distance on the left and on the right from the border to the first (last) barcode module in mm as float. Defaults to 6.5.
@@ -81,7 +81,7 @@ def create_raster_file(label_size, in_file, out_file, cut=True):
 def create_label_type1(label_size, barcode_value, line1=None, line2=None, line3=None):
     im = Image.new("L", label_sizes[label_size], 255)
     draw = ImageDraw.Draw(im)
-    barcode_im = CODE128(barcode_value, writer=ImageWriter()).render(options)
+    barcode_im = CODE128(barcode_value, writer=ImageWriter()).render(ptoptions)
     im.paste(barcode_im, (2, -5))
     x_off = barcode_im.size[0] + 30
     font = ImageFont.truetype(FONT, 44)
