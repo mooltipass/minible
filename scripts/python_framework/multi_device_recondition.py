@@ -1,4 +1,5 @@
 from mooltipass_hid_device import *
+from datetime import datetime
 import threading
 import time
 import sys
@@ -27,10 +28,10 @@ def device_connect_try_and_recondition():
 		
 		# Check for length
 		if nb_secs > 2500:
-			print("Reconditioning completed with " + str(nb_secs) + " seconds, stopping there")
+			print(str(datetime.now().strftime("%H:%M")) + " Reconditioning completed with " + str(nb_secs) + " seconds, stopping there")
 			break
 		else:
-			print("Reconditioning completed with " + str(nb_secs) + " seconds, continuing....")
+			print(str(datetime.now().strftime("%H:%M")) + " Reconditioning completed with " + str(nb_secs) + " seconds, continuing....")
 
 	# Tell the device to switch off after disconnect
 	mooltipass_device.device.sendHidMessageWaitForAck(mooltipass_device.getPacketForCommand(0x0039, None), True)

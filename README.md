@@ -101,7 +101,6 @@ Features requested by Mooltipass users can easily be seen by clicking on <a href
   
 If you have even more spare time to contribute, the Mooltipass team is actively looking for contributors to:    
 - add a Bluetooth FIDO2 communication channel    
-- develop a companion Android/iOS app to use Autofill services    
   
 Depending on the task, we could ship you one of our developpement boards (shown above), or you could also develop <a href="https://github.com/mooltipass/minible/wiki/Developing-Without-a-Device">using our device emulator</a>. Do not forget to review our <a href="https://github.com/mooltipass/minible/wiki/Mooltipass-Team-Ground-Rules">contributing guidelines</a>!
 
