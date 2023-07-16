@@ -158,8 +158,6 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
     /* Service doesn't exist, deny request with a variable timeout for privacy concerns */
     if (parent_address == NODE_ADDR_NULL)
     {
-        /* From 1s to 3s */
-        timer_delay_ms(1000 + (rng_get_random_uint16_t()&0x07FF));
         aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
         temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
         temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
@@ -176,8 +174,6 @@ void logic_fido2_process_exclude_list_item(fido2_auth_cred_req_message_t* reques
     /* Check for existing login */
     if (child_address == NODE_ADDR_NULL)
     {
-        /* From 3s to 7s, do not leak information */
-        timer_delay_ms(3000 + (rng_get_random_uint16_t()&0x0FFF));
         aux_mcu_message_t* temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_FIDO2);
         temp_tx_message_pt->fido2_message.message_type = AUX_MCU_FIDO2_AUTH_CRED_RSP;
         temp_tx_message_pt->payload_length1 = sizeof(fido2_message_t);
