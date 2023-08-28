@@ -428,7 +428,7 @@ void nodemgmt_read_cred_child_node(uint16_t address, child_cred_node_t* child_no
     }
     
     // Password pointing feature: do we need to fetch another child node to get the actual password?
-    if ((child_node->ptedPwdChildAddress != UINT16_MAX) && (nodemgmt_check_user_permission(child_node->ptedPwdChildAddress, &temp_node_type) == RETURN_OK) && (temp_node_type == NODE_TYPE_CHILD))
+    if ((overwrite_if_pted_pwd_totp != FALSE) && (child_node->ptedPwdChildAddress != UINT16_MAX) && (nodemgmt_check_user_permission(child_node->ptedPwdChildAddress, &temp_node_type) == RETURN_OK) && (temp_node_type == NODE_TYPE_CHILD))
     {
         /* Copy the old generation flag if present */
         uint16_t dest_flags;

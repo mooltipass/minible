@@ -272,10 +272,13 @@
         - auth counter set to 270
         - bundle v12
 - v0.85:- possible bug fix: loss of platform settings at device emergency power-off
-- v0.86:- RNG: discard last XYZ sample due to possible repeats
+- v0.86:- take into account overwrite_if_pted_pwd_totp in nodemgmt_read_cred_child_node
+        - RNG: discard last XYZ sample due to possible repeats
         - bug fix: 010 error after battery reconditioning proc
         - setting: disable battery charging (trickle charge)
+        - bug fix: incorrect HID_CMD_GET_TOTP_CODE return
         - setting: disable PIN display
+        - bundle v13
 
 */
 
