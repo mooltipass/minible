@@ -382,7 +382,7 @@ battery_action_te logic_battery_task(void)
                         {
                             /* Trickle charging: do nothing */
                         }
-                        if ((logic_battery_charging_type == NIMH_RECOVERY_23C_CHARGING) && (logic_battery_skip_initial_recovery_logic == FALSE) && (low_voltage <= LOGIC_BATTERY_MAX_V_FOR_RECOVERY_CG))
+                        else if ((logic_battery_charging_type == NIMH_RECOVERY_23C_CHARGING) && (logic_battery_skip_initial_recovery_logic == FALSE) && (low_voltage <= LOGIC_BATTERY_MAX_V_FOR_RECOVERY_CG))
                         {
                             /* Recovery: 0.1C until battery reaches given voltage */
                         }

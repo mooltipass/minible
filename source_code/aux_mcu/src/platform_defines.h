@@ -144,6 +144,7 @@
 - v0.73:- bug fix: correct BLE message payload
         - bundle v12
 - v0.74:- trickle charge support
+        - bundle v13
 
 */
 
