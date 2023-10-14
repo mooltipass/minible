@@ -27,7 +27,7 @@
 
 /**************** FIRMWARE DEFINES ****************/
 #define FW_MAJOR    0
-#define FW_MINOR    86
+#define FW_MINOR    87
 
 /* Changelog:
 - v0.2: platform info message, flash aux mcu message, reindex bundle message
@@ -279,6 +279,7 @@
         - bug fix: incorrect HID_CMD_GET_TOTP_CODE return
         - setting: disable PIN display
         - bundle v13
+- v0.87:- SET_TOTP message: allow empty logins
 
 */
 
