@@ -1563,12 +1563,6 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
                 return;
             }
-            /* Empty login name */
-            if (rcv_msg->store_TOTP_credential.login_name[0] == 0)
-            {
-                comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, FALSE);
-                return;
-            }
 
             cust_char_t* service_name_pt = rcv_msg->store_TOTP_credential.service_name;
             cust_char_t* login_name_pt = rcv_msg->store_TOTP_credential.login_name;
