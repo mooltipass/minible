@@ -280,6 +280,7 @@
         - setting: disable PIN display
         - bundle v13
 - v0.87:- SET_TOTP message: allow empty logins
+        - bug fix: unable to save password in MMM when a category is selected
 
 */
 

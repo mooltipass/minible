@@ -1169,7 +1169,8 @@ RET_TYPE logic_user_store_credential(cust_char_t* service, cust_char_t* login, c
     /* If service exist, does login exist? */
     if (parent_address != NODE_ADDR_NULL)
     {
-        child_address = logic_database_search_login_in_service(parent_address, login, TRUE);
+        BOOL filter_categories = (logic_security_is_management_mode_set() == FALSE)?TRUE:FALSE;
+        child_address = logic_database_search_login_in_service(parent_address, login, filter_categories);
     }
 
     /* Special case: in MMM and user chose to not be prompted */
