@@ -279,7 +279,7 @@
         - bug fix: incorrect HID_CMD_GET_TOTP_CODE return
         - setting: disable PIN display
         - bundle v13
-- v0.87:- SET_TOTP message: allow empty logins
+- v0.87:- SET_TOTP & GET_TOTP message: allow empty logins
         - bug fix: unable to save password in MMM when a category is selected
 
 */
