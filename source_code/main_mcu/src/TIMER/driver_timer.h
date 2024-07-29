@@ -81,7 +81,9 @@ typedef enum {TIMER_EXPIRED = 0, TIMER_RUNNING = 1} timer_flag_te;
 #define DELAYUS(us)                 DELAYTICKS(US_TO_DLYTICKS(us))                              //uses 20bytes
 #define DELAYMS(ms)                 DELAYTICKS(US_TO_DLYTICKS(ms*1000))                         //uses 20bytes
 #define US_TO_DLYTICKS_8M(us)       (uint32_t)((CPU_SPEED_MF / 1000000UL) * us / CYCLES_IN_DLYTICKS_FUNC)
+#define US_TO_DLYTICKS_1M(us)       (uint32_t)((1000000UL / 1000000UL) * us / CYCLES_IN_DLYTICKS_FUNC)
 #define DELAYMS_8M(ms)              DELAYTICKS(US_TO_DLYTICKS_8M(ms*1000))                      //uses 20bytes
+#define DELAYMS_BOOT(ms)            DELAYTICKS(US_TO_DLYTICKS_1M(ms*1000))                      //uses 20bytes
 #endif
 
 #define IS_LEAP_YEAR(year)  ((((year) % 4 == 0) && ((year) % 100 != 0)) || ((year) % 400 == 0))
