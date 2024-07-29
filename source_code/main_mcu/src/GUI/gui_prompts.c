@@ -1193,7 +1193,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
         /* Click + up/down action */
         if ((detection_result == WHEEL_ACTION_CLICK_UP) || (detection_result == WHEEL_ACTION_CLICK_DOWN))
         {
-            if (show_pin_entry) 
+            if (show_pin_entry != FALSE) 
             {
                 // Do nothing
                 detection_result = WHEEL_ACTION_NONE;
