@@ -810,9 +810,6 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
         nb_animation_steps = 1;
     }
     
-    /* Clear detections */
-    inputs_clear_detections();
-    
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
@@ -2372,7 +2369,6 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
 */
 uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
 {
-    cust_char_t* select_credential_string;
     parent_node_t temp_pnode;
     
     /* Activity detected */
@@ -2418,15 +2414,15 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     int16_t displayed_length;
     BOOL scrolling_needed[4];
     
-    /* Load hint string to compute aestetical elements positions */
-    custom_fs_get_string_from_file(PRESS_SCROLL_HINT_TEXT_ID, &select_credential_string, TRUE);
-    
     /* Lines display settings */
     uint16_t non_addr_null_addr_tbp = NODE_ADDR_NULL+1;
     uint16_t* address_to_check_to_display[5] = {&non_addr_null_addr_tbp, &top_of_list_parent_addr, &center_of_list_parent_addr, &bottom_of_list_parent_addr, &after_bottom_of_list_parent_addr};
-    cust_char_t* strings_to_be_displayed[4] = {select_credential_string, temp_pnode.cred_parent.service, temp_pnode.cred_parent.service, temp_pnode.cred_parent.service};
+    cust_char_t* strings_to_be_displayed[4] = {(cust_char_t*)0, temp_pnode.cred_parent.service, temp_pnode.cred_parent.service, temp_pnode.cred_parent.service};
     uint16_t fonts_to_be_used[4] = {FONT_UBUNTU_REGULAR_16_ID, FONT_UBUNTU_REGULAR_13_ID, FONT_UBUNTU_MEDIUM_15_ID, FONT_UBUNTU_REGULAR_13_ID};
     uint16_t strings_y_positions[4] = {0, LOGIN_SCROLL_Y_FLINE, LOGIN_SCROLL_Y_SLINE, LOGIN_SCROLL_Y_TLINE};
+    
+    /* Load hint string to compute aestetical elements positions */
+    custom_fs_get_string_from_file(PRESS_SCROLL_HINT_TEXT_ID, &strings_to_be_displayed[0], TRUE);
     
     /* Reset temp vars */
     memset(text_anim_going_right, FALSE, sizeof(text_anim_going_right));
@@ -2439,7 +2435,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     uint16_t scroll_hint_x_start = plat_oled_descriptor.min_text_x + (plat_oled_descriptor.max_text_x - plat_oled_descriptor.min_text_x - scroll_hint_width)/2;
     
     /* "Select credential" string */
-    custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
+    custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &strings_to_be_displayed[0], TRUE);
     
     /* Select login string width to set correct underline */
     sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
@@ -2517,7 +2513,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             /* Reset hint display logic */
             if (hint_cur_displayed != FALSE)
             {
-                custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
+                custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &strings_to_be_displayed[0], TRUE);
                 underline_bar_start_x = select_login_x_start;
                 underline_bar_width = select_login_width;
             }
@@ -2550,7 +2546,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             /* Reset hint display logic */
             if (hint_cur_displayed != FALSE)
             {
-                custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
+                custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &strings_to_be_displayed[0], TRUE);
                 underline_bar_start_x = select_login_x_start;
                 underline_bar_width = select_login_width;
             }
@@ -2595,7 +2591,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             timer_start_timer(TIMER_ANIMATIONS, GUI_DELAY_HINT_BLINKING);
             
             /* Load hint string */
-            custom_fs_get_string_from_file(PRESS_SCROLL_HINT_TEXT_ID, &select_credential_string, TRUE);
+            custom_fs_get_string_from_file(PRESS_SCROLL_HINT_TEXT_ID, &strings_to_be_displayed[0], TRUE);
             underline_bar_start_x = scroll_hint_x_start;
             underline_bar_width = scroll_hint_width;
         }
@@ -2753,7 +2749,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                                     if (hint_cur_displayed == FALSE)
                                     {
                                         /* Load hint string */
-                                        custom_fs_get_string_from_file(PRESS_SCROLL_HINT_TEXT_ID, &select_credential_string, TRUE);
+                                        custom_fs_get_string_from_file(PRESS_SCROLL_HINT_TEXT_ID, &strings_to_be_displayed[0], TRUE);
                                         underline_bar_start_x = scroll_hint_x_start;
                                         underline_bar_width = scroll_hint_width;
                                         hint_cur_displayed = TRUE;
@@ -2761,7 +2757,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                                     else
                                     {
                                         /* "Select credential" string */
-                                        custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &select_credential_string, TRUE);
+                                        custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &strings_to_be_displayed[0], TRUE);
                                         underline_bar_start_x = select_login_x_start;
                                         underline_bar_width = select_login_width;
                                         hint_cur_displayed = FALSE;
