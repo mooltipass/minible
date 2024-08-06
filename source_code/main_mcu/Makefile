@@ -177,7 +177,7 @@ src/CRYPTO/monocypher.c \
 src/CRYPTO/monocypher-ed25519.c
 
 ifeq ($(PLATFORM),)
-	PLATFORM = PLAT_V6_SETUP
+	PLATFORM = PLAT_V7_SETUP
 endif
 
 TEXT_SEC_START = 0x2000
