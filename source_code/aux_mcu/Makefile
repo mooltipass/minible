@@ -157,7 +157,7 @@ src/ASF/thirdparty/wireless/ble_sdk/services/timer/sam0/timer_hw.c \
 src/ASF/thirdparty/wireless/ble_sdk/src/platform.c
 
 ifeq ($(PLATFORM),)
-	PLATFORM := PLAT_V6_SETUP
+	PLATFORM := PLAT_V7_SETUP
 endif
 
 TEXT_SEC_START = 0x800
