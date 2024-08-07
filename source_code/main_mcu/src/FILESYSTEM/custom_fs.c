@@ -743,7 +743,7 @@ ret_type_te custom_fs_init(void)
             default_device_language = 0;
         }    
     
-    /* Set default language */
+        /* Set default language */
         return custom_fs_set_current_language(default_device_language);
     #endif
 }
