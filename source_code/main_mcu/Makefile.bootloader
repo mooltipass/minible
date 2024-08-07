@@ -171,7 +171,7 @@ src/ASF/sam0/drivers/system/system.c \
 src/ASF/sam0/utils/cmsis/samd21/source/gcc/startup_samd21.c \
 src/ASF/sam0/utils/cmsis/samd21/source/system_samd21.c \
 src/ASF/sam0/utils/syscalls/gcc/syscalls.c \
-src/main.c \
+src/bootloader.c \
 src/LOGIC/logic_fido2.c \
 src/CRYPTO/monocypher.c \
 src/CRYPTO/monocypher-ed25519.c
@@ -180,9 +180,9 @@ ifeq ($(PLATFORM),)
 	PLATFORM = PLAT_V7_SETUP
 endif
 
-TEXT_SEC_START = 0x2000
+TEXT_SEC_START = 0x0000
 ifeq ($(PLATFORM),PLAT_V7_SETUP)
-	TEXT_SEC_START = 0x8000
+	TEXT_SEC_START = 0x0000
 endif
 
 C_FLAGS := -mthumb
@@ -197,7 +197,7 @@ endif
 
 C_FLAGS += -fdata-sections -ffunction-sections -mlong-calls -Wall -mcpu=cortex-m0plus -c -pipe -fno-strict-aliasing -Wall -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections -Wchar-subscripts -Wcomment -Wformat=2 -Wimplicit-int -Wmain -Wparentheses -Wsequence-point -Wreturn-type -Wswitch -Wtrigraphs -Wunused -Wuninitialized -Wunknown-pragmas -Wfloat-equal -Wundef -Wshadow -Wbad-function-cast -Wwrite-strings -Wsign-compare -Waggregate-return  -Wmissing-declarations -Wformat -Wmissing-format-attribute -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs -Wunreachable-code -Wcast-align --param max-inline-insns-single=500 -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wjump-misses-init
 
-C_DEFINES := -D__SAMD21G18A__ -DBOARD=USER_BOARD -DARM_MATH_CM0PLUS=true -D__CORTEX_SC=0 -DBR_ARMEL_CORTEXM_GCC=1 -DBR_amd64=0 -DBR_BE_UNALIGNED=0 -DBR_CT_MUL15=0 -DBR_ENABLE_INTRINSICS=0 -DBR_CT_MUL31=0 -DBR_i386=0 -DBR_LE_UNALIGNED=0 -DBR_NO_ARITH_SHIFT=0 -DBR_POWER_ASM_MACROS=0 -D_ARCH_PWR8=0 -D_MSC_VER=0 -D_M_IX86=0 -D_M_X64=0 -D__clang__=0 -DBR_POWER8=0
+C_DEFINES := -DBOOTLOADER -D__SAMD21G18A__ -DBOARD=USER_BOARD -DARM_MATH_CM0PLUS=true -D__CORTEX_SC=0 -DBR_ARMEL_CORTEXM_GCC=1 -DBR_amd64=0 -DBR_BE_UNALIGNED=0 -DBR_CT_MUL15=0 -DBR_ENABLE_INTRINSICS=0 -DBR_CT_MUL31=0 -DBR_i386=0 -DBR_LE_UNALIGNED=0 -DBR_NO_ARITH_SHIFT=0 -DBR_POWER_ASM_MACROS=0 -D_ARCH_PWR8=0 -D_MSC_VER=0 -D_M_IX86=0 -D_M_X64=0 -D__clang__=0 -DBR_POWER8=0
 
 LINKER_SCRIPT_DEP +=  \
 src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld
@@ -209,7 +209,7 @@ OBJ_DIRS := $(sort $(dir $(OBJS)))
 C_DEPS := $(C_SRCS:.c=.d)
 C_DEPS :=  $(addprefix $(OUTPUT_DIR)/,$(C_DEPS))
 
-TARGET := $(OUTPUT_DIR)/mini_ble.elf
+TARGET := $(OUTPUT_DIR)/mini_ble_loader.elf
 TARGET_BIN := $(TARGET:.elf=.bin)
 TARGET_HEX := $(TARGET:.elf=.hex)
 TARGET_LSS := $(TARGET:.elf=.lss)
