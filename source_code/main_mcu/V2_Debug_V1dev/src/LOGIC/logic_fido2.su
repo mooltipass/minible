@@ -1,0 +1,4 @@
+logic_fido2.c:47:13:logic_fido2_calc_attestation_signature	72	dynamic
+logic_fido2.c:133:6:logic_fido2_process_exclude_list_item	312	static
+logic_fido2.c:214:6:logic_fido2_process_make_credential	936	static
+logic_fido2.c:409:6:logic_fido2_process_get_assertion	520	static

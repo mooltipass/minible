@@ -1,0 +1,3 @@
+logic_accelerometer.c:103:6:logic_accelerometer_set_x_movement_detection_wakeup	0	static
+logic_accelerometer.c:112:18:logic_accelerometer_scan_for_action_in_acc_read	48	static
+logic_accelerometer.c:69:18:logic_accelerometer_routine	8	static

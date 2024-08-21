@@ -1,0 +1,2 @@
+system.c:55:6:_system_dummy_init	0	static
+system.c:94:6:system_init	8	static

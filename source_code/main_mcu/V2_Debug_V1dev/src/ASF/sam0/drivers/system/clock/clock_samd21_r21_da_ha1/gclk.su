@@ -1,0 +1,13 @@
+gclk.c:80:6:system_gclk_init	0	static
+gclk.c:112:6:system_gclk_gen_set_config	16	static
+gclk.c:203:6:system_gclk_gen_enable	8	static
+gclk.c:232:6:system_gclk_gen_disable	8	static
+gclk.c:265:6:system_gclk_gen_is_enabled	8	static
+gclk.c:292:10:system_gclk_gen_get_hz	16	static
+gclk.c:376:6:system_gclk_chan_enable	8	static
+gclk.c:398:6:system_gclk_chan_disable	8	static
+gclk.c:348:6:system_gclk_chan_set_config	8	static
+gclk.c:434:6:system_gclk_chan_is_enabled	8	static
+gclk.c:458:6:system_gclk_chan_lock	8	static
+gclk.c:481:6:system_gclk_chan_is_locked	8	static
+gclk.c:507:10:system_gclk_chan_get_hz	8	static

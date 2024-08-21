@@ -1,0 +1,17 @@
+dataflash.c:107:6:dataflash_read_data_array	32	static
+dataflash.c:134:6:dataflash_read_data_array_start	16	static
+dataflash.c:153:6:dataflash_read_bytes_from_opened_transfer	24	static
+dataflash.c:166:6:dataflash_stop_ongoing_transfer	0	static
+dataflash.c:178:6:dataflash_send_command	24	static
+dataflash.c:198:6:dataflash_send_single_byte_command	8	static
+dataflash.c:209:6:dataflash_send_write_enable	8	static
+dataflash.c:219:9:dataflash_read_status_register	16	static
+dataflash.c:231:10:dataflash_is_busy	8	static
+dataflash.c:250:6:dataflash_wait_for_not_busy	16	static
+dataflash.c:36:6:dataflash_write_array_to_memory	48	static
+dataflash.c:261:6:dataflash_erase_64kb_block	24	static
+dataflash.c:272:6:dataflash_bulk_erase_with_wait	8	static
+dataflash.c:283:6:dataflash_bulk_erase_without_wait	8	static
+dataflash.c:318:6:dataflash_exit_power_down	16	static
+dataflash.c:294:10:dataflash_check_presence	24	static
+dataflash.c:330:6:dataflash_power_down	16	static

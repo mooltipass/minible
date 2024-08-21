@@ -1,0 +1,9 @@
+sha2small.c:285:1:br_sha224_set_state	16	static
+sha2small.c:254:1:br_sha224_init	8	static
+sha2small.c:293:1:br_sha256_init	8	static
+sha2small.c:277:1:br_sha224_state	8	static
+sha2small.c:70:1:br_sha2small_round	344	static
+sha2small.c:263:1:br_sha224_update	40	static
+sha2small.c:230:1:sha2small_out	128	static
+sha2small.c:270:1:br_sha224_out	8	static
+sha2small.c:302:1:br_sha256_out	8	static

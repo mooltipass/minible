@@ -1,0 +1,16 @@
+smartcard_lowlevel.c:42:6:smartcard_lowlevel_hpulse_delay	8	static
+smartcard_lowlevel.c:62:6:smartcard_lowlevel_clock_pulse	16	static
+smartcard_lowlevel.c:73:6:smartcard_lowlevel_inverted_clock_pulse	16	static
+smartcard_lowlevel.c:85:6:smartcard_lowlevel_write_nerase	16	static
+smartcard_lowlevel.c:170:17:smartcard_lowlevel_is_card_plugged	16	static
+smartcard_lowlevel.c:197:6:smartcard_lowlevel_detect	8	static
+smartcard_lowlevel.c:252:23:smartcard_lowlevel_first_detect_function	24	static
+smartcard_lowlevel.c:555:6:smartcard_lowlevel_clear_pgmrst_signals	8	static
+smartcard_lowlevel.c:565:6:smartcard_lowlevel_set_pgmrst_signals	8	static
+smartcard_lowlevel.c:123:6:smartcard_lowlevel_blow_fuse	16	static
+smartcard_lowlevel.c:298:6:smartcard_lowlevel_erase_application_zone1_nzone2	16	static
+smartcard_lowlevel.c:363:21:smartcard_lowlevel_validate_code	24	static
+smartcard_lowlevel.c:486:6:smartcard_lowlevel_write_smc	32	static
+smartcard_lowlevel.c:579:10:smartcard_lowlevel_read_smc	32	static
+smartcard_lowlevel.c:612:10:smartcard_lowlevel_check_for_const_val_in_smc_array	24	static
+smartcard_lowlevel.c:650:10:smartcard_low_level_is_smc_absent	0	static

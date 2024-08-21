@@ -1,0 +1,5 @@
+aes_ct.c:29:1:br_aes_ct_bitslice_Sbox	112	static
+aes_ct.c:206:1:br_aes_ct_ortho	48	static
+aes_ct.c:241:1:sub_word	40	static
+aes_ct.c:257:1:br_aes_ct_keysched	528	static
+aes_ct.c:313:1:br_aes_ct_skey_expand	20	static

@@ -1,0 +1,3 @@
+hmac_drbg.c:92:1:br_hmac_drbg_update	480	static
+hmac_drbg.c:29:1:br_hmac_drbg_init	32	static
+hmac_drbg.c:44:1:br_hmac_drbg_generate	472	static

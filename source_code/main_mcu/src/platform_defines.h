@@ -318,6 +318,10 @@
  * PLAT_V7_SETUP
  * => Kickstarter mass production setup
  * - exactly like PLAT_V6_SETUP, but with a different transistor for faster card communications
+ *
+ * V2_PLAT_V1_SETUP
+ * => First Mini BLE v2 development board, 08/2024
+ *
  */
  
  /* Features depending on the defined platform */
@@ -353,6 +357,16 @@
      #define BOD_NOT_ENABLED
      #define DBFLASH_CHIP_8M
      #define HALT_ON_00X_ERROR
+#elif defined(V2_PLAT_V1_SETUP)
+     #define OLED_PRINTF_ENABLED
+     #define DEBUG_USB_COMMANDS_ENABLED
+     #define DEBUG_MENU_ENABLED
+     #define NO_SECURITY_BIT_CHECK
+     #define DEBUG_USB_PRINTF_ENABLED
+     #define DEVELOPER_FEATURES_ENABLED
+     #define BOD_NOT_ENABLED
+     #define DBFLASH_CHIP_8M
+     #define STACK_MEASURE_ENABLED
 #endif
 
 #if defined(EMULATOR_BUILD)

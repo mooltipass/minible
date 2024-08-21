@@ -1,0 +1,7 @@
+logic_gui.c:282:13:logic_gui_create_TOTP_display_str	24	static
+logic_gui.c:51:6:logic_gui_disable_bluetooth	8	static
+logic_gui.c:75:6:logic_gui_enable_bluetooth	32	static
+logic_gui.c:121:6:logic_gui_clone_card	16	static
+logic_gui.c:180:6:logic_gui_change_pin	16	static
+logic_gui.c:213:6:logic_gui_erase_user	32	static
+logic_gui.c:310:6:logic_gui_display_login_password_TOTP	192	static

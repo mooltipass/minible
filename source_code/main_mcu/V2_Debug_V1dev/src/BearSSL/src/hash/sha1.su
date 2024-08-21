@@ -1,0 +1,6 @@
+sha1.c:170:1:br_sha1_set_state	16	static
+sha1.c:101:1:br_sha1_init	8	static
+sha1.c:162:1:br_sha1_state	8	static
+sha1.c:46:1:br_sha1_round	376	static
+sha1.c:110:1:br_sha1_update	40	static
+sha1.c:138:1:br_sha1_out	120	static

@@ -1,0 +1,2 @@
+gui_carousel.c:45:6:gui_carousel_render	136	static
+gui_carousel.c:165:6:gui_carousel_render_animation	48	static

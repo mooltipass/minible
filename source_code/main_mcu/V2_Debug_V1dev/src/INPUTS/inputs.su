@@ -1,0 +1,9 @@
+inputs.c:69:6:inputs_scan	16	static
+inputs.c:313:6:inputs_set_wheel_debounce_value	0	static
+inputs.c:322:6:inputs_set_inputs_invert_bool	0	static
+inputs.c:331:9:inputs_get_wheel_increment	8	static
+inputs.c:352:6:inputs_raw_is_wheel_released	0	static
+inputs.c:372:17:inputs_is_wheel_clicked	16	static
+inputs.c:398:6:inputs_clear_detections	8	static
+inputs.c:418:10:inputs_get_last_returned_action	0	static
+inputs.c:429:21:inputs_get_wheel_action	32	static

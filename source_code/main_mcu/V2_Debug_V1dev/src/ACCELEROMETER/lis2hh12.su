@@ -1,0 +1,9 @@
+lis2hh12.c:37:6:lis2hh12_send_command	24	static
+lis2hh12.c:56:6:lis2hh12_reset	24	static
+lis2hh12.c:76:9:lis2hh12_get_temperature	16	static
+lis2hh12.c:189:6:lis2hh12_sleep_exit_and_dma_arm	24	static
+lis2hh12.c:204:6:lis2hh12_dma_arm	16	static
+lis2hh12.c:214:6:lis2hh12_deassert_ncs_and_go_to_sleep	16	static
+lis2hh12.c:231:6:lis2hh12_check_data_received_flag_and_arm_other_transfer	16	static
+lis2hh12.c:89:10:lis2hh12_check_presence_and_configure	56	static
+lis2hh12.c:285:6:lis2hh12_manual_acc_data_read	32	static

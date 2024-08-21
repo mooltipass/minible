@@ -1,0 +1,2 @@
+comms_hid_msgs_debug.c:50:6:comms_hid_msgs_debug_printf	88	static
+comms_hid_msgs_debug.c:94:6:comms_hid_msgs_parse_debug	40	static

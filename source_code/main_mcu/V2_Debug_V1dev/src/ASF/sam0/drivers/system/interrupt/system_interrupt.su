@@ -1,0 +1,5 @@
+system_interrupt.c:61:6:system_interrupt_is_pending	0	static
+system_interrupt.c:94:18:system_interrupt_set_pending	0	static
+system_interrupt.c:129:18:system_interrupt_clear_pending	0	static
+system_interrupt.c:165:18:system_interrupt_set_priority	16	static
+system_interrupt.c:199:38:system_interrupt_get_priority	8	static

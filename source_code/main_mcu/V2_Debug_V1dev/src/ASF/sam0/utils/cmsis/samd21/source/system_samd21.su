@@ -1,0 +1,2 @@
+system_samd21.c:63:6:SystemInit	0	static
+system_samd21.c:76:6:SystemCoreClockUpdate	0	static
