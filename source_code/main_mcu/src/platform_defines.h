@@ -358,6 +358,7 @@
      #define DBFLASH_CHIP_8M
      #define HALT_ON_00X_ERROR
 #elif defined(V2_PLAT_V1_SETUP)
+     #define MINIBLE_V2
      #define OLED_PRINTF_ENABLED
      #define DEBUG_USB_COMMANDS_ENABLED
      #define DEBUG_MENU_ENABLED
@@ -401,7 +402,7 @@ typedef struct
 /* Simply an array point to our internal memory */
 #define NVM_MEMORY ((volatile uint16_t *)FLASH_ADDR)
 /* Our firmware start address */
-#if defined(PLAT_V7_SETUP)
+#if defined(PLAT_V7_SETUP) || defined(V2_PLAT_V1_SETUP)
     #define APP_START_ADDR (0x8000)
 #else
     #define APP_START_ADDR (0x2000)
@@ -475,7 +476,11 @@ typedef struct
 /********************/
 /* Display defines  */
 /********************/
-#define GUI_DISPLAY_WIDTH           256
+#if defined(MINIBLE_V2)
+    #define GUI_DISPLAY_WIDTH           264
+#else
+    #define GUI_DISPLAY_WIDTH           256
+#endif
 
 /*************************/
 /* Functionality defines */
@@ -585,6 +590,34 @@ typedef struct
     #define ACC_MISO_PAD                MISO_PAD1
     #define ACC_APB_SERCOM_BIT          SERCOM0_
     #define ACC_SERCOM                  SERCOM0
+#elif defined(V2_PLAT_V1_SETUP)
+    #define DATAFLASH_GCLK_SERCOM_ID    GCLK_CLKCTRL_ID_SERCOM2_CORE_Val
+    #define DATAFLASH_MOSI_SCK_PADS     MOSI_P3_SCK_P1_SS_P2
+    #define DATAFLASH_MISO_PAD          MISO_PAD2
+    #define DATAFLASH_APB_SERCOM_BIT    SERCOM2_
+    #define DATAFLASH_SERCOM            SERCOM2
+    #define DBFLASH_GCLK_SERCOM_ID      GCLK_CLKCTRL_ID_SERCOM0_CORE_Val
+    #define DBFLASH_MOSI_SCK_PADS       MOSI_P3_SCK_P1_SS_P2
+    #define DBFLASH_MISO_PAD            MISO_PAD2
+    #define DBFLASH_APB_SERCOM_BIT      SERCOM0_
+    #define DBFLASH_SERCOM              SERCOM0
+    #define AUXMCU_GCLK_SERCOM_ID       GCLK_CLKCTRL_ID_SERCOM5_CORE_Val
+    #define AUXMCU_APB_SERCOM_BIT       SERCOM5_
+    #define AUXMCU_SERCOM               SERCOM5
+    #define AUXMCU_SERCOM_HANDLER       SERCOM5_Handler
+    #define AUXMCU_SERCOM_INTERUPT      SERCOM5_IRQn
+    #define AUXMCU_RX_TXPO              2
+    #define AUXMCU_TX_PAD               1
+    #define OLED_GCLK_SERCOM_ID         GCLK_CLKCTRL_ID_SERCOM3_CORE_Val
+    #define OLED_MOSI_SCK_PADS          MOSI_P3_SCK_P1_SS_P2
+    #define OLED_MISO_PAD               MISO_PAD2
+    #define OLED_APB_SERCOM_BIT         SERCOM3_
+    #define OLED_SERCOM                 SERCOM3
+    #define ACC_GCLK_SERCOM_ID          GCLK_CLKCTRL_ID_SERCOM4_CORE_Val
+    #define ACC_MOSI_SCK_PADS           MOSI_P0_SCK_P3_SS_P1
+    #define ACC_MISO_PAD                MISO_PAD1
+    #define ACC_APB_SERCOM_BIT          SERCOM4_
+    #define ACC_SERCOM                  SERCOM4
 #endif
 
 /* DMA channel descriptors */
