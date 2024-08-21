@@ -39,6 +39,7 @@
 #define CUSTOM_FS_MAGIC_HEADER              0x12345678UL
 // Custom file flags
 #define CUSTOM_FS_BITMAP_RLE_FLAG           0x01
+#define CUSTOM_FS_BITMAP_4PX_ORDER_REV_FLAG 0x02
 // Flag to use provisioned key
 #define  CUSTOM_FS_PROV_KEY_FLAG            0x91
 // Custom Bluetooth name length - DO NOT CHANGE TO FIT IN 31B BLE ADVERTISING PAYLOAD

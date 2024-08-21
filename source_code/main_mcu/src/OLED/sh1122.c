@@ -1516,7 +1516,7 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
     }
     #endif
     #ifdef OLED_DMA_TRANSFER
-    else if ((bitstream->width % 2 == 0) && (x % 2 == 0) && (oled_descriptor->max_disp_x % 2 == 0))
+    else if ((bitstream->width % 2 == 0) && (x % 2 == 0) && (oled_descriptor->max_disp_x % 2 == 0) && (bitstream->width <= SH1122_OLED_WIDTH))
     {
         /* Buffer large enough to contain a display line in order to trig one DMA transfer */
         uint8_t pixel_buffer[2][SH1122_OLED_WIDTH/2];

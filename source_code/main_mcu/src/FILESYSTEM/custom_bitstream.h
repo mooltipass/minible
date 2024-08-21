@@ -54,7 +54,6 @@ void bitstream_glyph_bitmap_init(bitstream_bitmap_t* bs, font_header_t* font, fo
 void bitstream_bitmap_init(bitstream_bitmap_t* bs, bitmap_t* bitmap, custom_fs_address_t address, BOOL exclusive);
 void bitstream_bitmap_array_read(bitstream_bitmap_t* bs, uint8_t* data, uint16_t nb_pixels);
 uint16_t bitstream_bitmap_read(bitstream_bitmap_t* bs, uint16_t nb_pixels);
-uint8_t bitstream_bitmap_two_pixel_read(bitstream_bitmap_t* bs);
 void bitstream_bitmap_close(bitstream_bitmap_t* bs);
 
 #endif /* CUSTOM_BITSTREAM_H_ */

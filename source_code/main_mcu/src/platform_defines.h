@@ -281,8 +281,8 @@
         - bundle v13
 - v0.87:- SET_TOTP & GET_TOTP message: allow empty logins
         - bug fix: unable to save password in MMM when a category is selected
-		- bug fix: no tip blinking in service selection menu
-		- bug fix: wheel movements not registered during PIN entry with paranoid mode
+        - bug fix: no tip blinking in service selection menu
+        - bug fix: wheel movements not registered during PIN entry with paranoid mode
 
 */
 
