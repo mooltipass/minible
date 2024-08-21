@@ -1,2 +1,0 @@
-aes_ct_ctr.c:29:1:br_aes_ct_ctr_init	8	static
-aes_ct_ctr.c:51:1:br_aes_ct_ctr_run	592	static

@@ -1,6 +1,0 @@
-aes_ct_ctrcbc.c:37:1:xorbuf	12	static
-aes_ct_ctrcbc.c:29:1:br_aes_ct_ctrcbc_init	8	static
-aes_ct_ctrcbc.c:51:1:br_aes_ct_ctrcbc_ctr	600	static
-aes_ct_ctrcbc.c:135:1:br_aes_ct_ctrcbc_mac	552	static
-aes_ct_ctrcbc.c:181:1:br_aes_ct_ctrcbc_encrypt	592	static
-aes_ct_ctrcbc.c:317:1:br_aes_ct_ctrcbc_decrypt	600	static

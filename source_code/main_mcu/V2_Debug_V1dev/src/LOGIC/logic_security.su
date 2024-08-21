@@ -1,7 +1,0 @@
-logic_security.c:36:6:logic_security_clear_security_bools	0	static
-logic_security.c:45:6:logic_security_smartcard_unlocked_actions	8	static
-logic_security.c:57:6:logic_security_is_smc_inserted_unlocked	0	static
-logic_security.c:66:6:logic_security_set_management_mode	0	static
-logic_security.c:75:6:logic_security_should_leave_management_mode	8	static
-logic_security.c:90:6:logic_security_clear_management_mode	0	static
-logic_security.c:99:6:logic_security_is_management_mode_set	0	static

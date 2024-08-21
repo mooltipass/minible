@@ -1,2 +1,0 @@
-interrupt_sam_nvic.c:57:6:cpu_irq_enter_critical	0	static
-interrupt_sam_nvic.c:73:6:cpu_irq_leave_critical	0	static

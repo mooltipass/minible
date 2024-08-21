@@ -1,2 +1,0 @@
-i15_muladd.c:32:1:divrem16	20	static
-i15_muladd.c:55:1:br_i15_muladd_small	64	static

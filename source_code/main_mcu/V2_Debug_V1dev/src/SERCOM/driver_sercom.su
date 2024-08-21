@@ -1,4 +1,0 @@
-driver_sercom.c:35:6:sercom_spi_init	16	static
-driver_sercom.c:88:9:sercom_spi_send_single_byte	0	static
-driver_sercom.c:101:6:sercom_spi_send_single_byte_without_receive_wait	0	static
-driver_sercom.c:112:6:sercom_spi_wait_for_transmit_complete	0	static

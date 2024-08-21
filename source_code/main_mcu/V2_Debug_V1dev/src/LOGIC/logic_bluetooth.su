@@ -1,9 +1,0 @@
-logic_bluetooth.c:41:6:logic_bluetooth_set_too_many_failed_connections	0	static
-logic_bluetooth.c:50:6:logic_bluetooth_get_and_clear_too_many_failed_connections	0	static
-logic_bluetooth.c:61:6:logic_bluetooth_set_connected_state	0	static
-logic_bluetooth.c:73:18:logic_bluetooth_get_connected_to_platform_type	0	static
-logic_bluetooth.c:82:6:logic_bluetooth_set_do_not_lock_device_after_disconnect_flag	0	static
-logic_bluetooth.c:91:6:logic_bluetooth_get_do_not_lock_device_after_disconnect_flag	0	static
-logic_bluetooth.c:100:13:logic_bluetooth_get_state	8	static
-logic_bluetooth.c:123:6:logic_bluetooth_get_unit_mac_address	8	static
-logic_bluetooth.c:136:6:logic_bluetooth_disconnect_from_current_device	8	static

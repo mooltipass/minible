@@ -1,2 +1,0 @@
-driver_clocks.c:32:6:clocks_map_gclk_to_peripheral_clock	0	static
-driver_clocks.c:46:6:clocks_start_48MDFLL	0	static

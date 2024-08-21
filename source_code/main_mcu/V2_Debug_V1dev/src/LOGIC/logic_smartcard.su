@@ -1,7 +1,0 @@
-logic_smartcard.c:50:23:logic_smartcard_ask_for_new_pin	16	static
-logic_smartcard.c:77:6:logic_smartcard_handle_removed	8	static
-logic_smartcard.c:395:20:logic_smartcard_user_unlock_process	24	static
-logic_smartcard.c:264:26:logic_smartcard_valid_card_unlock	368	static
-logic_smartcard.c:91:10:logic_smartcard_handle_inserted	24	static
-logic_smartcard.c:476:10:logic_smartcard_remove_card_and_reauth_user	24	static
-logic_smartcard.c:527:16:logic_smartcard_clone_card	184	static

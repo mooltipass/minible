@@ -1,5 +1,0 @@
-custom_bitstream.c:36:6:bitstream_bitmap_init	16	static
-custom_bitstream.c:101:6:bitstream_glyph_bitmap_init	16	static
-custom_bitstream.c:217:6:bitstream_bitmap_array_read	40	static
-custom_bitstream.c:296:6:bitstream_bitmap_close	16	static
-custom_bitstream.c:314:10:bitstream_bitmap_read	32	static

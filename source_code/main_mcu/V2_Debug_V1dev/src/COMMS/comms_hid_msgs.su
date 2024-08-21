@@ -1,6 +1,0 @@
-comms_hid_msgs.c:60:10:comms_hid_msgs_fill_get_status_message_answer	8	static
-comms_hid_msgs.c:124:6:comms_hid_msgs_update_message_payload_length_fields	0	static
-comms_hid_msgs.c:137:6:comms_hid_msgs_update_message_fields	0	static
-comms_hid_msgs.c:161:20:comms_hid_msgs_get_empty_hid_packet	16	static
-comms_hid_msgs.c:190:6:comms_hid_msgs_send_ack_nack_message	8	static
-comms_hid_msgs.c:213:6:comms_hid_msgs_parse	624	static

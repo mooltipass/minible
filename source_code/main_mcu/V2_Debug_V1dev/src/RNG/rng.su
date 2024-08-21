@@ -1,4 +1,0 @@
-rng.c:35:9:rng_get_random_uint8_t	16	static
-rng.c:66:6:rng_fill_array	16	static
-rng.c:79:10:rng_get_random_uint16_t	16	static
-rng.c:87:6:rng_feed_from_acc_read	48	static

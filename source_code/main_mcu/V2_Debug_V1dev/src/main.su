@@ -1,8 +1,0 @@
-main.c:88:6:jump_to_application_function	8	static
-main.c:113:6:main_create_virtual_wheel_movement	0	static
-main.c:121:6:main_platform_init	104	static
-main.c:600:6:main_reboot	8	static
-main.c:633:6:main_standby_sleep	32	static
-main.c:1184:10:main_check_stack_usage	0	static
-main.c:1218:6:main_init_stack_tracking	8	static
-main.c:768:5:main	48	static

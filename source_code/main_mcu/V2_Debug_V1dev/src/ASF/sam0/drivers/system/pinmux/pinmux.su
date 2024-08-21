@@ -1,5 +1,0 @@
-pinmux.c:60:13:_system_pinmux_config	12	static
-pinmux.c:160:6:system_pinmux_pin_set_config	8	static
-pinmux.c:183:6:system_pinmux_group_set_config	32	static
-pinmux.c:208:6:system_pinmux_group_set_input_sample_mode	0	static
-pinmux.c:264:6:system_pinmux_group_set_output_strength	24	static

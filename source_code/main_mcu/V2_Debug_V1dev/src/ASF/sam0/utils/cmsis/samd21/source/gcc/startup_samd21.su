@@ -1,2 +1,0 @@
-startup_samd21.c:278:6:Dummy_Handler	0	static
-startup_samd21.c:229:6:Reset_Handler	24	static

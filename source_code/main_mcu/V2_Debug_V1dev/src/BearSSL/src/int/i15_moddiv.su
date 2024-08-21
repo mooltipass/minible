@@ -1,3 +1,0 @@
-i15_moddiv.c:43:1:cond_negate	12	static
-i15_moddiv.c:71:1:finish_mod	20	static
-i15_moddiv.c:244:1:br_i15_moddiv	128	static

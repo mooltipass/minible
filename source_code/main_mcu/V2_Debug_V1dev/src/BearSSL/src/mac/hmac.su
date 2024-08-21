@@ -1,5 +1,0 @@
-hmac.c:38:1:process_key	288	static
-hmac.c:57:1:br_hmac_key_init	304	static
-hmac.c:78:1:br_hmac_init	32	static
-hmac.c:98:1:br_hmac_update	8	static
-hmac.c:105:1:br_hmac_out	296	static

@@ -1,4 +1,0 @@
-gui_menu.c:74:6:gui_menu_set_selected_menu	0	static
-gui_menu.c:83:6:gui_menu_reset_selected_items	8	static
-gui_menu.c:104:6:gui_menu_update_menus	8	static
-gui_menu.c:144:6:gui_menu_event_render	48	static
