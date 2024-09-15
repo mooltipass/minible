@@ -67,7 +67,7 @@ void platform_io_power_up_oled(BOOL power_3v3){
     else
         platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_VBAT;
 }
-void platform_io_disable_switch_and_die(void){ abort(); }
+void platform_io_cutoff_power(void){ abort(); }
 void platform_io_init_no_comms_signal(void){}
 void platform_io_smc_remove_function(void){ emu_reset_smartcard(); }
 void platform_io_set_wheel_click_low(void){}
