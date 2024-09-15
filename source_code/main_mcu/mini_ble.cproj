@@ -305,7 +305,7 @@
       <Value>../src/DMA</Value>
       <Value>../src/TIMER</Value>
       <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-      <Value>../src/SMARTCARD</Value>
+      <Value>../src/SE_SMARTCARD</Value>
       <Value>../src/OLED</Value>
       <Value>../src/ACCELEROMETER</Value>
       <Value>../src/INPUTS</Value>
@@ -502,7 +502,7 @@
       <Value>../src/DMA</Value>
       <Value>../src/TIMER</Value>
       <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-      <Value>../src/SMARTCARD</Value>
+      <Value>../src/SE_SMARTCARD</Value>
       <Value>../src/OLED</Value>
       <Value>../src/ACCELEROMETER</Value>
       <Value>../src/INPUTS</Value>
@@ -702,7 +702,7 @@
       <Value>../src/DMA</Value>
       <Value>../src/TIMER</Value>
       <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-      <Value>../src/SMARTCARD</Value>
+      <Value>../src/SE_SMARTCARD</Value>
       <Value>../src/OLED</Value>
       <Value>../src/ACCELEROMETER</Value>
       <Value>../src/INPUTS</Value>
@@ -899,7 +899,7 @@
       <Value>../src/DMA</Value>
       <Value>../src/TIMER</Value>
       <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-      <Value>../src/SMARTCARD</Value>
+      <Value>../src/SE_SMARTCARD</Value>
       <Value>../src/OLED</Value>
       <Value>../src/ACCELEROMETER</Value>
       <Value>../src/INPUTS</Value>
@@ -1099,7 +1099,7 @@
       <Value>../src/DMA</Value>
       <Value>../src/TIMER</Value>
       <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-      <Value>../src/SMARTCARD</Value>
+      <Value>../src/SE_SMARTCARD</Value>
       <Value>../src/OLED</Value>
       <Value>../src/ACCELEROMETER</Value>
       <Value>../src/INPUTS</Value>
@@ -1296,7 +1296,7 @@
       <Value>../src/DMA</Value>
       <Value>../src/TIMER</Value>
       <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-      <Value>../src/SMARTCARD</Value>
+      <Value>../src/SE_SMARTCARD</Value>
       <Value>../src/OLED</Value>
       <Value>../src/ACCELEROMETER</Value>
       <Value>../src/INPUTS</Value>
@@ -1496,7 +1496,7 @@
       <Value>../src/DMA</Value>
       <Value>../src/TIMER</Value>
       <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-      <Value>../src/SMARTCARD</Value>
+      <Value>../src/SE_SMARTCARD</Value>
       <Value>../src/OLED</Value>
       <Value>../src/ACCELEROMETER</Value>
       <Value>../src/INPUTS</Value>
@@ -1694,7 +1694,7 @@
       <Value>../src/DMA</Value>
       <Value>../src/TIMER</Value>
       <Value>%24(PackRepoDir)\atmel\SAMD21_DFP\1.2.276\samd21a\include</Value>
-      <Value>../src/SMARTCARD</Value>
+      <Value>../src/SE_SMARTCARD</Value>
       <Value>../src/OLED</Value>
       <Value>../src/ACCELEROMETER</Value>
       <Value>../src/INPUTS</Value>
@@ -2216,16 +2216,19 @@
     <Compile Include="src\SERCOM\driver_sercom.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\SMARTCARD\smartcard_highlevel.c">
+    <Compile Include="src\SE_SMARTCARD\se_smartcard_wrapper.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\SMARTCARD\smartcard_highlevel.h">
+    <Compile Include="src\SE_SMARTCARD\smartcard_highlevel.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\SMARTCARD\smartcard_lowlevel.c">
+    <Compile Include="src\SE_SMARTCARD\smartcard_highlevel.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\SMARTCARD\smartcard_lowlevel.h">
+    <Compile Include="src\SE_SMARTCARD\smartcard_lowlevel.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\SE_SMARTCARD\smartcard_lowlevel.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\TIMER\driver_timer.c">
@@ -2805,7 +2808,7 @@
     <Folder Include="src\RNG\" />
     <Folder Include="src\SECURITY" />
     <Folder Include="src\OLED" />
-    <Folder Include="src\SMARTCARD" />
+    <Folder Include="src\SE_SMARTCARD" />
     <Folder Include="src\TIMER" />
     <Folder Include="src\SERCOM" />
     <Folder Include="src\PLATFORM" />

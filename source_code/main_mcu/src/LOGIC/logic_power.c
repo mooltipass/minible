@@ -758,6 +758,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
             should_deal_with_measurement = TRUE;
         }
         
+    #ifndef MINIBLE_V2_TO_TACKLE
         /* Store current vbat only if we are battery powered, if it has been a while since we changed power sources, and if we haven't been instructed to skip next measurement */
         if ((platform_io_get_voled_stepup_pwr_source() == OLED_STEPUP_SOURCE_VBAT) && (logic_power_discard_measurement_counter == 0) && (should_deal_with_measurement != FALSE))
         {
@@ -800,6 +801,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
             /* Check for new battery level */
             logic_power_compute_battery_state();
         }
+    #endif
         
         /* Counter decrement */
         if (logic_power_discard_measurement_counter != 0)
@@ -851,7 +853,7 @@ void logic_power_routine(void)
         /* It may not be impossible that the user connected the device in the meantime */
         if (platform_io_is_usb_3v3_present() == FALSE)
         {
-            platform_io_disable_switch_and_die();
+            platform_io_cutoff_power();
             while(1);
         }
         else

@@ -263,7 +263,7 @@ void inputs_scan(void)
             platform_io_power_down_oled();
             while ((PORT->Group[WHEEL_SW_GROUP].IN.reg & WHEEL_SW_MASK) == 0);
             DELAYMS(200);
-            platform_io_disable_switch_and_die();
+            platform_io_cutoff_power();
             while(1);
         }
         #endif

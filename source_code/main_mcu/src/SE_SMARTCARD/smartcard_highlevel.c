@@ -19,9 +19,11 @@
 *    Created:  29/11/2017
 *    Author:   Mathieu Stephan
 */
+#include "platform_defines.h"
+#ifndef MINIBLE_V2
+
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
-#include "platform_defines.h"
 #include "main.h"
 #include <string.h>
 
@@ -757,3 +759,4 @@ mooltipass_card_detect_return_te smartcard_highlevel_card_detected_routine(void)
         }
     }
 }
+#endif

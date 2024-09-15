@@ -16,7 +16,7 @@ INCLUDEPATH += src/EMU \
     src/FILESYSTEM \
     src/DMA \
     src/TIMER \
-    src/SMARTCARD \
+    src/SE_SMARTCARD \
     src/OLED \
     src/ACCELEROMETER \
     src/INPUTS \
@@ -99,7 +99,7 @@ SOURCES += src/EMU/lis2hh12.c \
     src/RNG/rng.c \
     src/EMU/fuses.c \
     src/EMU/driver_sercom.c \
-    src/SMARTCARD/smartcard_highlevel.c \
+    src/SE_SMARTCARD/smartcard_highlevel.c \
     src/EMU/smartcard_lowlevel.c \
     src/TIMER/driver_timer.c \
     src/utils.c \
@@ -191,7 +191,7 @@ HEADERS  += src/MainWindow.h \ \
     src/OLED/mooltipass_graphics_bundle.h \
     src/OLED/sh1122.h \
     src/RNG/rng.h \
-    src/SMARTCARD/smartcard_highlevel.h \
+    src/SE_SMARTCARD/smartcard_highlevel.h \
     src/TIMER/driver_timer.h \
     src/defines.h \
     src/debug.h \

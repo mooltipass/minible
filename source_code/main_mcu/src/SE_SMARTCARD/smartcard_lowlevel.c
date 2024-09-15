@@ -19,9 +19,11 @@
 *    Created:  28/11/2017
 *    Author:   Mathieu Stephan
 */
+#include "platform_defines.h"
+#ifndef MINIBLE_V2
+
 #include "smartcard_highlevel.h"
 #include "smartcard_lowlevel.h"
-#include "platform_defines.h"
 #include "logic_security.h"
 #include "driver_sercom.h"
 #include "driver_timer.h"
@@ -658,3 +660,4 @@ RET_TYPE smartcard_low_level_is_smc_absent(void)
         return RETURN_OK;
     }
 }
+#endif

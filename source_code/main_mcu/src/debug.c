@@ -299,7 +299,7 @@ void debug_debug_menu(void)
                 timer_delay_ms(100);                        // From OLED datasheet wait before removing 3V3
                 platform_io_set_wheel_click_low();          // Completely discharge cap
                 timer_delay_ms(10);                         // Wait a tad
-                platform_io_disable_switch_and_die();       // Die!
+                platform_io_cutoff_power();                 // Die!
             }
             else if (selected_item == 16)
             {
@@ -353,7 +353,7 @@ void debug_kickstarter_video(void)
                     timer_delay_ms(100);                        // From OLED datasheet wait before removing 3V3
                     platform_io_set_wheel_click_low();          // Completely discharge cap
                     timer_delay_ms(10);                         // Wait a tad
-                    platform_io_disable_switch_and_die();       // Die!
+                    platform_io_cutoff_power();                 // Die!
                 }
             }
         }

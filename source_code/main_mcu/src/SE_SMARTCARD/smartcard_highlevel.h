@@ -19,7 +19,9 @@
 *    Created:  29/11/2017
 *    Author:   Mathieu Stephan
 */
-#ifndef SMART_CARD_HIGHER_LEVEL_FUNCTIONS_H_
+#include "platform_defines.h"
+
+#if !defined(SMART_CARD_HIGHER_LEVEL_FUNCTIONS_H_) && !defined(MINIBLE_V2)
 #define SMART_CARD_HIGHER_LEVEL_FUNCTIONS_H_
 
 #include <stdlib.h>

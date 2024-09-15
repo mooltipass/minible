@@ -19,10 +19,11 @@
 *    Created:  28/11/2017
 *    Author:   Mathieu Stephan
 */
-#ifndef SMARTCARD_H_
+#include "platform_defines.h"
+
+#if !defined(SMARTCARD_H_) && !defined(MINIBLE_V2)
 #define SMARTCARD_H_
 
-#include "platform_defines.h"
 #include "defines.h"
 #include <stdint.h>
 
@@ -64,7 +65,7 @@ void smartcard_lowlevel_detect(void);
 #define SMARTCARD_AZ2_BIT_RESERVED  16
 #define SMARTCARD_MTP_LOGIN_LENGTH  (SMARTCARD_AZ_BIT_LENGTH - SMARTCARD_AZ2_BIT_RESERVED - AES_KEY_LENGTH)
 #define SMARTCARD_MTP_LOGIN_OFFSET  (SMARTCARD_AZ2_BIT_RESERVED + AES_KEY_LENGTH)
-#define SMARTCARD_CPZ_LENGTH        8
 #define SMARTCARD_ISSUER_ZONE_LGTH  8
+#define SMARTCARD_CPZ_LENGTH        8
 
 #endif /* SMARTCARD_H_ */

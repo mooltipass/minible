@@ -71,6 +71,7 @@ void functional_rf_testing_start(void)
 */
 void functional_testing_start(BOOL clear_first_boot_flag)
 {
+#ifndef MINIBLE_V2_TO_TACKLE
     aux_mcu_message_t* temp_rx_message;
     
     /* Test no comms signal */
@@ -95,7 +96,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Power using battery first!");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
-        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_cutoff_power(); while(1);
     }
     
     /* Check for removed card */
@@ -103,7 +104,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Please remove the card first!");
         while (smartcard_low_level_is_smc_absent() != RETURN_OK);
-        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_cutoff_power(); while(1);
     }
     
     /* Internal 1V1 measurement & VOLED VIN when battery powered and screen not powered */
@@ -131,7 +132,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     if (battery_voltage > BATTERY_ADC_800MV_VALUE)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Q2/Q8/U1 issue");
-        timer_delay_ms(5000); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(5000); platform_io_cutoff_power(); while(1);
     }
     
     /* Wheel testing */
@@ -150,7 +151,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
             timer_delay_ms(100);                        // From OLED datasheet wait before removing 3V3
             platform_io_set_wheel_click_low();          // Completely discharge cap
             timer_delay_ms(10);                         // Wait a tad
-            platform_io_disable_switch_and_die();       // Die!
+            platform_io_cutoff_power();                 // Die!
         }            
     }
     timer_deallocate_timer(temp_timer_id);
@@ -199,7 +200,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         sh1122_clear_frame_buffer(&plat_oled_descriptor);
         #endif
         sh1122_put_error_string(&plat_oled_descriptor, u"wheel issue");
-        timer_delay_ms(5000); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(5000); platform_io_cutoff_power(); while(1);
     }
     
     /* Annoying click test due to bad experiences: 3 long clicks with a short debounce value (there's HW debouncing!) */
@@ -234,7 +235,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         sh1122_clear_frame_buffer(&plat_oled_descriptor);
         #endif
         sh1122_put_error_string(&plat_oled_descriptor, u"wheel issue");
-        timer_delay_ms(5000); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(5000); platform_io_cutoff_power(); while(1);
     }
        
     /* Ask to connect USB to test USB LDO + LDO 3V3 to 8V  */
@@ -266,7 +267,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Stepup error!");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
-        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_cutoff_power(); while(1);
     }
     
     /* Signal the aux MCU do its functional testing */
@@ -287,19 +288,19 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"ATBTLC1000 error!");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
-        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_cutoff_power(); while(1);
     }
     else if (func_test_result == 2)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Battery circuit error!");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
-        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_cutoff_power(); while(1);
     }
     else if (func_test_result == 3)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"Q5/Q9 error");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
-        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_cutoff_power(); while(1);
     }
     
     /* Wait for DTM RX message from aux MCU */
@@ -315,7 +316,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     {
         sh1122_put_error_string(&plat_oled_descriptor, u"ATBTLC1000 error / NO RX!");
         while (platform_io_is_usb_3v3_present_raw() != FALSE);
-        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_cutoff_power(); while(1);
     }
     
     /* Rearm DMA RX */
@@ -352,7 +353,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         {
             sh1122_put_error_string(&plat_oled_descriptor, u"LIS2HH12 failed!");
             while (platform_io_is_usb_3v3_present_raw() != FALSE);
-            timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
+            timer_delay_ms(200); platform_io_cutoff_power(); while(1);
         }
     }
     
@@ -381,7 +382,7 @@ void functional_testing_start(BOOL clear_first_boot_flag)
         {
             comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         }
-        timer_delay_ms(200); platform_io_disable_switch_and_die(); while(1);
+        timer_delay_ms(200); platform_io_cutoff_power(); while(1);
     }
     
     /* Clear flag */
@@ -403,4 +404,5 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #endif
+#endif
 }

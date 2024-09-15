@@ -21,7 +21,7 @@
 */
 #include <asf.h>
 #include <string.h>
-#include "smartcard_highlevel.h"
+#include "se_smartcard_wrapper.h"
 #include "platform_defines.h"
 #include "logic_encryption.h"
 #include "logic_smartcard.h"
@@ -64,7 +64,7 @@ uint16_t comms_hid_msgs_fill_get_status_message_answer(uint16_t* msg_array_uint1
     msg_array_uint16[0] = 0x0000;
     
     // Last bit: is card inserted
-    if (smartcard_low_level_is_smc_absent() != RETURN_OK)
+    if (se_smartcard_is_se_absent() != RETURN_OK)
     {
         msg_array_uint8[0] |= 0x01;
     }
@@ -547,7 +547,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             if ((logic_security_is_smc_inserted_unlocked() != FALSE) || (gui_dispatcher_get_current_screen() == GUI_SCREEN_INSERTED_UNKNOWN))
             {
                 aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, MEMBER_SIZE(cpz_lut_entry_t,cards_cpz));
-                smartcard_highlevel_read_code_protected_zone(temp_tx_message_pt->hid_message.payload);
+                se_smartcard_read_code_protected_zone(temp_tx_message_pt->hid_message.payload);
                 comms_aux_mcu_send_message(temp_tx_message_pt);
                 return;
             }
@@ -690,7 +690,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 if (logic_smartcard_user_unlock_process() == UNLOCK_OK_RET)
                 {
                     /* Erase card! */
-                    smartcard_highlevel_erase_smartcard();
+                    se_smartcard_erase_se();
 
                     /* Set next screen */
                     gui_dispatcher_set_current_screen(GUI_SCREEN_INSERTED_INVALID, TRUE, GUI_INTO_MENU_TRANSITION);
@@ -1965,11 +1965,11 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                 #endif
                 
                 /* Read code protected zone to compare with provided one */
-                smartcard_highlevel_read_code_protected_zone(temp_buffer);
+                se_smartcard_read_code_protected_zone(temp_buffer);
                 
                 /* Check that the provided CPZ is the current one, ask the user to unlock the card and check that we can add the user */
                 if (    (memcmp(temp_buffer, setup_existing_user_req.cpz_lut_entry.cards_cpz, SMARTCARD_CPZ_LENGTH) == 0) && \
-                        (smartcard_highlevel_check_hidden_aes_key_contents() == RETURN_OK) && \
+                        (se_smartcard_check_for_hidden_aes_key() == RETURN_OK) && \
                         (logic_smartcard_user_unlock_process() == UNLOCK_OK_RET) && \
                         (logic_user_create_new_user_for_existing_card(&setup_existing_user_req.cpz_lut_entry, setup_existing_user_req.security_preferences, setup_existing_user_req.language_id, setup_existing_user_req.usb_keyboard_id, setup_existing_user_req.ble_keyboard_id, &new_user_id) == RETURN_OK))
                 {
@@ -1981,7 +1981,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
                     custom_fs_get_cpz_lut_entry(temp_buffer, &cpz_stored_entry);
                     
                     /* Init encryption handling */
-                    smartcard_highlevel_read_aes_key(temp_buffer);
+                    se_smartcard_read_aes_key(temp_buffer);
                     logic_encryption_init_context(temp_buffer, cpz_stored_entry);
                     
                     /* Set smartcard unlock & MMM flags */

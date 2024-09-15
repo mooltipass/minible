@@ -62,7 +62,7 @@ INC_DIRS := \
 -I"src/DMA" \
 -I"src/TIMER" \
 -I"../packs/samd21a/include" \
--I"src/SMARTCARD" \
+-I"src/SE_SMARTCARD" \
 -I"src/OLED" \
 -I"src/ACCELEROMETER" \
 -I"src/INPUTS" \
@@ -157,8 +157,8 @@ src/PLATFORM/platform_io.c \
 src/RNG/rng.c \
 src/SECURITY/fuses.c \
 src/SERCOM/driver_sercom.c \
-src/SMARTCARD/smartcard_highlevel.c \
-src/SMARTCARD/smartcard_lowlevel.c \
+src/SE_SMARTCARD/smartcard_highlevel.c \
+src/SE_SMARTCARD/smartcard_lowlevel.c \
 src/TIMER/driver_timer.c \
 src/utils.c \
 src/ASF/common2/boards/user_board/init.c \

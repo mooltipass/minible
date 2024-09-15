@@ -38,7 +38,7 @@ INC_DIRS := \
 -I"src/FILESYSTEM" \
 -I"src/DMA" \
 -I"src/TIMER" \
--I"src/SMARTCARD" \
+-I"src/SE_SMARTCARD" \
 -I"src/OLED" \
 -I"src/ACCELEROMETER" \
 -I"src/INPUTS" \
@@ -136,7 +136,7 @@ src/EMU/platform_io.c \
 src/RNG/rng.c \
 src/EMU/fuses.c \
 src/EMU/driver_sercom.c \
-src/SMARTCARD/smartcard_highlevel.c \
+src/SE_SMARTCARD/smartcard_highlevel.c \
 src/EMU/smartcard_lowlevel.c \
 src/TIMER/driver_timer.c \
 src/utils.c \

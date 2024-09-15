@@ -54,12 +54,14 @@ void EIC_Handler(void)
     else
     {
         /* Any other: disable all interrupts */
-        EIC->INTENCLR.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
-        EIC->INTFLAG.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
+        #ifndef MINIBLE_V2
         EIC->INTENCLR.reg = (1 << USB_3V3_EXTINT_NUM);
         EIC->INTFLAG.reg = (1 << USB_3V3_EXTINT_NUM);
         EIC->INTENCLR.reg = (1 << SMC_DET_EXTINT_NUM);
         EIC->INTFLAG.reg = (1 << SMC_DET_EXTINT_NUM);
+        #endif
+        EIC->INTENCLR.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
+        EIC->INTFLAG.reg = (1 << WHEEL_CLICK_EXTINT_NUM);
         logic_device_set_wakeup_reason(WAKEUP_REASON_OTHER);
     }
 }
@@ -73,6 +75,7 @@ void AUXMCU_SERCOM_HANDLER(void)
     platform_io_disable_rx_usart_rx_interrupt();
 }
 
+#ifndef MINIBLE_V2
 /*! \fn     platform_io_scan_3v3(void)
 *   \brief  Scan 3v3 presence for debouncing purposes
 */
@@ -112,12 +115,14 @@ void platform_io_enable_switch(void)
     PORT->Group[SWDET_EN_GROUP].DIRSET.reg = SWDET_EN_MASK;
     PORT->Group[SWDET_EN_GROUP].OUTSET.reg = SWDET_EN_MASK;
 }
+#endif
 
-/*! \fn     platform_io_disable_switch_and_die(void)
+/*! \fn     platform_io_cutoff_power(void)
 *   \brief  Disable switch and 3v3 (die)
 */
-void platform_io_disable_switch_and_die(void)
+void platform_io_cutoff_power(void)
 {
+#ifndef MINIBLE_V2_TO_TACKLE
     /* Charge capacitor: pull down for slow ramp down */
     PORT->Group[WHEEL_SW_GROUP].OUTCLR.reg = WHEEL_SW_MASK;
     DELAYMS_8M(10);
@@ -128,6 +133,7 @@ void platform_io_disable_switch_and_die(void)
     
     /* Disable 3V3 stepup */
     PORT->Group[SWDET_EN_GROUP].OUTCLR.reg = SWDET_EN_MASK;
+#endif
 }
 
 /*! \fn     platform_io_release_aux_reset(void)
@@ -140,12 +146,14 @@ void platform_io_release_aux_reset(void)
     #endif     
 }
 
+#ifndef MINIBLE_V2
 /*! \fn     platform_io_enable_ble(void)
 *   \brief  Enable BLE module
 */
 void platform_io_enable_ble(void)
 {
     PORT->Group[BLE_EN_GROUP].OUTSET.reg = BLE_EN_MASK;
+    timer_delay_ms(10);
 }
 
 /*! \fn     platform_io_disable_ble(void)
@@ -155,6 +163,7 @@ void platform_io_disable_ble(void)
 {
     PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
 }
+#endif
 
 /*! \fn     ADC_Handler(void)
 *   \brief  Called once a conversion result is ready
@@ -338,6 +347,7 @@ void platform_io_enable_scroll_wheel_wakeup_interrupts(void)
 */
 void platform_io_enable_smartcard_interrupt(void)
 {
+#ifndef MINIBLE_V2_TO_TACKLE
     BOOL is_smc_inserted = FALSE;
     
     /* Check for smc inserted state to later setup correct interrupt */
@@ -360,6 +370,7 @@ void platform_io_enable_smartcard_interrupt(void)
     EIC->INTFLAG.reg = (1 << SMC_DET_EXTINT_NUM);                                                       // Clear interrupt just in case
     EIC->INTENSET.reg = (1 << SMC_DET_EXTINT_NUM);                                                      // Enable interrupt from ext pin
     EIC->WAKEUP.reg |= (1 << SMC_DET_EXTINT_NUM);                                                       // Enable wakeup from ext pin
+#endif
 }
 
 /*! \fn     platform_io_disable_smartcard_interrupt(void)
@@ -367,11 +378,13 @@ void platform_io_enable_smartcard_interrupt(void)
 */
 void platform_io_disable_smartcard_interrupt(void)
 {
+#ifndef MINIBLE_V2_TO_TACKLE
     EIC->INTENCLR.reg = (1 << SMC_DET_EXTINT_NUM);
     EIC->INTFLAG.reg = (1 << SMC_DET_EXTINT_NUM);
     EIC->WAKEUP.reg &= ~(1 << SMC_DET_EXTINT_NUM);
     PORT->Group[SMC_DET_GROUP].PMUX[SMC_DET_PINID/2].bit.SMC_DET_PMUXREGID = EIC_CONFIG_SENSE0_NONE_Val;    // No detection
     PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PMUXEN = 0;                                        // Disable peripheral multiplexer
+#endif
 }
 
 /*! \fn     platform_io_enable_aux_tx_wakeup_interrupt(void)
@@ -389,6 +402,7 @@ void platform_io_enable_aux_tx_wakeup_interrupt(void)
     EIC->WAKEUP.reg |= (1 << AUX_MCU_TX_EXTINT_NUM);                                                            // Enable wakeup from ext pin
 }
 
+#ifndef MINIBLE_V2
 /*! \fn     platform_io_disable_usb_3v3_wakeup_interrupt(void)
 *   \brief  Disable USB 3V3 external interrupt to wake up platform
 */
@@ -414,6 +428,7 @@ void platform_io_enable_usb_3v3_wakeup_interrupt(void)
     EIC->INTENSET.reg = (1 << USB_3V3_EXTINT_NUM);                                                      // Enable interrupt from ext pin
     EIC->WAKEUP.reg |= (1 << USB_3V3_EXTINT_NUM);    
 }
+#endif
 
 /*! \fn     platform_io_disable_scroll_wheel_wakeup_interrupts(void)
 *   \brief  Disable scroll wheel external interrupt to wake up platform
@@ -493,6 +508,7 @@ void platform_io_set_wheel_click_low(void)
 */
 void platform_io_init_smc_ports(void)
 {
+#ifndef MINIBLE_V2_TO_TACKLE
     PORT->Group[SMC_DET_GROUP].DIRCLR.reg = SMC_DET_MASK;                           // Setup card detection input (with pull-up)
     PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.INEN = 1;                  // Setup card detection input (with pull-up)
     PORT->Group[SMC_DET_GROUP].OUTSET.reg = SMC_DET_MASK;                           // Setup card detection input with pull-up    
@@ -505,6 +521,7 @@ void platform_io_init_smc_ports(void)
     PM->APBCMASK.bit.SMARTCARD_APB_SERCOM_BIT = 1;                                  // APB Clock Enable
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, SMARTCARD_GCLK_SERCOM_ID);     // Map 48MHz to SERCOM unit
     sercom_spi_init(SMARTCARD_SERCOM, SMARTCARD_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, SMARTCARD_MISO_PAD, SMARTCARD_MOSI_SCK_PADS, TRUE); 
+#endif
 }
 
 /*! \fn     platform_io_use_internal_smc_det_pullup(void)
@@ -532,6 +549,7 @@ void platform_io_use_external_smc_det_pullup(void)
 */
 void platform_io_smc_remove_function(void)
 {
+#ifndef MINIBLE_V2_TO_TACKLE
     PORT->Group[SMC_POW_NEN_GROUP].OUTSET.reg = SMC_POW_NEN_MASK;                   // Deactivate power to the smart card
     PORT->Group[SMC_PGM_GROUP].DIRCLR.reg = SMC_PGM_MASK;                           // Setup all output pins as tri-state
     PORT->Group[SMC_RST_GROUP].DIRCLR.reg = SMC_RST_MASK;                           // Setup all output pins as tri-state
@@ -541,6 +559,7 @@ void platform_io_smc_remove_function(void)
     PORT->Group[SMC_MOSI_GROUP].DIRSET.reg = SMC_MOSI_MASK;                         // MOSI Ouput Low By Default
     PORT->Group[SMC_MOSI_GROUP].OUTCLR.reg = SMC_MOSI_MASK;                         // MOSI Ouput Low By Default
     PORT->Group[SMC_SCK_GROUP].DIRCLR.reg = SMC_SCK_MASK;                           // Disable SPI functionality
+#endif
 }
 
 /*! \fn     platform_io_smc_inserted_function(void)
@@ -548,6 +567,7 @@ void platform_io_smc_remove_function(void)
 */
 void platform_io_smc_inserted_function(void)
 {
+#ifndef MINIBLE_V2_TO_TACKLE
     /* Limit inrush to the smartcard cap: drive PMOSFET with the MCU pulldown then switch to push pull stage */
     PORT->Group[SMC_POW_NEN_GROUP].DIRCLR.reg = SMC_POW_NEN_MASK;
     PORT->Group[SMC_POW_NEN_GROUP].OUTCLR.reg = SMC_POW_NEN_MASK;
@@ -573,8 +593,10 @@ void platform_io_smc_inserted_function(void)
     /****************************************************************************************/
     PORT->Group[SMC_MISO_GROUP].PMUX[SMC_MISO_PINID/2].bit.SMC_MISO_PMUXREGID = SMC_MISO_PMUX_ID;
     PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.INEN = 1;                // MISO as input (required when switching to bit banging)
+#endif
 }
 
+#ifndef MINIBLE_V2
 /*! \fn     platform_io_smc_switch_to_bb(void)
 *   \brief  Switch to bit banging mode for SPI
 */
@@ -598,6 +620,7 @@ void platform_io_smc_switch_to_spi(void)
     /****************************************************************************************/
     PORT->Group[SMC_MISO_GROUP].PINCFG[SMC_MISO_PINID].bit.PMUXEN = 1;              // Enable SPI functionality
 }
+#endif
 
 /*! \fn     platform_io_init_accelerometer(void)
 *   \brief  Initialize the platform accelerometer IO ports
@@ -689,6 +712,7 @@ void platform_io_init_oled_ports(void)
     sercom_spi_init(OLED_SERCOM, OLED_BAUD_DIVIDER, SPI_MODE0, SPI_HSS_DISABLE, OLED_MISO_PAD, OLED_MOSI_SCK_PADS, FALSE);
 }
 
+#ifndef MINIBLE_V2
 /*! \fn     platform_io_enable_vbat_to_oled_stepup(void)
 *   \brief  Enable Vbat to oled stepup
 */
@@ -724,6 +748,7 @@ void platform_io_disable_3v3_to_oled_stepup(void)
     PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;
     platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
 }
+#endif
 
 /*! \fn     platform_io_assert_oled_reset(void)
 *   \brief  Assert oled reset
@@ -734,6 +759,7 @@ void platform_io_assert_oled_reset(void)
     DELAYUS(15);    
 }
 
+#ifndef MINIBLE_V2
 /*! \fn     platform_io_transcienty_battery_oled_power_up(void)
 *   \brief  OLED power up with battery creating high current transcients
 */
@@ -753,6 +779,7 @@ void platform_io_transcienty_battery_oled_power_up(void)
     /* Datasheet mentions a 2us reset time */
     timer_delay_ms(1);
 }
+#endif
 
 /*! \fn     platform_io_power_up_oled(BOOL power_3v3)
 *   \brief  OLED powerup routine (3V3, 12V, reset release)
@@ -761,6 +788,7 @@ void platform_io_transcienty_battery_oled_power_up(void)
 */
 void platform_io_power_up_oled(BOOL power_3v3)
 {
+#ifndef MINIBLE_V2_TO_TACKLE
     /* Just in case, disable 3V3 to oled */
     PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;
     timer_delay_ms(1);
@@ -796,6 +824,7 @@ void platform_io_power_up_oled(BOOL power_3v3)
     
     /* Datasheet mentions a 2us reset time */
     timer_delay_ms(1);
+#endif
 }
 
 /*! \fn     platform_io_power_down_oled(void)
@@ -803,9 +832,11 @@ void platform_io_power_up_oled(BOOL power_3v3)
 */
 void platform_io_power_down_oled(void)
 {
+#ifndef MINIBLE_V2_TO_TACKLE
     PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;
     PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;
     platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
+#endif
 }
 
 /*! \fn     platform_io_get_voled_stepup_pwr_source(void)
@@ -823,6 +854,7 @@ oled_stepup_pwr_source_te platform_io_get_voled_stepup_pwr_source(void)
 */
 BOOL platform_io_is_usb_3v3_present_raw(void)
 {
+#ifndef MINIBLE_V2_TO_TACKLE
     if ((PORT->Group[USB_3V3_GROUP].IN.reg & USB_3V3_MASK) == 0)
     {
         return FALSE;
@@ -831,6 +863,7 @@ BOOL platform_io_is_usb_3v3_present_raw(void)
     {
         return TRUE;
     }
+#endif
 }
 
 /*! \fn     platform_io_is_usb_3v3_present(void)
@@ -902,19 +935,24 @@ void platform_io_init_power_ports(void)
     platform_io_set_voled_vin_as_adc_input();
 #endif
 
+#ifndef MINIBLE_V2
     /* USB 3V3 presence */
     PORT->Group[USB_3V3_GROUP].DIRCLR.reg = USB_3V3_MASK;                                                   // Setup USB 3V3 detection input with pull-down
     PORT->Group[USB_3V3_GROUP].OUTCLR.reg = USB_3V3_MASK;                                                   // Setup USB 3V3 detection input with pull-down
     PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.PULLEN = 1;                                        // Setup USB 3V3 detection input with pull-down
     PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.INEN = 1;                                          // Setup USB 3V3 detection input with pull-down
+#endif
     
     /* OLED stepup ports */
     PORT->Group[OLED_nRESET_GROUP].DIRSET.reg = OLED_nRESET_MASK;                                           // OLED nRESET, OUTPUT
     PORT->Group[OLED_nRESET_GROUP].OUTCLR.reg = OLED_nRESET_MASK;                                           // OLED nRESET, asserted
+    
+#ifndef MINIBLE_V2
     PORT->Group[VOLED_1V2_EN_GROUP].DIRSET.reg = VOLED_1V2_EN_MASK;                                         // OLED HV enable from 1V2, OUTPUT low by default
     PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;                                         // OLED HV enable from 1V2, OUTPUT low by default
     PORT->Group[VOLED_3V3_EN_GROUP].DIRSET.reg = VOLED_3V3_EN_MASK;                                         // OLED HV enable from 3V3, OUTPUT low by default
     PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;                                         // OLED HV enable from 3V3, OUTPUT low by default
+#endif
 }
 
 /*! \fn     platform_io_disable_aux_comms(void)
@@ -1121,9 +1159,11 @@ void platform_io_init_ports(void)
     /* Aux comms */
     platform_io_init_aux_comms();
 
+#ifndef MINIBLE_V2
     /* BLE enable, disabled by default */
     PORT->Group[BLE_EN_GROUP].DIRSET.reg = BLE_EN_MASK;
     PORT->Group[BLE_EN_GROUP].OUTCLR.reg = BLE_EN_MASK;
+#endif
 
     /* Smartcards port */
     platform_io_init_smc_ports();

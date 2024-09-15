@@ -99,7 +99,6 @@ void logic_aux_mcu_enable_ble(BOOL wait_for_enabled)
         
         /* Enable BLE line */
         platform_io_enable_ble();
-        timer_delay_ms(10);
         
         /* Prepare packet to send to AUX, specify bluetooth mac */
         temp_tx_message_pt = comms_aux_mcu_get_empty_packet_ready_to_be_sent(AUX_MCU_MSG_TYPE_BLE_CMD);

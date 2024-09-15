@@ -359,6 +359,7 @@
      #define HALT_ON_00X_ERROR
 #elif defined(V2_PLAT_V1_SETUP)
      #define MINIBLE_V2
+     #define MINIBLE_V2_TO_TACKLE
      #define OLED_PRINTF_ENABLED
      #define DEBUG_USB_COMMANDS_ENABLED
      #define DEBUG_MENU_ENABLED
@@ -402,7 +403,7 @@ typedef struct
 /* Simply an array point to our internal memory */
 #define NVM_MEMORY ((volatile uint16_t *)FLASH_ADDR)
 /* Our firmware start address */
-#if defined(PLAT_V7_SETUP) || defined(V2_PLAT_V1_SETUP)
+#if defined(PLAT_V7_SETUP) || defined(MINIBLE_V2)
     #define APP_START_ADDR (0x8000)
 #else
     #define APP_START_ADDR (0x2000)
@@ -469,6 +470,19 @@ typedef struct
     #define BATTERY_ADC_OUT_CUTOUT      (2850)
     #define BATTERY_ADC_EMGCY_CUTOUT    (2700)
     #define BATTERY_ADC_800MV_VALUE     (2056)
+#elif defined(V2_PLAT_V1_SETUP)
+    #warning "please update me"
+    #define BATTERY_ADC_100PCT_VOLTAGE  (3333)
+    #define BATTERY_ADC_90PCT_VOLTAGE   (3333)
+    #define BATTERY_ADC_80PCT_VOLTAGE   (3333)
+    #define BATTERY_ADC_70PCT_VOLTAGE   (3333)
+    #define BATTERY_ADC_60PCT_VOLTAGE   (3333)
+    #define BATTERY_ADC_50PCT_VOLTAGE   (3333)
+    #define BATTERY_ADC_40PCT_VOLTAGE   (3333)
+    #define BATTERY_ADC_30PCT_VOLTAGE   (3333)
+    #define BATTERY_ADC_20PCT_VOLTAGE   (3333)
+    #define BATTERY_ADC_10PCT_VOLTAGE   (3333)
+    #define BATTERY_ADC_OUT_CUTOUT      (3333)
 #endif
 #define BATTERY_1V_WHEN_MEASURED_FROM_MAIN_WITH_USB         (1000*8192/3300)
 #define BATTERY_ADC_FOR_BATTERY_STATUS_READ_STRAT_SWITCH    BATTERY_ADC_20PCT_VOLTAGE
@@ -521,6 +535,8 @@ typedef struct
     #define VBAT_ADC_PIN_MUXPOS     ADC_INPUTCTRL_MUXPOS_PIN1_Val
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
     #define VBAT_ADC_PIN_MUXPOS     ADC_INPUTCTRL_MUXPOS_PIN0_Val
+#elif defined(V2_PLAT_V1_SETUP)
+    #define VBAT_ADC_PIN_MUXPOS     ADC_INPUTCTRL_MUXPOS_PIN10_Val
 #endif
 
 /* SERCOM defines */
@@ -635,10 +651,6 @@ typedef struct
     #define ACC_EIC_SENSE_REG           SENSE4
     #define WHEEL_CLICK_EXTINT_NUM      8
     #define WHEEL_CLICK_EIC_SENSE_REG   SENSE0
-    #define WHEEL_TICKA_EXTINT_NUM      0
-    #define WHEEL_TICKA_EIC_SENSE_REG   SENSE0
-    #define WHEEL_TICKB_EXTINT_NUM      1
-    #define WHEEL_TICKB_EIC_SENSE_REG   SENSE1
     #define USB_3V3_EXTINT_NUM          15
     #define USB_3V3_EIC_SENSE_REG       SENSE7
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
@@ -646,10 +658,6 @@ typedef struct
     #define ACC_EIC_SENSE_REG                   SENSE1
     #define WHEEL_CLICK_EXTINT_NUM              8
     #define WHEEL_CLICK_EIC_SENSE_REG           SENSE0
-    #define WHEEL_TICKA_EXTINT_NUM              15
-    #define WHEEL_TICKA_EIC_SENSE_REG           SENSE7
-    #define WHEEL_TICKB_EXTINT_NUM              2
-    #define WHEEL_TICKB_EIC_SENSE_REG           SENSE2
     #define USB_3V3_EXTINT_NUM                  1
     #define USB_3V3_EIC_SENSE_REG               SENSE1
     #define AUX_MCU_TX_EXTINT_NUM               7
@@ -658,6 +666,17 @@ typedef struct
     #define AUX_MCU_NO_COMMS_EXTINT_SENSE_REG   SENSE2
     #define SMC_DET_EXTINT_NUM                  3
     #define SMC_DET_EXTINT_SENSE_REG            SENSE3
+#elif defined(V2_PLAT_V1_SETUP)
+    #define ACC_EXTINT_NUM                      0
+    #define ACC_EIC_SENSE_REG                   SENSE0
+    #define WHEEL_CLICK_EXTINT_NUM              3
+    #define WHEEL_CLICK_EIC_SENSE_REG           SENSE3  
+    #define AUX_MCU_TX_EXTINT_NUM               7
+    #define AUX_MCU_TX_EIC_SENSE_REG            SENSE7
+    #define AUX_MCU_NO_COMMS_EXTINT_NUM         13
+    #define AUX_MCU_NO_COMMS_EXTINT_SENSE_REG   SENSE5
+    //#define SMC_DET_EXTINT_NUM                  
+    //#define SMC_DET_EXTINT_SENSE_REG            
 #endif
 
 /* User event channels mapping */
@@ -683,6 +702,15 @@ typedef struct
     #define ACC_DMA_SERCOM_TXTRIG           0x02
     #define AUX_MCU_SERCOM_RXTRIG           0x0B
     #define AUX_MCU_SERCOM_TXTRIG           0x0C
+#elif defined(V2_PLAT_V1_SETUP)
+    #define DATAFLASH_DMA_SERCOM_RXTRIG     0x05
+    #define DATAFLASH_DMA_SERCOM_TXTRIG     0x06
+    #define DBFLASH_DMA_SERCOM_RXTRIG       0x01
+    #define DBFLASH_DMA_SERCOM_TXTRIG       0x02
+    #define ACC_DMA_SERCOM_RXTRIG           0x09
+    #define ACC_DMA_SERCOM_TXTRIG           0x0A
+    #define AUX_MCU_SERCOM_RXTRIG           0x0B
+    #define AUX_MCU_SERCOM_TXTRIG           0x0C
 #endif
 
 /* SERCOM trigger for OLED data transfers */
@@ -690,6 +718,8 @@ typedef struct
     #define OLED_DMA_SERCOM_TX_TRIG         0x02
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
     #define OLED_DMA_SERCOM_TX_TRIG         0x0A
+#elif defined(V2_PLAT_V1_SETUP)
+    #define OLED_DMA_SERCOM_TX_TRIG         0x08
 #endif
 
 /* Speed defines */
@@ -725,505 +755,609 @@ typedef struct
 /* PORT defines */
 /* WHEEL ENCODER */
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define WHEEL_A_GROUP           PIN_GROUP_0
-    #define WHEEL_A_PINID           0
+    #define WHEEL_A_GROUP                   PIN_GROUP_0
+    #define WHEEL_A_PINID                   0
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define WHEEL_A_GROUP           PIN_GROUP_0
-    #define WHEEL_A_PINID           27
+    #define WHEEL_A_GROUP                   PIN_GROUP_0
+    #define WHEEL_A_PINID                   27
+#elif defined(V2_PLAT_V1_SETUP)
+    #define WHEEL_A_GROUP                   PIN_GROUP_0
+    #define WHEEL_A_PINID                   2
 #endif
-#define WHEEL_A_MASK            (1UL << WHEEL_A_PINID)
+#define WHEEL_A_MASK                        (1UL << WHEEL_A_PINID)
 #if (WHEEL_A_PINID % 2) == 1
-    #define WHEEL_A_PMUXREGID   PMUXO
+    #define WHEEL_A_PMUXREGID               PMUXO
 #else
-    #define WHEEL_A_PMUXREGID   PMUXE
+    #define WHEEL_A_PMUXREGID               PMUXE
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define WHEEL_B_GROUP           PIN_GROUP_0
-    #define WHEEL_B_PINID           1
+    #define WHEEL_B_GROUP                   PIN_GROUP_0
+    #define WHEEL_B_PINID                   1
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define WHEEL_B_GROUP           PIN_GROUP_1
-    #define WHEEL_B_PINID           2
+    #define WHEEL_B_GROUP                   PIN_GROUP_1
+    #define WHEEL_B_PINID                   2
+#elif defined(V2_PLAT_V1_SETUP)
+    #define WHEEL_B_GROUP                   PIN_GROUP_1
+    #define WHEEL_B_PINID                   3
 #endif
-#define WHEEL_B_MASK            (1UL << WHEEL_B_PINID)
+#define WHEEL_B_MASK                        (1UL << WHEEL_B_PINID)
 #if (WHEEL_B_PINID % 2) == 1
-    #define WHEEL_B_PMUXREGID   PMUXO
+    #define WHEEL_B_PMUXREGID               PMUXO
 #else
-    #define WHEEL_B_PMUXREGID   PMUXE
+    #define WHEEL_B_PMUXREGID               PMUXE
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define WHEEL_SW_GROUP          PIN_GROUP_0
-    #define WHEEL_SW_PINID          28
+    #define WHEEL_SW_GROUP                  PIN_GROUP_0
+    #define WHEEL_SW_PINID                  28
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define WHEEL_SW_GROUP          PIN_GROUP_0
-    #define WHEEL_SW_PINID          28
+    #define WHEEL_SW_GROUP                  PIN_GROUP_0
+    #define WHEEL_SW_PINID                  28
+#elif defined(V2_PLAT_V1_SETUP)
+    #define WHEEL_SW_GROUP                  PIN_GROUP_0
+    #define WHEEL_SW_PINID                  3
 #endif
-#define WHEEL_SW_MASK           (1UL << WHEEL_SW_PINID)
+#define WHEEL_SW_MASK                       (1UL << WHEEL_SW_PINID)
 #if (WHEEL_SW_PINID % 2) == 1
-    #define WHEEL_SW_PMUXREGID  PMUXO
+    #define WHEEL_SW_PMUXREGID              PMUXO
 #else
-    #define WHEEL_SW_PMUXREGID  PMUXE
+    #define WHEEL_SW_PMUXREGID              PMUXE
 #endif
 
 /* POWER & BLE SYSTEM */
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define SWDET_EN_GROUP          PIN_GROUP_0
-    #define SWDET_EN_PINID          2
+    #define SWDET_EN_GROUP                  PIN_GROUP_0
+    #define SWDET_EN_PINID                  2
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define SWDET_EN_GROUP          PIN_GROUP_0
-    #define SWDET_EN_PINID          15
+    #define SWDET_EN_GROUP                  PIN_GROUP_0
+    #define SWDET_EN_PINID                  15
 #endif
-#define SWDET_EN_MASK           (1UL << SWDET_EN_PINID)
+#if !defined(MINIBLE_V2)
+    #define SWDET_EN_MASK                   (1UL << SWDET_EN_PINID)
+#endif
 
 #if defined(PLAT_V1_SETUP)
-    #define SMC_POW_NEN_GROUP   PIN_GROUP_0
-    #define SMC_POW_NEN_PINID   3
-    #define SMC_POW_NEN_MASK    (1UL << SMC_POW_NEN_PINID)
+    #define SMC_POW_NEN_GROUP               PIN_GROUP_0
+    #define SMC_POW_NEN_PINID               3
+    #define SMC_POW_NEN_MASK                (1UL << SMC_POW_NEN_PINID)
 #elif defined(PLAT_V2_SETUP)
-    #define SMC_POW_NEN_GROUP   PIN_GROUP_0
-    #define SMC_POW_NEN_PINID   30
-    #define SMC_POW_NEN_MASK    (1UL << SMC_POW_NEN_PINID)
+    #define SMC_POW_NEN_GROUP               PIN_GROUP_0
+    #define SMC_POW_NEN_PINID               30
+    #define SMC_POW_NEN_MASK                (1UL << SMC_POW_NEN_PINID)
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define SMC_POW_NEN_GROUP   PIN_GROUP_0
-    #define SMC_POW_NEN_PINID   25
-    #define SMC_POW_NEN_MASK    (1UL << SMC_POW_NEN_PINID)
+    #define SMC_POW_NEN_GROUP               PIN_GROUP_0
+    #define SMC_POW_NEN_PINID               25
+    #define SMC_POW_NEN_MASK                (1UL << SMC_POW_NEN_PINID)
 #endif
 
 #if defined(PLAT_V2_SETUP)
-    #define VOLED_VIN_GROUP     PIN_GROUP_0
-    #define VOLED_VIN_PINID     3
-    #define VOLED_VIN_MASK      (1UL << VOLED_VIN_PINID)
-    #define VOLED_VIN_PMUX_ID   PORT_PMUX_PMUXE_B_Val
+    #define VOLED_VIN_GROUP                 PIN_GROUP_0
+    #define VOLED_VIN_PINID                 3
+    #define VOLED_VIN_MASK                  (1UL << VOLED_VIN_PINID)
+    #define VOLED_VIN_PMUX_ID               PORT_PMUX_PMUXE_B_Val
     #if (VOLED_VIN_PINID % 2) == 1
-        #define VOLED_VIN_PMUXREGID PMUXO
+        #define VOLED_VIN_PMUXREGID         PMUXO
     #else
-        #define VOLED_VIN_PMUXREGID PMUXE
+        #define VOLED_VIN_PMUXREGID         PMUXE
     #endif
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define VOLED_VIN_GROUP     PIN_GROUP_0
-    #define VOLED_VIN_PINID     2
-    #define VOLED_VIN_MASK      (1UL << VOLED_VIN_PINID)
-    #define VOLED_VIN_PMUX_ID   PORT_PMUX_PMUXE_B_Val
+    #define VOLED_VIN_GROUP                 PIN_GROUP_0
+    #define VOLED_VIN_PINID                 2
+    #define VOLED_VIN_MASK                  (1UL << VOLED_VIN_PINID)
+    #define VOLED_VIN_PMUX_ID               PORT_PMUX_PMUXE_B_Val
     #if (VOLED_VIN_PINID % 2) == 1
-        #define VOLED_VIN_PMUXREGID PMUXO
+        #define VOLED_VIN_PMUXREGID         PMUXO
     #else
-        #define VOLED_VIN_PMUXREGID PMUXE
+        #define VOLED_VIN_PMUXREGID         PMUXE
     #endif
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define BLE_EN_GROUP            PIN_GROUP_0
-    #define BLE_EN_PINID            13
+    #define BLE_EN_GROUP                    PIN_GROUP_0
+    #define BLE_EN_PINID                    13
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define BLE_EN_GROUP            PIN_GROUP_1
-    #define BLE_EN_PINID            3
+    #define BLE_EN_GROUP                    PIN_GROUP_1
+    #define BLE_EN_PINID                    3
 #endif
-#define BLE_EN_MASK             (1UL << BLE_EN_PINID)
-
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define USB_3V3_GROUP           PIN_GROUP_0
-    #define USB_3V3_PINID           27
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define USB_3V3_GROUP           PIN_GROUP_0
-    #define USB_3V3_PINID           1
-#endif
-#define USB_3V3_MASK            (1UL << USB_3V3_PINID)
-#if (USB_3V3_PINID % 2) == 1
-    #define USB_3V3_PMUXREGID  PMUXO
-#else
-    #define USB_3V3_PMUXREGID  PMUXE
+#if !defined(MINIBLE_V2)
+    #define BLE_EN_MASK                     (1UL << BLE_EN_PINID)
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define VOLED_1V2_EN_GROUP      PIN_GROUP_1
-    #define VOLED_1V2_EN_PINID      22
+    #define USB_3V3_GROUP                   PIN_GROUP_0
+    #define USB_3V3_PINID                   27
+#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+    #define USB_3V3_GROUP                   PIN_GROUP_0
+    #define USB_3V3_PINID                   1
+#endif
+#if !defined(MINIBLE_V2)
+    #define USB_3V3_MASK                    (1UL << USB_3V3_PINID)
+    #if (USB_3V3_PINID % 2) == 1
+        #define USB_3V3_PMUXREGID           PMUXO
+    #else
+        #define USB_3V3_PMUXREGID           PMUXE
+    #endif
+#endif
+
+#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+    #define VOLED_1V2_EN_GROUP              PIN_GROUP_1
+    #define VOLED_1V2_EN_PINID              22
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
-    #define VOLED_1V2_EN_GROUP      PIN_GROUP_0
-    #define VOLED_1V2_EN_PINID      8
+    #define VOLED_1V2_EN_GROUP              PIN_GROUP_0
+    #define VOLED_1V2_EN_PINID              8
 #elif defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define VOLED_1V2_EN_GROUP      PIN_GROUP_1
-    #define VOLED_1V2_EN_PINID      8
+    #define VOLED_1V2_EN_GROUP              PIN_GROUP_1
+    #define VOLED_1V2_EN_PINID              8
 #endif
-#define VOLED_1V2_EN_MASK       (1UL << VOLED_1V2_EN_PINID)
+#if !defined(MINIBLE_V2)
+    #define VOLED_1V2_EN_MASK               (1UL << VOLED_1V2_EN_PINID)
+#endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define VOLED_3V3_EN_GROUP      PIN_GROUP_1
-    #define VOLED_3V3_EN_PINID      23
+    #define VOLED_3V3_EN_GROUP              PIN_GROUP_1
+    #define VOLED_3V3_EN_PINID              23
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define VOLED_3V3_EN_GROUP      PIN_GROUP_0
-    #define VOLED_3V3_EN_PINID      0
+    #define VOLED_3V3_EN_GROUP              PIN_GROUP_0
+    #define VOLED_3V3_EN_PINID              0
 #endif
-#define VOLED_3V3_EN_MASK       (1UL << VOLED_3V3_EN_PINID)
+#if !defined(MINIBLE_V2)
+    #define VOLED_3V3_EN_MASK               (1UL << VOLED_3V3_EN_PINID)
+#endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define MCU_AUX_RST_EN_GROUP    PIN_GROUP_0
-    #define MCU_AUX_RST_EN_PINID    15
-    #define MCU_AUX_RST_EN_MASK     (1UL << MCU_AUX_RST_EN_PINID)
+    #define MCU_AUX_RST_EN_GROUP            PIN_GROUP_0
+    #define MCU_AUX_RST_EN_PINID            15
+    #define MCU_AUX_RST_EN_MASK             (1UL << MCU_AUX_RST_EN_PINID)
 #endif
 
 /* OLED */
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define OLED_MOSI_GROUP         PIN_GROUP_0
-    #define OLED_MOSI_PINID         4
+    #define OLED_MOSI_GROUP                 PIN_GROUP_0
+    #define OLED_MOSI_PINID                 4
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define OLED_MOSI_GROUP         PIN_GROUP_1
-    #define OLED_MOSI_PINID         10
+    #define OLED_MOSI_GROUP                 PIN_GROUP_1
+    #define OLED_MOSI_PINID                 10
+#elif defined(V2_PLAT_V1_SETUP)
+    #define OLED_MOSI_GROUP                 PIN_GROUP_0
+    #define OLED_MOSI_PINID                 19
 #endif
-#define OLED_MOSI_MASK          (1UL << OLED_MOSI_PINID)
-#define OLED_MOSI_PMUX_ID       PORT_PMUX_PMUXE_D_Val
+#define OLED_MOSI_MASK                      (1UL << OLED_MOSI_PINID)
+#define OLED_MOSI_PMUX_ID                   PORT_PMUX_PMUXE_D_Val
 #if (OLED_MOSI_PINID % 2) == 1
-    #define OLED_MOSI_PMUXREGID PMUXO
+    #define OLED_MOSI_PMUXREGID             PMUXO
 #else
-    #define OLED_MOSI_PMUXREGID PMUXE
+    #define OLED_MOSI_PMUXREGID             PMUXE
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define OLED_SCK_GROUP          PIN_GROUP_0
-    #define OLED_SCK_PINID          5
+    #define OLED_SCK_GROUP                  PIN_GROUP_0
+    #define OLED_SCK_PINID                  5
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define OLED_SCK_GROUP          PIN_GROUP_1
-    #define OLED_SCK_PINID          11
+    #define OLED_SCK_GROUP                  PIN_GROUP_1
+    #define OLED_SCK_PINID                  11
+#elif defined(V2_PLAT_V1_SETUP)
+    #define OLED_SCK_GROUP                  PIN_GROUP_0
+    #define OLED_SCK_PINID                  17
 #endif
-#define OLED_SCK_MASK           (1UL << OLED_SCK_PINID)
-#define OLED_SCK_PMUX_ID        PORT_PMUX_PMUXO_D_Val
+#define OLED_SCK_MASK                       (1UL << OLED_SCK_PINID)
+#define OLED_SCK_PMUX_ID                    PORT_PMUX_PMUXO_D_Val
 #if (OLED_SCK_PINID % 2) == 1
-    #define OLED_SCK_PMUXREGID  PMUXO
+    #define OLED_SCK_PMUXREGID              PMUXO
 #else
-    #define OLED_SCK_PMUXREGID  PMUXE
+    #define OLED_SCK_PMUXREGID              PMUXE
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define OLED_nCS_GROUP          PIN_GROUP_1
-    #define OLED_nCS_PINID          9
+    #define OLED_nCS_GROUP                  PIN_GROUP_1
+    #define OLED_nCS_PINID                  9
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define OLED_nCS_GROUP          PIN_GROUP_0
-    #define OLED_nCS_PINID          14
+    #define OLED_nCS_GROUP                  PIN_GROUP_0
+    #define OLED_nCS_PINID                  14
+#elif defined(V2_PLAT_V1_SETUP)
+    #define OLED_nCS_GROUP                  PIN_GROUP_0
+    #define OLED_nCS_PINID                  20
 #endif
-#define OLED_nCS_MASK           (1UL << OLED_nCS_PINID)
+#define OLED_nCS_MASK                       (1UL << OLED_nCS_PINID)
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define OLED_CD_GROUP           PIN_GROUP_0
-    #define OLED_CD_PINID           6
+    #define OLED_CD_GROUP                   PIN_GROUP_0
+    #define OLED_CD_PINID                   6
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define OLED_CD_GROUP           PIN_GROUP_0
-    #define OLED_CD_PINID           12
+    #define OLED_CD_GROUP                   PIN_GROUP_0
+    #define OLED_CD_PINID                   12
+#elif defined(V2_PLAT_V1_SETUP)
+    #define OLED_CD_GROUP                   PIN_GROUP_0
+    #define OLED_CD_PINID                   21
 #endif
-#define OLED_CD_MASK            (1UL << OLED_CD_PINID)
+#define OLED_CD_MASK                        (1UL << OLED_CD_PINID)
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define OLED_nRESET_GROUP       PIN_GROUP_0
-    #define OLED_nRESET_PINID       7
+    #define OLED_nRESET_GROUP               PIN_GROUP_0
+    #define OLED_nRESET_PINID               7
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define OLED_nRESET_GROUP       PIN_GROUP_0
-    #define OLED_nRESET_PINID       13
+    #define OLED_nRESET_GROUP               PIN_GROUP_0
+    #define OLED_nRESET_PINID               13
+#elif defined(V2_PLAT_V1_SETUP)
+    #define OLED_nRESET_GROUP               PIN_GROUP_0
+    #define OLED_nRESET_PINID               18
 #endif
-#define OLED_nRESET_MASK        (1UL << OLED_nRESET_PINID)
+#define OLED_nRESET_MASK                    (1UL << OLED_nRESET_PINID)
 
 /* DATAFLASH FLASH */
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define DATAFLASH_MOSI_GROUP         PIN_GROUP_0
-    #define DATAFLASH_MOSI_PINID         8
+    #define DATAFLASH_MOSI_GROUP            PIN_GROUP_0
+    #define DATAFLASH_MOSI_PINID            8
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define DATAFLASH_MOSI_GROUP         PIN_GROUP_0
-    #define DATAFLASH_MOSI_PINID         20
+    #define DATAFLASH_MOSI_GROUP            PIN_GROUP_0
+    #define DATAFLASH_MOSI_PINID            20
+#elif defined(V2_PLAT_V1_SETUP)
+    #define DATAFLASH_MOSI_GROUP            PIN_GROUP_0
+    #define DATAFLASH_MOSI_PINID            11
 #endif
-#define DATAFLASH_MOSI_MASK          (1UL << DATAFLASH_MOSI_PINID)
-#define DATAFLASH_MOSI_PMUX_ID       PORT_PMUX_PMUXE_D_Val
+#define DATAFLASH_MOSI_MASK                 (1UL << DATAFLASH_MOSI_PINID)
+#define DATAFLASH_MOSI_PMUX_ID              PORT_PMUX_PMUXE_D_Val
 #if (DATAFLASH_MOSI_PINID % 2) == 1
-    #define DATAFLASH_MOSI_PMUXREGID PMUXO
+    #define DATAFLASH_MOSI_PMUXREGID        PMUXO
 #else
-    #define DATAFLASH_MOSI_PMUXREGID PMUXE
+    #define DATAFLASH_MOSI_PMUXREGID        PMUXE
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define DATAFLASH_MISO_GROUP         PIN_GROUP_0
-    #define DATAFLASH_MISO_PINID         10
-    #define DATAFLASH_MISO_PMUX_ID       PORT_PMUX_PMUXE_D_Val
+    #define DATAFLASH_MISO_GROUP            PIN_GROUP_0
+    #define DATAFLASH_MISO_PINID            10
+    #define DATAFLASH_MISO_PMUX_ID          PORT_PMUX_PMUXE_D_Val
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define DATAFLASH_MISO_GROUP         PIN_GROUP_0
-    #define DATAFLASH_MISO_PINID         22
-    #define DATAFLASH_MISO_PMUX_ID       PORT_PMUX_PMUXE_C_Val
+    #define DATAFLASH_MISO_GROUP            PIN_GROUP_0
+    #define DATAFLASH_MISO_PINID            22
+    #define DATAFLASH_MISO_PMUX_ID          PORT_PMUX_PMUXE_C_Val
+#elif defined(V2_PLAT_V1_SETUP)
+    #define DATAFLASH_MISO_GROUP            PIN_GROUP_0
+    #define DATAFLASH_MISO_PINID            22
+    #define DATAFLASH_MISO_PMUX_ID          PORT_PMUX_PMUXE_C_Val
+#elif defined(V2_PLAT_V1_SETUP)
+    #define DATAFLASH_MISO_GROUP            PIN_GROUP_0
+    #define DATAFLASH_MISO_PINID            10
+    #define DATAFLASH_MISO_PMUX_ID          PORT_PMUX_PMUXE_D_Val
 #endif
-#define DATAFLASH_MISO_MASK          (1UL << DATAFLASH_MISO_PINID)
+#define DATAFLASH_MISO_MASK                 (1UL << DATAFLASH_MISO_PINID)
 #if (DATAFLASH_MISO_PINID % 2) == 1
-    #define DATAFLASH_MISO_PMUXREGID PMUXO
+    #define DATAFLASH_MISO_PMUXREGID        PMUXO
 #else
-    #define DATAFLASH_MISO_PMUXREGID PMUXE
+    #define DATAFLASH_MISO_PMUXREGID        PMUXE
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define DATAFLASH_SCK_GROUP          PIN_GROUP_0
-    #define DATAFLASH_SCK_PINID          9
+    #define DATAFLASH_SCK_GROUP             PIN_GROUP_0
+    #define DATAFLASH_SCK_PINID             9
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define DATAFLASH_SCK_GROUP          PIN_GROUP_0
-    #define DATAFLASH_SCK_PINID          21
+    #define DATAFLASH_SCK_GROUP             PIN_GROUP_0
+    #define DATAFLASH_SCK_PINID             21
+#elif defined(V2_PLAT_V1_SETUP)
+    #define DATAFLASH_SCK_GROUP             PIN_GROUP_0
+    #define DATAFLASH_SCK_PINID             9
 #endif
-#define DATAFLASH_SCK_MASK           (1UL << DATAFLASH_SCK_PINID)
-#define DATAFLASH_SCK_PMUX_ID        PORT_PMUX_PMUXO_D_Val
+#define DATAFLASH_SCK_MASK                  (1UL << DATAFLASH_SCK_PINID)
+#define DATAFLASH_SCK_PMUX_ID               PORT_PMUX_PMUXO_D_Val
 #if (DATAFLASH_SCK_PINID % 2) == 1
-    #define DATAFLASH_SCK_PMUXREGID  PMUXO
+    #define DATAFLASH_SCK_PMUXREGID         PMUXO
 #else
-    #define DATAFLASH_SCK_PMUXREGID  PMUXE
+    #define DATAFLASH_SCK_PMUXREGID         PMUXE
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define DATAFLASH_nCS_GROUP          PIN_GROUP_0
-    #define DATAFLASH_nCS_PINID          11
+    #define DATAFLASH_nCS_GROUP             PIN_GROUP_0
+    #define DATAFLASH_nCS_PINID             11
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define DATAFLASH_nCS_GROUP          PIN_GROUP_0
-    #define DATAFLASH_nCS_PINID          23
+    #define DATAFLASH_nCS_GROUP             PIN_GROUP_0
+    #define DATAFLASH_nCS_PINID             23
+#elif defined(V2_PLAT_V1_SETUP)
+    #define DATAFLASH_nCS_GROUP             PIN_GROUP_0
+    #define DATAFLASH_nCS_PINID             8
 #endif
-#define DATAFLASH_nCS_MASK           (1UL << DATAFLASH_nCS_PINID)
+#define DATAFLASH_nCS_MASK                  (1UL << DATAFLASH_nCS_PINID)
 
 /* DBFLASH FLASH */
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define DBFLASH_MOSI_GROUP         PIN_GROUP_0
-    #define DBFLASH_MOSI_PINID         22
+    #define DBFLASH_MOSI_GROUP              PIN_GROUP_0
+    #define DBFLASH_MOSI_PINID              22
+    #define DBFLASH_MOSI_PMUX_ID            PORT_PMUX_PMUXE_C_Val
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define DBFLASH_MOSI_GROUP         PIN_GROUP_0
-    #define DBFLASH_MOSI_PINID         19
+    #define DBFLASH_MOSI_GROUP              PIN_GROUP_0
+    #define DBFLASH_MOSI_PINID              19
+    #define DBFLASH_MOSI_PMUX_ID            PORT_PMUX_PMUXE_C_Val
+#elif defined(V2_PLAT_V1_SETUP)
+    #define DBFLASH_MOSI_GROUP              PIN_GROUP_0
+    #define DBFLASH_MOSI_PINID              7
+    #define DBFLASH_MOSI_PMUX_ID            PORT_PMUX_PMUXE_D_Val
 #endif
-#define DBFLASH_MOSI_MASK          (1UL << DBFLASH_MOSI_PINID)
-#define DBFLASH_MOSI_PMUX_ID       PORT_PMUX_PMUXE_C_Val
+#define DBFLASH_MOSI_MASK                   (1UL << DBFLASH_MOSI_PINID)
 #if (DBFLASH_MOSI_PINID % 2) == 1
-    #define DBFLASH_MOSI_PMUXREGID PMUXO
+    #define DBFLASH_MOSI_PMUXREGID          PMUXO
 #else
-    #define DBFLASH_MOSI_PMUXREGID PMUXE
+    #define DBFLASH_MOSI_PMUXREGID          PMUXE
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define DBFLASH_MISO_GROUP         PIN_GROUP_0
-    #define DBFLASH_MISO_PINID         25
+    #define DBFLASH_MISO_GROUP              PIN_GROUP_0
+    #define DBFLASH_MISO_PINID              25
+    #define DBFLASH_MISO_PMUX_ID            PORT_PMUX_PMUXE_C_Val
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define DBFLASH_MISO_GROUP         PIN_GROUP_0
-    #define DBFLASH_MISO_PINID         18
+    #define DBFLASH_MISO_GROUP              PIN_GROUP_0
+    #define DBFLASH_MISO_PINID              18
+    #define DBFLASH_MISO_PMUX_ID            PORT_PMUX_PMUXE_C_Val
+#elif defined(V2_PLAT_V1_SETUP)
+    #define DBFLASH_MISO_GROUP              PIN_GROUP_0
+    #define DBFLASH_MISO_PINID              6
+    #define DBFLASH_MISO_PMUX_ID            PORT_PMUX_PMUXE_D_Val
 #endif
-#define DBFLASH_MISO_MASK          (1UL << DBFLASH_MISO_PINID)
-#define DBFLASH_MISO_PMUX_ID       PORT_PMUX_PMUXE_C_Val
+#define DBFLASH_MISO_MASK                   (1UL << DBFLASH_MISO_PINID)
 #if (DBFLASH_MISO_PINID % 2) == 1
-    #define DBFLASH_MISO_PMUXREGID PMUXO
+    #define DBFLASH_MISO_PMUXREGID          PMUXO
 #else
-    #define DBFLASH_MISO_PMUXREGID PMUXE
+    #define DBFLASH_MISO_PMUXREGID          PMUXE
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define DBFLASH_SCK_GROUP          PIN_GROUP_0
-    #define DBFLASH_SCK_PINID          23
+    #define DBFLASH_SCK_GROUP               PIN_GROUP_0
+    #define DBFLASH_SCK_PINID               23
+    #define DBFLASH_SCK_PMUX_ID             PORT_PMUX_PMUXO_C_Val
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define DBFLASH_SCK_GROUP          PIN_GROUP_0
-    #define DBFLASH_SCK_PINID          17
+    #define DBFLASH_SCK_GROUP               PIN_GROUP_0
+    #define DBFLASH_SCK_PINID               17
+    #define DBFLASH_SCK_PMUX_ID             PORT_PMUX_PMUXO_C_Val
+#elif defined(V2_PLAT_V1_SETUP)
+    #define DBFLASH_SCK_GROUP               PIN_GROUP_0
+    #define DBFLASH_SCK_PINID               5
+    #define DBFLASH_SCK_PMUX_ID             PORT_PMUX_PMUXO_D_Val
 #endif
-#define DBFLASH_SCK_MASK           (1UL << DBFLASH_SCK_PINID)
-#define DBFLASH_SCK_PMUX_ID        PORT_PMUX_PMUXO_C_Val
+#define DBFLASH_SCK_MASK                    (1UL << DBFLASH_SCK_PINID)
 #if (DBFLASH_SCK_PINID % 2) == 1
-    #define DBFLASH_SCK_PMUXREGID  PMUXO
+    #define DBFLASH_SCK_PMUXREGID           PMUXO
 #else
-    #define DBFLASH_SCK_PMUXREGID  PMUXE
+    #define DBFLASH_SCK_PMUXREGID           PMUXE
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define DBFLASH_nCS_GROUP          PIN_GROUP_0
-    #define DBFLASH_nCS_PINID          24
+    #define DBFLASH_nCS_GROUP               PIN_GROUP_0
+    #define DBFLASH_nCS_PINID               24
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define DBFLASH_nCS_GROUP          PIN_GROUP_0
-    #define DBFLASH_nCS_PINID          16
+    #define DBFLASH_nCS_GROUP               PIN_GROUP_0
+    #define DBFLASH_nCS_PINID               16
+#elif defined(V2_PLAT_V1_SETUP)
+    #define DBFLASH_nCS_GROUP               PIN_GROUP_0
+    #define DBFLASH_nCS_PINID               4
 #endif
-#define DBFLASH_nCS_MASK           (1UL << DBFLASH_nCS_PINID)
+#define DBFLASH_nCS_MASK                    (1UL << DBFLASH_nCS_PINID)
 
 /* ACCELEROMETER */
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define ACC_MOSI_GROUP         PIN_GROUP_0
-    #define ACC_MOSI_PINID         16
-    #define ACC_MOSI_PMUX_ID       PORT_PMUX_PMUXE_C_Val
+    #define ACC_MOSI_GROUP                  PIN_GROUP_0
+    #define ACC_MOSI_PINID                  16
+    #define ACC_MOSI_PMUX_ID                PORT_PMUX_PMUXE_C_Val
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define ACC_MOSI_GROUP         PIN_GROUP_0
-    #define ACC_MOSI_PINID         4
-    #define ACC_MOSI_PMUX_ID       PORT_PMUX_PMUXE_D_Val
+    #define ACC_MOSI_GROUP                  PIN_GROUP_0
+    #define ACC_MOSI_PINID                  4
+    #define ACC_MOSI_PMUX_ID                PORT_PMUX_PMUXE_D_Val
+#elif defined(V2_PLAT_V1_SETUP)
+    #define ACC_MOSI_GROUP                  PIN_GROUP_0
+    #define ACC_MOSI_PINID                  12
+    #define ACC_MOSI_PMUX_ID                PORT_PMUX_PMUXE_D_Val
 #endif
-#define ACC_MOSI_MASK          (1UL << ACC_MOSI_PINID)
+#define ACC_MOSI_MASK                       (1UL << ACC_MOSI_PINID)
 #if (ACC_MOSI_PINID % 2) == 1
-    #define ACC_MOSI_PMUXREGID PMUXO
+    #define ACC_MOSI_PMUXREGID              PMUXO
 #else
-    #define ACC_MOSI_PMUXREGID PMUXE
+    #define ACC_MOSI_PMUXREGID              PMUXE
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define ACC_MISO_GROUP         PIN_GROUP_0
-    #define ACC_MISO_PINID         17
-    #define ACC_MISO_PMUX_ID       PORT_PMUX_PMUXE_C_Val
+    #define ACC_MISO_GROUP                  PIN_GROUP_0
+    #define ACC_MISO_PINID                  17
+    #define ACC_MISO_PMUX_ID                PORT_PMUX_PMUXE_C_Val
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define ACC_MISO_GROUP         PIN_GROUP_0
-    #define ACC_MISO_PINID         5
-    #define ACC_MISO_PMUX_ID       PORT_PMUX_PMUXE_D_Val
+    #define ACC_MISO_GROUP                  PIN_GROUP_0
+    #define ACC_MISO_PINID                  5
+    #define ACC_MISO_PMUX_ID                PORT_PMUX_PMUXE_D_Val
+#elif defined(V2_PLAT_V1_SETUP)
+    #define ACC_MISO_GROUP                  PIN_GROUP_0
+    #define ACC_MISO_PINID                  13
+    #define ACC_MISO_PMUX_ID                PORT_PMUX_PMUXE_D_Val
 #endif
-#define ACC_MISO_MASK          (1UL << ACC_MISO_PINID)
+#define ACC_MISO_MASK                       (1UL << ACC_MISO_PINID)
 #if (ACC_MISO_PINID % 2) == 1
-    #define ACC_MISO_PMUXREGID PMUXO
+    #define ACC_MISO_PMUXREGID              PMUXO
 #else
-    #define ACC_MISO_PMUXREGID PMUXE
+    #define ACC_MISO_PMUXREGID              PMUXE
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define ACC_SCK_GROUP          PIN_GROUP_0
-    #define ACC_SCK_PINID          19
-    #define ACC_SCK_PMUX_ID        PORT_PMUX_PMUXO_C_Val
+    #define ACC_SCK_GROUP                   PIN_GROUP_0
+    #define ACC_SCK_PINID                   19
+    #define ACC_SCK_PMUX_ID                 PORT_PMUX_PMUXO_C_Val
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define ACC_SCK_GROUP          PIN_GROUP_0
-    #define ACC_SCK_PINID          7
-    #define ACC_SCK_PMUX_ID        PORT_PMUX_PMUXO_D_Val
+    #define ACC_SCK_GROUP                   PIN_GROUP_0
+    #define ACC_SCK_PINID                   7
+    #define ACC_SCK_PMUX_ID                 PORT_PMUX_PMUXO_D_Val
+#elif defined(V2_PLAT_V1_SETUP)
+    #define ACC_SCK_GROUP                   PIN_GROUP_0
+    #define ACC_SCK_PINID                   15
+    #define ACC_SCK_PMUX_ID                 PORT_PMUX_PMUXO_D_Val
 #endif
-#define ACC_SCK_MASK           (1UL << ACC_SCK_PINID)
+#define ACC_SCK_MASK                        (1UL << ACC_SCK_PINID)
 #if (ACC_SCK_PINID % 2) == 1
-    #define ACC_SCK_PMUXREGID  PMUXO
+    #define ACC_SCK_PMUXREGID               PMUXO
 #else
-    #define ACC_SCK_PMUXREGID  PMUXE
+    #define ACC_SCK_PMUXREGID               PMUXE
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define ACC_nCS_GROUP          PIN_GROUP_0
-    #define ACC_nCS_PINID          18
+    #define ACC_nCS_GROUP                   PIN_GROUP_0
+    #define ACC_nCS_PINID                   18
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define ACC_nCS_GROUP          PIN_GROUP_0
-    #define ACC_nCS_PINID          6
+    #define ACC_nCS_GROUP                   PIN_GROUP_0
+    #define ACC_nCS_PINID                   6
+#elif defined(V2_PLAT_V1_SETUP)
+    #define ACC_nCS_GROUP                   PIN_GROUP_0
+    #define ACC_nCS_PINID                   14
 #endif
-#define ACC_nCS_MASK           (1UL << ACC_nCS_PINID)
+#define ACC_nCS_MASK                        (1UL << ACC_nCS_PINID)
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define ACC_INT_GROUP          PIN_GROUP_0
-    #define ACC_INT_PINID          20
+    #define ACC_INT_GROUP                   PIN_GROUP_0
+    #define ACC_INT_PINID                   20
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define ACC_INT_GROUP          PIN_GROUP_1
-    #define ACC_INT_PINID          9
+    #define ACC_INT_GROUP                   PIN_GROUP_1
+    #define ACC_INT_PINID                   9
+#elif defined(V2_PLAT_V1_SETUP)
+    #define ACC_INT_GROUP                   PIN_GROUP_0
+    #define ACC_INT_PINID                   16
 #endif
-#define ACC_INT_MASK           (1UL << ACC_INT_PINID)
+#define ACC_INT_MASK                        (1UL << ACC_INT_PINID)
 #if (ACC_INT_PINID % 2) == 1
-    #define ACC_INT_PMUXREGID  PMUXO
+    #define ACC_INT_PMUXREGID               PMUXO
 #else
-    #define ACC_INT_PMUXREGID  PMUXE
+    #define ACC_INT_PMUXREGID               PMUXE
 #endif
 
 /* SMARTCARD */
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define SMC_MOSI_GROUP         PIN_GROUP_1
-    #define SMC_MOSI_PINID         2
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define SMC_MOSI_GROUP         PIN_GROUP_0
-    #define SMC_MOSI_PINID         11
-#endif
-#define SMC_MOSI_MASK          (1UL << SMC_MOSI_PINID)
-#define SMC_MOSI_PMUX_ID       PORT_PMUX_PMUXE_D_Val
-#if (SMC_MOSI_PINID % 2) == 1
-    #define SMC_MOSI_PMUXREGID PMUXO
-#else
-    #define SMC_MOSI_PMUXREGID PMUXE
-#endif
+#if !defined(MINIBLE_V2)
+    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+        #define SMC_MOSI_GROUP              PIN_GROUP_1
+        #define SMC_MOSI_PINID              2
+    #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+        #define SMC_MOSI_GROUP              PIN_GROUP_0
+        #define SMC_MOSI_PINID              11
+    #endif
+    #define SMC_MOSI_MASK                   (1UL << SMC_MOSI_PINID)
+    #define SMC_MOSI_PMUX_ID                PORT_PMUX_PMUXE_D_Val
+    #if (SMC_MOSI_PINID % 2) == 1
+        #define SMC_MOSI_PMUXREGID          PMUXO
+    #else
+        #define SMC_MOSI_PMUXREGID          PMUXE
+    #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define SMC_MISO_GROUP         PIN_GROUP_1
-    #define SMC_MISO_PINID         3
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define SMC_MISO_GROUP         PIN_GROUP_0
-    #define SMC_MISO_PINID         10
-#endif
-#define SMC_MISO_MASK          (1UL << SMC_MISO_PINID)
-#define SMC_MISO_PMUX_ID       PORT_PMUX_PMUXE_D_Val
-#if (SMC_MISO_PINID % 2) == 1
-    #define SMC_MISO_PMUXREGID PMUXO
-#else
-    #define SMC_MISO_PMUXREGID PMUXE
-#endif
+    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+        #define SMC_MISO_GROUP              PIN_GROUP_1
+        #define SMC_MISO_PINID              3
+    #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+        #define SMC_MISO_GROUP              PIN_GROUP_0
+        #define SMC_MISO_PINID              10
+    #endif
+    #define SMC_MISO_MASK                   (1UL << SMC_MISO_PINID)
+    #define SMC_MISO_PMUX_ID                PORT_PMUX_PMUXE_D_Val
+    #if (SMC_MISO_PINID % 2) == 1
+        #define SMC_MISO_PMUXREGID          PMUXO
+    #else
+        #define SMC_MISO_PMUXREGID          PMUXE
+    #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define SMC_SCK_GROUP          PIN_GROUP_0
-    #define SMC_SCK_PINID          21
-    #define SMC_SCK_PMUX_ID        PORT_PMUX_PMUXO_C_Val
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define SMC_SCK_GROUP          PIN_GROUP_0
-    #define SMC_SCK_PINID          9
-    #define SMC_SCK_PMUX_ID        PORT_PMUX_PMUXO_D_Val
-#endif
-#define SMC_SCK_MASK           (1UL << SMC_SCK_PINID)
-#if (SMC_SCK_PINID % 2) == 1
-    #define SMC_SCK_PMUXREGID  PMUXO
-#else
-    #define SMC_SCK_PMUXREGID  PMUXE
-#endif
+    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+        #define SMC_SCK_GROUP               PIN_GROUP_0
+        #define SMC_SCK_PINID               21
+        #define SMC_SCK_PMUX_ID             PORT_PMUX_PMUXO_C_Val
+    #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+        #define SMC_SCK_GROUP               PIN_GROUP_0
+        #define SMC_SCK_PINID               9
+        #define SMC_SCK_PMUX_ID             PORT_PMUX_PMUXO_D_Val
+    #endif
+    #define SMC_SCK_MASK                    (1UL << SMC_SCK_PINID)
+    #if (SMC_SCK_PINID % 2) == 1
+        #define SMC_SCK_PMUXREGID           PMUXO
+    #else
+        #define SMC_SCK_PMUXREGID           PMUXE
+    #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define SMC_RST_GROUP          PIN_GROUP_0
-    #define SMC_RST_PINID          14
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define SMC_RST_GROUP          PIN_GROUP_0
-    #define SMC_RST_PINID          24
-#endif
-#define SMC_RST_MASK           (1UL << SMC_RST_PINID)
+    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+        #define SMC_RST_GROUP               PIN_GROUP_0
+        #define SMC_RST_PINID               14
+    #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+        #define SMC_RST_GROUP               PIN_GROUP_0
+        #define SMC_RST_PINID               24
+    #endif
+    #define SMC_RST_MASK                    (1UL << SMC_RST_PINID)
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define SMC_PGM_GROUP          PIN_GROUP_0
-    #define SMC_PGM_PINID          31
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
-    #define SMC_PGM_GROUP          PIN_GROUP_1
-    #define SMC_PGM_PINID          8
-#elif defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define SMC_PGM_GROUP          PIN_GROUP_0
-    #define SMC_PGM_PINID          8
-#endif
-#define SMC_PGM_MASK           (1UL << SMC_PGM_PINID)
+    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+        #define SMC_PGM_GROUP               PIN_GROUP_0
+        #define SMC_PGM_PINID               31
+    #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
+        #define SMC_PGM_GROUP               PIN_GROUP_1
+        #define SMC_PGM_PINID               8
+    #elif defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+        #define SMC_PGM_GROUP               PIN_GROUP_0
+        #define SMC_PGM_PINID               8
+    #endif
+    #define SMC_PGM_MASK                    (1UL << SMC_PGM_PINID)
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define SMC_DET_GROUP          PIN_GROUP_0
-    #define SMC_DET_PINID          12
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define SMC_DET_GROUP          PIN_GROUP_0
-    #define SMC_DET_PINID          3
-#endif
-#define SMC_DET_MASK           (1UL << SMC_DET_PINID)
-#if (SMC_DET_PINID % 2) == 1
-    #define SMC_DET_PMUXREGID  PMUXO
-#else
-    #define SMC_DET_PMUXREGID  PMUXE
+    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+        #define SMC_DET_GROUP               PIN_GROUP_0
+        #define SMC_DET_PINID               12
+    #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+        #define SMC_DET_GROUP               PIN_GROUP_0
+        #define SMC_DET_PINID               3
+    #endif
+    #define SMC_DET_MASK                    (1UL << SMC_DET_PINID)
+    #if (SMC_DET_PINID % 2) == 1
+        #define SMC_DET_PMUXREGID           PMUXO
+    #else
+        #define SMC_DET_PMUXREGID           PMUXE
+    #endif
 #endif
 
 /* AUX MCU COMMS */
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define AUX_MCU_TX_GROUP       PIN_GROUP_1
-    #define AUX_MCU_TX_PINID       11
+    #define AUX_MCU_TX_GROUP                PIN_GROUP_1
+    #define AUX_MCU_TX_PINID                11
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define AUX_MCU_TX_GROUP       PIN_GROUP_1
-    #define AUX_MCU_TX_PINID       23
+    #define AUX_MCU_TX_GROUP                PIN_GROUP_1
+    #define AUX_MCU_TX_PINID                23
+#elif defined(V2_PLAT_V1_SETUP)
+    #define AUX_MCU_TX_GROUP                PIN_GROUP_0
+    #define AUX_MCU_TX_PINID                23
 #endif
-#define AUX_MCU_TX_MASK        (1UL << AUX_MCU_TX_PINID)
-#define AUX_MCU_TX_PMUX_ID     PORT_PMUX_PMUXO_D_Val
+#define AUX_MCU_TX_MASK                     (1UL << AUX_MCU_TX_PINID)
+#define AUX_MCU_TX_PMUX_ID                  PORT_PMUX_PMUXO_D_Val
 #if (AUX_MCU_TX_PINID % 2) == 1
-    #define AUX_MCU_TX_PMUXREGID  PMUXO
+    #define AUX_MCU_TX_PMUXREGID            PMUXO
 #else
-    #define AUX_MCU_TX_PMUXREGID  PMUXE
+    #define AUX_MCU_TX_PMUXREGID            PMUXE
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
-    #define AUX_MCU_RX_GROUP       PIN_GROUP_1
-    #define AUX_MCU_RX_PINID       10
+    #define AUX_MCU_RX_GROUP                PIN_GROUP_1
+    #define AUX_MCU_RX_PINID                10
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define AUX_MCU_RX_GROUP       PIN_GROUP_1
-    #define AUX_MCU_RX_PINID       22
+    #define AUX_MCU_RX_GROUP                PIN_GROUP_1
+    #define AUX_MCU_RX_PINID                22
+#elif defined(V2_PLAT_V1_SETUP)
+    #define AUX_MCU_RX_GROUP                PIN_GROUP_0
+    #define AUX_MCU_RX_PINID                22
 #endif
-#define AUX_MCU_RX_MASK        (1UL << AUX_MCU_RX_PINID)
-#define AUX_MCU_RX_PMUX_ID     PORT_PMUX_PMUXO_D_Val
+#define AUX_MCU_RX_MASK                     (1UL << AUX_MCU_RX_PINID)
+#define AUX_MCU_RX_PMUX_ID                  PORT_PMUX_PMUXO_D_Val
 #if (AUX_MCU_RX_PINID % 2) == 1
-    #define AUX_MCU_RX_PMUXREGID  PMUXO
+    #define AUX_MCU_RX_PMUXREGID            PMUXO
 #else
-    #define AUX_MCU_RX_PMUXREGID  PMUXE
+    #define AUX_MCU_RX_PMUXREGID            PMUXE
 #endif
 
 #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define AUX_MCU_NOCOMMS_GROUP   PIN_GROUP_0
-    #define AUX_MCU_NOCOMMS_PINID   30
-    #define AUX_MCU_NOCOMMS_MASK    (1UL << AUX_MCU_NOCOMMS_PINID)
+    #define AUX_MCU_NOCOMMS_GROUP           PIN_GROUP_0
+    #define AUX_MCU_NOCOMMS_PINID           30
+    #define AUX_MCU_NOCOMMS_MASK            (1UL << AUX_MCU_NOCOMMS_PINID)
     #if (AUX_MCU_NOCOMMS_PINID % 2) == 1
-        #define AUX_MCU_NOCOMMS_PMUXREGID  PMUXO
+        #define AUX_MCU_NOCOMMS_PMUXREGID   PMUXO
     #else
-        #define AUX_MCU_NOCOMMS_PMUXREGID  PMUXE
+        #define AUX_MCU_NOCOMMS_PMUXREGID   PMUXE
+    #endif
+#elif defined(V2_PLAT_V1_SETUP)
+    #define AUX_MCU_NOCOMMS_GROUP           PIN_GROUP_0
+    #define AUX_MCU_NOCOMMS_PINID           24
+    #define AUX_MCU_NOCOMMS_MASK            (1UL << AUX_MCU_NOCOMMS_PINID)
+    #if (AUX_MCU_NOCOMMS_PINID % 2) == 1
+        #define AUX_MCU_NOCOMMS_PMUXREGID   PMUXO
+    #else
+        #define AUX_MCU_NOCOMMS_PMUXREGID   PMUXE
     #endif
 #endif
 
