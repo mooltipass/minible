@@ -20,7 +20,7 @@
 *    Author:   Mathieu Stephan
 */
 #include <string.h>
-#include "smartcard_highlevel.h"
+#include "se_smartcard_wrapper.h"
 #include "logic_accelerometer.h"
 #include "smartcard_lowlevel.h"
 #include "logic_encryption.h"
@@ -188,7 +188,7 @@ void logic_gui_change_pin(void)
         if (logic_smartcard_ask_for_new_pin(&pin_code, ENTER_NEW_PIN_TEXT_ID) == RETURN_NEW_PIN_OK)
         {
             // User successfully entered a new pin
-            smartcard_highlevel_write_security_code(&pin_code);
+            se_smartcard_write_pin_code(&pin_code);
 
             /* Inform user */
             gui_prompts_display_information_on_screen_and_wait(PIN_CHANGED_TEXT_ID, DISP_MSG_INFO, FALSE);
@@ -229,7 +229,7 @@ void logic_gui_erase_user(void)
         {
             /* Erase smartcard */
             gui_prompts_display_information_on_screen(PROCESSING_TEXT_ID, DISP_MSG_INFO);
-            smartcard_highlevel_erase_smartcard();
+            se_smartcard_erase_se();
             
             /* Erase other smartcards */
             while (gui_prompts_ask_for_one_line_confirmation(ERASE_OTHER_CARD_TEXT_ID, FALSE, FALSE, TRUE) == MINI_INPUT_RET_YES)
@@ -238,19 +238,19 @@ void logic_gui_erase_user(void)
                 gui_prompts_display_information_on_screen_and_wait(REMOVE_CARD_TEXT_ID, DISP_MSG_ACTION, FALSE);
                 
                 // Wait for the user to remove and enter another smartcard
-                while (smartcard_lowlevel_is_card_plugged() != RETURN_JRELEASED);
+                while (se_smartcard_is_se_plugged() != RETURN_JRELEASED);
                 
                 // Ask the user to insert other smartcards
                 gui_prompts_display_information_on_screen_and_wait(INSERT_OTHER_CARD_TEXT_ID, DISP_MSG_ACTION, FALSE);
                 
                 // Wait for the user to insert a new smart card
-                while (smartcard_lowlevel_is_card_plugged() != RETURN_JDETECT);
+                while (se_smartcard_is_se_plugged() != RETURN_JDETECT);
                 gui_prompts_display_information_on_screen(PROCESSING_TEXT_ID, DISP_MSG_INFO);
                 
                 // Check the card type & ask user to enter his pin, check that the new user id loaded by validCardDetectedFunction is still the same
-                if ((smartcard_highlevel_card_detected_routine() == RETURN_MOOLTIPASS_USER) && (logic_smartcard_valid_card_unlock(FALSE, TRUE) == RETURN_VCARD_OK) && (current_user_id == logic_user_get_current_user_id()))
+                if ((se_smartcard_se_detect_routine() == RETURN_MOOLTIPASS_USER) && (logic_smartcard_valid_card_unlock(FALSE, TRUE) == RETURN_VCARD_OK) && (current_user_id == logic_user_get_current_user_id()))
                 {
-                    smartcard_highlevel_erase_smartcard();
+                    se_smartcard_erase_se();
                 }
             }
         }
@@ -455,7 +455,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL d
         }
         
         /* Card removed */
-        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        if (se_smartcard_is_se_absent() == RETURN_OK)
         {
             memset(TOTP_str, 0, sizeof TOTP_str);
             return;

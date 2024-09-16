@@ -35,7 +35,6 @@ void debug_battery_recondition(void);
 void debug_kickstarter_video(void);
 void debug_mcu_and_aux_info(void);
 void debug_debug_animation(void);
-void debug_smartcard_info(void);
 void debug_setup_dev_card(void);
 void debug_smartcard_test(void);
 void debug_battery_repair(void);
@@ -54,5 +53,10 @@ void debug_debug_menu(void);
 void debug_stack_info(void);
 void debug_rf_dtm_rx(void);
 
+#ifndef MINIBLE_V2
+    void debug_smartcard_info(void);
+#else
+    #define debug_smartcard_info(...)
+#endif
 
 #endif /* DEBUG_H_ */

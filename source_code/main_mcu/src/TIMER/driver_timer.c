@@ -21,7 +21,7 @@
  *  Author: stephan
  */ 
 #include <asf.h>
-#include "smartcard_lowlevel.h"
+#include "se_smartcard_wrapper.h"
 #include "platform_defines.h"
 #include "driver_clocks.h"
 #include "driver_timer.h"
@@ -79,7 +79,7 @@ void TCC0_Handler(void)
             timer_ms_tick();
 
             /* Smartcard detect */
-            smartcard_lowlevel_detect();
+            se_smartcard_detect_scan();
         
             /* Scan buttons */
             inputs_scan();

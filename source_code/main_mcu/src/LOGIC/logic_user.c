@@ -20,8 +20,8 @@
 *    Author:   Mathieu Stephan
 */
 #include <string.h>
+#include "se_smartcard_wrapper.h"
 #include "fido2_values_defines.h"
-#include "smartcard_highlevel.h"
 #include "logic_encryption.h"
 #include "logic_bluetooth.h"
 #include "logic_security.h"
@@ -183,7 +183,7 @@ RET_TYPE logic_user_is_bluetooth_enabled_for_inserted_card(uint16_t* user_langua
     uint8_t potential_user_id;
     
     /* Read code protected zone to see if we know this particular card */
-    smartcard_highlevel_read_code_protected_zone(temp_buffer);
+    se_smartcard_read_code_protected_zone(temp_buffer);
     
     /* See if we know the card and if so fetch the user id */
     if (custom_fs_get_user_id_for_cpz(temp_buffer, &potential_user_id) != RETURN_OK)
@@ -443,11 +443,11 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* pro
     logic_user_init_context(new_user_id);
     
     /* Write card CPZ */
-    smartcard_highlevel_write_protected_zone(user_profile.cards_cpz);
+    se_smartcard_write_protected_zone(user_profile.cards_cpz);
     
     /* Write card random AES key */
     rng_fill_array(temp_buffer, sizeof(temp_buffer));
-    if (smartcard_highlevel_write_aes_key(temp_buffer) != RETURN_OK)
+    if (se_smartcard_write_aes_key(temp_buffer) != RETURN_OK)
     {
         return RETURN_NOK;
     }
@@ -492,7 +492,7 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* pro
     memset(temp_buffer, 0, sizeof(temp_buffer));
     
     /* Write new pin code */
-    smartcard_highlevel_write_security_code(pin_code);
+    se_smartcard_write_pin_code(pin_code);
     
     /* Remove power to smartcard */
     platform_io_smc_remove_function();
@@ -501,15 +501,15 @@ ret_type_te logic_user_create_new_user(volatile uint16_t* pin_code, uint8_t* pro
     timer_delay_ms(200);
 
     /* Reconnect it, test the card */
-    if ((smartcard_highlevel_card_detected_routine() == RETURN_MOOLTIPASS_USER) && (smartcard_highlevel_check_hidden_aes_key_contents() == RETURN_OK) && (smartcard_high_level_mooltipass_card_detected_routine(pin_code) == RETURN_MOOLTIPASS_4_TRIES_LEFT))
+    if ((se_smartcard_se_detect_routine() == RETURN_MOOLTIPASS_USER) && (se_smartcard_check_for_hidden_aes_key() == RETURN_OK) && (se_smartcard_mooltipass_se_det_routine(pin_code) == RETURN_MOOLTIPASS_4_TRIES_LEFT))
     {
         return RETURN_OK;
     }
     else
     {
         /* Reset smartcard and delete just created user */
-        smartcard_high_level_mooltipass_card_detected_routine(pin_code);
-        smartcard_highlevel_erase_smartcard();
+        se_smartcard_mooltipass_se_det_routine(pin_code);
+        se_smartcard_erase_se();
         custom_fs_detele_user_cpz_lut_entry(new_user_id);
 
         // Report fail

@@ -20,7 +20,7 @@
 *    Author:   Mathieu Stephan
 */
 #include <string.h>
-#include "smartcard_highlevel.h"
+#include "se_smartcard_wrapper.h"
 #include "logic_accelerometer.h"
 #include "smartcard_lowlevel.h"
 #include "logic_encryption.h"
@@ -91,7 +91,7 @@ void logic_smartcard_handle_removed(void)
 RET_TYPE logic_smartcard_handle_inserted(void)
 {
     // Low level routine: see what kind of card we're dealing with
-    mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();
+    mooltipass_card_detect_return_te detection_result = se_smartcard_se_detect_routine();
     // By default, return to invalid screen
     gui_screen_te next_screen = GUI_SCREEN_INSERTED_INVALID;
     // Return fail by default
@@ -249,7 +249,7 @@ RET_TYPE logic_smartcard_handle_inserted(void)
     gui_dispatcher_set_current_screen(next_screen, TRUE, GUI_INTO_MENU_TRANSITION);
     
     /* Transition to next screen only if the card wasn't removed */
-    if (smartcard_low_level_is_smc_absent() != RETURN_OK)
+    if (se_smartcard_is_se_absent() != RETURN_OK)
     {
         gui_dispatcher_get_back_to_current_screen();
     }
@@ -271,7 +271,7 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
     cpz_lut_entry_t* cpz_user_entry;
     
     /* Read code protected zone to see if know this particular card */
-    smartcard_highlevel_read_code_protected_zone(temp_buffer);        
+    se_smartcard_read_code_protected_zone(temp_buffer);        
     
     /* See if we know the card and if so fetch the user profile */
     if (custom_fs_get_cpz_lut_entry(temp_buffer, &cpz_user_entry) == RETURN_OK)
@@ -313,7 +313,7 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
         logic_user_init_context(cpz_user_entry->user_id);
         
         /* Check for defective card, check always done on initial unlock */
-        if ((fast_mode == FALSE) && (smartcard_highlevel_check_hidden_aes_key_contents() != RETURN_OK))
+        if ((fast_mode == FALSE) && (se_smartcard_check_for_hidden_aes_key() != RETURN_OK))
         {
             gui_prompts_display_information_on_screen_and_wait(CARD_FAILING_TEXT_ID, DISP_MSG_WARNING, FALSE);
         }
@@ -325,7 +325,7 @@ valid_card_det_return_te logic_smartcard_valid_card_unlock(BOOL hash_allow_flag,
         if (unlock_return == UNLOCK_OK_RET)
         {
             /* Unlocking succeeded */
-            smartcard_highlevel_read_aes_key(temp_buffer);
+            se_smartcard_read_aes_key(temp_buffer);
             
             // Display AESenc(AESkey) if desired: as this check is made to make sure the device isn't compromised, it is OK to display it.
             if ((custom_fs_settings_get_device_setting(SETTINGS_HASH_DISPLAY_FEATURE) != FALSE) && (hash_allow_flag != FALSE))
@@ -399,7 +399,7 @@ unlock_ret_type_te logic_smartcard_user_unlock_process(void)
     volatile uint16_t temp_pin;
 
     /* Display warning if only one security try left */
-    if (smartcard_highlevel_get_nb_sec_tries_left() == 1)
+    if (se_smartcard_get_nb_tries_left() == 1)
     {
         gui_prompts_display_information_on_screen_and_wait(LAST_PIN_TRY_TEXT_ID, DISP_MSG_INFO, FALSE);
         warning_displayed = TRUE;
@@ -410,7 +410,7 @@ unlock_ret_type_te logic_smartcard_user_unlock_process(void)
         if (gui_prompts_get_user_pin(&temp_pin, INSERT_PIN_TEXT_ID) == RETURN_OK)
         {
             /* Try unlocking the smartcard */
-            temp_rettype = smartcard_high_level_mooltipass_card_detected_routine(&temp_pin);
+            temp_rettype = se_smartcard_mooltipass_se_det_routine(&temp_pin);
             
             switch(temp_rettype)
             {
@@ -435,7 +435,7 @@ unlock_ret_type_te logic_smartcard_user_unlock_process(void)
                         gui_prompts_display_information_on_screen(REMOVE_CARD_TEXT_ID, DISP_MSG_ACTION);
                         
                         // Wait for the user to remove his smart card
-                        while(smartcard_low_level_is_smc_absent() != RETURN_OK);
+                        while(se_smartcard_is_se_absent() != RETURN_OK);
                         
                         return UNLOCK_CARD_REMOVED_RET;
                     }
@@ -456,7 +456,7 @@ unlock_ret_type_te logic_smartcard_user_unlock_process(void)
         else
         {
             // User cancelled the request or card removed
-            if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+            if (se_smartcard_is_se_absent() == RETURN_OK)
             {
                 return UNLOCK_CARD_REMOVED_RET;
             } 
@@ -479,7 +479,7 @@ RET_TYPE logic_smartcard_remove_card_and_reauth_user(BOOL display_notification)
     uint8_t temp_cpz2[SMARTCARD_CPZ_LENGTH];
     
     // Get current CPZ
-    smartcard_highlevel_read_code_protected_zone(temp_cpz1);
+    se_smartcard_read_code_protected_zone(temp_cpz1);
     
     // Disconnect smartcard
     logic_smartcard_handle_removed();
@@ -495,10 +495,10 @@ RET_TYPE logic_smartcard_remove_card_and_reauth_user(BOOL display_notification)
     }
     
     // Launch Unlocking process
-    if ((smartcard_highlevel_card_detected_routine() == RETURN_MOOLTIPASS_USER) && (logic_smartcard_valid_card_unlock(FALSE, TRUE) == RETURN_VCARD_OK))
+    if ((se_smartcard_se_detect_routine() == RETURN_MOOLTIPASS_USER) && (logic_smartcard_valid_card_unlock(FALSE, TRUE) == RETURN_VCARD_OK))
     {
         // Read other CPZ
-        smartcard_highlevel_read_code_protected_zone(temp_cpz2);
+        se_smartcard_read_code_protected_zone(temp_cpz2);
         
         // Check that they're actually the sames
         if (memcmp(temp_cpz1, temp_cpz2, SMARTCARD_CPZ_LENGTH) == 0)
@@ -526,6 +526,7 @@ RET_TYPE logic_smartcard_remove_card_and_reauth_user(BOOL display_notification)
 */
 cloning_ret_te logic_smartcard_clone_card(volatile uint16_t* pincode)
 {    
+    #ifndef MINIBLE_V2_TO_TACKLE
     // Temp buffers to store AZ1 & AZ2
     uint8_t temp_az1[SMARTCARD_AZ_BIT_LENGTH/8];
     uint8_t temp_az2[SMARTCARD_AZ_BIT_LENGTH/8];    
@@ -642,4 +643,5 @@ cloning_ret_te logic_smartcard_clone_card(volatile uint16_t* pincode)
     gui_prompts_display_information_on_screen_and_wait(CARD_CLONED_TEXT_ID, DISP_MSG_INFO, FALSE);
     
     return RETURN_CLONING_DONE;
+    #endif
 }

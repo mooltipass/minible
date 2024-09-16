@@ -24,10 +24,9 @@
 #ifdef DEBUG_MENU_ENABLED
 #include <string.h>
 #include <asf.h>
+#include "se_smartcard_wrapper.h"
 #include "comms_hid_msgs_debug.h"
 #include "logic_accelerometer.h"
-#include "smartcard_highlevel.h"
-#include "smartcard_lowlevel.h"
 #include "functional_testing.h"
 #include "logic_smartcard.h"
 #include "gui_dispatcher.h"
@@ -775,10 +774,10 @@ void debug_setup_dev_card(void)
             return;
         }
         
-        if (smartcard_lowlevel_is_card_plugged() == RETURN_JDETECT)
+        if (se_smartcard_is_se_plugged() == RETURN_JDETECT)
         {
             /* Get detection result */
-            mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();
+            mooltipass_card_detect_return_te detection_result = se_smartcard_se_detect_routine();
             
             /* Card debug info */
             if (detection_result == RETURN_MOOLTIPASS_BLANK)
@@ -793,9 +792,9 @@ void debug_setup_dev_card(void)
                 nodemgmt_format_user_profile(100, 0xFFFF & (~USER_SEC_FLG_BLE_ENABLED), 0, 0, 0);
                 
                 /* Setup smartcard */
-                smartcard_highlevel_write_protected_zone(temp_buffer);
-                smartcard_highlevel_write_aes_key(temp_buffer);
-                smartcard_highlevel_write_security_code(&pin_code);
+                se_smartcard_write_protected_zone(temp_buffer);
+                se_smartcard_write_aes_key(temp_buffer);
+                se_smartcard_write_pin_code(&pin_code);
 
                 /* Special card has 0000 CPZ, set 0000 as nonce */
                 cpz_lut_entry_t special_user_profile;
@@ -835,10 +834,10 @@ void debug_smartcard_test(void)
             return;
         }
         
-        if (smartcard_lowlevel_is_card_plugged() == RETURN_JDETECT)
+        if (se_smartcard_is_se_plugged() == RETURN_JDETECT)
         {            
             /* Get detection result */
-            mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();
+            mooltipass_card_detect_return_te detection_result = se_smartcard_se_detect_routine();
             
             /* Card debug info */
             if (detection_result == RETURN_MOOLTIPASS_BLANK)
@@ -859,12 +858,14 @@ void debug_smartcard_test(void)
                     sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "%d/%d OK", success_count, i);
                     
                     /* Reset card */
+                    #ifndef MINIBLE_V2_TO_TACKLE
                     smartcard_lowlevel_erase_application_zone1_nzone2(FALSE);
                     smartcard_lowlevel_erase_application_zone1_nzone2(TRUE);
                     smartcard_highlevel_set_authenticated_readwrite_to_zone1and2();
+                    #endif
                     
                     /* Fill random bytes */
-                    if (smartcard_highlevel_write_aes_key(random_data) != RETURN_NOK)
+                    if (se_smartcard_write_aes_key(random_data) != RETURN_NOK)
                     {
                         success_count++;
                     }                   
@@ -881,6 +882,7 @@ void debug_smartcard_test(void)
     }
 }    
 
+#ifndef MINIBLE_V2
 /*! \fn     debug_smartcard_info(void)
 *   \brief  Smartcard Debug Info
 */
@@ -897,7 +899,7 @@ void debug_smartcard_info(void)
             return;
         }
         
-        if (smartcard_lowlevel_is_card_plugged() == RETURN_JDETECT)
+        if (se_smartcard_is_se_plugged() == RETURN_JDETECT)
         {
             /* Erase screen */
             sh1122_clear_current_screen(&plat_oled_descriptor);
@@ -969,6 +971,7 @@ void debug_smartcard_info(void)
         }              
     }
 }
+#endif
 
 /*! \fn     debug_language_test(void)
 *   \brief  Language test

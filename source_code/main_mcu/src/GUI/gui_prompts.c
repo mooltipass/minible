@@ -20,8 +20,8 @@
 *    Author:   Mathieu Stephan
 */
 #include <string.h>
+#include "se_smartcard_wrapper.h"
 #include "logic_accelerometer.h"
-#include "smartcard_lowlevel.h"
 #include "logic_database.h"
 #include "comms_aux_mcu.h"
 #include "driver_timer.h"
@@ -422,7 +422,7 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
     uint16_t i = 0;
     
     /* Store current smartcard inserted state */
-    ret_type_te card_absent = smartcard_low_level_is_smc_absent();
+    ret_type_te card_absent = se_smartcard_is_se_absent();
     
     /* Display string */
     gui_prompts_display_information_on_screen(string_id, message_type);
@@ -482,7 +482,7 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
         }
         
         /* Card insertion status change */
-        if (card_absent != smartcard_low_level_is_smc_absent())
+        if (card_absent != se_smartcard_is_se_absent())
         {
             /* Free timer */
             timer_deallocate_timer(temp_timer_id);
@@ -547,7 +547,7 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
     uint16_t i = 0;
     
     /* Store current smartcard inserted state */
-    ret_type_te card_absent = smartcard_low_level_is_smc_absent();
+    ret_type_te card_absent = se_smartcard_is_se_absent();
     
     /* Display string */
     gui_prompts_display_information_on_screen(PAIRING_WAIT_TEXT_ID, DISP_MSG_ACTION);
@@ -592,7 +592,7 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
         }
         
         /* Card insertion status change */
-        if (card_absent != smartcard_low_level_is_smc_absent())
+        if (card_absent != se_smartcard_is_se_absent())
         {
             /* Free timer */
             timer_deallocate_timer(temp_timer_id);
@@ -637,7 +637,7 @@ BOOL gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
     gui_prompts_display_information_lines_on_screen(text_lines, message_type, 3);
     
     /* Store current smartcard inserted state */
-    ret_type_te card_absent = smartcard_low_level_is_smc_absent();
+    ret_type_te card_absent = se_smartcard_is_se_absent();
     
     /* Timer Init. */
     timer_start_timer(TIMER_ANIMATIONS, 50);
@@ -678,7 +678,7 @@ BOOL gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
         }
         
         /* Card insertion status change */
-        if (card_absent != smartcard_low_level_is_smc_absent())
+        if (card_absent != se_smartcard_is_se_absent())
         {
             /* Free timer */
             timer_deallocate_timer(temp_timer_id);
@@ -1076,7 +1076,7 @@ RET_TYPE gui_prompts_get_six_digits_pin(uint8_t* pin_code, uint16_t stringID)
         }
         
         // Return if card removed or timer expired
-        if ((smartcard_low_level_is_smc_absent() == RETURN_OK) || (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED))
+        if ((se_smartcard_is_se_absent() == RETURN_OK) || (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED))
         {
             // Smartcard removed, no reason to continue
             ret_val = RETURN_NOK;
@@ -1239,7 +1239,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
         }
         
         // Return if card removed or timer expired
-        if ((smartcard_low_level_is_smc_absent() == RETURN_OK) || (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED))
+        if ((se_smartcard_is_se_absent() == RETURN_OK) || (timer_has_timer_expired(TIMER_USER_INTERACTION, TRUE) == TIMER_EXPIRED))
         {
             // Smartcard removed, no reason to continue
             ret_val = RETURN_NOK;
@@ -1312,7 +1312,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
 {
     uint16_t bitmap_yes_no_array[10] = {BITMAP_POPUP_2LINES_Y, BITMAP_POPUP_2LINES_N, BITMAP_2LINES_PRESS_Y, BITMAP_2LINES_PRESS_N, BITMAP_2LINES_SEL_Y, BITMAP_2LINES_SEL_N, BITMAP_2LINES_IDLE_Y, BITMAP_2LINES_IDLE_N, BITMAP_POPUP_2LINES_Y_DESEL, BITMAP_POPUP_2LINES_N_SELEC};
     uint16_t bitmap_usb_ble_array[10] = {BITMAP_POPUP_USB, BITMAP_POPUP_BLE, BITMAP_USB_PRESS, BITMAP_BLE_PRESS, BITMAP_USB_SELECT, BITMAP_BLE_SELECT, BITMAP_USB_IDLE, BITMAP_BLE_IDLE, BITMAP_POPUP_USB_DESEL, BITMAP_POPUP_BLE_SEL};
-    ret_type_te current_card_insertion_status = smartcard_low_level_is_smc_absent();
+    ret_type_te current_card_insertion_status = se_smartcard_is_se_absent();
     BOOL approve_selected = first_item_selected;
     cust_char_t* string_to_display;
     BOOL flash_flag = FALSE;
@@ -1405,7 +1405,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
         }
         
         // Escape the prompt if the function was entered with a smartcard inserted and the smartcard got removed
-        if ((smartcard_low_level_is_smc_absent() != current_card_insertion_status) && (smartcard_low_level_is_smc_absent() == RETURN_OK))
+        if ((se_smartcard_is_se_absent() != current_card_insertion_status) && (se_smartcard_is_se_absent() == RETURN_OK))
         {
             input_answer = MINI_INPUT_RET_CARD_REMOVED;
         }
@@ -1667,7 +1667,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         }
         
         // Card removed
-        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        if (se_smartcard_is_se_absent() == RETURN_OK)
         {
             input_answer = MINI_INPUT_RET_CARD_REMOVED;
         }
@@ -2060,7 +2060,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
         }
         
         /* Card removed */
-        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        if (se_smartcard_is_se_absent() == RETURN_OK)
         {
             return MINI_INPUT_RET_CARD_REMOVED;
         }
@@ -2460,7 +2460,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
         }
         
         /* Card removed */
-        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        if (se_smartcard_is_se_absent() == RETURN_OK)
         {
             return NODE_ADDR_NULL;
         }
@@ -2919,7 +2919,7 @@ int16_t gui_prompts_select_category(void)
         }
         
         /* Card removed */
-        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        if (se_smartcard_is_se_absent() == RETURN_OK)
         {
             return -1;
         }
@@ -3211,7 +3211,7 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
         }
         
         /* Card removed */
-        if (smartcard_low_level_is_smc_absent() == RETURN_OK)
+        if (se_smartcard_is_se_absent() == RETURN_OK)
         {
             *chosen_service_addr_pt = NODE_ADDR_NULL;
             return;
@@ -3599,7 +3599,7 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
         }
         
         /* Card removed */
-        if ((smartcard_low_level_is_smc_absent() == RETURN_OK) && (ignore_card_removal == FALSE))
+        if ((se_smartcard_is_se_absent() == RETURN_OK) && (ignore_card_removal == FALSE))
         {
             return RETURN_NOK;
         }

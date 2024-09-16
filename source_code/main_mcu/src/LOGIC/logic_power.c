@@ -20,8 +20,8 @@
 *    Author:   Mathieu Stephan
 */
 #include <string.h>
+#include "se_smartcard_wrapper.h"
 #include "logic_accelerometer.h"
-#include "smartcard_lowlevel.h"
 #include "platform_defines.h"
 #include "logic_bluetooth.h"
 #include "logic_smartcard.h"
@@ -139,7 +139,7 @@ void logic_power_30m_tick(void)
         logic_power_consumption_log.nb_30mins_powered_on++;
         
         /* Card inserted penalty */
-        if (smartcard_low_level_is_smc_absent() != RETURN_OK)
+        if (se_smartcard_is_se_absent() != RETURN_OK)
         {
             logic_power_consumption_log.nb_30mins_card_inserted++;
         }

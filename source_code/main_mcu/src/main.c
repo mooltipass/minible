@@ -1,7 +1,7 @@
 #include <string.h>
 #include <asf.h>
 #include "mooltipass_graphics_bundle.h"
-#include "smartcard_highlevel.h"
+#include "se_smartcard_wrapper.h"
 #include "logic_accelerometer.h"
 #include "functional_testing.h"
 #include "smartcard_lowlevel.h"
@@ -811,7 +811,7 @@ int main(void)
     }
     
     /* Get current smartcard detection result */
-    det_ret_type_te card_detection_res = smartcard_lowlevel_is_card_plugged();
+    det_ret_type_te card_detection_res = se_smartcard_is_se_plugged();
         
     /* Set startup screen */
     gui_dispatcher_set_current_screen(GUI_SCREEN_NINSERTED, TRUE, GUI_INTO_MENU_TRANSITION);
@@ -1169,7 +1169,7 @@ int main(void)
         }
         
         /* Get current smartcard detection result */
-        card_detection_res = smartcard_lowlevel_is_card_plugged();
+        card_detection_res = se_smartcard_is_se_plugged();
     }
 }
 
