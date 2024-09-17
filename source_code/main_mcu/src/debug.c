@@ -32,6 +32,7 @@
 #include "gui_dispatcher.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
+#include "oled_wrapper.h"
 #include "logic_device.h"
 #include "driver_timer.h"
 #include "gui_prompts.h"
@@ -42,7 +43,6 @@
 #include "nodemgmt.h"
 #include "lis2hh12.h"
 #include "text_ids.h"
-#include "sh1122.h"
 #include "inputs.h"
 #include "debug.h"
 #include "main.h"
@@ -129,14 +129,14 @@ void debug_debug_menu(void)
         if (redraw_needed != FALSE)
         {
             /* Set Emergency Font */
-            sh1122_set_emergency_font(&plat_oled_descriptor);
+            oled_set_emergency_font(&plat_oled_descriptor);
             
             /* Clear screen */
             redraw_needed = FALSE;
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
             #else
-            sh1122_clear_current_screen(&plat_oled_descriptor);
+            oled_clear_current_screen(&plat_oled_descriptor);
             #endif
             
             /* Item selection */
@@ -149,47 +149,47 @@ void debug_debug_menu(void)
                 selected_item = 19;
             }
             
-            sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);
+            oled_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Debug Menu", TRUE);
             
             /* Print items */
             if (selected_item < 4)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Debug", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main and Aux MCU Info", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU BLE Info", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"NiMH Status", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Debug", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main and Aux MCU Info", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Aux MCU BLE Info", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"NiMH Status", TRUE);
             }
             else if (selected_item < 8)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Display All Fonts Glyphs", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Setup Developper Card", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Test Pattern Display", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Reset Device", TRUE);            
+                oled_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Display All Fonts Glyphs", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Setup Developper Card", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Test Pattern Display", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Reset Device", TRUE);            
             }
             else if (selected_item < 12)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Smartcard Debug", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Smartcard Test", TRUE);                
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Main MCU Flash", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Aux MCU Flash", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Smartcard Debug", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Smartcard Test", TRUE);                
+                oled_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Main MCU Flash", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Aux MCU Flash", TRUE);
             }
             else if (selected_item < 16)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"BLE DTM TX Mode", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"BLE DTM RX Mode", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Functional Test", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"BLE DTM TX Mode", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"BLE DTM RX Mode", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Functional Test", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Switch Off", TRUE);
             }
             else
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Battery Recondition", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Battery Test", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Stack Usage", TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Reset Settings", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Battery Recondition", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Battery Test", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 34, OLED_ALIGN_LEFT, u"Stack Usage", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 44, OLED_ALIGN_LEFT, u"Reset Settings", TRUE);
             }
             
             /* Cursor */
-            sh1122_put_string_xy(&plat_oled_descriptor, 0, 14 + (selected_item%4)*10, OLED_ALIGN_LEFT, u"-", TRUE);
+            oled_put_string_xy(&plat_oled_descriptor, 0, 14 + (selected_item%4)*10, OLED_ALIGN_LEFT, u"-", TRUE);
             
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
@@ -277,7 +277,7 @@ void debug_debug_menu(void)
             }
             else if (selected_item == 14)
             {
-                sh1122_clear_current_screen(&plat_oled_descriptor);
+                oled_clear_current_screen(&plat_oled_descriptor);
                 #ifndef EMULATOR_BUILD
                 functional_testing_start(FALSE);
                 #endif
@@ -287,12 +287,12 @@ void debug_debug_menu(void)
                 /* Check for USB power */
                 if (platform_io_is_usb_3v3_present_raw() != FALSE)
                 {
-                    sh1122_clear_current_screen(&plat_oled_descriptor);
-                    sh1122_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"Remove USB cable", FALSE);
+                    oled_clear_current_screen(&plat_oled_descriptor);
+                    oled_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"Remove USB cable", FALSE);
                     while((platform_io_is_usb_3v3_present_raw() != FALSE));
                 }
                 logic_power_power_down_actions();           // Power off actions
-                sh1122_oled_off(&plat_oled_descriptor);     // Display off command    
+                oled_off(&plat_oled_descriptor);     // Display off command    
                 platform_io_power_down_oled();              // Switch off stepup            
                 platform_io_set_wheel_click_pull_down();    // Pull down on wheel click to slowly discharge capacitor
                 timer_delay_ms(100);                        // From OLED datasheet wait before removing 3V3
@@ -337,7 +337,7 @@ void debug_kickstarter_video(void)
         for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
         {
             timer_start_timer(TIMER_ANIMATIONS, 88);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
             while(timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_RUNNING)
             {
                 logic_accelerometer_routine();
@@ -346,7 +346,7 @@ void debug_kickstarter_video(void)
                 if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
                 {
                     logic_power_power_down_actions();           // Power off actions
-                    sh1122_oled_off(&plat_oled_descriptor);     // Display off command
+                    oled_off(&plat_oled_descriptor);     // Display off command
                     platform_io_power_down_oled();              // Switch off stepup
                     platform_io_set_wheel_click_pull_down();    // Pull down on wheel click to slowly discharge capacitor
                     timer_delay_ms(100);                        // From OLED datasheet wait before removing 3V3
@@ -356,7 +356,7 @@ void debug_kickstarter_video(void)
                 }
             }
         }
-        sh1122_clear_current_screen(&plat_oled_descriptor);
+        oled_clear_current_screen(&plat_oled_descriptor);
         
         /* Wait for end of x axis movement */
         while(logic_accelerometer_routine() == ACC_DET_MOVEMENT);
@@ -365,7 +365,7 @@ void debug_kickstarter_video(void)
         if ((platform_io_is_usb_3v3_present_raw() == FALSE) && (sleep_counter > 7))
         {
             sleep_counter = 0;
-            sh1122_oled_off(&plat_oled_descriptor);
+            oled_off(&plat_oled_descriptor);
             platform_io_power_down_oled();
             logic_power_check_power_switch_and_battery(TRUE);
             main_standby_sleep();
@@ -395,8 +395,8 @@ void debug_always_bluetooth_enable_and_click_to_send_cred(void)
     nodemgmt_delete_all_bluetooth_bonding_information();
     
     inputs_clear_detections();
-    sh1122_clear_current_screen(&plat_oled_descriptor);
-    sh1122_put_error_string(&plat_oled_descriptor, u"Click to upload bundle, otherwise scroll");
+    oled_clear_current_screen(&plat_oled_descriptor);
+    oled_put_error_string(&plat_oled_descriptor, u"Click to upload bundle, otherwise scroll");
     if (inputs_get_wheel_action(TRUE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
     {
         BOOL bundle_uploaded = FALSE;
@@ -412,8 +412,8 @@ void debug_always_bluetooth_enable_and_click_to_send_cred(void)
         }
     }        
     
-    sh1122_clear_current_screen(&plat_oled_descriptor);    
-    sh1122_put_error_string(&plat_oled_descriptor, u"Enabling bluetooth...");
+    oled_clear_current_screen(&plat_oled_descriptor);    
+    oled_put_error_string(&plat_oled_descriptor, u"Enabling bluetooth...");
     logic_aux_mcu_enable_ble(TRUE);
     
     /* Send command to enable pairing to aux MCU */
@@ -422,8 +422,8 @@ void debug_always_bluetooth_enable_and_click_to_send_cred(void)
     temp_tx_message_pt->payload_length1 = sizeof(temp_tx_message_pt->ble_message.message_id);
     comms_aux_mcu_send_message(temp_tx_message_pt);
     
-    sh1122_clear_current_screen(&plat_oled_descriptor);
-    sh1122_put_error_string(&plat_oled_descriptor, u"Waiting for pairing");    
+    oled_clear_current_screen(&plat_oled_descriptor);
+    oled_put_error_string(&plat_oled_descriptor, u"Waiting for pairing");    
     BOOL pairing_done = FALSE;
     while (pairing_done == FALSE)
     {
@@ -436,9 +436,9 @@ void debug_always_bluetooth_enable_and_click_to_send_cred(void)
     }
     
     /* Reset emergency font */
-    sh1122_set_emergency_font(&plat_oled_descriptor);
-    sh1122_clear_current_screen(&plat_oled_descriptor);
-    sh1122_put_error_string(&plat_oled_descriptor, u"Click to send creds");
+    oled_set_emergency_font(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
+    oled_put_error_string(&plat_oled_descriptor, u"Click to send creds");
     
     /* Main loop */
     while(TRUE)
@@ -477,7 +477,7 @@ void debug_always_bluetooth_enable_and_click_to_send_cred(void)
 */
 void debug_battery_repair(void)
 {
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #endif
@@ -485,7 +485,7 @@ void debug_battery_repair(void)
     /* Needs to be battery powered */
     if (platform_io_is_usb_3v3_present_raw() == FALSE)
     {
-        sh1122_put_error_string(&plat_oled_descriptor, u"Device must be USB powered");
+        oled_put_error_string(&plat_oled_descriptor, u"Device must be USB powered");
         DELAYMS(2000);
         return;
     }
@@ -513,25 +513,25 @@ void debug_battery_repair(void)
         for (uint16_t i = 0; i < 20; i++)
         {
             platform_io_disable_3v3_to_oled_stepup();
-            sh1122_oled_off(&plat_oled_descriptor);
+            oled_off(&plat_oled_descriptor);
             platform_io_assert_oled_reset();
             timer_delay_ms(15);
             #ifndef EMULATOR_BUILD
             platform_io_transcienty_battery_oled_power_up();
             #endif
-            sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
-            sh1122_put_error_string(&plat_oled_descriptor, u"Blinking");
+            oled_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
+            oled_put_error_string(&plat_oled_descriptor, u"Blinking");
             timer_delay_ms(15);
         }
 
         /* Switch back to USB supply */
-        sh1122_oled_off(&plat_oled_descriptor);
+        oled_off(&plat_oled_descriptor);
         platform_io_disable_vbat_to_oled_stepup();
         platform_io_assert_oled_reset();
         timer_delay_ms(15);
         platform_io_power_up_oled(TRUE);
-        sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
-        sh1122_put_error_string(&plat_oled_descriptor, u"Charging");
+        oled_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
+        oled_put_error_string(&plat_oled_descriptor, u"Charging");
 
         /* Start danger change */
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_DANGER_CHARGE);
@@ -545,7 +545,7 @@ void debug_battery_repair(void)
 */
 void debug_battery_recondition(void)
 {
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #endif
@@ -553,7 +553,7 @@ void debug_battery_recondition(void)
     /* Needs to be battery powered */
     if (platform_io_is_usb_3v3_present_raw() == FALSE)
     {
-        sh1122_put_error_string(&plat_oled_descriptor, u"Device must be USB powered");
+        oled_put_error_string(&plat_oled_descriptor, u"Device must be USB powered");
         DELAYMS(2000);
         return;
     }
@@ -567,12 +567,12 @@ void debug_battery_recondition(void)
     }
     
     /* Switch to battery power for screen */
-    sh1122_oled_off(&plat_oled_descriptor);
+    oled_off(&plat_oled_descriptor);
     platform_io_disable_3v3_to_oled_stepup();
     platform_io_assert_oled_reset();
     timer_delay_ms(15);
     platform_io_power_up_oled(FALSE);
-    sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
+    oled_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
     
     /* Display animation until 1V cell */
     uint16_t current_vbat = 0xFFFF;
@@ -601,10 +601,10 @@ void debug_battery_recondition(void)
             for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
             {
                 timer_start_timer(TIMER_WAIT_FUNCTS, 28);
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
+                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
                 while(timer_has_timer_expired(TIMER_WAIT_FUNCTS, TRUE) == TIMER_RUNNING);
             }
-            sh1122_clear_current_screen(&plat_oled_descriptor);
+            oled_clear_current_screen(&plat_oled_descriptor);
         #endif
         comms_aux_mcu_routine(MSG_RESTRICT_ALL);
         logic_accelerometer_routine();
@@ -617,21 +617,21 @@ void debug_battery_recondition(void)
     }
     
     /* Switch to USB power for screen */
-    sh1122_oled_off(&plat_oled_descriptor);
+    oled_off(&plat_oled_descriptor);
     platform_io_disable_vbat_to_oled_stepup();
     platform_io_assert_oled_reset();
     timer_delay_ms(15);
     platform_io_power_up_oled(TRUE);
-    sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
+    oled_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
     
     /* Display info */
-    sh1122_clear_current_screen(&plat_oled_descriptor);
-    sh1122_put_error_string(&plat_oled_descriptor, u"Battery rest...");
+    oled_clear_current_screen(&plat_oled_descriptor);
+    oled_put_error_string(&plat_oled_descriptor, u"Battery rest...");
     timer_delay_ms(360000);
     
     /* Display info */
-    sh1122_clear_current_screen(&plat_oled_descriptor);
-    sh1122_put_error_string(&plat_oled_descriptor, u"Topping up battery...");
+    oled_clear_current_screen(&plat_oled_descriptor);
+    oled_put_error_string(&plat_oled_descriptor, u"Topping up battery...");
     
     /* Actually start charging */
     comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_NIMH_CHG_SLW_STRT);
@@ -651,11 +651,11 @@ void debug_battery_recondition(void)
 */
 void debug_test_battery(void)
 {
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     
     if (platform_io_is_usb_3v3_present_raw() != FALSE)
     {
-        sh1122_put_error_string(&plat_oled_descriptor, u"Device must be battery powered");
+        oled_put_error_string(&plat_oled_descriptor, u"Device must be battery powered");
         DELAYMS(2000);
         return;
     }
@@ -663,7 +663,7 @@ void debug_test_battery(void)
     battery_state_te bat_state = logic_power_get_battery_state();
     if (bat_state <= BATTERY_75PCT)
     {
-        sh1122_put_error_string(&plat_oled_descriptor, u"Charge battery first!");
+        oled_put_error_string(&plat_oled_descriptor, u"Charge battery first!");
         DELAYMS(2000);
         return;
     }
@@ -677,7 +677,7 @@ void debug_test_battery(void)
         for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
         {
             timer_start_timer(TIMER_ANIMATIONS, 28);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
             while(timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_RUNNING)
             {
                 /* power routines, new battery level acking in case we get a new one */
@@ -687,7 +687,7 @@ void debug_test_battery(void)
                 }
             }
         }
-        sh1122_clear_current_screen(&plat_oled_descriptor);
+        oled_clear_current_screen(&plat_oled_descriptor);
         
         /* Updated battery status */
         bat_state = logic_power_get_battery_state();
@@ -701,7 +701,7 @@ void debug_test_battery(void)
     
     /* Finished! display result */
     inputs_clear_detections();
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     sh1122_printf_xy(&plat_oled_descriptor, 40, 5, OLED_ALIGN_LEFT, FALSE, "Result: %d", animation_counter);
     sh1122_printf_xy(&plat_oled_descriptor, 40, 30, OLED_ALIGN_LEFT, FALSE, "Click to exit");
     while (inputs_get_wheel_action(FALSE, FALSE) != WHEEL_ACTION_SHORT_CLICK);
@@ -714,7 +714,7 @@ void debug_test_pattern_display(void)
 {
     wheel_action_ret_te action_ret = WHEEL_ACTION_NONE;
     uint8_t master_current = custom_fs_settings_get_device_setting(SETTINGS_MASTER_CURRENT_USB);
-    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, TEST_PATTERN__BITMAP_ID, FALSE);
+    oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, TEST_PATTERN__BITMAP_ID, FALSE);
     
     while (action_ret != WHEEL_ACTION_SHORT_CLICK)
     {
@@ -723,16 +723,16 @@ void debug_test_pattern_display(void)
         if (action_ret == WHEEL_ACTION_UP)
         {
             master_current++;
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, TEST_PATTERN__BITMAP_ID, FALSE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, TEST_PATTERN__BITMAP_ID, FALSE);
             sh1122_printf_xy(&plat_oled_descriptor, 40, 5, OLED_ALIGN_LEFT, FALSE, "0x%02x", master_current);
-            sh1122_set_contrast_current(&plat_oled_descriptor, master_current);
+            oled_set_contrast_current(&plat_oled_descriptor, master_current);
         }
         else if (action_ret == WHEEL_ACTION_DOWN)
         {
             master_current--;
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, TEST_PATTERN__BITMAP_ID, FALSE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, TEST_PATTERN__BITMAP_ID, FALSE);
             sh1122_printf_xy(&plat_oled_descriptor, 40, 5, OLED_ALIGN_LEFT, FALSE, "0x%02x", master_current);
-            sh1122_set_contrast_current(&plat_oled_descriptor, master_current);
+            oled_set_contrast_current(&plat_oled_descriptor, master_current);
         }
     }
 }
@@ -743,8 +743,8 @@ void debug_test_pattern_display(void)
 void debug_reset_device(void)
 {
     #ifndef EMULATOR_BUILD
-    sh1122_clear_current_screen(&plat_oled_descriptor);
-    sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please wait...", FALSE);
+    oled_clear_current_screen(&plat_oled_descriptor);
+    oled_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please wait...", FALSE);
     dataflash_bulk_erase_with_wait(&dataflash_descriptor);
     dbflash_format_flash(&dbflash_descriptor);
     for (uint16_t i = 0; i < 4096/NVMCTRL_ROW_SIZE; i++)
@@ -763,8 +763,8 @@ void debug_reset_device(void)
 */
 void debug_setup_dev_card(void)
 {
-    sh1122_clear_current_screen(&plat_oled_descriptor);
-    sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please insert a blank card", FALSE);
+    oled_clear_current_screen(&plat_oled_descriptor);
+    oled_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please insert a blank card", FALSE);
     
     while(1)
     {
@@ -811,7 +811,7 @@ void debug_setup_dev_card(void)
             platform_io_smc_remove_function();
             
             /* Inform user */
-            sh1122_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"Done! Please reboot device!", FALSE);
+            oled_put_string_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_CENTER, u"Done! Please reboot device!", FALSE);
             timer_delay_ms(2000);
             return;
         }
@@ -823,8 +823,8 @@ void debug_setup_dev_card(void)
 */
 void debug_smartcard_test(void)
 {
-    sh1122_clear_current_screen(&plat_oled_descriptor);
-    sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please insert a blank card", FALSE);
+    oled_clear_current_screen(&plat_oled_descriptor);
+    oled_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please insert a blank card", FALSE);
     
     while(1)
     {
@@ -853,8 +853,8 @@ void debug_smartcard_test(void)
                     memcpy((void*)random_data, plat_acc_descriptor.fifo_read.acc_data_array, sizeof(random_data));
                     
                     /* Stats show */
-                    sh1122_clear_current_screen(&plat_oled_descriptor);
-                    sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Testing...", FALSE);
+                    oled_clear_current_screen(&plat_oled_descriptor);
+                    oled_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Testing...", FALSE);
                     sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "%d/%d OK", success_count, i);
                     
                     /* Reset card */
@@ -888,8 +888,8 @@ void debug_smartcard_test(void)
 */
 void debug_smartcard_info(void)
 {
-    sh1122_clear_current_screen(&plat_oled_descriptor);
-    sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please insert card", FALSE);
+    oled_clear_current_screen(&plat_oled_descriptor);
+    oled_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Please insert card", FALSE);
     
     while(1)
     {
@@ -902,7 +902,7 @@ void debug_smartcard_info(void)
         if (se_smartcard_is_se_plugged() == RETURN_JDETECT)
         {
             /* Erase screen */
-            sh1122_clear_current_screen(&plat_oled_descriptor);
+            oled_clear_current_screen(&plat_oled_descriptor);
             
             /* Get detection result */
             mooltipass_card_detect_return_te detection_result = smartcard_highlevel_card_detected_routine();
@@ -910,23 +910,23 @@ void debug_smartcard_info(void)
             /* Inform what the card is */
             if (detection_result == RETURN_MOOLTIPASS_INVALID)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Invalid Card", FALSE);
+                oled_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Invalid Card", FALSE);
             }
             else if (detection_result == RETURN_MOOLTIPASS_PB)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Problem with card", FALSE);
+                oled_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Problem with card", FALSE);
             }
             else if (detection_result == RETURN_MOOLTIPASS_BLANK)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Blank card", FALSE);
+                oled_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Blank card", FALSE);
             }
             else if (detection_result == RETURN_MOOLTIPASS_USER)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"User card", FALSE);
+                oled_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"User card", FALSE);
             }    
             else if (detection_result == RETURN_MOOLTIPASS_BLOCKED)
             {
-                sh1122_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Blocked card", FALSE);
+                oled_put_string_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_CENTER, u"Blocked card", FALSE);
             }    
             
             /* Card debug info */
@@ -986,17 +986,17 @@ void debug_language_test(void)
         {
             custom_fs_set_current_language(i);
             custom_fs_get_string_from_file(0, &temp_string, FALSE);
-            sh1122_set_emergency_font(&plat_oled_descriptor);
-            sh1122_clear_current_screen(&plat_oled_descriptor);
+            oled_set_emergency_font(&plat_oled_descriptor);
+            oled_clear_current_screen(&plat_oled_descriptor);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "%d/%d : ", i+1, custom_fs_flash_header.language_map_item_count);
-            sh1122_put_string_xy(&plat_oled_descriptor, 40, 0, OLED_ALIGN_LEFT, custom_fs_get_current_language_text_desc(), FALSE);            
+            oled_put_string_xy(&plat_oled_descriptor, 40, 0, OLED_ALIGN_LEFT, custom_fs_get_current_language_text_desc(), FALSE);            
             sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "String file ID: %d", custom_fs_cur_language_entry.string_file_index);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "Start font file ID: %d", custom_fs_cur_language_entry.starting_font);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 30, OLED_ALIGN_LEFT, FALSE, "Start bitmap file ID: %d", custom_fs_cur_language_entry.starting_bitmap);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 40, OLED_ALIGN_LEFT, FALSE, "Recommended keyboard file ID: %d", custom_fs_cur_language_entry.keyboard_layout_id);
             sh1122_printf_xy(&plat_oled_descriptor, 0, 50, OLED_ALIGN_LEFT, FALSE, "Line #0:");
-            sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
-            sh1122_put_string_xy(&plat_oled_descriptor, 50, 50, OLED_ALIGN_LEFT, temp_string, FALSE);
+            oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
+            oled_put_string_xy(&plat_oled_descriptor, 50, 50, OLED_ALIGN_LEFT, temp_string, FALSE);
             
             /* Return ? */
             timer_start_timer(TIMER_ANIMATIONS, 2000);
@@ -1004,7 +1004,7 @@ void debug_language_test(void)
             {
                 if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
                 {
-                    sh1122_set_emergency_font(&plat_oled_descriptor);
+                    oled_set_emergency_font(&plat_oled_descriptor);
                     return;
                 }                
             }
@@ -1021,7 +1021,7 @@ void debug_debug_animation(void)
     {
         for (uint16_t i = 0; i < 120; i++)
         {
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
             
             /* Return ? */
             if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_SHORT_CLICK)
@@ -1061,7 +1061,7 @@ void debug_debug_screen(void)
         sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
         sh1122_clear_frame_buffer(&plat_oled_descriptor);
         #else
-        sh1122_clear_current_screen(&plat_oled_descriptor);
+        oled_clear_current_screen(&plat_oled_descriptor);
         #endif
         stat_times[1] = timer_get_systick();
         
@@ -1115,13 +1115,13 @@ void debug_debug_screen(void)
         #ifndef EMULATOR_BUILD
         if (ACC_SERCOM->SPI.STATUS.bit.BUFOVF != 0)
         {
-            sh1122_put_error_string(&plat_oled_descriptor, u"ACC Overflow");      
+            oled_put_error_string(&plat_oled_descriptor, u"ACC Overflow");      
         }
         
         /* Check for aux comms SERCOM buffer overflow */
         if (AUXMCU_SERCOM->SPI.STATUS.bit.BUFOVF != 0)
         {
-            sh1122_put_error_string(&plat_oled_descriptor, u"AUX COM Overflow");      
+            oled_put_error_string(&plat_oled_descriptor, u"AUX COM Overflow");      
         }
         #endif
         
@@ -1215,7 +1215,7 @@ void debug_mcu_and_aux_info(void)
     }
     
     /* Print info */
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Main MCU, fw %d.%d", FW_MAJOR, FW_MINOR);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "DID 0x%08x (%s), rev %c", DSU->DID.reg, part_number, 'A' + DSU->DID.bit.REVISION);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "UID: 0x%08x%08x%08x%08x", *(uint32_t*)0x0080A00C, *(uint32_t*)0x0080A040, *(uint32_t*)0x0080A044, *(uint32_t*)0x0080A048);
@@ -1295,7 +1295,7 @@ void debug_rf_dtm_rx(void)
     {
         if (redraw_needed != FALSE)
         {
-            sh1122_clear_current_screen(&plat_oled_descriptor);
+            oled_clear_current_screen(&plat_oled_descriptor);
             
             /* Line 1: frequency index */
             sh1122_printf_xy(&plat_oled_descriptor, 10, 0, OLED_ALIGN_LEFT, FALSE, "Frequency Index: %d", frequency_index);
@@ -1345,18 +1345,18 @@ void debug_rf_dtm_rx(void)
     /* Depending on display options */
     if (screen_contents == 0)
     {
-        sh1122_clear_current_screen(&plat_oled_descriptor);
+        oled_clear_current_screen(&plat_oled_descriptor);
         sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Receiving...");
     }
     else if (screen_contents == 1)
     {
-        sh1122_clear_current_screen(&plat_oled_descriptor);
-        sh1122_oled_off(&plat_oled_descriptor);
+        oled_clear_current_screen(&plat_oled_descriptor);
+        oled_off(&plat_oled_descriptor);
     }
     else if (screen_contents == 2)
     {
-        sh1122_clear_current_screen(&plat_oled_descriptor);
-        sh1122_oled_off(&plat_oled_descriptor);
+        oled_clear_current_screen(&plat_oled_descriptor);
+        oled_off(&plat_oled_descriptor);
         platform_io_power_down_oled();
     }
     
@@ -1374,12 +1374,12 @@ void debug_rf_dtm_rx(void)
         {
             if (screen_contents == 1)
             {
-                sh1122_oled_on(&plat_oled_descriptor);
+                oled_on(&plat_oled_descriptor);
             }
             else if (screen_contents == 2)
             {
                 platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
-                sh1122_oled_on(&plat_oled_descriptor);
+                oled_on(&plat_oled_descriptor);
             }
             
             /* Send message to stop */
@@ -1389,7 +1389,7 @@ void debug_rf_dtm_rx(void)
             while(comms_aux_mcu_active_wait(&temp_rx_message_pt, AUX_MCU_MSG_TYPE_AUX_MCU_EVENT, FALSE, AUX_MCU_EVENT_RX_DTM_DONE) != RETURN_OK){}
                 
             /* Display number of received packets */
-            sh1122_clear_current_screen(&plat_oled_descriptor);
+            oled_clear_current_screen(&plat_oled_descriptor);
             sh1122_printf_xy(&plat_oled_descriptor, 10, 30, OLED_ALIGN_LEFT, FALSE, "Received packets: %d", temp_rx_message_pt->aux_mcu_event_message.payload_as_uint16[0]);
             
             /* Wait for click */
@@ -1430,7 +1430,7 @@ void debug_rf_freq_sweep(void)
     {        
         if (redraw_needed != FALSE)
         {
-            sh1122_clear_current_screen(&plat_oled_descriptor);
+            oled_clear_current_screen(&plat_oled_descriptor);
             
             /* Line 1: frequency index */
             if (frequency_index < 0)
@@ -1507,18 +1507,18 @@ void debug_rf_freq_sweep(void)
     /* Depending on display options */
     if (screen_contents == 0)
     {
-        sh1122_clear_current_screen(&plat_oled_descriptor);
+        oled_clear_current_screen(&plat_oled_descriptor);
         sh1122_printf_xy(&plat_oled_descriptor, 0, 25, OLED_ALIGN_CENTER, FALSE, "Currently sweeping...");
     } 
     else if (screen_contents == 1)
     {
-        sh1122_clear_current_screen(&plat_oled_descriptor);
-        sh1122_oled_off(&plat_oled_descriptor);
+        oled_clear_current_screen(&plat_oled_descriptor);
+        oled_off(&plat_oled_descriptor);
     }
     else if (screen_contents == 2)
     {
-        sh1122_clear_current_screen(&plat_oled_descriptor);
-        sh1122_oled_off(&plat_oled_descriptor);
+        oled_clear_current_screen(&plat_oled_descriptor);
+        oled_off(&plat_oled_descriptor);
         platform_io_power_down_oled();
     }
     
@@ -1570,12 +1570,12 @@ void debug_rf_freq_sweep(void)
         {
             if (screen_contents == 1)
             {
-                sh1122_oled_on(&plat_oled_descriptor);
+                oled_on(&plat_oled_descriptor);
             }
             else if (screen_contents == 2)
             {
                 platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
-                sh1122_oled_on(&plat_oled_descriptor);
+                oled_on(&plat_oled_descriptor);
             }
             
             /* Send message to stop */
@@ -1612,7 +1612,7 @@ void debug_atbtlc_info(void)
     while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_PLAT_DETAILS, FALSE, -1) != RETURN_OK){}
         
     /* Output debug info */
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 00, OLED_ALIGN_LEFT, FALSE, "BluSDK Lib: %X.%X", temp_rx_message->aux_details_message.blusdk_lib_maj, temp_rx_message->aux_details_message.blusdk_lib_min);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, FALSE, "ATBTLC Fw: %X.%X, Build %X", temp_rx_message->aux_details_message.blusdk_fw_maj, temp_rx_message->aux_details_message.blusdk_fw_min, temp_rx_message->aux_details_message.blusdk_fw_build);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 20, OLED_ALIGN_LEFT, FALSE, "ATBTLC RF Ver: 0x%8X", (unsigned int)temp_rx_message->aux_details_message.atbtlc_rf_ver);
@@ -1647,16 +1647,16 @@ void debug_glyphs_show(void)
     while (TRUE)
     {
         /* Clear screen */
-        sh1122_clear_current_screen(&plat_oled_descriptor);
+        oled_clear_current_screen(&plat_oled_descriptor);
 
         /* Set Emergency Font */
-        sh1122_set_emergency_font(&plat_oled_descriptor);
+        oled_set_emergency_font(&plat_oled_descriptor);
 
         /* Show current font ID */
         sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Font #%d: ", current_font);
 
         /* Set current font */
-        sh1122_refresh_used_font(&plat_oled_descriptor, current_font);
+        oled_refresh_used_font(&plat_oled_descriptor, current_font);
         
         /* Dirty hack: set '?' support to FALSE so non supported chars aren't replaced with it */
         plat_oled_descriptor.question_mark_support_described = FALSE;
@@ -1666,7 +1666,7 @@ void debug_glyphs_show(void)
         plat_oled_descriptor.cur_text_y = 0;
 
         /* Display all chars */
-        while(sh1122_put_char(&plat_oled_descriptor, current_char++, FALSE) >= 0);
+        while(oled_put_char(&plat_oled_descriptor, current_char++, FALSE) >= 0);
         
         /* Get action */
         action_ret = inputs_get_wheel_action(TRUE, FALSE);
@@ -1675,18 +1675,18 @@ void debug_glyphs_show(void)
         if (action_ret == WHEEL_ACTION_LONG_CLICK)
         {
             plat_oled_descriptor.question_mark_support_described = TRUE;
-            sh1122_set_emergency_font(&plat_oled_descriptor);
+            oled_set_emergency_font(&plat_oled_descriptor);
             plat_oled_descriptor.line_feed_allowed = FALSE;
             return;
         }
         else if (action_ret == WHEEL_ACTION_UP)
         {
-            while(sh1122_refresh_used_font(&plat_oled_descriptor, --current_font) != RETURN_OK);
+            while(oled_refresh_used_font(&plat_oled_descriptor, --current_font) != RETURN_OK);
             current_char = ' ';
         }
         else if (action_ret == WHEEL_ACTION_DOWN)
         {
-            while(sh1122_refresh_used_font(&plat_oled_descriptor, ++current_font) != RETURN_OK);
+            while(oled_refresh_used_font(&plat_oled_descriptor, ++current_font) != RETURN_OK);
             current_char = ' ';
         }
     }
@@ -1719,22 +1719,22 @@ void debug_glyph_scroll(void)
                 cur_glyph++;
             }
         }
-        while(sh1122_get_glyph_width(&plat_oled_descriptor, (cust_char_t)cur_glyph, &temp_uint16) == 0);
+        while(oled_get_glyph_width(&plat_oled_descriptor, (cust_char_t)cur_glyph, &temp_uint16) == 0);
         
         /* Clear screen */
-        sh1122_clear_current_screen(&plat_oled_descriptor);
+        oled_clear_current_screen(&plat_oled_descriptor);
         
         /* Set Emergency Font */
-        sh1122_set_emergency_font(&plat_oled_descriptor);
+        oled_set_emergency_font(&plat_oled_descriptor);
         
         /* Print glyph */
         sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Font %d, glyph %d: ", current_font, cur_glyph);
 
         /* Set current font */
-        sh1122_refresh_used_font(&plat_oled_descriptor, current_font);
+        oled_refresh_used_font(&plat_oled_descriptor, current_font);
                 
         /* Print glyph */
-        sh1122_put_char(&plat_oled_descriptor, cur_glyph, FALSE);
+        oled_put_char(&plat_oled_descriptor, cur_glyph, FALSE);
         
         /* Get action */
         action_ret = inputs_get_wheel_action(TRUE, FALSE);
@@ -1743,12 +1743,12 @@ void debug_glyph_scroll(void)
         if (action_ret == WHEEL_ACTION_LONG_CLICK)
         {
             plat_oled_descriptor.question_mark_support_described = TRUE;
-            sh1122_set_emergency_font(&plat_oled_descriptor);
+            oled_set_emergency_font(&plat_oled_descriptor);
             return;
         }
         else if (action_ret == WHEEL_ACTION_SHORT_CLICK)
         {
-            while(sh1122_refresh_used_font(&plat_oled_descriptor, ++current_font) != RETURN_OK);
+            while(oled_refresh_used_font(&plat_oled_descriptor, ++current_font) != RETURN_OK);
             cur_glyph = ' ';
         }
     }
@@ -1774,7 +1774,7 @@ void debug_nimh_status(void)
         sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
         sh1122_clear_frame_buffer(&plat_oled_descriptor);
         #else
-        sh1122_clear_current_screen(&plat_oled_descriptor);
+        oled_clear_current_screen(&plat_oled_descriptor);
         #endif
         
         /* Line 1 & 2: Discharge / Charge type with information */
@@ -1852,7 +1852,7 @@ void debug_nimh_charging(void)
     aux_mcu_message_t* temp_tx_message_pt;
     
     /* Clear screen */
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     memset((void*)ystarts, 63, sizeof(ystarts));
     
     /* Send battery charge message */
@@ -1892,7 +1892,7 @@ void debug_nimh_charging(void)
             while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE, -1) != RETURN_OK){}
             
             /* Clear screen */
-            sh1122_clear_current_screen(&plat_oled_descriptor);
+            oled_clear_current_screen(&plat_oled_descriptor);
             
             /* Debug info */
             if (logic_power_get_power_source() == BATTERY_POWERED)
@@ -1950,7 +1950,7 @@ void debug_nimh_charging(void)
             /* Draw graph */
             for (uint16_t x = 0; x < 256; x++)
             {
-                sh1122_draw_vertical_line(&plat_oled_descriptor, x, ystarts[x], 63, 0x04, FALSE);
+                oled_draw_vertical_line(&plat_oled_descriptor, x, ystarts[x], 63, 0x04, FALSE);
             }
             
             if (temp_rx_message->nimh_charge_message.charge_status == LB_CHARGING_DONE)
@@ -1990,7 +1990,7 @@ void debug_stack_info(void)
     uint32_t aux_mcu_stack_low_watermark = 0;
 
     /* Print info */
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     sh1122_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, FALSE, "Stack Usage Low Watermarks");
 
     /* Prepare status message request */

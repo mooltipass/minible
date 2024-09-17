@@ -14,6 +14,7 @@
 #include "logic_aux_mcu.h"
 #include "driver_clocks.h"
 #include "comms_aux_mcu.h"
+#include "oled_wrapper.h"
 #include "driver_timer.h"
 #include "logic_device.h"
 #include "gui_prompts.h"
@@ -27,7 +28,6 @@
 #include "lis2hh12.h"
 #include "nodemgmt.h"
 #include "dbflash.h"
-#include "sh1122.h"
 #include "inputs.h"
 #include "utils.h"
 #include "fuses.h"
@@ -38,7 +38,7 @@
 
 /* Our oled & dataflash & dbflash descriptors */
 accelerometer_descriptor_t plat_acc_descriptor = {.sercom_pt = ACC_SERCOM, .cs_pin_group = ACC_nCS_GROUP, .cs_pin_mask = ACC_nCS_MASK, .int_pin_group = ACC_INT_GROUP, .int_pin_mask = ACC_INT_MASK, .evgen_sel = ACC_EV_GEN_SEL, .evgen_channel = ACC_EV_GEN_CHANNEL, .dma_channel = 3};
-sh1122_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigger_id = OLED_DMA_SERCOM_TX_TRIG, .sh1122_cs_pin_group = OLED_nCS_GROUP, .sh1122_cs_pin_mask = OLED_nCS_MASK, .sh1122_cd_pin_group = OLED_CD_GROUP, .sh1122_cd_pin_mask = OLED_CD_MASK};
+oled_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigger_id = OLED_DMA_SERCOM_TX_TRIG, .sh1122_cs_pin_group = OLED_nCS_GROUP, .sh1122_cs_pin_mask = OLED_nCS_MASK, .sh1122_cd_pin_group = OLED_CD_GROUP, .sh1122_cd_pin_mask = OLED_CD_MASK};
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 /* A wheel action that may be used to pass to our GUI routine */
@@ -236,7 +236,7 @@ void main_platform_init(void)
         logic_power_set_power_source(USB_POWERED);
         platform_io_power_up_oled(TRUE);
     }
-    sh1122_init_display(&plat_oled_descriptor, FALSE, logic_device_get_screen_current_for_current_use());
+    oled_init_display(&plat_oled_descriptor, FALSE, logic_device_get_screen_current_for_current_use());
     
     /* Release aux MCU reset (v2 platform only) */
     platform_io_release_aux_reset();
@@ -244,28 +244,28 @@ void main_platform_init(void)
     /* Check initialization results */
     if (custom_fs_return == CUSTOM_FS_INIT_NO_RWEE)
     {
-        sh1122_put_error_string(&plat_oled_descriptor, u"No RWWE");
+        oled_put_error_string(&plat_oled_descriptor, u"No RWWE");
         while(1);        
     }    
     
     /* Check for data flash */
     if (dataflash_init_return != RETURN_OK)
     {
-        sh1122_put_error_string(&plat_oled_descriptor, u"No Dataflash");
+        oled_put_error_string(&plat_oled_descriptor, u"No Dataflash");
         while(1);
     }
     
     /* Check for DB flash */
     if (dbflash_check_presence(&dbflash_descriptor) != RETURN_OK)
     {
-        sh1122_put_error_string(&plat_oled_descriptor, u"No DB Flash");
+        oled_put_error_string(&plat_oled_descriptor, u"No DB Flash");
         while(1);
     }
     
     /* Check for accelerometer presence */
     if (lis2hh12_check_presence_and_configure(&plat_acc_descriptor) != RETURN_OK)
     {
-        sh1122_put_error_string(&plat_oled_descriptor, u"No Accelerometer");
+        oled_put_error_string(&plat_oled_descriptor, u"No Accelerometer");
         while(1);
     }
 
@@ -286,7 +286,7 @@ void main_platform_init(void)
             BOOL prev_usb_present_state = platform_io_is_usb_3v3_present_raw();
             if (comms_aux_mcu_send_receive_ping() != RETURN_OK)
             {
-                sh1122_put_error_string(&plat_oled_descriptor, u"No Aux MCU");
+                oled_put_error_string(&plat_oled_descriptor, u"No Aux MCU");
                 uint16_t battery_rescue_mode_counter = 0;
                 while(1)
                 {
@@ -303,8 +303,8 @@ void main_platform_init(void)
                         /* Dangerously directly pipe the PWMed LDO 3V3 output into the battery, averaging at 40mA (measured) */
                         if ((battery_rescue_mode_counter++ == 5) && (prev_usb_present_state != FALSE))
                         {
-                            sh1122_clear_current_screen(&plat_oled_descriptor);
-                            sh1122_put_error_string(&plat_oled_descriptor, u"Recovery in progress");
+                            oled_clear_current_screen(&plat_oled_descriptor);
+                            oled_put_error_string(&plat_oled_descriptor, u"Recovery in progress");
                             /* PWM for 2 hours, doesn't get uglier than this */
                             for (uint32_t i = 0; i < 36000000UL; i++)
                             {
@@ -313,8 +313,8 @@ void main_platform_init(void)
                                 platform_io_disable_vbat_to_oled_stepup();
                                 DELAYUS(100);
                             }
-                            sh1122_clear_current_screen(&plat_oled_descriptor);
-                            sh1122_put_error_string(&plat_oled_descriptor, u"Disconnect USB");
+                            oled_clear_current_screen(&plat_oled_descriptor);
+                            oled_put_error_string(&plat_oled_descriptor, u"Disconnect USB");
                         }
                     }
                 }
@@ -383,16 +383,16 @@ void main_platform_init(void)
             /* In the past we had some units passing func test but having a failed ACC later on */
             if (logic_accelerometer_routine() == ACC_FAILING)
             {
-                sh1122_clear_current_screen(&plat_oled_descriptor);
-                sh1122_put_error_string(&plat_oled_descriptor, u"LIS2HH12 failed!");
+                oled_clear_current_screen(&plat_oled_descriptor);
+                oled_put_error_string(&plat_oled_descriptor, u"LIS2HH12 failed!");
                 timer_delay_ms(20000);
             }
             
             /* Our assembler may solder the battery after the functional test */
             if (logic_power_get_battery_state() == BATTERY_ERROR)
             {
-                sh1122_clear_current_screen(&plat_oled_descriptor);
-                sh1122_put_error_string(&plat_oled_descriptor, u"Battery error!");
+                oled_clear_current_screen(&plat_oled_descriptor);
+                oled_put_error_string(&plat_oled_descriptor, u"Battery error!");
                 timer_delay_ms(20000);                
             }
         }
@@ -400,7 +400,7 @@ void main_platform_init(void)
         custom_fs_set_device_flag_value(RF_TESTING_PASSED_FLAG_ID, TRUE);
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DTM_STOP);
         comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_TX_SWEEP_DONE);
-        sh1122_clear_current_screen(&plat_oled_descriptor);
+        oled_clear_current_screen(&plat_oled_descriptor);
         logic_gui_disable_bluetooth(FALSE);
         #ifdef OLED_INTERNAL_FRAME_BUFFER
         sh1122_clear_frame_buffer(&plat_oled_descriptor);
@@ -415,7 +415,7 @@ void main_platform_init(void)
     if ((custom_fs_init_return != RETURN_OK) || (bundle_integrity_check_return != RETURN_OK))
     #endif
     {
-        sh1122_put_error_string(&plat_oled_descriptor, u"No Bundle");
+        oled_put_error_string(&plat_oled_descriptor, u"No Bundle");
         uint16_t temp_timer_id = timer_get_and_start_timer(30000);
         
         /* Inform AUX MCU that we're in a pickle */
@@ -466,7 +466,7 @@ void main_platform_init(void)
     
     /* Apply possible screen inversion */
     BOOL screen_inverted = logic_power_get_power_source() == BATTERY_POWERED?(BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_BATTERY):(BOOL)custom_fs_settings_get_device_setting(SETTINGS_LEFT_HANDED_ON_USB);
-    sh1122_set_screen_invert(&plat_oled_descriptor, screen_inverted);    
+    oled_set_screen_invert(&plat_oled_descriptor, screen_inverted);    
     inputs_set_inputs_invert_bool(screen_inverted);
     
     /* Program AUX if needed */
@@ -543,7 +543,7 @@ void main_platform_init(void)
         }
         
         /* Clear frame buffer */
-        sh1122_fade_into_darkness(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+        oled_fade_into_darkness(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
         
         /* Reset settings (leave disabled, no real need) */
         //custom_fs_set_undefined_settings(TRUE);
@@ -611,7 +611,7 @@ void main_reboot(void)
     comms_aux_mcu_wait_for_message_sent();
     
     /* Power Off OLED screen */
-    sh1122_oled_off(&plat_oled_descriptor);
+    oled_off(&plat_oled_descriptor);
     platform_io_power_down_oled();
     
     /* No comms */
@@ -666,7 +666,7 @@ void main_standby_sleep(void)
         dataflash_power_down(&dataflash_descriptor);
     
         /* Switch off OLED */
-        sh1122_oled_off(&plat_oled_descriptor);
+        oled_off(&plat_oled_descriptor);
         platform_io_power_down_oled();
     
         /* Errata 10416: disable interrupt routines */
@@ -747,7 +747,7 @@ void main_standby_sleep(void)
         {
             /* User action: switch on OLED screen */
             platform_io_power_up_oled(platform_io_is_usb_3v3_present_raw());
-            sh1122_oled_on(&plat_oled_descriptor);
+            oled_on(&plat_oled_descriptor);
             logic_device_activity_detected();
         }
     
@@ -783,7 +783,7 @@ int main(void)
         for (uint16_t i = GUI_ANIMATION_FFRAME_ID; i < GUI_ANIMATION_NBFRAMES; i++)
         {
             timer_start_timer(TIMER_ANIMATIONS, 28);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, i, FALSE);
             while(timer_has_timer_expired(TIMER_ANIMATIONS, TRUE) == TIMER_RUNNING)
             {
                 logic_power_check_power_switch_and_battery(FALSE);
@@ -831,7 +831,7 @@ int main(void)
         /* Should we power off ASAP? */
         if ((main_should_power_off_asap != FALSE) && (platform_io_is_usb_3v3_present_raw() == FALSE))
         {
-            sh1122_oled_off(&plat_oled_descriptor);
+            oled_off(&plat_oled_descriptor);
             platform_io_power_down_oled();
             timer_delay_ms(100);
             platform_io_cutoff_power();
@@ -1080,7 +1080,7 @@ int main(void)
         }
 
         /* Accelerometer routine */
-        BOOL is_screen_on_copy = sh1122_is_oled_on(&plat_oled_descriptor);
+        BOOL is_screen_on_copy = oled_is_oled_on(&plat_oled_descriptor);
         BOOL is_screen_saver_on_copy = gui_dispatcher_is_screen_saver_running();
         acc_detection_te accelerometer_routine_return = logic_accelerometer_routine();
         if (accelerometer_routine_return == ACC_FAILING)
@@ -1119,7 +1119,7 @@ int main(void)
             /* Make sure we're not harassing the user */
             if (timer_has_timer_expired(TIMER_HANDED_MODE_CHANGE, FALSE) == TIMER_EXPIRED)
             {
-                sh1122_set_screen_invert(&plat_oled_descriptor, invert_bool);
+                oled_set_screen_invert(&plat_oled_descriptor, invert_bool);
                 inputs_set_inputs_invert_bool(invert_bool);
                 
                 /* Ask the user to change mode */
@@ -1134,7 +1134,7 @@ int main(void)
                 else if (prompt_return == MINI_INPUT_RET_YES)
                 {
                     /* Invert screen and inputs */
-                    sh1122_set_screen_invert(&plat_oled_descriptor, invert_bool);
+                    oled_set_screen_invert(&plat_oled_descriptor, invert_bool);
                     inputs_set_inputs_invert_bool(invert_bool);
                     
                     /* Store settings */
@@ -1150,7 +1150,7 @@ int main(void)
                 {
                     /* Wait before asking again */
                     timer_start_timer(TIMER_HANDED_MODE_CHANGE, 30000);
-                    sh1122_set_screen_invert(&plat_oled_descriptor, !invert_bool);
+                    oled_set_screen_invert(&plat_oled_descriptor, !invert_bool);
                     inputs_set_inputs_invert_bool(!invert_bool);
                 }
                 gui_dispatcher_get_back_to_current_screen();

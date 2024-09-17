@@ -22,10 +22,10 @@
 #include "platform_defines.h"
 #include "logic_bluetooth.h"
 #include "gui_dispatcher.h"
+#include "oled_wrapper.h"
 #include "gui_carousel.h"
 #include "driver_timer.h"
 #include "logic_power.h"
-#include "sh1122.h"
 #include "main.h"
 #include <stdlib.h>
 /* Carousel spacing depending on number of elemnts */
@@ -48,7 +48,7 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
     /* Clear frame buffer */
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     #endif
     
     /* Allow wrapping */
@@ -68,7 +68,7 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
         if (i == nb_elements/2)
         {
             /* Center icon */
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_BIG_EDGE-abs(anim_step)*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[cur_icon_index] + abs(anim_step), TRUE);
+            oled_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_BIG_EDGE-abs(anim_step)*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[cur_icon_index] + abs(anim_step), TRUE);
             cur_display_x += CAROUSEL_BIG_EDGE - abs(anim_step)*CAROUSEL_Y_ANIM_STEP*2;
         }
         else if (i == (nb_elements/2)-1)
@@ -76,12 +76,12 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
             /* Left to the center icon */
             if (anim_step < 0)
             {
-                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE-anim_step*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[cur_icon_index] + (CAROUSEL_NB_SCALED_ICONS/2) + anim_step, TRUE);
+                oled_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE-anim_step*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[cur_icon_index] + (CAROUSEL_NB_SCALED_ICONS/2) + anim_step, TRUE);
                 cur_display_x += CAROUSEL_MID_EDGE - anim_step*CAROUSEL_Y_ANIM_STEP*2;
             }
             else
             {
-                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE-anim_step*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[cur_icon_index] + (CAROUSEL_NB_SCALED_ICONS/2) + anim_step, TRUE);
+                oled_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE-anim_step*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[cur_icon_index] + (CAROUSEL_NB_SCALED_ICONS/2) + anim_step, TRUE);
                 cur_display_x += CAROUSEL_MID_EDGE - anim_step*CAROUSEL_Y_ANIM_STEP;
             }
         }
@@ -90,23 +90,23 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
             /* Right to the center icon */
             if (anim_step < 0)
             {
-                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE+anim_step*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[cur_icon_index] + (CAROUSEL_NB_SCALED_ICONS/2) - anim_step, TRUE);
+                oled_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE+anim_step*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[cur_icon_index] + (CAROUSEL_NB_SCALED_ICONS/2) - anim_step, TRUE);
                 cur_display_x += CAROUSEL_MID_EDGE + anim_step*CAROUSEL_Y_ANIM_STEP;
             }
             else
             {
-                sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE+anim_step*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[cur_icon_index] + (CAROUSEL_NB_SCALED_ICONS/2) - anim_step, TRUE);
+                oled_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_MID_EDGE+anim_step*CAROUSEL_Y_ANIM_STEP*2)/2, pic_ids[cur_icon_index] + (CAROUSEL_NB_SCALED_ICONS/2) - anim_step, TRUE);
                 cur_display_x += CAROUSEL_MID_EDGE + anim_step*CAROUSEL_Y_ANIM_STEP*2;
             }
         }
         else if (((i == (nb_elements/2)-2) && (anim_step < 0)) || ((i == (nb_elements/2)+2) && (anim_step > 0)))
         {
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_SMALL_EDGE+abs(anim_step)*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[cur_icon_index] + CAROUSEL_NB_SCALED_ICONS - abs(anim_step) - 1, TRUE);
+            oled_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-(CAROUSEL_SMALL_EDGE+abs(anim_step)*CAROUSEL_Y_ANIM_STEP)/2, pic_ids[cur_icon_index] + CAROUSEL_NB_SCALED_ICONS - abs(anim_step) - 1, TRUE);
             cur_display_x += CAROUSEL_SMALL_EDGE + abs(anim_step)*CAROUSEL_Y_ANIM_STEP;
         }
         else
         {
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-CAROUSEL_SMALL_EDGE/2, pic_ids[cur_icon_index] + CAROUSEL_NB_SCALED_ICONS - 1, TRUE);
+            oled_display_bitmap_from_flash(&plat_oled_descriptor, cur_display_x, CAROUSEL_Y_ALIGN-CAROUSEL_SMALL_EDGE/2, pic_ids[cur_icon_index] + CAROUSEL_NB_SCALED_ICONS - 1, TRUE);
             cur_display_x += CAROUSEL_SMALL_EDGE;
         }
         
@@ -143,8 +143,8 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
         }
     }
     custom_fs_get_string_from_file(text_ids[selected_id], &temp_string, TRUE);
-    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
-    sh1122_put_string_xy(&plat_oled_descriptor, 0, 46, OLED_ALIGN_CENTER, temp_string, TRUE);
+    oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
+    oled_put_string_xy(&plat_oled_descriptor, 0, 46, OLED_ALIGN_CENTER, temp_string, TRUE);
     gui_dispatcher_display_battery_bt_overlay(TRUE);
     
     #ifdef OLED_INTERNAL_FRAME_BUFFER

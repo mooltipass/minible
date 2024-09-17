@@ -26,9 +26,9 @@
 #define MAIN_H_
 
 #include "platform_defines.h"
+#include "oled_wrapper.h"
 #include "lis2hh12.h"
 #include "defines.h"
-#include "sh1122.h"
 
 
 /* Prototypes */
@@ -40,7 +40,7 @@ void main_standby_sleep(void);
 void main_reboot(void);
 
 /* Global vars to access descriptors */
-extern sh1122_descriptor_t plat_oled_descriptor;
+extern oled_descriptor_t plat_oled_descriptor;
 extern accelerometer_descriptor_t plat_acc_descriptor;
 extern spi_flash_descriptor_t dataflash_descriptor;
 extern spi_flash_descriptor_t dbflash_descriptor;

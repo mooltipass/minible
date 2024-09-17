@@ -25,11 +25,12 @@
 #include "platform_defines.h"
 #include "logic_bluetooth.h"
 #include "logic_smartcard.h"
+#include "logic_bluetooth.h"
 #include "gui_dispatcher.h"
 #include "logic_security.h"
-#include "logic_bluetooth.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
+#include "oled_wrapper.h"
 #include "driver_timer.h"
 #include "logic_device.h"
 #include "logic_power.h"
@@ -39,7 +40,6 @@
 #include "logic_user.h"
 #include "custom_fs.h"
 #include "text_ids.h"
-#include "sh1122.h"
 #include "inputs.h"
 #include "utils.h"
 #include "main.h"
@@ -114,7 +114,7 @@ void logic_power_ms_tick(void)
     }
     
     /* Lifetime statistics: nb ms screen on */
-    if (sh1122_is_oled_on(&plat_oled_descriptor) != FALSE)
+    if (oled_is_oled_on(&plat_oled_descriptor) != FALSE)
     {
         if (logic_power_consumption_log.lifetime_log.lifetime_nb_ms_screen_on_lsb++ == UINT32_MAX)
         {
@@ -621,7 +621,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         #ifdef OLED_INTERNAL_FRAME_BUFFER
         sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
         #endif
-        sh1122_oled_off(&plat_oled_descriptor);
+        oled_off(&plat_oled_descriptor);
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
         comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_ATTACH_CMD_RCVD);
         platform_io_disable_vbat_to_oled_stepup();
@@ -630,7 +630,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         platform_io_assert_oled_reset();
         timer_delay_ms(15);
         platform_io_power_up_oled(TRUE);
-        sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
+        oled_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
         logic_device_activity_detected();
     }
     else if ((logic_power_get_power_source() == USB_POWERED) && (platform_io_is_usb_3v3_present() == FALSE))
@@ -649,7 +649,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         #ifdef OLED_INTERNAL_FRAME_BUFFER
         sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
         #endif
-        sh1122_oled_off(&plat_oled_descriptor);
+        oled_off(&plat_oled_descriptor);
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);
         comms_aux_mcu_wait_for_aux_event(AUX_MCU_EVENT_USB_DETACHED);
         platform_io_disable_3v3_to_oled_stepup();
@@ -660,7 +660,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         platform_io_assert_oled_reset();
         timer_delay_ms(15);
         platform_io_power_up_oled(FALSE);
-        sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
+        oled_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
         logic_device_activity_detected();
         
         /* Discard next 10 measurement */
@@ -846,7 +846,7 @@ void logic_power_routine(void)
         
         /* Out of battery! */
         gui_prompts_display_information_on_screen_and_wait(BATTERY_EMPTY_TEXT_ID, DISP_MSG_WARNING, FALSE);
-        sh1122_oled_off(&plat_oled_descriptor);
+        oled_off(&plat_oled_descriptor);
         platform_io_power_down_oled();
         timer_delay_ms(100);
         
@@ -926,12 +926,12 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
             if (platform_io_is_usb_3v3_present_raw() == FALSE)
             {
                 /* Switch to battery power for screen */
-                sh1122_oled_off(&plat_oled_descriptor);
+                oled_off(&plat_oled_descriptor);
                 platform_io_disable_3v3_to_oled_stepup();
                 platform_io_assert_oled_reset();
                 timer_delay_ms(15);
                 platform_io_power_up_oled(FALSE);
-                sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
+                oled_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
                 gui_dispatcher_get_back_to_current_screen();
                 logic_power_set_power_source(BATTERY_POWERED);
                 return RETURN_NOK;
@@ -940,19 +940,19 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
     }
     
     /* Switch to battery power for screen */
-    sh1122_oled_off(&plat_oled_descriptor);
+    oled_off(&plat_oled_descriptor);
     platform_io_disable_3v3_to_oled_stepup();
     platform_io_assert_oled_reset();
     timer_delay_ms(15);
     platform_io_power_up_oled(FALSE);
-    sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
+    oled_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
     
     /* Time stamp of beginning of discharge */
     uint32_t discharge_start_ts = timer_get_systick();
     
     /* Display animation until 1V at the cell */
     uint16_t current_vbat = UINT16_MAX;
-    sh1122_set_colors_invert(&plat_oled_descriptor, TRUE);
+    oled_set_colors_invert(&plat_oled_descriptor, TRUE);
     gui_prompts_display_information_on_screen(RECOND_DISCHARGE_TEXT_ID, DISP_MSG_INFO);
     while (current_vbat > BATTERY_1V_WHEN_MEASURED_FROM_MAIN_WITH_USB)
     {        
@@ -982,18 +982,18 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
             current_vbat = platform_io_get_voledin_conversion_result_and_trigger_conversion();
         }
     }
-    sh1122_set_colors_invert(&plat_oled_descriptor, FALSE);
+    oled_set_colors_invert(&plat_oled_descriptor, FALSE);
     
     /* Time stamp of end of discharge */
     *discharge_time = timer_get_systick() - discharge_start_ts;
     
     /* Switch back to USB power for screen */
-    sh1122_oled_off(&plat_oled_descriptor);
+    oled_off(&plat_oled_descriptor);
     platform_io_disable_vbat_to_oled_stepup();
     platform_io_assert_oled_reset();
     timer_delay_ms(15);
     platform_io_power_up_oled(TRUE);
-    sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
+    oled_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
 
     /* Battery rest */
     uint16_t temp_timer_id = timer_get_and_start_timer(10*60*1000);
@@ -1016,12 +1016,12 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
         if (platform_io_is_usb_3v3_present_raw() == FALSE)
         {
             /* Switch to battery power for screen */
-            sh1122_oled_off(&plat_oled_descriptor);
+            oled_off(&plat_oled_descriptor);
             platform_io_disable_3v3_to_oled_stepup();
             platform_io_assert_oled_reset();
             timer_delay_ms(15);
             platform_io_power_up_oled(FALSE);
-            sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
+            oled_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
             gui_dispatcher_get_back_to_current_screen();
             timer_deallocate_timer(temp_timer_id);
             return RETURN_NOK;
@@ -1056,12 +1056,12 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
         if (platform_io_is_usb_3v3_present_raw() == FALSE)
         {
             /* Switch to battery power for screen */
-            sh1122_oled_off(&plat_oled_descriptor);
+            oled_off(&plat_oled_descriptor);
             platform_io_disable_3v3_to_oled_stepup();
             platform_io_assert_oled_reset();
             timer_delay_ms(15);
             platform_io_power_up_oled(FALSE);
-            sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
+            oled_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
             gui_dispatcher_get_back_to_current_screen();
             return RETURN_NOK;
         }

@@ -24,7 +24,7 @@
 #define GUI_DISPATCHER_H_
 
 #include "defines.h"
-#include "sh1122.h"
+#include "oled_wrapper.h"
 
 /* Defines */
 // Bitmaps

@@ -23,12 +23,12 @@
 #include "logic_security.h"
 #include "driver_timer.h"
 #include "logic_device.h"
+#include "oled_wrapper.h"
 #include "logic_power.h"
 #include "logic_user.h"
 #include "custom_fs.h"
 #include "lis2hh12.h"
 #include "nodemgmt.h"
-#include "sh1122.h"
 #include "main.h"
 #include "rng.h"
 // xyz added value
@@ -189,12 +189,12 @@ acc_detection_te logic_accelerometer_scan_for_action_in_acc_read(void)
         if (++logic_accelerometer_avg_counter == ACC_Z_AVG_NB_SAMPLES)
         {
             /* Check if we need to reverse the screen */
-            if (((logic_accelerometer_x_added >> 8) > ACC_Y_TOTAL_NREVERSE) && (sh1122_is_screen_inverted(&plat_oled_descriptor) == FALSE))
+            if (((logic_accelerometer_x_added >> 8) > ACC_Y_TOTAL_NREVERSE) && (oled_is_screen_inverted(&plat_oled_descriptor) == FALSE))
             {
                 /* May be overwritten after but that's alright */
                 return_val = ACC_INVERT_SCREEN;
             }
-            else if (((logic_accelerometer_x_added >> 8) < ACC_Y_TOTAL_REVERSE) && (sh1122_is_screen_inverted(&plat_oled_descriptor) != FALSE))
+            else if (((logic_accelerometer_x_added >> 8) < ACC_Y_TOTAL_REVERSE) && (oled_is_screen_inverted(&plat_oled_descriptor) != FALSE))
             {
                 /* May be overwritten after but that's alright */
                 return_val = ACC_NINVERT_SCREEN;

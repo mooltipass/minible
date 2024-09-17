@@ -27,12 +27,12 @@
 #include "logic_aux_mcu.h"
 #include "logic_device.h"
 #include "driver_timer.h"
+#include "oled_wrapper.h"
 #include "platform_io.h"
 #include "logic_power.h"
 #include "logic_user.h"
 #include "custom_fs.h"
 #include "bearssl.h"
-#include "sh1122.h"
 #include "utils.h"
 #include "main.h"
 #include "rng.h"
@@ -176,7 +176,7 @@ volatile platform_wakeup_reason_te logic_device_get_wakeup_reason(void)
 void logic_device_power_off(void)
 {
     logic_power_power_down_actions();           // Power down actions
-    sh1122_oled_off(&plat_oled_descriptor);     // Display off command
+    oled_off(&plat_oled_descriptor);     // Display off command
     platform_io_power_down_oled();              // Switch off stepup
     platform_io_set_wheel_click_pull_down();    // Pull down on wheel click to slowly discharge capacitor
     timer_delay_ms(100);                        // From OLED datasheet wait before removing 3V3
@@ -214,7 +214,7 @@ void logic_device_activity_detected(void)
     }
     
     /* Check for screen off, switch it on if so */
-    if (sh1122_is_oled_on(&plat_oled_descriptor) == FALSE)
+    if (oled_is_oled_on(&plat_oled_descriptor) == FALSE)
     {
         if (platform_io_is_usb_3v3_present() == FALSE)
         {
@@ -227,7 +227,7 @@ void logic_device_activity_detected(void)
             platform_io_power_up_oled(TRUE);
         }
         
-        sh1122_oled_on(&plat_oled_descriptor);
+        oled_on(&plat_oled_descriptor);
     }
     
     /* Is screen saver running? */

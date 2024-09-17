@@ -2183,6 +2183,9 @@
     <Compile Include="src\OLED\mooltipass_graphics_bundle.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\OLED\oled_wrapper.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\OLED\sh1122.c">
       <SubType>compile</SubType>
     </Compile>

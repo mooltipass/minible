@@ -19,6 +19,9 @@
 *    Created:  30/12/2017
 *    Author:   Mathieu Stephan
 */
+#include "platform_defines.h"
+#ifndef MINIBLE_V2
+
 #include <stdarg.h>
 #include <string.h>
 #include <asf.h>
@@ -96,12 +99,12 @@ static const uint8_t sh1122_init_sequence_inverted[] =
 };
 
 
-/*! \fn     sh1122_write_single_command(sh1122_descriptor_t* oled_descriptor, uint8_t reg)
+/*! \fn     sh1122_write_single_command(oled_descriptor_t* oled_descriptor, uint8_t reg)
 *   \brief  Write a single command byte through the SPI
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  data                Byte to be sent
 */
-void sh1122_write_single_command(sh1122_descriptor_t* oled_descriptor, uint8_t reg)
+void sh1122_write_single_command(oled_descriptor_t* oled_descriptor, uint8_t reg)
 {
     PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTCLR.reg = oled_descriptor->sh1122_cs_pin_mask;
     PORT->Group[oled_descriptor->sh1122_cd_pin_group].OUTCLR.reg = oled_descriptor->sh1122_cd_pin_mask;
@@ -109,12 +112,12 @@ void sh1122_write_single_command(sh1122_descriptor_t* oled_descriptor, uint8_t r
     PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTSET.reg = oled_descriptor->sh1122_cs_pin_mask;
 }
 
-/*! \fn     sh1122_write_single_data(sh1122_descriptor_t* oled_descriptor, uint8_t data)
+/*! \fn     sh1122_write_single_data(oled_descriptor_t* oled_descriptor, uint8_t data)
 *   \brief  Write a single data byte through the SPI
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  data                Byte to be sent
 */
-void sh1122_write_single_data(sh1122_descriptor_t* oled_descriptor, uint8_t data)
+void sh1122_write_single_data(oled_descriptor_t* oled_descriptor, uint8_t data)
 {
     PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTCLR.reg = oled_descriptor->sh1122_cs_pin_mask;
     PORT->Group[oled_descriptor->sh1122_cd_pin_group].OUTSET.reg = oled_descriptor->sh1122_cd_pin_mask;
@@ -122,12 +125,12 @@ void sh1122_write_single_data(sh1122_descriptor_t* oled_descriptor, uint8_t data
     PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTSET.reg = oled_descriptor->sh1122_cs_pin_mask;
 }
 
-/*! \fn     sh1122_write_single_word(sh1122_descriptor_t* oled_descriptor, uint16_t data)
+/*! \fn     sh1122_write_single_word(oled_descriptor_t* oled_descriptor, uint16_t data)
 *   \brief  Write a single word byte through the SPI
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  data                uint16_t to be sent
 */
-void sh1122_write_single_word(sh1122_descriptor_t* oled_descriptor, uint16_t data)
+void sh1122_write_single_word(oled_descriptor_t* oled_descriptor, uint16_t data)
 {
     PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTCLR.reg = oled_descriptor->sh1122_cs_pin_mask;
     PORT->Group[oled_descriptor->sh1122_cd_pin_group].OUTSET.reg = oled_descriptor->sh1122_cd_pin_mask;
@@ -136,157 +139,157 @@ void sh1122_write_single_word(sh1122_descriptor_t* oled_descriptor, uint16_t dat
     PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTSET.reg = oled_descriptor->sh1122_cs_pin_mask;
 }
 
-/*! \fn     sh1122_start_data_sending(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_start_data_sending(oled_descriptor_t* oled_descriptor)
 *   \brief  Start data sending mode: assert nCS & CD pin
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_start_data_sending(sh1122_descriptor_t* oled_descriptor)
+void sh1122_start_data_sending(oled_descriptor_t* oled_descriptor)
 {
     PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTCLR.reg = oled_descriptor->sh1122_cs_pin_mask;
     PORT->Group[oled_descriptor->sh1122_cd_pin_group].OUTSET.reg = oled_descriptor->sh1122_cd_pin_mask;    
 }
 
-/*! \fn     sh1122_stop_data_sending(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_stop_data_sending(oled_descriptor_t* oled_descriptor)
 *   \brief  Start data sending mode: de-assert nCS
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_stop_data_sending(sh1122_descriptor_t* oled_descriptor)
+void sh1122_stop_data_sending(oled_descriptor_t* oled_descriptor)
 {
     PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTSET.reg = oled_descriptor->sh1122_cs_pin_mask;  
 }
 
-/*! \fn     sh1122_set_contrast_current(sh1122_descriptor_t* oled_descriptor, uint8_t contrast_current)
+/*! \fn     sh1122_set_contrast_current(oled_descriptor_t* oled_descriptor, uint8_t contrast_current)
 *   \brief  Set contrast current for display
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  contrast_current    Contrast current (up to 0xFF)
 */
-void sh1122_set_contrast_current(sh1122_descriptor_t* oled_descriptor, uint8_t contrast_current)
+void sh1122_set_contrast_current(oled_descriptor_t* oled_descriptor, uint8_t contrast_current)
 {
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_CONTRAST_CURRENT);
     sh1122_write_single_command(oled_descriptor, contrast_current);    
 }
 
-/*! \fn     sh1122_set_vcomh_level(sh1122_descriptor_t* oled_descriptor, uint8_t vcomh)
+/*! \fn     sh1122_set_vcomh_level(oled_descriptor_t* oled_descriptor, uint8_t vcomh)
 *   \brief  Set vcomh level
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  vcomh               VCOMH level (up to 0xFF)
 */
-void sh1122_set_vcomh_level(sh1122_descriptor_t* oled_descriptor, uint8_t vcomh)
+void sh1122_set_vcomh_level(oled_descriptor_t* oled_descriptor, uint8_t vcomh)
 {
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_VCOM_DESELECT_LEVEL);
     sh1122_write_single_command(oled_descriptor, vcomh);    
 }
 
-/*! \fn     sh1122_set_vsegm_level(sh1122_descriptor_t* oled_descriptor, uint8_t vsegm)
+/*! \fn     sh1122_set_vsegm_level(oled_descriptor_t* oled_descriptor, uint8_t vsegm)
 *   \brief  Set vsegm level
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  vsegm               VSEGM level (up to 0xFF)
 */
-void sh1122_set_vsegm_level(sh1122_descriptor_t* oled_descriptor, uint8_t vsegm)
+void sh1122_set_vsegm_level(oled_descriptor_t* oled_descriptor, uint8_t vsegm)
 {
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_VSEGM_LEVEL);
     sh1122_write_single_command(oled_descriptor, vsegm);    
 }
 
-/*! \fn     sh1122_set_discharge_charge_periods(sh1122_descriptor_t* oled_descriptor, uint8_t periods)
+/*! \fn     sh1122_set_discharge_charge_periods(oled_descriptor_t* oled_descriptor, uint8_t periods)
 *   \brief  Set discharge & charge periods
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  periods             4 bits for discharge, 4 bits for charge
 */
-void sh1122_set_discharge_charge_periods(sh1122_descriptor_t* oled_descriptor, uint8_t periods)
+void sh1122_set_discharge_charge_periods(oled_descriptor_t* oled_descriptor, uint8_t periods)
 {
     sh1122_write_single_command(oled_descriptor, SS1122_CMD_SET_DISCHARGE_PRECHARGE_PERIOD);
     sh1122_write_single_command(oled_descriptor, periods);    
 }
 
-/*! \fn     sh1122_set_discharge_vsl_level(sh1122_descriptor_t* oled_descriptor, uint8_t vsl_level)
+/*! \fn     sh1122_set_discharge_vsl_level(oled_descriptor_t* oled_descriptor, uint8_t vsl_level)
 *   \brief  Set discharge vsl level
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  vsl_level           Discharge VSL level (4 bits max)
 */
-void sh1122_set_discharge_vsl_level(sh1122_descriptor_t* oled_descriptor, uint8_t vsl_level)
+void sh1122_set_discharge_vsl_level(oled_descriptor_t* oled_descriptor, uint8_t vsl_level)
 {
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISCHARGE_VSL_LEVEL | vsl_level);
 }
 
-/*! \fn     sh1122_set_column_address(sh1122_descriptor_t* oled_descriptor, uint8_t start)
+/*! \fn     sh1122_set_column_address(oled_descriptor_t* oled_descriptor, uint8_t start)
 *   \brief  Set a selected column address range
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  start               Start column
 *   \param  end                 End column
 */
-void sh1122_set_column_address(sh1122_descriptor_t* oled_descriptor, uint8_t start)
+void sh1122_set_column_address(oled_descriptor_t* oled_descriptor, uint8_t start)
 {
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_HIGH_COLUMN_ADDR | (start >> 4));
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_LOW_COLUMN_ADDR | (start & 0x0F));
 }
 
-/*! \fn     sh1122_set_row_address(sh1122_descriptor_t* oled_descriptor, uint8_t start)
+/*! \fn     sh1122_set_row_address(oled_descriptor_t* oled_descriptor, uint8_t start)
 *   \brief  Set a selected column address range
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  start               Start row
 */
-void sh1122_set_row_address(sh1122_descriptor_t* oled_descriptor, uint8_t start)
+void sh1122_set_row_address(oled_descriptor_t* oled_descriptor, uint8_t start)
 {
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_ROW_ADDR);
     sh1122_write_single_command(oled_descriptor, start);
 }
 
-/*! \fn     sh1122_move_display_start_line(sh1122_descriptor_t* oled_descriptor, int16_t offset)
+/*! \fn     sh1122_move_display_start_line(oled_descriptor_t* oled_descriptor, int16_t offset)
 *   \brief  Shift the display start line
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  offset              Y offset for shift
 */
-void sh1122_move_display_start_line(sh1122_descriptor_t* oled_descriptor, int16_t offset)
+void sh1122_move_display_start_line(oled_descriptor_t* oled_descriptor, int16_t offset)
 {   
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_START_LINE | (uint8_t)offset);
 }
 
-/*! \fn     sh1122_is_oled_on(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_is_oled_on(oled_descriptor_t* oled_descriptor)
 *   \brief  Know if OLED is ON
 *   \return A boolean
 */
-BOOL sh1122_is_oled_on(sh1122_descriptor_t* oled_descriptor)
+BOOL sh1122_is_oled_on(oled_descriptor_t* oled_descriptor)
 {
     return oled_descriptor->oled_on;
 }
 
-/*! \fn     sh1122_oled_off(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_oled_off(oled_descriptor_t* oled_descriptor)
 *   \brief  Switch on the screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_oled_off(sh1122_descriptor_t* oled_descriptor)
+void sh1122_oled_off(oled_descriptor_t* oled_descriptor)
 {
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_OFF);
     oled_descriptor->oled_on = FALSE;
 }
 
-/*! \fn     sh1122_oled_on(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_oled_on(oled_descriptor_t* oled_descriptor)
 *   \brief  Switch on the screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_oled_on(sh1122_descriptor_t* oled_descriptor)
+void sh1122_oled_on(oled_descriptor_t* oled_descriptor)
 {
     sh1122_write_single_command(oled_descriptor, SH1122_CMD_SET_DISPLAY_ON);
     oled_descriptor->oled_on = TRUE;
 }
 
-/*! \fn     sh1122_load_transition(sh1122_descriptor_t* oled_descriptor, oled_transition_te transition)
+/*! \fn     sh1122_load_transition(oled_descriptor_t* oled_descriptor, oled_transition_te transition)
 *   \brief  Load transition when the next frame buffer flush occurs
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  transition          The transition
 */
-void sh1122_load_transition(sh1122_descriptor_t* oled_descriptor, oled_transition_te transition)
+void sh1122_load_transition(oled_descriptor_t* oled_descriptor, oled_transition_te transition)
 {
     oled_descriptor->loaded_transition = transition;
 }
 
-/*! \fn     sh1122_fade_into_darkness(sh1122_descriptor_t* oled_descriptor, oled_transition_te transition)
+/*! \fn     sh1122_fade_into_darkness(oled_descriptor_t* oled_descriptor, oled_transition_te transition)
 *   \brief  Fade display into black
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  transition          The transition
 */
-void sh1122_fade_into_darkness(sh1122_descriptor_t* oled_descriptor, oled_transition_te transition)
+void sh1122_fade_into_darkness(oled_descriptor_t* oled_descriptor, oled_transition_te transition)
 {
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_load_transition(oled_descriptor, transition);
@@ -295,50 +298,50 @@ void sh1122_fade_into_darkness(sh1122_descriptor_t* oled_descriptor, oled_transi
     #endif
 }
 
-/*! \fn     sh1122_set_min_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x)
+/*! \fn     sh1122_set_min_text_x(oled_descriptor_t* oled_descriptor, int16_t x)
 *   \brief  Set maximum text X position
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Min text x
 */
-void sh1122_set_min_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x)
+void sh1122_set_min_text_x(oled_descriptor_t* oled_descriptor, int16_t x)
 {
     oled_descriptor->min_text_x = x;
 }
 
-/*! \fn     sh1122_set_max_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x)
+/*! \fn     sh1122_set_max_text_x(oled_descriptor_t* oled_descriptor, int16_t x)
 *   \brief  Set maximum text X position
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Max text x
 */
-void sh1122_set_max_text_x(sh1122_descriptor_t* oled_descriptor, int16_t x)
+void sh1122_set_max_text_x(oled_descriptor_t* oled_descriptor, int16_t x)
 {
     oled_descriptor->max_text_x = x;
 }
 
-/*! \fn     sh1122_reset_min_text_x(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_reset_min_text_x(oled_descriptor_t* oled_descriptor)
 *   \brief  Reset minimum text X position
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_reset_min_text_x(sh1122_descriptor_t* oled_descriptor)
+void sh1122_reset_min_text_x(oled_descriptor_t* oled_descriptor)
 {
     oled_descriptor->min_text_x = 0;
 }
 
-/*! \fn     sh1122_reset_max_text_x(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_reset_max_text_x(oled_descriptor_t* oled_descriptor)
 *   \brief  Reset maximum text X position
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_reset_max_text_x(sh1122_descriptor_t* oled_descriptor)
+void sh1122_reset_max_text_x(oled_descriptor_t* oled_descriptor)
 {
     oled_descriptor->max_text_x = SH1122_OLED_WIDTH;
 }
 
-/*! \fn     sh1122_set_min_display_y(sh1122_descriptor_t* oled_descriptor, uint16_t y)
+/*! \fn     sh1122_set_min_display_y(oled_descriptor_t* oled_descriptor, uint16_t y)
 *   \brief  Set minimum Y display
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  y                   Min y
 */
-void sh1122_set_min_display_y(sh1122_descriptor_t* oled_descriptor, uint16_t y)
+void sh1122_set_min_display_y(oled_descriptor_t* oled_descriptor, uint16_t y)
 {
     if (y > SH1122_OLED_HEIGHT)
     {
@@ -347,12 +350,12 @@ void sh1122_set_min_display_y(sh1122_descriptor_t* oled_descriptor, uint16_t y)
     oled_descriptor->min_disp_y = y;
 }
 
-/*! \fn     sh1122_set_max_display_y(sh1122_descriptor_t* oled_descriptor, uint16_t y)
+/*! \fn     sh1122_set_max_display_y(oled_descriptor_t* oled_descriptor, uint16_t y)
 *   \brief  Set maximum Y display
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  y                   Max y
 */
-void sh1122_set_max_display_y(sh1122_descriptor_t* oled_descriptor, uint16_t y)
+void sh1122_set_max_display_y(oled_descriptor_t* oled_descriptor, uint16_t y)
 {
     if (y > SH1122_OLED_HEIGHT)
     {
@@ -361,77 +364,77 @@ void sh1122_set_max_display_y(sh1122_descriptor_t* oled_descriptor, uint16_t y)
     oled_descriptor->max_disp_y = y;
 }
 
-/*! \fn     sh1122_reset_lim_display_y(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_reset_lim_display_y(oled_descriptor_t* oled_descriptor)
 *   \brief  Reset min/max Y display
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_reset_lim_display_y(sh1122_descriptor_t* oled_descriptor)
+void sh1122_reset_lim_display_y(oled_descriptor_t* oled_descriptor)
 {
     oled_descriptor->min_disp_y = 0;
     oled_descriptor->max_disp_y = SH1122_OLED_HEIGHT;
 }
 
-/*! \fn     sh1122_allow_line_feed(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_allow_line_feed(oled_descriptor_t* oled_descriptor)
 *   \brief  Allow line feed
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_allow_line_feed(sh1122_descriptor_t* oled_descriptor)
+void sh1122_allow_line_feed(oled_descriptor_t* oled_descriptor)
 {
     oled_descriptor->line_feed_allowed = TRUE;
 }
 
-/*! \fn     sh1122_prevent_line_feed(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_prevent_line_feed(oled_descriptor_t* oled_descriptor)
 *   \brief  Prevent line feed
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_prevent_line_feed(sh1122_descriptor_t* oled_descriptor)
+void sh1122_prevent_line_feed(oled_descriptor_t* oled_descriptor)
 {
     oled_descriptor->line_feed_allowed = FALSE;
 }
 
-/*! \fn     sh1122_allow_partial_text_y_draw(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_allow_partial_text_y_draw(oled_descriptor_t* oled_descriptor)
 *   \brief  Allow partial drawing of text in Y
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_allow_partial_text_y_draw(sh1122_descriptor_t* oled_descriptor)
+void sh1122_allow_partial_text_y_draw(oled_descriptor_t* oled_descriptor)
 {
     oled_descriptor->allow_text_partial_y_draw = TRUE;
 }
 
-/*! \fn     sh1122_prevent_partial_text_x_draw(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_prevent_partial_text_x_draw(oled_descriptor_t* oled_descriptor)
 *   \brief  Prevent partial drawing of text in X
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_prevent_partial_text_x_draw(sh1122_descriptor_t* oled_descriptor)
+void sh1122_prevent_partial_text_x_draw(oled_descriptor_t* oled_descriptor)
 {
     oled_descriptor->allow_text_partial_x_draw = FALSE;
 }
 
-/*! \fn     sh1122_allow_partial_text_x_draw(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_allow_partial_text_x_draw(oled_descriptor_t* oled_descriptor)
 *   \brief  Allow partial drawing of text in X
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_allow_partial_text_x_draw(sh1122_descriptor_t* oled_descriptor)
+void sh1122_allow_partial_text_x_draw(oled_descriptor_t* oled_descriptor)
 {
     oled_descriptor->allow_text_partial_x_draw = TRUE;
 }
 
-/*! \fn     sh1122_is_screen_inverted(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_is_screen_inverted(oled_descriptor_t* oled_descriptor)
 *   \brief  Know if the screen is inverted
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \return The right boolean
 */
-BOOL sh1122_is_screen_inverted(sh1122_descriptor_t* oled_descriptor)
+BOOL sh1122_is_screen_inverted(oled_descriptor_t* oled_descriptor)
 {
     return oled_descriptor->screen_inverted;
 }
 
-/*! \fn     sh1122_set_screen_invert(sh1122_descriptor_t* oled_descriptor, BOOL screen_inverted)
+/*! \fn     sh1122_set_screen_invert(oled_descriptor_t* oled_descriptor, BOOL screen_inverted)
 *   \brief  Invert the screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  screen_inverted     Boolean to invert or not the screen
 */
-void sh1122_set_screen_invert(sh1122_descriptor_t* oled_descriptor, BOOL screen_inverted)
+void sh1122_set_screen_invert(oled_descriptor_t* oled_descriptor, BOOL screen_inverted)
 {
     if (screen_inverted == FALSE)
     {
@@ -448,21 +451,21 @@ void sh1122_set_screen_invert(sh1122_descriptor_t* oled_descriptor, BOOL screen_
     oled_descriptor->screen_inverted = screen_inverted;
 }
 
-/*! \fn     sh1122_prevent_partial_text_y_draw(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_prevent_partial_text_y_draw(oled_descriptor_t* oled_descriptor)
 *   \brief  Prevent partial drawing of text in Y
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_prevent_partial_text_y_draw(sh1122_descriptor_t* oled_descriptor)
+void sh1122_prevent_partial_text_y_draw(oled_descriptor_t* oled_descriptor)
 {
     oled_descriptor->allow_text_partial_y_draw = FALSE;
 }
 
-/*! \fn     sh1122_set_colors_invert(sh1122_descriptor_t* oled_descriptor, BOOL colors_inverted)
+/*! \fn     sh1122_set_colors_invert(oled_descriptor_t* oled_descriptor, BOOL colors_inverted)
 *   \brief  Invert the screen colors
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  screen_inverted     Boolean to invert or not the colors
 */
-void sh1122_set_colors_invert(sh1122_descriptor_t* oled_descriptor, BOOL colors_inverted)
+void sh1122_set_colors_invert(oled_descriptor_t* oled_descriptor, BOOL colors_inverted)
 {
     if (colors_inverted == FALSE)
     {
@@ -474,13 +477,13 @@ void sh1122_set_colors_invert(sh1122_descriptor_t* oled_descriptor, BOOL colors_
     }
 }
 
-/*! \fn     sh1122_fill_screen(sh1122_descriptor_t* oled_descriptor, uint8_t color)
+/*! \fn     sh1122_fill_screen(oled_descriptor_t* oled_descriptor, uint8_t color)
 *   \brief  Fill the sh1122 screen with a given color
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  color               Color (4 bits value)
 *   \note   timed at 8.3ms
 */
-void sh1122_fill_screen(sh1122_descriptor_t* oled_descriptor, uint16_t color)
+void sh1122_fill_screen(oled_descriptor_t* oled_descriptor, uint16_t color)
 {
     uint8_t fill_color = (uint8_t)((color & 0x000F) | (color << 4));
     uint32_t i;
@@ -499,11 +502,11 @@ void sh1122_fill_screen(sh1122_descriptor_t* oled_descriptor, uint16_t color)
     sh1122_stop_data_sending(oled_descriptor);
 }
 
-/*! \fn     sh1122_clear_current_screen(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_clear_current_screen(oled_descriptor_t* oled_descriptor)
 *   \brief  Clear current selected screen (active or inactive)
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_clear_current_screen(sh1122_descriptor_t* oled_descriptor)
+void sh1122_clear_current_screen(oled_descriptor_t* oled_descriptor)
 {
     /* Fill screen with 0 pixels */
     sh1122_fill_screen(oled_descriptor, 0);
@@ -521,23 +524,23 @@ void sh1122_clear_current_screen(sh1122_descriptor_t* oled_descriptor)
 }
 
 #ifdef OLED_INTERNAL_FRAME_BUFFER
-/*! \fn     sh1122_clear_frame_buffer(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_clear_frame_buffer(oled_descriptor_t* oled_descriptor)
 *   \brief  Clear frame buffer
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_clear_frame_buffer(sh1122_descriptor_t* oled_descriptor)
+void sh1122_clear_frame_buffer(oled_descriptor_t* oled_descriptor)
 {
     sh1122_check_for_flush_and_terminate(oled_descriptor);
     memset((void*)oled_descriptor->frame_buffer, 0x00, sizeof(oled_descriptor->frame_buffer));
 }
 
-/*! \fn     sh1122_clear_y_frame_buffer(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_clear_y_frame_buffer(oled_descriptor_t* oled_descriptor)
 *   \brief  Clear frame buffer between two Y
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  ystart              Start Y
 *   \param  yend                End Y (exclusive)
 */
-void sh1122_clear_y_frame_buffer(sh1122_descriptor_t* oled_descriptor, uint16_t ystart, uint16_t yend)
+void sh1122_clear_y_frame_buffer(oled_descriptor_t* oled_descriptor, uint16_t ystart, uint16_t yend)
 {
     if ((ystart >= SH1122_OLED_HEIGHT) || (yend > SH1122_OLED_HEIGHT))
     {
@@ -548,11 +551,11 @@ void sh1122_clear_y_frame_buffer(sh1122_descriptor_t* oled_descriptor, uint16_t 
     memset((void*)&oled_descriptor->frame_buffer[ystart][0], 0x00, (yend-ystart)*SH1122_OLED_WIDTH/2);
 }
 
-/*! \fn     sh1122_check_for_flush_and_terminate(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_check_for_flush_and_terminate(oled_descriptor_t* oled_descriptor)
 *   \brief  Check if a flush is in progress, and wait for its completion if so
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_check_for_flush_and_terminate(sh1122_descriptor_t* oled_descriptor)
+void sh1122_check_for_flush_and_terminate(oled_descriptor_t* oled_descriptor)
 {
     /* Check for in progress flush */
     if (oled_descriptor->frame_buffer_flush_in_progress != FALSE)
@@ -571,7 +574,7 @@ void sh1122_check_for_flush_and_terminate(sh1122_descriptor_t* oled_descriptor)
     }
 }
 
-/*! \fn     sh1122_flush_frame_buffer_window(sh1122_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint16_t height)
+/*! \fn     sh1122_flush_frame_buffer_window(oled_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint16_t height)
 *   \brief  Only flush a small part of our frame buffer
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Window X
@@ -580,7 +583,7 @@ void sh1122_check_for_flush_and_terminate(sh1122_descriptor_t* oled_descriptor)
 *   \param  height              Box height
 *   \note   will force x & width to be even
 */
-void sh1122_flush_frame_buffer_window(sh1122_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint16_t height)
+void sh1122_flush_frame_buffer_window(oled_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint16_t height)
 {
     x = ((x)/2)*2;
     width = ((width+1)/2)*2;
@@ -610,13 +613,13 @@ void sh1122_flush_frame_buffer_window(sh1122_descriptor_t* oled_descriptor, uint
     }
 }
 
-/*! \fn     sh1122_flush_frame_buffer_y_window(sh1122_descriptor_t* oled_descriptor, uint16_t ystart, uint16_t yend)
+/*! \fn     sh1122_flush_frame_buffer_y_window(oled_descriptor_t* oled_descriptor, uint16_t ystart, uint16_t yend)
 *   \brief  Flush frame buffer between two Y
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  ystart              Start Y
 *   \param  yend                End Y (exclusive)
 */
-void sh1122_flush_frame_buffer_y_window(sh1122_descriptor_t* oled_descriptor, uint16_t ystart, uint16_t yend)
+void sh1122_flush_frame_buffer_y_window(oled_descriptor_t* oled_descriptor, uint16_t ystart, uint16_t yend)
 {
     /* Sanity checks */
     if (ystart >= SH1122_OLED_HEIGHT)
@@ -649,11 +652,11 @@ void sh1122_flush_frame_buffer_y_window(sh1122_descriptor_t* oled_descriptor, ui
     #endif
 }
 
-/*! \fn     sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_flush_frame_buffer(oled_descriptor_t* oled_descriptor)
 *   \brief  Flush frame buffer to screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
+void sh1122_flush_frame_buffer(oled_descriptor_t* oled_descriptor)
 {
     /* Wait for a possible ongoing previous flush */
     sh1122_check_for_flush_and_terminate(oled_descriptor);
@@ -827,20 +830,20 @@ void sh1122_flush_frame_buffer(sh1122_descriptor_t* oled_descriptor)
 *   \brief  Use the flash-stored emergency font (ascii only)
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_set_emergency_font(sh1122_descriptor_t* oled_descriptor)
+void sh1122_set_emergency_font(oled_descriptor_t* oled_descriptor)
 {
     oled_descriptor->currentFontAddress = CUSTOM_FS_EMERGENCY_FONT_FILE_ADDR;
     custom_fs_read_from_flash((uint8_t*)&oled_descriptor->current_font_header, oled_descriptor->currentFontAddress, sizeof(oled_descriptor->current_font_header));
     custom_fs_read_from_flash((uint8_t*)&oled_descriptor->current_unicode_inters, oled_descriptor->currentFontAddress + sizeof(oled_descriptor->current_font_header), sizeof(oled_descriptor->current_unicode_inters));
 }
 
-/*! \fn     sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor, uint16_t font_id)
+/*! \fn     sh1122_refresh_used_font(oled_descriptor_t* oled_descriptor, uint16_t font_id)
 *   \brief  Refreshed used font (in case of init or language change)
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  font_id             Font ID to use
 *   \return Success status
 */
-RET_TYPE sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor, uint16_t font_id)
+RET_TYPE sh1122_refresh_used_font(oled_descriptor_t* oled_descriptor, uint16_t font_id)
 {
     if (custom_fs_get_file_address(font_id, &oled_descriptor->currentFontAddress, CUSTOM_FS_FONTS_TYPE) != RETURN_OK)
     {
@@ -869,23 +872,23 @@ RET_TYPE sh1122_refresh_used_font(sh1122_descriptor_t* oled_descriptor, uint16_t
     }    
 }
 
-/*! \fn     sh1122_get_current_font_height(sh1122_descriptor_t oled_descriptor)
+/*! \fn     sh1122_get_current_font_height(oled_descriptor_t oled_descriptor)
 *   \brief  Get current font height
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \return Font height
 */
-uint8_t sh1122_get_current_font_height(sh1122_descriptor_t* oled_descriptor)
+uint8_t sh1122_get_current_font_height(oled_descriptor_t* oled_descriptor)
 {
     return oled_descriptor->current_font_header.height;
 }
 
-/*! \fn     sh1122_init_display(sh1122_descriptor_t oled_descriptor, BOOL leave_internal_logic_and_reflush_frame_buffer, uint8_t master_current)
+/*! \fn     sh1122_init_display(oled_descriptor_t oled_descriptor, BOOL leave_internal_logic_and_reflush_frame_buffer, uint8_t master_current)
 *   \brief  Initialize a SSD1322 display
 *   \param  oled_descriptor                                 Pointer to a sh1122 descriptor struct
 *   \param  leave_internal_logic_and_reflush_frame_buffer   Set to TRUE to do what it says...
 *   \param  master_current                                  Display master current
 */
-void sh1122_init_display(sh1122_descriptor_t* oled_descriptor, BOOL leave_internal_logic_and_reflush_frame_buffer, uint8_t master_current)
+void sh1122_init_display(oled_descriptor_t* oled_descriptor, BOOL leave_internal_logic_and_reflush_frame_buffer, uint8_t master_current)
 {
     /* Vars init : should already be to 0 but you never know... */
     if (leave_internal_logic_and_reflush_frame_buffer == FALSE)
@@ -976,7 +979,7 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor, BOOL leave_intern
     #endif
 }
 
-/*! \fn     sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, uint8_t color, BOOL write_to_buffer)
+/*! \fn     sh1122_draw_vertical_line(oled_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, uint8_t color, BOOL write_to_buffer)
 *   \brief  Draw a vertical line on the display
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
@@ -985,7 +988,7 @@ void sh1122_init_display(sh1122_descriptor_t* oled_descriptor, BOOL leave_intern
 *   \param  color               4 bits Color
 *   \param  write_to_buffer     Set to true to write to internal buffer
 */
-void sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, uint8_t color, BOOL write_to_buffer)
+void sh1122_draw_vertical_line(oled_descriptor_t* oled_descriptor, int16_t x, int16_t ystart, int16_t yend, uint8_t color, BOOL write_to_buffer)
 {
     uint16_t xoff = x - (x / 2) * 2;
     ystart = ystart<0?0:ystart;
@@ -1051,7 +1054,7 @@ void sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, 
     #endif
 } 
 
-/*! \fn     sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint8_t* pixels, BOOL write_to_buffer)
+/*! \fn     sh1122_display_horizontal_pixel_line(oled_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint8_t* pixels, BOOL write_to_buffer)
 *   \brief  Display adjacent pixels at a given position, handles wrapping around the screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   X position
@@ -1062,7 +1065,7 @@ void sh1122_draw_vertical_line(sh1122_descriptor_t* oled_descriptor, int16_t x, 
 *   \note   Boundary checks on X are supposed to be done before calling this function. X must be between -SH1122_OLED_WIDTH and SH1122_OLED_WIDTH
 *   \note   When not writing to buffer, only odd X are supported and between 0 & SH1122_OLED_WIDTH!
 */
-void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, uint16_t width, uint8_t* pixels, BOOL write_to_buffer)
+void sh1122_display_horizontal_pixel_line(oled_descriptor_t* oled_descriptor, int16_t x, uint16_t y, uint16_t width, uint8_t* pixels, BOOL write_to_buffer)
 {    
     /* Check for correct Y */
     if ((y < oled_descriptor->min_disp_y) || (y >= oled_descriptor->max_disp_y))
@@ -1249,7 +1252,7 @@ void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, 
     }
 }   
 
-/*! \fn     sh1122_draw_rectangle(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint16_t width, uint16_t height, uint16_t color, BOOL write_to_buffer)
+/*! \fn     sh1122_draw_rectangle(oled_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint16_t width, uint16_t height, uint16_t color, BOOL write_to_buffer)
 *   \brief  Draw a rectangle on the screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
@@ -1260,7 +1263,7 @@ void sh1122_display_horizontal_pixel_line(sh1122_descriptor_t* oled_descriptor, 
 *   \param  write_to_buffer     Set to something else than FALSE to write to buffer
 *   \note   No checks done on X & Y & width & height!
 */
-void sh1122_draw_rectangle(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint16_t width, uint16_t height, uint16_t color, BOOL write_to_buffer)
+void sh1122_draw_rectangle(oled_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint16_t width, uint16_t height, uint16_t color, BOOL write_to_buffer)
 {
     uint16_t xoff = x - (x / 2) * 2;
 
@@ -1365,12 +1368,12 @@ void sh1122_draw_rectangle(sh1122_descriptor_t* oled_descriptor, int16_t x, int1
     #endif
 }
 
-/*! \fn     sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream)
+/*! \fn     sh1122_draw_full_screen_image_from_bitstream(oled_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream)
 *   \brief  Draw a full screen picture from a bitstream
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  bitstream           Pointer to the bistream
 */
-void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream)
+void sh1122_draw_full_screen_image_from_bitstream(oled_descriptor_t* oled_descriptor, bitstream_bitmap_t* bitstream)
 {
     /*  So, here's a quick overview if you were to wonder what has been done to improve display speeds:
     /   Note: the FPS count mentioned here highly depends on the picture itself due to RLE compression
@@ -1447,7 +1450,7 @@ void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_desc
     bitstream_bitmap_close(bitstream);
 }
 
-/*! \fn     sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_t* bs, BOOL write_to_buffer)
+/*! \fn     sh1122_draw_image_from_bitstream(oled_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_t* bs, BOOL write_to_buffer)
 *   \brief  Draw a picture from a bitstream
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
@@ -1455,7 +1458,7 @@ void sh1122_draw_full_screen_image_from_bitstream(sh1122_descriptor_t* oled_desc
 *   \param  bitstream           Pointer to the bitstream
 *   \param  write_to_buffer     Set to true to write to internal buffer
 */
-void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream, BOOL write_to_buffer)
+void sh1122_draw_image_from_bitstream(oled_descriptor_t* oled_descriptor, int16_t x, int16_t y, bitstream_bitmap_t* bitstream, BOOL write_to_buffer)
 {
     /* Check for off screen line on the left */
     if (((x < 0) && (-x >= bitstream->width) && (oled_descriptor->screen_wrapping_allowed == FALSE)) || (x < -SH1122_OLED_WIDTH))
@@ -1700,14 +1703,14 @@ void sh1122_draw_image_from_bitstream(sh1122_descriptor_t* oled_descriptor, int1
     }    
 }
 
-/*! \fn     sh1122_display_bitmap_from_flash_at_recommended_position(sh1122_descriptor_t* oled_descriptor, uint32_t file_id, BOOL write_to_buffer)
+/*! \fn     sh1122_display_bitmap_from_flash_at_recommended_position(oled_descriptor_t* oled_descriptor, uint32_t file_id, BOOL write_to_buffer)
 *   \brief  Display a bitmap stored in the external flash, at its recommended position
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  file_id             Bitmap file ID
 *   \param  write_to_buffer     Set to true to write to internal buffer
 *   \return success status
 */
-RET_TYPE sh1122_display_bitmap_from_flash_at_recommended_position(sh1122_descriptor_t* oled_descriptor, uint32_t file_id, BOOL write_to_buffer)
+RET_TYPE sh1122_display_bitmap_from_flash_at_recommended_position(oled_descriptor_t* oled_descriptor, uint32_t file_id, BOOL write_to_buffer)
 {
     custom_fs_address_t file_adress;
     bitstream_bitmap_t bitstream;
@@ -1731,7 +1734,7 @@ RET_TYPE sh1122_display_bitmap_from_flash_at_recommended_position(sh1122_descrip
     return RETURN_OK;    
 }
 
-/*! \fn     sh1122_display_bitmap_from_flash(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint32_t file_id, BOOL write_to_buffer)
+/*! \fn     sh1122_display_bitmap_from_flash(oled_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint32_t file_id, BOOL write_to_buffer)
 *   \brief  Display a bitmap stored in the external flash
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
@@ -1740,7 +1743,7 @@ RET_TYPE sh1122_display_bitmap_from_flash_at_recommended_position(sh1122_descrip
 *   \param  write_to_buffer    Set to true to write to internal buffer
 *   \return success status
 */
-RET_TYPE sh1122_display_bitmap_from_flash(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint32_t file_id, BOOL write_to_buffer)
+RET_TYPE sh1122_display_bitmap_from_flash(oled_descriptor_t* oled_descriptor, int16_t x, int16_t y, uint32_t file_id, BOOL write_to_buffer)
 {
     custom_fs_address_t file_adress;
     bitstream_bitmap_t bitstream;
@@ -1764,13 +1767,13 @@ RET_TYPE sh1122_display_bitmap_from_flash(sh1122_descriptor_t* oled_descriptor, 
     return RETURN_OK;  
 } 
 
-/*! \fn     sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const char* str)
+/*! \fn     sh1122_get_string_width(oled_descriptor_t* oled_descriptor, const char* str)
 *   \brief  Return the pixel width of the string.
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  str                 String to get width of
 *   \return Width of string in pixels based on current font
 */
-uint16_t sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str)
+uint16_t sh1122_get_string_width(oled_descriptor_t* oled_descriptor, const cust_char_t* str)
 {
     uint16_t temp_uint16 = 0;
     uint16_t width=0;
@@ -1783,14 +1786,14 @@ uint16_t sh1122_get_string_width(sh1122_descriptor_t* oled_descriptor, const cus
     return width;    
 }
 
-/*! \fn     sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, char ch, uint16_t* glyph_height)
+/*! \fn     sh1122_get_glyph_width(oled_descriptor_t* oled_descriptor, char ch, uint16_t* glyph_height)
 *   \brief  Return the width of the specified character in the current font
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  ch                  Character
 *   \param  glyph_height        Where to store the glyph height (added bonus)
 *   \return width of the glyph
 */
-uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, uint16_t* glyph_height)
+uint16_t sh1122_get_glyph_width(oled_descriptor_t* oled_descriptor, cust_char_t ch, uint16_t* glyph_height)
 {
     uint16_t glyph_desc_pt_offset = 0;
     uint16_t interval_start = 0;
@@ -1878,7 +1881,7 @@ uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_
     }
 }
 
- /*! \fn     sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, char ch, BOOL write_to_buffer)
+ /*! \fn     sh1122_glyph_draw(oled_descriptor_t* oled_descriptor, int16_t x, int16_t y, char ch, BOOL write_to_buffer)
  *   \brief  Draw a character glyph on the screen at x,y.
  *   \param  oled_descriptor    Pointer to a sh1122 descriptor struct
  *   \param  x                  x position to start glyph
@@ -1887,7 +1890,7 @@ uint16_t sh1122_get_glyph_width(sh1122_descriptor_t* oled_descriptor, cust_char_
  *   \param  write_to_buffer    Set to true to write to internal buffer
  *   \return width of the glyph
  */
-uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, cust_char_t ch, BOOL write_to_buffer)
+uint16_t sh1122_glyph_draw(oled_descriptor_t* oled_descriptor, int16_t x, int16_t y, cust_char_t ch, BOOL write_to_buffer)
 {
     uint16_t glyph_desc_pt_offset = 0;  // Offset to the pointer of the glyph descriptor
     uint16_t interval_start = 0;        // Unicode code of the first char of the current unicode support interval
@@ -1984,14 +1987,14 @@ uint16_t sh1122_glyph_draw(sh1122_descriptor_t* oled_descriptor, int16_t x, int1
     return (uint8_t)(glyph_width + glyph.xoffset) + 1;
 }
 
-/*! \fn     sh1122_put_char(sh1122_descriptor_t* oled_descriptor, char ch, BOOL write_to_buffer)
+/*! \fn     sh1122_put_char(oled_descriptor_t* oled_descriptor, char ch, BOOL write_to_buffer)
 *   \brief  Print char on display
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  ch                  Char to display
 *   \param  write_to_buffer     Set to true to write to internal buffer
 *   \return Pixel width of the printed char, -1 if too wide for display
 */
-int16_t sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, BOOL write_to_buffer)
+int16_t sh1122_put_char(oled_descriptor_t* oled_descriptor, cust_char_t ch, BOOL write_to_buffer)
 {
     uint16_t glyph_height = 0;
     
@@ -2074,14 +2077,14 @@ int16_t sh1122_put_char(sh1122_descriptor_t* oled_descriptor, cust_char_t ch, BO
     return 0;
 }
 
-/*! \fn     sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const char* str, BOOL write_to_buffer)
+/*! \fn     sh1122_put_string(oled_descriptor_t* oled_descriptor, const char* str, BOOL write_to_buffer)
 *   \brief  Print string at current x y
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  str                 String to print
 *   \param  write_to_buffer     Set to true to write to internal buffer
 *   \return Pixel width of the printed string, -1 if too wide for display
 */
-int16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* str, BOOL write_to_buffer)
+int16_t sh1122_put_string(oled_descriptor_t* oled_descriptor, const cust_char_t* str, BOOL write_to_buffer)
 {
     int16_t string_width = 0;
     
@@ -2123,19 +2126,19 @@ int16_t sh1122_put_string(sh1122_descriptor_t* oled_descriptor, const cust_char_
     return string_width;
 }
 
-/*! \fn     sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, const char* string)
+/*! \fn     sh1122_put_string_xy(oled_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, const char* string)
 *   \brief  Display an error string on the screen (X0Y0, centered)
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  string              Null terminated string
 *   \return How many characters were printed
 */
-uint16_t sh1122_put_error_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string)
+uint16_t sh1122_put_error_string(oled_descriptor_t* oled_descriptor, const cust_char_t* string)
 {
     sh1122_put_string_xy(oled_descriptor, 0, 0, OLED_ALIGN_CENTER, string, TRUE);
     return sh1122_put_string_xy(oled_descriptor, 0, 0, OLED_ALIGN_CENTER, string, FALSE);
 }
 
-/*! \fn     sh1122_put_centered_string(sh1122_descriptor_t* oled_descriptor, uint8_t y, const cust_char_t* string, BOOL write_to_buffer)
+/*! \fn     sh1122_put_centered_string(oled_descriptor_t* oled_descriptor, uint8_t y, const cust_char_t* string, BOOL write_to_buffer)
 *   \brief  Display a centered string on the screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  y                   Starting y
@@ -2143,12 +2146,12 @@ uint16_t sh1122_put_error_string(sh1122_descriptor_t* oled_descriptor, const cus
 *   \param  write_to_buffer     Set to true to write to internal buffer
 *   \return Width of the printed string
 */
-uint16_t sh1122_put_centered_string(sh1122_descriptor_t* oled_descriptor, uint8_t y, const cust_char_t* string, BOOL write_to_buffer) 
+uint16_t sh1122_put_centered_string(oled_descriptor_t* oled_descriptor, uint8_t y, const cust_char_t* string, BOOL write_to_buffer) 
 {
      return sh1122_put_string_xy(oled_descriptor, 0, y, OLED_ALIGN_CENTER, string, write_to_buffer);
 }
 
-/*! \fn     void sh1122_put_centered_char(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, cust_char_t c, BOOL write_to_buffer)
+/*! \fn     void sh1122_put_centered_char(oled_descriptor_t* oled_descriptor, int16_t x, uint16_t y, cust_char_t c, BOOL write_to_buffer)
 *   \brief  Display a char centered around an X position
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Centered around this x
@@ -2157,7 +2160,7 @@ uint16_t sh1122_put_centered_string(sh1122_descriptor_t* oled_descriptor, uint8_
 *   \param  write_to_buffer     Set to true to write to internal buffer
 *   \return How many characters were printed
 */
-void sh1122_put_centered_char(sh1122_descriptor_t* oled_descriptor, int16_t x, uint16_t y, cust_char_t c, BOOL write_to_buffer) 
+void sh1122_put_centered_char(oled_descriptor_t* oled_descriptor, int16_t x, uint16_t y, cust_char_t c, BOOL write_to_buffer) 
 {
     uint16_t glyph_height;
     int16_t cur_text_x = oled_descriptor->cur_text_x;
@@ -2176,26 +2179,26 @@ void sh1122_put_centered_char(sh1122_descriptor_t* oled_descriptor, int16_t x, u
     oled_descriptor->cur_text_y = cur_text_y;
 }
 
-/*! \fn     sh1122_set_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y)
+/*! \fn     sh1122_set_xy(oled_descriptor_t* oled_descriptor, int16_t x, int16_t y)
 *   \brief  Set current text X & Y
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x   X
 *   \param  y   Y
 */
-void sh1122_set_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y)
+void sh1122_set_xy(oled_descriptor_t* oled_descriptor, int16_t x, int16_t y)
 {
     oled_descriptor->cur_text_x = x;
     oled_descriptor->cur_text_y = y;
 }
 
-/*! \fn     sh1122_get_number_of_printable_characters_for_string(sh1122_descriptor_t* oled_descriptor, int16_t x, const cust_char_t* string) 
+/*! \fn     sh1122_get_number_of_printable_characters_for_string(oled_descriptor_t* oled_descriptor, int16_t x, const cust_char_t* string) 
 *   \brief  Get the number of characters of a given string that can be printed on the screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
 *   \param  string              Null terminated string
 *   \return Number of characters that can be printed
 */
-uint16_t sh1122_get_number_of_printable_characters_for_string(sh1122_descriptor_t* oled_descriptor, int16_t x, const cust_char_t* string) 
+uint16_t sh1122_get_number_of_printable_characters_for_string(oled_descriptor_t* oled_descriptor, int16_t x, const cust_char_t* string) 
 {
     uint16_t nb_characters = 0;
     uint16_t temp_uint16 = 0;
@@ -2216,7 +2219,7 @@ uint16_t sh1122_get_number_of_printable_characters_for_string(sh1122_descriptor_
     return nb_characters;
 }
 
-/*! \fn     sh1122_get_start_x_for_string_based_on_alignment(sh1122_descriptor_t* oled_descriptor, int16_t x, oled_align_te justify, const cust_char_t* string)
+/*! \fn     sh1122_get_start_x_for_string_based_on_alignment(oled_descriptor_t* oled_descriptor, int16_t x, oled_align_te justify, const cust_char_t* string)
 *   \brief  Get the start x for a given string for a given alignment
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
@@ -2224,7 +2227,7 @@ uint16_t sh1122_get_number_of_printable_characters_for_string(sh1122_descriptor_
 *   \param  string              Null terminated string
 *   \return Start X
 */
-int16_t sh1122_get_start_x_for_string_based_on_alignment(sh1122_descriptor_t* oled_descriptor, int16_t x, oled_align_te justify, const cust_char_t* string)
+int16_t sh1122_get_start_x_for_string_based_on_alignment(oled_descriptor_t* oled_descriptor, int16_t x, oled_align_te justify, const cust_char_t* string)
 {
     uint16_t width = sh1122_get_string_width(oled_descriptor, string);
     
@@ -2258,7 +2261,7 @@ int16_t sh1122_get_start_x_for_string_based_on_alignment(sh1122_descriptor_t* ol
     return x;    
 }
 
-/*! \fn     sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, oled_align_te justify, const char* string, BOOL write_to_buffer) 
+/*! \fn     sh1122_put_string_xy(oled_descriptor_t* oled_descriptor, int16_t x, int16_t y, oled_align_te justify, const char* string, BOOL write_to_buffer) 
 *   \brief  Display a string on the screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
@@ -2268,7 +2271,7 @@ int16_t sh1122_get_start_x_for_string_based_on_alignment(sh1122_descriptor_t* ol
 *   \param  write_to_buffer     Set to true to write to internal buffer
 *   \return Pixel width of the printed string, -1 if too wide for display
 */
-int16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, int16_t y, oled_align_te justify, const cust_char_t* string, BOOL write_to_buffer) 
+int16_t sh1122_put_string_xy(oled_descriptor_t* oled_descriptor, int16_t x, int16_t y, oled_align_te justify, const cust_char_t* string, BOOL write_to_buffer) 
 {    
     /* Store cur text x & y */
     oled_descriptor->cur_text_x = sh1122_get_start_x_for_string_based_on_alignment(oled_descriptor, x, justify, string);
@@ -2283,12 +2286,12 @@ int16_t sh1122_put_string_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, in
     return return_val;
 }
 
-/*! \fn     sh1122_erase_screen_and_put_top_left_emergency_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string)
+/*! \fn     sh1122_erase_screen_and_put_top_left_emergency_string(oled_descriptor_t* oled_descriptor, const cust_char_t* string)
 *   \brief  Display an emergency string on the screen
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  string              Null terminated string
 */
-void sh1122_erase_screen_and_put_top_left_emergency_string(sh1122_descriptor_t* oled_descriptor, const cust_char_t* string)
+void sh1122_erase_screen_and_put_top_left_emergency_string(oled_descriptor_t* oled_descriptor, const cust_char_t* string)
 {
     int16_t string_width = 0;
     oled_descriptor->cur_text_x = 0;
@@ -2313,11 +2316,11 @@ void sh1122_erase_screen_and_put_top_left_emergency_string(sh1122_descriptor_t* 
     }
 }
 
-/*! \fn     sh1122_add_emergency_dot_to_current_position(sh1122_descriptor_t* oled_descriptor)
+/*! \fn     sh1122_add_emergency_dot_to_current_position(oled_descriptor_t* oled_descriptor)
 *   \brief  Add "." to the current position on screen, used for bootloader progress
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 */
-void sh1122_add_emergency_dot_to_current_position(sh1122_descriptor_t* oled_descriptor)
+void sh1122_add_emergency_dot_to_current_position(oled_descriptor_t* oled_descriptor)
 {
     oled_descriptor->line_feed_allowed = TRUE;
     sh1122_put_char(oled_descriptor, '.', FALSE);
@@ -2325,7 +2328,7 @@ void sh1122_add_emergency_dot_to_current_position(sh1122_descriptor_t* oled_desc
 }
 
 #ifdef OLED_PRINTF_ENABLED
-/*! \fn     sh1122_printf_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, uint8_t justify, BOOL write_to_buffer, const char *fmt, ...) 
+/*! \fn     sh1122_printf_xy(oled_descriptor_t* oled_descriptor, int16_t x, uint8_t y, uint8_t justify, BOOL write_to_buffer, const char *fmt, ...) 
 *   \brief  Printf string on the display
 *   \param  oled_descriptor     Pointer to a sh1122 descriptor struct
 *   \param  x                   Starting x
@@ -2336,7 +2339,7 @@ void sh1122_add_emergency_dot_to_current_position(sh1122_descriptor_t* oled_desc
 */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsuggest-attribute=format"
-uint16_t sh1122_printf_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, BOOL write_to_buffer, const char *fmt, ...) 
+uint16_t sh1122_printf_xy(oled_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, BOOL write_to_buffer, const char *fmt, ...) 
 {
     cust_char_t u16buf[64];
     char buf[64];    
@@ -2370,4 +2373,5 @@ uint16_t sh1122_printf_xy(sh1122_descriptor_t* oled_descriptor, int16_t x, uint8
 }
 #pragma GCC diagnostic pop
 
+#endif
 #endif

@@ -106,7 +106,7 @@ void gui_dispatcher_display_battery_bt_overlay(BOOL write_to_buffer)
     if (logic_power_is_battery_charging() == FALSE)
     {
         /* Our enum allows us to do so */
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+logic_power_get_battery_state(), write_to_buffer);
+        oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+logic_power_get_battery_state(), write_to_buffer);
         gui_dispatcher_battery_charging_anim_index = logic_power_get_battery_state();
     } 
     else
@@ -132,11 +132,11 @@ void gui_dispatcher_display_battery_bt_overlay(BOOL write_to_buffer)
         }
         
         /* Display */
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+(gui_dispatcher_battery_charging_anim_index), write_to_buffer);
+        oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_BATTERY_0PCT_ID+(gui_dispatcher_battery_charging_anim_index), write_to_buffer);
     }
     
     /* Bluetooth display */
-    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_TRAY_BT_CONNECTED_ID+logic_bluetooth_get_state(), write_to_buffer);
+    oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_TRAY_BT_CONNECTED_ID+logic_bluetooth_get_state(), write_to_buffer);
 }
 
 /*! \fn     gui_dispatcher_set_current_screen(gui_screen_te screen)
@@ -184,7 +184,7 @@ void gui_dispatcher_get_back_to_current_screen(void)
     {
         case GUI_SCREEN_INSERTED_LCK:
         case GUI_SCREEN_NINSERTED:          {
-                                                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, GUI_LOCKED_MINI_BITMAP_ID, TRUE);
+                                                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, GUI_LOCKED_MINI_BITMAP_ID, TRUE);
                                                 timer_start_timer(TIMER_ANIMATIONS, GUI_BATTERY_ANIM_DELAY_MS);
                                                 gui_dispatcher_display_battery_bt_overlay(TRUE);
                                                 #ifdef OLED_INTERNAL_FRAME_BUFFER
@@ -434,7 +434,7 @@ void gui_dispatcher_idle_call(gui_screen_te screen_override)
 void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
 {
     uint16_t screen_saver_anim_copy = gui_dispatcher_current_screen_saver_anim;
-    BOOL is_screen_on_copy = sh1122_is_oled_on(&plat_oled_descriptor);
+    BOOL is_screen_on_copy = oled_is_oled_on(&plat_oled_descriptor);
     
     // Get user action
     wheel_action_ret_te user_action = inputs_get_wheel_action(FALSE, FALSE);
@@ -506,7 +506,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
             }
                 
             /* Display frame */
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_dispatcher_current_screen_saver_frame, FALSE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_dispatcher_current_screen_saver_frame, FALSE);
                 
             /* Rearm timer */
             timer_start_timer(TIMER_ANIMATIONS, GUI_NYANCAT_ANIM_DELAY_MS);
@@ -538,7 +538,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
     if (should_go_to_sleep != FALSE)
     {
         /* Display "going to sleep", switch off screen */
-        if (sh1122_is_oled_on(&plat_oled_descriptor) != FALSE)
+        if (oled_is_oled_on(&plat_oled_descriptor) != FALSE)
         {
             if (gui_prompts_display_information_on_screen_and_wait(GOING_TO_SLEEP_TEXT_ID, DISP_MSG_INFO, TRUE) == GUI_INFO_DISP_RET_OK)
             {
@@ -546,7 +546,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
                 if ((logic_power_get_power_source() != USB_POWERED) || (custom_fs_settings_get_device_setting(SETTINGS_SCREEN_SAVER_ID) == 0))
                 {
                     /* Battery powered or no screen saver selected: switch off OLED */
-                    sh1122_oled_off(&plat_oled_descriptor);
+                    oled_off(&plat_oled_descriptor);
                     gui_dispatcher_get_back_to_current_screen();
                 } 
                 else
@@ -560,8 +560,8 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
                     #ifdef OLED_INTERNAL_FRAME_BUFFER
                     sh1122_clear_frame_buffer(&plat_oled_descriptor);
                     #endif
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_dispatcher_current_screen_saver_frame, TRUE);
-                    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+                    oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_dispatcher_current_screen_saver_frame, TRUE);
+                    oled_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
                     timer_start_timer(TIMER_ANIMATIONS, GUI_NYANCAT_ANIM_DELAY_MS);
                     #ifdef OLED_INTERNAL_FRAME_BUFFER
                     sh1122_flush_frame_buffer(&plat_oled_descriptor);

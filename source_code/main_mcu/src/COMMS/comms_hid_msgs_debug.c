@@ -29,12 +29,12 @@
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
 #include "driver_sercom.h"
+#include "oled_wrapper.h"
 #include "logic_device.h"
 #include "driver_timer.h"
 #include "platform_io.h"
 #include "logic_power.h"
 #include "dataflash.h"
-#include "sh1122.h"
 #include "main.h"
 #include "dma.h"
 /* Variable to know if we're allowing bundle upload */
@@ -125,11 +125,11 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
         case HID_CMD_ID_OPEN_DISP_BUFFER:
         {
             /* Set pixel write window */
-            sh1122_set_row_address(&plat_oled_descriptor, 0);
-            sh1122_set_column_address(&plat_oled_descriptor, 0);
+            oled_set_row_address(&plat_oled_descriptor, 0);
+            oled_set_column_address(&plat_oled_descriptor, 0);
             
             /* Start filling the SSD1322 RAM */
-            sh1122_start_data_sending(&plat_oled_descriptor);
+            oled_start_data_sending(&plat_oled_descriptor);
             
             /* Set ack, leave same command id */
             comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
@@ -153,7 +153,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             sercom_spi_wait_for_transmit_complete(plat_oled_descriptor.sercom_pt);
             
             /* Stop sending data */
-            sh1122_stop_data_sending(&plat_oled_descriptor);            
+            oled_stop_data_sending(&plat_oled_descriptor);            
             
             /* Set ack, leave same command id */
             comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
@@ -247,19 +247,19 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             /* Do required actions */
             if (vcomh != 0xFF)
             {
-                sh1122_oled_off(&plat_oled_descriptor);
+                oled_off(&plat_oled_descriptor);
             }
-            sh1122_set_contrast_current(&plat_oled_descriptor, rcv_msg->payload[0]);
+            oled_set_contrast_current(&plat_oled_descriptor, rcv_msg->payload[0]);
             if (vcomh != 0xFF)
             {
-                sh1122_set_vcomh_level(&plat_oled_descriptor, vcomh);
+                oled_set_vcomh_level(&plat_oled_descriptor, vcomh);
             }
-            sh1122_set_vsegm_level(&plat_oled_descriptor, rcv_msg->payload[2]);
-            sh1122_set_discharge_charge_periods(&plat_oled_descriptor, rcv_msg->payload[3] | (rcv_msg->payload[4] << 4));
-            sh1122_set_discharge_vsl_level(&plat_oled_descriptor, rcv_msg->payload[5]);
+            oled_set_vsegm_level(&plat_oled_descriptor, rcv_msg->payload[2]);
+            oled_set_discharge_charge_periods(&plat_oled_descriptor, rcv_msg->payload[3] | (rcv_msg->payload[4] << 4));
+            oled_set_discharge_vsl_level(&plat_oled_descriptor, rcv_msg->payload[5]);
             if (vcomh != 0xFF)
             {
-                sh1122_oled_on(&plat_oled_descriptor);
+                oled_on(&plat_oled_descriptor);
             }
             
             /* Set ack, leave same command id */
@@ -372,24 +372,24 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             /* Use USB to power the screen? */
             if (rcv_msg->payload[2] != 0)
             {
-                sh1122_oled_off(&plat_oled_descriptor);
+                oled_off(&plat_oled_descriptor);
                 platform_io_disable_vbat_to_oled_stepup();
                 platform_io_assert_oled_reset();
                 timer_delay_ms(15);
                 platform_io_power_up_oled(TRUE);
-                sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
+                oled_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
                 gui_dispatcher_get_back_to_current_screen();
             }
             
             /* Use battery to power the screen? */
             if (rcv_msg->payload[3] != 0)
             {
-                sh1122_oled_off(&plat_oled_descriptor);
+                oled_off(&plat_oled_descriptor);
                 platform_io_disable_3v3_to_oled_stepup();
                 platform_io_assert_oled_reset();
                 timer_delay_ms(15);
                 platform_io_power_up_oled(FALSE);
-                sh1122_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
+                oled_init_display(&plat_oled_descriptor, TRUE, logic_device_get_screen_current_for_current_use());
                 gui_dispatcher_get_back_to_current_screen();
             }   
 
@@ -481,7 +481,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             custom_fs_set_settings_value(SETTINGS_DEVICE_TUTORIAL, TRUE);
             
             /* Switch off screen */
-            sh1122_oled_off(&plat_oled_descriptor);
+            oled_off(&plat_oled_descriptor);
             platform_io_power_down_oled();
             
             /* Detach USB */

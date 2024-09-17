@@ -204,7 +204,7 @@ BOOL gui_menu_event_render(wheel_action_ret_te wheel_action)
                 {
                     logic_user_manual_select_login();
                     #ifdef OLED_INTERNAL_FRAME_BUFFER
-                    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+                    oled_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
                     #endif
                 } 
                 else

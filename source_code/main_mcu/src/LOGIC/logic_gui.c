@@ -317,10 +317,10 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL d
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     #endif
     
     /* Set prev gen bool */
@@ -381,10 +381,10 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL d
             
             /* Clear frame buffer */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+            oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
             #else
-            sh1122_clear_current_screen(&plat_oled_descriptor);
+            oled_clear_current_screen(&plat_oled_descriptor);
             #endif
         }
         else
@@ -506,19 +506,19 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL d
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
             #endif
-            sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
+            oled_allow_partial_text_x_draw(&plat_oled_descriptor);
             
             /* Loop for num_lines_to_display. Always display login. Password/TOTP optional */
             for (uint16_t i = 0; i < num_lines_to_display; i++)
             {          
                 /* Load the right font */
-                sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
+                oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
                     
                 /* Display string */
                 if (scrolling_needed[i] != FALSE)
                 {
                     /* Scrolling required: display with the correct X offset */
-                    displayed_length = sh1122_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], strings_y_positions[strings_y_pos_idx][i], OLED_ALIGN_LEFT, strings_to_be_displayed[i], TRUE);
+                    displayed_length = oled_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], strings_y_positions[strings_y_pos_idx][i], OLED_ALIGN_LEFT, strings_to_be_displayed[i], TRUE);
                         
                     /* Scrolling: go change direction if we went too far */
                     if (text_anim_going_right[i] == FALSE)
@@ -539,7 +539,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL d
                 else
                 {
                     /* String not large enough or start of animation */
-                    displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[strings_y_pos_idx][i], strings_to_be_displayed[i], TRUE);
+                    displayed_length = oled_put_centered_string(&plat_oled_descriptor, strings_y_positions[strings_y_pos_idx][i], strings_to_be_displayed[i], TRUE);
                 }
                     
                 /* First run: based on the number of chars displayed, set the scrolling needed bool */
@@ -550,8 +550,8 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL d
             }
             
             /* Reset display settings */
-            sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
-            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            oled_prevent_partial_text_x_draw(&plat_oled_descriptor);
+            oled_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Flush to display */
             if (first_function_run != FALSE)
@@ -560,14 +560,14 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL d
             }
             else
             {
-                sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+                oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
             }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
             #endif
             
             /* Load function exit transition */
-            sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+            oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
             
             /* Reset bool */
             redraw_needed = FALSE;

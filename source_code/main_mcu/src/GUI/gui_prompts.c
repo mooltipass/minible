@@ -24,6 +24,7 @@
 #include "logic_accelerometer.h"
 #include "logic_database.h"
 #include "comms_aux_mcu.h"
+#include "oled_wrapper.h"
 #include "driver_timer.h"
 #include "logic_device.h"
 #include "platform_io.h"
@@ -34,7 +35,6 @@
 #include "text_ids.h"
 #include "defines.h"
 #include "inputs.h"
-#include "sh1122.h"
 #include "utils.h"
 #include "main.h"
 #include "rng.h"
@@ -105,23 +105,23 @@ void gui_prompts_display_tutorial(void)
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
             #endif
-            sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
-            sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_17_ID);
+            oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+            oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_17_ID);
             for (uint16_t i = 0; i < 3; i++)
             {
                 uint16_t text_offset = (current_tutorial_page > 0 && current_tutorial_page < 3)? 30 : 0;
                 custom_fs_get_string_from_file(TUTORIAL_FLINE_TEXT_ID + current_tutorial_page*3 + i, &temp_string_pt, TRUE);
-                sh1122_put_string_xy(&plat_oled_descriptor, text_offset, gui_prompts_tutorial_3_lines_y_positions[i], OLED_ALIGN_CENTER, temp_string_pt, TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, text_offset, gui_prompts_tutorial_3_lines_y_positions[i], OLED_ALIGN_CENTER, temp_string_pt, TRUE);
             }
             
             /* Display animation frame if needed */
             if (current_tutorial_page == 1)
             {
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_ROT, TRUE);
+                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_ROT, TRUE);
             }
             else if (current_tutorial_page == 2)
             {
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_PRESS, TRUE);
+                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_PRESS, TRUE);
             }
             
             /* Flush frame buffer */
@@ -141,8 +141,8 @@ void gui_prompts_display_tutorial(void)
         {
             if (current_tutorial_page == 1)
             {
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_ROT+current_animation_index, FALSE);
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_ROT+current_animation_index, TRUE);
+                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_ROT+current_animation_index, FALSE);
+                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_ROT+current_animation_index, TRUE);
                 if (current_animation_index++ == BITMAP_WHEEL_ROT_NBFRAMES - 1)
                 {
                     current_animation_index = 0;
@@ -151,8 +151,8 @@ void gui_prompts_display_tutorial(void)
             }
             else if (current_tutorial_page == 2)
             {
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_PRESS+current_animation_index, FALSE);
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_PRESS+current_animation_index, TRUE);
+                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_PRESS+current_animation_index, FALSE);
+                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_WHEEL_PRESS+current_animation_index, TRUE);
                 
                 /* Different timeout depending on the current frame */
                 if ((current_animation_index == 0) || (current_animation_index == BITMAP_WHEEL_PRESS_NBFRAMES - 1))
@@ -255,18 +255,18 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+    oled_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     #endif
     
     /* Try to fetch the string to display */
     custom_fs_get_string_from_file(string_id, &string_to_display, TRUE);
     
     /* Display string */
-    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
-    sh1122_set_min_text_x(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type]);
+    oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
+    oled_set_min_text_x(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type]);
     
     /* Count number of lines */
     uint16_t nb_lines_to_display = utils_get_nb_lines(string_to_display);
@@ -274,16 +274,16 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
     /* Depending on number of lines */
     if (nb_lines_to_display == 1)
     {
-        sh1122_put_centered_string(&plat_oled_descriptor, INF_DISPLAY_TEXT_Y, string_to_display, TRUE);
+        oled_put_centered_string(&plat_oled_descriptor, INF_DISPLAY_TEXT_Y, string_to_display, TRUE);
     } 
     else
     {
-        sh1122_put_centered_string(&plat_oled_descriptor, INF_DISPLAY_2L_TEXT_Y1, string_to_display, TRUE);
-        sh1122_put_centered_string(&plat_oled_descriptor, INF_DISPLAY_2L_TEXT_Y2, utils_get_string_next_line_pt(string_to_display), TRUE);
+        oled_put_centered_string(&plat_oled_descriptor, INF_DISPLAY_2L_TEXT_Y1, string_to_display, TRUE);
+        oled_put_centered_string(&plat_oled_descriptor, INF_DISPLAY_2L_TEXT_Y2, utils_get_string_next_line_pt(string_to_display), TRUE);
     }
     
     /* Reset display settings */
-    sh1122_reset_min_text_x(&plat_oled_descriptor);
+    oled_reset_min_text_x(&plat_oled_descriptor);
     
     /* Flush frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
@@ -297,12 +297,12 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
     for (uint16_t i = 0; i < gui_prompts_notif_popup_anim_length[message_type]; i++)
     {
         timer_delay_ms(50);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_popup_anim_bitmap[message_type]+i, FALSE);
+        oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_popup_anim_bitmap[message_type]+i, FALSE);
     }
     
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     /* Load transition (likely to be overwritten later */
-    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     #endif
     
     /* Start timer in case the caller needs it */    
@@ -321,17 +321,17 @@ void gui_prompts_display_information_lines_on_screen(confirmationText_t* text_li
     logic_device_activity_detected();
     
     /* Check strings lengths and truncate them if necessary */
-    sh1122_set_min_text_x(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type]);
+    oled_set_min_text_x(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type]);
     for (uint16_t i = 0; i < nb_lines; i++)
     {
         /* Set correct font */
-        sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_lines-1][i]);
+        oled_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_lines-1][i]);
 
         /* Get string length */
         uint16_t string_length = utils_strlen(text_lines->lines[i]);
         
         /* Get how many characters can be printed */
-        uint16_t nb_printable_chars = sh1122_get_number_of_printable_characters_for_string(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type], text_lines->lines[i]);
+        uint16_t nb_printable_chars = oled_get_number_of_printable_characters_for_string(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type], text_lines->lines[i]);
 
         /* String too long, truncate it with "..." */
         if ((string_length != nb_printable_chars) && (nb_printable_chars > 2))
@@ -343,29 +343,29 @@ void gui_prompts_display_information_lines_on_screen(confirmationText_t* text_li
         }
 
         /* Display string */
-        sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_lines-1][i], text_lines->lines[i], TRUE);
+        oled_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_lines-1][i], text_lines->lines[i], TRUE);
     }
-    sh1122_reset_min_text_x(&plat_oled_descriptor);
+    oled_reset_min_text_x(&plat_oled_descriptor);
 
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+    oled_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     #endif
     
     /* Check strings length and truncate them if necessary */
-    sh1122_set_min_text_x(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type]);
+    oled_set_min_text_x(&plat_oled_descriptor, gui_prompts_notif_min_x[message_type]);
     for (uint16_t i = 0; i < nb_lines; i++)
     {
         /* Set correct font */
-        sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_lines-1][i]);
+        oled_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_lines-1][i]);
 
         /* Display string */
-        sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_lines-1][i], text_lines->lines[i], TRUE);
+        oled_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_lines-1][i], text_lines->lines[i], TRUE);
     }
-    sh1122_reset_min_text_x(&plat_oled_descriptor);
+    oled_reset_min_text_x(&plat_oled_descriptor);
     
     /* Flush frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
@@ -379,12 +379,12 @@ void gui_prompts_display_information_lines_on_screen(confirmationText_t* text_li
     for (uint16_t i = 0; i < gui_prompts_notif_popup_anim_length[message_type]; i++)
     {
         timer_delay_ms(50);
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_popup_anim_bitmap[message_type]+i, FALSE);
+        oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_popup_anim_bitmap[message_type]+i, FALSE);
     }
     
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     /* Load transition (likely to be overwritten later */
-    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     #endif
 }
 
@@ -397,7 +397,7 @@ void gui_prompts_display_information_lines_on_screen(confirmationText_t* text_li
 void gui_prompts_display_information_on_string_single_anim_frame(uint16_t* frame_id, uint16_t* timer_timeout, display_message_te message_type)
 {
     /* Display correct frame */
-    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+(*frame_id), FALSE);
+    oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+(*frame_id), FALSE);
     
     /* Increment frame ID */
     if ((*frame_id)++ == gui_prompts_notif_idle_anim_length[message_type]-1)
@@ -501,7 +501,7 @@ gui_info_display_ret_te gui_prompts_display_information_on_screen_and_wait(uint1
             }
             
             /* Animation depending on message type */
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+i, FALSE);                 
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+i, FALSE);                 
         }
     }
     
@@ -611,7 +611,7 @@ gui_info_display_ret_te gui_prompts_wait_for_pairing_screen(void)
             }
             
             /* Animation depending on message type */
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[DISP_MSG_ACTION]+i, FALSE);                 
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[DISP_MSG_ACTION]+i, FALSE);                 
         }
     }
     
@@ -674,7 +674,7 @@ BOOL gui_prompts_display_3line_information_on_screen_and_wait(confirmationText_t
             }
             
             /* Animation depending on message type */
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+i, FALSE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_prompts_notif_idle_anim_bitmap[message_type]+i, FALSE);
         }
         
         /* Card insertion status change */
@@ -814,48 +814,48 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     #endif
     
     /* Write prompt text, centered on the left part */
-    sh1122_allow_line_feed(&plat_oled_descriptor);
+    oled_allow_line_feed(&plat_oled_descriptor);
     uint16_t nb_lines_to_display = utils_get_nb_lines(string_to_display);
-    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
-    sh1122_set_max_text_x(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X+x_offset_for_digits);
+    oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);
+    oled_set_max_text_x(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X+x_offset_for_digits);
     if (nb_lines_to_display == 1)
     {
-        sh1122_put_string_xy(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X+x_offset_for_digits-1, PIN_PROMPT_1LTEXT_Y, OLED_ALIGN_RIGHT, string_to_display, TRUE);
+        oled_put_string_xy(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X+x_offset_for_digits-1, PIN_PROMPT_1LTEXT_Y, OLED_ALIGN_RIGHT, string_to_display, TRUE);
     }
     else if (nb_lines_to_display == 2)
     {
-        sh1122_put_string_xy(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X+x_offset_for_digits-1, PIN_PROMPT_2LTEXT_Y, OLED_ALIGN_RIGHT, string_to_display, TRUE);
+        oled_put_string_xy(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X+x_offset_for_digits-1, PIN_PROMPT_2LTEXT_Y, OLED_ALIGN_RIGHT, string_to_display, TRUE);
     }
     else
     {
-        sh1122_put_string_xy(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X+x_offset_for_digits-1, PIN_PROMPT_3LTEXT_Y, OLED_ALIGN_RIGHT, string_to_display, TRUE);
+        oled_put_string_xy(&plat_oled_descriptor, PIN_PROMPT_MAX_TEXT_X+x_offset_for_digits-1, PIN_PROMPT_3LTEXT_Y, OLED_ALIGN_RIGHT, string_to_display, TRUE);
     }    
-    sh1122_prevent_line_feed(&plat_oled_descriptor);
-    sh1122_reset_max_text_x(&plat_oled_descriptor);
+    oled_prevent_line_feed(&plat_oled_descriptor);
+    oled_reset_max_text_x(&plat_oled_descriptor);
     
     /* Horizontal animation when changing selected digit */
     if (hor_anim_direction != 0)
     {
         /* Erase digits */
-        sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MONO_BOLD_30_ID);
-        sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_DIGIT_HEIGHT, 0x00, TRUE);
+        oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MONO_BOLD_30_ID);
+        oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_DIGIT_HEIGHT, 0x00, TRUE);
         if (six_digit_prompt == FALSE)
         {
             for (uint16_t i = 0; i < nb_of_digits; i++)
             {
                 cust_char_t disp_char = gui_prompts_get_char_to_display(current_pin, i);
-                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+extra_y_for_extra_digit, disp_char, TRUE);
+                oled_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+extra_y_for_extra_digit, disp_char, TRUE);
             }
         } 
         else
         {
             for (uint16_t i = 0; i < nb_of_digits; i++)
             {
-                sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, sig_digits_cust_chars[i], TRUE);
+                oled_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, sig_digits_cust_chars[i], TRUE);
             }
         }
         #ifdef OLED_INTERNAL_FRAME_BUFFER
@@ -864,10 +864,10 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
         
         for (uint16_t i = 0; i < PIN_PROMPT_ARROW_MOV_LGTH; i++)
         {        
-            sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS - x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
-            sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*(selected_digit-hor_anim_direction) + PIN_PROMPT_ARROW_HOR_ANIM_STEP*i*hor_anim_direction, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_MOVE_ID+i, TRUE);
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*(selected_digit-hor_anim_direction) + PIN_PROMPT_ARROW_HOR_ANIM_STEP*i*hor_anim_direction, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_MOVE_ID+i, TRUE);
+            oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS - x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
+            oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
+            oled_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*(selected_digit-hor_anim_direction) + PIN_PROMPT_ARROW_HOR_ANIM_STEP*i*hor_anim_direction, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_MOVE_ID+i, TRUE);
+            oled_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*(selected_digit-hor_anim_direction) + PIN_PROMPT_ARROW_HOR_ANIM_STEP*i*hor_anim_direction, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_MOVE_ID+i, TRUE);
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT);
             sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT);
@@ -876,12 +876,12 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
         }
         
         /* Erase digits again */
-        sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_DIGIT_HEIGHT, 0x00, TRUE);
+        oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_DIGIT_HEIGHT, 0x00, TRUE);
     }
     
     /* Prepare for digits display */
-    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MONO_BOLD_30_ID);
-    sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
+    oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MONO_BOLD_30_ID);
+    oled_allow_partial_text_y_draw(&plat_oled_descriptor);
     
     /* Animation code */
     for (int16_t anim_step = 0; anim_step < nb_animation_steps; anim_step+=2)
@@ -896,7 +896,7 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
         #endif
         
         /* Erase overwritten part */
-        sh1122_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, 0, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, SH1122_OLED_HEIGHT, 0, TRUE);
+        oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, 0, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, SH1122_OLED_HEIGHT, 0, TRUE);
         
         /* Display the 4-6 digits */
         for (uint16_t i = 0; i < nb_of_digits; i++)
@@ -906,11 +906,11 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
                 if (six_digit_prompt == FALSE)
                 {
                     cust_char_t disp_char = gui_prompts_get_char_to_display(current_pin, i);
-                    sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+extra_y_for_extra_digit, disp_char, TRUE);
+                    oled_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+extra_y_for_extra_digit, disp_char, TRUE);
                 } 
                 else
                 {
-                    sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, sig_digits_cust_chars[i], TRUE);
+                    oled_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, sig_digits_cust_chars[i], TRUE);
                 }
             }
             else
@@ -920,36 +920,36 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
                 {
                     if (vert_anim_direction > 0)
                     {
-                        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_ACTIVATE_ID+(anim_step-1)/2, TRUE);                        
+                        oled_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_ACTIVATE_ID+(anim_step-1)/2, TRUE);                        
                     }
                     else
                     {
-                        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);                        
+                        oled_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);                        
                     }                    
                     if (vert_anim_direction < 0)
                     {
-                        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_ACTIVATE_ID+(anim_step-1)/2, TRUE);
+                        oled_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_ACTIVATE_ID+(anim_step-1)/2, TRUE);
                     }
                     else
                     {
-                        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);
+                        oled_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);
                     }
                 }
                 
                 /* Digits display with animation */
-                sh1122_set_min_display_y(&plat_oled_descriptor, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING);
-                sh1122_set_max_display_y(&plat_oled_descriptor, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT);
+                oled_set_min_display_y(&plat_oled_descriptor, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING);
+                oled_set_max_display_y(&plat_oled_descriptor, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT);
                 if (show_pin)
                 {
-                    sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + anim_step*vert_anim_direction,  current_char, TRUE);
-                    sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + anim_step*vert_anim_direction + (PIN_PROMPT_DIGIT_HEIGHT+1)*vert_anim_direction*-1, next_char, TRUE);
+                    oled_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + anim_step*vert_anim_direction,  current_char, TRUE);
+                    oled_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + anim_step*vert_anim_direction + (PIN_PROMPT_DIGIT_HEIGHT+1)*vert_anim_direction*-1, next_char, TRUE);
                 }
                 else
                 {
-                    sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + extra_y_for_extra_digit + anim_step*vert_anim_direction,  current_char, TRUE);
-                    sh1122_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + extra_y_for_extra_digit + anim_step*vert_anim_direction + (PIN_PROMPT_DIGIT_HEIGHT+1)*vert_anim_direction*-1, next_char, TRUE);
+                    oled_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + extra_y_for_extra_digit + anim_step*vert_anim_direction,  current_char, TRUE);
+                    oled_put_centered_char(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*i + PIN_PROMPT_DIGIT_X_ADJ, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING + extra_y_for_extra_digit + anim_step*vert_anim_direction + (PIN_PROMPT_DIGIT_HEIGHT+1)*vert_anim_direction*-1, next_char, TRUE);
                 }
-                sh1122_reset_lim_display_y(&plat_oled_descriptor);
+                oled_reset_lim_display_y(&plat_oled_descriptor);
             }
         }
         
@@ -969,28 +969,28 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
         if ((wheel_action_ret != WHEEL_ACTION_NONE) && ((hor_anim_direction != 0) || (vert_anim_direction != 0)))
         {
             memset(sig_digits_cust_chars, 0, sizeof(sig_digits_cust_chars));
-            sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
+            oled_prevent_partial_text_y_draw(&plat_oled_descriptor);
             return wheel_action_ret;
         }
         #endif
     }
         
     /* Reset temporary graphics settings */
-    sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
+    oled_prevent_partial_text_y_draw(&plat_oled_descriptor);
     
     /* Special case: first display of pin entering screen, arrows appearing */
     if ((hor_anim_direction == 0) && (vert_anim_direction == 0))
     {
         for (uint16_t i = 0; i < PIN_PROMPT_POPUP_ANIM_LGTH; i++)
         {
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_POP_ID+i, FALSE);
-            sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_POP_ID+i, FALSE);
+            oled_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_POP_ID+i, FALSE);
+            oled_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_POP_ID+i, FALSE);
             timer_delay_ms(30);
         }
         
         /* Rewrite the last bitmaps in the frame buffer in case we have a power change */
-        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);
-        sh1122_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);
+        oled_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);
+        oled_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_POP_ID+PIN_PROMPT_POPUP_ANIM_LGTH-1, TRUE);
     }    
     
     memset(sig_digits_cust_chars, 0, sizeof(sig_digits_cust_chars));
@@ -1023,7 +1023,7 @@ RET_TYPE gui_prompts_get_six_digits_pin(uint8_t* pin_code, uint16_t stringID)
     
     // Display current pin on screen
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+    oled_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
     #endif
     gui_prompts_render_pin_enter_screen(pin_code, selected_digit, stringID, 0, 0, TRUE, TRUE);
     
@@ -1163,7 +1163,7 @@ RET_TYPE gui_prompts_get_user_pin(volatile uint16_t* pin_code, uint16_t stringID
     
     // Display current pin on screen
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+    oled_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
     #endif
     gui_prompts_render_pin_enter_screen(current_pin, selected_digit, stringID, 0, 0, FALSE, show_pin_entry);
     
@@ -1341,27 +1341,27 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     if (flash_flag != FALSE)
     {
-        sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+        oled_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
     } 
     else
     {
-        sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+        oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
     }
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     #endif
     
     /* Display single line */
-    sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[0][0]);
-    sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[0][0], (cust_char_t*)string_to_display, TRUE);
+    oled_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[0][0]);
+    oled_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[0][0], (cust_char_t*)string_to_display, TRUE);
     
     /* Flush to display */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
     
     /* Load transition for function exit (likely to be overwritten later */
-    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     #endif
     
     /* Clear possible remaining detection */
@@ -1373,17 +1373,17 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
         /* Write both in frame buffer and display */
         if (first_item_selected != FALSE)
         {
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, FALSE);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, TRUE);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, FALSE);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, TRUE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, FALSE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[0]+i, TRUE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, FALSE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[1]+i, TRUE);
         } 
         else
         {
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[8]+i, FALSE);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[8]+i, TRUE);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[9]+i, FALSE);
-            sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[9]+i, TRUE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[8]+i, FALSE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[8]+i, TRUE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[9]+i, FALSE);
+            oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[9]+i, TRUE);
         }          
         timer_delay_ms(15);
     }
@@ -1446,7 +1446,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
                 {
                     for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
                     {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[2]+i, FALSE);
+                        oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[2]+i, FALSE);
                         timer_delay_ms(10);
                     }
                 }
@@ -1458,7 +1458,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
                 {
                     for (uint16_t i = 0; i < POPUP_2LINES_ANIM_LGTH; i++)
                     {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[3]+i, FALSE);
+                        oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[3]+i, FALSE);
                         timer_delay_ms(10);
                     }
                 }
@@ -1477,27 +1477,27 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
             {
                 for (uint16_t i = (flash_flag == FALSE)?CONF_2LINES_SEL_AN_LGTH-1:0; i < CONF_2LINES_SEL_AN_LGTH; i++)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4]+i, FALSE);
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5]+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
+                    oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4]+i, FALSE);
+                    oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5]+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
                     timer_delay_ms(10);
                 }
                 
                 /* In case of power switching, where the frame buffer is resent to the display */
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5], TRUE);
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4]+CONF_2LINES_SEL_AN_LGTH-1, TRUE);
+                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5], TRUE);
+                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4]+CONF_2LINES_SEL_AN_LGTH-1, TRUE);
             }
             else
             {
                 for (uint16_t i = (flash_flag == FALSE)?CONF_2LINES_SEL_AN_LGTH-1:0; i < CONF_2LINES_SEL_AN_LGTH; i++)
                 {
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5]+i, FALSE);
-                    sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4]+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
+                    oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5]+i, FALSE);
+                    oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4]+CONF_2LINES_SEL_AN_LGTH-1-i, FALSE);
                     timer_delay_ms(10);
                 }
                 
                 /* In case of power switching, where the frame buffer is resent to the display */
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4], TRUE);
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5]+CONF_2LINES_SEL_AN_LGTH-1, TRUE);
+                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[4], TRUE);
+                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[5]+CONF_2LINES_SEL_AN_LGTH-1, TRUE);
             }                
             approve_selected = !approve_selected;
             
@@ -1511,11 +1511,11 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
         {
             if (approve_selected == FALSE)
             {
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[7]+flash_sm, FALSE);
+                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[7]+flash_sm, FALSE);
             }
             else
             {
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[6]+flash_sm, FALSE);
+                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, bitmap_array_pt[6]+flash_sm, FALSE);
             }
             
             /* Rearm timer */
@@ -1570,25 +1570,25 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     if (flash_flag != FALSE)
     {
-        sh1122_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
+        oled_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
     }
     else
     {
-        sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+        oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
     }
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     #endif
     
     /* Compute lines lengths, display them, set scrolling bools */
     for (uint16_t i = 0; i < nb_args; i++)
     {
         /* Set correct font for given line */
-        sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][i]);
+        oled_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][i]);
         
         /* Get text width in px */
-        uint16_t line_width = sh1122_get_string_width(&plat_oled_descriptor, text_object->lines[i]);
+        uint16_t line_width = oled_get_string_width(&plat_oled_descriptor, text_object->lines[i]);
         
         /* Larger than display area? */
         if (line_width < CONF_PROMPT_BITMAP_X)
@@ -1608,9 +1608,9 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         }
         
         /* Set correct font and max text X */
-        sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
-        sh1122_set_max_text_x(&plat_oled_descriptor, max_text_x[i]);
-        sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);
+        oled_allow_partial_text_x_draw(&plat_oled_descriptor);
+        oled_set_max_text_x(&plat_oled_descriptor, max_text_x[i]);
+        oled_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);
     }
     
     /* Flush to display */
@@ -1618,7 +1618,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     sh1122_flush_frame_buffer(&plat_oled_descriptor);
     
     /* Load transition for function exit (likely to be overwritten later */
-    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     #endif
     
     /* Wait for user input */
@@ -1632,12 +1632,12 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     /* Transition done, now transition the action bitmap */
     for (uint16_t j = (flash_flag == FALSE)?POPUP_3LINES_ANIM_LGTH-1:0; j < POPUP_3LINES_ANIM_LGTH; j++)
     {
-        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_3LINES_ID+j, TRUE);
+        oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_POPUP_3LINES_ID+j, TRUE);
         for (uint16_t i = 0; i < nb_args; i++)
         {
-            sh1122_set_max_text_x(&plat_oled_descriptor, max_text_x[i]);
-            sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][i]);
-            sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);
+            oled_set_max_text_x(&plat_oled_descriptor, max_text_x[i]);
+            oled_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][i]);
+            oled_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);
         }
         #ifdef OLED_INTERNAL_FRAME_BUFFER
         sh1122_flush_frame_buffer(&plat_oled_descriptor);
@@ -1706,7 +1706,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
                 {
                     for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH+1; i++)
                     {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_YES_PRESS_ID+i, FALSE);
+                        oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_YES_PRESS_ID+i, FALSE);
                         timer_delay_ms(10);
                     }
                 }
@@ -1718,7 +1718,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
                 {
                     for (uint16_t i = 0; i < POPUP_3LINES_ANIM_LGTH+1; i++)
                     {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NO_PRESS_ID+i, FALSE);
+                        oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NO_PRESS_ID+i, FALSE);
                         timer_delay_ms(10);
                     }
                 }
@@ -1758,22 +1758,22 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
                 {
                     if (flash_sm != 0)
                     {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_3LINES_IDLE_N+flash_sm, TRUE);
+                        oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_3LINES_IDLE_N+flash_sm, TRUE);
                     }
                     else
                     {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID, TRUE);
+                        oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID, TRUE);
                     }
                 }
                 else
                 {
                     if (flash_sm != 0)
                     {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_3LINES_IDLE_Y+flash_sm, TRUE);
+                        oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_3LINES_IDLE_Y+flash_sm, TRUE);
                     }
                     else
                     {
-                        sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID+POPUP_3LINES_ANIM_LGTH-1, TRUE);
+                        oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, BITMAP_NY_DOWN_ID+POPUP_3LINES_ANIM_LGTH-1, TRUE);
                     }
                 }
             
@@ -1783,7 +1783,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             else
             {
                 /* Up / Down animation */
-                sh1122_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, up_down_animation_bitmap_id, TRUE);
+                oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, up_down_animation_bitmap_id, TRUE);
                 up_down_animation_bitmap_id += up_down_animation_increment;
                 up_down_animation_counter++;
                 
@@ -1808,18 +1808,18 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             for (uint16_t i = 0; i < nb_args; i++)
             {
                 /* Set max text X, set correct font */
-                sh1122_set_max_text_x(&plat_oled_descriptor, max_text_x[i]);
-                sh1122_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][i]);
+                oled_set_max_text_x(&plat_oled_descriptor, max_text_x[i]);
+                oled_refresh_used_font(&plat_oled_descriptor, gui_prompts_conf_prompt_fonts[nb_args-1][i]);
                 
                 if (string_scrolling[i] != FALSE)
                 {
                     /* Erase previous part */
                     #ifndef OLED_INTERNAL_FRAME_BUFFER
-                    //sh1122_draw_rectangle(&plat_oled_descriptor, 0, gui_prompts_conf_prompt_y_positions[nb_args-1][i], CONF_PROMPT_MAX_TEXT_X, gui_prompts_conf_prompt_line_heights[nb_args-1][i], 0x00, TRUE);
+                    //oled_draw_rectangle(&plat_oled_descriptor, 0, gui_prompts_conf_prompt_y_positions[nb_args-1][i], CONF_PROMPT_MAX_TEXT_X, gui_prompts_conf_prompt_line_heights[nb_args-1][i], 0x00, TRUE);
                     #endif
                     
                     /* Display partial text */
-                    int16_t displayed_text_length = sh1122_put_string_xy(&plat_oled_descriptor, string_offset_cntrs[i], gui_prompts_conf_prompt_y_positions[nb_args-1][i], OLED_ALIGN_LEFT, text_object->lines[i], TRUE);
+                    int16_t displayed_text_length = oled_put_string_xy(&plat_oled_descriptor, string_offset_cntrs[i], gui_prompts_conf_prompt_y_positions[nb_args-1][i], OLED_ALIGN_LEFT, text_object->lines[i], TRUE);
                     
                     /* Increment or decrement X offset */
                     if (string_scrolling_left[i] == FALSE)
@@ -1840,7 +1840,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
                 }
                 else
                 {
-                    sh1122_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);                    
+                    oled_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);                    
                 }
             }
             
@@ -1897,8 +1897,8 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     }
     
     /* Reset text preferences */
-    sh1122_reset_max_text_x(&plat_oled_descriptor);
-    sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
+    oled_reset_max_text_x(&plat_oled_descriptor);
+    oled_prevent_partial_text_x_draw(&plat_oled_descriptor);
     
     return input_answer;
 }
@@ -1954,10 +1954,10 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     #endif
     
     /* Temp vars for our main loop */
@@ -2033,8 +2033,8 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
     }
             
     /* String width to set correct underline */
-    sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
-    uint16_t underline_width = sh1122_get_string_width(&plat_oled_descriptor, temp_pnode.cred_parent.service);
+    oled_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
+    uint16_t underline_width = oled_get_string_width(&plat_oled_descriptor, temp_pnode.cred_parent.service);
     uint16_t underline_x_start = plat_oled_descriptor.min_text_x;
             
     /* Sanitizing */
@@ -2157,38 +2157,38 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
             #endif
-            sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
-            sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
+            oled_allow_partial_text_x_draw(&plat_oled_descriptor);
+            oled_allow_partial_text_y_draw(&plat_oled_descriptor);
             
             /* Animation: scrolling down, keeping the first of item displayed & fading out */
-            sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
+            oled_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
             if ((animation_step > 0) && (before_top_of_list_child_addr != NODE_ADDR_NULL))
             {
                 /* Fetch node */
                 nodemgmt_read_cred_child_node_except_pwd(before_top_of_list_child_addr, temp_half_cnode_pt);
                 
                 /* Display fading out login */
-                sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
-                sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_FLINE-(((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2)+animation_step, temp_half_cnode_pt->login, TRUE);
+                oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                oled_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_FLINE-(((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2)+animation_step, temp_half_cnode_pt->login, TRUE);
             }
-            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            oled_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Bar below the title */
-            sh1122_draw_rectangle(&plat_oled_descriptor, underline_x_start, LOGIN_SCROLL_Y_BAR, underline_width, 1, 0xFF, TRUE);
+            oled_draw_rectangle(&plat_oled_descriptor, underline_x_start, LOGIN_SCROLL_Y_BAR, underline_width, 1, 0xFF, TRUE);
             
             /* Loop for 4 always displayed texts: title then 3 list items */
             for (uint16_t i = 0; i < 4; i++)
             {
                 if (i == 0)
                 {
-                    sh1122_reset_lim_display_y(&plat_oled_descriptor);
+                    oled_reset_lim_display_y(&plat_oled_descriptor);
                 }
                 
                 /* Check if we should display it */
                 if (*(address_to_check_to_display[i]) != NODE_ADDR_NULL)
                 {
                     /* Load the right font */
-                    sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[i]);
+                    oled_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[i]);
                     
                     /* Fetch node if needed */
                     if (i > 0)
@@ -2239,7 +2239,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
                     if (scrolling_needed[i] != FALSE)
                     {                        
                         /* Scrolling required: display with the correct X offset */
-                        displayed_length = sh1122_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], strings_y_positions[i]+yoffset, OLED_ALIGN_LEFT, strings_to_be_displayed[i], TRUE);
+                        displayed_length = oled_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], strings_y_positions[i]+yoffset, OLED_ALIGN_LEFT, strings_to_be_displayed[i], TRUE);
                 
                         /* Scrolling: go change direction if we went too far */
                         if (text_anim_going_right[i] == FALSE)
@@ -2260,7 +2260,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
                     else
                     {
                         /* String not large enough or start of animation */
-                        displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
+                        displayed_length = oled_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
                     }
                     
                     /* First run: based on the number of chars displayed, set the scrolling needed bool */
@@ -2293,8 +2293,8 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
                             nodemgmt_read_cred_child_node_except_pwd(*(address_to_check_to_display[i+1]), temp_half_cnode_pt);
                             
                             /* Display fading out login */
-                            sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
-                            sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_TLINE+(((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2)+animation_step, temp_half_cnode_pt->login, TRUE);
+                            oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                            oled_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_TLINE+(((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2)+animation_step, temp_half_cnode_pt->login, TRUE);
                         }
                     }
                 }
@@ -2315,14 +2315,14 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
                 
                 if (i == 0)
                 {
-                    sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
+                    oled_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
                 }
             }             
             
             /* Reset display settings */
-            sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
-            sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
-            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            oled_prevent_partial_text_y_draw(&plat_oled_descriptor);
+            oled_prevent_partial_text_x_draw(&plat_oled_descriptor);
+            oled_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Reset animation just started var */
             animation_just_started = FALSE;
@@ -2334,14 +2334,14 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
             } 
             else
             {
-                sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+                oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
             }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
             #endif
             
             /* Load function exit transition */
-            sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+            oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
             
             /* Animation processing */
             if (animation_step > 0)
@@ -2385,10 +2385,10 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     #endif
     
     /* Temp vars for our main loop */
@@ -2430,16 +2430,16 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     memset(scrolling_needed, FALSE, sizeof(scrolling_needed));
     
     /* Scroll hint string width to set correct underline */
-    sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
-    uint16_t scroll_hint_width = sh1122_get_string_width(&plat_oled_descriptor, strings_to_be_displayed[0]);
+    oled_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
+    uint16_t scroll_hint_width = oled_get_string_width(&plat_oled_descriptor, strings_to_be_displayed[0]);
     uint16_t scroll_hint_x_start = plat_oled_descriptor.min_text_x + (plat_oled_descriptor.max_text_x - plat_oled_descriptor.min_text_x - scroll_hint_width)/2;
     
     /* "Select credential" string */
     custom_fs_get_string_from_file(SELECT_SERVICE_TEXT_ID, &strings_to_be_displayed[0], TRUE);
     
     /* Select login string width to set correct underline */
-    sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
-    uint16_t select_login_width = sh1122_get_string_width(&plat_oled_descriptor, strings_to_be_displayed[0]);
+    oled_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
+    uint16_t select_login_width = oled_get_string_width(&plat_oled_descriptor, strings_to_be_displayed[0]);
     uint16_t select_login_x_start = plat_oled_descriptor.min_text_x + (plat_oled_descriptor.max_text_x - plat_oled_descriptor.min_text_x - select_login_width)/2;
     uint16_t underline_bar_start_x = select_login_x_start;
     uint16_t underline_bar_width = select_login_width;
@@ -2643,38 +2643,38 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
             #endif
-            sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
-            sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
+            oled_allow_partial_text_x_draw(&plat_oled_descriptor);
+            oled_allow_partial_text_y_draw(&plat_oled_descriptor);
             
             /* Animation: scrolling down, keeping the first of item displayed & fading out */
-            sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
+            oled_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
             if ((animation_step > 0) && (before_top_of_list_parent_addr != NODE_ADDR_NULL))
             {
                 /* Fetch node */
                 nodemgmt_read_parent_node(before_top_of_list_parent_addr, &temp_pnode, TRUE);
                 
                 /* Display fading out service */
-                sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
-                sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_FLINE-(((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2)+animation_step, temp_pnode.cred_parent.service, TRUE);
+                oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                oled_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_FLINE-(((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2)+animation_step, temp_pnode.cred_parent.service, TRUE);
             }
-            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            oled_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Bar below the title */
-            sh1122_draw_rectangle(&plat_oled_descriptor, underline_bar_start_x, LOGIN_SCROLL_Y_BAR, underline_bar_width, 1, 0xFF, TRUE);
+            oled_draw_rectangle(&plat_oled_descriptor, underline_bar_start_x, LOGIN_SCROLL_Y_BAR, underline_bar_width, 1, 0xFF, TRUE);
             
             /* Loop for 4 always displayed texts: title then 3 list items */
             for (uint16_t i = 0; i < 4; i++)
             {
                 if (i == 0)
                 {
-                    sh1122_reset_lim_display_y(&plat_oled_descriptor);
+                    oled_reset_lim_display_y(&plat_oled_descriptor);
                 }
                 
                 /* Check if we should display it */
                 if (*(address_to_check_to_display[i]) != NODE_ADDR_NULL)
                 {
                     /* Load the right font */
-                    sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[i]);
+                    oled_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[i]);
                     
                     /* Fetch node if needed */
                     if (i > 0)
@@ -2712,7 +2712,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                     if (scrolling_needed[i] != FALSE)
                     {
                         /* Scrolling required: display with the correct X offset */
-                        displayed_length = sh1122_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], strings_y_positions[i]+yoffset, OLED_ALIGN_LEFT, strings_to_be_displayed[i], TRUE);
+                        displayed_length = oled_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], strings_y_positions[i]+yoffset, OLED_ALIGN_LEFT, strings_to_be_displayed[i], TRUE);
                         
                         /* Scrolling: go change direction if we went too far */
                         if (text_anim_going_right[i] == FALSE)
@@ -2738,7 +2738,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                             if (displaying_service_fchars == FALSE)
                             {
                                 /* Same pointer has the pointer to the string doesn't change when we reload strings */
-                                displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
+                                displayed_length = oled_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
                                 
                                 /* Blinking timer logic */
                                 if ((displaying_hint != FALSE) && (timer_has_timer_expired(TIMER_ANIMATIONS, FALSE) == TIMER_EXPIRED))
@@ -2767,18 +2767,18 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                             else
                             {
                                 /* Previous / Current / Next first service char */
-                                sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_16_ID);
-                                sh1122_put_centered_char(&plat_oled_descriptor, 103, strings_y_positions[i], fchar_array[0], TRUE);
-                                sh1122_put_centered_char(&plat_oled_descriptor, 153, strings_y_positions[i], fchar_array[2], TRUE);
-                                sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_17_ID);
-                                sh1122_put_centered_char(&plat_oled_descriptor, 128, strings_y_positions[i], fchar_array[1], TRUE);
+                                oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_16_ID);
+                                oled_put_centered_char(&plat_oled_descriptor, 103, strings_y_positions[i], fchar_array[0], TRUE);
+                                oled_put_centered_char(&plat_oled_descriptor, 153, strings_y_positions[i], fchar_array[2], TRUE);
+                                oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_17_ID);
+                                oled_put_centered_char(&plat_oled_descriptor, 128, strings_y_positions[i], fchar_array[1], TRUE);
                                 displayed_length = 1;
                             }
                         } 
                         else
                         {
                             /* String not large enough or start of animation */
-                            displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
+                            displayed_length = oled_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
                         }
                     }
                     
@@ -2804,8 +2804,8 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                             nodemgmt_read_parent_node(*(address_to_check_to_display[i+1]), &temp_pnode, TRUE);
                             
                             /* Display fading out login */
-                            sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
-                            sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_TLINE+(((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2)+animation_step, temp_pnode.cred_parent.service, TRUE);
+                            oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                            oled_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_TLINE+(((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2)+animation_step, temp_pnode.cred_parent.service, TRUE);
                         }
                     }
                 }
@@ -2820,14 +2820,14 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                 
                 if (i == 0)
                 {
-                    sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
+                    oled_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
                 }
             }
             
             /* Reset display settings */
-            sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
-            sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
-            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            oled_prevent_partial_text_y_draw(&plat_oled_descriptor);
+            oled_prevent_partial_text_x_draw(&plat_oled_descriptor);
+            oled_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Reset animation just started var */
             animation_just_started = FALSE;
@@ -2839,14 +2839,14 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
             }
             else
             {
-                sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+                oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
             }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
             #endif
             
             /* Load function exit transition */
-            sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+            oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
             
             /* Animation processing */
             if (animation_step > 0)
@@ -2900,10 +2900,10 @@ int16_t gui_prompts_select_category(void)
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     #endif
     
     /* Arm timer for scrolling */
@@ -3000,8 +3000,8 @@ int16_t gui_prompts_select_category(void)
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
             #endif
-            sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
-            sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
+            oled_allow_partial_text_x_draw(&plat_oled_descriptor);
+            oled_allow_partial_text_y_draw(&plat_oled_descriptor);
             
             /* Loop for 5 always displayed texts */
             temp_y_offset = 0;
@@ -3031,19 +3031,19 @@ int16_t gui_prompts_select_category(void)
                 /* TBD */
                 if (i == selected_category)
                 {
-                    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);                    
+                    oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_15_ID);                    
                     utils_surround_text_with_pointers(string_to_display, ARRAY_SIZE(temp_category_text));
                 } 
                 else
                 {
-                    sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                    oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
                 }
                     
                 /* Display string */
                 if (scrolling_needed[i] != FALSE)
                 {
                     /* Scrolling required: display with the correct X offset */
-                    displayed_length = sh1122_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], i*12 + temp_y_offset, OLED_ALIGN_LEFT, string_to_display, TRUE);
+                    displayed_length = oled_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], i*12 + temp_y_offset, OLED_ALIGN_LEFT, string_to_display, TRUE);
                         
                     /* Scrolling: go change direction if we went too far */
                     if (text_anim_going_right[i] == FALSE)
@@ -3064,7 +3064,7 @@ int16_t gui_prompts_select_category(void)
                 else
                 {
                     /* String not large enough or start of animation */
-                    displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, i*12 + temp_y_offset, string_to_display, TRUE);
+                    displayed_length = oled_put_centered_string(&plat_oled_descriptor, i*12 + temp_y_offset, string_to_display, TRUE);
                 }
                 
                 /* Add offset if needed */
@@ -3081,9 +3081,9 @@ int16_t gui_prompts_select_category(void)
             }
             
             /* Reset display settings */
-            sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
-            sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
-            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            oled_prevent_partial_text_y_draw(&plat_oled_descriptor);
+            oled_prevent_partial_text_x_draw(&plat_oled_descriptor);
+            oled_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Flush to display */
             if (first_function_run != FALSE)
@@ -3092,14 +3092,14 @@ int16_t gui_prompts_select_category(void)
             }
             else
             {
-                sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+                oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
             }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
             #endif
             
             /* Load function exit transition */
-            sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+            oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
             
             /* Reset Bool */
             function_just_started = FALSE;
@@ -3136,10 +3136,10 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     #endif
     
     /* Fetch favorites */
@@ -3193,8 +3193,8 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
     uint16_t strings_y_positions[4] = {0, LOGIN_SCROLL_Y_FLINE, LOGIN_SCROLL_Y_SLINE, LOGIN_SCROLL_Y_TLINE};
         
     /* Select login string width to set correct underline */
-    sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
-    uint16_t select_login_width = sh1122_get_string_width(&plat_oled_descriptor, strings_to_be_displayed[0]);
+    oled_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
+    uint16_t select_login_width = oled_get_string_width(&plat_oled_descriptor, strings_to_be_displayed[0]);
     uint16_t select_login_x_start = plat_oled_descriptor.min_text_x + (plat_oled_descriptor.max_text_x - plat_oled_descriptor.min_text_x - select_login_width)/2;
     
     /* Arm timer for scrolling */
@@ -3300,11 +3300,11 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
             #endif
-            sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
-            sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
+            oled_allow_partial_text_x_draw(&plat_oled_descriptor);
+            oled_allow_partial_text_y_draw(&plat_oled_descriptor);
             
             /* Animation: scrolling down, keeping the first of item displayed & fading out */
-            sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
+            oled_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
             if ((animation_step > 0) && (before_top_of_list_child_index >= 0))
             {
                 /* Fetch nodes */                
@@ -3318,27 +3318,27 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
                 }
                 
                 /* Display fading out login */
-                sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
-                sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_FLINE-(((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2)+animation_step, temp_pnode.cred_parent.service, TRUE);
+                oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                oled_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_FLINE-(((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2)+animation_step, temp_pnode.cred_parent.service, TRUE);
             }
-            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            oled_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Bar below the title */
-            sh1122_draw_rectangle(&plat_oled_descriptor, select_login_x_start, LOGIN_SCROLL_Y_BAR, select_login_width, 1, 0xFF, TRUE);
+            oled_draw_rectangle(&plat_oled_descriptor, select_login_x_start, LOGIN_SCROLL_Y_BAR, select_login_width, 1, 0xFF, TRUE);
             
             /* Loop for 4 always displayed texts: title then 3 list items */
             for (uint16_t i = 0; i < 4; i++)
             {
                 if (i == 0)
                 {
-                    sh1122_reset_lim_display_y(&plat_oled_descriptor);
+                    oled_reset_lim_display_y(&plat_oled_descriptor);
                 }
                 
                 /* Check if we should display it */
                 if (*(index_to_check_to_display[i]) >= 0)
                 {
                     /* Load the right font */
-                    sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[i]);
+                    oled_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[i]);
                     
                     /* Fetch node if needed */
                     if (i > 0)
@@ -3391,7 +3391,7 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
                     if (scrolling_needed[i] != FALSE)
                     {                        
                         /* Scrolling required: display with the correct X offset */
-                        displayed_length = sh1122_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], strings_y_positions[i]+yoffset, OLED_ALIGN_LEFT, strings_to_be_displayed[i], TRUE);
+                        displayed_length = oled_put_string_xy(&plat_oled_descriptor, text_anim_x_offset[i], strings_y_positions[i]+yoffset, OLED_ALIGN_LEFT, strings_to_be_displayed[i], TRUE);
                 
                         /* Scrolling: go change direction if we went too far */
                         if (text_anim_going_right[i] == FALSE)
@@ -3412,7 +3412,7 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
                     else
                     {
                         /* String not large enough or start of animation */
-                        displayed_length = sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
+                        displayed_length = oled_put_centered_string(&plat_oled_descriptor, strings_y_positions[i]+yoffset, strings_to_be_displayed[i], TRUE);
                     }
                     
                     /* First run: based on the number of chars displayed, set the scrolling needed bool */
@@ -3438,8 +3438,8 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
                             nodemgmt_read_parent_node(temp_fav_addrs[(uint16_t)*(index_to_check_to_display[i+1])].parent_addr, &temp_pnode, TRUE);
                             
                             /* Display fading out login */
-                            sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
-                            sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_TLINE+(((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2)+animation_step, temp_pnode.cred_parent.service, TRUE);
+                            oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                            oled_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_TLINE+(((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2)+animation_step, temp_pnode.cred_parent.service, TRUE);
                         }
                     }
                 }
@@ -3454,9 +3454,9 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
                         /* Check for no favorites */
                         if (center_list_child_index < 0)
                         {
-                            sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
-                            sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
-                            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+                            oled_prevent_partial_text_y_draw(&plat_oled_descriptor);
+                            oled_prevent_partial_text_x_draw(&plat_oled_descriptor);
+                            oled_reset_lim_display_y(&plat_oled_descriptor);
                             gui_prompts_display_information_on_screen_and_wait(NO_FAVORITES_TEXT_ID, DISP_MSG_INFO, FALSE);
                             *chosen_service_addr_pt = NODE_ADDR_NULL;
                             return;
@@ -3471,14 +3471,14 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
                 
                 if (i == 0)
                 {
-                    sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
+                    oled_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
                 }
             }             
             
             /* Reset display settings */
-            sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
-            sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
-            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            oled_prevent_partial_text_y_draw(&plat_oled_descriptor);
+            oled_prevent_partial_text_x_draw(&plat_oled_descriptor);
+            oled_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Reset animation just started var */
             animation_just_started = FALSE;
@@ -3490,14 +3490,14 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
             }
             else
             {
-                sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+                oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
             }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
             #endif
             
             /* Load function exit transition */
-            sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+            oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
             
             /* Animation processing */
             if (animation_step > 0)
@@ -3560,10 +3560,10 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+    oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
     sh1122_clear_frame_buffer(&plat_oled_descriptor);
     #else
-    sh1122_clear_current_screen(&plat_oled_descriptor);
+    oled_clear_current_screen(&plat_oled_descriptor);
     #endif
     
     /* Temp vars for our main loop */
@@ -3616,8 +3616,8 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
         /* Our assembler may solder the battery after the functional test */
         if (logic_power_get_battery_state() == BATTERY_ERROR)
         {
-            sh1122_clear_current_screen(&plat_oled_descriptor);
-            sh1122_put_error_string(&plat_oled_descriptor, u"Battery error!");
+            oled_clear_current_screen(&plat_oled_descriptor);
+            oled_put_error_string(&plat_oled_descriptor, u"Battery error!");
             timer_delay_ms(2000);
         }
         
@@ -3673,11 +3673,11 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_clear_frame_buffer(&plat_oled_descriptor);
             #endif
-            sh1122_allow_partial_text_x_draw(&plat_oled_descriptor);
-            sh1122_allow_partial_text_y_draw(&plat_oled_descriptor);
+            oled_allow_partial_text_x_draw(&plat_oled_descriptor);
+            oled_allow_partial_text_y_draw(&plat_oled_descriptor);
             
             /* Animation: scrolling down, keeping the first of item displayed & fading out */
-            sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
+            oled_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
             if ((animation_step > 0) && (first_item_id_in_list > 0))
             {         
                 /* Display fading out language */
@@ -3689,18 +3689,18 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
                 {
                     custom_fs_get_keyboard_descriptor_string((uint8_t)(first_item_id_in_list-1), string_buffer);
                 }         
-                sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
-                sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_FLINE-(((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2)+animation_step, string_buffer, TRUE);
+                oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);
+                oled_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_FLINE-(((LOGIN_SCROLL_Y_TLINE-LOGIN_SCROLL_Y_SLINE)/2)*2)+animation_step, string_buffer, TRUE);
             }
-            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            oled_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Main frame title */
-            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            oled_reset_lim_display_y(&plat_oled_descriptor);
             if (layout_choice == FALSE)
             {      
                 custom_fs_set_current_language(first_item_id_in_list+1);
             }                
-            sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
+            oled_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[0]);
             if (layout_choice == FALSE)
             {
                 custom_fs_get_string_from_file(SELECT_LANGUAGE_TEXT_ID, &select_language_string, TRUE);
@@ -3716,19 +3716,19 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
                     custom_fs_get_string_from_file(SELECT_USB_LAYOUT_TEXT_ID, &select_language_string, TRUE);
                 }             
             }
-            sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[0], select_language_string, TRUE);
-            sh1122_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
+            oled_put_centered_string(&plat_oled_descriptor, strings_y_positions[0], select_language_string, TRUE);
+            oled_set_min_display_y(&plat_oled_descriptor, LOGIN_SCROLL_Y_BAR+1);
             if (layout_choice == FALSE)
             {
                 custom_fs_set_current_language(cur_item_id);
             }
             
             /* String width to set correct underline */
-            uint16_t string_width = sh1122_get_string_width(&plat_oled_descriptor, select_language_string);
+            uint16_t string_width = oled_get_string_width(&plat_oled_descriptor, select_language_string);
             uint16_t underline_x_start = plat_oled_descriptor.min_text_x + (plat_oled_descriptor.max_text_x - plat_oled_descriptor.min_text_x - string_width)/2;
             
             /* Bar below the title */
-            sh1122_draw_rectangle(&plat_oled_descriptor, underline_x_start, LOGIN_SCROLL_Y_BAR, string_width, 1, 0xFF, TRUE);
+            oled_draw_rectangle(&plat_oled_descriptor, underline_x_start, LOGIN_SCROLL_Y_BAR, string_width, 1, 0xFF, TRUE);
             
             /* Loop for next 3 languages */
             for (uint16_t i = 0; i < 3; i++)
@@ -3745,7 +3745,7 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
                     {
                         custom_fs_get_keyboard_descriptor_string((uint8_t)(first_item_id_in_list+i), string_buffer);                
                     }                   
-                    sh1122_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[i+1]);
+                    oled_refresh_used_font(&plat_oled_descriptor, fonts_to_be_used[i+1]);
                     
                     /* Surround center of list item */
                     if (i == 1)
@@ -3754,7 +3754,7 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
                     }
                     
                     /* Display language string */
-                    sh1122_put_centered_string(&plat_oled_descriptor, strings_y_positions[i+1]+animation_step, string_buffer, TRUE);
+                    oled_put_centered_string(&plat_oled_descriptor, strings_y_positions[i+1]+animation_step, string_buffer, TRUE);
                     
                     /* Last item & animation scrolling up: display upcoming item */
                     if (i == 2)
@@ -3770,17 +3770,17 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
                             {
                                 custom_fs_get_keyboard_descriptor_string((uint8_t)(last_item_id_in_list+1), string_buffer);                     
                             }
-                            sh1122_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);                            
-                            sh1122_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_TLINE+(((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2)+animation_step, string_buffer, TRUE);
+                            oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_REGULAR_13_ID);                            
+                            oled_put_centered_string(&plat_oled_descriptor, LOGIN_SCROLL_Y_TLINE+(((LOGIN_SCROLL_Y_SLINE-LOGIN_SCROLL_Y_FLINE)/2)*2)+animation_step, string_buffer, TRUE);
                         }
                     }
                 }
             }
             
             /* Reset display settings */
-            sh1122_prevent_partial_text_y_draw(&plat_oled_descriptor);
-            sh1122_prevent_partial_text_x_draw(&plat_oled_descriptor);
-            sh1122_reset_lim_display_y(&plat_oled_descriptor);
+            oled_prevent_partial_text_y_draw(&plat_oled_descriptor);
+            oled_prevent_partial_text_x_draw(&plat_oled_descriptor);
+            oled_reset_lim_display_y(&plat_oled_descriptor);
             
             /* Flush to display */
             if (first_function_run != FALSE)
@@ -3789,14 +3789,14 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
             }
             else
             {
-                sh1122_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
+                oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
             }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             sh1122_flush_frame_buffer(&plat_oled_descriptor);
             #endif
             
             /* Load function exit transition */
-            sh1122_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
+            oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
             
             /* Animation processing */
             if (animation_step > 0)
