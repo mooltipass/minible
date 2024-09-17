@@ -46,7 +46,7 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
 {
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     /* Clear frame buffer */
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    oled_clear_frame_buffer(&plat_oled_descriptor);
     #else
     oled_clear_current_screen(&plat_oled_descriptor);
     #endif
@@ -149,7 +149,7 @@ void gui_carousel_render(uint16_t nb_elements, const uint16_t* pic_ids, const ui
     
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     /* Flush */
-    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    oled_flush_frame_buffer(&plat_oled_descriptor);
     #endif
 }
 

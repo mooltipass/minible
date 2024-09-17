@@ -208,6 +208,56 @@ static inline uint8_t bitstream_bitmap_get_next_byte(bitstream_bitmap_t* bs)
     }
 }
 
+/*! \fn     bitstream_bitmap_discard_pixels(bitstream_bitmap_t* bs, uint16_t nb_pixels)
+*   \brief  Discard a number of pixels from the bitstream
+*   \param  bs          Pointer to a bitmap bitstream structure
+*   \param  nb_pixels   Number of pixels to be discard
+*/
+void bitstream_bitmap_discard_pixels(bitstream_bitmap_t* bs, uint16_t nb_pixels)
+{
+    if (bs->_flags & CUSTOM_FS_BITMAP_RLE_FLAG)
+    {
+        while (nb_pixels != 0)
+        {
+            if (bs->_bits == 0)
+            {
+                /* We have read all pixels of the same color */
+                uint8_t byte = bitstream_bitmap_get_next_byte(bs);
+                bs->_bits = (byte >> 4) + 1;
+                bs->_pixel = byte & 0x0F;
+            }
+
+            /* We still have pixels of the same color to get */
+            bs->_bits--;
+            nb_pixels--;
+        }
+    }
+    else if (bs->_flags & CUSTOM_FS_BITMAP_4PX_ORDER_REV_FLAG)
+    {
+        /* pixel order reversed, mutually exclusive with RLE compression, for the moment only implemented when image is 4bpp and width is a multiple of 4 */
+        for (uint16_t i = 0; i < nb_pixels; i+=2)
+        {
+            bitstream_bitmap_get_next_byte(bs);
+        }
+    }
+    else
+    {
+        while (nb_pixels != 0)
+        {
+            if (bs->_bits == 0)
+            {
+                /* We have processed all data inside _word */
+                bs->_word = bitstream_bitmap_get_next_byte(bs);
+                bs->_bits = 8;
+            }
+
+            /* Reduce bit count by the number of bits per pixel */
+            bs->_bits -= bs->bitsPerPixel;
+            nb_pixels--;
+        }
+    }
+}
+
 /*! \fn     bitstream_bitmap_array_read(bitstream_bitmap_t* bs, uint8_t* data, uint16_t nb_pixels)
 *   \brief  Read continuous pixel data
 *   \param  bs          Pointer to a bitmap bitstream structure
@@ -289,6 +339,87 @@ void bitstream_bitmap_array_read(bitstream_bitmap_t* bs, uint8_t* data, uint16_t
     }        
 }
 
+/*! \fn     bitstream_bitmap_array_read_rev(bitstream_bitmap_t* bs, uint16_t* data, uint16_t nb_pixels, uint16_t pixel_shift)
+*   \brief  Read continuous pixel data, pixel order reversed
+*   \param  bs          Pointer to a bitmap bitstream structure
+*   \param  data        Pointer to where to store the data
+*   \param  nb_pixels   Number of pixels to be read
+*   \param  pixel_shift Possible pixel shift (up to 4 pixels)
+*   \note   This function swaps the 8b 2xpixels so the uint16_t can be used for DMA transfers to the display (1 0 3 2)
+*/
+void bitstream_bitmap_array_read_rev(bitstream_bitmap_t* bs, uint16_t* data, uint16_t nb_pixels, uint16_t pixel_shift)
+{
+    uint16_t bitmasks[4] = {0xF0FF, 0x0FFF, 0xFFF0, 0xFF0F};
+    uint8_t bitshift_order[4] = {8, 12, 0, 4};
+    pixel_shift &= 0x03;
+
+    if (bs->_flags & CUSTOM_FS_BITMAP_RLE_FLAG)
+    {
+        while (nb_pixels != 0)
+        {
+            for (uint16_t i = pixel_shift; (i < 4) && ((nb_pixels+pixel_shift-i) != 0); i++)
+            {
+                if (bs->_bits == 0)
+                {
+                    /* We have read all pixels of the same color */
+                    uint8_t byte = bitstream_bitmap_get_next_byte(bs);
+                    bs->_bits = (byte >> 4) + 1;
+                    bs->_pixel = byte & 0x0F;
+                }
+
+                /* We still have pixels of the same color to store */
+                *data &= bitmasks[i];
+                *data |= bs->_pixel << bitshift_order[i];
+                bs->_bits--;
+            }
+            if (nb_pixels < 4-pixel_shift)
+            {
+                break;
+            }
+            nb_pixels-=(4-pixel_shift);
+            pixel_shift = 0;
+            data++;
+        }
+    }
+    else if (bs->_flags & CUSTOM_FS_BITMAP_4PX_ORDER_REV_FLAG)
+    {
+        /* pixel order reversed, mutually exclusive with RLE compression, for the moment only implemented when image is 4bpp and width is a multiple of 4 */
+        for (uint16_t i = 0; i < nb_pixels; i+=4)
+        {
+            *data = bitstream_bitmap_get_next_byte(bs);
+            *data |= ((uint16_t)bitstream_bitmap_get_next_byte(bs)) << 8;
+            data++;
+        }
+    }
+    else
+    {
+        while (nb_pixels != 0)
+        {
+            for (uint16_t i = pixel_shift; (i < 4) && ((nb_pixels+pixel_shift-i) != 0); i++)
+            {
+                if (bs->_bits == 0)
+                {
+                    /* We have processed all data inside _word */
+                    bs->_word = bitstream_bitmap_get_next_byte(bs);
+                    bs->_bits = 8;
+                }
+
+                /* Move pixel data from _word to data */
+                bs->_bits -= bs->bitsPerPixel;
+                *data &= bitmasks[i];
+                *data |= (((((bs->_word >> bs->_bits) & bs->mask) * 15) / bs->mask) << bitshift_order[i]);
+            }
+            if (nb_pixels < 4-pixel_shift)
+            {
+                break;
+            }
+            nb_pixels-=(4-pixel_shift);
+            pixel_shift = 0;
+            data++;
+        }
+    }        
+}
+
 /*! \fn     bitstream_bitmap_close(bitstream_bitmap_t* bs)
 *   \brief  Close an ongoing bitstream
 *   \param  bs          Pointer to a bitmap bitstream structure
@@ -361,6 +492,107 @@ uint16_t bitstream_bitmap_read(bitstream_bitmap_t* bs, uint16_t nb_pixels)
                 bs->_word = bitstream_bitmap_get_next_byte(bs);
                 data |= ((bs->_word >> bs->_bits) * 15) / bs->mask;
             }
+        }
+    }
+    
+    return data;
+}
+
+/*! \fn     bitstream_bitmap_read_rev_with_shift(bitstream_bitmap_t* bs, uint16_t nb_pixels, uint16_t pixel_shift)
+*   \brief  Get up to 4 4-bit pixels from the bitstream, pixel order reversed with an offset
+*   \param  bs          Pointer to a bitmap bitstream structure
+*   \param  nb_pixels   Number of pixels to be read (max 4!)
+*   \param  pixel_shift A pixel shift
+*   \return An uint16_t containing up to 4 4-bit pixels
+*   \note   This function swaps the 8b 2xpixels so the uint16_t can be used for DMA transfers to the display (1 0 3 2)
+*   \note   Not handled: pixel depth not aligned with word (so we only support 1, 2, 4bpp)
+*/
+uint16_t bitstream_bitmap_read_rev_with_shift(bitstream_bitmap_t* bs, uint16_t nb_pixels, uint16_t pixel_shift)
+{
+    uint8_t bitshift_order[4] = {8, 12, 0, 4};
+    uint16_t data = 0;
+    
+    if (bs->_flags & CUSTOM_FS_BITMAP_RLE_FLAG) 
+    {
+        while (nb_pixels--) 
+        {
+            if (bs->_bits == 0) 
+            {
+                /* We have read all pixels of the same color */
+                uint8_t byte = bitstream_bitmap_get_next_byte(bs);
+                bs->_bits = (byte >> 4) + 1;
+                bs->_pixel = byte & 0x0F;
+            }
+
+            /* We still have pixels of the same color to send */
+            data |= bs->_pixel << bitshift_order[((3 - nb_pixels)+pixel_shift)&0x03];
+            bs->_bits--;
+        }
+    }
+    else
+    {
+        for (uint16_t i = 0; i < nb_pixels; i++)
+        {
+            if (bs->_bits == 0) 
+            {
+                /* We have processed all data inside _word */ 
+                bs->_word = bitstream_bitmap_get_next_byte(bs);
+                bs->_bits = 8;
+            }
+
+            /* Move pixel data from _word to data */
+            bs->_bits -= bs->bitsPerPixel;
+            data |= (((((bs->_word >> bs->_bits) & bs->mask) * 15) / bs->mask) << bitshift_order[(i + pixel_shift)&0x03]);
+        }
+    }
+    
+    return data;
+}
+
+/*! \fn     bitstream_bitmap_read_rev(bitstream_bitmap_t* bs, uint16_t nb_pixels)
+*   \brief  Get up to 4 4-bit pixels from the bitstream, pixel order reversed
+*   \param  bs          Pointer to a bitmap bitstream structure
+*   \param  nb_pixels   Number of pixels to be read (max 4!)
+*   \return An uint16_t containing up to 4 4-bit pixels
+*   \note   This function swaps the 8b 2xpixels so the uint16_t can be used for DMA transfers to the display (1 0 3 2)
+*   \note   Not handled: pixel depth not aligned with word (so we only support 1, 2, 4bpp)
+*/
+uint16_t bitstream_bitmap_read_rev(bitstream_bitmap_t* bs, uint16_t nb_pixels)
+{
+    uint8_t bitshift_order[4] = {8, 12, 0, 4};
+    uint16_t data = 0;
+    
+    if (bs->_flags & CUSTOM_FS_BITMAP_RLE_FLAG) 
+    {
+        for (uint16_t i = 0; i < nb_pixels; i++)
+        {
+            if (bs->_bits == 0) 
+            {
+                /* We have read all pixels of the same color */
+                uint8_t byte = bitstream_bitmap_get_next_byte(bs);
+                bs->_bits = (byte >> 4) + 1;
+                bs->_pixel = byte & 0x0F;
+            }
+
+            /* We still have pixels of the same color to send */
+            data |= bs->_pixel << bitshift_order[i&0x03];
+            bs->_bits--;
+        }
+    }
+    else
+    {
+        for (uint16_t i = 0; i < nb_pixels; i++)
+        {
+            if (bs->_bits == 0) 
+            {
+                /* We have processed all data inside _word */ 
+                bs->_word = bitstream_bitmap_get_next_byte(bs);
+                bs->_bits = 8;
+            }
+
+            /* Move pixel data from _word to data */
+            bs->_bits -= bs->bitsPerPixel;
+            data |= (((((bs->_word >> bs->_bits) & bs->mask) * 15) / bs->mask) << bitshift_order[i&0x03]);
         }
     }
     

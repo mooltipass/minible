@@ -2192,6 +2192,12 @@
     <Compile Include="src\OLED\sh1122.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\OLED\ssd1363.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\OLED\ssd1363.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\PLATFORM\platform_io.c">
       <SubType>compile</SubType>
     </Compile>

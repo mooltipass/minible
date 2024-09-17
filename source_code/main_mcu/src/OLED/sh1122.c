@@ -106,10 +106,10 @@ static const uint8_t sh1122_init_sequence_inverted[] =
 */
 void sh1122_write_single_command(oled_descriptor_t* oled_descriptor, uint8_t reg)
 {
-    PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTCLR.reg = oled_descriptor->sh1122_cs_pin_mask;
-    PORT->Group[oled_descriptor->sh1122_cd_pin_group].OUTCLR.reg = oled_descriptor->sh1122_cd_pin_mask;
+    PORT->Group[oled_descriptor->cs_pin_group].OUTCLR.reg = oled_descriptor->cs_pin_mask;
+    PORT->Group[oled_descriptor->cd_pin_group].OUTCLR.reg = oled_descriptor->cd_pin_mask;
     sercom_spi_send_single_byte(oled_descriptor->sercom_pt, reg);
-    PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTSET.reg = oled_descriptor->sh1122_cs_pin_mask;
+    PORT->Group[oled_descriptor->cs_pin_group].OUTSET.reg = oled_descriptor->cs_pin_mask;
 }
 
 /*! \fn     sh1122_write_single_data(oled_descriptor_t* oled_descriptor, uint8_t data)
@@ -119,10 +119,10 @@ void sh1122_write_single_command(oled_descriptor_t* oled_descriptor, uint8_t reg
 */
 void sh1122_write_single_data(oled_descriptor_t* oled_descriptor, uint8_t data)
 {
-    PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTCLR.reg = oled_descriptor->sh1122_cs_pin_mask;
-    PORT->Group[oled_descriptor->sh1122_cd_pin_group].OUTSET.reg = oled_descriptor->sh1122_cd_pin_mask;
+    PORT->Group[oled_descriptor->cs_pin_group].OUTCLR.reg = oled_descriptor->cs_pin_mask;
+    PORT->Group[oled_descriptor->cd_pin_group].OUTSET.reg = oled_descriptor->cd_pin_mask;
     sercom_spi_send_single_byte(oled_descriptor->sercom_pt, data);
-    PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTSET.reg = oled_descriptor->sh1122_cs_pin_mask;
+    PORT->Group[oled_descriptor->cs_pin_group].OUTSET.reg = oled_descriptor->cs_pin_mask;
 }
 
 /*! \fn     sh1122_write_single_word(oled_descriptor_t* oled_descriptor, uint16_t data)
@@ -132,11 +132,11 @@ void sh1122_write_single_data(oled_descriptor_t* oled_descriptor, uint8_t data)
 */
 void sh1122_write_single_word(oled_descriptor_t* oled_descriptor, uint16_t data)
 {
-    PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTCLR.reg = oled_descriptor->sh1122_cs_pin_mask;
-    PORT->Group[oled_descriptor->sh1122_cd_pin_group].OUTSET.reg = oled_descriptor->sh1122_cd_pin_mask;
+    PORT->Group[oled_descriptor->cs_pin_group].OUTCLR.reg = oled_descriptor->cs_pin_mask;
+    PORT->Group[oled_descriptor->cd_pin_group].OUTSET.reg = oled_descriptor->cd_pin_mask;
     sercom_spi_send_single_byte(oled_descriptor->sercom_pt, (uint8_t)(data>>8));
     sercom_spi_send_single_byte(oled_descriptor->sercom_pt, (uint8_t)(data&0x00FF));    
-    PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTSET.reg = oled_descriptor->sh1122_cs_pin_mask;
+    PORT->Group[oled_descriptor->cs_pin_group].OUTSET.reg = oled_descriptor->cs_pin_mask;
 }
 
 /*! \fn     sh1122_start_data_sending(oled_descriptor_t* oled_descriptor)
@@ -145,8 +145,8 @@ void sh1122_write_single_word(oled_descriptor_t* oled_descriptor, uint16_t data)
 */
 void sh1122_start_data_sending(oled_descriptor_t* oled_descriptor)
 {
-    PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTCLR.reg = oled_descriptor->sh1122_cs_pin_mask;
-    PORT->Group[oled_descriptor->sh1122_cd_pin_group].OUTSET.reg = oled_descriptor->sh1122_cd_pin_mask;    
+    PORT->Group[oled_descriptor->cs_pin_group].OUTCLR.reg = oled_descriptor->cs_pin_mask;
+    PORT->Group[oled_descriptor->cd_pin_group].OUTSET.reg = oled_descriptor->cd_pin_mask;    
 }
 
 /*! \fn     sh1122_stop_data_sending(oled_descriptor_t* oled_descriptor)
@@ -155,7 +155,7 @@ void sh1122_start_data_sending(oled_descriptor_t* oled_descriptor)
 */
 void sh1122_stop_data_sending(oled_descriptor_t* oled_descriptor)
 {
-    PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTSET.reg = oled_descriptor->sh1122_cs_pin_mask;  
+    PORT->Group[oled_descriptor->cs_pin_group].OUTSET.reg = oled_descriptor->cs_pin_mask;  
 }
 
 /*! \fn     sh1122_set_contrast_current(oled_descriptor_t* oled_descriptor, uint8_t contrast_current)
@@ -917,8 +917,8 @@ void sh1122_init_display(oled_descriptor_t* oled_descriptor, BOOL leave_internal
     for (uint16_t ind = 0; ind < sizeof(sh1122_init_sequence);)
     {
         /* nCS set */
-        PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTCLR.reg = oled_descriptor->sh1122_cs_pin_mask;
-        PORT->Group[oled_descriptor->sh1122_cd_pin_group].OUTCLR.reg = oled_descriptor->sh1122_cd_pin_mask;
+        PORT->Group[oled_descriptor->cs_pin_group].OUTCLR.reg = oled_descriptor->cs_pin_mask;
+        PORT->Group[oled_descriptor->cd_pin_group].OUTCLR.reg = oled_descriptor->cd_pin_mask;
         
         /* First byte: command */
         sercom_spi_send_single_byte(oled_descriptor->sercom_pt, init_seq[ind++]);
@@ -933,7 +933,7 @@ void sh1122_init_display(oled_descriptor_t* oled_descriptor, BOOL leave_internal
         }
         
         /* nCS release */
-        PORT->Group[oled_descriptor->sh1122_cs_pin_group].OUTSET.reg = oled_descriptor->sh1122_cs_pin_mask;
+        PORT->Group[oled_descriptor->cs_pin_group].OUTSET.reg = oled_descriptor->cs_pin_mask;
         asm("NOP");asm("NOP");
     }
 

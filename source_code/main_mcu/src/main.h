@@ -40,10 +40,10 @@ void main_standby_sleep(void);
 void main_reboot(void);
 
 /* Global vars to access descriptors */
-extern oled_descriptor_t plat_oled_descriptor;
 extern accelerometer_descriptor_t plat_acc_descriptor;
 extern spi_flash_descriptor_t dataflash_descriptor;
 extern spi_flash_descriptor_t dbflash_descriptor;
+extern oled_descriptor_t plat_oled_descriptor;
 
 /* Global vars for developer features */
 #ifdef SPECIAL_DEVELOPER_CARD_FEATURE

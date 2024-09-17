@@ -581,7 +581,7 @@ void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_leng
             /* Wait for possible end of transfer */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             /* Wait for a possible ongoing previous flush */
-            sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
+            oled_check_for_flush_and_terminate(&plat_oled_descriptor);
             #endif
             
             /* Actions run when settings are updated */

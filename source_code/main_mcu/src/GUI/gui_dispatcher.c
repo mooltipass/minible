@@ -188,7 +188,7 @@ void gui_dispatcher_get_back_to_current_screen(void)
                                                 timer_start_timer(TIMER_ANIMATIONS, GUI_BATTERY_ANIM_DELAY_MS);
                                                 gui_dispatcher_display_battery_bt_overlay(TRUE);
                                                 #ifdef OLED_INTERNAL_FRAME_BUFFER
-                                                    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+                                                    oled_flush_frame_buffer(&plat_oled_descriptor);
                                                 #endif
                                                 break;
                                             }             
@@ -558,13 +558,13 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
                     
                     /* Display bitmap */
                     #ifdef OLED_INTERNAL_FRAME_BUFFER
-                    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+                    oled_clear_frame_buffer(&plat_oled_descriptor);
                     #endif
                     oled_display_bitmap_from_flash_at_recommended_position(&plat_oled_descriptor, gui_dispatcher_current_screen_saver_frame, TRUE);
                     oled_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
                     timer_start_timer(TIMER_ANIMATIONS, GUI_NYANCAT_ANIM_DELAY_MS);
                     #ifdef OLED_INTERNAL_FRAME_BUFFER
-                    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+                    oled_flush_frame_buffer(&plat_oled_descriptor);
                     #endif
                 }
             }

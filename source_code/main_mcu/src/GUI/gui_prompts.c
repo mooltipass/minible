@@ -103,7 +103,7 @@ void gui_prompts_display_tutorial(void)
         if (redraw_needed != FALSE)
         {
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            oled_clear_frame_buffer(&plat_oled_descriptor);
             #endif
             oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
             oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MEDIUM_17_ID);
@@ -126,7 +126,7 @@ void gui_prompts_display_tutorial(void)
             
             /* Flush frame buffer */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            oled_flush_frame_buffer(&plat_oled_descriptor);
             #endif
             
             /* Arm timer for possible animation */
@@ -256,7 +256,7 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     oled_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    oled_clear_frame_buffer(&plat_oled_descriptor);
     #else
     oled_clear_current_screen(&plat_oled_descriptor);
     #endif
@@ -287,7 +287,7 @@ void gui_prompts_display_information_on_screen(uint16_t string_id, display_messa
     
     /* Flush frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    oled_flush_frame_buffer(&plat_oled_descriptor);
     #endif
     
     /* Clear current detections, allowing user to skip just after intro animation */
@@ -350,7 +350,7 @@ void gui_prompts_display_information_lines_on_screen(confirmationText_t* text_li
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     oled_load_transition(&plat_oled_descriptor, OLED_OUT_IN_TRANS);
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    oled_clear_frame_buffer(&plat_oled_descriptor);
     #else
     oled_clear_current_screen(&plat_oled_descriptor);
     #endif
@@ -369,7 +369,7 @@ void gui_prompts_display_information_lines_on_screen(confirmationText_t* text_li
     
     /* Flush frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    oled_flush_frame_buffer(&plat_oled_descriptor);
     #endif
     
     /* Clear current detections, allowing user to skip just after intro animation */
@@ -812,7 +812,7 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
     
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    oled_clear_frame_buffer(&plat_oled_descriptor);
     #else
     oled_clear_current_screen(&plat_oled_descriptor);
     #endif
@@ -842,7 +842,7 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
     {
         /* Erase digits */
         oled_refresh_used_font(&plat_oled_descriptor, FONT_UBUNTU_MONO_BOLD_30_ID);
-        oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_DIGIT_HEIGHT, 0x00, TRUE);
+        oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_DIGIT_HEIGHT, 0x00, TRUE);
         if (six_digit_prompt == FALSE)
         {
             for (uint16_t i = 0; i < nb_of_digits; i++)
@@ -859,24 +859,24 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
             }
         }
         #ifdef OLED_INTERNAL_FRAME_BUFFER
-        sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_DIGIT_HEIGHT);
+        oled_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_DIGIT_HEIGHT);
         #endif
         
         for (uint16_t i = 0; i < PIN_PROMPT_ARROW_MOV_LGTH; i++)
         {        
-            oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS - x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
-            oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
+            oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS - x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
+            oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT, 0x00, TRUE);
             oled_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*(selected_digit-hor_anim_direction) + PIN_PROMPT_ARROW_HOR_ANIM_STEP*i*hor_anim_direction, PIN_PROMPT_UP_ARROW_Y, BITMAP_PIN_UP_ARROW_MOVE_ID+i, TRUE);
             oled_display_bitmap_from_flash(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits + PIN_PROMPT_DIGIT_X_SPC*(selected_digit-hor_anim_direction) + PIN_PROMPT_ARROW_HOR_ANIM_STEP*i*hor_anim_direction, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, BITMAP_PIN_DN_ARROW_MOVE_ID+i, TRUE);
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT);
-            sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT);
+            oled_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT);
+            oled_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT, OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_ARROW_HEIGHT);
             #endif
             timer_delay_ms(20);            
         }
         
         /* Erase digits again */
-        oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_DIGIT_HEIGHT, 0x00, TRUE);
+        oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y+PIN_PROMPT_ARROW_HEIGHT+PIN_PROMPT_DIGIT_Y_SPACING, OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, PIN_PROMPT_DIGIT_HEIGHT, 0x00, TRUE);
     }
     
     /* Prepare for digits display */
@@ -892,11 +892,11 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
         
         /* Wait for a possible ongoing previous flush */
         #ifdef OLED_INTERNAL_FRAME_BUFFER
-        sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
+        oled_check_for_flush_and_terminate(&plat_oled_descriptor);
         #endif
         
         /* Erase overwritten part */
-        oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, 0, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, SH1122_OLED_HEIGHT, 0, TRUE);
+        oled_draw_rectangle(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS+x_offset_for_digits, 0, OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, OLED_HEIGHT, 0, TRUE);
         
         /* Display the 4-6 digits */
         for (uint16_t i = 0; i < nb_of_digits; i++)
@@ -957,11 +957,11 @@ wheel_action_ret_te gui_prompts_render_pin_enter_screen(uint8_t* current_pin, ui
         #ifdef OLED_INTERNAL_FRAME_BUFFER
         if (anim_step == 0)
         {
-            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            oled_flush_frame_buffer(&plat_oled_descriptor);
         } 
         else
         {
-            sh1122_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, SH1122_OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, 2*PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT);
+            oled_flush_frame_buffer_window(&plat_oled_descriptor, PIN_PROMPT_DIGIT_X_OFFS + x_offset_for_digits, PIN_PROMPT_UP_ARROW_Y, OLED_WIDTH-PIN_PROMPT_DIGIT_X_OFFS-x_offset_for_digits, 2*PIN_PROMPT_ARROW_HEIGHT+2*PIN_PROMPT_DIGIT_Y_SPACING+PIN_PROMPT_DIGIT_HEIGHT);
         }
         
         /* Skip animation if desired */
@@ -1347,7 +1347,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     {
         oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
     }
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    oled_clear_frame_buffer(&plat_oled_descriptor);
     #else
     oled_clear_current_screen(&plat_oled_descriptor);
     #endif
@@ -1358,7 +1358,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_one_line_confirmation(uint16_t stri
     
     /* Flush to display */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    oled_flush_frame_buffer(&plat_oled_descriptor);
     
     /* Load transition for function exit (likely to be overwritten later */
     oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
@@ -1576,7 +1576,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     {
         oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
     }
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    oled_clear_frame_buffer(&plat_oled_descriptor);
     #else
     oled_clear_current_screen(&plat_oled_descriptor);
     #endif
@@ -1615,7 +1615,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
     
     /* Flush to display */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
-    sh1122_flush_frame_buffer(&plat_oled_descriptor);
+    oled_flush_frame_buffer(&plat_oled_descriptor);
     
     /* Load transition for function exit (likely to be overwritten later */
     oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
@@ -1640,7 +1640,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             oled_put_centered_string(&plat_oled_descriptor, gui_prompts_conf_prompt_y_positions[nb_args-1][i], text_object->lines[i], TRUE);
         }
         #ifdef OLED_INTERNAL_FRAME_BUFFER
-        sh1122_flush_frame_buffer(&plat_oled_descriptor);
+        oled_flush_frame_buffer(&plat_oled_descriptor);
         #endif
         timer_delay_ms(10);
     }
@@ -1734,7 +1734,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
         {
             /* Clear frame buffer as we'll only push the updated parts */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            oled_clear_frame_buffer(&plat_oled_descriptor);
             #endif        
             
             // Idle animation if enabled
@@ -1846,7 +1846,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_confirmation(uint16_t nb_args, conf
             
             /* Flush to display */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            oled_flush_frame_buffer(&plat_oled_descriptor);
             #endif
         }
         
@@ -1955,7 +1955,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    oled_clear_frame_buffer(&plat_oled_descriptor);
     #else
     oled_clear_current_screen(&plat_oled_descriptor);
     #endif
@@ -2155,7 +2155,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
         {
             /* Clear frame buffer, set display settings */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            oled_clear_frame_buffer(&plat_oled_descriptor);
             #endif
             oled_allow_partial_text_x_draw(&plat_oled_descriptor);
             oled_allow_partial_text_y_draw(&plat_oled_descriptor);
@@ -2244,7 +2244,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
                         /* Scrolling: go change direction if we went too far */
                         if (text_anim_going_right[i] == FALSE)
                         {
-                            if (displayed_length == SH1122_OLED_WIDTH-12)
+                            if (displayed_length == OLED_WIDTH-12)
                             {
                                 text_anim_going_right[i] = TRUE;
                             }
@@ -2337,7 +2337,7 @@ mini_input_yes_no_ret_te gui_prompts_ask_for_login_select(uint16_t parent_node_a
                 oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
             }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            oled_flush_frame_buffer(&plat_oled_descriptor);
             #endif
             
             /* Load function exit transition */
@@ -2386,7 +2386,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    oled_clear_frame_buffer(&plat_oled_descriptor);
     #else
     oled_clear_current_screen(&plat_oled_descriptor);
     #endif
@@ -2641,7 +2641,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
         {
             /* Clear frame buffer, set display settings */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            oled_clear_frame_buffer(&plat_oled_descriptor);
             #endif
             oled_allow_partial_text_x_draw(&plat_oled_descriptor);
             oled_allow_partial_text_y_draw(&plat_oled_descriptor);
@@ -2717,7 +2717,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                         /* Scrolling: go change direction if we went too far */
                         if (text_anim_going_right[i] == FALSE)
                         {
-                            if (displayed_length == SH1122_OLED_WIDTH-12)
+                            if (displayed_length == OLED_WIDTH-12)
                             {
                                 text_anim_going_right[i] = TRUE;
                             }
@@ -2842,7 +2842,7 @@ uint16_t gui_prompts_service_selection_screen(uint16_t start_address)
                 oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
             }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            oled_flush_frame_buffer(&plat_oled_descriptor);
             #endif
             
             /* Load function exit transition */
@@ -2901,7 +2901,7 @@ int16_t gui_prompts_select_category(void)
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    oled_clear_frame_buffer(&plat_oled_descriptor);
     #else
     oled_clear_current_screen(&plat_oled_descriptor);
     #endif
@@ -2998,7 +2998,7 @@ int16_t gui_prompts_select_category(void)
         {
             /* Clear frame buffer, set display settings */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            oled_clear_frame_buffer(&plat_oled_descriptor);
             #endif
             oled_allow_partial_text_x_draw(&plat_oled_descriptor);
             oled_allow_partial_text_y_draw(&plat_oled_descriptor);
@@ -3048,7 +3048,7 @@ int16_t gui_prompts_select_category(void)
                     /* Scrolling: go change direction if we went too far */
                     if (text_anim_going_right[i] == FALSE)
                     {
-                        if (displayed_length == SH1122_OLED_WIDTH-12)
+                        if (displayed_length == OLED_WIDTH-12)
                         {
                             text_anim_going_right[i] = TRUE;
                         }
@@ -3095,7 +3095,7 @@ int16_t gui_prompts_select_category(void)
                 oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
             }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            oled_flush_frame_buffer(&plat_oled_descriptor);
             #endif
             
             /* Load function exit transition */
@@ -3137,7 +3137,7 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    oled_clear_frame_buffer(&plat_oled_descriptor);
     #else
     oled_clear_current_screen(&plat_oled_descriptor);
     #endif
@@ -3298,7 +3298,7 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
         {
             /* Clear frame buffer, set display settings */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            oled_clear_frame_buffer(&plat_oled_descriptor);
             #endif
             oled_allow_partial_text_x_draw(&plat_oled_descriptor);
             oled_allow_partial_text_y_draw(&plat_oled_descriptor);
@@ -3396,7 +3396,7 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
                         /* Scrolling: go change direction if we went too far */
                         if (text_anim_going_right[i] == FALSE)
                         {
-                            if (displayed_length == SH1122_OLED_WIDTH-12)
+                            if (displayed_length == OLED_WIDTH-12)
                             {
                                 text_anim_going_right[i] = TRUE;
                             }
@@ -3493,7 +3493,7 @@ void gui_prompts_favorite_selection_screen(uint16_t* chosen_service_addr_pt, uin
                 oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
             }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            oled_flush_frame_buffer(&plat_oled_descriptor);
             #endif
             
             /* Load function exit transition */
@@ -3561,7 +3561,7 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    oled_clear_frame_buffer(&plat_oled_descriptor);
     #else
     oled_clear_current_screen(&plat_oled_descriptor);
     #endif
@@ -3671,7 +3671,7 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
         {
             /* Clear frame buffer, set display settings */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            oled_clear_frame_buffer(&plat_oled_descriptor);
             #endif
             oled_allow_partial_text_x_draw(&plat_oled_descriptor);
             oled_allow_partial_text_y_draw(&plat_oled_descriptor);
@@ -3792,7 +3792,7 @@ ret_type_te gui_prompts_select_language_or_keyboard_layout(BOOL layout_choice, B
                 oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
             }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            oled_flush_frame_buffer(&plat_oled_descriptor);
             #endif
             
             /* Load function exit transition */

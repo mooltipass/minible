@@ -90,10 +90,10 @@ typedef struct
 {
     Sercom* sercom_pt;
     uint16_t dma_trigger_id;
-    pin_group_te sh1122_cs_pin_group;
-    PIN_MASK_T sh1122_cs_pin_mask;
-    pin_group_te sh1122_cd_pin_group;
-    PIN_MASK_T sh1122_cd_pin_mask;
+    pin_group_te cs_pin_group;
+    PIN_MASK_T cs_pin_mask;
+    pin_group_te cd_pin_group;
+    PIN_MASK_T cd_pin_mask;
     gddram_px_t gddram_pixel[SH1122_OLED_HEIGHT];       // Buffer to merge adjascent pixels
     custom_fs_address_t currentFontAddress;             // Current font address
     font_header_t current_font_header;                  // Current font header
@@ -164,13 +164,13 @@ void sh1122_set_max_display_y(oled_descriptor_t* oled_descriptor, uint16_t y);
 void sh1122_set_min_display_y(oled_descriptor_t* oled_descriptor, uint16_t y);
 void sh1122_set_xy(oled_descriptor_t* oled_descriptor, int16_t x, int16_t y);
 void sh1122_fill_screen(oled_descriptor_t* oled_descriptor, uint16_t color);
-void sh1122_set_max_text_x(oled_descriptor_t* oled_descriptor, int16_t x);
-void sh1122_set_min_text_x(oled_descriptor_t* oled_descriptor, int16_t x);
 void sh1122_prevent_partial_text_y_draw(oled_descriptor_t* oled_descriptor);
 void sh1122_prevent_partial_text_x_draw(oled_descriptor_t* oled_descriptor);
 uint8_t sh1122_get_current_font_height(oled_descriptor_t* oled_descriptor);
 void sh1122_allow_partial_text_y_draw(oled_descriptor_t* oled_descriptor);
 void sh1122_allow_partial_text_x_draw(oled_descriptor_t* oled_descriptor);
+void sh1122_set_max_text_x(oled_descriptor_t* oled_descriptor, int16_t x);
+void sh1122_set_min_text_x(oled_descriptor_t* oled_descriptor, int16_t x);
 void sh1122_clear_current_screen(oled_descriptor_t* oled_descriptor);
 void sh1122_reset_lim_display_y(oled_descriptor_t* oled_descriptor);
 void sh1122_set_emergency_font(oled_descriptor_t* oled_descriptor);
@@ -187,12 +187,12 @@ void sh1122_oled_on(oled_descriptor_t* oled_descriptor);
 
 /* Depending on enabled features */
 #ifdef OLED_INTERNAL_FRAME_BUFFER
-void sh1122_flush_frame_buffer_window(oled_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
-void sh1122_flush_frame_buffer_y_window(oled_descriptor_t* oled_descriptor, uint16_t ystart, uint16_t yend);
-void sh1122_clear_y_frame_buffer(oled_descriptor_t* oled_descriptor, uint16_t ystart, uint16_t yend);
-void sh1122_check_for_flush_and_terminate(oled_descriptor_t* oled_descriptor);
-void sh1122_flush_frame_buffer(oled_descriptor_t* oled_descriptor);
-void sh1122_clear_frame_buffer(oled_descriptor_t* oled_descriptor);
+    void sh1122_flush_frame_buffer_window(oled_descriptor_t* oled_descriptor, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
+    void sh1122_flush_frame_buffer_y_window(oled_descriptor_t* oled_descriptor, uint16_t ystart, uint16_t yend);
+    void sh1122_clear_y_frame_buffer(oled_descriptor_t* oled_descriptor, uint16_t ystart, uint16_t yend);
+    void sh1122_check_for_flush_and_terminate(oled_descriptor_t* oled_descriptor);
+    void sh1122_flush_frame_buffer(oled_descriptor_t* oled_descriptor);
+    void sh1122_clear_frame_buffer(oled_descriptor_t* oled_descriptor);
 #endif
 
 /* ifdef prototypes */

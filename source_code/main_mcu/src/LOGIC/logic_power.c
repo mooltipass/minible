@@ -619,7 +619,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         utils_fill_uint16_array_with_value(logic_power_last_vbat_measurements, ARRAY_SIZE(logic_power_last_vbat_measurements), logic_power_last_vbat_measurements[0]);
         
         #ifdef OLED_INTERNAL_FRAME_BUFFER
-        sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
+        oled_check_for_flush_and_terminate(&plat_oled_descriptor);
         #endif
         oled_off(&plat_oled_descriptor);
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_ATTACH_USB);
@@ -647,7 +647,7 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
         
         /* Tell the aux MCU to detach USB, change power supply for OLED */
         #ifdef OLED_INTERNAL_FRAME_BUFFER
-        sh1122_check_for_flush_and_terminate(&plat_oled_descriptor);
+        oled_check_for_flush_and_terminate(&plat_oled_descriptor);
         #endif
         oled_off(&plat_oled_descriptor);
         comms_aux_mcu_send_simple_command_message(MAIN_MCU_COMMAND_DETACH_USB);

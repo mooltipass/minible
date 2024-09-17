@@ -124,6 +124,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
     {
         case HID_CMD_ID_OPEN_DISP_BUFFER:
         {
+            #ifndef MINIBLE_V2_TO_TACKLE
             /* Set pixel write window */
             oled_set_row_address(&plat_oled_descriptor, 0);
             oled_set_column_address(&plat_oled_descriptor, 0);
@@ -134,6 +135,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             /* Set ack, leave same command id */
             comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
             return;
+            #endif
         }    
         case HID_CMD_ID_SEND_TO_DISP_BUFFER:
         {            
@@ -241,6 +243,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
         }
         case HID_CMD_ID_SET_OLED_PARAMS:
         {
+            #ifndef MINIBLE_V2_TO_TACKLE
             /* vcomh change requires oled on / off */
             uint8_t vcomh = rcv_msg->payload[1];
             
@@ -265,6 +268,7 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             /* Set ack, leave same command id */
             comms_hid_msgs_send_ack_nack_message(is_message_from_usb, rcv_message_type, TRUE);
             return;
+            #endif
         }
         case HID_CMD_ID_START_BOOTLOADER:
         {

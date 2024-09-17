@@ -51,8 +51,12 @@ typedef struct
 
 /* Prototypes */
 void bitstream_glyph_bitmap_init(bitstream_bitmap_t* bs, font_header_t* font, font_glyph_t* glyph, custom_fs_address_t address, BOOL exclusive);
+void bitstream_bitmap_array_read_rev(bitstream_bitmap_t* bs, uint16_t* data, uint16_t nb_pixels, uint16_t pixel_shift);
 void bitstream_bitmap_init(bitstream_bitmap_t* bs, bitmap_t* bitmap, custom_fs_address_t address, BOOL exclusive);
+uint16_t bitstream_bitmap_read_rev_with_shift(bitstream_bitmap_t* bs, uint16_t nb_pixels, uint16_t pixel_shift);
 void bitstream_bitmap_array_read(bitstream_bitmap_t* bs, uint8_t* data, uint16_t nb_pixels);
+void bitstream_bitmap_discard_pixels(bitstream_bitmap_t* bs, uint16_t nb_pixels);
+uint16_t bitstream_bitmap_read_rev(bitstream_bitmap_t* bs, uint16_t nb_pixels);
 uint16_t bitstream_bitmap_read(bitstream_bitmap_t* bs, uint16_t nb_pixels);
 void bitstream_bitmap_close(bitstream_bitmap_t* bs);
 

@@ -38,7 +38,7 @@
 
 /* Our oled & dataflash & dbflash descriptors */
 accelerometer_descriptor_t plat_acc_descriptor = {.sercom_pt = ACC_SERCOM, .cs_pin_group = ACC_nCS_GROUP, .cs_pin_mask = ACC_nCS_MASK, .int_pin_group = ACC_INT_GROUP, .int_pin_mask = ACC_INT_MASK, .evgen_sel = ACC_EV_GEN_SEL, .evgen_channel = ACC_EV_GEN_CHANNEL, .dma_channel = 3};
-oled_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigger_id = OLED_DMA_SERCOM_TX_TRIG, .sh1122_cs_pin_group = OLED_nCS_GROUP, .sh1122_cs_pin_mask = OLED_nCS_MASK, .sh1122_cd_pin_group = OLED_CD_GROUP, .sh1122_cd_pin_mask = OLED_CD_MASK};
+oled_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigger_id = OLED_DMA_SERCOM_TX_TRIG, .cs_pin_group = OLED_nCS_GROUP, .cs_pin_mask = OLED_nCS_MASK, .cd_pin_group = OLED_CD_GROUP, .cd_pin_mask = OLED_CD_MASK};
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 /* A wheel action that may be used to pass to our GUI routine */
@@ -403,7 +403,7 @@ void main_platform_init(void)
         oled_clear_current_screen(&plat_oled_descriptor);
         logic_gui_disable_bluetooth(FALSE);
         #ifdef OLED_INTERNAL_FRAME_BUFFER
-        sh1122_clear_frame_buffer(&plat_oled_descriptor);
+        oled_clear_frame_buffer(&plat_oled_descriptor);
         #endif
     }
 #endif

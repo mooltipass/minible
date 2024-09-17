@@ -318,7 +318,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL d
     /* Clear frame buffer */
     #ifdef OLED_INTERNAL_FRAME_BUFFER
     oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
-    sh1122_clear_frame_buffer(&plat_oled_descriptor);
+    oled_clear_frame_buffer(&plat_oled_descriptor);
     #else
     oled_clear_current_screen(&plat_oled_descriptor);
     #endif
@@ -382,7 +382,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL d
             /* Clear frame buffer */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
             oled_load_transition(&plat_oled_descriptor, OLED_IN_OUT_TRANS);
-            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            oled_clear_frame_buffer(&plat_oled_descriptor);
             #else
             oled_clear_current_screen(&plat_oled_descriptor);
             #endif
@@ -504,7 +504,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL d
 
             /* Clear frame buffer, set display settings */
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_clear_frame_buffer(&plat_oled_descriptor);
+            oled_clear_frame_buffer(&plat_oled_descriptor);
             #endif
             oled_allow_partial_text_x_draw(&plat_oled_descriptor);
             
@@ -523,7 +523,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL d
                     /* Scrolling: go change direction if we went too far */
                     if (text_anim_going_right[i] == FALSE)
                     {
-                        if (displayed_length == SH1122_OLED_WIDTH-12)
+                        if (displayed_length == OLED_WIDTH-12)
                         {
                             text_anim_going_right[i] = TRUE;
                         }
@@ -563,7 +563,7 @@ void logic_gui_display_login_password_TOTP(child_cred_node_t* child_node, BOOL d
                 oled_load_transition(&plat_oled_descriptor, OLED_TRANS_NONE);
             }
             #ifdef OLED_INTERNAL_FRAME_BUFFER
-            sh1122_flush_frame_buffer(&plat_oled_descriptor);
+            oled_flush_frame_buffer(&plat_oled_descriptor);
             #endif
             
             /* Load function exit transition */
