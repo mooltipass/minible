@@ -734,20 +734,20 @@ power_action_te logic_power_check_power_switch_and_battery(BOOL wait_for_adc_con
     /* Wait if we've been instructed to */
     if (wait_for_adc_conversion_and_dont_start_another != FALSE)
     {
-        while(platform_io_is_voledin_conversion_result_ready() == FALSE);
+        while(platform_io_is_vbat_conversion_result_ready() == FALSE);
     }
     
     /* Battery measurement */
-    if (platform_io_is_voledin_conversion_result_ready() != FALSE)
+    if (platform_io_is_vbat_conversion_result_ready() != FALSE)
     {
         uint16_t current_vbat;
         if (wait_for_adc_conversion_and_dont_start_another == FALSE)
         {
-            current_vbat = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+            current_vbat = platform_io_get_vbat_conversion_result_and_trigger_conversion();
         } 
         else
         {
-            current_vbat = platform_io_get_voledin_conversion_result();
+            current_vbat = platform_io_get_vbat_conversion_result();
         }
         
         /* Take one measurement every 8, or not if we have been told to skip queue logic */
@@ -977,9 +977,9 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
         }
         
         /* ADC value ready? */
-        if (platform_io_is_voledin_conversion_result_ready() != FALSE)
+        if (platform_io_is_vbat_conversion_result_ready() != FALSE)
         {
-            current_vbat = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+            current_vbat = platform_io_get_vbat_conversion_result_and_trigger_conversion();
         }
     }
     oled_set_colors_invert(&plat_oled_descriptor, FALSE);
@@ -1070,7 +1070,7 @@ RET_TYPE logic_power_battery_recondition(uint32_t* discharge_time)
     /* Restart ADC conversion as timeout may happen during reconditioning */ 
     if (timer_has_timer_expired(TIMER_ADC_WATCHDOG, TRUE) == TIMER_EXPIRED)
     {
-        platform_io_get_voledin_conversion_result_and_trigger_conversion();
+        platform_io_get_vbat_conversion_result_and_trigger_conversion();
     }
 
     return RETURN_OK;

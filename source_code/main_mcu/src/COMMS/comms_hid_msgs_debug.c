@@ -425,8 +425,8 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
             comms_aux_mcu_send_message(temp_tx_message_pt);
             
             /* Get ADC value for current conversion */
-            while (platform_io_is_voledin_conversion_result_ready() == FALSE);
-            bat_adc_result = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+            while (platform_io_is_vbat_conversion_result_ready() == FALSE);
+            bat_adc_result = platform_io_get_vbat_conversion_result_and_trigger_conversion();
             
             /* Wait for message from aux MCU */
             while(comms_aux_mcu_active_wait(&temp_rx_message, AUX_MCU_MSG_TYPE_NIMH_CHARGE, FALSE, -1) != RETURN_OK){}

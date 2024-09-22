@@ -369,7 +369,7 @@ void debug_kickstarter_video(void)
             platform_io_power_down_oled();
             logic_power_check_power_switch_and_battery(TRUE);
             main_standby_sleep();
-            platform_io_get_voledin_conversion_result_and_trigger_conversion();
+            platform_io_get_vbat_conversion_result_and_trigger_conversion();
         }
         else
         {
@@ -610,9 +610,9 @@ void debug_battery_recondition(void)
         logic_accelerometer_routine();
         
         /* ADC value ready? */
-        if (platform_io_is_voledin_conversion_result_ready() != FALSE)
+        if (platform_io_is_vbat_conversion_result_ready() != FALSE)
         {
-            current_vbat = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+            current_vbat = platform_io_get_vbat_conversion_result_and_trigger_conversion();
         }            
     }
     
@@ -1105,9 +1105,9 @@ void debug_debug_screen(void)
         }
         
         /* Battery measurement */
-        if (platform_io_is_voledin_conversion_result_ready() != FALSE)
+        if (platform_io_is_vbat_conversion_result_ready() != FALSE)
         {
-            bat_adc_result = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+            bat_adc_result = platform_io_get_vbat_conversion_result_and_trigger_conversion();
             (void)bat_adc_result;
         }
         
@@ -1872,7 +1872,7 @@ void debug_nimh_charging(void)
     while(TRUE)
     {   
         /* Battery measurement */
-        if (platform_io_is_voledin_conversion_result_ready() != FALSE)
+        if (platform_io_is_vbat_conversion_result_ready() != FALSE)
         {
             #ifndef EMULATOR_BUILD
             bat_mv = platform_io_get_voledinmv_conversion_result_and_trigger_conversion();

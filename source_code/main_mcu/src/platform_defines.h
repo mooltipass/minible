@@ -817,6 +817,12 @@ typedef struct
     #define SWDET_EN_MASK                   (1UL << SWDET_EN_PINID)
 #endif
 
+#if defined(V2_PLAT_V1_SETUP)
+    #define PWR_EN_GROUP                    PIN_GROUP_1
+    #define PWR_EN_PINID                    11
+    #define PWR_EN_MASK                     (1UL << PWR_EN_PINID)
+#endif
+
 #if defined(PLAT_V1_SETUP)
     #define SMC_POW_NEN_GROUP               PIN_GROUP_0
     #define SMC_POW_NEN_PINID               3
@@ -892,6 +898,12 @@ typedef struct
 #endif
 #if !defined(MINIBLE_V2)
     #define VOLED_1V2_EN_MASK               (1UL << VOLED_1V2_EN_PINID)
+#endif
+
+#if defined(V2_PLAT_V1_SETUP)
+    #define VOLED_EN_GROUP                  PIN_GROUP_1
+    #define VOLED_EN_PINID                  8
+    #define VOLED_EN_MASK                   (1UL << VOLED_EN_PINID)
 #endif
 
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)

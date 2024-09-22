@@ -596,7 +596,7 @@ void gui_dispatcher_main_loop(wheel_action_ret_te wheel_action)
             /* We are awake now! */
             
             /* Restart ADC conversions */
-            platform_io_get_voledin_conversion_result_and_trigger_conversion();
+            platform_io_get_vbat_conversion_result_and_trigger_conversion();
         }
     }
     

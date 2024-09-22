@@ -52,7 +52,7 @@ BOOL main_acc_watchdog_fired = FALSE;
 /* Know if debugger is present */
 BOOL debugger_present = FALSE;
 
-/* Used to know if there is no bootloader and if the special card is inserted*/
+/* Used to know if there is no bootloader and if the special card is inserted */
 #ifdef DEVELOPER_FEATURES_ENABLED
 BOOL special_dev_card_inserted = FALSE;
 uint32_t* mcu_sp_rh_addresses = 0;
@@ -129,7 +129,7 @@ void main_platform_init(void)
     RET_TYPE fuses_ok = RETURN_NOK;
     
     /* Low level port initializations for power supplies */
-    platform_io_enable_switch();                                            // Enable switch and 3v3 stepup
+    platform_io_keep_power_on();                                            // Keep the power on
     platform_io_init_power_ports();                                         // Init power port, needed to test if we are battery or usb powered
     platform_io_init_no_comms_signal();                                     // Init no comms signal, used later as wakeup for the aux MCU
 
@@ -152,11 +152,11 @@ void main_platform_init(void)
     /* Measure battery voltage */
     platform_io_init_bat_adc_measurements();                                // Initialize ADC measurements
     platform_io_enable_vbat_to_oled_stepup();                               // Enable vbat to oled stepup
-    platform_io_get_voledin_conversion_result_and_trigger_conversion();     // Start one measurement
-    while(platform_io_is_voledin_conversion_result_ready() == FALSE);       // Do measurement even if we are USB powered, to leave exactly 180ms for platform boot
+    platform_io_get_vbat_conversion_result_and_trigger_conversion();        // Start one measurement
+    while(platform_io_is_vbat_conversion_result_ready() == FALSE);          // Do measurement even if we are USB powered, to leave exactly 180ms for platform boot
 
     /* Check if battery powered and under-voltage */
-    uint32_t battery_voltage = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+    uint32_t battery_voltage = platform_io_get_vbat_conversion_result_and_trigger_conversion();
     if ((platform_io_is_usb_3v3_present_raw() == FALSE) && (battery_voltage < BATTERY_ADC_OUT_CUTOUT))
     {
         platform_io_cutoff_power();
@@ -177,10 +177,10 @@ void main_platform_init(void)
     }
     
     /* Check fuses, depending on platform program them if incorrectly set */
-    #ifdef PLAT_V7_SETUP
-    fuses_ok = fuses_check_program(FALSE);
-    #else
+    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(V2_PLAT_V1_SETUP)
     fuses_ok = fuses_check_program(TRUE);
+    #else
+    fuses_ok = fuses_check_program(FALSE);
     #endif
     while(fuses_ok != RETURN_OK);
     
@@ -1069,7 +1069,7 @@ int main(void)
         /* ADC watchdog */
         if (timer_has_timer_expired(TIMER_ADC_WATCHDOG, TRUE) == TIMER_EXPIRED)
         {
-            platform_io_get_voledin_conversion_result_and_trigger_conversion();
+            platform_io_get_vbat_conversion_result_and_trigger_conversion();
             main_adc_watchdog_fired = TRUE;
         }
         

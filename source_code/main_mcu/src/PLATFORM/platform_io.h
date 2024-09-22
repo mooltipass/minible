@@ -27,17 +27,17 @@
 
 /* Prototypes */
 uint16_t platform_io_get_voledinmv_conversion_result_and_trigger_conversion(void);
-uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void);
+uint16_t platform_io_get_vbat_conversion_result_and_trigger_conversion(void);
 oled_stepup_pwr_source_te platform_io_get_voled_stepup_pwr_source(void);
 void platform_io_disable_scroll_wheel_wakeup_interrupts(void);
 void platform_io_enable_scroll_wheel_wakeup_interrupts(void);
 void platform_io_disable_no_comms_as_wakeup_interrupt(void);
-BOOL platform_io_is_voledin_conversion_result_ready(void);
 uint16_t platform_io_get_single_bandgap_measurement(void);
-uint16_t platform_io_get_voledin_conversion_result(void);
 void platform_io_prepare_acc_ports_for_sleep_exit(void);
 void platform_io_set_no_comms_as_wakeup_interrupt(void);
 void platform_io_disable_aux_tx_wakeup_interrupt(void);
+BOOL platform_io_is_vbat_conversion_result_ready(void);
+uint16_t platform_io_get_vbat_conversion_result(void);
 void platform_io_enable_aux_tx_wakeup_interrupt(void);
 void platform_io_disable_rx_usart_rx_interrupt(void);
 void platform_io_bypass_3v3_detection_debounce(void);
@@ -75,6 +75,7 @@ void platform_io_power_down_oled(void);
 void platform_io_init_smc_ports(void);
 void platform_io_init_aux_comms(void);
 void platform_io_clear_no_comms(void);
+void platform_io_keep_power_on(void);
 void platform_io_cutoff_power(void);
 void platform_io_set_no_comms(void);
 void platform_io_init_ports(void);
@@ -90,7 +91,6 @@ void platform_io_init_ports(void);
     void platform_io_enable_3v3_to_oled_stepup(void);
     void platform_io_smc_switch_to_spi(void);
     void platform_io_smc_switch_to_bb(void);
-    void platform_io_enable_switch(void);
     void platform_io_disable_ble(void);
     void platform_io_enable_ble(void);
     void platform_io_scan_3v3(void);
@@ -104,7 +104,6 @@ void platform_io_init_ports(void);
     #define platform_io_enable_3v3_to_oled_stepup(...)
     #define platform_io_smc_switch_to_spi(...)
     #define platform_io_smc_switch_to_bb(...)
-    #define platform_io_enable_switch(...)
     #define platform_io_disable_ble(...)
     #define platform_io_enable_ble(...)
     #define platform_io_scan_3v3(...)

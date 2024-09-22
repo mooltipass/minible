@@ -29,7 +29,7 @@
 /* OLED stepup-power source */
 oled_stepup_pwr_source_te platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
 /* Set when a conversion result is ready */
-volatile BOOL platform_io_voledin_conv_ready = FALSE;
+volatile BOOL platform_io_vbat_conv_ready = FALSE;
 /* 3v3 detected counter & state */
 volatile BOOL platform_io_debounced_3v3_present = FALSE;
 volatile uint16_t platform_io_3v3_not_detected_counter = 0;
@@ -106,16 +106,21 @@ void platform_io_scan_3v3(void)
         }
     }    
 }
+#endif
 
-/*! \fn     platform_io_enable_switch(void)
-*   \brief  Enable switch (and 3v3 stepup)
+/*! \fn     platform_io_keep_power_on(void)
+*   \brief  Keep power on: enable switch and 3v3 stepup for minible, assert power enable for minible v2
 */
-void platform_io_enable_switch(void)
+void platform_io_keep_power_on(void)
 {
+#ifndef MINIBLE_V2
     PORT->Group[SWDET_EN_GROUP].DIRSET.reg = SWDET_EN_MASK;
     PORT->Group[SWDET_EN_GROUP].OUTSET.reg = SWDET_EN_MASK;
-}
+#else
+    PORT->Group[PWR_EN_GROUP].DIRSET.reg = PWR_EN_MASK;
+    PORT->Group[PWR_EN_GROUP].OUTSET.reg = PWR_EN_MASK;
 #endif
+}
 
 /*! \fn     platform_io_cutoff_power(void)
 *   \brief  Disable switch and 3v3 (die)
@@ -171,40 +176,40 @@ void platform_io_disable_ble(void)
 void ADC_Handler(void)
 {
     /* Set conv ready bool and clear interrupt */
-    platform_io_voledin_conv_ready = TRUE;
+    platform_io_vbat_conv_ready = TRUE;
     ADC->INTFLAG.reg = ADC_INTFLAG_RESRDY;
 }
 
-/*! \fn     platform_io_is_voledin_conversion_result_ready(void)
-*   \brief  Ask if a voledin conversion result is ready
+/*! \fn     platform_io_is_vbat_conversion_result_ready(void)
+*   \brief  Ask if a vbat conversion result is ready
 *   \return the bool
 */
-BOOL platform_io_is_voledin_conversion_result_ready(void)
+BOOL platform_io_is_vbat_conversion_result_ready(void)
 {
-    return platform_io_voledin_conv_ready;
+    return platform_io_vbat_conv_ready;
 }
 
-/*! \fn     platform_io_get_voledin_conversion_result(void)
+/*! \fn     platform_io_get_vbat_conversion_result(void)
 *   \brief  Fetch voled conversion result
 *   \return 12 bit conversion result
 */
-uint16_t platform_io_get_voledin_conversion_result(void)
+uint16_t platform_io_get_vbat_conversion_result(void)
 {
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
     return ADC->RESULT.reg;
 }
 
-/*! \fn     platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
-*   \brief  Fetch voled conversion result and trigger new conversion
+/*! \fn     platform_io_get_vbat_conversion_result_and_trigger_conversion(void)
+*   \brief  [minible v1: fetch voled conversion result / minible v2: get vbat/2] and trigger new conversion
 *   \return 12 bit conversion result
 */
-uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void)
+uint16_t platform_io_get_vbat_conversion_result_and_trigger_conversion(void)
 {
     /* Rearm watchdog */
     timer_start_timer(TIMER_ADC_WATCHDOG, 60000);
     
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
-    platform_io_voledin_conv_ready = FALSE;
+    platform_io_vbat_conv_ready = FALSE;
     uint16_t return_val = ADC->RESULT.reg;
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
     ADC->SWTRIG.reg = ADC_SWTRIG_FLUSH;
@@ -224,7 +229,7 @@ uint16_t platform_io_get_voledinmv_conversion_result_and_trigger_conversion(void
     timer_start_timer(TIMER_ADC_WATCHDOG, 60000);
     
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
-    platform_io_voledin_conv_ready = FALSE;
+    platform_io_vbat_conv_ready = FALSE;
     uint32_t return_val = ADC->RESULT.reg;
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
     ADC->SWTRIG.reg = ADC_SWTRIG_FLUSH;
@@ -277,8 +282,8 @@ void platform_io_init_bat_adc_measurements(void)
 uint16_t platform_io_get_single_bandgap_measurement(void)
 {
     /* Wait for end of previous measurement */
-    while(platform_io_voledin_conv_ready == FALSE);
-    platform_io_voledin_conv_ready = FALSE;
+    while(platform_io_vbat_conv_ready == FALSE);
+    platform_io_vbat_conv_ready = FALSE;
     
     /* Enable routing of the bandgap voltage to the ADC */
     SYSCTRL->VREF.bit.BGOUTEN = 1;
@@ -301,8 +306,8 @@ uint16_t platform_io_get_single_bandgap_measurement(void)
     ADC->SWTRIG.reg = ADC_SWTRIG_START;
     
     /* Wait for end of measurement */
-    while(platform_io_voledin_conv_ready == FALSE);
-    platform_io_voledin_conv_ready = FALSE;
+    while(platform_io_vbat_conv_ready == FALSE);
+    platform_io_vbat_conv_ready = FALSE;
     
     /* Get result */
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);
@@ -319,7 +324,7 @@ uint16_t platform_io_get_single_bandgap_measurement(void)
     ADC->SAMPCTRL.bit.SAMPLEN = 0;
     
     /* Start battery measurement */
-    platform_io_get_voledin_conversion_result_and_trigger_conversion();
+    platform_io_get_vbat_conversion_result_and_trigger_conversion();
     
     return return_val;
 }
@@ -824,6 +829,16 @@ void platform_io_power_up_oled(BOOL power_3v3)
     
     /* Datasheet mentions a 2us reset time */
     timer_delay_ms(1);
+#else
+    /* leave reset assert for at least 1ms */
+    timer_delay_ms(1);
+    
+    /* Release reset */
+    PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK;
+    
+    /* Enable 12V, 2ms to reach 12V */
+    PORT->Group[VOLED_EN_GROUP].OUTSET.reg = VOLED_EN_MASK;
+    timer_delay_ms(5);
 #endif
 }
 
@@ -936,23 +951,19 @@ void platform_io_init_power_ports(void)
 #endif
 
 #ifndef MINIBLE_V2
-    /* USB 3V3 presence */
     PORT->Group[USB_3V3_GROUP].DIRCLR.reg = USB_3V3_MASK;                                                   // Setup USB 3V3 detection input with pull-down
     PORT->Group[USB_3V3_GROUP].OUTCLR.reg = USB_3V3_MASK;                                                   // Setup USB 3V3 detection input with pull-down
     PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.PULLEN = 1;                                        // Setup USB 3V3 detection input with pull-down
     PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.INEN = 1;                                          // Setup USB 3V3 detection input with pull-down
-#endif
-    
-    /* OLED stepup ports */
-    PORT->Group[OLED_nRESET_GROUP].DIRSET.reg = OLED_nRESET_MASK;                                           // OLED nRESET, OUTPUT
-    PORT->Group[OLED_nRESET_GROUP].OUTCLR.reg = OLED_nRESET_MASK;                                           // OLED nRESET, asserted
-    
-#ifndef MINIBLE_V2
     PORT->Group[VOLED_1V2_EN_GROUP].DIRSET.reg = VOLED_1V2_EN_MASK;                                         // OLED HV enable from 1V2, OUTPUT low by default
     PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;                                         // OLED HV enable from 1V2, OUTPUT low by default
     PORT->Group[VOLED_3V3_EN_GROUP].DIRSET.reg = VOLED_3V3_EN_MASK;                                         // OLED HV enable from 3V3, OUTPUT low by default
     PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;                                         // OLED HV enable from 3V3, OUTPUT low by default
 #endif
+    
+    /* OLED stepup ports */
+    PORT->Group[OLED_nRESET_GROUP].DIRSET.reg = OLED_nRESET_MASK;                                           // OLED nRESET, OUTPUT
+    PORT->Group[OLED_nRESET_GROUP].OUTCLR.reg = OLED_nRESET_MASK;                                           // OLED nRESET, asserted
 }
 
 /*! \fn     platform_io_disable_aux_comms(void)

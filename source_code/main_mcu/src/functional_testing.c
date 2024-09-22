@@ -114,10 +114,10 @@ void functional_testing_start(BOOL clear_first_boot_flag)
     uint16_t bandgap_measurement_bat_powered = platform_io_get_single_bandgap_measurement();
     
     /* Use Voled_vin back as adc input, get the voltage when all power sources are off (falls to 800mV instantly than slowly drifts down... check for 800mV) */
-    while(platform_io_is_voledin_conversion_result_ready() == FALSE);
-    uint32_t battery_voltage = platform_io_get_voledin_conversion_result_and_trigger_conversion();
-    while(platform_io_is_voledin_conversion_result_ready() == FALSE);
-    battery_voltage = platform_io_get_voledin_conversion_result_and_trigger_conversion();
+    while(platform_io_is_vbat_conversion_result_ready() == FALSE);
+    uint32_t battery_voltage = platform_io_get_vbat_conversion_result_and_trigger_conversion();
+    while(platform_io_is_vbat_conversion_result_ready() == FALSE);
+    battery_voltage = platform_io_get_vbat_conversion_result_and_trigger_conversion();
     
     /* Switch the screen back on */
     logic_power_set_power_source(BATTERY_POWERED);
