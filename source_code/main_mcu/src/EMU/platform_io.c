@@ -27,7 +27,7 @@ uint16_t platform_io_get_vbat_conversion_result_and_trigger_conversion(void){
     return BATTERY_ADC_100PCT_VOLTAGE+1;
 }
 
-uint16_t platform_io_get_voledin_conversion_result(void)
+uint16_t platform_io_get_vbat_conversion_result(void)
 {
     int bat = emu_get_battery_level();
     if(bat <= 0) 
@@ -85,7 +85,7 @@ void platform_io_power_down_oled(void){
     platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
 }
 void platform_io_clear_no_comms(void){}
-void platform_io_enable_switch(void){}
+void platform_io_keep_power_on(void){}
 void platform_io_set_no_comms(void){}
 void platform_io_disable_ble(void){}
 void platform_io_init_ports(void){}
