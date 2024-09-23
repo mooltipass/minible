@@ -830,11 +830,20 @@ void platform_io_power_up_oled(BOOL power_3v3)
     /* Datasheet mentions a 2us reset time */
     timer_delay_ms(1);
 #else
+    /* 10ms spent leaving nreset deasserted */
+    timer_delay_ms(10);
+    
+    /* Assert reset */
+    PORT->Group[OLED_nRESET_GROUP].OUTCLR.reg = OLED_nRESET_MASK;
+
     /* leave reset assert for at least 1ms */
-    timer_delay_ms(1);
+    timer_delay_ms(2);
     
     /* Release reset */
     PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK;
+
+    /* Small delay */
+    timer_delay_ms(2);
     
     /* Enable 12V, 2ms to reach 12V */
     PORT->Group[VOLED_EN_GROUP].OUTSET.reg = VOLED_EN_MASK;
@@ -959,11 +968,14 @@ void platform_io_init_power_ports(void)
     PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;                                         // OLED HV enable from 1V2, OUTPUT low by default
     PORT->Group[VOLED_3V3_EN_GROUP].DIRSET.reg = VOLED_3V3_EN_MASK;                                         // OLED HV enable from 3V3, OUTPUT low by default
     PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;                                         // OLED HV enable from 3V3, OUTPUT low by default
+#else
+    PORT->Group[VOLED_EN_GROUP].DIRSET.reg = VOLED_EN_MASK;                                                 // OLED HV enable
+    PORT->Group[VOLED_EN_GROUP].OUTCLR.reg = VOLED_EN_MASK;                                                 // OLED HV enable
 #endif
     
     /* OLED stepup ports */
     PORT->Group[OLED_nRESET_GROUP].DIRSET.reg = OLED_nRESET_MASK;                                           // OLED nRESET, OUTPUT
-    PORT->Group[OLED_nRESET_GROUP].OUTCLR.reg = OLED_nRESET_MASK;                                           // OLED nRESET, asserted
+    PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK;                                           // OLED nRESET, de-asserted (see power-on sequence)
 }
 
 /*! \fn     platform_io_disable_aux_comms(void)

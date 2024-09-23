@@ -9,7 +9,7 @@ static int vbat_lerp(int bat, int lo, int hi, int vbatlo, int vbathi)
     return vbatlo + (vbathi - vbatlo) * (bat - lo) / (hi - lo);
 }
 
-uint16_t platform_io_get_voledin_conversion_result_and_trigger_conversion(void){
+uint16_t platform_io_get_vbat_conversion_result_and_trigger_conversion(void){
     int bat = emu_get_battery_level();
     if(bat <= 0) 
         return BATTERY_ADC_OUT_CUTOUT-1;
@@ -48,7 +48,7 @@ uint16_t platform_io_get_voledin_conversion_result(void)
 
 static oled_stepup_pwr_source_te platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
 oled_stepup_pwr_source_te platform_io_get_voled_stepup_pwr_source(void){return platform_io_oled_stepup_power_source; }
-BOOL platform_io_is_voledin_conversion_result_ready(void){ return TRUE; }
+BOOL platform_io_is_vbat_conversion_result_ready(void){ return TRUE; }
 void platform_io_set_no_comms_as_wakeup_interrupt(void){}
 void platform_io_disable_vbat_to_oled_stepup(void){
     platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
