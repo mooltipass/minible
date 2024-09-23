@@ -680,8 +680,8 @@ typedef struct
 #endif
 
 /* User event channels mapping */
-#define ACC_EV_GEN_CHANNEL          0
-#define ACC_EV_GEN_SEL              (0x0C + ACC_EXTINT_NUM)
+#define ACC_EV_GEN_CHANNEL                  0
+#define ACC_EV_GEN_SEL                      (0x0C + ACC_EXTINT_NUM)
 
 /* SERCOM trigger for flash data transfers */
 #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
@@ -856,6 +856,16 @@ typedef struct
         #define VOLED_VIN_PMUXREGID         PMUXO
     #else
         #define VOLED_VIN_PMUXREGID         PMUXE
+    #endif
+#elif defined(V2_PLAT_V1_SETUP)
+    #define VBAT_VIN_GROUP                  PIN_GROUP_1
+    #define VBAT_VIN_PINID                  2
+    #define VBAT_VIN_MASK                   (1UL << VBAT_VIN_PINID)
+    #define VBAT_VIN_PMUX_ID                PORT_PMUX_PMUXE_B_Val
+    #if (VOLED_VIN_PINID % 2) == 1
+        #define VBAT_VIN_PMUXREGID          PMUXO
+    #else
+        #define VBAT_VIN_PMUXREGID          PMUXE
     #endif
 #endif
 

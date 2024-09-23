@@ -923,29 +923,39 @@ void platform_io_set_voled_vin_as_pulldown(void)
 #endif
 }
 
-/*! \fn     platform_io_set_voled_vin_as_pullup(void)
-*   \brief  Setup voled vin as pullup
+/*! \fn     platform_io_set_vin_as_pullup(void)
+*   \brief  Setup vin as pullup
 */
-void platform_io_set_voled_vin_as_pullup(void)
+void platform_io_set_vin_as_pullup(void)
 {
 #if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
     PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].OUTSET.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 0;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PULLEN = 1;
+#elif defined(V2_PLAT_V1_SETUP)
+    PORT->Group[VBAT_VIN_GROUP].DIRCLR.reg = VBAT_VIN_MASK;
+    PORT->Group[VBAT_VIN_GROUP].OUTSET.reg = VBAT_VIN_MASK;
+    PORT->Group[VBAT_VIN_GROUP].PINCFG[VBAT_VIN_PINID].bit.PMUXEN = 0;
+    PORT->Group[VBAT_VIN_GROUP].PINCFG[VBAT_VIN_PINID].bit.PULLEN = 1;
 #endif
 }
 
-/*! \fn     platform_io_set_voled_vin_as_adc_input(void)
-*   \brief  Setup voled vin as adc input
+/*! \fn     platform_io_set_vin_as_adc_input(void)
+*   \brief  Setup vin as adc input
 */
-void platform_io_set_voled_vin_as_adc_input(void)
+void platform_io_set_vin_as_adc_input(void)
 {
 #if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
     PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PULLEN = 0;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 1;
     PORT->Group[VOLED_VIN_GROUP].PMUX[VOLED_VIN_PINID/2].bit.VOLED_VIN_PMUXREGID = VOLED_VIN_PMUX_ID;
+#elif defined(V2_PLAT_V1_SETUP)
+    PORT->Group[VBAT_VIN_GROUP].DIRCLR.reg = VBAT_VIN_MASK;
+    PORT->Group[VBAT_VIN_GROUP].PINCFG[VBAT_VIN_PINID].bit.PULLEN = 0;
+    PORT->Group[VBAT_VIN_GROUP].PINCFG[VBAT_VIN_PINID].bit.PMUXEN = 1;
+    PORT->Group[VBAT_VIN_GROUP].PMUX[VBAT_VIN_PINID/2].bit.VBAT_VIN_PMUXREGID = VBAT_VIN_PMUX_ID;
 #endif
 }
 
@@ -955,8 +965,8 @@ void platform_io_set_voled_vin_as_adc_input(void)
 void platform_io_init_power_ports(void)
 {
     /* Configure analog input */
-#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    platform_io_set_voled_vin_as_adc_input();
+#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP) || defined(V2_PLAT_V1_SETUP)
+    platform_io_set_vin_as_adc_input();
 #endif
 
 #ifndef MINIBLE_V2
