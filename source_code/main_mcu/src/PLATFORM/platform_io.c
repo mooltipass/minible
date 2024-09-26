@@ -534,7 +534,7 @@ void platform_io_init_smc_ports(void)
 */
 void platform_io_use_internal_smc_det_pullup(void)
 {
-    #if defined(PLAT_V5_SETUP) || IS_V1_PLAT_IN_RANGE_6_TO_7
+    #if IS_V1_PLAT_IN_RANGE_5_TO_7
         PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 1;            // Card removed: use internal "low" impedance pull-up
     #endif    
 }
@@ -544,7 +544,7 @@ void platform_io_use_internal_smc_det_pullup(void)
 */
 void platform_io_use_external_smc_det_pullup(void)
 {
-    #if defined(PLAT_V5_SETUP) || IS_V1_PLAT_IN_RANGE_6_TO_7
+    #if IS_V1_PLAT_IN_RANGE_5_TO_7
         PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 0;            // Card inserted: rely on external pull-up!
     #endif    
 }
@@ -915,7 +915,7 @@ void platform_io_bypass_3v3_detection_debounce(void)
 */
 void platform_io_set_voled_vin_as_pulldown(void)
 {
-#if defined(PLAT_V2_SETUP) || IS_V1_PLAT_IN_RANGE_3_TO_7
+#if IS_V1_PLAT_IN_RANGE_2_TO_7
     PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].OUTCLR.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 0;
@@ -928,7 +928,7 @@ void platform_io_set_voled_vin_as_pulldown(void)
 */
 void platform_io_set_vin_as_pullup(void)
 {
-#if defined(PLAT_V2_SETUP) || IS_V1_PLAT_IN_RANGE_3_TO_7
+#if IS_V1_PLAT_IN_RANGE_2_TO_7
     PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].OUTSET.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 0;
@@ -946,7 +946,7 @@ void platform_io_set_vin_as_pullup(void)
 */
 void platform_io_set_vin_as_adc_input(void)
 {
-#if defined(PLAT_V2_SETUP) || IS_V1_PLAT_IN_RANGE_3_TO_7
+#if IS_V1_PLAT_IN_RANGE_2_TO_7
     PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PULLEN = 0;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 1;
@@ -965,7 +965,7 @@ void platform_io_set_vin_as_adc_input(void)
 void platform_io_init_power_ports(void)
 {
     /* Configure analog input */
-#if defined(PLAT_V2_SETUP) || IS_V1_PLAT_IN_RANGE_3_TO_7 || defined(V2_PLAT_V1_SETUP)
+#if IS_V1_PLAT_IN_RANGE_2_TO_7 || defined(V2_PLAT_V1_SETUP)
     platform_io_set_vin_as_adc_input();
 #endif
 
