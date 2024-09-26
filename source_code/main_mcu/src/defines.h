@@ -44,6 +44,16 @@
 #define MEMBER_ARRAY_SIZE(type, member)     (sizeof(((type*)0)->member) / sizeof(((type*)0)->member[0]))
 #define MEMBER_SUB_ARRAY_SIZE(type, member) (sizeof(((type*)0)->member[0]) / sizeof(((type*)0)->member[0][0]))
 
+/* Platform define macros */
+#define IS_V1_PLAT_DEFINED(version)         defined(PLAT_V##version##_SETUP)
+#define IS_V1_PLAT_IN_RANGE_1_TO_2          (IS_V1_PLAT_DEFINED(1) || IS_V1_PLAT_DEFINED(2))
+#define IS_V1_PLAT_IN_RANGE_1_TO_3          (IS_V1_PLAT_DEFINED(1) || IS_V1_PLAT_DEFINED(2) || IS_V1_PLAT_DEFINED(3))
+#define IS_V1_PLAT_IN_RANGE_1_TO_6          (IS_V1_PLAT_DEFINED(1) || IS_V1_PLAT_DEFINED(2) || IS_V1_PLAT_DEFINED(3) || IS_V1_PLAT_DEFINED(4) || IS_V1_PLAT_DEFINED(5) || IS_V1_PLAT_DEFINED(6))
+#define IS_V1_PLAT_IN_RANGE_3_TO_5          (IS_V1_PLAT_DEFINED(3) || IS_V1_PLAT_DEFINED(4) || IS_V1_PLAT_DEFINED(5))
+#define IS_V1_PLAT_IN_RANGE_3_TO_7          (IS_V1_PLAT_DEFINED(3) || IS_V1_PLAT_DEFINED(4) || IS_V1_PLAT_DEFINED(5) || IS_V1_PLAT_DEFINED(6) || IS_V1_PLAT_DEFINED(7))
+#define IS_V1_PLAT_IN_RANGE_4_TO_7          (IS_V1_PLAT_DEFINED(4) || IS_V1_PLAT_DEFINED(5) || IS_V1_PLAT_DEFINED(6) || IS_V1_PLAT_DEFINED(7))
+#define IS_V1_PLAT_IN_RANGE_6_TO_7          (IS_V1_PLAT_DEFINED(6) || IS_V1_PLAT_DEFINED(7))
+
 /* Standard defines */
 #define SHA256_OUTPUT_LENGTH    32
 #define AES_KEY_LENGTH          256

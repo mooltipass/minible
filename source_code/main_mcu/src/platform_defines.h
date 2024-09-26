@@ -343,7 +343,7 @@
      #define DEVELOPER_FEATURES_ENABLED
      #define BOD_NOT_ENABLED
      #define DBFLASH_CHIP_8M
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_5 || defined(PLAT_V6_SETUP)
      #define OLED_PRINTF_ENABLED
      #define DEBUG_USB_COMMANDS_ENABLED
      #define DEBUG_MENU_ENABLED
@@ -442,7 +442,7 @@ typedef struct
 /********************/
 /* Voltage cutout   */
 /********************/
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_3
     #define BATTERY_ADC_100PCT_VOLTAGE  (1180*273/110)
     #define BATTERY_ADC_90PCT_VOLTAGE   (1180*273/110)
     #define BATTERY_ADC_80PCT_VOLTAGE   (1250*273/110)
@@ -456,7 +456,7 @@ typedef struct
     #define BATTERY_ADC_OUT_CUTOUT      (1180*273/110)
     #define BATTERY_ADC_EMGCY_CUTOUT    (1180*273/110)
     #define BATTERY_ADC_800MV_VALUE     (1180*273/110)
-#elif defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_4_TO_7
     #define BATTERY_ADC_100PCT_VOLTAGE  (3435)
     #define BATTERY_ADC_90PCT_VOLTAGE   (3368)
     #define BATTERY_ADC_80PCT_VOLTAGE   (3335)
@@ -531,16 +531,16 @@ typedef struct
 #define GCLK_ID_32K             GCLK_CLKCTRL_GEN_GCLK3_Val
 
 /* ADC defines */
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define VBAT_ADC_PIN_MUXPOS     ADC_INPUTCTRL_MUXPOS_PIN1_Val
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define VBAT_ADC_PIN_MUXPOS     ADC_INPUTCTRL_MUXPOS_PIN0_Val
 #elif defined(V2_PLAT_V1_SETUP)
     #define VBAT_ADC_PIN_MUXPOS     ADC_INPUTCTRL_MUXPOS_PIN10_Val
 #endif
 
 /* SERCOM defines */
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define SMARTCARD_GCLK_SERCOM_ID    GCLK_CLKCTRL_ID_SERCOM5_CORE_Val
     #define SMARTCARD_MOSI_SCK_PADS     MOSI_P0_SCK_P3_SS_P1
     #define SMARTCARD_MISO_PAD          MISO_PAD1
@@ -573,7 +573,7 @@ typedef struct
     #define ACC_MISO_PAD                MISO_PAD1
     #define ACC_APB_SERCOM_BIT          SERCOM1_
     #define ACC_SERCOM                  SERCOM1
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define SMARTCARD_GCLK_SERCOM_ID    GCLK_CLKCTRL_ID_SERCOM2_CORE_Val
     #define SMARTCARD_MOSI_SCK_PADS     MOSI_P3_SCK_P1_SS_P2
     #define SMARTCARD_MISO_PAD          MISO_PAD2
@@ -646,14 +646,14 @@ typedef struct
 #define DMA_DESCID_TX_COMMS         6
 
 /* External interrupts numbers */
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define ACC_EXTINT_NUM              4
     #define ACC_EIC_SENSE_REG           SENSE4
     #define WHEEL_CLICK_EXTINT_NUM      8
     #define WHEEL_CLICK_EIC_SENSE_REG   SENSE0
     #define USB_3V3_EXTINT_NUM          15
     #define USB_3V3_EIC_SENSE_REG       SENSE7
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define ACC_EXTINT_NUM                      9
     #define ACC_EIC_SENSE_REG                   SENSE1
     #define WHEEL_CLICK_EXTINT_NUM              8
@@ -684,7 +684,7 @@ typedef struct
 #define ACC_EV_GEN_SEL                      (0x0C + ACC_EXTINT_NUM)
 
 /* SERCOM trigger for flash data transfers */
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define DATAFLASH_DMA_SERCOM_RXTRIG     0x05
     #define DATAFLASH_DMA_SERCOM_TXTRIG     0x06
     #define DBFLASH_DMA_SERCOM_RXTRIG       0x07
@@ -693,7 +693,7 @@ typedef struct
     #define ACC_DMA_SERCOM_TXTRIG           0x04
     #define AUX_MCU_SERCOM_RXTRIG           0x09
     #define AUX_MCU_SERCOM_TXTRIG           0x0A
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define DATAFLASH_DMA_SERCOM_RXTRIG     0x07
     #define DATAFLASH_DMA_SERCOM_TXTRIG     0x08
     #define DBFLASH_DMA_SERCOM_RXTRIG       0x03
@@ -714,9 +714,9 @@ typedef struct
 #endif
 
 /* SERCOM trigger for OLED data transfers */
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define OLED_DMA_SERCOM_TX_TRIG         0x02
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define OLED_DMA_SERCOM_TX_TRIG         0x0A
 #elif defined(V2_PLAT_V1_SETUP)
     #define OLED_DMA_SERCOM_TX_TRIG         0x08
@@ -754,10 +754,10 @@ typedef struct
 
 /* PORT defines */
 /* WHEEL ENCODER */
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define WHEEL_A_GROUP                   PIN_GROUP_0
     #define WHEEL_A_PINID                   0
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define WHEEL_A_GROUP                   PIN_GROUP_0
     #define WHEEL_A_PINID                   27
 #elif defined(V2_PLAT_V1_SETUP)
@@ -771,10 +771,10 @@ typedef struct
     #define WHEEL_A_PMUXREGID               PMUXE
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define WHEEL_B_GROUP                   PIN_GROUP_0
     #define WHEEL_B_PINID                   1
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define WHEEL_B_GROUP                   PIN_GROUP_1
     #define WHEEL_B_PINID                   2
 #elif defined(V2_PLAT_V1_SETUP)
@@ -788,10 +788,10 @@ typedef struct
     #define WHEEL_B_PMUXREGID               PMUXE
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define WHEEL_SW_GROUP                  PIN_GROUP_0
     #define WHEEL_SW_PINID                  28
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define WHEEL_SW_GROUP                  PIN_GROUP_0
     #define WHEEL_SW_PINID                  28
 #elif defined(V2_PLAT_V1_SETUP)
@@ -806,10 +806,10 @@ typedef struct
 #endif
 
 /* POWER & BLE SYSTEM */
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define SWDET_EN_GROUP                  PIN_GROUP_0
     #define SWDET_EN_PINID                  2
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define SWDET_EN_GROUP                  PIN_GROUP_0
     #define SWDET_EN_PINID                  15
 #endif
@@ -831,7 +831,7 @@ typedef struct
     #define SMC_POW_NEN_GROUP               PIN_GROUP_0
     #define SMC_POW_NEN_PINID               30
     #define SMC_POW_NEN_MASK                (1UL << SMC_POW_NEN_PINID)
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define SMC_POW_NEN_GROUP               PIN_GROUP_0
     #define SMC_POW_NEN_PINID               25
     #define SMC_POW_NEN_MASK                (1UL << SMC_POW_NEN_PINID)
@@ -847,7 +847,7 @@ typedef struct
     #else
         #define VOLED_VIN_PMUXREGID         PMUXE
     #endif
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define VOLED_VIN_GROUP                 PIN_GROUP_0
     #define VOLED_VIN_PINID                 2
     #define VOLED_VIN_MASK                  (1UL << VOLED_VIN_PINID)
@@ -869,10 +869,10 @@ typedef struct
     #endif
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define BLE_EN_GROUP                    PIN_GROUP_0
     #define BLE_EN_PINID                    13
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define BLE_EN_GROUP                    PIN_GROUP_1
     #define BLE_EN_PINID                    3
 #endif
@@ -880,10 +880,10 @@ typedef struct
     #define BLE_EN_MASK                     (1UL << BLE_EN_PINID)
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define USB_3V3_GROUP                   PIN_GROUP_0
     #define USB_3V3_PINID                   27
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define USB_3V3_GROUP                   PIN_GROUP_0
     #define USB_3V3_PINID                   1
 #endif
@@ -896,13 +896,13 @@ typedef struct
     #endif
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define VOLED_1V2_EN_GROUP              PIN_GROUP_1
     #define VOLED_1V2_EN_PINID              22
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_5
     #define VOLED_1V2_EN_GROUP              PIN_GROUP_0
     #define VOLED_1V2_EN_PINID              8
-#elif defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_6_TO_7
     #define VOLED_1V2_EN_GROUP              PIN_GROUP_1
     #define VOLED_1V2_EN_PINID              8
 #endif
@@ -916,10 +916,10 @@ typedef struct
     #define VOLED_EN_MASK                   (1UL << VOLED_EN_PINID)
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define VOLED_3V3_EN_GROUP              PIN_GROUP_1
     #define VOLED_3V3_EN_PINID              23
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define VOLED_3V3_EN_GROUP              PIN_GROUP_0
     #define VOLED_3V3_EN_PINID              0
 #endif
@@ -927,17 +927,17 @@ typedef struct
     #define VOLED_3V3_EN_MASK               (1UL << VOLED_3V3_EN_PINID)
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define MCU_AUX_RST_EN_GROUP            PIN_GROUP_0
     #define MCU_AUX_RST_EN_PINID            15
     #define MCU_AUX_RST_EN_MASK             (1UL << MCU_AUX_RST_EN_PINID)
 #endif
 
 /* OLED */
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define OLED_MOSI_GROUP                 PIN_GROUP_0
     #define OLED_MOSI_PINID                 4
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define OLED_MOSI_GROUP                 PIN_GROUP_1
     #define OLED_MOSI_PINID                 10
 #elif defined(V2_PLAT_V1_SETUP)
@@ -952,10 +952,10 @@ typedef struct
     #define OLED_MOSI_PMUXREGID             PMUXE
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define OLED_SCK_GROUP                  PIN_GROUP_0
     #define OLED_SCK_PINID                  5
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define OLED_SCK_GROUP                  PIN_GROUP_1
     #define OLED_SCK_PINID                  11
 #elif defined(V2_PLAT_V1_SETUP)
@@ -970,10 +970,10 @@ typedef struct
     #define OLED_SCK_PMUXREGID              PMUXE
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define OLED_nCS_GROUP                  PIN_GROUP_1
     #define OLED_nCS_PINID                  9
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define OLED_nCS_GROUP                  PIN_GROUP_0
     #define OLED_nCS_PINID                  14
 #elif defined(V2_PLAT_V1_SETUP)
@@ -982,10 +982,10 @@ typedef struct
 #endif
 #define OLED_nCS_MASK                       (1UL << OLED_nCS_PINID)
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define OLED_CD_GROUP                   PIN_GROUP_0
     #define OLED_CD_PINID                   6
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define OLED_CD_GROUP                   PIN_GROUP_0
     #define OLED_CD_PINID                   12
 #elif defined(V2_PLAT_V1_SETUP)
@@ -994,10 +994,10 @@ typedef struct
 #endif
 #define OLED_CD_MASK                        (1UL << OLED_CD_PINID)
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define OLED_nRESET_GROUP               PIN_GROUP_0
     #define OLED_nRESET_PINID               7
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define OLED_nRESET_GROUP               PIN_GROUP_0
     #define OLED_nRESET_PINID               13
 #elif defined(V2_PLAT_V1_SETUP)
@@ -1007,10 +1007,10 @@ typedef struct
 #define OLED_nRESET_MASK                    (1UL << OLED_nRESET_PINID)
 
 /* DATAFLASH FLASH */
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define DATAFLASH_MOSI_GROUP            PIN_GROUP_0
     #define DATAFLASH_MOSI_PINID            8
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define DATAFLASH_MOSI_GROUP            PIN_GROUP_0
     #define DATAFLASH_MOSI_PINID            20
 #elif defined(V2_PLAT_V1_SETUP)
@@ -1025,11 +1025,11 @@ typedef struct
     #define DATAFLASH_MOSI_PMUXREGID        PMUXE
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define DATAFLASH_MISO_GROUP            PIN_GROUP_0
     #define DATAFLASH_MISO_PINID            10
     #define DATAFLASH_MISO_PMUX_ID          PORT_PMUX_PMUXE_D_Val
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define DATAFLASH_MISO_GROUP            PIN_GROUP_0
     #define DATAFLASH_MISO_PINID            22
     #define DATAFLASH_MISO_PMUX_ID          PORT_PMUX_PMUXE_C_Val
@@ -1045,10 +1045,10 @@ typedef struct
     #define DATAFLASH_MISO_PMUXREGID        PMUXE
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define DATAFLASH_SCK_GROUP             PIN_GROUP_0
     #define DATAFLASH_SCK_PINID             9
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define DATAFLASH_SCK_GROUP             PIN_GROUP_0
     #define DATAFLASH_SCK_PINID             21
 #elif defined(V2_PLAT_V1_SETUP)
@@ -1063,10 +1063,10 @@ typedef struct
     #define DATAFLASH_SCK_PMUXREGID         PMUXE
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define DATAFLASH_nCS_GROUP             PIN_GROUP_0
     #define DATAFLASH_nCS_PINID             11
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define DATAFLASH_nCS_GROUP             PIN_GROUP_0
     #define DATAFLASH_nCS_PINID             23
 #elif defined(V2_PLAT_V1_SETUP)
@@ -1076,11 +1076,11 @@ typedef struct
 #define DATAFLASH_nCS_MASK                  (1UL << DATAFLASH_nCS_PINID)
 
 /* DBFLASH FLASH */
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define DBFLASH_MOSI_GROUP              PIN_GROUP_0
     #define DBFLASH_MOSI_PINID              22
     #define DBFLASH_MOSI_PMUX_ID            PORT_PMUX_PMUXE_C_Val
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define DBFLASH_MOSI_GROUP              PIN_GROUP_0
     #define DBFLASH_MOSI_PINID              19
     #define DBFLASH_MOSI_PMUX_ID            PORT_PMUX_PMUXE_C_Val
@@ -1096,11 +1096,11 @@ typedef struct
     #define DBFLASH_MOSI_PMUXREGID          PMUXE
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define DBFLASH_MISO_GROUP              PIN_GROUP_0
     #define DBFLASH_MISO_PINID              25
     #define DBFLASH_MISO_PMUX_ID            PORT_PMUX_PMUXE_C_Val
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define DBFLASH_MISO_GROUP              PIN_GROUP_0
     #define DBFLASH_MISO_PINID              18
     #define DBFLASH_MISO_PMUX_ID            PORT_PMUX_PMUXE_C_Val
@@ -1116,11 +1116,11 @@ typedef struct
     #define DBFLASH_MISO_PMUXREGID          PMUXE
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define DBFLASH_SCK_GROUP               PIN_GROUP_0
     #define DBFLASH_SCK_PINID               23
     #define DBFLASH_SCK_PMUX_ID             PORT_PMUX_PMUXO_C_Val
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define DBFLASH_SCK_GROUP               PIN_GROUP_0
     #define DBFLASH_SCK_PINID               17
     #define DBFLASH_SCK_PMUX_ID             PORT_PMUX_PMUXO_C_Val
@@ -1136,10 +1136,10 @@ typedef struct
     #define DBFLASH_SCK_PMUXREGID           PMUXE
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define DBFLASH_nCS_GROUP               PIN_GROUP_0
     #define DBFLASH_nCS_PINID               24
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define DBFLASH_nCS_GROUP               PIN_GROUP_0
     #define DBFLASH_nCS_PINID               16
 #elif defined(V2_PLAT_V1_SETUP)
@@ -1149,11 +1149,11 @@ typedef struct
 #define DBFLASH_nCS_MASK                    (1UL << DBFLASH_nCS_PINID)
 
 /* ACCELEROMETER */
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define ACC_MOSI_GROUP                  PIN_GROUP_0
     #define ACC_MOSI_PINID                  16
     #define ACC_MOSI_PMUX_ID                PORT_PMUX_PMUXE_C_Val
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define ACC_MOSI_GROUP                  PIN_GROUP_0
     #define ACC_MOSI_PINID                  4
     #define ACC_MOSI_PMUX_ID                PORT_PMUX_PMUXE_D_Val
@@ -1169,11 +1169,11 @@ typedef struct
     #define ACC_MOSI_PMUXREGID              PMUXE
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define ACC_MISO_GROUP                  PIN_GROUP_0
     #define ACC_MISO_PINID                  17
     #define ACC_MISO_PMUX_ID                PORT_PMUX_PMUXE_C_Val
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define ACC_MISO_GROUP                  PIN_GROUP_0
     #define ACC_MISO_PINID                  5
     #define ACC_MISO_PMUX_ID                PORT_PMUX_PMUXE_D_Val
@@ -1189,11 +1189,11 @@ typedef struct
     #define ACC_MISO_PMUXREGID              PMUXE
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define ACC_SCK_GROUP                   PIN_GROUP_0
     #define ACC_SCK_PINID                   19
     #define ACC_SCK_PMUX_ID                 PORT_PMUX_PMUXO_C_Val
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define ACC_SCK_GROUP                   PIN_GROUP_0
     #define ACC_SCK_PINID                   7
     #define ACC_SCK_PMUX_ID                 PORT_PMUX_PMUXO_D_Val
@@ -1209,10 +1209,10 @@ typedef struct
     #define ACC_SCK_PMUXREGID               PMUXE
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define ACC_nCS_GROUP                   PIN_GROUP_0
     #define ACC_nCS_PINID                   18
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define ACC_nCS_GROUP                   PIN_GROUP_0
     #define ACC_nCS_PINID                   6
 #elif defined(V2_PLAT_V1_SETUP)
@@ -1221,10 +1221,10 @@ typedef struct
 #endif
 #define ACC_nCS_MASK                        (1UL << ACC_nCS_PINID)
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define ACC_INT_GROUP                   PIN_GROUP_0
     #define ACC_INT_PINID                   20
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define ACC_INT_GROUP                   PIN_GROUP_1
     #define ACC_INT_PINID                   9
 #elif defined(V2_PLAT_V1_SETUP)
@@ -1240,10 +1240,10 @@ typedef struct
 
 /* SMARTCARD */
 #if !defined(MINIBLE_V2)
-    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+    #if IS_V1_PLAT_IN_RANGE_1_TO_2
         #define SMC_MOSI_GROUP              PIN_GROUP_1
         #define SMC_MOSI_PINID              2
-    #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+    #elif IS_V1_PLAT_IN_RANGE_3_TO_7
         #define SMC_MOSI_GROUP              PIN_GROUP_0
         #define SMC_MOSI_PINID              11
     #endif
@@ -1255,10 +1255,10 @@ typedef struct
         #define SMC_MOSI_PMUXREGID          PMUXE
     #endif
 
-    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+    #if IS_V1_PLAT_IN_RANGE_1_TO_2
         #define SMC_MISO_GROUP              PIN_GROUP_1
         #define SMC_MISO_PINID              3
-    #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+    #elif IS_V1_PLAT_IN_RANGE_3_TO_7
         #define SMC_MISO_GROUP              PIN_GROUP_0
         #define SMC_MISO_PINID              10
     #endif
@@ -1270,11 +1270,11 @@ typedef struct
         #define SMC_MISO_PMUXREGID          PMUXE
     #endif
 
-    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+    #if IS_V1_PLAT_IN_RANGE_1_TO_2
         #define SMC_SCK_GROUP               PIN_GROUP_0
         #define SMC_SCK_PINID               21
         #define SMC_SCK_PMUX_ID             PORT_PMUX_PMUXO_C_Val
-    #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+    #elif IS_V1_PLAT_IN_RANGE_3_TO_7
         #define SMC_SCK_GROUP               PIN_GROUP_0
         #define SMC_SCK_PINID               9
         #define SMC_SCK_PMUX_ID             PORT_PMUX_PMUXO_D_Val
@@ -1286,31 +1286,31 @@ typedef struct
         #define SMC_SCK_PMUXREGID           PMUXE
     #endif
 
-    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+    #if IS_V1_PLAT_IN_RANGE_1_TO_2
         #define SMC_RST_GROUP               PIN_GROUP_0
         #define SMC_RST_PINID               14
-    #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+    #elif IS_V1_PLAT_IN_RANGE_3_TO_7
         #define SMC_RST_GROUP               PIN_GROUP_0
         #define SMC_RST_PINID               24
     #endif
     #define SMC_RST_MASK                    (1UL << SMC_RST_PINID)
 
-    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+    #if IS_V1_PLAT_IN_RANGE_1_TO_2
         #define SMC_PGM_GROUP               PIN_GROUP_0
         #define SMC_PGM_PINID               31
-    #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP)
+    #elif IS_V1_PLAT_IN_RANGE_3_TO_5
         #define SMC_PGM_GROUP               PIN_GROUP_1
         #define SMC_PGM_PINID               8
-    #elif defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+    #elif IS_V1_PLAT_IN_RANGE_6_TO_7
         #define SMC_PGM_GROUP               PIN_GROUP_0
         #define SMC_PGM_PINID               8
     #endif
     #define SMC_PGM_MASK                    (1UL << SMC_PGM_PINID)
 
-    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+    #if IS_V1_PLAT_IN_RANGE_1_TO_2
         #define SMC_DET_GROUP               PIN_GROUP_0
         #define SMC_DET_PINID               12
-    #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+    #elif IS_V1_PLAT_IN_RANGE_3_TO_7
         #define SMC_DET_GROUP               PIN_GROUP_0
         #define SMC_DET_PINID               3
     #endif
@@ -1323,10 +1323,10 @@ typedef struct
 #endif
 
 /* AUX MCU COMMS */
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define AUX_MCU_TX_GROUP                PIN_GROUP_1
     #define AUX_MCU_TX_PINID                11
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define AUX_MCU_TX_GROUP                PIN_GROUP_1
     #define AUX_MCU_TX_PINID                23
 #elif defined(V2_PLAT_V1_SETUP)
@@ -1341,10 +1341,10 @@ typedef struct
     #define AUX_MCU_TX_PMUXREGID            PMUXE
 #endif
 
-#if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define AUX_MCU_RX_GROUP                PIN_GROUP_1
     #define AUX_MCU_RX_PINID                10
-#elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#elif IS_V1_PLAT_IN_RANGE_3_TO_7
     #define AUX_MCU_RX_GROUP                PIN_GROUP_1
     #define AUX_MCU_RX_PINID                22
 #elif defined(V2_PLAT_V1_SETUP)
@@ -1359,7 +1359,7 @@ typedef struct
     #define AUX_MCU_RX_PMUXREGID            PMUXE
 #endif
 
-#if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#if IS_V1_PLAT_IN_RANGE_3_TO_7
     #define AUX_MCU_NOCOMMS_GROUP           PIN_GROUP_0
     #define AUX_MCU_NOCOMMS_PINID           30
     #define AUX_MCU_NOCOMMS_MASK            (1UL << AUX_MCU_NOCOMMS_PINID)

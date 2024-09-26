@@ -146,7 +146,7 @@ void platform_io_cutoff_power(void)
 */
 void platform_io_release_aux_reset(void)
 {
-    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+    #if IS_V1_PLAT_IN_RANGE_1_TO_2
     PORT->Group[MCU_AUX_RST_EN_GROUP].OUTCLR.reg = MCU_AUX_RST_EN_MASK;
     #endif     
 }
@@ -534,7 +534,7 @@ void platform_io_init_smc_ports(void)
 */
 void platform_io_use_internal_smc_det_pullup(void)
 {
-    #if defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+    #if defined(PLAT_V5_SETUP) || IS_V1_PLAT_IN_RANGE_6_TO_7
         PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 1;            // Card removed: use internal "low" impedance pull-up
     #endif    
 }
@@ -544,7 +544,7 @@ void platform_io_use_internal_smc_det_pullup(void)
 */
 void platform_io_use_external_smc_det_pullup(void)
 {
-    #if defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+    #if defined(PLAT_V5_SETUP) || IS_V1_PLAT_IN_RANGE_6_TO_7
         PORT->Group[SMC_DET_GROUP].PINCFG[SMC_DET_PINID].bit.PULLEN = 0;            // Card inserted: rely on external pull-up!
     #endif    
 }
@@ -915,7 +915,7 @@ void platform_io_bypass_3v3_detection_debounce(void)
 */
 void platform_io_set_voled_vin_as_pulldown(void)
 {
-#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#if defined(PLAT_V2_SETUP) || IS_V1_PLAT_IN_RANGE_3_TO_7
     PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].OUTCLR.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 0;
@@ -928,7 +928,7 @@ void platform_io_set_voled_vin_as_pulldown(void)
 */
 void platform_io_set_vin_as_pullup(void)
 {
-#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#if defined(PLAT_V2_SETUP) || IS_V1_PLAT_IN_RANGE_3_TO_7
     PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].OUTSET.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 0;
@@ -946,7 +946,7 @@ void platform_io_set_vin_as_pullup(void)
 */
 void platform_io_set_vin_as_adc_input(void)
 {
-#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+#if defined(PLAT_V2_SETUP) || IS_V1_PLAT_IN_RANGE_3_TO_7
     PORT->Group[VOLED_VIN_GROUP].DIRCLR.reg = VOLED_VIN_MASK;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PULLEN = 0;
     PORT->Group[VOLED_VIN_GROUP].PINCFG[VOLED_VIN_PINID].bit.PMUXEN = 1;
@@ -965,7 +965,7 @@ void platform_io_set_vin_as_adc_input(void)
 void platform_io_init_power_ports(void)
 {
     /* Configure analog input */
-#if defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP) || defined(V2_PLAT_V1_SETUP)
+#if defined(PLAT_V2_SETUP) || IS_V1_PLAT_IN_RANGE_3_TO_7 || defined(V2_PLAT_V1_SETUP)
     platform_io_set_vin_as_adc_input();
 #endif
 
@@ -1020,7 +1020,7 @@ void platform_io_enable_aux_comms(void)
 void platform_io_set_no_comms(void)
 {
     /* Platform v3 */
-    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+    #if IS_V1_PLAT_IN_RANGE_3_TO_7
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;               // NO COMMS as an input as it'll be pulled-up by aux MCU
     #endif
 }
@@ -1031,7 +1031,7 @@ void platform_io_set_no_comms(void)
 void platform_io_clear_no_comms(void)
 {
     /* Platform v3 */
-    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+    #if IS_V1_PLAT_IN_RANGE_3_TO_7
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRSET.reg = AUX_MCU_NOCOMMS_MASK;               // NO COMMS as output, driven low
     #endif
 }
@@ -1082,7 +1082,7 @@ BOOL platform_io_is_no_comms_asserted(void)
 void platform_io_init_no_comms_signal(void)
 {    
     /* Platform v3 */
-    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+    #if IS_V1_PLAT_IN_RANGE_3_TO_7
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.PMUXEN = 0;    // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].PINCFG[AUX_MCU_NOCOMMS_PINID].bit.INEN = 1;      // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
         PORT->Group[AUX_MCU_NOCOMMS_GROUP].DIRCLR.reg = AUX_MCU_NOCOMMS_MASK;               // Setup NO COMMS, enabled by default (pulled-up by aux mcu)
@@ -1096,7 +1096,7 @@ void platform_io_init_no_comms_signal(void)
 void platform_io_set_no_comms_as_wakeup_interrupt(void)
 {
     /* Platform v3 */
-    #if defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
+    #if IS_V1_PLAT_IN_RANGE_3_TO_7
     if (platform_io_no_comms_interrupt_set == FALSE)
     {
         /* Datasheet: Using WAKEUPEN[x]=1 with INTENSET=0 is not recommended */
@@ -1183,7 +1183,7 @@ void platform_io_init_ports(void)
     /* Accelerometer */
     platform_io_init_accelerometer_ports();
 
-    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP)
+    #if IS_V1_PLAT_IN_RANGE_1_TO_2
     /* AUX MCU, reset by default */
     PORT->Group[MCU_AUX_RST_EN_GROUP].DIRSET.reg = MCU_AUX_RST_EN_MASK;
     PORT->Group[MCU_AUX_RST_EN_GROUP].OUTSET.reg = MCU_AUX_RST_EN_MASK;

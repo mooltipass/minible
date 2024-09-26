@@ -177,7 +177,7 @@ void main_platform_init(void)
     }
     
     /* Check fuses, depending on platform program them if incorrectly set */
-    #if defined(PLAT_V1_SETUP) || defined(PLAT_V2_SETUP) || defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(V2_PLAT_V1_SETUP)
+    #if IS_V1_PLAT_IN_RANGE_1_TO_6 || defined(V2_PLAT_V1_SETUP)
     fuses_ok = fuses_check_program(TRUE);
     #else
     fuses_ok = fuses_check_program(FALSE);
