@@ -155,7 +155,7 @@ void logic_power_30m_tick(void)
         }
         else if (current_bt_state == BT_STATE_CONNECTED)
         {
-            /* Connected: difference power consumptions based on connected to platform */
+            /* Connected: different power consumptions based on connected to platform */
             platform_type_te plat_type = logic_bluetooth_get_connected_to_platform_type();
             switch (plat_type)
             {

@@ -862,7 +862,7 @@ typedef struct
     #define VBAT_VIN_PINID                  2
     #define VBAT_VIN_MASK                   (1UL << VBAT_VIN_PINID)
     #define VBAT_VIN_PMUX_ID                PORT_PMUX_PMUXE_B_Val
-    #if (VOLED_VIN_PINID % 2) == 1
+    #if (VBAT_VIN_PINID % 2) == 1
         #define VBAT_VIN_PMUXREGID          PMUXO
     #else
         #define VBAT_VIN_PMUXREGID          PMUXE
@@ -1030,10 +1030,6 @@ typedef struct
     #define DATAFLASH_MISO_PINID            10
     #define DATAFLASH_MISO_PMUX_ID          PORT_PMUX_PMUXE_D_Val
 #elif defined(PLAT_V3_SETUP) || defined(PLAT_V4_SETUP) || defined(PLAT_V5_SETUP) || defined(PLAT_V6_SETUP) || defined(PLAT_V7_SETUP)
-    #define DATAFLASH_MISO_GROUP            PIN_GROUP_0
-    #define DATAFLASH_MISO_PINID            22
-    #define DATAFLASH_MISO_PMUX_ID          PORT_PMUX_PMUXE_C_Val
-#elif defined(V2_PLAT_V1_SETUP)
     #define DATAFLASH_MISO_GROUP            PIN_GROUP_0
     #define DATAFLASH_MISO_PINID            22
     #define DATAFLASH_MISO_PMUX_ID          PORT_PMUX_PMUXE_C_Val
