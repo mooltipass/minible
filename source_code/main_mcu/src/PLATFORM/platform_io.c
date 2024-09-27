@@ -964,28 +964,26 @@ void platform_io_set_vin_as_adc_input(void)
 */
 void platform_io_init_power_ports(void)
 {
-    /* Configure analog input */
 #if IS_V1_PLAT_IN_RANGE_2_TO_7 || defined(V2_PLAT_V1_SETUP)
-    platform_io_set_vin_as_adc_input();
+    platform_io_set_vin_as_adc_input();                                                     // Configure analog input
 #endif
 
 #ifndef MINIBLE_V2
-    PORT->Group[USB_3V3_GROUP].DIRCLR.reg = USB_3V3_MASK;                                                   // Setup USB 3V3 detection input with pull-down
-    PORT->Group[USB_3V3_GROUP].OUTCLR.reg = USB_3V3_MASK;                                                   // Setup USB 3V3 detection input with pull-down
-    PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.PULLEN = 1;                                        // Setup USB 3V3 detection input with pull-down
-    PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.INEN = 1;                                          // Setup USB 3V3 detection input with pull-down
-    PORT->Group[VOLED_1V2_EN_GROUP].DIRSET.reg = VOLED_1V2_EN_MASK;                                         // OLED HV enable from 1V2, OUTPUT low by default
-    PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;                                         // OLED HV enable from 1V2, OUTPUT low by default
-    PORT->Group[VOLED_3V3_EN_GROUP].DIRSET.reg = VOLED_3V3_EN_MASK;                                         // OLED HV enable from 3V3, OUTPUT low by default
-    PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;                                         // OLED HV enable from 3V3, OUTPUT low by default
+    PORT->Group[USB_3V3_GROUP].DIRCLR.reg = USB_3V3_MASK;                                   // Setup USB 3V3 detection input with pull-down
+    PORT->Group[USB_3V3_GROUP].OUTCLR.reg = USB_3V3_MASK;                                   // Setup USB 3V3 detection input with pull-down
+    PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.PULLEN = 1;                        // Setup USB 3V3 detection input with pull-down
+    PORT->Group[USB_3V3_GROUP].PINCFG[USB_3V3_PINID].bit.INEN = 1;                          // Setup USB 3V3 detection input with pull-down
+    PORT->Group[VOLED_1V2_EN_GROUP].DIRSET.reg = VOLED_1V2_EN_MASK;                         // OLED HV enable from 1V2, OUTPUT low by default
+    PORT->Group[VOLED_1V2_EN_GROUP].OUTCLR.reg = VOLED_1V2_EN_MASK;                         // OLED HV enable from 1V2, OUTPUT low by default
+    PORT->Group[VOLED_3V3_EN_GROUP].DIRSET.reg = VOLED_3V3_EN_MASK;                         // OLED HV enable from 3V3, OUTPUT low by default
+    PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;                         // OLED HV enable from 3V3, OUTPUT low by default
 #else
-    PORT->Group[VOLED_EN_GROUP].DIRSET.reg = VOLED_EN_MASK;                                                 // OLED HV enable
-    PORT->Group[VOLED_EN_GROUP].OUTCLR.reg = VOLED_EN_MASK;                                                 // OLED HV enable
+    PORT->Group[VOLED_EN_GROUP].DIRSET.reg = VOLED_EN_MASK;                                 // OLED HV enable
+    PORT->Group[VOLED_EN_GROUP].OUTCLR.reg = VOLED_EN_MASK;                                 // OLED HV enable
 #endif
-    
-    /* OLED stepup ports */
-    PORT->Group[OLED_nRESET_GROUP].DIRSET.reg = OLED_nRESET_MASK;                                           // OLED nRESET, OUTPUT
-    PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK;                                           // OLED nRESET, de-asserted (see power-on sequence)
+
+    PORT->Group[OLED_nRESET_GROUP].DIRSET.reg = OLED_nRESET_MASK;                           // OLED nRESET, OUTPUT
+    PORT->Group[OLED_nRESET_GROUP].OUTSET.reg = OLED_nRESET_MASK;                           // OLED nRESET, de-asserted (see power-on sequence)
 }
 
 /*! \fn     platform_io_disable_aux_comms(void)
@@ -994,12 +992,12 @@ void platform_io_init_power_ports(void)
 void platform_io_disable_aux_comms(void)
 {
     /* Reduces standby current by 40uA */
-    AUXMCU_SERCOM->USART.CTRLA.reg &= ~SERCOM_USART_CTRLA_ENABLE;                                           // Disable USART
-    PORT->Group[AUX_MCU_RX_GROUP].OUTSET.reg = AUX_MCU_RX_MASK;                                             // AUX MCU RX, MAIN MCU TX: Pull up
-    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PULLEN = 1;                                  // AUX MCU RX, MAIN MCU TX: Pull up
-    PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 0;                                  // AUX MCU TX, MAIN MCU RX: Disable peripheral multiplexer
-    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 0;                                  // AUX MCU RX, MAIN MCU TX: Disable peripheral multiplexer
-    platform_io_set_no_comms();                                                                             // No comms during sleep
+    AUXMCU_SERCOM->USART.CTRLA.reg &= ~SERCOM_USART_CTRLA_ENABLE;                           // Disable USART
+    PORT->Group[AUX_MCU_RX_GROUP].OUTSET.reg = AUX_MCU_RX_MASK;                             // AUX MCU RX, MAIN MCU TX: Pull up
+    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PULLEN = 1;                  // AUX MCU RX, MAIN MCU TX: Pull up
+    PORT->Group[AUX_MCU_TX_GROUP].PINCFG[AUX_MCU_TX_PINID].bit.PMUXEN = 0;                  // AUX MCU TX, MAIN MCU RX: Disable peripheral multiplexer
+    PORT->Group[AUX_MCU_RX_GROUP].PINCFG[AUX_MCU_RX_PINID].bit.PMUXEN = 0;                  // AUX MCU RX, MAIN MCU TX: Disable peripheral multiplexer
+    platform_io_set_no_comms();                                                             // No comms during sleep
 }
 
 /*! \fn     platform_io_enable_aux_comms(void)
