@@ -1958,6 +1958,9 @@
     <Compile Include="src\BearSSL\src\symcipher\aes_ct_enc.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\boot_functions.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\CLOCKS\driver_clocks.c">
       <SubType>compile</SubType>
     </Compile>
