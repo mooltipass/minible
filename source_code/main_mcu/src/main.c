@@ -719,7 +719,6 @@ void main_standby_sleep(void)
 */
 #ifdef EMULATOR_BUILD
 int minible_main(void);
-
 int minible_main(void)
 #else
 int main(void)
@@ -1131,7 +1130,6 @@ int main(void)
 }
 
 #if defined(STACK_MEASURE_ENABLED) && !defined(EMULATOR_BUILD)
-
 uint32_t main_stack_low_water_mark = ~0U;
 
 /*! \fn     util_check_stack_usage(void)
@@ -1140,15 +1138,13 @@ uint32_t main_stack_low_water_mark = ~0U;
 */
 uint32_t main_check_stack_usage(void)
 {
+    uint32_t curr_low_water_mark;
     uint32_t stack_start;
     uint32_t stack_end;
     uint32_t i;
-    uint32_t curr_low_water_mark;
 
-    /*
-     * Get the pointers to the start and end of the stack. These are symbols
-     * available from the compiler/linker.
-     */
+    // Get the pointers to the start and end of the stack. These are symbols
+    // available from the compiler/linker.
     stack_start = (uint32_t) &_estack;
     stack_end = (uint32_t) &_sstack;
 
@@ -1181,8 +1177,8 @@ void main_init_stack_tracking(void)
     stack_start = utils_get_SP() - sizeof(uint32_t);
     stack_end = (uint32_t) &_sstack;
 
-    //Inline implementation of memset since we we *might* be destroying
-    //our own stack when calling the memset function.
+    // Inline implementation of memset since we we *might* be destroying
+    // our own stack when calling the memset function.
     for (ptr = (uint8_t *) stack_end; (uint32_t) ptr < stack_start; ++ptr)
     {
         *ptr = DEBUG_STACK_TRACKING_COOKIE;
