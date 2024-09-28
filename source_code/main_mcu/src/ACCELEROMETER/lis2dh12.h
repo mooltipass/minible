@@ -24,7 +24,7 @@
 #define LIS2HH12_H_
 
 #include "platform_defines.h"
-#ifndef MINIBLE_V2
+#ifndef MINIBLE_V1
 
 #include <stdio.h>
 

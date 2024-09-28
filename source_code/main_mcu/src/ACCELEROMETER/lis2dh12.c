@@ -20,7 +20,7 @@
 *    Author:   Mathieu Stephan
 */
 #include "platform_defines.h"
-#ifndef MINIBLE_V2
+#ifndef MINIBLE_V1
 
 #include "driver_sercom.h"
 #include "driver_clocks.h"
@@ -57,16 +57,9 @@ void lis2dh12_send_command(accelerometer_descriptor_t* descriptor_pt, uint8_t* d
 */
 void lis2dh12_reset(accelerometer_descriptor_t* descriptor_pt)
 {
-    uint8_t softResetCommand[] = {0x24, 0x40};
-    lis2dh12_send_command(descriptor_pt, softResetCommand, sizeof(softResetCommand));
-    
-    /* Wait for end of reset */
-    uint8_t getResetStatusCommand[] = {0xA4, 0xFF};
-    while ((getResetStatusCommand[1] & 0x40) != 0x00)
-    {
-        lis2dh12_send_command(descriptor_pt, getResetStatusCommand, sizeof(getResetStatusCommand));
-        getResetStatusCommand[0] = 0xA4;
-    }
+    /* Reboot memory content, enable FIFO */
+    uint8_t rebootMemoryCommand[] = {0x24, 0xC0};
+    lis2dh12_send_command(descriptor_pt, rebootMemoryCommand, sizeof(rebootMemoryCommand));
 }
 
 /*! \fn     lis2dh12_get_temperature(accelerometer_descriptor_t* descriptor_pt)
@@ -77,7 +70,7 @@ void lis2dh12_reset(accelerometer_descriptor_t* descriptor_pt)
 */
 int16_t lis2dh12_get_temperature(accelerometer_descriptor_t* descriptor_pt)
 {
-	uint8_t getTemperatureCommand[] = {0x8B, 0x00, 0x00};
+	uint8_t getTemperatureCommand[] = {0xCC, 0x00, 0x00};
 	lis2dh12_send_command(descriptor_pt, getTemperatureCommand, sizeof(getTemperatureCommand));
 	int16_t tempHex = (int16_t)((uint16_t)getTemperatureCommand[1] | ((uint16_t)getTemperatureCommand[2]) << 8);
 	return tempHex;
@@ -95,7 +88,7 @@ RET_TYPE lis2dh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     lis2dh12_send_command(descriptor_pt, query_command, sizeof(query_command));
     
     /* Check correct lis2dh12 ID */
-    if(query_command[1] != 0x41)
+    if(query_command[1] != 0x33)
     {
         return RETURN_NOK;
     }
@@ -127,24 +120,24 @@ RET_TYPE lis2dh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     /* Clear intflag */
     EVSYS->INTFLAG.reg = ((1 << descriptor_pt->evgen_sel) << 8) << (16*((descriptor_pt->evgen_sel)/8));
     
-    /* 400Hz output data rate, output registers not updated until MSB and LSB read, all axis enabled */
-    uint8_t setDataRateCommand[] = {0x20, 0x5F};
+    /* 400Hz output data rate, all axis enabled */
+    uint8_t setDataRateCommand[] = {0x20, 0x77};
     lis2dh12_send_command(descriptor_pt, setDataRateCommand, sizeof(setDataRateCommand));
     
     /* FIFO in stream mode */
     uint8_t fifoStreamModeCommand[] = {0x2E, 0x40};
     lis2dh12_send_command(descriptor_pt, fifoStreamModeCommand, sizeof(fifoStreamModeCommand));
     
-    /* Set fifo overrun signal on INT1, enable fifo */
-    uint8_t setDataReadyOnINT1[] = {0x22, 0x84};
+    /* Set fifo overrun signal on INT1 */
+    uint8_t setDataReadyOnINT1[] = {0x22, 0x02};
     lis2dh12_send_command(descriptor_pt, setDataReadyOnINT1, sizeof(setDataReadyOnINT1));
     
-    /* Send command to disable accelerometer I2C block and keep address inc */
-    uint8_t disableI2cBlockCommand[] = {0x23, 0x06};
+    /* Output registers not updated until MSB&LSB read, little endian, 2g scale, high resolution mode, 4-wire interface */
+    uint8_t disableI2cBlockCommand[] = {0x23, 0x88};
     lis2dh12_send_command(descriptor_pt, disableI2cBlockCommand, sizeof(disableI2cBlockCommand));
     
     /* Store read command in descriptor */
-    descriptor_pt->read_cmd = 0xA8;
+    descriptor_pt->read_cmd = 0xE8;
     
     /* Enable DMA transfer and clear nCS */
     dma_acc_init_transfer(descriptor_pt->sercom_pt, (void*)&(descriptor_pt->fifo_read), sizeof(descriptor_pt->fifo_read.acc_data_array) + sizeof(descriptor_pt->fifo_read.wasted_byte_for_read_cmd), &(descriptor_pt->read_cmd));
@@ -190,8 +183,12 @@ RET_TYPE lis2dh12_check_presence_and_configure(accelerometer_descriptor_t* descr
 */
 void lis2dh12_sleep_exit_and_dma_arm(accelerometer_descriptor_t* descriptor_pt)
 {
-    /* 400Hz output data rate, output registers not updated until MSB and LSB read, all axis enabled */
-    uint8_t setDataRateCommand[] = {0x20, 0x5F};
+    /* It is recommended to read register REFERENCE (26h) for a complete reset of the filtering block before switching to normal/high-performance mode again. */
+    uint8_t readReferenceCommand[] = {0xA6, 0x00};
+    lis2dh12_send_command(descriptor_pt, readReferenceCommand, sizeof(readReferenceCommand));
+    
+    /* 400Hz output data rate, all axis enabled */
+    uint8_t setDataRateCommand[] = {0x20, 0x77};
     lis2dh12_send_command(descriptor_pt, setDataRateCommand, sizeof(setDataRateCommand));
     timer_delay_ms(1);
     
@@ -286,7 +283,7 @@ BOOL lis2dh12_check_data_received_flag_and_arm_other_transfer(accelerometer_desc
 */
 void lis2dh12_manual_acc_data_read(accelerometer_descriptor_t* descriptor_pt, acc_data_t* data_pt)
 {
-    uint8_t readAccData[9] = {0xA8};
+    uint8_t readAccData[9] = {0xE8};
     lis2dh12_send_command(descriptor_pt, readAccData, sizeof(readAccData));
     memcpy((void*)data_pt, (void*)(&readAccData[1]), 8);
 }
