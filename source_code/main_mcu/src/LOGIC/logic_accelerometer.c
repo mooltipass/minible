@@ -24,10 +24,10 @@
 #include "driver_timer.h"
 #include "logic_device.h"
 #include "oled_wrapper.h"
+#include "acc_wrapper.h"
 #include "logic_power.h"
 #include "logic_user.h"
 #include "custom_fs.h"
-#include "lis2hh12.h"
 #include "nodemgmt.h"
 #include "main.h"
 #include "rng.h"
@@ -69,7 +69,7 @@ uint16_t logic_accelerometer_ff_det_penalty = 0;
 acc_detection_te logic_accelerometer_routine(void)
 {
     /* Accelerometer interrupt */
-    if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, FALSE) != FALSE)
+    if (acc_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, FALSE) != FALSE)
     {
         /* Use accelerometer data to detect movement & knock, check for working accelerometer as well */
         acc_detection_te return_val = logic_accelerometer_scan_for_action_in_acc_read();
@@ -78,7 +78,7 @@ acc_detection_te logic_accelerometer_routine(void)
         rng_feed_from_acc_read();
         
         /* Arm next data receive */
-        lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
+        acc_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
         
         /* If some movement, wakeup device */
         if ((return_val == ACC_DET_MOVEMENT) && (logic_power_get_power_source() == USB_POWERED))

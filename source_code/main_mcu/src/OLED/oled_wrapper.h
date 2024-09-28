@@ -1,6 +1,6 @@
 /* 
  * This file is part of the Mooltipass Project (https://github.com/mooltipass).
- * Copyright (c) 2014 Stephan Mathieu
+ * Copyright (c) 2024 Stephan Mathieu
  * 
  * This program is free software: you can redistribute it and/or modify  
  * it under the terms of the GNU General Public License as published by  

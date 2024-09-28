@@ -27,7 +27,7 @@
 
 #include "platform_defines.h"
 #include "oled_wrapper.h"
-#include "lis2hh12.h"
+#include "acc_wrapper.h"
 
 
 /* Prototypes */

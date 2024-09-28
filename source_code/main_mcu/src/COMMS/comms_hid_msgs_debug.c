@@ -278,10 +278,10 @@ void comms_hid_msgs_parse_debug(hid_message_t* rcv_msg, uint16_t supposed_payloa
         }
         case HID_CMD_ID_GET_ACC_32_SAMPLES:
         {
-            while (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, FALSE) == FALSE);
+            while (acc_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, FALSE) == FALSE);
             aux_mcu_message_t* temp_tx_message_pt = comms_hid_msgs_get_empty_hid_packet(is_message_from_usb, rcv_message_type, sizeof(plat_acc_descriptor.fifo_read.acc_data_array));
             memcpy((void*)temp_tx_message_pt->hid_message.payload, (void*)plat_acc_descriptor.fifo_read.acc_data_array, sizeof(plat_acc_descriptor.fifo_read.acc_data_array));
-            lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
+            acc_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
             comms_aux_mcu_send_message(temp_tx_message_pt);
             return;
         }

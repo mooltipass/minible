@@ -1829,6 +1829,15 @@
     <OutputPath>bin\V2_Debug_V1dev\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="src\ACCELEROMETER\acc_wrapper.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ACCELEROMETER\lis2dh12.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ACCELEROMETER\lis2dh12.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\ACCELEROMETER\lis2hh12.c">
       <SubType>compile</SubType>
     </Compile>

@@ -35,13 +35,13 @@
 #include "oled_wrapper.h"
 #include "logic_device.h"
 #include "driver_timer.h"
+#include "acc_wrapper.h"
 #include "gui_prompts.h"
 #include "platform_io.h"
 #include "logic_power.h"
 #include "dataflash.h"
 #include "custom_fs.h"
 #include "nodemgmt.h"
-#include "lis2hh12.h"
 #include "text_ids.h"
 #include "inputs.h"
 #include "debug.h"
@@ -849,7 +849,7 @@ void debug_smartcard_test(void)
                 for (uint16_t i = 0; i < 100; i++)
                 {
                     /* Fill buffer with accelerometer data */
-                    while(lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE) == FALSE);
+                    while(acc_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE) == FALSE);
                     memcpy((void*)random_data, plat_acc_descriptor.fifo_read.acc_data_array, sizeof(random_data));
                     
                     /* Stats show */
@@ -1069,7 +1069,7 @@ void debug_debug_screen(void)
         stat_times[2] = timer_get_systick();
         
         /* Accelerometer interrupt */
-        if (lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE) != FALSE)
+        if (acc_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE) != FALSE)
         {
             acc_int_nb_interrupts++;
             

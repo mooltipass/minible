@@ -20,12 +20,12 @@
 #include "gui_prompts.h"
 #include "logic_power.h"
 #include "platform_io.h"
+#include "acc_wrapper.h"
 #include "logic_user.h"
 #include "custom_fs.h"
 #include "dataflash.h"
 #include "logic_gui.h"
 #include "text_ids.h"
-#include "lis2hh12.h"
 #include "nodemgmt.h"
 #include "dbflash.h"
 #include "inputs.h"
@@ -220,7 +220,7 @@ void main_platform_init(void)
     }
     
     /* Check for accelerometer presence */
-    if (lis2hh12_check_presence_and_configure(&plat_acc_descriptor) != RETURN_OK)
+    if (acc_check_presence_and_configure(&plat_acc_descriptor) != RETURN_OK)
     {
         oled_put_error_string(&plat_oled_descriptor, u"No Accelerometer");
         while(1);
@@ -561,7 +561,7 @@ void main_reboot(void)
     logic_power_power_down_actions();
     
     /* Wait for accelerometer DMA transfer end */
-    lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
+    acc_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
     while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
     
     /* Wait for end of message we were possibly sending */
@@ -614,9 +614,9 @@ void main_standby_sleep(void)
         }
     
         /* Wait for accelerometer DMA transfer end and put it to sleep */
-        lis2hh12_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
+        acc_check_data_received_flag_and_arm_other_transfer(&plat_acc_descriptor, TRUE);
         while (dma_acc_check_and_clear_dma_transfer_flag() == FALSE);
-        lis2hh12_deassert_ncs_and_go_to_sleep(&plat_acc_descriptor);
+        acc_deassert_ncs_and_go_to_sleep(&plat_acc_descriptor);
     
         /* DB & Dataflash power down */
         dbflash_enter_ultra_deep_power_down(&dbflash_descriptor);
@@ -671,7 +671,7 @@ void main_standby_sleep(void)
         dbflash_check_presence(&dbflash_descriptor);
         
         /* Resume accelerometer processing */
-        lis2hh12_sleep_exit_and_dma_arm(&plat_acc_descriptor);
+        acc_sleep_exit_and_dma_arm(&plat_acc_descriptor);
     
         /* Get wakeup reason */
         volatile platform_wakeup_reason_te wakeup_reason = logic_device_get_wakeup_reason();
