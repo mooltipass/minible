@@ -27,7 +27,7 @@
 /* Defines */
 
 /* Function defines */
-#ifndef MINIBLE_V2
+#if defined(MINIBLE_V1)
     #include "smartcard_highlevel.h"
     #include "smartcard_lowlevel.h"
     
@@ -45,7 +45,7 @@
     #define se_smartcard_read_aes_key                   smartcard_highlevel_read_aes_key
     #define se_smartcard_detect_scan                    smartcard_lowlevel_detect
     #define se_smartcard_erase_se                       smartcard_highlevel_erase_smartcard
-#else
+#elif defined(MINIBLE_V2)
     #define SMARTCARD_CPZ_LENGTH        8
     #define SMARTCARD_DEFAULT_PIN       0xF0F0
     

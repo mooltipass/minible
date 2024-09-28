@@ -29,7 +29,7 @@
 /* Defines */
 
 /* Function defines */
-#ifndef MINIBLE_V2
+#if defined(MINIBLE_V1)
     #include "lis2hh12.h"
     
     #define acc_check_data_received_flag_and_arm_other_transfer     lis2hh12_check_data_received_flag_and_arm_other_transfer
@@ -41,7 +41,7 @@
     #define acc_send_command                                        lis2hh12_send_command
     #define acc_dma_arm                                             lis2hh12_dma_arm
     #define acc_reset                                               lis2hh12_reset
-#else
+#elif defined(MINIBLE_V2)
     #include "lis2dh12.h"
     
     #define acc_check_data_received_flag_and_arm_other_transfer     lis2dh12_check_data_received_flag_and_arm_other_transfer
@@ -54,9 +54,6 @@
     #define acc_dma_arm                                             lis2dh12_dma_arm
     #define acc_reset                                               lis2dh12_reset    
 #endif
-
-
-
 
 
 #endif /* ACC_WRAPPER_H_ */

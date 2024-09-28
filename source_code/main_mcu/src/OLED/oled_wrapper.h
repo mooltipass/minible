@@ -29,7 +29,7 @@
 /* Defines */
 
 /* Function defines */
-#ifndef MINIBLE_V2
+#if defined(MINIBLE_V1)
     #include "sh1122.h"
     #define OLED_WIDTH  SH1122_OLED_WIDTH
     #define OLED_HEIGHT SH1122_OLED_HEIGHT
@@ -108,7 +108,7 @@
     #ifdef OLED_PRINTF_ENABLED
     #define oled_printf_xy                                            sh1122_printf_xy
     #endif
-#else
+#elif defined(MINIBLE_V2)
     #include "ssd1363.h"
     #define OLED_WIDTH  SSD1363_OLED_WIDTH
     #define OLED_HEIGHT SSD1363_OLED_HEIGHT
