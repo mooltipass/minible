@@ -23,9 +23,10 @@
 #ifndef LIS2HH12_H_
 #define LIS2HH12_H_
 
-#include <stdio.h>
 #include "platform_defines.h"
-#include "defines.h"
+#ifndef MINIBLE_V2
+
+#include <stdio.h>
 
 /* Structs */
 typedef struct
@@ -67,4 +68,6 @@ int16_t lis2hh12_get_temperature(accelerometer_descriptor_t* descriptor_pt);
 void lis2hh12_dma_arm(accelerometer_descriptor_t* descriptor_pt);
 void lis2hh12_reset(accelerometer_descriptor_t* descriptor_pt);
 
+
+#endif /* MINIBLE_V2 */
 #endif /* LIS2HH12_H_ */

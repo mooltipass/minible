@@ -25,7 +25,6 @@
 #define LOGIC_ACCELEROMETER_H_
 
 #include "platform_defines.h"
-#include "defines.h"
 
 /* Defines */
 // After how many z samples we compute the z axis average

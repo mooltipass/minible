@@ -24,7 +24,6 @@
 #if !defined(SMARTCARD_H_) && !defined(MINIBLE_V2)
 #define SMARTCARD_H_
 
-#include "defines.h"
 #include <stdint.h>
 
 /* Typedefs */

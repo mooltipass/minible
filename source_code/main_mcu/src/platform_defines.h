@@ -326,6 +326,7 @@
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)
+     #define MINIBLE_V1
      #define OLED_PRINTF_ENABLED
      #define DEBUG_USB_COMMANDS_ENABLED
      #define DEBUG_MENU_ENABLED
@@ -335,6 +336,7 @@
      #define BOD_NOT_ENABLED
      #define DBFLASH_CHIP_8M
 #elif defined(PLAT_V2_SETUP)
+     #define MINIBLE_V1
      #define OLED_PRINTF_ENABLED
      #define DEBUG_USB_COMMANDS_ENABLED
      #define DEBUG_MENU_ENABLED
@@ -344,6 +346,7 @@
      #define BOD_NOT_ENABLED
      #define DBFLASH_CHIP_8M
 #elif IS_V1_PLAT_IN_RANGE_3_TO_6
+     #define MINIBLE_V1
      #define OLED_PRINTF_ENABLED
      #define DEBUG_USB_COMMANDS_ENABLED
      #define DEBUG_MENU_ENABLED
@@ -354,6 +357,7 @@
      #define DBFLASH_CHIP_8M
      #define STACK_MEASURE_ENABLED
 #elif defined(PLAT_V7_SETUP)
+     #define MINIBLE_V1
      #define BOD_NOT_ENABLED
      #define DBFLASH_CHIP_8M
      #define HALT_ON_00X_ERROR

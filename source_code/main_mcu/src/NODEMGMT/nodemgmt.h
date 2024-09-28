@@ -26,7 +26,6 @@
 
 #include "nodemgmt_defines.h"
 #include "platform_defines.h"
-#include "defines.h"
 #include "dbflash.h"
 
 /* Typedefs */

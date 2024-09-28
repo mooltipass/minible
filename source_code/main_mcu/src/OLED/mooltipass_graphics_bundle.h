@@ -10,7 +10,6 @@
 #define MOOLTIPASS_GRAPHICS_BUNDLE_H_
 
 #include "platform_defines.h"
-#include "defines.h"
 extern const uint8_t mooltipass_bundle[134200];
 
 #endif /* MOOLTIPASS_GRAPHICS_BUNDLE_H_ */

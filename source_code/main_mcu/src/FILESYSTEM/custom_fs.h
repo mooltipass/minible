@@ -27,7 +27,6 @@
 
 #include "custom_fs_defines.h"
 #include "platform_defines.h"
-#include "defines.h"
 
 /* Defines */
 #define START_OF_SIGNED_DATA_IN_DATA_FLASH  (CUSTOM_FS_FILES_ADDR_OFFSET + offsetof(custom_file_flash_header_t, signing_key_update_bool))

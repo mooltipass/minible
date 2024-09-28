@@ -24,11 +24,12 @@
 #ifndef SSD1363_H_
 #define SSD1363_H_
 
-#include <asf.h>
 #include "platform_defines.h"
+#ifndef MINIBLE_V1
+
+#include <asf.h>
 #include "custom_bitstream.h"
 #include "custom_fs.h"
-#include "defines.h"
 
 
 /* Command defines */
@@ -203,4 +204,5 @@ void ssd1363_clear_frame_buffer(oled_descriptor_t* oled_descriptor);
 #endif
 
 
+#endif /* MINIBLE_V1 */
 #endif /* SSD1363_H_ */

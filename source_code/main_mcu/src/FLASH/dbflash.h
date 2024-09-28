@@ -24,7 +24,6 @@
 #define DBFLASH_MEM_H_
 
 #include "platform_defines.h"
-#include "defines.h"
 
 // Enable boundary checks
 #define DBFLASH_MEMORY_BOUNDARY_CHECKS

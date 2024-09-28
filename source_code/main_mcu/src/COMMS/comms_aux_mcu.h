@@ -26,7 +26,6 @@
 
 /* Includes */
 #include "comms_aux_mcu_defines.h"
-#include "defines.h"
 
 /* Prototypes */
 RET_TYPE comms_aux_mcu_active_wait(aux_mcu_message_t** rx_message_pt_pt, uint16_t expected_packet, BOOL single_try, int16_t expected_event);

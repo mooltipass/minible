@@ -23,7 +23,6 @@
 #define W25Q16_H_
 
 #include "platform_defines.h"
-#include "defines.h"
 
 /* Defines */
 #define W25Q16_PAGE_SIZE    256

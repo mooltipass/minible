@@ -20,6 +20,8 @@
 *    Author:   Mathieu Stephan
 */
 #include "platform_defines.h"
+#ifndef MINIBLE_V2
+
 #include "driver_sercom.h"
 #include "driver_clocks.h"
 #include "driver_timer.h"
@@ -288,3 +290,5 @@ void lis2hh12_manual_acc_data_read(accelerometer_descriptor_t* descriptor_pt, ac
     lis2hh12_send_command(descriptor_pt, readAccData, sizeof(readAccData));
     memcpy((void*)data_pt, (void*)(&readAccData[1]), 8);
 }
+
+#endif

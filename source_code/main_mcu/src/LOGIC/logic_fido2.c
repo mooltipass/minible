@@ -27,7 +27,6 @@
 #include "logic_user.h"
 #include "nodemgmt.h"
 #include "text_ids.h"
-#include "defines.h"
 #include "utils.h"
 #include "rng.h"
 #include "main.h"

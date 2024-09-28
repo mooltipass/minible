@@ -24,11 +24,12 @@
 #ifndef SH1122_H_
 #define SH1122_H_
 
-#include <asf.h>
 #include "platform_defines.h"
+#ifndef MINIBLE_V2
+
+#include <asf.h>
 #include "custom_bitstream.h"
 #include "custom_fs.h"
-#include "defines.h"
 
 
 /* Command defines */
@@ -200,5 +201,5 @@ void sh1122_oled_on(oled_descriptor_t* oled_descriptor);
     uint16_t sh1122_printf_xy(oled_descriptor_t* oled_descriptor, int16_t x, uint8_t y, oled_align_te justify, BOOL write_to_buffer, const char *fmt, ...);
 #endif
 
-
+#endif /* MINIBLE_V2 */
 #endif /* SH1122_H_ */

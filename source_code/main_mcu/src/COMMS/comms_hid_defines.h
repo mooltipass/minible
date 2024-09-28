@@ -27,7 +27,6 @@
 /* Includes */
 #include "custom_fs_defines.h"
 #include "platform_defines.h"
-#include "defines.h"
 
 /* Defines */
 #define HID_1BYTE_NACK              0x00

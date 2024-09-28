@@ -788,12 +788,12 @@ void platform_io_transcienty_battery_oled_power_up(void)
 
 /*! \fn     platform_io_power_up_oled(BOOL power_3v3)
 *   \brief  OLED powerup routine (3V3, 12V, reset release)
-*   \param  power_3v3   TRUE to use USB 3V3 as source for 12V stepup
-*   \note   1v2 is already present at the stepup input when this function is called at boot
+*   \param  power_3v3   TRUE to use USB 3V3 as source for 12V stepup (for minible v1)
+*   \note   minible v1: 1v2 is already present at the stepup input when this function is called at boot
 */
 void platform_io_power_up_oled(BOOL power_3v3)
 {
-#ifndef MINIBLE_V2_TO_TACKLE
+#ifndef MINIBLE_V2
     /* Just in case, disable 3V3 to oled */
     PORT->Group[VOLED_3V3_EN_GROUP].OUTCLR.reg = VOLED_3V3_EN_MASK;
     timer_delay_ms(1);
@@ -830,6 +830,8 @@ void platform_io_power_up_oled(BOOL power_3v3)
     /* Datasheet mentions a 2us reset time */
     timer_delay_ms(1);
 #else
+    (void)power_3v3;
+
     /* 10ms spent leaving nreset deasserted */
     timer_delay_ms(10);
     

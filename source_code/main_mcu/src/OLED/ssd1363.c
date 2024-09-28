@@ -19,6 +19,9 @@
 *    Created:  24/07/2024
 *    Author:   Mathieu Stephan
 */
+#include "platform_defines.h"
+#ifndef MINIBLE_V1
+
 #include <stdarg.h>
 #include <string.h>
 #include <asf.h>
@@ -2195,4 +2198,5 @@ uint16_t ssd1363_printf_xy(oled_descriptor_t* oled_descriptor, int16_t x, uint8_
 }
 #pragma GCC diagnostic pop
 
+#endif
 #endif

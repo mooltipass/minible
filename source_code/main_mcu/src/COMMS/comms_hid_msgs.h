@@ -25,7 +25,6 @@
 #define COMMS_HID_MSGS_H_
 
 #include "comms_aux_mcu_defines.h"
-#include "defines.h"
 
 /* Prototypes */
 void comms_hid_msgs_parse(hid_message_t* rcv_msg, uint16_t supposed_payload_length, msg_restrict_type_te answer_restrict_type, BOOL is_message_from_usb);

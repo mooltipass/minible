@@ -26,7 +26,6 @@
 #define CUSTOM_BITSTREAM_H_
 
 #include "custom_fs.h"
-#include "defines.h"
 
 /* Typedefs */
 typedef struct

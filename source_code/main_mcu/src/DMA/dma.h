@@ -26,7 +26,6 @@
 #define DMA_H_
 
 #include "platform_defines.h"
-#include "defines.h"
 
 /* Prototypes */
 void dma_oled_init_transfer(Sercom* sercom, void* datap, uint16_t size, uint16_t dma_trigger);
