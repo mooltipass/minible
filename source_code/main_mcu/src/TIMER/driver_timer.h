@@ -65,6 +65,7 @@ typedef enum {  TIMER_WAITING_FUNCT = 0,
                 TIMER_ADC_WATCHDOG = 8, 
                 TIMER_AUX_MCU_PING = 9,
                 TIMER_ACC_WATCHDOG = 10,
+                TIMER_I2C_TIMEOUT = 11,
                 TOTAL_NUMBER_OF_TIMERS} timer_id_te;
 typedef enum {TIMER_EXPIRED = 0, TIMER_RUNNING = 1} timer_flag_te;
     
