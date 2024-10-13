@@ -134,11 +134,11 @@ void main_platform_init(void)
     }
     
     /* Check fuses, depending on platform program them if incorrectly set */
-    #if IS_V1_PLAT_IN_RANGE_1_TO_6 || defined(V2_PLAT_V1_SETUP)
+#if IS_V1_PLAT_IN_RANGE_1_TO_6 || defined(V2_PLAT_V1_SETUP)
     fuses_ok = fuses_check_program(TRUE);
-    #else
+#else
     fuses_ok = fuses_check_program(FALSE);
-    #endif
+#endif
     while(fuses_ok != RETURN_OK);
     
 #ifndef EMULATOR_BUILD
@@ -247,7 +247,7 @@ void main_platform_init(void)
                 uint16_t battery_rescue_mode_counter = 0;
                 while(1)
                 {
-                    /* Switch off when disconnected form USB */
+                    /* Switch off when disconnected from USB */
                     if ((prev_usb_present_state != FALSE) && (platform_io_is_usb_3v3_present_raw() == FALSE))
                     {
                         logic_device_power_off();

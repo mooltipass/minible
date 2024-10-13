@@ -82,6 +82,7 @@ void platform_io_init_ports(void);
 
 /* Functions not available for the Mini BLE V2 */
 #ifndef MINIBLE_V2
+    #define platform_io_init_i2c_ports(...)
     void platform_io_transcienty_battery_oled_power_up(void);
     void platform_io_disable_usb_3v3_wakeup_interrupt(void);
     void platform_io_enable_usb_3v3_wakeup_interrupt(void);
@@ -107,6 +108,7 @@ void platform_io_init_ports(void);
     #define platform_io_disable_ble(...)
     #define platform_io_enable_ble(...)
     #define platform_io_scan_3v3(...)
+    void platform_io_init_i2c_ports(void);
 #endif
 
 #endif /* PLATFORM_IO_H_ */

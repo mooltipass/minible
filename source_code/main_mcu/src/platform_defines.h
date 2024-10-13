@@ -638,6 +638,7 @@ typedef struct
     #define ACC_MISO_PAD                MISO_PAD1
     #define ACC_APB_SERCOM_BIT          SERCOM4_
     #define ACC_SERCOM                  SERCOM4
+    #define I2C_SERCOM                  SERCOM1
 #endif
 
 /* DMA channel descriptors */
