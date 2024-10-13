@@ -57,8 +57,12 @@ void lis2dh12_send_command(accelerometer_descriptor_t* descriptor_pt, uint8_t* d
 */
 void lis2dh12_reset(accelerometer_descriptor_t* descriptor_pt)
 {
-    /* Reboot memory content, enable FIFO */
-    uint8_t rebootMemoryCommand[] = {0x24, 0xC0};
+    /* FIFO in bypass mode */
+    uint8_t bypassModeCommand[] = {0x2E, 0x00};
+    lis2dh12_send_command(descriptor_pt, bypassModeCommand, sizeof(bypassModeCommand));
+    
+    /* Reboot memory content, disable FIFO */
+    uint8_t rebootMemoryCommand[] = {0x24, 0x80};
     lis2dh12_send_command(descriptor_pt, rebootMemoryCommand, sizeof(rebootMemoryCommand));
 }
 
@@ -123,6 +127,10 @@ RET_TYPE lis2dh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     /* 400Hz output data rate, all axis enabled */
     uint8_t setDataRateCommand[] = {0x20, 0x77};
     lis2dh12_send_command(descriptor_pt, setDataRateCommand, sizeof(setDataRateCommand));
+    
+    /* Enable FIFO */
+    uint8_t enableFifoCommand[] = {0x24, 0x40};
+    lis2dh12_send_command(descriptor_pt, enableFifoCommand, sizeof(enableFifoCommand));
     
     /* FIFO in stream mode */
     uint8_t fifoStreamModeCommand[] = {0x2E, 0x40};

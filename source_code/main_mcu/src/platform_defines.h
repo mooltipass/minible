@@ -638,6 +638,8 @@ typedef struct
     #define ACC_MISO_PAD                MISO_PAD1
     #define ACC_APB_SERCOM_BIT          SERCOM4_
     #define ACC_SERCOM                  SERCOM4
+    #define I2C_GCLK_SERCOM_ID          GCLK_CLKCTRL_ID_SERCOM1_CORE_Val
+    #define I2C_APB_SERCOM_BIT          SERCOM1_
     #define I2C_SERCOM                  SERCOM1
 #endif
 
@@ -1381,6 +1383,28 @@ typedef struct
         #define AUX_MCU_NOCOMMS_PMUXREGID   PMUXO
     #else
         #define AUX_MCU_NOCOMMS_PMUXREGID   PMUXE
+    #endif
+#endif
+
+/* I²C pads */
+#if defined(V2_PLAT_V1_SETUP)
+    #define I2C_SCL_GROUP                   PIN_GROUP_0
+    #define I2C_SCL_PINID                   1
+    #define I2C_SCL_MASK                    (1UL << I2C_SCL_PINID)
+    #define I2C_SCL_PMUX_ID                 PORT_PMUX_PMUXO_D_Val
+    #if (I2C_SCL_PINID % 2) == 1
+        #define I2C_SCL_PMUXREGID           PMUXO
+    #else
+        #define I2C_SCL_PMUXREGID           PMUXE
+    #endif
+    #define I2C_SDA_GROUP                   PIN_GROUP_0
+    #define I2C_SDA_PINID                   0
+    #define I2C_SDA_MASK                    (1UL << I2C_SDA_PINID)
+    #define I2C_SDA_PMUX_ID                 PORT_PMUX_PMUXO_D_Val
+    #if (I2C_SDA_PINID % 2) == 1
+        #define I2C_SDA_PMUXREGID           PMUXO
+    #else
+        #define I2C_SDA_PMUXREGID           PMUXE
     #endif
 #endif
 

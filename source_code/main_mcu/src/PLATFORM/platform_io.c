@@ -26,6 +26,7 @@
 #include "logic_device.h"
 #include "driver_timer.h"
 #include "platform_io.h"
+#include "driver_i2c.h"
 /* OLED stepup-power source */
 oled_stepup_pwr_source_te platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
 /* Set when a conversion result is ready */
@@ -1087,7 +1088,14 @@ void platform_io_prepare_ports_for_sleep_exit(void)
 #ifdef MINIBLE_V2
 void platform_io_init_i2c_ports(void)
 {
-    
+    /* I²C bus */
+    PORT->Group[I2C_SCL_GROUP].PMUX[I2C_SCL_PINID/2].bit.I2C_SCL_PMUXREGID = I2C_SCL_PMUX_ID;
+    PORT->Group[I2C_SCL_GROUP].PINCFG[I2C_SCL_PINID].bit.PMUXEN = 1;
+    PORT->Group[I2C_SDA_GROUP].PMUX[I2C_SDA_PINID/2].bit.I2C_SDA_PMUXREGID = I2C_SDA_PMUX_ID;
+    PORT->Group[I2C_SDA_GROUP].PINCFG[I2C_SDA_PINID].bit.PMUXEN = 1;
+    PM->APBCMASK.bit.I2C_APB_SERCOM_BIT = 1;                                                            // Enable SERCOM APB Clock Enable
+    clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, I2C_GCLK_SERCOM_ID);                               // Map 48MHz to SERCOM unit
+    sercom_i2c_host_init(I2C_SERCOM, I2C_FAST_MODE);                                                    // Init driver
 }
 #endif
 
@@ -1095,7 +1103,6 @@ void platform_io_init_i2c_ports(void)
 /*        MINI BLE v1 only functions         */
 /*********************************************/
 #ifndef MINIBLE_V2
-
 /*! \fn     platform_io_scan_3v3(void)
 *   \brief  Scan 3v3 presence for debouncing purposes
 */
