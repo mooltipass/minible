@@ -25,14 +25,25 @@
 #include "driver_i2c.h"
 #include "mp2710.h" 
 
+
 /*! \fn     mp2710_init(void)
 *   \brief  Initialize the MP2710
 *   \return Initialization status
 */
 RET_TYPE mp2710_init(void)
 {
-    //if (sercom_i2c_host_write_byte_to_device(I2C_SERCOM, uint8_t addr_7b, uint8_t data) != RETURN_OK)
+    /* Try setting the battery discharge current limit to 200+200mA */
+    if (sercom_i2c_host_write_register_in_device(I2C_SERCOM, MP2710_ADDR, 0x0D, 0x01) != RETURN_OK)
     {
+        return RETURN_NOK;
+    }
+    
+    /* Check for written value */
+    if (sercom_i2c_read_register_from_device(I2C_SERCOM, MP2710_ADDR, 0x0D) != 0x01)
+    {
+        return RETURN_NOK;
     }
 }
+
+
 #endif

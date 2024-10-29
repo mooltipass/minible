@@ -281,7 +281,6 @@ uint8_t sercom_i2c_read_register_from_device(Sercom* sercom_pt, uint8_t addr_7b,
     sercom_pt->I2CM.DATA.reg = reg_addr;            // Send register address
     while(sercom_pt->I2CM.SYNCBUSY.bit.SYSOP);      // Wait for sync
     while(sercom_pt->I2CM.INTFLAG.bit.MB == 0);     // Wait for transmit   
-    sercom_pt->I2CM.CTRLB.bit.ACKACT = 1;           // Send NACK upon DATA read
 
     /* Check for bus errors */
     if (sercom_i2c_check_for_errors(sercom_pt) != RETURN_OK)
@@ -290,6 +289,7 @@ uint8_t sercom_i2c_read_register_from_device(Sercom* sercom_pt, uint8_t addr_7b,
     }
 
     sercom_pt->I2CM.ADDR.reg = (addr_7b << 1) | 1;  // Issue restart condition, put address on bus with read
+    sercom_pt->I2CM.CTRLB.bit.ACKACT = 1;           // Send NACK upon DATA read
     while(sercom_pt->I2CM.SYNCBUSY.bit.SYSOP);      // Wait for sync 
     timer_start_timer(TIMER_I2C_TIMEOUT, 2);        // Arm I2C timeout timer
     while (sercom_pt->I2CM.INTFLAG.bit.SB == 0)     // Wait for receive
@@ -299,9 +299,9 @@ uint8_t sercom_i2c_read_register_from_device(Sercom* sercom_pt, uint8_t addr_7b,
             return RETURN_NOK;
         }
     }
-    return_value = sercom_pt->I2CM.DATA.reg;        // Read return data
     sercom_pt->I2CM.CTRLB.bit.CMD = 0x03;           // Issue stop condition
     while(sercom_pt->I2CM.SYNCBUSY.bit.SYSOP);      // Wait for sync
+    return_value = sercom_pt->I2CM.DATA.reg;        // Read return data
 
     return return_value;
 }

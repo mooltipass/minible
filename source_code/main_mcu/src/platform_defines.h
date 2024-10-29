@@ -940,6 +940,12 @@ typedef struct
     #define MCU_AUX_RST_EN_MASK             (1UL << MCU_AUX_RST_EN_PINID)
 #endif
 
+#if defined(V2_PLAT_V1_SETUP)
+#define VBAT_MES_EN_GROUP                   PIN_GROUP_0
+#define VBAT_MES_EN_PINID                   28
+#define VBAT_MES_EN_MASK                    (1UL << VBAT_MES_EN_PINID)
+#endif
+
 /* OLED */
 #if IS_V1_PLAT_IN_RANGE_1_TO_2
     #define OLED_MOSI_GROUP                 PIN_GROUP_0

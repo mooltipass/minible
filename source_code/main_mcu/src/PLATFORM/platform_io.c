@@ -149,7 +149,7 @@ uint16_t platform_io_get_vbat_conversion_result(void)
 }
 
 /*! \fn     platform_io_get_vbat_conversion_result_and_trigger_conversion(void)
-*   \brief  [minible v1: fetch voled conversion result / minible v2: get vbat/2] and trigger new conversion
+*   \brief  [minible v1: fetch voled conversion result / minible v2: get vbat/2 with vddana/1.48 as reference] and trigger new conversion
 *   \return 12 bit conversion result
 */
 uint16_t platform_io_get_vbat_conversion_result_and_trigger_conversion(void)
@@ -201,7 +201,11 @@ void platform_io_init_bat_adc_measurements(void)
 {
     PM->APBCMASK.bit.ADC_ = 1;                                                                  // Enable ADC bus clock
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, GCLK_CLKCTRL_ID_ADC_Val);                  // Map 48MHz to ADC unit
+#ifndef MINIBLE_V2
     ADC->REFCTRL.reg = ADC_REFCTRL_REFSEL(ADC_REFCTRL_REFSEL_INTVCC1_Val);                      // Set VCC/2 as a reference
+#else
+    ADC->REFCTRL.reg = ADC_REFCTRL_REFSEL(ADC_REFCTRL_REFSEL_INTVCC0_Val);                      // Set VCC/1.48 as a reference
+#endif
     while ((ADC->STATUS.reg & ADC_STATUS_SYNCBUSY) != 0);                                       // Wait for sync
     ADC_CTRLB_Type temp_adc_ctrb_reg;                                                           // Temp register
     temp_adc_ctrb_reg.reg = 0;                                                                  // Set to 0
@@ -817,6 +821,8 @@ void platform_io_init_power_ports(void)
 #else
     PORT->Group[VOLED_EN_GROUP].DIRSET.reg = VOLED_EN_MASK;                                 // OLED HV enable
     PORT->Group[VOLED_EN_GROUP].OUTCLR.reg = VOLED_EN_MASK;                                 // OLED HV enable
+    PORT->Group[VBAT_MES_EN_GROUP].DIRSET.reg = VBAT_MES_EN_MASK;                           // VBAT Measurement
+    PORT->Group[VBAT_MES_EN_GROUP].OUTCLR.reg = VBAT_MES_EN_MASK;                           // VBAT Measurement
 #endif
 
     PORT->Group[OLED_nRESET_GROUP].DIRSET.reg = OLED_nRESET_MASK;                           // OLED nRESET, OUTPUT
@@ -1045,6 +1051,11 @@ void platform_io_init_ports(void)
 */
 void platform_io_prepare_ports_for_sleep(void)
 {        
+    /* Disable battery measurement */
+#ifdef MINIBLE_V2
+    platform_io_disable_vbat_measurement();
+#endif
+    
     /* Disable AUX comms ports */    
     platform_io_disable_aux_comms();
     
@@ -1066,6 +1077,11 @@ void platform_io_prepare_ports_for_sleep(void)
 */
 void platform_io_prepare_ports_for_sleep_exit(void)
 {
+    /* Enable battery measurement (mini ble v2 only as v1 uses other technique) */
+#ifdef MINIBLE_V2
+    platform_io_enable_vbat_measurement();
+#endif
+    
     /* Disable smartcard interrupt */
     platform_io_disable_smartcard_interrupt();
     
@@ -1080,12 +1096,30 @@ void platform_io_prepare_ports_for_sleep_exit(void)
     
     /* Enable AUX comms ports */
     platform_io_enable_aux_comms();
-}    
+}  
+
+/*! \fn     platform_io_enable_vbat_measurement(void)
+*   \brief  Enable vbat measurements
+*/
+void platform_io_enable_vbat_measurement(void)
+{
+#ifndef MINIBLE_V2
+    /* Mini BLE: enable Vbat to oled stepup */
+    PORT->Group[VOLED_1V2_EN_GROUP].OUTSET.reg = VOLED_1V2_EN_MASK;
+    platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_VBAT;
+#else
+    /* Mini BLE v2: enable SPST switch */
+    PORT->Group[VBAT_MES_EN_GROUP].OUTSET.reg = VBAT_MES_EN_MASK;
+#endif
+}  
 
 /*********************************************/
 /*        MINI BLE v2 only functions         */
 /*********************************************/
 #ifdef MINIBLE_V2
+/*! \fn     platform_io_init_i2c_ports(void)
+*   \brief  Enable port used for I²C
+*/
 void platform_io_init_i2c_ports(void)
 {
     /* I²C bus */
@@ -1097,6 +1131,15 @@ void platform_io_init_i2c_ports(void)
     clocks_map_gclk_to_peripheral_clock(GCLK_ID_48M, I2C_GCLK_SERCOM_ID);                               // Map 48MHz to SERCOM unit
     sercom_i2c_host_init(I2C_SERCOM, I2C_FAST_MODE);                                                    // Init driver
 }
+
+/*! \fn     platform_io_disable_vbat_measurement(void)
+*   \brief  Disable vbat measurements
+*/
+void platform_io_disable_vbat_measurement(void)
+{
+    /* Disable SPST switch */
+    PORT->Group[VBAT_MES_EN_GROUP].OUTCLR.reg = VBAT_MES_EN_MASK;
+}  
 #endif
 
 /*********************************************/
@@ -1158,15 +1201,6 @@ void platform_io_enable_usb_3v3_wakeup_interrupt(void)
     EIC->INTFLAG.reg = (1 << USB_3V3_EXTINT_NUM);                                                       // Clear interrupt just in case
     EIC->INTENSET.reg = (1 << USB_3V3_EXTINT_NUM);                                                      // Enable interrupt from ext pin
     EIC->WAKEUP.reg |= (1 << USB_3V3_EXTINT_NUM);
-}
-
-/*! \fn     platform_io_enable_vbat_to_oled_stepup(void)
-*   \brief  Enable Vbat to oled stepup
-*/
-void platform_io_enable_vbat_to_oled_stepup(void)
-{
-    PORT->Group[VOLED_1V2_EN_GROUP].OUTSET.reg = VOLED_1V2_EN_MASK; 
-    platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_VBAT;
 }
 
 /*! \fn     platform_io_disable_vbat_to_oled_stepup(void)

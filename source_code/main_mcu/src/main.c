@@ -108,7 +108,7 @@ void main_platform_init(void)
     
     /* Measure battery voltage */
     platform_io_init_bat_adc_measurements();                                // Initialize ADC measurements
-    platform_io_enable_vbat_to_oled_stepup();                               // Enable vbat to oled stepup
+    platform_io_enable_vbat_measurement();                                  // Enable vbat measurement
     platform_io_get_vbat_conversion_result_and_trigger_conversion();        // Start one measurement
     while(platform_io_is_vbat_conversion_result_ready() == FALSE);          // Do measurement even if we are USB powered, to leave exactly 180ms for platform boot
 
@@ -265,7 +265,7 @@ void main_platform_init(void)
                             /* PWM for 2 hours, doesn't get uglier than this */
                             for (uint32_t i = 0; i < 36000000UL; i++)
                             {
-                                platform_io_enable_vbat_to_oled_stepup();
+                                platform_io_enable_vbat_measurement();
                                 DELAYUS(100);
                                 platform_io_disable_vbat_to_oled_stepup();
                                 DELAYUS(100);

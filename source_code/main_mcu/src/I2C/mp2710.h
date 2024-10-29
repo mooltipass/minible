@@ -21,8 +21,11 @@
 */
 #include "platform_defines.h"
 
-#if !defined(MP2710_H_) && !defined(MINIBLE_V2)
+#if !defined(MP2710_H_) && defined(MINIBLE_V2)
 #define MP2710_H_
+
+/* Defines */
+#define MP2710_ADDR     0x08
 
 /* Prototypes */
 RET_TYPE mp2710_init(void);
