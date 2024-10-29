@@ -53,7 +53,7 @@ void platform_io_set_no_comms_as_wakeup_interrupt(void){}
 void platform_io_disable_vbat_to_oled_stepup(void){
     platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_NONE;
 }
-void platform_io_enable_vbat_to_oled_stepup(void){
+void platform_io_enable_vbat_measurement(void){
     platform_io_oled_stepup_power_source = OLED_STEPUP_SOURCE_VBAT;
 }
 void platform_io_disable_3v3_to_oled_stepup(void){

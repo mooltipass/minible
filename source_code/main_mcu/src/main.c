@@ -107,8 +107,8 @@ void main_platform_init(void)
     }
     
     /* Measure battery voltage */
-    platform_io_init_bat_adc_measurements();                                // Initialize ADC measurements
     platform_io_enable_vbat_measurement();                                  // Enable vbat measurement
+    platform_io_init_bat_adc_measurements();                                // Initialize ADC measurements
     platform_io_get_vbat_conversion_result_and_trigger_conversion();        // Start one measurement
     while(platform_io_is_vbat_conversion_result_ready() == FALSE);          // Do measurement even if we are USB powered, to leave exactly 180ms for platform boot
 
