@@ -32,6 +32,5 @@ void debug_accelerometer_display(void);
 void debug_debug_menu(void);
 
 
-
 #endif /* MINIBLE_V2 */
 #endif /* DEBUG_MINIBLE_V2_H_ */

@@ -25,12 +25,12 @@
 #define DEBUG_WRAPPER_H_
 #include "platform_defines.h"
 
-
 /* Function defines */
 #if defined(MINIBLE_V1)
     #include "debug_minible.h"
 #elif defined(MINIBLE_V2)
     #include "debug_minible_v2.h"
 #endif
+
 
 #endif /* DEBUG_WRAPPER_H_ */

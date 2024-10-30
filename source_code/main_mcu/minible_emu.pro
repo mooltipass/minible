@@ -103,7 +103,8 @@ SOURCES += src/EMU/lis2hh12.c \
     src/EMU/smartcard_lowlevel.c \
     src/TIMER/driver_timer.c \
     src/utils.c \
-    src/debug.c \
+    src/debug_minible.c \
+    src/debug_minible_v2.c \
     src/main.c \
     src/EMU/emu_aux_mcu.c \
     src/EMU/emulator.cpp \
