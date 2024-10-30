@@ -25,6 +25,7 @@
 #include "logic_bluetooth.h"
 #include "logic_security.h"
 #include "gui_dispatcher.h"
+#include "debug_wrapper.h"
 #include "driver_timer.h"
 #include "gui_carousel.h"
 #include "logic_device.h"
@@ -36,7 +37,6 @@
 #include "gui_menu.h"
 #include "text_ids.h"
 #include "inputs.h"
-#include "debug.h"
 #include "main.h"
 // Current screen
 gui_screen_te gui_dispatcher_current_screen = GUI_SCREEN_INVALID;

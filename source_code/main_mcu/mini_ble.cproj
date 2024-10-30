@@ -2026,10 +2026,19 @@
     <Compile Include="src\CRYPTO\monocypher-ed25519.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\debug.c">
+    <Compile Include="src\debug_minible.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\debug.h">
+    <Compile Include="src\debug_minible.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\debug_minible_v2.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\debug_minible_v2.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\debug_wrapper.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\DMA\dma.c">

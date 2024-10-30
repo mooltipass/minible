@@ -14,14 +14,14 @@
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-/*!  \file     debug.c
+/*!  \file     debug_minible.c
 *    \brief    Debug functions for our platform
 *    Created:  21/04/2018
 *    Author:   Mathieu Stephan
 */
 #include "platform_defines.h"
+#if defined(MINIBLE_V1) && defined(DEBUG_MENU_ENABLED)
 
-#ifdef DEBUG_MENU_ENABLED
 #include <string.h>
 #include <asf.h>
 #include "se_smartcard_wrapper.h"
@@ -32,6 +32,7 @@
 #include "gui_dispatcher.h"
 #include "logic_aux_mcu.h"
 #include "comms_aux_mcu.h"
+#include "debug_wrapper.h"
 #include "oled_wrapper.h"
 #include "logic_device.h"
 #include "driver_timer.h"
@@ -44,7 +45,6 @@
 #include "nodemgmt.h"
 #include "text_ids.h"
 #include "inputs.h"
-#include "debug.h"
 #include "main.h"
 #include "dma.h"
 #include "rng.h"

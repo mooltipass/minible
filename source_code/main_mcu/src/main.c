@@ -14,6 +14,7 @@
 #include "logic_aux_mcu.h"
 #include "driver_clocks.h"
 #include "comms_aux_mcu.h"
+#include "debug_wrapper.h"
 #include "oled_wrapper.h"
 #include "driver_timer.h"
 #include "logic_device.h"
@@ -28,10 +29,10 @@
 #include "text_ids.h"
 #include "nodemgmt.h"
 #include "dbflash.h"
+#include "mp2710.h"
 #include "inputs.h"
 #include "utils.h"
 #include "fuses.h"
-#include "debug.h"
 #include "main.h"
 #include "rng.h"
 #include "dma.h"
@@ -145,6 +146,7 @@ void main_platform_init(void)
     /* Check if debugger present */
     if (DSU->STATUSB.bit.DBGPRES != 0)
     {
+        /* Set boolean */
         debugger_present = TRUE;
         
         /* Debugger connected but we are not on a dev platform? */
@@ -225,6 +227,25 @@ void main_platform_init(void)
         oled_put_error_string(&plat_oled_descriptor, u"No Accelerometer");
         while(1);
     }
+    
+    /* Mini BLE v2 only initializations */
+#ifdef MINIBLE_V2
+    /* Li-ion controller initialization */
+    if (mp2710_init() != RETURN_OK)
+    {
+        oled_put_error_string(&plat_oled_descriptor, u"No MP2710");
+        while(1);
+    }
+    
+    /* Battery status check */
+    if (battery_voltage == UINT12_MAX)
+    {
+        oled_put_error_string(&plat_oled_descriptor, u"No battery");
+        while(1);
+    }
+    
+    debug_debug_menu();
+#endif
 
 #ifndef EMULATOR_BUILD    
     /* Is Aux MCU present? */

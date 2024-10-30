@@ -43,7 +43,27 @@ RET_TYPE mp2710_init(void)
     {
         return RETURN_NOK;
     }
+    
+    /* Return success */
+    return RETURN_OK;
 }
 
+/*! \fn     mp2710_get_operation_status_register(void)
+*   \brief  Get the MP2710 operation status register
+*   \return The status register
+*/
+uint8_t mp2710_get_operation_status_register(void)
+{
+    return sercom_i2c_read_register_from_device(I2C_SERCOM, MP2710_ADDR, 0x08);
+}
+
+/*! \fn     mp2710_get_operation_fault_register(void)
+*   \brief  Get the MP2710 operation fault register
+*   \return The status register
+*/
+uint8_t mp2710_get_operation_fault_register(void)
+{
+    return sercom_i2c_read_register_from_device(I2C_SERCOM, MP2710_ADDR, 0x09);
+}
 
 #endif

@@ -14,23 +14,24 @@
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-/*!  \file     mp2710.h
-*    \brief    Driver for the MP2710
-*    Created:  13/10/2024
+/*!  \file     debug_minible_v2.h
+*    \brief    Debug functions for our platform
+*    Created:  30/10/2024
 *    Author:   Mathieu Stephan
 */
+
+
+#ifndef DEBUG_MINIBLE_V2_H_
+#define DEBUG_MINIBLE_V2_H_
+
 #include "platform_defines.h"
-
-#if !defined(MP2710_H_) && defined(MINIBLE_V2)
-#define MP2710_H_
-
-/* Defines */
-#define MP2710_ADDR     0x08
+#ifdef MINIBLE_V2
 
 /* Prototypes */
-uint8_t mp2710_get_operation_status_register(void);
-uint8_t mp2710_get_operation_fault_register(void);
-RET_TYPE mp2710_init(void);
+void debug_accelerometer_display(void);
+void debug_debug_menu(void);
 
 
-#endif /* MP2710_H_ */
+
+#endif /* MINIBLE_V2 */
+#endif /* DEBUG_MINIBLE_V2_H_ */

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-/*!  \file     debug.h
+/*!  \file     debug_minible.h
 *    \brief    Debug functions for our platform
 *    Created:  21/04/2018
 *    Author:   Mathieu Stephan
@@ -23,6 +23,9 @@
 
 #ifndef DEBUG_H_
 #define DEBUG_H_
+
+#include "platform_defines.h"
+#ifdef MINIBLE_V1
 
 /* bitmap defines */
 #define TEST_PATTERN__BITMAP_ID     794
@@ -59,4 +62,5 @@ void debug_rf_dtm_rx(void);
     #define debug_smartcard_info(...)
 #endif
 
+#endif /* MINIBLE_V1 */
 #endif /* DEBUG_H_ */

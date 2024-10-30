@@ -65,6 +65,7 @@
 #define FALSE                   0
 #define TRUE                    (!FALSE)
 #define NULLPTR                 (void*)0
+#define UINT12_MAX              0x0FFF
 
 /* Debugging defines */
 #define DEBUG_STACK_TRACKING_COOKIE 0x5D

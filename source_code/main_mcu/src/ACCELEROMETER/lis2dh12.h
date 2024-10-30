@@ -69,5 +69,5 @@ void lis2dh12_dma_arm(accelerometer_descriptor_t* descriptor_pt);
 void lis2dh12_reset(accelerometer_descriptor_t* descriptor_pt);
 
 
-#endif /* MINIBLE_V2 */
+#endif /* MINIBLE_V1 */
 #endif /* LIS2HH12_H_ */

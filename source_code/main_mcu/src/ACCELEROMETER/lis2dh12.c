@@ -173,6 +173,7 @@ RET_TYPE lis2dh12_check_presence_and_configure(accelerometer_descriptor_t* descr
             /* Free timer */
             timer_deallocate_timer(temp_timer_id);
             
+            /* Return success */
             return RETURN_OK;
         }
         
