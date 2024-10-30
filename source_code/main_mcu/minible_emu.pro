@@ -26,6 +26,7 @@ INCLUDEPATH += src/EMU \
     src/GUI \
     src/NODEMGMT \
     src/RNG \
+    src/I2C \
     src/BearSSL/src \
     src/BearSSL/inc \
     src/CRYPTO
