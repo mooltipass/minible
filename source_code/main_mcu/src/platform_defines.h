@@ -323,6 +323,10 @@
  * => First Mini BLE v2 development board, 08/2024
  *
  */
+#ifdef EMULATOR_BUILD
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wexpansion-to-defined"
+#endif
  
  /* Features depending on the defined platform */
  #if defined(PLAT_V1_SETUP)
@@ -1417,6 +1421,11 @@ typedef struct
 #if defined(EMULATOR_BUILD)
     #undef FLASH_DMA_FETCHES
     #undef OLED_DMA_TRANSFER
+#endif
+
+
+#ifdef EMULATOR_BUILD
+#pragma GCC diagnostic pop
 #endif
 
 #endif /* PLATFORM_DEFINES_H_ */
