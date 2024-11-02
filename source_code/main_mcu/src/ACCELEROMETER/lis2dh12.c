@@ -57,6 +57,10 @@ void lis2dh12_send_command(accelerometer_descriptor_t* descriptor_pt, uint8_t* d
 */
 void lis2dh12_reset(accelerometer_descriptor_t* descriptor_pt)
 {
+    /* Power down */
+    uint8_t powerDownCommand[] = {0x20, 0x00};
+    lis2dh12_send_command(descriptor_pt, powerDownCommand, sizeof(powerDownCommand));
+    
     /* FIFO in bypass mode */
     uint8_t bypassModeCommand[] = {0x2E, 0x00};
     lis2dh12_send_command(descriptor_pt, bypassModeCommand, sizeof(bypassModeCommand));
@@ -124,16 +128,12 @@ RET_TYPE lis2dh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     /* Clear intflag */
     EVSYS->INTFLAG.reg = ((1 << descriptor_pt->evgen_sel) << 8) << (16*((descriptor_pt->evgen_sel)/8));
     
-    /* 400Hz output data rate, all axis enabled */
-    uint8_t setDataRateCommand[] = {0x20, 0x77};
-    lis2dh12_send_command(descriptor_pt, setDataRateCommand, sizeof(setDataRateCommand));
-    
     /* Enable FIFO */
     uint8_t enableFifoCommand[] = {0x24, 0x40};
     lis2dh12_send_command(descriptor_pt, enableFifoCommand, sizeof(enableFifoCommand));
     
     /* FIFO in stream mode */
-    uint8_t fifoStreamModeCommand[] = {0x2E, 0x40};
+    uint8_t fifoStreamModeCommand[] = {0x2E, 0x80};
     lis2dh12_send_command(descriptor_pt, fifoStreamModeCommand, sizeof(fifoStreamModeCommand));
     
     /* Set fifo overrun signal on INT1 */
@@ -143,6 +143,10 @@ RET_TYPE lis2dh12_check_presence_and_configure(accelerometer_descriptor_t* descr
     /* Output registers not updated until MSB&LSB read, little endian, 2g scale, high resolution mode, 4-wire interface */
     uint8_t disableI2cBlockCommand[] = {0x23, 0x88};
     lis2dh12_send_command(descriptor_pt, disableI2cBlockCommand, sizeof(disableI2cBlockCommand));
+    
+    /* 400Hz output data rate, all axis enabled */
+    uint8_t setDataRateCommand[] = {0x20, 0x77};
+    lis2dh12_send_command(descriptor_pt, setDataRateCommand, sizeof(setDataRateCommand));
     
     /* Store read command in descriptor */
     descriptor_pt->read_cmd = 0xE8;
