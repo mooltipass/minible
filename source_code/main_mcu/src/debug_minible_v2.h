@@ -28,7 +28,7 @@
 #ifdef MINIBLE_V2
 
 /* Prototypes */
-void debug_accelerometer_display(void);
+void debug_accelerometer_battery_display(void);
 void debug_debug_menu(void);
 
 

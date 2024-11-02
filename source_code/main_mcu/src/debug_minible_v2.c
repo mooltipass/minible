@@ -29,19 +29,30 @@
 #include "comms_aux_mcu.h"
 #include "oled_wrapper.h"
 #include "acc_wrapper.h"
+#include "platform_io.h"
+#include "mp2710.h"
 #include "inputs.h"
 #include "main.h"
 
 
-/*! \fn     debug_accelerometer_display(void)
-*   \brief  Accelerometer debug
+/*! \fn     debug_accelerometer_battery_display(void)
+*   \brief  Accelerometer & battery debug
 */
-void debug_accelerometer_display(void)
+void debug_accelerometer_battery_display(void)
 {
     /* Debug variables */
+    const char* ntc_fault_lut[] = {"No fault","NTC hot fault","NTC warm fault","NTC cool fault","NTC cooler fault","NTC cold fault"};
+    const char* charging_status_lut[] = {"Not charging","Pre-charge","CC charge","CV charge","Charging complete"};
+    const char* thermal_status_lut[] = {"No thermal regulation","In thermal regulation"};
+    const char* power_status_lut[] = {"Power failure","Power good"};
+    const char* ppm_status_lut[] = {"No PPM","In PPM"};
+    uint8_t mp2710_op_stat_reg = mp2710_get_operation_status_register();
+    uint8_t mp2710_op_fault_reg = mp2710_get_operation_fault_register();
     uint32_t last_stat_s = driver_timer_get_rtc_timestamp_uint32t();
     uint32_t acc_int_nb_interrupts_latched = 0;
     uint32_t acc_int_nb_interrupts = 0;
+    uint16_t bat_adc_result = 0;
+    uint32_t bat_result_mv = 0;
     
     while(TRUE)
     {
@@ -55,6 +66,14 @@ void debug_accelerometer_display(void)
             acc_int_nb_interrupts++;
         }
         
+        /* Battery measurement */
+        if (platform_io_is_vbat_conversion_result_ready() != FALSE)
+        {
+            /* Real ratio is 6600/6060.6 */
+            bat_adc_result = platform_io_get_vbat_conversion_result_and_trigger_conversion();
+            bat_result_mv = (((uint32_t)bat_adc_result)*71369)/65536;
+        }
+        
         /* Check for Accelerometer SERCOM buffer overflow */
         #ifndef EMULATOR_BUILD
         if (ACC_SERCOM->SPI.STATUS.bit.BUFOVF != 0)
@@ -66,13 +85,34 @@ void debug_accelerometer_display(void)
         /* Stats latched at second changes */
         if (driver_timer_get_rtc_timestamp_uint32t() != last_stat_s)
         {
+            mp2710_op_stat_reg = mp2710_get_operation_status_register();
+            mp2710_op_fault_reg = mp2710_get_operation_fault_register();
             acc_int_nb_interrupts_latched = acc_int_nb_interrupts;
             last_stat_s = driver_timer_get_rtc_timestamp_uint32t();
             acc_int_nb_interrupts = 0;
         }
         
         /* Accelerometer data */
-        oled_printf_xy(&plat_oled_descriptor, 0, 10, OLED_ALIGN_LEFT, TRUE, "ACC: %u X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_x, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_y, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_z);
+        oled_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "ACC: %uHz X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_x >> 6, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_y >> 6, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_z >> 6);
+        
+        /* Battery data */
+        oled_printf_xy(&plat_oled_descriptor, 0, 12, OLED_ALIGN_LEFT, TRUE, "Battery: %dlsb / %dmV", bat_adc_result, (uint16_t)bat_result_mv);
+        
+        /* mp2710 status */
+        oled_printf_xy(&plat_oled_descriptor, 0, 24, OLED_ALIGN_LEFT, TRUE, "%s / %s", charging_status_lut[(mp2710_op_stat_reg >> 3) & 0x07], ppm_status_lut[(mp2710_op_stat_reg >> 2) & 0x01]);
+        oled_printf_xy(&plat_oled_descriptor, 0, 36, OLED_ALIGN_LEFT, TRUE, "%s / %s", power_status_lut[(mp2710_op_stat_reg >> 1) & 0x01], thermal_status_lut[(mp2710_op_stat_reg >> 0) & 0x01]);
+        
+        /* mp2710 potential faults */
+        if (((mp2710_op_fault_reg >> 6) & 0x01) != 0)
+            oled_printf_xy(&plat_oled_descriptor, 0, 48, OLED_ALIGN_LEFT, TRUE, "Input Fault!");
+        if (((mp2710_op_fault_reg >> 5) & 0x01) != 0)
+            oled_printf_xy(&plat_oled_descriptor, 0, 48, OLED_ALIGN_LEFT, TRUE, "Thermal shutdown!");
+        if (((mp2710_op_fault_reg >> 4) & 0x01) != 0)
+            oled_printf_xy(&plat_oled_descriptor, 0, 48, OLED_ALIGN_LEFT, TRUE, "Battery OVP!");
+        if (((mp2710_op_fault_reg >> 3) & 0x01) != 0)
+            oled_printf_xy(&plat_oled_descriptor, 0, 48, OLED_ALIGN_LEFT, TRUE, "Safety timer expired!");
+        if (((mp2710_op_fault_reg >> 0) & 0x07) != 0)  
+            oled_printf_xy(&plat_oled_descriptor, 0, 36, OLED_ALIGN_LEFT, TRUE, "%s", ntc_fault_lut[(mp2710_op_fault_reg >> 0) & 0x07]);
         
         /* Flush frame buffer */        
         oled_flush_frame_buffer(&plat_oled_descriptor);
@@ -101,7 +141,7 @@ void debug_debug_menu(void)
     inputs_clear_detections();
     
     /* launch routine */
-    debug_accelerometer_display();
+    debug_accelerometer_battery_display();
     
     while(1)
     {
@@ -136,7 +176,7 @@ void debug_debug_menu(void)
             /* Print items */
             if (selected_item < 4)
             {
-                oled_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Accelerometer Debug", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Accelerometer / Battery Debug", TRUE);
                 
                 //oled_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Debug", TRUE);
                 oled_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main and Aux MCU Info", TRUE);
