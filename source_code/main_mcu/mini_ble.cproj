@@ -2128,6 +2128,12 @@
     <Compile Include="src\I2C\mp2710.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\I2C\pcf85263a.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\I2C\pcf85263a.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\INPUTS\inputs.c">
       <SubType>compile</SubType>
     </Compile>

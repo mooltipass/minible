@@ -30,6 +30,7 @@
 #include "oled_wrapper.h"
 #include "acc_wrapper.h"
 #include "platform_io.h"
+#include "pcf85263a.h"
 #include "mp2710.h"
 #include "inputs.h"
 #include "main.h"
@@ -45,10 +46,12 @@ void debug_accelerometer_battery_display(void)
     const char* charging_status_lut[] = {"Not charging","Pre-charge","CC charge","CV charge","Charging complete"};
     const char* thermal_status_lut[] = {"No thermal regulation","In thermal regulation"};
     const char* power_status_lut[] = {"Power failure","Power good"};
+    const char* wd_status_lut[] = {"WD normal","WD expired!"};
     const char* ppm_status_lut[] = {"No PPM","In PPM"};
     uint8_t mp2710_op_stat_reg = mp2710_get_operation_status_register();
     uint8_t mp2710_op_fault_reg = mp2710_get_operation_fault_register();
     uint32_t last_stat_s = driver_timer_get_rtc_timestamp_uint32t();
+    pcf85263a_time_structure_t current_time = {.days = 0};
     uint32_t acc_int_nb_interrupts_latched = 0;
     uint32_t acc_int_nb_interrupts = 0;
     uint16_t bat_adc_result = 0;
@@ -87,32 +90,36 @@ void debug_accelerometer_battery_display(void)
         {
             mp2710_op_stat_reg = mp2710_get_operation_status_register();
             mp2710_op_fault_reg = mp2710_get_operation_fault_register();
-            acc_int_nb_interrupts_latched = acc_int_nb_interrupts;
             last_stat_s = driver_timer_get_rtc_timestamp_uint32t();
+            acc_int_nb_interrupts_latched = acc_int_nb_interrupts;
+            pcf85263a_get_time(&current_time);
             acc_int_nb_interrupts = 0;
         }
         
+        /* Current time */
+        oled_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Time: %02d:%02d:%02d %d/%d/%d", current_time.hours, current_time.hours, current_time.seconds, current_time.days, current_time.months, current_time.years);
+        
         /* Accelerometer data */
-        oled_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "ACC: %uHz X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_x >> 6, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_y >> 6, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_z >> 6);
+        oled_printf_xy(&plat_oled_descriptor, 0, 12, OLED_ALIGN_LEFT, TRUE, "ACC: %uHz X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_x >> 6, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_y >> 6, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_z >> 6);
         
         /* Battery data */
-        oled_printf_xy(&plat_oled_descriptor, 0, 12, OLED_ALIGN_LEFT, TRUE, "Battery: %dlsb / %dmV", bat_adc_result, (uint16_t)bat_result_mv);
+        oled_printf_xy(&plat_oled_descriptor, 0, 24, OLED_ALIGN_LEFT, TRUE, "Battery: %dlsb / %dmV", bat_adc_result, (uint16_t)bat_result_mv);
         
         /* mp2710 status */
-        oled_printf_xy(&plat_oled_descriptor, 0, 24, OLED_ALIGN_LEFT, TRUE, "%s / %s", charging_status_lut[(mp2710_op_stat_reg >> 3) & 0x07], ppm_status_lut[(mp2710_op_stat_reg >> 2) & 0x01]);
-        oled_printf_xy(&plat_oled_descriptor, 0, 36, OLED_ALIGN_LEFT, TRUE, "%s / %s", power_status_lut[(mp2710_op_stat_reg >> 1) & 0x01], thermal_status_lut[(mp2710_op_stat_reg >> 0) & 0x01]);
+        oled_printf_xy(&plat_oled_descriptor, 0, 36, OLED_ALIGN_LEFT, TRUE, "%s / %s / %s", charging_status_lut[(mp2710_op_stat_reg >> 3) & 0x07], ppm_status_lut[(mp2710_op_stat_reg >> 2) & 0x01], wd_status_lut[(mp2710_op_stat_reg >> 7) & 0x01]);
+        oled_printf_xy(&plat_oled_descriptor, 0, 48, OLED_ALIGN_LEFT, TRUE, "%s / %s", power_status_lut[(mp2710_op_stat_reg >> 1) & 0x01], thermal_status_lut[(mp2710_op_stat_reg >> 0) & 0x01]);
         
         /* mp2710 potential faults */
         if (((mp2710_op_fault_reg >> 6) & 0x01) != 0)
-            oled_printf_xy(&plat_oled_descriptor, 0, 48, OLED_ALIGN_LEFT, TRUE, "Input Fault!");
+            oled_printf_xy(&plat_oled_descriptor, 0, 60, OLED_ALIGN_LEFT, TRUE, "Input Fault!");
         if (((mp2710_op_fault_reg >> 5) & 0x01) != 0)
-            oled_printf_xy(&plat_oled_descriptor, 0, 48, OLED_ALIGN_LEFT, TRUE, "Thermal shutdown!");
+            oled_printf_xy(&plat_oled_descriptor, 0, 60, OLED_ALIGN_LEFT, TRUE, "Thermal shutdown!");
         if (((mp2710_op_fault_reg >> 4) & 0x01) != 0)
-            oled_printf_xy(&plat_oled_descriptor, 0, 48, OLED_ALIGN_LEFT, TRUE, "Battery OVP!");
+            oled_printf_xy(&plat_oled_descriptor, 0, 60, OLED_ALIGN_LEFT, TRUE, "Battery OVP!");
         if (((mp2710_op_fault_reg >> 3) & 0x01) != 0)
-            oled_printf_xy(&plat_oled_descriptor, 0, 48, OLED_ALIGN_LEFT, TRUE, "Safety timer expired!");
+            oled_printf_xy(&plat_oled_descriptor, 0, 60, OLED_ALIGN_LEFT, TRUE, "Safety timer expired!");
         if (((mp2710_op_fault_reg >> 0) & 0x07) != 0)  
-            oled_printf_xy(&plat_oled_descriptor, 0, 36, OLED_ALIGN_LEFT, TRUE, "%s", ntc_fault_lut[(mp2710_op_fault_reg >> 0) & 0x07]);
+            oled_printf_xy(&plat_oled_descriptor, 0, 60, OLED_ALIGN_LEFT, TRUE, "%s", ntc_fault_lut[(mp2710_op_fault_reg >> 0) & 0x07]);
         
         /* Flush frame buffer */        
         oled_flush_frame_buffer(&plat_oled_descriptor);

@@ -26,6 +26,7 @@
 #include "custom_fs.h"
 #include "dataflash.h"
 #include "logic_gui.h"
+#include "pcf85263a.h"
 #include "text_ids.h"
 #include "nodemgmt.h"
 #include "dbflash.h"
@@ -234,6 +235,13 @@ void main_platform_init(void)
     if (mp2710_init() != RETURN_OK)
     {
         oled_put_error_string(&plat_oled_descriptor, u"No MP2710");
+        while(1);
+    }
+    
+    /* RTC initialization */
+    if (pcf85263a_init() != RETURN_OK)
+    {
+        oled_put_error_string(&plat_oled_descriptor, u"No PCF85263A");
         while(1);
     }
     

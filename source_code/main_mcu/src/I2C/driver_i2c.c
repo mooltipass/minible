@@ -249,12 +249,85 @@ RET_TYPE sercom_i2c_host_write_array_to_device(Sercom* sercom_pt, uint8_t addr_7
     return RETURN_OK;
 }
 
+/*! \fn     sercom_i2c_read_array_from_device(Sercom* sercom_pt, uint8_t addr_7b, uint8_t reg_addr, uint8_t* data, uint32_t data_length)
+*   \brief  Read an array starting at a register in a given I2C device
+*   \param  sercom_pt       Pointer to a sercom module
+*   \param  addr_7b         Device 7bits address
+*   \param  reg_addr        Register address start
+*   \param  data            Where to store the data
+*   \param  data_length     How many bytes to read
+*   \note   Call sercom_i2c_get_error_flag to check for errors
+*/
+void sercom_i2c_read_array_from_device(Sercom* sercom_pt, uint8_t addr_7b, uint8_t reg_addr, uint8_t* data, uint32_t data_length)
+{
+    /* Check for bus errors */
+    if (sercom_i2c_check_for_errors(sercom_pt) != RETURN_OK)
+    {
+        return 0x00;
+    }
+
+    sercom_pt->I2CM.ADDR.reg = (addr_7b << 1) | 0;  // Put address on bus
+    while(sercom_pt->I2CM.SYNCBUSY.bit.SYSOP);      // Wait for sync
+    while(sercom_pt->I2CM.INTFLAG.bit.MB == 0);     // Wait for transmit
+
+    /* Check for bus errors */
+    if (sercom_i2c_check_for_errors(sercom_pt) != RETURN_OK)
+    {
+        return 0x00;
+    }
+
+    sercom_pt->I2CM.DATA.reg = reg_addr;            // Send register address
+    while(sercom_pt->I2CM.SYNCBUSY.bit.SYSOP);      // Wait for sync
+    while(sercom_pt->I2CM.INTFLAG.bit.MB == 0);     // Wait for transmit
+
+    /* Check for bus errors */
+    if (sercom_i2c_check_for_errors(sercom_pt) != RETURN_OK)
+    {
+        return 0x00;
+    }
+
+    /* Issue restart condition, put address on bus with read */
+    sercom_pt->I2CM.ADDR.reg = (addr_7b << 1) | 1;
+    
+    while (data_length-- != 0)
+    {
+        if (data_length == 0)
+        {
+            /* Send NACK upon DATA read */
+            sercom_pt->I2CM.CTRLB.bit.ACKACT = 1;
+        } 
+        else
+        {
+            /* Send ACK upon DATA read */
+            sercom_pt->I2CM.CTRLB.bit.ACKACT = 0;
+        }
+        
+        while(sercom_pt->I2CM.SYNCBUSY.bit.SYSOP);      // Wait for sync
+        timer_start_timer(TIMER_I2C_TIMEOUT, 2);        // Arm I2C timeout timer
+        while (sercom_pt->I2CM.INTFLAG.bit.SB == 0)     // Wait for receive
+        {
+            if (timer_has_timer_expired(TIMER_I2C_TIMEOUT, TRUE) == TIMER_EXPIRED)
+            {
+                return RETURN_NOK;
+            }
+        }
+        
+        /* Last byte to read, issue stop condition */
+        if (data_length == 0)
+        {
+            sercom_pt->I2CM.CTRLB.bit.CMD = 0x03;
+        }
+        
+        while(sercom_pt->I2CM.SYNCBUSY.bit.SYSOP);      // Wait for sync
+        *data++ = sercom_pt->I2CM.DATA.reg;             // Read returned data        
+    } 
+}
+
 /*! \fn     sercom_i2c_read_register_from_device(Sercom* sercom_pt, uint8_t addr_7b, uint8_t reg_addr)
-*   \brief  Write a single byte to a register in a given I2C device
+*   \brief  Read a single byte from a register in a given I2C device
 *   \param  sercom_pt       Pointer to a sercom module
 *   \param  addr_7b         Device 7bits address
 *   \param  reg_addr        Register address
-*   \param  data_rcv        Pointer to where to store the received data
 *   \return The register contents
 *   \note   Call sercom_i2c_get_error_flag to check for errors
 */

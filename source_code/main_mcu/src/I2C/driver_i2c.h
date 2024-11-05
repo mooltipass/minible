@@ -31,6 +31,7 @@
 typedef enum {I2C_FAST_MODE = 0, I2C_FAST_MODEPLUS = 1, I2C_HS_MODE = 2} i2c_speed_mode_te;
 
 /* Prototypes */
+void sercom_i2c_read_array_from_device(Sercom* sercom_pt, uint8_t addr_7b, uint8_t reg_addr, uint8_t* data, uint32_t data_length);
 RET_TYPE sercom_i2c_host_write_array_to_device(Sercom* sercom_pt, uint8_t addr_7b, uint8_t* data, uint32_t data_length);
 RET_TYPE sercom_i2c_host_write_register_in_device(Sercom* sercom_pt, uint8_t addr_7b, uint8_t reg_addr, uint8_t data);
 uint8_t sercom_i2c_read_register_from_device(Sercom* sercom_pt, uint8_t addr_7b, uint8_t reg_addr);
