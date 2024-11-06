@@ -183,7 +183,7 @@ void debug_debug_menu(void)
             /* Print items */
             if (selected_item < 4)
             {
-                oled_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Accelerometer / Battery Debug", TRUE);
+                oled_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Accelerometer/RTC/Battery Debug", TRUE);
                 
                 //oled_put_string_xy(&plat_oled_descriptor, 10, 14, OLED_ALIGN_LEFT, u"Time / Accelerometer / Debug", TRUE);
                 oled_put_string_xy(&plat_oled_descriptor, 10, 24, OLED_ALIGN_LEFT, u"Main and Aux MCU Info", TRUE);
@@ -247,10 +247,10 @@ void debug_debug_menu(void)
         }
         else if (wheel_user_action == WHEEL_ACTION_SHORT_CLICK)
         {
-            //if (selected_item == 0)
-            //{
-            //    debug_debug_screen();
-            //}
+            if (selected_item == 0)
+            {
+                debug_accelerometer_battery_display();
+            }
             //else if (selected_item == 1)
             //{
             //    debug_mcu_and_aux_info();
