@@ -44,6 +44,9 @@ RET_TYPE pcf85263a_init(void)
         return RETURN_NOK;
     }
     
+    /* Control register: 24 hour mode, normal jitter mode, low drive, 7pF load capacitance */
+    sercom_i2c_host_write_register_in_device(I2C_SERCOM, PCF85263A_ADDR, 0x25, 0x04);
+    
     /* Return success */
     return RETURN_OK;
 }

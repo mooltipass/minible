@@ -97,7 +97,7 @@ void debug_accelerometer_battery_display(void)
         }
         
         /* Current time */
-        oled_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Time: %02d:%02d:%02d %d/%d/%d", current_time.hours, current_time.hours, current_time.seconds, current_time.days, current_time.months, current_time.years);
+        oled_printf_xy(&plat_oled_descriptor, 0, 0, OLED_ALIGN_LEFT, TRUE, "Time: %02d:%02d:%02d %d/%d/%d", current_time.hours, current_time.minutes, current_time.seconds, current_time.days, current_time.months, current_time.years);
         
         /* Accelerometer data */
         oled_printf_xy(&plat_oled_descriptor, 0, 12, OLED_ALIGN_LEFT, TRUE, "ACC: %uHz X: %i Y: %i Z: %i", acc_int_nb_interrupts_latched*32, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_x >> 6, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_y >> 6, plat_acc_descriptor.fifo_read.acc_data_array[0].acc_z >> 6);
