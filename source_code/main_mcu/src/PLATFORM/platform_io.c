@@ -141,6 +141,7 @@ BOOL platform_io_is_vbat_conversion_result_ready(void)
 /*! \fn     platform_io_get_vbat_conversion_result(void)
 *   \brief  Fetch voled conversion result
 *   \return 12 bit conversion result
+*   \note   For some unimportant reason for the mini ble v2, it is not possible measure less than 3.4V
 */
 uint16_t platform_io_get_vbat_conversion_result(void)
 {
@@ -151,6 +152,7 @@ uint16_t platform_io_get_vbat_conversion_result(void)
 /*! \fn     platform_io_get_vbat_conversion_result_and_trigger_conversion(void)
 *   \brief  [minible v1: fetch voled conversion result / minible v2: get vbat/2 with vddana/1.48 as reference] and trigger new conversion
 *   \return 12 bit conversion result
+*   \note   For some unimportant reason for the mini ble v2, it is not possible measure less than 3.4V
 */
 uint16_t platform_io_get_vbat_conversion_result_and_trigger_conversion(void)
 {
@@ -794,6 +796,7 @@ void platform_io_set_vin_as_adc_input(void)
     PORT->Group[VOLED_VIN_GROUP].PMUX[VOLED_VIN_PINID/2].bit.VOLED_VIN_PMUXREGID = VOLED_VIN_PMUX_ID;
 #elif defined(V2_PLAT_V1_SETUP)
     PORT->Group[VBAT_VIN_GROUP].DIRCLR.reg = VBAT_VIN_MASK;
+    PORT->Group[VBAT_VIN_GROUP].PINCFG[VBAT_VIN_PINID].bit.INEN = 0;
     PORT->Group[VBAT_VIN_GROUP].PINCFG[VBAT_VIN_PINID].bit.PULLEN = 0;
     PORT->Group[VBAT_VIN_GROUP].PINCFG[VBAT_VIN_PINID].bit.PMUXEN = 1;
     PORT->Group[VBAT_VIN_GROUP].PMUX[VBAT_VIN_PINID/2].bit.VBAT_VIN_PMUXREGID = VBAT_VIN_PMUX_ID;

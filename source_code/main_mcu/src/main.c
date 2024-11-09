@@ -125,14 +125,18 @@ void main_platform_init(void)
     /* If we're USB powered and measured voltage is too low, flag it (device switched off for months...) */
     if (platform_io_is_usb_3v3_present_raw() != FALSE)
     {
-        /* Real ratio is 3300 / 3188 */
-        battery_voltage = (battery_voltage*265) >> 8;
-        
-        /* Check for low voltage */
+        #ifndef MINIBLE_V2
+        /* Check for low voltage: real ratio is 3300 / 3188 */
+        if (((battery_voltage*265) >> 8) < BATTERY_ADC_OUT_CUTOUT)
+        {
+            low_battery_at_boot = TRUE;
+        }
+        #else
         if (battery_voltage < BATTERY_ADC_OUT_CUTOUT)
         {
             low_battery_at_boot = TRUE;
         }
+        #endif        
     }
     
     /* Check fuses, depending on platform program them if incorrectly set */
