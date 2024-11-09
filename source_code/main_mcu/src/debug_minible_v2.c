@@ -147,9 +147,6 @@ void debug_debug_menu(void)
     /* Clear previous detections */
     inputs_clear_detections();
     
-    /* launch routine */
-    debug_accelerometer_battery_display();
-    
     while(1)
     {
         /* Still deal with comms */

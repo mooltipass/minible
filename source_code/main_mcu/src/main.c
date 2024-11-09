@@ -250,13 +250,12 @@ void main_platform_init(void)
     }
     
     /* Battery status check */
-    if (battery_voltage == UINT12_MAX)
-    {
-        oled_put_error_string(&plat_oled_descriptor, u"No battery");
-        while(1);
-    }
+    //if (battery_voltage >= BATTERY_ADC_OVERVOLTAGE)
+    //{
+    //    oled_put_error_string(&plat_oled_descriptor, u"No battery");
+    //    while(1);
+    //}
     
-    debug_debug_menu();
 #endif
 
 #ifndef EMULATOR_BUILD    
@@ -287,6 +286,7 @@ void main_platform_init(void)
                         while(1);
                     }
                     
+                    #ifndef MINIBLE_V2
                     /* Battery rescue mode */
                     if (inputs_get_wheel_action(FALSE, FALSE) == WHEEL_ACTION_CLICK_UP)
                     {
@@ -307,6 +307,7 @@ void main_platform_init(void)
                             oled_put_error_string(&plat_oled_descriptor, u"Disconnect USB");
                         }
                     }
+                    #endif
                 }
             }                
         }

@@ -479,6 +479,7 @@ typedef struct
     #define BATTERY_ADC_EMGCY_CUTOUT    (2700)
     #define BATTERY_ADC_800MV_VALUE     (2056)
 #elif defined(V2_PLAT_V1_SETUP)
+    #define BATTERY_ADC_OVERVOLTAGE     (3949)
     #define BATTERY_ADC_100PCT_VOLTAGE  (3811)
     #define BATTERY_ADC_90PCT_VOLTAGE   (3737)
     #define BATTERY_ADC_80PCT_VOLTAGE   (3664)
