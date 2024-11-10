@@ -91,11 +91,11 @@ void platform_io_keep_power_on(void)
 }
 
 /*! \fn     platform_io_cutoff_power(void)
-*   \brief  Disable switch and 3v3 (die)
+*   \brief  Mini BLE v1: disable switch and 3v3, Mini BLE v2: de-assert power enable
 */
 void platform_io_cutoff_power(void)
 {
-#ifndef MINIBLE_V2_TO_TACKLE
+#ifndef MINIBLE_V2
     /* Charge capacitor: pull down for slow ramp down */
     PORT->Group[WHEEL_SW_GROUP].OUTCLR.reg = WHEEL_SW_MASK;
     DELAYMS_8M(10);
@@ -106,6 +106,9 @@ void platform_io_cutoff_power(void)
     
     /* Disable 3V3 stepup */
     PORT->Group[SWDET_EN_GROUP].OUTCLR.reg = SWDET_EN_MASK;
+#else
+    /* Disable power enable */
+    PORT->Group[PWR_EN_GROUP].OUTCLR.reg = PWR_EN_MASK;
 #endif
 }
 

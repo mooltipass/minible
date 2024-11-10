@@ -95,7 +95,8 @@ void main_platform_init(void)
     /* Check if fuses are correctly programmed (required to read flags), if so initialize our flag system, then finally check if we previously powered off due to low battery and still haven't charged since then */
     if ((fuses_check_program(FALSE) == RETURN_OK) && (custom_fs_settings_init() == CUSTOM_FS_INIT_OK) && (custom_fs_get_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID) != FALSE))
     {
-        /* Check if USB 3V3 is present and if so clear flag */
+        #ifndef MINIBLE_V2
+        /* Mini BLE v1: check if USB 3V3 is present and if so clear flag */
         if (platform_io_is_usb_3v3_present_raw() == FALSE)
         {
             platform_io_cutoff_power();
@@ -106,6 +107,11 @@ void main_platform_init(void)
             low_battery_at_boot = TRUE;
             custom_fs_set_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID, FALSE);
         }
+        #else
+        /* Mini BLE v2: disable the power on signal and see if we get switched off after the user releases the wheel (as the USB 5V keeps the LDO ON) */
+        platform_io_cutoff_power();
+        low_battery_at_boot = TRUE;
+        #endif
     }
     
     /* Measure battery voltage */
@@ -114,30 +120,34 @@ void main_platform_init(void)
     platform_io_get_vbat_conversion_result_and_trigger_conversion();        // Start one measurement
     while(platform_io_is_vbat_conversion_result_ready() == FALSE);          // Do measurement even if we are USB powered, to leave exactly 180ms for platform boot
 
-    /* Check if battery powered and under-voltage */
+    /* Fetch battery voltage measurement */
     uint32_t battery_voltage = platform_io_get_vbat_conversion_result_and_trigger_conversion();
+    
+    #ifndef MINIBLE_V2
+    /* Mini BLE v1: check if battery powered and under-voltage */
     if ((platform_io_is_usb_3v3_present_raw() == FALSE) && (battery_voltage < BATTERY_ADC_OUT_CUTOUT))
     {
         platform_io_cutoff_power();
         while(1);
     }
-    
-    /* If we're USB powered and measured voltage is too low, flag it (device switched off for months...) */
+
+    /* Mini BLE v1: if we're USB powered and measured voltage is too low, flag it (device switched off for months...) */
     if (platform_io_is_usb_3v3_present_raw() != FALSE)
     {
-        #ifndef MINIBLE_V2
         /* Check for low voltage: real ratio is 3300 / 3188 */
         if (((battery_voltage*265) >> 8) < BATTERY_ADC_OUT_CUTOUT)
         {
             low_battery_at_boot = TRUE;
-        }
-        #else
-        if (battery_voltage < BATTERY_ADC_OUT_CUTOUT)
-        {
-            low_battery_at_boot = TRUE;
-        }
-        #endif        
+        }      
     }
+    #else
+    /* Mini BLE v2: check voltage, if too low then disable the power on signal and see if we get switched off after the user releases the wheel (as the USB 5V keeps the LDO ON) */
+    if (battery_voltage < BATTERY_ADC_OUT_CUTOUT)
+    {
+        platform_io_cutoff_power();
+        low_battery_at_boot = TRUE;
+    }
+    #endif
     
     /* Check fuses, depending on platform program them if incorrectly set */
 #if IS_V1_PLAT_IN_RANGE_1_TO_6 || defined(V2_PLAT_V1_SETUP)
@@ -178,6 +188,17 @@ void main_platform_init(void)
             bundle_integrity_check_return = custom_fs_compute_and_check_external_bundle_crc32();
         }
     }
+
+    #ifdef MINIBLE_V2
+    /* If low battery at boot, now that some time has passed, wait for wheel to be released and see if we're still alive */
+    if (low_battery_at_boot != FALSE)
+    {
+        while (inputs_raw_is_wheel_released() == FALSE);
+        DELAYMS(13);
+        platform_io_keep_power_on();
+        custom_fs_set_device_flag_value(PWR_OFF_DUE_TO_BATTERY_FLG_ID, FALSE);
+    }
+    #endif
     
     /* DMA transfers inits, timebase, platform ios, enable comms */
     dma_init();
