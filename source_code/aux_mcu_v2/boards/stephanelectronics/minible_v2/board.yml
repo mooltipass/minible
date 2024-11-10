@@ -1,0 +1,5 @@
+board:
+  name: minible_v2
+  vendor: stephanelectronics
+  socs:
+  - name: nrf52833

@@ -1,0 +1,15 @@
+identifier: stephanelectronics/minible_v2
+name: MINIBLE_V2-NRF52833
+type: mcu
+arch: arm
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools
+supported:
+  - usb_device
+  - ble
+  - gpio
+  - watchdog
+  - counter
+vendor: stephanelectronics

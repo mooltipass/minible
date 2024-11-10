@@ -1,5 +1,6 @@
 source_code/aux_mcu/Debug/
 source_code/aux_mcu/Release/
+source_code/aux_mcu_v2/build/
 source_code/main_mcu/Debug/
 source_code/main_mcu/Debug_V5/
 source_code/main_mcu/Debug_V6/
