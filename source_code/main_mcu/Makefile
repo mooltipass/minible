@@ -214,7 +214,7 @@ C_FLAGS += -fdata-sections -ffunction-sections -mlong-calls -Wall -mcpu=cortex-m
 C_DEFINES := -D__SAMD21G18A__ -DBOARD=USER_BOARD -DARM_MATH_CM0PLUS=true -D__CORTEX_SC=0 -DBR_ARMEL_CORTEXM_GCC=1 -DBR_amd64=0 -DBR_BE_UNALIGNED=0 -DBR_CT_MUL15=0 -DBR_ENABLE_INTRINSICS=0 -DBR_CT_MUL31=0 -DBR_i386=0 -DBR_LE_UNALIGNED=0 -DBR_NO_ARITH_SHIFT=0 -DBR_POWER_ASM_MACROS=0 -D_ARCH_PWR8=0 -D_MSC_VER=0 -D_M_IX86=0 -D_M_X64=0 -D__clang__=0 -DBR_POWER8=0
 
 LINKER_SCRIPT_DEP +=  \
-src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld 
+src/ASF/sam0/utils/linker_scripts/samd21/gcc/samd21g18a_flash.ld
 
 OBJS := $(C_SRCS:.c=.o)
 OBJS :=  $(addprefix $(OUTPUT_DIR)/,$(OBJS))
