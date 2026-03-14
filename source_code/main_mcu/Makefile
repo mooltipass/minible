@@ -74,7 +74,8 @@ INC_DIRS := \
 -I"src/RNG" \
 -I"src/BearSSL/src" \
 -I"src/BearSSL/inc" \
--I"src/CRYPTO"
+-I"src/CRYPTO" \
+-I"src/I2C"
 
 LIB_DIRS := \
 -L"src/ASF/thirdparty/CMSIS/Lib/GCC" \
@@ -88,7 +89,6 @@ INC_DIRS +=
 endif
 
 C_SRCS +=  \
-src/ACCELEROMETER/lis2hh12.c \
 src/BearSSL/src/symcipher/aes_ct.c \
 src/BearSSL/src/symcipher/aes_ct_ctr.c \
 src/BearSSL/src/symcipher/aes_ct_ctrcbc.c \
@@ -126,7 +126,8 @@ src/CLOCKS/driver_clocks.c \
 src/COMMS/comms_aux_mcu.c \
 src/COMMS/comms_hid_msgs.c \
 src/COMMS/comms_hid_msgs_debug.c \
-src/debug.c \
+src/debug_minible.c \
+src/debug_minible_v2.c \
 src/DMA/dma.c \
 src/FILESYSTEM/custom_bitstream.c \
 src/FILESYSTEM/custom_fs.c \
@@ -152,7 +153,6 @@ src/LOGIC/logic_user.c \
 src/LOGIC/logic_accelerometer.c \
 src/NODEMGMT/nodemgmt.c \
 src/OLED/mooltipass_graphics_bundle.c \
-src/OLED/sh1122.c \
 src/PLATFORM/platform_io.c \
 src/RNG/rng.c \
 src/SECURITY/fuses.c \
@@ -174,15 +174,29 @@ src/ASF/sam0/utils/syscalls/gcc/syscalls.c \
 src/main.c \
 src/LOGIC/logic_fido2.c \
 src/CRYPTO/monocypher.c \
-src/CRYPTO/monocypher-ed25519.c
+src/CRYPTO/monocypher-ed25519.c \
+src/I2C/driver_i2c.c \
+src/I2C/mp2710.c \
+src/I2C/pcf85263a.c
+
 
 ifeq ($(PLATFORM),)
 	PLATFORM = PLAT_V7_SETUP
+	C_SRCS +=\
+	src/ACCELEROMETER/lis2hh12.c \
+	src/OLED/sh1122.c
+else ifeq ($(PLATFORM), V2_PLAT_V1_SETUP)
+	C_SRCS +=\
+		src/ACCELEROMETER/lis2dh12.c \
+		src/OLED/ssd1363.c
 endif
 
 TEXT_SEC_START = 0x2000
 ifeq ($(PLATFORM),PLAT_V7_SETUP)
 	TEXT_SEC_START = 0x8000
+else ifeq ($(PLATFORM), V2_PLAT_V1_SETUP)
+	# remove bootloader while dev this
+	TEXT_SEC_START = 0x0
 endif
 
 C_FLAGS := -mthumb

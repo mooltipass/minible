@@ -263,7 +263,7 @@ void sercom_i2c_read_array_from_device(Sercom* sercom_pt, uint8_t addr_7b, uint8
     /* Check for bus errors */
     if (sercom_i2c_check_for_errors(sercom_pt) != RETURN_OK)
     {
-        return 0x00;
+        return;
     }
 
     sercom_pt->I2CM.ADDR.reg = (addr_7b << 1) | 0;  // Put address on bus
@@ -273,7 +273,7 @@ void sercom_i2c_read_array_from_device(Sercom* sercom_pt, uint8_t addr_7b, uint8
     /* Check for bus errors */
     if (sercom_i2c_check_for_errors(sercom_pt) != RETURN_OK)
     {
-        return 0x00;
+        return;
     }
 
     sercom_pt->I2CM.DATA.reg = reg_addr;            // Send register address
@@ -283,7 +283,7 @@ void sercom_i2c_read_array_from_device(Sercom* sercom_pt, uint8_t addr_7b, uint8
     /* Check for bus errors */
     if (sercom_i2c_check_for_errors(sercom_pt) != RETURN_OK)
     {
-        return 0x00;
+        return;
     }
 
     /* Issue restart condition, put address on bus with read */
@@ -297,7 +297,7 @@ void sercom_i2c_read_array_from_device(Sercom* sercom_pt, uint8_t addr_7b, uint8
         {
             if (timer_has_timer_expired(TIMER_I2C_TIMEOUT, TRUE) == TIMER_EXPIRED)
             {
-                return RETURN_NOK;
+                return;
             }
         }
 
