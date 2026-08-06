@@ -18,6 +18,28 @@ def reverse_bit_order_in_byte_buffer(data):
 	for i in range(0, len(data)):
 		data[i] = int('{:08b}'.format(data[i])[::-1], 2)
 	return data
+
+def old_gen_decrypt(aes_key, nonce, cred_ctr, data):
+	# Decryption scheme of the original mooltipass mini, still used for credentials
+	# migrated to the mini BLE (firmware: logic_encryption_ctr_decrypt with old_gen_decrypt=TRUE).
+	# The CTR is XORed with the nonce and incremented twice every 32 bytes.
+	ctr3 = list(cred_ctr)
+	out = b""
+	for off in range(0, len(data), 32):
+		block = data[off:off+32]
+		iv = nonce[:]
+		iv[13] ^= ctr3[0]
+		iv[14] ^= ctr3[1]
+		iv[15] ^= ctr3[2]
+		ctr = Crypto.Util.Counter.new(128, initial_value=int.from_bytes(bytes(iv), byteorder='big', signed=False))
+		cipher = Crypto.Cipher.AES.new(bytes(aes_key), Crypto.Cipher.AES.MODE_CTR, counter=ctr)
+		out += cipher.decrypt(bytes(block))
+		for n in range(0, 2):
+			for i in range(2, -1, -1):
+				ctr3[i] = (ctr3[i] + 1) & 0xFF
+				if ctr3[i] != 0:
+					break
+	return out
 	
 def verify_security_code(pin_code):
 	# Verify Security code
@@ -221,36 +243,60 @@ try:
 						node_data_len = len(decrypted_backup_file[6][j]["data"])
 						for k in range(0, node_data_len):
 							node_data.append(decrypted_backup_file[6][j]["data"][str(k)])
-						
+
+						# Follow ptedPwdChildAddress link (offset 6): if set, ctr & password must be
+						# taken from the pointed child (shared password feature, firmware: nodemgmt.c).
+						# Unset is 0xFFFF, nodes migrated from the original mini may have 0x0000.
+						pwd_node_data = node_data
+						if node_data_len != 132:
+							seen_addresses = []
+							while pwd_node_data[6:8] != [0xFF, 0xFF] and pwd_node_data[6:8] != [0x00, 0x00]:
+								pted_addr = pwd_node_data[6:8]
+								if pted_addr in seen_addresses:
+									break
+								seen_addresses.append(pted_addr)
+								pted_child = None
+								for pc in decrypted_backup_file[6]:
+									if pc["address"][0] == pted_addr[0] and pc["address"][1] == pted_addr[1]:
+										pted_child = pc
+										break
+								if pted_child is None or len(pted_child["data"]) == 132:
+									break
+								pwd_node_data = []
+								for k in range(0, len(pted_child["data"])):
+									pwd_node_data.append(pted_child["data"][str(k)])
+
 						# decrypt data
-						iv = nonce[:]
 						if node_data_len == 132:
-							iv[13] ^= node_data[34]
-							iv[14] ^= node_data[35]
-							iv[15] ^= node_data[36]
-						else:
-							remainder = 0
-							for i in range(0, 3):
-								tempsum = iv[15-i] + node_data[269-i] + remainder
-								iv[15-i] = tempsum & 0x0FF
-								remainder = int(tempsum/256) 
-							iv[12] += remainder
-						#print "CTR value:", ''.join('{:02x}'.format(x) for x in node_data[34:37])
-						#print "IV value:", ''.join('{:02x}'.format(x) for x in iv)
-						ctr = Crypto.Util.Counter.new(128, initial_value=int.from_bytes(iv, byteorder='big', signed=False))	
-						cipher = Crypto.Cipher.AES.new(bytes(aes_key), Crypto.Cipher.AES.MODE_CTR, counter=ctr)
-						if node_data_len == 132:
-							password = cipher.decrypt(bytes(node_data[100:132]))
+							password = old_gen_decrypt(aes_key, nonce, node_data[34:37], node_data[100:132])
 							decoded_password = password.decode('raw_unicode_escape').split("\x00")[0]
 						else:
-							password = cipher.decrypt(bytes(node_data[270:398]))
-							decoded_password = ""
-							for i in range(0, int(len(password)/2)):
-								code_point = password[i*2] + password[i*2+1]*256
-								if code_point == 0:
-									break
-								else:
-									decoded_password += chr(code_point)
+							# PREVGEN bit (0x0010) in the 16bit flags: password still encrypted with the
+							# original mini scheme. Firmware ORs the bit from the linked child (nodemgmt.c)
+							flags = (node_data[0] | (node_data[1] << 8)) | (pwd_node_data[0] | (pwd_node_data[1] << 8))
+							if flags & 0x0010:
+								password = old_gen_decrypt(aes_key, nonce, pwd_node_data[267:270], pwd_node_data[270:398])
+								decoded_password = password.decode('raw_unicode_escape').split("\x00")[0]
+							else:
+								iv = nonce[:]
+								remainder = 0
+								for i in range(0, 3):
+									tempsum = iv[15-i] + pwd_node_data[269-i] + remainder
+									iv[15-i] = tempsum & 0x0FF
+									remainder = int(tempsum/256)
+								# note: firmware discards the carry beyond the 3 ctr bytes
+								#print "CTR value:", ''.join('{:02x}'.format(x) for x in pwd_node_data[267:270])
+								#print "IV value:", ''.join('{:02x}'.format(x) for x in iv)
+								ctr = Crypto.Util.Counter.new(128, initial_value=int.from_bytes(bytes(iv), byteorder='big', signed=False))
+								cipher = Crypto.Cipher.AES.new(bytes(aes_key), Crypto.Cipher.AES.MODE_CTR, counter=ctr)
+								password = cipher.decrypt(bytes(pwd_node_data[270:398]))
+								decoded_password = ""
+								for i in range(0, int(len(password)/2)):
+									code_point = password[i*2] + password[i*2+1]*256
+									if code_point == 0:
+										break
+									else:
+										decoded_password += chr(code_point)
 						
 						# print data
 						try:
