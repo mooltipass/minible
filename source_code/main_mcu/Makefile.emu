@@ -181,7 +181,7 @@ OBJS := $(C_SRCS:%.c=$(OUTPUT_DIR)/%.o) $(CPP_SRCS:%.cpp=$(OUTPUT_DIR)/%.o) $(MO
 
 C_DEPS := $(OBJS:%.o=%.d)
 
-TARGET := build/minible
+TARGET := $(OUTPUT_DIR)/minible
 
 # All Target
 all: $(TARGET)
