@@ -50,7 +50,8 @@ INC_DIRS := \
 -I"src/RNG" \
 -I"src/BearSSL/src" \
 -I"src/BearSSL/inc" \
--I"src/CRYPTO"
+-I"src/CRYPTO"\
+-I"src/I2C"
 
 LIB_DIRS := 
 
@@ -141,7 +142,7 @@ src/EMU/smartcard_lowlevel.c \
 src/TIMER/driver_timer.c \
 src/utils.c \
 src/main.c \
-src/debug.c \
+src/debug_minible.c \
 src/EMU/emu_aux_mcu.c 
 
 CPP_SRCS = \
