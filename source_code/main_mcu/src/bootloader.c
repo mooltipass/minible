@@ -37,7 +37,13 @@
 #include "main.h"
 #include "dma.h"
 /* Our oled & dataflash & dbflash descriptors */
-sh1122_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigger_id = OLED_DMA_SERCOM_TX_TRIG, .sh1122_cs_pin_group = OLED_nCS_GROUP, .sh1122_cs_pin_mask = OLED_nCS_MASK, .sh1122_cd_pin_group = OLED_CD_GROUP, .sh1122_cd_pin_mask = OLED_CD_MASK};
+oled_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM,
+                                          .dma_trigger_id =
+                                              OLED_DMA_SERCOM_TX_TRIG,
+                                          .cs_pin_group = OLED_nCS_GROUP,
+                                          .cs_pin_mask = OLED_nCS_MASK,
+                                          .cd_pin_group = OLED_CD_GROUP,
+                                          .cd_pin_mask = OLED_CD_MASK};
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 /* Pointer to the platform unique data, stored at the last page of our bootloader */
@@ -103,7 +109,7 @@ static void brick_main_mcu_disp_error_switch_off(BOOL disp_error)
         DELAYMS(5000);
     }
     #endif
-    platform_io_disable_switch_and_die();
+    platform_io_cutoff_power();
     while(1);    
 }
 
@@ -182,7 +188,7 @@ int main(void)
 #endif
     
     /* Enable switch and 3V3 stepup, set no comms signal, leave some time for stepup powerup */
-    platform_io_enable_switch();
+    platform_io_keep_power_on();
     platform_io_init_no_comms_signal();
     DELAYMS_8M(100);
     
@@ -195,7 +201,7 @@ int main(void)
     /* Initialize our settings system: should not returned failed as fuses are programmed for rwee */
     if (custom_fs_settings_init() != CUSTOM_FS_INIT_OK)
     {
-        platform_io_disable_switch_and_die();
+        platform_io_cutoff_power();
         while(1);
     }
     
