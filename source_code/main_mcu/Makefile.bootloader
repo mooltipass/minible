@@ -74,7 +74,8 @@ INC_DIRS := \
 -I"src/RNG" \
 -I"src/BearSSL/src" \
 -I"src/BearSSL/inc" \
--I"src/CRYPTO"
+-I"src/CRYPTO"\
+-I"src/I2C"
 
 LIB_DIRS := \
 -L"src/ASF/thirdparty/CMSIS/Lib/GCC" \
@@ -126,7 +127,7 @@ src/CLOCKS/driver_clocks.c \
 src/COMMS/comms_aux_mcu.c \
 src/COMMS/comms_hid_msgs.c \
 src/COMMS/comms_hid_msgs_debug.c \
-src/debug.c \
+src/debug_minible.c \
 src/DMA/dma.c \
 src/FILESYSTEM/custom_bitstream.c \
 src/FILESYSTEM/custom_fs.c \
@@ -174,7 +175,10 @@ src/ASF/sam0/utils/syscalls/gcc/syscalls.c \
 src/bootloader.c \
 src/LOGIC/logic_fido2.c \
 src/CRYPTO/monocypher.c \
-src/CRYPTO/monocypher-ed25519.c
+src/CRYPTO/monocypher-ed25519.c\
+  src/I2C/driver_i2c.c\
+  src/I2C/mp2710.c\
+  src/I2C/pcf85263a.c
 
 ifeq ($(PLATFORM),)
 	PLATFORM = PLAT_V7_SETUP
