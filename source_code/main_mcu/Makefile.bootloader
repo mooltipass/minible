@@ -176,9 +176,9 @@ src/bootloader.c \
 src/LOGIC/logic_fido2.c \
 src/CRYPTO/monocypher.c \
 src/CRYPTO/monocypher-ed25519.c\
-  src/I2C/driver_i2c.c\
-  src/I2C/mp2710.c\
-  src/I2C/pcf85263a.c
+src/I2C/driver_i2c.c\
+src/I2C/mp2710.c\
+src/I2C/pcf85263a.c
 
 ifeq ($(PLATFORM),)
 	PLATFORM = PLAT_V7_SETUP
