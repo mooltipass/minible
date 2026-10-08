@@ -37,13 +37,7 @@
 #include "main.h"
 #include "dma.h"
 /* Our oled & dataflash & dbflash descriptors */
-oled_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM,
-                                          .dma_trigger_id =
-                                              OLED_DMA_SERCOM_TX_TRIG,
-                                          .cs_pin_group = OLED_nCS_GROUP,
-                                          .cs_pin_mask = OLED_nCS_MASK,
-                                          .cd_pin_group = OLED_CD_GROUP,
-                                          .cd_pin_mask = OLED_CD_MASK};
+oled_descriptor_t plat_oled_descriptor = {.sercom_pt = OLED_SERCOM, .dma_trigger_id = OLED_DMA_SERCOM_TX_TRIG, .cs_pin_group = OLED_nCS_GROUP, .cs_pin_mask = OLED_nCS_MASK, .cd_pin_group = OLED_CD_GROUP, .cd_pin_mask = OLED_CD_MASK};
 spi_flash_descriptor_t dataflash_descriptor = {.sercom_pt = DATAFLASH_SERCOM, .cs_pin_group = DATAFLASH_nCS_GROUP, .cs_pin_mask = DATAFLASH_nCS_MASK};
 spi_flash_descriptor_t dbflash_descriptor = {.sercom_pt = DBFLASH_SERCOM, .cs_pin_group = DBFLASH_nCS_GROUP, .cs_pin_mask = DBFLASH_nCS_MASK};
 /* Pointer to the platform unique data, stored at the last page of our bootloader */
