@@ -132,8 +132,6 @@ add_executable(${TARGET} ${SRC})
 set_target_properties(${TARGET} PROPERTIES C_STANDARD 99)
 target_include_directories(${TARGET} PRIVATE ${INC_DIR})
 
-# add_subdirectory(${CMAKE_SOURCE_DIR}/src/tinycbor)
-# target_compile_definitions(tinycbor PRIVATE __int64_t_defined)
 set(CBOR_SRC
   src/tinycbor/src/cborerrorstrings.c
   src/tinycbor/src/cborencoder.c
@@ -159,9 +157,9 @@ target_link_options(${TARGET} PRIVATE
   -Wl,-section-start=.relocate=0x20000004
   -Wl,-section-start=.bootloader_flag=0x20000000
 )
-target_compile_definitions(${TARGET} PRIVATE
+target_compile_definitions(${TARGET} PUBLIC
   PLAT_V7_SETUP
-  DEBUG
+  $<IF:$<CONFIG:Debug>,DEBUG,NDEBUG DEBUG_LOG_DISABLED>
   __SAMD21E18A__
   ENABLE_POWER_SAVEXX
   SLEEP_WALKING_ENABLED=false
@@ -187,3 +185,4 @@ target_compile_definitions(${TARGET} PRIVATE
   HID_GATT_SERVER
   BATTERY_SERVICE
 )
+
