@@ -7,50 +7,10 @@ project(aux_mcu LANGUAGES C ASM)
 set(TARGET aux_mcu.elf)
 
 include(cmake/tinycbor.cmake)
+add_subdirectory(src/ports/minibleV1)
 
 set(INC_DIR
   src
-  src/ASF/thirdparty/wireless/ble_sdk/ble_profiles/hid_device
-  src/ASF/thirdparty/wireless/ble_sdk/ble_services/hid
-  src/ASF/thirdparty/wireless/ble_sdk/ble_services/ble_mgr
-  src/ASF/thirdparty/wireless/ble_sdk/ble_services/battery
-  src/ASF/thirdparty/wireless/ble_sdk/inc
-  src/ASF/thirdparty/wireless/ble_sdk/services/serial/uart
-  src/ASF/sam0/drivers/sercom/usart
-  src/ASF/sam0/utils
-  src/ASF/sam0/utils/header_files
-  src/ASF/sam0/utils/preprocessor
-  src/ASF/thirdparty/CMSIS/Include
-  src/ASF/thirdparty/CMSIS/Lib/GCC
-  src/ASF/common/utils
-  src/ASF/sam0/utils/cmsis/samd21/include
-  src/ASF/sam0/utils/cmsis/samd21/source
-  src/ASF/sam0/drivers/sercom
-  src/ASF/sam0/drivers/system
-  src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1
-  src/ASF/sam0/drivers/system/clock
-  src/ASF/sam0/drivers/system/interrupt
-  src/ASF/sam0/drivers/system/interrupt/system_interrupt_samd21
-  src/ASF/sam0/drivers/system/pinmux
-  src/ASF/sam0/drivers/system/power
-  src/ASF/sam0/drivers/system/power/power_sam_d_r_h
-  src/ASF/sam0/drivers/system/reset
-  src/ASF/sam0/drivers/system/reset/reset_sam_d_r_h
-  src/ASF/common2/services/delay
-  src/ASF/common2/services/delay/sam0
-  src/ASF/sam0/drivers/extint
-  src/ASF/thirdparty/wireless/ble_sdk/services/serial_fifo
-  src/ASF/thirdparty/wireless/ble_sdk/utils
-  src/ASF/thirdparty/wireless/ble_sdk/services/console
-  src/ASF/sam0/utils/stdio/stdio_serial
-  src/ASF/common/services/serial
-  src/ASF/thirdparty/wireless/ble_sdk/services/timer
-  src/ASF/sam0/drivers/tc
-  src/ASF/sam0/drivers/port
-  src/ASF/thirdparty/wireless/ble_sdk/ble_services/device_infomation
-  src/ASF/sam0/boards/samd21_xplained_pro
-  src/ASF/sam0/boards
-  src/ASF/common/boards
   src/config
   src/CLOCKS
   src/COMMS
@@ -62,13 +22,10 @@ set(INC_DIR
   src/USB
   src/fido2
   # LIBS
-  src/ASF/thirdparty/wireless/ble_sdk/lib/cm0p/gcc
-  src/ASF/thirdparty/CMSIS/Lib/GCC
 )
 
 
 set(SRC
-  src/ASF/thirdparty/wireless/ble_sdk/ble_services/battery/battery.c
   src/CLOCKS/driver_clocks.c
   src/COMMS/comms_hid_msgs.c
   src/COMMS/comms_main_mcu.c
@@ -92,47 +49,14 @@ set(SRC
   src/fido2/ctap.c
   src/fido2/solo_compat_layer.c
   src/fido2/ctap_parse.c
-  src/ASF/common2/services/delay/sam0/systick_counter.c
-  src/ASF/common/utils/interrupt/interrupt_sam_nvic.c
-  src/ASF/sam0/boards/samd21_xplained_pro/board_init.c
-  src/ASF/sam0/drivers/extint/extint_callback.c
-  src/ASF/sam0/drivers/extint/extint_sam_d_r_h/extint.c
-  src/ASF/sam0/drivers/port/port.c
-  src/ASF/sam0/drivers/sercom/sercom.c
-  src/ASF/sam0/drivers/sercom/sercom_interrupt.c
-  src/ASF/sam0/drivers/sercom/usart/usart.c
-  src/ASF/sam0/drivers/sercom/usart/usart_interrupt.c
-  src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1/clock.c
-  src/ASF/sam0/drivers/system/clock/clock_samd21_r21_da_ha1/gclk.c
-  src/ASF/sam0/drivers/system/interrupt/system_interrupt.c
-  src/ASF/sam0/drivers/system/pinmux/pinmux.c
-  src/ASF/sam0/drivers/system/system.c
-  src/ASF/sam0/drivers/tc/tc_interrupt.c
-  src/ASF/sam0/drivers/tc/tc_sam_d_r_h/tc.c
-  src/ASF/sam0/utils/cmsis/samd21/source/gcc/startup_samd21.c
-  src/ASF/sam0/utils/cmsis/samd21/source/system_samd21.c
-  src/ASF/sam0/utils/stdio/read.c
-  src/ASF/sam0/utils/stdio/write.c
-  src/ASF/sam0/utils/syscalls/gcc/syscalls.c
-  src/ASF/thirdparty/wireless/ble_sdk/ble_services/ble_mgr/ble_manager.c
-  src/ASF/thirdparty/wireless/ble_sdk/ble_services/device_infomation/device_info.c
-  src/ASF/thirdparty/wireless/ble_sdk/services/console/sam0/console_serial.c
-  src/ASF/thirdparty/wireless/ble_sdk/services/serial/uart/sam0/serial_drv.c
-  src/ASF/thirdparty/wireless/ble_sdk/services/serial_fifo/serial_fifo.c
-  src/ASF/thirdparty/wireless/ble_sdk/services/timer/sam0/timer_hw.c
-  src/ASF/thirdparty/wireless/ble_sdk/src/platform.c
 )
-
-set(WITH_FREESTANDING ON)
-set(BUILD_SHARED_LIBS OFF)
 
 add_executable(${TARGET} ${SRC})
 set_target_properties(${TARGET} PROPERTIES C_STANDARD 99)
 target_include_directories(${TARGET} PRIVATE ${INC_DIR})
 
-
 target_link_libraries(${TARGET} PRIVATE
-  ${CMAKE_SOURCE_DIR}/src/ASF/thirdparty/wireless/ble_sdk/lib/cm0p/gcc/libble_sdk.a
+  minibleV1
   tinycbor
 )
 target_link_options(${TARGET} PRIVATE
@@ -147,7 +71,6 @@ target_link_options(${TARGET} PRIVATE
 target_compile_definitions(${TARGET} PUBLIC
   PLAT_V7_SETUP
   $<IF:$<CONFIG:Debug>,DEBUG,NDEBUG DEBUG_LOG_DISABLED>
-  __SAMD21E18A__
   ENABLE_POWER_SAVEXX
   SLEEP_WALKING_ENABLED=false
   HOST_SLEEP_ENABLE=true
