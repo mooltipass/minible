@@ -6,6 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 project(aux_mcu LANGUAGES C ASM)
 set(TARGET aux_mcu.elf)
 
+include(cmake/tinycbor.cmake)
 
 set(INC_DIR
   src
@@ -60,12 +61,9 @@ set(INC_DIR
   src/TIMER
   src/USB
   src/fido2
-  src/tinycbor/src
   # LIBS
   src/ASF/thirdparty/wireless/ble_sdk/lib/cm0p/gcc
   src/ASF/thirdparty/CMSIS/Lib/GCC
-  # src/tinycbor/lib
-  # src/tinycbor/src
 )
 
 
@@ -132,17 +130,6 @@ add_executable(${TARGET} ${SRC})
 set_target_properties(${TARGET} PROPERTIES C_STANDARD 99)
 target_include_directories(${TARGET} PRIVATE ${INC_DIR})
 
-set(CBOR_SRC
-  src/tinycbor/src/cborerrorstrings.c
-  src/tinycbor/src/cborencoder.c
-  src/tinycbor/src/cborencoder_close_container_checked.c
-  src/tinycbor/src/cborencoder_float.c
-  src/tinycbor/src/cborparser.c
-  src/tinycbor/src/cborparser_float.c
-  src/tinycbor/src/cborpretty.c
-)
-add_library(tinycbor STATIC ${CBOR_SRC})
-target_include_directories(tinycbor PUBLIC src/tinycbor/src)
 
 target_link_libraries(${TARGET} PRIVATE
   ${CMAKE_SOURCE_DIR}/src/ASF/thirdparty/wireless/ble_sdk/lib/cm0p/gcc/libble_sdk.a
