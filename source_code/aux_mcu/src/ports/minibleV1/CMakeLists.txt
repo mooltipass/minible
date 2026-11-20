@@ -3,6 +3,8 @@
 # Manage SAMD files
 
 set(V1_SRC
+  debug.c
+  PLATFORM/platform_io.c
   ASF/thirdparty/wireless/ble_sdk/ble_services/battery/battery.c
   ASF/common2/services/delay/sam0/systick_counter.c
   ASF/common/utils/interrupt/interrupt_sam_nvic.c
@@ -36,6 +38,9 @@ set(V1_SRC
 )
 
 set(V1_INC
+  .
+  PLATFORM
+  config
   ASF/thirdparty/wireless/ble_sdk/ble_profiles/hid_device
   ASF/thirdparty/wireless/ble_sdk/ble_services/hid
   ASF/thirdparty/wireless/ble_sdk/ble_services/ble_mgr
@@ -79,7 +84,6 @@ set(V1_INC
   ASF/common/boards
   ASF/thirdparty/wireless/ble_sdk/lib/cm0p/gcc
   ASF/thirdparty/CMSIS/Lib/GCC
-  .
 )
 
 add_library(minibleV1 ${V1_SRC})
