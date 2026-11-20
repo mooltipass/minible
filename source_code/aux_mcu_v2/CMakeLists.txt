@@ -15,9 +15,12 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 include(cmake/tinycbor.cmake)
 
-target_include_directories(app PRIVATE src)
+target_include_directories(app PUBLIC
+  src
+)
 target_compile_definitions(app PUBLIC __ASSERT_ON=1)
 target_sources(app PRIVATE
   src/main.c
 )
 target_link_libraries(app PUBLIC tinycbor)
+add_subdirectory(src/ports)
