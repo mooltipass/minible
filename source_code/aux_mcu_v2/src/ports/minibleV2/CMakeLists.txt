@@ -5,4 +5,5 @@
 
 target_sources(app PRIVATE
   hw.c
+  timer.c
 )
