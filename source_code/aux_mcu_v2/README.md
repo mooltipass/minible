@@ -2,6 +2,19 @@
 
 miniBLE V2 port for aux mcu. This port is base on next hardware dev board and use an NRF52833 mcu to replace SAMD and BLE chip.
 
+## Project structure
+
+The main goal of this code is to port application code aux_mcu to this new hw
+config but also trying to improve/clarify boundary between hw dedicated code and
+pur app one. The main benefit of this is to simplify integration/management of
+future hw evolution.
+
+My proposition is:
+
+ - keeping `LOGIC`, `COMM` and `fido2` folders as pur application code.
+ - Describe necessary hw interface in `src/drivers` folder
+ - Implementing hw interface in `src/ports/minibleV2` folder (for this v2)
+
 ## Zephyr config
 
  - zephyr sdk version: 1.0.1
