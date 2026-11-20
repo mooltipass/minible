@@ -9,6 +9,7 @@
 #include <stdbool.h>
 
 #include "drivers/hw.h"
+#include "drivers/timer.h"
 
 /* macros ******************************************************************* */
 /* constants **************************************************************** */
@@ -22,6 +23,7 @@
 
 void main(void){
   hw_init();
+  timer_init();
 
   while(true){}
   __builtin_unreachable();
