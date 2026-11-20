@@ -28,8 +28,8 @@ My proposition is:
  - set environnement variables:
   + `ZEPHYR_BASE=path/to/zephyr/dir`
   + `ZEPHYR_TOOLCHAIN_VARIANT=path/to/sdk`
- - run `cmake -B build -DWITH_FREESTANDING=true` and `cmake --build build` freestanding is used by tinycbor
- - to flash run 
+ - run `cmake -B build -GNinja -DWITH_FREESTANDING=true` and `cmake --build build` freestanding is used by tinycbor
+ - to flash run ???
 
 ## Todo
 
