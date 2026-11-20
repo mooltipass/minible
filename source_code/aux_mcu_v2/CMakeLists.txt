@@ -7,8 +7,6 @@ set(CONFIG_FILE "prj.conf")
 add_compile_options("-D__STDC_WANT_LIB_EXT1__=1")
 
 set(BOARD "minible_v2")
-# message(WARNING "${PROJECT_SOURCE_DIR}")
-# message(WARNING "${CMAKE_CURRENT_SOURCE_DIR}")
 list(APPEND BOARD_ROOT ${PROJECT_SOURCE_DIR})
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
@@ -18,6 +16,7 @@ include(cmake/tinycbor.cmake)
 target_include_directories(app PUBLIC
   src
 )
+target_compile_options(app PUBLIC -Wno-main)
 target_compile_definitions(app PUBLIC __ASSERT_ON=1)
 target_sources(app PRIVATE
   src/main.c
