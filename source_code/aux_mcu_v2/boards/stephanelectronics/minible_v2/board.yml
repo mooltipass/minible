@@ -1,5 +1,6 @@
 board:
   name: minible_v2
+  full_name: minible V2 aux mcu
   vendor: stephanelectronics
   socs:
-  - name: nrf52833
+    - name: nrf52833

@@ -2,7 +2,8 @@
 
 if BOARD_MINIBLE_V2
 
-config BT_CTLR
-	default BT
+config BT_CTRL
+	string "BT"
+	default "BT"
 
 endif # BOARD_MINIBLE_V2

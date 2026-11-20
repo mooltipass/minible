@@ -20,13 +20,43 @@
 	leds {
 		compatible = "gpio-leds";
 		led0: led_0 {
-			gpios = <&gpio0 5 GPIO_ACTIVE_HIGH>;
-			label = "debug pin";
+			gpios = <&gpio0 10 GPIO_ACTIVE_HIGH>;
+			label = "P10";
 		};
+		led1: led_1 {
+			gpios = <&gpio0 9 GPIO_ACTIVE_HIGH>;
+			label = "P09";
+		};
+	};
+	hid_raw: hid_raw {
+		compatible = "zephyr,hid-device";
+		label = "Raw HID";
+		protocol-code = "none";
+		in-report-size = <64>;
+		in-polling-period-us = <1000>;
+		out-report-size = <64>;
+		out-polling-period-us = <1000>;
+	};
+	hid_keyboard: hid_keyboard {
+		compatible = "zephyr,hid-device";
+		label = "Keyboard HID";
+		protocol-code = "keyboard";
+		in-report-size = <8>;
+		in-polling-period-us = <1000>;
+	};
+	hid_ctap: hid_ctap{
+		compatible = "zephyr,hid-device";
+		label = "CTAP HID";
+		protocol-code = "none";
+		in-report-size = <64>;
+		in-polling-period-us = <5000>;
+		out-report-size = <64>;
+		out-polling-period-us = <5000>;
 	};
 
 	aliases {
 		led0 = &led0;
+		led1 = &led1;
 	};
 };
 
@@ -48,6 +78,7 @@
 
 &uart0 {
 	compatible = "nordic,nrf-uart";
+	label = "debug";
 	status = "okay";
 	current-speed = <115200>;
 	pinctrl-0 = <&uart0_default>;
@@ -57,8 +88,10 @@
 
 &uart1 {
 	compatible = "nordic,nrf-uarte";
+	label = "main_mcu";
 	status = "okay";
-	current-speed = <115200>;
+	current-speed = <1000000>;
+	//hw-flow-control;
 	pinctrl-0 = <&uart1_default>;
 	pinctrl-1 = <&uart1_sleep>;
 	pinctrl-names = "default", "sleep";
