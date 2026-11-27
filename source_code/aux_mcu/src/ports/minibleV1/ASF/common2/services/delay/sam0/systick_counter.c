@@ -34,6 +34,9 @@
  * Support and FAQ: visit <a href="https://www.microchip.com/support/">Microchip Support</a>
  */
 
+#include <stdint.h>
+#include "clock.h"
+#include "systick_counter.h"
 #include "delay.h"
 
 /**

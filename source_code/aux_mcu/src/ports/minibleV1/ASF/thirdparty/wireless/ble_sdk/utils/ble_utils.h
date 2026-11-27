@@ -38,8 +38,6 @@
 #define __BLE_UTILS_H__
 
 #include <asf.h>
-#include "comms_raw_hid.h"
-#include "platform_io.h"
 
 /* Supported BLE Modules */
 #define BTLC1000_MR		0x00
@@ -106,29 +104,17 @@
 	#define DBG_LOG_DEV(...)			//ALL_UNUSED
 	#define DBG_LOG_CONT_DEV(...)	    //ALL_UNUSED
 	#define DBG_LOG_PTS(...)			//ALL_UNUSED
-    #define DBG_LOG_LOGIC_BT_AD(...)    //ALL_UNUSED
+  #define DBG_LOG_LOGIC_BT_AD(...)    //ALL_UNUSED
 #else
-    #ifndef USB_PRINTF
-        #define DBG_LOG_CONT	    platform_io_uart_debug_printf
-        #define DBG_LOG		        platform_io_uart_debug_printf
-        #define DBG_LOG_ADV	        platform_io_uart_debug_printf
-	    #define DBG_LOG_DEV			platform_io_uart_debug_printf
-	    #define DBG_LOG_CONT_DEV	platform_io_uart_debug_printf
-	    #define DBG_LOG_LOGIC_BT_AD platform_io_uart_debug_printf
-        //#define ENABLE_PTS
-	    //#define DBG_LOG_PTS			DBG_LOG
-	    #define DBG_LOG_PTS			ALL_UNUSED
-    #else
-        #define DBG_LOG_CONT	    comms_usb_debug_printf
-        #define DBG_LOG		        comms_usb_debug_printf
-        #define DBG_LOG_ADV	        comms_usb_debug_printf
-	    #define DBG_LOG_DEV			comms_usb_debug_printf
-	    #define DBG_LOG_CONT_DEV	comms_usb_debug_printf
-	    #define DBG_LOG_LOGIC_BT_AD comms_usb_debug_printf
-        //#define ENABLE_PTS
-	    //#define DBG_LOG_PTS			DBG_LOG
-	    #define DBG_LOG_PTS			ALL_UNUSED
-    #endif
+  #define DBG_LOG_CONT	    ble_utils_printf
+  #define DBG_LOG		        ble_utils_printf
+  #define DBG_LOG_ADV	        ble_utils_printf
+  #define DBG_LOG_DEV			ble_utils_printf
+  #define DBG_LOG_CONT_DEV	ble_utils_printf
+  #define DBG_LOG_LOGIC_BT_AD ble_utils_printf
+  //#define ENABLE_PTS
+  //#define DBG_LOG_PTS			DBG_LOG
+  #define DBG_LOG_PTS			ALL_UNUSED
 #endif
 
 
@@ -142,6 +128,8 @@
 												IEEE754_MANTISA(f_val))
 												
 #define NIBBLE2ASCII(nibble) (((nibble < 0x0A) ? (nibble + '0') : (nibble + 0x57)))
+
+void (*ble_utils_printf)(const char *fmt, ...);
 
 static inline void dump_hex_buffer(void *buf, uint32_t len)
 {
